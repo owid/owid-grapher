@@ -5,7 +5,7 @@ import {
     Url,
 } from "@ourworldindata/utils"
 import { useLinkedChart, useLinkedDocument } from "../utils.js"
-import { Thumbnail } from "./ProminentLink.js"
+import { Thumbnail } from "./Thumbnail.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons"
 

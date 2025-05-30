@@ -1062,11 +1062,12 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
         })
     }
 
+    const parseErrors: ParseError[] = []
+
     const parsedLinks: EnrichedRecircLink[] = []
-    const linkErrors: ParseError[] = []
     for (const link of raw.value.links) {
         if (!link.url) {
-            linkErrors.push({
+            parseErrors.push({
                 message: "Recirc link missing url property",
             })
             continue
@@ -1081,7 +1082,7 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
             })
         } else {
             if (!link.title) {
-                linkErrors.push({
+                parseErrors.push({
                     message: "External URLs must have a title",
                     isWarning: true,
                 })
@@ -1096,13 +1097,28 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
         }
     }
 
-    const alignmentErrors: ParseError[] = []
+    const linkTypeCounts = R.countBy(parsedLinks, (link) => {
+        const url = Url.fromURL(link.url)
+        if (url.isGoogleDoc || url.isGrapher || url.isExplorer) {
+            return "internal"
+        } else {
+            return "external"
+        }
+    })
+
+    if (linkTypeCounts.internal && linkTypeCounts.external) {
+        parseErrors.push({
+            message:
+                "Internal (gdoc/grapher/explorer) and external links (URLs) can't be used together. Please use a separate recirc for each type",
+        })
+    }
+
     if (
         raw.value.align &&
         !validateRawEnum(recircAlignments, raw.value.align)
     ) {
-        alignmentErrors.push({
-            message: `If specified, recirc position must one of ${recircAlignments.join(", ")}`,
+        parseErrors.push({
+            message: `If specified, recirc position must be one of ${recircAlignments.join(", ")}`,
         })
     }
 
@@ -1113,7 +1129,7 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
         title: raw.value.title,
         links: parsedLinks,
         align,
-        parseErrors: [...linkErrors, ...alignmentErrors],
+        parseErrors,
     }
 }
 

@@ -52,6 +52,7 @@ import {
     RawBlockCode,
     RawBlockCookieNotice,
     RawBlockExpander,
+    EnrichedRecircLink,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -288,12 +289,16 @@ export function enrichedBlockToRawBlock(
                     title: b.title,
                     align: b.align,
                     links: b.links.map((link): RawRecircLink => {
-                        return pickBy(
-                            link,
-                            (value, key) =>
-                                !!value &&
-                                ["title", "subtitle", "url"].includes(key)
-                        )
+                        return pickBy(link, (value, key) => {
+                            const keys: Array<keyof EnrichedRecircLink> = [
+                                "title",
+                                "subtitle",
+                                "url",
+                            ] as const
+                            // These keys are optional, so we only want to serialize
+                            // them if they're actually there
+                            return !!value && keys.includes(key)
+                        })
                     }),
                 },
             })
