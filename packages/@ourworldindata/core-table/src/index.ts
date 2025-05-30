@@ -6,6 +6,7 @@ export {
     SynthesizeFruitTable,
     SynthesizeFruitTableWithNonPositives,
     SynthesizeFruitTableWithStringValues,
+    SynthesizeProjectedPopulationTable,
 } from "./OwidTableSynthesizers.js"
 
 export {
