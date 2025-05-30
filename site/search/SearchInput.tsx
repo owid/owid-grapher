@@ -5,6 +5,8 @@ import {
     createFocusInputOnClickHandler,
     isCurrentMutableRef,
     useSearchAutocomplete,
+    getSearchAutocompleteId,
+    getSearchAutocompleteItemId,
 } from "./searchUtils.js"
 
 export const SearchInput = forwardRef(
@@ -44,6 +46,10 @@ export const SearchInput = forwardRef(
                 ? "Search data, topics, or keywords…"
                 : "Search for an indicator, a topic, or a keyword…"
         }
+
+        // Generate unique IDs for ARIA relationships using utility functions
+        const autocompleteId = getSearchAutocompleteId()
+        const activeOptionId = getSearchAutocompleteItemId(activeIndex)
 
         const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
             // Handle backspace on empty input to remove last filter
@@ -93,6 +99,7 @@ export const SearchInput = forwardRef(
         return (
             <form
                 className="search-form"
+                role="search"
                 onSubmit={(e) => {
                     e.preventDefault()
                     // unfocus input to hide autocomplete/hide mobile keyboard
@@ -112,6 +119,11 @@ export const SearchInput = forwardRef(
                         placeholder={placeholder}
                         enterKeyHint="search"
                         value={value}
+                        role="combobox"
+                        aria-expanded={showSuggestions}
+                        aria-controls={autocompleteId}
+                        aria-activedescendant={activeOptionId}
+                        aria-autocomplete="list"
                         onChange={(e) => {
                             setLocalQuery(e.target.value)
                             if (e.target.value === "") {

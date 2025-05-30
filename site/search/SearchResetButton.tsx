@@ -12,7 +12,7 @@ export const SearchResetButton = ({
         <button
             className="search-reset-button"
             disabled={disabled}
-            aria-label="Reset search"
+            aria-label="Clear search query and all filters"
             type="button"
             onClick={onReset}
         >
