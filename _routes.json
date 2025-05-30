@@ -1,5 +1,11 @@
 {
     "version": 1,
-    "include": ["/grapher/*", "/deleted/*", "/donation/*", "/explorers/*"],
+    "include": [
+        "/grapher/*",
+        "/deleted/*",
+        "/donation/*",
+        "/explorers/*",
+        "/multi-dim/*"
+    ],
     "exclude": ["/grapher/_grapherRedirects.json"]
 }
