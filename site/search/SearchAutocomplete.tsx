@@ -5,6 +5,8 @@ import {
     getAutocompleteSuggestionsWithUnmatchedQuery,
     useSearchAutocomplete,
     createQueryFilter,
+    getSearchAutocompleteId,
+    getSearchAutocompleteItemId,
 } from "./searchUtils.js"
 import { SearchAutocompleteItemContents } from "./SearchAutocompleteItemContents.js"
 import { Filter, FilterType } from "./searchTypes.js"
@@ -129,7 +131,7 @@ export const SearchAutocomplete = ({
 
     return (
         <div className="search-autocomplete-container">
-            <ul role="listbox">
+            <ul id={getSearchAutocompleteId()} role="listbox">
                 {suggestions.map((filter, index) => (
                     <li
                         key={filter.name}
@@ -141,7 +143,7 @@ export const SearchAutocomplete = ({
                         aria-selected={index === activeIndex}
                     >
                         <button
-                            id={`autocomplete-item-${index}`}
+                            id={getSearchAutocompleteItemId(index)}
                             type="button"
                             className={cx("search-autocomplete-button", {
                                 "search-autocomplete-button--active":

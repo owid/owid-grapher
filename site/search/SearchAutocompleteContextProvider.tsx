@@ -7,7 +7,7 @@ export function SearchAutocompleteContextProvider({
 }: {
     children: ReactNode
 }) {
-    const [activeIndex, setActiveIndex] = useState<number>(0)
+    const [activeIndex, setActiveIndex] = useState<number>(-1)
     const [suggestions, setSuggestions] = useState<Filter[]>([])
     const [showSuggestions, setShowSuggestions] = useState<boolean>(false)
     const selectionHandlerRef = useRef<
