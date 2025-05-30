@@ -1,11 +1,13 @@
 import { Region, commafyNumber } from "@ourworldindata/utils"
 import { ChartHit } from "./ChartHit.js"
 import { DataCatalogPagination } from "./DataCatalogPagination.js"
-import { analytics } from "./searchUtils.js"
 import { SearchNoResults } from "./SearchNoResults.js"
 import { DataCatalogResultsSkeleton } from "./DataCatalogResultsSkeleton.js"
 import { DataCatalogSearchResult } from "./searchTypes.js"
 import { TopicsRefinementList } from "./TopicsRefinementList.js"
+import { SiteAnalytics } from "../SiteAnalytics.js"
+
+const analytics = new SiteAnalytics()
 
 export const DataCatalogResults = ({
     selectedCountries,
