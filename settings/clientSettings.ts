@@ -79,17 +79,6 @@ export const GDOCS_DATA_INSIGHT_DUPLICATION_TEMPLATE_ID: string =
 export const GDOCS_DATA_INSIGHT_API_TEMPLATE_ID: string =
     process.env.GDOCS_DATA_INSIGHT_API_TEMPLATE_ID ?? ""
 
-export const IMAGE_HOSTING_R2_CDN_URL: string =
-    process.env.IMAGE_HOSTING_R2_CDN_URL || ""
-// e.g. owid-image-hosting-staging/development
-export const IMAGE_HOSTING_R2_BUCKET_PATH: string =
-    process.env.IMAGE_HOSTING_R2_BUCKET_PATH || ""
-// e.g. development
-export const IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH: string =
-    IMAGE_HOSTING_R2_BUCKET_PATH.slice(
-        IMAGE_HOSTING_R2_BUCKET_PATH.indexOf("/") + 1
-    )
-
 // Link to production wizard.  You need Tailscale to access it in production.
 export const ETL_WIZARD_URL: string =
     process.env.ETL_WIZARD_URL ?? `http://${ADMIN_SERVER_HOST}:8053`
@@ -97,10 +86,6 @@ export const ETL_WIZARD_URL: string =
 // Production ETL API runs on http://etl-prod-2:8083/v1 (you need Tailscale to access it)
 export const ETL_API_URL: string =
     process.env.ETL_API_URL ?? `http://${ADMIN_SERVER_HOST}:8081/api/v1`
-
-// TODO: remove this once https://github.com/owid/owid-grapher/pull/4852 is merged
-export const GDOCS_DETAILS_ON_DEMAND_ID: string =
-    process.env.GDOCS_DETAILS_ON_DEMAND_ID ?? ""
 
 export const PUBLISHED_AT_FORMAT = "ddd, MMM D, YYYY HH:mm"
 
