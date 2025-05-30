@@ -107,6 +107,23 @@
     }
 }
 
+@mixin text-block-override {
+    .article-block__text,
+    .article-block__list,
+    .article-block__html,
+    .article-block__numbered-list {
+        @content;
+    }
+}
+
+@mixin table-block-override {
+    .article-block__table--narrow,
+    .article-block__table--wide,
+    .raw-html-table__container {
+        @content;
+    }
+}
+
 @mixin sticky-child {
     top: 24px;
     position: sticky;

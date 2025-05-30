@@ -208,6 +208,14 @@ export function enumerateGdocComponentsWithoutChildren(
                     path
                 )
             )
+            .with({ type: "expander" }, (expander) =>
+                handleComponent(
+                    expander,
+                    [{ prop: "content", iterator: iterateArrayProp }],
+                    parentPath,
+                    path
+                )
+            )
             .with({ type: "key-insights" }, (keyInsights) =>
                 handleComponent(
                     keyInsights,

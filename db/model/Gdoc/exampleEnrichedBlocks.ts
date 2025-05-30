@@ -361,6 +361,14 @@ export const enrichedBlockExamples: Record<
         items: [enrichedBlockText],
         parseErrors: [],
     },
+    expander: {
+        type: "expander",
+        title: "Expander title",
+        heading: "Additional information",
+        subtitle: "Click here to expand",
+        content: [enrichedBlockText],
+        parseErrors: [],
+    },
     "topic-page-intro": {
         type: "topic-page-intro",
         downloadButton: {

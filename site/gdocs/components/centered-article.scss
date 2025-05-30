@@ -836,9 +836,7 @@ p.article-block__text + #article-licence {
     }
 }
 
-div.article-block__table--narrow,
-div.article-block__table--wide,
-div.raw-html-table__container {
+@include table-block-override {
     overflow-x: auto;
     table {
         min-width: 100%;

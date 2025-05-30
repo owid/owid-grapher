@@ -46,6 +46,7 @@ import { Socials } from "./Socials.js"
 import Person from "./Person.js"
 import NarrativeChart from "./NarrativeChart.js"
 import { Container, getLayout } from "./layout.js"
+import { Expander } from "./Expander.js"
 
 function ArticleBlockInternal({
     b: block,
@@ -551,6 +552,18 @@ function ArticleBlockInternal({
                     <ArticleBlock key={i} b={item} />
                 ))}
             </ExpandableParagraph>
+        ))
+        .with({ type: "expander" }, (block) => (
+            <Expander
+                className={getLayout("expander", containerType)}
+                {...block}
+            >
+                <div className="expander__content">
+                    {block.content.map((item, i) => (
+                        <ArticleBlock key={i} b={item} />
+                    ))}
+                </div>
+            </Expander>
         ))
         .with({ type: "topic-page-intro" }, (block) => (
             <TopicPageIntro

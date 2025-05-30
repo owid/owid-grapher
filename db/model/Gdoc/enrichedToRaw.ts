@@ -51,6 +51,7 @@ import {
     RawBlockNarrativeChart,
     RawBlockCode,
     RawBlockCookieNotice,
+    RawBlockExpander,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -404,6 +405,18 @@ export function enrichedBlockToRawBlock(
             (b): RawBlockExpandableParagraph => ({
                 type: b.type,
                 value: b.items.map(enrichedBlockToRawBlock),
+            })
+        )
+        .with(
+            { type: "expander" },
+            (b): RawBlockExpander => ({
+                type: b.type,
+                value: {
+                    title: b.title,
+                    heading: b.heading,
+                    subtitle: b.subtitle,
+                    content: b.content.map(enrichedBlockToRawBlock),
+                },
             })
         )
         .with(
