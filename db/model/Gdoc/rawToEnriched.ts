@@ -1093,6 +1093,22 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
         }
     }
 
+    const linkTypeCounts = R.countBy(parsedLinks, (link) => {
+        const url = Url.fromURL(link.url)
+        if (url.isGoogleDoc || url.isGrapher || url.isExplorer) {
+            return "internal"
+        } else {
+            return "external"
+        }
+    })
+
+    if (linkTypeCounts.internal && linkTypeCounts.external) {
+        linkErrors.push({
+            message:
+                "Internal (gdoc/grapher/explorer) and external links (URLs) can't be used together. Please use a separate recirc for each type",
+        })
+    }
+
     const alignmentErrors: ParseError[] = []
     if (
         raw.value.align &&
