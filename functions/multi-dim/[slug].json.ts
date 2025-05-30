@@ -1,11 +1,17 @@
+import { cors, IRequestStrict, Router } from "itty-router"
 import { Env } from "../_common/env.js"
 import { fetchUnparsedGrapherConfig } from "../_common/grapherTools.js"
 
-export const onRequestGet: PagesFunction<Env> = async ({
-    env,
-    params,
-    request,
-}) => {
+const { preflight, corsify } = cors({
+    allowMethods: ["GET", "OPTIONS", "HEAD"],
+})
+
+const router = Router<IRequestStrict, [Env, Params]>({
+    before: [preflight],
+    finally: [corsify],
+})
+
+router.get("*", async (request, env, params) => {
     const slug = params.slug as string
     const etag = request.headers.get("if-none-match")
     const url = new URL(request.url)
@@ -39,4 +45,12 @@ export const onRequestGet: PagesFunction<Env> = async ({
             ETag: grapherPageResp.headers.get("ETag") ?? "",
         },
     })
+})
+
+export const onRequestGet: PagesFunction<Env> = async ({
+    env,
+    params,
+    request,
+}) => {
+    return router.fetch(request, env, params)
 }
