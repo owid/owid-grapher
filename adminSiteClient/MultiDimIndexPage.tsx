@@ -53,12 +53,22 @@ function SlugField({
         unknown
     >
 }) {
+    const copyable = slug
+        ? {
+              text: urljoin(BAKED_GRAPHER_URL, slug),
+              tooltips: ["Copy live URL", "Copied"],
+          }
+        : undefined
+
     function handleOnChange(value: string) {
         if (value !== slug) slugMutation.mutate({ id, slug: value })
     }
 
     return (
-        <Typography.Text editable={{ onChange: handleOnChange }}>
+        <Typography.Text
+            copyable={copyable}
+            editable={{ onChange: handleOnChange }}
+        >
             {slug}
         </Typography.Text>
     )
