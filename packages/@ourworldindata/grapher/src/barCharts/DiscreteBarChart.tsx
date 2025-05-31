@@ -710,12 +710,12 @@ export class DiscreteBarChart
     }
 
     @computed private get colorScheme(): ColorScheme {
-        // We used to choose owid-distinct here as the default if this is a collapsed line chart but
-        // as part of the color revamp in Autumn 2022 we decided to make bar charts always default to
-        // an all-blue color scheme (singleColorDenim).
         const defaultColorScheme = this.defaultBaseColorScheme
         const colorScheme = this.manager.baseColorScheme ?? defaultColorScheme
-        return this.manager.isOnLineChartTab
+
+        // Don't reuse the line chart's color scheme (typically owid-distinct)
+        // and use the default color scheme instead (single color)
+        return this.manager.hasLineChart
             ? ColorSchemes.get(defaultColorScheme)
             : ColorSchemes.get(colorScheme)
     }
