@@ -78,6 +78,23 @@ const createPatchConfigAndQueryParamsForNarrativeChart = async (
     return { patchConfig: patchConfigToSave, fullConfig, queryParams }
 }
 
+function makeParentUrl(
+    parentChartId: number | null,
+    parentCatalogPath: string | null,
+    queryParamsForParentChart: string
+) {
+    if (parentChartId) {
+        return `/charts/${parentChartId}/edit`
+    }
+    if (parentCatalogPath) {
+        const searchParams = new URLSearchParams(
+            JSON.parse(queryParamsForParentChart)
+        )
+        return `/grapher/${encodeURIComponent(parentCatalogPath)}?${searchParams.toString()}`
+    }
+    return null
+}
+
 async function getChartConfigById(
     trx: db.KnexReadonlyTransaction,
     chartConfigId: string
@@ -206,15 +223,6 @@ export async function getNarrativeCharts(
     )
 
     const narrativeCharts: ApiNarrativeChartOverview[] = rows.map((row) => {
-        let parentUrl = null
-        if (row.parentChartId) {
-            parentUrl = `/charts/${row.parentChartId}/edit`
-        } else if (row.parentCatalogPath) {
-            const searchParams = new URLSearchParams(
-                JSON.parse(row.queryParamsForParentChart)
-            )
-            parentUrl = `/grapher/${encodeURIComponent(row.parentCatalogPath)}?${searchParams.toString()}`
-        }
         return {
             id: row.id,
             name: row.name,
@@ -225,7 +233,11 @@ export async function getNarrativeCharts(
             parent: {
                 type: row.parentChartId ? "chart" : "multiDim",
                 title: row.parentTitle,
-                url: parentUrl,
+                url: makeParentUrl(
+                    row.parentChartId,
+                    row.parentCatalogPath,
+                    row.queryParamsForParentChart
+                ),
             },
         }
     })
@@ -250,6 +262,7 @@ export async function getNarrativeChartById(
         configPatch: JsonString
         parentChartId: number
         parentConfigFull: JsonString
+        parentCatalogPath: string | null
         queryParamsForParentChart: JsonString
     }
 
@@ -267,11 +280,13 @@ export async function getNarrativeChartById(
             nc.parentChartId,
             nc.parentMultiDimXChartConfigId as parentChartConfigId,
             pcc.full as parentConfigFull,
+            mddp.catalogPath as parentCatalogPath,
             nc.queryParamsForParentChart
         FROM narrative_charts nc
         JOIN chart_configs cc ON nc.chartConfigId = cc.id
         LEFT JOIN charts pc ON nc.parentChartId = pc.id
         LEFT JOIN multi_dim_x_chart_configs mdxcc ON nc.parentMultiDimXChartConfigId = mdxcc.id
+        LEFT JOIN multi_dim_data_pages mddp ON mdxcc.multiDimId = mddp.id
         LEFT JOIN chart_configs pcc ON (
             CASE
                 WHEN pc.id IS NOT NULL THEN pc.configId = pcc.id
@@ -288,15 +303,22 @@ export async function getNarrativeChartById(
         throw new JsonError(`No narrative chart found for id ${id}`, 404)
     }
 
-    const narrativeChart = {
-        ...row,
+    return {
+        id: row.id,
+        name: row.name,
+        updatedAt: row.updatedAt,
+        lastEditedByUser: row.lastEditedByUser,
+        chartConfigId: row.chartConfigId,
         configFull: parseChartConfig(row.configFull),
         configPatch: parseChartConfig(row.configPatch),
+        parentType: row.parentChartId ? "chart" : "multiDim",
         parentConfigFull: parseChartConfig(row.parentConfigFull),
-        queryParamsForParentChart: JSON.parse(row.queryParamsForParentChart),
+        parentUrl: makeParentUrl(
+            row.parentChartId,
+            row.parentCatalogPath,
+            row.queryParamsForParentChart
+        ),
     }
-
-    return narrativeChart
 }
 
 async function createNarrativeChartFromChart(
