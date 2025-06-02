@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Form, Input, InputRef, Modal } from "antd"
 import {
-    KEBAB_CASE_ERROR_MSG,
+    NARRATIVE_CHART_KEBAB_CASE_ERROR_MSG,
     KEBAB_CASE_REGEX,
 } from "../adminShared/validation.js"
 
@@ -73,7 +73,7 @@ export const NarrativeChartNameModal = (props: {
                         { required: true, message: "Please enter a name" },
                         {
                             pattern: KEBAB_CASE_REGEX,
-                            message: KEBAB_CASE_ERROR_MSG,
+                            message: NARRATIVE_CHART_KEBAB_CASE_ERROR_MSG,
                         },
                     ]}
                 >

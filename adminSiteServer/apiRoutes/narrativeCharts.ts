@@ -42,7 +42,7 @@ import { deleteGrapherConfigFromR2ByUUID } from "../chartConfigR2Helpers.js"
 
 import {
     isKebabCase,
-    KEBAB_CASE_ERROR_MSG,
+    NARRATIVE_CHART_KEBAB_CASE_ERROR_MSG,
 } from "../../adminShared/validation.js"
 import * as db from "../../db/db.js"
 import { expectChartById } from "./charts.js"
@@ -435,7 +435,10 @@ export async function createNarrativeChart(
     }
     const { data } = parseResult
     if (!isKebabCase(data.name)) {
-        return { success: false, errorMsg: KEBAB_CASE_ERROR_MSG }
+        return {
+            success: false,
+            errorMsg: NARRATIVE_CHART_KEBAB_CASE_ERROR_MSG,
+        }
     }
     if (await narrativeChartExists(trx, { name: data.name })) {
         return {
