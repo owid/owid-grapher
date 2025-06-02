@@ -178,9 +178,7 @@ export class ColorScale {
     @computed get autoBinMaximums(): number[] {
         return runBinningStrategy({
             strategy: "auto",
-            minValue: this.minBinValue,
-            maxValue: this.maxPossibleValue ?? 1,
-            sortedNumericValues: this.sortedNumericValues,
+            sortedValues: this.sortedNumericValues,
         }).bins
 
         const hasNegativeValues = this.sortedNumericValues[0] < 0
