@@ -1216,16 +1216,31 @@ export class Grapher
         return undefined
     }
 
-    /**
-     * Whether the chart is rendered in an admin context.
-     */
-    @computed get isAdmin(): boolean {
+    @computed get isAdminObjectAvailable(): boolean {
         if (typeof window === "undefined") return false
         return (
             window.admin !== undefined &&
             // Ensure that we're not accidentally matching on a DOM element with an ID of "admin"
             typeof window.admin.isSuperuser === "boolean"
         )
+    }
+
+    @computed get isAdmin(): boolean {
+        if (typeof window === "undefined") return false
+        if (this.isAdminObjectAvailable) return true
+        // Using this.isAdminObjectAvailable is not enough because it's not
+        // available in gdoc previews, which render in an iframe without the
+        // admin scaffolding.
+        if (this.adminBaseUrl) {
+            try {
+                const adminUrl = new URL(this.adminBaseUrl)
+                const currentUrl = new URL(window.location.href)
+                return adminUrl.host === currentUrl.host
+            } catch {
+                return false
+            }
+        }
+        return false
     }
 
     @computed get isUserLoggedInAsAdmin(): boolean {
@@ -1292,7 +1307,7 @@ export class Grapher
         let variablesDataMap: MultipleOwidVariableDataDimensionsMap
 
         const startMark = performance.now()
-        if (this.isAdmin) {
+        if (this.isAdminObjectAvailable) {
             // TODO grapher model: switch this to downloading multiple data and metadata files
             variablesDataMap = await loadVariablesDataAdmin(
                 this.dataApiUrlForAdmin,
