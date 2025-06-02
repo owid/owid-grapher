@@ -31,6 +31,7 @@ interface BinningStrategyConfig {
     maxValue?: number
     sortedValues: number[] // TODO unsure if needed here
     isPercent?: boolean // TODO unsure if needed here
+    numDecimalPlaces?: number // TODO unsure if needed here
     midpointMode?: MidpointMode
     midpoint?: number
     createBinForMidpoint?: boolean
@@ -40,6 +41,7 @@ interface ResolvedBinningStrategyConfig {
     strategy: ResolvedBinningStrategy
     minValue?: number
     maxValue?: number
+    numDecimalPlaces?: number // TODO unsure if needed here
     sortedValues: number[]
     midpointMode: MidpointMode
     midpoint: number
@@ -132,8 +134,21 @@ const computeMinMaxForStrategy = (
     return match(strategy)
         .with("equalSizeBins", () => {
             const uniqValues = sortedUniq(sortedValues)
-            const minValue = quantile(uniqValues, 0.05)
-            const maxValue = quantile(uniqValues, 0.95)
+            let minValue = quantile(uniqValues, 0.05)
+            let maxValue = quantile(uniqValues, 0.95)
+
+            if (conf?.numDecimalPlaces !== undefined) {
+                if (minValue > 0)
+                    minValue = Math.max(
+                        minValue,
+                        Math.pow(10, -conf?.numDecimalPlaces)
+                    )
+                if (maxValue < 0)
+                    maxValue = Math.min(
+                        maxValue,
+                        -Math.pow(10, -conf?.numDecimalPlaces)
+                    )
+            }
             return { minValue, maxValue }
         })
         .with("percent", () => {
@@ -147,8 +162,21 @@ const computeMinMaxForStrategy = (
             }
 
             const uniqValues = sortedUniq(posValues)
-            const minValue = quantile(uniqValues, 0.15)
-            const maxValue = quantile(uniqValues, 0.995)
+            let minValue = quantile(uniqValues, 0.15)
+            let maxValue = quantile(uniqValues, 0.995)
+
+            if (conf?.numDecimalPlaces !== undefined) {
+                if (minValue > 0)
+                    minValue = Math.max(
+                        minValue,
+                        Math.pow(10, -conf?.numDecimalPlaces)
+                    )
+                if (maxValue < 0)
+                    maxValue = Math.min(
+                        maxValue,
+                        -Math.pow(10, -conf?.numDecimalPlaces)
+                    )
+            }
 
             return { minValue, maxValue }
         })
@@ -261,7 +289,7 @@ const runResolvedBinningStrategy = (
             equalSizeBins({
                 minValue,
                 maxValue,
-                targetBinCount: hasMidpoint ? [6, 10] : [3, 5],
+                targetBinCount: hasMidpoint ? [3, 5] : [6, 10],
             })
         )
         .when(isLogBinningStrategy, () =>
@@ -335,7 +363,8 @@ const autoChooseBinningStrategy = (
     if (magnitudeDiff < AUTO_EQUAL_BINS_MAX_MAGNITUDE_DIFF) {
         if (conf.isPercent) {
             const lastValue = lastOfNonEmptyArray(posValuesOnly)
-            if (lastValue <= 100 && lastValue >= 40) {
+            const percentile99 = quantile(posValuesOnly, 0.99)
+            if (lastValue <= 100 && percentile99 >= 60) {
                 return "percent"
             }
         }
