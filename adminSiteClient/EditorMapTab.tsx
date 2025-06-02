@@ -82,7 +82,8 @@ class TimelineSection extends Component<{ mapConfig: MapConfig }> {
     }
 
     @action.bound setMapTime(time: number | undefined) {
-        this.props.mapConfig.time = time
+        this.props.mapConfig.startTime = time
+        this.props.mapConfig.endTime = time
     }
 
     @action.bound onTolerance(tolerance: number | undefined) {
@@ -120,7 +121,11 @@ class TimelineSection extends Component<{ mapConfig: MapConfig }> {
             <Section name="Timeline">
                 <NumberField
                     label="Target year"
-                    value={mapConfig.time}
+                    value={
+                        mapConfig.startTime === mapConfig.endTime
+                            ? mapConfig.endTime
+                            : undefined
+                    }
                     onValue={this.setMapTime}
                     allowNegative
                 />
