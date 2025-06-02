@@ -54,8 +54,8 @@ class CreateNarrativeChartEditorPageInternal
     configId?: string
     patchConfig: GrapherInterface = {}
     fullConfig: GrapherInterface = {}
-    parentChartId?: number
     parentConfig: GrapherInterface = {}
+    parentUrl: string | null = null
 
     isInheritanceEnabled: boolean | undefined = true
 
