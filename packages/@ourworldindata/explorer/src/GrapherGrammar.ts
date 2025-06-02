@@ -303,8 +303,11 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         ...IntegerCellDef,
         keyword: "mapTargetTime",
         description:
-            "Set the 'target time' for the map chart. This is the year that will be shown by default in the map chart.",
-        toGrapherObject: (parsedValue) => ({ map: { time: parsedValue } }),
+            "Set the 'target time' for the map chart. This is equivalent to setting 'minTime' and 'maxTime' to the same value.",
+        toGrapherObject: (parsedValue) => ({
+            minTime: parsedValue,
+            maxTime: parsedValue,
+        }),
     },
     missingDataStrategy: {
         ...EnumCellDef,

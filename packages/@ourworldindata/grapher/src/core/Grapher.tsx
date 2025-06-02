@@ -1821,11 +1821,6 @@ export class Grapher
     }
 
     @computed get timelineHandleTimeBounds(): TimeBounds {
-        if (this.isOnMapTab) {
-            const time = maxTimeBoundFromJSONOrPositiveInfinity(this.map.time)
-            return [time, time]
-        }
-
         // If the timeline is hidden on the chart tab but displayed on the table tab
         // (which is the case for charts that plot time on the x-axis),
         // we always want to use the authored `minTime` and `maxTime` for the chart,
@@ -1846,12 +1841,8 @@ export class Grapher
     }
 
     set timelineHandleTimeBounds(value: TimeBounds) {
-        if (this.isOnMapTab) {
-            this.map.time = value[1]
-        } else {
-            this.minTime = value[0]
-            this.maxTime = value[1]
-        }
+        this.minTime = value[0]
+        this.maxTime = value[1]
     }
 
     // Get the dimension slots appropriate for this type of chart
@@ -3777,7 +3768,6 @@ export class Grapher
         this.compareEndPointsOnly = authorsVersion.compareEndPointsOnly
         this.minTime = authorsVersion.minTime
         this.maxTime = authorsVersion.maxTime
-        this.map.time = authorsVersion.map.time
         this.map.region = authorsVersion.map.region
         this.showNoDataArea = authorsVersion.showNoDataArea
         this.dataTableConfig.filter = authorsVersion.dataTableConfig.filter
@@ -3981,10 +3971,6 @@ export class Grapher
         )
     }
 
-    @computed private get hasUserChangedMapTimeHandle(): boolean {
-        return this.map.time !== this.authorsVersion.map.time
-    }
-
     @computed get timeParam(): string | undefined {
         const { timeColumn } = this.table
         const formatTime = (t: Time): string =>
@@ -3992,13 +3978,6 @@ export class Grapher
                 t,
                 timeColumn instanceof ColumnTypeMap.Day
             )
-
-        if (this.isOnMapTab) {
-            return this.map.time !== undefined &&
-                this.hasUserChangedMapTimeHandle
-                ? formatTime(this.map.time)
-                : undefined
-        }
 
         if (!this.hasUserChangedTimeHandles) return undefined
 

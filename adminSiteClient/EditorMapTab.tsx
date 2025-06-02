@@ -81,10 +81,6 @@ class TimelineSection extends Component<{ mapConfig: MapConfig }> {
         this.props.mapConfig.hideTimeline = value || undefined
     }
 
-    @action.bound setMapTime(time: number | undefined) {
-        this.props.mapConfig.time = time
-    }
-
     @action.bound onTolerance(tolerance: number | undefined) {
         this.props.mapConfig.timeTolerance = tolerance
     }
@@ -118,12 +114,6 @@ class TimelineSection extends Component<{ mapConfig: MapConfig }> {
         const { mapConfig } = this.props
         return (
             <Section name="Timeline">
-                <NumberField
-                    label="Target year"
-                    value={mapConfig.time}
-                    onValue={this.setMapTime}
-                    allowNegative
-                />
                 <Toggle
                     label="Hide timeline"
                     value={!!mapConfig.hideTimeline}

@@ -69,15 +69,6 @@ properties:
                 type: boolean
                 default: false
                 description: Show the label from colorSchemeLabels in the tooltip instead of the numeric value
-            time:
-                description: Select a specific time to be displayed.
-                default: "latest"
-                oneOf:
-                    - type: number
-                    - type: string
-                      enum:
-                          - latest
-                          - earliest
             columnSlug:
                 # TODO: remove this once we have a convention of using the first y dimension instead
                 description: |

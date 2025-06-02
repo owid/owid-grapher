@@ -10,6 +10,7 @@ import {
     LegacyGrapherInterface,
     LegacyGrapherQueryParams,
     GRAPHER_TAB_NAMES,
+    MapRegionName,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -329,7 +330,7 @@ function toQueryParams(
         minTime: -5000,
         maxTime: 5000,
         hasMapTab: true,
-        map: { time: 5000 },
+        map: { region: MapRegionName.Africa },
     })
     if (props) grapher.updateFromObject(props)
     return grapher.changedParams
@@ -882,7 +883,7 @@ it("canChangeEntity reflects all available entities before transforms", () => {
     expect(grapher.canChangeEntity).toBe(true)
 })
 
-describe("year parameter (applies to map only)", () => {
+describe("year parameter (single time selection)", () => {
     describe("with years", () => {
         const tests: {
             name: string
@@ -916,7 +917,8 @@ describe("year parameter (applies to map only)", () => {
             it(`encode ${test.name}`, () => {
                 const params = toQueryParams({
                     tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
-                    map: { time: test.param },
+                    minTime: test.param,
+                    maxTime: test.param,
                 })
                 expect(params.time).toEqual(test.query)
             })
@@ -982,7 +984,8 @@ describe("year parameter (applies to map only)", () => {
                     const grapher = getGrapher()
                     grapher.updateFromObject({
                         tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
-                        map: { time: test.param },
+                        minTime: test.param,
+                        maxTime: test.param,
                     })
                     const params = grapher.changedParams
                     expect(params.time).toEqual(test.query)
@@ -1039,7 +1042,8 @@ it("considers map tolerance before using column tolerance", () => {
         ySlugs: "gdp",
         tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
         hasMapTab: true,
-        map: new MapConfig({ timeTolerance: 1, columnSlug: "gdp", time: 2002 }),
+        maxTime: 2002,
+        map: new MapConfig({ timeTolerance: 1, columnSlug: "gdp" }),
     })
 
     expect(grapher.timelineHandleTimeBounds[1]).toEqual(2002)
@@ -1048,13 +1052,13 @@ it("considers map tolerance before using column tolerance", () => {
             .values
     ).toEqual([])
 
-    grapher.map.time = 2001
+    grapher.maxTime = 2001
     expect(
         grapher.transformedTable.filterByEntityNames(["Germany"]).get("gdp")
             .values
     ).toEqual([2])
 
-    grapher.map.time = 2002
+    grapher.maxTime = 2002
     grapher.map.timeTolerance = undefined
     expect(
         grapher.transformedTable.filterByEntityNames(["Germany"]).get("gdp")

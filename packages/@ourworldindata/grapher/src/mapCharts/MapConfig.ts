@@ -11,8 +11,6 @@ import {
     updatePersistables,
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
-    maxTimeBoundFromJSONOrPositiveInfinity,
-    maxTimeToJSON,
     trimObject,
     NoUndefinedValues,
     ToleranceStrategy,
@@ -26,7 +24,6 @@ import * as R from "remeda"
 // TODO: migrate database config & only pass legend props
 class MapConfigDefaults {
     @observable columnSlug?: ColumnSlug
-    @observable time?: number
     @observable timeTolerance?: number
     @observable toleranceStrategy?: ToleranceStrategy
     @observable hideTimeline?: boolean
@@ -48,9 +45,6 @@ class MapConfigDefaults {
 export class MapConfig extends MapConfigDefaults implements Persistable {
     updateFromObject(obj: Partial<MapConfigInterface>): void {
         updatePersistables(this, obj)
-
-        if (obj.time)
-            this.time = maxTimeBoundFromJSONOrPositiveInfinity(obj.time)
 
         // If the region is set, automatically switch to the globe
         if (obj.region && obj.region !== MapRegionName.World) {
@@ -74,8 +68,6 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
     toObject(): NoUndefinedValues<MapConfigInterface> {
         const obj = objectWithPersistablesToObject(this) as MapConfigInterface
         deleteRuntimeAndUnchangedProps(obj, new MapConfigDefaults())
-
-        if (obj.time) obj.time = maxTimeToJSON(this.time) as any
 
         // persist selection
         obj.selectedEntityNames = this.selection.selectedEntityNames

@@ -545,7 +545,6 @@ export interface GlobeConfig {
 
 export interface MapConfigInterface {
     columnSlug?: ColumnSlug
-    time?: Time | TimeBoundValueStr
     timeTolerance?: number
     toleranceStrategy?: ToleranceStrategy
     hideTimeline?: boolean
