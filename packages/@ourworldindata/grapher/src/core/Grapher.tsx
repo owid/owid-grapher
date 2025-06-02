@@ -1200,7 +1200,7 @@ export class Grapher
     }
 
     @computed get editUrl(): string | undefined {
-        if (this.showAdminControls) {
+        if (this.showAdminControls && this.adminBaseUrl) {
             return `${this.adminBaseUrl}/admin/${
                 this.manager?.adminEditPath ?? `charts/${this.id}/edit`
             }`
@@ -1217,9 +1217,9 @@ export class Grapher
     }
 
     /**
-     * Whether the chart is rendered in an Admin context (e.g. on owid.cloud).
+     * Whether the chart is rendered in an admin context.
      */
-    @computed get useAdminAPI(): boolean {
+    @computed get isAdmin(): boolean {
         if (typeof window === "undefined") return false
         return (
             window.admin !== undefined &&
@@ -1245,6 +1245,7 @@ export class Grapher
     @computed get showAdminControls(): boolean {
         return (
             this.isUserLoggedInAsAdmin ||
+            this.isAdmin || // Useful for gdoc previews.
             this.isDev ||
             this.isLocalhost ||
             this.isStaging
@@ -1291,7 +1292,7 @@ export class Grapher
         let variablesDataMap: MultipleOwidVariableDataDimensionsMap
 
         const startMark = performance.now()
-        if (this.useAdminAPI) {
+        if (this.isAdmin) {
             // TODO grapher model: switch this to downloading multiple data and metadata files
             variablesDataMap = await loadVariablesDataAdmin(
                 this.dataApiUrlForAdmin,
