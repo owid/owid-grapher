@@ -137,6 +137,8 @@ export const equalSizeBins = ({
     // These are all common and "good" step sizes; find the first one that gives us the target bin count
     const stepSizeCandidates = [1, 0.1, 0.5, 0.2, 2, 3, 0.3, 0.75, 0.25]
     const stepSize = stepSizeCandidates.find((candidateStepSize) => {
+        if (normalisedRange === 0) return true
+
         const numSteps = Math.ceil(normalisedRange / candidateStepSize)
         return numSteps >= targetBinCount[0] && numSteps <= targetBinCount[1]
     })
@@ -179,5 +181,17 @@ export const equalSizeBinsWithMidpoint = ({
         targetBinCount: [3, 4],
     })
 
-    return mirrorBinsAroundMidpoint(bins, midpoint)
+    const mirroredBins = mirrorBinsAroundMidpoint(bins, midpoint)
+
+    const negBins = equalSizeBins({
+        minValue: Math.min(minValue - midpoint, midpoint),
+        maxValue: midpoint,
+        targetBinCount: [3, 4],
+    })
+    const posBins = equalSizeBins({
+        minValue: midpoint,
+        maxValue: Math.max(maxValue - midpoint, midpoint),
+        targetBinCount: [3, 4],
+    })
+    return [...negBins, midpoint, ...posBins]
 }
