@@ -95,7 +95,7 @@ describe(mergeGrapherConfigs, () => {
                 {
                     map: {
                         region: MapRegionName.World,
-                        time: 2000,
+                        endTime: 2000,
                     },
                 },
                 {
@@ -108,7 +108,7 @@ describe(mergeGrapherConfigs, () => {
         ).toEqual({
             map: {
                 region: MapRegionName.Africa,
-                time: 2000,
+                endTime: 2000,
                 hideTimeline: true,
             },
         })
