@@ -3250,12 +3250,11 @@ export class GrapherState {
 
     @computed get shouldShowEntitySelectorAs(): GrapherWindowType {
         if (
-            (this.frameBounds.width > 940 &&
-                // don't use the panel if the grapher is embedded
-                !this.isInIFrame &&
-                !this.isEmbeddedInAnOwidPage) ||
-            // unless we're in full-screen mode
-            this.isInFullScreenMode
+            this.frameBounds.width > 940 &&
+            // don't use the panel if the grapher is embedded
+            ((!this.isInIFrame && !this.isEmbeddedInAnOwidPage) ||
+                // unless we're in full-screen mode
+                this.isInFullScreenMode)
         )
             return GrapherWindowType.panel
 
