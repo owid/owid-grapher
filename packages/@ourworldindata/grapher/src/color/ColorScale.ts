@@ -27,6 +27,7 @@ import {
     autoChooseLogBins,
     equalSizeBins,
     equalSizeBinsWithMidpoint,
+    runBinningStrategy,
 } from "./BinningStrategies2.js"
 
 export const NO_DATA_LABEL = "No data"
@@ -175,6 +176,13 @@ export class ColorScale {
     // When automatic classification is turned on, this takes the numeric map data
     // and works out some discrete ranges to assign colors to
     @computed get autoBinMaximums(): number[] {
+        return runBinningStrategy({
+            strategy: "auto",
+            minValue: this.minBinValue,
+            maxValue: this.maxPossibleValue ?? 1,
+            sortedNumericValues: this.sortedNumericValues,
+        }).bins
+
         const hasNegativeValues = this.sortedNumericValues[0] < 0
 
         if (hasNegativeValues) {
