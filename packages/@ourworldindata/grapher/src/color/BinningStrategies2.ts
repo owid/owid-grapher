@@ -1,15 +1,282 @@
 import {
+    firstOfNonEmptyArray,
+    lastOfNonEmptyArray,
     normaliseToSingleDigitNumber,
     numberMagnitude,
     roundSigFig,
 } from "@ourworldindata/utils"
 import * as R from "remeda"
+import { match, P } from "ts-pattern"
+
+type LogBinningStrategy = "log-fake-2" | "log-fake-3" | "log-10" | "log-auto"
+type ResolvedLogBinningStrategy = Exclude<LogBinningStrategy, "log-auto">
+
+type BinningStrategy = "auto" | "equalSizeBins" | LogBinningStrategy | "percent"
+
+type ResolvedBinningStrategy = Exclude<BinningStrategy, "auto">
+
+// TODO aspirational
+type MidpointMode =
+    | "none" // No midpoint
+    | "symmetric-full" // Symmetric bins around a midpoint, with negBins = -1 * posBins
+    | "symmetric-num-bins" // Symmetric bins around a midpoint, with negBins.length = posBins.length
+    | "asymmetric" // Bins around a midpoint, with negBins.length not necessarily equal to posBins.length
+
+interface BinningStrategyConfig {
+    strategy: BinningStrategy
+    minValue?: number
+    maxValue?: number
+    sortedValues: number[] // TODO unsure if needed here
+    isPercent?: boolean // TODO unsure if needed here
+    midpointMode?: MidpointMode
+    midpoint?: number
+    createBinForMidpoint?: boolean
+}
+
+interface ResolvedBinningStrategyConfig {
+    strategy: ResolvedBinningStrategy
+    minValue?: number
+    maxValue?: number
+    sortedValues: number[]
+    midpointMode: MidpointMode
+    midpoint: number
+}
+
+interface BinningStrategyOutput {
+    bins: number[]
+    midpoint?: number
+}
+
+const MANY_ZERO_VALUES_THRESHOLD = 0.1
+const AUTO_EQUAL_BINS_MAX_MAGNITUDE_DIFF = 1.2
+
+const calcMagnitudeDiff = (lowerValue: number, upperValue: number): number => {
+    if (lowerValue > upperValue)
+        throw new Error("lowerValue must be less than upperValue")
+
+    return Math.log10(upperValue) - Math.log10(lowerValue)
+}
+
+const countValues = (sortedValues: number[], value: number): number => {
+    const firstIndex = R.sortedIndex(sortedValues, value)
+    const lastIndex = R.sortedLastIndex(sortedValues, value)
+    return lastIndex - firstIndex
+}
+
+const isLogBinningStrategy = (
+    strategy: BinningStrategy | ResolvedBinningStrategy
+): strategy is LogBinningStrategy => strategy.startsWith("log-")
+
+export const runBinningStrategy = (
+    conf: BinningStrategyConfig
+): BinningStrategyOutput => {
+    if (conf.sortedValues.length === 0) {
+        return { bins: [0] }
+    }
+
+    const hasNegValues = conf.sortedValues[0] < 0
+    const hasPosValues = lastOfNonEmptyArray(conf.sortedValues) > 0
+    const hasNegAndPosValues = hasNegValues && hasPosValues
+    const hasOnlyNegValues = hasNegValues && !hasPosValues
+
+    if (hasNegAndPosValues && conf.midpointMode === undefined) {
+        // Default to symmetric-full if there are negative and positive values
+        conf.midpointMode ??= "symmetric-full"
+    }
+
+    conf.midpoint ??= 0
+    conf.midpointMode ??= "none"
+
+    const midpointCount = countValues(conf.sortedValues, conf.midpoint)
+    const hasManyMidpointValues =
+        midpointCount >= MANY_ZERO_VALUES_THRESHOLD * conf.sortedValues.length
+    conf.createBinForMidpoint ??= hasManyMidpointValues
+
+    let resolvedStrategy: ResolvedBinningStrategy
+    if (conf.strategy === "auto") {
+        resolvedStrategy = autoChooseBinningStrategy(conf)
+    } else {
+        resolvedStrategy = conf.strategy as ResolvedBinningStrategy
+    }
+
+    let bins = runBinningStrategyAroundMidpoint({
+        ...conf,
+        midpointMode: conf.midpointMode,
+        midpoint: conf.midpoint,
+        strategy: resolvedStrategy,
+    })
+
+    if (conf.createBinForMidpoint) {
+        const midpointIdx = R.sortedIndex(bins, conf.midpoint)
+        bins = bins.splice(midpointIdx, 0, conf.midpoint)
+    }
+
+    return {
+        bins,
+        midpoint: conf.midpointMode !== "none" ? conf.midpoint : undefined,
+    }
+}
+
+const runBinningStrategyAroundMidpoint = (
+    conf: ResolvedBinningStrategyConfig
+): number[] => {
+    if (
+        isLogBinningStrategy(conf.strategy) &&
+        conf.midpointMode !== "none" &&
+        conf.midpoint !== 0
+    ) {
+        throw new Error(
+            "Log binning strategy does not support midpoints other than 0"
+        )
+    }
+
+    const bins = match(conf.midpointMode)
+        .with("none", () => {
+            return runResolvedBinningStrategy(conf, { hasMidpoint: false })
+        })
+        .with("symmetric-full", () => {
+            const leftRange = Math.max(conf.midpoint - conf.minValue, 0)
+            const rightRange = Math.max(conf.maxValue - conf.midpoint, 0)
+            const biggerRange = Math.max(leftRange, rightRange)
+
+            const binsRight = runResolvedBinningStrategy(
+                { ...conf, minValue: 0, maxValue: biggerRange },
+                { hasMidpoint: true }
+            )
+            return mirrorBinsAroundMidpoint(binsRight, conf.midpoint)
+        })
+        .with("symmetric-num-bins", () => {
+            const leftRange = Math.max(conf.midpoint - conf.minValue, 0)
+            const rightRange = Math.max(conf.maxValue - conf.midpoint, 0)
+
+            const binsRight = runResolvedBinningStrategy(
+                { ...conf, minValue: 0, maxValue: rightRange },
+                { hasMidpoint: true }
+            ).filter((v) => v !== 0)
+            const binsLeft = runResolvedBinningStrategy(
+                { ...conf, minValue: 0, maxValue: leftRange },
+                { hasMidpoint: true }
+            ).filter((v) => v !== 0)
+
+            return [
+                ...binsLeft.map((v) => conf.midpoint - v).reverse(),
+                conf.midpoint,
+                ...binsRight.map((v) => v + conf.midpoint),
+            ]
+        })
+        .with("asymmetric", () => {
+            // TODO implement, but how?
+            return []
+        })
+        .exhaustive()
+
+    return bins
+}
+
+const runResolvedBinningStrategy = (
+    conf: ResolvedBinningStrategyConfig,
+    { hasMidpoint }: { hasMidpoint: boolean }
+): number[] => {
+    return match(conf.strategy)
+        .with("equalSizeBins", () =>
+            equalSizeBins({
+                minValue: conf.minValue,
+                maxValue: conf.maxValue,
+                targetBinCount: hasMidpoint
+                    ? IDEAL_TARGET_BIN_COUNT_WITH_MIDPOINT
+                    : IDEAL_TARGET_BIN_COUNT,
+            })
+        )
+        .with("percent", () =>
+            equalSizeBins({
+                minValue: 0,
+                maxValue: 100,
+                targetBinCount: hasMidpoint ? [10, 10] : [5, 5],
+            })
+        )
+        .when(isLogBinningStrategy, () => runLogBinningStrategy(conf))
+        .exhaustive()
+}
+
+const autoChooseLogBinningStrategy = (
+    magnitudeDiff: number
+): ResolvedLogBinningStrategy => {
+    if (magnitudeDiff >= 3.6) {
+        return "log-10"
+    }
+    if (magnitudeDiff >= 2.6) {
+        return "log-fake-3"
+    }
+    return "log-fake-2"
+}
+
+const runLogBinningStrategy = (
+    conf: ResolvedBinningStrategyConfig
+): number[] => {
+    const { minValue, maxValue } = conf
+
+    if (minValue <= 0 || maxValue <= 0) {
+        throw new Error("Log binning strategy only supports positive values")
+    }
+
+    let resolvedStrategy: ResolvedLogBinningStrategy
+    if (conf.strategy === "log-auto") {
+        const magnitudeDiff = calcMagnitudeDiff(minValue, maxValue)
+        resolvedStrategy = autoChooseLogBinningStrategy(magnitudeDiff)
+    } else {
+        resolvedStrategy = conf.strategy as ResolvedLogBinningStrategy
+    }
+
+    return match(resolvedStrategy)
+        .with("log-10", () =>
+            fakeLogBins({ minValue, maxValue, logSteps: [1] })
+        )
+        .with("log-fake-3", () =>
+            fakeLogBins({ minValue, maxValue, logSteps: [1, 3] })
+        )
+        .with("log-fake-2", () =>
+            fakeLogBins({ minValue, maxValue, logSteps: [1, 2, 5] })
+        )
+        .exhaustive()
+}
+
+const autoChooseBinningStrategy = (
+    conf: BinningStrategyConfig
+): ResolvedBinningStrategy => {
+    if (conf.midpointMode !== "none") {
+        return "equalSizeBins"
+    }
+
+    const posValuesOnly = R.dropWhile(conf.sortedValues, (v) => v <= 0)
+    if (posValuesOnly.length === 0) {
+        // All values are negative or zero, use equal size bins as a simple fallback (this is rare anyways)
+        return "equalSizeBins"
+    }
+
+    const magnitudeDiff =
+        Math.log10(lastOfNonEmptyArray(posValuesOnly)) -
+        Math.log10(firstOfNonEmptyArray(posValuesOnly))
+
+    if (magnitudeDiff < AUTO_EQUAL_BINS_MAX_MAGNITUDE_DIFF) {
+        if (conf.isPercent) {
+            const lastValue = lastOfNonEmptyArray(posValuesOnly)
+            if (lastValue <= 100 && lastValue >= 40) {
+                return "percent"
+            }
+        }
+
+        return "equalSizeBins"
+    }
+
+    return "log-auto"
+}
 
 const log10 = [1]
 const log125 = [1, 2, 5]
 const log13 = [1, 3]
 
 const IDEAL_TARGET_BIN_COUNT = [5, 8]
+const IDEAL_TARGET_BIN_COUNT_WITH_MIDPOINT = [3, 4]
 
 export const autoChooseLogBins = ({
     minValue,
