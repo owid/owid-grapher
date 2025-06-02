@@ -1,6 +1,7 @@
 $indent: 16px;
 
 $toggle-height: 40px;
+$toggle-full-width-breakpoint: 520px;
 
 .md-settings-row {
     display: flex;
@@ -75,13 +76,30 @@ $toggle-height: 40px;
                 color: $gray-70;
             }
         }
+
+        @include sm-only {
+            width: 240px;
+            justify-content: space-between;
+        }
+
+        @media (max-width: $toggle-full-width-breakpoint) {
+            width: 100%;
+        }
     }
 
     .md-settings__dropdown-label {
+        white-space: nowrap;
+
         &::after {
             content: ":";
             margin-right: 3px;
         }
+    }
+
+    .md-settings__dropdown-current-choice-wrapper {
+        display: flex;
+        align-items: center;
+        overflow: hidden;
     }
 
     .md-settings__dropdown-current-choice {
@@ -99,6 +117,10 @@ $toggle-height: 40px;
 
 .md-settings__dropdown {
     position: relative;
+
+    @media (max-width: $toggle-full-width-breakpoint) {
+        width: 100%;
+    }
 }
 
 .md-menu {
