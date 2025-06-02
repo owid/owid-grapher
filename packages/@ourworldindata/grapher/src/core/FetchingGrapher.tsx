@@ -11,8 +11,9 @@ import {
     GrapherState,
 } from "./Grapher.js"
 import { loadVariableDataAndMetadata } from "./loadVariable.js"
-import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 import { fetchInputTableForConfig } from "./loadGrapherTableHelpers.js"
+import { action } from "mobx"
+import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 
 export interface FetchingGrapherProps {
     config?: GrapherProgrammaticInterface
@@ -42,6 +43,7 @@ export function FetchingGrapher(
         })
     )
 
+    // TODO Daniel: remove this
     // update grapherState when the config from props changes
     React.useEffect(() => {
         if (props.config?.bounds)
@@ -59,13 +61,15 @@ export function FetchingGrapher(
                     ...props.config,
                 }
                 setDownloadedConfig(mergedConfig)
-                grapherState.current.updateFromObject(mergedConfig)
-                // We now need to make sure that the query params are re-applied again
-                grapherState.current.populateFromQueryParams(
-                    legacyToCurrentGrapherQueryParams(
-                        grapherState.current.initialOptions.queryStr ?? ""
+                action(() => {
+                    grapherState.current.updateFromObject(mergedConfig)
+                    // We now need to make sure that the query params are re-applied again
+                    grapherState.current.populateFromQueryParams(
+                        legacyToCurrentGrapherQueryParams(
+                            grapherState.current.initialOptions.queryStr ?? ""
+                        )
                     )
-                )
+                })
             }
         }
         void fetchConfigAndLoadData()
