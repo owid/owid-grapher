@@ -3,6 +3,7 @@ import {
     GlobeConfig,
     MapRegionName,
     MapConfigInterface,
+    TimeBound,
 } from "@ourworldindata/types"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import {
@@ -13,9 +14,11 @@ import {
     deleteRuntimeAndUnchangedProps,
     maxTimeBoundFromJSONOrPositiveInfinity,
     maxTimeToJSON,
+    minTimeToJSON,
     trimObject,
     NoUndefinedValues,
     ToleranceStrategy,
+    minTimeBoundFromJSONOrNegativeInfinity,
 } from "@ourworldindata/utils"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
 import { DEFAULT_GLOBE_ROTATION, DEFAULT_GLOBE_ZOOM } from "./MapChartConstants"
@@ -26,7 +29,8 @@ import * as R from "remeda"
 // TODO: migrate database config & only pass legend props
 class MapConfigDefaults {
     @observable columnSlug?: ColumnSlug
-    @observable time?: number
+    @observable startTime?: TimeBound
+    @observable endTime?: TimeBound
     @observable timeTolerance?: number
     @observable toleranceStrategy?: ToleranceStrategy
     @observable hideTimeline?: boolean
@@ -49,8 +53,15 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
     updateFromObject(obj: Partial<MapConfigInterface>): void {
         updatePersistables(this, obj)
 
-        if (obj.time)
-            this.time = maxTimeBoundFromJSONOrPositiveInfinity(obj.time)
+        if (obj.startTime) {
+            this.startTime = minTimeBoundFromJSONOrNegativeInfinity(
+                obj.startTime
+            )
+        }
+
+        if (obj.endTime) {
+            this.endTime = maxTimeBoundFromJSONOrPositiveInfinity(obj.endTime)
+        }
 
         // If the region is set, automatically switch to the globe
         if (obj.region && obj.region !== MapRegionName.World) {
@@ -75,7 +86,8 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
         const obj = objectWithPersistablesToObject(this) as MapConfigInterface
         deleteRuntimeAndUnchangedProps(obj, new MapConfigDefaults())
 
-        if (obj.time) obj.time = maxTimeToJSON(this.time) as any
+        if (obj.startTime) obj.startTime = minTimeToJSON(this.startTime) as any
+        if (obj.endTime) obj.endTime = maxTimeToJSON(this.endTime) as any
 
         // persist selection
         obj.selectedEntityNames = this.selection.selectedEntityNames
