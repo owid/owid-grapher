@@ -10,6 +10,7 @@ import {
     LegacyGrapherInterface,
     LegacyGrapherQueryParams,
     GRAPHER_TAB_NAMES,
+    GRAPHER_TAB_QUERY_PARAMS,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -329,7 +330,7 @@ function toQueryParams(
         minTime: -5000,
         maxTime: 5000,
         hasMapTab: true,
-        map: { time: 5000 },
+        map: { startTime: 5000, endTime: 5000 },
     })
     if (props) grapher.updateFromObject(props)
     return grapher.changedParams
@@ -716,6 +717,31 @@ describe("time parameter", () => {
             }
         }
 
+        for (const test of tests) {
+            it(`parse ${test.name} (map tab)`, () => {
+                const grapher = fromQueryParams({
+                    tab: GRAPHER_TAB_QUERY_PARAMS.map,
+                    time: test.query,
+                })
+                const [start, end] = grapher.timelineHandleTimeBounds
+                expect(start).toEqual(test.param[0])
+                expect(end).toEqual(test.param[1])
+            })
+            if (!test.irreversible) {
+                it(`encode ${test.name}`, () => {
+                    const params = toQueryParams({
+                        hasMapTab: true,
+                        tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+                        map: {
+                            startTime: test.param[0],
+                            endTime: test.param[1],
+                        },
+                    })
+                    expect(params.time).toEqual(test.query)
+                })
+            }
+        }
+
         it("empty string doesn't change time", () => {
             const grapher = fromQueryParams(
                 { time: "" },
@@ -916,7 +942,7 @@ describe("year parameter (applies to map only)", () => {
             it(`encode ${test.name}`, () => {
                 const params = toQueryParams({
                     tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
-                    map: { time: test.param },
+                    map: { startTime: test.param, endTime: test.param },
                 })
                 expect(params.time).toEqual(test.query)
             })
@@ -982,7 +1008,7 @@ describe("year parameter (applies to map only)", () => {
                     const grapher = getGrapher()
                     grapher.updateFromObject({
                         tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
-                        map: { time: test.param },
+                        map: { startTime: test.param, endTime: test.param },
                     })
                     const params = grapher.changedParams
                     expect(params.time).toEqual(test.query)
@@ -1039,7 +1065,12 @@ it("considers map tolerance before using column tolerance", () => {
         ySlugs: "gdp",
         tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
         hasMapTab: true,
-        map: new MapConfig({ timeTolerance: 1, columnSlug: "gdp", time: 2002 }),
+        map: new MapConfig({
+            timeTolerance: 1,
+            columnSlug: "gdp",
+            startTime: 2002,
+            endTime: 2002,
+        }),
     })
 
     expect(grapher.timelineHandleTimeBounds[1]).toEqual(2002)
@@ -1048,13 +1079,15 @@ it("considers map tolerance before using column tolerance", () => {
             .values
     ).toEqual([])
 
-    grapher.map.time = 2001
+    grapher.map.startTime = 2001
+    grapher.map.endTime = 2001
     expect(
         grapher.transformedTable.filterByEntityNames(["Germany"]).get("gdp")
             .values
     ).toEqual([2])
 
-    grapher.map.time = 2002
+    grapher.map.startTime = 2002
+    grapher.map.endTime = 2002
     grapher.map.timeTolerance = undefined
     expect(
         grapher.transformedTable.filterByEntityNames(["Germany"]).get("gdp")
