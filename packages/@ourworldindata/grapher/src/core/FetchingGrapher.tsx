@@ -51,31 +51,49 @@ export function FetchingGrapher(
     }, [props.config?.bounds])
 
     React.useEffect(() => {
+        const abortController = new AbortController()
+
         async function fetchConfigAndLoadData(): Promise<void> {
             if (props.configUrl) {
-                const fetchedConfig = await fetch(props.configUrl).then((res) =>
-                    res.json()
-                )
-                const mergedConfig = {
-                    ...fetchedConfig,
-                    ...props.config,
-                }
-                setDownloadedConfig(mergedConfig)
-                action(() => {
-                    grapherState.current.updateFromObject(mergedConfig)
-                    // We now need to make sure that the query params are re-applied again
-                    grapherState.current.populateFromQueryParams(
-                        legacyToCurrentGrapherQueryParams(
-                            grapherState.current.initialOptions.queryStr ?? ""
+                try {
+                    const fetchedConfig = await fetch(props.configUrl, {
+                        signal: abortController.signal,
+                    }).then((res) => res.json())
+
+                    if (abortController.signal.aborted) return
+
+                    const mergedConfig = {
+                        ...fetchedConfig,
+                        ...props.config,
+                    }
+                    setDownloadedConfig(mergedConfig)
+                    action(() => {
+                        grapherState.current.updateFromObject(mergedConfig)
+                        // We now need to make sure that the query params are re-applied again
+                        grapherState.current.populateFromQueryParams(
+                            legacyToCurrentGrapherQueryParams(
+                                grapherState.current.initialOptions.queryStr ??
+                                    ""
+                            )
                         )
-                    )
-                })
+                    })
+                } catch (error) {
+                    if (error instanceof Error && error.name !== "AbortError") {
+                        console.error("Failed to fetch config:", error)
+                    }
+                }
             }
         }
         void fetchConfigAndLoadData()
+
+        return (): void => {
+            abortController.abort()
+        }
     }, [props.config, props.configUrl])
 
     React.useEffect(() => {
+        let isCancelled = false
+
         async function fetchData(): Promise<void> {
             const inputTable = await fetchInputTableForConfig(
                 downloadedConfig?.dimensions ?? props.config?.dimensions ?? [],
@@ -84,9 +102,16 @@ export function FetchingGrapher(
                 props.dataApiUrl,
                 props.archivedChartInfo
             )
+
+            if (isCancelled) return
+
             if (inputTable) grapherState.current.inputTable = inputTable
         }
         void fetchData()
+
+        return (): void => {
+            isCancelled = true
+        }
     }, [
         props.config?.dimensions,
         props.dataApiUrl,
