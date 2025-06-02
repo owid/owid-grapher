@@ -340,7 +340,10 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
             "Set the 'target time' for the map chart. This is the year that will be shown by default in the map chart.",
         toGrapherObject: (parsedValue) =>
             omitEmptyObjectValues({
-                map: omitEmptyStringValues({ time: parsedValue }),
+                map: omitEmptyStringValues({
+                    startTime: parsedValue,
+                    endTime: parsedValue,
+                }),
             }),
     },
     missingDataStrategy: {

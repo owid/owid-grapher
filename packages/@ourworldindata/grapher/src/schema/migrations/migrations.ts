@@ -140,6 +140,16 @@ export const migrateFrom008To009 = (config: AnyConfigWithValidSchema) => {
     return config
 }
 
+export const migrateFrom009To010 = (config: AnyConfigWithValidSchema) => {
+    if (config.map?.time !== undefined) {
+        config.map.endTime = config.map.time
+        delete config.map.time
+    }
+
+    config.$schema = createSchemaForVersion("010")
+    return config
+}
+
 export const runMigration = (
     config: AnyConfigWithValidSchema
 ): AnyConfigWithValidSchema => {
@@ -154,5 +164,6 @@ export const runMigration = (
         .with("006", () => migrateFrom006To007(config))
         .with("007", () => migrateFrom007To008(config))
         .with("008", () => migrateFrom008To009(config))
+        .with("009", () => migrateFrom009To010(config))
         .exhaustive()
 }
