@@ -101,9 +101,6 @@ export const GDOCS_BACKPORTING_TARGET_FOLDER: string =
 export const GDOCS_DONATE_FAQS_DOCUMENT_ID: string =
     serverSettings.GDOCS_DONATE_FAQS_DOCUMENT_ID ?? ""
 
-export const GDOCS_DETAILS_ON_DEMAND_ID =
-    serverSettings.GDOCS_DETAILS_ON_DEMAND_ID ?? ""
-
 // Load R2 credentials from rclone config
 let rcloneConfig: any = {}
 const rcloneConfigPath = path.join(os.homedir(), ".config/rclone/rclone.conf")
@@ -111,17 +108,6 @@ if (fs.existsSync(rcloneConfigPath)) {
     rcloneConfig = ini.parse(fs.readFileSync(rcloneConfigPath, "utf-8"))
 }
 
-// e.g. https://images-staging.owid.io/
-export const IMAGE_HOSTING_R2_CDN_URL: string =
-    serverSettings.IMAGE_HOSTING_R2_CDN_URL || ""
-// e.g. owid-image-hosting-staging/development
-export const IMAGE_HOSTING_R2_BUCKET_PATH: string =
-    serverSettings.IMAGE_HOSTING_R2_BUCKET_PATH || ""
-// e.g. development
-export const IMAGE_HOSTING_R2_BUCKET_SUBFOLDER_PATH: string =
-    IMAGE_HOSTING_R2_BUCKET_PATH.slice(
-        IMAGE_HOSTING_R2_BUCKET_PATH.indexOf("/") + 1
-    )
 // extract R2 credentials from rclone config as defaults
 export const R2_ENDPOINT: string =
     serverSettings.R2_ENDPOINT ||
