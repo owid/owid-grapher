@@ -1842,8 +1842,10 @@ export class Grapher
 
     @computed get timelineHandleTimeBounds(): TimeBounds {
         if (this.isOnMapTab) {
-            const time = maxTimeBoundFromJSONOrPositiveInfinity(this.map.time)
-            return [time, time]
+            return [
+                minTimeBoundFromJSONOrNegativeInfinity(this.map.startTime),
+                maxTimeBoundFromJSONOrPositiveInfinity(this.map.endTime),
+            ]
         }
 
         // If the timeline is hidden on the chart tab but displayed on the table tab
@@ -1867,7 +1869,8 @@ export class Grapher
 
     set timelineHandleTimeBounds(value: TimeBounds) {
         if (this.isOnMapTab) {
-            this.map.time = value[1]
+            this.map.startTime = value[0]
+            this.map.endTime = value[1]
         } else {
             this.minTime = value[0]
             this.maxTime = value[1]
@@ -3797,7 +3800,8 @@ export class Grapher
         this.compareEndPointsOnly = authorsVersion.compareEndPointsOnly
         this.minTime = authorsVersion.minTime
         this.maxTime = authorsVersion.maxTime
-        this.map.time = authorsVersion.map.time
+        this.map.startTime = authorsVersion.map.startTime
+        this.map.endTime = authorsVersion.map.endTime
         this.map.region = authorsVersion.map.region
         this.showNoDataArea = authorsVersion.showNoDataArea
         this.dataTableConfig.filter = authorsVersion.dataTableConfig.filter
@@ -4002,22 +4006,36 @@ export class Grapher
     }
 
     @computed private get hasUserChangedMapTimeHandle(): boolean {
-        return this.map.time !== this.authorsVersion.map.time
+        const authorsVersion = this.authorsVersion
+        return (
+            this.map.startTime !== authorsVersion.map.startTime ||
+            this.map.endTime !== authorsVersion.map.endTime
+        )
     }
 
     @computed get timeParam(): string | undefined {
         const { timeColumn } = this.table
-        const formatTime = (t: Time): string =>
+        const formatTime = (time: Time): string =>
             timeBoundToTimeBoundString(
-                t,
+                time,
                 timeColumn instanceof ColumnTypeMap.Day
             )
 
         if (this.isOnMapTab) {
-            return this.map.time !== undefined &&
-                this.hasUserChangedMapTimeHandle
-                ? formatTime(this.map.time)
-                : undefined
+            if (!this.hasUserChangedMapTimeHandle) return undefined
+
+            if (
+                this.map.startTime === undefined ||
+                this.map.endTime === undefined
+            )
+                return undefined
+
+            const startTime = formatTime(this.map.startTime)
+            const endTime = formatTime(this.map.endTime)
+
+            return startTime === endTime
+                ? startTime
+                : `${startTime}..${endTime}`
         }
 
         if (!this.hasUserChangedTimeHandles) return undefined
