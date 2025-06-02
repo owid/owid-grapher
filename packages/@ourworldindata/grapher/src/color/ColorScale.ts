@@ -178,8 +178,8 @@ export class ColorScale {
         const hasNegativeValues = this.sortedNumericValues[0] < 0
 
         if (hasNegativeValues) {
-            const lower = quantile(this.sortedNumericValues, 0.1)
-            const upper = quantile(this.sortedNumericValues, 0.9)
+            const lower = quantile(this.sortedNumericValues, 0.01)
+            const upper = quantile(this.sortedNumericValues, 0.99)
             return equalSizeBinsWithMidpoint({
                 minValue: lower ?? 1,
                 maxValue: upper ?? 1,
