@@ -175,6 +175,8 @@ export class ColorScale {
         return runBinningStrategy({
             strategy: "auto",
             sortedValues: this.sortedNumericValues,
+            isPercent: this.colorScaleColumn?.shortUnit === "%",
+            numDecimalPlaces: this.colorScaleColumn?.numDecimalPlaces,
         }).bins
 
         const hasNegativeValues = this.sortedNumericValues[0] < 0
