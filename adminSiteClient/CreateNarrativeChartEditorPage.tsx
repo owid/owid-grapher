@@ -5,6 +5,7 @@ import { observer } from "mobx-react"
 import type { History } from "history"
 
 import { GrapherInterface } from "@ourworldindata/utils"
+import { isKebabCase, KEBAB_CASE_ERROR_MSG } from "../adminShared/validation.js"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ChartEditorView, ChartEditorViewManager } from "./ChartEditorView.js"
@@ -86,6 +87,7 @@ class CreateNarrativeChartEditorPageInternal
 
     @action.bound onNameChange(value: string) {
         this.name = value
+        this.nameError = isKebabCase(value) ? undefined : KEBAB_CASE_ERROR_MSG
     }
 
     @action.bound refresh(): void {
