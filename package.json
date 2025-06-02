@@ -229,7 +229,7 @@
         "eslint-plugin-react": "^7.37.4",
         "eslint-plugin-react-hooks": "^5.2.0",
         "eslint-plugin-react-refresh": "^0.4.19",
-        "flag-icons": "^7.3.1",
+        "flag-icons": "^7.5.0",
         "http-server": "^14.1.1",
         "husky": "^9.0.11",
         "jsdom": "^26.1.0",

@@ -12131,10 +12131,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"flag-icons@npm:^7.3.1":
-  version: 7.3.1
-  resolution: "flag-icons@npm:7.3.1"
-  checksum: 10/37e015c2bcdbc46d10a5996ba2c195d5badf8308461c5a0320bf240d154eb871df91ac37917361f23eaced1b69d526fe2937af4e953d4b33545320c348110362
+"flag-icons@npm:^7.5.0":
+  version: 7.5.0
+  resolution: "flag-icons@npm:7.5.0"
+  checksum: 10/eb7caf5a77edc849c6edd2cefc59dc42b0f38f031949b167f363b8729e52281ecd1f3180d2df07c9642d06c39b0691432b8e0ed46ed9943f63bf06f3bee43821
   languageName: node
   linkType: hard
 
@@ -12879,7 +12879,7 @@ __metadata:
     express-async-errors: "npm:^3.1.1"
     figma-api: "npm:^2.0.2-beta"
     filenamify: "npm:^6.0.0"
-    flag-icons: "npm:^7.3.1"
+    flag-icons: "npm:^7.5.0"
     fparser: "npm:^3.1.0"
     fs-extra: "npm:^11.1.1"
     glob: "npm:^10.3.3"
