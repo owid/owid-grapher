@@ -29,6 +29,7 @@ GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH = "v1"
 # Overrides for CF production deployment
 [env.production]
 compatibility_date = "2024-11-11"
+logpush = true
 
 [env.production.vars]
 ENV = "production"
@@ -38,5 +39,3 @@ GRAPHER_CONFIG_R2_BUCKET_URL = "https://grapher-configs.owid.io"
 GRAPHER_CONFIG_R2_BUCKET_FALLBACK_URL = ""
 GRAPHER_CONFIG_R2_BUCKET_FALLBACK_PATH = ""
 GRAPHER_CONFIG_R2_BUCKET_PATH = "v1"
-
-
