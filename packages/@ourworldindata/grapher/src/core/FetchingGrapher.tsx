@@ -12,8 +12,8 @@ import {
 } from "./Grapher.js"
 import { loadVariableDataAndMetadata } from "./loadVariable.js"
 import { fetchInputTableForConfig } from "./loadGrapherTableHelpers.js"
-import { action } from "mobx"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
+import { unstable_batchedUpdates } from "react-dom"
 
 export interface FetchingGrapherProps {
     config?: GrapherProgrammaticInterface
@@ -43,7 +43,6 @@ export function FetchingGrapher(
         })
     )
 
-    // TODO Daniel: remove this
     // update grapherState when the config from props changes
     React.useEffect(() => {
         if (props.config?.bounds)
@@ -67,7 +66,11 @@ export function FetchingGrapher(
                         ...props.config,
                     }
                     setDownloadedConfig(mergedConfig)
-                    action(() => {
+                    // Batch the grapher updates to avoid getting intermediate
+                    // grapherChangedParams values, which make the URL update
+                    // multiple times while flashing.
+                    // https://stackoverflow.com/a/48610973/9846837
+                    unstable_batchedUpdates(() => {
                         grapherState.current.updateFromObject(mergedConfig)
                         // We now need to make sure that the query params are re-applied again
                         grapherState.current.populateFromQueryParams(
