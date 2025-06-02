@@ -4,7 +4,7 @@
 
 import { GrapherInterface } from "@ourworldindata/types"
 
-export const latestSchemaVersion = "009" as const
+export const latestSchemaVersion = "010" as const
 export const outdatedSchemaVersions = [
     "001",
     "002",
@@ -14,10 +14,11 @@ export const outdatedSchemaVersions = [
     "006",
     "007",
     "008",
+    "009",
 ] as const
 
 export const defaultGrapherConfig = {
-    $schema: "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
+    $schema: "https://files.ourworldindata.org/schemas/grapher-schema.010.json",
     map: {
         region: "World",
         hideTimeline: false,
@@ -30,7 +31,8 @@ export const defaultGrapherConfig = {
         },
         toleranceStrategy: "closest",
         tooltipUseCustomLabels: false,
-        time: "latest",
+        startTime: "latest",
+        endTime: "latest",
         selectedEntityNames: [],
     },
     maxTime: "latest",
