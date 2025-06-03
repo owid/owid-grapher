@@ -18,11 +18,21 @@ type BinningStrategy = "auto" | "equalSizeBins" | LogBinningStrategy | "percent"
 
 type ResolvedBinningStrategy = Exclude<BinningStrategy, "auto">
 
+export const automaticBinningStrategies: BinningStrategy[] = [
+    "auto",
+    "log-auto",
+    "log-fake-2",
+    "log-fake-3",
+    "log-10",
+    "equalSizeBins",
+    "percent",
+]
+
 // TODO aspirational
 type MidpointMode =
     | "none" // No midpoint
-    | "symmetric-full" // Symmetric bins around a midpoint, with negBins = -1 * posBins
-    | "symmetric-num-bins" // Symmetric bins around a midpoint, with negBins.length = posBins.length
+    | "symmetric" // Symmetric bins around a midpoint, with negBins = -1 * posBins
+    | "same-num-bins" // Symmetric bins around a midpoint, with negBins.length = posBins.length
     | "asymmetric" // Bins around a midpoint, with negBins.length not necessarily equal to posBins.length
 
 interface BinningStrategyConfig {
@@ -86,7 +96,7 @@ export const runBinningStrategy = (
 
     if (hasNegAndPosValues && conf.midpointMode === undefined) {
         // Default to symmetric-full if there are negative and positive values
-        conf.midpointMode ??= "symmetric-full"
+        conf.midpointMode ??= "symmetric"
     }
 
     conf.midpoint ??= 0
@@ -127,33 +137,22 @@ const computeMinMaxForStrategy = (
     sortedValues: number[],
     conf?: ResolvedBinningStrategyConfig
 ): { minValue: number; maxValue: number } => {
-    if (conf?.minValue !== undefined && conf?.maxValue !== undefined) {
-        return { minValue: conf.minValue, maxValue: conf.maxValue }
+    let { minValue, maxValue } = conf || {}
+    if (minValue !== undefined && maxValue !== undefined) {
+        maxValue = Math.max(minValue, maxValue)
+        return { minValue, maxValue }
     }
 
-    return match(strategy)
+    match(strategy)
         .with("equalSizeBins", () => {
             const uniqValues = sortedUniq(sortedValues)
-            let minValue = quantile(uniqValues, 0.05)
-            let maxValue = quantile(uniqValues, 0.95)
-
-            if (conf?.numDecimalPlaces !== undefined) {
-                if (minValue > 0)
-                    minValue = Math.max(
-                        minValue,
-                        Math.pow(10, -conf?.numDecimalPlaces)
-                    )
-                if (maxValue < 0)
-                    maxValue = Math.min(
-                        maxValue,
-                        -Math.pow(10, -conf?.numDecimalPlaces)
-                    )
-            }
-            return { minValue, maxValue }
+            minValue ??= quantile(uniqValues, 0.05)
+            maxValue ??= quantile(uniqValues, 0.95)
         })
         .with("percent", () => {
             // Percent strategy always uses 0 to 100
-            return { minValue: 0, maxValue: 100 }
+            minValue ??= 0
+            maxValue ??= 100
         })
         .when(isLogBinningStrategy, () => {
             const posValues = R.dropWhile(sortedValues, (v) => v <= 0)
@@ -162,8 +161,8 @@ const computeMinMaxForStrategy = (
             }
 
             const uniqValues = sortedUniq(posValues)
-            let minValue = quantile(uniqValues, 0.15)
-            let maxValue = quantile(uniqValues, 0.995)
+            minValue ??= quantile(uniqValues, 0.15)
+            maxValue ??= quantile(uniqValues, 0.995)
 
             if (conf?.numDecimalPlaces !== undefined) {
                 if (minValue > 0)
@@ -177,10 +176,11 @@ const computeMinMaxForStrategy = (
                         -Math.pow(10, -conf?.numDecimalPlaces)
                     )
             }
-
-            return { minValue, maxValue }
         })
         .exhaustive()
+
+    maxValue = Math.max(minValue, maxValue)
+    return { minValue, maxValue }
 }
 
 const runBinningStrategyAroundMidpoint = (
@@ -203,7 +203,7 @@ const runBinningStrategyAroundMidpoint = (
         .with("none", () => {
             return runResolvedBinningStrategy(conf, { hasMidpoint: false })
         })
-        .with("symmetric-full", () => {
+        .with("symmetric", () => {
             const leftRange = Math.max(conf.midpoint - minValue, 0)
             const rightRange = Math.max(maxValue - conf.midpoint, 0)
             const biggerRange = Math.max(leftRange, rightRange)
@@ -229,7 +229,7 @@ const runBinningStrategyAroundMidpoint = (
             )
             return mirrorBinsAroundMidpoint(binsRight, conf.midpoint)
         })
-        .with("symmetric-num-bins", () => {
+        .with("same-num-bins", () => {
             const leftValues = R.takeWhile(
                 conf.sortedValues,
                 (v) => v < conf.midpoint
@@ -258,8 +258,8 @@ const runBinningStrategyAroundMidpoint = (
             ]
         })
         .with("asymmetric", () => {
-            // TODO implement, but how?
-            return []
+            // probably want to get rid of this one, and keep it manual-only
+            throw new Error("Asymmetric mode is not implemented")
         })
         .exhaustive()
 

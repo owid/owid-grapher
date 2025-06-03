@@ -31,7 +31,10 @@ export class ColorScaleConfigDefaults implements ColorScaleConfigInterface {
     // ============
 
     /** The strategy for generating the bin boundaries */
-    binningStrategy: BinningStrategy = BinningStrategy.ckmeans
+    binningStrategy: string = "auto"
+    createBinForMidpoint?: boolean
+    minValue?: number
+    maxValue?: number
     /** The *suggested* number of bins for the automatic binning algorithm */
     binningStrategyBinCount: number | undefined = undefined
 
@@ -91,6 +94,9 @@ export class ColorScaleConfigDefaults implements ColorScaleConfigInterface {
             customCategoryLabels: observable.ref,
             customHiddenCategories: observable.ref,
             legendDescription: observable,
+            createBinForMidpoint: observable,
+            minValue: observable,
+            maxValue: observable,
         })
     }
 }
