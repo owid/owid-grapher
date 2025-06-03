@@ -148,8 +148,7 @@ class ColorsSection extends Component<{
 
     @action.bound onBinningStrategy(
         binningStrategy: {
-            label: string
-            value: BinningStrategy
+            value: string
         } | null
     ) {
         if (binningStrategy) this.config.binningStrategy = binningStrategy.value
@@ -164,6 +163,19 @@ class ColorsSection extends Component<{
     }
 
     @computed get binningStrategyOptions() {
+        const automaticBinningStrategies = [
+            "auto",
+            "log-auto",
+            "log-fake-2",
+            "log-fake-3",
+            "log-10",
+            "equalSizeBins",
+            "percent",
+        ]
+        return automaticBinningStrategies.map((strategy) => ({
+            value: strategy,
+            label: strategy,
+        }))
         const options = Object.entries(binningStrategyLabels).map(
             ([value, label]) => ({
                 label: label,
@@ -217,6 +229,36 @@ class ColorsSection extends Component<{
                         label="Invert colors"
                         value={config.colorSchemeInvert || false}
                         onValue={this.onInvert}
+                    />
+                    <Toggle
+                        label="Include bin for midpoint"
+                        value={config.createBinForMidpoint || false}
+                        onValue={(val) => {
+                            config.createBinForMidpoint = val
+                            this.props.onChange?.()
+                        }}
+                    />
+                </FieldsRow>
+                <FieldsRow>
+                    <NumberField
+                        label="Min value"
+                        value={config.minValue}
+                        onValue={(value) => {
+                            config.minValue = value
+                            this.props.onChange?.()
+                        }}
+                        allowDecimal
+                        allowNegative
+                    />
+                    <NumberField
+                        label="Max value"
+                        value={config.maxValue}
+                        onValue={(value) => {
+                            config.maxValue = value
+                            this.props.onChange?.()
+                        }}
+                        allowDecimal
+                        allowNegative
                     />
                 </FieldsRow>
                 <FieldsRow>

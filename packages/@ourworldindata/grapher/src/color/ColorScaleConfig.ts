@@ -32,7 +32,10 @@ export class ColorScaleConfigDefaults {
     // ============
 
     /** The strategy for generating the bin boundaries */
-    @observable binningStrategy: BinningStrategy = BinningStrategy.ckmeans
+    @observable binningStrategy: string = "auto"
+    @observable createBinForMidpoint?: boolean
+    @observable minValue?: number
+    @observable maxValue?: number
     /** The *suggested* number of bins for the automatic binning algorithm */
     @observable binningStrategyBinCount?: number
 
