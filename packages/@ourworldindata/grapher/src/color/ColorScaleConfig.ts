@@ -36,6 +36,7 @@ export class ColorScaleConfigDefaults {
     @observable createBinForMidpoint?: boolean
     @observable minValue?: number
     @observable maxValue?: number
+    @observable midpointMode?: string
     /** The *suggested* number of bins for the automatic binning algorithm */
     @observable binningStrategyBinCount?: number
 
