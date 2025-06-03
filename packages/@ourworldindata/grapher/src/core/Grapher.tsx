@@ -315,6 +315,7 @@ export class GrapherState {
     @observable.ref $schema = latestGrapherConfigSchema
     @observable.ref chartTypes: GrapherChartType[] = [
         GRAPHER_CHART_TYPES.LineChart,
+        GRAPHER_CHART_TYPES.DiscreteBar,
     ]
     @observable.ref id?: number = undefined
     @observable.ref version = 1
@@ -1830,14 +1831,7 @@ export class GrapherState {
     }
 
     @computed get validChartTypes(): GrapherChartType[] {
-        // add a discrete bar chart tab if the grapher has a line or slope chart
         const chartTypeSet = new Set(this.chartTypes)
-        if (
-            chartTypeSet.has(GRAPHER_CHART_TYPES.LineChart) ||
-            chartTypeSet.has(GRAPHER_CHART_TYPES.SlopeChart)
-        ) {
-            chartTypeSet.add(GRAPHER_CHART_TYPES.DiscreteBar)
-        }
 
         // all single-chart Graphers are valid
         if (chartTypeSet.size <= 1) return Array.from(chartTypeSet)
