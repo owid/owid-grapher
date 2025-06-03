@@ -100,7 +100,8 @@
         }
         @include grid(12);
 
-        figure[data-grapher-src] {
+        figure[data-grapher-src],
+        figure.grapher-component {
             grid-column: span 12;
             margin: 0;
 
@@ -140,6 +141,7 @@
 
         .GrapherWithFallback__fallback {
             display: flex;
+            grid-column: span 12;
             flex-direction: column;
             img {
                 margin: auto;
@@ -192,7 +194,8 @@
             margin-bottom: 0;
         }
 
-        figure[data-grapher-src] {
+        figure[data-grapher-src],
+        figure.grapher-component {
             height: $grapher-height;
         }
     }

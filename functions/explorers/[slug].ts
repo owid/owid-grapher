@@ -78,11 +78,11 @@ async function handleThumbnailRequest(
         )
         const explorer = new Explorer(explorerProps)
         explorer.updateGrapherFromExplorer()
-        while (!explorer.grapher.isReady) {
+        while (!explorer.grapherState.isReady) {
             await new Promise((resolve) => setTimeout(resolve, 100))
         }
-        explorer.grapher.populateFromQueryParams(urlObj.queryParams)
-        const svg = explorer.grapher.generateStaticSvg()
+        explorer.grapherState.populateFromQueryParams(urlObj.queryParams)
+        const svg = explorer.grapherState.generateStaticSvg()
         if (extension === "svg") {
             return new Response(svg, {
                 headers: {
