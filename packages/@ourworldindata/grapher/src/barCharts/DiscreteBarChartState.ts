@@ -20,6 +20,7 @@ import {
     makeSelectionArray,
 } from "../chart/ChartUtils"
 import {
+    ChartErrorInfo,
     ColorScaleConfigInterface,
     ColorSchemeName,
     FacetStrategy,
@@ -308,16 +309,17 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
         return [FacetStrategy.none]
     }
 
-    @computed get failMessage(): string {
+    @computed get errorInfo(): ChartErrorInfo {
         const column = this.yColumns[0]
 
-        if (!column) return "No column to chart"
+        if (!column) return { reason: "No column to chart" }
 
-        if (!this.selectionArray.hasSelection) return `No data selected`
+        if (!this.selectionArray.hasSelection)
+            return { reason: "No data selected" }
 
         // TODO is it better to use .series for this check?
         return this.yColumns.every((col) => col.isEmpty)
-            ? "No matching data"
-            : ""
+            ? { reason: "No matching data" }
+            : { reason: "" }
     }
 }

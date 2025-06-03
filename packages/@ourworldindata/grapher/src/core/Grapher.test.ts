@@ -432,7 +432,7 @@ describe("authors can use maxTime", () => {
             ySlugs: "GDP",
         })
         const chart = grapher.chartState
-        expect(chart.failMessage).toBeFalsy()
+        expect(chart.errorInfo.reason).toBeFalsy()
     })
 })
 

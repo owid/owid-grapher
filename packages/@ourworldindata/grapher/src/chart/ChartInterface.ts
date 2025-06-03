@@ -4,6 +4,7 @@ import {
     SeriesName,
     SeriesStrategy,
     Color,
+    ChartErrorInfo,
 } from "@ourworldindata/types"
 import { ColorScale } from "../color/ColorScale"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
@@ -22,7 +23,7 @@ export type ChartTableTransformer = (inputTable: OwidTable) => OwidTable
 
 /** Interface implemented by all chart state classes */
 export interface ChartState {
-    failMessage: string // We require every chart have some fail message(s) to show to the user if something went wrong
+    errorInfo: ChartErrorInfo // We require every chart have some fail message(s) to show to the user if something went wrong
 
     inputTable: OwidTable // Points to the OwidTable coming into the chart. All charts have an inputTable. Standardized as part of the interface as a development aid.
     transformedTable: OwidTable // Points to the OwidTable after the chart has transformed the input table. The chart may add a relative transform, for example. Standardized as part of the interface as a development aid.

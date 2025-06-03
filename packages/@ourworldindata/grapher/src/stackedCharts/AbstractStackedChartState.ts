@@ -1,6 +1,7 @@
 import { ChartState } from "../chart/ChartInterface.js"
 import { ChartManager } from "../chart/ChartManager.js"
 import {
+    ChartErrorInfo,
     ColorSchemeName,
     FacetStrategy,
     MissingDataStrategy,
@@ -288,11 +289,12 @@ export abstract class AbstractStackedChartState implements ChartState {
             }) as StackedSeries<number>[]
     }
 
-    @computed get failMessage(): string {
+    @computed get errorInfo(): ChartErrorInfo {
         const { yColumnSlugs } = this
-        if (!yColumnSlugs.length) return "Missing variable"
-        if (!this.unstackedSeries.length) return "No matching data"
-        if (!this.allStackedPoints.length) return "No matching points"
-        return ""
+        if (!yColumnSlugs.length) return { reason: "Missing variable" }
+        if (!this.unstackedSeries.length) return { reason: "No matching data" }
+        if (!this.allStackedPoints.length)
+            return { reason: "No matching points" }
+        return { reason: "" }
     }
 }

@@ -11,6 +11,7 @@ import {
     MissingDataStrategy,
     ColorScaleConfigInterface,
     ColorSchemeName,
+    ChartErrorInfo,
 } from "@ourworldindata/types"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { ChartState } from "../chart/ChartInterface"
@@ -301,10 +302,10 @@ export class LineChartState implements ChartState, ColorScaleManager {
         }
     }
 
-    @computed get failMessage(): string {
+    @computed get errorInfo(): ChartErrorInfo {
         const message = getDefaultFailMessage(this.manager)
-        if (message) return message
-        if (!this.series.length) return "No matching data"
-        return ""
+        if (message) return { reason: message }
+        if (!this.series.length) return { reason: "No matching data" }
+        return { reason: "" }
     }
 }

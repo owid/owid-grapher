@@ -29,10 +29,10 @@ it("can create a chart", () => {
     }
 
     const chartState = new StackedDiscreteBarChartState({ manager })
-    expect(chartState.failMessage).toBeTruthy()
+    expect(chartState.errorInfo.reason).toBeTruthy()
 
     selection.addToSelection(table.sampleEntityName(5))
-    expect(chartState.failMessage).toEqual("")
+    expect(chartState.errorInfo.reason).toEqual("")
     expect(chartState.series.length).toEqual(2)
     expect(chartState.series[0].points.length).toEqual(5)
 })
@@ -56,7 +56,7 @@ it("can display a StackedDiscreteBar chart in relative mode", () => {
     const chartState = new StackedDiscreteBarChartState({ manager })
 
     // Check that our absolute values get properly transformed into percentages
-    expect(chartState.failMessage).toEqual("")
+    expect(chartState.errorInfo.reason).toEqual("")
     expect(chartState.series.length).toEqual(2)
     expect(chartState.series[0].points).toEqual([
         {
@@ -110,7 +110,7 @@ it("can display a chart with missing variable data for some entities", () => {
     const chartState = new StackedDiscreteBarChartState({ manager })
 
     // Check that our absolute values get properly transformed into percentages
-    expect(chartState.failMessage).toEqual("")
+    expect(chartState.errorInfo.reason).toEqual("")
     expect(
         chartState.transformTableForSelection(table).availableEntityNames
     ).toEqual(["France", "Spain"])
@@ -170,7 +170,7 @@ it("can display a chart with missing variable data for some entities, while hidi
     const chartState = new StackedDiscreteBarChartState({ manager })
 
     // Check that our absolute values get properly transformed into percentages
-    expect(chartState.failMessage).toEqual("")
+    expect(chartState.errorInfo.reason).toEqual("")
     expect(
         chartState.transformTableForSelection(table).availableEntityNames
     ).toEqual(["Italy"])
@@ -213,7 +213,7 @@ it("can display chart with negative values", () => {
     }
     const chartState = new StackedDiscreteBarChartState({ manager })
 
-    expect(chartState.failMessage).toEqual("")
+    expect(chartState.errorInfo.reason).toEqual("")
     expect(chartState.series.length).toEqual(2)
 
     expect(chartState.series[0].points).toEqual([

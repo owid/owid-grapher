@@ -8,7 +8,11 @@ import {
     ColorScaleConfig,
     ColorScaleConfigDefaults,
 } from "../color/ColorScaleConfig"
-import { ColorSchemeName, EntityName } from "@ourworldindata/types"
+import {
+    ChartErrorInfo,
+    ColorSchemeName,
+    EntityName,
+} from "@ourworldindata/types"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { StackedSeries } from "./StackedConstants"
 import { ColorScheme } from "../color/ColorScheme"
@@ -177,12 +181,14 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         }))
     }
 
-    @computed get failMessage(): string {
+    @computed get errorInfo(): ChartErrorInfo {
         const column = this.yColumns[0]
         const { yColumns } = this
 
-        if (!column) return "No Y column to chart"
+        if (!column) return { reason: "No Y column to chart" }
 
-        return yColumns.every((col) => col.isEmpty) ? "No matching data" : ""
+        return yColumns.every((col) => col.isEmpty)
+            ? { reason: "No matching data" }
+            : { reason: "" }
     }
 }

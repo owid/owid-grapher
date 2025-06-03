@@ -3,6 +3,7 @@ import { ChartState } from "../chart/ChartInterface"
 import { StackedDiscreteBarChartManager } from "./StackedDiscreteBarChart"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
+    ChartErrorInfo,
     ColorSchemeName,
     EntityName,
     FacetStrategy,
@@ -176,16 +177,17 @@ export class StackedDiscreteBarChartState implements ChartState {
         return strategies
     }
 
-    @computed get failMessage(): string {
+    @computed get errorInfo(): ChartErrorInfo {
         const column = this.yColumns[0]
 
-        if (!column) return "No column to chart"
+        if (!column) return { reason: "No column to chart" }
 
-        if (!this.selectionArray.hasSelection) return `No data selected`
+        if (!this.selectionArray.hasSelection)
+            return { reason: `No data selected` }
 
         // TODO is it better to use .series for this check?
         return this.yColumns.every((col) => col.isEmpty)
-            ? "No matching data"
-            : ""
+            ? { reason: "No matching data" }
+            : { reason: "" }
     }
 }

@@ -37,7 +37,7 @@ it("can create a new chart", () => {
 
     const chartState = new ScatterPlotChartState({ manager })
     const chart = new ScatterPlotChart({ chartState })
-    expect(chartState.failMessage).toBeFalsy()
+    expect(chartState.errorInfo.reason).toBeFalsy()
     expect(chart.seriesNamesToHighlight.size).toEqual(0)
     expect(chartState.series.length).toEqual(2)
     expect(chartState.allPoints.length).toBeGreaterThan(0)
@@ -51,7 +51,7 @@ it("shows error when X or Y columns are missing", () => {
         ]),
     }
     const chartState = new ScatterPlotChartState({ manager })
-    expect(chartState.failMessage).toBeTruthy()
+    expect(chartState.errorInfo.reason).toBeTruthy()
 })
 
 it("doesn't show 'No data' bin when there is no color column", () => {
@@ -60,7 +60,7 @@ it("doesn't show 'No data' bin when there is no color column", () => {
         colorColumnSlug: undefined,
     }
     const chartState = new ScatterPlotChartState({ manager })
-    expect(chartState.failMessage).toBeFalsy()
+    expect(chartState.errorInfo.reason).toBeFalsy()
     expect(chartState.hasNoDataBin).toBeFalsy()
 })
 

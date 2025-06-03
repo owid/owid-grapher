@@ -13,6 +13,7 @@ import {
 } from "@ourworldindata/core-table"
 import { match, P } from "ts-pattern"
 import {
+    ChartErrorInfo,
     Color,
     ColorSchemeName,
     ColumnSlug,
@@ -319,8 +320,8 @@ export class MapChartState implements ChartState, ColorScaleManager {
             .filter(isPresent)
     }
 
-    @computed get failMessage(): string {
-        if (this.mapColumn.isMissing) return "Missing map column"
-        return ""
+    @computed get errorInfo(): ChartErrorInfo {
+        if (this.mapColumn.isMissing) return { reason: "Missing map column" }
+        return { reason: "" }
     }
 }

@@ -4,7 +4,6 @@ import {
     excludeUndefined,
     getCountryByName,
     getTimeDomainFromQueryString,
-    isSubsetOf,
     Url,
 } from "@ourworldindata/utils"
 import {

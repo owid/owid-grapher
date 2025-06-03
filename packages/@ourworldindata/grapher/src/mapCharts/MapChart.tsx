@@ -624,12 +624,12 @@ export class MapChart
     }
 
     render(): React.ReactElement {
-        if (this.chartState.failMessage)
+        if (this.chartState.errorInfo.reason)
             return (
                 <NoDataModal
                     manager={this.manager}
                     bounds={this.props.bounds}
-                    message={this.chartState.failMessage}
+                    message={this.chartState.errorInfo.reason}
                 />
             )
 

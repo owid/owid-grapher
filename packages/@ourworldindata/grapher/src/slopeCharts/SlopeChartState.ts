@@ -17,6 +17,7 @@ import {
     Time,
     EntityName,
     ColorSchemeName,
+    ChartErrorInfo,
 } from "@ourworldindata/types"
 import {
     autoDetectSeriesStrategy,
@@ -319,10 +320,10 @@ export class SlopeChartState implements ChartState {
         )
     }
 
-    @computed get failMessage(): string {
+    @computed get errorInfo(): ChartErrorInfo {
         const message = getDefaultFailMessage(this.manager)
-        if (message) return message
-        else if (this.series.length === 0) return "No matching data"
-        return ""
+        if (message) return { reason: message }
+        else if (this.series.length === 0) return { reason: "No matching data" }
+        return { reason: "" }
     }
 }

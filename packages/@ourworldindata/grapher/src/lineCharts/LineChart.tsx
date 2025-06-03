@@ -706,14 +706,14 @@ export class LineChart
     render(): React.ReactElement {
         const { manager, dualAxis } = this
 
-        if (this.chartState.failMessage)
+        if (this.chartState.errorInfo.reason)
             return (
                 <g>
                     {this.renderDualAxis()}
                     <NoDataModal
                         manager={manager}
                         bounds={dualAxis.innerBounds}
-                        message={this.chartState.failMessage}
+                        message={this.chartState.errorInfo.reason}
                     />
                 </g>
             )

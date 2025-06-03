@@ -673,14 +673,14 @@ export class StackedAreaChart
     }
 
     render(): React.ReactElement {
-        if (this.chartState.failMessage)
+        if (this.chartState.errorInfo.reason)
             return (
                 <g>
                     {this.renderAxis()}
                     <NoDataModal
                         manager={this.manager}
                         bounds={this.dualAxis.bounds}
-                        message={this.chartState.failMessage}
+                        message={this.chartState.errorInfo.reason}
                     />
                 </g>
             )
