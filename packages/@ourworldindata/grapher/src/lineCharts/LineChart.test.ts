@@ -30,11 +30,11 @@ it("can create a new chart", () => {
     }
     const chart = new LineChart({ manager })
 
-    expect(chart.failMessage).toBeTruthy()
+    expect(chart.errorInfo.reason).toBeTruthy()
 
     manager.selection = table.availableEntityNames
 
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(chart.series.length).toEqual(2)
     expect(chart.placedSeries.length).toEqual(2)
     expect(chart.placedSeries[0].placedPoints[0].x).toBeGreaterThan(0)
