@@ -177,45 +177,52 @@ export class ColorScale {
     // and works out some discrete ranges to assign colors to
     @computed get autoBinMaximums(): number[] {
         return runBinningStrategy({
-            strategy: "auto",
             sortedValues: this.sortedNumericValues,
             isPercent: this.colorScaleColumn?.shortUnit === "%",
             numDecimalPlaces: this.colorScaleColumn?.numDecimalPlaces,
+
+            strategy:
+                this.config.binningStrategy !== "manual"
+                    ? (this.config.binningStrategy as any)
+                    : "auto",
+            createBinForMidpoint: this.config.createBinForMidpoint,
+            minValue: this.config.minValue,
+            maxValue: this.config.maxValue,
         }).bins
 
-        const hasNegativeValues = this.sortedNumericValues[0] < 0
+        // const hasNegativeValues = this.sortedNumericValues[0] < 0
 
-        if (hasNegativeValues) {
-            const lower = quantile(this.sortedNumericValues, 0.01)
-            const upper = quantile(this.sortedNumericValues, 0.99)
-            return equalSizeBinsWithMidpoint({
-                minValue: lower ?? 1,
-                maxValue: upper ?? 1,
-                midpoint: 0,
-            })
-        }
+        // if (hasNegativeValues) {
+        //     const lower = quantile(this.sortedNumericValues, 0.01)
+        //     const upper = quantile(this.sortedNumericValues, 0.99)
+        //     return equalSizeBinsWithMidpoint({
+        //         minValue: lower ?? 1,
+        //         maxValue: upper ?? 1,
+        //         midpoint: 0,
+        //     })
+        // }
 
-        const positiveValues = R.dropWhile(
-            this.sortedNumericValues,
-            (v) => v <= 0
-        )
-        const quantileLower = quantile(positiveValues, 0.1)
-        const quantileUpper = quantile(positiveValues, 0.995)
-        const magnitudeDiff =
-            Math.log10(quantileUpper) - Math.log10(quantileLower)
+        // const positiveValues = R.dropWhile(
+        //     this.sortedNumericValues,
+        //     (v) => v <= 0
+        // )
+        // const quantileLower = quantile(positiveValues, 0.1)
+        // const quantileUpper = quantile(positiveValues, 0.995)
+        // const magnitudeDiff =
+        //     Math.log10(quantileUpper) - Math.log10(quantileLower)
 
-        console.log(quantileLower, quantileUpper, magnitudeDiff)
+        // console.log(quantileLower, quantileUpper, magnitudeDiff)
 
-        if (magnitudeDiff < 1.2) {
-            return equalSizeBins({
-                minValue: quantileLower ?? 1,
-                maxValue: quantileUpper ?? 1,
-            })
-        }
-        return autoChooseLogBins({
-            minValue: quantileLower ?? 1,
-            maxValue: quantileUpper ?? 1,
-        })
+        // if (magnitudeDiff < 1.2) {
+        //     return equalSizeBins({
+        //         minValue: quantileLower ?? 1,
+        //         maxValue: quantileUpper ?? 1,
+        //     })
+        // }
+        // return autoChooseLogBins({
+        //     minValue: quantileLower ?? 1,
+        //     maxValue: quantileUpper ?? 1,
+        // })
     }
 
     @computed private get bucketThresholds(): number[] {
