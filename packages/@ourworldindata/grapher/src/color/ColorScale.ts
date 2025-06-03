@@ -188,6 +188,7 @@ export class ColorScale {
             createBinForMidpoint: this.config.createBinForMidpoint,
             minValue: this.config.minValue,
             maxValue: this.config.maxValue,
+            midpointMode: this.config.midpointMode as any,
         }).bins
 
         // const hasNegativeValues = this.sortedNumericValues[0] < 0
