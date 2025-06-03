@@ -111,7 +111,7 @@ export async function updateDod(
             }
         }
 
-        const dod = await trx(DodsTableName)
+        await trx(DodsTableName)
             .update({
                 content,
                 updatedAt: new Date(),
@@ -119,10 +119,12 @@ export async function updateDod(
             })
             .where({ id })
 
+        const dod = await trx(DodsTableName).first().where({ id })
+
         await updateLinksFromInsertedDod(trx, id)
         await triggerStaticBuild(res.locals.user, `Dod ${id} updated`)
 
-        return { dod }
+        return { success: true, dod }
     } catch (error) {
         console.error("Error updating dod", error)
         return {
