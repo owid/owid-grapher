@@ -43,8 +43,8 @@ export const SearchInput = forwardRef(
             // Only set the placeholder once the component has rendered so that useMediaQuery has a chance to initialize
             // Otherwise on mobile it will flash from the desktop version to the mobile placeholder
             placeholder = isSmallScreen
-                ? "Search data, topics, or keywords…"
-                : "Search for an indicator, a topic, or a keyword…"
+                ? "Search data, topics, or countries…"
+                : "Search for an indicator, a topic, or a country…"
         }
 
         // Generate unique IDs for ARIA relationships using utility functions
