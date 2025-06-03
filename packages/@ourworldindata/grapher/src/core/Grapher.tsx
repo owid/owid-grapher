@@ -388,7 +388,6 @@ export interface GrapherManager {
     canonicalUrl?: string
     selection?: SelectionArray
     focusArray?: FocusArray
-    mapConfig?: MapConfig
     adminEditPath?: string
     adminCreateNarrativeChartPath?: string
     analyticsContext?: AnalyticsContext
@@ -2530,7 +2529,7 @@ export class Grapher
     }
 
     @computed get mapConfig(): MapConfig {
-        return this.manager?.mapConfig ?? this.map
+        return this.map
     }
 
     @computed get cacheTag(): string {
