@@ -30,10 +30,10 @@ it("can create a chart", () => {
     }
 
     const chart = new MarimekkoChart({ manager })
-    //expect(chart.failMessage).toBeTruthy()
+    //expect(chart.errorInfo.reason).toBeTruthy()
 
     // selection.addToSelection(table.sampleEntityName(5))
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(chart.series.length).toEqual(1)
     expect(chart.series[0].points.length).toEqual(5)
     expect(chart.xSeries!.points.length).toEqual(5)
@@ -66,7 +66,7 @@ it("can display a Marimekko chart correctly", () => {
     })
     const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
 
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(chart.series.length).toEqual(1)
     expect(chart.series[0].points.length).toEqual(3)
     // Y series points should be one series in order of the data
@@ -178,7 +178,7 @@ it("can display two time series stacked correctly", () => {
     })
     const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
 
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(chart.series.length).toEqual(2)
     expect(chart.series[0].points.length).toEqual(3)
     expect(chart.series[1].points.length).toEqual(3)
@@ -328,7 +328,7 @@ it("can do sorting", () => {
         bounds: new Bounds(0, 0, 1000, 1000),
     })
 
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(chart.series.length).toEqual(1)
     expect(chart.series[0].points.length).toEqual(3)
     // Y series points should be one series in order of the data
@@ -484,7 +484,7 @@ it("can filter years correctly", () => {
     const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
     //grapher.startHandleTimeBound = 2000
 
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(chart.series.length).toEqual(1)
     expect(chart.series[0].points.length).toEqual(3)
     // Y series points should be one series in order of the data
@@ -593,7 +593,7 @@ it("shows no data points at the end", () => {
     })
     const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
 
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(chart.series.length).toEqual(1)
     expect(chart.series[0].points.length).toEqual(2)
     // Y series points should be one series in order of the data. Medium should be missing here
@@ -693,7 +693,7 @@ test("interpolation works as expected", () => {
     })
     const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
 
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(chart.series.length).toEqual(1)
     expect(chart.series[0].points.length).toEqual(3)
     // Y series points should be one series in order of the data
@@ -805,7 +805,7 @@ it("can deal with y columns with missing values", () => {
     const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
     //grapher.startHandleTimeBound = 2000
 
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(chart.series.length).toEqual(2)
     expect(chart.series[0].points.length).toEqual(3)
     expect(chart.series[1].points.length).toEqual(2)
