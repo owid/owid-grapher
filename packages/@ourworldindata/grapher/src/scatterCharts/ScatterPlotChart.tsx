@@ -13,6 +13,7 @@ import {
     ValueRange,
     ColumnSlug,
     AxisAlign,
+    ChartErrorInfo,
 } from "@ourworldindata/types"
 import { ComparisonLine } from "../scatterCharts/ComparisonLine"
 import { observable, computed, action } from "mobx"
@@ -839,12 +840,12 @@ export class ScatterPlotChart
     }
 
     render(): React.ReactElement {
-        if (this.failMessage)
+        if (this.errorInfo.reason)
             return (
                 <NoDataModal
                     manager={this.manager}
                     bounds={this.bounds}
-                    message={this.failMessage}
+                    message={this.errorInfo.reason}
                 />
             )
 
@@ -1061,10 +1062,9 @@ export class ScatterPlotChart
         return this.transformedTable.get(this.sizeColumnSlug)
     }
 
-    @computed get failMessage(): string {
-        if (this.yColumn.isMissing) return "Missing Y axis variable"
-
-        if (this.yColumn.isMissing) return "Missing X axis variable"
+    @computed get errorInfo(): ChartErrorInfo {
+        if (this.yColumn.isMissing) return { reason: "Missing Y axis variable" }
+        if (this.xColumn.isMissing) return { reason: "Missing X axis variable" }
 
         if (_.isEmpty(this.allEntityNamesWithXAndY)) {
             if (
@@ -1072,14 +1072,16 @@ export class ScatterPlotChart
                 this.manager.hasTimeline &&
                 this.manager.startTime === this.manager.endTime
             ) {
-                return "Please select a start and end point on the timeline below"
+                return {
+                    reason: "Please select a start and end point on the timeline below",
+                }
             }
-            return "No entities with data for both X and Y"
+            return { reason: "No entities with data for both X and Y" }
         }
 
-        if (_.isEmpty(this.series)) return "No matching data"
+        if (_.isEmpty(this.series)) return { reason: "No matching data" }
 
-        return ""
+        return { reason: "" }
     }
 
     // todo: remove this. Should be done as a simple column transform at the data level.
