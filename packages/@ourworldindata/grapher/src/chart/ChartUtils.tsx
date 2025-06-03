@@ -246,17 +246,22 @@ export function isGrapherTabOption(tab: string): tab is GrapherTabOption {
     return Object.values(GRAPHER_TAB_OPTIONS).includes(tab as GrapherTabOption)
 }
 
-export function findValidChartTypeCombination(
+export function findPotentialChartTypeSiblings(
     chartTypeSet: Set<GrapherChartType>
 ): GrapherChartType[] | undefined {
     for (const validCombination of validChartTypeCombinations) {
         const validCombinationSet = new Set(validCombination)
         if (isSubsetOf(chartTypeSet, validCombinationSet))
-            return validCombination.filter((chartType) =>
-                chartTypeSet.has(chartType)
-            )
+            return validCombination
     }
     return undefined
+}
+
+export function findValidChartTypeCombination(
+    chartTypeSet: Set<GrapherChartType>
+): GrapherChartType[] | undefined {
+    const validCombination = findPotentialChartTypeSiblings(chartTypeSet)
+    return validCombination?.filter((chartType) => chartTypeSet.has(chartType))
 }
 
 export function getHoverStateForSeries(
