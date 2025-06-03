@@ -162,6 +162,15 @@ class ColorsSection extends Component<{
             : scale.baseColorScheme
     }
 
+    @computed get midpointModeOptions() {
+        return [
+            { value: undefined, label: "Auto" },
+            { value: "symmetric", label: "symmetric" },
+            { value: "same-num-bins", label: "same-num-bins" },
+            { value: "asymmetric", label: "Asymmetric" },
+        ]
+    }
+
     @computed get binningStrategyOptions() {
         const automaticBinningStrategies = [
             "auto",
@@ -263,6 +272,26 @@ class ColorsSection extends Component<{
                 </FieldsRow>
                 <FieldsRow>
                     <div className="form-group">
+                        <label>Midpoint mode</label>
+                        <Select
+                            options={this.midpointModeOptions}
+                            onChange={(option) => {
+                                config.midpointMode = option?.value
+                                this.props.onChange?.()
+                            }}
+                            value={this.midpointModeOptions.find(
+                                (option) => option.value === config.midpointMode
+                            )}
+                            components={{
+                                IndicatorSeparator: null,
+                            }}
+                            menuPlacement="auto"
+                            isSearchable={false}
+                        />
+                    </div>
+                </FieldsRow>
+                <FieldsRow>
+                    <div className="form-group">
                         <label>Binning strategy</label>
                         <Select
                             options={this.binningStrategyOptions}
@@ -280,7 +309,7 @@ class ColorsSection extends Component<{
                     <BindAutoFloat
                         field="customNumericMinValue"
                         store={config}
-                        label="Minimum value"
+                        label="Minimum value (first bin)"
                         auto={scale.autoMinBinValue}
                     />
                     {!scale.isManualBuckets && (
