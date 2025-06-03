@@ -28,7 +28,6 @@ import {
     SlideShowManager,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     GrapherAnalytics,
-    MapConfig,
 } from "@ourworldindata/grapher"
 import {
     Bounds,
@@ -274,8 +273,6 @@ export class Explorer
     selection = this.props.selection?.hasSelection
         ? this.props.selection
         : new SelectionArray(this.explorerProgram.selection)
-
-    mapConfig = new MapConfig()
 
     entityType = this.explorerProgram.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE
 
@@ -945,7 +942,7 @@ export class Explorer
     private renderEntityPicker() {
         const selection =
             this.grapher?.isOnMapTab && this.enableMapSelection
-                ? this.mapConfig.selection
+                ? this.grapher.mapConfig.selection
                 : this.selection
 
         return (
