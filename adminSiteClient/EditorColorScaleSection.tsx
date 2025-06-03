@@ -181,6 +181,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
     @computed get midpointModeOptions() {
         return [
             { value: undefined, label: "Auto" },
+            { value: "none", label: "None" },
             { value: "symmetric", label: "symmetric" },
             { value: "same-num-bins", label: "same-num-bins" },
             { value: "asymmetric", label: "Asymmetric" },
