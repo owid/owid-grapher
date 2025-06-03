@@ -717,7 +717,7 @@ export async function createChart(
 
         return { success: true, chartId: chartId }
     } catch (err) {
-        return { success: false, error: String(err) }
+        return { success: false, error: { message: String(err), status: 500 } }
     }
 }
 
@@ -763,7 +763,7 @@ export async function updateChart(
     } catch (err) {
         return {
             success: false,
-            error: String(err),
+            error: { message: String(err), status: 500 },
         }
     }
 }
