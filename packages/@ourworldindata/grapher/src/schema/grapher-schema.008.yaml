@@ -418,7 +418,7 @@ properties:
     chartTypes:
         type: array
         description: Which chart types should be shown
-        default: ["LineChart"]
+        default: ["LineChart", "DiscreteBar"]
         items:
             type: string
             enum:

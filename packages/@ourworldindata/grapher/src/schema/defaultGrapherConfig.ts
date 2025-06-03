@@ -64,7 +64,7 @@ export const defaultGrapherConfig = {
     addCountryMode: "add-country",
     compareEndPointsOnly: false,
     relatedQuestions: [],
-    chartTypes: ["LineChart"],
+    chartTypes: ["LineChart", "DiscreteBar"],
     hasMapTab: false,
     stackMode: "absolute",
     minTime: "earliest",

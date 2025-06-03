@@ -260,7 +260,7 @@ export function isGrapherTabOption(tab: string): tab is GrapherTabOption {
     return Object.values(GRAPHER_TAB_OPTIONS).includes(tab as GrapherTabOption)
 }
 
-function findPotentialChartTypeSiblings(
+export function findPotentialChartTypeSiblings(
     chartTypes: GrapherChartType[]
 ): GrapherChartType[] | undefined {
     for (const validCombination of validChartTypeCombinations) {
