@@ -168,7 +168,7 @@ const LivePreviewComponent = (props: ExplorerProps) => {
             )}
             <Explorer
                 {...newProps}
-                queryStr={window.location.search}
+                queryStr={window?.location?.search ?? ""}
                 key={Date.now()}
                 isPreview={true}
             />
@@ -827,7 +827,10 @@ export class Explorer
     @computed get queryParams(): ExplorerFullQueryParams {
         if (!this.grapher) return {}
 
-        if (window.location.href.includes(EXPLORERS_PREVIEW_ROUTE))
+        if (
+            typeof window !== "undefined" &&
+            window.location.href.includes(EXPLORERS_PREVIEW_ROUTE)
+        )
             localStorage.setItem(
                 UNSAVED_EXPLORER_PREVIEW_QUERYPARAMS +
                     this.explorerProgram.slug,
