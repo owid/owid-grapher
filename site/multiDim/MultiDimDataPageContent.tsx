@@ -112,7 +112,7 @@ export function DataPageContent({
     // A non-empty manager is used in the size calculations
     // within grapher, so we have to initialize it early with
     // a truthy value
-    const manager = useRef<GrapherManager>({ editUrl: "" })
+    const manager = useRef<GrapherManager>({ adminEditPath: "" })
     const grapherStateRef = useRef<GrapherState>(
         new GrapherState({
             additionalDataLoaderFn: (varId: number) =>
