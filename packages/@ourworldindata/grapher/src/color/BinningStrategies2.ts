@@ -444,7 +444,7 @@ export const fakeLogBins = ({
     const firstSteps = R.dropWhile(
         logSteps,
         (step, i) =>
-            logSteps[i + 1] !== undefined && logSteps[i + 1] < normalisedMin
+            logSteps[i + 1] !== undefined && logSteps[i + 1] <= normalisedMin
     )
 
     const lastSteps = R.dropLastWhile(
