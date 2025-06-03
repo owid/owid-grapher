@@ -26,9 +26,9 @@ it("can create a new bar chart", () => {
     }
     const chart = new DiscreteBarChart({ manager })
 
-    expect(chart.failMessage).toBeTruthy()
+    expect(chart.errorInfo.reason).toBeTruthy()
     selection.setSelectedEntities(table.availableEntityNames)
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
 
     const series = chart.series
     expect(series.length).toEqual(2)

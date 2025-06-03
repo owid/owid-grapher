@@ -31,6 +31,7 @@ import {
     EntityName,
     OwidVariableRow,
     VerticalAlign,
+    ChartErrorInfo,
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import {
@@ -899,12 +900,12 @@ export class MarimekkoChart
     }
 
     render(): React.ReactElement {
-        if (this.failMessage)
+        if (this.errorInfo.reason)
             return (
                 <NoDataModal
                     manager={this.manager}
                     bounds={this.bounds}
-                    message={this.failMessage}
+                    message={this.errorInfo.reason}
                 />
             )
 
@@ -1710,12 +1711,14 @@ export class MarimekkoChart
         })
     }
 
-    @computed get failMessage(): string {
+    @computed get errorInfo(): ChartErrorInfo {
         const column = this.yColumns[0]
         const { yColumns } = this
 
-        if (!column) return "No Y column to chart"
+        if (!column) return { reason: "No Y column to chart" }
 
-        return yColumns.every((col) => col.isEmpty) ? "No matching data" : ""
+        return yColumns.every((col) => col.isEmpty)
+            ? { reason: "No matching data" }
+            : { reason: "" }
     }
 }

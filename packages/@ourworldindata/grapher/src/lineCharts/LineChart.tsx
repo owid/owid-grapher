@@ -47,6 +47,7 @@ import {
     ColorSchemeName,
     VerticalAlign,
     InteractionState,
+    ChartErrorInfo,
 } from "@ourworldindata/types"
 import { BASE_FONT_SIZE, GRAPHER_OPACITY_MUTE } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
@@ -1056,14 +1057,15 @@ export class LineChart
     render(): React.ReactElement {
         const { manager, dualAxis } = this
 
-        if (this.failMessage)
+        if (this.errorInfo.reason)
             return (
                 <g>
                     {this.renderDualAxis()}
                     <NoDataModal
                         manager={manager}
                         bounds={dualAxis.innerBounds}
-                        message={this.failMessage}
+                        message={this.errorInfo.reason}
+                        helpText={this.errorInfo.help}
                     />
                 </g>
             )
@@ -1071,11 +1073,11 @@ export class LineChart
         return manager.isStatic ? this.renderStatic() : this.renderInteractive()
     }
 
-    @computed get failMessage(): string {
+    @computed get errorInfo(): ChartErrorInfo {
         const message = getDefaultFailMessage(this.manager)
-        if (message) return message
-        if (!this.series.length) return "No matching data"
-        return ""
+        if (message) return { reason: message }
+        if (!this.series.length) return { reason: "No matching data" }
+        return { reason: "" }
     }
 
     @computed private get yColumns(): CoreColumn[] {

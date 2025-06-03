@@ -738,14 +738,14 @@ export class StackedAreaChart extends AbstractStackedChart {
     }
 
     render(): React.ReactElement {
-        if (this.failMessage)
+        if (this.errorInfo.reason)
             return (
                 <g>
                     {this.renderAxis()}
                     <NoDataModal
                         manager={this.manager}
                         bounds={this.dualAxis.bounds}
-                        message={this.failMessage}
+                        message={this.errorInfo.reason}
                     />
                 </g>
             )
