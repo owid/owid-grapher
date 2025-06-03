@@ -25,6 +25,7 @@ import {
     CoreValueType,
     ColorSchemeName,
     VerticalAlign,
+    ChartErrorInfo,
 } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
@@ -531,12 +532,12 @@ export class DiscreteBarChart
     }
 
     render(): React.ReactElement {
-        if (this.failMessage)
+        if (this.errorInfo.reason)
             return (
                 <NoDataModal
                     manager={this.manager}
                     bounds={this.bounds}
-                    message={this.failMessage}
+                    message={this.errorInfo.reason}
                 />
             )
 
@@ -553,17 +554,18 @@ export class DiscreteBarChart
         )
     }
 
-    @computed get failMessage(): string {
+    @computed get errorInfo(): ChartErrorInfo {
         const column = this.yColumns[0]
 
-        if (!column) return "No column to chart"
+        if (!column) return { reason: "No column to chart" }
 
-        if (!this.selectionArray.hasSelection) return `No data selected`
+        if (!this.selectionArray.hasSelection)
+            return { reason: "No data selected" }
 
         // TODO is it better to use .series for this check?
         return this.yColumns.every((col) => col.isEmpty)
-            ? "No matching data"
-            : ""
+            ? { reason: "No matching data" }
+            : { reason: "" }
     }
 
     formatValue(series: DiscreteBarSeries): Label {
