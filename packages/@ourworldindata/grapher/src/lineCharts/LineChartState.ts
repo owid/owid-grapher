@@ -306,6 +306,14 @@ export class LineChartState implements ChartState, ColorScaleManager {
         const message = getDefaultFailMessage(this.manager)
         if (message) return { reason: message }
         if (!this.series.length) return { reason: "No matching data" }
+        if (
+            this.manager.startTime !== undefined &&
+            this.manager.startTime === this.manager.endTime
+        )
+            return {
+                reason: "Two time points needed",
+                help: "Click the timeline to select a second time point",
+            }
         return { reason: "" }
     }
 }
