@@ -121,6 +121,7 @@ import {
     ArchivedChartOrArchivePageMeta,
     GrapherTabConfigOption,
     GlobeRegionName,
+    TimeBoundValue,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -263,6 +264,7 @@ import {
     EntityRegionTypeGroup,
     groupEntityNamesByRegionType,
 } from "./EntitiesByRegionType"
+import { P } from "ts-pattern"
 
 declare global {
     interface Window {
@@ -703,6 +705,13 @@ export class Grapher
         this.minTime = minTimeBoundFromJSONOrNegativeInfinity(obj.minTime)
         this.maxTime = maxTimeBoundFromJSONOrPositiveInfinity(obj.maxTime)
 
+        if (
+            this.minTime === TimeBoundValue.negativeInfinity &&
+            this.maxTime === TimeBoundValue.positiveInfinity
+        ) {
+            this.minTime = TimeBoundValue.positiveInfinity
+        }
+
         this.timelineMinTime = minTimeBoundFromJSONOrNegativeInfinity(
             obj.timelineMinTime
         )
@@ -719,11 +728,12 @@ export class Grapher
         this.externalQueryParams = omit(params, GRAPHER_QUERY_PARAM_KEYS)
 
         // Set tab if specified
-        if (params.tab) {
-            const tab = this.mapQueryParamToTabName(params.tab)
-            if (tab) this.setTab(tab)
-            else console.error("Unexpected tab: " + params.tab)
-        }
+        const parsedTab = params.tab
+            ? this.mapQueryParamToTabName(params.tab)
+            : undefined
+        if (params.tab && parsedTab) this.setTab(parsedTab)
+        else if (params.tab !== undefined)
+            console.error("Unexpected tab: " + params.tab)
 
         // Set overlay if specified
         const overlay = params.overlay
@@ -761,6 +771,10 @@ export class Grapher
         const time = params.time
         if (time !== undefined && time !== "")
             this.setTimeFromTimeQueryParam(time)
+
+        if (parsedTab === GRAPHER_TAB_NAMES.WorldMap && time === undefined) {
+            this.timelineHandleTimeBounds = [Infinity, Infinity]
+        }
 
         const endpointsOnly = params.endpointsOnly
         if (endpointsOnly !== undefined)
@@ -851,6 +865,7 @@ export class Grapher
         this.timelineHandleTimeBounds = getTimeDomainFromQueryString(time).map(
             (time) => findClosestTime(this.times, time) ?? time
         ) as TimeBounds
+        // console.log(this.timelineHandleTimeBounds)
     }
 
     @computed private get shouldShowDiscreteBarWhenSingleTime(): boolean {
@@ -1174,7 +1189,7 @@ export class Grapher
 
         if (startTime === undefined || endTime === undefined) return table
 
-        if (this.isOnMapTab)
+        if (this.isOnMapTab && !this.isFaceted)
             return table.filterByTargetTimes(
                 [endTime],
                 this.map.timeTolerance ??
@@ -1559,13 +1574,17 @@ export class Grapher
         return findClosestTime(this.times, this.endHandleTimeBound)
     }
 
-    @computed get isSingleTimeScatterAnimationActive(): boolean {
+    @computed private get isSingleTimeScatterAnimationActive(): boolean {
         return (
             this.isTimelineAnimationActive &&
             this.isOnScatterTab &&
             !this.isRelativeMode &&
             !!this.areHandlesOnSameTimeBeforeAnimation
         )
+    }
+
+    @computed private get isOnMapTabAndHandlesAreOnSameTime(): boolean {
+        return this.isOnMapTab && this.areHandlesOnSameTime
     }
 
     @computed private get onlySingleTimeSelectionPossible(): boolean {
@@ -1575,7 +1594,11 @@ export class Grapher
     @computed private get isSingleTimeSelectionActive(): boolean {
         return (
             this.onlySingleTimeSelectionPossible ||
-            this.isSingleTimeScatterAnimationActive
+            // Animate scatters with start time = end time (i.e. as a cloud of
+            // moving dots as opposed to a time scatter)
+            this.isSingleTimeScatterAnimationActive ||
+            // Clicking on the timeline should not switch to range mode for maps
+            this.isOnMapTabAndHandlesAreOnSameTime
         )
     }
 
@@ -1656,29 +1679,40 @@ export class Grapher
         // Scatters aren't included here because although single-time selection
         // is preferred, start and end time selection is still possible
         return [
-            "WorldMap",
-            "DiscreteBar",
-            "StackedDiscreteBar",
-            "Marimekko",
-        ].includes(tabName)
+            GRAPHER_TAB_NAMES.DiscreteBar,
+            GRAPHER_TAB_NAMES.StackedDiscreteBar,
+            GRAPHER_TAB_NAMES.Marimekko,
+        ].includes(tabName as any)
+    }
+
+    private checkSingleTimeSelectionPreferred = (
+        tabName: GrapherTabName
+    ): boolean => {
+        return (
+            this.checkOnlySingleTimeSelectionPossible(tabName) ||
+            [
+                GRAPHER_TAB_NAMES.ScatterPlot,
+                GRAPHER_TAB_NAMES.WorldMap,
+            ].includes(tabName as any)
+        )
     }
 
     private checkStartAndEndTimeSelectionPreferred = (
         tabName: GrapherTabName
     ): boolean => {
         return [
-            "LineChart",
-            "SlopeChart",
-            "StackedArea",
-            "StackedBar",
-        ].includes(tabName)
+            GRAPHER_TAB_NAMES.LineChart,
+            GRAPHER_TAB_NAMES.SlopeChart,
+            GRAPHER_TAB_NAMES.StackedArea,
+            GRAPHER_TAB_NAMES.StackedBar,
+        ].includes(tabName as any)
     }
 
     @action.bound private onChartSwitching(
         _oldTab: GrapherTabName,
         newTab: GrapherTabName
     ): void {
-        if (this.checkOnlySingleTimeSelectionPossible(newTab)) {
+        if (this.checkSingleTimeSelectionPreferred(newTab)) {
             this.ensureHandlesAreOnSameTime()
         } else if (this.checkStartAndEndTimeSelectionPreferred(newTab)) {
             this.ensureHandlesAreOnDifferentTimes()
@@ -3061,6 +3095,15 @@ export class Grapher
                 title: "Toggle globe view",
                 category: "Map",
             },
+            // TODO: remove
+            {
+                combo: "m",
+                fn: (): void => {
+                    this.timelineHandleTimeBounds = [-Infinity, Infinity]
+                },
+                title: "Test",
+                category: "Timeline",
+            },
         ]
 
         if (this.slideShow) {
@@ -3216,6 +3259,10 @@ export class Grapher
     }
 
     @computed get isFaceted(): boolean {
+        if (this.isOnMapTab) {
+            return this.startTime !== this.endTime
+        }
+
         const hasFacetStrategy = this.facetStrategy !== FacetStrategy.none
         return this.isOnChartTab && hasFacetStrategy
     }

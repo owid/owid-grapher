@@ -166,12 +166,8 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed private get showFacetControl(): boolean {
-        const {
-            filledDimensions,
-            availableFacetStrategies,
-            hideFacetControl,
-            isOnChartTab,
-        } = this.manager
+        const { filledDimensions, availableFacetStrategies, hideFacetControl } =
+            this.manager
 
         // if there's no choice to be made, don't display a lone button
         if (availableFacetStrategies.length <= 1) return false
@@ -192,12 +188,7 @@ export class SettingsMenu extends React.Component<{
             (dim) => dim.display.isProjection
         )
 
-        return (
-            showFacetControlChartType &&
-            !hideFacetControl &&
-            !hasProjection &&
-            !!isOnChartTab
-        )
+        return showFacetControlChartType && !hideFacetControl && !hasProjection
     }
 
     @computed private get showSettingsMenuToggle(): boolean {
@@ -289,7 +280,6 @@ export class SettingsMenu extends React.Component<{
             xAxis,
             // compareEndPointsOnly,
             filledDimensions,
-            isOnChartTab,
         } = manager
 
         const yLabel =
@@ -306,12 +296,11 @@ export class SettingsMenu extends React.Component<{
                 <SettingsGroup
                     title="Chart view"
                     active={
-                        isOnChartTab &&
-                        (showAbsRelToggle ||
-                            showZoomToggle ||
-                            showNoDataAreaToggle ||
-                            showFacetControl ||
-                            showFacetYDomainToggle)
+                        showAbsRelToggle ||
+                        showZoomToggle ||
+                        showNoDataAreaToggle ||
+                        showFacetControl ||
+                        showFacetYDomainToggle
                     }
                 >
                     {showFacetControl && (
@@ -328,9 +317,7 @@ export class SettingsMenu extends React.Component<{
                 </SettingsGroup>
                 <SettingsGroup
                     title="Axis scale"
-                    active={
-                        isOnChartTab && (showYScaleToggle || showXScaleToggle)
-                    }
+                    active={showYScaleToggle || showXScaleToggle}
                 >
                     {showYScaleToggle && (
                         <AxisScaleToggle

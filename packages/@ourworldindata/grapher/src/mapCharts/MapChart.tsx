@@ -99,14 +99,24 @@ export class MapChart
 
     transformTable(table: OwidTable): OwidTable {
         if (!table.has(this.mapColumnSlug)) return table
-        const transformedTable = this.dropNonMapEntities(table)
+
+        table = this.dropNonMapEntities(table)
             .dropRowsWithErrorValuesForColumn(this.mapColumnSlug)
             .interpolateColumnWithTolerance(
                 this.mapColumnSlug,
                 this.mapConfig.timeTolerance,
                 this.mapConfig.toleranceStrategy
             )
-        return transformedTable
+
+        if (this.manager.targetTime !== undefined) {
+            table = table.filterByTargetTimes(
+                [this.manager.targetTime],
+                this.mapConfig.timeTolerance ??
+                    table.get(this.mapColumnSlug).tolerance
+            )
+        }
+
+        return table
     }
 
     transformTableForSelection(table: OwidTable): OwidTable {
@@ -218,7 +228,7 @@ export class MapChart
     }
 
     @computed private get targetTime(): number | undefined {
-        return this.manager.endTime
+        return this.manager.targetTime ?? this.manager.endTime
     }
 
     @computed get bounds(): Bounds {
@@ -359,6 +369,24 @@ export class MapChart
             ColorScaleConfig.fromDSL(this.mapColumn.def) ??
             this.mapConfig.colorScale
         )
+    }
+
+    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+        if (!this.manager.showLegend) {
+            const numericLegendData = this.numericLegendData
+            const categoricalLegendData = this.categoricalLegendData
+            return {
+                // legendTitle: this.legendTitle,
+                // legendTextColor: this.legendTextColor,
+                // legendTickSize: this.legendTickSize,
+                // numericBinSize: this.numericBinSize,
+                // numericBinStroke: this.numericBinStroke,
+                // numericBinStrokeWidth: this.numericBinStrokeWidth,
+                numericLegendData,
+                categoricalLegendData,
+            }
+        }
+        return undefined
     }
 
     defaultBaseColorScheme = ColorSchemeName.BuGn
@@ -611,8 +639,11 @@ export class MapChart
         return makeClipPath(this.renderUid, this.choroplethMapBounds)
     }
 
-    renderMapLegend(): React.ReactElement {
+    renderMapLegend(): React.ReactElement | null {
         const { numericLegend, categoryLegend } = this
+
+        // todo: adjust bounds etc
+        if (!this.manager.showLegend) return null
 
         return (
             <>

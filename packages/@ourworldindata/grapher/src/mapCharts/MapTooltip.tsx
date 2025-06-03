@@ -81,7 +81,11 @@ export class MapTooltip
     }
 
     @computed get datum(): OwidVariableRow<number | string> | undefined {
-        return this.mapColumn.owidRows[0]
+        return this.targetTime !== undefined
+            ? this.mapColumn.owidRowByEntityNameAndTime
+                  .get(this.entityName)
+                  ?.get(this.targetTime)
+            : this.mapColumn.owidRows[0]
     }
 
     @computed get lineColorScale(): ColorScale {
