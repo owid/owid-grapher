@@ -178,6 +178,15 @@ class ColorsSection extends Component<ColorsSectionProps> {
             : scale.baseColorScheme
     }
 
+    @computed get midpointModeOptions() {
+        return [
+            { value: undefined, label: "Auto" },
+            { value: "symmetric", label: "symmetric" },
+            { value: "same-num-bins", label: "same-num-bins" },
+            { value: "asymmetric", label: "Asymmetric" },
+        ]
+    }
+
     @computed get binningStrategyOptions() {
         const automaticBinningStrategies = [
             "auto",
@@ -276,6 +285,26 @@ class ColorsSection extends Component<ColorsSectionProps> {
                         allowDecimal
                         allowNegative
                     />
+                </FieldsRow>
+                <FieldsRow>
+                    <div className="form-group">
+                        <label>Midpoint mode</label>
+                        <Select
+                            options={this.midpointModeOptions}
+                            onChange={(option) => {
+                                config.midpointMode = option?.value
+                                this.props.onChange?.()
+                            }}
+                            value={this.midpointModeOptions.find(
+                                (option) => option.value === config.midpointMode
+                            )}
+                            components={{
+                                IndicatorSeparator: null,
+                            }}
+                            menuPlacement="auto"
+                            isSearchable={false}
+                        />
+                    </div>
                 </FieldsRow>
                 <FieldsRow>
                     <div className="form-group">
