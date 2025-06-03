@@ -40,15 +40,27 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>(
             unstyled={true}
             isMulti={false}
             classNames={{
-                control: (state) => {
-                    return cx("control", {
+                control: (state) =>
+                    cx("control", {
                         focus: state.isFocused,
                         active: state.menuIsOpen,
-                    })
-                },
+                    }),
                 menu: () => "menu",
                 placeholder: () => "placeholder",
                 clearIndicator: () => "clear-indicator",
+                groupHeading: (state) => {
+                    // Hacky way to mark the first group heading
+                    const firstOption = props.options?.[0]
+                    const firstOptionLabel =
+                        firstOption && "label" in firstOption
+                            ? firstOption.label
+                            : undefined
+                    return cx("group-heading", {
+                        "group-heading-first":
+                            firstOptionLabel &&
+                            firstOptionLabel === state.data.label,
+                    })
+                },
             }}
             {...props}
             className={cx("grapher-dropdown", props.className)}
