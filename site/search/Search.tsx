@@ -50,15 +50,16 @@ export const Search = ({
         () => tagGraph.children.map((child) => child.name),
         [tagGraph]
     )
+
     const ALL_TOPICS = useMemo(() => {
         function getAllTopics(node: TagGraphNode): Set<string> {
             return node.children.reduce((acc, child) => {
-                if (child.children.length) {
-                    const topics = getAllTopics(child)
-                    return new Set([...acc, ...topics])
-                }
                 if (child.isTopic) {
                     acc.add(child.name)
+                }
+                if (child.children.length) {
+                    const topics = getAllTopics(child)
+                    topics.forEach((topic) => acc.add(topic))
                 }
                 return acc
             }, new Set<string>())
