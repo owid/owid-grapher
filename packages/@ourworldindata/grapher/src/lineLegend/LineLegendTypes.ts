@@ -15,7 +15,6 @@ export interface LineLabelSeries extends ChartSeries {
 
 export interface SizedSeries extends LineLabelSeries {
     textWrap: TextWrap | MarkdownTextWrap
-    textWrapForRendering: TextWrap | MarkdownTextWrap
     annotationTextWrap?: TextWrap
     width: number
     height: number
