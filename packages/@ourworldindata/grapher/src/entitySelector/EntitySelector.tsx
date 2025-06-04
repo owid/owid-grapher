@@ -878,7 +878,7 @@ export class EntitySelector extends React.Component<{
             this.scrollableContainer.current.scrollTop = 0
     }
 
-    @action.bound onSearchKeyDown(e: React.KeyboardEvent<HTMLElement>): void {
+    @action.bound onSearchKeyDown(e: KeyboardEvent): void {
         const { searchResults } = this
         if (e.key === "Enter" && searchResults && searchResults.length > 0) {
             this.onChange(searchResults[0].name)
@@ -1078,6 +1078,7 @@ export class EntitySelector extends React.Component<{
                     onClear={() => this.clearSearchInput()}
                     placeholder={`Search for ${a(this.searchPlaceholderEntityType)}`}
                     trackNote="entity_selector_search"
+                    onKeyDown={this.onSearchKeyDown}
                 />
             </div>
         )
