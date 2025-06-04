@@ -41,6 +41,7 @@ export class CloseGlobeViewButton extends React.Component<{
         this.manager.mapRegionDropdownValue = undefined
         this.mapConfig.region = MapRegionName.World
         this.manager.globeController?.hideGlobe()
+        this.manager.globeController?.resetGlobe()
     }
 
     render(): React.ReactElement | null {

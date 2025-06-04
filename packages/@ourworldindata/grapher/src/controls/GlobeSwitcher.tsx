@@ -30,6 +30,10 @@ export class GlobeSwitcher extends React.Component<{
         return this.props.manager
     }
 
+    @computed get mapConfig(): MapConfig {
+        return this.manager.mapConfig ?? new MapConfig()
+    }
+
     @computed private get tabItems(): TabItem<TabName>[] {
         return availableTabs.map((tabName) => ({
             key: tabName,
@@ -39,16 +43,19 @@ export class GlobeSwitcher extends React.Component<{
     }
 
     @computed private get activeTabName(): TabName {
-        return this.manager.mapConfig?.globe.isActive
-            ? TabName["3D"]
-            : TabName["2D"]
+        return this.mapConfig?.globe.isActive ? TabName["3D"] : TabName["2D"]
     }
 
-    @action.bound setTab(activeTabName: TabName): void {
-        if (activeTabName === TabName["3D"]) {
-            if (this.manager.mapConfig?.selection.hasSelection) {
+    @action.bound setTab(activeTab: TabName): void {
+        if (activeTab === TabName["3D"]) {
+            if (this.mapConfig.selection.hasSelection) {
                 // if the selection is not empty, rotate to it
                 this.manager.globeController?.rotateToSelection()
+            } else if (this.mapConfig.isContinentActive()) {
+                // If a region is provided, rotate to it
+                this.manager.globeController?.rotateToOwidContinent(
+                    this.mapConfig.region
+                )
             } else if (this.localCountryName) {
                 // rotate to the user's current location if possible
                 this.manager.globeController?.rotateToCountry(
@@ -60,11 +67,8 @@ export class GlobeSwitcher extends React.Component<{
             }
         } else {
             this.manager.globeController?.hideGlobe()
+            this.manager.globeController?.resetGlobe()
         }
-
-        // reset the map region dropdown
-        if (this.manager.mapRegionDropdownValue)
-            this.manager.mapRegionDropdownValue = undefined
     }
 
     @action.bound async populateLocalCountryName(): Promise<void> {
