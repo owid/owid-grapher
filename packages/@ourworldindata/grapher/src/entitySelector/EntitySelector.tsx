@@ -72,6 +72,7 @@ import {
     isAggregateSource,
 } from "../core/EntitiesByRegionType"
 import { SearchField } from "../controls/SearchField"
+import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants.js"
 
 type CoreColumnBySlug = Record<ColumnSlug, CoreColumn>
 
@@ -372,10 +373,10 @@ export class EntitySelector extends React.Component<{
     interpolateSortColumn(slug: ColumnSlug): CoreColumn {
         // use map tolerance if on the map tab
         const tolerance = this.manager.isOnMapTab
-            ? this.manager.mapConfig?.timeTolerance
+            ? this.mapConfig.timeTolerance
             : undefined
         const toleranceStrategy = this.manager.isOnMapTab
-            ? this.manager.mapConfig?.toleranceStrategy
+            ? this.mapConfig.toleranceStrategy
             : undefined
 
         return this.inputTable
@@ -467,6 +468,10 @@ export class EntitySelector extends React.Component<{
 
     @computed private get yColumnSlugs(): ColumnSlug[] {
         return this.manager.yColumnSlugs ?? []
+    }
+
+    @computed private get mapConfig(): MapConfig {
+        return this.manager.mapConfig ?? new MapConfig()
     }
 
     private isEntityMuted(entityName: EntityName): boolean {
@@ -1246,6 +1251,10 @@ export class EntitySelector extends React.Component<{
         const shouldHideAvailableEntities =
             !shouldShowFilterBar && hasFewEntities && this.allEntitiesSelected
 
+        const availableEntitiesTitle = this.mapConfig.is2dContinentActive()
+            ? `Countries in ${MAP_REGION_LABELS[this.mapConfig.region]}`
+            : `All ${this.entityType.plural}`
+
         return (
             <Flipper
                 spring={{ stiffness: 300, damping: 33 }}
@@ -1302,7 +1311,7 @@ export class EntitySelector extends React.Component<{
                         {!shouldShowFilterBar && (
                             <Flipped flipId="__available" translate opacity>
                                 <div className="entity-section__title grapher_body-3-regular-italic grapher_light">
-                                    All {this.entityType.plural}
+                                    {availableEntitiesTitle}
                                 </div>
                             </Flipped>
                         )}
