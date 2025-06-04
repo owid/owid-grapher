@@ -449,6 +449,8 @@ export class ChoroplethGlobe extends React.Component<{
         // reset the region if necessary
         this.mapConfig.region = MapRegionName.World
 
+        console.log(this.manager.isMapSelectionEnabled)
+
         // select/deselect the country if allowed
         const country = feature.id
         if (this.manager.isMapSelectionEnabled) {

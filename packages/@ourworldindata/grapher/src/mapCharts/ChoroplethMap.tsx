@@ -61,7 +61,7 @@ export class ChoroplethMap extends React.Component<{
         return isTouchDevice()
     }
 
-    private viewport = { x: 0.565, y: 0.5 } as const
+    private viewport = { x: 0.565, y: 0.5, width: 1, height: 1 } as const
 
     @computed private get manager(): ChoroplethMapManager {
         return this.props.manager
@@ -91,10 +91,12 @@ export class ChoroplethMap extends React.Component<{
 
     // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
     @computed private get viewportScale(): number {
-        const { bounds, mapBounds } = this
+        const { bounds, mapBounds, viewport } = this
+        const viewportWidth = viewport.width * mapBounds.width
+        const viewportHeight = viewport.height * mapBounds.height
         return Math.min(
-            bounds.width / mapBounds.width,
-            bounds.height / mapBounds.height
+            bounds.width / viewportWidth,
+            bounds.height / viewportHeight
         )
     }
 
@@ -533,7 +535,8 @@ export class ChoroplethMap extends React.Component<{
                     width={bounds.width}
                     height={bounds.height}
                     fill="rgba(255,255,255,0)"
-                    opacity={0}
+                    fillOpacity={0}
+                    // stroke="black"
                 />
                 <g
                     className={GEO_FEATURES_CLASSNAME}
