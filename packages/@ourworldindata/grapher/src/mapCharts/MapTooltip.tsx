@@ -68,7 +68,7 @@ export class MapTooltip
     }
 
     @computed private get mapColumn(): CoreColumn {
-        return this.mapTable.get(this.mapColumnSlug)
+        return this.entityTable.get(this.mapColumnSlug)
     }
 
     @computed get mapAndYColumnAreTheSame(): boolean {
@@ -88,7 +88,7 @@ export class MapTooltip
     }
 
     // Table pre-filtered by targetTime, excludes time series
-    @computed private get mapTable(): OwidTable {
+    @computed private get entityTable(): OwidTable {
         const table =
             this.props.manager.transformedTable ?? this.props.manager.table
         return table.filterByEntityNames([this.entityName])
@@ -99,7 +99,11 @@ export class MapTooltip
     }
 
     @computed get datum(): OwidVariableRow<number | string> | undefined {
-        return this.mapColumn.owidRows[0]
+        return this.targetTime !== undefined
+            ? this.mapColumn.owidRowByEntityNameAndTime
+                  .get(this.entityName)
+                  ?.get(this.targetTime)
+            : this.mapColumn.owidRows[0]
     }
 
     @computed private get isProjection(): boolean {
@@ -109,7 +113,7 @@ export class MapTooltip
             .with(
                 { type: "historical+projected" },
                 (info) =>
-                    this.mapTable.get(info.slugForIsProjectionColumn)
+                    this.entityTable.get(info.slugForIsProjectionColumn)
                         .owidRows[0]?.value
             )
             .exhaustive()
@@ -128,19 +132,19 @@ export class MapTooltip
     }
 
     @computed private get formattedTargetTime(): string | undefined {
-        const { targetTime, mapTable } = this
+        const { targetTime, entityTable } = this
 
-        if (!mapTable.timeColumn.isMissing) {
-            return mapTable.timeColumn.formatValue(targetTime)
+        if (!entityTable.timeColumn.isMissing) {
+            return entityTable.timeColumn.formatValue(targetTime)
         }
 
         return targetTime?.toString()
     }
 
     @computed private get tooltipSubtitle(): string | undefined {
-        const { mapTable, datum } = this
+        const { entityTable, datum } = this
 
-        const { timeColumn } = mapTable
+        const { timeColumn } = entityTable
         const displayDatumTime =
             timeColumn && datum
                 ? timeColumn.formatValue(datum?.originalTime)

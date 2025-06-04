@@ -220,7 +220,12 @@ export {
 
 export { getStylesForTargetHeight } from "./react-select.js"
 
-export { type GridBounds, FontFamily, Bounds } from "./Bounds.js"
+export {
+    type GridBounds,
+    type SplitBoundsPadding,
+    FontFamily,
+    Bounds,
+} from "./Bounds.js"
 
 export {
     type Persistable,

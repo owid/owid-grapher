@@ -311,7 +311,7 @@ export class ChoroplethGlobe extends React.Component<{
             this.mapConfig.selection.selectedCountryNamesInForeground.map(
                 (name) => this.featuresById.get(name)
             )
-        )
+        ).filter((feature) => this.foregroundFeatures.includes(feature))
     }
 
     /* Naively placed annotations that might be overlapping */

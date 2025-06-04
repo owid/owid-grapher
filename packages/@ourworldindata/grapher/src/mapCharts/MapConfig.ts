@@ -57,20 +57,16 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
     updateFromObject(obj: Partial<MapConfigInterface>): void {
         updatePersistables(this, obj)
 
+        this.endTime = maxTimeBoundFromJSONOrPositiveInfinity(obj.endTime)
+
+        // If a start time is provided, use it; otherwise, set it to the end time
+        // so that a single map (not a facetted one) is shown by default
         if (obj.startTime) {
             this.startTime = minTimeBoundFromJSONOrNegativeInfinity(
                 obj.startTime
             )
-        }
-
-        if (obj.endTime) {
-            this.endTime = maxTimeBoundFromJSONOrPositiveInfinity(obj.endTime)
-        }
-
-        // If the region is set, automatically switch to the globe
-        if (obj.region && obj.region !== MapRegionName.World) {
-            // Setting this.globe.isActive directly sometimes gives a MobX error
-            this.globe = { ...this.globe, isActive: true }
+        } else {
+            this.startTime = this.endTime
         }
 
         // Map [lat, lon] to the internally used [lon, lat]
@@ -97,10 +93,6 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
         obj.selectedEntityNames = this.selection.selectedEntityNames
         // @ts-expect-error hack to prevent selection from being persisted
         delete obj.selection
-
-        // if a continent is given, then it defines the globe rotation & zoom,
-        // so there is no need to also persist the globe settings
-        if (obj.region && obj.region !== MapRegionName.World) delete obj.globe
 
         // don't persist globe settings if the globe isn't active
         if (!obj.globe?.isActive) delete obj.globe
@@ -131,4 +123,16 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
         super()
         if (obj) this.updateFromObject(obj)
     }
+
+    isContinentActive(): this is MapConfigWithActiveContinent {
+        return this.region !== MapRegionName.World
+    }
+
+    is2dContinentActive(): this is MapConfigWithActiveContinent {
+        return this.isContinentActive() && !this.globe.isActive
+    }
+}
+
+type MapConfigWithActiveContinent = MapConfig & {
+    region: Exclude<MapRegionName, "World">
 }
