@@ -147,6 +147,13 @@ export interface GlobeViewport {
     zoom: number
 }
 
+export interface MapViewport {
+    x: number
+    y: number
+    width: number
+    height: number
+}
+
 export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
     Europe: { rotation: [10, 55], zoom: 2.95 },
     Africa: { rotation: [20, 0], zoom: 1.55 },
@@ -154,6 +161,17 @@ export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
     SouthAmerica: { rotation: [-62, -22], zoom: 1.75 },
     Asia: { rotation: [81, 26], zoom: 1.85 },
     Oceania: { rotation: [152.65, -18.8], zoom: 2 },
+}
+
+/** Viewport for each region, defined by center and width+height in fractional coordinates */
+export const MAP_VIEWPORTS: Record<MapRegionName, MapViewport> = {
+    World: { x: 0.565, y: 0.5, width: 1, height: 1 },
+    Europe: { x: 0.53, y: 0.22, width: 0.2, height: 0.2 },
+    Africa: { x: 0.49, y: 0.7, width: 0.21, height: 0.38 },
+    NorthAmerica: { x: 0.49, y: 0.4, width: 0.19, height: 0.32 },
+    SouthAmerica: { x: 0.52, y: 0.815, width: 0.1, height: 0.26 },
+    Asia: { x: 0.74, y: 0.45, width: 0.36, height: 0.5 },
+    Oceania: { x: 0.51, y: 0.75, width: 0.1, height: 0.2 },
 }
 
 export interface Circle {

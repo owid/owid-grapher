@@ -7,6 +7,7 @@ import {
     getCountryNamesForRegion,
     getRelativeMouse,
     lazy,
+    MapRegionName,
 } from "@ourworldindata/utils"
 import {
     GEO_FEATURES_CLASSNAME,
@@ -14,6 +15,7 @@ import {
     RenderFeature,
     MapRenderFeature,
     RenderFeatureType,
+    MAP_REGION_LABELS,
 } from "./MapChartConstants"
 import { MapTopology } from "./MapTopology.js"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
