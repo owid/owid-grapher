@@ -5,7 +5,8 @@ import GrapherImage from "./GrapherImage.js"
 import { useIntersectionObserver, useIsClient } from "usehooks-ts"
 
 export interface GrapherWithFallbackProps {
-    slug: string
+    slug?: string
+    configUrl?: string // Optional, if provided will override slug
     className?: string
     id?: string
     enablePopulatingUrlParams?: boolean
@@ -19,6 +20,12 @@ export function GrapherWithFallback(
     props: GrapherWithFallbackProps
 ): JSX.Element {
     const { slug, className, id, config, queryStr } = props
+
+    if (!slug && !props.configUrl) {
+        console.error(
+            "GrapherWithFallback requires either a slug or a configUrl to be provided."
+        )
+    }
 
     const isClient = useIsClient()
     const { ref, isIntersecting: hasBeenVisible } = useIntersectionObserver({
@@ -36,11 +43,18 @@ export function GrapherWithFallback(
                 "GrapherWithFallback__fallback"
             )}
         >
-            <GrapherImage
-                slug={slug}
-                enablePopulatingUrlParams={props.enablePopulatingUrlParams}
-                queryString={queryStr}
-            />
+            {props.configUrl ? (
+                <GrapherImage
+                    url={props.configUrl!}
+                    enablePopulatingUrlParams={props.enablePopulatingUrlParams}
+                />
+            ) : (
+                <GrapherImage
+                    slug={slug!}
+                    queryString={queryStr}
+                    enablePopulatingUrlParams={props.enablePopulatingUrlParams}
+                />
+            )}
         </figure>
     )
 
@@ -59,6 +73,7 @@ export function GrapherWithFallback(
             ) : hasBeenVisible ? (
                 <GrapherFigureView
                     slug={slug}
+                    configUrl={props.configUrl}
                     config={config}
                     queryStr={queryStr}
                     isEmbeddedInAnOwidPage={props.isEmbeddedInAnOwidPage}

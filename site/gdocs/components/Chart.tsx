@@ -18,6 +18,7 @@ import { useLinkedChart } from "../utils.js"
 import SpanElements from "./SpanElements.js"
 import cx from "classnames"
 import { GrapherWithFallback } from "../../GrapherWithFallback.js"
+import { MultiDimEmbed } from "../../MultiDimEmbed.js"
 
 export default function Chart({
     d,
@@ -139,6 +140,8 @@ export default function Chart({
                 >
                     <div className="js--show-warning-block-if-js-disabled" />
                 </figure>
+            ) : isMultiDim ? (
+                <MultiDimEmbed url={d.url} />
             ) : (
                 <GrapherWithFallback
                     slug={slug}

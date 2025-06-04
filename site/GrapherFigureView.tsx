@@ -14,6 +14,7 @@ import { useElementBounds } from "./hooks.js"
 
 export interface GrapherFigureViewProps {
     slug?: string
+    configUrl?: string
     config?: Partial<GrapherProgrammaticInterface>
     queryStr?: string
     isEmbeddedInAnOwidPage: boolean
@@ -22,6 +23,12 @@ export interface GrapherFigureViewProps {
 
 export function GrapherFigureView(props: GrapherFigureViewProps): JSX.Element {
     const slug = props.slug
+
+    if (!slug && !props.configUrl) {
+        console.error(
+            "GrapherFigureView requires either a slug or a configUrl to be provided."
+        )
+    }
 
     const base = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(base)
@@ -47,9 +54,11 @@ export function GrapherFigureView(props: GrapherFigureViewProps): JSX.Element {
                 <FetchingGrapher
                     config={config}
                     configUrl={
-                        slug
-                            ? `${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json`
-                            : undefined
+                        props.configUrl
+                            ? props.configUrl
+                            : slug
+                              ? `${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json`
+                              : undefined
                     }
                     dataApiUrl={DATA_API_URL}
                     archivedChartInfo={config.archivedChartInfo}
