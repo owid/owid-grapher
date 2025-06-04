@@ -6,6 +6,7 @@ import {
     makeIdForHumanConsumption,
     excludeUndefined,
     EntityName,
+    MapRegionName,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -23,6 +24,9 @@ import {
     ANNOTATION_COLOR_LIGHT,
     ANNOTATION_COLOR_DARK,
     RenderFeature,
+    MapViewport,
+    MAP_VIEWPORTS,
+    MAP_REGION_LABELS,
 } from "./MapChartConstants"
 import { getGeoFeaturesForMap } from "./GeoFeatures"
 import {
@@ -36,6 +40,7 @@ import {
 import { Patterns } from "../core/GrapherConstants"
 import {
     detectNearbyFeature,
+    getCountriesByRegion,
     getForegroundFeatures,
     sortFeaturesByInteractionStateAndSize,
 } from "./MapHelpers"
@@ -44,9 +49,9 @@ import {
     makeExternalAnnotationForFeature,
     repositionAndFilterExternalAnnotations,
 } from "./MapAnnotations"
-import { geoRobinson } from "./d3-geo-projection"
 import { isDarkColor } from "../color/ColorUtils"
 import { MapConfig } from "./MapConfig"
+import { MAP_PROJECTIONS } from "./MapProjections"
 
 @observer
 export class ChoroplethMap extends React.Component<{
@@ -61,8 +66,6 @@ export class ChoroplethMap extends React.Component<{
         return isTouchDevice()
     }
 
-    private viewport = { x: 0.565, y: 0.5 } as const
-
     @computed private get manager(): ChoroplethMapManager {
         return this.props.manager
     }
@@ -73,6 +76,10 @@ export class ChoroplethMap extends React.Component<{
 
     @computed.struct private get bounds(): Bounds {
         return this.manager.choroplethMapBounds
+    }
+
+    @computed private get viewport(): MapViewport {
+        return MAP_VIEWPORTS[this.mapConfig.region]
     }
 
     @computed.struct private get choroplethData(): ChoroplethSeriesByName {
@@ -91,10 +98,12 @@ export class ChoroplethMap extends React.Component<{
 
     // Calculate what scaling should be applied to the untransformed map to match the current viewport to the container
     @computed private get viewportScale(): number {
-        const { bounds, mapBounds } = this
+        const { bounds, viewport, mapBounds } = this
+        const viewportWidth = viewport.width * mapBounds.width
+        const viewportHeight = viewport.height * mapBounds.height
         return Math.min(
-            bounds.width / mapBounds.width,
-            bounds.height / mapBounds.height
+            bounds.width / viewportWidth,
+            bounds.height / viewportHeight
         )
     }
 
@@ -127,7 +136,25 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @computed private get features(): MapRenderFeature[] {
-        return getGeoFeaturesForMap()
+        return getGeoFeaturesForMap(this.mapConfig.region)
+    }
+
+    @computed private get featuresInRegion(): MapRenderFeature[] {
+        const {
+            features,
+            mapConfig: { region },
+        } = this
+
+        if (region === MapRegionName.World) return features
+
+        const countriesByProjection = getCountriesByRegion(
+            MAP_REGION_LABELS[region]
+        )
+        if (countriesByProjection === undefined) return []
+
+        return features.filter((feature) =>
+            countriesByProjection.has(feature.id)
+        )
     }
 
     @computed private get featuresById(): Map<string, MapRenderFeature> {
@@ -135,7 +162,10 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @computed private get foregroundFeatures(): MapRenderFeature[] {
-        return getForegroundFeatures(this.features, this.manager.selectionArray)
+        return getForegroundFeatures(
+            this.featuresInRegion,
+            this.manager.selectionArray
+        )
     }
 
     @computed
@@ -175,7 +205,7 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @computed private get projection(): any {
-        return geoRobinson()
+        return MAP_PROJECTIONS[this.mapConfig.region]
     }
 
     @computed private get shouldShowAnnotations(): boolean {
