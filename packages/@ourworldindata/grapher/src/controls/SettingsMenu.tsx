@@ -35,6 +35,10 @@ import {
 } from "./settings/NoDataAreaToggle"
 import { OverlayHeader } from "@ourworldindata/components"
 import { GRAPHER_SETTINGS_CLASS } from "../core/GrapherConstants"
+import {
+    MapFacetSelector,
+    MapFacetSelectorManager,
+} from "./settings/MapFacetSelector"
 
 const {
     LineChart,
@@ -51,7 +55,8 @@ export interface SettingsMenuManager
         NoDataAreaToggleManager,
         FacetYDomainToggleManager,
         ZoomToggleManager,
-        FacetStrategySelectionManager {
+        FacetStrategySelectionManager,
+        MapFacetSelectorManager {
     // ArchieML directives
     hideFacetControl?: boolean
     hideRelativeToggle?: boolean
@@ -73,6 +78,7 @@ export interface SettingsMenuManager
     hasTimeline?: boolean
     canToggleRelativeMode: boolean
     isOnChartTab?: boolean
+    isOnMapTab?: boolean
 
     // linear/log scales
     yAxis: AxisConfig
@@ -166,12 +172,8 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed private get showFacetControl(): boolean {
-        const {
-            filledDimensions,
-            availableFacetStrategies,
-            hideFacetControl,
-            isOnChartTab,
-        } = this.manager
+        const { filledDimensions, availableFacetStrategies, hideFacetControl } =
+            this.manager
 
         // if there's no choice to be made, don't display a lone button
         if (availableFacetStrategies.length <= 1) return false
@@ -192,26 +194,24 @@ export class SettingsMenu extends React.Component<{
             (dim) => dim.display.isProjection
         )
 
-        return (
-            showFacetControlChartType &&
-            !hideFacetControl &&
-            !hasProjection &&
-            !!isOnChartTab
-        )
+        return showFacetControlChartType && !hideFacetControl && !hasProjection
     }
 
     @computed private get showSettingsMenuToggle(): boolean {
-        if (!this.manager.isOnChartTab) return false
+        if (this.manager.isOnChartTab)
+            return !!(
+                this.showYScaleToggle ||
+                this.showXScaleToggle ||
+                this.showFacetYDomainToggle ||
+                this.showZoomToggle ||
+                this.showNoDataAreaToggle ||
+                this.showFacetControl ||
+                this.showAbsRelToggle
+            )
 
-        return !!(
-            this.showYScaleToggle ||
-            this.showXScaleToggle ||
-            this.showFacetYDomainToggle ||
-            this.showZoomToggle ||
-            this.showNoDataAreaToggle ||
-            this.showFacetControl ||
-            this.showAbsRelToggle
-        )
+        if (this.manager.isOnMapTab) return true
+
+        return false
 
         // TODO: add a showCompareEndPointsOnlyToggle to complement compareEndPointsOnly
     }
@@ -252,8 +252,10 @@ export class SettingsMenu extends React.Component<{
         return this.props.manager
     }
 
-    @computed private get chartTypeLabel(): string {
-        return this.chartType.replace(/([A-Z])/g, " $1")
+    @computed private get settingsMenuTitle(): string {
+        if (this.manager.isOnMapTab) return "Map settings"
+        const chartTypeLabel = this.chartType.replace(/([A-Z])/g, " $1")
+        return `${chartTypeLabel} settings`
     }
 
     @computed private get selectionArray(): SelectionArray {
@@ -289,7 +291,6 @@ export class SettingsMenu extends React.Component<{
             xAxis,
             // compareEndPointsOnly,
             filledDimensions,
-            isOnChartTab,
         } = manager
 
         const yLabel =
@@ -306,12 +307,11 @@ export class SettingsMenu extends React.Component<{
                 <SettingsGroup
                     title="Chart view"
                     active={
-                        isOnChartTab &&
-                        (showAbsRelToggle ||
-                            showZoomToggle ||
-                            showNoDataAreaToggle ||
-                            showFacetControl ||
-                            showFacetYDomainToggle)
+                        showAbsRelToggle ||
+                        showZoomToggle ||
+                        showNoDataAreaToggle ||
+                        showFacetControl ||
+                        showFacetYDomainToggle
                     }
                 >
                     {showFacetControl && (
@@ -328,9 +328,7 @@ export class SettingsMenu extends React.Component<{
                 </SettingsGroup>
                 <SettingsGroup
                     title="Axis scale"
-                    active={
-                        isOnChartTab && (showYScaleToggle || showXScaleToggle)
-                    }
+                    active={showYScaleToggle || showXScaleToggle}
                 >
                     {showYScaleToggle && (
                         <AxisScaleToggle
@@ -352,6 +350,18 @@ export class SettingsMenu extends React.Component<{
         )
     }
 
+    @computed private get menuContentsMap(): React.ReactElement {
+        const { manager } = this
+
+        return (
+            <>
+                <SettingsGroup title="Small multiples" active>
+                    <MapFacetSelector manager={manager} />
+                </SettingsGroup>
+            </>
+        )
+    }
+
     @computed private get menu(): JSX.Element | void {
         if (this.active) {
             return this.menuContents
@@ -359,9 +369,10 @@ export class SettingsMenu extends React.Component<{
     }
 
     @computed private get menuContents(): JSX.Element {
-        const { chartTypeLabel } = this
-
-        const menuTitle = `${chartTypeLabel} settings`
+        const {
+            settingsMenuTitle,
+            manager: { isOnChartTab, isOnMapTab },
+        } = this
 
         return (
             <div className={GRAPHER_SETTINGS_CLASS} ref={this.contentRef}>
@@ -377,19 +388,23 @@ export class SettingsMenu extends React.Component<{
                 >
                     <OverlayHeader
                         className="settings-menu-header"
-                        title={menuTitle}
+                        title={settingsMenuTitle}
                         onDismiss={this.toggleVisibility}
                     />
                     <div className="settings-menu-controls">
-                        {this.menuContentsChart}
+                        {isOnChartTab && this.menuContentsChart}
+                        {isOnMapTab && this.menuContentsMap}
                     </div>
                 </div>
             </div>
         )
     }
 
-    private renderSettingsButtonAndPopup(): JSX.Element {
-        const { active } = this
+    render(): React.ReactElement | null {
+        const { showSettingsMenuToggle, active } = this
+
+        if (!showSettingsMenuToggle) return null
+
         return (
             <div className="settings-menu">
                 <button
@@ -406,17 +421,6 @@ export class SettingsMenu extends React.Component<{
                 {this.menu}
             </div>
         )
-    }
-
-    render(): React.ReactElement | null {
-        const {
-            manager: { isOnChartTab },
-            showSettingsMenuToggle,
-        } = this
-
-        return isOnChartTab && showSettingsMenuToggle
-            ? this.renderSettingsButtonAndPopup()
-            : null
     }
 }
 

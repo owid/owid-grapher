@@ -77,6 +77,9 @@ interface MapChartProps {
     containerElement?: HTMLDivElement
 }
 
+const PADDING_BETWEEN_MAP_AND_LEGEND = 8
+const PADDING_BELOW_LEGEND = 4
+
 @observer
 export class MapChart
     extends React.Component<MapChartProps>
@@ -99,14 +102,24 @@ export class MapChart
 
     transformTable(table: OwidTable): OwidTable {
         if (!table.has(this.mapColumnSlug)) return table
-        const transformedTable = this.dropNonMapEntities(table)
+
+        table = this.dropNonMapEntities(table)
             .dropRowsWithErrorValuesForColumn(this.mapColumnSlug)
             .interpolateColumnWithTolerance(
                 this.mapColumnSlug,
                 this.mapConfig.timeTolerance,
                 this.mapConfig.toleranceStrategy
             )
-        return transformedTable
+
+        if (this.manager.targetTime !== undefined) {
+            table = table.filterByTargetTimes(
+                [this.manager.targetTime],
+                this.mapConfig.timeTolerance ??
+                    table.get(this.mapColumnSlug).tolerance
+            )
+        }
+
+        return table
     }
 
     transformTableForSelection(table: OwidTable): OwidTable {
@@ -218,11 +231,12 @@ export class MapChart
     }
 
     @computed private get targetTime(): number | undefined {
-        return this.manager.endTime
+        return this.manager.targetTime ?? this.manager.endTime
     }
 
     @computed get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        const bounds = this.props.bounds ?? DEFAULT_BOUNDS
+        return bounds.padBottom(PADDING_BELOW_LEGEND)
     }
 
     @computed get choroplethData(): ChoroplethSeriesByName {
@@ -267,6 +281,7 @@ export class MapChart
     }
 
     @computed get isMapSelectionEnabled(): boolean {
+        console.log("map chart", this.manager.isMapSelectionEnabled)
         return !!this.manager.isMapSelectionEnabled
     }
 
@@ -361,6 +376,30 @@ export class MapChart
         )
     }
 
+    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+        const {
+            numericLegendData,
+            categoricalLegendData,
+            categoryLegendHeight,
+            numericLegendHeight,
+        } = this
+
+        if (!this.manager.showLegend) {
+            return {
+                // legendTitle: this.legendTitle,
+                // legendTextColor: this.legendTextColor,
+                // legendTickSize: this.legendTickSize,
+                // numericBinSize: this.numericBinSize,
+                // numericBinStroke: this.numericBinStroke,
+                // numericBinStrokeWidth: this.numericBinStrokeWidth,
+                legendHeight: categoryLegendHeight + numericLegendHeight,
+                numericLegendData,
+                categoricalLegendData,
+            }
+        }
+        return undefined
+    }
+
     defaultBaseColorScheme = ColorSchemeName.BuGn
     hasNoDataBin = true
 
@@ -442,7 +481,9 @@ export class MapChart
     }
 
     @computed get choroplethMapBounds(): Bounds {
-        return this.bounds.padBottom(this.legendHeight + 4)
+        return this.bounds
+            .padBottom(this.legendHeight)
+            .padBottom(PADDING_BETWEEN_MAP_AND_LEGEND)
     }
 
     @computed get region(): MapRegionName {
@@ -548,7 +589,8 @@ export class MapChart
     }
 
     @computed get legendHeight(): number {
-        return this.categoryLegendHeight + this.numericLegendHeight + 10
+        if (!this.manager.showLegend) return 0
+        return this.categoryLegendHeight + this.numericLegendHeight
     }
 
     @computed get numericLegendHeight(): number {
@@ -556,7 +598,7 @@ export class MapChart
     }
 
     @computed get categoryLegendHeight(): number {
-        return this.categoryLegend ? this.categoryLegend.height + 5 : 0
+        return this.categoryLegend ? this.categoryLegend.height : 0
     }
 
     @computed get categoryLegend():
@@ -574,10 +616,8 @@ export class MapChart
     }
 
     @computed get categoryLegendY(): number {
-        const { categoryLegend, bounds, categoryLegendHeight } = this
-
-        if (categoryLegend) return bounds.bottom - categoryLegendHeight
-        return 0
+        if (!this.categoryLegend) return 0
+        return this.bounds.bottom - this.categoryLegend.height
     }
 
     @computed get legendAlign(): HorizontalAlign {
@@ -585,18 +625,13 @@ export class MapChart
     }
 
     @computed get numericLegendY(): number {
-        const {
-            numericLegend,
-            numericLegendHeight,
-            bounds,
-            categoryLegendHeight,
-        } = this
-
-        if (numericLegend)
-            return (
-                bounds.bottom - categoryLegendHeight - numericLegendHeight - 4
-            )
-        return 0
+        if (!this.numericLegend) return 0
+        return (
+            this.bounds.bottom -
+            this.numericLegendHeight -
+            // If present, the category legend is placed below the numeric legend
+            this.categoryLegendHeight
+        )
     }
 
     @computed get isStatic(): boolean {
@@ -611,8 +646,11 @@ export class MapChart
         return makeClipPath(this.renderUid, this.choroplethMapBounds)
     }
 
-    renderMapLegend(): React.ReactElement {
+    renderMapLegend(): React.ReactElement | null {
         const { numericLegend, categoryLegend } = this
+
+        // todo: adjust bounds etc
+        if (!this.manager.showLegend) return null
 
         return (
             <>
@@ -683,6 +721,7 @@ export class MapChart
                 className={MAP_CHART_CLASSNAME}
                 onMouseMove={this.onMapMouseMove}
             >
+                {/* <rect {...this.bounds.toProps()} stroke="black" fill="none" /> */}
                 {this.renderMapOrGlobe()}
                 {this.renderMapLegend()}
                 {tooltipCountry && (
@@ -690,7 +729,6 @@ export class MapChart
                         entityName={tooltipCountry}
                         position={tooltipState.position}
                         fading={tooltipState.fading}
-                        timeSeriesTable={this.inputTable}
                         formatValueIfCustom={this.formatTooltipValueIfCustom}
                         manager={this.manager}
                         lineColorScale={this.colorScale}

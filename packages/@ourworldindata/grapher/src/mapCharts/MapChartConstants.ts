@@ -5,6 +5,7 @@ import {
     SeriesName,
     InteractionState,
     GlobeRegionName,
+    Time,
 } from "@ourworldindata/types"
 import { ChartManager } from "../chart/ChartManager"
 import { MapConfig } from "./MapConfig"
@@ -131,6 +132,7 @@ export interface GlobeRenderFeature extends RenderFeature {
 export interface MapChartManager extends ChartManager {
     mapColumnSlug?: ColumnSlug
     mapConfig?: MapConfig
+    targetTime?: Time
     globeController?: GlobeController
     mapRegionDropdownValue?: MapRegionDropdownValue
     isMapSelectionEnabled?: boolean

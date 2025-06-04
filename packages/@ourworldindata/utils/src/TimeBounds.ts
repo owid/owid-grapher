@@ -124,6 +124,7 @@ export const getTimeDomainFromQueryString = (
         ]
     }
 
+    // how has this worked before?
     const timebound =
         parseTimeURIComponent(time) ?? TimeBoundValue.positiveInfinity
     return [timebound, timebound]

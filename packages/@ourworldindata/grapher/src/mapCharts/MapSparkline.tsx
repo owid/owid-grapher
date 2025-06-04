@@ -29,8 +29,8 @@ const SPARKLINE_PADDING = 15
 const SPARKLINE_NUDGE = 3 // step away from the axis
 
 export interface MapSparklineManager {
+    table: OwidTable
     mapColumnSlug?: ColumnSlug
-    timeSeriesTable: OwidTable
     targetTime?: Time
     entityName: EntityName
     lineColorScale?: ColorScale
@@ -61,14 +61,14 @@ export class MapSparkline extends React.Component<{
     @computed private get sparklineTable(): OwidTable {
         if (this.mapColumnSlug === undefined) return new OwidTable()
 
-        return this.manager.timeSeriesTable
+        return this.manager.table
             .filterByEntityNames([this.manager.entityName])
             .columnFilter(
                 this.mapColumnSlug,
                 isNumber,
                 "Drop rows with non-number values in Y column"
             )
-            .sortBy([this.manager.timeSeriesTable.timeColumn.slug])
+            .sortBy([this.manager.table.timeColumn.slug])
     }
 
     @computed private get hasTimeSeriesData(): boolean {
@@ -83,12 +83,11 @@ export class MapSparkline extends React.Component<{
 
     @computed private get sparklineManager(): LineChartManager {
         // use the whole time range for the sparkline, not just the range where this series has data
-        let { minTime, maxTime } = this.manager.timeSeriesTable ?? {}
+        let { minTime, maxTime } = this.manager.table ?? {}
         if (this.mapColumnSlug) {
-            const times =
-                this.manager.timeSeriesTable.getTimesUniqSortedAscForColumns([
-                    this.mapColumnSlug,
-                ])
+            const times = this.manager.table.getTimesUniqSortedAscForColumns([
+                this.mapColumnSlug,
+            ])
             minTime = R.first(times) ?? minTime
             maxTime = R.last(times) ?? maxTime
         }
