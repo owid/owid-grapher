@@ -28,6 +28,7 @@ import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FacetChart } from "../facetChart/FacetChart"
+import { FacetMap } from "../facetMap/FacetMap.js"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { FooterManager } from "../footer/FooterManager"
@@ -193,7 +194,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return undefined
     }
 
-    renderChart(): React.ReactElement | void {
+    renderReadyChartOrMap(): React.ReactElement | void {
         const {
             manager,
             boundsForChartArea: bounds,
@@ -204,17 +205,14 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
         if (!activeChartOrMapType) return
 
-        // Todo: make FacetChart a chart type name?
-        const activeChartType =
-            activeChartOrMapType !== GRAPHER_MAP_TYPE
-                ? activeChartOrMapType
-                : undefined
-        if (isFaceted && activeChartType)
-            return (
+        if (isFaceted)
+            return activeChartOrMapType === GRAPHER_MAP_TYPE ? (
+                <FacetMap bounds={bounds} manager={manager} />
+            ) : (
                 <FacetChart
                     bounds={bounds}
-                    chartTypeName={activeChartType}
                     manager={manager}
+                    chartTypeName={activeChartOrMapType}
                 />
             )
 
@@ -343,7 +341,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 >
                     {this.patterns}
                     {this.manager.isReady
-                        ? this.renderChart()
+                        ? this.renderReadyChartOrMap()
                         : this.renderLoadingIndicator()}
                 </svg>
             </div>
@@ -587,7 +585,9 @@ export class StaticCaptionedChart extends CaptionedChart {
                      We cannot render a table to svg, but would rather display nothing at all to avoid issues.
                      See https://github.com/owid/owid-grapher/issues/3283
                     */}
-                    {this.manager.isOnTableTab ? undefined : this.renderChart()}
+                    {this.manager.isOnTableTab
+                        ? undefined
+                        : this.renderReadyChartOrMap()}
                 </g>
                 <StaticFooter
                     manager={manager}

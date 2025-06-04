@@ -30,12 +30,6 @@ describe("globe settings", () => {
         expect(map.toObject()).toEqual({})
     })
 
-    it("doesn't serialize globe settings if a region is given", () => {
-        const map = new MapConfig()
-        map.region = MapRegionName.SouthAmerica
-        expect(map.toObject()).toEqual({ region: "SouthAmerica" })
-    })
-
     it("persists rotation as [lat, lon] (instead of the internally used [lon, lat])", () => {
         const map = new MapConfig()
         map.globe = {
@@ -58,5 +52,31 @@ describe("globe settings", () => {
         expect(map.toObject()).toEqual({
             globe: { isActive: true, rotation: [30.63, -9.36], zoom: 2.73 },
         })
+    })
+})
+
+describe("parsing start and end time", () => {
+    it("defaults to the latest time point if start and end time are not provided", () => {
+        const map = new MapConfig({})
+        expect(map.startTime).toEqual(Infinity)
+        expect(map.endTime).toEqual(Infinity)
+    })
+
+    it("defaults to the given end time if no start time is provided", () => {
+        const map = new MapConfig({ endTime: 2000 })
+        expect(map.startTime).toEqual(2000)
+        expect(map.endTime).toEqual(2000)
+    })
+
+    it("respects the start time if provided", () => {
+        const map = new MapConfig({ startTime: 2000, endTime: 2020 })
+        expect(map.startTime).toEqual(2000)
+        expect(map.endTime).toEqual(2020)
+    })
+
+    it("respects the start time if provided", () => {
+        const map = new MapConfig({ startTime: 2000 })
+        expect(map.startTime).toEqual(2000)
+        expect(map.endTime).toEqual(Infinity)
     })
 })

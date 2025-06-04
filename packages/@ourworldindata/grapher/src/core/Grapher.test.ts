@@ -591,6 +591,19 @@ describe("urls", () => {
         grapher.setTab(GRAPHER_TAB_NAMES.LineChart)
         expect(grapher.changedParams.tab).toEqual("line")
     })
+
+    it("shows a multi-year chart by default", () => {
+        const grapher = new Grapher()
+        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.LineChart)
+        expect(grapher.timelineHandleTimeBounds).toEqual([-Infinity, Infinity])
+    })
+
+    it("shows a single-year map by default", () => {
+        const grapher = new Grapher({ hasMapTab: true })
+        grapher.populateFromQueryParams({ tab: "map" })
+        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.WorldMap)
+        expect(grapher.timelineHandleTimeBounds).toEqual([Infinity, Infinity])
+    })
 })
 
 describe("time domain tests", () => {
@@ -1073,7 +1086,7 @@ it("considers map tolerance before using column tolerance", () => {
         }),
     })
 
-    expect(grapher.timelineHandleTimeBounds[1]).toEqual(2002)
+    expect(grapher.timelineHandleTimeBounds).toEqual([2002, 2002])
     expect(
         grapher.transformedTable.filterByEntityNames(["Germany"]).get("gdp")
             .values
