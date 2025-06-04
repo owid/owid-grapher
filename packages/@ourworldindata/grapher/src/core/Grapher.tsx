@@ -3567,9 +3567,7 @@ export class Grapher
     }
 
     @computed get backgroundColor(): Color {
-        return this.isExportingForSocialMedia
-            ? GRAPHER_BACKGROUND_BEIGE
-            : GRAPHER_BACKGROUND_DEFAULT
+        return GRAPHER_BACKGROUND_BEIGE
     }
 
     @computed get shouldPinTooltipToBottom(): boolean {
