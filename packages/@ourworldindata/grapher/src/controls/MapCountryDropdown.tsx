@@ -24,7 +24,11 @@ import {
     DropdownCollectionItem,
     DropdownOptionGroup,
 } from "./Dropdown.js"
-import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants"
+import { getCountriesByRegion } from "../mapCharts/MapHelpers"
+import {
+    MAP_REGION_LABELS,
+    MAP_REGION_NAMES,
+} from "../mapCharts/MapChartConstants"
 import { match } from "ts-pattern"
 import * as R from "remeda"
 
@@ -114,13 +118,15 @@ export class MapCountryDropdown extends React.Component<{
 
         match(selected.type)
             .with("country", () => {
-                // reset the region if a non-world region is currently selected
-                if (this.mapConfig.region !== MapRegionName.World) {
-                    this.mapConfig.region = MapRegionName.World
-                }
-
                 // focus the country on the globe
-                this.manager.globeController?.focusOnCountry(selected.value)
+                this.manager.globeController?.setFocusCountry(selected.value)
+
+                // if a 2d continent is active, we don't want to switch to the globe
+                if (!this.mapConfig.is2dContinentActive()) {
+                    this.manager.globeController?.rotateToCountry(
+                        selected.value
+                    )
+                }
             })
             .with("continent", () => {
                 this.manager.globeController?.rotateToOwidContinent(
@@ -132,8 +138,25 @@ export class MapCountryDropdown extends React.Component<{
         this.searchInput = ""
     }
 
+    @computed private get availableCountries(): EntityName[] {
+        const mappableCountryNames = mappableCountries.map(
+            (country) => country.name
+        )
+
+        // Only show the countries for the active continent if in 2d mode
+        if (this.mapConfig.is2dContinentActive()) {
+            const countriesInRegion = getCountriesByRegion(
+                MAP_REGION_NAMES[this.mapConfig.region]
+            )
+            if (!countriesInRegion) return mappableCountryNames
+            return Array.from(countriesInRegion)
+        }
+
+        return mappableCountryNames
+    }
+
     @computed private get sortedCountries(): EntityName[] {
-        return _.sortBy(mappableCountries.map((country) => country.name))
+        return _.sortBy(this.availableCountries)
     }
 
     @computed private get options(): DropdownCollection<DropdownOption> {
@@ -207,6 +230,15 @@ export class MapCountryDropdown extends React.Component<{
         )
     }
 
+    @computed private get placeholder(): string {
+        if (
+            this.mapConfig.globe.isActive ||
+            this.mapConfig.region === MapRegionName.World
+        )
+            return "Zoom to..."
+        return "Search for a country"
+    }
+
     @action.bound async populateLocalCountryName(): Promise<void> {
         try {
             const localCountryInfo = await getUserCountryInformation()
@@ -259,7 +291,7 @@ export class MapCountryDropdown extends React.Component<{
                     onInputChange={(inputValue) =>
                         (this.searchInput = inputValue)
                     }
-                    placeholder="Zoom to..."
+                    placeholder={this.placeholder}
                     aria-label="Search for country or continent"
                     renderMenuOption={(option) => (
                         <>
