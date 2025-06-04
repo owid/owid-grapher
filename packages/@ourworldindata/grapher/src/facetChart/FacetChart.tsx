@@ -14,6 +14,8 @@ import {
     HorizontalAlign,
     Color,
     makeIdForHumanConsumption,
+    exposeInstanceOnWindow,
+    SplitBoundsPadding,
 } from "@ourworldindata/utils"
 import { shortenForTargetWidth } from "@ourworldindata/components"
 import { action, computed, observable } from "mobx"
@@ -35,7 +37,8 @@ import {
 import { ChartManager } from "../chart/ChartManager"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
-    getChartPadding,
+    calculateAspectRatio,
+    getFacetGridPadding,
     getFontSize,
     getLabelPadding,
 } from "./FacetChartUtils"
@@ -201,24 +204,20 @@ export class FacetChart
         const count = this.facetCount
         const { width, height } = this.bounds
 
-        const aspectRatio = width / height // can be NaN if height is 0, which can happen when the chart is temporarily hidden
+        const containerAspectRatio = calculateAspectRatio(width, height)
 
         return getIdealGridParams({
             count,
-            containerAspectRatio: isNaN(aspectRatio) ? 1 : aspectRatio,
+            containerAspectRatio,
             idealAspectRatio: IDEAL_PLOT_ASPECT_RATIO,
         })
     }
 
-    @computed private get facetGridPadding(): {
-        rowPadding: number
-        columnPadding: number
-        outerPadding: number
-    } {
+    @computed private get facetGridPadding(): SplitBoundsPadding {
         const { isSharedXAxis, facetFontSize } = this
-        return getChartPadding({
+        return getFacetGridPadding({
             baseFontSize: facetFontSize,
-            isSharedXAxis,
+            shouldAddRowPadding: !isSharedXAxis,
         })
     }
 
@@ -242,7 +241,8 @@ export class FacetChart
      * @danielgavrilov, 2021-07-13
      */
     @computed private get intermediatePlacedSeries(): PlacedFacetSeries[] {
-        const { manager, series, facetCount, seriesColorMap } = this
+        const { manager, series, facetCount, seriesColorMap, legendHoverBin } =
+            this
 
         // Copy properties from manager to facets
         const fontSize = this.facetFontSize
@@ -269,6 +269,9 @@ export class FacetChart
             backgroundColor,
             focusArray,
             isStatic,
+            base,
+            tooltip,
+            shouldPinTooltipToBottom,
         } = manager
 
         // Use compact labels, e.g. 50k instead of 50,000.
@@ -327,6 +330,10 @@ export class FacetChart
                 hideNoDataSection,
                 focusArray,
                 isStatic,
+                base,
+                tooltip,
+                shouldPinTooltipToBottom,
+                externalLegendHoverBin: legendHoverBin,
                 ...series.manager,
                 xAxisConfig: {
                     ...globalXAxisConfig,
@@ -484,7 +491,6 @@ export class FacetChart
             const manager = {
                 ...series.manager,
                 useValueBasedColorScheme,
-                externalLegendHoverBin: this.legendHoverBin,
                 xAxisConfig: {
                     // For now, sharing an x axis means hiding the tick labels of inner facets.
                     // This means that none of the x axes are actually hidden (we just don't plot their tick labels).
@@ -511,9 +517,6 @@ export class FacetChart
                     ...series.manager.yAxisConfig,
                     ...axes.y.config,
                 },
-                tooltip: this.manager.tooltip,
-                shouldPinTooltipToBottom: this.manager.shouldPinTooltipToBottom,
-                base: this.manager.base,
             }
             const contentBounds = getContentBounds(
                 bounds,
@@ -555,20 +558,18 @@ export class FacetChart
     }
 
     @computed private get columnFacets(): FacetSeries[] {
-        return this.yColumns.map((col) => {
+        return this.yColumns.map((col) => ({
+            seriesName: col.displayName,
+            color: facetBackgroundColor,
             // Only set overrides for this facet strategy.
             // Default properties are set elsewhere.
-            return {
-                seriesName: col.displayName,
-                color: facetBackgroundColor,
-                manager: {
-                    selection: this.selectionArray,
-                    yColumnSlug: col.slug,
-                    yColumnSlugs: [col.slug],
-                    seriesStrategy: SeriesStrategy.entity,
-                },
-            }
-        })
+            manager: {
+                selection: this.selectionArray,
+                yColumnSlug: col.slug,
+                yColumnSlugs: [col.slug],
+                seriesStrategy: SeriesStrategy.entity,
+            },
+        }))
     }
 
     @computed private get yColumns(): CoreColumn[] {
@@ -862,6 +863,10 @@ export class FacetChart
             )}…`
         }
         return { fontSize, shortenedLabel: label }
+    }
+
+    componentDidMount(): void {
+        exposeInstanceOnWindow(this, "facets")
     }
 
     render(): React.ReactElement {
