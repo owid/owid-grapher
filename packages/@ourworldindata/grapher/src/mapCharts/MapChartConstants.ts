@@ -6,6 +6,7 @@ import {
     InteractionState,
     GlobeRegionName,
     ProjectionColumnInfo,
+    Time,
 } from "@ourworldindata/types"
 import { ChartManager } from "../chart/ChartManager"
 import { MapConfig } from "./MapConfig"
@@ -137,8 +138,10 @@ export interface GlobeRenderFeature extends RenderFeature {
 export interface MapChartManager extends ChartManager {
     mapColumnSlug?: ColumnSlug
     mapConfig?: MapConfig
+    targetTime?: Time
     globeController?: GlobeController
     mapRegionDropdownValue?: MapRegionDropdownValue
+    resetMapRegionDropdownValue?: () => void
     isMapSelectionEnabled?: boolean
     logGrapherInteractionEvent?: (
         action: GrapherInteractionEvent,
@@ -157,6 +160,7 @@ export interface MapViewport {
     y: number
     width: number
     height: number
+    ratio: number
 }
 
 export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
@@ -170,13 +174,13 @@ export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
 
 /** Viewport for each region, defined by center and width+height in fractional coordinates */
 export const MAP_VIEWPORTS: Record<MapRegionName, MapViewport> = {
-    World: { x: 0.565, y: 0.5, width: 1, height: 1 },
-    Europe: { x: 0.53, y: 0.22, width: 0.2, height: 0.2 },
-    Africa: { x: 0.49, y: 0.7, width: 0.21, height: 0.38 },
-    NorthAmerica: { x: 0.49, y: 0.4, width: 0.19, height: 0.32 },
-    SouthAmerica: { x: 0.52, y: 0.815, width: 0.1, height: 0.26 },
-    Asia: { x: 0.74, y: 0.45, width: 0.36, height: 0.5 },
-    Oceania: { x: 0.51, y: 0.75, width: 0.1, height: 0.2 },
+    World: { x: 0.565, y: 0.5, width: 1, height: 1, ratio: 2.37 },
+    Europe: { x: 0.53, y: 0.21, width: 0.2, height: 0.2, ratio: 1.77 },
+    Africa: { x: 0.48, y: 0.7, width: 0.21, height: 0.38, ratio: 1.07 },
+    NorthAmerica: { x: 0.46, y: 0.4, width: 0.19, height: 0.35, ratio: 1.12 },
+    SouthAmerica: { x: 0.52, y: 0.815, width: 0.1, height: 0.26, ratio: 0.62 },
+    Asia: { x: 0.74, y: 0.45, width: 0.36, height: 0.5, ratio: 1.65 },
+    Oceania: { x: 0.51, y: 0.75, width: 0.1, height: 0.2, ratio: 1.47 },
 }
 
 export interface Circle {
