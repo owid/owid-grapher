@@ -16,6 +16,7 @@ export interface MapRegionDropdownManager {
     mapRegionDropdownValue?: MapRegionDropdownValue
     hideMapRegionDropdown?: boolean
     isMapSelectionEnabled?: boolean
+    isFaceted?: boolean
 }
 
 interface MapRegionDropdownOption {
@@ -56,6 +57,7 @@ export class MapRegionDropdown extends React.Component<{
             this.manager.mapRegionDropdownValue = undefined
             this.mapConfig.region = MapRegionName.World
             this.manager.globeController?.hideGlobe()
+            this.manager.globeController?.resetGlobe()
             return
         }
 
@@ -65,13 +67,17 @@ export class MapRegionDropdown extends React.Component<{
         const { value } = selected
         this.manager.mapRegionDropdownValue = value
 
-        // rotate to the selection or region
+        // Rotate to the selection in any case, even if we're in 2D mode
         if (value === "Selection") {
             this.manager.globeController?.rotateToSelection()
-        } else {
-            this.mapConfig.region = value
-            this.manager.globeController?.rotateToOwidContinent(value)
+            return
         }
+
+        // Don't rotate to a continent if faceted (unless we're already on the globe)
+        if (!this.manager.isFaceted || this.manager.mapConfig?.globe.isActive)
+            this.manager.globeController?.rotateToOwidContinent(value)
+
+        this.mapConfig.region = value
     }
 
     @computed private get hasSelectionOption(): boolean {

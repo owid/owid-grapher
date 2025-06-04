@@ -48,7 +48,7 @@ describe("grapher and map charts", () => {
         const chart = new MapChart({ manager })
 
         expect(Object.keys(chart.series).length).toEqual(1)
-        manager.endHandleTimeBound = 2010
+        manager.timelineHandleTimeBounds = [2010, 2010]
         expect(Object.keys(chart.series).length).toEqual(2)
     })
 })
