@@ -34,7 +34,6 @@ export function renderGrapherIntoContainer(
 
         const grapherConfigWithBounds = {
             ...config,
-            bounds: Bounds.fromRect(entry.contentRect),
             additionalDataLoaderFn: (
                 varId: OwidVariableId
             ): Promise<OwidVariableDataMetadataDimensions> =>
@@ -47,6 +46,7 @@ export function renderGrapherIntoContainer(
                     config={grapherConfigWithBounds}
                     dataApiUrl={dataApiUrl!}
                     archivedChartInfo={archivedChartInfo}
+                    externalBounds={Bounds.fromRect(entry.contentRect)}
                 />
             </Sentry.ErrorBoundary>,
             containerNode

@@ -1,4 +1,4 @@
-import { useRef } from "react"
+import { useRef, useMemo } from "react"
 import {
     grapherInterfaceWithHiddenControls,
     grapherInterfaceWithHiddenTabs,
@@ -36,68 +36,71 @@ export default function Chart({
     // This means we can link to the same chart multiple times with different querystrings
     // and it should all resolve correctly via the same linkedChart
     const { linkedChart } = useLinkedChart(d.url)
-    if (!linkedChart) return null
 
     const url = Url.fromURL(d.url)
-    const resolvedUrl = linkedChart.resolvedUrl
-    const resolvedUrlParsed = Url.fromURL(resolvedUrl)
+    const resolvedUrl = linkedChart?.resolvedUrl
+    const resolvedUrlParsed = Url.fromURL(resolvedUrl ?? "")
     const slug = resolvedUrlParsed.slug!
     const queryStr = resolvedUrlParsed.queryStr
-    const isExplorer = linkedChart.configType === ChartConfigType.Explorer
-    const isMultiDim = linkedChart.configType === ChartConfigType.MultiDim
+    const isExplorer = linkedChart?.configType === ChartConfigType.Explorer
+    const isMultiDim = linkedChart?.configType === ChartConfigType.MultiDim
     const hasControls = url.queryParams.hideControls !== "true"
     const isExplorerWithControls = isExplorer && hasControls
     const isMultiDimWithControls = isMultiDim && hasControls
 
     // config passed to grapher charts
-    let customizedChartConfig: GrapherProgrammaticInterface = {}
-    const isCustomized = d.title || d.subtitle
-    if (!isExplorer && isCustomized) {
-        const controls: ChartControlKeyword[] = d.controls || []
-        const tabs: ChartTabKeyword[] = d.tabs || []
+    const customizedChartConfig = useMemo(() => {
+        let config: GrapherProgrammaticInterface = {}
+        const isCustomized = d.title || d.subtitle
+        if (!isExplorer && isCustomized) {
+            const controls: ChartControlKeyword[] = d.controls || []
+            const tabs: ChartTabKeyword[] = d.tabs || []
 
-        const showAllControls = controls.includes(ChartControlKeyword.all)
-        const showAllTabs = tabs.includes(ChartTabKeyword.all)
+            const showAllControls = controls.includes(ChartControlKeyword.all)
+            const showAllTabs = tabs.includes(ChartTabKeyword.all)
 
-        const allControlsHidden = grapherInterfaceWithHiddenControls
-        const allTabsHidden = grapherInterfaceWithHiddenTabs
+            const allControlsHidden = grapherInterfaceWithHiddenControls
+            const allTabsHidden = grapherInterfaceWithHiddenTabs
 
-        const enabledControls = excludeUndefined(
-            controls.map(mapControlKeywordToGrapherConfig)
-        )
-        const enabledTabs = excludeUndefined(
-            tabs.map(mapTabKeywordToGrapherConfig)
-        )
+            const enabledControls = excludeUndefined(
+                controls.map(mapControlKeywordToGrapherConfig)
+            )
+            const enabledTabs = excludeUndefined(
+                tabs.map(mapTabKeywordToGrapherConfig)
+            )
 
-        customizedChartConfig = merge(
-            {},
-            !showAllControls ? allControlsHidden : {},
-            !showAllTabs ? allTabsHidden : {},
-            ...enabledControls,
-            ...enabledTabs,
-            {
-                hideRelatedQuestion: true,
-                hideShareButton: true, // always hidden since the original chart would be shared, not the customized one
-                hideExploreTheDataButton: false,
-            },
-            {
-                title: d.title,
-                subtitle: d.subtitle,
-            }
-        )
+            config = merge(
+                {},
+                !showAllControls ? allControlsHidden : {},
+                !showAllTabs ? allTabsHidden : {},
+                ...enabledControls,
+                ...enabledTabs,
+                {
+                    hideRelatedQuestion: true,
+                    hideShareButton: true, // always hidden since the original chart would be shared, not the customized one
+                    hideExploreTheDataButton: false,
+                },
+                {
+                    title: d.title,
+                    subtitle: d.subtitle,
+                }
+            )
 
-        // make sure the custom title is presented as is
-        if (customizedChartConfig.title) {
-            customizedChartConfig.forceHideAnnotationFieldsInTitle = {
-                entity: true,
-                time: true,
-                changeInPrefix: true,
+            // make sure the custom title is presented as is
+            if (config.title) {
+                config.forceHideAnnotationFieldsInTitle = {
+                    entity: true,
+                    time: true,
+                    changeInPrefix: true,
+                }
             }
         }
-    }
+        return config
+    }, [d.title, d.subtitle, d.controls, d.tabs, isExplorer])
 
     const chartConfig = customizedChartConfig
 
+    if (!linkedChart) return null
     return (
         <div
             className={cx(d.position, className, {
@@ -141,6 +144,8 @@ export default function Chart({
                     slug={slug}
                     config={chartConfig}
                     queryStr={queryStr}
+                    isEmbeddedInAnOwidPage={true}
+                    isEmbeddedInADataPage={false}
                 />
             )}
             {d.caption ? (

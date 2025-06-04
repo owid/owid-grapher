@@ -14,6 +14,7 @@ import { loadVariableDataAndMetadata } from "./loadVariable.js"
 import { fetchInputTableForConfig } from "./loadGrapherTableHelpers.js"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 import { unstable_batchedUpdates } from "react-dom"
+import { Bounds } from "@ourworldindata/utils"
 
 export interface FetchingGrapherProps {
     config?: GrapherProgrammaticInterface
@@ -21,6 +22,7 @@ export interface FetchingGrapherProps {
     dataApiUrl: string
     archivedChartInfo: ArchivedChartOrArchivePageMeta | undefined
     queryStr?: string
+    externalBounds?: Bounds
 }
 
 export function FetchingGrapher(
@@ -40,8 +42,15 @@ export function FetchingGrapher(
             ): Promise<OwidVariableDataMetadataDimensions> =>
                 loadVariableDataAndMetadata(varId, props.dataApiUrl),
             queryStr: props.queryStr,
+            bounds: props.externalBounds,
         })
     )
+
+    React.useEffect(() => {
+        if (props.externalBounds) {
+            grapherState.current.externalBounds = props.externalBounds
+        }
+    }, [props.externalBounds])
 
     // update grapherState when the config from props changes
     React.useEffect(() => {

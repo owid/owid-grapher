@@ -11,7 +11,8 @@ export interface GrapherWithFallbackProps {
     enablePopulatingUrlParams?: boolean
     config: Partial<GrapherInterface>
     queryStr?: string
-    isEmbeddedInAnIframe?: boolean
+    isEmbeddedInAnOwidPage: boolean
+    isEmbeddedInADataPage: boolean
 }
 
 export function GrapherWithFallback(
@@ -60,7 +61,8 @@ export function GrapherWithFallback(
                     slug={slug}
                     config={config}
                     queryStr={queryStr}
-                    isEmbeddedInAnIframe={props.isEmbeddedInAnIframe}
+                    isEmbeddedInAnOwidPage={props.isEmbeddedInAnOwidPage}
+                    isEmbeddedInADataPage={props.isEmbeddedInADataPage}
                 />
             ) : (
                 // Optional loading placeholder while waiting to come into view

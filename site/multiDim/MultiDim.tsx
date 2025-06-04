@@ -28,7 +28,7 @@ const baseGrapherConfig: GrapherProgrammaticInterface = {
     bakedGrapherURL: BAKED_GRAPHER_URL,
     adminBaseUrl: ADMIN_BASE_URL,
     canHideExternalControlsInEmbed: true,
-    isEmbeddedInAnOwidPage: true,
+    isEmbeddedInAnOwidPage: false,
 }
 
 const analytics = new GrapherAnalytics()

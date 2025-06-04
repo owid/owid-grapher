@@ -1,4 +1,4 @@
-import { useRef } from "react"
+import { useMemo, useRef } from "react"
 
 import {
     FetchingGrapher,
@@ -16,7 +16,8 @@ export interface GrapherFigureViewProps {
     slug?: string
     config?: Partial<GrapherProgrammaticInterface>
     queryStr?: string
-    isEmbeddedInAnIframe?: boolean
+    isEmbeddedInAnOwidPage: boolean
+    isEmbeddedInADataPage: boolean
 }
 
 export function GrapherFigureView(props: GrapherFigureViewProps): JSX.Element {
@@ -25,17 +26,20 @@ export function GrapherFigureView(props: GrapherFigureViewProps): JSX.Element {
     const base = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(base)
 
-    const config: GrapherProgrammaticInterface = {
-        ...props.config,
-        bakedGrapherURL: BAKED_GRAPHER_URL,
-        adminBaseUrl: ADMIN_BASE_URL,
-        bounds,
-        enableKeyboardShortcuts: true,
-        isEmbeddedInAnOwidPage:
-            props.isEmbeddedInAnIframe === undefined
-                ? true
-                : !props.isEmbeddedInAnIframe,
-    }
+    const config: GrapherProgrammaticInterface = useMemo(() => {
+        return {
+            ...props.config,
+            bakedGrapherURL: BAKED_GRAPHER_URL,
+            adminBaseUrl: ADMIN_BASE_URL,
+            enableKeyboardShortcuts: true,
+            isEmbeddedInAnOwidPage: props.isEmbeddedInAnOwidPage,
+            isEmbeddedInADataPage: props.isEmbeddedInADataPage,
+        }
+    }, [
+        props.config,
+        props.isEmbeddedInAnOwidPage,
+        props.isEmbeddedInADataPage,
+    ])
 
     return (
         <figure className="chart grapher-component" ref={base}>
@@ -50,6 +54,7 @@ export function GrapherFigureView(props: GrapherFigureViewProps): JSX.Element {
                     dataApiUrl={DATA_API_URL}
                     archivedChartInfo={config.archivedChartInfo}
                     queryStr={props.queryStr}
+                    externalBounds={bounds}
                 />
             )}
         </figure>

@@ -55,7 +55,6 @@ export const DataPageV2Content = ({
     const mergedGrapherConfig: GrapherProgrammaticInterface = useMemo(
         () => ({
             ...grapherConfig,
-            isEmbeddedInADataPage: true,
             bindUrlToWindow: typeof window !== "undefined",
             adminBaseUrl: ADMIN_BASE_URL,
             bakedGrapherURL: BAKED_GRAPHER_URL,
@@ -109,7 +108,8 @@ export const DataPageV2Content = ({
                                 : undefined
                         }
                         enablePopulatingUrlParams
-                        isEmbeddedInAnIframe={true}
+                        isEmbeddedInAnOwidPage={false}
+                        isEmbeddedInADataPage={false}
                     />
                 </div>
                 <div className="DataPageContent grid grid-cols-12-full-width">
@@ -150,6 +150,8 @@ export const DataPageV2Content = ({
                                             : undefined
                                     }
                                     enablePopulatingUrlParams
+                                    isEmbeddedInADataPage={true}
+                                    isEmbeddedInAnOwidPage={false}
                                 />
                             )}
                             <AboutThisData
