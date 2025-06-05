@@ -5,6 +5,7 @@ $toggle-full-width-breakpoint: 520px;
 
 .md-settings-row {
     display: flex;
+    flex-wrap: wrap;
     gap: 16px;
 
     .md-settings__configure-data {
