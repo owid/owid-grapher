@@ -329,8 +329,9 @@ export class ChoroplethMap extends React.Component<{
         if (isMapSelectionEnabled) {
             // select/deselect the country if allowed
             selection.toggleSelection(feature.id)
-        } else {
-            // rotate to the selected country on the globe on mobile
+        } else if (window?.visualViewport?.scale === 1) {
+            // rotate to the selected country on the globe
+            // but not if the user is zoomed in, otherwise they can get stuck in 3D mode
             globeController?.focusOnCountry(feature.id)
         }
     }
