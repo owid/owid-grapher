@@ -14,6 +14,7 @@ export function SearchField({
     trackNote,
     onChange,
     onClear,
+    onKeyDown,
 }: {
     className?: string
     value: string
@@ -21,6 +22,7 @@ export function SearchField({
     trackNote: string
     onChange: (value: string) => void
     onClear: () => void
+    onKeyDown?: (event: KeyboardEvent) => void
 }): React.ReactElement {
     return (
         <div
@@ -33,6 +35,7 @@ export function SearchField({
                 type="search"
                 value={value}
                 onChange={(event) => onChange(event.currentTarget.value)}
+                onKeyDown={(event) => onKeyDown(event.nativeEvent)}
                 data-track-note={trackNote}
                 aria-label={placeholder}
                 // prevent auto-zoom on ios
