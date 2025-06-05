@@ -130,7 +130,7 @@ async function handleHtmlPageRequest(
     const cookies = ctx.request.headers.get("cookie")
     const abTestClasses = cookies
         .split(";")
-        .filter((c) => c.includes("ab-") && c.split("=")[1] !== "ctl")
+        .filter((c) => c.includes("ab-"))
         .map((c) => c.replace("=", "-"))
 
     // For local testing
