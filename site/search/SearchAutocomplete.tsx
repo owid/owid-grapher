@@ -86,10 +86,23 @@ export const SearchAutocomplete = ({
             }
 
             match(filter.type)
-                // this setQueries logic must remain synchronized with the
-                // presentation logic in SearchAutocompleteItemContents to ensure
-                // unmatchedQuery is only displayed in the input field when it
-                // should be preserved after filter selection
+                // What readers see in each autocomplete suggestion is decoupled
+                // from what happens when they click on one:
+                // - display logic: SearchAutocompleteItemContents (1)
+                // - handling logic: below 👇 (2)
+                //
+                // For instance, when searching for "co2 france", we detect:
+                // - "france" as a country filter
+                //     - and show "france" as a filter pill (SearchFilterPill in 1)
+                //     - and add "france" to the active filters (addCountry in 2)
+                // - "co2" as the unmatchedQuery
+                //    - and show "co2" as the unmatched query (unmatchedQuery in 1)
+                //    - and set the queries to "co2" (setQueries in 2)
+                //
+                // This symmetry between display and handling logic needs to be
+                // manually maintained. If you change the handling logic, make
+                // sure to also update the display logic accordingly (and vice
+                // versa).
                 .with(FilterType.COUNTRY, () => {
                     logSearchAutocompleteClick()
                     addCountry(filter.name)
