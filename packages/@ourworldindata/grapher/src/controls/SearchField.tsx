@@ -35,7 +35,7 @@ export function SearchField({
                 type="search"
                 value={value}
                 onChange={(event) => onChange(event.currentTarget.value)}
-                onKeyDown={(event) => onKeyDown(event.nativeEvent)}
+                onKeyDown={(event) => onKeyDown?.(event.nativeEvent)}
                 data-track-note={trackNote}
                 aria-label={placeholder}
                 // prevent auto-zoom on ios
