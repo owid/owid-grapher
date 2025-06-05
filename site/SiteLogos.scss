@@ -2,8 +2,15 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    @include column-gap(24px);
     flex-shrink: 0;
+
+    .logo-owid {
+        margin-right: 24px;
+
+        @include sm-only {
+            margin-right: 0;
+        }
+    }
 
     .logo-owid a {
         @include md-up {
