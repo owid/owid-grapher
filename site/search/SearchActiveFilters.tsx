@@ -19,6 +19,7 @@ export const SearchActiveFilters = ({
                     .with({ type: FilterType.COUNTRY }, (filter) => (
                         <button
                             key={filter.name}
+                            type="button"
                             aria-label={`Remove ${filter.name}`}
                             onClick={() => removeCountry(filter.name)}
                             className="search-active-filter-button"
@@ -33,6 +34,7 @@ export const SearchActiveFilters = ({
                     .with({ type: FilterType.TOPIC }, (filter) => (
                         <button
                             key={`topic-${filter.name}`}
+                            type="button"
                             aria-label={`Remove ${filter.name}`}
                             onClick={() => removeTopic(filter.name)}
                             className="search-active-filter-button"
