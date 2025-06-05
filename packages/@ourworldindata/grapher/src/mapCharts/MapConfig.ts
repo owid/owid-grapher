@@ -18,6 +18,7 @@ import {
     maxTimeBoundFromJSONOrPositiveInfinity,
     minTimeToJSON,
     maxTimeToJSON,
+    minTimeBoundFromJSONOrNegativeInfinity,
 } from "@ourworldindata/utils"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
 import { DEFAULT_GLOBE_ROTATION, DEFAULT_GLOBE_ZOOM } from "./MapChartConstants"
@@ -52,14 +53,14 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
     updateFromObject(obj: Partial<MapConfigInterface>): void {
         updatePersistables(this, obj)
 
+        this.endTime = maxTimeBoundFromJSONOrPositiveInfinity(obj.endTime)
+
         if (obj.startTime) {
-            this.startTime = maxTimeBoundFromJSONOrPositiveInfinity(
+            this.startTime = minTimeBoundFromJSONOrNegativeInfinity(
                 obj.startTime
             )
-        }
-
-        if (obj.endTime) {
-            this.endTime = maxTimeBoundFromJSONOrPositiveInfinity(obj.endTime)
+        } else {
+            this.startTime = this.endTime
         }
 
         // Map [lat, lon] to the internally used [lon, lat]

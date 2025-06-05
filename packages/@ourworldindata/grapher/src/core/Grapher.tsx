@@ -709,15 +709,6 @@ export class Grapher
         this.minTime = minTimeBoundFromJSONOrNegativeInfinity(obj.minTime)
         this.maxTime = maxTimeBoundFromJSONOrPositiveInfinity(obj.maxTime)
 
-        if (
-            obj.hasMapTab &&
-            obj.tab === GRAPHER_TAB_CONFIG_OPTIONS.map &&
-            this.minTime === TimeBoundValue.negativeInfinity &&
-            this.maxTime === TimeBoundValue.positiveInfinity
-        ) {
-            this.minTime = TimeBoundValue.positiveInfinity
-        }
-
         this.timelineMinTime = minTimeBoundFromJSONOrNegativeInfinity(
             obj.timelineMinTime
         )
@@ -4121,6 +4112,11 @@ export class Grapher
         if (this.mapRegionDropdownValue === "Selection")
             this.resetMapRegionDropdown()
 
+        if (this.mapConfig.globe.isActive) {
+            this.resetMapRegionDropdown()
+            this.mapConfig.region = MapRegionName.World
+        }
+
         if (
             this.isOnMapTab &&
             this.isMapSelectionEnabled &&
@@ -4241,7 +4237,7 @@ export class Grapher
     }
 
     @computed get disablePlay(): boolean {
-        return false
+        return this.isOnMapTab && this.isFaceted
     }
 
     @computed get animationEndTime(): Time {
