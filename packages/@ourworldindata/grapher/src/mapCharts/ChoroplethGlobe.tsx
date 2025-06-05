@@ -449,8 +449,6 @@ export class ChoroplethGlobe extends React.Component<{
         // reset the region if necessary
         this.mapConfig.region = MapRegionName.World
 
-        console.log(this.manager.isMapSelectionEnabled)
-
         // select/deselect the country if allowed
         const country = feature.id
         if (this.manager.isMapSelectionEnabled) {
@@ -550,11 +548,6 @@ export class ChoroplethGlobe extends React.Component<{
                 this.clearHover() // dismiss the tooltip
                 this.mapConfig.region = MapRegionName.World // reset region
                 this.manager.resetMapRegionDropdownValue?.() // reset map region dropdown
-
-                console.log(
-                    this.mapConfig,
-                    this.manager.resetMapRegionDropdownValue
-                )
 
                 const wheeling = (): void => {
                     this.zoomGlobe(-event.sourceEvent.deltaY)

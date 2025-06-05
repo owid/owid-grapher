@@ -86,7 +86,9 @@ const geoBoundsForFeatures = GeoFeatures.map((feature) => {
 })
 
 const geoFeaturesForMapCache = new Map<MapRegionName, MapRenderFeature[]>()
-export const getGeoFeaturesForMap = (regionName: MapRegionName) => {
+export const getGeoFeaturesForMap = (
+    regionName: MapRegionName
+): MapRenderFeature[] => {
     if (geoFeaturesForMapCache.has(regionName))
         return geoFeaturesForMapCache.get(regionName)!
 

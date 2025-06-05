@@ -3,12 +3,7 @@ import { geoInterpolate, geoOrthographic, geoPath } from "d3-geo"
 import { interpolateNumber } from "d3-interpolate"
 import { easeCubicOut } from "d3-ease"
 import * as R from "remeda"
-import {
-    EntityName,
-    GlobeConfig,
-    GlobeRegionName,
-    MapRegionName,
-} from "@ourworldindata/types"
+import { EntityName, GlobeConfig, GlobeRegionName } from "@ourworldindata/types"
 import {
     Bounds,
     excludeUndefined,

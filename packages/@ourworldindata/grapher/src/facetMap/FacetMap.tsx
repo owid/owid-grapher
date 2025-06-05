@@ -4,8 +4,6 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     excludeUndefined,
-    sortBy,
-    uniqWith,
     GridParameters,
     HorizontalAlign,
     Color,
@@ -16,11 +14,7 @@ import { action, computed, observable } from "mobx"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import { ChartErrorInfo } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
-import {
-    getChartPadding,
-    getFontSize,
-    getLabelPadding,
-} from "../facetChart/FacetChartUtils"
+import { getChartPadding, getFontSize } from "../facetChart/FacetChartUtils"
 import {
     FacetSeries,
     FacetMapProps,

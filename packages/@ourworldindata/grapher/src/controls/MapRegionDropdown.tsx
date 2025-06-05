@@ -77,7 +77,7 @@ export class MapRegionDropdown extends React.Component<{
     }
 
     @computed private get hasSelectionOption(): boolean {
-        return this.mapConfig.selection.hasSelection && !this.manager.isFaceted
+        return this.mapConfig.selection.hasSelection
     }
 
     @computed get options(): MapRegionDropdownOption[] {
