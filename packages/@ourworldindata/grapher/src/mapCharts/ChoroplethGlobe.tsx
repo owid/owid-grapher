@@ -551,6 +551,11 @@ export class ChoroplethGlobe extends React.Component<{
                 this.mapConfig.region = MapRegionName.World // reset region
                 this.manager.resetMapRegionDropdownValue?.() // reset map region dropdown
 
+                console.log(
+                    this.mapConfig,
+                    this.manager.resetMapRegionDropdownValue
+                )
+
                 const wheeling = (): void => {
                     this.zoomGlobe(-event.sourceEvent.deltaY)
                 }

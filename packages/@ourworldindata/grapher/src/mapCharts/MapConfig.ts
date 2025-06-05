@@ -34,7 +34,7 @@ class MapConfigDefaults {
     @observable toleranceStrategy?: ToleranceStrategy
     @observable hideTimeline?: boolean
 
-    @observable region = MapRegionName.Africa
+    @observable region = MapRegionName.World
     @observable selection = new MapSelectionArray()
 
     @observable globe: GlobeConfig = {

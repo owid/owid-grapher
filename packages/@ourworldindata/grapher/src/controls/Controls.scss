@@ -86,6 +86,17 @@ nav.controlsRow .controls {
     }
 }
 
+// collapse the Settings toggle down to just an icon on the maps tab
+nav.controlsRow .map-controls .settings-menu button.menu-toggle {
+    min-height: $control-row-height;
+    svg {
+        margin: 0 2px;
+    }
+    .label {
+        display: none;
+    }
+}
+
 @container grapher (max-width:575px) {
     // collapse the Settings toggle down to just an icon on small screens
     nav.controlsRow .settings-menu button.menu-toggle {

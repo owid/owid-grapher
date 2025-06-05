@@ -87,12 +87,9 @@ export class GlobeController {
         this.globeConfig.rotation = DEFAULT_GLOBE_ROTATION
         this.globeConfig.zoom = 1
         this.globeConfig.focusCountry = undefined
-
-        // also reset the current region
-        this.manager.mapConfig.region = MapRegionName.World
     }
 
-    private setFocusCountry(country: EntityName): void {
+    setFocusCountry(country: EntityName): void {
         this.globeConfig.focusCountry = country
     }
 

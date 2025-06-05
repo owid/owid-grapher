@@ -227,7 +227,7 @@ export class ChoroplethMap extends React.Component<{
             this.mapConfig.selection.selectedCountryNamesInForeground.map(
                 (name) => this.featuresById.get(name)
             )
-        )
+        ).filter((feature) => this.foregroundFeatures.includes(feature))
     }
 
     /* Naively placed annotations that might be overlapping */
@@ -363,11 +363,16 @@ export class ChoroplethMap extends React.Component<{
         } else if (window?.visualViewport?.scale === 1) {
             // rotate to the selected country on the globe
             // but not if the user is zoomed in, otherwise they can get stuck in 3D mode
-            globeController?.focusOnCountry(feature.id)
+            if (
+                this.mapConfig.globe.isActive ||
+                this.mapConfig.region === MapRegionName.World
+            )
+                globeController?.focusOnCountry(feature.id)
         }
     }
 
     @action.bound private onDocumentClick(): void {
+        this.manager.globeController?.dismissCountryFocus()
         if (this.hoverEnterFeature || this.hoverNearbyFeature) {
             this.hoverEnterFeature = undefined
             this.hoverNearbyFeature = undefined
