@@ -304,3 +304,20 @@ export function rewriteMetaTags(
 
     return rewriter.transform(page)
 }
+
+/**
+ * Add CSS classes to document body
+ */
+export function addABTestClasses(page: Response, classes: string[]) {
+    const rewriter = new HTMLRewriter().on("body", {
+        element(element) {
+            const existingClass = element.getAttribute("class")
+            element.setAttribute(
+                "class",
+                `${existingClass ?? ""} ${classes.join(" ")}`.trim()
+            )
+        },
+    })
+
+    return rewriter.transform(page)
+}
