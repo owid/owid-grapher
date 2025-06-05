@@ -49,7 +49,6 @@ import {
     makeExternalAnnotationForFeature,
     repositionAndFilterExternalAnnotations,
 } from "./MapAnnotations"
-import { geoRobinson } from "./d3-geo-projection"
 import { isDarkColor } from "../color/ColorUtils"
 import { MapConfig } from "./MapConfig"
 import { MAP_PROJECTIONS } from "./MapProjections"

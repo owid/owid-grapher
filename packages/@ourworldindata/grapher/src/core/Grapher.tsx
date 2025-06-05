@@ -121,7 +121,6 @@ import {
     ArchivedChartOrArchivePageMeta,
     GrapherTabConfigOption,
     GlobeRegionName,
-    TimeBoundValue,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -265,7 +264,6 @@ import {
     EntityRegionTypeGroup,
     groupEntityNamesByRegionType,
 } from "./EntitiesByRegionType"
-import { P } from "ts-pattern"
 import { getCountriesByRegion } from "../mapCharts/MapHelpers"
 
 declare global {
@@ -4135,7 +4133,7 @@ export class Grapher
                     region.name
                 ] as GlobeRegionName
                 this.mapConfig.region = regionName
-                // this.mapRegionDropdownValue = regionName
+                this.mapRegionDropdownValue = regionName
                 // this.globeController.rotateToOwidContinent(regionName)
             }
         }
@@ -4221,7 +4219,8 @@ export class Grapher
         ) {
             const region = getRegionByName(entityName)
             if (!region) return false
-            if (!checkIsCountry(region)) return true
+            if (!checkIsCountry(region))
+                return entityName !== MAP_REGION_LABELS[this.mapConfig.region]
             const countriesInRegion = getCountriesByRegion(
                 MAP_REGION_LABELS[this.mapConfig.region]
             )

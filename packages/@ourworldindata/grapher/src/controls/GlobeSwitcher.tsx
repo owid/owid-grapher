@@ -44,16 +44,16 @@ export class GlobeSwitcher extends React.Component<{
         const newTab = this.availableTabs[tabIndex]
 
         if (newTab === "3D") {
-            if (this.manager.mapConfig?.selection.hasSelection) {
-                // if the selection is not empty, rotate to it
-                this.manager.globeController?.rotateToSelection()
-            } else if (
+            if (
                 this.manager.mapConfig?.region &&
                 this.manager.mapConfig?.region !== MapRegionName.World
             ) {
                 this.manager.globeController?.rotateToOwidContinent(
                     this.manager.mapConfig?.region
                 )
+            } else if (this.manager.mapConfig?.selection.hasSelection) {
+                // if the selection is not empty, rotate to it
+                this.manager.globeController?.rotateToSelection()
             } else if (this.localCountryName) {
                 // rotate to the user's current location if possible
                 this.manager.globeController?.rotateToCountry(

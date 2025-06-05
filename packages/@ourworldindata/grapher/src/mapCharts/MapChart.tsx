@@ -13,7 +13,6 @@ import {
     mappableCountries,
     regions,
     checkHasMembers,
-    getCountryNamesForRegion,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -125,7 +124,6 @@ export class MapChart
     }
 
     transformTableForSelection(table: OwidTable): OwidTable {
-        console.log("transform for selection")
         table = this.addMissingMapEntities(table)
         table = this.dropNonMapEntitiesForSelection(table)
         table = this.dropAntarctica(table)
@@ -163,11 +161,20 @@ export class MapChart
                 MAP_REGION_LABELS[mapConfig.region]
             )
             if (!countriesInRegion) return table
+            // filter by selected
+            const keepCountries =
+                selectionArray.countryNamesForSelectedRegionsSet.size > 0
+                    ? Array.from(countriesInRegion).filter((countryName) =>
+                          selectionArray.countryNamesForSelectedRegionsSet.has(
+                              countryName
+                          )
+                      )
+                    : Array.from(countriesInRegion)
             // todo: keep selection as well
             return table.filterByEntityNames(
                 R.unique([
                     // only keep countries in the region
-                    ...Array.from(countriesInRegion),
+                    ...keepCountries,
                     // keep the user's selection
                     ...selectionArray.selectedEntityNames,
                 ])
@@ -304,7 +311,6 @@ export class MapChart
     }
 
     @computed get isMapSelectionEnabled(): boolean {
-        console.log("map chart", this.manager.isMapSelectionEnabled)
         return !!this.manager.isMapSelectionEnabled
     }
 
