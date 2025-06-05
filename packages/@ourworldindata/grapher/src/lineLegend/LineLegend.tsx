@@ -147,11 +147,11 @@ class LineLabels extends React.Component<{
                             show={this.showTextOutline}
                             outlineWidth={
                                 GRAPHER_TEXT_OUTLINE_FACTOR *
-                                series.textWrapForRendering.fontSize
+                                series.textWrap.fontSize
                             }
                             outlineColor={this.textOutlineColor}
                         >
-                            {series.textWrapForRendering.renderSVG(
+                            {series.textWrap.renderSVG(
                                 labelText.x,
                                 labelText.y,
                                 {
@@ -441,17 +441,8 @@ export class LineLegend extends React.Component<LineLegendProps> {
             const fontWeight =
                 activeFontWeight ?? seriesFontWeight ?? globalFontWeight
 
-            // line labels might be focused/unfocused, which affects their font weight.
-            // if we used the actual font weight for measuring the text width,
-            // the layout would be jumpy when focusing/unfocusing a series.
-            const fontWeightsForMeasuring = { label: 700, value: 700 }
-            const fontWeightsForRendering = { label: fontWeight, value: 400 }
-            const textWrap = this.makeLabelTextWrap(series, {
-                fontWeights: fontWeightsForMeasuring,
-            })
-            const textWrapForRendering = this.makeLabelTextWrap(series, {
-                fontWeights: fontWeightsForRendering,
-            })
+            const fontWeights = { label: fontWeight, value: 400 }
+            const textWrap = this.makeLabelTextWrap(series, { fontWeights })
 
             const annotationTextWrap = this.makeAnnotationTextWrap(series)
             const annotationWidth = annotationTextWrap?.width ?? 0
@@ -462,7 +453,6 @@ export class LineLegend extends React.Component<LineLegendProps> {
             return {
                 ...series,
                 textWrap,
-                textWrapForRendering,
                 annotationTextWrap,
                 width: Math.max(textWrap.width, annotationWidth),
                 height: textWrap.height + annotationHeight,
