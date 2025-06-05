@@ -184,6 +184,7 @@ import {
     isValidDataTableFilter,
 } from "../dataTable/DataTable"
 import {
+    MAP_REGION_LABELS,
     MAP_REGION_NAMES,
     MapChartManager,
 } from "../mapCharts/MapChartConstants"
@@ -265,6 +266,7 @@ import {
     groupEntityNamesByRegionType,
 } from "./EntitiesByRegionType"
 import { P } from "ts-pattern"
+import { getCountriesByRegion } from "../mapCharts/MapHelpers"
 
 declare global {
     interface Window {
@@ -548,6 +550,10 @@ export class Grapher
 
     @observable mapRegionDropdownValue?: MapRegionDropdownValue
 
+    @action.bound resetMapRegionDropdownValue(): void {
+        this.mapRegionDropdownValue = undefined
+    }
+
     @computed get dataApiUrlForAdmin(): string | undefined {
         return this.props.dataApiUrlForAdmin
     }
@@ -805,13 +811,14 @@ export class Grapher
         const region = params.region
         if (region !== undefined) {
             this.map.region = region as MapRegionName
+            this.mapRegionDropdownValue = region as MapRegionDropdownValue
 
-            // show region on the globe
-            if (this.map.region !== MapRegionName.World) {
-                this.mapRegionDropdownValue = this.map.region
-                this.globeController.jumpToOwidContinent(this.map.region)
-                this.globeController.showGlobe()
-            }
+            // // show region on the globe
+            // if (this.map.region !== MapRegionName.World) {
+            //     this.mapRegionDropdownValue = this.map.region
+            //     this.globeController.jumpToOwidContinent(this.map.region)
+            //     this.globeController.showGlobe()
+            // }
         }
 
         // map selection
@@ -3005,7 +3012,11 @@ export class Grapher
     }
 
     @computed get entityRegionTypeGroups(): EntityRegionTypeGroup[] {
-        return groupEntityNamesByRegionType(this.table.availableEntityNames)
+        // todo: Western Sahara is added in transform for tabel function
+        // http://localhost:3030/grapher/child-mortality?region=Africa
+        return groupEntityNamesByRegionType(
+            this.tableForSelection.availableEntityNames
+        )
     }
 
     @computed get entityNamesByRegionType(): EntityNamesByRegionType {
@@ -4108,6 +4119,10 @@ export class Grapher
     // called when an entity is selected in the entity selector
     @action.bound onSelectEntity(entityName: EntityName): void {
         const { selectedCountryNamesInForeground } = this.mapConfig.selection
+
+        if (this.mapRegionDropdownValue === "Selection")
+            this.resetMapRegionDropdown()
+
         if (
             this.isOnMapTab &&
             this.isMapSelectionEnabled &&
@@ -4122,22 +4137,26 @@ export class Grapher
                 ) {
                     // rotate to the selected country
                     this.globeController.focusOnCountry(region.name)
+                    this.mapConfig.region = MapRegionName.World
                 } else if (checkIsOwidContinent(region)) {
                     // rotate to the selected owid continent
-                    this.globeController.rotateToOwidContinent(
-                        MAP_REGION_NAMES[region.name] as GlobeRegionName
-                    )
+                    const regionName = MAP_REGION_NAMES[
+                        region.name
+                    ] as GlobeRegionName
+                    this.mapConfig.region = regionName
+                    this.mapRegionDropdownValue = regionName
+                    this.globeController.rotateToOwidContinent(regionName)
                 } else if (checkIsIncomeGroup(region)) {
                     // switch back to the map
                     this.globeController.hideGlobe()
+                    this.mapConfig.region = MapRegionName.World
                 } else if (checkHasMembers(region)) {
                     // rotate to the selected region
                     this.globeController.rotateToRegion(region.name)
+                    this.mapConfig.region = MapRegionName.World
                 }
             }
         }
-
-        this.resetMapRegionDropdown()
     }
 
     // called when an entity is deselected in the entity selector
@@ -4148,7 +4167,8 @@ export class Grapher
         // Remove focus from the deselected country
         this.globeController.dismissCountryFocus()
 
-        this.resetMapRegionDropdown()
+        if (this.mapRegionDropdownValue === "Selection")
+            this.resetMapRegionDropdown()
     }
 
     // called when all entities are cleared in the entity selector
@@ -4157,9 +4177,13 @@ export class Grapher
         this.focusArray.clear()
 
         // switch back to the 2d map if all entities were deselected
-        if (this.isOnMapTab) this.globeController.hideGlobe()
+        if (this.isOnMapTab) {
+            this.globeController.hideGlobe()
+            // this.mapConfig.region = MapRegionName.World
+        }
 
-        this.resetMapRegionDropdown()
+        if (this.mapRegionDropdownValue === "Selection")
+            this.resetMapRegionDropdown()
     }
 
     isEntityMutedInSelector(entityName: EntityName): boolean {
@@ -4167,9 +4191,28 @@ export class Grapher
         if (!this.isOnMapTab) return false
 
         // entities disabled on the map are muted
-        return this.mapConfig.selection.selectedCountryNamesInBackground.includes(
-            entityName
+        if (
+            this.mapConfig.selection.selectedCountryNamesInBackground.includes(
+                entityName
+            )
         )
+            return true
+
+        if (
+            this.mapConfig.region !== MapRegionName.World &&
+            !this.mapConfig.globe.isActive
+        ) {
+            const region = getRegionByName(entityName)
+            if (!region) return false
+            if (!checkIsCountry(region)) return true
+            const countriesInRegion = getCountriesByRegion(
+                MAP_REGION_LABELS[this.mapConfig.region]
+            )
+            if (!countriesInRegion) return false
+            return !countriesInRegion.has(entityName)
+        }
+
+        return false
     }
 
     // todo: restore this behavior??

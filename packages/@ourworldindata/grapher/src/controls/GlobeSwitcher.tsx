@@ -4,7 +4,11 @@ import { action, computed, observable } from "mobx"
 import { TabLabel, Tabs } from "../tabs/Tabs"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { GlobeController } from "../mapCharts/GlobeController"
-import { EntityName, getUserCountryInformation } from "@ourworldindata/utils"
+import {
+    EntityName,
+    getUserCountryInformation,
+    MapRegionName,
+} from "@ourworldindata/utils"
 import { MapRegionDropdownValue } from "./MapRegionDropdown"
 
 export interface GlobeSwitcherManager {
@@ -43,6 +47,13 @@ export class GlobeSwitcher extends React.Component<{
             if (this.manager.mapConfig?.selection.hasSelection) {
                 // if the selection is not empty, rotate to it
                 this.manager.globeController?.rotateToSelection()
+            } else if (
+                this.manager.mapConfig?.region &&
+                this.manager.mapConfig?.region !== MapRegionName.World
+            ) {
+                this.manager.globeController?.rotateToOwidContinent(
+                    this.manager.mapConfig?.region
+                )
             } else if (this.localCountryName) {
                 // rotate to the user's current location if possible
                 this.manager.globeController?.rotateToCountry(
@@ -53,12 +64,14 @@ export class GlobeSwitcher extends React.Component<{
                 this.manager.globeController?.rotateToDefaultBasedOnTime()
             }
         } else {
-            this.manager.globeController?.hideGlobe()
+            // this.manager.globeController?.hideGlobe()
+            if (this.manager.mapConfig)
+                this.manager.mapConfig.globe.isActive = false
         }
 
         // reset the map region dropdown
-        if (this.manager.mapRegionDropdownValue)
-            this.manager.mapRegionDropdownValue = undefined
+        // if (this.manager.mapRegionDropdownValue)
+        //     this.manager.mapRegionDropdownValue = undefined
     }
 
     @action.bound async populateLocalCountryName(): Promise<void> {

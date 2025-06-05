@@ -13,6 +13,7 @@ import {
     mappableCountries,
     regions,
     checkHasMembers,
+    getCountryNamesForRegion,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -39,6 +40,7 @@ import {
     ChoroplethSeriesByName,
     ChoroplethMapManager,
     MAP_CHART_CLASSNAME,
+    MAP_REGION_LABELS,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale } from "../color/ColorScale"
@@ -68,7 +70,7 @@ import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
 import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
-import { isOnTheMap } from "./MapHelpers.js"
+import { getCountriesByRegion, isOnTheMap } from "./MapHelpers.js"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 
 interface MapChartProps {
@@ -123,6 +125,7 @@ export class MapChart
     }
 
     transformTableForSelection(table: OwidTable): OwidTable {
+        console.log("transform for selection")
         table = this.addMissingMapEntities(table)
         table = this.dropNonMapEntitiesForSelection(table)
         table = this.dropAntarctica(table)
@@ -144,12 +147,32 @@ export class MapChart
     }
 
     private dropNonMapEntitiesForSelection(table: OwidTable): OwidTable {
-        const { selectionArray } = this
+        const { selectionArray, mapConfig } = this
 
         const allMappableCountryNames = mappableCountries.map((c) => c.name)
         const allRegionNames = regions
             .filter((r) => checkHasMembers(r) && r.code !== "OWID_WRL")
             .map((r) => r.name)
+
+        const is2dContinentActive =
+            mapConfig.region !== MapRegionName.World &&
+            !mapConfig.globe.isActive
+
+        if (is2dContinentActive) {
+            const countriesInRegion = getCountriesByRegion(
+                MAP_REGION_LABELS[mapConfig.region]
+            )
+            if (!countriesInRegion) return table
+            // todo: keep selection as well
+            return table.filterByEntityNames(
+                R.unique([
+                    // only keep countries in the region
+                    ...Array.from(countriesInRegion),
+                    // keep the user's selection
+                    ...selectionArray.selectedEntityNames,
+                ])
+            )
+        }
 
         // if no regions are currently selected, keep all mappable countries and regions
         if (!selectionArray.hasRegions) {
@@ -286,7 +309,7 @@ export class MapChart
     }
 
     @action.bound resetMapRegionDropdownValue(): void {
-        this.manager.mapRegionDropdownValue = undefined
+        this.manager.resetMapRegionDropdownValue?.()
     }
 
     componentWillUnmount(): void {
@@ -407,6 +430,7 @@ export class MapChart
         // hide the globe on hitting the Escape key
         if (e.key === "Escape" && this.mapConfig.globe.isActive) {
             this.globeController.hideGlobe()
+            this.mapConfig.region = MapRegionName.World
         }
     }
 

@@ -3,12 +3,17 @@ import { ChartManager } from "../chart/ChartManager"
 import { Bounds, ColumnSlug } from "@ourworldindata/utils"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { MapConfig } from "../mapCharts/MapConfig"
+import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
+import { GlobeController } from "../mapCharts/GlobeController"
 
 export interface FacetMapManager extends ChartManager {
     canSelectMultipleEntities?: boolean
     mapColumnSlug?: ColumnSlug
     mapConfig?: MapConfig
     isMapSelectionEnabled?: boolean
+    mapRegionDropdownValue?: MapRegionDropdownValue
+    resetMapRegionDropdownValue?: () => void
+    globeController?: GlobeController
 }
 
 export interface FacetMapProps {

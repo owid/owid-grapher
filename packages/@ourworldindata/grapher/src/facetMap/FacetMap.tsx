@@ -160,6 +160,9 @@ export class FacetMap
             mapConfig,
             isMapSelectionEnabled,
             colorScale,
+            mapRegionDropdownValue,
+            resetMapRegionDropdownValue,
+            globeController,
         } = manager
 
         const table = this.transformedTable
@@ -184,6 +187,9 @@ export class FacetMap
                 mapConfig,
                 isMapSelectionEnabled,
                 colorScale,
+                mapRegionDropdownValue,
+                resetMapRegionDropdownValue,
+                globeController,
                 ...series.manager,
             }
             return {

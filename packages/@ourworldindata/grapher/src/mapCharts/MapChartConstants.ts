@@ -135,6 +135,7 @@ export interface MapChartManager extends ChartManager {
     targetTime?: Time
     globeController?: GlobeController
     mapRegionDropdownValue?: MapRegionDropdownValue
+    resetMapRegionDropdownValue?: () => void
     isMapSelectionEnabled?: boolean
     logGrapherInteractionEvent?: (
         action: GrapherInteractionEvent,

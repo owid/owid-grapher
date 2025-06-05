@@ -54,6 +54,7 @@ import { scaleLinear, type ScaleLinear } from "d3-scale"
 import {
     ColumnSlug,
     EntityName,
+    MapRegionName,
     OwidColumnDef,
     Time,
 } from "@ourworldindata/types"
@@ -88,6 +89,7 @@ export interface EntitySelectorState {
 
 export interface EntitySelectorManager {
     entitySelectorState: Partial<EntitySelectorState>
+    table: OwidTable
     tableForSelection: OwidTable
     selection: SelectionArray
     entityType?: string
@@ -364,7 +366,7 @@ export class EntitySelector extends React.Component<{
             ? this.manager.mapConfig?.toleranceStrategy
             : undefined
 
-        return this.table
+        return this.inputTable
             .interpolateColumnWithTolerance(slug, tolerance, toleranceStrategy)
             .get(slug)
     }
@@ -528,6 +530,10 @@ export class EntitySelector extends React.Component<{
             this.manager.entitySelectorState.isLoadingExternalSortColumn ??
             false
         )
+    }
+
+    @computed private get inputTable(): OwidTable {
+        return this.manager.table
     }
 
     @computed private get table(): OwidTable {
@@ -952,7 +958,7 @@ export class EntitySelector extends React.Component<{
             )
             const variableTable = buildVariableTable(variable)
             const column = variableTable
-                .filterByEntityNames(this.availableEntityNames)
+                .filterByEntityNames(this.inputTable.availableEntityNames)
                 .interpolateColumnWithTolerance(slug, Infinity)
                 .get(slug)
             if (column) this.setInterpolatedSortColumn(column)
