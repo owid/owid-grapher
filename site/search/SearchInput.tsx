@@ -94,6 +94,11 @@ export const SearchInput = forwardRef(
             }
         }
 
+        // Allow clicks on the form to focus the input. This is useful on mobile
+        // when the search bar stretches vertically and reveals white space
+        // readers might be clicking on. Do register clicks on children, as we
+        // want clicks removing active filters or resetting the search to focus
+        // the input.
         const handleFormClick = createFocusInputOnClickHandler(inputRef)
 
         return (
