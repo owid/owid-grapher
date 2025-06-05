@@ -590,15 +590,21 @@ export function useSearchAutocomplete() {
 }
 
 /**
- * Returns a click handler that focuses an input element when clicking directly
- * on the target element (but not its children).
- *
+ * Returns a click handler that focuses an input element when clicking on the
+ * target element or its children. If checkTargetEquality is true, only focus
+ * the input if the click happened on the element where the handler is
+ * attached (effectively not registering clicks on children).
  */
 export const createFocusInputOnClickHandler = (
-    inputRef: ForwardedRef<HTMLInputElement>
+    inputRef: ForwardedRef<HTMLInputElement>,
+
+    checkTargetEquality: boolean = false
 ) => {
     const handleClick = (e: React.MouseEvent) => {
-        if (e.target === e.currentTarget && isCurrentMutableRef(inputRef)) {
+        if (
+            (!checkTargetEquality || e.target === e.currentTarget) &&
+            isCurrentMutableRef(inputRef)
+        ) {
             inputRef.current.focus()
         }
     }

@@ -62,7 +62,11 @@ export const Searchbar = ({
         }
     }, [filters, removeCountry, removeTopic])
 
-    const handleSearchBarClick = createFocusInputOnClickHandler(inputRef)
+    // Allow clicks on the search bar to focus the input. This is useful on
+    // mobile when the search bar stretches vertically and reveals white space
+    // readers might be clicking on. Do not register clicks on children, as we
+    // don't want clicks on the country selector to focus the input.
+    const handleSearchBarClick = createFocusInputOnClickHandler(inputRef, true)
 
     return (
         <>
