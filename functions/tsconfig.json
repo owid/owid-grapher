@@ -6,7 +6,6 @@
         "lib": ["esnext"],
         "types": ["@cloudflare/workers-types"],
         "esModuleInterop": true,
-
         "outDir": "./dist"
     }
 }

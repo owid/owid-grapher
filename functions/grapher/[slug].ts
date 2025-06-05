@@ -13,6 +13,7 @@ import {
 import {
     fetchUnparsedGrapherConfig,
     rewriteMetaTags,
+    addABTestClasses,
 } from "../_common/grapherTools.js"
 import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
 
@@ -83,8 +84,8 @@ router
     )
     .get(
         "/grapher/:slug",
-        async ({ params: { slug } }, { searchParams }, env) =>
-            handleHtmlPageRequest(slug, searchParams, env)
+        async ({ params: { slug } }, { searchParams }, env, etag, ctx) =>
+            handleHtmlPageRequest(slug, searchParams, env, ctx)
     )
     .all("*", () => error(404, "Route not defined"))
 
@@ -122,9 +123,15 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 async function handleHtmlPageRequest(
     slug: string,
     _searchParams: URLSearchParams,
-    env: Env
+    env: Env,
+    ctx: EventContext<unknown, any, Record<string, unknown>>
 ) {
     const url = env.url
+    const cookies = ctx.request.headers.get("cookie")
+    const abTestClasses = cookies
+        .split(";")
+        .filter((c) => c.includes("ab-") && c.split("=")[1] !== "ctl")
+        .map((c) => c.replace("=", "-"))
 
     // For local testing
     // const grapherPageResp = await fetch(
@@ -152,11 +159,15 @@ async function handleHtmlPageRequest(
         url.search ? "&" + url.search.slice(1) : ""
     }`
 
+    const grapherPageWithABTestClasses = addABTestClasses(
+        grapherPageResp,
+        abTestClasses
+    )
     const grapherPageWithUpdatedMetaTags = rewriteMetaTags(
         url,
         openGraphThumbnailUrl,
         twitterThumbnailUrl,
-        grapherPageResp
+        grapherPageWithABTestClasses
     )
     return grapherPageWithUpdatedMetaTags
 }

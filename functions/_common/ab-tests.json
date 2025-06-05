@@ -1,0 +1,18 @@
+[
+    {
+        "id": "ab-data-page-header",
+        "expires": "2025-06-30T00:00:00.000Z",
+        "arms": [
+            { "id": "ctl", "size": 0.5 },
+            { "id": "trt", "size": 0.5 }
+        ]
+    },
+    {
+        "id": "ab-data-page-insights-1",
+        "expires": "2025-06-30T00:00:00.000Z",
+        "arms": [
+            { "id": "ctl", "size": 0.5 },
+            { "id": "trt", "size": 0.5 }
+        ]
+    }
+]

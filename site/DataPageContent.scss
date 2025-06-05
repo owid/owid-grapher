@@ -213,3 +213,36 @@
         }
     }
 }
+
+/* A/B testing experiment(s) */
+
+// .ab-show is hidden by default. Only shown if visitor is in an experimental condition.
+.ab-show {
+    visibility: hidden;
+    display: none;
+}
+
+.ab-data-page-header-trt {
+    .ab-data-page-header-trt {
+        &.ab-hide {
+            visibility: hidden;
+            display: none;
+        }
+    }
+}
+
+.ab-data-page-insights-1-trt {
+    .ab-data-page-insights-1-trt {
+        &.ab-show {
+            visibility: visible;
+            display: block;
+        }
+
+        &.insights-btn {
+            padding: 1rem;
+            margin: 1rem 0;
+            background-color: $blue-20;
+            text-align: center;
+        }
+    }
+}

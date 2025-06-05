@@ -120,7 +120,7 @@ export const DataPageV2Content = ({
                     />
                 </div>
                 <div className="DataPageContent grid grid-cols-12-full-width">
-                    <div className="bg-blue-10 span-cols-14">
+                    <div className="bg-blue-10 span-cols-14 ab-data-page-header-trt ab-hide">
                         <div className="header__wrapper grid grid-cols-12-full-width">
                             <div className="header__left col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
                                 <div className="header__supertitle">Data</div>
@@ -168,6 +168,9 @@ export const DataPageV2Content = ({
                                 hasFaq={!!faqEntries?.faqs.length}
                             />
                         </div>
+                    </div>
+                    <div className="ab-data-page-insights-1-trt ab-show insights-btn">
+                        View insights about this data
                     </div>
                     <div className="col-start-2 span-cols-12">
                         {relatedResearch && relatedResearch.length > 0 && (
