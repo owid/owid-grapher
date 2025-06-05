@@ -4126,6 +4126,23 @@ export class Grapher
         if (
             this.isOnMapTab &&
             this.isMapSelectionEnabled &&
+            !this.mapConfig.globe.isActive
+        ) {
+            const region = getRegionByName(entityName)
+            if (region && checkIsOwidContinent(region)) {
+                // rotate to the selected owid continent
+                const regionName = MAP_REGION_NAMES[
+                    region.name
+                ] as GlobeRegionName
+                this.mapConfig.region = regionName
+                // this.mapRegionDropdownValue = regionName
+                // this.globeController.rotateToOwidContinent(regionName)
+            }
+        }
+
+        if (
+            this.isOnMapTab &&
+            this.isMapSelectionEnabled &&
             this.mapConfig.globe.isActive
         ) {
             const region = getRegionByName(entityName)

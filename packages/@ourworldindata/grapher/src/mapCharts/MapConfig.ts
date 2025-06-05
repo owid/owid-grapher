@@ -62,12 +62,6 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
             this.endTime = maxTimeBoundFromJSONOrPositiveInfinity(obj.endTime)
         }
 
-        // If the region is set, automatically switch to the globe
-        if (obj.region && obj.region !== MapRegionName.World) {
-            // Setting this.globe.isActive directly sometimes gives a MobX error
-            this.globe = { ...this.globe, isActive: true }
-        }
-
         // Map [lat, lon] to the internally used [lon, lat]
         if (obj.globe?.rotation) {
             this.globe = {
@@ -92,10 +86,6 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
         obj.selectedEntityNames = this.selection.selectedEntityNames
         // @ts-expect-error hack to prevent selection from being persisted
         delete obj.selection
-
-        // if a continent is given, then it defines the globe rotation & zoom,
-        // so there is no need to also persist the globe settings
-        if (obj.region && obj.region !== MapRegionName.World) delete obj.globe
 
         // don't persist globe settings if the globe isn't active
         if (!obj.globe?.isActive) delete obj.globe

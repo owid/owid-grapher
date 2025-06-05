@@ -1234,6 +1234,13 @@ export class EntitySelector extends React.Component<{
         const shouldHideAvailableEntities =
             !shouldShowFilterBar && hasFewEntities && this.allEntitiesSelected
 
+        const availableEntitiesTitle =
+            this.manager.mapConfig?.region &&
+            this.manager.mapConfig?.region !== MapRegionName.World &&
+            !this.manager.mapConfig?.globe.isActive
+                ? `Countries in ${this.manager.mapConfig.region}`
+                : `All ${this.entityType.plural}`
+
         return (
             <Flipper
                 spring={{ stiffness: 300, damping: 33 }}
@@ -1290,7 +1297,7 @@ export class EntitySelector extends React.Component<{
                         {!shouldShowFilterBar && (
                             <Flipped flipId="__available" translate opacity>
                                 <div className="entity-section__title grapher_body-3-regular-italic grapher_light">
-                                    All {this.entityType.plural}
+                                    {availableEntitiesTitle}
                                 </div>
                             </Flipped>
                         )}
