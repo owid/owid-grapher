@@ -162,6 +162,12 @@ export const SearchAutocomplete = ({
                                 "search-autocomplete-button--active":
                                     index === activeIndex,
                             })}
+                            // Prevent tabbing into the dropdown. On Firefox,
+                            // tabbing out of the input moves the focus to the
+                            // dropdown as it is being discarded, resetting the
+                            // focus to the body instead of the next interactive
+                            // element.
+                            tabIndex={-1}
                             onMouseDown={
                                 // On mobile Safari, onBlur on the input doesn't
                                 // register the e.relatedTarget coming from an
