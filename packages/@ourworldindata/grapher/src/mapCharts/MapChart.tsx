@@ -479,15 +479,17 @@ export class MapChart
 
     private isHovered(featureId: string): boolean {
         const { mapConfig, hoverFeatureId, hoverBracket } = this
+        const { externalLegendHoverBin } = this.manager
 
         if (mapConfig.globe.focusCountry === featureId) return true
 
         if (hoverFeatureId === featureId) return true
-        else if (!hoverBracket) return false
 
         const series = this.choroplethData.get(featureId)
-        if (hoverBracket.contains(series?.value)) return true
-        else return false
+        if (hoverBracket?.contains(series?.value)) return true
+        if (externalLegendHoverBin?.contains(series?.value)) return true
+
+        return false
     }
 
     isSelected(featureId: string): boolean {
@@ -498,7 +500,9 @@ export class MapChart
         const isHovered = this.isHovered(featureId)
         return {
             active: isHovered,
-            background: !!this.hoverBracket && !isHovered,
+            background:
+                !!(this.hoverBracket || this.manager.externalLegendHoverBin) &&
+                !isHovered,
         }
     }
 
@@ -573,20 +577,19 @@ export class MapChart
     }
 
     @computed get numericHoverBracket(): ColorScaleBin | undefined {
-        const { hoverBracket, hoverValue } = this
-        const { numericLegendData } = this
+        const { hoverBracket, hoverValue, numericLegendData } = this
+        const { externalLegendHoverBin } = this.manager
 
         if (hoverBracket) return hoverBracket
 
         if (hoverValue !== undefined)
             return numericLegendData.find((bin) => bin.contains(hoverValue))
 
-        return undefined
+        return externalLegendHoverBin
     }
 
     @computed get categoricalHoverBracket(): CategoricalBin | undefined {
-        const { hoverBracket, hoverValue } = this
-        const { categoricalLegendData } = this
+        const { hoverBracket, hoverValue, categoricalLegendData } = this
 
         if (hoverBracket && hoverBracket instanceof CategoricalBin)
             return hoverBracket
