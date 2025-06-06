@@ -337,7 +337,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     dataApiUrl?: string
     env?: string
     dataApiUrlForAdmin?: string
-    entityYearHighlight?: EntityYearHighlight
+    entityYearHighlights?: EntityYearHighlight[]
     baseFontSize?: number
     staticBounds?: Bounds
     staticFormat?: GrapherStaticFormat
@@ -504,7 +504,7 @@ export class Grapher
      * Used to highlight an entity at a particular time in a line chart.
      * The sparkline in map tooltips makes use of this.
      */
-    @observable.ref entityYearHighlight?: EntityYearHighlight = undefined
+    @observable.ref entityYearHighlights?: EntityYearHighlight[]
 
     @observable.ref hideFacetControl = true
 
