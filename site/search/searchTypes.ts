@@ -1,5 +1,10 @@
 import { OwidGdocType } from "@ourworldindata/types"
-import { BaseHit, Hit } from "instantsearch.js/es/types/results.js"
+import { SearchResponse, SearchForFacetValuesResponse } from "instantsearch.js"
+import {
+    BaseHit,
+    Hit,
+    HitHighlightResult,
+} from "instantsearch.js/es/types/results.js"
 
 export enum WordpressPageType {
     Other = "other",
@@ -108,3 +113,91 @@ export const searchCategoryFilters: [string, SearchCategoryFilter][] = [
     ["Research & Writing", SearchIndexName.Pages],
     ["Charts", SearchIndexName.ExplorerViewsMdimViewsAndCharts],
 ]
+
+/**
+ * This is a type that algolia doesn't export but is necessary to work with the algolia client
+ * Effectively the same as Awaited<ReturnType<SearchClient["search"]>>, but generic
+ */
+export type MultipleQueriesResponse<TObject> = {
+    results: Array<SearchResponse<TObject> | SearchForFacetValuesResponse>
+}
+
+/**
+ * This is the type for the hits that we get back from algolia when we search
+ * response.results[0].hits is an array of these
+ */
+export type IDataCatalogHit = {
+    title: string
+    slug: string
+    availableEntities: string[]
+    originalAvailableEntities?: string[]
+    objectID: string
+    variantName: string | null
+    type: ChartRecordType
+    queryParams: string
+    __position: number
+    _highlightResult?: HitHighlightResult
+    _snippetResult?: HitHighlightResult
+}
+
+// SearchResponse adds the extra fields from Algolia: page, nbHits, etc
+export type DataCatalogSearchResult = SearchResponse<IDataCatalogHit>
+
+// We add a title field to the SearchResponse for the ribbons
+export type DataCatalogRibbonResult = SearchResponse<IDataCatalogHit> & {
+    title: string
+}
+
+export type DataCatalogCache = {
+    ribbons: Map<string, DataCatalogRibbonResult[]>
+    search: Map<string, DataCatalogSearchResult>
+}
+
+export type SearchState = Readonly<{
+    query: string
+    topics: Set<string>
+    selectedCountryNames: Set<string>
+    requireAllCountries: boolean
+    page: number
+}>
+type AddTopicAction = {
+    type: "addTopic"
+    topic: string
+}
+type RemoveTopicAction = {
+    type: "removeTopic"
+    topic: string
+}
+type SetQueryAction = {
+    type: "setQuery"
+    query: string
+}
+type AddCountryAction = {
+    type: "addCountry"
+    country: string
+}
+type RemoveCountryAction = {
+    type: "removeCountry"
+    country: string
+}
+type ToggleRequireAllCountriesAction = {
+    type: "toggleRequireAllCountries"
+}
+type SetStateAction = {
+    type: "setState"
+    state: SearchState
+}
+type SetPageAction = {
+    type: "setPage"
+    page: number
+}
+
+export type SearchAction =
+    | AddCountryAction
+    | AddTopicAction
+    | RemoveCountryAction
+    | RemoveTopicAction
+    | SetPageAction
+    | SetQueryAction
+    | SetStateAction
+    | ToggleRequireAllCountriesAction
