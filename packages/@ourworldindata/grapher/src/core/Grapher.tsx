@@ -46,7 +46,7 @@ import {
     setWindowQueryStr,
     getWindowUrl,
     Url,
-    EntityYearHighlight,
+    EntityTimeHighlight,
     ColumnSlug,
     DimensionProperty,
     SortBy,
@@ -266,7 +266,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bakedGrapherURL?: string
     adminBaseUrl?: string
     env?: string
-    entityYearHighlight?: EntityYearHighlight
+    entityTimeHighlights?: EntityTimeHighlight[]
     baseFontSize?: number
     staticBounds?: Bounds
     staticFormat?: GrapherStaticFormat
@@ -407,7 +407,7 @@ export class GrapherState {
      * Used to highlight an entity at a particular time in a line chart.
      * The sparkline in map tooltips makes use of this.
      */
-    @observable.ref entityYearHighlight?: EntityYearHighlight = undefined
+    @observable.ref entityTimeHighlights?: EntityTimeHighlight[]
 
     @observable.ref hideFacetControl = true
 
