@@ -1590,10 +1590,6 @@ export class Grapher
         )
     }
 
-    @computed private get isOnMapTabAndHandlesAreOnSameTime(): boolean {
-        return this.isOnMapTab && this.areHandlesOnSameTime
-    }
-
     @computed private get onlySingleTimeSelectionPossible(): boolean {
         return this.checkOnlySingleTimeSelectionPossible(this.activeTab)
     }
@@ -1603,9 +1599,7 @@ export class Grapher
             this.onlySingleTimeSelectionPossible ||
             // Animate scatters with start time = end time (i.e. as a cloud of
             // moving dots as opposed to a time scatter)
-            this.isSingleTimeScatterAnimationActive ||
-            // Clicking on the timeline should not switch to range mode for maps
-            this.isOnMapTabAndHandlesAreOnSameTime
+            this.isSingleTimeScatterAnimationActive
         )
     }
 
@@ -4236,7 +4230,7 @@ export class Grapher
     }
 
     @computed get disablePlay(): boolean {
-        return this.isOnMapTab && this.isFaceted
+        return false
     }
 
     @computed get animationEndTime(): Time {
