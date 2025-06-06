@@ -84,12 +84,21 @@ export class MapTooltip
         return this.props.timeseriesTable
     }
 
-    @computed get datum(): OwidVariableRow<number | string> | undefined {
+    @computed private get datum():
+        | OwidVariableRow<number | string>
+        | undefined {
         return this.targetTime !== undefined
             ? this.mapColumn.owidRowByEntityNameAndTime
                   .get(this.entityName)
                   ?.get(this.targetTime)
             : this.mapColumn.owidRows[0]
+    }
+
+    @computed get highlightedTimesInSparkline(): Time[] | undefined {
+        return (
+            this.props.manager.highlightedTimesInTooltip ??
+            (this.datum ? [this.datum?.time] : undefined)
+        )
     }
 
     @computed get lineColorScale(): ColorScale {
