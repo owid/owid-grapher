@@ -102,6 +102,15 @@ export class MapSparkline extends React.Component<{
                     : ""
                 : ""
 
+        const entityTimeHighlights = this.manager.datum
+            ? [
+                  {
+                      entityName: this.manager.entityName,
+                      time: this.manager.datum?.originalTime,
+                  },
+              ]
+            : undefined
+
         return {
             table: this.sparklineTable,
             transformedTable: this.sparklineTable,
@@ -114,10 +123,7 @@ export class MapSparkline extends React.Component<{
             fontSize: 11,
             disableIntroAnimation: true,
             lineStrokeWidth: 2,
-            entityYearHighlight: {
-                entityName: this.manager.entityName,
-                year: this.manager.datum?.originalTime,
-            },
+            entityTimeHighlights,
             yAxisConfig: {
                 hideAxis: true,
                 hideGridlines: false,
