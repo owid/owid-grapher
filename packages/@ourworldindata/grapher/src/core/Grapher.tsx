@@ -1572,7 +1572,7 @@ export class Grapher
         return this.checkOnlySingleTimeSelectionPossible(this.activeTab)
     }
 
-    @computed private get isSingleTimeSelectionActive(): boolean {
+    @computed get isSingleTimeSelectionActive(): boolean {
         return (
             this.onlySingleTimeSelectionPossible ||
             this.isSingleTimeScatterAnimationActive
