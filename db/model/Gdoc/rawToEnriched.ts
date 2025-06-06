@@ -767,7 +767,9 @@ const parseImage = (image: RawBlockImage): EnrichedBlockImage => {
     if (!booleanValidation.isValid) {
         return createError(booleanValidation)
     }
-    const hasOutline = image.value.hasOutline === "true"
+    const hasOutline = image.value.hasOutline
+        ? image.value.hasOutline === "true"
+        : true // Default to true if not specified
 
     return {
         type: "image",
