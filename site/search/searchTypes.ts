@@ -118,15 +118,14 @@ export const searchCategoryFilters: [string, SearchCategoryFilter][] = [
  * This is a type that algolia doesn't export but is necessary to work with the algolia client
  * Effectively the same as Awaited<ReturnType<SearchClient["search"]>>, but generic
  */
-
 export type MultipleQueriesResponse<TObject> = {
     results: Array<SearchResponse<TObject> | SearchForFacetValuesResponse>
 }
+
 /**
  * This is the type for the hits that we get back from algolia when we search
  * response.results[0].hits is an array of these
  */
-
 export type IDataCatalogHit = {
     title: string
     slug: string
@@ -140,11 +139,11 @@ export type IDataCatalogHit = {
     _highlightResult?: HitHighlightResult
     _snippetResult?: HitHighlightResult
 }
+
 // SearchResponse adds the extra fields from Algolia: page, nbHits, etc
-
 export type DataCatalogSearchResult = SearchResponse<IDataCatalogHit>
-// We add a title field to the SearchResponse for the ribbons
 
+// We add a title field to the SearchResponse for the ribbons
 export type DataCatalogRibbonResult = SearchResponse<IDataCatalogHit> & {
     title: string
 }

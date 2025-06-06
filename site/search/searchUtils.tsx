@@ -50,7 +50,6 @@ import { SiteAnalytics } from "../SiteAnalytics.js"
  *
  * -- @marcelgerber, 2024-06-18
  */
-
 const getRegionNameRegex = lazy(() => {
     const allCountryNamesAndVariants = lazy(() =>
         regions.flatMap((c) => [
@@ -180,12 +179,12 @@ export function checkShouldShowRibbonView(
         query === "" && checkIfNoTopicsOrOneAreaTopicApplied(topics, areaNames)
     )
 }
+
 /**
  * Set url if it's different from the current url.
  * When the user navigates back, we derive the state from the url and set it
  * so the url is already identical to the state - we don't need to push it again (otherwise we'd get an infinite loop)
  */
-
 export function syncDataCatalogURL(stateAsUrl: string) {
     const currentUrl = window.location.href
     if (currentUrl !== stateAsUrl) {
@@ -319,10 +318,10 @@ export function formatAlgoliaSearchResponse(
     const result = response.results[0] as SearchResponse<IDataCatalogHit>
     return result
 }
+
 /**
  * Async
  */
-
 export async function queryRibbons(
     searchClient: SearchClient,
     state: SearchState,
