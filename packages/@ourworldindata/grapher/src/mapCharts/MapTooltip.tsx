@@ -2,7 +2,11 @@ import * as _ from "lodash-es"
 import React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { TooltipFadeMode, TooltipFooterIcon } from "../tooltip/TooltipProps.js"
+import {
+    FooterItem,
+    TooltipFadeMode,
+    TooltipFooterIcon,
+} from "../tooltip/TooltipProps.js"
 import {
     Tooltip,
     TooltipValue,
@@ -123,67 +127,92 @@ export class MapTooltip
         return this.props.manager.yAxisConfig
     }
 
-    render(): React.ReactElement {
-        const {
-            mapTable,
-            mapColumn,
-            datum,
-            lineColorScale,
-            entityName,
-            isProjection,
-        } = this
-        const { targetTime, formatValueIfCustom, position, fading } = this.props
+    @computed private get formattedTargetTime(): string | undefined {
+        const { targetTime, mapTable } = this
+
+        if (!mapTable.timeColumn.isMissing) {
+            return mapTable.timeColumn.formatValue(targetTime)
+        }
+
+        return targetTime?.toString()
+    }
+
+    @computed private get tooltipSubtitle(): string | undefined {
+        const { mapTable, datum } = this
 
         const { timeColumn } = mapTable
-        const displayTime = !timeColumn.isMissing
-            ? timeColumn.formatValue(targetTime)
-            : targetTime?.toString()
         const displayDatumTime =
             timeColumn && datum
                 ? timeColumn.formatValue(datum?.originalTime)
                 : (datum?.originalTime.toString() ?? "")
+
+        return datum ? displayDatumTime : this.formattedTargetTime
+    }
+
+    @computed private get formattedValueLabel(): string | undefined {
+        const { datum } = this
+
+        if (!datum) return undefined
+
+        const customValueLabel = this.props.formatValueIfCustom(datum.value)
+        if (customValueLabel !== undefined) return customValueLabel
+
+        if (_.isNumber(datum.value))
+            return this.mapColumn?.formatValueShort(datum.value)
+
+        return anyToString(datum.value)
+    }
+
+    @computed private get toleranceNotice(): FooterItem | undefined {
+        const { datum, targetTime, formattedTargetTime } = this
+
+        if (!datum || datum.originalTime === targetTime || !formattedTargetTime)
+            return undefined
+
+        return {
+            icon: TooltipFooterIcon.notice,
+            text: makeTooltipToleranceNotice(formattedTargetTime),
+        }
+    }
+
+    @computed private get roundingNotice(): FooterItem | undefined {
+        const {
+            mapColumn,
+            datum,
+            props: { formatValueIfCustom },
+        } = this
+
+        if (!mapColumn.roundsToSignificantFigures) return undefined
+
+        const isValueLabelFormattedUsingMapColumn =
+            datum &&
+            formatValueIfCustom(datum.value) === undefined &&
+            _.isNumber(datum.value)
+
+        if (!isValueLabelFormattedUsingMapColumn) return undefined
+
+        return {
+            icon: this.showSparkline
+                ? TooltipFooterIcon.significance
+                : TooltipFooterIcon.none,
+            text: makeTooltipRoundingNotice([mapColumn.numSignificantFigures], {
+                plural: false,
+            }),
+        }
+    }
+
+    render(): React.ReactElement {
+        const { datum, lineColorScale, entityName, isProjection } = this
+        const { position, fading } = this.props
+
         const valueColor: string | undefined = darkenColorForHighContrastText(
             lineColorScale?.getColor(datum?.value) ?? "#333"
         )
 
-        // format the value label
-        let valueLabel: string | undefined,
-            isValueLabelRounded = false
-        if (datum) {
-            const customValueLabel = formatValueIfCustom(datum.value)
-            if (customValueLabel !== undefined) {
-                valueLabel = customValueLabel
-            } else if (_.isNumber(datum.value)) {
-                valueLabel = mapColumn?.formatValueShort(datum.value)
-                isValueLabelRounded = true
-            } else {
-                valueLabel = anyToString(datum.value)
-            }
-        }
-
-        const yColumn = this.mapTable.get(this.mapColumnSlug)
-
-        const targetNotice =
-            datum && datum.originalTime !== targetTime ? displayTime : undefined
-        const toleranceNotice = targetNotice
-            ? {
-                  icon: TooltipFooterIcon.notice,
-                  text: makeTooltipToleranceNotice(targetNotice),
-              }
-            : undefined
-        const roundingNotice =
-            isValueLabelRounded && mapColumn.roundsToSignificantFigures
-                ? {
-                      icon: this.showSparkline
-                          ? TooltipFooterIcon.significance
-                          : TooltipFooterIcon.none,
-                      text: makeTooltipRoundingNotice(
-                          [mapColumn.numSignificantFigures],
-                          { plural: false }
-                      ),
-                  }
-                : undefined
-        const footer = excludeUndefined([toleranceNotice, roundingNotice])
+        const footer = excludeUndefined([
+            this.toleranceNotice,
+            this.roundingNotice,
+        ])
 
         return (
             <Tooltip
@@ -197,20 +226,20 @@ export class MapTooltip
                 offsetY={-16}
                 offsetYDirection={"downward"}
                 title={entityName}
-                subtitle={datum ? displayDatumTime : displayTime}
-                subtitleFormat={targetNotice ? "notice" : undefined}
+                subtitle={this.tooltipSubtitle}
+                subtitleFormat={this.toleranceNotice ? "notice" : undefined}
                 footer={footer}
                 dissolve={fading}
                 dismiss={this.props.dismissTooltip}
             >
                 <TooltipValue
-                    column={yColumn}
-                    value={valueLabel}
+                    column={this.mapColumn}
+                    value={this.formattedValueLabel}
                     color={valueColor}
                     isProjection={isProjection}
                     showSignificanceSuperscript={
-                        !!roundingNotice &&
-                        roundingNotice.icon !== TooltipFooterIcon.none
+                        !!this.roundingNotice &&
+                        this.roundingNotice.icon !== TooltipFooterIcon.none
                     }
                 />
                 <MapSparkline
