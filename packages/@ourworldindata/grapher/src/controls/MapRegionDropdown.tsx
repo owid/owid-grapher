@@ -71,7 +71,11 @@ export class MapRegionDropdown extends React.Component<{
             return
         }
 
-        if (this.manager.mapConfig?.globe.isActive)
+        if (
+            this.manager.mapConfig?.globe.isActive ||
+            (this.manager.mapConfig?.region === MapRegionName.World &&
+                !this.manager.isFaceted)
+        )
             this.manager.globeController?.rotateToOwidContinent(value)
         this.mapConfig.region = value
     }
