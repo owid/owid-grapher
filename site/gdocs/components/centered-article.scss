@@ -465,7 +465,7 @@ h3.article-block__heading {
 }
 
 .article-block__video {
-    margin: 24px 0 32px 0;
+    margin: 32px 0;
     @include body-3-medium-italic;
     color: $blue-60;
     text-align: center;
@@ -473,7 +473,29 @@ h3.article-block__heading {
         @include owid-link-90;
     }
     video {
-        width: 100%;
+        max-width: 100%;
+        max-height: 60vh;
+    }
+}
+
+/* A side-by-side with exactly one image/video in each column */
+.article-block__side-by-side {
+    > div {
+        .article-block__video:only-child,
+        .article-block__image:only-child {
+            /* The column container already has a margin, so these block elements don't need one */
+            margin: 0;
+        }
+    }
+
+    /* Add a bottom margin to the first element once they collapse to single column */
+    @include md-down {
+        > div:first-child {
+            .article-block__video:only-child,
+            .article-block__image:only-child {
+                margin-bottom: 24px;
+            }
+        }
     }
 }
 
