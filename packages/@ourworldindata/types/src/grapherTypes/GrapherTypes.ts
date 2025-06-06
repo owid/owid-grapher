@@ -60,9 +60,9 @@ export enum ScaleType {
     log = "log",
 }
 
-export interface EntityYearHighlight {
-    entityName?: string
-    year?: number
+export interface EntityTimeHighlight {
+    entityName: EntityName
+    time: Time
 }
 
 export enum KeyChartLevel {
