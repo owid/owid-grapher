@@ -846,10 +846,10 @@ p.article-block__text + #article-licence {
 
 @include table-block-override {
     overflow-x: auto;
+    margin-bottom: 32px;
     table {
         min-width: 100%;
         border-collapse: collapse;
-        margin-bottom: 32px;
 
         th {
             text-align: left;
@@ -858,9 +858,13 @@ p.article-block__text + #article-licence {
             }
         }
 
+        th[scope="col"] {
+            text-wrap: nowrap;
+        }
+
         th[scope="col"],
         th[scope="row"] {
-            background-color: $blue-10;
+            background-color: $blue-5;
             p {
                 font-weight: 700;
                 margin-bottom: 0;
@@ -870,21 +874,26 @@ p.article-block__text + #article-licence {
         td,
         th {
             border: 1px solid $blue-20;
-            padding: 16px;
+            padding: 12px;
+            vertical-align: top;
+            text-align: left;
         }
 
         .article-block__text,
         .article-block__list {
-            @include body-3-medium;
+            @include body-3-regular;
             &:last-child {
                 margin-bottom: 0;
+            }
+            @include md-down {
+                font-size: 0.75rem;
             }
         }
     }
 }
 
 div.raw-html-table__container {
-    @include body-3-medium;
+    @include body-3-regular;
 }
 
 .article-block__horizontal-rule {
