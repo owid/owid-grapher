@@ -1,5 +1,5 @@
 import * as db from "../../db.js"
-import { getUrlTarget } from "@ourworldindata/components"
+import { getUrlTarget, MarkdownTextWrap } from "@ourworldindata/components"
 import {
     LinkedChart,
     LinkedIndicator,
@@ -1057,6 +1057,10 @@ export async function makeGrapherLinkedChart(
 ): Promise<LinkedChart> {
     const resolvedSlug = config.slug ?? ""
     const resolvedTitle = config.title ?? ""
+    const subtitle = new MarkdownTextWrap({
+        text: config.subtitle || "",
+        fontSize: 12,
+    }).plaintext
     const resolvedUrl = `${BAKED_GRAPHER_URL}/${resolvedSlug}`
     const tab = config.tab ?? GRAPHER_TAB_OPTIONS.chart
     const datapageIndicator = await getVariableOfDatapageIfApplicable(config)
@@ -1064,6 +1068,7 @@ export async function makeGrapherLinkedChart(
         configType: ChartConfigType.Grapher,
         originalSlug,
         title: resolvedTitle,
+        subtitle,
         tab,
         resolvedUrl,
         thumbnail: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${resolvedSlug}.png`,

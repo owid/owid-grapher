@@ -209,7 +209,10 @@ function ArticleBlockInternal({
             />
         ))
         .with({ type: "recirc" }, (block) => (
-            <Recirc className={getLayout("recirc", containerType)} d={block} />
+            <Recirc
+                className={getLayout(`recirc--${block.align}`, containerType)}
+                d={block}
+            />
         ))
         .with({ type: "numbered-list" }, (block) => (
             <NumberedList

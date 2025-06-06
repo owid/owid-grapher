@@ -4,28 +4,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons"
 import { getLinkType } from "@ourworldindata/components"
 
-import Image from "./Image.js"
 import { useLinkedChart, useLinkedDocument } from "../utils.js"
 import { DocumentContext } from "../DocumentContext.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
-import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../../../settings/clientSettings.js"
-import {
-    ARCHVED_THUMBNAIL_FILENAME,
-    DEFAULT_THUMBNAIL_FILENAME,
-    ContentGraphLinkType,
-} from "@ourworldindata/types"
-
-const Thumbnail = ({ thumbnail }: { thumbnail: string }) => {
-    if (
-        thumbnail.startsWith(GRAPHER_DYNAMIC_THUMBNAIL_URL) ||
-        thumbnail.endsWith(ARCHVED_THUMBNAIL_FILENAME) ||
-        thumbnail.endsWith(DEFAULT_THUMBNAIL_FILENAME)
-    ) {
-        return <img src={thumbnail} />
-    } else {
-        return <Image filename={thumbnail} containerType="thumbnail" />
-    }
-}
+import { ContentGraphLinkType } from "@ourworldindata/types"
+import { Thumbnail } from "./Thumbnail.js"
 
 export const ProminentLink = (props: {
     url: string

@@ -456,3 +456,14 @@ body {
 .note-1-medium {
     @include note-1-medium;
 }
+
+@mixin note-13-medium {
+    font-family: $sans-serif-font-stack;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1rem;
+}
+
+.note-13-medium {
+    @include note-13-medium;
+}

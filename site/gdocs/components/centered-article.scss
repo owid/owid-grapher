@@ -889,33 +889,6 @@ div.raw-html-table__container {
     }
 }
 
-.article-block__recirc {
-    margin-bottom: 24px;
-
-    .recirc-content {
-        background: $gray-10;
-        padding: 24px;
-    }
-
-    .recirc-content__heading {
-        color: $blue-40;
-    }
-
-    h3 {
-        margin-top: 0;
-        a {
-            color: $blue-90;
-        }
-    }
-
-    .recirc-article-container {
-        padding: 24px 0;
-        &:not(:last-child) {
-            border-bottom: 1px solid $blue-10;
-        }
-    }
-}
-
 .sticky-column-wrapper {
     .article-block__chart,
     .article-block__explorer {
