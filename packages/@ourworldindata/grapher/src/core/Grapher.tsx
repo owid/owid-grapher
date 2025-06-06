@@ -854,6 +854,11 @@ export class Grapher
                 ? params.tableFilter
                 : "all"
         }
+
+        // data table search
+        if (params.tableSearch) {
+            this.dataTableConfig.search = params.tableSearch
+        }
     }
 
     @action.bound private setTimeFromTimeQueryParam(time: string): void {
