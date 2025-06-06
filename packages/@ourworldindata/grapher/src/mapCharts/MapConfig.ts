@@ -4,6 +4,7 @@ import {
     MapRegionName,
     MapConfigInterface,
     TimeBound,
+    EntityName,
 } from "@ourworldindata/types"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import {
@@ -37,6 +38,7 @@ class MapConfigDefaults {
 
     region = MapRegionName.World
     selection = new MapSelectionArray()
+    hoverCountry?: EntityName // shared across facets
 
     globe: GlobeConfig = {
         isActive: false,
