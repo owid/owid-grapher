@@ -113,6 +113,10 @@ export class FacetMap
         )
     }
 
+    @computed private get targetTimes(): [Time, Time] {
+        return [this.startTime, this.endTime]
+    }
+
     @computed get fontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
@@ -173,7 +177,7 @@ export class FacetMap
     }
 
     @computed private get series(): MapFacetSeries[] {
-        return [this.startTime, this.endTime].map((time) => ({
+        return this.targetTimes.map((time) => ({
             seriesName: this.table.timeColumn.formatTime(time),
             // Required for a ChartSeries, but isn't meaningful for facets
             color: "none",
@@ -198,6 +202,7 @@ export class FacetMap
             series,
             table,
             transformedTableFromGrapher,
+            targetTimes,
             facetFontSize,
             legendHoverBin,
             logGrapherInteractionEvent,
@@ -251,6 +256,7 @@ export class FacetMap
                 logGrapherInteractionEvent,
                 disableIntroAnimation: true,
                 projectionColumnInfoBySlug,
+                highlightedTimesInTooltip: targetTimes,
                 ...series.manager,
             }
 
