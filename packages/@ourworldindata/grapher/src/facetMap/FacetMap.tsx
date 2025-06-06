@@ -40,7 +40,7 @@ import { MapChartManager } from "../mapCharts/MapChartConstants"
 const facetBackgroundColor = "none" // we don't use color yet but may use it for background later
 
 const PADDING_BETWEEN_MAP_AND_LEGEND = 8
-const PADDING_BELOW_LEGEND = 4
+const VERTICAL_PADDING = 4
 
 @observer
 export class FacetMap
@@ -76,7 +76,7 @@ export class FacetMap
 
     @computed private get bounds(): Bounds {
         const bounds = this.props.bounds ?? DEFAULT_BOUNDS
-        return bounds.padBottom(PADDING_BELOW_LEGEND)
+        return bounds.padBottom(VERTICAL_PADDING).padTop(VERTICAL_PADDING)
     }
 
     @computed private get labelPadding(): number {
@@ -84,7 +84,6 @@ export class FacetMap
     }
 
     @computed private get facetsContainerBounds(): Bounds {
-        // TODO: padTop is for the labels
         return this.bounds
             .padTop(this.facetFontSize + this.labelPadding)
             .padBottom(this.legendHeight)
@@ -378,11 +377,11 @@ export class FacetMap
         const { facetFontSize, LegendClass, showLegend } = this
         return (
             <React.Fragment>
-                {/* <rect {...this.bounds.toProps()} fill="none" stroke="gray" />
+                {/* <rect {...this.bounds.toProps()} fill="none" stroke="black" />
                 <rect
                     {...this.facetsContainerBounds.toProps()}
                     fill="none"
-                    stroke="red"
+                    stroke="green"
                 /> */}
                 {showLegend && <LegendClass manager={this} />}
                 {this.placedSeries.map((facetChart, index: number) => {

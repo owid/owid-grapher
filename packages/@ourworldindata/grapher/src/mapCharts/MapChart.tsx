@@ -266,7 +266,7 @@ export class MapChart
 
     @computed get bounds(): Bounds {
         const bounds = this.props.bounds ?? DEFAULT_BOUNDS
-        return bounds.padBottom(PADDING_BELOW_LEGEND)
+        return bounds
     }
 
     @computed get choroplethData(): ChoroplethSeriesByName {
@@ -513,7 +513,10 @@ export class MapChart
     @computed get choroplethMapBounds(): Bounds {
         return this.bounds
             .padBottom(this.legendHeight)
-            .padBottom(PADDING_BETWEEN_MAP_AND_LEGEND)
+            .padBottom(
+                this.manager.showLegend ? PADDING_BETWEEN_MAP_AND_LEGEND : 0
+            )
+            .padBottom(this.manager.showLegend ? PADDING_BELOW_LEGEND : 0)
     }
 
     @computed get region(): MapRegionName {
@@ -647,7 +650,11 @@ export class MapChart
 
     @computed get categoryLegendY(): number {
         if (!this.categoryLegend) return 0
-        return this.bounds.bottom - this.categoryLegend.height
+        return (
+            this.bounds.bottom -
+            this.categoryLegend.height -
+            PADDING_BELOW_LEGEND
+        )
     }
 
     @computed get legendAlign(): HorizontalAlign {
@@ -660,7 +667,9 @@ export class MapChart
             this.bounds.bottom -
             this.numericLegendHeight -
             // If present, the category legend is placed below the numeric legend
-            this.categoryLegendHeight
+            (this.categoryLegend
+                ? this.categoryLegendHeight
+                : PADDING_BELOW_LEGEND)
         )
     }
 
@@ -751,6 +760,12 @@ export class MapChart
                 className={MAP_CHART_CLASSNAME}
                 onMouseMove={this.onMapMouseMove}
             >
+                {/* <rect {...this.bounds.toProps()} fill="none" stroke="black" />
+                <rect
+                    {...this.choroplethMapBounds.toProps()}
+                    fill="none"
+                    stroke="red"
+                /> */}
                 {/* <rect {...this.bounds.toProps()} stroke="black" fill="none" /> */}
                 {this.renderMapOrGlobe()}
                 {this.renderMapLegend()}
