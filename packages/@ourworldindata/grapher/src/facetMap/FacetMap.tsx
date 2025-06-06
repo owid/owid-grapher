@@ -7,19 +7,19 @@ import {
     GridParameters,
     HorizontalAlign,
     Color,
-    uniq,
     makeIdForHumanConsumption,
+    exposeInstanceOnWindow,
+    SplitBoundsPadding,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
-import { ChartErrorInfo } from "@ourworldindata/types"
-import { ChartInterface } from "../chart/ChartInterface"
-import { getChartPadding, getFontSize } from "../facetChart/FacetChartUtils"
+import { ChartErrorInfo, Time } from "@ourworldindata/types"
+import { getFontSize, getLabelPadding } from "../facetChart/FacetChartUtils"
 import {
-    FacetSeries,
-    FacetMapProps,
-    PlacedFacetSeries,
     FacetMapManager,
+    MapFacetSeries,
+    FacetMapProps,
+    PlacedMapFacetSeries,
 } from "./FacetMapConstants"
 import { OwidTable } from "@ourworldindata/core-table"
 import {
@@ -37,15 +37,13 @@ import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { MapChart } from "../mapCharts/MapChart"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 
-const facetBackgroundColor = "none" // we don't use color yet but may use it for background later
-
 const PADDING_BETWEEN_MAP_AND_LEGEND = 8
 const VERTICAL_PADDING = 4
 
 @observer
 export class FacetMap
     extends React.Component<FacetMapProps>
-    implements ChartInterface, HorizontalColorLegendManager
+    implements MapChart, HorizontalColorLegendManager
 {
     transformTable(table: OwidTable): OwidTable {
         return table
@@ -74,20 +72,23 @@ export class FacetMap
         return { reason: "" }
     }
 
+    @computed get startTime(): Time {
+        return this.manager.startTime ?? 0
+    }
+
+    @computed get endTime(): Time {
+        return this.manager.endTime ?? 0
+    }
+
     @computed private get bounds(): Bounds {
         const bounds = this.props.bounds ?? DEFAULT_BOUNDS
         return bounds.padBottom(VERTICAL_PADDING).padTop(VERTICAL_PADDING)
     }
 
-    @computed private get labelPadding(): number {
-        return 0.3 * this.facetFontSize
-    }
-
     @computed private get facetsContainerBounds(): Bounds {
         return this.bounds
             .padTop(this.facetFontSize + this.labelPadding)
-            .padBottom(this.legendHeight)
-            .padBottom(PADDING_BETWEEN_MAP_AND_LEGEND)
+            .padBottom(this.legendHeight + PADDING_BETWEEN_MAP_AND_LEGEND)
     }
 
     @computed get fontSize(): number {
@@ -99,43 +100,34 @@ export class FacetMap
     }
 
     @computed private get gridParams(): GridParameters {
+        // TODO: optimise
         return { rows: 1, columns: 2, count: 2 }
     }
 
-    @computed private get facetGridPadding(): {
-        rowPadding: number
-        columnPadding: number
-        outerPadding: number
-    } {
+    @computed private get facetGridPadding(): SplitBoundsPadding {
         const { facetFontSize } = this
-        // TODO: rewrite for maps
-        return getChartPadding({
-            baseFontSize: facetFontSize,
-            isSharedXAxis: false,
-        })
+        return { columnPadding: facetFontSize }
     }
 
-    @computed private get hideFacetLegends(): boolean {
-        return true
+    @computed private get labelPadding(): number {
+        return getLabelPadding(this.facetFontSize)
     }
 
-    /**
-     * Holds the intermediate render properties for chart views, before axes are synchronized,
-     * collapsed, aligned, etc.
-     *
-     * An example: a StackedArea has a Y axis domain that is the largest sum of all columns.
-     * In order to avoid replicating that logic here (stacking values), we initialize StackedArea
-     * instances, without rendering them. In a later method, we use those intermediate chart views to
-     * determine the final axes for facets, e.g. for a uniform axis, we would iterate through all
-     * instances to find the full extent of the domain.
-     *
-     * @danielgavrilov, 2021-07-13
-     */
-    @computed private get intermediatePlacedSeries(): PlacedFacetSeries[] {
-        const { manager, series } = this
+    @computed get series(): MapFacetSeries[] {
+        return [this.startTime, this.endTime].map((time) => ({
+            seriesName: this.transformedTable.timeColumn.formatTime(time),
+            // Required for a ChartSeries, but isn't meaningful for facets
+            color: "none",
+            // Only set overrides for this facet strategy.
+            // Default properties are set elsewhere.
+            manager: { targetTime: time },
+        }))
+    }
 
-        // Copy properties from manager to facets
-        const fontSize = this.facetFontSize
+    // TODO: alternatively, we could only keep one map instance around for the map
+    @computed private get intermediatePlacedSeries(): PlacedMapFacetSeries[] {
+        const { manager, series, legendHoverBin } = this
+
         // We are using `bounds` instead of `facetsContainerBounds` because the legend
         // is not yet created, and it is derived from the intermediate chart series.
         const gridBoundsArr = this.bounds.grid(
@@ -144,45 +136,43 @@ export class FacetMap
         )
 
         const {
-            startHandleTimeBound,
-            startTime,
-            endTime,
             backgroundColor,
             isStatic,
-            mapColumnSlug,
+            mapColumnSlug = "",
             mapConfig,
             isMapSelectionEnabled,
             colorScale,
             mapRegionDropdownValue,
             resetMapRegionDropdownValue,
             globeController,
+            base,
+            tooltip,
+            shouldPinTooltipToBottom,
+            // logGrapherInteractionEvent,
         } = manager
 
         const table = this.transformedTable
 
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]
-            const showLegend = !this.hideFacetLegends
-
-            // NOTE: The order of overrides is important!
-            // We need to preserve most config coming in.
             const manager: MapChartManager = {
-                // TODO: remove more?
                 table,
-                fontSize,
-                showLegend,
-                startHandleTimeBound,
-                startTime,
-                endTime,
+                fontSize: this.facetFontSize,
+                showLegend: false,
                 backgroundColor,
                 isStatic,
-                mapColumnSlug: mapColumnSlug ?? "",
+                mapColumnSlug,
                 mapConfig,
                 isMapSelectionEnabled,
                 colorScale,
                 mapRegionDropdownValue,
                 resetMapRegionDropdownValue,
                 globeController,
+                base,
+                tooltip,
+                shouldPinTooltipToBottom,
+                externalLegendHoverBin: legendHoverBin,
+                // logGrapherInteractionEvent,
                 ...series.manager,
             }
             return {
@@ -194,51 +184,20 @@ export class FacetMap
         })
     }
 
-    @computed get intermediateChartInstances(): ChartInterface[] {
+    @computed get intermediateMapInstances(): MapChart[] {
         return this.intermediatePlacedSeries.map(({ bounds, manager }) => {
             return new MapChart({ bounds, manager })
         })
     }
 
-    // Only made public for testing
-    // TODO: is this needed? I don't think so
-    // TODO: why are some things passed here?
-    @computed get placedSeries(): PlacedFacetSeries[] {
+    @computed get placedSeries(): PlacedMapFacetSeries[] {
         const gridBoundsArr = this.facetsContainerBounds.grid(
             this.gridParams,
             this.facetGridPadding
         )
         return this.intermediatePlacedSeries.map((series, i) => {
             const { bounds } = gridBoundsArr[i]
-            // NOTE: The order of overrides is important!
-            // We need to preserve most config coming in.
-            const manager = {
-                ...series.manager,
-                externalLegendHoverBin: this.legendHoverBin,
-                tooltip: this.manager.tooltip,
-                shouldPinTooltipToBottom: this.manager.shouldPinTooltipToBottom,
-                base: this.manager.base,
-            }
-            return {
-                ...series,
-                bounds,
-                manager,
-            }
-        })
-    }
-
-    // TODO: improve?
-    @computed get series(): FacetSeries[] {
-        return [this.manager.startTime, this.manager.endTime].map((time) => {
-            // Only set overrides for this facet strategy.
-            // Default properties are set elsewhere.
-            return {
-                seriesName:
-                    this.transformedTable.timeColumn.formatTime(time as any) ??
-                    "Missing time",
-                color: facetBackgroundColor,
-                manager: { targetTime: time },
-            }
+            return { ...series, bounds }
         })
     }
 
@@ -246,7 +205,7 @@ export class FacetMap
 
     @computed private get externalLegends(): HorizontalColorLegendManager[] {
         return excludeUndefined(
-            this.intermediateChartInstances.map(
+            this.intermediateMapInstances.map(
                 (instance) => instance.externalLegend
             )
         )
@@ -318,22 +277,6 @@ export class FacetMap
         return [this.legendHoverBin.color]
     }
 
-    @computed get activeColors(): Color[] | undefined {
-        const { focusArray } = this.manager
-        if (!focusArray) return undefined
-
-        // find colours of all currently focused series
-        const activeColors = uniq(
-            this.intermediateChartInstances.flatMap((chartInstance) =>
-                chartInstance.series
-                    .filter((series) => focusArray.has(series.seriesName))
-                    .map((series) => series.color)
-            )
-        )
-
-        return activeColors.length > 0 ? activeColors : undefined
-    }
-
     @computed get numericLegendData(): ColorScaleBin[] {
         return this.getExternalLegendProp("numericLegendData") ?? []
     }
@@ -353,24 +296,14 @@ export class FacetMap
         this.legendHoverBin = undefined
     }
 
-    @action.bound onLegendClick(bin: ColorScaleBin): void {
-        if (!this.manager.focusArray) return
-
-        // find all series (of all facets) that are contained in the bin
-        const seriesNames = uniq(
-            this.intermediateChartInstances.flatMap((chartInstance) =>
-                chartInstance.series
-                    .filter((series) => bin.contains(series.seriesName))
-                    .map((series) => series.seriesName)
-            )
-        )
-        this.manager.focusArray.toggle(...seriesNames)
-    }
-
     // end of legend props
 
     @computed private get legend(): HorizontalColorLegend {
         return new this.LegendClass({ manager: this })
+    }
+
+    componentDidMount(): void {
+        exposeInstanceOnWindow(this, "facet")
     }
 
     render(): React.ReactElement {

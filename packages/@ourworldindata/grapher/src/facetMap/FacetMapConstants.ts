@@ -1,31 +1,19 @@
 import { ChartSeries } from "../chart/ChartInterface"
-import { ChartManager } from "../chart/ChartManager"
-import { Bounds, ColumnSlug } from "@ourworldindata/utils"
+import { Bounds } from "@ourworldindata/utils"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
-import { MapConfig } from "../mapCharts/MapConfig"
-import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
-import { GlobeController } from "../mapCharts/GlobeController"
 
-export interface FacetMapManager extends ChartManager {
-    canSelectMultipleEntities?: boolean
-    mapColumnSlug?: ColumnSlug
-    mapConfig?: MapConfig
-    isMapSelectionEnabled?: boolean
-    mapRegionDropdownValue?: MapRegionDropdownValue
-    resetMapRegionDropdownValue?: () => void
-    globeController?: GlobeController
-}
+export type FacetMapManager = MapChartManager
 
 export interface FacetMapProps {
     bounds?: Bounds
     manager: FacetMapManager
 }
 
-export interface FacetSeries extends ChartSeries {
+export interface MapFacetSeries extends ChartSeries {
     manager: Partial<MapChartManager>
 }
 
-export interface PlacedFacetSeries extends FacetSeries {
+export interface PlacedMapFacetSeries extends MapFacetSeries {
     manager: MapChartManager
     bounds: Bounds
 }

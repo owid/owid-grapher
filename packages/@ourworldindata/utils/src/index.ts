@@ -273,6 +273,7 @@ export { getStylesForTargetHeight } from "./react-select.js"
 
 export {
     type GridBounds,
+    type SplitBoundsPadding,
     FontFamily,
     Bounds,
     DEFAULT_BOUNDS,
