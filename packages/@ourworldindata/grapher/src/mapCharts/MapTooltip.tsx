@@ -2,7 +2,11 @@ import * as _ from "lodash-es"
 import React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { TooltipFadeMode, TooltipFooterIcon } from "../tooltip/TooltipProps.js"
+import {
+    FooterItem,
+    TooltipFadeMode,
+    TooltipFooterIcon,
+} from "../tooltip/TooltipProps.js"
 import {
     Tooltip,
     TooltipValue,
@@ -123,57 +127,86 @@ export class MapTooltip
         return this.props.manager.yAxisConfig
     }
 
-    override render(): React.ReactElement {
-        const {
-            mapTable,
-            mapColumn,
-            datum,
-            lineColorScale,
-            entityName,
-            isProjection,
-            formatValueForTooltip,
-        } = this
-        const { targetTime, position, fading } = this.props
+    @computed private get formattedTargetTime(): string | undefined {
+        const { targetTime, mapTable } = this
+
+        if (!mapTable.timeColumn.isMissing) {
+            return mapTable.timeColumn.formatValue(targetTime)
+        }
+
+        return targetTime?.toString()
+    }
+
+    @computed private get tooltipSubtitle(): string | undefined {
+        const { mapTable, datum } = this
 
         const { timeColumn } = mapTable
-        const displayTime = !timeColumn.isMissing
-            ? timeColumn.formatValue(targetTime)
-            : targetTime?.toString()
         const displayDatumTime =
             timeColumn && datum
                 ? timeColumn.formatValue(datum?.originalTime)
                 : (datum?.originalTime.toString() ?? "")
+
+        return datum ? displayDatumTime : this.formattedTargetTime
+    }
+
+    @computed private get formattedValueLabel(): string | undefined {
+        const { datum } = this
+
+        if (!datum) return undefined
+
+        return this.props.formatValueForTooltip(datum.value)?.formattedValue
+    }
+
+    @computed private get toleranceNotice(): FooterItem | undefined {
+        const { datum, targetTime, formattedTargetTime } = this
+
+        if (!datum || datum.originalTime === targetTime || !formattedTargetTime)
+            return undefined
+
+        return {
+            icon: TooltipFooterIcon.notice,
+            text: makeTooltipToleranceNotice(formattedTargetTime),
+        }
+    }
+
+    @computed private get roundingNotice(): FooterItem | undefined {
+        const {
+            mapColumn,
+            datum,
+            props: { formatValueForTooltip },
+        } = this
+
+        if (!datum) return undefined
+
+        // Check if the column rounds to significant figures
+        if (!mapColumn.roundsToSignificantFigures) return undefined
+
+        // Check if the value is rounded
+        const { isRounded } = formatValueForTooltip(datum.value)
+        if (!isRounded) return undefined
+
+        return {
+            icon: this.showSparkline
+                ? TooltipFooterIcon.significance
+                : TooltipFooterIcon.none,
+            text: makeTooltipRoundingNotice([mapColumn.numSignificantFigures], {
+                plural: false,
+            }),
+        }
+    }
+
+    override render(): React.ReactElement {
+        const { datum, lineColorScale, entityName, isProjection } = this
+        const { position, fading } = this.props
+
         const valueColor: string | undefined = darkenColorForHighContrastText(
             lineColorScale?.getColor(datum?.value) ?? "#333"
         )
 
-        // format the value label
-        const { formattedValue: valueLabel, isRounded: isValueLabelRounded } =
-            datum ? formatValueForTooltip(datum.value) : {}
-
-        const yColumn = this.mapTable.get(this.mapColumnSlug)
-
-        const targetNotice =
-            datum && datum.originalTime !== targetTime ? displayTime : undefined
-        const toleranceNotice = targetNotice
-            ? {
-                  icon: TooltipFooterIcon.notice,
-                  text: makeTooltipToleranceNotice(targetNotice),
-              }
-            : undefined
-        const roundingNotice =
-            isValueLabelRounded && mapColumn.roundsToSignificantFigures
-                ? {
-                      icon: this.showSparkline
-                          ? TooltipFooterIcon.significance
-                          : TooltipFooterIcon.none,
-                      text: makeTooltipRoundingNotice(
-                          [mapColumn.numSignificantFigures],
-                          { plural: false }
-                      ),
-                  }
-                : undefined
-        const footer = excludeUndefined([toleranceNotice, roundingNotice])
+        const footer = excludeUndefined([
+            this.toleranceNotice,
+            this.roundingNotice,
+        ])
 
         return (
             <Tooltip
@@ -187,21 +220,21 @@ export class MapTooltip
                 offsetY={-16}
                 offsetYDirection={"downward"}
                 title={entityName}
-                subtitle={datum ? displayDatumTime : displayTime}
-                subtitleFormat={targetNotice ? "notice" : undefined}
+                subtitle={this.tooltipSubtitle}
+                subtitleFormat={this.toleranceNotice ? "notice" : undefined}
                 footer={footer}
                 dissolve={fading}
                 dismiss={this.props.dismissTooltip}
             >
                 <TooltipValue
-                    column={yColumn}
-                    value={valueLabel}
+                    column={this.mapColumn}
+                    value={this.formattedValueLabel}
                     color={valueColor}
                     isProjection={isProjection}
                     labelVariant="unit-only"
                     showSignificanceSuperscript={
-                        !!roundingNotice &&
-                        roundingNotice.icon !== TooltipFooterIcon.none
+                        !!this.roundingNotice &&
+                        this.roundingNotice.icon !== TooltipFooterIcon.none
                     }
                 />
                 <MapSparkline
