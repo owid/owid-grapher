@@ -7,6 +7,7 @@ import {
     createQueryFilter,
     getSearchAutocompleteId,
     getSearchAutocompleteItemId,
+    getFilterAriaLabel,
 } from "./searchUtils.js"
 import { SearchAutocompleteItemContents } from "./SearchAutocompleteItemContents.js"
 import { Filter, FilterType } from "./searchTypes.js"
@@ -176,6 +177,7 @@ export const SearchAutocomplete = ({
                                 () => handleSelection(filter, index)
                             }
                             onMouseEnter={() => setActiveIndex(index)}
+                            aria-label={getFilterAriaLabel(filter, "add")}
                         >
                             <SearchAutocompleteItemContents
                                 filter={filter}
