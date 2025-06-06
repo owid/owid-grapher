@@ -73,21 +73,20 @@ function ArticleBlockInternal({
     }
     return match(block)
         .with({ type: "aside" }, ({ caption, position = "right" }) => (
-            <figure
+            <aside
                 className={cx(
                     "body-3-medium-italic",
-                    getLayout(`aside-${position}`)
+                    "article-block__aside",
+                    getLayout(`aside--${position}`)
                 )}
             >
                 {caption ? (
-                    <figcaption>
-                        <SpanElements
-                            spans={caption}
-                            shouldRenderLinks={shouldRenderLinks}
-                        />
-                    </figcaption>
+                    <SpanElements
+                        spans={caption}
+                        shouldRenderLinks={shouldRenderLinks}
+                    />
                 ) : null}
-            </figure>
+            </aside>
         ))
         .with({ type: "all-charts" }, (block) => (
             <AllCharts
