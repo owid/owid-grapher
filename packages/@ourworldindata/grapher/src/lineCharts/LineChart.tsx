@@ -564,60 +564,62 @@ export class LineChart
         return this.manager.focusArray ?? new FocusArray()
     }
 
-    @computed get activeX(): number | undefined {
-        return (
-            this.tooltipState.target?.x ??
-            this.props.manager.entityYearHighlight?.year
-        )
+    @computed get activeX(): number[] {
+        if (this.tooltipState.target?.x) return [this.tooltipState.target.x]
+        return this.manager.entityTimeHighlights?.map(({ time }) => time) ?? []
     }
 
-    @computed get activeXVerticalLine(): React.ReactElement | undefined {
+    @computed get activeXVerticalLines(): React.ReactElement | undefined {
         const { activeX, dualAxis } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
-        if (activeX === undefined) return undefined
+        if (!activeX) return undefined
 
         return (
-            <g className="hoverIndicator">
-                <line
-                    x1={horizontalAxis.place(activeX)}
-                    y1={verticalAxis.range[0]}
-                    x2={horizontalAxis.place(activeX)}
-                    y2={verticalAxis.range[1]}
-                    stroke="rgba(180,180,180,.4)"
-                />
-                {this.renderSeries.map((series, index) => {
-                    const value = series.points.find(
-                        (point) => point.x === activeX
-                    )
-                    if (!value || series.hover.background) return null
-
-                    const valueColor = this.hasColorScale
-                        ? darkenColorForLine(
-                              this.getColorScaleColor(value.colorValue)
-                          )
-                        : series.color
-                    const color =
-                        !series.focus.background || series.hover.active
-                            ? valueColor
-                            : GRAY_50
-
-                    return (
-                        <circle
-                            key={getSeriesKey(series, index)}
-                            cx={horizontalAxis.place(value.x)}
-                            cy={verticalAxis.place(value.y)}
-                            r={this.lineStrokeWidth / 2 + 3.5}
-                            fill={color}
-                            stroke={
-                                this.manager.backgroundColor ??
-                                GRAPHER_BACKGROUND_DEFAULT
-                            }
-                            strokeWidth={0.5}
+            <>
+                {activeX.map((x) => (
+                    <g className="hoverIndicator" key={x}>
+                        <line
+                            x1={horizontalAxis.place(x)}
+                            y1={verticalAxis.range[0]}
+                            x2={horizontalAxis.place(x)}
+                            y2={verticalAxis.range[1]}
+                            stroke="rgba(180,180,180,.4)"
                         />
-                    )
-                })}
-            </g>
+                        {this.renderSeries.map((series, index) => {
+                            const value = series.points.find(
+                                (point) => point.x === x
+                            )
+                            if (!value || series.hover.background) return null
+
+                            const valueColor = this.hasColorScale
+                                ? darkenColorForLine(
+                                      this.getColorScaleColor(value.colorValue)
+                                  )
+                                : series.color
+                            const color =
+                                !series.focus.background || series.hover.active
+                                    ? valueColor
+                                    : GRAY_50
+
+                            return (
+                                <circle
+                                    key={getSeriesKey(series, index)}
+                                    cx={horizontalAxis.place(value.x)}
+                                    cy={verticalAxis.place(value.y)}
+                                    r={this.lineStrokeWidth / 2 + 3.5}
+                                    fill={color}
+                                    stroke={
+                                        this.manager.backgroundColor ??
+                                        GRAPHER_BACKGROUND_DEFAULT
+                                    }
+                                    strokeWidth={0.5}
+                                />
+                            )
+                        })}
+                    </g>
+                ))}
+            </>
         )
     }
 
@@ -793,7 +795,6 @@ export class LineChart
     @computed get hoveredSeriesNames(): string[] {
         const { externalLegendHoverBin } = this.manager
         const hoveredSeriesNames = excludeUndefined([
-            this.props.manager.entityYearHighlight?.entityName,
             this.lineLegendHoveredSeriesName,
         ])
         if (externalLegendHoverBin) {
@@ -825,7 +826,8 @@ export class LineChart
     }
 
     @computed private get hasEntityYearHighlight(): boolean {
-        return this.props.manager.entityYearHighlight !== undefined
+        const { entityTimeHighlights = [] } = this.manager
+        return entityTimeHighlights.length > 0
     }
 
     @action.bound onDocumentClick(e: MouseEvent): void {
@@ -1055,7 +1057,7 @@ export class LineChart
                 <g clipPath={this.clipPath.id}>{this.renderChartElements()}</g>
 
                 {(this.isTooltipActive || this.hasEntityYearHighlight) &&
-                    this.activeXVerticalLine}
+                    this.activeXVerticalLines}
                 {this.tooltip}
             </g>
         )
