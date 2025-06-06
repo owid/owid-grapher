@@ -197,9 +197,7 @@ export class MapTooltip
         if (!isValueLabelFormattedUsingMapColumn) return undefined
 
         return {
-            icon: this.showSparkline
-                ? TooltipFooterIcon.significance
-                : TooltipFooterIcon.none,
+            icon: TooltipFooterIcon.none,
             text: makeTooltipRoundingNotice([mapColumn.numSignificantFigures], {
                 plural: false,
             }),
@@ -243,10 +241,6 @@ export class MapTooltip
                     color={valueColor}
                     isProjection={isProjection}
                     labelVariant="unit-only"
-                    showSignificanceSuperscript={
-                        !!this.roundingNotice &&
-                        this.roundingNotice.icon !== TooltipFooterIcon.none
-                    }
                 />
                 <MapSparkline
                     manager={this}
