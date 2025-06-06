@@ -1,0 +1,82 @@
+.expander {
+    background-color: $gray-5;
+    margin-bottom: 24px;
+    // Prevent flash of colour when tapping on iOS
+    -webkit-tap-highlight-color: transparent;
+
+    &:not([open]) {
+        .expander__status-icon.minus {
+            display: none;
+        }
+    }
+    &[open] {
+        .expander__status-icon.plus {
+            display: none;
+        }
+    }
+
+    @include text-block-override {
+        @include body-3-regular;
+        color: $blue-60;
+    }
+}
+
+.expander__summary {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding: 16px;
+    cursor: pointer;
+
+    &::marker,
+    &::-webkit-details-marker {
+        display: none;
+        // fallback to hide the marker for old Safari versions
+        color: $gray-5;
+    }
+}
+
+.expander__status-icon {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    font-size: 14px;
+}
+
+.expander__heading {
+    color: $blue-60;
+    margin: 0;
+    margin-bottom: 2px;
+}
+
+.expander__subtitle {
+    color: $blue-60;
+    margin: 0;
+    margin-bottom: 4px;
+    margin-right: 16px;
+}
+
+.expander__title {
+    color: $blue-90;
+    margin: 0;
+    margin-right: 16px;
+}
+
+.expander__content {
+    padding: 16px;
+    padding-top: 0;
+
+    @include table-block-override {
+        th[scope="col"],
+        th[scope="row"] {
+            background-color: $blue-5;
+            .article-block__text {
+                color: $blue-90;
+            }
+        }
+    }
+
+    > *:last-child {
+        margin-bottom: 0;
+    }
+}

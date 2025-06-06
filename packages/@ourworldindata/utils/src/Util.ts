@@ -1598,6 +1598,12 @@ export function traverseEnrichedBlock(
                 )
             )
         })
+        .with({ type: "expander" }, (expander) => {
+            callback(expander)
+            expander.content.forEach((block) =>
+                traverseEnrichedBlock(block, callback, spanCallback)
+            )
+        })
         .with({ type: "callout" }, (callout) => {
             callback(callout)
             if (spanCallback) {

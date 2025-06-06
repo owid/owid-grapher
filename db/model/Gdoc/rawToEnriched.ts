@@ -135,6 +135,8 @@ import {
     RawBlockCookieNotice,
     PullQuoteAlignment,
     pullquoteAlignments,
+    RawBlockExpander,
+    EnrichedBlockExpander,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -179,6 +181,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "code" }, parseCode)
         .with({ type: "donors" }, parseDonorList)
         .with({ type: "scroller" }, parseScroller)
+        .with({ type: "expander" }, parseExpander)
         .with({ type: "chart-story" }, parseChartStory)
         .with({ type: "image" }, parseImage)
         .with({ type: "video" }, parseVideo)
@@ -1080,7 +1083,7 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
             type: "recirc-link",
             url: link.url!,
         })),
-        parseErrors: [...linkErrors],
+        parseErrors: linkErrors,
     }
 }
 
@@ -1605,6 +1608,87 @@ function parseCookieNotice(_: RawBlockCookieNotice): EnrichedBlockCookieNotice {
     return {
         type: "cookie-notice",
         parseErrors: [],
+    }
+}
+
+function parseExpander(raw: RawBlockExpander): EnrichedBlockExpander {
+    const createError = (error: ParseError): EnrichedBlockExpander => ({
+        type: "expander",
+        parseErrors: [error],
+        title: "",
+        heading: "Additional information",
+        content: [],
+    })
+
+    if (!raw.value.title) {
+        return createError({
+            message: "Expander block is missing a title",
+        })
+    }
+    if (typeof raw.value.title !== "string") {
+        return createError({
+            message: "Expander block title must be a string",
+        })
+    }
+    if (raw.value.heading && typeof raw.value.heading !== "string") {
+        return createError({
+            message: "Expander block heading must be a string",
+        })
+    }
+    if (raw.value.subtitle && typeof raw.value.subtitle !== "string") {
+        return createError({
+            message: "Expander block subtitle must be a string",
+        })
+    }
+    const ALLOWED_EXPANDER_TYPES: OwidRawGdocBlock["type"][] = [
+        "text",
+        "list",
+        "numbered-list",
+        "heading",
+        "image",
+        "chart",
+        "table",
+        "html",
+    ]
+    const contentErrors: ParseError[] = []
+    const content = raw.value.content
+    if (!content) {
+        return createError({
+            message: "Expander block is missing content",
+        })
+    }
+    if (!isArray(content)) {
+        return createError({
+            message: "Expander block content must be an array",
+        })
+    }
+    if (content.length === 0) {
+        return createError({
+            message: "Expander block content must not be empty",
+        })
+    }
+    for (const block of content) {
+        if (!ALLOWED_EXPANDER_TYPES.includes(block.type)) {
+            contentErrors.push({
+                message: `Expander content can only contain ${ALLOWED_EXPANDER_TYPES.join(
+                    ", "
+                )} blocks`,
+            })
+        }
+    }
+
+    const enrichedContent = content.map(parseRawBlocksToEnrichedBlocks)
+    const parseErrors = enrichedContent
+        .flatMap((block) => block?.parseErrors)
+        .filter((b): b is ParseError => !!b)
+
+    return {
+        type: "expander",
+        title: raw.value.title,
+        heading: raw.value.heading,
+        subtitle: raw.value.subtitle,
+        content: excludeNullish(enrichedContent),
+        parseErrors: [...parseErrors, ...contentErrors],
     }
 }
 
