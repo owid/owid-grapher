@@ -3,7 +3,7 @@ import { ChartManager } from "../chart/ChartManager"
 import {
     CoreValueType,
     EntityName,
-    EntityYearHighlight,
+    EntityTimeHighlight,
 } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import { Color } from "@ourworldindata/utils"
@@ -71,7 +71,7 @@ export interface LinesProps {
 }
 
 export interface LineChartManager extends ChartManager {
-    entityYearHighlight?: EntityYearHighlight
+    entityTimeHighlights?: EntityTimeHighlight[]
     lineStrokeWidth?: number
     canSelectMultipleEntities?: boolean // used to pick an appropriate series name
 }

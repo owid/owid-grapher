@@ -29,7 +29,6 @@ import {
     SeriesName,
     ComparisonLineConfig,
     RelatedQuestionsConfig,
-    EntityYearHighlight,
     FacetStrategy,
     SortBy,
     SortOrder,
@@ -64,6 +63,7 @@ import {
     GlobeRegionName,
     GrapherWindowType,
     MapRegionName,
+    EntityTimeHighlight,
 } from "@ourworldindata/types"
 import {
     objectWithPersistablesToObject,
@@ -299,7 +299,7 @@ export class GrapherState {
      * Used to highlight an entity at a particular time in a line chart.
      * The sparkline in map tooltips makes use of this.
      */
-    entityYearHighlight: EntityYearHighlight | undefined = undefined
+    entityTimeHighlights?: EntityTimeHighlight
 
     hideFacetControl = true
 
@@ -470,7 +470,7 @@ export class GrapherState {
             comparisonLines: observable,
             relatedQuestions: observable,
             dataTableConfig: observable,
-            entityYearHighlight: observable.ref,
+            entityTimeHighlights: observable.ref,
             hideFacetControl: observable.ref,
             selectedFacetStrategy: observable,
             sortBy: observable,
