@@ -490,6 +490,27 @@ export function findMatches(
           }
 }
 
+/**
+ * Generates autocomplete suggestions for a search query and identifies any unmatched portion of the query.
+ *
+ * This function takes a search query and finds possible country and topic suggestions by:
+ * 1. Splitting the query into words
+ * 2. Finding the earliest word index where country and/or topic matches can be found using fuzzy search
+ * 3. Returning the found matches as Filter objects, sorted with exact matches first
+ * 4. Also returning the unmatched portion of the query (words before the match point)
+ *
+ * The function uses fuzzy search to match partial query words against country names and topics,
+ * filtering out any countries or topics that have already been selected as filters.
+ * It progressively tries to match from increasing starting points in the query until it finds matches
+ * or reaches the end of the query. This prioritizes matching whole phrases from the beginning, while still
+ * allowing for matching just the latter parts of the query if necessary (e.g. "air pollution" would match "Air Pollution",
+ * "Indoor Air Pollution" and "Outdoor Air Pollution" and prevent the "pollution" query from being run;
+ * thus not returning "Lead Pollution" as a suggestion).
+ *
+ * Exact matches (score = 1) are prioritized in the returned suggestions array, followed by
+ * the original query (as a query filter), and then partial matches sorted by score.
+ *
+ */
 export function getAutocompleteSuggestionsWithUnmatchedQuery(
     query: string,
     allTopics: string[],
