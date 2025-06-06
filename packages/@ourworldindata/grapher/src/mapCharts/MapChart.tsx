@@ -91,9 +91,6 @@ export class MapChart
         HorizontalColorLegendManager,
         ChoroplethMapManager
 {
-    /** The id of the currently hovered feature/country */
-    @observable hoverFeatureId?: string
-
     /**
      * The currently hovered map bracket.
      *
@@ -282,7 +279,7 @@ export class MapChart
     @action.bound onMapMouseOver(feature: GeoFeature): void {
         if (feature.id !== undefined) {
             const featureId = feature.id as string
-            this.hoverFeatureId = featureId
+            this.mapConfig.hoverCountry = featureId
             this.tooltipState.target = { featureId }
             this.manager.logGrapherInteractionEvent?.(
                 "map_country_hover",
@@ -299,7 +296,7 @@ export class MapChart
     }
 
     @action.bound onMapMouseLeave(): void {
-        this.hoverFeatureId = undefined
+        this.mapConfig.hoverCountry = undefined
         this.tooltipState.target = null
     }
 
@@ -468,21 +465,21 @@ export class MapChart
 
     /** The value of the currently hovered feature/country */
     @computed get hoverValue(): string | number | undefined {
-        if (!this.hoverFeatureId) return undefined
+        if (!this.mapConfig.hoverCountry) return undefined
 
-        const series = this.choroplethData.get(this.hoverFeatureId)
+        const series = this.choroplethData.get(this.mapConfig.hoverCountry)
         if (!series) return "No data"
 
         return series.value
     }
 
     private isHovered(featureId: string): boolean {
-        const { mapConfig, hoverFeatureId, hoverBracket } = this
+        const { mapConfig, hoverBracket } = this
         const { externalLegendHoverBin } = this.manager
 
         if (mapConfig.globe.focusCountry === featureId) return true
 
-        if (hoverFeatureId === featureId) return true
+        if (mapConfig.hoverCountry === featureId) return true
 
         const series = this.choroplethData.get(featureId)
         if (hoverBracket?.contains(series?.value)) return true
@@ -779,7 +776,7 @@ export class MapChart
                         targetTime={this.targetTime}
                         sparklineWidth={sparklineWidth}
                         dismissTooltip={() => {
-                            this.hoverFeatureId = undefined
+                            this.mapConfig.hoverCountry = undefined
                             this.tooltipState.target = null
                             this.globeController.dismissCountryFocus()
                         }}
