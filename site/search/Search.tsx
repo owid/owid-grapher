@@ -3,7 +3,6 @@ import { Url } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
 import { useReducer, useState, useMemo, useEffect } from "react"
 import { DataCatalogRibbonView } from "./DataCatalogRibbonView.js"
-import { AppliedTopicFiltersList } from "./AppliedTopicFiltersList.js"
 import { DataCatalogResults } from "./DataCatalogResults.js"
 import { Searchbar } from "./Searchbar.js"
 import {
@@ -17,15 +16,19 @@ import {
     DataCatalogRibbonResult,
     DataCatalogSearchResult,
     SearchState,
+    FilterType,
 } from "./searchTypes.js"
 import {
-    analytics,
     checkShouldShowRibbonView,
     getCountryData,
     queryRibbons,
     querySearch,
     syncDataCatalogURL,
+    getFilterNamesOfType,
 } from "./searchUtils.js"
+import { SiteAnalytics } from "../SiteAnalytics.js"
+
+const analytics = new SiteAnalytics()
 
 export const Search = ({
     initialState,
@@ -47,15 +50,16 @@ export const Search = ({
         () => tagGraph.children.map((child) => child.name),
         [tagGraph]
     )
+
     const ALL_TOPICS = useMemo(() => {
         function getAllTopics(node: TagGraphNode): Set<string> {
             return node.children.reduce((acc, child) => {
-                if (child.children.length) {
-                    const topics = getAllTopics(child)
-                    return new Set([...acc, ...topics])
-                }
                 if (child.isTopic) {
                     acc.add(child.name)
+                }
+                if (child.children.length) {
+                    const topics = getAllTopics(child)
+                    topics.forEach((topic) => acc.add(topic))
                 }
                 return acc
             }, new Set<string>())
@@ -63,13 +67,24 @@ export const Search = ({
         return Array.from(getAllTopics(tagGraph))
     }, [tagGraph])
 
+    const selectedTopics = useMemo(
+        () => getFilterNamesOfType(state.filters, FilterType.TOPIC),
+        [state.filters]
+    )
+
+    const selectedCountryNames = useMemo(
+        () => getFilterNamesOfType(state.filters, FilterType.COUNTRY),
+        [state.filters]
+    )
+
     const shouldShowRibbons = useMemo(
-        () => checkShouldShowRibbonView(state.query, state.topics, AREA_NAMES),
-        [state.query, state.topics, AREA_NAMES]
+        () =>
+            checkShouldShowRibbonView(state.query, selectedTopics, AREA_NAMES),
+        [state.query, selectedTopics, AREA_NAMES]
     )
     const selectedCountries = useMemo(
-        () => getCountryData(state.selectedCountryNames),
-        [state.selectedCountryNames]
+        () => getCountryData(selectedCountryNames),
+        [selectedCountryNames]
     )
 
     const stateAsUrl = searchStateToUrl(state)
@@ -141,25 +156,21 @@ export const Search = ({
                 <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
                     <Searchbar
                         allTopics={ALL_TOPICS}
-                        selectedTopics={state.topics}
+                        filters={state.filters}
                         addCountry={actions.addCountry}
-                        addTopic={actions.addTopic}
-                        query={state.query}
                         removeCountry={actions.removeCountry}
+                        addTopic={actions.addTopic}
+                        removeTopic={actions.removeTopic}
+                        query={state.query}
                         requireAllCountries={state.requireAllCountries}
-                        selectedCountries={selectedCountries}
-                        selectedCountryNames={state.selectedCountryNames}
                         setQuery={actions.setQuery}
                         toggleRequireAllCountries={
                             actions.toggleRequireAllCountries
                         }
+                        reset={actions.reset}
                     />
                 </div>
             </div>
-            <AppliedTopicFiltersList
-                topics={state.topics}
-                removeTopic={actions.removeTopic}
-            />
             {shouldShowRibbons ? (
                 <DataCatalogRibbonView
                     addTopic={actions.addTopic}
@@ -167,7 +178,7 @@ export const Search = ({
                     results={currentResults as DataCatalogRibbonResult[]}
                     selectedCountries={selectedCountries}
                     tagGraph={tagGraph}
-                    topics={state.topics}
+                    topics={selectedTopics}
                 />
             ) : (
                 <DataCatalogResults
@@ -176,7 +187,7 @@ export const Search = ({
                     results={currentResults as DataCatalogSearchResult}
                     selectedCountries={selectedCountries}
                     setPage={actions.setPage}
-                    topics={state.topics}
+                    topics={selectedTopics}
                 />
             )}
         </>

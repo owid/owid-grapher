@@ -1,14 +1,31 @@
 import cx from "classnames"
-import { useMemo, useEffect } from "react"
-import { AutocompleteItemContents } from "./AutocompleteItemContents.js"
-import { useAutocomplete } from "./searchUtils.js"
+import { useEffect, useMemo, useCallback } from "react"
+import { match } from "ts-pattern"
+import {
+    getAutocompleteSuggestionsWithUnmatchedQuery,
+    useSearchAutocomplete,
+    createQueryFilter,
+    getSearchAutocompleteId,
+    getSearchAutocompleteItemId,
+    getFilterAriaLabel,
+} from "./searchUtils.js"
+import { SearchAutocompleteItemContents } from "./SearchAutocompleteItemContents.js"
+import { Filter, FilterType } from "./searchTypes.js"
+import { SiteAnalytics } from "../SiteAnalytics.js"
+
+// Default search suggestions to show when there's no query or filters
+const DEFAULT_SEARCHES = [
+    "gdp per capita",
+    "co2 emissions",
+    "life expectancy",
+    "child mortality",
+    "energy consumption",
+]
 
 export const SearchAutocomplete = ({
     localQuery,
     allTopics,
-    selectedCountryNames,
-    selectedTopics,
-    query,
+    filters,
     setLocalQuery,
     setQuery,
     addCountry,
@@ -16,121 +33,157 @@ export const SearchAutocomplete = ({
 }: {
     localQuery: string
     allTopics: string[]
-    selectedCountryNames: Set<string>
-    selectedTopics: Set<string>
-    query: string
+    filters: Filter[]
     setLocalQuery: (query: string) => void
     setQuery: (query: string) => void
     addCountry: (country: string) => void
     addTopic: (topic: string) => void
 }) => {
-    const items = useAutocomplete(localQuery, allTopics, {
-        selectedCountryNames,
-        selectedTopics,
-    })
-    const itemsToRender = useMemo(
-        () => [{ name: localQuery, type: "query" }, ...items],
-        [localQuery, items]
+    const analytics = useMemo(() => new SiteAnalytics(), [])
+
+    const { suggestions, unmatchedQuery } = useMemo(() => {
+        if (!localQuery && !filters.length) {
+            return {
+                suggestions: DEFAULT_SEARCHES.map(createQueryFilter),
+                unmatchedQuery: "",
+            }
+        }
+        return getAutocompleteSuggestionsWithUnmatchedQuery(
+            localQuery,
+            allTopics,
+            filters
+        )
+    }, [localQuery, allTopics, filters])
+
+    const {
+        activeIndex,
+        setActiveIndex,
+        setSuggestions,
+        showSuggestions,
+        setShowSuggestions,
+        registerSelectionHandler,
+    } = useSearchAutocomplete()
+
+    const setQueries = useCallback(
+        (query: string) => {
+            setLocalQuery(query)
+            setQuery(query)
+        },
+        [setLocalQuery, setQuery]
+    )
+
+    const handleSelection = useCallback(
+        (filter: Filter, index: number) => {
+            const logSearchAutocompleteClick = () => {
+                analytics.logSearchAutocompleteClick({
+                    query: localQuery,
+                    position: index,
+                    filterType: filter.type,
+                    filterName: filter.name,
+                    suggestions: suggestions.map((s) => s.name),
+                    suggestionsTypes: suggestions.map((s) => s.type),
+                    suggestionsCount: suggestions.length,
+                })
+            }
+
+            match(filter.type)
+                // What readers see in each autocomplete suggestion is decoupled
+                // from what happens when they click on one:
+                // - display logic: SearchAutocompleteItemContents (1)
+                // - handling logic: below 👇 (2)
+                //
+                // For instance, when searching for "co2 france", we detect:
+                // - "france" as a country filter
+                //     - and show "france" as a filter pill (SearchFilterPill in 1)
+                //     - and add "france" to the active filters (addCountry in 2)
+                // - "co2" as the unmatchedQuery
+                //    - and show "co2" as the unmatched query (unmatchedQuery in 1)
+                //    - and set the queries to "co2" (setQueries in 2)
+                //
+                // This symmetry between display and handling logic needs to be
+                // manually maintained. If you change the handling logic, make
+                // sure to also update the display logic accordingly (and vice
+                // versa).
+                .with(FilterType.COUNTRY, () => {
+                    logSearchAutocompleteClick()
+                    addCountry(filter.name)
+                    setQueries(unmatchedQuery)
+                })
+                .with(FilterType.TOPIC, () => {
+                    logSearchAutocompleteClick()
+                    addTopic(filter.name)
+                    setQueries("")
+                })
+                .with(FilterType.QUERY, () => {
+                    setQueries(filter.name)
+                })
+                .exhaustive()
+            setShowSuggestions(false)
+        },
+        [
+            addCountry,
+            addTopic,
+            setShowSuggestions,
+            setQueries,
+            unmatchedQuery,
+            analytics,
+            localQuery,
+            suggestions,
+        ]
     )
 
     useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            const key = e.key
-            const input = document.querySelector(
-                ".data-catalog-search-input"
-            ) as HTMLInputElement
-            const pseudoinput = document.querySelector(
-                ".data-catalog-pseudo-input:focus-within"
-            ) as HTMLInputElement
-            if (!pseudoinput) {
-                return
-            }
-            const focusableItems = [
-                ...document.querySelectorAll(
-                    ".data-catalog-autocomplete-button"
-                ),
-            ] as HTMLElement[]
-            const currentIndex = document.activeElement
-                ? focusableItems.indexOf(document.activeElement as HTMLElement)
-                : null
+        setSuggestions(suggestions)
+    }, [suggestions, setSuggestions])
 
-            switch (key) {
-                case "ArrowDown":
-                    e.preventDefault()
-                    if (currentIndex === null) {
-                        focusableItems[0].focus()
-                    } else if (currentIndex < itemsToRender.length - 1) {
-                        focusableItems[currentIndex + 1].focus()
-                    }
-                    break
-                case "ArrowUp":
-                    e.preventDefault()
-                    if (currentIndex === null) {
-                        focusableItems[0].focus()
-                    } else if (currentIndex > 0) {
-                        focusableItems[currentIndex - 1].focus()
-                    } else if (currentIndex === 0) {
-                        input.focus()
-                    }
-                    break
-                case "Escape":
-                    e.preventDefault()
-                    ;(document.activeElement as HTMLElement).blur()
-                    break
-            }
-        }
+    // Register the selection handler with the context
+    useEffect(() => {
+        registerSelectionHandler(handleSelection)
+    }, [handleSelection, registerSelectionHandler])
 
-        document.addEventListener("keydown", handleKeyDown)
+    if (!showSuggestions || !suggestions.length) return null
 
-        return () => {
-            document.removeEventListener("keydown", handleKeyDown)
-        }
-    }, [
-        items,
-        itemsToRender,
-        addCountry,
-        addTopic,
-        setLocalQuery,
-        setQuery,
-        query,
-    ])
-
-    if (!localQuery) return null
     return (
-        <div className="data-catalog-autocomplete-container">
-            <ul>
-                {itemsToRender.map(({ name, type }) => (
+        <div className="search-autocomplete-container">
+            <ul id={getSearchAutocompleteId()} role="listbox">
+                {suggestions.map((filter, index) => (
                     <li
-                        key={name}
-                        className={cx("data-catalog-autocomplete-item")}
+                        key={filter.name}
+                        className={cx("search-autocomplete-item", {
+                            "search-autocomplete-item--active":
+                                index === activeIndex,
+                        })}
+                        role="option"
+                        aria-selected={index === activeIndex}
                     >
                         <button
-                            data-prevent-onblur
-                            className="data-catalog-autocomplete-button"
-                            onClick={() => {
-                                const queryMinusLastWord = query
-                                    .split(" ")
-                                    .slice(0, -1)
-                                    .join(" ")
-                                if (type === "country") {
-                                    addCountry(name)
-                                }
-                                if (type === "topic") {
-                                    addTopic(name)
-                                }
-                                if (type === "query") {
-                                    setLocalQuery(name)
-                                    setQuery(name)
-                                    ;(
-                                        document.activeElement as HTMLElement
-                                    ).blur()
-                                    return
-                                }
-                                setLocalQuery(queryMinusLastWord)
-                                setQuery(queryMinusLastWord)
-                            }}
+                            id={getSearchAutocompleteItemId(index)}
+                            type="button"
+                            className={cx("search-autocomplete-button", {
+                                "search-autocomplete-button--active":
+                                    index === activeIndex,
+                            })}
+                            // Prevent tabbing into the dropdown. On Firefox,
+                            // tabbing out of the input moves the focus to the
+                            // dropdown as it is being discarded, resetting the
+                            // focus to the body instead of the next interactive
+                            // element.
+                            tabIndex={-1}
+                            onMouseDown={
+                                // On mobile Safari, onBlur on the input doesn't
+                                // register the e.relatedTarget coming from an
+                                // onClick event on these buttons. So we use
+                                // onMouseDown to get there before onBlur.
+                                () => handleSelection(filter, index)
+                            }
+                            onMouseEnter={() => setActiveIndex(index)}
+                            aria-label={getFilterAriaLabel(filter, "add")}
                         >
-                            <AutocompleteItemContents type={type} name={name} />
+                            <SearchAutocompleteItemContents
+                                filter={filter}
+                                activeFilters={filters}
+                                unmatchedQuery={unmatchedQuery}
+                            />
                         </button>
                     </li>
                 ))}

@@ -1,37 +1,47 @@
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { Region } from "@ourworldindata/utils"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { SearchInput } from "./SearchInput.js"
-import { SelectedCountriesPills } from "./SelectedCountriesPills.js"
+import { SearchActiveFilters } from "./SearchActiveFilters.js"
 import { SearchAutocomplete } from "./SearchAutocomplete.js"
 import { SearchCountrySelector } from "./SearchCountrySelector.js"
+import { Filter, FilterType } from "./searchTypes.js"
+import {
+    createFocusInputOnClickHandler,
+    getFilterNamesOfType,
+} from "./searchUtils.js"
+import { SearchAutocompleteContextProvider } from "./SearchAutocompleteContextProvider.js"
+import { SearchResetButton } from "./SearchResetButton.js"
 
 export const Searchbar = ({
     allTopics,
-    selectedTopics,
-    selectedCountries,
+    filters,
     query,
     setQuery,
-    removeCountry,
     addCountry,
+    removeCountry,
     addTopic,
+    removeTopic,
     requireAllCountries,
-    selectedCountryNames,
     toggleRequireAllCountries,
+    reset,
 }: {
     allTopics: string[]
-    selectedTopics: Set<string>
-    selectedCountries: Region[]
-    selectedCountryNames: Set<string>
+    filters: Filter[]
     query: string
     setQuery: (query: string) => void
-    removeCountry: (country: string) => void
     addCountry: (country: string) => void
+    removeCountry: (country: string) => void
     addTopic: (topic: string) => void
+    removeTopic: (topic: string) => void
     requireAllCountries: boolean
     toggleRequireAllCountries: () => void
+    reset: () => void
 }) => {
+    const selectedCountryNames = getFilterNamesOfType(
+        filters,
+        FilterType.COUNTRY
+    )
     // Storing this in local state so that query params don't update during typing
     const [localQuery, setLocalQuery] = useState(query)
     // sync local query with global query when browser navigation occurs
@@ -39,46 +49,76 @@ export const Searchbar = ({
         setLocalQuery(query)
     }, [query])
 
-    // Uses CSS to fake an input bar that will highlight correctly using :focus-within
-    // without highlighting when the country selector is focused
+    const inputRef = useRef<HTMLInputElement>(null)
+
+    const removeLastFilter = useCallback(() => {
+        if (filters.length === 0) return
+
+        const lastFilter = filters[filters.length - 1]
+        if (lastFilter.type === FilterType.COUNTRY) {
+            removeCountry(lastFilter.name)
+        } else if (lastFilter.type === FilterType.TOPIC) {
+            removeTopic(lastFilter.name)
+        }
+    }, [filters, removeCountry, removeTopic])
+
+    // Allow clicks on the search bar to focus the input. This is useful on
+    // mobile when the search bar stretches vertically and reveals white space
+    // readers might be clicking on. Do not register clicks on children, as we
+    // don't want clicks on the country selector to focus the input.
+    const handleSearchBarClick = createFocusInputOnClickHandler(inputRef, true)
+
     return (
         <>
-            <div className="data-catalog-pseudo-input">
+            <div className="search-bar" onClick={handleSearchBarClick}>
                 <button
-                    className="data-catalog-pseudo-input__submit-button"
+                    className="search-bar__submit-button"
                     aria-label="Submit search"
                     onClick={() => setQuery(localQuery)}
                 >
                     <FontAwesomeIcon icon={faSearch} />
                 </button>
-                <SelectedCountriesPills
-                    selectedCountries={selectedCountries}
+                <SearchAutocompleteContextProvider>
+                    <SearchInput
+                        ref={inputRef}
+                        value={localQuery}
+                        setLocalQuery={setLocalQuery}
+                        setGlobalQuery={setQuery}
+                        onBackspaceEmpty={removeLastFilter}
+                        resetButton={
+                            <SearchResetButton
+                                disabled={!(localQuery || filters.length)}
+                                onReset={() => {
+                                    setLocalQuery("")
+                                    reset()
+                                }}
+                            />
+                        }
+                    >
+                        <SearchActiveFilters
+                            filters={filters}
+                            removeCountry={removeCountry}
+                            removeTopic={removeTopic}
+                        />
+                    </SearchInput>
+                    <SearchAutocomplete
+                        localQuery={localQuery}
+                        allTopics={allTopics}
+                        filters={filters}
+                        setLocalQuery={setLocalQuery}
+                        setQuery={setQuery}
+                        addCountry={addCountry}
+                        addTopic={addTopic}
+                    />
+                </SearchAutocompleteContextProvider>
+                <SearchCountrySelector
+                    requireAllCountries={requireAllCountries}
+                    toggleRequireAllCountries={toggleRequireAllCountries}
+                    selectedCountryNames={selectedCountryNames}
+                    addCountry={addCountry}
                     removeCountry={removeCountry}
                 />
-                <SearchInput
-                    value={localQuery}
-                    setLocalQuery={setLocalQuery}
-                    setGlobalQuery={setQuery}
-                />
-                <SearchAutocomplete
-                    localQuery={localQuery}
-                    allTopics={allTopics}
-                    selectedCountryNames={selectedCountryNames}
-                    selectedTopics={selectedTopics}
-                    query={query}
-                    setLocalQuery={setLocalQuery}
-                    setQuery={setQuery}
-                    addCountry={addCountry}
-                    addTopic={addTopic}
-                />
             </div>
-            <SearchCountrySelector
-                requireAllCountries={requireAllCountries}
-                toggleRequireAllCountries={toggleRequireAllCountries}
-                selectedCountryNames={selectedCountryNames}
-                addCountry={addCountry}
-                removeCountry={removeCountry}
-            />
         </>
     )
 }

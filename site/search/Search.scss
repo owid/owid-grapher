@@ -23,32 +23,22 @@
     }
 }
 
-.data-catalog-search-form {
-    position: relative;
+.search-bar {
     display: flex;
-    // The approximate width of the country-selector button
-    padding-right: 162px;
-    @include sm-only {
-        padding-right: 48px;
-    }
-}
-
-.data-catalog-pseudo-input {
-    display: flex;
-    flex-grow: 1;
-    flex-basis: 100%;
+    align-items: flex-start;
     outline: 1px solid $blue-20;
     background-color: #fff;
+    position: relative;
     &:focus-within {
         outline: 1px solid $blue-5;
     }
 }
 
-.data-catalog-pseudo-input__submit-button {
+.search-bar__submit-button {
     background-color: transparent;
-    width: 32px;
-    height: 32px;
-    margin-top: 8px;
+    width: 24px;
+    height: 48px;
+    flex: none;
     margin-left: 8px;
     margin-right: 8px;
     padding: 0;
@@ -59,15 +49,13 @@
     }
 }
 
-.data-catalog-clear-input-button {
+.search-reset-button {
     background-color: transparent;
     color: #fff;
     cursor: pointer;
     margin-right: 16px;
     width: 32px;
-    height: 32px;
     padding: 0;
-    margin-top: 8px;
     svg {
         color: $blue-50;
         border-radius: 16px;
@@ -95,26 +83,43 @@
 
 .data-catalog-search-controls-container {
     position: relative;
+}
+
+.search-form {
+    flex: 1;
     display: flex;
     flex-wrap: wrap;
+    margin: 8px 0;
+    @include sm-up {
+        margin: 10px 0;
+    }
+    gap: 8px;
 }
 
-.data-catalog-search-box-container {
-    flex-grow: 2;
+.search-input-row {
+    display: flex;
+    align-items: center;
+    flex: 1;
 }
 
-.data-catalog-search-input {
+.search-input {
     background-color: white;
-    height: 48px;
+    height: 32px;
+    @include sm-up {
+        height: 28px;
+    }
     border: none;
     padding: 0;
-    flex-grow: 1;
-    width: 100%;
+    flex: 1 0 auto;
+    width: 75px;
     outline-offset: 0px;
     color: $blue-90;
 
     &:focus {
         outline: none;
+        &::placeholder {
+            opacity: 0;
+        }
     }
 
     &::placeholder,
@@ -124,72 +129,17 @@
     }
 
     @include sm-only {
-        height: 48px;
         // Prevents auto-zoom on Safari
         font-size: 16px;
     }
 }
 
-.data-catalog-selected-countries-container {
-    background: #fff;
-    height: 48px;
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-}
-
-.data-catalog-selected-country-pill {
-    background-color: $blue-5;
-    padding: 8px;
-    white-space: nowrap;
-    display: flex;
-    &:not(:last-child) {
-        margin-right: 8px;
-    }
-    span {
-        margin-left: 8px;
-        color: $blue-90;
-    }
-    button {
-        background-color: transparent;
-        border: none;
-        margin-left: 8px;
-        color: $blue-60;
-        padding: 0;
-        cursor: pointer;
-        margin-bottom: 2px;
-        svg {
-            width: 10px;
-            margin-bottom: -3px;
-            display: block;
-        }
-    }
-    &.data-catalog-selected-country-pill--hide-on-desktop {
-        display: none;
-    }
-    @include sm-only {
-        display: none;
-    }
-}
-
-.data-catalog-selected-country-pill__mini {
-    margin-right: 8px;
-    &:not(.data-catalog-selected-country-pill__mini--show-on-desktop) {
-        @include sm-up {
-            display: none;
-        }
-    }
-    @include sm-only {
-        display: flex;
-        align-items: center;
-        padding: 8px;
-    }
-}
-
 .data-catalog-country-selector {
-    position: absolute;
-    right: 0;
-    top: 0;
+    position: relative;
+    align-self: flex-end;
+    display: flex;
+    align-items: center;
+    height: 48px;
 }
 
 .data-catalog-country-selector-button {
@@ -199,7 +149,6 @@
     color: $blue-90;
     padding: 8px 16px;
     margin-right: 8px;
-    margin-top: 8px;
     line-height: 16px;
     display: flex;
     justify-content: center;
@@ -313,8 +262,9 @@
     padding: 16px;
     // wide enough for the toggle label text not to wrap
     width: 380px;
+    top: 48px;
     right: 0;
-    margin-top: 16px;
+    margin-top: 8px;
     box-shadow: 4px 0 30px 0 #00000020;
 
     @include sm-only {
@@ -410,76 +360,6 @@
     }
 }
 
-.data-catalog-pseudo-input:not(:focus-within)
-    .data-catalog-autocomplete-container {
-    // display: none;
-}
-
-.data-catalog-autocomplete-container {
-    position: absolute;
-    background-color: white;
-    padding: 0 8px;
-    border-top: 2px solid $blue-5;
-    width: 100%;
-    top: 48px;
-    box-shadow: $box-shadow-xl;
-
-    li {
-        list-style: none;
-    }
-}
-
-.data-catalog-autocomplete-item {
-    &:first-child {
-        margin-top: 8px;
-    }
-    &:last-child {
-        margin-bottom: 8px;
-    }
-    &:hover {
-        background-color: $blue-5;
-        color: $blue-90;
-    }
-}
-
-.data-catalog-autocomplete-button:focus {
-    background-color: $blue-5;
-    color: $blue-90;
-    outline: none;
-}
-
-.data-catalog-autocomplete-button {
-    width: 100%;
-    padding: 8px;
-    text-align: left;
-    background-color: transparent;
-
-    span {
-        display: inline-flex;
-        align-items: center;
-        padding: 6px;
-        color: $blue-90;
-        font-size: 13px;
-        line-height: 16px;
-        &.country {
-            outline: 1px solid $blue-20;
-        }
-        &.topic {
-            background-color: $blue-10;
-            padding: 4px 12px;
-            border-radius: 50px;
-            color: $blue-90;
-        }
-        img,
-        svg {
-            margin-right: 6px;
-        }
-        img {
-            border: 1px solid $blue-20;
-        }
-    }
-}
-
 .data-catalog-refinement-list {
     margin-bottom: 16px;
     @include sm-only {
@@ -563,45 +443,6 @@
     }
     @include sm-only {
         display: none;
-    }
-}
-
-.data-catalog-applied-filters-list {
-    list-style: none;
-    &:has(.data-catalog-applied-filters-item) {
-        margin-bottom: 8px;
-    }
-}
-
-.data-catalog-applied-filters-item {
-    display: inline-block;
-    margin-right: 8px;
-    margin-bottom: 8px;
-    white-space: nowrap;
-}
-
-.data-catalog-applied-filters-button {
-    background-color: $blue-20;
-    color: $blue-90;
-    padding: 4.5px 16px;
-    border: 1px solid $blue-20;
-    border-radius: 50px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    svg {
-        height: 12px;
-        margin-left: 4px;
-        margin-top: 1px;
-    }
-    &:focus {
-        outline: none;
-        border-color: $blue-40;
-    }
-    &:hover {
-        color: $blue-100;
-        background-color: $blue-10;
-        border-color: $blue-10;
     }
 }
 

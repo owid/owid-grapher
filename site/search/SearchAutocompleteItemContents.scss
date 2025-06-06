@@ -1,0 +1,39 @@
+.search-autocomplete-item-contents {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+
+    .name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .search-filter-pill--active,
+    .search-filter-pill--more-filters {
+        @include sm-only {
+            display: none;
+        }
+    }
+    > span:last-child,
+    > span.search-filter-pill--more-filters {
+        flex-shrink: 0;
+    }
+}
+
+.search-autocomplete-item-contents__search-icon {
+    @include body-3-medium;
+    width: 16px;
+    height: 16px;
+    color: $blue-50;
+}
+
+.search-autocomplete-item-contents__query {
+    @include body-3-medium;
+    color: $blue-90;
+    white-space: nowrap;
+    &:not(:last-child) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
