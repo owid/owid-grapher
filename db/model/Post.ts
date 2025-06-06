@@ -423,6 +423,7 @@ export const getLatestWorkByAuthor = async (
             JSON_CONTAINS(authors, ?)
             AND pg.published = TRUE
             AND pg.type = "${OwidGdocType.Article}"
+            AND publishedAt <= NOW()
         ORDER BY publishedAt DESC
         `,
         [`"${author}"`]
