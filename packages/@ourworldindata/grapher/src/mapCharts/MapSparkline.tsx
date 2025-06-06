@@ -7,12 +7,15 @@ import {
     ColumnSlug,
     EntityName,
     OwidVariableRoundingMode,
-    OwidVariableRow,
     Time,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import { LineChart } from "../lineCharts/LineChart"
-import { Bounds, checkIsVeryShortUnit } from "@ourworldindata/utils"
+import {
+    Bounds,
+    checkIsVeryShortUnit,
+    excludeUndefined,
+} from "@ourworldindata/utils"
 import { LineChartManager } from "../lineCharts/LineChartConstants"
 import { ColorScale } from "../color/ColorScale.js"
 import * as R from "remeda"
@@ -31,7 +34,7 @@ export interface MapSparklineManager {
     targetTime?: Time
     entityName: EntityName
     lineColorScale?: ColorScale
-    datum?: OwidVariableRow<number | string>
+    highlightedTimesInSparkline?: Time[]
     mapAndYColumnAreTheSame?: boolean
     yAxisConfig?: AxisConfigInterface
 }
@@ -74,6 +77,21 @@ export class MapSparkline extends React.Component<{
         return this.hasTimeSeriesData
     }
 
+    @computed private get highlightedTimesInLineChart(): Time[] {
+        const { highlightedTimesInSparkline = [] } = this.props.manager
+
+        const owidRowsByTime = this.sparklineTable
+            .get(this.mapColumnSlug)
+            .owidRowByEntityNameAndTime.get(this.manager.entityName)
+        if (!owidRowsByTime) return []
+
+        return excludeUndefined(
+            highlightedTimesInSparkline.map(
+                (time) => owidRowsByTime.get(time)?.originalTime
+            )
+        )
+    }
+
     @computed private get sparklineManager(): LineChartManager {
         const { mapColumnInfo } = this.manager
 
@@ -103,10 +121,6 @@ export class MapSparkline extends React.Component<{
                     : ""
                 : ""
 
-        const highlightedTimesInLineChart = this.manager.datum
-            ? [this.manager.datum.originalTime]
-            : undefined
-
         return {
             table: this.sparklineTable,
             transformedTable: this.sparklineTable,
@@ -119,7 +133,7 @@ export class MapSparkline extends React.Component<{
             fontSize: 11,
             disableIntroAnimation: true,
             lineStrokeWidth: 2,
-            highlightedTimesInLineChart,
+            highlightedTimesInLineChart: this.highlightedTimesInLineChart,
             yAxisConfig: {
                 hideAxis: true,
                 hideGridlines: false,
