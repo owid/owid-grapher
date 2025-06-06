@@ -152,6 +152,7 @@ export class FacetMap
         } = manager
 
         const table = this.transformedTable
+        const sparklineHighlights = [this.startTime, this.endTime]
 
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]
@@ -172,6 +173,7 @@ export class FacetMap
                 tooltip,
                 shouldPinTooltipToBottom,
                 externalLegendHoverBin: legendHoverBin,
+                sparklineHighlights,
                 // logGrapherInteractionEvent,
                 ...series.manager,
             }

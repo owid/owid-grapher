@@ -96,6 +96,10 @@ export class MapTooltip
         return MapSparkline.shouldShow(this)
     }
 
+    @computed get sparklineHighlights(): Time[] | undefined {
+        return this.props.manager.sparklineHighlights
+    }
+
     @computed get yAxisConfig(): AxisConfigInterface | undefined {
         return this.props.manager.yAxisConfig
     }

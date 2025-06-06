@@ -5,6 +5,7 @@ import {
     AxisConfigInterface,
     ColumnSlug,
     EntityName,
+    EntityYearHighlight,
     OwidVariableRoundingMode,
     OwidVariableRow,
     Time,
@@ -37,6 +38,7 @@ export interface MapSparklineManager {
     datum?: OwidVariableRow<number | string>
     mapAndYColumnAreTheSame?: boolean
     yAxisConfig?: AxisConfigInterface
+    sparklineHighlights?: Time[]
 }
 
 @observer
@@ -81,6 +83,20 @@ export class MapSparkline extends React.Component<{
         return this.hasTimeSeriesData
     }
 
+    @computed private get entityYearHighlights(): EntityYearHighlight[] {
+        const { sparklineHighlights = [], entityName, datum } = this.manager
+
+        if (sparklineHighlights.length > 0)
+            return sparklineHighlights.map((time) => ({
+                entityName,
+                year: time,
+            }))
+
+        if (datum) return [{ entityName, year: datum.originalTime }]
+
+        return []
+    }
+
     @computed private get sparklineManager(): LineChartManager {
         // use the whole time range for the sparkline, not just the range where this series has data
         let { minTime, maxTime } = this.manager.table ?? {}
@@ -101,15 +117,6 @@ export class MapSparkline extends React.Component<{
                     : ""
                 : ""
 
-        const entityYearHighlights = this.manager.datum
-            ? [
-                  {
-                      entityName: this.manager.entityName,
-                      year: this.manager.datum?.originalTime,
-                  },
-              ]
-            : undefined
-
         return {
             table: this.sparklineTable,
             transformedTable: this.sparklineTable,
@@ -122,7 +129,7 @@ export class MapSparkline extends React.Component<{
             fontSize: 11,
             disableIntroAnimation: true,
             lineStrokeWidth: 2,
-            entityYearHighlights,
+            entityYearHighlights: this.entityYearHighlights,
             yAxisConfig: {
                 hideAxis: true,
                 hideGridlines: false,
