@@ -35,7 +35,7 @@ import {
 } from "./searchTypes.js"
 import { faTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { match } from "ts-pattern"
+import { match, P } from "ts-pattern"
 import { createContext, ForwardedRef, useContext } from "react"
 
 /**
@@ -651,3 +651,17 @@ export const getSearchAutocompleteId = () => "search-autocomplete-listbox"
 
 export const getSearchAutocompleteItemId = (index: number) =>
     index >= 0 ? `search-autocomplete-item-${index}` : undefined
+
+export const getFilterAriaLabel = (
+    filter: Filter,
+    action: "add" | "remove"
+) => {
+    const actionName = action === "add" ? "Add" : "Remove"
+    return match(filter.type)
+        .with(FilterType.QUERY, () => `Search for ${filter.name}`)
+        .with(
+            P.union(FilterType.COUNTRY, FilterType.TOPIC),
+            () => `${actionName} ${filter.name} ${filter.type} filter`
+        )
+        .exhaustive()
+}
