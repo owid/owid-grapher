@@ -650,4 +650,4 @@ export function isCurrentMutableRef(
 export const getSearchAutocompleteId = () => "search-autocomplete-listbox"
 
 export const getSearchAutocompleteItemId = (index: number) =>
-    index >= 0 ? `search-autocomplete-item-${index}` : ""
+    index >= 0 ? `search-autocomplete-item-${index}` : undefined
