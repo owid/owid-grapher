@@ -283,9 +283,8 @@ export function makeAxisLabel({
     unit?: string // shown in normal weight, usually in parens
 } {
     const displayUnit = unit && unit !== shortUnit ? unit : undefined
-    const unitInParens = displayUnit ? `(${displayUnit})` : undefined
 
-    if (unitInParens) {
+    if (displayUnit) {
         // extract text in parens at the end of the label,
         // e.g. "Population (millions)" is split into "Population " and "(millions)"
         const [
@@ -297,9 +296,9 @@ export function makeAxisLabel({
 
         // don't show unit twice if it's contained in the label
         const displayLabel =
-            labelTextInParens === unitInParens ? mainLabelText : label
+            labelTextInParens === `(${displayUnit})` ? mainLabelText : label
 
-        return { mainLabel: displayLabel, unit: unitInParens }
+        return { mainLabel: displayLabel, unit: displayUnit }
     }
 
     return { mainLabel: label }

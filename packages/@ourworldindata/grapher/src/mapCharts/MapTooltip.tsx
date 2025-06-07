@@ -8,13 +8,14 @@ import {
     makeTooltipToleranceNotice,
     makeTooltipRoundingNotice,
 } from "../tooltip/Tooltip"
-import { MapChartManager } from "./MapChartConstants"
+import { MapChartManager, MapColumnInfo } from "./MapChartConstants"
 import { ColorScale } from "../color/ColorScale"
 import {
     Time,
     EntityName,
     OwidVariableRow,
     AxisConfigInterface,
+    ColumnSlug,
 } from "@ourworldindata/types"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
@@ -26,10 +27,13 @@ import {
 } from "@ourworldindata/utils"
 import { darkenColorForHighContrastText } from "../color/ColorUtils"
 import { MapSparkline, MapSparklineManager } from "./MapSparkline.js"
+import { match } from "ts-pattern"
 
 interface MapTooltipProps {
     entityName: EntityName
     manager: MapChartManager
+    mapColumnSlug: ColumnSlug
+    mapColumnInfo: MapColumnInfo
     position?: PointVector
     lineColorScale: ColorScale
     formatValueIfCustom: (d: PrimitiveType) => string | undefined
@@ -46,8 +50,12 @@ export class MapTooltip
     extends React.Component<MapTooltipProps>
     implements MapSparklineManager
 {
-    @computed get mapColumnSlug(): string | undefined {
-        return this.props.manager.mapColumnSlug
+    @computed get mapColumnSlug(): ColumnSlug {
+        return this.props.mapColumnSlug
+    }
+
+    @computed get mapColumnInfo(): MapColumnInfo {
+        return this.props.mapColumnInfo
     }
 
     @computed private get mapColumn(): CoreColumn {
@@ -55,8 +63,9 @@ export class MapTooltip
     }
 
     @computed get mapAndYColumnAreTheSame(): boolean {
-        const { yColumnSlug, yColumnSlugs, mapColumnSlug } = this.props.manager
-        return yColumnSlugs && mapColumnSlug !== undefined
+        const { mapColumnSlug } = this
+        const { yColumnSlug, yColumnSlugs } = this.props.manager
+        return yColumnSlugs
             ? yColumnSlugs.includes(mapColumnSlug)
             : yColumnSlug === mapColumnSlug
     }
@@ -84,6 +93,19 @@ export class MapTooltip
         return this.mapColumn.owidRows[0]
     }
 
+    @computed private get isProjection(): boolean {
+        return match(this.mapColumnInfo)
+            .with({ type: "historical" }, () => false)
+            .with({ type: "projected" }, () => true)
+            .with(
+                { type: "historical+projected" },
+                (info) =>
+                    this.mapTable.get(info.slugForIsProjectionColumn)
+                        .owidRows[0]?.value
+            )
+            .exhaustive()
+    }
+
     @computed get lineColorScale(): ColorScale {
         return this.props.lineColorScale
     }
@@ -97,7 +119,14 @@ export class MapTooltip
     }
 
     render(): React.ReactElement {
-        const { mapTable, mapColumn, datum, lineColorScale, entityName } = this
+        const {
+            mapTable,
+            mapColumn,
+            datum,
+            lineColorScale,
+            entityName,
+            isProjection,
+        } = this
         const { targetTime, formatValueIfCustom, position, fading } = this.props
 
         const { timeColumn } = mapTable
@@ -173,6 +202,7 @@ export class MapTooltip
                     column={yColumn}
                     value={valueLabel}
                     color={valueColor}
+                    isProjection={isProjection}
                     showSignificanceSuperscript={
                         !!roundingNotice &&
                         roundingNotice.icon !== TooltipFooterIcon.none
