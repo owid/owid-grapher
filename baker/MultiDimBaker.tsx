@@ -2,6 +2,7 @@ import * as R from "remeda"
 import fs from "fs-extra"
 import path from "path"
 import ProgressBar from "progress"
+import { stringify } from "safe-stable-stringify"
 import {
     ImageMetadata,
     MultiDimDataPageConfigPreProcessed,
@@ -10,6 +11,11 @@ import {
     MultiDimDataPageConfigEnriched,
     PostsGdocsVariablesFaqsTableName,
     DbPlainPostGdocVariableFaq,
+    DbEnrichedImage,
+    ArchiveMetaInformation,
+    ArchiveContext,
+    ArchivedPageVersion,
+    DataPageRelatedResearch,
 } from "@ourworldindata/types"
 import { MultiDimDataPageConfig, pick, uniq } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
@@ -18,6 +24,7 @@ import { getRelatedResearchAndWritingForVariables } from "../db/model/Post.js"
 import { renderToHtmlPage } from "./siteRenderers.js"
 import { MultiDimDataPage } from "../site/multiDim/MultiDimDataPage.js"
 import {
+    ARCHIVE_BASE_URL,
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
@@ -31,6 +38,17 @@ import {
     getMultiDimDataPageByCatalogPath,
     getMultiDimDataPageBySlug,
 } from "../db/model/MultiDimDataPage.js"
+import { MultiDimArchivalManifest } from "./archival/archivalUtils.js"
+import { getLatestMultiDimArchivedVersions } from "./archival/archivalChecksum.js"
+
+const getLatestMultiDimArchivedVersionsIfEnabled = async (
+    knex: db.KnexReadonlyTransaction,
+    multiDimIds?: number[]
+): Promise<Record<number, ArchivedPageVersion>> => {
+    if (!ARCHIVE_BASE_URL) return {}
+
+    return await getLatestMultiDimArchivedVersions(knex, multiDimIds)
+}
 
 export function getRelevantVariableIds(
     config: MultiDimDataPageConfigPreProcessed
@@ -99,17 +117,15 @@ export async function renderMultiDimDataPageFromConfig({
     config,
     imageMetadataDictionary,
     isPreviewing = false,
+    archiveInfo,
 }: {
     knex: db.KnexReadonlyTransaction
     slug: string | null
     config: MultiDimDataPageConfigEnriched
     imageMetadataDictionary?: Record<string, ImageMetadata>
     isPreviewing?: boolean
+    archiveInfo?: ArchiveContext
 }) {
-    // TAGS
-    const tagToSlugMap = await getTagToSlugMap(knex)
-    // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
-    const minimalTagToSlugMap = pick(tagToSlugMap, config.topicTags ?? [])
     const pageConfig = MultiDimDataPageConfig.fromObject(config)
     const variableIds = getRelevantVariableIds(config)
     const faqEntries = await getFaqEntries(knex, variableIds)
@@ -121,40 +137,63 @@ export async function renderMultiDimDataPageFromConfig({
         slug ?? undefined
     )
 
-    // Related research
-    const relatedResearchCandidates =
-        variableIds.size > 0
-            ? await getRelatedResearchAndWritingForVariables(knex, [
-                  ...variableIds,
-              ])
-            : []
+    let tagToSlugMap: Record<string, string> = {}
+    let relatedResearchCandidates: DataPageRelatedResearch[] = []
+    let imageMetadata: Record<string, ImageMetadata> = {}
 
-    const relatedResearchFilenames = uniq(
-        relatedResearchCandidates.map((r) => r.imageUrl).filter(Boolean)
-    )
+    // If we're baking to an archival page, then we want to skip a bunch of sections
+    // where the links would break
+    if (archiveInfo?.type !== "archive-page") {
+        // TAGS
+        const fullTagToSlugMap = await getTagToSlugMap(knex)
+        // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
+        tagToSlugMap = pick(fullTagToSlugMap, config.topicTags ?? [])
 
-    let imageMetadata: Record<string, ImageMetadata>
-    if (imageMetadataDictionary) {
-        imageMetadata = pick(imageMetadataDictionary, relatedResearchFilenames)
-    } else {
-        const images = await getImagesByFilenames(
-            knex,
-            relatedResearchFilenames
+        // Related research
+        relatedResearchCandidates =
+            variableIds.size > 0
+                ? await getRelatedResearchAndWritingForVariables(knex, [
+                      ...variableIds,
+                  ])
+                : []
+
+        const relatedResearchFilenames = uniq(
+            relatedResearchCandidates.map((r) => r.imageUrl).filter(Boolean)
         )
-        imageMetadata = R.indexBy(images, (image) => image.filename)
+
+        if (imageMetadataDictionary) {
+            imageMetadata = pick(
+                imageMetadataDictionary,
+                relatedResearchFilenames
+            )
+        } else {
+            const images = await getImagesByFilenames(
+                knex,
+                relatedResearchFilenames
+            )
+            imageMetadata = R.indexBy(images, (image) => image.filename)
+        }
+    }
+
+    let canonicalUrl: string
+    if (archiveInfo?.type === "archive-page") {
+        canonicalUrl = archiveInfo.archiveUrl
+    } else {
+        canonicalUrl = slug ? `${BAKED_GRAPHER_URL}/${slug}` : ""
     }
 
     const props = {
         baseUrl: BAKED_BASE_URL,
-        baseGrapherUrl: BAKED_GRAPHER_URL,
+        canonicalUrl,
         slug,
         configObj: pageConfig.config,
-        tagToSlugMap: minimalTagToSlugMap,
+        tagToSlugMap,
         faqEntries,
         primaryTopic,
         relatedResearchCandidates,
         imageMetadata,
         isPreviewing,
+        archivedChartInfo: archiveInfo,
     }
 
     return renderMultiDimDataPageFromProps(props)
@@ -168,10 +207,16 @@ export const renderMultiDimDataPageBySlug = async (
     const dbRow = await getMultiDimDataPageBySlug(knex, slug, { onlyPublished })
     if (!dbRow) throw new Error(`No multi-dim site found for slug: ${slug}`)
 
+    const archivedVersion = await getLatestMultiDimArchivedVersionsIfEnabled(
+        knex,
+        [dbRow.id]
+    )
+
     return renderMultiDimDataPageFromConfig({
         knex,
         slug,
         config: dbRow.config,
+        archiveInfo: archivedVersion[dbRow.id],
     })
 }
 
@@ -185,10 +230,16 @@ export async function renderMultiDimDataPageByCatalogPath(
             `No multi-dim site found for catalog path: ${catalogPath}`
         )
 
+    const archivedVersion = await getLatestMultiDimArchivedVersionsIfEnabled(
+        knex,
+        [dbRow.id]
+    )
+
     return renderMultiDimDataPageFromConfig({
         knex,
         slug: dbRow.slug,
         config: dbRow.config,
+        archiveInfo: archivedVersion[dbRow.id],
     })
 }
 
@@ -203,13 +254,15 @@ export const bakeMultiDimDataPage = async (
     bakedSiteDir: string,
     slug: string,
     config: MultiDimDataPageConfigEnriched,
-    imageMetadata: Record<string, ImageMetadata>
+    imageMetadata: Record<string, ImageMetadata>,
+    archivedVersion?: ArchiveContext
 ) => {
     const renderedHtml = await renderMultiDimDataPageFromConfig({
         knex,
         slug,
         config,
         imageMetadataDictionary: imageMetadata,
+        archiveInfo: archivedVersion,
     })
     const outPath = path.join(bakedSiteDir, `grapher/${slug}.html`)
     await fs.writeFile(outPath, renderedHtml)
@@ -221,6 +274,16 @@ export const bakeAllMultiDimDataPages = async (
     imageMetadata: Record<string, ImageMetadata>
 ) => {
     const multiDimsBySlug = await getAllPublishedMultiDimDataPagesBySlug(knex)
+
+    // Fetch archived versions for all multi-dim pages
+    const multiDimIds = Array.from(multiDimsBySlug.values()).map(
+        (row) => row.id
+    )
+    const archivedVersions = await getLatestMultiDimArchivedVersionsIfEnabled(
+        knex,
+        multiDimIds
+    )
+
     const progressBar = new ProgressBar(
         "bake multi-dim page [:bar] :current/:total :elapseds :rate/s :name\n",
         {
@@ -235,7 +298,8 @@ export const bakeAllMultiDimDataPages = async (
             bakedSiteDir,
             slug,
             row.config,
-            imageMetadata
+            imageMetadata,
+            archivedVersions[row.id]
         )
         progressBar.tick({ name: slug })
     }
@@ -244,4 +308,37 @@ export const bakeAllMultiDimDataPages = async (
     const newSlugs = [...publishedSlugs, ...chartSlugs]
     await deleteOldGraphers(bakedSiteDir, newSlugs)
     progressBar.tick({ name: `✅ Deleted old multi-dim pages` })
+}
+
+// Function to bake a single multi-dim data page for archival
+export const bakeSingleMultiDimDataPageForArchival = async (
+    bakedSiteDir: string,
+    slug: string,
+    config: MultiDimDataPageConfigEnriched,
+    knex: db.KnexReadonlyTransaction,
+    {
+        imageMetadataDictionary,
+        archiveInfo,
+        manifest,
+    }: {
+        imageMetadataDictionary?: Record<string, DbEnrichedImage>
+        archiveInfo: ArchiveMetaInformation
+        manifest: MultiDimArchivalManifest
+    }
+) => {
+    const outPathHtml = `${bakedSiteDir}/grapher/${slug}.html`
+    await fs.writeFile(
+        outPathHtml,
+        await renderMultiDimDataPageFromConfig({
+            knex,
+            slug,
+            config,
+            imageMetadataDictionary,
+            isPreviewing: false,
+            archiveInfo,
+        })
+    )
+    const outPathManifest = `${bakedSiteDir}/grapher/${slug}.manifest.json`
+
+    await fs.writeFile(outPathManifest, stringify(manifest, undefined, 2))
 }

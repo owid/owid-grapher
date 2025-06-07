@@ -2,11 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { unstable_batchedUpdates } from "react-dom"
 import { useSearchParams } from "react-router-dom-v5-compat"
 import * as Sentry from "@sentry/react"
-import {
-    Grapher,
-    GrapherAnalytics,
-    GrapherProgrammaticInterface,
-} from "@ourworldindata/grapher"
+import { Grapher, GrapherAnalytics } from "@ourworldindata/grapher"
 import {
     DataPageDataV2,
     joinTitleFragments,
@@ -22,6 +18,7 @@ import {
     DATA_API_URL,
 } from "../../settings/clientSettings.js"
 import {
+    ArchiveContext,
     DataPageRelatedResearch,
     FaqEntryKeyedByGdocIdAndFragmentId,
     FaqLink,
@@ -49,11 +46,17 @@ import MultiDim from "./MultiDim.js"
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
 const isIframe = isInIFrame()
 
-const baseGrapherConfig: GrapherProgrammaticInterface = {
-    bakedGrapherURL: BAKED_GRAPHER_URL,
-    adminBaseUrl: ADMIN_BASE_URL,
-    dataApiUrl: DATA_API_URL,
-    canHideExternalControlsInEmbed: true,
+const useBaseGrapherConfig = (archivedChartInfo?: ArchiveContext) => {
+    return useMemo(
+        () => ({
+            bakedGrapherURL: BAKED_GRAPHER_URL,
+            adminBaseUrl: ADMIN_BASE_URL,
+            dataApiUrl: DATA_API_URL,
+            canHideExternalControlsInEmbed: true,
+            archivedChartInfo,
+        }),
+        [archivedChartInfo]
+    )
 }
 
 const useTitleFragments = (config: MultiDimDataPageConfig) => {
@@ -76,6 +79,7 @@ export type MultiDimDataPageContentProps = {
     relatedResearchCandidates: DataPageRelatedResearch[]
     imageMetadata: Record<string, ImageMetadata>
     isPreviewing?: boolean
+    archivedChartInfo?: ArchiveContext
 }
 
 export type MultiDimDataPageData = Omit<
@@ -105,6 +109,7 @@ export function DataPageContent({
     relatedResearchCandidates,
     tagToSlugMap,
     imageMetadata,
+    archivedChartInfo,
 }: MultiDimDataPageContentProps) {
     const grapherRef = useRef<Grapher | null>(null)
     const grapherFigureRef = useRef<HTMLDivElement>(null)
@@ -113,6 +118,7 @@ export function DataPageContent({
     const [varDatapageData, setVarDatapageData] =
         useState<VariableDataPageData | null>(null)
     const titleFragments = useTitleFragments(config)
+    const baseGrapherConfig = useBaseGrapherConfig(archivedChartInfo)
 
     const settings = useMemo(() => {
         const choices = extractMultiDimChoicesFromSearchParams(
@@ -134,8 +140,14 @@ export function DataPageContent({
             const variableId = newView.indicators?.["y"]?.[0]?.id
             if (!variableId) return
 
+            const assetMap =
+                archivedChartInfo?.type === "archive-page"
+                    ? archivedChartInfo.assets.runtime
+                    : undefined
+
             const datapageDataPromise = cachedGetVariableMetadata(
-                variableId
+                variableId,
+                assetMap
             ).then((json) => {
                 const mergedMetadata = merge(
                     json,
@@ -150,7 +162,8 @@ export function DataPageContent({
             const grapherConfigUuid = newView.fullConfigId
             const grapherConfigPromise = cachedGetGrapherConfigByUuid(
                 grapherConfigUuid,
-                isPreviewing ?? false
+                isPreviewing ?? false,
+                assetMap
             )
             const variables = newView.indicators?.["y"]
             const adminEditPath =
@@ -195,7 +208,7 @@ export function DataPageContent({
                 })
                 .catch(Sentry.captureException)
         },
-        [config, isPreviewing, slug]
+        [config, isPreviewing, slug, baseGrapherConfig, archivedChartInfo]
     )
 
     const handleSettingsChange = useCallback(
@@ -377,6 +390,7 @@ export function DataPageContent({
                         source={varDatapageData.source}
                         title={varDatapageData.title}
                         titleVariant={varDatapageData.titleVariant}
+                        archivedChartInfo={archivedChartInfo}
                     />
                 )}
             </div>
@@ -394,9 +408,15 @@ export function MultiDimDataPageContent({
     relatedResearchCandidates,
     tagToSlugMap,
     imageMetadata,
+    archivedChartInfo,
 }: MultiDimDataPageContentProps) {
     return isIframe ? (
-        <MultiDim config={config} slug={slug} queryStr={location.search} />
+        <MultiDim
+            config={config}
+            slug={slug}
+            queryStr={location.search}
+            archivedChartInfo={archivedChartInfo}
+        />
     ) : (
         <DataPageContent
             slug={slug}
@@ -408,6 +428,7 @@ export function MultiDimDataPageContent({
             relatedResearchCandidates={relatedResearchCandidates}
             tagToSlugMap={tagToSlugMap}
             imageMetadata={imageMetadata}
+            archivedChartInfo={archivedChartInfo}
         />
     )
 }

@@ -490,6 +490,12 @@ export {
     ArchivedChartVersionsTableName,
 } from "./dbTypes/ArchivedChartVersion.js"
 export {
+    type DbInsertArchivedMultiDimVersion,
+    type DbPlainArchivedMultiDimVersion,
+    type DbEnrichedArchivedMultiDimVersion,
+    ArchivedMultiDimVersionsTableName,
+} from "./dbTypes/ArchivedMultiDimVersion.js"
+export {
     type DbInsertChartConfig,
     type DbRawChartConfig,
     type DbEnrichedChartConfig,
@@ -796,7 +802,7 @@ export {
     type UrlAndMaybeDate,
     type ArchiveSiteNavigationInfo,
     type ArchiveMetaInformation,
-    type ChartArchivedVersion,
+    type ArchivedPageVersion,
     type ArchiveVersions,
-    type ArchivedChartOrArchivePageMeta,
+    type ArchiveContext,
 } from "./domainTypes/Archive.js"

@@ -159,7 +159,7 @@ export {
     getPhraseForArchivalDate,
 } from "./metadataHelpers.js"
 
-export { multiDimDimensionsToViewId } from "./multiDim.js"
+export { multiDimDimensionsToViewId, getAllVariableIds } from "./multiDim.js"
 
 export {
     capitalize,

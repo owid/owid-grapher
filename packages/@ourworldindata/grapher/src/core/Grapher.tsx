@@ -119,7 +119,7 @@ import {
     NarrativeChartInfo,
     OwidChartDimensionInterfaceWithMandatorySlug,
     AssetMap,
-    ArchivedChartOrArchivePageMeta,
+    ArchiveContext,
     GrapherTabType,
     GRAPHER_TAB_TYPES,
     GlobeRegionName,
@@ -373,7 +373,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
         NarrativeChartInfo,
         "parentChartSlug" | "queryParamsForParentChart"
     >
-    archivedChartInfo?: ArchivedChartOrArchivePageMeta
+    archivedChartInfo?: ArchiveContext
 
     manager?: GrapherManager
     instanceRef?: React.RefObject<Grapher>
@@ -572,8 +572,7 @@ export class Grapher
         "name" | "parentChartSlug" | "queryParamsForParentChart"
     > = undefined
 
-    archivedChartInfo?: ArchivedChartOrArchivePageMeta =
-        this.props.archivedChartInfo
+    archivedChartInfo?: ArchiveContext = this.props.archivedChartInfo
 
     selection =
         this.manager?.selection ??
@@ -2649,9 +2648,7 @@ export class Grapher
 
     static renderSingleGrapherOnGrapherPage(
         jsonConfig: GrapherInterface,
-        {
-            archivedChartInfo,
-        }: { archivedChartInfo?: ArchivedChartOrArchivePageMeta } = {}
+        { archivedChartInfo }: { archivedChartInfo?: ArchiveContext } = {}
     ): void {
         const container = document.getElementsByTagName("figure")[0]
         try {
