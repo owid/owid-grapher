@@ -84,10 +84,12 @@ function DimensionDropdown({
                 <span className="md-settings__dropdown-label">
                     {dimension.name}
                 </span>
-                <span className="md-settings__dropdown-current-choice">
-                    {dimension.choicesBySlug[value].name}
-                </span>
-                <FontAwesomeIcon icon={faCaretDown} />
+                <div className="md-settings__dropdown-current-choice-wrapper">
+                    <span className="md-settings__dropdown-current-choice">
+                        {dimension.choicesBySlug[value].name}
+                    </span>
+                    <FontAwesomeIcon icon={faCaretDown} />
+                </div>
             </Button>
             <Popover
                 className="md-menu"
