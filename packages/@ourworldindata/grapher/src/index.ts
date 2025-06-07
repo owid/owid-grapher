@@ -91,5 +91,9 @@ export {
     generateGrapherImageSrcSet,
     getChartTypeFromConfig,
     getChartTypeFromConfigAndQueryParams,
-} from "./chart/ChartUtils.js"
+} from "./chart/ChartUtils"
+export {
+    isValidTabQueryParam,
+    findPotentialChartTypeSiblings,
+} from "./chart/ChartTabs"
 export { GeoFeatures } from "./mapCharts/GeoFeatures"

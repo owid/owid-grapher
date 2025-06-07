@@ -3,6 +3,8 @@ import {
     GlobeConfig,
     MapRegionName,
     MapConfigInterface,
+    TimeBound,
+    EntityName,
 } from "@ourworldindata/types"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import {
@@ -11,11 +13,13 @@ import {
     updatePersistables,
     objectWithPersistablesToObject,
     deleteRuntimeAndUnchangedProps,
-    maxTimeBoundFromJSONOrPositiveInfinity,
-    maxTimeToJSON,
     trimObject,
     NoUndefinedValues,
     ToleranceStrategy,
+    maxTimeBoundFromJSONOrPositiveInfinity,
+    minTimeToJSON,
+    maxTimeToJSON,
+    minTimeBoundFromJSONOrNegativeInfinity,
 } from "@ourworldindata/utils"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
 import { DEFAULT_GLOBE_ROTATION, DEFAULT_GLOBE_ZOOM } from "./MapChartConstants"
@@ -26,13 +30,15 @@ import * as R from "remeda"
 // TODO: migrate database config & only pass legend props
 class MapConfigDefaults {
     @observable columnSlug?: ColumnSlug
-    @observable time?: number
+    @observable startTime?: TimeBound
+    @observable endTime?: TimeBound
     @observable timeTolerance?: number
     @observable toleranceStrategy?: ToleranceStrategy
     @observable hideTimeline?: boolean
 
     @observable region = MapRegionName.World
     @observable selection = new MapSelectionArray()
+    @observable hoverCountry?: EntityName // shared across facets
 
     @observable globe: GlobeConfig = {
         isActive: false,
@@ -49,13 +55,14 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
     updateFromObject(obj: Partial<MapConfigInterface>): void {
         updatePersistables(this, obj)
 
-        if (obj.time)
-            this.time = maxTimeBoundFromJSONOrPositiveInfinity(obj.time)
+        this.endTime = maxTimeBoundFromJSONOrPositiveInfinity(obj.endTime)
 
-        // If the region is set, automatically switch to the globe
-        if (obj.region && obj.region !== MapRegionName.World) {
-            // Setting this.globe.isActive directly sometimes gives a MobX error
-            this.globe = { ...this.globe, isActive: true }
+        if (obj.startTime) {
+            this.startTime = minTimeBoundFromJSONOrNegativeInfinity(
+                obj.startTime
+            )
+        } else {
+            this.startTime = this.endTime
         }
 
         // Map [lat, lon] to the internally used [lon, lat]
@@ -75,16 +82,13 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
         const obj = objectWithPersistablesToObject(this) as MapConfigInterface
         deleteRuntimeAndUnchangedProps(obj, new MapConfigDefaults())
 
-        if (obj.time) obj.time = maxTimeToJSON(this.time) as any
+        if (obj.startTime) obj.startTime = minTimeToJSON(this.startTime) as any
+        if (obj.endTime) obj.endTime = maxTimeToJSON(this.endTime) as any
 
         // persist selection
         obj.selectedEntityNames = this.selection.selectedEntityNames
         // @ts-expect-error hack to prevent selection from being persisted
         delete obj.selection
-
-        // if a continent is given, then it defines the globe rotation & zoom,
-        // so there is no need to also persist the globe settings
-        if (obj.region && obj.region !== MapRegionName.World) delete obj.globe
 
         // don't persist globe settings if the globe isn't active
         if (!obj.globe?.isActive) delete obj.globe

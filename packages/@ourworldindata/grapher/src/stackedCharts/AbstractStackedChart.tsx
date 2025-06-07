@@ -8,6 +8,7 @@ import {
     FacetStrategy,
     MissingDataStrategy,
     SeriesStrategy,
+    ChartErrorInfo,
 } from "@ourworldindata/types"
 import { BASE_FONT_SIZE, WORLD_ENTITY_NAME } from "../core/GrapherConstants"
 import {
@@ -323,12 +324,13 @@ export class AbstractStackedChart
         return this.series.flatMap((series) => series.points)
     }
 
-    @computed get failMessage(): string {
+    @computed get errorInfo(): ChartErrorInfo {
         const { yColumnSlugs } = this
-        if (!yColumnSlugs.length) return "Missing variable"
-        if (!this.series.length) return "No matching data"
-        if (!this.allStackedPoints.length) return "No matching points"
-        return ""
+        if (!yColumnSlugs.length) return { reason: "Missing variable" }
+        if (!this.series.length) return { reason: "No matching data" }
+        if (!this.allStackedPoints.length)
+            return { reason: "No matching points" }
+        return { reason: "" }
     }
 
     @computed private get colorMap(): CategoricalColorMap {

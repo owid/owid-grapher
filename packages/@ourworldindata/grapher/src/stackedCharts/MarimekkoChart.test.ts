@@ -30,10 +30,10 @@ it("can create a chart", () => {
     }
 
     const chart = new MarimekkoChart({ manager })
-    //expect(chart.failMessage).toBeTruthy()
+    //expect(chart.errorInfo.reason).toBeTruthy()
 
     // selection.addToSelection(table.sampleEntityName(5))
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(chart.series.length).toEqual(1)
     expect(chart.series[0].points.length).toEqual(5)
     expect(chart.xSeries!.points.length).toEqual(5)
@@ -66,7 +66,7 @@ it("can display a Marimekko chart correctly", () => {
     })
     const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
 
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(chart.series.length).toEqual(1)
     expect(chart.series[0].points.length).toEqual(3)
     // Y series points should be one series in order of the data
@@ -98,6 +98,7 @@ it("can display a Marimekko chart correctly", () => {
     ]
     expect(chart.series[0].points).toEqual(expectedYPoints)
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
+
     // placedItems should be in default sort order
     expect(chart.placedItems.map(roundXPosition)).toEqual([
         {
@@ -108,6 +109,7 @@ it("can display a Marimekko chart correctly", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[1],
                 },
             ],
@@ -122,6 +124,7 @@ it("can display a Marimekko chart correctly", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[0],
                 },
             ],
@@ -136,6 +139,7 @@ it("can display a Marimekko chart correctly", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[2],
                 },
             ],
@@ -178,7 +182,7 @@ it("can display two time series stacked correctly", () => {
     })
     const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
 
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(chart.series.length).toEqual(2)
     expect(chart.series[0].points.length).toEqual(3)
     expect(chart.series[1].points.length).toEqual(3)
@@ -242,12 +246,14 @@ it("can display two time series stacked correctly", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPointsFirstSeries[1],
                 },
                 {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][1],
                     seriesName: "percentBelow10USD",
+                    columnSlug: "percentBelow10USD",
                     yPoint: expectedYPointsSecondSeries[1],
                 },
             ],
@@ -262,12 +268,14 @@ it("can display two time series stacked correctly", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPointsFirstSeries[0],
                 },
                 {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][1],
                     seriesName: "percentBelow10USD",
+                    columnSlug: "percentBelow10USD",
                     yPoint: expectedYPointsSecondSeries[0],
                 },
             ],
@@ -282,12 +290,14 @@ it("can display two time series stacked correctly", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPointsFirstSeries[2],
                 },
                 {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][1],
                     seriesName: "percentBelow10USD",
+                    columnSlug: "percentBelow10USD",
                     yPoint: expectedYPointsSecondSeries[2],
                 },
             ],
@@ -328,7 +338,7 @@ it("can do sorting", () => {
         bounds: new Bounds(0, 0, 1000, 1000),
     })
 
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(chart.series.length).toEqual(1)
     expect(chart.series[0].points.length).toEqual(3)
     // Y series points should be one series in order of the data
@@ -372,6 +382,7 @@ it("can do sorting", () => {
                         kind: BarShape.Bar,
                         color: DefaultColorScheme.colorSets[0][0],
                         seriesName: "percentBelow2USD",
+                        columnSlug: "percentBelow2USD",
                         yPoint: expectedYPoints[1],
                     },
                 ],
@@ -388,6 +399,7 @@ it("can do sorting", () => {
                         kind: BarShape.Bar,
                         color: DefaultColorScheme.colorSets[0][0],
                         seriesName: "percentBelow2USD",
+                        columnSlug: "percentBelow2USD",
                         yPoint: expectedYPoints[0],
                     },
                 ],
@@ -404,6 +416,7 @@ it("can do sorting", () => {
                         kind: BarShape.Bar,
                         color: DefaultColorScheme.colorSets[0][0],
                         seriesName: "percentBelow2USD",
+                        columnSlug: "percentBelow2USD",
                         yPoint: expectedYPoints[2],
                     },
                 ],
@@ -484,7 +497,7 @@ it("can filter years correctly", () => {
     const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
     //grapher.startHandleTimeBound = 2000
 
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(chart.series.length).toEqual(1)
     expect(chart.series[0].points.length).toEqual(3)
     // Y series points should be one series in order of the data
@@ -526,6 +539,7 @@ it("can filter years correctly", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[1],
                 },
             ],
@@ -540,6 +554,7 @@ it("can filter years correctly", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[0],
                 },
             ],
@@ -554,6 +569,7 @@ it("can filter years correctly", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[2],
                 },
             ],
@@ -593,7 +609,7 @@ it("shows no data points at the end", () => {
     })
     const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
 
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(chart.series.length).toEqual(1)
     expect(chart.series[0].points.length).toEqual(2)
     // Y series points should be one series in order of the data. Medium should be missing here
@@ -629,6 +645,7 @@ it("shows no data points at the end", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[0],
                 },
             ],
@@ -643,6 +660,7 @@ it("shows no data points at the end", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[1],
                 },
             ],
@@ -693,7 +711,7 @@ test("interpolation works as expected", () => {
     })
     const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
 
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(chart.series.length).toEqual(1)
     expect(chart.series[0].points.length).toEqual(3)
     // Y series points should be one series in order of the data
@@ -736,6 +754,7 @@ test("interpolation works as expected", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[0],
                 },
             ],
@@ -750,6 +769,7 @@ test("interpolation works as expected", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[1],
                 },
             ],
@@ -764,6 +784,7 @@ test("interpolation works as expected", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[2],
                 },
             ],
@@ -805,7 +826,7 @@ it("can deal with y columns with missing values", () => {
     const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
     //grapher.startHandleTimeBound = 2000
 
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(chart.series.length).toEqual(2)
     expect(chart.series[0].points.length).toEqual(3)
     expect(chart.series[1].points.length).toEqual(2)
@@ -871,12 +892,14 @@ it("can deal with y columns with missing values", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints1[0],
                 },
                 {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][1],
                     seriesName: "percentBelow10USD",
+                    columnSlug: "percentBelow10USD",
                     yPoint: expectedYPoints2[0],
                 },
             ],
@@ -890,12 +913,14 @@ it("can deal with y columns with missing values", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints1[2],
                 },
                 {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][1],
                     seriesName: "percentBelow10USD",
+                    columnSlug: "percentBelow10USD",
                     yPoint: expectedYPoints2[1],
                 },
             ],
@@ -909,6 +934,7 @@ it("can deal with y columns with missing values", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints1[1],
                 },
             ],

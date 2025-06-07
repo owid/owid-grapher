@@ -111,11 +111,21 @@ export class ControlsRow extends Component<{
                         <MapRegionDropdown manager={this.manager} />
                         <GlobeSwitcher manager={this.manager} />
                         <EntitySelectionToggle manager={this.manager} />
+                        <SettingsMenu
+                            manager={this.manager}
+                            top={this.props.settingsMenuTop ?? 0}
+                            bottom={this.framePaddingVertical}
+                            right={
+                                this.sidePanelWidth +
+                                this.framePaddingHorizontal
+                            }
+                        />
                     </>
                 ) : (
                     <>
                         <MapCountryDropdown manager={this.manager} />
                         <CloseGlobeViewButton manager={this.manager} />
+                        {/* Todo: render here as well? */}
                     </>
                 )}
             </div>

@@ -35,7 +35,6 @@ import { HeaderManager } from "../header/HeaderManager"
 import { SelectionArray } from "../selection/SelectionArray"
 import {
     EntityName,
-    GRAPHER_CHART_TYPES,
     RelatedQuestionsConfig,
     Color,
     GrapherTabName,
@@ -54,6 +53,7 @@ import {
     ControlsRowManager,
 } from "../controls/controlsRow/ControlsRow"
 import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
+import { FacetMap } from "../facetMap/FacetMap.js"
 
 export interface CaptionedChartManager
     extends ChartManager,
@@ -190,15 +190,12 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         const { manager } = this
         if (manager.isOnTableTab) return undefined
         if (manager.isOnMapTab) return GRAPHER_MAP_TYPE
-        if (manager.isOnChartTab) {
-            return manager.isLineChartThatTurnedIntoDiscreteBarActive
-                ? GRAPHER_CHART_TYPES.DiscreteBar
-                : manager.activeChartType
-        }
+        if (manager.isOnChartTab) return manager.activeChartType
+
         return undefined
     }
 
-    renderChart(): React.ReactElement | void {
+    renderReadyChartOrMap(): React.ReactElement | void {
         const {
             manager,
             boundsForChartArea: bounds,
@@ -209,17 +206,14 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
 
         if (!activeChartOrMapType) return
 
-        // Todo: make FacetChart a chart type name?
-        const activeChartType =
-            activeChartOrMapType !== GRAPHER_MAP_TYPE
-                ? activeChartOrMapType
-                : undefined
-        if (isFaceted && activeChartType)
-            return (
+        if (isFaceted)
+            return activeChartOrMapType === GRAPHER_MAP_TYPE ? (
+                <FacetMap bounds={bounds} manager={manager} />
+            ) : (
                 <FacetChart
                     bounds={bounds}
-                    chartTypeName={activeChartType}
                     manager={manager}
+                    chartTypeName={activeChartOrMapType}
                 />
             )
 
@@ -348,7 +342,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 >
                     {this.patterns}
                     {this.manager.isReady
-                        ? this.renderChart()
+                        ? this.renderReadyChartOrMap()
                         : this.renderLoadingIndicator()}
                 </svg>
             </div>
@@ -592,7 +586,9 @@ export class StaticCaptionedChart extends CaptionedChart {
                      We cannot render a table to svg, but would rather display nothing at all to avoid issues.
                      See https://github.com/owid/owid-grapher/issues/3283
                     */}
-                    {this.manager.isOnTableTab ? undefined : this.renderChart()}
+                    {this.manager.isOnTableTab
+                        ? undefined
+                        : this.renderReadyChartOrMap()}
                 </g>
                 <StaticFooter
                     manager={manager}

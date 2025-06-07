@@ -28,10 +28,10 @@ it("can create a chart", () => {
     }
 
     const chart = new StackedDiscreteBarChart({ manager })
-    expect(chart.failMessage).toBeTruthy()
+    expect(chart.errorInfo.reason).toBeTruthy()
 
     selection.addToSelection(table.sampleEntityName(5))
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(chart.series.length).toEqual(2)
     expect(chart.series[0].points.length).toEqual(5)
 })
@@ -55,7 +55,7 @@ it("can display a StackedDiscreteBar chart in relative mode", () => {
     const chart = new StackedDiscreteBarChart({ manager })
 
     // Check that our absolute values get properly transformed into percentages
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(chart.series.length).toEqual(2)
     expect(chart.series[0].points).toEqual([
         {
@@ -109,7 +109,7 @@ it("can display a chart with missing variable data for some entities", () => {
     const chart = new StackedDiscreteBarChart({ manager })
 
     // Check that our absolute values get properly transformed into percentages
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(
         chart.transformTableForSelection(table).availableEntityNames
     ).toEqual(["France", "Spain"])
@@ -169,7 +169,7 @@ it("can display a chart with missing variable data for some entities, while hidi
     const chart = new StackedDiscreteBarChart({ manager })
 
     // Check that our absolute values get properly transformed into percentages
-    expect(chart.failMessage).toEqual("")
+    expect(chart.errorInfo.reason).toEqual("")
     expect(
         chart.transformTableForSelection(table).availableEntityNames
     ).toEqual(["Italy"])

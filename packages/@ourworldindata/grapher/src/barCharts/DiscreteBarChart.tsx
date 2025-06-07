@@ -29,6 +29,7 @@ import {
     CoreValueType,
     ColorSchemeName,
     VerticalAlign,
+    ChartErrorInfo,
 } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
@@ -526,12 +527,12 @@ export class DiscreteBarChart
     }
 
     render(): React.ReactElement {
-        if (this.failMessage)
+        if (this.errorInfo.reason)
             return (
                 <NoDataModal
                     manager={this.manager}
                     bounds={this.bounds}
-                    message={this.failMessage}
+                    message={this.errorInfo.reason}
                 />
             )
 
@@ -548,17 +549,18 @@ export class DiscreteBarChart
         )
     }
 
-    @computed get failMessage(): string {
+    @computed get errorInfo(): ChartErrorInfo {
         const column = this.yColumns[0]
 
-        if (!column) return "No column to chart"
+        if (!column) return { reason: "No column to chart" }
 
-        if (!this.selectionArray.hasSelection) return `No data selected`
+        if (!this.selectionArray.hasSelection)
+            return { reason: "No data selected" }
 
         // TODO is it better to use .series for this check?
         return this.yColumns.every((col) => col.isEmpty)
-            ? "No matching data"
-            : ""
+            ? { reason: "No matching data" }
+            : { reason: "" }
     }
 
     formatValue(series: DiscreteBarSeries): Label {
@@ -592,6 +594,7 @@ export class DiscreteBarChart
     }
 
     @computed private get colorColumnSlug(): string | undefined {
+        // Discrete bar charts support categorical and numeric variables as color dimension
         return this.manager.colorColumnSlug
     }
 
@@ -710,12 +713,12 @@ export class DiscreteBarChart
     }
 
     @computed private get colorScheme(): ColorScheme {
-        // We used to choose owid-distinct here as the default if this is a collapsed line chart but
-        // as part of the color revamp in Autumn 2022 we decided to make bar charts always default to
-        // an all-blue color scheme (singleColorDenim).
         const defaultColorScheme = this.defaultBaseColorScheme
         const colorScheme = this.manager.baseColorScheme ?? defaultColorScheme
-        return this.manager.isOnLineChartTab
+
+        // Don't reuse the line chart's color scheme (typically owid-distinct)
+        // and use the default color scheme instead (single color)
+        return this.manager.hasLineChart
             ? ColorSchemes.get(defaultColorScheme)
             : ColorSchemes.get(colorScheme)
     }

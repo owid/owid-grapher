@@ -19,6 +19,11 @@ export enum TooltipFooterIcon {
     none = "none",
 }
 
+export interface FooterItem {
+    icon: TooltipFooterIcon
+    text: string
+}
+
 export interface TooltipProps {
     id: number | string
     x?: number
@@ -31,7 +36,7 @@ export interface TooltipProps {
     titleAnnotation?: string // rendered next to the title, but muted
     subtitle?: string | number // header deck
     subtitleFormat?: "notice" | "unit" // optional postprocessing for subtitle
-    footer?: { icon: TooltipFooterIcon; text: string }[]
+    footer?: FooterItem[]
     style?: React.CSSProperties // css overrides (particularly width/maxWidth)
     dissolve?: TooltipFadeMode // flag that the tooltip should begin fading out
     tooltipManager: TooltipManager

@@ -39,6 +39,7 @@ import {
     ChoroplethSeriesByName,
     ChoroplethMapManager,
     MAP_CHART_CLASSNAME,
+    MAP_REGION_LABELS,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale } from "../color/ColorScale"
@@ -59,6 +60,7 @@ import {
     InteractionState,
     MapRegionName,
     SeriesName,
+    ChartErrorInfo,
 } from "@ourworldindata/types"
 import { autoDetectYColumnSlugs, makeClipPath } from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -67,7 +69,7 @@ import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
 import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
-import { isOnTheMap } from "./MapHelpers.js"
+import { getCountriesByRegion, isOnTheMap } from "./MapHelpers.js"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 
 interface MapChartProps {
@@ -75,6 +77,9 @@ interface MapChartProps {
     manager: MapChartManager
     containerElement?: HTMLDivElement
 }
+
+const PADDING_BETWEEN_MAP_AND_LEGEND = 8
+const PADDING_BELOW_LEGEND = 4
 
 @observer
 export class MapChart
@@ -84,9 +89,6 @@ export class MapChart
         HorizontalColorLegendManager,
         ChoroplethMapManager
 {
-    /** The id of the currently hovered feature/country */
-    @observable hoverFeatureId?: string
-
     /**
      * The currently hovered map bracket.
      *
@@ -98,14 +100,24 @@ export class MapChart
 
     transformTable(table: OwidTable): OwidTable {
         if (!table.has(this.mapColumnSlug)) return table
-        const transformedTable = this.dropNonMapEntities(table)
+
+        table = this.dropNonMapEntities(table)
             .dropRowsWithErrorValuesForColumn(this.mapColumnSlug)
             .interpolateColumnWithTolerance(
                 this.mapColumnSlug,
                 this.mapConfig.timeTolerance,
                 this.mapConfig.toleranceStrategy
             )
-        return transformedTable
+
+        if (this.manager.targetTime !== undefined) {
+            table = table.filterByTargetTimes(
+                [this.manager.targetTime],
+                this.mapConfig.timeTolerance ??
+                    table.get(this.mapColumnSlug).tolerance
+            )
+        }
+
+        return table
     }
 
     transformTableForSelection(table: OwidTable): OwidTable {
@@ -130,12 +142,41 @@ export class MapChart
     }
 
     private dropNonMapEntitiesForSelection(table: OwidTable): OwidTable {
-        const { selectionArray } = this
+        const { selectionArray, mapConfig } = this
 
         const allMappableCountryNames = mappableCountries.map((c) => c.name)
         const allRegionNames = regions
             .filter((r) => checkHasMembers(r) && r.code !== "OWID_WRL")
             .map((r) => r.name)
+
+        const is2dContinentActive =
+            mapConfig.region !== MapRegionName.World &&
+            !mapConfig.globe.isActive
+
+        if (is2dContinentActive) {
+            const countriesInRegion = getCountriesByRegion(
+                MAP_REGION_LABELS[mapConfig.region]
+            )
+            if (!countriesInRegion) return table
+            // filter by selected
+            const keepCountries =
+                selectionArray.countryNamesForSelectedRegionsSet.size > 0
+                    ? Array.from(countriesInRegion).filter((countryName) =>
+                          selectionArray.countryNamesForSelectedRegionsSet.has(
+                              countryName
+                          )
+                      )
+                    : Array.from(countriesInRegion)
+            // todo: keep selection as well
+            return table.filterByEntityNames(
+                R.unique([
+                    // only keep countries in the region
+                    ...keepCountries,
+                    // keep the user's selection
+                    ...selectionArray.selectedEntityNames,
+                ])
+            )
+        }
 
         // if no regions are currently selected, keep all mappable countries and regions
         if (!selectionArray.hasRegions) {
@@ -195,9 +236,9 @@ export class MapChart
         return this.mapConfig.selection
     }
 
-    @computed get failMessage(): string {
-        if (this.mapColumn.isMissing) return "Missing map column"
-        return ""
+    @computed get errorInfo(): ChartErrorInfo {
+        if (this.mapColumn.isMissing) return { reason: "Missing map column" }
+        return { reason: "" }
     }
 
     @computed get mapColumnSlug(): string {
@@ -217,11 +258,12 @@ export class MapChart
     }
 
     @computed private get targetTime(): number | undefined {
-        return this.manager.endTime
+        return this.manager.targetTime ?? this.manager.endTime
     }
 
     @computed get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        const bounds = this.props.bounds ?? DEFAULT_BOUNDS
+        return bounds
     }
 
     @computed get choroplethData(): ChoroplethSeriesByName {
@@ -232,7 +274,7 @@ export class MapChart
     @action.bound onMapMouseOver(feature: GeoFeature): void {
         if (feature.id !== undefined) {
             const featureId = feature.id as string
-            this.hoverFeatureId = featureId
+            this.mapConfig.hoverCountry = featureId
             this.tooltipState.target = { featureId }
             this.manager.logGrapherInteractionEvent?.(
                 "map_country_hover",
@@ -249,7 +291,7 @@ export class MapChart
     }
 
     @action.bound onMapMouseLeave(): void {
-        this.hoverFeatureId = undefined
+        this.mapConfig.hoverCountry = undefined
         this.tooltipState.target = null
     }
 
@@ -270,7 +312,7 @@ export class MapChart
     }
 
     @action.bound resetMapRegionDropdownValue(): void {
-        this.manager.mapRegionDropdownValue = undefined
+        this.manager.resetMapRegionDropdownValue?.()
     }
 
     componentWillUnmount(): void {
@@ -360,6 +402,30 @@ export class MapChart
         )
     }
 
+    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+        const {
+            numericLegendData,
+            categoricalLegendData,
+            categoryLegendHeight,
+            numericLegendHeight,
+        } = this
+
+        if (!this.manager.showLegend) {
+            return {
+                // legendTitle: this.legendTitle,
+                // legendTextColor: this.legendTextColor,
+                // legendTickSize: this.legendTickSize,
+                // numericBinSize: this.numericBinSize,
+                // numericBinStroke: this.numericBinStroke,
+                // numericBinStrokeWidth: this.numericBinStrokeWidth,
+                legendHeight: categoryLegendHeight + numericLegendHeight,
+                numericLegendData,
+                categoricalLegendData,
+            }
+        }
+        return undefined
+    }
+
     defaultBaseColorScheme = ColorSchemeName.BuGn
     hasNoDataBin = true
 
@@ -367,6 +433,7 @@ export class MapChart
         // hide the globe on hitting the Escape key
         if (e.key === "Escape" && this.mapConfig.globe.isActive) {
             this.globeController.hideGlobe()
+            this.mapConfig.region = MapRegionName.World
         }
     }
 
@@ -399,25 +466,27 @@ export class MapChart
 
     /** The value of the currently hovered feature/country */
     @computed get hoverValue(): string | number | undefined {
-        if (!this.hoverFeatureId) return undefined
+        if (!this.mapConfig.hoverCountry) return undefined
 
-        const series = this.choroplethData.get(this.hoverFeatureId)
+        const series = this.choroplethData.get(this.mapConfig.hoverCountry)
         if (!series) return "No data"
 
         return series.value
     }
 
     private isHovered(featureId: string): boolean {
-        const { mapConfig, hoverFeatureId, hoverBracket } = this
+        const { mapConfig, hoverBracket } = this
+        const { externalLegendHoverBin } = this.manager
 
         if (mapConfig.globe.focusCountry === featureId) return true
 
-        if (hoverFeatureId === featureId) return true
-        else if (!hoverBracket) return false
+        if (mapConfig.hoverCountry === featureId) return true
 
         const series = this.choroplethData.get(featureId)
-        if (hoverBracket.contains(series?.value)) return true
-        else return false
+        if (hoverBracket?.contains(series?.value)) return true
+        if (externalLegendHoverBin?.contains(series?.value)) return true
+
+        return false
     }
 
     isSelected(featureId: string): boolean {
@@ -428,7 +497,9 @@ export class MapChart
         const isHovered = this.isHovered(featureId)
         return {
             active: isHovered,
-            background: !!this.hoverBracket && !isHovered,
+            background:
+                !!(this.hoverBracket || this.manager.externalLegendHoverBin) &&
+                !isHovered,
         }
     }
 
@@ -441,7 +512,12 @@ export class MapChart
     }
 
     @computed get choroplethMapBounds(): Bounds {
-        return this.bounds.padBottom(this.legendHeight + 4)
+        return this.bounds
+            .padBottom(this.legendHeight)
+            .padBottom(
+                this.manager.showLegend ? PADDING_BETWEEN_MAP_AND_LEGEND : 0
+            )
+            .padBottom(this.manager.showLegend ? PADDING_BELOW_LEGEND : 0)
     }
 
     @computed get region(): MapRegionName {
@@ -498,20 +574,19 @@ export class MapChart
     }
 
     @computed get numericHoverBracket(): ColorScaleBin | undefined {
-        const { hoverBracket, hoverValue } = this
-        const { numericLegendData } = this
+        const { hoverBracket, hoverValue, numericLegendData } = this
+        const { externalLegendHoverBin } = this.manager
 
         if (hoverBracket) return hoverBracket
 
         if (hoverValue !== undefined)
             return numericLegendData.find((bin) => bin.contains(hoverValue))
 
-        return undefined
+        return externalLegendHoverBin
     }
 
     @computed get categoricalHoverBracket(): CategoricalBin | undefined {
-        const { hoverBracket, hoverValue } = this
-        const { categoricalLegendData } = this
+        const { hoverBracket, hoverValue, categoricalLegendData } = this
 
         if (hoverBracket && hoverBracket instanceof CategoricalBin)
             return hoverBracket
@@ -547,7 +622,8 @@ export class MapChart
     }
 
     @computed get legendHeight(): number {
-        return this.categoryLegendHeight + this.numericLegendHeight + 10
+        if (!this.manager.showLegend) return 0
+        return this.categoryLegendHeight + this.numericLegendHeight
     }
 
     @computed get numericLegendHeight(): number {
@@ -555,7 +631,7 @@ export class MapChart
     }
 
     @computed get categoryLegendHeight(): number {
-        return this.categoryLegend ? this.categoryLegend.height + 5 : 0
+        return this.categoryLegend ? this.categoryLegend.height : 0
     }
 
     @computed get categoryLegend():
@@ -573,10 +649,12 @@ export class MapChart
     }
 
     @computed get categoryLegendY(): number {
-        const { categoryLegend, bounds, categoryLegendHeight } = this
-
-        if (categoryLegend) return bounds.bottom - categoryLegendHeight
-        return 0
+        if (!this.categoryLegend) return 0
+        return (
+            this.bounds.bottom -
+            this.categoryLegend.height -
+            PADDING_BELOW_LEGEND
+        )
     }
 
     @computed get legendAlign(): HorizontalAlign {
@@ -584,18 +662,15 @@ export class MapChart
     }
 
     @computed get numericLegendY(): number {
-        const {
-            numericLegend,
-            numericLegendHeight,
-            bounds,
-            categoryLegendHeight,
-        } = this
-
-        if (numericLegend)
-            return (
-                bounds.bottom - categoryLegendHeight - numericLegendHeight - 4
-            )
-        return 0
+        if (!this.numericLegend) return 0
+        return (
+            this.bounds.bottom -
+            this.numericLegendHeight -
+            // If present, the category legend is placed below the numeric legend
+            (this.categoryLegend
+                ? this.categoryLegendHeight
+                : PADDING_BELOW_LEGEND)
+        )
     }
 
     @computed get isStatic(): boolean {
@@ -610,8 +685,11 @@ export class MapChart
         return makeClipPath(this.renderUid, this.choroplethMapBounds)
     }
 
-    renderMapLegend(): React.ReactElement {
+    renderMapLegend(): React.ReactElement | null {
         const { numericLegend, categoryLegend } = this
+
+        // todo: adjust bounds etc
+        if (!this.manager.showLegend) return null
 
         return (
             <>
@@ -682,6 +760,13 @@ export class MapChart
                 className={MAP_CHART_CLASSNAME}
                 onMouseMove={this.onMapMouseMove}
             >
+                {/* <rect {...this.bounds.toProps()} fill="none" stroke="black" />
+                <rect
+                    {...this.choroplethMapBounds.toProps()}
+                    fill="none"
+                    stroke="red"
+                /> */}
+                {/* <rect {...this.bounds.toProps()} stroke="black" fill="none" /> */}
                 {this.renderMapOrGlobe()}
                 {this.renderMapLegend()}
                 {tooltipCountry && (
@@ -689,14 +774,13 @@ export class MapChart
                         entityName={tooltipCountry}
                         position={tooltipState.position}
                         fading={tooltipState.fading}
-                        timeSeriesTable={this.inputTable}
                         formatValueIfCustom={this.formatTooltipValueIfCustom}
                         manager={this.manager}
                         lineColorScale={this.colorScale}
                         targetTime={this.targetTime}
                         sparklineWidth={sparklineWidth}
                         dismissTooltip={() => {
-                            this.hoverFeatureId = undefined
+                            this.mapConfig.hoverCountry = undefined
                             this.tooltipState.target = null
                             this.globeController.dismissCountryFocus()
                         }}
@@ -707,12 +791,12 @@ export class MapChart
     }
 
     render(): React.ReactElement {
-        if (this.failMessage)
+        if (this.errorInfo.reason)
             return (
                 <NoDataModal
                     manager={this.manager}
                     bounds={this.props.bounds}
-                    message={this.failMessage}
+                    message={this.errorInfo.reason}
                 />
             )
 

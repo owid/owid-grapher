@@ -37,6 +37,7 @@ import {
     EntityName,
     OwidVariableRow,
     VerticalAlign,
+    ChartErrorInfo,
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import {
@@ -445,7 +446,8 @@ export class MarimekkoChart
     }
 
     @computed private get colorColumnSlug(): string | undefined {
-        return this.manager.colorColumnSlug
+        // Marimekko charts only support categorical variables as color dimension
+        return this.manager.categoricalColorColumnSlug
     }
 
     @computed private get colorColumn(): CoreColumn {
@@ -723,6 +725,7 @@ export class MarimekkoChart
                                 yPoint: point,
                                 color: series.color,
                                 seriesName: series.seriesName,
+                                columnSlug: series.columnSlug,
                             }
                         })
                     ),
@@ -905,12 +908,12 @@ export class MarimekkoChart
     }
 
     render(): React.ReactElement {
-        if (this.failMessage)
+        if (this.errorInfo.reason)
             return (
                 <NoDataModal
                     manager={this.manager}
                     bounds={this.bounds}
-                    message={this.failMessage}
+                    message={this.errorInfo.reason}
                 />
             )
 
@@ -920,7 +923,7 @@ export class MarimekkoChart
             dualAxis,
             tooltipItem,
             xColumn,
-            formatColumn: yColumn,
+            yColumns,
             manager: { endTime, xOverrideTime },
             inputTable: { timeColumn },
             tooltipState: { target, position, fading },
@@ -937,6 +940,7 @@ export class MarimekkoChart
                 return {
                     name: bar.seriesName,
                     value: bar.yPoint.value,
+                    column: this.transformedTable.get(bar.columnSlug),
                     notice: shouldShowYTimeNotice ? bar.yPoint.time : undefined,
                 }
             }) ?? []
@@ -959,7 +963,7 @@ export class MarimekkoChart
               }
             : undefined
 
-        const columns = excludeUndefined([xColumn, yColumn])
+        const columns = excludeUndefined([xColumn, ...yColumns])
         const allRoundedToSigFigs = columns.every(
             (column) => column.roundsToSignificantFigures
         )
@@ -1025,10 +1029,10 @@ export class MarimekkoChart
                         dissolve={fading}
                         dismiss={() => (this.tooltipState.target = null)}
                     >
-                        {yValues.map(({ name, value, notice }) => (
+                        {yValues.map(({ name, value, column, notice }) => (
                             <TooltipValue
                                 key={name}
-                                column={yColumn}
+                                column={column}
                                 value={value}
                                 notice={notice}
                                 showSignificanceSuperscript={superscript}
@@ -1716,12 +1720,14 @@ export class MarimekkoChart
         })
     }
 
-    @computed get failMessage(): string {
+    @computed get errorInfo(): ChartErrorInfo {
         const column = this.yColumns[0]
         const { yColumns } = this
 
-        if (!column) return "No Y column to chart"
+        if (!column) return { reason: "No Y column to chart" }
 
-        return yColumns.every((col) => col.isEmpty) ? "No matching data" : ""
+        return yColumns.every((col) => col.isEmpty)
+            ? { reason: "No matching data" }
+            : { reason: "" }
     }
 }

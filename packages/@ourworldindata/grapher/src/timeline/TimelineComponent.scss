@@ -1,12 +1,14 @@
 $timelineHeight: 32px;
 
 .timeline-component {
+    // start and end handles
+    $default-knob: $gray-60;
+    $active-knob: $blue-50;
+
     // timeline slider and interval
     $light-timeline: $gray-20;
     $active-timeline: $blue-30;
-
-    // end handle
-    $active-knob: $blue-50;
+    $hover-timeline: $default-knob;
 
     // start/end year label
     $light-fill: $gray-10;
@@ -73,12 +75,20 @@ $timelineHeight: 32px;
         cursor: col-resize;
         padding: 10px $handleSidePadding;
 
+        &.hoverMarker {
+            cursor: pointer;
+
+            > .icon {
+                background: $default-knob;
+            }
+        }
+
         > .icon {
             height: $handle-diameter;
             width: $handle-diameter;
             border-radius: 100%;
 
-            background: $gray-60;
+            background: $default-knob;
             border: 2px solid #fff;
             z-index: 1;
             pointer-events: none;
@@ -126,6 +136,10 @@ $timelineHeight: 32px;
         &:active {
             cursor: grabbing;
         }
+
+        &.interval-hover {
+            background: $hover-timeline;
+        }
     }
 
     .handle,
@@ -137,8 +151,11 @@ $timelineHeight: 32px;
 
     &.hover {
         .handle > .icon {
-            background: $active-knob;
             transform: scale(1.3);
+        }
+
+        .handle:not(.hoverMarker) > .icon {
+            background: $active-knob;
         }
     }
 }
