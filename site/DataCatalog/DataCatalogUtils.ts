@@ -7,7 +7,7 @@ import { getIndexName } from "../search/searchClient.js"
 import { ChartRecordType, SearchIndexName } from "../search/searchTypes.js"
 import { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
 import { DataCatalogState } from "./DataCatalogState.js"
-import { countriesByName, Region } from "@ourworldindata/utils"
+import { countriesByName, FuzzySearch, Region } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
 
 /**
@@ -262,4 +262,38 @@ export async function querySearch(
     return searchClient
         .search<IDataCatalogHit>(searchParams)
         .then(formatAlgoliaSearchResponse)
+}
+
+export function useAutocomplete(
+    query: string,
+    allTopics: string[],
+    appliedFilters: {
+        selectedCountryNames: Set<string>
+        selectedTopics: Set<string>
+    }
+): { name: string; type: "country" | "topic" }[] {
+    const sortOptions = {
+        threshold: 0.5,
+        limit: 3,
+    }
+    const allCountries = countriesByName()
+    const allCountryNames = Object.values(allCountries).map(
+        (country) => country.name
+    )
+    const lastWord = query.split(" ").at(-1) ?? ""
+    const countries = FuzzySearch.withKey(
+        allCountryNames,
+        (country) => country,
+        sortOptions
+    )
+        .search(lastWord)
+        .filter((country) => !appliedFilters.selectedCountryNames.has(country))
+        .map((name) => ({ name, type: "country" as const }))
+    const tags = FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
+        .search(lastWord)
+        .slice(0, 3)
+        .filter((topic) => !appliedFilters.selectedTopics.has(topic))
+        .map((name) => ({ name, type: "topic" as const }))
+
+    return [...countries, ...tags]
 }
