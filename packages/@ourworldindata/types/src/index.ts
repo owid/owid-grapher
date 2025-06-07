@@ -134,6 +134,7 @@ export {
     type InteractionState,
     type MapConfigInterface,
     type GlobeConfig,
+    type ChartErrorInfo,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {

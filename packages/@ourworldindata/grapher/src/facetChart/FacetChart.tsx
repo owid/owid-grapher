@@ -31,6 +31,7 @@ import {
     SeriesColorMap,
     SeriesStrategy,
     AxisConfigInterface,
+    ChartErrorInfo,
 } from "@ourworldindata/types"
 import {
     ChartComponentClassMap,
@@ -148,8 +149,8 @@ export class FacetChart
         return !!this.manager.isStatic
     }
 
-    @computed get failMessage(): string {
-        return ""
+    @computed get errorInfo(): ChartErrorInfo {
+        return { reason: "" }
     }
 
     @computed private get bounds(): Bounds {
