@@ -7,7 +7,7 @@
     "packageManager": "yarn@4.6.0",
     "scripts": {
         "batchTagWithGpt": "tsx --tsconfig tsconfig.tsx.json baker/batchTagWithGpt.ts",
-        "buildArchive": "tsx --tsconfig tsconfig.tsx.json baker/archival/archiveChangedGrapherPages.ts",
+        "buildArchive": "tsx --tsconfig tsconfig.tsx.json baker/archival/archiveChangedPages.ts",
         "buildLocalBake": "tsx --tsconfig tsconfig.tsx.json baker/buildLocalBake.ts",
         "buildTsc": "tsc -b -verbose",
         "buildLerna": "lerna run build",

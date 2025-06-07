@@ -12,6 +12,7 @@ flowchart TD
         assets["JS & CSS files<br><br><code>/assets/owid.HASH.mjs</code><br><code>/assets/owid.HASH.css</code>"]
   end
  subgraph runtime["Runtime assets"]
+        configs["Mdim grapher configs<br><br><code>/grapher/by-uuid/UUID.HASH.config.json</code>"]
         vars["Variable data &amp; metadata files<br><br><code>/api/v1/indicators/VARID.HASH.data.json</code><br><code>/api/v1/indicators/VARID.HASH.metadata.json</code>"]
         dods["Details on demand<br><br><code>/assets/dods.HASH.json</code>"]
         versions["Versions files<br><br><code>/versions/charts/CHARTID.json</code>"]
@@ -28,6 +29,7 @@ flowchart TD
 Legend:
 
 - all routes are relative to origin, i.e. `/api/v1/indicators` would be archive.ourworldindata.org/api/v1/indicators
+- `UUID` is a chart config UUID, e.g. 019542db-2a01-77c3-9f7c-5dfd23e39454
 - `VARID` is a variable ID, e.g. 953899
 - `CHARTID` is a chart ID, e.g. 64
 - `HASH` is always a content hash, i.e. it is a hash of the file content
@@ -40,7 +42,7 @@ Legend:
 
 - Static assets are those where the path _only_ needs to be known at bake-time, but not at runtime. Those are the JS & CSS files, where we need to put the correct path into the `<script>` and `<link rel="stylesheet">` tags, so they can be loaded correctly.
     - In code, search for `staticAssetMap`.
-- Runtime assets are those that are fetched dynamically somewhere in our code. This includes variable files and DoDs. It also includes a special kind of file only generated for archived pages, the version file.
+- Runtime assets are those that are fetched dynamically somewhere in our code. This includes mdim grapher configs, variable files, and DoDs. It also includes a special kind of file only generated for archived pages, the version file.
     - Here, it's important that all calling sites in our code know that they need to alter their fetch requests to get the correct, archived runtime asset.
     - In code, search for `runtimeAssetMap` or `readFromAssetMap`.
 - The special versions file contains all the archived versions for a single grapher chart. It is mainly used to power the "Go to next version" button in the archive navigation bar, which we need to resolve at runtime because we're not aware of the next version at bake time (because the next version doesn't exist yet at bake time).
@@ -69,11 +71,17 @@ We only **consider a grapher page changed** when one of these things happens:
 - Its grapher config checksum has been updated (DB: `chart_configs.fullMd5`)
 - At least one of its variables has been updated in some way (DB: `variables.dataChecksum` & `variables.metadataChecksum`)
 
-Every time the `archiveChangedGrapherPages` script is run, we fetch these checksums for each published grapher chart, and generate a `hashOfInputs` hash. This hash combines all of these hashes for each grapher page.
-We then match these with the `archived_chart_versions` DB table, and find any hashes that are not present in that table yet.
-These grapher pages are then the ones that will be re-archived.
+We only **consider a multi-dimensional data page (mdim) changed** when one of these things happens:
 
-The `archiveChangedGrapherPages` then takes care of re-archiving only the grapher pages that have changed since the last archival run.
+- Its multi-dim config checksum has been updated (DB: `multi_dim_data_pages.configMd5`)
+- Any of its associated chart config checksums have been updated (DB: `chart_configs.fullMd5`)
+- At least one of its variables has been updated in some way (DB: `variables.dataChecksum` & `variables.metadataChecksum`)
+
+Every time the `archiveChangedPages` script is run, we fetch these checksums for each published grapher chart and multi-dim page, and generate a `hashOfInputs` hash. This hash combines all of these hashes for each page.
+We then match these with the `archived_chart_versions` and `archived_multi_dim_versions` DB tables respectively, and find any hashes that are not present in those tables yet.
+These pages are then the ones that will be re-archived.
+
+The `archiveChangedPages` then takes care of re-archiving only the grapher pages and multi-dimensional data pages that have changed since the last archival run.
 
 The script is run in Buildkite as part of every content deploy.
 
@@ -99,9 +107,9 @@ This works as follows:
 2. It first truncates / empties the `archived_chart_versions` table.
     - This is done so we only link to archived pages for the few charts for which we actually create an archived version, see below.
 3. It then runs Vite to build the JS assets needed for the archive.
-4. Next, it runs the `yarn buildArchive` command _for just [a few, specified chart IDs](https://github.com/owid/ops/blob/cc00c3a4d91a5895e4a48bde51153f65bd0b9049/templates/owid-site-staging/create-archive.sh#L9)_.
+4. Next, it runs the `yarn buildArchive` command _for just [a few, specified chart and multiDim IDs](https://github.com/owid/ops/blob/cc00c3a4d91a5895e4a48bde51153f65bd0b9049/templates/owid-site-staging/create-archive.sh#L9)_.
     - This is done to keep the staging server build time down.
-    - These charts include one data page and one grapher page.
+    - These charts include one data page, one grapher page, and one multidimensional data page.
 5. We run step (4) again once more, so we have a second copy of the archived pages, and can test both backward and forward navigation.
 6. Lastly, after the staging server build is completed, we [serve the archive on port 8789](https://github.com/owid/ops/blob/cc00c3a4d91a5895e4a48bde51153f65bd0b9049/templates/owid-site-staging/serve-archive.sh).
     - We also link to archived pages from the auto-generated comment that `owidbot` puts on the PR.
@@ -112,7 +120,7 @@ When `ARCHIVE_BASE_URL` is set, we provide information about the latest archived
 
 This information is of the type `ArchivedChartOrArchivePageMeta`, which can be one of two things:
 
-- When in a normal (_live_) bake, this is going to be basic information about the last archived version, like its URL and date. The object has `{ type: "archived-chart-version" }`.
+- When in a normal (_live_) bake, this is going to be basic information about the last archived version, like its URL and date. The object has `{ type: "archived-page-version" }`.
 - When in an archival bake, there is extended information relevant for rendering the archived page, like the previous archived version (for backwards navigation), and also the runtime and static asset maps. The object has `{ type: "archive-page" }`.
     - In this case, you can also conveniently access this information through the `window._OWID_ARCHIVE_INFO` variable.
 

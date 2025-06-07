@@ -12,22 +12,11 @@ import {
     MultiDimDataPageConfig,
     MultiDimDimensionChoices,
 } from "@ourworldindata/utils"
-import {
-    ADMIN_BASE_URL,
-    BAKED_GRAPHER_URL,
-    DATA_API_URL,
-} from "../../settings/clientSettings.js"
+import { ArchiveContext } from "@ourworldindata/types"
 import { useElementBounds } from "../hooks.js"
 import { cachedGetGrapherConfigByUuid } from "./api.js"
 import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
-
-const baseGrapherConfig: GrapherProgrammaticInterface = {
-    bakedGrapherURL: BAKED_GRAPHER_URL,
-    adminBaseUrl: ADMIN_BASE_URL,
-    dataApiUrl: DATA_API_URL,
-    canHideExternalControlsInEmbed: true,
-    isEmbeddedInAnOwidPage: true,
-}
+import { useBaseGrapherConfig } from "./hooks.js"
 
 const analytics = new GrapherAnalytics()
 
@@ -36,15 +25,21 @@ export default function MultiDim({
     localGrapherConfig,
     slug,
     queryStr,
+    archivedChartInfo,
 }: {
     config: MultiDimDataPageConfig
     localGrapherConfig?: GrapherProgrammaticInterface
     slug: string | null
     queryStr: string
+    archivedChartInfo?: ArchiveContext
 }) {
     const grapherRef = useRef<Grapher>(null)
     const grapherContainerRef = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(grapherContainerRef)
+    const baseGrapherConfig = useBaseGrapherConfig({
+        archivedChartInfo,
+        isEmbeddedInAnOwidPage: true,
+    })
     const [manager, setManager] = useState({
         ...localGrapherConfig?.manager,
     })
@@ -118,7 +113,12 @@ export default function MultiDim({
             newGrapherParams.mapSelect = ""
         }
 
-        cachedGetGrapherConfigByUuid(newView.fullConfigId, false)
+        const assetMap =
+            archivedChartInfo?.type === "archive-page"
+                ? archivedChartInfo.assets.runtime
+                : undefined
+
+        cachedGetGrapherConfigByUuid(newView.fullConfigId, false, assetMap)
             .then((viewGrapherConfig) => {
                 if (ignoreFetchedData) return
                 const grapherConfig = {
@@ -139,7 +139,15 @@ export default function MultiDim({
         return () => {
             ignoreFetchedData = true
         }
-    }, [config, localGrapherConfig, searchParams, settings, slug])
+    }, [
+        config,
+        localGrapherConfig,
+        searchParams,
+        settings,
+        slug,
+        archivedChartInfo,
+        baseGrapherConfig,
+    ])
 
     return (
         <div className="multi-dim-container">

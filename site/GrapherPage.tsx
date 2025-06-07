@@ -17,7 +17,7 @@ import { MarkdownTextWrap } from "@ourworldindata/components"
 import {
     HIDE_IF_JS_DISABLED_CLASSNAME,
     HIDE_IF_JS_ENABLED_CLASSNAME,
-    ArchivedChartOrArchivePageMeta,
+    ArchiveContext,
 } from "@ourworldindata/types"
 import urljoin from "url-join"
 import {
@@ -41,7 +41,7 @@ export const GrapherPage = (props: {
     relatedArticles?: PostReference[]
     baseUrl: string
     baseGrapherUrl: string
-    archivedChartInfo?: ArchivedChartOrArchivePageMeta
+    archivedChartInfo?: ArchiveContext
 }) => {
     const {
         grapher,
