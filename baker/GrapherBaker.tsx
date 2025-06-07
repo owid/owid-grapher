@@ -35,8 +35,8 @@ import {
     DbRawChartConfig,
     DbEnrichedImage,
     ArchiveMetaInformation,
-    ChartArchivedVersion,
-    ArchivedChartOrArchivePageMeta,
+    ArchivedPageVersion,
+    ArchiveContext,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
@@ -58,16 +58,16 @@ import { getRelatedChartsForVariable } from "../db/model/Chart.js"
 import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
-import { ArchivalManifest } from "./archival/archivalUtils.js"
-import { getLatestChartArchivedVersions } from "./archival/archivalChecksum.js"
+import { GrapherArchivalManifest } from "./archival/archivalUtils.js"
+import { getLatestGrapherArchivedVersions } from "./archival/archivalChecksum.js"
 
 const getLatestChartArchivedVersionsIfEnabled = async (
     knex: db.KnexReadonlyTransaction,
     chartIds?: number[]
-): Promise<Record<number, ChartArchivedVersion>> => {
+): Promise<Record<number, ArchivedPageVersion>> => {
     if (!ARCHIVE_BASE_URL) return {}
 
-    return await getLatestChartArchivedVersions(knex, chartIds)
+    return await getLatestGrapherArchivedVersions(knex, chartIds)
 }
 
 const renderDatapageIfApplicable = async (
@@ -79,7 +79,7 @@ const renderDatapageIfApplicable = async (
         archivedChartInfo,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
-        archivedChartInfo?: ArchivedChartOrArchivePageMeta
+        archivedChartInfo?: ArchiveContext
     } = {}
 ) => {
     const variable = await getVariableOfDatapageIfApplicable(grapher)
@@ -122,7 +122,7 @@ export const renderDataPageOrGrapherPage = async (
         archivedChartInfo,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
-        archivedChartInfo?: ArchivedChartOrArchivePageMeta
+        archivedChartInfo?: ArchiveContext
     } = {}
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
@@ -151,7 +151,7 @@ export async function renderDataPageV2(
         useIndicatorGrapherConfigs: boolean
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
-        archivedChartInfo?: ArchivedChartOrArchivePageMeta
+        archivedChartInfo?: ArchiveContext
     },
     knex: db.KnexReadonlyTransaction
 ) {
@@ -298,7 +298,7 @@ const renderGrapherPage = async (
     {
         archivedChartInfo,
     }: {
-        archivedChartInfo?: ArchivedChartOrArchivePageMeta
+        archivedChartInfo?: ArchiveContext
     } = {}
 ) => {
     const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
@@ -340,7 +340,7 @@ export const bakeSingleGrapherPageForArchival = async (
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveInfo: ArchiveMetaInformation
-        manifest: ArchivalManifest
+        manifest: GrapherArchivalManifest
     }
 ) => {
     const outPathHtml = `${bakedSiteDir}/grapher/${grapher.slug}.html`
@@ -385,7 +385,7 @@ export interface BakeSingleGrapherChartArguments {
     bakedSiteDir: string
     slug: string
     imageMetadataDictionary: Record<string, DbEnrichedImage>
-    archivedChartInfo: ArchivedChartOrArchivePageMeta | undefined
+    archivedChartInfo: ArchiveContext | undefined
 }
 
 export const bakeSingleGrapherChart = async (

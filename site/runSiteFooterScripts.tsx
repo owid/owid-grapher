@@ -245,6 +245,15 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
             // runCookiePreferencesManager()
             void runDetailsOnDemand()
             break
+        case SiteFooterContext.multiDimDataPage:
+            hydrateMultiDimDataPageContent(isPreviewing)
+            // runAllGraphersLoadedListener()
+            runLightbox()
+            runSiteNavigation()
+            // runSiteTools()
+            // runCookiePreferencesManager()
+            void runDetailsOnDemand()
+            break
         case SiteFooterContext.grapherPage:
             runSiteNavigation()
             // runAllGraphersLoadedListener()

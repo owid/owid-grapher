@@ -6,6 +6,7 @@ import {
     IndicatorTitleWithFragments,
     OwidVariableWithSource,
 } from "../OwidVariable.js"
+import { ArchiveContext } from "../domainTypes/Archive.js"
 
 export type IndicatorConfig = Pick<OwidVariableWithSource, "id" | "display">
 type IndicatorConfigByPath = Pick<IndicatorConfig, "display"> & {
@@ -110,7 +111,7 @@ export type FaqEntryKeyedByGdocIdAndFragmentId = {
 
 export interface MultiDimDataPageProps {
     baseUrl: string
-    baseGrapherUrl: string
+    canonicalUrl: string
     slug: string | null
     configObj: MultiDimDataPageConfigEnriched
     tagToSlugMap?: Record<string, string>
@@ -119,4 +120,5 @@ export interface MultiDimDataPageProps {
     relatedResearchCandidates: DataPageRelatedResearch[]
     imageMetadata: Record<string, ImageMetadata>
     isPreviewing?: boolean
+    archivedChartInfo?: ArchiveContext
 }

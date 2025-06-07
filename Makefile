@@ -302,7 +302,7 @@ local-bake: lerna
 archive: lerna
 	@echo '==> Creating an archived version of our charts'
 	PRIMARY_ENV_FILE=.env.archive yarn buildViteArchive
-	PRIMARY_ENV_FILE=.env.archive yarn tsx --tsconfig tsconfig.tsx.json ./baker/archival/archiveChangedGrapherPages.ts --latestDir
+	PRIMARY_ENV_FILE=.env.archive yarn tsx --tsconfig tsconfig.tsx.json ./baker/archival/archiveChangedPages.ts --latestDir
 
 clean:
 	rm -rf node_modules
