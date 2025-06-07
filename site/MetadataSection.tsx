@@ -14,7 +14,7 @@ import {
     OwidSource,
     IndicatorTitleWithFragments,
     OwidProcessingLevel,
-    ArchivedChartOrArchivePageMeta,
+    ArchiveContext,
 } from "@ourworldindata/types"
 import {
     prepareSourcesForDisplay,
@@ -51,7 +51,7 @@ export default function MetadataSection({
     source?: OwidSource
     title: IndicatorTitleWithFragments
     titleVariant?: string
-    archivedChartInfo?: ArchivedChartOrArchivePageMeta
+    archivedChartInfo?: ArchiveContext
 }) {
     const sourcesForDisplay = prepareSourcesForDisplay({ origins, source })
     const citationUrl = archivedChartInfo?.archiveUrl ?? canonicalUrl
