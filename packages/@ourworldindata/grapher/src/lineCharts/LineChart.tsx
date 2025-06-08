@@ -48,6 +48,7 @@ import {
     VerticalAlign,
     InteractionState,
     ChartErrorInfo,
+    Time,
 } from "@ourworldindata/types"
 import { BASE_FONT_SIZE, GRAPHER_OPACITY_MUTE } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
@@ -558,10 +559,11 @@ export class LineChart
         return this.manager.focusArray ?? new FocusArray()
     }
 
-    @computed get activeTimes(): number[] {
-        if (this.tooltipState.target?.time)
-            return [this.tooltipState.target.time]
-        return this.manager.entityTimeHighlights?.map(({ time }) => time) ?? []
+    @computed get activeTimes(): Time[] {
+        const { highlightedTimesInLineChart = [] } = this.manager
+        return this.tooltipState.target?.time
+            ? [this.tooltipState.target.time, ...highlightedTimesInLineChart]
+            : highlightedTimesInLineChart
     }
 
     @computed get activeXVerticalLines(): React.ReactElement | null {
@@ -820,9 +822,9 @@ export class LineChart
         return !isTouchDevice() && this.series.length > 1
     }
 
-    @computed private get hasEntityYearHighlight(): boolean {
-        const { entityTimeHighlights = [] } = this.manager
-        return entityTimeHighlights.length > 0
+    @computed private get hasTimeHighlights(): boolean {
+        const { highlightedTimesInLineChart = [] } = this.manager
+        return highlightedTimesInLineChart.length > 0
     }
 
     @action.bound onDocumentClick(e: MouseEvent): void {
@@ -1051,7 +1053,7 @@ export class LineChart
                 {this.renderDualAxis()}
                 <g clipPath={this.clipPath.id}>{this.renderChartElements()}</g>
 
-                {(this.isTooltipActive || this.hasEntityYearHighlight) &&
+                {(this.isTooltipActive || this.hasTimeHighlights) &&
                     this.activeXVerticalLines}
                 {this.tooltip}
             </g>
