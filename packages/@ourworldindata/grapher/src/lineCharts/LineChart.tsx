@@ -29,7 +29,7 @@ import {
 } from "../tooltip/Tooltip"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { extent } from "d3-array"
-import { SeriesName, Time, VerticalAlign } from "@ourworldindata/types"
+import { SeriesName, VerticalAlign, Time } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -224,10 +224,11 @@ export class LineChart
         return DEFAULT_MARKER_RADIUS
     }
 
-    @computed get activeTimes(): number[] {
-        if (this.tooltipState.target?.time)
-            return [this.tooltipState.target.time]
-        return this.manager.entityTimeHighlights?.map(({ time }) => time) ?? []
+    @computed get activeTimes(): Time[] {
+        const { highlightedTimesInLineChart = [] } = this.manager
+        return this.tooltipState.target?.time
+            ? [this.tooltipState.target.time, ...highlightedTimesInLineChart]
+            : highlightedTimesInLineChart
     }
 
     @computed private get activeXVerticalLines(): React.ReactElement | null {
@@ -488,9 +489,9 @@ export class LineChart
         return !isTouchDevice() && this.series.length > 1
     }
 
-    @computed private get hasEntityTimeHighlights(): boolean {
-        const { entityTimeHighlights = [] } = this.manager
-        return entityTimeHighlights.length > 0
+    @computed private get hasTimeHighlights(): boolean {
+        const { highlightedTimesInLineChart = [] } = this.manager
+        return highlightedTimesInLineChart.length > 0
     }
 
     @action.bound private onDocumentClick(e: MouseEvent): void {
@@ -695,7 +696,7 @@ export class LineChart
                 {this.renderDualAxis()}
                 <g clipPath={this.clipPath.id}>{this.renderChartElements()}</g>
 
-                {(this.isTooltipActive || this.hasEntityTimeHighlights) &&
+                {(this.isTooltipActive || this.hasTimeHighlights) &&
                     this.activeXVerticalLines}
                 {this.tooltip}
             </g>
