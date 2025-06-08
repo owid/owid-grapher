@@ -101,13 +101,8 @@ export class MapSparkline extends React.Component<{
                     : ""
                 : ""
 
-        const entityTimeHighlights = this.manager.datum
-            ? [
-                  {
-                      entityName: this.manager.entityName,
-                      time: this.manager.datum?.originalTime,
-                  },
-              ]
+        const highlightedTimesInLineChart = this.manager.datum
+            ? [this.manager.datum.originalTime]
             : undefined
 
         return {
@@ -122,7 +117,7 @@ export class MapSparkline extends React.Component<{
             fontSize: 11,
             disableIntroAnimation: true,
             lineStrokeWidth: 2,
-            entityTimeHighlights,
+            highlightedTimesInLineChart,
             yAxisConfig: {
                 hideAxis: true,
                 hideGridlines: false,

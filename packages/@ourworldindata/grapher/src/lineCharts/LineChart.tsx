@@ -55,6 +55,7 @@ import {
     VerticalAlign,
     InteractionState,
     ChartErrorInfo,
+    Time,
 } from "@ourworldindata/types"
 import { BASE_FONT_SIZE, GRAPHER_OPACITY_MUTE } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
@@ -564,20 +565,22 @@ export class LineChart
         return this.manager.focusArray ?? new FocusArray()
     }
 
-    @computed get activeX(): number[] {
-        if (this.tooltipState.target?.x) return [this.tooltipState.target.x]
-        return this.manager.entityTimeHighlights?.map(({ time }) => time) ?? []
+    @computed get activeTimes(): Time[] {
+        const { highlightedTimesInLineChart = [] } = this.manager
+        return this.tooltipState.target?.x
+            ? [this.tooltipState.target.x, ...highlightedTimesInLineChart]
+            : highlightedTimesInLineChart
     }
 
     @computed get activeXVerticalLines(): React.ReactElement | undefined {
-        const { activeX, dualAxis } = this
+        const { activeTimes, dualAxis } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
-        if (!activeX) return undefined
+        if (!activeTimes) return undefined
 
         return (
             <>
-                {activeX.map((x) => (
+                {activeTimes.map((x) => (
                     <g className="hoverIndicator" key={x}>
                         <line
                             x1={horizontalAxis.place(x)}
@@ -826,8 +829,8 @@ export class LineChart
     }
 
     @computed private get hasEntityYearHighlight(): boolean {
-        const { entityTimeHighlights = [] } = this.manager
-        return entityTimeHighlights.length > 0
+        const { highlightedTimesInLineChart = [] } = this.manager
+        return highlightedTimesInLineChart.length > 0
     }
 
     @action.bound onDocumentClick(e: MouseEvent): void {
