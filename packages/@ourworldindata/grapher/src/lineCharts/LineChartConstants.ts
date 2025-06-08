@@ -1,10 +1,6 @@
 import { DualAxis } from "../axis/Axis"
 import { ChartManager } from "../chart/ChartManager"
-import {
-    CoreValueType,
-    EntityName,
-    EntityTimeHighlight,
-} from "@ourworldindata/types"
+import { CoreValueType, EntityName, Time } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import { Color } from "@ourworldindata/utils"
 import { InteractionState } from "../interaction/InteractionState"
@@ -71,7 +67,7 @@ export interface LinesProps {
 }
 
 export interface LineChartManager extends ChartManager {
-    entityTimeHighlights?: EntityTimeHighlight[]
+    highlightedTimesInLineChart?: Time[]
     lineStrokeWidth?: number
     canSelectMultipleEntities?: boolean // used to pick an appropriate series name
 }
