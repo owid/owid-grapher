@@ -42,7 +42,6 @@ import {
     setWindowQueryStr,
     getWindowUrl,
     Url,
-    EntityTimeHighlight,
     ColumnSlug,
     DimensionProperty,
     SortBy,
@@ -253,7 +252,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bakedGrapherURL?: string
     adminBaseUrl?: string
     env?: string
-    entityTimeHighlights?: EntityTimeHighlight[]
+    highlightedTimesInLineChart?: Time[]
     baseFontSize?: number
     staticBounds?: Bounds
     renderMode?: GrapherRenderMode
@@ -392,10 +391,10 @@ export class GrapherState {
     }
 
     /**
-     * Used to highlight an entity at a particular time in a line chart.
+     * Used to highlight particular times in a line chart.
      * The sparkline in map tooltips makes use of this.
      */
-    @observable.ref entityTimeHighlights?: EntityTimeHighlight[]
+    @observable.ref highlightedTimesInLineChart?: Time[]
 
     @observable.ref hideFacetControl = true
 
