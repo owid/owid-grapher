@@ -33,7 +33,7 @@ import {
     ArchiveContext,
     AdditionalGrapherDataFetchFn,
     GrapherVariant,
-    EntityTimeHighlight,
+    Time,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import {
@@ -81,7 +81,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bakedGrapherURL?: string
     adminBaseUrl?: string
     env?: string
-    entityTimeHighlights?: EntityTimeHighlight[]
+    highlightedTimesInLineChart?: Time[]
     baseFontSize?: number
     staticBounds?: Bounds
     variant?: GrapherVariant
