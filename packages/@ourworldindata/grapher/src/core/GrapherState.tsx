@@ -63,7 +63,6 @@ import {
     GlobeRegionName,
     GrapherWindowType,
     MapRegionName,
-    EntityTimeHighlight,
 } from "@ourworldindata/types"
 import {
     objectWithPersistablesToObject,
@@ -296,10 +295,10 @@ export class GrapherState {
     }
 
     /**
-     * Used to highlight an entity at a particular time in a line chart.
+     * Used to highlight particular times in a line chart.
      * The sparkline in map tooltips makes use of this.
      */
-    entityTimeHighlights?: EntityTimeHighlight
+    highlightedTimesInLineChart?: Time[]
 
     hideFacetControl = true
 
@@ -470,7 +469,7 @@ export class GrapherState {
             comparisonLines: observable,
             relatedQuestions: observable,
             dataTableConfig: observable,
-            entityTimeHighlights: observable.ref,
+            highlightedTimesInLineChart: observable.ref,
             hideFacetControl: observable.ref,
             selectedFacetStrategy: observable,
             sortBy: observable,
