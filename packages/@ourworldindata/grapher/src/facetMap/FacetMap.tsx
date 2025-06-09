@@ -24,21 +24,19 @@ import {
 import { OwidTable } from "@ourworldindata/core-table"
 import {
     HorizontalCategoricalColorLegend,
-    HorizontalColorLegend,
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
 } from "../horizontalColorLegend/HorizontalColorLegends"
-import {
-    CategoricalBin,
-    ColorScaleBin,
-    NumericBin,
-} from "../color/ColorScaleBin"
+import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { MapChart } from "../mapCharts/MapChart"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 
+// should be the same as in MapChart
 const PADDING_BETWEEN_MAP_AND_LEGEND = 8
-const VERTICAL_PADDING = 4
+
+const PADDING_BELOW_LEGEND = 4
+const PADDING_BETWEEN_LEGENDS = 4
 
 @observer
 export class FacetMap
@@ -82,7 +80,7 @@ export class FacetMap
 
     @computed private get bounds(): Bounds {
         const bounds = this.props.bounds ?? DEFAULT_BOUNDS
-        return bounds.padBottom(VERTICAL_PADDING).padTop(VERTICAL_PADDING)
+        return bounds.padTop(4)
     }
 
     @computed private get facetsContainerBounds(): Bounds {
@@ -211,20 +209,6 @@ export class FacetMap
         )
     }
 
-    @computed private get isNumericLegend(): boolean {
-        return this.externalLegends.some((legend) =>
-            legend.numericLegendData?.some((bin) => bin instanceof NumericBin)
-        )
-    }
-
-    @computed private get LegendClass():
-        | typeof HorizontalNumericColorLegend
-        | typeof HorizontalCategoricalColorLegend {
-        return this.isNumericLegend
-            ? HorizontalNumericColorLegend
-            : HorizontalCategoricalColorLegend
-    }
-
     @computed private get showLegend(): boolean {
         return true
     }
@@ -247,17 +231,25 @@ export class FacetMap
     }
 
     @computed get numericLegendY(): number {
-        const legendHeightWithPadding =
-            this.showLegend && this.legend.height > 0 ? this.legend.height : 0
-
-        return this.bounds.bottom - legendHeightWithPadding
+        if (!this.numericLegend) return 0
+        return (
+            this.bounds.bottom -
+            this.numericLegendHeight -
+            PADDING_BELOW_LEGEND -
+            // If present, the category legend is placed below the numeric legend
+            (this.categoryLegend
+                ? this.categoryLegendHeight + PADDING_BETWEEN_LEGENDS
+                : 0)
+        )
     }
 
     @computed get categoryLegendY(): number {
-        const legendHeightWithPadding =
-            this.showLegend && this.legend.height > 0 ? this.legend.height : 0
-
-        return this.bounds.bottom - legendHeightWithPadding
+        if (!this.categoryLegend) return 0
+        return (
+            this.bounds.bottom -
+            this.categoryLegend.height -
+            PADDING_BELOW_LEGEND
+        )
     }
 
     @computed get legendMaxWidth(): number {
@@ -285,6 +277,14 @@ export class FacetMap
         return this.getExternalLegendProp("categoricalLegendData") ?? []
     }
 
+    @computed get numericLegendHeight(): number {
+        return this.numericLegend ? this.numericLegend.height : 0
+    }
+
+    @computed get categoryLegendHeight(): number {
+        return this.categoryLegend ? this.categoryLegend.height : 0
+    }
+
     @observable.ref private legendHoverBin: ColorScaleBin | undefined =
         undefined
 
@@ -298,16 +298,39 @@ export class FacetMap
 
     // end of legend props
 
-    @computed private get legend(): HorizontalColorLegend {
-        return new this.LegendClass({ manager: this })
+    @computed get categoryLegend():
+        | HorizontalCategoricalColorLegend
+        | undefined {
+        return this.categoricalLegendData.length > 1
+            ? new HorizontalCategoricalColorLegend({ manager: this })
+            : undefined
+    }
+
+    @computed get numericLegend(): HorizontalNumericColorLegend | undefined {
+        return this.numericLegendData.length > 1
+            ? new HorizontalNumericColorLegend({ manager: this })
+            : undefined
     }
 
     componentDidMount(): void {
         exposeInstanceOnWindow(this, "facet")
     }
 
+    renderMapLegend(): React.ReactElement | null {
+        return (
+            <>
+                {this.numericLegend && (
+                    <HorizontalNumericColorLegend manager={this} />
+                )}
+                {this.categoryLegend && (
+                    <HorizontalCategoricalColorLegend manager={this} />
+                )}
+            </>
+        )
+    }
+
     render(): React.ReactElement {
-        const { facetFontSize, LegendClass, showLegend } = this
+        const { facetFontSize, showLegend } = this
         return (
             <React.Fragment>
                 {/* <rect {...this.bounds.toProps()} fill="none" stroke="black" />
@@ -316,7 +339,7 @@ export class FacetMap
                     fill="none"
                     stroke="green"
                 /> */}
-                {showLegend && <LegendClass manager={this} />}
+                {showLegend && this.renderMapLegend()}
                 {this.placedSeries.map((facetChart, index: number) => {
                     const { bounds, seriesName } = facetChart
 

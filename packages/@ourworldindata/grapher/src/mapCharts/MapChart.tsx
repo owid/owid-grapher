@@ -80,6 +80,7 @@ interface MapChartProps {
 
 const PADDING_BETWEEN_MAP_AND_LEGEND = 8
 const PADDING_BELOW_LEGEND = 4
+const PADDING_BETWEEN_LEGENDS = 4
 
 @observer
 export class MapChart
@@ -669,10 +670,11 @@ export class MapChart
         return (
             this.bounds.bottom -
             this.numericLegendHeight -
+            PADDING_BELOW_LEGEND -
             // If present, the category legend is placed below the numeric legend
             (this.categoryLegend
-                ? this.categoryLegendHeight
-                : PADDING_BELOW_LEGEND)
+                ? this.categoryLegendHeight + PADDING_BETWEEN_LEGENDS
+                : 0)
         )
     }
 
