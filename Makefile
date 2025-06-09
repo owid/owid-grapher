@@ -285,6 +285,8 @@ reindex: lerna
 	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexChartsToAlgolia.js
 	@echo '--- Running indexExplorerViewsMdimViewsAndChartsToAlgolia...'
 	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexExplorerViewsMdimViewsAndChartsToAlgolia.js
+	@echo '--- Running indexSuggestionsToAlgolia...'
+	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexSuggestionsToAlgolia.js
 
 delete-algolia-index: lerna
 	@echo '==> Deleting Algolia index'

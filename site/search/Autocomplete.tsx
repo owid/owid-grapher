@@ -125,6 +125,13 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
                 })
                 .exhaustive()
         })
+        .with(SearchIndexName.Suggestions, () => {
+            // Suggestions should navigate to search results page
+            return urljoin(
+                BAKED_BASE_URL,
+                `/data?q=${encodeURIComponent(item.suggestion as string)}`
+            )
+        })
         .exhaustive()
 }
 
@@ -263,55 +270,43 @@ const AllResultsSource: AutocompleteSource<BaseItem> = {
 const QuerySuggestionsSource: AutocompleteSource<BaseItem> = {
     sourceId: "querySuggestions",
     onSelect({ navigator, item, state }) {
-        const suggestion = item.value as string
-
-        const itemUrl = urljoin(
-            BAKED_BASE_URL,
-            "/data",
-            queryParamsToStr({ q: suggestion })
-        )
-        navigator.navigate({
-            itemUrl,
-            item,
-            state,
+        const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
+        siteAnalytics.logInstantSearchClick({
+            query: state.query,
+            url: itemUrl,
+            position: String(state.activeItemId),
         })
+        navigator.navigate({ itemUrl, item, state })
     },
     getItemUrl({ item }) {
-        const suggestion = item.value as string
-
-        const itemUrl = urljoin(
-            BAKED_BASE_URL,
-            "/data",
-            queryParamsToStr({ q: suggestion })
-        )
+        const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
         return itemUrl
     },
-    async getItems({ query }) {
-        return searchClient
-            .initIndex(
-                getIndexName(SearchIndexName.ExplorerViewsMdimViewsAndCharts)
-            )
-            .searchForFacetValues("searchSuggestion", query, {
-                maxFacetHits: 4,
-                highlightPreTag: "<strong>",
-                highlightPostTag: "</strong>",
-                typoTolerance: false,
-            })
-            .then((result) => {
-                return result.facetHits
-            })
+    getItems({ query }) {
+        return getAlgoliaResults({
+            searchClient,
+            queries: [
+                {
+                    indexName: getIndexName(SearchIndexName.Suggestions),
+                    query,
+                    params: {
+                        hitsPerPage: 4,
+                        attributesToRetrieve: ["suggestion"],
+                    },
+                },
+            ],
+        })
     },
     templates: {
         header: () => <h5 className="overline-black-caps">Suggestions</h5>,
-        item: ({ item }) => (
+        item: ({ item, components }) => (
             <div className="aa-ItemWrapper">
-                <span
-                    dangerouslySetInnerHTML={{
-                        __html: item.highlighted as string,
-                    }}
-                />
-                <span className="aa-ItemWrapper__count">
-                    {item.count as number}
+                <span>
+                    <components.Highlight
+                        hit={item}
+                        attribute={"suggestion"}
+                        tagName="strong"
+                    />
                 </span>
             </div>
         ),
