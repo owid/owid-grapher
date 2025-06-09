@@ -143,7 +143,7 @@ export interface MapChartManager extends ChartManager {
     mapRegionDropdownValue?: MapRegionDropdownValue
     resetMapRegionDropdownValue?: () => void
     isMapSelectionEnabled?: boolean
-    highlightedTimesInTooltip?: Time[]
+    highlightedTimesInTooltip?: [Time, Time]
     logGrapherInteractionEvent?: (
         action: GrapherInteractionEvent,
         target?: string
