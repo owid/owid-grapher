@@ -62,10 +62,11 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
         right: "m19.59198,6.82422L13.22803.46021c-.39105-.39099-1.02405-.39099-1.414,0-.39105.39001-.39105,1.02405,0,1.414l4.65698,4.65704H.5v2h15.97101l-4.65698,4.65698c-.39105.39001-.39105,1.02399,0,1.414.38995.39099,1.02295.39099,1.414,0l6.36395-6.36401c.39001-.39001.39001-1.02399,0-1.414Z",
     }
 
-    arrowIcon(direction: "up" | "right" | "down"): React.ReactElement {
+    private arrowIcon(direction: "up" | "right" | "down"): React.ReactElement {
+        const colored = !this.props.colors
         return (
             <svg
-                className={classnames("arrow", direction)}
+                className={classnames("arrow", direction, { colored })}
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox={`0 0 ${direction === "right" ? 20 : 15} 15`}
             >
@@ -74,27 +75,50 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
         )
     }
 
+    private formatValueShort(value: number | string | undefined): string {
+        if (value === undefined) return NO_DATA_LABEL
+        if (typeof value === "string") return value
+        return this.props.column.formatValueShort(value)
+    }
+
+    private formatValueShortWithAbbreviations(
+        value: number | string | undefined
+    ): string {
+        if (value === undefined) return NO_DATA_LABEL
+        if (typeof value === "string") return value
+        return this.props.column.formatValueShortWithAbbreviations(value)
+    }
+
+    private trend(): React.ReactElement | null {
+        const { values } = this.props
+
+        // Can't show a trend for less than two values
+        if (values.length < 2) return null
+
+        // If any value is not a number, default to the right arrow
+        if (values.some((v) => !isNumber(v))) return this.arrowIcon("right")
+
+        const numericValues = values as [number, number]
+        return numericValues[0] < numericValues[1]
+            ? this.arrowIcon("up")
+            : numericValues[0] > numericValues[1]
+              ? this.arrowIcon("down")
+              : this.arrowIcon("right")
+    }
+
     render(): React.ReactElement | null {
-        const { column, values, color, notice } = this.props,
+        const { column, values, colors, notice } = this.props,
             [firstValue, lastValue] = values.map((v) =>
-                column.formatValueShort(v)
+                this.formatValueShort(v)
             ),
             [firstTerm, lastTerm] =
                 // TODO: would be nicer to actually measure the typeset text but we would need to
                 // add Lato's metrics to the `string-pixel-width` module to use Bounds.forText
                 sum([firstValue?.length, lastValue?.length]) > 20
                     ? values.map((v) =>
-                          column.formatValueShortWithAbbreviations(v)
+                          this.formatValueShortWithAbbreviations(v)
                       )
-                    : [firstValue, lastValue],
-            trend =
-                values.length < 2
-                    ? null
-                    : values[0] < values[1]
-                      ? this.arrowIcon("up")
-                      : values[0] > values[1]
-                        ? this.arrowIcon("down")
-                        : this.arrowIcon("right")
+                    : [firstValue, lastValue]
 
         const { roundsToSignificantFigures } = column
         const showSignificanceSuperscript =
@@ -104,16 +128,18 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
         ) : null
 
         return values.length ? (
-            <Variable column={column} color={color} notice={notice}>
+            <Variable column={column} notice={notice}>
                 <span className="range">
                     <span className="term">
-                        {firstTerm}
+                        <span style={{ color: colors?.[0] }}>{firstTerm}</span>
                         {!lastTerm && superscript}
                     </span>
-                    {trend}
+                    {this.trend()}
                     {lastTerm && (
                         <span className="term">
-                            {lastTerm}
+                            <span style={{ color: colors?.[1] }}>
+                                {lastTerm}
+                            </span>
                             {superscript}
                         </span>
                     )}
