@@ -149,13 +149,14 @@
                             svg.arrow {
                                 height: 14px;
                                 padding-right: 0.15em;
-                                &.up path {
+                                fill: $gray-60;
+                                &.colored.up path {
                                     fill: $green;
                                 }
-                                &.down path {
+                                &.colored.down path {
                                     fill: $red;
                                 }
-                                &.right path {
+                                &.colored.right path {
                                     fill: $grey;
                                 }
                             }
