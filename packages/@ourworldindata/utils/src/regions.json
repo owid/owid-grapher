@@ -362,7 +362,7 @@
     {
         "code": "CIV",
         "shortCode": "CI",
-        "name": "Cote d'Ivoire",
+        "name": "Côte d'Ivoire",
         "slug": "cote-divoire",
         "regionType": "country",
         "isMappable": true
@@ -443,7 +443,7 @@
     {
         "code": "CUW",
         "shortCode": "CW",
-        "name": "Curacao",
+        "name": "Curaçao",
         "slug": "curacao",
         "regionType": "country",
         "isUnlisted": true
@@ -2426,7 +2426,7 @@
     {
         "code": "REU",
         "shortCode": "RE",
-        "name": "Reunion",
+        "name": "Réunion",
         "slug": "reunion",
         "regionType": "country"
     },
@@ -2576,7 +2576,7 @@
     {
         "code": "STP",
         "shortCode": "ST",
-        "name": "Sao Tome and Principe",
+        "name": "São Tomé and Príncipe",
         "slug": "sao-tome-and-principe",
         "regionType": "country",
         "isMappable": true
