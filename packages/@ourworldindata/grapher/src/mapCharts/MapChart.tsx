@@ -8,7 +8,6 @@ import {
     isPresent,
     Color,
     HorizontalAlign,
-    PrimitiveType,
     mappableCountries,
     regions,
     checkHasMembers,
@@ -453,21 +452,6 @@ export class MapChart
 
     @action.bound onRegionChange(value: MapRegionName): void {
         this.mapConfig.region = value
-    }
-
-    @computed private get formatTooltipValueIfCustom(): (
-        d: PrimitiveType
-    ) => string | undefined {
-        const { mapConfig, colorScale } = this
-
-        return (d: PrimitiveType): string | undefined => {
-            if (!mapConfig.tooltipUseCustomLabels) return undefined
-            // Find the bin (and its label) that this value belongs to
-            const bin = colorScale.getBinForValue(d)
-            const label = bin?.label
-            if (label !== undefined && label !== "") return label
-            else return undefined
-        }
     }
 
     private checkIsProjection(
@@ -939,10 +923,13 @@ export class MapChart
                         position={tooltipState.position}
                         fading={tooltipState.fading}
                         timeSeriesTable={this.inputTable}
-                        formatValueIfCustom={this.formatTooltipValueIfCustom}
+                        shouldUseCustomLabels={
+                            this.mapConfig.tooltipUseCustomLabels
+                        }
                         manager={this.manager}
                         lineColorScale={this.colorScale}
                         targetTime={this.targetTime}
+                        targetTimes={this.manager.highlightedTimesInTooltip}
                         sparklineWidth={sparklineWidth}
                         dismissTooltip={() => {
                             this.mapConfig.hoverCountry = undefined
