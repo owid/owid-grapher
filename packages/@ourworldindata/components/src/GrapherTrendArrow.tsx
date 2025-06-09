@@ -9,14 +9,18 @@ const ARROW_PATHS = {
 
 export function GrapherTrendArrow({
     direction,
+    isColored = true,
     className,
 }: {
     direction: GrapherTrendArrowDirection
+    isColored?: boolean
     className?: string
 }): React.ReactElement {
     return (
         <svg
-            className={cx("GrapherTrendArrow", direction, className)}
+            className={cx("GrapherTrendArrow", direction, className, {
+                colored: isColored,
+            })}
             xmlns="http://www.w3.org/2000/svg"
             viewBox={`0 0 ${direction === "right" ? 20 : 15} 15`}
         >
