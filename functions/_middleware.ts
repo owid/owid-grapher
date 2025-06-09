@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/cloudflare"
 import { Env } from "./_common/env.js"
+import { analyticsMiddleware } from "./_common/analytics.js"
 
 export const onRequest = [
     // Make sure Sentry is the first middleware.
@@ -8,4 +9,5 @@ export const onRequest = [
         environment: context.env.ENV,
         tracesSampleRate: 0.01,
     })),
+    analyticsMiddleware,
 ]
