@@ -94,18 +94,19 @@ properties:
             globe:
                 type: object
                 description: Configuration of the globe
-                isActive:
-                    type: boolean
-                    description: Whether the globe is initially shown
-                rotation:
-                    type: array
-                    description: Longitude and latitude of the globe rotation
-                    items:
-                        type:
-                            - number
-                zoom:
-                    type: number
-                    description: Zoom level of the globe
+                properties:
+                    isActive:
+                        type: boolean
+                        description: Whether the globe is initially shown
+                    rotation:
+                        type: array
+                        description: Latitude and Longitude of the globe rotation
+                        items:
+                            type:
+                                - number
+                    zoom:
+                        type: number
+                        description: Zoom level of the globe
                 additionalProperties: false
         additionalProperties: false
     maxTime:
