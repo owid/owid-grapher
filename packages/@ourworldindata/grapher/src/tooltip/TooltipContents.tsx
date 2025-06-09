@@ -56,10 +56,13 @@ const ARROW_PATHS = {
     right: "m19.59198,6.82422L13.22803.46021c-.39105-.39099-1.02405-.39099-1.414,0-.39105.39001-.39105,1.02405,0,1.414l4.65698,4.65704H.5v2h15.97101l-4.65698,4.65698c-.39105.39001-.39105,1.02399,0,1.414.38995.39099,1.02295.39099,1.414,0l6.36395-6.36401c.39001-.39001.39001-1.02399,0-1.414Z",
 }
 
-function arrowIcon(direction: "up" | "right" | "down"): React.ReactElement {
+function arrowIcon(
+    direction: "up" | "right" | "down",
+    isColored: boolean
+): React.ReactElement {
     return (
         <svg
-            className={classnames("arrow", direction)}
+            className={classnames("arrow", direction, { colored: isColored })}
             xmlns="http://www.w3.org/2000/svg"
             viewBox={`0 0 ${direction === "right" ? 20 : 15} 15`}
         >
@@ -68,30 +71,58 @@ function arrowIcon(direction: "up" | "right" | "down"): React.ReactElement {
     )
 }
 
+function formatValueShort(
+    value: number | string | undefined,
+    column: CoreColumn
+): string {
+    if (value === undefined) return NO_DATA_LABEL
+    if (typeof value === "string") return value
+    return column.formatValueShort(value)
+}
+
+function formatValueShortWithAbbreviations(
+    value: number | string | undefined,
+    column: CoreColumn
+): string {
+    if (value === undefined) return NO_DATA_LABEL
+    if (typeof value === "string") return value
+    return column.formatValueShortWithAbbreviations(value)
+}
+
+function trend(
+    values: (string | number | undefined)[],
+    isColored: boolean
+): React.ReactElement | null {
+    // Can't show a trend for less than two values
+    if (values.length < 2) return null
+
+    // If any value is not a number, default to the right arrow
+    if (values.some((v) => !_.isNumber(v))) return arrowIcon("right", isColored)
+
+    const numericValues = values as [number, number]
+    return numericValues[0] < numericValues[1]
+        ? arrowIcon("up", isColored)
+        : numericValues[0] > numericValues[1]
+          ? arrowIcon("down", isColored)
+          : arrowIcon("right", isColored)
+}
+
 export function TooltipValueRange({
     column,
     values,
-    color,
+    colors,
     notice,
     showSignificanceSuperscript,
 }: TooltipValueRangeProps): React.ReactElement | null {
     const [firstValue, lastValue] = values.map((v) =>
-        column.formatValueShort(v)
+        formatValueShort(v, column)
     )
     const [firstTerm, lastTerm] =
         // TODO: would be nicer to actually measure the typeset text but we would need to
         // add Lato's metrics to the `string-pixel-width` module to use Bounds.forText
         _.sum([firstValue?.length, lastValue?.length]) > 20
-            ? values.map((v) => column.formatValueShortWithAbbreviations(v))
+            ? values.map((v) => formatValueShortWithAbbreviations(v, column))
             : [firstValue, lastValue]
-    const trend =
-        values.length < 2
-            ? null
-            : values[0] < values[1]
-              ? arrowIcon("up")
-              : values[0] > values[1]
-                ? arrowIcon("down")
-                : arrowIcon("right")
 
     const { roundsToSignificantFigures } = column
     const showSuperscript =
@@ -99,16 +130,16 @@ export function TooltipValueRange({
     const superscript = showSuperscript ? <IconCircledS asSup={true} /> : null
 
     return values.length ? (
-        <Variable column={column} color={color} notice={notice}>
+        <Variable column={column} notice={notice}>
             <span className="range">
                 <span className="term">
-                    {firstTerm}
+                    <span style={{ color: colors?.[0] }}>{firstTerm}</span>
                     {!lastTerm && superscript}
                 </span>
-                {trend}
+                {trend(values, !colors)}
                 {lastTerm && (
                     <span className="term">
-                        {lastTerm}
+                        <span style={{ color: colors?.[1] }}>{lastTerm}</span>
                         {superscript}
                     </span>
                 )}

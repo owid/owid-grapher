@@ -36,7 +36,6 @@ import {
     AxisAlign,
     ScaleType,
     Time,
-    Time,
 } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
