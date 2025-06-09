@@ -16,7 +16,6 @@ import {
     checkIsVeryShortUnit,
     min,
     max,
-    excludeUndefined,
 } from "@ourworldindata/utils"
 import { LineChartManager } from "../lineCharts/LineChartConstants"
 import { ColorScale } from "../color/ColorScale.js"
@@ -29,7 +28,7 @@ const SPARKLINE_PADDING = 15
 const SPARKLINE_NUDGE = 3 // step away from the axis
 
 export interface MapSparklineManager {
-    table: OwidTable
+    sparklineTable: OwidTable
     mapColumnSlug?: ColumnSlug
     targetTime?: Time
     entityName: EntityName
@@ -61,14 +60,14 @@ export class MapSparkline extends React.Component<{
     @computed private get sparklineTable(): OwidTable {
         if (this.mapColumnSlug === undefined) return new OwidTable()
 
-        return this.manager.table
+        return this.manager.sparklineTable
             .filterByEntityNames([this.manager.entityName])
             .columnFilter(
                 this.mapColumnSlug,
                 isNumber,
                 "Drop rows with non-number values in Y column"
             )
-            .sortBy([this.manager.table.timeColumn.slug])
+            .sortBy([this.manager.sparklineTable.timeColumn.slug])
     }
 
     @computed private get hasTimeSeriesData(): boolean {
@@ -82,27 +81,17 @@ export class MapSparkline extends React.Component<{
     }
 
     @computed private get highlightedTimesInLineChart(): Time[] {
-        const { highlightedTimesInSparkline = [] } = this.props.manager
-
-        const owidRowsByTime = this.sparklineTable
-            .get(this.mapColumnSlug)
-            .owidRowByEntityNameAndTime.get(this.manager.entityName)
-        if (!owidRowsByTime) return []
-
-        return excludeUndefined(
-            highlightedTimesInSparkline.map(
-                (time) => owidRowsByTime.get(time)?.originalTime
-            )
-        )
+        return this.props.manager.highlightedTimesInSparkline ?? []
     }
 
     @computed private get sparklineManager(): LineChartManager {
         // use the whole time range for the sparkline, not just the range where this series has data
-        let { minTime, maxTime } = this.manager.table ?? {}
+        let { minTime, maxTime } = this.manager.sparklineTable ?? {}
         if (this.mapColumnSlug) {
-            const times = this.manager.table.getTimesUniqSortedAscForColumns([
-                this.mapColumnSlug,
-            ])
+            const times =
+                this.manager.sparklineTable.getTimesUniqSortedAscForColumns([
+                    this.mapColumnSlug,
+                ])
             minTime = R.first(times) ?? minTime
             maxTime = R.last(times) ?? maxTime
         }

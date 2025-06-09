@@ -305,7 +305,8 @@ export function formatDay(
 
 export const formatYear = (year: number): string => {
     if (isNaN(year)) {
-        console.warn(`Invalid year '${year}'`)
+        throw new Error(`Invalid year '${year}'`)
+        // console.warn()
         return ""
     }
 

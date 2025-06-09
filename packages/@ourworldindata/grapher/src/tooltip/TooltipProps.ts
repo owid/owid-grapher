@@ -3,6 +3,7 @@ import { CoreColumn } from "@ourworldindata/core-table"
 import {
     GrapherTooltipAnchor,
     TickFormattingOptions,
+    Time,
 } from "@ourworldindata/utils"
 import { IObservableValue } from "mobx"
 
@@ -47,6 +48,7 @@ export interface TooltipProps {
 export interface TooltipValueProps {
     column: CoreColumn
     value?: number | string
+    time?: Time
     color?: string
     notice?: number | string // actual year data was drawn from (when ≠ target year)
     showSignificanceSuperscript?: boolean // show significance-s superscript if applicable
@@ -54,8 +56,8 @@ export interface TooltipValueProps {
 
 export interface TooltipValueRangeProps {
     column: CoreColumn
-    values: number[]
-    color?: string
+    values: (number | string | undefined)[]
+    colors?: string[]
     notice?: (number | string | undefined)[] // actual year data was drawn from (when ≠ target year)
     showSignificanceSuperscript?: boolean // show significance-s superscript if applicable
 }

@@ -150,7 +150,10 @@ export class FacetMap
         } = manager
 
         const table = this.transformedTable
-        const highlightedTimesInTooltip = [this.startTime, this.endTime]
+        const highlightedTimesInTooltip = [this.startTime, this.endTime] as [
+            number,
+            number,
+        ]
 
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]

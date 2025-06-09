@@ -11,6 +11,7 @@ import {
     TooltipValue,
     makeTooltipToleranceNotice,
     makeTooltipRoundingNotice,
+    TooltipValueRange,
 } from "../tooltip/Tooltip"
 import { MapChartManager } from "./MapChartConstants"
 import { ColorScale } from "../color/ColorScale"
@@ -36,8 +37,9 @@ interface MapTooltipProps {
     manager: MapChartManager
     position?: PointVector
     lineColorScale: ColorScale
-    formatValueIfCustom: (d: PrimitiveType) => string | undefined
-    targetTime?: Time
+    shouldUseCustomLabels?: boolean
+    targetTime?: Time // show values at a specific time
+    targetTimes?: [Time, Time] // show values at a specific time range
     sparklineWidth?: number
     sparklineHeight?: number
     fading?: TooltipFadeMode
@@ -68,126 +70,175 @@ export class MapTooltip
         return this.props.entityName
     }
 
-    @computed get targetTime(): Time | undefined {
-        return this.props.targetTime
+    @computed private get shouldShowValueRange(): boolean {
+        return (
+            this.props.targetTimes !== undefined &&
+            // If both values are missing, we simply show a 'No data' tooltip
+            (this.startDatum?.value !== undefined ||
+                this.endDatum?.value !== undefined)
+        )
+    }
+
+    @computed private get startTime(): Time | undefined {
+        return this.props.targetTimes?.[0]
+    }
+
+    @computed private get endTime(): Time | undefined {
+        return this.props.targetTimes?.[1] ?? this.props.targetTime
     }
 
     @computed private get entityTable(): OwidTable {
         return this.table.filterByEntityNames([this.entityName])
     }
 
-    @computed get table(): OwidTable {
+    @computed private get hasSparkline(): boolean {
+        return MapSparkline.shouldShow(this)
+    }
+
+    @computed private get table(): OwidTable {
+        return this.props.manager.transformedTable ?? this.props.manager.table
+    }
+
+    @computed get sparklineTable(): OwidTable {
         return this.props.manager.table
     }
 
-    @computed private get datum():
+    @computed private get startDatum():
         | OwidVariableRow<number | string>
         | undefined {
-        return this.targetTime !== undefined
-            ? this.mapColumn.owidRowByEntityNameAndTime
-                  .get(this.entityName)
-                  ?.get(this.targetTime)
-            : this.mapColumn.owidRows[0]
+        if (this.startTime === undefined) return undefined
+        return this.mapColumn.owidRowByEntityNameAndTime
+            .get(this.entityName)
+            ?.get(this.startTime)
+    }
+
+    @computed private get endDatum():
+        | OwidVariableRow<number | string>
+        | undefined {
+        if (this.endTime === undefined) return undefined
+        return this.mapColumn.owidRowByEntityNameAndTime
+            .get(this.entityName)
+            ?.get(this.endTime)
     }
 
     @computed get highlightedTimesInSparkline(): Time[] | undefined {
-        return (
-            this.props.manager.highlightedTimesInTooltip ??
-            (this.datum ? [this.datum?.time] : undefined)
-        )
+        if (this.props.targetTimes) {
+            return [
+                this.startDatum?.originalTime ?? this.props.targetTimes[0],
+                this.endDatum?.originalTime ?? this.props.targetTimes[1],
+            ]
+        }
+
+        if (this.props.targetTime !== undefined)
+            return [this.endDatum?.originalTime ?? this.props.targetTime]
+
+        return []
     }
 
     @computed get lineColorScale(): ColorScale {
         return this.props.lineColorScale
     }
 
-    @computed private get showSparkline(): boolean {
-        return MapSparkline.shouldShow(this)
-    }
-
     @computed get yAxisConfig(): AxisConfigInterface | undefined {
         return this.props.manager.yAxisConfig
     }
 
-    @computed private get formattedTargetTime(): string | undefined {
-        const { targetTime, entityTable } = this
+    private formatTime(time?: Time): string | undefined {
+        if (time === undefined) return undefined
 
-        if (!entityTable.timeColumn.isMissing) {
-            return entityTable.timeColumn.formatValue(targetTime)
-        }
+        if (!this.entityTable.timeColumn.isMissing)
+            return this.entityTable.timeColumn.formatValue(time)
 
-        return targetTime?.toString()
+        return time?.toString()
     }
 
     @computed private get tooltipSubtitle(): string | undefined {
-        const { entityTable, datum } = this
+        const { startDatum, endDatum, startTime, endTime } = this
 
-        const { timeColumn } = entityTable
-        const displayDatumTime =
-            timeColumn && datum
-                ? timeColumn.formatValue(datum?.originalTime)
-                : (datum?.originalTime.toString() ?? "")
+        const originalStartTime = startDatum?.originalTime ?? startTime
+        const originalEndTime = endDatum?.originalTime ?? endTime
 
-        return datum ? displayDatumTime : this.formattedTargetTime
-    }
+        if (this.shouldShowValueRange) {
+            return [originalStartTime, originalEndTime]
+                .map((time) => this.formatTime(time))
+                .join(" to ")
+        }
 
-    @computed private get formattedValueLabel(): string | undefined {
-        const { datum } = this
-
-        if (!datum) return undefined
-
-        const customValueLabel = this.props.formatValueIfCustom(datum.value)
-        if (customValueLabel !== undefined) return customValueLabel
-
-        if (isNumber(datum.value))
-            return this.mapColumn?.formatValueShort(datum.value)
-
-        return anyToString(datum.value)
+        return this.formatTime(originalEndTime)
     }
 
     @computed private get toleranceNotice(): FooterItem | undefined {
-        const { datum, targetTime, formattedTargetTime } = this
+        const { startDatum, startTime, endDatum, endTime } = this
 
-        if (!datum || datum.originalTime === targetTime || !formattedTargetTime)
-            return undefined
+        const startValueIsInterpolated =
+            startDatum && startDatum?.originalTime !== startTime
+        const endValueIsInterpolated =
+            endDatum && endDatum?.originalTime !== endTime
 
-        return {
-            icon: TooltipFooterIcon.notice,
-            text: makeTooltipToleranceNotice(formattedTargetTime),
-        }
+        const formattedStartTime = this.formatTime(this.startTime)
+        const formattedEndTime = this.formatTime(this.endTime)
+
+        if (startValueIsInterpolated && endValueIsInterpolated)
+            return {
+                icon: TooltipFooterIcon.notice,
+                text: makeTooltipToleranceNotice(
+                    `${formattedStartTime} and ${formattedEndTime}`,
+                    { plural: true }
+                ),
+            }
+
+        if (endValueIsInterpolated && formattedEndTime)
+            return {
+                icon: TooltipFooterIcon.notice,
+                text: makeTooltipToleranceNotice(formattedEndTime),
+            }
+
+        if (startValueIsInterpolated && formattedStartTime)
+            return {
+                icon: TooltipFooterIcon.notice,
+                text: makeTooltipToleranceNotice(formattedStartTime),
+            }
+
+        return undefined
     }
 
     @computed private get roundingNotice(): FooterItem | undefined {
         const {
             mapColumn,
-            datum,
-            props: { formatValueIfCustom },
+            lineColorScale: colorScale,
+            props: { shouldUseCustomLabels: shouldUseCustomLabel },
         } = this
 
+        // Only show a rounding notice for rounding to sig figs
         if (!mapColumn.roundsToSignificantFigures) return undefined
 
-        const isValueLabelFormattedUsingMapColumn =
-            datum &&
-            formatValueIfCustom(datum.value) === undefined &&
-            isNumber(datum.value)
+        // Don't show a rounding notice if all values are missing
+        if (!this.startDatum && !this.endDatum) return undefined
 
-        if (!isValueLabelFormattedUsingMapColumn) return undefined
+        const isStartValueLabelCategorical = hasCategoricalValueLabel(
+            this.startDatum?.value,
+            { shouldUseCustomLabel, colorScale }
+        )
+        const isEndValueLabelCategorical = hasCategoricalValueLabel(
+            this.endDatum?.value,
+            { shouldUseCustomLabel, colorScale }
+        )
+
+        // Don't show a rounding notice if values are formatted as category strings
+        if (isStartValueLabelCategorical || isEndValueLabelCategorical)
+            return undefined
 
         return {
             icon: TooltipFooterIcon.none,
             text: makeTooltipRoundingNotice([mapColumn.numSignificantFigures], {
-                plural: false,
+                plural: this.shouldShowValueRange,
             }),
         }
     }
 
     render(): React.ReactElement {
-        const { datum, lineColorScale, entityName } = this
-        const { position, fading } = this.props
-
-        const valueColor: string | undefined = darkenColorForHighContrastText(
-            lineColorScale?.getColor(datum?.value) ?? "#333"
-        )
+        const { entityName } = this
+        const { position, fading, shouldUseCustomLabels } = this.props
 
         const footer = excludeUndefined([
             this.toleranceNotice,
@@ -212,15 +263,26 @@ export class MapTooltip
                 dissolve={fading}
                 dismiss={this.props.dismissTooltip}
             >
-                <TooltipValue
-                    column={this.mapColumn}
-                    value={this.formattedValueLabel}
-                    color={valueColor}
-                    showSignificanceSuperscript={
-                        !!this.roundingNotice &&
-                        this.roundingNotice.icon !== TooltipFooterIcon.none
-                    }
-                />
+                {this.shouldShowValueRange ? (
+                    <MapTooltipRangeValues
+                        mapColumn={this.mapColumn}
+                        startTime={this.startTime}
+                        endTime={this.endTime}
+                        startDatum={this.startDatum}
+                        endDatum={this.endDatum}
+                        colorScale={this.lineColorScale}
+                        shouldUseCustomLabel={shouldUseCustomLabels}
+                        hasSparkline={this.hasSparkline}
+                    />
+                ) : (
+                    <MapTooltipValue
+                        mapColumn={this.mapColumn}
+                        targetTime={this.endTime}
+                        datum={this.endDatum}
+                        colorScale={this.lineColorScale}
+                        shouldUseCustomLabel={shouldUseCustomLabels}
+                    />
+                )}
                 <MapSparkline
                     manager={this}
                     sparklineWidth={this.props.sparklineWidth}
@@ -229,4 +291,201 @@ export class MapTooltip
             </Tooltip>
         )
     }
+}
+
+function MapTooltipRangeValues({
+    mapColumn,
+    startTime,
+    endTime,
+    startDatum,
+    endDatum,
+    colorScale,
+    shouldUseCustomLabel,
+    hasSparkline,
+}: {
+    mapColumn: CoreColumn
+    startTime?: Time
+    endTime?: Time
+    startDatum?: OwidVariableRow<number | string>
+    endDatum?: OwidVariableRow<number | string>
+    colorScale: ColorScale
+    shouldUseCustomLabel?: boolean
+    hasSparkline?: boolean
+}): React.ReactElement {
+    const isStartValueLabelCategorical = hasCategoricalValueLabel(
+        startDatum?.value,
+        { shouldUseCustomLabel, colorScale }
+    )
+    const isEndValueLabelCategorical = hasCategoricalValueLabel(
+        endDatum?.value,
+        { shouldUseCustomLabel, colorScale }
+    )
+
+    const hasCategoricalValueLabels =
+        isStartValueLabelCategorical || isEndValueLabelCategorical
+
+    // if (hasCategoricalValueLabels && !hasSparkline)
+    //     return (
+    //         <>
+    //             <MapTooltipValue
+    //                 mapColumn={mapColumn}
+    //                 targetTime={startTime}
+    //                 datum={startDatum}
+    //                 colorScale={colorScale}
+    //                 shouldUseCustomLabel={shouldUseCustomLabel}
+    //                 shouldShowTimeAndTimeNotice
+    //             />
+    //             <MapTooltipValue
+    //                 mapColumn={mapColumn}
+    //                 targetTime={endTime}
+    //                 datum={endDatum}
+    //                 colorScale={colorScale}
+    //                 shouldUseCustomLabel={shouldUseCustomLabel}
+    //                 shouldShowTimeAndTimeNotice
+    //             />
+    //         </>
+    //     )
+
+    if (hasCategoricalValueLabels)
+        return (
+            <TooltipValueRange
+                column={mapColumn}
+                values={[
+                    formatValueShort(startDatum?.value, {
+                        mapColumn,
+                        shouldUseCustomLabel,
+                        colorScale,
+                    }),
+                    formatValueShort(endDatum?.value, {
+                        mapColumn,
+                        shouldUseCustomLabel,
+                        colorScale,
+                    }),
+                ]}
+                colors={[
+                    darkenColorForHighContrastText(
+                        colorScale.getColor(startDatum?.value) ?? "#333"
+                    ),
+                    darkenColorForHighContrastText(
+                        colorScale.getColor(endDatum?.value) ?? "#333"
+                    ),
+                ]}
+            />
+        )
+
+    return (
+        <TooltipValueRange
+            column={mapColumn}
+            values={[startDatum?.value, endDatum?.value]}
+            colors={[
+                darkenColorForHighContrastText(
+                    colorScale.getColor(startDatum?.value) ?? "#333"
+                ),
+                darkenColorForHighContrastText(
+                    colorScale.getColor(endDatum?.value) ?? "#333"
+                ),
+            ]}
+        />
+    )
+}
+
+function MapTooltipValue({
+    mapColumn,
+    targetTime,
+    datum,
+    colorScale,
+    shouldUseCustomLabel,
+    shouldShowTimeAndTimeNotice,
+}: {
+    mapColumn: CoreColumn
+    targetTime?: number
+    datum?: OwidVariableRow<number | string>
+    colorScale: ColorScale
+    shouldUseCustomLabel?: boolean
+    shouldShowTimeAndTimeNotice?: boolean
+}): React.ReactElement {
+    const formattedValue = formatValueShort(datum?.value, {
+        mapColumn,
+        shouldUseCustomLabel,
+        colorScale,
+    })
+    const color = darkenColorForHighContrastText(
+        colorScale.getColor(datum?.value) ?? "#333"
+    )
+
+    const isInterpolated = datum && datum?.originalTime !== targetTime
+    const time = shouldShowTimeAndTimeNotice
+        ? (datum?.originalTime ?? targetTime)
+        : undefined
+    const notice = shouldShowTimeAndTimeNotice
+        ? isInterpolated
+            ? datum?.originalTime
+            : undefined
+        : undefined
+
+    return (
+        <TooltipValue
+            column={mapColumn}
+            value={formattedValue}
+            time={time}
+            notice={notice}
+            color={color}
+        />
+    )
+}
+
+function formatValueShort(
+    value: PrimitiveType | undefined,
+    {
+        mapColumn,
+        shouldUseCustomLabel,
+        colorScale,
+    }: {
+        mapColumn: CoreColumn
+        shouldUseCustomLabel?: boolean
+        colorScale: ColorScale
+    }
+): string | undefined {
+    if (value === undefined) return undefined
+
+    const customLabel = formatValueIfCustom(value, {
+        shouldUseCustomLabel,
+        colorScale,
+    })
+    console.log("custom", customLabel)
+    if (customLabel) return customLabel
+
+    if (isNumber(value)) return mapColumn.formatValueShort(value)
+    return anyToString(value)
+}
+
+function formatValueIfCustom(
+    value: PrimitiveType,
+    {
+        shouldUseCustomLabel,
+        colorScale,
+    }: { shouldUseCustomLabel?: boolean; colorScale: ColorScale }
+): string | undefined {
+    if (!shouldUseCustomLabel) return undefined
+    // Find the bin (and its label) that this value belongs to
+    const bin = colorScale.getBinForValue(value)
+    const label = bin?.label
+    if (label !== undefined && label !== "") return label
+    return undefined
+}
+
+function hasCategoricalValueLabel(
+    value: PrimitiveType | undefined,
+    {
+        shouldUseCustomLabel,
+        colorScale,
+    }: { shouldUseCustomLabel?: boolean; colorScale: ColorScale }
+): boolean {
+    if (value === undefined) return false
+    const hasCustomLabel =
+        formatValueIfCustom(value, {
+            shouldUseCustomLabel,
+            colorScale,
+        }) !== undefined
+    return !isNumber(value) || hasCustomLabel
 }

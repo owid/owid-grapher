@@ -127,6 +127,7 @@
 
                     .values {
                         display: flex;
+                        gap: 8px;
                         align-items: baseline;
                         justify-content: space-between;
                         color: $dark-grey;
@@ -149,19 +150,21 @@
                             svg.arrow {
                                 height: 14px;
                                 padding-right: 0.15em;
-                                &.up path {
+                                fill: $dark-text;
+                                &.colored.up path {
                                     fill: $green;
                                 }
-                                &.down path {
+                                &.colored.down path {
                                     fill: $red;
                                 }
-                                &.right path {
+                                &.colored.right path {
                                     fill: $grey;
                                 }
                             }
                         }
 
-                        .time-notice {
+                        .time-notice,
+                        .time {
                             position: relative;
                             font-weight: $medium;
                             font-size: 14px;
@@ -173,6 +176,7 @@
                                 left: 0;
                             }
                             color: $grey;
+                            white-space: nowrap;
                         }
                     }
                 }
@@ -440,12 +444,12 @@
                 }
             }
 
-            //
-            // ‘TEMPORARY’ FIX:
-            // Until the map variable displayNames can be copy-edited, hide the variable name entirely
-            // and use just the unit (if present) as a label
-            //
             &#mapTooltip {
+                //
+                // ‘TEMPORARY’ FIX:
+                // Until the map variable displayNames can be copy-edited, hide the variable name entirely
+                // and use just the unit (if present) as a label
+                //
                 .variable .definition {
                     .name {
                         display: none;
@@ -455,6 +459,12 @@
                     .unit::before {
                         content: none;
                     }
+                }
+
+                .variable + .variable {
+                    margin-top: 0;
+                    padding-top: 0;
+                    border-top: none;
                 }
             }
         }
