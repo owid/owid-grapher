@@ -3,6 +3,7 @@ import { z } from "zod"
 import { zodToJsonSchema } from "zod-to-json-schema"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
+import { regions } from "@ourworldindata/utils"
 
 /*
     Ollama with structured outputs
@@ -27,6 +28,27 @@ interface ExtractSearchSuggestionsArgs {
 const OLLAMA_DEFAULT_MODEL = "gemma3:4b"
 
 /**
+ * Remove country names from a title
+ */
+export const removeCountryNames = (title: string): string => {
+    let cleanedTitle = title
+
+    for (const region of regions) {
+        if (region.name) {
+            const regex = new RegExp(
+                // Match the region name as a whole word, case-insensitive.
+                // Also escape special regex characters.
+                `\\b${region.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+                "gi"
+            )
+            cleanedTitle = cleanedTitle.replace(regex, "")
+        }
+    }
+
+    return cleanedTitle
+}
+
+/**
  * Generate search suggestions for multiple chart titles
  * Each title will have exactly one search suggestion
  */
@@ -37,9 +59,14 @@ export const extractSearchSuggestions = async (
     try {
         if (titles.length === 0) return new Map()
 
+        // Preprocess titles to remove country names
+        const preprocessedTitles = titles.map(removeCountryNames)
+
         const jsonSchema = zodToJsonSchema(SearchSuggestionsSchema)
 
-        const titlesJson = titles.map((title) => `"${title}"`).join(",\n")
+        const titlesJson = preprocessedTitles
+            .map((title) => `"${title}"`)
+            .join(",\n")
 
         const messages = [
             {
@@ -74,9 +101,10 @@ For each of the following chart titles, generate exactly 1 search suggestion con
             JSON.parse(response.message.content)
         )
 
+        // Map back to original titles
         return new Map<string, string>(
-            parsedSuggestions.charts.map((item) => [
-                item.title,
+            parsedSuggestions.charts.map((item, index) => [
+                titles[index], // Use original title as key
                 item.suggestion.toLowerCase(),
             ])
         )
