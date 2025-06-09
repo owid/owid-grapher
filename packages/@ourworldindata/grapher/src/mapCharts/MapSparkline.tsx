@@ -12,11 +12,7 @@ import {
 import { OwidTable } from "@ourworldindata/core-table"
 import { LineChart } from "../lineCharts/LineChart"
 import { LineChartState } from "../lineCharts/LineChartState"
-import {
-    Bounds,
-    checkIsVeryShortUnit,
-    excludeUndefined,
-} from "@ourworldindata/utils"
+import { Bounds, checkIsVeryShortUnit } from "@ourworldindata/utils"
 import { LineChartManager } from "../lineCharts/LineChartConstants"
 import { ColorScale } from "../color/ColorScale.js"
 import * as R from "remeda"
@@ -88,18 +84,7 @@ export class MapSparkline extends React.Component<MapSparklineProps> {
     }
 
     @computed private get highlightedTimesInLineChart(): Time[] {
-        const { highlightedTimesInSparkline = [] } = this.props.manager
-
-        const owidRowsByTime = this.sparklineTable
-            .get(this.mapColumnSlug)
-            .owidRowByEntityNameAndTime.get(this.manager.entityName)
-        if (!owidRowsByTime) return []
-
-        return excludeUndefined(
-            highlightedTimesInSparkline.map(
-                (time) => owidRowsByTime.get(time)?.originalTime
-            )
-        )
+        return this.props.manager.highlightedTimesInSparkline ?? []
     }
 
     @computed private get sparklineManager(): LineChartManager {

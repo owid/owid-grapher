@@ -659,13 +659,17 @@ export class MapChart
                         position={tooltipState.position}
                         fading={tooltipState.fading}
                         timeSeriesTable={this.chartState.inputTable}
-                        formatValueForTooltip={
-                            this.chartState.formatValueForTooltip
+                        shouldUseCustomLabels={
+                            this.mapConfig.tooltipUseCustomLabels
                         }
                         manager={this.manager}
                         lineColorScale={this.colorScale}
                         targetTime={this.targetTime}
+                        targetTimes={this.manager.highlightedTimesInTooltip}
                         sparklineWidth={sparklineWidth}
+                        formatValueForTooltip={
+                            this.chartState.formatValueForTooltip
+                        }
                         dismissTooltip={() => {
                             this.mapConfig.hoverCountry = undefined
                             this.tooltipState.target = null
