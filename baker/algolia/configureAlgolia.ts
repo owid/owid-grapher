@@ -168,6 +168,21 @@ export const configureAlgolia = async () => {
         ],
     })
 
+    const suggestionsIndex = client.initIndex(
+        getIndexName(SearchIndexName.Suggestions)
+    )
+
+    await suggestionsIndex.setSettings({
+        ...baseSettings,
+        searchableAttributes: ["unordered(suggestion)"],
+        customRanking: ["desc(score)"],
+        attributesToRetrieve: ["suggestion"],
+        unretrievableAttributes: ["score"],
+        attributesForFaceting: [],
+        // Disable typo tolerance for suggestions to ensure more precise matching
+        typoTolerance: "strict",
+    })
+
     const synonyms = [
         ["owid", "our world in data"],
         ["kids", "children"],

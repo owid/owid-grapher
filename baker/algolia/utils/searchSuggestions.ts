@@ -5,17 +5,26 @@ import * as db from "../../../db/db.js"
  */
 export async function getAllSearchSuggestions(
     knex: db.KnexReadonlyTransaction
-): Promise<Map<string, string>> {
-    const rows = await db.knexRaw<{ title: string; suggestion: string }>(
+): Promise<Map<string, { suggestion: string; score: number }>> {
+    const rows = await db.knexRaw<{
+        title: string
+        suggestion: string
+        score: number
+    }>(
         knex,
         `-- sql
-        SELECT title, suggestion
+        SELECT title, suggestion, score
         FROM search_suggestions
         `
     )
 
-    // Create a map of title to suggestion for fast lookups
-    return new Map(rows.map((row) => [row.title, row.suggestion]))
+    // Create a map of title to suggestion and score for fast lookups
+    return new Map(
+        rows.map((row) => [
+            row.title,
+            { suggestion: row.suggestion, score: row.score },
+        ])
+    )
 }
 
 /**
@@ -24,9 +33,9 @@ export async function getAllSearchSuggestions(
 export async function upsertSearchSuggestion(
     knex: db.KnexReadWriteTransaction,
     title: string,
-    suggestion: string
+    suggestion: string,
+    score: number
 ): Promise<void> {
-    // If there is no valid suggestion, don't insert anything
     if (!suggestion) return
 
     await knex
@@ -34,7 +43,8 @@ export async function upsertSearchSuggestion(
         .insert({
             title,
             suggestion,
+            score,
         })
         .onConflict("title")
-        .merge() // Update the suggestion if the title already exists
+        .merge() // Update the suggestion and score if the title already exists
 }

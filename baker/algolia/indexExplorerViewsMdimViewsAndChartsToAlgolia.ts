@@ -27,6 +27,85 @@ import {
 import { pMapIterable } from "p-map"
 import ProgressBar from "progress"
 
+const processSuggestionForRecord = async (
+    record: ChartRecord,
+    cachedSuggestions: Map<string, { suggestion: string; score: number }>,
+    progressBar: ProgressBar
+): Promise<string | null> => {
+    // Check if we already have a cached suggestion
+    const cached = cachedSuggestions.get(record.title)
+    if (cached) {
+        // If current record has a higher score, update cache and database
+        if (record.score > cached.score) {
+            await db.knexReadWriteTransaction(async (trx) => {
+                await upsertSearchSuggestion(
+                    trx,
+                    record.title,
+                    cached.suggestion,
+                    record.score
+                )
+            }, db.TransactionCloseMode.Close)
+
+            cachedSuggestions.set(record.title, {
+                suggestion: cached.suggestion,
+                score: record.score,
+            })
+            progressBar.tick({
+                slug: `📈 ${record.title} (score updated: ${cached.score} → ${record.score})`,
+            })
+        } else {
+            progressBar.tick({ slug: `🔄 ${record.title} (cached)` })
+        }
+        return cached.suggestion
+    }
+
+    // Generate new suggestion
+    const result = await extractSearchSuggestions([record.title])
+    const suggestion = result.get(record.title)
+
+    if (!suggestion) {
+        progressBar.tick({
+            slug: `⚠️ ${record.title} (no suggestion generated)`,
+        })
+        return null
+    }
+
+    // Store suggestion in database and cache with the chart's score
+    await db.knexReadWriteTransaction(async (trx) => {
+        await upsertSearchSuggestion(
+            trx,
+            record.title,
+            suggestion,
+            record.score
+        )
+    }, db.TransactionCloseMode.Close)
+
+    cachedSuggestions.set(record.title, { suggestion, score: record.score })
+    progressBar.tick({ slug: `✅ ${record.title}` })
+    return suggestion
+}
+
+const processRecord = async (
+    record: ChartRecord,
+    cachedSuggestions: Map<string, { suggestion: string; score: number }>,
+    progressBar: ProgressBar
+): Promise<ChartRecord & { searchSuggestion?: string }> => {
+    try {
+        const suggestion = await processSuggestionForRecord(
+            record,
+            cachedSuggestions,
+            progressBar
+        )
+        return suggestion ? { ...record, searchSuggestion: suggestion } : record
+    } catch (error) {
+        console.error(`Error processing ${record.slug}:`, error)
+        progressBar.tick({
+            slug: `❌ ${record.title} (error, indexing raw record)`,
+        })
+        return record
+    }
+}
+
 const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
     if (!ALGOLIA_INDEXING) return
     const indexName = getIndexName(
@@ -98,59 +177,9 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
     )
 
     const recordsWithSuggestions = []
-
     for await (const result of pMapIterable(
         records,
-        async (record: ChartRecord) => {
-            try {
-                // Check if we already have a search suggestion for this title
-                let suggestion = cachedSuggestions.get(record.title)
-
-                if (suggestion) {
-                    // Use existing suggestion from cache
-                    progressBar.tick({ slug: `🔄 ${record.title} (cached)` })
-                } else {
-                    const result = await extractSearchSuggestions([
-                        record.title,
-                    ])
-                    suggestion = result.get(record.title)
-
-                    if (suggestion) {
-                        // Store the suggestion in the database for future use
-                        const validSuggestion = suggestion
-                        await db.knexReadWriteTransaction(async (trx) => {
-                            await upsertSearchSuggestion(
-                                trx,
-                                record.title,
-                                validSuggestion
-                            )
-                        }, db.TransactionCloseMode.Close)
-
-                        // Add to cache for current run
-                        cachedSuggestions.set(record.title, suggestion)
-                        progressBar.tick({ slug: `✅ ${record.title}` })
-                    } else {
-                        // No suggestion was generated
-                        progressBar.tick({
-                            slug: `⚠️ ${record.title} (no suggestion generated, indexing raw record)`,
-                        })
-                    }
-                }
-
-                return suggestion
-                    ? {
-                          ...record,
-                          searchSuggestion: suggestion,
-                      }
-                    : record
-            } catch (error) {
-                console.error(`Error processing ${record.slug}:`, error)
-                progressBar.tick({
-                    slug: `❌ ${record.title} (error, indexing raw record)`,
-                })
-                return record
-            }
-        },
+        (record) => processRecord(record, cachedSuggestions, progressBar),
         { concurrency: 10 }
     )) {
         recordsWithSuggestions.push(result)
