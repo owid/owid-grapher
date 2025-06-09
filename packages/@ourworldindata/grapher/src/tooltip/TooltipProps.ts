@@ -55,8 +55,8 @@ export interface TooltipValueProps {
 
 export interface TooltipValueRangeProps {
     column: CoreColumn
-    values: number[]
-    color?: string
+    values: (number | string | undefined)[]
+    colors?: string[] // value colors, matched by indices
     notice?: (number | string | undefined)[] // actual year data was drawn from (when ≠ target year)
     showSignificanceSuperscript?: boolean // show significance-s superscript if applicable
 }
