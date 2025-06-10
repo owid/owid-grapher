@@ -124,9 +124,10 @@ export class MapCountryDropdown extends React.Component<{
     }
 
     @computed private get availableCountries(): EntityName[] {
-        const mappableCountryNames = mappableCountries.map(
-            (country) => country.name
-        )
+        const mappableCountryNames = mappableCountries
+            .map((country) => country.name)
+            // Exclude Antarctica since it's not shown on the the 2D
+            .filter((countryName) => countryName !== "Antarctica")
 
         // Only show the countries for the active continent if in 2d mode
         if (this.mapConfig.is2dContinentActive()) {
