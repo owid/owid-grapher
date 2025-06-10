@@ -47,9 +47,13 @@ import {
     PADDING_BETWEEN_MAP_AND_LEGEND,
     PADDING_BETWEEN_MAP_LEGENDS,
 } from "../mapCharts/MapChart"
-import { MAP_VIEWPORTS, MapChartManager } from "../mapCharts/MapChartConstants"
 import { GrapherInteractionEvent } from "../core/GrapherAnalytics"
 import { ChartComponent, makeChartInstance } from "../chart/ChartTypeMap"
+import {
+    MAP_VIEWPORT_FACETED_WORLD,
+    MAP_VIEWPORTS,
+    MapChartManager,
+} from "../mapCharts/MapChartConstants"
 
 @observer // todo: implements ChartState?
 export class FacetMap
@@ -232,6 +236,13 @@ export class FacetMap
             projectionColumnInfoBySlug,
         } = manager
 
+        // Use a custom viewport for the World map that zooms in a little bit to make best use of the space
+        const region: MapRegionName = mapConfig?.region ?? MapRegionName.World
+        const mapViewport =
+            region === MapRegionName.World
+                ? MAP_VIEWPORT_FACETED_WORLD
+                : MAP_VIEWPORTS[region]
+
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]
 
@@ -257,6 +268,7 @@ export class FacetMap
                 disableIntroAnimation: true,
                 projectionColumnInfoBySlug,
                 highlightedTimesInTooltip: targetTimes,
+                mapViewport,
                 ...series.manager,
             }
 
