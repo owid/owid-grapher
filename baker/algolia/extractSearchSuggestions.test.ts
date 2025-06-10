@@ -103,6 +103,13 @@ describe("removeCountryNames", () => {
                 )
             ).toEqual("Incidence of malignant neoplasms by country")
         })
+
+        it("handles overlapping country names correctly", () => {
+            // "French Polynesia" should be removed completely, not just "Polynesia"
+            expect(
+                removeCountryNames("Tourism in French Polynesia and Polynesia")
+            ).toEqual("Tourism in  and ")
+        })
     })
 
     describe("real-world scenarios", () => {

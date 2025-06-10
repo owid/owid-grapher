@@ -33,16 +33,20 @@ const OLLAMA_DEFAULT_MODEL = "gemma3:4b"
 export const removeCountryNames = (title: string): string => {
     let cleanedTitle = title
 
-    for (const region of regions) {
-        if (region.name) {
-            const regex = new RegExp(
-                // Match the region name as a whole word, case-insensitive.
-                // Also escape special regex characters.
-                `\\b${region.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
-                "gi"
-            )
-            cleanedTitle = cleanedTitle.replace(regex, "")
-        }
+    // Sort regions by name length (longest first) to handle overlapping names
+    // e.g., "French Polynesia" should be processed before "Polynesia"
+    const sortedRegions = regions
+        .filter((region) => region.name)
+        .sort((a, b) => b.name.length - a.name.length)
+
+    for (const region of sortedRegions) {
+        const regex = new RegExp(
+            // Match the region name as a whole word, case-insensitive.
+            // Also escape special regex characters.
+            `\\b${region.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+            "gi"
+        )
+        cleanedTitle = cleanedTitle.replace(regex, "")
     }
 
     return cleanedTitle
