@@ -366,12 +366,13 @@ export class ChoroplethMap extends React.Component<{
         } else if (
             // don't rotate if the maps shows a continent in 2d mode
             !is2dContinentActive &&
+            // don't rotate if the map is faceted
+            !this.manager.isFaceted &&
             // don't rotate if the user is zoomed in, otherwise they can get stuck in 3D mode
             window?.visualViewport?.scale === 1
         ) {
             // rotate to the selected country on the globe
             globeController?.rotateToCountry(feature.id)
-            globeController?.setFocusCountry(feature.id)
         }
     }
 
