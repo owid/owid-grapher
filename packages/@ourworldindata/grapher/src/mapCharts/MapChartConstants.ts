@@ -111,6 +111,7 @@ export interface ChoroplethMapManager {
     binColors?: string[]
     hasProjectedData?: boolean
     mapViewport?: MapViewport
+    isFaceted?: boolean
 }
 
 export enum RenderFeatureType {
@@ -146,6 +147,7 @@ export interface MapChartManager extends ChartManager {
     isMapSelectionEnabled?: boolean
     highlightedTimesInTooltip?: [Time, Time]
     mapViewport?: MapViewport
+    isFaceted?: boolean
     logGrapherInteractionEvent?: (
         action: GrapherInteractionEvent,
         target?: string
