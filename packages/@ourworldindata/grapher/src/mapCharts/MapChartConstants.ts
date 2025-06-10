@@ -110,6 +110,7 @@ export interface ChoroplethMapManager {
     isStatic?: boolean
     binColors?: string[]
     hasProjectedData?: boolean
+    mapViewport?: MapViewport
 }
 
 export enum RenderFeatureType {
@@ -144,6 +145,7 @@ export interface MapChartManager extends ChartManager {
     resetMapRegionDropdownValue?: () => void
     isMapSelectionEnabled?: boolean
     highlightedTimesInTooltip?: [Time, Time]
+    mapViewport?: MapViewport
     logGrapherInteractionEvent?: (
         action: GrapherInteractionEvent,
         target?: string
@@ -182,6 +184,15 @@ export const MAP_VIEWPORTS: Record<MapRegionName, MapViewport> = {
     SouthAmerica: { x: 0.52, y: 0.815, width: 0.1, height: 0.26, ratio: 0.62 },
     Asia: { x: 0.74, y: 0.45, width: 0.36, height: 0.5, ratio: 1.65 },
     Oceania: { x: 0.51, y: 0.75, width: 0.1, height: 0.2, ratio: 1.47 },
+}
+
+// Custom viewport for faceted world map, which zooms in a little bit to make best use of the available space
+export const MAP_VIEWPORT_FACETED_WORLD: MapViewport = {
+    x: 0.545,
+    y: 0.5,
+    width: 0.91,
+    height: 1.01,
+    ratio: 2.29,
 }
 
 export interface Circle {

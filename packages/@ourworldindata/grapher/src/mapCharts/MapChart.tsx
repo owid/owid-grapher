@@ -40,6 +40,7 @@ import {
     MapColumnInfo,
     PROJECTED_DATA_LEGEND_COLOR,
     MAP_REGION_LABELS,
+    MapViewport,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import {
@@ -411,6 +412,10 @@ export class MapChart
 
     @computed get globeController(): GlobeController {
         return this.manager.globeController ?? new GlobeController(this)
+    }
+
+    @computed get mapViewport(): MapViewport | undefined {
+        return this.manager.mapViewport
     }
 
     @computed get mapRegionDropdownValue(): MapRegionDropdownValue | undefined {
