@@ -171,6 +171,10 @@ export class MapChart
         return this.manager.mapViewport
     }
 
+    @computed get isFaceted(): boolean | undefined {
+        return this.manager.isFaceted
+    }
+
     @computed get mapRegionDropdownValue(): MapRegionDropdownValue | undefined {
         return this.manager.mapRegionDropdownValue
     }
