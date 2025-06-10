@@ -234,6 +234,7 @@ export class FacetMap
             tooltip,
             shouldPinTooltipToBottom,
             projectionColumnInfoBySlug,
+            isFaceted,
         } = manager
 
         // Use a custom viewport for the World map that zooms in a little bit to make best use of the space
@@ -269,6 +270,7 @@ export class FacetMap
                 projectionColumnInfoBySlug,
                 highlightedTimesInTooltip: targetTimes,
                 mapViewport,
+                isFaceted,
                 ...series.manager,
             }
 
