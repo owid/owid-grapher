@@ -8,13 +8,10 @@ import {
     MultiDimDataPageProps,
     FaqEntryKeyedByGdocIdAndFragmentId,
     MultiDimDataPageConfigEnriched,
+    PostsGdocsVariablesFaqsTableName,
+    DbPlainPostGdocVariableFaq,
 } from "@ourworldindata/types"
-import {
-    MultiDimDataPageConfig,
-    OwidVariableWithSource,
-    pick,
-    uniq,
-} from "@ourworldindata/utils"
+import { MultiDimDataPageConfig, pick, uniq } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
 import { getImagesByFilenames } from "../db/model/Image.js"
 import { getRelatedResearchAndWritingForVariables } from "../db/model/Post.js"
@@ -27,12 +24,7 @@ import {
 import { deleteOldGraphers, getTagToSlugMap } from "./GrapherBakingUtils.js"
 import { getVariableMetadata } from "../db/model/Variable.js"
 import pMap from "p-map"
-import {
-    fetchAndParseFaqs,
-    getPrimaryTopic,
-    resolveFaqsForVariable,
-} from "./DatapageHelpers.js"
-import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
+import { fetchAndParseFaqs, getPrimaryTopic } from "./DatapageHelpers.js"
 import { getAllPublishedChartSlugs } from "../db/model/Chart.js"
 import {
     getAllPublishedMultiDimDataPagesBySlug,
@@ -65,61 +57,40 @@ export async function getRelevantVariableMetadata(
     return R.indexBy(metadata, (m) => m.id)
 }
 
+async function getFaqRelationsFromDb(
+    knex: db.KnexReadonlyTransaction,
+    variableIds: number[]
+) {
+    return await knex<DbPlainPostGdocVariableFaq>(
+        PostsGdocsVariablesFaqsTableName
+    )
+        .whereIn("variableId", variableIds)
+        .orderBy("displayOrder", "asc")
+}
+
 const getFaqEntries = async (
     knex: db.KnexReadonlyTransaction,
-    config: MultiDimDataPageConfigPreProcessed,
-    variableMetadataDict: Record<number, OwidVariableWithSource>
+    variableIds: Iterable<number>
 ): Promise<FaqEntryKeyedByGdocIdAndFragmentId> => {
-    const faqDocIds = new Set(
-        Object.values(variableMetadataDict)
-            .flatMap((metadata) =>
-                metadata.presentation?.faqs?.map((faq) => faq.gdocId)
-            )
-            .filter((id) => id !== undefined)
-    )
-
-    const faqGdocs = await fetchAndParseFaqs(knex, Array.from(faqDocIds), {
+    const faqRelations = await getFaqRelationsFromDb(knex, [...variableIds])
+    const faqGdocIds = uniq(faqRelations.map((rel) => rel.gdocId))
+    const faqGdocs = await fetchAndParseFaqs(knex, faqGdocIds, {
         isPreviewing: false,
     })
 
-    Object.values(variableMetadataDict).forEach((metadata) => {
-        const { errors: faqResolveErrors } = resolveFaqsForVariable(
-            faqGdocs,
-            metadata
-        )
-
-        if (faqResolveErrors.length > 0) {
-            for (const error of faqResolveErrors) {
-                void logErrorAndMaybeCaptureInSentry(
-                    new Error(
-                        `MDD baking error for page "${config.title}" in finding FAQs for variable ${metadata.id}: ${error.error}`
-                    )
-                )
+    const faqs = faqRelations.reduce(
+        (acc, { gdocId, fragmentId }) => {
+            const faqContent = faqGdocs[gdocId]?.[fragmentId]?.content
+            if (faqContent) {
+                acc[gdocId] ??= {}
+                acc[gdocId][fragmentId] = faqContent
             }
-        }
-    })
-
-    const faqContentsByGdocIdAndFragmentId = Object.values(
-        variableMetadataDict
-    ).reduce(
-        (acc, metadata) => {
-            metadata.presentation?.faqs?.forEach((faq) => {
-                if (!faq.gdocId || !faq.fragmentId) return
-                if (!acc[faq.gdocId]) acc[faq.gdocId] = {}
-                if (!acc[faq.gdocId][faq.fragmentId]) {
-                    const faqContent =
-                        faqGdocs[faq.gdocId]?.[faq.fragmentId]?.content
-                    if (faqContent) acc[faq.gdocId][faq.fragmentId] = faqContent
-                }
-            })
             return acc
         },
         {} as FaqEntryKeyedByGdocIdAndFragmentId["faqs"]
     )
 
-    return {
-        faqs: faqContentsByGdocIdAndFragmentId,
-    }
+    return { faqs }
 }
 
 export async function renderMultiDimDataPageFromConfig({
@@ -141,10 +112,7 @@ export async function renderMultiDimDataPageFromConfig({
     const minimalTagToSlugMap = pick(tagToSlugMap, config.topicTags ?? [])
     const pageConfig = MultiDimDataPageConfig.fromObject(config)
     const variableIds = getRelevantVariableIds(config)
-
-    // FAQs
-    const variableMetaDict = await getRelevantVariableMetadata(variableIds)
-    const faqEntries = await getFaqEntries(knex, config, variableMetaDict)
+    const faqEntries = await getFaqEntries(knex, variableIds)
 
     // PRIMARY TOPIC
     const primaryTopic = await getPrimaryTopic(
