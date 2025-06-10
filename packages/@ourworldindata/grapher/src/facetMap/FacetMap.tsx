@@ -11,7 +11,11 @@ import {
     SplitBoundsPadding,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
-import { BASE_FONT_SIZE, GRAPHER_FONT_SCALE_14 } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    GRAPHER_FONT_SCALE_14,
+    GRAPHER_FONT_SCALE_15,
+} from "../core/GrapherConstants"
 import { ChartErrorInfo, MapRegionName, Time } from "@ourworldindata/types"
 import {
     calculateAspectRatio,
@@ -86,7 +90,8 @@ export class FacetMap
     }
 
     @computed private get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        const bounds = this.props.bounds ?? DEFAULT_BOUNDS
+        return bounds.padTop(6)
     }
 
     @computed private get facetsContainerBounds(): Bounds {
@@ -112,7 +117,11 @@ export class FacetMap
     }
 
     @computed private get facetFontSize(): number {
-        return Math.floor(this.fontSize * GRAPHER_FONT_SCALE_14)
+        const isVerticalLayout = this.gridParams.rows > 1
+        const fontScale = isVerticalLayout
+            ? GRAPHER_FONT_SCALE_14
+            : GRAPHER_FONT_SCALE_15
+        return Math.floor(this.fontSize * fontScale)
     }
 
     @computed private get gridParams(): GridParameters {
@@ -392,6 +401,46 @@ export class FacetMap
         exposeInstanceOnWindow(this, "facet")
     }
 
+    private getLabelPosition(facet: PlacedMapFacetSeries): {
+        x: number
+        y: number
+    } {
+        const { labelPadding } = this
+        const { bounds } = facet
+
+        const labelX = bounds.centerX
+        let labelY = bounds.top - labelPadding
+
+        // For the globe and 2D continent views, simply render the label at the top
+        if (
+            this.manager.mapConfig?.globe.isActive ||
+            this.manager.mapConfig?.region !== MapRegionName.World
+        )
+            return { x: labelX, y: labelY }
+
+        // There is often quite a bit of vertical padding around the 2D World map.
+        // It looks nicer to position the facet label closer to the actual map content
+        // rather than at the very top
+
+        const mapAspectRatio = MAP_VIEWPORTS[MapRegionName.World].ratio
+
+        // Find the map's width and height
+        let mapWidth = bounds.width
+        let mapHeight = mapWidth / mapAspectRatio
+        if (mapHeight > bounds.height) {
+            mapHeight = bounds.height
+            mapWidth = mapHeight * mapAspectRatio
+        }
+
+        // Move the label closer to the map if there is vertical padding
+        if (mapHeight < bounds.height) {
+            const shiftY = (bounds.height - mapHeight) / 2
+            labelY += shiftY - 3 * labelPadding
+        }
+
+        return { x: labelX, y: labelY }
+    }
+
     private renderMapLegend(): React.ReactElement {
         return (
             <>
@@ -406,7 +455,7 @@ export class FacetMap
     }
 
     render(): React.ReactElement {
-        const { facetFontSize, labelPadding } = this
+        const { facetFontSize } = this
         return (
             <React.Fragment>
                 {this.renderMapLegend()}
@@ -416,8 +465,7 @@ export class FacetMap
                     return (
                         <React.Fragment key={seriesName}>
                             <text
-                                x={bounds.centerX}
-                                y={bounds.top - labelPadding}
+                                {...this.getLabelPosition(series)}
                                 fill={GRAPHER_DARK_TEXT}
                                 fontSize={facetFontSize}
                                 textAnchor="middle"
