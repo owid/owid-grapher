@@ -28,6 +28,7 @@ import {
     MAP_CHART_CLASSNAME,
     MapColumnInfo,
     PROJECTED_DATA_LEGEND_COLOR,
+    MapViewport,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale } from "../color/ColorScale"
@@ -169,6 +170,10 @@ export class MapChart
 
     @computed get globeController(): GlobeController {
         return this.manager.globeController ?? new GlobeController(this)
+    }
+
+    @computed get mapViewport(): MapViewport | undefined {
+        return this.manager.mapViewport
     }
 
     @computed get mapRegionDropdownValue(): MapRegionDropdownValue | undefined {
