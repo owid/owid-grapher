@@ -2974,7 +2974,7 @@ export class Grapher
     }
 
     @computed get entityRegionTypeGroups(): EntityRegionTypeGroup[] {
-        return groupEntityNamesByRegionType(this.table.availableEntityNames)
+        return groupEntityNamesByRegionType(this.availableEntityNames)
     }
 
     @computed get entityNamesByRegionType(): EntityNamesByRegionType {
