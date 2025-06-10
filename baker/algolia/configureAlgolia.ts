@@ -179,8 +179,9 @@ export const configureAlgolia = async () => {
         attributesToRetrieve: ["suggestion"],
         unretrievableAttributes: ["score"],
         attributesForFaceting: [],
+        attributeForDistinct: "suggestion",
         // Disable typo tolerance for suggestions to ensure more precise matching
-        typoTolerance: "strict",
+        typoTolerance: "false",
     })
 
     const synonyms = [
