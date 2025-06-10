@@ -32,13 +32,8 @@ const queryChartsCountsFromAlgolia = async () => {
     // Get all suggestions from the search_suggestions table
     const suggestions = await db.knexReadonlyTransaction(async (trx) => {
         const suggestions = await db.knexRaw<{
-            title: string
             suggestion: string
-        }>(
-            trx,
-            `SELECT title, suggestion
-            FROM search_suggestions`
-        )
+        }>(trx, `SELECT DISTINCT suggestion from search_suggestions`)
         return suggestions
     }, db.TransactionCloseMode.Close)
 
