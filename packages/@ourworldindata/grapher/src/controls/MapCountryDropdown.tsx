@@ -20,10 +20,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationArrow } from "@fortawesome/free-solid-svg-icons"
 import { SearchDropdown } from "./SearchDropdown"
 import { getCountriesByRegion } from "../mapCharts/MapHelpers"
-import {
-    MAP_REGION_LABELS,
-    MAP_REGION_NAMES,
-} from "../mapCharts/MapChartConstants"
+import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants"
 import { match } from "ts-pattern"
 import * as R from "remeda"
 
@@ -33,6 +30,7 @@ export interface MapCountryDropdownManager {
     hideMapRegionDropdown?: boolean
     isMapSelectionEnabled?: boolean
     globeController?: GlobeController
+    isFaceted?: boolean
     onMapCountryDropdownFocus?: () => void
 }
 
@@ -101,8 +99,12 @@ export class MapCountryDropdown extends React.Component<{
                 // focus the country on the globe
                 this.manager.globeController?.setFocusCountry(selected.value)
 
-                // if a 2d continent is active, we don't want to switch to the globe
-                if (!this.mapConfig.is2dContinentActive()) {
+                // if a 2d continent is active or we're in faceting mode,
+                // we don't want to switch to the globe
+                if (
+                    !this.mapConfig.is2dContinentActive() &&
+                    !this.manager.isFaceted
+                ) {
                     this.manager.globeController?.rotateToCountry(
                         selected.value
                     )
@@ -124,7 +126,7 @@ export class MapCountryDropdown extends React.Component<{
         // Only show the countries for the active continent if in 2d mode
         if (this.mapConfig.is2dContinentActive()) {
             const countriesInRegion = getCountriesByRegion(
-                MAP_REGION_NAMES[this.mapConfig.region]
+                MAP_REGION_LABELS[this.mapConfig.region]
             )
             if (!countriesInRegion) return mappableCountryNames
             return Array.from(countriesInRegion)
@@ -210,7 +212,8 @@ export class MapCountryDropdown extends React.Component<{
     @computed private get placeholder(): string {
         if (
             this.mapConfig.globe.isActive ||
-            this.mapConfig.region === MapRegionName.World
+            (this.mapConfig.region === MapRegionName.World &&
+                !this.manager.isFaceted)
         )
             return "Zoom to..."
         return "Search for a country"
