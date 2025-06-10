@@ -81,7 +81,7 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @computed private get viewport(): MapViewport {
-        return MAP_VIEWPORTS[this.mapConfig.region]
+        return this.manager.mapViewport ?? MAP_VIEWPORTS[this.mapConfig.region]
     }
 
     @computed.struct private get choroplethData(): ChoroplethSeriesByName {
