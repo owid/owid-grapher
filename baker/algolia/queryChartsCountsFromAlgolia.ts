@@ -77,7 +77,7 @@ const queryChartsCountsFromAlgolia = async () => {
     await fs.writeFile(
         csvPath,
         results
-            .map((item) => `"${item.query.replace(/"/g, '""')}",${item.hits}`)
+            .map((item) => `"${item.query.replace(/"/g, '""')}";${item.hits}`)
             .join("\n"),
         "utf-8"
     )
