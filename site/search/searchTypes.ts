@@ -95,10 +95,18 @@ export interface ChartRecord {
 
 export type IChartHit = Hit<BaseHit> & ChartRecord
 
+export interface SuggestionRecord {
+    suggestion: string
+    score: number
+}
+
+export type ISuggestionHit = Hit<BaseHit> & SuggestionRecord
+
 export enum SearchIndexName {
     Charts = "charts",
     Pages = "pages",
     ExplorerViewsMdimViewsAndCharts = "explorer-views-and-charts",
+    Suggestions = "suggestions",
 }
 
 export type SearchCategoryFilter = SearchIndexName | "all"

@@ -24,6 +24,7 @@ const deleteAlgoliaIndex = async () => {
         SearchIndexName.Pages,
         SearchIndexName.Charts,
         SearchIndexName.ExplorerViewsMdimViewsAndCharts,
+        SearchIndexName.Suggestions,
     ]) {
         const indexName = getIndexName(suffix)
         const index = client.initIndex(indexName)

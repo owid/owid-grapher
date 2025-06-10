@@ -125,6 +125,13 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
                 })
                 .exhaustive()
         })
+        .with(SearchIndexName.Suggestions, () => {
+            // Suggestions should navigate to search results page
+            return urljoin(
+                BAKED_BASE_URL,
+                `/data?q=${encodeURIComponent(item.suggestion as string)}`
+            )
+        })
         .exhaustive()
 }
 
@@ -260,6 +267,52 @@ const AllResultsSource: AutocompleteSource<BaseItem> = {
     },
 }
 
+const QuerySuggestionsSource: AutocompleteSource<BaseItem> = {
+    sourceId: "querySuggestions",
+    onSelect({ navigator, item, state }) {
+        const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
+        siteAnalytics.logInstantSearchClick({
+            query: state.query,
+            url: itemUrl,
+            position: String(state.activeItemId),
+        })
+        navigator.navigate({ itemUrl, item, state })
+    },
+    getItemUrl({ item }) {
+        const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
+        return itemUrl
+    },
+    getItems({ query }) {
+        return getAlgoliaResults({
+            searchClient,
+            queries: [
+                {
+                    indexName: getIndexName(SearchIndexName.Suggestions),
+                    query,
+                    params: {
+                        hitsPerPage: 4,
+                        attributesToRetrieve: ["suggestion"],
+                    },
+                },
+            ],
+        })
+    },
+    templates: {
+        header: () => <h5 className="overline-black-caps">Suggestions</h5>,
+        item: ({ item, components }) => (
+            <div className="aa-ItemWrapper">
+                <span>
+                    <components.Highlight
+                        hit={item}
+                        attribute={"suggestion"}
+                        tagName="strong"
+                    />
+                </span>
+            </div>
+        ),
+    },
+}
+
 export const AUTOCOMPLETE_CONTAINER_ID = "#autocomplete"
 
 export function Autocomplete({
@@ -316,7 +369,11 @@ export function Autocomplete({
             getSources({ query }) {
                 const sources: AutocompleteSource<BaseItem>[] = []
                 if (query) {
-                    sources.push(AlgoliaSource, AllResultsSource)
+                    sources.push(
+                        QuerySuggestionsSource,
+                        AlgoliaSource,
+                        AllResultsSource
+                    )
                 } else {
                     sources.push(FeaturedSearchesSource)
                 }

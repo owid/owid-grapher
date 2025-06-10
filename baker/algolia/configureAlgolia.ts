@@ -139,6 +139,7 @@ export const configureAlgolia = async () => {
             "unordered(tags)",
             "unordered(availableEntities)",
             "unordered(originalAvailableEntities)",
+            "unordered(searchSuggestion)",
         ],
         ranking: ["typo", "words", "exact", "attribute", "custom", "proximity"],
         customRanking: [
@@ -163,7 +164,23 @@ export const configureAlgolia = async () => {
             "availableEntities",
             "type",
             "isIncomeGroupSpecificFM",
+            "afterDistinct(searchable(searchSuggestion))",
         ],
+    })
+
+    const suggestionsIndex = client.initIndex(
+        getIndexName(SearchIndexName.Suggestions)
+    )
+
+    await suggestionsIndex.setSettings({
+        ...baseSettings,
+        searchableAttributes: ["unordered(suggestion)"],
+        customRanking: ["desc(score)"],
+        attributesToRetrieve: ["suggestion"],
+        unretrievableAttributes: ["score"],
+        attributesForFaceting: [],
+        // Disable typo tolerance for suggestions to ensure more precise matching
+        typoTolerance: "false",
     })
 
     const synonyms = [
