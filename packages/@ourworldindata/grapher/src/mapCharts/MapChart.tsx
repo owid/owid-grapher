@@ -40,7 +40,6 @@ import {
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_MAX_TOOLTIP_WIDTH,
     Patterns,
 } from "../core/GrapherConstants"
@@ -605,9 +604,10 @@ export class MapChart
 
         let sparklineWidth: number | undefined
         if (this.manager.shouldPinTooltipToBottom) {
+            const windowWidth = window?.innerWidth ?? 240
             sparklineWidth = Math.min(
                 GRAPHER_MAX_TOOLTIP_WIDTH,
-                this.bounds.width + (GRAPHER_FRAME_PADDING_HORIZONTAL - 1) * 2
+                windowWidth - 8
             )
         }
 
