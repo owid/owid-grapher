@@ -99,6 +99,7 @@ export interface EntitySelectorState {
 
 export interface EntitySelectorManager {
     entitySelectorState: Partial<EntitySelectorState>
+    table: OwidTable
     tableForSelection: OwidTable
     selection: SelectionArray
     entityType?: string
@@ -411,7 +412,7 @@ export class EntitySelector extends React.Component<{
     }
 
     private interpolateSortColumn(slug: ColumnSlug): CoreColumn {
-        return this.table
+        return this.inputTable
             .interpolateColumnWithTolerance(
                 slug,
                 this.toleranceOverride.value,
@@ -633,6 +634,10 @@ export class EntitySelector extends React.Component<{
             this.manager.entitySelectorState.isLoadingExternalSortColumn ??
             false
         )
+    }
+
+    @computed private get inputTable(): OwidTable {
+        return this.manager.table
     }
 
     @computed private get table(): OwidTable {
@@ -1201,7 +1206,7 @@ export class EntitySelector extends React.Component<{
             const variable = await additionalDataLoaderFn(indicatorId)
             const variableTable = buildVariableTable(variable)
             const column = variableTable
-                .filterByEntityNames(this.availableEntityNames)
+                .filterByEntityNames(this.inputTable.availableEntityNames)
                 .interpolateColumnWithTolerance(slug, Infinity)
                 .get(slug)
             if (column) this.setInterpolatedSortColumn(column)
