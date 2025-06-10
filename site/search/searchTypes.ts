@@ -96,7 +96,6 @@ export interface ChartRecord {
 export type IChartHit = Hit<BaseHit> & ChartRecord
 
 export interface SuggestionRecord {
-    objectID: string
     suggestion: string
     score: number
 }

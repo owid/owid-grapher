@@ -16,18 +16,18 @@ const getSuggestionsRecords = async (
     trx: db.KnexReadonlyTransaction
 ): Promise<SuggestionRecord[]> => {
     const suggestions = await db.knexRaw<{
-        title: string
         suggestion: string
         score: number
     }>(
         trx,
-        `SELECT title, suggestion, score
-         FROM search_suggestions`
+        `SELECT suggestion, MAX(score) AS score
+        FROM search_suggestions
+        GROUP BY suggestion;`
     )
 
     // Convert to suggestion records for Algolia
     const records: SuggestionRecord[] = suggestions.map((row) => ({
-        objectID: row.title,
+        objectID: row.suggestion,
         suggestion: row.suggestion,
         score: row.score,
     }))
