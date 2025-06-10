@@ -10,18 +10,9 @@ import * as db from "../../db/db.js"
 import { getAlgoliaClient } from "./configureAlgolia.js"
 import { SearchIndexName } from "../../site/search/searchTypes.js"
 import { getIndexName } from "../../site/search/searchClient.js"
-import { getChartsRecords } from "./utils/charts.js"
-import {
-    getExplorerViewRecords,
-    scaleExplorerRecordScores,
-} from "./utils/explorerViews.js"
-import { getMdimViewRecords } from "./utils/mdimViews.js"
-import { MAX_NON_FM_RECORD_SCORE, scaleRecordScores } from "./utils/shared.js"
 
 interface SearchResult {
     query: string
-    title: string
-    type: string
     hits: number
 }
 
@@ -38,37 +29,23 @@ const queryChartsCountsFromAlgolia = async () => {
     console.log(`Using Algolia index: "${indexName}"`)
     const index = client.initIndex(indexName)
 
-    // Get all records that would be indexed to Algolia, just like in indexExplorerViewsMdimViewsAndChartsToAlgolia.ts
-    const records = await db.knexReadonlyTransaction(async (trx) => {
-        const explorerViews = await getExplorerViewRecords(trx, true)
-        const mdimViews = await getMdimViewRecords(trx)
-        const grapherViews = await getChartsRecords(trx)
-
-        // Process same way as the indexing script
-        const scaledGrapherViews = scaleRecordScores(grapherViews, [
-            1000,
-            MAX_NON_FM_RECORD_SCORE,
-        ])
-        const scaledExplorerViews = scaleExplorerRecordScores(explorerViews)
-        const scaledMdimViews = scaleRecordScores(mdimViews, [
-            1000,
-            MAX_NON_FM_RECORD_SCORE,
-        ])
-
-        const records = [
-            ...scaledGrapherViews,
-            ...scaledExplorerViews,
-            ...scaledMdimViews,
-        ]
-
-        return records
+    // Get all suggestions from the search_suggestions table
+    const suggestions = await db.knexReadonlyTransaction(async (trx) => {
+        const suggestions = await db.knexRaw<{
+            title: string
+            suggestion: string
+        }>(
+            trx,
+            `SELECT title, suggestion
+            FROM search_suggestions`
+        )
+        return suggestions
     }, db.TransactionCloseMode.Close)
 
-    // Extract chart titles from records to query
-    const itemsToQuery = records.map((record) => ({
-        id: record.objectID,
-        title: record.title,
-        type: record.type,
+    // Extract suggestions to query
+    const itemsToQuery = suggestions.map((suggestion, index) => ({
+        id: `suggestion_${index}`,
+        suggestion: suggestion.suggestion,
     }))
 
     console.log(`Found ${itemsToQuery.length} items to query`)
@@ -79,13 +56,11 @@ const queryChartsCountsFromAlgolia = async () => {
     for (let i = 0; i < itemsToQuery.length; i++) {
         const item = itemsToQuery[i]
         try {
-            // Query Algolia with the item title
-            const searchResponse = await index.search(item.title)
+            // Query Algolia with the suggestion text
+            const searchResponse = await index.search(item.suggestion)
 
             results.push({
-                query: item.title,
-                title: item.title,
-                type: item.type,
+                query: item.suggestion,
                 hits: searchResponse.nbHits,
             })
 
@@ -93,21 +68,21 @@ const queryChartsCountsFromAlgolia = async () => {
                 console.log(`Processed ${i}/${itemsToQuery.length} items`)
             }
         } catch (error) {
-            console.error(`Error searching for "${item.title}":`, error)
+            console.error(`Error searching for "${item.suggestion}":`, error)
         }
     }
 
-    // Export CSV with title and hit count
+    // Export CSV with suggestion and hit count
     const csvPath = path.join(process.cwd(), "algoliaHits.csv")
     await fs.writeFile(
         csvPath,
         results
-            .map((item) => `"${item.title.replace(/"/g, '""')}",${item.hits}`)
+            .map((item) => `"${item.query.replace(/"/g, '""')}",${item.hits}`)
             .join("\n"),
         "utf-8"
     )
 
-    console.log(`CSV with titles and hit counts written to ${csvPath}`)
+    console.log(`CSV with suggestions and hit counts written to ${csvPath}`)
 
     // Create and export hit count distribution CSV
     const distributionMap: Record<number, number> = {}
@@ -145,15 +120,6 @@ const queryChartsCountsFromAlgolia = async () => {
     const maxHits = Math.max(...results.map((item) => item.hits))
     const noHits = results.filter((item) => item.hits === 0).length
 
-    // Group results by type
-    const resultsByType: Record<string, SearchResult[]> = {}
-    for (const result of results) {
-        if (!resultsByType[result.type]) {
-            resultsByType[result.type] = []
-        }
-        resultsByType[result.type].push(result)
-    }
-
     const summaryPath = path.join(process.cwd(), "algoliaSearchSummary.txt")
     await fs.writeFile(
         summaryPath,
@@ -163,16 +129,6 @@ Total hits across all queries: ${totalHits}
 Average hits per query: ${averageHits.toFixed(2)}
 Maximum hits for a single query: ${maxHits}
 Items with no hits: ${noHits} (${((noHits / results.length) * 100).toFixed(2)}%)
-
-Results by type:
-${Object.entries(resultsByType)
-    .map(([type, items]) => {
-        const typeHits = items.reduce((sum, item) => sum + item.hits, 0)
-        const typeAvg = typeHits / items.length
-        const typeNoHits = items.filter((item) => item.hits === 0).length
-        return `- ${type}: ${items.length} items, avg ${typeAvg.toFixed(2)} hits, ${typeNoHits} with no hits (${((typeNoHits / items.length) * 100).toFixed(2)}%)`
-    })
-    .join("\n")}
 `,
         "utf-8"
     )
