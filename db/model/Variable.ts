@@ -767,6 +767,18 @@ export const fetchS3Values = async (
     )
 }
 
+const createS3JsonParseError = (
+    error: any,
+    path: string,
+    resp: Response
+): Error => {
+    return new Error(
+        `Error parsing JSON from response for ${path}: ${
+            error.message
+        }\nStatus Code: ${resp.status} ${resp.statusText}\nRe-run the grapher step in ETL with FORCE_UPLOAD=1.`
+    )
+}
+
 export const fetchS3DataValuesByPath = async (
     dataPath: string
 ): Promise<OwidVariableMixedData> => {
@@ -790,13 +802,7 @@ export const fetchS3DataValuesByPath = async (
     try {
         return await resp.json()
     } catch (error: any) {
-        throw new Error(
-            `Error parsing JSON from response for ${dataPath}: ${
-                error.message
-            }\nStatus Code: ${resp.status} ${
-                resp.statusText
-            }\nResponse Body: ${await resp.text()}`
-        )
+        throw createS3JsonParseError(error, dataPath, resp)
     }
 }
 
@@ -823,11 +829,7 @@ export const fetchS3MetadataByPath = async (
     try {
         return await resp.json()
     } catch (error: any) {
-        throw new Error(
-            `Error parsing JSON from response for ${metadataPath}: ${
-                error.message
-            }\nStatus Code: ${resp.status} ${resp.statusText}`
-        )
+        throw createS3JsonParseError(error, metadataPath, resp)
     }
 }
 
