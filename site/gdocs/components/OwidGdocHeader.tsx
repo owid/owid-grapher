@@ -123,7 +123,7 @@ function OwidArticleHeader({
 function OwidTopicPageHeader({ content }: { content: OwidGdocPostContent }) {
     return (
         <header className="topic-page-header grid span-cols-14 grid-cols-12-full-width">
-            <h1 className="display-1-semibold col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
+            <h1 className="display-2-semibold col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
                 {content.title}
             </h1>
             <p className="topic-page-header__subtitle body-1-regular col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
@@ -145,7 +145,7 @@ function OwidLinearTopicPageHeader({
 }) {
     return (
         <header className="topic-page-header grid span-cols-14 grid-cols-12-full-width">
-            <h1 className="display-1-semibold col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
+            <h1 className="display-2-semibold col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">
                 {content.title}
             </h1>
             <p className="topic-page-header__subtitle body-1-regular col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 span-sm-cols-12 col-sm-start-2">

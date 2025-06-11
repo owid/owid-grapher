@@ -6,22 +6,30 @@
 .topic-page-header {
     background-color: $blue-10;
     color: $blue-90;
-    margin-bottom: 48px;
+    margin-bottom: 40px;
     z-index: $zindex-extended-header;
 
     h1 {
-        margin-bottom: 0;
+        margin-bottom: 8px;
+        margin-top: 40px;
+        text-wrap: balance;
         @include sm-only {
             font-size: 2rem;
-            margin-top: 24px;
+            margin-top: 16px;
         }
     }
 
     .topic-page-header__subtitle {
         margin: 0;
+        line-height: 1.375rem;
+
+        @include sm-only {
+            font-size: 1rem;
+        }
     }
 
     p.topic-page-header__byline {
+        font-size: 0.875rem;
         margin-bottom: 0;
         color: $blue-60;
         @include sm-only {
