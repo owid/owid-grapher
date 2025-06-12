@@ -1,6 +1,6 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-import { computed, action, reaction } from "mobx"
+import { computed, action, reaction, when } from "mobx"
 import cx from "classnames"
 import a from "indefinite"
 import {
@@ -108,6 +108,7 @@ export interface EntitySelectorManager {
     yColumnSlugs?: ColumnSlug[]
     entityRegionTypeGroups?: EntityRegionTypeGroup[]
     entityNamesByRegionType?: EntityNamesByRegionType
+    isReady?: boolean
     logEntitySelectorEvent: (
         action: EntitySelectorEvent,
         target?: string
@@ -219,7 +220,6 @@ export class EntitySelector extends React.Component<{
 
     componentDidMount(): void {
         void this.populateLocalEntities()
-        this.initSortConfig()
 
         if (this.props.autoFocus && !isTouchDevice())
             this.searchField.current?.focus()
@@ -231,6 +231,13 @@ export class EntitySelector extends React.Component<{
                 if (this.scrollableContainer.current)
                     this.scrollableContainer.current.scrollTop = 0
             }
+        )
+
+        // the initial sorting strategy depends on data,
+        // which is why we wait for Grapher to be ready
+        when(
+            () => !!this.manager.isReady,
+            () => this.initSortConfig()
         )
     }
 
