@@ -1569,6 +1569,14 @@ export class Grapher
     // Keeps a running cache of series colors at the Grapher level.
     seriesColorMap: SeriesColorMap = new Map()
 
+    @computed private get closestTimelineMinTime(): Time | undefined {
+        return findClosestTime(this.times, this.timelineMinTime ?? -Infinity)
+    }
+
+    @computed private get closestTimelineMaxTime(): Time | undefined {
+        return findClosestTime(this.times, this.timelineMaxTime ?? Infinity)
+    }
+
     @computed get startTime(): Time | undefined {
         return findClosestTime(this.times, this.startHandleTimeBound)
     }
@@ -1657,13 +1665,11 @@ export class Grapher
     @action.bound private ensureHandlesAreOnDifferentTimes(): void {
         if (!this.areHandlesOnSameTime) return
 
-        if (this.startHandleTimeBound !== -Infinity) {
-            this.timelineHandleTimeBounds = [-Infinity, this.endHandleTimeBound]
+        const time = this.startTime // startTime = endTime
+        if (time === this.closestTimelineMinTime) {
+            this.timelineHandleTimeBounds = [time ?? -Infinity, Infinity]
         } else {
-            this.timelineHandleTimeBounds = [
-                this.startHandleTimeBound,
-                Infinity,
-            ]
+            this.timelineHandleTimeBounds = [-Infinity, time ?? Infinity]
         }
     }
 
