@@ -117,9 +117,7 @@
     }
 
     // Remove some margins since margins don't collapse in display: grid.
-    .article-block__side-by-side,
-    .article-block__sticky-left,
-    .article-block__sticky-right {
+    @include column-block-override {
         @include md-up {
             margin: 0;
         }
