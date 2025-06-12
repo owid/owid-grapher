@@ -124,6 +124,14 @@
     }
 }
 
+@mixin column-block-override {
+    .article-block__sticky-right,
+    .article-block__sticky-left,
+    .article-block__side-by-side {
+        @content;
+    }
+}
+
 @mixin sticky-child {
     top: 24px;
     position: sticky;
