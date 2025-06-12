@@ -31,6 +31,7 @@ import {
     FilterType,
     SearchAutocompleteContextType,
     ScoredSearchResult,
+    ResultType,
 } from "./searchTypes.js"
 import { faTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -635,4 +636,10 @@ export const getFilterAriaLabel = (
             () => `${actionName} ${filter.name} ${filter.type} filter`
         )
         .exhaustive()
+}
+
+export const isValidResultType = (
+    value: string | undefined
+): value is ResultType => {
+    return Object.values(ResultType).includes(value as ResultType)
 }
