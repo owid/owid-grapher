@@ -1,10 +1,12 @@
 import { GrapherAnalytics, EventCategory } from "@ourworldindata/grapher"
-import type {
-    SearchCategoryFilter,
-    IDataCatalogHit,
-    SearchState,
+import {
+    type SearchCategoryFilter,
+    type IDataCatalogHit,
+    type SearchState,
+    FilterType,
 } from "./search/searchTypes.js"
 import { set } from "@ourworldindata/utils"
+import { getFilterNamesOfType } from "./search/searchUtils.js"
 
 export class SiteAnalytics extends GrapherAnalytics {
     logPageNotFoundError(url: string) {
@@ -94,8 +96,12 @@ export class SiteAnalytics extends GrapherAnalytics {
             eventAction: "search",
             eventContext: JSON.stringify({
                 ...state,
-                topics: Array.from(state.topics),
-                selectedCountryNames: Array.from(state.selectedCountryNames),
+                topics: Array.from(
+                    getFilterNamesOfType(state.filters, FilterType.TOPIC)
+                ),
+                selectedCountryNames: Array.from(
+                    getFilterNamesOfType(state.filters, FilterType.COUNTRY)
+                ),
             }),
         })
     }
@@ -124,6 +130,36 @@ export class SiteAnalytics extends GrapherAnalytics {
             event: EventCategory.Expander,
             eventAction: isOpen ? "open" : "close",
             eventTarget: id,
+        })
+    }
+
+    logSearchAutocompleteClick({
+        query,
+        position,
+        filterType,
+        filterName,
+        suggestions,
+        suggestionsTypes,
+        suggestionsCount,
+    }: {
+        query: string
+        position: number
+        filterType: FilterType
+        filterName: string
+        suggestions: string[]
+        suggestionsTypes: FilterType[]
+        suggestionsCount: number
+    }) {
+        this.logToGA({
+            event: EventCategory.SiteSearchAutocompleteClick,
+            eventAction: "click",
+            autocompleteQuery: query,
+            autocompletePosition: position,
+            autocompleteFilterType: filterType,
+            autocompleteFilterName: filterName,
+            autocompleteSuggestions: suggestions.join("~"), // not JSON.stringify to avoid broken JSON above 100 character limit
+            autocompleteSuggestionsTypes: suggestionsTypes.join("~"),
+            autocompleteSuggestionsCount: suggestionsCount,
         })
     }
 }

@@ -27,6 +27,7 @@ export enum EventCategory {
     SiteSearchClick = "owid.site_search_click",
     SiteSearchFilterClick = "owid.site_search_filter_click",
     SiteInstantSearchClick = "owid.site_instantsearch_click",
+    SiteSearchAutocompleteClick = "owid.site_search_autocomplete_click",
     SiteFormSubmit = "owid.site_form_submit",
     DetailOnDemand = "owid.detail_on_demand",
     DataCatalogSearch = "owid.data_catalog_search",
@@ -73,6 +74,13 @@ interface GAEvent {
     narrativeChartName?: string // specifies the name of a narrative chart
     explorerPath?: string
     explorerView?: string
+    autocompleteQuery?: string
+    autocompletePosition?: number
+    autocompleteFilterType?: string
+    autocompleteFilterName?: string
+    autocompleteSuggestions?: string
+    autocompleteSuggestionsTypes?: string
+    autocompleteSuggestionsCount?: number
 }
 
 // taken from https://github.com/DefinitelyTyped/DefinitelyTyped/blob/de66435d18fbdb2684947d16b5cd3a77f876324c/types/gtag.js/index.d.ts#L151-L156
@@ -288,7 +296,6 @@ export class GrapherAnalytics {
             console.log("Analytics.logToGA", event)
             return
         }
-
         if (typeof window !== "undefined") window.dataLayer?.push(event)
     }
 
