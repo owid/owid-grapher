@@ -49,8 +49,8 @@ jobs:
             - name: Run lerna build
               run: yarn buildLerna
 
-            - name: Run tsc build
-              run: yarn buildTsc
+            - name: Run typecheck
+              run: yarn typecheck
 
     prettier:
         runs-on: ubuntu-latest

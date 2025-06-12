@@ -64,12 +64,12 @@ Note: on Windows we strongly recommend using the [Windows Subsystem for Linux](h
 
 ## Running tests
 
-To run our test suite you first need to build the TypeScript files into JavaScript and then run vitest:
+To run our test suite you first need to build the internal packages and then run vitest:
 
-1. Build JavaScript
+1. Build packages
 
     ```sh
-    yarn lerna run build && yarn buildTsc
+    yarn lerna run build
     ```
 
 2. Run vitest
