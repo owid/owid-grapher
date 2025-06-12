@@ -177,8 +177,8 @@
     {
         "id": "Cape Verde",
         "external": {
-            "direction": "left",
-            "anchorPoint": [-24.816292404283473, 15.93703692965643]
+            "direction": "top",
+            "anchorPoint": [-24.096678530517806, 17.080485107460618]
         }
     },
     {
@@ -701,8 +701,8 @@
     {
         "id": "Mauritius",
         "external": {
-            "direction": "right",
-            "anchorPoint": [57.76777677767777, -20.34422800678503]
+            "direction": "bottom",
+            "anchorPoint": [57.53099317236595, -20.528331074825616]
         }
     },
     {
