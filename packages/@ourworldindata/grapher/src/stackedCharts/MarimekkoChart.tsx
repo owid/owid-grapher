@@ -446,7 +446,8 @@ export class MarimekkoChart
     }
 
     @computed private get colorColumnSlug(): string | undefined {
-        return this.manager.colorColumnSlug
+        // Marimekko charts only support categorical variables as color dimension
+        return this.manager.categoricalColorColumnSlug
     }
 
     @computed private get colorColumn(): CoreColumn {
@@ -512,7 +513,9 @@ export class MarimekkoChart
         return this.bounds
             .padBottom(this.longestLabelHeight + 2)
             .padBottom(labelLinesHeight)
-            .padTop(this.legend.height + this.legendPaddingTop)
+            .padTop(
+                this.showLegend ? this.legend.height + this.legendPaddingTop : 0
+            )
             .padLeft(marginToEnsureWidestEntityLabelFitsEvenIfAtX0)
     }
 
@@ -574,31 +577,15 @@ export class MarimekkoChart
         )
     }
 
-    @computed get defaultYAxisLabel(): string | undefined {
-        return this.yColumns.length > 0
-            ? this.yColumns[0].displayName
-            : undefined
-    }
-
-    @computed get currentVerticalAxisLabel(): string {
-        const config = this.yAxisConfig
-        const fallbackLabel = this.defaultYAxisLabel ?? ""
-        return this.isNarrow ? "" : config.label || fallbackLabel
-    }
-
     @computed private get verticalAxisPart(): VerticalAxis {
         const config = this.yAxisConfig
         const axis = config.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(this.yDomainDefault)
 
         axis.formatColumn = this.yColumns[0]
-        axis.label = this.currentVerticalAxisLabel
+        axis.label = ""
 
         return axis
-    }
-    @computed private get isNarrow(): boolean {
-        // TODO: this should probably come from grapher?
-        return this.bounds.width < 650 // innerBounds would lead to dependency cycle
     }
 
     @computed private get xAxisLabelBase(): string {
@@ -724,6 +711,7 @@ export class MarimekkoChart
                                 yPoint: point,
                                 color: series.color,
                                 seriesName: series.seriesName,
+                                columnSlug: series.columnSlug,
                             }
                         })
                     ),
@@ -851,6 +839,10 @@ export class MarimekkoChart
         return []
     }
 
+    @computed private get showLegend(): boolean {
+        return !!this.colorColumnSlug || this.categoricalLegendData.length > 1
+    }
+
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
         this.focusColorBin = bin
     }
@@ -921,7 +913,7 @@ export class MarimekkoChart
             dualAxis,
             tooltipItem,
             xColumn,
-            formatColumn: yColumn,
+            yColumns,
             manager: { endTime, xOverrideTime },
             inputTable: { timeColumn },
             tooltipState: { target, position, fading },
@@ -938,6 +930,7 @@ export class MarimekkoChart
                 return {
                     name: bar.seriesName,
                     value: bar.yPoint.value,
+                    column: this.transformedTable.get(bar.columnSlug),
                     notice: shouldShowYTimeNotice ? bar.yPoint.time : undefined,
                 }
             }) ?? []
@@ -960,7 +953,7 @@ export class MarimekkoChart
               }
             : undefined
 
-        const columns = excludeUndefined([xColumn, yColumn])
+        const columns = excludeUndefined([xColumn, ...yColumns])
         const allRoundedToSigFigs = columns.every(
             (column) => column.roundsToSignificantFigures
         )
@@ -1009,7 +1002,9 @@ export class MarimekkoChart
                     showTickMarks={true}
                     detailsMarker={manager.detailsMarkerInSvg}
                 />
-                <HorizontalCategoricalColorLegend manager={this} />
+                {this.showLegend && (
+                    <HorizontalCategoricalColorLegend manager={this} />
+                )}
                 {this.renderBars()}
                 {target && (
                     <Tooltip
@@ -1026,10 +1021,10 @@ export class MarimekkoChart
                         dissolve={fading}
                         dismiss={() => (this.tooltipState.target = null)}
                     >
-                        {yValues.map(({ name, value, notice }) => (
+                        {yValues.map(({ name, value, column, notice }) => (
                             <TooltipValue
                                 key={name}
-                                column={yColumn}
+                                column={column}
                                 value={value}
                                 notice={notice}
                                 showSignificanceSuperscript={superscript}
@@ -1065,10 +1060,16 @@ export class MarimekkoChart
         } = this
         const selectionSet = this.selectionArray.selectedSet
         const labelYOffset = 0
-        const hasSelection = selectionSet.size > 0
         let noDataAreaElement = undefined
         let noDataLabel = undefined
         const noDataHeight = Bounds.forText("no data").height + 10 //  dualAxis.verticalAxis.rangeSize
+
+        // The chart has selected entities only if there is any _available_ entity that is selected
+        const { availableEntityNameSet } = this.transformedTable
+        const hasSelection =
+            this.selectionArray.selectedEntityNames.filter((entityName) =>
+                availableEntityNameSet.has(entityName)
+            ).length > 0
 
         const firstNanValue = placedItems.findIndex((item) => !item.bars.length)
         const anyNonNanAfterFirstNan =
