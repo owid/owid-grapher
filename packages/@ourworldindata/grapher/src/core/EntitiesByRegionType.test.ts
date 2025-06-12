@@ -1,5 +1,5 @@
 import { expect, it } from "vitest"
-import { Grapher } from "../core/Grapher"
+import { GrapherState } from "../core/Grapher"
 import { SynthesizeGDPTable } from "@ourworldindata/core-table"
 
 it("detects regions based on their suffix", () => {
@@ -9,7 +9,7 @@ it("detects regions based on their suffix", () => {
             "Europe & Central Asia (WB)", // alternative name
         ],
     })
-    const grapher = new Grapher({ table })
+    const grapher = new GrapherState({ table })
     expect(grapher.entityNamesByRegionType.get("wb")).toEqual([
         "Europe and Central Asia (WB)",
         "Europe & Central Asia (WB)",

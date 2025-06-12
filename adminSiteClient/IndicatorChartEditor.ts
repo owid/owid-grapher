@@ -33,14 +33,28 @@ export class IndicatorChartEditor extends AbstractChartEditor<IndicatorChartEdit
             () => this.manager.isNewGrapher !== undefined,
             () => (this._isNewGrapher = this.manager.isNewGrapher)
         )
+
+        this.grapherState.updateFromObject(this.manager.patchConfig)
+
+        void this.cachingGrapherDataLoader(
+            this.grapherState.dimensions,
+            this.grapherState.selectedEntityColors
+        ).then((inputTable) => {
+            if (inputTable) {
+                // Set the inputTable to the grapherState
+                runInAction(() => {
+                    this.grapherState.inputTable = inputTable
+                })
+            }
+        })
     }
 
     @computed
     get availableTabs(): EditorTab[] {
         const tabs: EditorTab[] = ["basic", "data", "text", "customize"]
-        if (this.grapher.hasMapTab) tabs.push("map")
-        if (this.grapher.isScatter) tabs.push("scatter")
-        if (this.grapher.isMarimekko) tabs.push("marimekko")
+        if (this.grapherState.hasMapTab) tabs.push("map")
+        if (this.grapherState.isScatter) tabs.push("scatter")
+        if (this.grapherState.isMarimekko) tabs.push("marimekko")
         tabs.push("refs")
         tabs.push("debug")
         return tabs

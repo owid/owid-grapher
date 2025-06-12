@@ -1,10 +1,11 @@
 import { DimensionProperty } from "@ourworldindata/utils"
-import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
+import { GrapherProgrammaticInterface, GrapherState } from "../core/Grapher"
 import {
     TestMetadata,
     createOwidTestDataset,
     fakeEntities,
 } from "../testData/OwidTestData"
+import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "../core/LegacyToOwidTable.js"
 
 /**
 Grapher properties:
@@ -13,7 +14,7 @@ Grapher properties:
  */
 export const LifeExpectancyGrapher = (
     props: Partial<GrapherProgrammaticInterface> = {}
-): Grapher => {
+): GrapherState => {
     const lifeExpectancyId = 815383
     const lifeExpectancyMetadata: TestMetadata = {
         id: lifeExpectancyId,
@@ -55,14 +56,17 @@ export const LifeExpectancyGrapher = (
             property: DimensionProperty.y,
         },
     ]
-    return new Grapher({
+    const grapherState = new GrapherState({
         ...props,
         dimensions,
-        owidDataset: createOwidTestDataset([
-            {
-                metadata: lifeExpectancyMetadata,
-                data: lifeExpectancyData,
-            },
-        ]),
     })
+    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        createOwidTestDataset([
+            { data: lifeExpectancyData, metadata: lifeExpectancyMetadata },
+        ]),
+        dimensions,
+        {}
+    )
+    grapherState.inputTable = inputTable
+    return grapherState
 }
