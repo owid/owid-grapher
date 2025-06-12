@@ -7,6 +7,8 @@ import {
     findClosestTime,
 } from "@ourworldindata/utils"
 
+export type TimelineDragTarget = "start" | "end" | "both"
+
 export interface TimelineManager {
     disablePlay?: boolean
     formatTimeFn?: (time: Time) => string
@@ -20,6 +22,7 @@ export interface TimelineManager {
     msPerTick?: number
     onPlay?: () => void
     onTimelineClick?: () => void
+    timelineDragTarget?: TimelineDragTarget
 }
 
 export class TimelineController {
@@ -216,9 +219,9 @@ export class TimelineController {
     }
 
     dragHandleToTime(
-        handle: "start" | "end" | "both",
+        handle: TimelineDragTarget,
         inputTime: number
-    ): "start" | "end" | "both" {
+    ): TimelineDragTarget {
         const { manager } = this
 
         const time = this.getTimeBoundFromDrag(inputTime)

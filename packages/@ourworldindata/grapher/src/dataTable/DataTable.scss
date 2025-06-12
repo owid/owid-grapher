@@ -104,9 +104,9 @@
         }
 
         // adds a border on the right of each dimension column
-        tr > td.dimension-start ~ td.dimension-start,
         tr > th.dimension ~ th.dimension,
-        tr > th.firstSubdimension ~ th.firstSubdimension {
+        tr > th.subdimension-first ~ th.subdimension-first,
+        tr > td.cell-first ~ td.cell-first {
             border-left: $cell-border;
         }
 
