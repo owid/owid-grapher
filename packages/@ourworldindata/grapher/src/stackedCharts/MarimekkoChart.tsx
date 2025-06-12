@@ -514,7 +514,9 @@ export class MarimekkoChart
         return this.bounds
             .padBottom(this.longestLabelHeight + 2)
             .padBottom(labelLinesHeight)
-            .padTop(this.legend.height + this.legendPaddingTop)
+            .padTop(
+                this.showLegend ? this.legend.height + this.legendPaddingTop : 0
+            )
             .padLeft(marginToEnsureWidestEntityLabelFitsEvenIfAtX0)
     }
 
@@ -838,6 +840,10 @@ export class MarimekkoChart
         return []
     }
 
+    @computed private get showLegend(): boolean {
+        return !!this.colorColumnSlug || this.categoricalLegendData.length > 1
+    }
+
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
         this.focusColorBin = bin
     }
@@ -997,7 +1003,9 @@ export class MarimekkoChart
                     showTickMarks={true}
                     detailsMarker={manager.detailsMarkerInSvg}
                 />
-                <HorizontalCategoricalColorLegend manager={this} />
+                {this.showLegend && (
+                    <HorizontalCategoricalColorLegend manager={this} />
+                )}
                 {this.renderBars()}
                 {target && (
                     <Tooltip
