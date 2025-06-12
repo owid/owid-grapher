@@ -97,7 +97,6 @@ unstashChanges() {
 build() {
     echo "=> Build project"
     yarn buildLerna
-    yarn buildTsc
 }
 
 checkoutMaster() {
