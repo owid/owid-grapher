@@ -575,31 +575,15 @@ export class MarimekkoChart
         )
     }
 
-    @computed get defaultYAxisLabel(): string | undefined {
-        return this.yColumns.length > 0
-            ? this.yColumns[0].displayName
-            : undefined
-    }
-
-    @computed get currentVerticalAxisLabel(): string {
-        const config = this.yAxisConfig
-        const fallbackLabel = this.defaultYAxisLabel ?? ""
-        return this.isNarrow ? "" : config.label || fallbackLabel
-    }
-
     @computed private get verticalAxisPart(): VerticalAxis {
         const config = this.yAxisConfig
         const axis = config.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(this.yDomainDefault)
 
         axis.formatColumn = this.yColumns[0]
-        axis.label = this.currentVerticalAxisLabel
+        axis.label = ""
 
         return axis
-    }
-    @computed private get isNarrow(): boolean {
-        // TODO: this should probably come from grapher?
-        return this.bounds.width < 650 // innerBounds would lead to dependency cycle
     }
 
     @computed private get xAxisLabelBase(): string {
