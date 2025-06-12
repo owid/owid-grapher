@@ -53,7 +53,22 @@
     }
 
     + .sticky-nav {
-        margin-top: -48px;
+        margin-top: -40px;
+    }
+}
+
+.topic-page-header__cta-buttons {
+    margin-top: 14px;
+    margin-bottom: 32px;
+    display: flex;
+    gap: 16px;
+    a {
+        @include body-3-medium;
+        color: $blue-60;
+    }
+    svg {
+        color: $blue-50;
+        margin-right: 4px;
     }
 }
 
