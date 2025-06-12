@@ -36,10 +36,11 @@
 .data-catalog-pseudo-input {
     display: flex;
     flex-grow: 1;
+    flex-basis: 100%;
     outline: 1px solid $blue-20;
     background-color: #fff;
     &:focus-within {
-        outline: 1px solid $blue-40;
+        outline: 1px solid $blue-5;
     }
 }
 
@@ -95,6 +96,7 @@
 .data-catalog-search-controls-container {
     position: relative;
     display: flex;
+    flex-wrap: wrap;
 }
 
 .data-catalog-search-box-container {
@@ -316,7 +318,7 @@
     box-shadow: 4px 0 30px 0 #00000020;
 
     @include sm-only {
-        width: calc(100vw - 32px);
+        width: calc(100vw - 48px);
     }
 }
 
@@ -405,6 +407,76 @@
     background-color: $accent-pale-blue;
     &:hover {
         background-color: $accent-pale-blue;
+    }
+}
+
+.data-catalog-pseudo-input:not(:focus-within)
+    .data-catalog-autocomplete-container {
+    // display: none;
+}
+
+.data-catalog-autocomplete-container {
+    position: absolute;
+    background-color: white;
+    padding: 0 8px;
+    border-top: 2px solid $blue-5;
+    width: 100%;
+    top: 48px;
+    box-shadow: $box-shadow-xl;
+
+    li {
+        list-style: none;
+    }
+}
+
+.data-catalog-autocomplete-item {
+    &:first-child {
+        margin-top: 8px;
+    }
+    &:last-child {
+        margin-bottom: 8px;
+    }
+    &:hover {
+        background-color: $blue-5;
+        color: $blue-90;
+    }
+}
+
+.data-catalog-autocomplete-button:focus {
+    background-color: $blue-5;
+    color: $blue-90;
+    outline: none;
+}
+
+.data-catalog-autocomplete-button {
+    width: 100%;
+    padding: 8px;
+    text-align: left;
+    background-color: transparent;
+
+    span {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px;
+        color: $blue-90;
+        font-size: 13px;
+        line-height: 16px;
+        &.country {
+            outline: 1px solid $blue-20;
+        }
+        &.topic {
+            background-color: $blue-10;
+            padding: 4px 12px;
+            border-radius: 50px;
+            color: $blue-90;
+        }
+        img,
+        svg {
+            margin-right: 6px;
+        }
+        img {
+            border: 1px solid $blue-20;
+        }
     }
 }
 
