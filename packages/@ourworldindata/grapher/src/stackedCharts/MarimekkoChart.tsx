@@ -1060,10 +1060,16 @@ export class MarimekkoChart
         } = this
         const selectionSet = this.selectionArray.selectedSet
         const labelYOffset = 0
-        const hasSelection = selectionSet.size > 0
         let noDataAreaElement = undefined
         let noDataLabel = undefined
         const noDataHeight = Bounds.forText("no data").height + 10 //  dualAxis.verticalAxis.rangeSize
+
+        // The chart has selected entities only if there is any _available_ entity that is selected
+        const { availableEntityNameSet } = this.transformedTable
+        const hasSelection =
+            this.selectionArray.selectedEntityNames.filter((entityName) =>
+                availableEntityNameSet.has(entityName)
+            ).length > 0
 
         const firstNanValue = placedItems.findIndex((item) => !item.bars.length)
         const anyNonNanAfterFirstNan =
