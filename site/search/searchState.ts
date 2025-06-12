@@ -1,11 +1,18 @@
 import { Url } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
-import { SearchState, SearchAction, Filter, FilterType } from "./searchTypes.js"
+import {
+    SearchState,
+    SearchAction,
+    Filter,
+    FilterType,
+    ResultType,
+} from "./searchTypes.js"
 import {
     createCountryFilter,
     createTopicFilter,
     deserializeSet,
     getFilterNamesOfType,
+    isValidResultType,
     serializeSet,
 } from "./searchUtils.js"
 
@@ -82,6 +89,11 @@ export function searchReducer(
             ...state,
             ...getInitialSearchState(),
         }))
+        .with({ type: "setResultType" }, ({ resultType }) => ({
+            ...state,
+            page: 0,
+            resultType,
+        }))
         .exhaustive()
 }
 
@@ -98,6 +110,7 @@ export function createActions(dispatch: (action: SearchAction) => void) {
         setQuery: (query: string) => dispatch({ type: "setQuery", query }),
         setState: (state: SearchState) => dispatch({ type: "setState", state }),
         toggleRequireAllCountries: () => dispatch({ type: "toggleRequireAllCountries" }),
+        setResultType: (resultType: ResultType) => dispatch({ type: "setResultType", resultType }),
         reset: () => dispatch({ type: "reset" }),
     }
 }
@@ -110,6 +123,7 @@ export function getInitialSearchState(): SearchState {
         filters: [],
         requireAllCountries: false,
         page: 0,
+        resultType: ResultType.ALL,
     }
 }
 
@@ -127,6 +141,9 @@ export function urlToSearchState(url: Url): SearchState {
         filters,
         requireAllCountries: url.queryParams.requireAllCountries === "true",
         page: url.queryParams.page ? parseInt(url.queryParams.page) - 1 : 0,
+        resultType: isValidResultType(url.queryParams.resultType)
+            ? url.queryParams.resultType
+            : ResultType.ALL,
     }
 }
 
@@ -145,6 +162,8 @@ export function searchStateToUrl(state: SearchState) {
         ),
         requireAllCountries: state.requireAllCountries ? "true" : undefined,
         page: state.page > 0 ? (state.page + 1).toString() : undefined,
+        resultType:
+            state.resultType !== ResultType.ALL ? state.resultType : undefined,
     }
 
     Object.entries(params).forEach(([key, value]) => {
