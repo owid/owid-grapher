@@ -35,7 +35,7 @@ import {
 } from "./ExplorerIndex.js"
 import { getInitialState } from "./cookiePreferences.js"
 import { CookiePreferencesManager } from "./CookiePreferencesManager.js"
-import { DataCatalogInstantSearchWrapper } from "./DataCatalog/DataCatalog.js"
+import { SearchInstantSearchWrapper } from "./search/SearchInstantSearchWrapper.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
@@ -47,11 +47,11 @@ import { BrowserRouter } from "react-router-dom-v5-compat"
 import { REDUCED_TRACKING } from "../settings/clientSettings.js"
 import { SiteHeaderNavigation } from "./SiteHeader.js"
 
-function hydrateDataCatalogPage() {
-    const root = document.getElementById("data-catalog-page-root")
+function hydrateSearchPage() {
+    const root = document.getElementById("search-page-root")
     const tagGraph = window._OWID_TAG_GRAPH as TagGraphRoot
     if (root) {
-        hydrate(<DataCatalogInstantSearchWrapper tagGraph={tagGraph} />, root)
+        hydrate(<SearchInstantSearchWrapper tagGraph={tagGraph} />, root)
     }
 }
 
@@ -319,8 +319,8 @@ export const runSiteFooterScripts = (
             // Don't break, run default case too
             hydrateDataInsightsIndexPage()
         // falls through
-        case SiteFooterContext.dataCatalogPage:
-            hydrateDataCatalogPage()
+        case SiteFooterContext.searchPage:
+            hydrateSearchPage()
         // falls through
         default:
             // Features that were not ported over to gdocs, are only being run on WP pages:
