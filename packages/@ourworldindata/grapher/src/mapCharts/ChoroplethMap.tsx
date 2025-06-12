@@ -263,7 +263,7 @@ export class ChoroplethMap extends React.Component<{
                     feature,
                     projection: this.projection,
                     formattedValue: this.formatAnnotationLabel(series.value),
-                    fontSizeScale: this.viewportScaleSqrt,
+                    fontSizeScale: this.viewportScale,
                     color: labelColor,
                 }
 
