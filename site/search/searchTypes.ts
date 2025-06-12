@@ -159,6 +159,12 @@ export enum FilterType {
     QUERY = "query",
 }
 
+export enum ResultType {
+    ALL = "all",
+    DATA = "data",
+    WRITING = "writing",
+}
+
 export type Filter = {
     type: FilterType
     name: string
@@ -169,6 +175,7 @@ export type SearchState = Readonly<{
     filters: Filter[]
     requireAllCountries: boolean
     page: number
+    resultType: ResultType
 }>
 
 type AddFilterAction = {
@@ -213,6 +220,10 @@ type SetPageAction = {
 type ResetAction = {
     type: "reset"
 }
+type SetResultTypeAction = {
+    type: "setResultType"
+    resultType: ResultType
+}
 
 export type SearchAction =
     | AddFilterAction
@@ -226,6 +237,7 @@ export type SearchAction =
     | SetStateAction
     | ToggleRequireAllCountriesAction
     | ResetAction
+    | SetResultTypeAction
 
 export interface SearchAutocompleteContextType {
     activeIndex: number
