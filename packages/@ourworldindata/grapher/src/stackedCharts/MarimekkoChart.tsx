@@ -68,7 +68,6 @@ import {
     ColorScaleConfigDefaults,
 } from "../color/ColorScaleConfig"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
-import { color } from "d3-color"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScheme } from "../color/ColorScheme"
 import {
@@ -110,16 +109,9 @@ function MarimekkoBar({
         entityColor ?? (bar.kind === BarShape.Bar ? bar.color : "#555")
 
     const barColor =
-        bar.kind === BarShape.BarPlaceholder
-            ? "#555"
-            : isHovered
-              ? (color(barBaseColor)?.brighter(0.9).toString() ?? barBaseColor)
-              : isSelected
-                ? (color(barBaseColor)?.brighter(0.6).toString() ??
-                  barBaseColor)
-                : barBaseColor
+        bar.kind === BarShape.BarPlaceholder ? "#555" : barBaseColor
     const strokeColor = barColor
-    const strokeWidth = isHovered || isSelected ? "1px" : "0.5px"
+    const strokeWidth = isHovered || isSelected ? 1 : 0.5
     const strokeOpacity = isPlaceholder ? 0.8 : isFaint ? 0.2 : 1.0
     const fillOpacity = isHovered
         ? 0.7
@@ -159,9 +151,7 @@ function MarimekkoBar({
                 strokeWidth={strokeWidth}
                 strokeOpacity={strokeOpacity}
                 opacity={overalOpacity}
-                style={{
-                    transition: "translate 200ms ease",
-                }}
+                style={{ transition: "translate 200ms ease" }}
             />
         </g>
     )
@@ -840,6 +830,24 @@ export class MarimekkoChart
         return []
     }
 
+    @computed get hoverColors(): string[] {
+        if (this.focusColorBin) return [this.focusColorBin.color]
+        if (this.tooltipItem?.entityColor)
+            return [this.tooltipItem.entityColor.color]
+        if (this.selectionArray.hasSelection) {
+            const selectedItems = this.items.filter((item) =>
+                this.selectionArray.selectedSet.has(item.entityName)
+            )
+            const uniqueSelectedColors = new Set(
+                selectedItems.map((item) => item.entityColor?.color)
+            )
+            return this.categoricalLegendData
+                .filter((bin) => uniqueSelectedColors.has(bin.color as any))
+                .map((bin) => bin.color)
+        }
+        return []
+    }
+
     @computed private get showLegend(): boolean {
         return !!this.colorColumnSlug || this.categoricalLegendData.length > 1
     }
@@ -1061,7 +1069,7 @@ export class MarimekkoChart
         } = this
         const selectionSet = this.selectionArray.selectedSet
         const labelYOffset = 0
-        const hasSelection = selectionSet.size > 0
+        const hasSelection = this.selectedItems.length > 0
         let noDataAreaElement = undefined
         let noDataLabel = undefined
         const noDataHeight = Bounds.forText("no data").height + 10 //  dualAxis.verticalAxis.rangeSize
@@ -1144,7 +1152,10 @@ export class MarimekkoChart
             const isFaint =
                 (focusColorBin !== undefined &&
                     !focusColorBin.contains(entityColor?.colorDomainValue)) ||
-                (hasSelection && !isSelected)
+                (hasSelection && !isSelected) ||
+                (!isHovered &&
+                    tooltipState.target !== undefined &&
+                    !tooltipState.fading)
 
             // figure out what the minimum height in domain space has to be so
             // that a bar is at least one pixel high in screen space.
