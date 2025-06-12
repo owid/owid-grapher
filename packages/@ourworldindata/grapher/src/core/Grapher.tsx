@@ -812,7 +812,11 @@ export class GrapherState {
         if (
             (activeTab === GRAPHER_TAB_NAMES.LineChart ||
                 activeTab === GRAPHER_TAB_NAMES.SlopeChart) &&
-            this.shouldShowDiscreteBarWhenSingleTime
+            this.shouldShowDiscreteBarWhenSingleTime &&
+            // Don't switch to a bar chart while the timeline animation is playing.
+            // This is necessary because the time handles are at the same time
+            // at the beginning of the timeline animation
+            !this.isTimelineAnimationActive
         ) {
             return GRAPHER_TAB_NAMES.DiscreteBar
         }
