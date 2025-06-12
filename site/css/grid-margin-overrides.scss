@@ -1,0 +1,73 @@
+/*
+* CSS Grid disables margin collapsing 😭
+* This file is a bunch of general rules that allow for generic control of margins
+*
+* The 2 bits of CSS magic it employs are:
+* [class*="article-block__"]
+* which matches any element that has a class that has "article-block__" in it
+* e.g. <h1 class="h1-bold article-block__heading" >
+*
+* and :has(+ .some-element)
+* which styles an element *if* it is followed by an element
+* e.g. .red-if-followed-by-h1:has(+ h1) { color: red }
+**/
+
+.centered-article-container {
+    [class*="article-block__"]:has(+ .article-block__side-by-side),
+    [class*="article-block__"]:has(+ .article-block__sticky-left),
+    [class*="article-block__"]:has(+ .article-block__sticky-right) {
+        margin-bottom: 0;
+    }
+
+    @include column-block-override {
+        margin-top: 48px;
+        margin-bottom: 32px;
+        > div {
+            /* Set the first child of each column to have no top margin */
+            [class*="article-block__"]:first-child {
+                margin-top: 0;
+            }
+            /* Set the last child of each column to have no bottom margin */
+            [class*="article-block__"]:last-child {
+                margin-bottom: 0;
+            }
+        }
+        /* Add  24px between the stacked columns on mobile */
+        @include sm-only {
+            > div:first-child {
+                margin-bottom: 24px;
+            }
+        }
+    }
+
+    /*
+    * If a heading directly follows a heading, set its top margin to 0
+    * (so that the bigger heading's bottom margin "trumps" the smaller heading)
+    **/
+    .article-block__heading + .article-block__heading {
+        margin-top: 0;
+    }
+
+    /* Set the bottom margin of any non-heading, non-horizontal-rule block that comes before a heading to 0 */
+    [class*="article-block__"]:not(.article-block__heading):not(
+            .article-block__horizontal-rule
+        ):has(+ .article-block__heading) {
+        margin-bottom: 0;
+    }
+
+    /* Set the bottom margin of any block that comes before a horizontal rule to 0 */
+    [class*="article-block__"]:has(+ .article-block__horizontal-rule) {
+        margin-bottom: 0;
+    }
+
+    /* Set the top margin of any heading that follows a horizontal-rule to 0 */
+    .article-block__horizontal-rule + .article-block__heading {
+        margin-top: 0;
+    }
+
+    /* Set the bottom margin of any element that comes before an image or chart to 0 */
+    [class*="article-block__"]:has(+ .article-block__image),
+    [class*="article-block__"]:has(+ .article-block__chart) {
+        margin-bottom: 0;
+    }
+}
