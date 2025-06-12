@@ -1,9 +1,11 @@
 $indent: 16px;
 
 $toggle-height: 40px;
+$toggle-full-width-breakpoint: 520px;
 
 .md-settings-row {
     display: flex;
+    flex-wrap: wrap;
     gap: 16px;
 
     .md-settings__configure-data {
@@ -75,13 +77,26 @@ $toggle-height: 40px;
                 color: $gray-70;
             }
         }
+
+        @media (max-width: $toggle-full-width-breakpoint) {
+            width: 100%;
+            justify-content: space-between;
+        }
     }
 
     .md-settings__dropdown-label {
+        white-space: nowrap;
+
         &::after {
             content: ":";
             margin-right: 3px;
         }
+    }
+
+    .md-settings__dropdown-current-choice-wrapper {
+        display: flex;
+        align-items: center;
+        overflow: hidden;
     }
 
     .md-settings__dropdown-current-choice {
@@ -99,6 +114,10 @@ $toggle-height: 40px;
 
 .md-settings__dropdown {
     position: relative;
+
+    @media (max-width: $toggle-full-width-breakpoint) {
+        width: 100%;
+    }
 }
 
 .md-menu {
