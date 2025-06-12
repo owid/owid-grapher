@@ -1,6 +1,8 @@
 import cx from "classnames"
 import {
     BreadcrumbItem,
+    CITATION_ID,
+    LICENSE_ID,
     OwidGdocPostContent,
     OwidGdocType,
     formatDate,
@@ -134,6 +136,16 @@ function OwidTopicPageHeader({ content }: { content: OwidGdocPostContent }) {
                     <Byline names={content.authors} />
                 </p>
             )}
+            <div className="topic-page-header__cta-buttons col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
+                <a href={`#${CITATION_ID}`}>
+                    <FontAwesomeIcon icon={faBook} />
+                    Cite this work
+                </a>
+                <a href={`#${LICENSE_ID}`}>
+                    <FontAwesomeIcon icon={faCreativeCommons} />
+                    Reuse this work
+                </a>
+            </div>
         </header>
     )
 }

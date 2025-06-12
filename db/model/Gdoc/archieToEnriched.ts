@@ -15,9 +15,6 @@ import {
     traverseEnrichedBlock,
     ALL_CHARTS_ID,
     KEY_INSIGHTS_ID,
-    ENDNOTES_ID,
-    CITATION_ID,
-    LICENSE_ID,
     RESEARCH_AND_WRITING_ID,
 } from "@ourworldindata/utils"
 import { convertHeadingTextToId } from "@ourworldindata/components"
@@ -52,10 +49,7 @@ export function generateStickyNav(
         ["^explore(-our)?-data"]: "Data Explorer",
         [RESEARCH_AND_WRITING_ID]: RESEARCH_AND_WRITING_DEFAULT_HEADING,
         [ALL_CHARTS_ID]: "Charts",
-        [CITATION_ID]: "Cite This Work",
-        [ENDNOTES_ID]: "Endnotes",
         [KEY_INSIGHTS_ID]: "Key Insights",
-        [LICENSE_ID]: "Reuse This Work",
     }
     const stickyNavItems: OwidGdocStickyNavItem[] = [
         {
@@ -103,25 +97,6 @@ export function generateStickyNav(
         })
     )
 
-    if (!_.isEmpty(content.refs?.definitions)) {
-        stickyNavItems.push({
-            text: "Endnotes",
-            target: `#${ENDNOTES_ID}`,
-        })
-    }
-
-    stickyNavItems.push(
-        ...[
-            {
-                text: "Cite This Work",
-                target: `#${CITATION_ID}`,
-            },
-            {
-                text: "Reuse This Work",
-                target: `#${LICENSE_ID}`,
-            },
-        ]
-    )
     return stickyNavItems
 }
 
