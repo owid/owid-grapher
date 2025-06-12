@@ -1,16 +1,16 @@
 $indent: 16px;
 
-$toggle-height: 40px;
+$toggle-height: 32px;
 $toggle-full-width-breakpoint: 520px;
 
 .md-settings-row {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 16px;
 
     .md-settings__configure-data {
         flex-shrink: 0;
-        padding-top: 12px;
         color: $blue-60;
 
         @include sm-only {
@@ -33,19 +33,19 @@ $toggle-full-width-breakpoint: 520px;
 
     .md-settings__dropdown-toggle {
         display: flex;
-        align-items: center;
         color: $secondary-text;
         background: white;
         border: 1px solid $light-stroke;
         font: $medium 13px/16px $lato;
         letter-spacing: 0.01em;
         border-radius: 4px;
-        padding: 8px 12px;
+        padding: 8px 10px 8px 12px;
         height: $toggle-height;
         cursor: pointer;
 
         svg {
-            margin-left: 5px;
+            font-size: 12px;
+            margin-left: 8px;
         }
 
         &:hover:not([data-disabled]),
@@ -80,7 +80,6 @@ $toggle-full-width-breakpoint: 520px;
 
         @media (max-width: $toggle-full-width-breakpoint) {
             width: 100%;
-            justify-content: space-between;
         }
     }
 
@@ -93,18 +92,14 @@ $toggle-full-width-breakpoint: 520px;
         }
     }
 
-    .md-settings__dropdown-current-choice-wrapper {
-        display: flex;
-        align-items: center;
-        overflow: hidden;
-    }
-
     .md-settings__dropdown-current-choice {
         color: $primary-text;
         max-width: 150px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        min-width: 0;
+        margin-left: auto;
     }
 
     @include sm-only {
@@ -113,8 +108,6 @@ $toggle-full-width-breakpoint: 520px;
 }
 
 .md-settings__dropdown {
-    position: relative;
-
     @media (max-width: $toggle-full-width-breakpoint) {
         width: 100%;
     }

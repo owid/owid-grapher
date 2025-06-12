@@ -84,10 +84,12 @@ function DimensionDropdown({
                 <span className="md-settings__dropdown-label">
                     {dimension.name}
                 </span>
-                <div className="md-settings__dropdown-current-choice-wrapper">
-                    <span className="md-settings__dropdown-current-choice">
-                        {dimension.choicesBySlug[value].name}
-                    </span>
+                <span className="md-settings__dropdown-current-choice">
+                    {dimension.choicesBySlug[value].name}
+                </span>
+                <div>
+                    {/* The div is neccesary to keep the icon `display: inline`,
+                    so it aligns with the text correctly. */}
                     <FontAwesomeIcon icon={faCaretDown} />
                 </div>
             </Button>
