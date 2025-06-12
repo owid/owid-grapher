@@ -224,25 +224,56 @@
         // margins of any h1 that might come directly after it.
         margin-top: 24px;
     }
-    h1.article-block__heading.h1-semibold {
-        font-size: 2.25rem;
 
-        @include sm-up {
-            font-size: 2.625rem;
-        }
-    }
-    h2.article-block__heading.h2-bold {
-        font-size: 1.5rem;
-
-        @include sm-up {
-            font-size: 2rem;
-        }
-    }
-    h3.article-block__heading.h3-bold {
-        font-size: 1.25rem;
-
-        @include sm-up {
+    /* Add a light gray line above the heading when it's in the main article body (i.e. not an all-charts block, or in a two-column section) */
+    > h1.article-block__heading {
+        text-wrap: unset;
+        position: relative;
+        margin-top: 64px;
+        @include sm-only {
             font-size: 1.5rem;
+            line-height: 2rem;
         }
+        &::before {
+            content: "";
+            position: absolute;
+            top: -32px;
+            border-top: 1px solid $blue-10;
+            /* At lg, heading takes up 6 columns, so 200% is 12 columns then we add a missing gutter */
+            /* Using percentages instead of absolute values because different browsers calculate the grid size differently */
+            @include md-up {
+                width: calc(200% + var(--grid-gap));
+                left: calc(-50% - var(--grid-gap) / 2);
+            }
+
+            @include md-only {
+                width: 120%;
+                left: -10%;
+            }
+
+            @include sm-only {
+                width: 100%;
+                left: 0;
+            }
+        }
+    }
+
+    h2.article-block__heading {
+        @include subtitle-1-bold;
+        text-wrap: unset;
+        @include sm-only {
+            @include subtitle-2-bold;
+        }
+    }
+
+    h3.article-block__heading {
+        @include body-1-bold;
+        text-wrap: unset;
+        margin-top: 32px;
+        margin-bottom: 16px;
+    }
+
+    .article-block__chart {
+        margin-bottom: 32px;
     }
 }
