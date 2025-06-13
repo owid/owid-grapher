@@ -23,7 +23,7 @@ export const SearchTopicsRefinementList = ({
         : []
 
     return (
-        <div className="search-topics-refinement-list span-cols-12 col-start-2">
+        <div className="search-topics-refinement-list span-cols-9 col-start-2">
             <h3 className="data-catalog-ribbons__refinements-heading h5-black-caps">
                 All areas of research
             </h3>
