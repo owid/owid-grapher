@@ -1,11 +1,6 @@
-import cx from "classnames"
 import { ChartSkeleton } from "./ChartSkeleton.js"
 
-export const DataCatalogRibbonViewSkeleton = ({
-    topics,
-}: {
-    topics: Set<string>
-}) => {
+export const DataCatalogRibbonViewSkeleton = () => {
     const RibbonSkeleton = () => (
         <div className="data-catalog-ribbon span-cols-12 col-start-2">
             <div className="data-catalog-ribbon__header--skeleton"></div>
