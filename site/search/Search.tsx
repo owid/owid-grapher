@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query"
 import { DataCatalogRibbonView } from "./DataCatalogRibbonView.js"
 import { DataCatalogResults } from "./DataCatalogResults.js"
 import { Searchbar } from "./Searchbar.js"
+import { SearchTopicsRefinementList } from "./SearchTopicsRefinementList.js"
 import {
     searchReducer,
     createActions,
@@ -156,6 +157,20 @@ export const Search = ({
                     />
                 </div>
             </div>
+            <SearchTopicsRefinementList
+                topics={selectedTopics}
+                facets={
+                    shouldShowRibbons
+                        ? Object.fromEntries(
+                              (ribbonsQuery.data as DataCatalogRibbonResult[])
+                                  ?.sort((a, b) => b.nbHits - a.nbHits)
+                                  ?.map((r) => [r.title, r.nbHits]) || []
+                          )
+                        : (searchQuery.data as DataCatalogSearchResult)?.facets
+                              ?.tags
+                }
+                addTopic={actions.addTopic}
+            />
             {shouldShowRibbons ? (
                 <DataCatalogRibbonView
                     addTopic={actions.addTopic}
@@ -167,12 +182,10 @@ export const Search = ({
                 />
             ) : (
                 <DataCatalogResults
-                    addTopic={actions.addTopic}
                     isLoading={searchQuery.isLoading}
                     results={searchQuery.data}
                     selectedCountries={selectedCountries}
                     setPage={actions.setPage}
-                    topics={selectedTopics}
                 />
             )}
         </>
