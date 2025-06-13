@@ -2,7 +2,6 @@ import { TagGraphRoot, TagGraphNode } from "@ourworldindata/types"
 import { Url } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
 import { useReducer, useMemo, useEffect } from "react"
-import { useQuery } from "@tanstack/react-query"
 import { DataCatalogRibbonView } from "./DataCatalogRibbonView.js"
 import { DataCatalogResults } from "./DataCatalogResults.js"
 import { Searchbar } from "./Searchbar.js"
@@ -14,23 +13,14 @@ import {
     searchStateToUrl,
     urlToSearchState,
 } from "./searchState.js"
-import {
-    DataCatalogRibbonResult,
-    DataCatalogSearchResult,
-    SearchState,
-    FilterType,
-    ResultType,
-} from "./searchTypes.js"
+import { SearchState, FilterType } from "./searchTypes.js"
 import {
     checkShouldShowRibbonView,
     getCountryData,
     syncDataCatalogURL,
     getFilterNamesOfType,
-    queryDataCatalogRibbons,
-    queryDataCatalogSearch,
 } from "./searchUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
-import { searchQueryKeys } from "./searchQueryKeys.js"
 import { AsDraft } from "../AsDraft/AsDraft.js"
 
 const analytics = new SiteAnalytics()
@@ -88,18 +78,6 @@ export const Search = ({
         () => getCountryData(selectedCountryNames),
         [selectedCountryNames]
     )
-
-    const searchQuery = useQuery<DataCatalogSearchResult, Error>({
-        queryKey: searchQueryKeys.search(state),
-        queryFn: () => queryDataCatalogSearch(searchClient, state),
-        enabled: !shouldShowRibbons,
-    })
-
-    const ribbonsQuery = useQuery<DataCatalogRibbonResult[], Error>({
-        queryKey: searchQueryKeys.ribbons(state), // the tagGraph can only change on page load, so we don't need to include it in the key
-        queryFn: () => queryDataCatalogRibbons(searchClient, state, tagGraph),
-        enabled: shouldShowRibbons,
-    })
 
     const stateAsUrl = searchStateToUrl(state)
 
@@ -162,17 +140,11 @@ export const Search = ({
             </div>
             <SearchTopicsRefinementList
                 topics={selectedTopics}
-                facets={
-                    shouldShowRibbons
-                        ? Object.fromEntries(
-                              (ribbonsQuery.data as DataCatalogRibbonResult[])
-                                  ?.sort((a, b) => b.nbHits - a.nbHits)
-                                  ?.map((r) => [r.title, r.nbHits]) || []
-                          )
-                        : (searchQuery.data as DataCatalogSearchResult)?.facets
-                              ?.tags
-                }
                 addTopic={actions.addTopic}
+                searchClient={searchClient}
+                searchState={state}
+                tagGraph={tagGraph}
+                shouldShowRibbons={shouldShowRibbons}
             />
             <AsDraft
                 className="col-start-11 span-cols-3 as-draft--align-self-start"
@@ -186,18 +158,18 @@ export const Search = ({
             {shouldShowRibbons ? (
                 <DataCatalogRibbonView
                     addTopic={actions.addTopic}
-                    isLoading={ribbonsQuery.isLoading}
-                    results={ribbonsQuery.data}
                     selectedCountries={selectedCountries}
                     tagGraph={tagGraph}
                     topics={selectedTopics}
+                    searchClient={searchClient}
+                    searchState={state}
                 />
             ) : (
                 <DataCatalogResults
-                    isLoading={searchQuery.isLoading}
-                    results={searchQuery.data}
                     selectedCountries={selectedCountries}
                     setPage={actions.setPage}
+                    searchClient={searchClient}
+                    searchState={state}
                 />
             )}
         </>
