@@ -3,6 +3,7 @@ import { expect, it } from "vitest"
 import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
+    SynthesizeProjectedPopulationTable,
 } from "@ourworldindata/core-table"
 import { MapChartManager } from "./MapChartConstants"
 import { MapChart } from "./MapChart"
@@ -30,4 +31,33 @@ it("filters out non-map entities from colorScaleColumn", () => {
     expect(chart.colorScaleColumn.uniqEntityNames).toEqual(
         expect.arrayContaining(["France", "Germany"])
     )
+})
+
+it("combines projected data with its historical counterpart", () => {
+    const table = SynthesizeProjectedPopulationTable({
+        timeRange: [2000, 2001],
+        entityNames: ["France", "Germany", "World"],
+    })
+
+    const combinedSlug = `${SampleColumnSlugs.ProjectedPopulation}-${SampleColumnSlugs.Population}`
+    const projectionColumnInfos = [
+        {
+            projectedSlug: SampleColumnSlugs.ProjectedPopulation,
+            historicalSlug: SampleColumnSlugs.Population,
+            combinedSlug,
+            slugForIsProjectionColumn: `${combinedSlug}-isProjection`,
+        },
+    ]
+
+    const manager: MapChartManager = {
+        table,
+        mapColumnSlug: SampleColumnSlugs.ProjectedPopulation,
+        endTime: 2000,
+        projectionColumnInfoBySlug: new Map(
+            projectionColumnInfos.map((info) => [info.projectedSlug, info])
+        ),
+    }
+
+    const chart = new MapChart({ manager })
+    expect(chart.mapColumnSlug).toEqual(combinedSlug)
 })

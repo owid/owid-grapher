@@ -487,11 +487,20 @@ export class DiscreteBarChart
         return (
             <defs>
                 {/* passed to the legend as pattern for the projected data legend item */}
-                {makeProjectedDataPattern(this.projectedDataColorInLegend)}
+                <StripedProjectedDataPattern
+                    patternId={makeProjectedDataPatternId(
+                        this.projectedDataColorInLegend
+                    )}
+                    color={this.projectedDataColorInLegend}
+                />
                 {/* make a pattern for every series with a unique color */}
-                {uniqProjections.map((series) =>
-                    makeProjectedDataPattern(series.color)
-                )}
+                {uniqProjections.map((series) => (
+                    <StripedProjectedDataPattern
+                        key={series.color}
+                        patternId={makeProjectedDataPatternId(series.color)}
+                        color={series.color}
+                    />
+                ))}
             </defs>
         )
     }
@@ -959,35 +968,46 @@ export class DiscreteBarChart
     }
 }
 
-// Pattern IDs should be unique per document (!), not just per grapher instance.
-// Including the color in the id guarantees that the pattern uses the correct color,
-// even if it gets resolved to a striped pattern of a different grapher instance.
-function makeProjectedDataPatternId(color: string): string {
-    return `DiscreteBarChart_stripes_${color}`
-}
-
-function makeProjectedDataPattern(color: string): React.ReactElement {
-    const size = 7
+function StripedProjectedDataPattern({
+    patternId,
+    color,
+    opacity = 0.5,
+    size = 7,
+    strokeWidth = 10,
+}: {
+    patternId: string
+    color: string
+    opacity?: number
+    size?: number
+    strokeWidth?: number
+}): React.ReactElement {
     return (
         <pattern
-            key={color}
-            id={makeProjectedDataPatternId(color)}
+            id={patternId}
             patternUnits="userSpaceOnUse"
             width={size}
             height={size}
             patternTransform="rotate(45)"
         >
-            {/* transparent background */}
-            <rect width={size} height={size} fill={color} opacity={0.5} />
+            {/* semi-transparent background */}
+            <rect width={size} height={size} fill={color} opacity={opacity} />
+
             {/* stripes */}
             <line
                 x1="0"
-                y="0"
+                y1="0"
                 x2="0"
                 y2={size}
                 stroke={color}
-                strokeWidth="10"
+                strokeWidth={strokeWidth}
             />
         </pattern>
     )
+}
+
+// Pattern IDs should be unique per document (!), not just per grapher instance.
+// Including the color in the id guarantees that the pattern uses the correct color,
+// even if it gets resolved to a striped pattern of a different grapher instance.
+function makeProjectedDataPatternId(color: string): string {
+    return `DiscreteBarChart_stripes_${color}`
 }

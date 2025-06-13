@@ -552,7 +552,7 @@ abstract class AbstractAxis {
         if (axisLabel.unit) {
             return MarkdownTextWrap.fromFragments({
                 main: { text: axisLabel.mainLabel, bold: true },
-                secondary: { text: axisLabel.unit },
+                secondary: { text: `(${axisLabel.unit})` },
                 newLine: "avoid-wrap",
                 textWrapProps,
             })
