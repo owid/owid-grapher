@@ -2,9 +2,7 @@ import { TagGraphRoot } from "@ourworldindata/types"
 import { Region } from "@ourworldindata/utils"
 import { DataCatalogRibbon } from "./DataCatalogRibbon.js"
 import { DataCatalogRibbonViewSkeleton } from "./DataCatalogRibbonViewSkeleton.js"
-import { SearchTopicRefinementsHeading } from "./SearchTopicRefinementsHeading.js"
 import { DataCatalogRibbonResult } from "./searchTypes.js"
-import { TopicsRefinementList } from "./TopicsRefinementList.js"
 
 export const DataCatalogRibbonView = ({
     addTopic,
@@ -26,23 +24,8 @@ export const DataCatalogRibbonView = ({
 
     const resultsSortedByHitCount = results?.sort((a, b) => b.nbHits - a.nbHits)
 
-    const ribbonFacets = resultsSortedByHitCount
-        ? Object.fromEntries(
-              resultsSortedByHitCount.map((result) => [
-                  result.title,
-                  result.nbHits,
-              ])
-          )
-        : {}
-
     return (
         <>
-            <SearchTopicRefinementsHeading topics={topics} />
-            <TopicsRefinementList
-                topics={topics}
-                facets={ribbonFacets}
-                addTopic={addTopic}
-            />
             <div className="span-cols-14 grid grid-cols-12-full-width data-catalog-ribbons">
                 {resultsSortedByHitCount?.map((result) => (
                     <DataCatalogRibbon
