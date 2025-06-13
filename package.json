@@ -232,7 +232,7 @@
         "http-server": "^14.1.1",
         "husky": "^9.0.11",
         "jsdom": "^26.1.0",
-        "lerna": "^8.2.1",
+        "lerna": "^8.2.2",
         "lint-staged": "^16.0.0",
         "polylabel": "^2.0.1",
         "prettier": "^3.5.0",
