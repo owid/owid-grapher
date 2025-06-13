@@ -4,7 +4,6 @@ import { DataCatalogPagination } from "./DataCatalogPagination.js"
 import { SearchNoResults } from "./SearchNoResults.js"
 import { DataCatalogResultsSkeleton } from "./DataCatalogResultsSkeleton.js"
 import { DataCatalogSearchResult } from "./searchTypes.js"
-import { TopicsRefinementList } from "./TopicsRefinementList.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 
 const analytics = new SiteAnalytics()
@@ -13,15 +12,11 @@ export const DataCatalogResults = ({
     selectedCountries,
     results,
     setPage,
-    addTopic,
-    topics,
     isLoading,
 }: {
     results?: DataCatalogSearchResult
     selectedCountries: Region[]
     setPage: (page: number) => void
-    addTopic: (topic: string) => void
-    topics: Set<string>
     isLoading: boolean
 }) => {
     if (isLoading) return <DataCatalogResultsSkeleton />
@@ -29,14 +24,9 @@ export const DataCatalogResults = ({
     const hits = results?.hits
     if (!hits || !hits.length) return <SearchNoResults />
 
-    const { facets, page, nbPages, nbHits } = results
+    const { page, nbPages, nbHits } = results
     return (
         <>
-            <TopicsRefinementList
-                topics={topics}
-                facets={facets?.tags}
-                addTopic={addTopic}
-            />
             <div className="span-cols-12 col-start-2 data-catalog-search-hits">
                 {nbHits && (
                     <p className="data-catalog-search-list__results-count body-3-medium">
