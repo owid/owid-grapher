@@ -148,11 +148,6 @@ export type DataCatalogRibbonResult = SearchResponse<IDataCatalogHit> & {
     title: string
 }
 
-export type DataCatalogCache = {
-    ribbons: Map<string, DataCatalogRibbonResult[]>
-    search: Map<string, DataCatalogSearchResult>
-}
-
 export type ScoredSearchResult = {
     name: string
     score: number
