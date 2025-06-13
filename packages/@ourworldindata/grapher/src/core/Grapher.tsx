@@ -49,7 +49,6 @@ import {
     setWindowQueryStr,
     getWindowUrl,
     Url,
-    EntityYearHighlight,
     ColumnSlug,
     DimensionProperty,
     SortBy,
@@ -112,16 +111,14 @@ import {
     GrapherTooltipAnchor,
     GrapherTabName,
     GRAPHER_CHART_TYPES,
-    GRAPHER_TAB_OPTIONS,
+    GRAPHER_TAB_CONFIG_OPTIONS,
     GRAPHER_TAB_NAMES,
-    GRAPHER_TAB_QUERY_PARAMS,
     SeriesName,
     NarrativeChartInfo,
     OwidChartDimensionInterfaceWithMandatorySlug,
     AssetMap,
     ArchivedChartOrArchivePageMeta,
-    GrapherTabType,
-    GRAPHER_TAB_TYPES,
+    GrapherTabConfigOption,
     GlobeRegionName,
 } from "@ourworldindata/types"
 import {
@@ -185,6 +182,7 @@ import {
     isValidDataTableFilter,
 } from "../dataTable/DataTable"
 import {
+    MAP_REGION_LABELS,
     MAP_REGION_NAMES,
     MapChartManager,
 } from "../mapCharts/MapChartConstants"
@@ -215,14 +213,16 @@ import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     findStartTimeForSlopeChart,
+} from "../chart/ChartUtils"
+import {
     findValidChartTypeCombination,
     isChartTab,
+    isChartTypeName,
     isMapTab,
-    mapChartTypeNameToQueryParam,
-    mapChartTypeNameToTabOption,
-    mapQueryParamToChartTypeName,
-    mapTabOptionToChartTypeName,
-} from "../chart/ChartUtils"
+    isValidTabConfigOption,
+    mapChartTypeNameToTabConfigOption,
+    mapTabConfigOptionToChartTypeName,
+} from "../chart/ChartTabs"
 import classnames from "classnames"
 import {
     EntitySelectorEvent,
@@ -263,6 +263,7 @@ import {
     EntityRegionTypeGroup,
     groupEntityNamesByRegionType,
 } from "./EntitiesByRegionType"
+import { getCountriesByRegion } from "../mapCharts/MapHelpers"
 
 declare global {
     interface Window {
@@ -335,7 +336,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     dataApiUrl?: string
     env?: string
     dataApiUrlForAdmin?: string
-    entityYearHighlight?: EntityYearHighlight
+    highlightedTimesInLineChart?: Time[]
     baseFontSize?: number
     staticBounds?: Bounds
     staticFormat?: GrapherStaticFormat
@@ -420,6 +421,7 @@ export class Grapher
     @observable.ref $schema = latestGrapherConfigSchema
     @observable.ref chartTypes: GrapherChartType[] = [
         GRAPHER_CHART_TYPES.LineChart,
+        GRAPHER_CHART_TYPES.DiscreteBar,
     ]
     @observable.ref id?: number = undefined
     @observable.ref version = 1
@@ -455,8 +457,8 @@ export class Grapher
     @observable.ref zoomToSelection?: boolean = undefined
     @observable.ref showYearLabels?: boolean = undefined // Always show year in labels for bar charts
     @observable.ref hasMapTab = false
-    @observable.ref tab: GrapherTabType = GRAPHER_TAB_TYPES.chart
-    @observable.ref chartTab?: GrapherChartType
+    @observable.ref tab: GrapherTabConfigOption =
+        GRAPHER_TAB_CONFIG_OPTIONS.chart
     @observable.ref isPublished?: boolean = undefined
     @observable.ref baseColorScheme?: ColorSchemeName = undefined
     @observable.ref invertColorScheme?: boolean = undefined
@@ -498,10 +500,10 @@ export class Grapher
     }
 
     /**
-     * Used to highlight an entity at a particular time in a line chart.
+     * Used to highlight particular times in a line chart.
      * The sparkline in map tooltips makes use of this.
      */
-    @observable.ref entityYearHighlight?: EntityYearHighlight = undefined
+    @observable.ref highlightedTimesInLineChart?: Time[]
 
     @observable.ref hideFacetControl = true
 
@@ -544,6 +546,10 @@ export class Grapher
     @observable entitySelectorState: Partial<EntitySelectorState> = {}
 
     @observable mapRegionDropdownValue?: MapRegionDropdownValue
+
+    @action.bound resetMapRegionDropdownValue(): void {
+        this.mapRegionDropdownValue = undefined
+    }
 
     @computed get dataApiUrlForAdmin(): string | undefined {
         return this.props.dataApiUrlForAdmin
@@ -659,13 +665,12 @@ export class Grapher
         if (obj.timelineMaxTime)
             obj.timelineMaxTime = maxTimeToJSON(this.timelineMaxTime) as any
 
-        // store the currently selected chart type if it's different from the primary chart type
+        // don't serialise tab if the default chart is currently shown
         if (
-            this.tab === GRAPHER_TAB_OPTIONS.chart &&
-            this.chartTab &&
-            this.chartTab !== this.chartType
+            this.activeChartType &&
+            this.activeChartType === this.defaultChartType
         ) {
-            obj.tab = mapChartTypeNameToTabOption(this.chartTab)
+            delete obj.tab
         }
 
         // todo: remove dimensions concept
@@ -710,15 +715,6 @@ export class Grapher
             obj.timelineMaxTime
         )
 
-        // map the `tab` param to grapher state
-        if (obj.tab) {
-            const chartType = mapTabOptionToChartTypeName(obj.tab)
-            if (chartType) {
-                this.tab = GRAPHER_TAB_OPTIONS.chart
-                this.chartTab = chartType
-            }
-        }
-
         // Todo: remove once we are more RAII.
         if (obj?.dimensions?.length)
             this.setDimensionsFromConfigs(obj.dimensions)
@@ -728,11 +724,12 @@ export class Grapher
         this.externalQueryParams = omit(params, GRAPHER_QUERY_PARAM_KEYS)
 
         // Set tab if specified
-        if (params.tab) {
-            const tab = this.mapQueryParamToGrapherTab(params.tab)
-            if (tab) this.setTab(tab)
-            else console.error("Unexpected tab: " + params.tab)
-        }
+        const parsedTab = params.tab
+            ? this.mapQueryParamToTabName(params.tab)
+            : undefined
+        if (parsedTab) this.setTab(parsedTab)
+        else if (params.tab !== undefined)
+            console.error("Unexpected tab: " + params.tab)
 
         // Set overlay if specified
         const overlay = params.overlay
@@ -771,6 +768,11 @@ export class Grapher
         if (time !== undefined && time !== "")
             this.setTimeFromTimeQueryParam(time)
 
+        // show a single map when no time param is provided
+        if (parsedTab === GRAPHER_TAB_NAMES.WorldMap && time === undefined) {
+            this.timelineHandleTimeBounds = [Infinity, Infinity]
+        }
+
         const endpointsOnly = params.endpointsOnly
         if (endpointsOnly !== undefined)
             this.compareEndPointsOnly = endpointsOnly === "1" ? true : undefined
@@ -798,13 +800,7 @@ export class Grapher
         const region = params.region
         if (region !== undefined) {
             this.map.region = region as MapRegionName
-
-            // show region on the globe
-            if (this.map.region !== MapRegionName.World) {
-                this.mapRegionDropdownValue = this.map.region
-                this.globeController.jumpToOwidContinent(this.map.region)
-                this.globeController.showGlobe()
-            }
+            this.mapRegionDropdownValue = region as MapRegionDropdownValue
         }
 
         // map selection
@@ -867,18 +863,66 @@ export class Grapher
         ) as TimeBounds
     }
 
+    @computed private get shouldShowDiscreteBarWhenSingleTime(): boolean {
+        let { minTime, maxTime } = this
+
+        if (!this.validChartTypeSet.has(GRAPHER_CHART_TYPES.DiscreteBar))
+            return false
+
+        // If we have a time dimension but the timeline is hidden,
+        // we always want to use the authored `minTime` and `maxTime`,
+        // irrespective of the time range the user might have selected
+        // on the table tab
+        if (this.hasTimeDimensionButTimelineIsHidden) {
+            minTime = this.authorsVersion.minTime
+            maxTime = this.authorsVersion.maxTime
+        }
+
+        // This is the easy case: minTime and maxTime are the same, no need to do
+        // more fancy checks
+        if (minTime === maxTime) return true
+
+        // We can have cases where minTime = Infinity and/or maxTime = -Infinity,
+        // but still only a single year is selected.
+        // To check for that we need to look at the times array.
+        const times = this.table.timeColumn.uniqValues
+        const closestMinTime = findClosestTime(times, minTime ?? -Infinity)
+        const closestMaxTime = findClosestTime(times, maxTime ?? Infinity)
+        return closestMinTime !== undefined && closestMinTime === closestMaxTime
+    }
+
     @computed get activeTab(): GrapherTabName {
-        if (this.tab === GRAPHER_TAB_OPTIONS.table)
-            return GRAPHER_TAB_NAMES.Table
-        if (this.tab === GRAPHER_TAB_OPTIONS.map)
-            return GRAPHER_TAB_NAMES.WorldMap
-        if (this.chartTab) return this.chartTab
-        return this.chartType ?? GRAPHER_TAB_NAMES.LineChart
+        const activeTab = this.mapTabConfigOptionToTabName(this.tab)
+
+        // Switch to the discrete bar chart tab if we're on the line or slope
+        // chart tab and a single time is selected
+        if (
+            (activeTab === GRAPHER_TAB_NAMES.LineChart ||
+                activeTab === GRAPHER_TAB_NAMES.SlopeChart) &&
+            this.shouldShowDiscreteBarWhenSingleTime &&
+            // Don't switch to a bar chart while the timeline animation is playing.
+            // This is necessary because the time handles are at the same time
+            // at the beginning of the timeline animation
+            !this.isTimelineAnimationActive
+        ) {
+            return GRAPHER_TAB_NAMES.DiscreteBar
+        }
+
+        return activeTab
     }
 
     @computed get activeChartType(): GrapherChartType | undefined {
-        if (!this.isOnChartTab) return undefined
-        return this.activeTab as GrapherChartType
+        return isChartTypeName(this.activeTab) ? this.activeTab : undefined
+    }
+
+    @computed private get defaultChartType(): GrapherChartType {
+        return this.chartType ?? GRAPHER_CHART_TYPES.LineChart
+    }
+
+    @computed private get defaultTab(): GrapherTabName {
+        if (this.chartType) return this.chartType
+        if (this.hasMapTab) return GRAPHER_TAB_NAMES.WorldMap
+        return GRAPHER_TAB_NAMES.Table
     }
 
     @computed get chartType(): GrapherChartType | undefined {
@@ -890,15 +934,15 @@ export class Grapher
     }
 
     @computed get isOnChartTab(): boolean {
-        return this.tab === GRAPHER_TAB_OPTIONS.chart
+        return !this.isOnMapTab && !this.isOnTableTab
     }
 
     @computed get isOnMapTab(): boolean {
-        return this.tab === GRAPHER_TAB_OPTIONS.map
+        return this.activeTab === GRAPHER_TAB_NAMES.WorldMap
     }
 
     @computed get isOnTableTab(): boolean {
-        return this.tab === GRAPHER_TAB_OPTIONS.table
+        return this.activeTab === GRAPHER_TAB_NAMES.Table
     }
 
     @computed get isOnChartOrMapTab(): boolean {
@@ -930,8 +974,8 @@ export class Grapher
         return !this.hideLegend
     }
 
-    @computed private get showsAllEntitiesInChart(): boolean {
-        return this.isScatter || this.isMarimekko
+    @computed private get hasChartThatShowsAllEntities(): boolean {
+        return this.hasScatter || this.hasMarimekko
     }
 
     @computed private get isOnArchivalPage(): boolean {
@@ -954,7 +998,7 @@ export class Grapher
             this.selection.hasSelection &&
             !this.canChangeAddOrHighlightEntities &&
             this.hasChartTab &&
-            !this.showsAllEntitiesInChart &&
+            !this.hasChartThatShowsAllEntities &&
             !this.hasMapTab
         )
     }
@@ -996,7 +1040,7 @@ export class Grapher
         // different; e.g. for scatterplots, the entity needs to (1) not be excluded and
         // (2) needs to have data for the x and y dimension.
         let table =
-            this.isScatter || this.isMarimekko
+            this.isOnScatterTab || this.isOnMarimekkoTab
                 ? this.tableAfterAuthorTimelineAndActiveChartTransform
                 : this.table
 
@@ -1028,7 +1072,7 @@ export class Grapher
     @computed get tableAfterColorAndSizeToleranceApplication(): OwidTable {
         let table = this.inputTable
 
-        if (this.isScatter && this.sizeColumnSlug) {
+        if (this.hasScatter && this.sizeColumnSlug) {
             const tolerance =
                 table.get(this.sizeColumnSlug)?.display?.tolerance ?? Infinity
             table = table.interpolateColumnWithTolerance(
@@ -1037,11 +1081,15 @@ export class Grapher
             )
         }
 
-        if ((this.isScatter || this.isMarimekko) && this.colorColumnSlug) {
+        if (
+            (this.hasScatter || this.hasMarimekko) &&
+            this.categoricalColorColumnSlug
+        ) {
             const tolerance =
-                table.get(this.colorColumnSlug)?.display?.tolerance ?? Infinity
+                table.get(this.categoricalColorColumnSlug)?.display
+                    ?.tolerance ?? Infinity
             table = table.interpolateColumnWithTolerance(
-                this.colorColumnSlug,
+                this.categoricalColorColumnSlug,
                 tolerance
             )
         }
@@ -1105,7 +1153,7 @@ export class Grapher
     // When Map becomes a first-class chart instance, we should drop this
     @computed get chartInstanceExceptMap(): ChartInterface {
         const chartTypeName =
-            this.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
+            this.activeChartType ?? GRAPHER_CHART_TYPES.LineChart
 
         const ChartClass =
             ChartComponentClassMap.get(chartTypeName) ?? DefaultChartClass
@@ -1140,18 +1188,18 @@ export class Grapher
 
         if (startTime === undefined || endTime === undefined) return table
 
-        if (this.isOnMapTab)
-            return table.filterByTargetTimes(
-                [endTime],
+        if (this.isOnMapTab) {
+            const targetTimes = this.isFaceted
+                ? [startTime, endTime]
+                : [endTime]
+            const tolerance =
                 this.map.timeTolerance ??
-                    table.get(this.mapColumnSlug).tolerance
-            )
+                table.get(this.mapColumnSlug).tolerance
 
-        if (
-            this.isDiscreteBar ||
-            this.isLineChartThatTurnedIntoDiscreteBar ||
-            this.isMarimekko
-        )
+            return table.filterByTargetTimes(targetTimes, tolerance)
+        }
+
+        if (this.isOnDiscreteBarTab || this.isOnMarimekkoTab)
             return table.filterByTargetTimes(
                 [endTime],
                 table.get(this.yColumnSlugs[0]).tolerance
@@ -1521,6 +1569,14 @@ export class Grapher
     // Keeps a running cache of series colors at the Grapher level.
     seriesColorMap: SeriesColorMap = new Map()
 
+    @computed private get closestTimelineMinTime(): Time | undefined {
+        return findClosestTime(this.times, this.timelineMinTime ?? -Infinity)
+    }
+
+    @computed private get closestTimelineMaxTime(): Time | undefined {
+        return findClosestTime(this.times, this.timelineMaxTime ?? Infinity)
+    }
+
     @computed get startTime(): Time | undefined {
         return findClosestTime(this.times, this.startHandleTimeBound)
     }
@@ -1539,15 +1595,10 @@ export class Grapher
     }
 
     @computed private get onlySingleTimeSelectionPossible(): boolean {
-        return (
-            this.isDiscreteBar ||
-            this.isStackedDiscreteBar ||
-            this.isOnMapTab ||
-            this.isMarimekko
-        )
+        return this.checkOnlySingleTimeSelectionPossible(this.activeTab)
     }
 
-    @computed private get isSingleTimeSelectionActive(): boolean {
+    @computed get isSingleTimeSelectionActive(): boolean {
         return (
             this.onlySingleTimeSelectionPossible ||
             this.isSingleTimeScatterAnimationActive
@@ -1590,15 +1641,26 @@ export class Grapher
     }
 
     @action.bound setTab(newTab: GrapherTabName): void {
-        if (newTab === GRAPHER_TAB_NAMES.Table) {
-            this.tab = GRAPHER_TAB_OPTIONS.table
-            this.chartTab = undefined
-        } else if (newTab === GRAPHER_TAB_NAMES.WorldMap) {
-            this.tab = GRAPHER_TAB_OPTIONS.map
-            this.chartTab = undefined
+        this.tab = this.mapTabNameToTabConfigOption(newTab)
+    }
+
+    @action.bound private ensureHandlesAreOnSameTime(): void {
+        if (this.areHandlesOnSameTime) return
+
+        this.timelineHandleTimeBounds = [
+            this.endHandleTimeBound,
+            this.endHandleTimeBound,
+        ]
+    }
+
+    @action.bound private ensureHandlesAreOnDifferentTimes(): void {
+        if (!this.areHandlesOnSameTime) return
+
+        const time = this.startTime // startTime = endTime
+        if (time === this.closestTimelineMinTime) {
+            this.timelineHandleTimeBounds = [time ?? -Infinity, Infinity]
         } else {
-            this.tab = GRAPHER_TAB_OPTIONS.chart
-            this.chartTab = newTab
+            this.timelineHandleTimeBounds = [-Infinity, time ?? Infinity]
         }
     }
 
@@ -1612,24 +1674,47 @@ export class Grapher
         })
     }
 
+    private checkOnlySingleTimeSelectionPossible = (
+        tabName: GrapherTabName
+    ): boolean => {
+        return [
+            GRAPHER_TAB_NAMES.DiscreteBar,
+            GRAPHER_TAB_NAMES.StackedDiscreteBar,
+            GRAPHER_TAB_NAMES.Marimekko,
+        ].includes(tabName as any)
+    }
+
+    private checkSingleTimeSelectionPreferred = (
+        tabName: GrapherTabName
+    ): boolean => {
+        return (
+            this.checkOnlySingleTimeSelectionPossible(tabName) ||
+            [
+                GRAPHER_TAB_NAMES.ScatterPlot,
+                GRAPHER_TAB_NAMES.WorldMap,
+            ].includes(tabName as any)
+        )
+    }
+
+    private checkStartAndEndTimeSelectionPreferred = (
+        tabName: GrapherTabName
+    ): boolean => {
+        return [
+            GRAPHER_TAB_NAMES.LineChart,
+            GRAPHER_TAB_NAMES.SlopeChart,
+            GRAPHER_TAB_NAMES.StackedArea,
+            GRAPHER_TAB_NAMES.StackedBar,
+        ].includes(tabName as any)
+    }
+
     @action.bound private onChartSwitching(
-        oldTab: GrapherTabName,
+        _oldTab: GrapherTabName,
         newTab: GrapherTabName
     ): void {
-        // Switching from a line to a slope chart
-        if (
-            oldTab === GRAPHER_TAB_NAMES.LineChart &&
-            newTab === GRAPHER_TAB_NAMES.SlopeChart
-        ) {
-            // If the handles are on the same time, then set one of the handles
-            // to the start or end time so that the slope chart shows some data
-            if (this.areHandlesOnSameTime) {
-                if (this.startHandleTimeBound !== -Infinity) {
-                    this.startHandleTimeBound = -Infinity
-                } else {
-                    this.endHandleTimeBound = Infinity
-                }
-            }
+        if (this.checkSingleTimeSelectionPreferred(newTab)) {
+            this.ensureHandlesAreOnSameTime()
+        } else if (this.checkStartAndEndTimeSelectionPreferred(newTab)) {
+            this.ensureHandlesAreOnDifferentTimes()
         }
 
         // Switching to a slope chart
@@ -1770,8 +1855,18 @@ export class Grapher
 
     @computed get timelineHandleTimeBounds(): TimeBounds {
         if (this.isOnMapTab) {
-            const time = maxTimeBoundFromJSONOrPositiveInfinity(this.map.time)
-            return [time, time]
+            const endTime = maxTimeBoundFromJSONOrPositiveInfinity(
+                this.map.endTime
+            )
+
+            // If a start time is provided, use it; otherwise, set it to the end time
+            // so that a single map (not a facetted one) is shown by default
+            const startTime =
+                this.map.startTime === undefined
+                    ? endTime
+                    : minTimeBoundFromJSONOrNegativeInfinity(this.map.startTime)
+
+            return [startTime, endTime]
         }
 
         // If the timeline is hidden on the chart tab but displayed on the table tab
@@ -1795,7 +1890,8 @@ export class Grapher
 
     set timelineHandleTimeBounds(value: TimeBounds) {
         if (this.isOnMapTab) {
-            this.map.time = value[1]
+            this.map.startTime = value[0]
+            this.map.endTime = value[1]
         } else {
             this.minTime = value[0]
             this.maxTime = value[1]
@@ -1809,9 +1905,9 @@ export class Grapher
         const color = new DimensionSlot(this, DimensionProperty.color)
         const size = new DimensionSlot(this, DimensionProperty.size)
 
-        if (this.isLineChart || this.isDiscreteBar) return [yAxis, color]
-        else if (this.isScatter) return [yAxis, xAxis, size, color]
-        else if (this.isMarimekko) return [yAxis, xAxis, color]
+        if (this.hasScatter) return [yAxis, xAxis, size, color]
+        if (this.hasMarimekko) return [yAxis, xAxis, color]
+        if (this.hasLineChart || this.hasDiscreteBar) return [yAxis, color]
         return [yAxis]
     }
 
@@ -1930,21 +2026,24 @@ export class Grapher
     }
 
     @computed get validChartTypes(): GrapherChartType[] {
-        const { chartTypes } = this
+        const chartTypeSet = new Set(this.chartTypes)
 
         // all single-chart Graphers are valid
-        if (chartTypes.length <= 1) return chartTypes
+        if (chartTypeSet.size <= 1) return Array.from(chartTypeSet)
 
         // find valid combination in a pre-defined list
-        const validChartTypes = findValidChartTypeCombination(chartTypes)
+        const validChartTypes = findValidChartTypeCombination(chartTypeSet)
 
         // if the given combination is not valid, then ignore all but the first chart type
-        if (!validChartTypes) return chartTypes.slice(0, 1)
+        if (!validChartTypes) return this.chartTypes.slice(0, 1)
 
         // projected data is only supported for line charts
         const isLineChart = validChartTypes[0] === GRAPHER_CHART_TYPES.LineChart
         if (isLineChart && this.hasProjectedData) {
-            return [GRAPHER_CHART_TYPES.LineChart]
+            return [
+                GRAPHER_CHART_TYPES.LineChart,
+                GRAPHER_CHART_TYPES.DiscreteBar,
+            ]
         }
 
         return validChartTypes
@@ -1984,7 +2083,7 @@ export class Grapher
 
         return !!(
             !this.forceHideAnnotationFieldsInTitle?.entity &&
-            this.tab === GRAPHER_TAB_OPTIONS.chart &&
+            this.isOnChartTab &&
             (seriesStrategy !== SeriesStrategy.entity || !this.showLegend) &&
             selectedEntityNames.length === 1 &&
             (showEntityAnnotation ||
@@ -2001,8 +2100,7 @@ export class Grapher
             (showTimeAnnotation ||
                 (this.hasTimeline &&
                     // chart types that refer to the current time only in the timeline
-                    (this.isLineChartThatTurnedIntoDiscreteBar ||
-                        this.isOnDiscreteBarTab ||
+                    (this.isOnDiscreteBarTab ||
                         this.isOnStackedDiscreteBarTab ||
                         this.isOnMarimekkoTab ||
                         this.isOnMapTab)))
@@ -2056,23 +2154,20 @@ export class Grapher
         // we don't have more than one distinct time point in our data, so it doesn't make sense to show a timeline
         if (this.times.length <= 1) return false
 
-        switch (this.tab) {
+        switch (this.activeTab) {
             // the map tab has its own `hideTimeline` option
-            case GRAPHER_TAB_OPTIONS.map:
+            case GRAPHER_TAB_NAMES.WorldMap:
                 return !this.map.hideTimeline
 
-            // use the chart-level `hideTimeline` option
-            case GRAPHER_TAB_OPTIONS.chart:
-                return !this.hideTimeline
-
             // use the chart-level `hideTimeline` option for the table, with some exceptions
-            case GRAPHER_TAB_OPTIONS.table:
+            case GRAPHER_TAB_NAMES.Table:
                 // always show the timeline for charts that plot time on the x-axis
                 if (this.hasTimeDimension) return true
                 return !this.hideTimeline
 
+            // use the chart-level `hideTimeline` option
             default:
-                return false
+                return !this.hideTimeline
         }
     }
 
@@ -2138,6 +2233,21 @@ export class Grapher
         )
     }
 
+    @computed get numericColorColumnSlug(): string | undefined {
+        if (!this.colorColumnSlug) return undefined
+
+        const colorColumn = this.inputTable.get(this.colorColumnSlug)
+        if (!colorColumn.isMissing && colorColumn.hasNumberFormatting)
+            return this.colorColumnSlug
+
+        return undefined
+    }
+
+    @computed get categoricalColorColumnSlug(): string | undefined {
+        if (!this.colorColumnSlug) return undefined
+        return this.numericColorColumnSlug ? undefined : this.colorColumnSlug
+    }
+
     @computed get yScaleType(): ScaleType | undefined {
         return this.yAxis.scaleType
     }
@@ -2198,7 +2308,7 @@ export class Grapher
     }
 
     getColumnSlugsForCondensedSources(): string[] {
-        const { xColumnSlug, sizeColumnSlug, colorColumnSlug, isMarimekko } =
+        const { xColumnSlug, sizeColumnSlug, colorColumnSlug, hasMarimekko } =
             this
         const columnSlugs: string[] = []
 
@@ -2214,7 +2324,7 @@ export class Grapher
                 .def as OwidColumnDef
             // exclude population variable if it's used as the x dimension in a marimekko
             if (
-                !isMarimekko ||
+                !hasMarimekko ||
                 !isPopulationVariableETLPath(xColumn?.catalogPath ?? "")
             )
                 columnSlugs.push(xColumnSlug)
@@ -2328,13 +2438,6 @@ export class Grapher
         return this.toObject()
     }
 
-    @computed
-    get typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart(): GrapherChartType {
-        return this.isLineChartThatTurnedIntoDiscreteBarActive
-            ? GRAPHER_CHART_TYPES.DiscreteBar
-            : (this.activeChartType ?? GRAPHER_CHART_TYPES.LineChart)
-    }
-
     @computed get isLineChart(): boolean {
         return (
             this.chartType === GRAPHER_CHART_TYPES.LineChart || !this.chartType
@@ -2360,39 +2463,6 @@ export class Grapher
     }
     @computed get isStackedDiscreteBar(): boolean {
         return this.chartType === GRAPHER_CHART_TYPES.StackedDiscreteBar
-    }
-
-    @computed get isLineChartThatTurnedIntoDiscreteBar(): boolean {
-        if (!this.isLineChart) return false
-
-        let { minTime, maxTime } = this
-
-        // if we have a time dimension but the timeline is hidden,
-        // we always want to use the authored `minTime` and `maxTime`,
-        // irrespective of the time range the user might have selected
-        // on the table tab
-        if (this.hasTimeDimensionButTimelineIsHidden) {
-            minTime = this.authorsVersion.minTime
-            maxTime = this.authorsVersion.maxTime
-        }
-
-        // This is the easy case: minTime and maxTime are the same, no need to do
-        // more fancy checks
-        if (minTime === maxTime) return true
-
-        // We can have cases where minTime = Infinity and/or maxTime = -Infinity,
-        // but still only a single year is selected.
-        // To check for that we need to look at the times array.
-        const times = this.table.timeColumn.uniqValues
-        const closestMinTime = findClosestTime(times, minTime ?? -Infinity)
-        const closestMaxTime = findClosestTime(times, maxTime ?? Infinity)
-        return closestMinTime !== undefined && closestMinTime === closestMaxTime
-    }
-
-    @computed get isLineChartThatTurnedIntoDiscreteBarActive(): boolean {
-        return (
-            this.isOnLineChartTab && this.isLineChartThatTurnedIntoDiscreteBar
-        )
     }
 
     @computed get isOnLineChartTab(): boolean {
@@ -2425,6 +2495,15 @@ export class Grapher
     }
     @computed get hasSlopeChart(): boolean {
         return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.SlopeChart)
+    }
+    @computed get hasDiscreteBar(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.DiscreteBar)
+    }
+    @computed get hasMarimekko(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.Marimekko)
+    }
+    @computed get hasScatter(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.ScatterPlot)
     }
 
     @computed get supportsMultipleYColumns(): boolean {
@@ -2921,7 +3000,7 @@ export class Grapher
     }
 
     @computed get entityRegionTypeGroups(): EntityRegionTypeGroup[] {
-        return groupEntityNamesByRegionType(this.table.availableEntityNames)
+        return groupEntityNamesByRegionType(this.availableEntityNames)
     }
 
     @computed get entityNamesByRegionType(): EntityNamesByRegionType {
@@ -3087,7 +3166,7 @@ export class Grapher
         // we sort by entity name instead.
         // Marimekko charts are special and there we don't do this forcing of sort order
         if (
-            !this.isMarimekko &&
+            !this.isOnMarimekkoTab &&
             this.isRelativeMode &&
             sortConfig.sortBy === SortBy.total
         ) {
@@ -3190,6 +3269,9 @@ export class Grapher
     }
 
     @computed get isFaceted(): boolean {
+        // Show map facets if start and end time are different
+        if (this.isOnMapTab) return this.startTime !== this.endTime
+
         const hasFacetStrategy = this.facetStrategy !== FacetStrategy.none
         return this.isOnChartTab && hasFacetStrategy
     }
@@ -3742,7 +3824,8 @@ export class Grapher
         this.compareEndPointsOnly = authorsVersion.compareEndPointsOnly
         this.minTime = authorsVersion.minTime
         this.maxTime = authorsVersion.maxTime
-        this.map.time = authorsVersion.map.time
+        this.map.startTime = authorsVersion.map.startTime
+        this.map.endTime = authorsVersion.map.endTime
         this.map.region = authorsVersion.map.region
         this.showNoDataArea = authorsVersion.showNoDataArea
         this.dataTableConfig.filter = authorsVersion.dataTableConfig.filter
@@ -3774,52 +3857,48 @@ export class Grapher
 
     debounceMode = false
 
-    private mapQueryParamToGrapherTab(tab: string): GrapherTabName | undefined {
-        const {
-            chartType: defaultChartType,
-            validChartTypeSet,
-            hasMapTab,
-        } = this
-
-        let defaultTab: GrapherTabName = GRAPHER_TAB_NAMES.Table
-        if (defaultChartType) {
-            defaultTab = defaultChartType
-        } else if (hasMapTab) {
-            defaultTab = GRAPHER_TAB_NAMES.WorldMap
-        }
-
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.table) {
-            return GRAPHER_TAB_NAMES.Table
-        }
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.map) {
-            if (hasMapTab) return GRAPHER_TAB_NAMES.WorldMap
-            return defaultTab
-        }
-
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.chart) {
-            return defaultTab
-        }
-
-        const chartTypeName = mapQueryParamToChartTypeName(tab)
-
-        if (!chartTypeName) return undefined
-
-        if (validChartTypeSet.has(chartTypeName)) {
-            return chartTypeName
-        }
-
-        return defaultTab
+    private mapQueryParamToTabName(tab: string): GrapherTabName | undefined {
+        return isValidTabConfigOption(tab)
+            ? this.mapTabConfigOptionToTabName(tab)
+            : this.defaultTab
     }
 
-    mapGrapherTabToQueryParam(tab: GrapherTabName): string {
-        if (tab === GRAPHER_TAB_NAMES.Table)
-            return GRAPHER_TAB_QUERY_PARAMS.table
-        if (tab === GRAPHER_TAB_NAMES.WorldMap)
-            return GRAPHER_TAB_QUERY_PARAMS.map
+    mapGrapherTabToQueryParam(tabName: GrapherTabName): string {
+        return this.mapTabNameToTabConfigOption(tabName)
+    }
 
-        if (!this.hasMultipleChartTypes) return GRAPHER_TAB_QUERY_PARAMS.chart
+    private mapTabNameToTabConfigOption(
+        tabName: GrapherTabName
+    ): GrapherTabConfigOption {
+        switch (tabName) {
+            case GRAPHER_TAB_NAMES.Table:
+                return GRAPHER_TAB_CONFIG_OPTIONS.table
+            case GRAPHER_TAB_NAMES.WorldMap:
+                return GRAPHER_TAB_CONFIG_OPTIONS.map
+            default:
+                return this.hasMultipleChartTypes
+                    ? mapChartTypeNameToTabConfigOption(tabName)
+                    : GRAPHER_TAB_CONFIG_OPTIONS.chart
+        }
+    }
 
-        return mapChartTypeNameToQueryParam(tab)
+    private mapTabConfigOptionToTabName(
+        tabOption: GrapherTabConfigOption
+    ): GrapherTabName {
+        if (tabOption === GRAPHER_TAB_CONFIG_OPTIONS.table)
+            return GRAPHER_TAB_NAMES.Table
+
+        if (tabOption === GRAPHER_TAB_CONFIG_OPTIONS.map)
+            return this.hasMapTab ? GRAPHER_TAB_NAMES.WorldMap : this.defaultTab
+
+        if (tabOption === GRAPHER_TAB_CONFIG_OPTIONS.chart) {
+            return this.defaultTab
+        }
+
+        const chartTypeName = mapTabConfigOptionToChartTypeName(tabOption)
+        return this.validChartTypeSet.has(chartTypeName)
+            ? chartTypeName
+            : this.defaultTab
     }
 
     @computed.struct get allParams(): GrapherQueryParams {
@@ -3951,22 +4030,36 @@ export class Grapher
     }
 
     @computed private get hasUserChangedMapTimeHandle(): boolean {
-        return this.map.time !== this.authorsVersion.map.time
+        const authorsVersion = this.authorsVersion
+        return (
+            this.map.startTime !== authorsVersion.map.startTime ||
+            this.map.endTime !== authorsVersion.map.endTime
+        )
     }
 
     @computed get timeParam(): string | undefined {
         const { timeColumn } = this.table
-        const formatTime = (t: Time): string =>
+        const formatTime = (time: Time): string =>
             timeBoundToTimeBoundString(
-                t,
+                time,
                 timeColumn instanceof ColumnTypeMap.Day
             )
 
         if (this.isOnMapTab) {
-            return this.map.time !== undefined &&
-                this.hasUserChangedMapTimeHandle
-                ? formatTime(this.map.time)
-                : undefined
+            if (!this.hasUserChangedMapTimeHandle) return undefined
+
+            if (
+                this.map.startTime === undefined ||
+                this.map.endTime === undefined
+            )
+                return undefined
+
+            const startTime = formatTime(this.map.startTime)
+            const endTime = formatTime(this.map.endTime)
+
+            return startTime === endTime
+                ? startTime
+                : `${startTime}..${endTime}`
         }
 
         if (!this.hasUserChangedTimeHandles) return undefined
@@ -4001,36 +4094,46 @@ export class Grapher
     // called when an entity is selected in the entity selector
     @action.bound onSelectEntity(entityName: EntityName): void {
         const { selectedCountryNamesInForeground } = this.mapConfig.selection
-        if (
-            this.isOnMapTab &&
-            this.isMapSelectionEnabled &&
-            this.mapConfig.globe.isActive
-        ) {
-            const region = getRegionByName(entityName)
-            if (region) {
-                if (
-                    checkIsCountry(region) &&
-                    region.isMappable &&
-                    selectedCountryNamesInForeground.includes(region.name)
-                ) {
-                    // rotate to the selected country
-                    this.globeController.focusOnCountry(region.name)
-                } else if (checkIsOwidContinent(region)) {
-                    // rotate to the selected owid continent
-                    this.globeController.rotateToOwidContinent(
-                        MAP_REGION_NAMES[region.name] as GlobeRegionName
-                    )
-                } else if (checkIsIncomeGroup(region)) {
-                    // switch back to the map
-                    this.globeController.hideGlobe()
-                } else if (checkHasMembers(region)) {
-                    // rotate to the selected region
-                    this.globeController.rotateToRegion(region.name)
-                }
+
+        if (this.mapRegionDropdownValue === "Selection")
+            this.resetMapRegionDropdown()
+
+        if (!this.isOnMapTab || !this.isMapSelectionEnabled) return
+
+        const region = getRegionByName(entityName)
+        if (!region) return
+
+        if (this.mapConfig.globe.isActive) {
+            if (
+                checkIsCountry(region) &&
+                region.isMappable &&
+                selectedCountryNamesInForeground.includes(region.name)
+            ) {
+                // rotate to the selected country
+                this.globeController.rotateToCountry(region.name)
+                this.mapConfig.region = MapRegionName.World
+                this.resetMapRegionDropdown()
+            } else if (checkIsOwidContinent(region)) {
+                // rotate to the selected owid continent
+                const regionName = MAP_REGION_NAMES[
+                    region.name
+                ] as GlobeRegionName
+                this.globeController.rotateToOwidContinent(regionName)
+                this.mapConfig.region = regionName
+                this.mapRegionDropdownValue = regionName
+            } else if (checkIsIncomeGroup(region)) {
+                // switch back to the map if an income group is selected
+                this.globeController.hideGlobe()
+                this.globeController.resetGlobe()
+                this.mapConfig.region = MapRegionName.World
+                this.resetMapRegionDropdown()
+            } else if (checkHasMembers(region)) {
+                // rotate to the selected region
+                this.globeController.rotateToRegion(region.name)
+                this.mapConfig.region = MapRegionName.World
+                this.resetMapRegionDropdown()
             }
         }
-
-        this.resetMapRegionDropdown()
     }
 
     // called when an entity is deselected in the entity selector
@@ -4041,7 +4144,8 @@ export class Grapher
         // Remove focus from the deselected country
         this.globeController.dismissCountryFocus()
 
-        this.resetMapRegionDropdown()
+        if (this.mapRegionDropdownValue === "Selection")
+            this.resetMapRegionDropdown()
     }
 
     // called when all entities are cleared in the entity selector
@@ -4050,9 +4154,13 @@ export class Grapher
         this.focusArray.clear()
 
         // switch back to the 2d map if all entities were deselected
-        if (this.isOnMapTab) this.globeController.hideGlobe()
+        if (this.isOnMapTab) {
+            this.globeController.hideGlobe()
+            this.globeController.resetGlobe()
+        }
 
-        this.resetMapRegionDropdown()
+        if (this.mapRegionDropdownValue === "Selection")
+            this.resetMapRegionDropdown()
     }
 
     isEntityMutedInSelector(entityName: EntityName): boolean {
@@ -4060,9 +4168,32 @@ export class Grapher
         if (!this.isOnMapTab) return false
 
         // entities disabled on the map are muted
-        return this.mapConfig.selection.selectedCountryNamesInBackground.includes(
-            entityName
+        if (
+            this.mapConfig.selection.selectedCountryNamesInBackground.includes(
+                entityName
+            )
         )
+            return true
+
+        // if a 2d continent is active, then all countries outside of the continent
+        // are disabled, so they are also muted in the entity selector
+        if (this.mapConfig.is2dContinentActive()) {
+            const region = getRegionByName(entityName)
+            if (!region) return false
+
+            // don't mute the selected continent
+            if (checkIsOwidContinent(region))
+                return region.name !== MAP_REGION_LABELS[this.mapConfig.region]
+
+            const countriesInRegion = getCountriesByRegion(
+                MAP_REGION_LABELS[this.mapConfig.region]
+            )
+            if (!countriesInRegion) return false
+
+            return !countriesInRegion.has(entityName)
+        }
+
+        return false
     }
 
     // todo: restore this behavior??

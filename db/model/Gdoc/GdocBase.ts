@@ -19,7 +19,7 @@ import {
     OwidGdocMinimalPostInterface,
     urlToSlug,
     grabMetadataForGdocLinkedIndicator,
-    GRAPHER_TAB_OPTIONS,
+    GRAPHER_TAB_CONFIG_OPTIONS,
     DbInsertPostGdocLink,
     DbPlainTag,
     formatDate,
@@ -1062,7 +1062,7 @@ export async function makeGrapherLinkedChart(
         fontSize: 12,
     }).plaintext
     const resolvedUrl = `${BAKED_GRAPHER_URL}/${resolvedSlug}`
-    const tab = config.tab ?? GRAPHER_TAB_OPTIONS.chart
+    const tab = config.tab ?? GRAPHER_TAB_CONFIG_OPTIONS.chart
     const datapageIndicator = await getVariableOfDatapageIfApplicable(config)
     return {
         configType: ChartConfigType.Grapher,

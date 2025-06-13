@@ -3,7 +3,10 @@
  */
 
 import { expect, it, describe, beforeAll } from "vitest"
-import { GRAPHER_CHART_TYPES, GRAPHER_TAB_OPTIONS } from "@ourworldindata/types"
+import {
+    GRAPHER_CHART_TYPES,
+    GRAPHER_TAB_CONFIG_OPTIONS,
+} from "@ourworldindata/types"
 import {
     childMortalityGrapher,
     GrapherWithIncompleteData,
@@ -72,7 +75,7 @@ describe("when you select a range of years", () => {
     beforeAll(() => {
         const grapher = childMortalityGrapher({
             chartTypes: [GRAPHER_CHART_TYPES.LineChart],
-            tab: GRAPHER_TAB_OPTIONS.table,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.table,
         })
         grapher.timelineHandleTimeBounds = [1950, 2019]
 

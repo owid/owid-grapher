@@ -3,13 +3,14 @@ import { Grapher, GrapherProgrammaticInterface } from "../core/Grapher"
 import {
     GRAPHER_CHART_TYPES,
     EntitySelectionMode,
-    GRAPHER_TAB_OPTIONS,
+    GRAPHER_TAB_CONFIG_OPTIONS,
     ScaleType,
     GrapherInterface,
     GrapherQueryParams,
     LegacyGrapherInterface,
     LegacyGrapherQueryParams,
     GRAPHER_TAB_NAMES,
+    GRAPHER_TAB_QUERY_PARAMS,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -96,7 +97,7 @@ describe("toObject", () => {
 
     it("does not preserve defaults in the object (except for the schema)", () => {
         expect(
-            new Grapher({ tab: GRAPHER_TAB_OPTIONS.chart }).toObject()
+            new Grapher({ tab: GRAPHER_TAB_CONFIG_OPTIONS.chart }).toObject()
         ).toEqual({ $schema: latestGrapherConfigSchema })
     })
 
@@ -109,6 +110,17 @@ describe("toObject", () => {
             $schema: latestGrapherConfigSchema,
             chartTypes: ["LineChart", "SlopeChart"],
             tab: "slope",
+        })
+    })
+
+    it("doesn't serialise the default chart tab", () => {
+        const grapher = new Grapher({
+            chartTypes: ["LineChart", "SlopeChart"],
+            tab: "line",
+        })
+        expect(grapher.toObject()).toEqual({
+            $schema: latestGrapherConfigSchema,
+            chartTypes: ["LineChart", "SlopeChart"],
         })
     })
 })
@@ -157,6 +169,7 @@ const legacyConfig: Omit<LegacyGrapherInterface, "data"> &
             },
         ],
     ]),
+    hasMapTab: true,
     selectedEntityNames: ["Iceland", "Afghanistan"],
 }
 
@@ -235,7 +248,7 @@ describe("hasTimeline", () => {
         grapher.hideTimeline = true
         grapher.chartTypes = [GRAPHER_CHART_TYPES.LineChart]
         expect(grapher.hasTimeline).toBeFalsy()
-        grapher.tab = GRAPHER_TAB_OPTIONS.map
+        grapher.tab = GRAPHER_TAB_CONFIG_OPTIONS.map
         expect(grapher.hasTimeline).toBeTruthy()
         grapher.map.hideTimeline = true
         expect(grapher.hasTimeline).toBeFalsy()
@@ -296,6 +309,7 @@ const getGrapher = (): Grapher =>
         ]),
         minTime: -5000,
         maxTime: 5000,
+        hasMapTab: true,
     })
 
 function fromQueryParams(
@@ -315,7 +329,8 @@ function toQueryParams(
     const grapher = new Grapher({
         minTime: -5000,
         maxTime: 5000,
-        map: { time: 5000 },
+        hasMapTab: true,
+        map: { startTime: 5000, endTime: 5000 },
     })
     if (props) grapher.updateFromObject(props)
     return grapher.changedParams
@@ -392,7 +407,7 @@ describe("authors can use maxTime", () => {
             ySlugs: "GDP",
         })
         const chart = grapher.chartInstance
-        expect(chart.failMessage).toBeFalsy()
+        expect(chart.errorInfo.reason).toBeFalsy()
     })
 })
 
@@ -400,9 +415,7 @@ describe("line chart to bar chart and bar chart race", () => {
     const grapher = new Grapher(TestGrapherConfig())
 
     it("can create a new line chart with different start and end times", () => {
-        expect(
-            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual(GRAPHER_CHART_TYPES.LineChart)
+        expect(grapher.activeChartType).toEqual(GRAPHER_CHART_TYPES.LineChart)
         expect(grapher.endHandleTimeBound).toBeGreaterThan(
             grapher.startHandleTimeBound
         )
@@ -412,15 +425,11 @@ describe("line chart to bar chart and bar chart race", () => {
         const grapher = new Grapher(TestGrapherConfig())
         const lineSeries = grapher.chartInstance.series
 
-        expect(
-            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual(GRAPHER_CHART_TYPES.LineChart)
+        expect(grapher.activeChartType).toEqual(GRAPHER_CHART_TYPES.LineChart)
 
         grapher.startHandleTimeBound = 2000
         grapher.endHandleTimeBound = 2000
-        expect(
-            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual(GRAPHER_CHART_TYPES.DiscreteBar)
+        expect(grapher.activeChartType).toEqual(GRAPHER_CHART_TYPES.DiscreteBar)
 
         it("still has a timeline even though its now a bar chart", () => {
             expect(grapher.hasTimeline).toBe(true)
@@ -447,24 +456,10 @@ describe("line chart to bar chart and bar chart race", () => {
         })
     })
 
-    it("turns into a line chart race when playing a line chart that currently shows as a bar chart", () => {
-        grapher.startHandleTimeBound = -Infinity
-        grapher.endHandleTimeBound = -Infinity
-        void grapher.timelineController.play(1)
-        expect(grapher.startHandleTimeBound).not.toEqual(
-            grapher.endHandleTimeBound
-        )
-        expect(
-            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual(GRAPHER_CHART_TYPES.LineChart)
-    })
-
     it("turns into a bar chart when constrained start & end handles are equal", () => {
         grapher.startHandleTimeBound = 5000
         grapher.endHandleTimeBound = Infinity
-        expect(
-            grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
-        ).toEqual(GRAPHER_CHART_TYPES.DiscreteBar)
+        expect(grapher.activeChartType).toEqual(GRAPHER_CHART_TYPES.DiscreteBar)
     })
 })
 
@@ -489,7 +484,8 @@ describe("urls", () => {
             isPublished: true,
             slug: "foo",
             bakedGrapherURL: "/grapher",
-            tab: GRAPHER_TAB_OPTIONS.map,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+            hasMapTab: true,
         })
         expect(grapher.embedUrl).toEqual("/grapher/foo?tab=map")
     })
@@ -576,9 +572,10 @@ describe("urls", () => {
     it("adds tab=chart to the URL if there is a single chart tab", () => {
         const grapher = new Grapher({
             hasMapTab: true,
-            tab: GRAPHER_TAB_OPTIONS.map,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+            chartTypes: ["Marimekko"],
         })
-        grapher.setTab(GRAPHER_TAB_NAMES.LineChart)
+        grapher.setTab(GRAPHER_TAB_NAMES.Marimekko)
         expect(grapher.changedParams.tab).toEqual("chart")
     })
 
@@ -589,10 +586,23 @@ describe("urls", () => {
                 GRAPHER_CHART_TYPES.SlopeChart,
             ],
             hasMapTab: true,
-            tab: GRAPHER_TAB_OPTIONS.map,
+            tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
         })
         grapher.setTab(GRAPHER_TAB_NAMES.LineChart)
         expect(grapher.changedParams.tab).toEqual("line")
+    })
+
+    it("shows a multi-year chart by default", () => {
+        const grapher = new Grapher()
+        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.LineChart)
+        expect(grapher.timelineHandleTimeBounds).toEqual([-Infinity, Infinity])
+    })
+
+    it("shows a single-year map by default", () => {
+        const grapher = new Grapher({ hasMapTab: true })
+        grapher.populateFromQueryParams({ tab: "map" })
+        expect(grapher.activeTab).toEqual(GRAPHER_TAB_NAMES.WorldMap)
+        expect(grapher.timelineHandleTimeBounds).toEqual([Infinity, Infinity])
     })
 })
 
@@ -714,6 +724,31 @@ describe("time parameter", () => {
                     const params = toQueryParams({
                         minTime: test.param[0],
                         maxTime: test.param[1],
+                    })
+                    expect(params.time).toEqual(test.query)
+                })
+            }
+        }
+
+        for (const test of tests) {
+            it(`parse ${test.name} (map tab)`, () => {
+                const grapher = fromQueryParams({
+                    tab: GRAPHER_TAB_QUERY_PARAMS.map,
+                    time: test.query,
+                })
+                const [start, end] = grapher.timelineHandleTimeBounds
+                expect(start).toEqual(test.param[0])
+                expect(end).toEqual(test.param[1])
+            })
+            if (!test.irreversible) {
+                it(`encode ${test.name}`, () => {
+                    const params = toQueryParams({
+                        hasMapTab: true,
+                        tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+                        map: {
+                            startTime: test.param[0],
+                            endTime: test.param[1],
+                        },
                     })
                     expect(params.time).toEqual(test.query)
                 })
@@ -919,8 +954,8 @@ describe("year parameter (applies to map only)", () => {
             })
             it(`encode ${test.name}`, () => {
                 const params = toQueryParams({
-                    tab: GRAPHER_TAB_OPTIONS.map,
-                    map: { time: test.param },
+                    tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+                    map: { startTime: test.param, endTime: test.param },
                 })
                 expect(params.time).toEqual(test.query)
             })
@@ -985,8 +1020,8 @@ describe("year parameter (applies to map only)", () => {
                 it(`encode ${test.name}`, () => {
                     const grapher = getGrapher()
                     grapher.updateFromObject({
-                        tab: GRAPHER_TAB_OPTIONS.map,
-                        map: { time: test.param },
+                        tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+                        map: { startTime: test.param, endTime: test.param },
                     })
                     const params = grapher.changedParams
                     expect(params.time).toEqual(test.query)
@@ -1041,24 +1076,31 @@ it("considers map tolerance before using column tolerance", () => {
     const grapher = new Grapher({
         table,
         ySlugs: "gdp",
-        tab: GRAPHER_TAB_OPTIONS.map,
+        tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
         hasMapTab: true,
-        map: new MapConfig({ timeTolerance: 1, columnSlug: "gdp", time: 2002 }),
+        map: new MapConfig({
+            timeTolerance: 1,
+            columnSlug: "gdp",
+            startTime: 2002,
+            endTime: 2002,
+        }),
     })
 
-    expect(grapher.timelineHandleTimeBounds[1]).toEqual(2002)
+    expect(grapher.timelineHandleTimeBounds).toEqual([2002, 2002])
     expect(
         grapher.transformedTable.filterByEntityNames(["Germany"]).get("gdp")
             .values
     ).toEqual([])
 
-    grapher.map.time = 2001
+    grapher.map.startTime = 2001
+    grapher.map.endTime = 2001
     expect(
         grapher.transformedTable.filterByEntityNames(["Germany"]).get("gdp")
             .values
     ).toEqual([2])
 
-    grapher.map.time = 2002
+    grapher.map.startTime = 2002
+    grapher.map.endTime = 2002
     grapher.map.timeTolerance = undefined
     expect(
         grapher.transformedTable.filterByEntityNames(["Germany"]).get("gdp")

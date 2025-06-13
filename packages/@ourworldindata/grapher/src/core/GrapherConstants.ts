@@ -1,4 +1,4 @@
-import { EntityName, GRAPHER_CHART_TYPES } from "@ourworldindata/types"
+import { EntityName } from "@ourworldindata/types"
 import { defaultGrapherConfig } from "../schema/defaultGrapherConfig.js"
 import type { GrapherProgrammaticInterface } from "./Grapher"
 
@@ -55,6 +55,7 @@ export const GRAPHER_FONT_SCALE_12 = 12 / BASE_FONT_SIZE
 export const GRAPHER_FONT_SCALE_12_8 = 12.8 / BASE_FONT_SIZE
 export const GRAPHER_FONT_SCALE_13 = 13 / BASE_FONT_SIZE
 export const GRAPHER_FONT_SCALE_14 = 14 / BASE_FONT_SIZE
+export const GRAPHER_FONT_SCALE_15 = 15 / BASE_FONT_SIZE
 
 // keep in sync with $max-tooltip-width in Tooltip.scss
 export const GRAPHER_MAX_TOOLTIP_WIDTH = 400
@@ -145,15 +146,6 @@ export const grapherInterfaceWithHiddenTabs: GrapherProgrammaticInterface = {
     hasTableTab: false,
     hideChartTabs: true,
 }
-
-/**
- * Chart type combinations that are currently supported.
- *
- * This also determines the order of chart types in the UI.
- */
-export const validChartTypeCombinations = [
-    [GRAPHER_CHART_TYPES.LineChart, GRAPHER_CHART_TYPES.SlopeChart],
-]
 
 export const SVG_STYLE_PROPS: React.CSSProperties = {
     fontFamily:

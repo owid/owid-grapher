@@ -6,7 +6,6 @@ import {
     ColumnSlug,
     EntityName,
     OwidVariableRoundingMode,
-    OwidVariableRow,
     Time,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
@@ -29,12 +28,12 @@ const SPARKLINE_PADDING = 15
 const SPARKLINE_NUDGE = 3 // step away from the axis
 
 export interface MapSparklineManager {
+    timeseriesTable: OwidTable
     mapColumnSlug?: ColumnSlug
-    timeSeriesTable: OwidTable
     targetTime?: Time
     entityName: EntityName
     lineColorScale?: ColorScale
-    datum?: OwidVariableRow<number | string>
+    highlightedTimesInSparkline?: Time[]
     mapAndYColumnAreTheSame?: boolean
     yAxisConfig?: AxisConfigInterface
 }
@@ -61,14 +60,14 @@ export class MapSparkline extends React.Component<{
     @computed private get sparklineTable(): OwidTable {
         if (this.mapColumnSlug === undefined) return new OwidTable()
 
-        return this.manager.timeSeriesTable
+        return this.manager.timeseriesTable
             .filterByEntityNames([this.manager.entityName])
             .columnFilter(
                 this.mapColumnSlug,
                 isNumber,
                 "Drop rows with non-number values in Y column"
             )
-            .sortBy([this.manager.timeSeriesTable.timeColumn.slug])
+            .sortBy([this.manager.timeseriesTable.timeColumn.slug])
     }
 
     @computed private get hasTimeSeriesData(): boolean {
@@ -81,12 +80,16 @@ export class MapSparkline extends React.Component<{
         return this.hasTimeSeriesData
     }
 
+    @computed private get highlightedTimesInLineChart(): Time[] {
+        return this.props.manager.highlightedTimesInSparkline ?? []
+    }
+
     @computed private get sparklineManager(): LineChartManager {
         // use the whole time range for the sparkline, not just the range where this series has data
-        let { minTime, maxTime } = this.manager.timeSeriesTable ?? {}
+        let { minTime, maxTime } = this.manager.timeseriesTable ?? {}
         if (this.mapColumnSlug) {
             const times =
-                this.manager.timeSeriesTable.getTimesUniqSortedAscForColumns([
+                this.manager.timeseriesTable.getTimesUniqSortedAscForColumns([
                     this.mapColumnSlug,
                 ])
             minTime = R.first(times) ?? minTime
@@ -106,7 +109,7 @@ export class MapSparkline extends React.Component<{
             table: this.sparklineTable,
             transformedTable: this.sparklineTable,
             yColumnSlug: this.mapColumnSlug,
-            colorColumnSlug: this.mapColumnSlug,
+            numericColorColumnSlug: this.mapColumnSlug,
             selection: [this.manager.entityName],
             colorScaleOverride: this.manager.lineColorScale,
             showLegend: false,
@@ -114,10 +117,7 @@ export class MapSparkline extends React.Component<{
             fontSize: 11,
             disableIntroAnimation: true,
             lineStrokeWidth: 2,
-            entityYearHighlight: {
-                entityName: this.manager.entityName,
-                year: this.manager.datum?.originalTime,
-            },
+            highlightedTimesInLineChart: this.highlightedTimesInLineChart,
             yAxisConfig: {
                 hideAxis: true,
                 hideGridlines: false,

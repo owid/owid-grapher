@@ -62,14 +62,12 @@ export {
     GRAPHER_MAP_TYPE,
     GRAPHER_CHART_TYPES,
     GRAPHER_TAB_NAMES,
-    GRAPHER_TAB_OPTIONS,
+    GRAPHER_TAB_CONFIG_OPTIONS,
     GRAPHER_TAB_QUERY_PARAMS,
-    GRAPHER_TAB_TYPES,
     ALL_GRAPHER_CHART_TYPES,
 } from "./grapherTypes/GrapherConstants.js"
 
 export {
-    type EntityYearHighlight,
     type Box,
     type BasicChartInformation,
     SortBy,
@@ -96,10 +94,9 @@ export {
     type ColorScaleConfigInterface,
     ColorSchemeName,
     type GrapherChartOrMapType,
-    type GrapherTabOption,
+    type GrapherTabConfigOption,
     type GrapherTabName,
     type GrapherTabQueryParam,
-    type GrapherTabType,
     type GrapherChartType,
     StackMode,
     EntitySelectionMode,
@@ -134,6 +131,7 @@ export {
     type InteractionState,
     type MapConfigInterface,
     type GlobeConfig,
+    type ChartErrorInfo,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {

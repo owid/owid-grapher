@@ -11,9 +11,8 @@ import {
     GRAPHER_CHART_TYPES,
     GRAPHER_MAP_TYPE,
     GRAPHER_TAB_NAMES,
-    GRAPHER_TAB_OPTIONS,
+    GRAPHER_TAB_CONFIG_OPTIONS,
     GRAPHER_TAB_QUERY_PARAMS,
-    GRAPHER_TAB_TYPES,
 } from "./GrapherConstants.js"
 
 export interface Box {
@@ -58,11 +57,6 @@ export type ValueRange = [number, number]
 export enum ScaleType {
     linear = "linear",
     log = "log",
-}
-
-export interface EntityYearHighlight {
-    entityName?: string
-    year?: number
 }
 
 export enum KeyChartLevel {
@@ -169,6 +163,11 @@ export enum SeriesStrategy {
     entity = "entity", // One line per entity
 }
 
+export interface ChartErrorInfo {
+    reason: string // no chart error if set to the empty string
+    help?: string
+}
+
 export type SeriesName = string
 
 export type SeriesColorMap = Map<SeriesName, Color>
@@ -177,8 +176,7 @@ export type GrapherMapType = typeof GRAPHER_MAP_TYPE
 export type GrapherChartType = keyof typeof GRAPHER_CHART_TYPES
 export type GrapherChartOrMapType = GrapherChartType | GrapherMapType
 
-export type GrapherTabType = keyof typeof GRAPHER_TAB_TYPES
-export type GrapherTabOption = keyof typeof GRAPHER_TAB_OPTIONS
+export type GrapherTabConfigOption = keyof typeof GRAPHER_TAB_CONFIG_OPTIONS
 export type GrapherTabQueryParam = keyof typeof GRAPHER_TAB_QUERY_PARAMS
 export type GrapherTabName = keyof typeof GRAPHER_TAB_NAMES
 
@@ -542,7 +540,8 @@ export interface GlobeConfig {
 
 export interface MapConfigInterface {
     columnSlug?: ColumnSlug
-    time?: Time | TimeBoundValueStr
+    startTime?: TimeBound | TimeBoundValueStr
+    endTime?: TimeBound | TimeBoundValueStr
     timeTolerance?: number
     toleranceStrategy?: ToleranceStrategy
     hideTimeline?: boolean
@@ -587,7 +586,7 @@ export interface GrapherInterface extends SortConfig {
     zoomToSelection?: boolean
     showYearLabels?: boolean // Always show year in labels for bar charts
     hasMapTab?: boolean
-    tab?: GrapherTabOption
+    tab?: GrapherTabConfigOption
     relatedQuestions?: RelatedQuestionsConfig[]
     details?: DetailDictionary
     internalNotes?: string

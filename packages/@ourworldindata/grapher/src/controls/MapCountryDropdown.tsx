@@ -16,6 +16,8 @@ import { GlobeController } from "../mapCharts/GlobeController"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationArrow } from "@fortawesome/free-solid-svg-icons"
 import { SearchDropdown } from "./SearchDropdown"
+import { getCountriesByRegion } from "../mapCharts/MapHelpers"
+import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants"
 
 export interface MapCountryDropdownManager {
     mapConfig?: MapConfig
@@ -23,6 +25,7 @@ export interface MapCountryDropdownManager {
     hideMapRegionDropdown?: boolean
     isMapSelectionEnabled?: boolean
     globeController?: GlobeController
+    isFaceted?: boolean
     onMapCountryDropdownFocus?: () => void
 }
 
@@ -78,20 +81,38 @@ export class MapCountryDropdown extends React.Component<{
     }
 
     @action.bound private onChange(selected: DropdownOption | null): void {
-        const country = selected?.value
-        if (!country) return
+        if (!selected?.value) return
 
-        // reset the region if a non-world region is currently selected
-        if (this.mapConfig.region !== MapRegionName.World) {
-            this.mapConfig.region = MapRegionName.World
+        // focus the country (i.e. show its tooltip)
+        this.manager.globeController?.setFocusCountry(selected.value)
+
+        // if a 2d continent is active or we're in faceting mode,
+        // we don't want to switch to the globe
+        if (!this.mapConfig.is2dContinentActive() && !this.manager.isFaceted) {
+            this.manager.globeController?.rotateToCountry(selected.value)
+        }
+    }
+
+    @computed private get availableCountries(): EntityName[] {
+        const mappableCountryNames = mappableCountries
+            .map((country) => country.name)
+            // Exclude Antarctica since it's not shown on the the 2D
+            .filter((countryName) => countryName !== "Antarctica")
+
+        // Only show the countries for the active continent if in 2d mode
+        if (this.mapConfig.is2dContinentActive()) {
+            const countriesInRegion = getCountriesByRegion(
+                MAP_REGION_LABELS[this.mapConfig.region]
+            )
+            if (!countriesInRegion) return mappableCountryNames
+            return Array.from(countriesInRegion)
         }
 
-        // focus the country on the globe
-        this.manager.globeController?.focusOnCountry(country)
+        return mappableCountryNames
     }
 
     @computed private get sortedCountries(): EntityName[] {
-        return sortBy(mappableCountries.map((country) => country.name))
+        return sortBy(this.availableCountries)
     }
 
     @computed private get options(): DropdownOption[] {
@@ -104,7 +125,10 @@ export class MapCountryDropdown extends React.Component<{
             trackNote: "map_zoom_to_country",
         })
 
-        if (this.localCountryName) {
+        if (
+            this.localCountryName &&
+            this.sortedCountries.includes(this.localCountryName)
+        ) {
             return [
                 { ...toOption(this.localCountryName), isLocal: true },
                 ...this.sortedCountries
@@ -125,6 +149,16 @@ export class MapCountryDropdown extends React.Component<{
         const { focusCountry } = this.manager.mapConfig?.globe ?? {}
         if (!focusCountry) return null
         return this.options.find((opt) => focusCountry === opt.value) ?? null
+    }
+
+    @computed private get placeholder(): string {
+        if (
+            this.mapConfig.globe.isActive ||
+            (this.mapConfig.region === MapRegionName.World &&
+                !this.manager.isFaceted)
+        )
+            return "Zoom to..."
+        return "Search for a country"
     }
 
     @action.bound async populateLocalCountryName(): Promise<void> {
@@ -155,7 +189,7 @@ export class MapCountryDropdown extends React.Component<{
                     onInputChange={(inputValue) =>
                         (this.searchInput = inputValue)
                     }
-                    placeholder="Zoom to..."
+                    placeholder={this.placeholder}
                     formatOptionLabel={(option) => (
                         <>
                             {option.label}

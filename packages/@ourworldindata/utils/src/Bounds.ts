@@ -432,7 +432,7 @@ export class Bounds {
     }
 }
 
-interface SplitBoundsPadding {
+export interface SplitBoundsPadding {
     columnPadding?: number
     rowPadding?: number
     outerPadding?: number

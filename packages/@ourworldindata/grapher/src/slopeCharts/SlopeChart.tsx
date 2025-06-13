@@ -37,6 +37,7 @@ import {
     FacetStrategy,
     InteractionState,
     HorizontalAlign,
+    ChartErrorInfo,
 } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
@@ -994,11 +995,11 @@ export class SlopeChart
         this.onSlopeMouseLeave()
     }
 
-    @computed get failMessage(): string {
+    @computed get errorInfo(): ChartErrorInfo {
         const message = getDefaultFailMessage(this.manager)
-        if (message) return message
-        else if (this.series.length === 0) return "No matching data"
-        return ""
+        if (message) return { reason: message }
+        else if (this.series.length === 0) return { reason: "No matching data" }
+        return { reason: "" }
     }
 
     @computed get renderUid(): number {
@@ -1310,14 +1311,14 @@ export class SlopeChart
     }
 
     render() {
-        if (this.failMessage)
+        if (this.errorInfo.reason)
             return (
                 <>
                     {this.renderYAxis()}
                     <NoDataModal
                         manager={this.manager}
                         bounds={this.props.bounds}
-                        message={this.failMessage}
+                        message={this.errorInfo.reason}
                     />
                 </>
             )
