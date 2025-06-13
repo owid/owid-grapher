@@ -6,29 +6,29 @@ import { TagGraphRoot } from "@ourworldindata/types"
 import cx from "classnames"
 import * as React from "react"
 import { useState } from "react"
-import { SearchState } from "./searchTypes.js"
-import { useSearchFacets } from "./useSearchFacets.js"
+import { useSearchContext } from "./SearchContext.js"
+import { useSearchFacets, useSelectedTopics } from "./searchHooks.js"
 
 export const SearchTopicsRefinementList = ({
-    topics,
-    addTopic,
     searchClient,
-    searchState,
     tagGraph,
     shouldShowRibbons,
 }: {
-    topics: Set<string>
-    addTopic: (topic: string) => void
     searchClient: SearchClient
-    searchState: SearchState
     tagGraph: TagGraphRoot
     shouldShowRibbons: boolean
 }) => {
+    const {
+        state,
+        actions: { addTopic },
+    } = useSearchContext()
+    const selectedTopics = useSelectedTopics()
+
     const [isExpanded, setIsExpanded] = useState(false)
 
     const facets = useSearchFacets(
         searchClient,
-        searchState,
+        state,
         tagGraph,
         shouldShowRibbons
     )
@@ -36,7 +36,7 @@ export const SearchTopicsRefinementList = ({
     const entries = facets
         ? Object.entries(facets).filter(([facetName, matches]) => {
               // Only show topics that haven't already been selected that have matches
-              return !topics.has(facetName) && !!matches
+              return !selectedTopics.has(facetName) && !!matches
           })
         : []
 
@@ -102,7 +102,7 @@ export const SearchTopicsRefinementList = ({
                 <div
                     className={cx("search-topics-refinement-list__skeleton", {
                         "search-topics-refinement-list__skeleton--large":
-                            topics.size,
+                            selectedTopics.size,
                     })}
                 />
             )}
