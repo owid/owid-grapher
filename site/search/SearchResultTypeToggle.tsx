@@ -1,5 +1,6 @@
 import { ResultType } from "./searchTypes.js"
 import cx from "classnames"
+import { useSearchContext } from "./SearchContext.js"
 
 const OPTIONS = [
     { value: ResultType.ALL, label: "All" },
@@ -7,13 +8,12 @@ const OPTIONS = [
     { value: ResultType.WRITING, label: "Writing" },
 ]
 
-export const SearchResultType = ({
-    value,
-    onChange,
-}: {
-    value: ResultType
-    onChange: (value: ResultType) => void
-}) => {
+export const SearchResultType = () => {
+    const {
+        state,
+        actions: { setResultType },
+    } = useSearchContext()
+    const { resultType: value } = state
     return (
         <fieldset
             className="search-result-type-toggle"
@@ -31,7 +31,7 @@ export const SearchResultType = ({
                         })}
                         value={option.value}
                         checked={value === option.value}
-                        onChange={() => onChange(option.value)}
+                        onChange={() => setResultType(option.value)}
                     />
                     <span>{option.label}</span>
                 </label>
