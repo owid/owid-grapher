@@ -14,7 +14,9 @@ export const SearchContext = createContext<SearchContextType | null>(null)
 export const useSearchContext = () => {
     const context = useContext(SearchContext)
     if (!context) {
-        throw new Error("useSearchContext must be used within a SearchContext.Provider")
+        throw new Error(
+            "useSearchContext must be used within a SearchContext.Provider"
+        )
     }
     return context
 }
