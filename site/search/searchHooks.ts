@@ -5,12 +5,32 @@ import {
     DataCatalogRibbonResult,
     DataCatalogSearchResult,
     SearchState,
+    FilterType,
 } from "./searchTypes.js"
 import {
+    getCountryData,
+    getFilterNamesOfType,
     queryDataCatalogRibbons,
     queryDataCatalogSearch,
 } from "./searchUtils.js"
 import { searchQueryKeys } from "./searchQueryKeys.js"
+import { useSearchContext } from "./SearchContext.js"
+import { Region } from "@ourworldindata/utils"
+
+export const useSelectedCountries = (): Region[] => {
+    const selectedCountryNames = useSelectedCountryNames()
+    return getCountryData(selectedCountryNames)
+}
+
+export const useSelectedTopics = (): Set<string> => {
+    const { state } = useSearchContext()
+    return getFilterNamesOfType(state.filters, FilterType.TOPIC)
+}
+
+export const useSelectedCountryNames = (): Set<string> => {
+    const { state } = useSearchContext()
+    return getFilterNamesOfType(state.filters, FilterType.COUNTRY)
+}
 
 /**
  * Custom hook to get facets data for SearchTopicsRefinementList
