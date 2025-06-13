@@ -1,31 +1,33 @@
-import { Region, commafyNumber } from "@ourworldindata/utils"
+import { commafyNumber } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
 import { useQuery } from "@tanstack/react-query"
 import { ChartHit } from "./ChartHit.js"
 import { DataCatalogPagination } from "./DataCatalogPagination.js"
 import { SearchNoResults } from "./SearchNoResults.js"
 import { DataCatalogResultsSkeleton } from "./DataCatalogResultsSkeleton.js"
-import { DataCatalogSearchResult, SearchState } from "./searchTypes.js"
+import { DataCatalogSearchResult } from "./searchTypes.js"
 import { queryDataCatalogSearch } from "./searchUtils.js"
 import { searchQueryKeys } from "./searchQueryKeys.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
+import { useSearchContext } from "./SearchContext.js"
+import { useSelectedCountries } from "./searchHooks.js"
 
 const analytics = new SiteAnalytics()
 
 export const DataCatalogResults = ({
-    selectedCountries,
-    setPage,
     searchClient,
-    searchState,
 }: {
-    selectedCountries: Region[]
-    setPage: (page: number) => void
     searchClient: SearchClient
-    searchState: SearchState
 }) => {
+    const {
+        state,
+        actions: { setPage },
+    } = useSearchContext()
+    const selectedCountries = useSelectedCountries()
+
     const searchQuery = useQuery<DataCatalogSearchResult, Error>({
-        queryKey: searchQueryKeys.search(searchState),
-        queryFn: () => queryDataCatalogSearch(searchClient, searchState),
+        queryKey: searchQueryKeys.search(state),
+        queryFn: () => queryDataCatalogSearch(searchClient, state),
     })
 
     if (searchQuery.isLoading) return <DataCatalogResultsSkeleton />
