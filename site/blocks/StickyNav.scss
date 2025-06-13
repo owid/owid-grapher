@@ -18,7 +18,9 @@
         list-style: none;
         margin: 0 8px;
         padding: 16px;
+        height: 56px;
         @include sm-only {
+            height: 48px;
             padding: 12px;
         }
 
