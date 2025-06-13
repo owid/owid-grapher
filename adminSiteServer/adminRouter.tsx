@@ -222,38 +222,82 @@ getPlainRouteWithROTransaction(
     "/grapher/:slug",
     async (req, res, trx) => {
         const { slug } = req.params
+        console.log(`[DEBUG] /grapher/${slug} - Starting request`)
+        console.time(`grapher-${slug}-total`)
 
         // don't throw if no chart config is found since this is the case for
         // multi-dim data pages and we want to continue execution in that case
-        const chart = await getChartConfigBySlug(trx, slug).catch(
-            () => undefined
-        )
+        console.log(`[DEBUG] /grapher/${slug} - Checking for chart config`)
+        console.time(`grapher-${slug}-chart-lookup`)
+        const chart = await getChartConfigBySlug(trx, slug).catch(() => {
+            console.log(`[DEBUG] /grapher/${slug} - No chart config found`)
+            return undefined
+        })
+        console.timeEnd(`grapher-${slug}-chart-lookup`)
+
         if (chart) {
+            console.log(
+                `[DEBUG] /grapher/${slug} - Found chart config, rendering chart page`
+            )
+            console.time(`grapher-${slug}-chart-render`)
             const previewDataPageOrGrapherPage =
                 await renderPreviewDataPageOrGrapherPage(
                     chart.config,
                     chart.id,
                     trx
                 )
+            console.timeEnd(`grapher-${slug}-chart-render`)
+            console.timeEnd(`grapher-${slug}-total`)
+            console.log(
+                `[DEBUG] /grapher/${slug} - Chart page rendered successfully`
+            )
             res.send(previewDataPageOrGrapherPage)
             return
         }
 
+        console.log(
+            `[DEBUG] /grapher/${slug} - Looking for multi-dim data page by slug`
+        )
+        console.time(`grapher-${slug}-mdim-slug-lookup`)
         const mdd =
             (await getMultiDimDataPageBySlug(trx, slug, {
                 onlyPublished: false,
             })) ?? (await getMultiDimDataPageByCatalogPath(trx, slug))
+        console.timeEnd(`grapher-${slug}-mdim-slug-lookup`)
         if (mdd) {
-            const renderedPage = await renderMultiDimDataPageFromConfig({
-                knex: trx,
-                slug: mdd.slug,
-                config: mdd.config,
-                isPreviewing: true,
-            })
-            res.send(renderedPage)
-            return
+            console.log(
+                `[DEBUG] /grapher/${slug} - Found multi-dim data page, starting render`
+            )
+            console.time(`grapher-${slug}-mdim-render`)
+            try {
+                const renderedPage = await renderMultiDimDataPageFromConfig({
+                    knex: trx,
+                    slug: mdd.slug,
+                    config: mdd.config,
+                    isPreviewing: true,
+                })
+                console.timeEnd(`grapher-${slug}-mdim-render`)
+                console.timeEnd(`grapher-${slug}-total`)
+                console.log(
+                    `[DEBUG] /grapher/${slug} - Multi-dim page rendered successfully`
+                )
+                res.send(renderedPage)
+                return
+            } catch (error) {
+                console.timeEnd(`grapher-${slug}-mdim-render`)
+                console.timeEnd(`grapher-${slug}-total`)
+                console.error(
+                    `[ERROR] /grapher/${slug} - Error rendering multi-dim page:`,
+                    error
+                )
+                throw error
+            }
         }
 
+        console.log(
+            `[DEBUG] /grapher/${slug} - No chart or multi-dim data page found`
+        )
+        console.timeEnd(`grapher-${slug}-total`)
         throw new JsonError("No such chart", 404)
     }
 )

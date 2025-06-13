@@ -102,9 +102,19 @@ export const getMultiDimDataPageBySlug = async (
     slug: string,
     { onlyPublished = true }: { onlyPublished?: boolean } = {}
 ): Promise<DbEnrichedMultiDimDataPage | undefined> => {
+    console.log(
+        `[DEBUG] getMultiDimDataPageBySlug - Looking for slug: ${slug}, onlyPublished: ${onlyPublished}`
+    )
+    console.time(`mdim-db-slug-${slug}`)
+
     const row = await knex<DbPlainMultiDimDataPage>(MultiDimDataPagesTableName)
         .where({ slug, ...createOnlyPublishedFilter(onlyPublished) })
         .first()
+
+    console.timeEnd(`mdim-db-slug-${slug}`)
+    console.log(
+        `[DEBUG] getMultiDimDataPageBySlug - Found result: ${row ? "yes" : "no"}`
+    )
 
     return row ? enrichRow(row) : undefined
 }
@@ -123,8 +133,19 @@ export async function getMultiDimDataPageByCatalogPath(
     knex: KnexReadonlyTransaction,
     catalogPath: string
 ): Promise<DbEnrichedMultiDimDataPage | undefined> {
+    console.log(
+        `[DEBUG] getMultiDimDataPageByCatalogPath - Looking for catalog path: ${catalogPath}`
+    )
+    console.time(`mdim-db-catalog-${catalogPath}`)
+
     const row = await knex<DbPlainMultiDimDataPage>(MultiDimDataPagesTableName)
         .where({ catalogPath })
         .first()
+
+    console.timeEnd(`mdim-db-catalog-${catalogPath}`)
+    console.log(
+        `[DEBUG] getMultiDimDataPageByCatalogPath - Found result: ${row ? "yes" : "no"}`
+    )
+
     return row ? enrichRow(row) : undefined
 }

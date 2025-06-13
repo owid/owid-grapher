@@ -68,15 +68,38 @@ async function getFaqRelationsFromDb(
         .orderBy("displayOrder", "asc")
 }
 
-const getFaqEntries = async (
+export const getFaqEntries = async (
     knex: db.KnexReadonlyTransaction,
     variableIds: Iterable<number>
 ): Promise<FaqEntryKeyedByGdocIdAndFragmentId> => {
-    const faqRelations = await getFaqRelationsFromDb(knex, [...variableIds])
+    const variableIdsArray = [...variableIds]
+    console.log(
+        `[DEBUG] getFaqEntries - Starting for ${variableIdsArray.length} variable IDs`
+    )
+    console.time(`faq-entries-${variableIdsArray.length}`)
+
+    console.log(`[DEBUG] getFaqEntries - Getting FAQ relations from database`)
+    console.time(`faq-relations-${variableIdsArray.length}`)
+    const faqRelations = await getFaqRelationsFromDb(knex, variableIdsArray)
+    console.timeEnd(`faq-relations-${variableIdsArray.length}`)
+    console.log(
+        `[DEBUG] getFaqEntries - Got ${faqRelations.length} FAQ relations`
+    )
+
     const faqGdocIds = uniq(faqRelations.map((rel) => rel.gdocId))
+    console.log(
+        `[DEBUG] getFaqEntries - Found ${faqGdocIds.length} unique FAQ gdoc IDs`
+    )
+
+    console.log(`[DEBUG] getFaqEntries - Fetching and parsing FAQs`)
+    console.time(`fetch-parse-faqs-${variableIdsArray.length}`)
     const faqGdocs = await fetchAndParseFaqs(knex, faqGdocIds, {
         isPreviewing: false,
     })
+    console.timeEnd(`fetch-parse-faqs-${variableIdsArray.length}`)
+    console.log(
+        `[DEBUG] getFaqEntries - Fetched FAQs for ${Object.keys(faqGdocs).length} gdoc IDs`
+    )
 
     const faqs = faqRelations.reduce(
         (acc, { gdocId, fragmentId }) => {
@@ -88,6 +111,11 @@ const getFaqEntries = async (
             return acc
         },
         {} as FaqEntryKeyedByGdocIdAndFragmentId["faqs"]
+    )
+
+    console.timeEnd(`faq-entries-${variableIdsArray.length}`)
+    console.log(
+        `[DEBUG] getFaqEntries - Completed with ${Object.keys(faqs).length} FAQ gdoc entries`
     )
 
     return { faqs }
@@ -106,40 +134,98 @@ export async function renderMultiDimDataPageFromConfig({
     imageMetadataDictionary?: Record<string, ImageMetadata>
     isPreviewing?: boolean
 }) {
+    console.log(
+        `[DEBUG] renderMultiDimDataPageFromConfig - Starting for slug: ${slug}`
+    )
+    console.time(`mdim-render-${slug}`)
+
     // TAGS
+    console.log(
+        `[DEBUG] renderMultiDimDataPageFromConfig - Getting tag to slug map`
+    )
+    console.time(`mdim-render-${slug}-tags`)
     const tagToSlugMap = await getTagToSlugMap(knex)
+    console.timeEnd(`mdim-render-${slug}-tags`)
+    console.log(
+        `[DEBUG] renderMultiDimDataPageFromConfig - Got ${Object.keys(tagToSlugMap).length} tags`
+    )
+
     // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
     const minimalTagToSlugMap = pick(tagToSlugMap, config.topicTags ?? [])
+    console.log(
+        `[DEBUG] renderMultiDimDataPageFromConfig - Filtered to ${Object.keys(minimalTagToSlugMap).length} relevant tags`
+    )
+
     const pageConfig = MultiDimDataPageConfig.fromObject(config)
     const variableIds = getRelevantVariableIds(config)
+    console.log(
+        `[DEBUG] renderMultiDimDataPageFromConfig - Found ${variableIds.size} relevant variable IDs`
+    )
+
+    console.log(
+        `[DEBUG] renderMultiDimDataPageFromConfig - Getting FAQ entries`
+    )
+    console.time(`mdim-render-${slug}-faqs`)
     const faqEntries = await getFaqEntries(knex, variableIds)
+    console.timeEnd(`mdim-render-${slug}-faqs`)
+    console.log(
+        `[DEBUG] renderMultiDimDataPageFromConfig - Got FAQ entries with ${Object.keys(faqEntries.faqs).length} gdoc IDs`
+    )
 
     // PRIMARY TOPIC
+    console.log(
+        `[DEBUG] renderMultiDimDataPageFromConfig - Getting primary topic`
+    )
+    console.time(`mdim-render-${slug}-primary-topic`)
     const primaryTopic = await getPrimaryTopic(
         knex,
         config.topicTags,
         slug ?? undefined
     )
+    console.timeEnd(`mdim-render-${slug}-primary-topic`)
+    console.log(`[DEBUG] renderMultiDimDataPageFromConfig - Got primary topic:`)
 
     // Related research
+    console.log(
+        `[DEBUG] renderMultiDimDataPageFromConfig - Getting related research`
+    )
+    console.time(`mdim-render-${slug}-related-research`)
     const relatedResearchCandidates =
         variableIds.size > 0
             ? await getRelatedResearchAndWritingForVariables(knex, [
                   ...variableIds,
               ])
             : []
+    console.timeEnd(`mdim-render-${slug}-related-research`)
+    console.log(
+        `[DEBUG] renderMultiDimDataPageFromConfig - Got ${relatedResearchCandidates.length} related research candidates`
+    )
 
     const relatedResearchFilenames = uniq(
         relatedResearchCandidates.map((r) => r.imageUrl).filter(Boolean)
     )
+    console.log(
+        `[DEBUG] renderMultiDimDataPageFromConfig - Found ${relatedResearchFilenames.length} unique image filenames`
+    )
 
     let imageMetadata: Record<string, ImageMetadata>
     if (imageMetadataDictionary) {
+        console.log(
+            `[DEBUG] renderMultiDimDataPageFromConfig - Using provided image metadata dictionary`
+        )
         imageMetadata = pick(imageMetadataDictionary, relatedResearchFilenames)
     } else {
+        console.log(
+            `[DEBUG] renderMultiDimDataPageFromConfig - Fetching image metadata from database`
+        )
+        console.time(`mdim-render-${slug}-image-metadata`)
         const images = await getImagesByFilenames(
             knex,
             relatedResearchFilenames
+        )
+        console.timeEnd(`mdim-render-${slug}-image-metadata`)
+        console.log(
+            `[DEBUG] renderMultiDimDataPageFromConfig - Got ${images.length} images`
         )
         imageMetadata = R.indexBy(images, (image) => image.filename)
     }
@@ -157,7 +243,18 @@ export async function renderMultiDimDataPageFromConfig({
         isPreviewing,
     }
 
-    return renderMultiDimDataPageFromProps(props)
+    console.log(
+        `[DEBUG] renderMultiDimDataPageFromConfig - Rendering page from props`
+    )
+    console.time(`mdim-render-${slug}-html-render`)
+    const result = await renderMultiDimDataPageFromProps(props)
+    console.timeEnd(`mdim-render-${slug}-html-render`)
+    console.timeEnd(`mdim-render-${slug}`)
+    console.log(
+        `[DEBUG] renderMultiDimDataPageFromConfig - Completed for slug: ${slug}`
+    )
+
+    return result
 }
 
 export const renderMultiDimDataPageBySlug = async (
@@ -195,7 +292,16 @@ export async function renderMultiDimDataPageByCatalogPath(
 export const renderMultiDimDataPageFromProps = async (
     props: MultiDimDataPageProps
 ) => {
-    return renderToHtmlPage(<MultiDimDataPage {...props} />)
+    console.log(
+        `[DEBUG] renderMultiDimDataPageFromProps - Starting render for slug: ${props.slug}`
+    )
+    console.time(`html-render-${props.slug}`)
+    const result = await renderToHtmlPage(<MultiDimDataPage {...props} />)
+    console.timeEnd(`html-render-${props.slug}`)
+    console.log(
+        `[DEBUG] renderMultiDimDataPageFromProps - Completed render for slug: ${props.slug}`
+    )
+    return result
 }
 
 export const bakeMultiDimDataPage = async (
