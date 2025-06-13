@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query"
 import { DataCatalogRibbonView } from "./DataCatalogRibbonView.js"
 import { DataCatalogResults } from "./DataCatalogResults.js"
 import { Searchbar } from "./Searchbar.js"
+import { SearchResultType } from "./SearchResultTypeToggle.js"
 import { SearchTopicsRefinementList } from "./SearchTopicsRefinementList.js"
 import {
     searchReducer,
@@ -18,6 +19,7 @@ import {
     DataCatalogSearchResult,
     SearchState,
     FilterType,
+    ResultType,
 } from "./searchTypes.js"
 import {
     checkShouldShowRibbonView,
@@ -29,6 +31,7 @@ import {
 } from "./searchUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { searchQueryKeys } from "./searchQueryKeys.js"
+import { AsDraft } from "../AsDraft/AsDraft.js"
 
 const analytics = new SiteAnalytics()
 
@@ -171,6 +174,15 @@ export const Search = ({
                 }
                 addTopic={actions.addTopic}
             />
+            <AsDraft
+                className="col-start-11 span-cols-3 as-draft--align-self-start"
+                name="Search result type"
+            >
+                <SearchResultType
+                    value={state.resultType}
+                    onChange={actions.setResultType}
+                />
+            </AsDraft>
             {shouldShowRibbons ? (
                 <DataCatalogRibbonView
                     addTopic={actions.addTopic}
