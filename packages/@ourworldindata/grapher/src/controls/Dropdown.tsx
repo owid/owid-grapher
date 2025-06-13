@@ -40,15 +40,16 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>(
             unstyled={true}
             isMulti={false}
             classNames={{
-                control: (state) => {
-                    return cx("control", {
+                control: (state) =>
+                    cx("control", {
                         focus: state.isFocused,
                         active: state.menuIsOpen,
-                    })
-                },
+                    }),
                 menu: () => "menu",
                 placeholder: () => "placeholder",
                 clearIndicator: () => "clear-indicator",
+                group: () => "group",
+                groupHeading: () => "group-heading",
             }}
             {...props}
             className={cx("grapher-dropdown", props.className)}

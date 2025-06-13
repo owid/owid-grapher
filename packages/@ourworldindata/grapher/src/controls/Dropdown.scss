@@ -99,6 +99,22 @@
         z-index: $zindex-controls-popup;
         color: $dark-text;
 
+        .group-heading {
+            @include grapher_h5-black-caps;
+
+            font-size: 11px;
+            color: $light-text;
+
+            margin: 12px 8px 2px 8px;
+            font-weight: 700;
+        }
+
+        .group + .group .group-heading {
+            margin-top: 8px;
+            padding: 12px 0 2px 0;
+            border-top: 1px solid #f2f2f2;
+        }
+
         .option {
             padding: 8px calc(16px + $option-checkmark-width + 2px) 8px 16px;
             &:hover,
