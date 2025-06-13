@@ -1,28 +1,41 @@
 import { TagGraphRoot } from "@ourworldindata/types"
 import { Region } from "@ourworldindata/utils"
+import { SearchClient } from "algoliasearch"
+import { useQuery } from "@tanstack/react-query"
 import { DataCatalogRibbon } from "./DataCatalogRibbon.js"
 import { DataCatalogRibbonViewSkeleton } from "./DataCatalogRibbonViewSkeleton.js"
-import { DataCatalogRibbonResult } from "./searchTypes.js"
+import { DataCatalogRibbonResult, SearchState } from "./searchTypes.js"
+import { queryDataCatalogRibbons } from "./searchUtils.js"
+import { searchQueryKeys } from "./searchQueryKeys.js"
 
 export const DataCatalogRibbonView = ({
     addTopic,
-    results,
     selectedCountries,
     topics,
-    isLoading,
+    tagGraph,
+    searchClient,
+    searchState,
 }: {
     addTopic: (x: string) => void
-    results?: DataCatalogRibbonResult[]
     selectedCountries: Region[]
     topics: Set<string>
     tagGraph: TagGraphRoot
-    isLoading: boolean
+    searchClient: SearchClient
+    searchState: SearchState
 }) => {
-    if (isLoading) {
+    const ribbonsQuery = useQuery<DataCatalogRibbonResult[], Error>({
+        queryKey: searchQueryKeys.ribbons(searchState),
+        queryFn: () =>
+            queryDataCatalogRibbons(searchClient, searchState, tagGraph),
+    })
+
+    if (ribbonsQuery.isLoading) {
         return <DataCatalogRibbonViewSkeleton topics={topics} />
     }
 
-    const resultsSortedByHitCount = results?.sort((a, b) => b.nbHits - a.nbHits)
+    const resultsSortedByHitCount = ribbonsQuery.data?.sort(
+        (a, b) => b.nbHits - a.nbHits
+    )
 
     return (
         <>
