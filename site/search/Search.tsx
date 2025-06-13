@@ -23,6 +23,7 @@ import {
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { AsDraft } from "../AsDraft/AsDraft.js"
 import { match } from "ts-pattern"
+import { SearchContext } from "./SearchContext.js"
 
 const analytics = new SiteAnalytics()
 
@@ -116,7 +117,7 @@ export const Search = ({
     }
 
     return (
-        <>
+        <SearchContext.Provider value={{ state, actions }}>
             <div className="data-catalog-header span-cols-14 grid grid-cols-12-full-width">
                 <header className="data-catalog-heading span-cols-12 col-start-2">
                     <h1 className="h1-semibold">Data Catalog</h1>
@@ -180,6 +181,6 @@ export const Search = ({
                     />
                 ))
                 .exhaustive()}
-        </>
+        </SearchContext.Provider>
     )
 }
