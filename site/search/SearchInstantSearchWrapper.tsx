@@ -6,6 +6,15 @@ import {
 import { Search } from "./Search.js"
 import { getInitialSearchState } from "./searchState.js"
 import algoliasearch from "algoliasearch"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            staleTime: 60 * 1000, // 1 minute
+        },
+    },
+})
 
 export const SearchInstantSearchWrapper = ({
     tagGraph,
@@ -16,10 +25,12 @@ export const SearchInstantSearchWrapper = ({
     const initialState = getInitialSearchState()
 
     return (
-        <Search
-            initialState={initialState}
-            tagGraph={tagGraph}
-            searchClient={searchClient}
-        />
+        <QueryClientProvider client={queryClient}>
+            <Search
+                initialState={initialState}
+                tagGraph={tagGraph}
+                searchClient={searchClient}
+            />
+        </QueryClientProvider>
     )
 }
