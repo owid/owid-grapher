@@ -169,6 +169,11 @@ export enum SeriesStrategy {
     entity = "entity", // One line per entity
 }
 
+export interface ChartErrorInfo {
+    reason: string // no chart error if set to the empty string
+    help?: string
+}
+
 export type SeriesName = string
 
 export type SeriesColorMap = Map<SeriesName, Color>
