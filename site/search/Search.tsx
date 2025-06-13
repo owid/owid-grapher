@@ -16,7 +16,6 @@ import {
 import { SearchState, FilterType } from "./searchTypes.js"
 import {
     checkShouldShowRibbonView,
-    getCountryData,
     syncDataCatalogURL,
     getFilterNamesOfType,
 } from "./searchUtils.js"
@@ -60,25 +59,14 @@ export const Search = ({
         return Array.from(getAllTopics(tagGraph))
     }, [tagGraph])
 
-    const selectedTopics = useMemo(
-        () => getFilterNamesOfType(state.filters, FilterType.TOPIC),
-        [state.filters]
-    )
-
-    const selectedCountryNames = useMemo(
-        () => getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        [state.filters]
-    )
-
     const shouldShowRibbons = useMemo(
         () =>
-            checkShouldShowRibbonView(state.query, selectedTopics, AREA_NAMES),
-        [state.query, selectedTopics, AREA_NAMES]
-    )
-
-    const selectedCountries = useMemo(
-        () => getCountryData(selectedCountryNames),
-        [selectedCountryNames]
+            checkShouldShowRibbonView(
+                state.query,
+                new Set(getFilterNamesOfType(state.filters, FilterType.TOPIC)),
+                AREA_NAMES
+            ),
+        [state.query, state.filters, AREA_NAMES]
     )
 
     const stateAsUrl = searchStateToUrl(state)
@@ -127,28 +115,11 @@ export const Search = ({
                     </p>
                 </header>
                 <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
-                    <Searchbar
-                        allTopics={ALL_TOPICS}
-                        filters={state.filters}
-                        addCountry={actions.addCountry}
-                        removeCountry={actions.removeCountry}
-                        addTopic={actions.addTopic}
-                        removeTopic={actions.removeTopic}
-                        query={state.query}
-                        requireAllCountries={state.requireAllCountries}
-                        setQuery={actions.setQuery}
-                        toggleRequireAllCountries={
-                            actions.toggleRequireAllCountries
-                        }
-                        reset={actions.reset}
-                    />
+                    <Searchbar allTopics={ALL_TOPICS} />
                 </div>
             </div>
             <SearchTopicsRefinementList
-                topics={selectedTopics}
-                addTopic={actions.addTopic}
                 searchClient={searchClient}
-                searchState={state}
                 tagGraph={tagGraph}
                 shouldShowRibbons={shouldShowRibbons}
             />
@@ -156,29 +127,17 @@ export const Search = ({
                 className="col-start-11 span-cols-3 as-draft--align-self-start"
                 name="Search result type"
             >
-                <SearchResultType
-                    value={state.resultType}
-                    onChange={actions.setResultType}
-                />
+                <SearchResultType />
             </AsDraft>
             {match(searchSelection)
                 .with({ shouldShowRibbons: true }, () => (
                     <DataCatalogRibbonView
-                        addTopic={actions.addTopic}
-                        selectedCountries={selectedCountries}
                         tagGraph={tagGraph}
-                        topics={selectedTopics}
                         searchClient={searchClient}
-                        searchState={state}
                     />
                 ))
                 .with({ shouldShowRibbons: false }, () => (
-                    <DataCatalogResults
-                        selectedCountries={selectedCountries}
-                        setPage={actions.setPage}
-                        searchClient={searchClient}
-                        searchState={state}
-                    />
+                    <DataCatalogResults searchClient={searchClient} />
                 ))
                 .exhaustive()}
         </SearchContext.Provider>
