@@ -1,22 +1,24 @@
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { Region, commafyNumber } from "@ourworldindata/utils"
+import { commafyNumber } from "@ourworldindata/utils"
 import * as React from "react"
 import { ChartHit } from "./ChartHit.js"
 import { DataCatalogRibbonResult } from "./searchTypes.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
+import { useSearchContext } from "./SearchContext.js"
+import { useSelectedCountries } from "./searchHooks.js"
 
 const analytics = new SiteAnalytics()
 
 export const DataCatalogRibbon = ({
     result,
-    addTopic,
-    selectedCountries,
 }: {
     result: DataCatalogRibbonResult
-    addTopic: (x: string) => void
-    selectedCountries: Region[]
 }) => {
+    const {
+        actions: { addTopic },
+    } = useSearchContext()
+    const selectedCountries = useSelectedCountries()
     if (result.nbHits === 0) return null
     const titleLabel = result.title.replaceAll(" and ", " & ")
     const handleAddTopicClick = (e: React.MouseEvent) => {
