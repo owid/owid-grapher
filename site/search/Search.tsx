@@ -22,6 +22,7 @@ import {
 } from "./searchUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { AsDraft } from "../AsDraft/AsDraft.js"
+import { match } from "ts-pattern"
 
 const analytics = new SiteAnalytics()
 
@@ -110,6 +111,10 @@ export const Search = ({
         }
     }, [actions])
 
+    const searchSelection = {
+        shouldShowRibbons,
+    }
+
     return (
         <>
             <div className="data-catalog-header span-cols-14 grid grid-cols-12-full-width">
@@ -155,23 +160,26 @@ export const Search = ({
                     onChange={actions.setResultType}
                 />
             </AsDraft>
-            {shouldShowRibbons ? (
-                <DataCatalogRibbonView
-                    addTopic={actions.addTopic}
-                    selectedCountries={selectedCountries}
-                    tagGraph={tagGraph}
-                    topics={selectedTopics}
-                    searchClient={searchClient}
-                    searchState={state}
-                />
-            ) : (
-                <DataCatalogResults
-                    selectedCountries={selectedCountries}
-                    setPage={actions.setPage}
-                    searchClient={searchClient}
-                    searchState={state}
-                />
-            )}
+            {match(searchSelection)
+                .with({ shouldShowRibbons: true }, () => (
+                    <DataCatalogRibbonView
+                        addTopic={actions.addTopic}
+                        selectedCountries={selectedCountries}
+                        tagGraph={tagGraph}
+                        topics={selectedTopics}
+                        searchClient={searchClient}
+                        searchState={state}
+                    />
+                ))
+                .with({ shouldShowRibbons: false }, () => (
+                    <DataCatalogResults
+                        selectedCountries={selectedCountries}
+                        setPage={actions.setPage}
+                        searchClient={searchClient}
+                        searchState={state}
+                    />
+                ))
+                .exhaustive()}
         </>
     )
 }
