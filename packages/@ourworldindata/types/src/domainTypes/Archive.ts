@@ -15,16 +15,16 @@ export interface ArchiveSiteNavigationInfo {
     versionsFileUrl?: string
 }
 
-// Information about an archived chart version that is available, i.e. we can point to from the live site
-export interface ChartArchivedVersion {
+// Information about an archived page version that is available, i.e. we can point to from the live site
+export interface ArchivedPageVersion {
     archivalDate: ArchivalDateString
     archiveUrl: string
-    type: "archived-chart-version"
+    type: "archived-page-version"
 }
 
 // Information about an archived chart that is necessary for rendering the archived page, incl. navigation and assets
 export interface ArchiveMetaInformation
-    extends Omit<ChartArchivedVersion, "type"> {
+    extends Omit<ArchivedPageVersion, "type"> {
     archiveNavigation: ArchiveSiteNavigationInfo
     assets: {
         runtime: AssetMap
@@ -33,9 +33,7 @@ export interface ArchiveMetaInformation
     type: "archive-page"
 }
 
-export type ArchivedChartOrArchivePageMeta =
-    | ChartArchivedVersion
-    | ArchiveMetaInformation
+export type ArchiveContext = ArchivedPageVersion | ArchiveMetaInformation
 
 export interface ArchiveVersions {
     chartId: number
