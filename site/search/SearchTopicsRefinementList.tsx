@@ -1,20 +1,38 @@
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { commafyNumber } from "@ourworldindata/utils"
+import { SearchClient } from "algoliasearch"
+import { TagGraphRoot } from "@ourworldindata/types"
 import cx from "classnames"
 import * as React from "react"
 import { useState } from "react"
+import { SearchState } from "./searchTypes.js"
+import { useSearchFacets } from "./useSearchFacets.js"
 
 export const SearchTopicsRefinementList = ({
     topics,
-    facets,
     addTopic,
+    searchClient,
+    searchState,
+    tagGraph,
+    shouldShowRibbons,
 }: {
     topics: Set<string>
-    facets?: Record<string, number>
     addTopic: (topic: string) => void
+    searchClient: SearchClient
+    searchState: SearchState
+    tagGraph: TagGraphRoot
+    shouldShowRibbons: boolean
 }) => {
     const [isExpanded, setIsExpanded] = useState(false)
+
+    const facets = useSearchFacets(
+        searchClient,
+        searchState,
+        tagGraph,
+        shouldShowRibbons
+    )
+
     const entries = facets
         ? Object.entries(facets).filter(([facetName, matches]) => {
               // Only show topics that haven't already been selected that have matches
