@@ -1,30 +1,39 @@
 import { Region, commafyNumber } from "@ourworldindata/utils"
+import { SearchClient } from "algoliasearch"
+import { useQuery } from "@tanstack/react-query"
 import { ChartHit } from "./ChartHit.js"
 import { DataCatalogPagination } from "./DataCatalogPagination.js"
 import { SearchNoResults } from "./SearchNoResults.js"
 import { DataCatalogResultsSkeleton } from "./DataCatalogResultsSkeleton.js"
-import { DataCatalogSearchResult } from "./searchTypes.js"
+import { DataCatalogSearchResult, SearchState } from "./searchTypes.js"
+import { queryDataCatalogSearch } from "./searchUtils.js"
+import { searchQueryKeys } from "./searchQueryKeys.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 
 const analytics = new SiteAnalytics()
 
 export const DataCatalogResults = ({
     selectedCountries,
-    results,
     setPage,
-    isLoading,
+    searchClient,
+    searchState,
 }: {
-    results?: DataCatalogSearchResult
     selectedCountries: Region[]
     setPage: (page: number) => void
-    isLoading: boolean
+    searchClient: SearchClient
+    searchState: SearchState
 }) => {
-    if (isLoading) return <DataCatalogResultsSkeleton />
+    const searchQuery = useQuery<DataCatalogSearchResult, Error>({
+        queryKey: searchQueryKeys.search(searchState),
+        queryFn: () => queryDataCatalogSearch(searchClient, searchState),
+    })
 
-    const hits = results?.hits
-    if (!hits || !hits.length) return <SearchNoResults />
+    if (searchQuery.isLoading) return <DataCatalogResultsSkeleton />
 
-    const { page, nbPages, nbHits } = results
+    const hits = searchQuery.data?.hits
+    if (!searchQuery.data || !hits || !hits.length) return <SearchNoResults />
+
+    const { page, nbPages, nbHits } = searchQuery.data
     return (
         <>
             <div className="span-cols-12 col-start-2 data-catalog-search-hits">
