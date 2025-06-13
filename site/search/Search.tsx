@@ -1,7 +1,8 @@
 import { TagGraphRoot, TagGraphNode } from "@ourworldindata/types"
 import { Url } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
-import { useReducer, useState, useMemo, useEffect } from "react"
+import { useReducer, useMemo, useEffect } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { DataCatalogRibbonView } from "./DataCatalogRibbonView.js"
 import { DataCatalogResults } from "./DataCatalogResults.js"
 import { Searchbar } from "./Searchbar.js"
@@ -12,7 +13,6 @@ import {
     urlToSearchState,
 } from "./searchState.js"
 import {
-    DataCatalogCache,
     DataCatalogRibbonResult,
     DataCatalogSearchResult,
     SearchState,
@@ -21,12 +21,13 @@ import {
 import {
     checkShouldShowRibbonView,
     getCountryData,
-    queryDataCatalogRibbons,
-    queryDataCatalogSearch,
     syncDataCatalogURL,
     getFilterNamesOfType,
+    queryDataCatalogRibbons,
+    queryDataCatalogSearch,
 } from "./searchUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
+import { searchQueryKeys } from "./searchQueryKeys.js"
 
 const analytics = new SiteAnalytics()
 
@@ -41,11 +42,7 @@ export const Search = ({
 }) => {
     const [state, dispatch] = useReducer(searchReducer, initialState)
     const actions = useMemo(() => createActions(dispatch), [dispatch])
-    const [isLoading, setIsLoading] = useState(false)
-    const [cache, setCache] = useState<DataCatalogCache>({
-        ribbons: new Map(),
-        search: new Map(),
-    })
+
     const AREA_NAMES = useMemo(
         () => tagGraph.children.map((child) => child.name),
         [tagGraph]
@@ -82,14 +79,25 @@ export const Search = ({
             checkShouldShowRibbonView(state.query, selectedTopics, AREA_NAMES),
         [state.query, selectedTopics, AREA_NAMES]
     )
+
     const selectedCountries = useMemo(
         () => getCountryData(selectedCountryNames),
         [selectedCountryNames]
     )
 
+    const searchQuery = useQuery<DataCatalogSearchResult, Error>({
+        queryKey: searchQueryKeys.search(state),
+        queryFn: () => queryDataCatalogSearch(searchClient, state),
+        enabled: !shouldShowRibbons,
+    })
+
+    const ribbonsQuery = useQuery<DataCatalogRibbonResult[], Error>({
+        queryKey: searchQueryKeys.ribbons(state), // the tagGraph can only change on page load, so we don't need to include it in the key
+        queryFn: () => queryDataCatalogRibbons(searchClient, state, tagGraph),
+        enabled: shouldShowRibbons,
+    })
+
     const stateAsUrl = searchStateToUrl(state)
-    const cacheKey = shouldShowRibbons ? "ribbons" : "search"
-    const currentResults = cache[cacheKey].get(stateAsUrl)
 
     useEffect(() => {
         const url = Url.fromURL(window.location.href)
@@ -106,31 +114,8 @@ export const Search = ({
     }, [stateAsUrl])
 
     useEffect(() => {
-        async function fetchData() {
-            const results = shouldShowRibbons
-                ? await queryDataCatalogRibbons(searchClient, state, tagGraph)
-                : await queryDataCatalogSearch(searchClient, state)
-            setCache((prevCache) => ({
-                ...prevCache,
-                [cacheKey]: prevCache[cacheKey].set(stateAsUrl, results as any),
-            }))
-        }
-
         syncDataCatalogURL(stateAsUrl)
-        if (cache[cacheKey].has(stateAsUrl)) return
-
-        setIsLoading(true)
-        void fetchData().then(() => setIsLoading(false))
-        return () => setIsLoading(false)
-    }, [
-        state,
-        searchClient,
-        shouldShowRibbons,
-        tagGraph,
-        stateAsUrl,
-        cacheKey,
-        cache,
-    ])
+    }, [stateAsUrl])
 
     useEffect(() => {
         const handlePopState = () => {
@@ -174,8 +159,8 @@ export const Search = ({
             {shouldShowRibbons ? (
                 <DataCatalogRibbonView
                     addTopic={actions.addTopic}
-                    isLoading={isLoading}
-                    results={currentResults as DataCatalogRibbonResult[]}
+                    isLoading={ribbonsQuery.isLoading}
+                    results={ribbonsQuery.data}
                     selectedCountries={selectedCountries}
                     tagGraph={tagGraph}
                     topics={selectedTopics}
@@ -183,8 +168,8 @@ export const Search = ({
             ) : (
                 <DataCatalogResults
                     addTopic={actions.addTopic}
-                    isLoading={isLoading}
-                    results={currentResults as DataCatalogSearchResult}
+                    isLoading={searchQuery.isLoading}
+                    results={searchQuery.data}
                     selectedCountries={selectedCountries}
                     setPage={actions.setPage}
                     topics={selectedTopics}
