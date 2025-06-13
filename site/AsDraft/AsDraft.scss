@@ -1,0 +1,16 @@
+.as-draft {
+    border: 2px dashed grey;
+    border-radius: 8px;
+    background-color: #fafafa;
+    margin-bottom: 16px;
+    font-family: "Gochi Hand", cursive;
+    color: #333;
+}
+
+fieldset.as-draft {
+    padding: 16px;
+}
+
+.as-draft__legend {
+    color: grey;
+}
