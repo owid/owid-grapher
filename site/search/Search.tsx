@@ -23,6 +23,7 @@ import { SiteAnalytics } from "../SiteAnalytics.js"
 import { AsDraft } from "../AsDraft/AsDraft.js"
 import { match } from "ts-pattern"
 import { SearchContext } from "./SearchContext.js"
+import { SearchDataInsights } from "./SearchDataInsightsSection.js"
 
 const analytics = new SiteAnalytics()
 
@@ -131,10 +132,13 @@ export const Search = ({
             </AsDraft>
             {match(searchSelection)
                 .with({ shouldShowRibbons: true }, () => (
-                    <DataCatalogRibbonView
-                        tagGraph={tagGraph}
-                        searchClient={searchClient}
-                    />
+                    <>
+                        <SearchDataInsights searchClient={searchClient} />
+                        <DataCatalogRibbonView
+                            tagGraph={tagGraph}
+                            searchClient={searchClient}
+                        />
+                    </>
                 ))
                 .with({ shouldShowRibbons: false }, () => (
                     <DataCatalogResults searchClient={searchClient} />
