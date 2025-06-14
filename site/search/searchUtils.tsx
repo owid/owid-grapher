@@ -24,14 +24,13 @@ import {
     SearchIndexName,
     Filter,
     FilterType,
-    SearchAutocompleteContextType,
     ScoredSearchResult,
     ResultType,
 } from "./searchTypes.js"
 import { faTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { match, P } from "ts-pattern"
-import { createContext, ForwardedRef, useContext } from "react"
+import { ForwardedRef } from "react"
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -490,20 +489,6 @@ export function createFilter(type: FilterType) {
 export const createCountryFilter = createFilter(FilterType.COUNTRY)
 export const createTopicFilter = createFilter(FilterType.TOPIC)
 export const createQueryFilter = createFilter(FilterType.QUERY)
-
-export const SearchAutocompleteContext = createContext<
-    SearchAutocompleteContextType | undefined
->(undefined)
-
-export function useSearchAutocomplete() {
-    const context = useContext(SearchAutocompleteContext)
-    if (context === undefined) {
-        throw new Error(
-            "useSearchAutocomplete must be used within a SearchAutocompleteContextProvider"
-        )
-    }
-    return context
-}
 
 /**
  * Returns a click handler that focuses an input element when clicking on the
