@@ -5,7 +5,7 @@ import {
     SearchAction,
     Filter,
     FilterType,
-    ResultType,
+    SearchResultType,
 } from "./searchTypes.js"
 import {
     createCountryFilter,
@@ -110,7 +110,7 @@ export function createActions(dispatch: (action: SearchAction) => void) {
         setQuery: (query: string) => dispatch({ type: "setQuery", query }),
         setState: (state: SearchState) => dispatch({ type: "setState", state }),
         toggleRequireAllCountries: () => dispatch({ type: "toggleRequireAllCountries" }),
-        setResultType: (resultType: ResultType) => dispatch({ type: "setResultType", resultType }),
+        setResultType: (resultType: SearchResultType) => dispatch({ type: "setResultType", resultType }),
         reset: () => dispatch({ type: "reset" }),
     }
 }
@@ -123,7 +123,7 @@ export function getInitialSearchState(): SearchState {
         filters: [],
         requireAllCountries: false,
         page: 0,
-        resultType: ResultType.ALL,
+        resultType: SearchResultType.ALL,
     }
 }
 
@@ -143,7 +143,7 @@ export function urlToSearchState(url: Url): SearchState {
         page: url.queryParams.page ? parseInt(url.queryParams.page) - 1 : 0,
         resultType: isValidResultType(url.queryParams.resultType)
             ? url.queryParams.resultType
-            : ResultType.ALL,
+            : SearchResultType.ALL,
     }
 }
 
@@ -163,7 +163,9 @@ export function searchStateToUrl(state: SearchState) {
         requireAllCountries: state.requireAllCountries ? "true" : undefined,
         page: state.page > 0 ? (state.page + 1).toString() : undefined,
         resultType:
-            state.resultType !== ResultType.ALL ? state.resultType : undefined,
+            state.resultType !== SearchResultType.ALL
+                ? state.resultType
+                : undefined,
     }
 
     Object.entries(params).forEach(([key, value]) => {

@@ -1,14 +1,14 @@
-import { ResultType } from "./searchTypes.js"
+import { SearchResultType } from "./searchTypes.js"
 import cx from "classnames"
 import { useSearchContext } from "./SearchContext.js"
 
 const OPTIONS = [
-    { value: ResultType.ALL, label: "All" },
-    { value: ResultType.DATA, label: "Data" },
-    { value: ResultType.WRITING, label: "Writing" },
+    { value: SearchResultType.ALL, label: "All" },
+    { value: SearchResultType.DATA, label: "Data" },
+    { value: SearchResultType.WRITING, label: "Writing" },
 ]
 
-export const SearchResultType = () => {
+export const SearchResultTypeToggle = () => {
     const {
         state,
         actions: { setResultType },
