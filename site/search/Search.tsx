@@ -3,9 +3,7 @@ import { Url } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
 import { useReducer, useMemo, useEffect } from "react"
 import { DataCatalogRibbonView } from "./DataCatalogRibbonView.js"
-import { DataCatalogResults } from "./DataCatalogResults.js"
 import { Searchbar } from "./Searchbar.js"
-import { SearchResultType } from "./SearchResultTypeToggle.js"
 import { SearchTopicsRefinementList } from "./SearchTopicsRefinementList.js"
 import {
     searchReducer,
@@ -13,17 +11,24 @@ import {
     searchStateToUrl,
     urlToSearchState,
 } from "./searchState.js"
-import { SearchState, FilterType } from "./searchTypes.js"
+import {
+    SearchState,
+    FilterType,
+    SearchResultType,
+    SearchTopicType,
+} from "./searchTypes.js"
 import {
     checkShouldShowRibbonView,
     syncDataCatalogURL,
     getFilterNamesOfType,
+    getSelectedTopicType,
 } from "./searchUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { AsDraft } from "../AsDraft/AsDraft.js"
 import { match } from "ts-pattern"
 import { SearchContext } from "./SearchContext.js"
 import { SearchDataInsights } from "./SearchDataInsightsSection.js"
+import { SearchResultTypeToggle } from "./SearchResultTypeToggle.js"
 
 const analytics = new SiteAnalytics()
 
@@ -101,8 +106,12 @@ export const Search = ({
         }
     }, [actions])
 
-    const searchSelection = {
-        shouldShowRibbons,
+    const templateConfig = {
+        resultType: state.resultType,
+        topicType: getSelectedTopicType(state.filters, AREA_NAMES),
+        hasCountry:
+            getFilterNamesOfType(state.filters, FilterType.COUNTRY).size > 0,
+        hasQuery: state.query.length > 0,
     }
 
     return (
@@ -128,22 +137,32 @@ export const Search = ({
                 className="col-start-11 span-cols-3 as-draft--align-self-start"
                 name="Search result type"
             >
-                <SearchResultType />
+                <SearchResultTypeToggle />
             </AsDraft>
-            {match(searchSelection)
-                .with({ shouldShowRibbons: true }, () => (
-                    <>
-                        <SearchDataInsights searchClient={searchClient} />
-                        <DataCatalogRibbonView
-                            tagGraph={tagGraph}
-                            searchClient={searchClient}
-                        />
-                    </>
-                ))
-                .with({ shouldShowRibbons: false }, () => (
-                    <DataCatalogResults searchClient={searchClient} />
-                ))
-                .exhaustive()}
+            {match(templateConfig)
+                .with(
+                    {
+                        resultType: SearchResultType.ALL,
+                        topicType: SearchTopicType.Area,
+                        hasCountry: true,
+                        hasQuery: true,
+                    },
+                    () => (
+                        <>
+                            <DataCatalogRibbonView
+                                tagGraph={tagGraph}
+                                searchClient={searchClient}
+                            />
+                            <SearchDataInsights searchClient={searchClient} />
+                        </>
+                    )
+                )
+
+                .otherwise(() => (
+                    <div className="col-start-2 span-cols-12">
+                        <h2>🚧 Template configuration under construction 🚧</h2>
+                    </div>
+                ))}
         </SearchContext.Provider>
     )
 }
