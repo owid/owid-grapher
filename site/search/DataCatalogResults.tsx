@@ -6,8 +6,7 @@ import { DataCatalogPagination } from "./DataCatalogPagination.js"
 import { SearchNoResults } from "./SearchNoResults.js"
 import { DataCatalogResultsSkeleton } from "./DataCatalogResultsSkeleton.js"
 import { DataCatalogSearchResult } from "./searchTypes.js"
-import { queryDataCatalogSearch } from "./searchUtils.js"
-import { searchQueryKeys } from "./searchQueryKeys.js"
+import { queryDataCatalogSearch, searchQueryKeys } from "./useQueries.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedCountries } from "./searchHooks.js"
@@ -26,7 +25,7 @@ export const DataCatalogResults = ({
     const selectedCountries = useSelectedCountries()
 
     const searchQuery = useQuery<DataCatalogSearchResult, Error>({
-        queryKey: searchQueryKeys.search(state),
+        queryKey: searchQueryKeys.dataSearches(state),
         queryFn: () => queryDataCatalogSearch(searchClient, state),
     })
 
