@@ -25,7 +25,8 @@ import {
     Filter,
     FilterType,
     ScoredSearchResult,
-    ResultType,
+    SearchResultType,
+    SearchTopicType,
 } from "./searchTypes.js"
 import { faTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -548,6 +549,20 @@ export const getFilterAriaLabel = (
 
 export const isValidResultType = (
     value: string | undefined
-): value is ResultType => {
-    return Object.values(ResultType).includes(value as ResultType)
+): value is SearchResultType => {
+    return Object.values(SearchResultType).includes(value as SearchResultType)
+}
+
+export function getSelectedTopicType(
+    filters: Filter[],
+    areaNames: string[]
+): SearchTopicType | null {
+    const firstTopicFilter = filters.find(
+        (filter) => filter.type === FilterType.TOPIC
+    )
+    if (!firstTopicFilter) return null
+
+    return areaNames.includes(firstTopicFilter.name)
+        ? SearchTopicType.Area
+        : SearchTopicType.Topic
 }
