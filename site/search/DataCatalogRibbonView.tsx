@@ -4,8 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 import { DataCatalogRibbon } from "./DataCatalogRibbon.js"
 import { DataCatalogRibbonViewSkeleton } from "./DataCatalogRibbonViewSkeleton.js"
 import { DataCatalogRibbonResult } from "./searchTypes.js"
-import { queryDataCatalogRibbons } from "./searchUtils.js"
-import { searchQueryKeys } from "./searchQueryKeys.js"
+import { queryDataCatalogRibbons, searchQueryKeys } from "./useQueries.js"
 import { useSearchContext } from "./SearchContext.js"
 
 export const DataCatalogRibbonView = ({
@@ -18,7 +17,7 @@ export const DataCatalogRibbonView = ({
     const { state } = useSearchContext()
 
     const ribbonsQuery = useQuery<DataCatalogRibbonResult[], Error>({
-        queryKey: searchQueryKeys.ribbons(state),
+        queryKey: searchQueryKeys.dataRibbons(state),
         queryFn: () => queryDataCatalogRibbons(searchClient, state, tagGraph),
     })
 
