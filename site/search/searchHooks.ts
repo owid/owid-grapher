@@ -7,13 +7,12 @@ import {
     SearchState,
     FilterType,
 } from "./searchTypes.js"
+import { getCountryData, getFilterNamesOfType } from "./searchUtils.js"
 import {
-    getCountryData,
-    getFilterNamesOfType,
     queryDataCatalogRibbons,
     queryDataCatalogSearch,
-} from "./searchUtils.js"
-import { searchQueryKeys } from "./searchQueryKeys.js"
+    searchQueryKeys,
+} from "./useQueries.js"
 import { useSearchContext } from "./SearchContext.js"
 import { Region } from "@ourworldindata/utils"
 
@@ -43,14 +42,14 @@ export const useSearchFacets = (
     shouldShowRibbons: boolean
 ): Record<string, number> | undefined => {
     const ribbonsQuery = useQuery<DataCatalogRibbonResult[], Error>({
-        queryKey: searchQueryKeys.ribbons(searchState),
+        queryKey: searchQueryKeys.dataRibbons(searchState),
         queryFn: () =>
             queryDataCatalogRibbons(searchClient, searchState, tagGraph),
         enabled: shouldShowRibbons,
     })
 
     const searchQuery = useQuery<DataCatalogSearchResult, Error>({
-        queryKey: searchQueryKeys.search(searchState),
+        queryKey: searchQueryKeys.dataSearches(searchState),
         queryFn: () => queryDataCatalogSearch(searchClient, searchState),
         enabled: !shouldShowRibbons,
     })
