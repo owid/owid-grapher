@@ -1,6 +1,6 @@
 import { useState, ReactNode, useRef, useCallback } from "react"
 import { Filter } from "./searchTypes.js"
-import { SearchAutocompleteContext } from "./searchUtils.js"
+import { SearchAutocompleteContext } from "./SearchAutocompleteContext.js"
 
 export function SearchAutocompleteContextProvider({
     children,
