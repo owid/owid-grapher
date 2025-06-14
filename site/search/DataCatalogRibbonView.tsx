@@ -16,16 +16,16 @@ export const DataCatalogRibbonView = ({
 }) => {
     const { state } = useSearchContext()
 
-    const ribbonsQuery = useQuery<DataCatalogRibbonResult[], Error>({
+    const query = useQuery<DataCatalogRibbonResult[], Error>({
         queryKey: searchQueryKeys.dataRibbons(state),
         queryFn: () => queryDataCatalogRibbons(searchClient, state, tagGraph),
     })
 
-    if (ribbonsQuery.isLoading) {
+    if (query.isLoading) {
         return <DataCatalogRibbonViewSkeleton />
     }
 
-    const resultsSortedByHitCount = ribbonsQuery.data?.sort(
+    const resultsSortedByHitCount = query.data?.sort(
         (a, b) => b.nbHits - a.nbHits
     )
 
