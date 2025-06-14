@@ -24,17 +24,17 @@ export const DataCatalogResults = ({
     } = useSearchContext()
     const selectedCountries = useSelectedCountries()
 
-    const searchQuery = useQuery<DataCatalogSearchResult, Error>({
+    const query = useQuery<DataCatalogSearchResult, Error>({
         queryKey: searchQueryKeys.dataSearches(state),
         queryFn: () => queryDataCatalogSearch(searchClient, state),
     })
 
-    if (searchQuery.isLoading) return <DataCatalogResultsSkeleton />
+    if (query.isLoading) return <DataCatalogResultsSkeleton />
 
-    const hits = searchQuery.data?.hits
-    if (!searchQuery.data || !hits || !hits.length) return <SearchNoResults />
+    const hits = query.data?.hits
+    if (!query.data || !hits || !hits.length) return <SearchNoResults />
 
-    const { page, nbPages, nbHits } = searchQuery.data
+    const { page, nbPages, nbHits } = query.data
     return (
         <>
             <div className="span-cols-12 col-start-2 data-catalog-search-hits">
