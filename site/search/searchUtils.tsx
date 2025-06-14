@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import { HitAttributeHighlightResult, SearchResponse } from "instantsearch.js"
+import { HitAttributeHighlightResult } from "instantsearch.js"
 import {
     EntityName,
     GrapherQueryParams,
@@ -20,13 +20,8 @@ import {
 import { partition } from "remeda"
 import { generateSelectedEntityNamesParam } from "@ourworldindata/grapher"
 import { getIndexName } from "./searchClient.js"
-import { SearchClient } from "algoliasearch"
 import {
-    IDataCatalogHit,
-    DataCatalogRibbonResult,
-    DataCatalogSearchResult,
     SearchIndexName,
-    SearchState,
     Filter,
     FilterType,
     SearchAutocompleteContextType,
@@ -294,78 +289,6 @@ export const getFilterIcon = (filter: Filter) => {
             </span>
         ))
         .otherwise(() => null)
-}
-
-export async function queryDataCatalogRibbons(
-    searchClient: SearchClient,
-    state: SearchState,
-    tagGraph: TagGraphRoot
-): Promise<DataCatalogRibbonResult[]> {
-    const topicsForRibbons = getTopicsForRibbons(
-        getFilterNamesOfType(state.filters, FilterType.TOPIC),
-        tagGraph
-    )
-
-    const countryFacetFilters = formatCountryFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        state.requireAllCountries
-    )
-    const searchParams = topicsForRibbons.map((topic) => {
-        const facetFilters = [[`tags:${topic}`], ...countryFacetFilters]
-        return {
-            indexName: CHARTS_INDEX,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            query: state.query,
-            facetFilters: facetFilters,
-            hitsPerPage: 4,
-            facets: ["tags"],
-            page: state.page < 0 ? 0 : state.page,
-        }
-    })
-
-    return searchClient.search<IDataCatalogHit>(searchParams).then((response) =>
-        response.results.map((res, i: number) => ({
-            ...(res as SearchResponse<IDataCatalogHit>),
-            title: topicsForRibbons[i],
-        }))
-    )
-}
-
-export async function queryDataCatalogSearch(
-    searchClient: SearchClient,
-    state: SearchState
-): Promise<DataCatalogSearchResult> {
-    const facetFilters = formatCountryFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        state.requireAllCountries
-    )
-    facetFilters.push(
-        ...setToFacetFilters(
-            getFilterNamesOfType(state.filters, FilterType.TOPIC),
-            "tags"
-        )
-    )
-
-    const searchParams = [
-        {
-            indexName: CHARTS_INDEX,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            query: state.query,
-            facetFilters: facetFilters,
-            highlightPostTag: "</mark>",
-            highlightPreTag: "<mark>",
-            facets: ["tags"],
-            maxValuesPerFacet: 15,
-            hitsPerPage: 60,
-            page: state.page < 0 ? 0 : state.page,
-        },
-    ]
-
-    return searchClient
-        .search<IDataCatalogHit>(searchParams)
-        .then(
-            (response) => response.results[0] as SearchResponse<IDataCatalogHit>
-        )
 }
 
 export function searchWithWords(
