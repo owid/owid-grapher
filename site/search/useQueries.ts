@@ -1,4 +1,4 @@
-import { TagGraphRoot } from "@ourworldindata/types"
+import { OwidGdocType, TagGraphRoot } from "@ourworldindata/types"
 import { SearchClient } from "algoliasearch"
 import { SearchResponse } from "instantsearch.js"
 import {
@@ -63,7 +63,7 @@ export async function queryDataCatalogRibbons(
 
     return searchClient.search<IDataCatalogHit>(searchParams).then((response) =>
         response.results.map((res, i: number) => ({
-            ...(res as SearchResponse<IDataCatalogHit>),
+            ...(res as DataCatalogSearchResult),
             title: topicsForRibbons[i],
         }))
     )
@@ -101,9 +101,7 @@ export async function queryDataCatalogSearch(
 
     return searchClient
         .search<IDataCatalogHit>(searchParams)
-        .then(
-            (response) => response.results[0] as SearchResponse<IDataCatalogHit>
-        )
+        .then((response) => response.results[0] as DataCatalogSearchResult)
 }
 
 export async function queryDataInsights(
@@ -114,21 +112,17 @@ export async function queryDataInsights(
         {
             indexName: SearchIndexName.Pages,
             query: state.query,
-            facetFilters: [["type:data-insight"]],
+            filters: `type:${OwidGdocType.DataInsight}`,
             highlightPostTag: "</mark>",
             highlightPreTag: "<mark>",
             attributesToRetrieve: [
-                "objectID",
                 "title",
-                "excerpt",
-                "authors",
-                "publishedAt",
-                "modifiedAt",
+                "thumbnailUrl",
+                "date",
                 "slug",
-                "tags",
                 "type",
             ],
-            hitsPerPage: 20,
+            hitsPerPage: 4,
             page: state.page < 0 ? 0 : state.page,
         },
     ]
