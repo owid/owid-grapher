@@ -249,16 +249,3 @@ export type SearchAction =
     | ToggleRequireAllCountriesAction
     | ResetAction
     | SetResultTypeAction
-
-export interface SearchAutocompleteContextType {
-    activeIndex: number
-    setActiveIndex: (index: number) => void
-    suggestions: Filter[]
-    setSuggestions: (suggestions: Filter[]) => void
-    showSuggestions: boolean
-    setShowSuggestions: (isOpen: boolean) => void
-    onSelectActiveItem: () => void
-    registerSelectionHandler: (
-        handler: (filter: Filter, index: number) => void
-    ) => void
-}
