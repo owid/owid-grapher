@@ -170,7 +170,7 @@ export enum FilterType {
     QUERY = "query",
 }
 
-export enum ResultType {
+export enum SearchResultType {
     ALL = "all",
     DATA = "data",
     WRITING = "writing",
@@ -186,7 +186,7 @@ export type SearchState = Readonly<{
     filters: Filter[]
     requireAllCountries: boolean
     page: number
-    resultType: ResultType
+    resultType: SearchResultType
 }>
 
 type AddFilterAction = {
@@ -233,7 +233,7 @@ type ResetAction = {
 }
 type SetResultTypeAction = {
     type: "setResultType"
-    resultType: ResultType
+    resultType: SearchResultType
 }
 
 export type SearchAction =
@@ -249,3 +249,8 @@ export type SearchAction =
     | ToggleRequireAllCountriesAction
     | ResetAction
     | SetResultTypeAction
+
+export enum SearchTopicType {
+    Topic = "topic",
+    Area = "area",
+}
