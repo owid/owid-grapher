@@ -154,6 +154,17 @@ export type ScoredSearchResult = {
     score: number
 }
 
+export type DataInsightHit = {
+    title: string
+    thumbnailUrl: string
+    date: string
+    slug: string
+    objectID: string
+    __position: number
+}
+
+export type DataInsightSearchResponse = SearchResponse<DataInsightHit>
+
 export enum FilterType {
     COUNTRY = "country",
     TOPIC = "topic",
