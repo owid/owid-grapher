@@ -4,10 +4,10 @@ import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import {
     createFocusInputOnClickHandler,
     isCurrentRef,
-    useSearchAutocomplete,
     getSearchAutocompleteId,
     getSearchAutocompleteItemId,
 } from "./searchUtils.js"
+import { useSearchAutocomplete } from "./SearchAutocompleteContext.js"
 
 export const SearchInput = forwardRef(
     (
