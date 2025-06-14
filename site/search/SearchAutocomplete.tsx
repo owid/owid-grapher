@@ -3,12 +3,12 @@ import { useEffect, useMemo, useCallback } from "react"
 import { match } from "ts-pattern"
 import {
     getAutocompleteSuggestionsWithUnmatchedQuery,
-    useSearchAutocomplete,
     createQueryFilter,
     getSearchAutocompleteId,
     getSearchAutocompleteItemId,
     getFilterAriaLabel,
 } from "./searchUtils.js"
+import { useSearchAutocomplete } from "./SearchAutocompleteContext.js"
 import { SearchAutocompleteItemContents } from "./SearchAutocompleteItemContents.js"
 import { Filter, FilterType } from "./searchTypes.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
