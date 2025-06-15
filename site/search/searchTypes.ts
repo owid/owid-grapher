@@ -198,8 +198,8 @@ type RemoveFilterAction = {
     type: "removeFilter"
     filter: Filter
 }
-type AddTopicAction = {
-    type: "addTopic"
+type SetTopicAction = {
+    type: "setTopic"
     topic: string
 }
 type RemoveTopicAction = {
@@ -241,7 +241,7 @@ export type SearchAction =
     | AddFilterAction
     | RemoveFilterAction
     | AddCountryAction
-    | AddTopicAction
+    | SetTopicAction
     | RemoveCountryAction
     | RemoveTopicAction
     | SetPageAction
