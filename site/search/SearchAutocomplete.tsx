@@ -36,7 +36,7 @@ export const SearchAutocomplete = ({
 }) => {
     const {
         state: { filters },
-        actions: { addCountry, addTopic },
+        actions: { addCountry, setTopic },
     } = useSearchContext()
 
     const analytics = useMemo(() => new SiteAnalytics(), [])
@@ -111,7 +111,7 @@ export const SearchAutocomplete = ({
                 })
                 .with(FilterType.TOPIC, () => {
                     logSearchAutocompleteClick()
-                    addTopic(filter.name)
+                    setTopic(filter.name)
                     setQueries("")
                 })
                 .with(FilterType.QUERY, () => {
@@ -122,7 +122,7 @@ export const SearchAutocomplete = ({
         },
         [
             addCountry,
-            addTopic,
+            setTopic,
             setShowSuggestions,
             setQueries,
             unmatchedQuery,
