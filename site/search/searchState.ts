@@ -70,12 +70,20 @@ export function searchReducer(
         .with({ type: "removeCountry" }, ({ country }) =>
             handleRemoveFilter(state, createCountryFilter(country))
         )
-        .with({ type: "addTopic" }, ({ topic }) =>
-            handleAddFilter(state, createTopicFilter(topic))
-        )
         .with({ type: "removeTopic" }, ({ topic }) =>
             handleRemoveFilter(state, createTopicFilter(topic))
         )
+        .with({ type: "setTopic" }, ({ topic }) => {
+            // Remove all existing topic filters and add the new one
+            const newFilters = state.filters.filter(
+                (f) => f.type !== FilterType.TOPIC
+            )
+            return {
+                ...state,
+                page: 0,
+                filters: [...newFilters, createTopicFilter(topic)],
+            }
+        })
         .with({ type: "toggleRequireAllCountries" }, () => ({
             ...state,
             requireAllCountries: !state.requireAllCountries,
@@ -101,7 +109,7 @@ export function createActions(dispatch: (action: SearchAction) => void) {
     // prettier-ignore
     return {
         addCountry: (country: string) => dispatch({ type: "addCountry", country }),
-        addTopic: (topic: string) => dispatch({ type: "addTopic", topic }),
+        setTopic: (topic: string) => dispatch({ type: "setTopic", topic }),
         removeCountry: (country: string) => dispatch({ type: "removeCountry", country }),
         removeTopic: (topic: string) => dispatch({ type: "removeTopic", topic }),
         addFilter: (filter: Filter) => dispatch({ type: "addFilter", filter }),

@@ -20,7 +20,7 @@ export const SearchTopicsRefinementList = ({
 }) => {
     const {
         state,
-        actions: { addTopic },
+        actions: { setTopic },
     } = useSearchContext()
     const selectedTopics = useSelectedTopics()
 
@@ -75,7 +75,7 @@ export const SearchTopicsRefinementList = ({
                                     <li className="search-topics-refinement-list__list-item">
                                         <button
                                             aria-label={`Filter by ${facetName}`}
-                                            onClick={() => addTopic(facetName)}
+                                            onClick={() => setTopic(facetName)}
                                         >
                                             <span className="body-3-bold">
                                                 {facetNameLabel}
