@@ -16,13 +16,13 @@ export const DataCatalogRibbon = ({
     result: DataCatalogRibbonResult
 }) => {
     const {
-        actions: { addTopic },
+        actions: { setTopic },
     } = useSearchContext()
     const selectedCountries = useSelectedCountries()
     if (result.nbHits === 0) return null
     const handleAddTopicClick = (e: React.MouseEvent) => {
         e.preventDefault()
-        addTopic(result.title)
+        setTopic(result.title)
         window.scrollTo({
             top: 0,
         })
