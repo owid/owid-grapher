@@ -37,7 +37,7 @@ import {
 } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 import { GrapherExport } from "../captionedChart/StaticChartRasterizer.js"
-import { Tabs } from "../tabs/Tabs.js"
+import { TabItem, Tabs } from "../tabs/Tabs.js"
 import {
     DownloadIconFullDataset,
     DownloadIconSelected,
@@ -81,6 +81,11 @@ interface DownloadModalProps {
     manager: DownloadModalManager
 }
 
+enum TabName {
+    "Vis" = "Viz",
+    "Data" = "Data",
+}
+
 export const DownloadModal = (
     props: DownloadModalProps
 ): React.ReactElement => {
@@ -97,10 +102,27 @@ export const DownloadModal = (
         [props.manager]
     )
 
-    const [activeTabIndex, setActiveTabIndex] = useState(0)
+    const tabItems: TabItem<TabName>[] = [
+        {
+            key: TabName.Vis,
+            element: <>Visualization</>,
+            buttonProps: {
+                "data-track-note": "chart_download_modal_tab_visualization",
+            },
+        },
+        {
+            key: TabName.Data,
+            element: <>Data</>,
+            buttonProps: {
+                "data-track-note": "chart_download_modal_tab_data",
+            },
+        },
+    ]
 
-    const isVisTabActive = activeTabIndex === 0
-    const isDataTabActive = activeTabIndex === 1
+    const [activeTab, setActiveTab] = useState(TabName.Vis)
+
+    const isVisTabActive = activeTab === TabName.Vis
+    const isDataTabActive = activeTab === TabName.Data
 
     return (
         <Modal bounds={modalBounds} onDismiss={onDismiss} alignVertical="top">
@@ -112,24 +134,9 @@ export const DownloadModal = (
                 <div className="download-modal__tab-list">
                     <Tabs
                         variant="slim"
-                        labels={[
-                            {
-                                element: <>Visualization</>,
-                                buttonProps: {
-                                    "data-track-note":
-                                        "chart_download_modal_tab_visualization",
-                                } as any,
-                            },
-                            {
-                                element: <>Data</>,
-                                buttonProps: {
-                                    "data-track-note":
-                                        "chart_download_modal_tab_data",
-                                } as any,
-                            },
-                        ]}
-                        activeIndex={activeTabIndex}
-                        setActiveIndex={setActiveTabIndex}
+                        items={tabItems}
+                        selectedKey={activeTab}
+                        onChange={(key) => setActiveTab(key)}
                     />
                 </div>
 
