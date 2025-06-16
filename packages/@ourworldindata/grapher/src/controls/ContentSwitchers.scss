@@ -1,7 +1,6 @@
+$icon-padding: 6px;
 .Tabs.ContentSwitchers {
     $icon-width: 13px;
-    $icon-padding: 6px;
-
     $active-icon: $blue-50;
 
     .Tabs__tab {
@@ -27,11 +26,203 @@
                 }
             }
         }
+
+        &.active,
+        &[data-selected="true"] {
+            svg {
+                color: $active-icon;
+            }
+        }
+    }
+}
+
+// ContentSwitchers wrapper for overflow functionality
+.ContentSwitchers__wrapper {
+    $font-size: var(--tabs-font-size, 13px);
+    --tab-padding: 16px;
+
+    $light-stroke: $gray-20;
+    $hover-fill: $gray-10;
+    $active-fill: $blue-20;
+    $border-radius: 4px;
+    $visual-gap: 2px;
+
+    display: flex;
+    height: $controlRowHeight;
+    margin: 0;
+    padding: $visual-gap;
+    box-shadow: inset 0 0 0 1px $light-stroke;
+    border-radius: $border-radius;
+    align-items: stretch;
+
+    // Override nested Tabs to remove its container styling
+    .Tabs.ContentSwitchers .Tabs__tablist {
+        height: auto;
+        padding: 0;
+        box-shadow: none;
+        border-radius: 0;
+        flex: 1;
+        min-width: 0;
     }
 
-    .Tabs__tab.active {
+    // Overflow button styling to exactly match regular tabs
+    .ContentSwitchers__overflow-button {
+        position: relative;
+        flex-shrink: 0;
+
+        $height: $controlRowHeight - 2 * $visual-gap;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-transform: capitalize;
+        color: $light-text;
+        font-size: $font-size;
+        font-weight: 500;
+        height: $height;
+        border-radius: $border-radius - $visual-gap;
+        padding: 0 var(--tab-padding);
+        cursor: default;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+        user-select: none;
+        background: transparent;
+        border: none;
+        box-sizing: border-box;
+        outline: none;
+
+        .label {
+            margin-left: 6px;
+        }
+
         svg {
-            color: $active-icon;
+            color: $gray-60;
+        }
+
+        &:hover {
+            background-color: $hover-fill;
+            cursor: pointer;
+
+            svg {
+                color: $gray-80;
+            }
+        }
+
+        &[data-pressed="true"] {
+            background-color: $active-fill;
+
+            svg {
+                color: $blue-50;
+            }
+        }
+
+        // Add separator like regular tabs
+        &::before {
+            content: "";
+            display: block;
+            width: 1px;
+            height: calc(100% - 12px);
+            position: absolute;
+            top: 6px;
+            background-color: $light-stroke;
+            left: -0.5px;
+        }
+
+        &:hover::before,
+        &[data-pressed="true"]::before {
+            display: none;
+        }
+    }
+
+    // Handle iconOnly state
+    &.iconOnly .ContentSwitchers__overflow-button .label {
+        display: none;
+    }
+}
+
+// Overflow menu styling
+.ContentSwitchers__overflow-menu {
+    background: white;
+    border: 1px solid $gray-20;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 160px;
+    z-index: 1000;
+    margin-top: 4px;
+
+    .ContentSwitchers__menu {
+        padding: 4px;
+        max-height: 200px;
+        overflow-y: auto;
+
+        .ContentSwitchers__menu-item {
+            $menu-border-radius: 3px;
+
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            margin-bottom: 1px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: $light-text;
+            border-radius: $menu-border-radius;
+            transition: background-color 0.15s ease;
+            text-transform: capitalize;
+            letter-spacing: 0.01em;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+
+            &:hover,
+            &[data-hovered="true"] {
+                background-color: $gray-10;
+            }
+
+            &[data-focused="true"] {
+                background-color: $gray-10;
+                outline: 2px solid $blue-50;
+                outline-offset: -2px;
+            }
+
+            &[data-pressed="true"] {
+                background-color: $blue-20;
+                color: $active-text;
+
+                svg {
+                    color: $blue-50;
+                }
+            }
+
+            svg {
+                color: $gray-60;
+                margin-right: $icon-padding;
+
+                &.custom-icon {
+                    --size: 13px;
+                    display: inline-block;
+                    height: var(--size);
+                    width: var(--size);
+                    vertical-align: -1.625px;
+
+                    &.scatter,
+                    &.marimekko,
+                    &.slope {
+                        --size: 14px;
+                    }
+                }
+            }
+
+            .label {
+                margin-left: 0;
+            }
+
+            // Tab-like inner content layout
+            span {
+                display: flex;
+                align-items: center;
+            }
         }
     }
 }

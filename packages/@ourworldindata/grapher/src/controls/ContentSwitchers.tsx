@@ -3,7 +3,18 @@ import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faTable, faEarthAmericas } from "@fortawesome/free-solid-svg-icons"
+import {
+    faTable,
+    faEarthAmericas,
+    faPlus,
+} from "@fortawesome/free-solid-svg-icons"
+import {
+    MenuTrigger,
+    Button,
+    Popover,
+    Menu,
+    MenuItem,
+} from "react-aria-components"
 import { GrapherTabName, GRAPHER_TAB_NAMES } from "@ourworldindata/types"
 import { chartIcons } from "./ChartIcons"
 import { TabLabel, Tabs } from "../tabs/Tabs.js"
@@ -18,6 +29,8 @@ export interface ContentSwitchersManager {
     isNarrow?: boolean
     isMedium?: boolean
 }
+
+const MAX_VISIBLE_TABS = 3
 
 @observer
 export class ContentSwitchers extends React.Component<{
@@ -44,8 +57,33 @@ export class ContentSwitchers extends React.Component<{
         return !this.manager.isNarrow
     }
 
+    @computed private get hasOverflow(): boolean {
+        return this.availableTabs.length > MAX_VISIBLE_TABS
+    }
+
+    @computed private get visibleTabs(): GrapherTabName[] {
+        if (!this.hasOverflow) return this.availableTabs
+
+        const activeTab = this.activeTab
+        const firstThree = this.availableTabs.slice(0, MAX_VISIBLE_TABS)
+
+        // If the active tab is not in the first three, replace the last visible tab with the active tab
+        if (!firstThree.includes(activeTab)) {
+            return [...firstThree.slice(0, MAX_VISIBLE_TABS - 1), activeTab]
+        }
+
+        return firstThree
+    }
+
+    @computed private get overflowTabs(): GrapherTabName[] {
+        if (!this.hasOverflow) return []
+
+        const visibleTabs = this.visibleTabs
+        return this.availableTabs.filter((tab) => !visibleTabs.includes(tab))
+    }
+
     @computed private get tabLabels(): TabLabel[] {
-        return this.availableTabs.map((tab) => ({
+        return this.visibleTabs.map((tab) => ({
             key: tab,
             element: (
                 <ContentSwitcherTab
@@ -72,19 +110,83 @@ export class ContentSwitchers extends React.Component<{
         this.manager.onTabChange?.(oldTab!, newTab)
     }
 
+    @action.bound onOverflowMenuAction(key: React.Key): void {
+        this.setTab(key as GrapherTabName)
+    }
+
+    private renderOverflowMenu(): React.ReactElement {
+        return (
+            <MenuTrigger>
+                <Button
+                    className="Tabs__tab ContentSwitchers__overflow-button"
+                    data-track-note="chart_content_switchers_overflow"
+                    aria-label="More chart types"
+                >
+                    <FontAwesomeIcon icon={faPlus} />
+                    {this.showTabLabels && <span className="label">More</span>}
+                </Button>
+                <Popover className="ContentSwitchers__overflow-menu">
+                    <Menu
+                        className="ContentSwitchers__menu"
+                        onAction={this.onOverflowMenuAction}
+                    >
+                        {this.overflowTabs.map((tab) => (
+                            <MenuItem
+                                key={tab}
+                                id={tab}
+                                className="ContentSwitchers__menu-item"
+                                textValue={makeTabLabelText(tab, {
+                                    hasMultipleChartTypes:
+                                        this.manager.hasMultipleChartTypes,
+                                })}
+                            >
+                                <ContentSwitcherTab
+                                    tab={tab}
+                                    hasMultipleChartTypes={
+                                        this.manager.hasMultipleChartTypes
+                                    }
+                                    showLabel={this.showTabLabels}
+                                />
+                            </MenuItem>
+                        ))}
+                    </Menu>
+                </Popover>
+            </MenuTrigger>
+        )
+    }
+
     render(): React.ReactElement | null {
         if (!this.shouldShow) return null
 
+        if (!this.hasOverflow) {
+            return (
+                <Tabs
+                    variant="slim"
+                    extraClassNames={classnames("ContentSwitchers", {
+                        iconOnly: !this.showTabLabels,
+                    })}
+                    labels={this.tabLabels}
+                    selectedKey={this.activeTab}
+                    onChange={(key) => this.setTab(key as GrapherTabName)}
+                />
+            )
+        }
+
         return (
-            <Tabs
-                variant="slim"
-                extraClassNames={classnames("ContentSwitchers", {
+            <div
+                className={classnames("ContentSwitchers__wrapper", {
                     iconOnly: !this.showTabLabels,
                 })}
-                labels={this.tabLabels}
-                selectedKey={this.activeTab}
-                onChange={(key) => this.setTab(key as GrapherTabName)}
-            />
+            >
+                <Tabs
+                    variant="slim"
+                    extraClassNames="ContentSwitchers"
+                    labels={this.tabLabels}
+                    selectedKey={this.activeTab}
+                    onChange={(key) => this.setTab(key as GrapherTabName)}
+                />
+                {this.renderOverflowMenu()}
+            </div>
         )
     }
 }
@@ -92,16 +194,20 @@ export class ContentSwitchers extends React.Component<{
 function ContentSwitcherTab({
     tab,
     hasMultipleChartTypes,
+    showLabel = true,
 }: {
     tab: GrapherTabName
     hasMultipleChartTypes?: boolean
+    showLabel?: boolean
 }): React.ReactElement {
     return (
         <span>
             <TabIcon tab={tab} />
-            <span className="label">
-                {makeTabLabelText(tab, { hasMultipleChartTypes })}
-            </span>
+            {showLabel && (
+                <span className="label">
+                    {makeTabLabelText(tab, { hasMultipleChartTypes })}
+                </span>
+            )}
         </span>
     )
 }
