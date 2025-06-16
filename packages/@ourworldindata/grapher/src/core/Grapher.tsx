@@ -94,7 +94,6 @@ import {
     grapherKeysToSerialize,
     GrapherQueryParams,
     LegacyGrapherInterface,
-    MapRegionName,
     LogoOption,
     ComparisonLineConfig,
     ColumnSlugs,
@@ -189,6 +188,10 @@ import {
     MapChartManager,
 } from "../mapCharts/MapChartConstants"
 import { MapChart } from "../mapCharts/MapChart"
+import {
+    isValidGlobeRegionName,
+    isValidMapRegionName,
+} from "../mapCharts/MapHelpers"
 import { DiscreteBarChartManager } from "../barCharts/DiscreteBarChartConstants"
 import { Command, CommandPalette } from "../controls/CommandPalette"
 import { ShareMenuManager } from "../controls/ShareMenu"
@@ -797,10 +800,12 @@ export class Grapher
         // region
         const region = params.region
         if (region !== undefined) {
-            this.map.region = region as MapRegionName
+            if (isValidMapRegionName(region)) {
+                this.map.region = region
+            }
 
             // show region on the globe
-            if (this.map.region !== MapRegionName.World) {
+            if (isValidGlobeRegionName(this.map.region)) {
                 this.mapRegionDropdownValue = this.map.region
                 this.globeController.jumpToOwidContinent(this.map.region)
                 this.globeController.showGlobe()

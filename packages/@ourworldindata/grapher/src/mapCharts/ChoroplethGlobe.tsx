@@ -63,6 +63,7 @@ import {
     isPointPlacedOnVisibleHemisphere,
     sortFeaturesByInteractionStateAndSize,
     getForegroundFeatures,
+    isValidGlobeRegionName,
 } from "./MapHelpers"
 import {
     makeInternalAnnotationForFeature,
@@ -653,7 +654,7 @@ export class ChoroplethGlobe extends React.Component<{
 
     componentDidMount(): void {
         // rotate to the selected region
-        if (this.mapConfig.region !== MapRegionName.World) {
+        if (isValidGlobeRegionName(this.mapConfig.region)) {
             this.globeController.jumpToOwidContinent(this.mapConfig.region)
         }
 

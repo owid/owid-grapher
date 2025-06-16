@@ -8,6 +8,7 @@ import {
     getRelativeMouse,
     lazy,
 } from "@ourworldindata/utils"
+import { GlobeRegionName, MapRegionName } from "@ourworldindata/types"
 import {
     GEO_FEATURES_CLASSNAME,
     MAP_HOVER_TARGET_RANGE,
@@ -152,4 +153,16 @@ export function isMapRenderFeature(
     feature: RenderFeature
 ): feature is MapRenderFeature {
     return feature.type === RenderFeatureType.Map
+}
+
+export function isValidMapRegionName(
+    candidate: string
+): candidate is MapRegionName {
+    return Object.values(MapRegionName).includes(candidate as any)
+}
+
+export function isValidGlobeRegionName(
+    candidate: string
+): candidate is GlobeRegionName {
+    return isValidMapRegionName(candidate) && candidate !== MapRegionName.World
 }
