@@ -49,6 +49,7 @@ import { Container, getLayout } from "./layout.js"
 import { Expander } from "./Expander.js"
 import { ChartConfigType } from "@ourworldindata/types"
 import { useLinkedChart } from "../utils.js"
+import { ResourcePanel } from "./ResourcePanel.js"
 
 function ArticleBlockInternal({
     b: block,
@@ -230,6 +231,12 @@ function ArticleBlockInternal({
             <Recirc
                 className={getLayout(`recirc--${block.align}`, containerType)}
                 d={block}
+            />
+        ))
+        .with({ type: "resource-panel" }, (block) => (
+            <ResourcePanel
+                {...block}
+                className={getLayout(`resource-panel`, containerType)}
             />
         ))
         .with({ type: "numbered-list" }, (block) => (

@@ -20,7 +20,7 @@ import {
     RawBlockSDGGrid,
     RawBlockText,
     Span,
-    RawRecircLink,
+    RawHybridLink,
     RawBlockHorizontalRule,
     RawSDGGridItem,
     RawBlockSDGToc,
@@ -52,7 +52,8 @@ import {
     RawBlockCode,
     RawBlockCookieNotice,
     RawBlockExpander,
-    EnrichedRecircLink,
+    EnrichedHybridLink,
+    RawBlockResourcePanel,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -288,18 +289,20 @@ export function enrichedBlockToRawBlock(
                 value: {
                     title: b.title,
                     align: b.align,
-                    links: b.links.map((link): RawRecircLink => {
-                        return pickBy(link, (value, key) => {
-                            const keys: Array<keyof EnrichedRecircLink> = [
-                                "title",
-                                "subtitle",
-                                "url",
-                            ] as const
-                            // These keys are optional, so we only want to serialize
-                            // them if they're actually there
-                            return !!value && keys.includes(key)
-                        })
-                    }),
+                    links: b.links.map(convertEnrichedHybridLinksToRaw),
+                },
+            })
+        )
+        .with(
+            { type: "resource-panel" },
+            (b): RawBlockResourcePanel => ({
+                type: b.type,
+                value: {
+                    icon: b.icon,
+                    kicker: b.kicker,
+                    title: b.title,
+                    links: b.links.map(convertEnrichedHybridLinksToRaw),
+                    buttonText: b.buttonText,
                 },
             })
         )
@@ -648,4 +651,19 @@ export function enrichedBlockToRawBlock(
             }
         })
         .exhaustive()
+}
+
+function convertEnrichedHybridLinksToRaw(
+    link: EnrichedHybridLink
+): RawHybridLink {
+    return pickBy(link, (value, key) => {
+        const keys: Array<keyof EnrichedHybridLink> = [
+            "title",
+            "subtitle",
+            "url",
+        ] as const
+        // These keys are optional, so we only want to serialize
+        // them if they're actually there
+        return !!value && keys.includes(key)
+    })
 }
