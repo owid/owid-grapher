@@ -1,0 +1,158 @@
+.chart-hit-large {
+    border: 1px solid $gray-20;
+    border-radius: 8px;
+    padding: 24px;
+    background-color: #fff;
+    margin-bottom: 32px;
+
+    &__container {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+
+        @media (min-width: $md) {
+            flex-direction: row;
+            gap: 32px;
+            align-items: flex-start;
+        }
+    }
+
+    &__content {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        flex: 1;
+    }
+
+    &__title-container {
+        line-height: 1.3;
+    }
+
+    &__title {
+        color: $blue-90;
+        font-weight: 600;
+        font-size: 24px;
+        margin: 0;
+
+        @media (min-width: $md) {
+            font-size: 28px;
+        }
+    }
+
+    &__variant {
+        color: $blue-60;
+        font-size: 16px;
+        font-weight: 400;
+
+        @media (min-width: $md) {
+            font-size: 18px;
+        }
+    }
+
+    &__entities {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        font-size: 16px;
+        line-height: 1.4;
+    }
+
+    &__entity {
+        display: inline;
+        color: $blue-50;
+
+        &::after {
+            content: ", ";
+        }
+
+        &:last-child::after {
+            content: "";
+        }
+    }
+
+    &__icon {
+        color: $blue-50;
+        height: 14px;
+        margin-right: 8px;
+        margin-bottom: 1px;
+    }
+
+    &__thumbnail {
+        flex-shrink: 0;
+    }
+
+    &__thumbnail-link {
+        display: block;
+        text-decoration: none;
+        transition: all 0.2s ease;
+
+        &:hover {
+            .chart-hit-large__img {
+                transform: scale(1.02);
+            }
+        }
+    }
+
+    &__img-container {
+        width: 100%;
+        max-width: 480px;
+        height: 340px;
+        background-color: $gray-10;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        @media (min-width: $md) {
+            width: 480px;
+        }
+    }
+
+    &__img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: all 0.2s ease;
+
+        &--loaded {
+            box-shadow: 0px 4px 16px rgba(49, 37, 2, 0.12);
+            background-color: #fff;
+        }
+
+        &--error {
+            display: none;
+        }
+    }
+
+    &__img-error {
+        display: flex;
+        height: 100%;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: $grey-text-color;
+        animation: chartErrorFadeIn 0.3s;
+        gap: 12px;
+
+        svg {
+            font-size: 32px;
+        }
+
+        span {
+            text-align: center;
+            font-size: 16px;
+        }
+    }
+}
+
+@keyframes chartErrorFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
