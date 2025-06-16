@@ -1,17 +1,12 @@
 import { AsDraft } from "../AsDraft/AsDraft.js"
 import { DataInsightHit, DataInsightSearchResponse } from "./searchTypes.js"
-import { SearchClient } from "algoliasearch"
 import { useQuery } from "@tanstack/react-query"
 import { queryDataInsights, searchQueryKeys } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
 import { SearchDataInsightHit } from "./SearchDataInsightHit.js"
 
-export function SearchDataInsights({
-    searchClient,
-}: {
-    searchClient: SearchClient
-}) {
-    const { state } = useSearchContext()
+export function SearchDataInsights() {
+    const { state, searchClient } = useSearchContext()
     const query = useQuery<DataInsightSearchResponse, Error>({
         queryKey: [searchQueryKeys.dataInsights(state)],
         queryFn: () => queryDataInsights(searchClient, state),
