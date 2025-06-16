@@ -1,10 +1,33 @@
-.Tabs.ContentSwitchers {
-    $icon-width: 13px;
-    $icon-padding: 6px;
+@at-root {
+    .ContentSwitchers__OverflowMenu {
+        border-radius: 4px;
+        background-color: #fff;
+        box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.06);
+    }
 
-    $active-icon: $blue-50;
+    .ContentSwitchers__OverflowMenuItem {
+        @include grapher_label-2-medium;
 
-    .Tabs__Tab {
+        margin: 4px 0;
+        padding: 0 16px;
+        height: $controlRowHeight;
+        display: flex;
+        align-items: center;
+        color: $light-text;
+        cursor: pointer;
+        width: 100%;
+
+        &:hover {
+            background-color: $gray-10;
+        }
+    }
+
+    .Tabs.ContentSwitchers .Tabs__Tab,
+    .ContentSwitchers__OverflowMenuItem {
+        $icon-width: 13px;
+        $icon-padding: 6px;
+        $active-icon: $blue-50;
+
         .label {
             margin-left: $icon-padding;
         }
@@ -34,4 +57,9 @@
             }
         }
     }
+}
+
+// Make the +X tab a bit narrower
+.Tabs.ContentSwitchers .Tabs__Tab.ContentSwitchers__OverflowMenuButton {
+    padding: 0 8px;
 }

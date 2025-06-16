@@ -1,4 +1,6 @@
 .Tabs {
+    position: relative;
+
     &--horizontal-scroll {
         overflow-x: auto;
         white-space: nowrap;
@@ -25,9 +27,9 @@
             white-space: nowrap;
             text-overflow: ellipsis;
             overflow: hidden;
+            cursor: pointer;
 
             &:hover {
-                cursor: pointer;
                 background-color: $gray-10;
                 border-color: $gray-10;
             }
@@ -76,7 +78,7 @@
             line-height: $height;
             border-radius: $border-radius - $visual-gap;
             padding: 0 var(--tab-padding);
-            cursor: default;
+            cursor: pointer;
             letter-spacing: 0.01em;
             white-space: nowrap;
             user-select: none;
@@ -86,16 +88,11 @@
 
             &:hover {
                 background-color: $hover-fill;
-                cursor: pointer;
             }
 
             &[data-selected] {
                 color: $active-text;
                 background-color: $active-fill;
-
-                &:hover {
-                    cursor: default;
-                }
             }
         }
 
