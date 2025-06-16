@@ -16,7 +16,6 @@ import {
     serializeSet,
 } from "./searchUtils.js"
 
-// Helper functions to handle filter actions
 function handleAddFilter(state: SearchState, filter: Filter): SearchState {
     const filterExists = state.filters.some(
         (f) => f.type === filter.type && f.name === filter.name
