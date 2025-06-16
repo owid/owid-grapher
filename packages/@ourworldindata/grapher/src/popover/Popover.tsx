@@ -11,11 +11,7 @@ export interface PopoverProps {
     isOpen: boolean
     onClose: () => void
     className?: string
-    position?: {
-        top: number
-        bottom: number
-        right: number
-    }
+    style?: React.CSSProperties
 }
 
 @observer
@@ -24,24 +20,6 @@ export class Popover extends React.Component<PopoverProps> {
 
     @computed private get isOpen(): boolean {
         return this.props.isOpen
-    }
-
-    @computed private get layout():
-        | {
-              maxHeight: string
-              maxWidth: string
-              top: number
-              right: number
-          }
-        | undefined {
-        const { position } = this.props
-        if (!position) return undefined
-
-        const { top, bottom, right } = position
-        const maxHeight = `calc(100% - ${top + bottom}px)`
-        const maxWidth = `calc(100% - ${2 * right}px)`
-
-        return { maxHeight, maxWidth, top, right }
     }
 
     componentDidMount(): void {
@@ -89,7 +67,7 @@ export class Popover extends React.Component<PopoverProps> {
                     className="popover__backdrop"
                     onClick={this.props.onClose}
                 />
-                <div className="popover__wrapper" style={this.layout}>
+                <div className="popover__wrapper" style={this.props.style}>
                     {title && (
                         <OverlayHeader
                             className="popover__header"

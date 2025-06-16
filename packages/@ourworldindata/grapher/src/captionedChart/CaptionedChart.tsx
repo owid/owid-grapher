@@ -107,7 +107,7 @@ interface CaptionedChartProps {
 }
 
 // keep in sync with sass variables in CaptionedChart.scss
-const CONTROLS_ROW_HEIGHT = 32
+export const CONTROLS_ROW_HEIGHT = 32
 
 @observer
 export class CaptionedChart extends React.Component<CaptionedChartProps> {
