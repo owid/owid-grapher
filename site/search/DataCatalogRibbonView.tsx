@@ -4,21 +4,29 @@ import { useQuery } from "@tanstack/react-query"
 import { DataCatalogRibbon } from "./DataCatalogRibbon.js"
 import { DataCatalogRibbonViewSkeleton } from "./DataCatalogRibbonViewSkeleton.js"
 import { DataCatalogRibbonResult } from "./searchTypes.js"
-import { queryDataCatalogRibbons, searchQueryKeys } from "./useQueries.js"
+import { queryDataCatalogRibbons, searchQueryKeys } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
+import { useSelectedTopic } from "./searchHooks.js"
 
 export const DataCatalogRibbonView = ({
-    tagGraph,
+    topicTagGraph,
     searchClient,
 }: {
-    tagGraph: TagGraphRoot
+    topicTagGraph: TagGraphRoot
     searchClient: SearchClient
 }) => {
     const { state } = useSearchContext()
+    const selectedTopic = useSelectedTopic()
 
     const query = useQuery<DataCatalogRibbonResult[], Error>({
         queryKey: searchQueryKeys.dataRibbons(state),
-        queryFn: () => queryDataCatalogRibbons(searchClient, state, tagGraph),
+        queryFn: () =>
+            queryDataCatalogRibbons(
+                searchClient,
+                state,
+                topicTagGraph,
+                selectedTopic
+            ),
     })
 
     if (query.isLoading) {
