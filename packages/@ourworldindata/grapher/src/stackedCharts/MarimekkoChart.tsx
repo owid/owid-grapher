@@ -15,6 +15,7 @@ import {
     EntitySelectionMode,
     makeIdForHumanConsumption,
     dyFromAlign,
+    exposeInstanceOnWindow,
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -898,6 +899,10 @@ export class MarimekkoChart
                 ({ entityName }) => entityName === target.entityName
             )
         )
+    }
+
+    componentDidMount(): void {
+        exposeInstanceOnWindow(this)
     }
 
     render(): React.ReactElement {
