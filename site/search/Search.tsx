@@ -1,4 +1,4 @@
-import { TagGraphRoot, TagGraphNode } from "@ourworldindata/types"
+import { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
 import { Url } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
 import { useReducer, useMemo, useEffect } from "react"
@@ -18,7 +18,6 @@ import {
     SearchTopicType,
 } from "./searchTypes.js"
 import {
-    checkShouldShowRibbonView,
     syncDataCatalogURL,
     getFilterNamesOfType,
     getSelectedTopicType,
@@ -29,24 +28,26 @@ import { match } from "ts-pattern"
 import { SearchContext } from "./SearchContext.js"
 import { SearchDataInsights } from "./SearchDataInsightsSection.js"
 import { SearchResultTypeToggle } from "./SearchResultTypeToggle.js"
+import { queryTopicTagGraph, searchQueryKeys } from "./queries.js"
+import { useQuery } from "@tanstack/react-query"
 
 const analytics = new SiteAnalytics()
 
 export const Search = ({
     initialState,
-    tagGraph,
+    topicTagGraph,
     searchClient,
 }: {
     initialState: SearchState
-    tagGraph: TagGraphRoot
+    topicTagGraph: TagGraphRoot
     searchClient: SearchClient
 }) => {
     const [state, dispatch] = useReducer(searchReducer, initialState)
     const actions = useMemo(() => createActions(dispatch), [dispatch])
 
     const AREA_NAMES = useMemo(
-        () => tagGraph.children.map((child) => child.name),
-        [tagGraph]
+        () => topicTagGraph.children.map((child) => child.name) || [],
+        [topicTagGraph]
     )
 
     const ALL_TOPICS = useMemo(() => {
@@ -62,18 +63,8 @@ export const Search = ({
                 return acc
             }, new Set<string>())
         }
-        return Array.from(getAllTopics(tagGraph))
-    }, [tagGraph])
-
-    const shouldShowRibbons = useMemo(
-        () =>
-            checkShouldShowRibbonView(
-                state.query,
-                new Set(getFilterNamesOfType(state.filters, FilterType.TOPIC)),
-                AREA_NAMES
-            ),
-        [state.query, state.filters, AREA_NAMES]
-    )
+        return [...getAllTopics(topicTagGraph)]
+    }, [topicTagGraph])
 
     const stateAsUrl = searchStateToUrl(state)
 
@@ -130,8 +121,7 @@ export const Search = ({
             </div>
             <SearchTopicsRefinementList
                 searchClient={searchClient}
-                tagGraph={tagGraph}
-                shouldShowRibbons={shouldShowRibbons}
+                topicTagGraph={topicTagGraph}
             />
             <AsDraft
                 className="col-start-11 span-cols-3 as-draft--align-self-start"
@@ -150,11 +140,27 @@ export const Search = ({
                     () => (
                         <>
                             <DataCatalogRibbonView
-                                tagGraph={tagGraph}
+                                topicTagGraph={topicTagGraph}
                                 searchClient={searchClient}
                             />
                             <SearchDataInsights searchClient={searchClient} />
                         </>
+                    )
+                )
+                .with(
+                    {
+                        resultType: SearchResultType.ALL,
+                        topicType: SearchTopicType.Area,
+                        hasCountry: false,
+                        hasQuery: false,
+                    },
+                    () => (
+                        <div className="col-start-2 span-cols-12">
+                            <h2>
+                                Please enter a search query to see results for
+                                all areas of research.
+                            </h2>
+                        </div>
                     )
                 )
 
