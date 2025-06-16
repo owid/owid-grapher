@@ -1,7 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { action, computed, observable } from "mobx"
-import { TabLabel, Tabs } from "../tabs/Tabs"
+import { TabKey, TabLabel, Tabs } from "../tabs/Tabs"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { GlobeController } from "../mapCharts/GlobeController"
 import { EntityName, getUserCountryInformation } from "@ourworldindata/utils"
@@ -13,13 +13,18 @@ export interface GlobeSwitcherManager {
     mapRegionDropdownValue?: MapRegionDropdownValue
 }
 
+enum TabName {
+    "2D" = "2D",
+    "3D" = "3D",
+}
+
+const availableTabs = Object.values(TabName)
+
 @observer
 export class GlobeSwitcher extends React.Component<{
     manager: GlobeSwitcherManager
 }> {
     @observable private localCountryName?: EntityName
-
-    private availableTabs = ["2D", "3D"] as const
 
     @computed private get manager(): GlobeSwitcherManager {
         return this.props.manager
@@ -30,20 +35,19 @@ export class GlobeSwitcher extends React.Component<{
     }
 
     @computed private get tabLabels(): TabLabel[] {
-        return this.availableTabs.map((tabName) => ({
+        return availableTabs.map((tabName) => ({
+            key: tabName,
             element: <>{tabName}</>,
             buttonProps: { "data-track-note": "globe_switcher" },
         }))
     }
 
-    @computed private get activeTabIndex(): number {
-        return this.mapConfig.globe.isActive ? 1 : 0
+    @computed private get activeTab(): TabName {
+        return this.mapConfig.globe.isActive ? TabName["3D"] : TabName["2D"]
     }
 
-    @action.bound setTab(tabIndex: number): void {
-        const newTab = this.availableTabs[tabIndex]
-
-        if (newTab === "3D") {
+    @action.bound setTab(activeTab: TabName): void {
+        if (activeTab === TabName["3D"]) {
             if (this.mapConfig.selection.hasSelection) {
                 // if the selection is not empty, rotate to it
                 this.manager.globeController?.rotateToSelection()
@@ -87,8 +91,8 @@ export class GlobeSwitcher extends React.Component<{
                 extraClassNames="GlobeSwitcher"
                 variant="slim"
                 labels={this.tabLabels}
-                activeIndex={this.activeTabIndex}
-                setActiveIndex={this.setTab}
+                selectedKey={this.activeTab}
+                onChange={(key: TabKey) => this.setTab(key as TabName)}
             />
         )
     }

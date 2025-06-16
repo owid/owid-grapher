@@ -51,14 +51,16 @@
         $border-radius: 4px;
         $visual-gap: 2px;
 
-        display: flex;
-        height: $controlRowHeight;
-        margin: 0;
-        padding: $visual-gap;
-        // using a box-shadow instead of a border fixes a bug
-        // where the tab items weren't centered when zoomed in or out
-        box-shadow: inset 0 0 0 1px $light-stroke;
-        border-radius: $border-radius;
+        .Tabs__tablist {
+            display: flex;
+            height: $controlRowHeight;
+            margin: 0;
+            padding: $visual-gap;
+            // using a box-shadow instead of a border fixes a bug
+            // where the tab items weren't centered when zoomed in or out
+            box-shadow: inset 0 0 0 1px $light-stroke;
+            border-radius: $border-radius;
+        }
 
         .Tabs__tab {
             position: relative;
@@ -78,6 +80,7 @@
             letter-spacing: 0.01em;
             white-space: nowrap;
             user-select: none;
+            text-align: center;
 
             &:hover {
                 background-color: $hover-fill;

@@ -2,19 +2,19 @@ import { useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
-import { TabLabel, Tabs } from "./Tabs"
+import { TabKey, TabLabel, Tabs } from "./Tabs"
 
 export const ExpandableTabs = ({
     labels,
-    activeIndex,
-    setActiveIndex,
+    selectedKey,
+    onChange,
     isExpandedDefault = false,
     getVisibleLabels = (labels: TabLabel[]) => labels.slice(0, 3),
     maxTabWidth,
 }: {
     labels: TabLabel[]
-    activeIndex: number
-    setActiveIndex: (index: number) => void
+    selectedKey: TabKey
+    onChange: (key: TabKey) => void
     isExpandedDefault?: boolean
     getVisibleLabels?: (tabLabels: TabLabel[]) => TabLabel[]
     maxTabWidth?: number // if undefined, don't clip labels
@@ -42,8 +42,8 @@ export const ExpandableTabs = ({
         >
             <Tabs
                 labels={visibleLabels}
-                activeIndex={activeIndex}
-                setActiveIndex={setActiveIndex}
+                selectedKey={selectedKey}
+                onChange={onChange}
                 slot={moreButton}
                 maxTabWidth={maxTabWidth}
             />

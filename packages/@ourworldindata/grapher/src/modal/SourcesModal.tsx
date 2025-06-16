@@ -36,7 +36,7 @@ import { CoreColumn } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 import { SourcesKeyDataTable } from "./SourcesKeyDataTable"
 import { SourcesDescriptions } from "./SourcesDescriptions"
-import { TabLabel, Tabs } from "../tabs/Tabs"
+import { TabKey, TabLabel, Tabs } from "../tabs/Tabs"
 import { ExpandableTabs } from "../tabs/ExpandableTabs"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { isContinentsVariableId } from "../core/GrapherConstants"
@@ -66,7 +66,7 @@ interface SourcesModalProps {
 }
 
 interface SourcesModalState {
-    activeTabIndex: number
+    activeTabKey: TabKey
 }
 
 @observer
@@ -76,9 +76,7 @@ export class SourcesModal extends React.Component<
 > {
     constructor(props: SourcesModalProps) {
         super(props)
-        this.state = {
-            activeTabIndex: 0,
-        }
+        this.state = { activeTabKey: this.tabs[0].label.key }
     }
 
     @computed private get manager(): SourcesModalManager {
@@ -114,6 +112,10 @@ export class SourcesModal extends React.Component<
         return this.manager.columnsWithSourcesExtensive
     }
 
+    private makeTabLabelString(title: string, attribution?: string): string {
+        return `${title} ${attribution ?? ""}`.trim()
+    }
+
     private makeTabLabelElement(
         title: string,
         attribution?: string
@@ -130,27 +132,26 @@ export class SourcesModal extends React.Component<
 
     @computed private get tabs(): {
         column: CoreColumn
-        label: { element: React.ReactElement }
+        label: TabLabel
     }[] {
-        const tabs = uniqBy(
+        return uniqBy(
             this.columns.map((column) => {
                 const title = column.titlePublicOrDisplayName.title
                 const attribution = joinTitleFragments(
                     column.titlePublicOrDisplayName.attributionShort,
                     column.titlePublicOrDisplayName.titleVariant
                 )
-                return { column, title, attribution }
+                return {
+                    column,
+                    label: {
+                        key: this.makeTabLabelString(title, attribution),
+                        element: this.makeTabLabelElement(title, attribution),
+                    },
+                }
             }),
             // deduplicate tabs by their label
-            (tab) => `${tab.title} ${tab.attribution}`
+            (tab) => tab.label.key
         )
-
-        return tabs.map((tab) => ({
-            column: tab.column,
-            label: {
-                element: this.makeTabLabelElement(tab.title, tab.attribution),
-            },
-        }))
     }
 
     @computed private get tabLabels(): TabLabel[] {
@@ -184,11 +185,10 @@ export class SourcesModal extends React.Component<
     }
 
     private renderTabs(): React.ReactElement {
-        const activeIndex = this.state.activeTabIndex
-        const setActiveIndex = (index: number) =>
-            this.setState({
-                activeTabIndex: index,
-            })
+        const activeTabKey = this.state.activeTabKey
+        const onChange = (key: TabKey) => {
+            this.setState({ activeTabKey: key })
+        }
 
         // tabs are clipped to this width
         const maxTabWidth = 240
@@ -198,8 +198,8 @@ export class SourcesModal extends React.Component<
             return (
                 <Tabs
                     labels={this.tabLabels}
-                    activeIndex={activeIndex}
-                    setActiveIndex={setActiveIndex}
+                    selectedKey={activeTabKey}
+                    onChange={onChange}
                     horizontalScroll={true}
                     maxTabWidth={maxTabWidth}
                 />
@@ -217,8 +217,8 @@ export class SourcesModal extends React.Component<
             return (
                 <Tabs
                     labels={this.tabLabels}
-                    activeIndex={activeIndex}
-                    setActiveIndex={setActiveIndex}
+                    selectedKey={activeTabKey}
+                    onChange={onChange}
                 />
             )
         }
@@ -232,8 +232,8 @@ export class SourcesModal extends React.Component<
             return (
                 <Tabs
                     labels={this.tabLabels}
-                    activeIndex={activeIndex}
-                    setActiveIndex={setActiveIndex}
+                    selectedKey={activeTabKey}
+                    onChange={onChange}
                     maxTabWidth={maxTabWidth}
                 />
             )
@@ -266,8 +266,8 @@ export class SourcesModal extends React.Component<
             return (
                 <Tabs
                     labels={this.tabLabels}
-                    activeIndex={activeIndex}
-                    setActiveIndex={setActiveIndex}
+                    selectedKey={activeTabKey}
+                    onChange={onChange}
                     horizontalScroll={true}
                     maxTabWidth={maxTabWidth}
                 />
@@ -277,8 +277,8 @@ export class SourcesModal extends React.Component<
         return (
             <ExpandableTabs
                 labels={this.tabLabels}
-                activeIndex={activeIndex}
-                setActiveIndex={setActiveIndex}
+                selectedKey={activeTabKey}
+                onChange={onChange}
                 getVisibleLabels={getVisibleLabels}
                 maxTabWidth={maxTabWidth}
             />
@@ -286,6 +286,10 @@ export class SourcesModal extends React.Component<
     }
 
     private renderMultipleSources(): React.ReactElement {
+        const activeColumn = this.tabs.find(
+            (tab) => tab.label.key === this.state.activeTabKey
+        )?.column
+
         return (
             <>
                 <p className="note-multiple-indicators">
@@ -293,7 +297,7 @@ export class SourcesModal extends React.Component<
                     indicator for more information.
                 </p>
                 {this.renderTabs()}
-                {this.renderSource(this.tabs[this.state.activeTabIndex].column)}
+                {this.renderSource(activeColumn)}
             </>
         )
     }

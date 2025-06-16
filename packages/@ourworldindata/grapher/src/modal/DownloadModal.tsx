@@ -80,6 +80,11 @@ interface DownloadModalProps {
     manager: DownloadModalManager
 }
 
+enum TabName {
+    "Vis" = "Viz",
+    "Data" = "Data",
+}
+
 export const DownloadModal = (
     props: DownloadModalProps
 ): React.ReactElement => {
@@ -96,10 +101,10 @@ export const DownloadModal = (
         [props.manager]
     )
 
-    const [activeTabIndex, setActiveTabIndex] = useState(0)
+    const [activeTab, setActiveTab] = useState(TabName.Vis)
 
-    const isVisTabActive = activeTabIndex === 0
-    const isDataTabActive = activeTabIndex === 1
+    const isVisTabActive = activeTab === TabName.Vis
+    const isDataTabActive = activeTab === TabName.Data
 
     return (
         <Modal bounds={modalBounds} onDismiss={onDismiss} alignVertical="top">
@@ -113,6 +118,7 @@ export const DownloadModal = (
                         variant="slim"
                         labels={[
                             {
+                                key: TabName.Vis,
                                 element: <>Visualization</>,
                                 buttonProps: {
                                     "data-track-note":
@@ -120,6 +126,7 @@ export const DownloadModal = (
                                 } as any,
                             },
                             {
+                                key: TabName.Data,
                                 element: <>Data</>,
                                 buttonProps: {
                                     "data-track-note":
@@ -127,8 +134,8 @@ export const DownloadModal = (
                                 } as any,
                             },
                         ]}
-                        activeIndex={activeTabIndex}
-                        setActiveIndex={setActiveTabIndex}
+                        selectedKey={activeTab}
+                        onChange={(key) => setActiveTab(key as TabName)}
                     />
                 </div>
 

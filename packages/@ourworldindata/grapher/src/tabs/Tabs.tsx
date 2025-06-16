@@ -1,8 +1,11 @@
-import { useRef } from "react"
 import * as React from "react"
+import { Tabs as AriaTabs, TabList, Tab, type Key } from "react-aria-components"
 import cx from "classnames"
 
+export type TabKey = Key
+
 export interface TabLabel {
+    key: TabKey
     element: React.ReactElement
     buttonProps?: React.ButtonHTMLAttributes<HTMLButtonElement> & {
         "data-track-note"?: string
@@ -11,8 +14,8 @@ export interface TabLabel {
 
 export const Tabs = ({
     labels,
-    activeIndex,
-    setActiveIndex,
+    selectedKey,
+    onChange,
     horizontalScroll = false,
     maxTabWidth,
     slot,
@@ -20,48 +23,17 @@ export const Tabs = ({
     variant = "default",
 }: {
     labels: TabLabel[]
-    activeIndex: number
-    setActiveIndex: (label: number) => void
+    selectedKey: Key
+    onChange: (key: Key) => void
     horizontalScroll?: boolean
     maxTabWidth?: number // if undefined, don't clip labels
     slot?: React.ReactElement
     extraClassNames?: string
     variant?: "default" | "slim"
 }) => {
-    const container = useRef<HTMLDivElement>(null)
-
-    // roving tabindex for keyboard navigation
-    function getNextIndex(eventKey: string): number {
-        switch (eventKey) {
-            case "Home":
-                return 0
-            case "End":
-                return labels.length - 1
-            case "ArrowRight":
-                return activeIndex === labels.length - 1 ? 0 : activeIndex + 1
-            case "ArrowLeft":
-                return activeIndex === 0 ? labels.length - 1 : activeIndex - 1
-            default:
-                return activeIndex
-        }
-    }
-
-    // enable keyboard navigation
-    function handleKeyDown(event: React.KeyboardEvent<HTMLButtonElement>) {
-        const nextIndex = getNextIndex(event.key)
-        setActiveIndex(nextIndex)
-
-        // programmatically focus the next active tab
-        if (!container.current) return
-        const activeTabElement = container.current.children[
-            nextIndex
-        ] as HTMLButtonElement
-        if (activeTabElement) activeTabElement.focus()
-    }
-
-    let style: React.CSSProperties | undefined = undefined
+    let tabStyle: React.CSSProperties | undefined = undefined
     if (maxTabWidth !== undefined && Number.isFinite(maxTabWidth)) {
-        style = {
+        tabStyle = {
             maxWidth: maxTabWidth,
             textOverflow: "ellipsis",
             overflow: "hidden",
@@ -69,35 +41,31 @@ export const Tabs = ({
     }
 
     return (
-        <div
+        <AriaTabs
+            selectedKey={selectedKey}
+            onSelectionChange={onChange}
             className={cx("Tabs", "Tabs--variant-" + variant, extraClassNames, {
                 "Tabs--horizontal-scroll": horizontalScroll,
             })}
-            role="tablist"
-            ref={container}
         >
-            {labels.map((label, index) => {
-                const isActive = index === activeIndex
-                return (
-                    <button
-                        key={index}
-                        className={cx("Tabs__tab", {
-                            active: isActive,
-                        })}
-                        style={style}
-                        type="button"
-                        role="tab"
-                        tabIndex={isActive ? 0 : -1}
-                        aria-selected={isActive}
-                        onClick={() => setActiveIndex(index)}
-                        onKeyDown={handleKeyDown}
+            <TabList className="Tabs__tablist">
+                {labels.map((label) => (
+                    <Tab
+                        key={label.key}
+                        id={label.key}
+                        className={({ isSelected }) =>
+                            cx("Tabs__tab", {
+                                active: isSelected,
+                            })
+                        }
+                        style={tabStyle}
                         {...label.buttonProps}
                     >
                         {label.element}
-                    </button>
-                )
-            })}
+                    </Tab>
+                ))}
+            </TabList>
             {slot}
-        </div>
+        </AriaTabs>
     )
 }

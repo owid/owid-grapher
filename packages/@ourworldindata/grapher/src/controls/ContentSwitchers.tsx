@@ -46,6 +46,7 @@ export class ContentSwitchers extends React.Component<{
 
     @computed private get tabLabels(): TabLabel[] {
         return this.availableTabs.map((tab) => ({
+            key: tab,
             element: (
                 <ContentSwitcherTab
                     key={tab}
@@ -60,16 +61,13 @@ export class ContentSwitchers extends React.Component<{
         }))
     }
 
-    @computed private get activeTabIndex(): number {
-        const { activeTab } = this.manager
-        if (!activeTab) return 0
-        const activeIndex = this.availableTabs.indexOf(activeTab)
-        return activeIndex >= 0 ? activeIndex : 0
+    @computed private get activeTab(): GrapherTabName {
+        return this.manager.activeTab ?? this.availableTabs[0]
     }
 
-    @action.bound setTab(tabIndex: number): void {
+    @action.bound setTab(selectedTab: GrapherTabName): void {
         const oldTab = this.manager.activeTab
-        const newTab = this.availableTabs[tabIndex]
+        const newTab = selectedTab
         this.manager.setTab(newTab)
         this.manager.onTabChange?.(oldTab!, newTab)
     }
@@ -84,8 +82,8 @@ export class ContentSwitchers extends React.Component<{
                     iconOnly: !this.showTabLabels,
                 })}
                 labels={this.tabLabels}
-                activeIndex={this.activeTabIndex}
-                setActiveIndex={this.setTab}
+                selectedKey={this.activeTab}
+                onChange={(key) => this.setTab(key as GrapherTabName)}
             />
         )
     }
