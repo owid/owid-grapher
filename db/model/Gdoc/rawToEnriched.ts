@@ -32,7 +32,7 @@ import {
     EnrichedBlockStickyRightContainer,
     EnrichedBlockText,
     EnrichedChartStoryItem,
-    EnrichedRecircLink,
+    EnrichedHybridLink,
     EnrichedScrollerItem,
     EnrichedSDGGridItem,
     EnrichedBlockKeyIndicator,
@@ -140,6 +140,11 @@ import {
     EnrichedBlockExpander,
     recircAlignments,
     RecircAlignment,
+    RawBlockResourcePanel,
+    EnrichedBlockResourcePanel,
+    RawHybridLink,
+    ResourcePanelIcon,
+    resourcePanelIcons,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -188,6 +193,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "people-rows" }, parsePeopleRows)
         .with({ type: "person" }, parsePerson)
         .with({ type: "pull-quote" }, parsePullQuote)
+        .with({ type: "resource-panel" }, parseResourcePanel)
         .with(
             { type: "horizontal-rule" },
             (b): EnrichedBlockHorizontalRule => ({
@@ -899,14 +905,60 @@ const parseList = (raw: RawBlockList): EnrichedBlockList => {
     }
 }
 
-// const parseSimpleTextsWithErrors = (
-//     raw: string[]
-// ): { errors: ParseError[]; texts: SpanSimpleText[] } => {
-//     const parsedAsBlocks = raw.map(htmlToSimpleTextBlock)
-//     const errors = parsedAsBlocks.flatMap((block) => block.parseErrors)
-//     const texts = parsedAsBlocks.map((block) => block.value)
-//     return { errors, texts }
-// }
+const parseResourcePanel = (
+    raw: RawBlockResourcePanel
+): EnrichedBlockResourcePanel => {
+    const createError = (error: ParseError): EnrichedBlockResourcePanel => ({
+        type: "resource-panel",
+        kicker: "",
+        title: "",
+        links: [],
+        parseErrors: [error],
+    })
+
+    if (typeof raw.value !== "object") {
+        return createError({
+            message: "Please use the correct syntax: {.resource-panel}",
+        })
+    }
+    if (raw.value.kicker && typeof raw.value.kicker !== "string") {
+        return createError({
+            message: "kicker, if specified, must be a string",
+        })
+    }
+    if (
+        raw.value.icon &&
+        !validateRawEnum(resourcePanelIcons, raw.value.icon)
+    ) {
+        return createError({
+            message: `icon, if specified, must be one of ${resourcePanelIcons.join(", ")}`,
+        })
+    }
+    if (raw.value.buttonText && typeof raw.value.buttonText !== "string") {
+        return createError({
+            message: "buttonText, if specified, must be a string",
+        })
+    }
+
+    if (typeof raw.value.title !== "string") {
+        return createError({ message: "title must be a string" })
+    }
+    if (!Array.isArray(raw.value.links)) {
+        return createError({ message: "links must be an array" })
+    }
+
+    const { parsedLinks, parseErrors } = parseHybridLinks(raw.value.links)
+
+    return {
+        type: "resource-panel",
+        icon: raw.value.icon as ResourcePanelIcon,
+        kicker: raw.value.kicker,
+        title: raw.value.title,
+        links: parsedLinks,
+        buttonText: raw.value.buttonText,
+        parseErrors,
+    }
+}
 
 const parsePerson = (raw: RawBlockPerson): EnrichedBlockPerson => {
     const createError = (error: ParseError): EnrichedBlockPerson => ({
@@ -1035,11 +1087,54 @@ const parsePullQuote = (raw: RawBlockPullQuote): EnrichedBlockPullQuote => {
     }
 }
 
+function parseHybridLinks(rawLinks: RawHybridLink[]): {
+    parsedLinks: EnrichedHybridLink[]
+    parseErrors: ParseError[]
+} {
+    const parseErrors: ParseError[] = []
+    const parsedLinks: EnrichedHybridLink[] = []
+    for (const link of rawLinks) {
+        if (!link.url) {
+            parseErrors.push({
+                message: "Recirc link missing url property",
+            })
+            continue
+        }
+        const url = Url.fromURL(extractUrl(link.url))
+        if (url.isGoogleDoc || url.isGrapher || url.isExplorer) {
+            parsedLinks.push({
+                url: url.fullUrl,
+                title: link.title,
+                subtitle: link.subtitle,
+                type: "hybrid-link",
+            })
+        } else {
+            if (!link.title) {
+                parseErrors.push({
+                    message: "External URLs must have a title",
+                    isWarning: true,
+                })
+                continue
+            }
+            parsedLinks.push({
+                url: url.fullUrl,
+                title: link.title,
+                subtitle: link.subtitle,
+                type: "hybrid-link",
+            })
+        }
+    }
+    return {
+        parsedLinks,
+        parseErrors,
+    }
+}
+
 const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
     const createError = (
         error: ParseError,
         title = "",
-        links: EnrichedRecircLink[] = []
+        links: EnrichedHybridLink[] = []
     ): EnrichedBlockRecirc => ({
         type: "recirc",
         title,
@@ -1059,40 +1154,7 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
         })
     }
 
-    const parseErrors: ParseError[] = []
-
-    const parsedLinks: EnrichedRecircLink[] = []
-    for (const link of raw.value.links) {
-        if (!link.url) {
-            parseErrors.push({
-                message: "Recirc link missing url property",
-            })
-            continue
-        }
-        const url = Url.fromURL(extractUrl(link.url))
-        if (url.isGoogleDoc || url.isGrapher || url.isExplorer) {
-            parsedLinks.push({
-                url: url.fullUrl,
-                title: link.title,
-                subtitle: link.subtitle,
-                type: "recirc-link",
-            })
-        } else {
-            if (!link.title) {
-                parseErrors.push({
-                    message: "External URLs must have a title",
-                    isWarning: true,
-                })
-                continue
-            }
-            parsedLinks.push({
-                url: url.fullUrl,
-                title: link.title,
-                subtitle: link.subtitle,
-                type: "recirc-link",
-            })
-        }
-    }
+    const { parsedLinks, parseErrors } = parseHybridLinks(raw.value.links)
 
     const linkTypeCounts = R.countBy(parsedLinks, (link) => {
         const url = Url.fromURL(link.url)
