@@ -81,9 +81,7 @@ export interface SettingsMenuManager
 
 interface SettingsMenuProps {
     manager: SettingsMenuManager
-    top: number
-    bottom: number
-    right: number
+    popoverStyle?: React.CSSProperties
 }
 
 @observer
@@ -96,7 +94,7 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
     }
 
     static shouldShow(manager: SettingsMenuManager): boolean {
-        const test = new SettingsMenu({ manager, top: 0, bottom: 0, right: 0 })
+        const test = new SettingsMenu({ manager })
         return test.showSettingsMenuToggle
     }
 
@@ -322,7 +320,6 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
     }
 
     private renderSettingsButtonAndPopup(): JSX.Element {
-        const { top, bottom, right } = this.props
         const { active } = this
 
         return (
@@ -343,7 +340,7 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
                     isOpen={this.active}
                     onClose={this.toggleVisibility}
                     className={GRAPHER_SETTINGS_CLASS}
-                    position={{ top, bottom, right }}
+                    style={this.props.popoverStyle}
                 >
                     {this.menuContentsChart}
                 </Popover>
