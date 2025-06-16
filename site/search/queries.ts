@@ -94,7 +94,7 @@ export async function queryDataCatalogSearch(
             highlightPreTag: "<mark>",
             facets: ["tags"],
             maxValuesPerFacet: 15,
-            hitsPerPage: 60,
+            hitsPerPage: 10,
             page: state.page < 0 ? 0 : state.page,
         },
     ]
