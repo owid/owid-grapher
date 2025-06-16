@@ -50,10 +50,13 @@ import { SiteHeaderNavigation } from "./SiteHeader.js"
 import { DataInsightsIndexPageProps } from "./DataInsightsIndexPage.js"
 
 function hydrateSearchPage() {
-    const elem = document.getElementById("search-page-root")
-    const tagGraph = window._OWID_TAG_GRAPH as TagGraphRoot
-    if (elem) {
-        hydrateRoot(elem, <SearchInstantSearchWrapper tagGraph={tagGraph} />)
+    const root = document.getElementById("search-page-root")
+    const topicTagGraph = window._OWID_TOPIC_TAG_GRAPH as TagGraphRoot
+    if (root) {
+        hydrateRoot(
+            <SearchInstantSearchWrapper topicTagGraph={topicTagGraph} />,
+            root
+        )
     }
 }
 
