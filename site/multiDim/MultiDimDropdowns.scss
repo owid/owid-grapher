@@ -1,0 +1,35 @@
+.md-dropdowns {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+
+    // needs to be kept in sync with calculatecollapsedcount in
+    // multidimembedsettingspanel.tsx.
+    gap: 8px;
+}
+
+.md-dropdowns__toggle {
+    @include label-2-medium;
+    color: $blue-90;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    height: 32px;
+    white-space: nowrap;
+}
+
+.md-dropdowns__toggle-icon {
+    font-size: 12px;
+    color: $blue-50;
+    margin-right: 8px;
+    margin-left: 4px;
+}
+
+.md-dropdowns__toggle-text {
+    text-decoration: underline;
+
+    &:hover {
+        text-decoration: none;
+    }
+}

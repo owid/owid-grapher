@@ -1,0 +1,136 @@
+$indent: 16px;
+
+$toggle-height: 32px;
+$toggle-full-width-breakpoint: 520px;
+
+.md-settings__dropdown-toggle {
+    display: flex;
+    color: $secondary-text;
+    background: white;
+    border: 1px solid $light-stroke;
+    font: $medium 13px/16px $lato;
+    letter-spacing: 0.01em;
+    border-radius: 4px;
+    padding: 8px 10px 8px 12px;
+    height: $toggle-height;
+    cursor: pointer;
+
+    svg {
+        font-size: 12px;
+        margin-left: 8px;
+    }
+
+    &:hover:not([data-disabled]),
+    &:focus:not([data-disabled]) {
+        border-color: $blue-30;
+    }
+
+    &:hover {
+        background: $gray-5;
+    }
+
+    &[data-pressed],
+    &:active {
+        background: $active-fill;
+        border: 1px solid $active-fill;
+    }
+
+    &[data-pressed] {
+        cursor: default;
+        color: $active-text;
+    }
+
+    &[data-disabled] {
+        color: $gray-60;
+        cursor: default;
+        background: $gray-5;
+
+        .md-settings__dropdown-current-choice {
+            color: $gray-70;
+        }
+    }
+
+    @media (max-width: $toggle-full-width-breakpoint) {
+        width: 100%;
+    }
+}
+
+.md-settings__dropdown-label {
+    white-space: nowrap;
+
+    &::after {
+        content: ":";
+        margin-right: 3px;
+    }
+}
+
+.md-settings__dropdown-current-choice {
+    color: $primary-text;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    margin-left: auto;
+}
+
+.md-settings__dropdown {
+    @media (max-width: $toggle-full-width-breakpoint) {
+        width: 100%;
+    }
+}
+
+.md-menu {
+    width: 400px;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0px 4px 23px 4px #0000000f;
+    z-index: $zindex-controls-popup;
+    overflow-y: auto;
+
+    .overlay-header {
+        padding-bottom: 0;
+    }
+
+    .md-label {
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .md-description {
+        color: $gray-70;
+        font-size: 11px;
+    }
+
+    .menu-dimension__description {
+        margin: 0 $indent;
+    }
+
+    .md-menu__options {
+        padding: 0 $indent;
+    }
+
+    .md-menu__group {
+        .md-menu__group-label {
+            color: $light-text;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        margin-bottom: 0.25em;
+    }
+
+    .md-menu__radio-button {
+        padding: 16px 0;
+        border-bottom: 1px solid $gray-20;
+        cursor: pointer;
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+
+    @include sm-only {
+        width: 264px;
+    }
+}

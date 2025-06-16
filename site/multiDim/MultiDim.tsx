@@ -18,7 +18,7 @@ import {
 import { ArchiveContext } from "@ourworldindata/types"
 import { useElementBounds } from "../hooks.js"
 import { cachedGetGrapherConfigByUuid } from "./api.js"
-import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
+import MultiDimEmbedSettingsPanel from "./MultiDimEmbedSettingsPanel.js"
 import { useBaseGrapherConfig } from "./hooks.js"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
 
@@ -181,7 +181,7 @@ export default function MultiDim({
     return (
         <div className="multi-dim-container">
             {hasControls && (
-                <MultiDimSettingsPanel
+                <MultiDimEmbedSettingsPanel
                     className="multi-dim-settings"
                     config={config}
                     settings={settings}

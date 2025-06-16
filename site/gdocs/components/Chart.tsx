@@ -108,9 +108,7 @@ export default function Chart({
         <div
             className={cx(d.position, className, {
                 "full-width-on-mobile":
-                    !isExplorerWithControls &&
-                    !isMultiDimWithControls &&
-                    fullWidthOnMobile,
+                    !isExplorerWithControls && fullWidthOnMobile,
             })}
             style={{ gridRow: d.row, gridColumn: d.column }}
             ref={refChartContainer}
