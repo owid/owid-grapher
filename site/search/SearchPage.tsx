@@ -7,15 +7,15 @@ import { Html } from "../Html.js"
 
 declare global {
     interface Window {
-        _OWID_TAG_GRAPH: TagGraphRoot
+        _OWID_TOPIC_TAG_GRAPH: TagGraphRoot
     }
 }
 
 export const SearchPage = (props: {
     baseUrl: string
-    tagGraph: TagGraphRoot
+    topicTagGraph: TagGraphRoot
 }) => {
-    const { baseUrl, tagGraph } = props
+    const { baseUrl, topicTagGraph } = props
 
     return (
         <Html>
@@ -28,8 +28,8 @@ export const SearchPage = (props: {
             >
                 <script
                     dangerouslySetInnerHTML={{
-                        __html: `window._OWID_TAG_GRAPH = ${JSON.stringify(
-                            tagGraph
+                        __html: `window._OWID_TOPIC_TAG_GRAPH = ${JSON.stringify(
+                            topicTagGraph
                         )}`,
                     }}
                 ></script>
@@ -40,7 +40,7 @@ export const SearchPage = (props: {
                     id="search-page-root"
                     className="grid grid-cols-12-full-width"
                 >
-                    <SearchInstantSearchWrapper tagGraph={tagGraph} />
+                    <SearchInstantSearchWrapper topicTagGraph={topicTagGraph} />
                 </main>
                 <SiteFooter context={SiteFooterContext.searchPage} />
             </body>
