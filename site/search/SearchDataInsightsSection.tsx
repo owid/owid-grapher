@@ -2,7 +2,7 @@ import { AsDraft } from "../AsDraft/AsDraft.js"
 import { DataInsightHit, DataInsightSearchResponse } from "./searchTypes.js"
 import { SearchClient } from "algoliasearch"
 import { useQuery } from "@tanstack/react-query"
-import { queryDataInsights, searchQueryKeys } from "./useQueries.js"
+import { queryDataInsights, searchQueryKeys } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
 import { SearchDataInsightHit } from "./SearchDataInsightHit.js"
 

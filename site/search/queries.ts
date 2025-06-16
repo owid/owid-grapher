@@ -1,4 +1,5 @@
 import { OwidGdocType, TagGraphRoot } from "@ourworldindata/types"
+import { flattenNonTopicNodes } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
 import { SearchResponse } from "instantsearch.js"
 import {
@@ -10,7 +11,7 @@ import {
     SearchState,
 } from "./searchTypes.js"
 import {
-    getTopicsForRibbons,
+    getSelectableTopics,
     getFilterNamesOfType,
     formatCountryFacetFilters,
     CHARTS_INDEX,
@@ -23,6 +24,7 @@ import {
  * Provides hierarchical query keys for better cache management and invalidation
  */
 export const searchQueryKeys = {
+    topicTagGraph: ["topicTagGraph"] as const,
     // Base key for all data catalog queries
     data: [SearchIndexName.ExplorerViewsMdimViewsAndCharts] as const,
     dataSearches: (state: SearchState) =>
@@ -37,12 +39,10 @@ export const searchQueryKeys = {
 export async function queryDataCatalogRibbons(
     searchClient: SearchClient,
     state: SearchState,
-    tagGraph: TagGraphRoot
+    tagGraph: TagGraphRoot,
+    selectedTopic: string | undefined
 ): Promise<DataCatalogRibbonResult[]> {
-    const topicsForRibbons = getTopicsForRibbons(
-        getFilterNamesOfType(state.filters, FilterType.TOPIC),
-        tagGraph
-    )
+    const topicsForRibbons = getSelectableTopics(tagGraph, selectedTopic)
 
     const countryFacetFilters = formatCountryFacetFilters(
         getFilterNamesOfType(state.filters, FilterType.COUNTRY),
@@ -130,4 +130,9 @@ export async function queryDataInsights(
     return searchClient
         .search(searchParams)
         .then((response) => response.results[0] as SearchResponse<any>)
+}
+
+export async function queryTopicTagGraph(): Promise<TagGraphRoot> {
+    const data = await fetch("/topicTagGraph.json").then((res) => res.json())
+    return flattenNonTopicNodes(data)
 }

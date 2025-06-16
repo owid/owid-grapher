@@ -163,27 +163,6 @@ export const DATA_CATALOG_ATTRIBUTES = [
     "queryParams",
 ]
 
-function checkIfNoTopicsOrOneAreaTopicApplied(
-    topics: Set<string>,
-    areas: string[]
-) {
-    if (topics.size === 0) return true
-    if (topics.size > 1) return false
-
-    const [tag] = topics.values()
-    return areas.includes(tag)
-}
-
-export function checkShouldShowRibbonView(
-    query: string,
-    topics: Set<string>,
-    areaNames: string[]
-): boolean {
-    return (
-        query === "" && checkIfNoTopicsOrOneAreaTopicApplied(topics, areaNames)
-    )
-}
-
 /**
  * Set url if it's different from the current url.
  * When the user navigates back, we derive the state from the url and set it
@@ -202,26 +181,27 @@ export function setToFacetFilters(
 ) {
     return Array.from(facetSet).map((facet) => `${attribute}:${facet}`)
 }
-function getAllTagsInArea(area: TagGraphNode): string[] {
+
+function getAllTopicsInArea(area: TagGraphNode): string[] {
     const topics = area.children.reduce((tags, child) => {
         tags.push(child.name)
         if (child.children.length > 0) {
-            tags.push(...getAllTagsInArea(child))
+            tags.push(...getAllTopicsInArea(child))
         }
         return tags
     }, [] as string[])
     return Array.from(new Set(topics))
 }
 
-export function getTopicsForRibbons(
-    topics: Set<string>,
-    tagGraph: TagGraphRoot
-) {
-    if (topics.size === 0) return tagGraph.children.map((child) => child.name)
-    if (topics.size === 1) {
-        const area = tagGraph.children.find((child) => topics.has(child.name))
-        if (area) return getAllTagsInArea(area)
-    }
+export function getSelectableTopics(
+    tagGraph: TagGraphRoot,
+    selectedTopic: string | undefined
+): string[] {
+    if (!selectedTopic) return tagGraph.children.map((child) => child.name)
+
+    const area = tagGraph.children.find((child) => child.name === selectedTopic)
+    if (area) return getAllTopicsInArea(area)
+
     return []
 }
 
