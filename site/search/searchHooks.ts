@@ -1,18 +1,5 @@
-import { useQuery } from "@tanstack/react-query"
-import { SearchClient } from "algoliasearch"
-import { TagGraphRoot } from "@ourworldindata/types"
-import {
-    DataCatalogRibbonResult,
-    DataCatalogSearchResult,
-    SearchState,
-    FilterType,
-} from "./searchTypes.js"
+import { FilterType } from "./searchTypes.js"
 import { getCountryData, getFilterNamesOfType } from "./searchUtils.js"
-import {
-    queryDataCatalogRibbons,
-    queryDataCatalogSearch,
-    searchQueryKeys,
-} from "./useQueries.js"
 import { useSearchContext } from "./SearchContext.js"
 import { Region } from "@ourworldindata/utils"
 
@@ -21,50 +8,13 @@ export const useSelectedCountries = (): Region[] => {
     return getCountryData(selectedCountryNames)
 }
 
-export const useSelectedTopics = (): Set<string> => {
+export const useSelectedTopic = (): string | undefined => {
     const { state } = useSearchContext()
-    return getFilterNamesOfType(state.filters, FilterType.TOPIC)
+    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+    return selectedTopics.size > 0 ? [...selectedTopics][0] : undefined
 }
 
 export const useSelectedCountryNames = (): Set<string> => {
     const { state } = useSearchContext()
     return getFilterNamesOfType(state.filters, FilterType.COUNTRY)
-}
-
-/**
- * Custom hook to get facets data for SearchTopicsRefinementList
- * Automatically switches between ribbon and search queries based on shouldShowRibbons
- */
-export const useSearchFacets = (
-    searchClient: SearchClient,
-    searchState: SearchState,
-    tagGraph: TagGraphRoot,
-    shouldShowRibbons: boolean
-): Record<string, number> | undefined => {
-    const ribbonsQuery = useQuery<DataCatalogRibbonResult[], Error>({
-        queryKey: searchQueryKeys.dataRibbons(searchState),
-        queryFn: () =>
-            queryDataCatalogRibbons(searchClient, searchState, tagGraph),
-        enabled: shouldShowRibbons,
-    })
-
-    const searchQuery = useQuery<DataCatalogSearchResult, Error>({
-        queryKey: searchQueryKeys.dataSearches(searchState),
-        queryFn: () => queryDataCatalogSearch(searchClient, searchState),
-        enabled: !shouldShowRibbons,
-    })
-
-    if (shouldShowRibbons) {
-        // For ribbons, create facets from ribbon results
-        return ribbonsQuery.data
-            ? Object.fromEntries(
-                  ribbonsQuery.data
-                      .sort((a, b) => b.nbHits - a.nbHits)
-                      .map((r) => [r.title, r.nbHits])
-              )
-            : undefined
-    } else {
-        // For search, use facets from search results
-        return searchQuery.data?.facets?.tags
-    }
 }
