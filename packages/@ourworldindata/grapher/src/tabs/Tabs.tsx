@@ -81,7 +81,6 @@ export const Tabs = <TabKey extends string = string>({
                 return (
                     <button
                         key={item.key}
-                        className="Tabs__Tab"
                         style={{ maxWidth: maxTabWidth }}
                         type="button"
                         role="tab"
@@ -91,6 +90,7 @@ export const Tabs = <TabKey extends string = string>({
                         onClick={() => onChange(item.key)}
                         onKeyDown={handleKeyDown}
                         {...item.buttonProps}
+                        className={cx("Tabs__Tab", item.buttonProps?.className)}
                     >
                         {item.element}
                     </button>

@@ -80,15 +80,24 @@ export class ControlsRow extends Component<{
         )
     }
 
+    @computed private get settingsMenuLayout(): React.CSSProperties {
+        const top = this.props.settingsMenuTop ?? 0
+        const bottom = this.framePaddingVertical
+        const right = this.sidePanelWidth + this.framePaddingHorizontal
+
+        const maxHeight = `calc(100% - ${top + bottom}px)`
+        const maxWidth = `calc(100% - ${2 * right}px)`
+
+        return { maxHeight, maxWidth, top, right }
+    }
+
     private renderChartControls(): React.ReactElement {
         return (
             <div className="controls chart-controls">
                 <EntitySelectionToggle manager={this.manager} />
                 <SettingsMenu
                     manager={this.manager}
-                    top={this.props.settingsMenuTop ?? 0}
-                    bottom={this.framePaddingVertical}
-                    right={this.sidePanelWidth + this.framePaddingHorizontal}
+                    popoverStyle={this.settingsMenuLayout}
                 />
             </div>
         )

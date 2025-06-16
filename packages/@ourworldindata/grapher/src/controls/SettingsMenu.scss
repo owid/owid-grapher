@@ -17,6 +17,10 @@ $indent: 15px;
 $control-row-height: 32px;
 
 .settings-menu-contents {
+    .GrapherPopover__wrapper {
+        width: 300px;
+    }
+
     .GrapherPopover__content {
         //
         // shared button coloring & behaviors
