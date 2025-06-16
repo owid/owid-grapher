@@ -20,9 +20,9 @@ const queryClient = new QueryClient({
 })
 
 export const SearchInstantSearchWrapper = ({
-    tagGraph,
+    topicTagGraph,
 }: {
-    tagGraph: TagGraphRoot
+    topicTagGraph: TagGraphRoot
 }) => {
     const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
     const initialState = getInitialSearchState()
@@ -31,7 +31,7 @@ export const SearchInstantSearchWrapper = ({
         <QueryClientProvider client={queryClient}>
             <Search
                 initialState={initialState}
-                tagGraph={tagGraph}
+                topicTagGraph={topicTagGraph}
                 searchClient={searchClient}
             />
         </QueryClientProvider>
