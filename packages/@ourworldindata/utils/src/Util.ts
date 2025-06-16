@@ -121,7 +121,7 @@ import {
     type EnrichedBlockKeyInsightsSlide,
     type EnrichedTopicPageIntroRelatedTopic,
     type EnrichedTopicPageIntroDownloadButton,
-    type EnrichedRecircLink,
+    type EnrichedHybridLink,
     type EnrichedScrollerItem,
     type OwidGdocPostInterface,
     type OwidGdocDataInsightInterface,
@@ -1488,7 +1488,7 @@ export const logPerf = (
 export type NodeWithUrl =
     | OwidEnrichedGdocBlock
     | Span
-    | EnrichedRecircLink
+    | EnrichedHybridLink
     | EnrichedTopicPageIntroRelatedTopic
     | EnrichedTopicPageIntroDownloadButton
     | EnrichedScrollerItem
@@ -1750,6 +1750,7 @@ export function traverseEnrichedBlock(
                     "prominent-link",
                     "pull-quote",
                     "recirc",
+                    "resource-panel",
                     "research-and-writing",
                     "scroller",
                     "sdg-grid",

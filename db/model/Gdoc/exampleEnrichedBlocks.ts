@@ -289,15 +289,35 @@ export const enrichedBlockExamples: Record<
         links: [
             {
                 url: "https://docs.google.com/document/d/abcd-1234/edit",
-                type: "recirc-link",
+                type: "hybrid-link",
             },
             {
                 url: "https://ourworldindata.org/grapher/life-expectancy",
                 title: "Life expectancy",
                 subtitle: "This is an inspiring chart",
-                type: "recirc-link",
+                type: "hybrid-link",
             },
         ],
+        parseErrors: [],
+    },
+    ["resource-panel"]: {
+        type: "resource-panel",
+        icon: "chart",
+        kicker: "Resources",
+        title: "Data on a topic",
+        links: [
+            {
+                url: "https://docs.google.com/document/d/abcd-1234/edit",
+                type: "hybrid-link",
+            },
+            {
+                url: "https://ourworldindata.org/grapher/life-expectancy",
+                title: "Life expectancy",
+                subtitle: "This is an inspiring chart",
+                type: "hybrid-link",
+            },
+        ],
+        buttonText: "View the data catalog for this topic",
         parseErrors: [],
     },
     html: {
