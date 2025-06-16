@@ -393,18 +393,51 @@ export type EnrichedBlockHorizontalRule = {
     value?: Record<string, never> // dummy value to unify block shapes
 } & EnrichedBlockWithParseErrors
 
-export type RawRecircLink = {
+/* This can either be a link to a gdoc/grapher/explorer or external URL */
+export type RawHybridLink = {
     url?: string
     title?: string
     subtitle?: string
 }
+
+/* This can either be a link to a gdoc/grapher/explorer or external URL */
+export type EnrichedHybridLink = {
+    url: string
+    title?: string
+    subtitle?: string
+    type: "hybrid-link"
+}
+
+export type RawBlockResourcePanel = {
+    type: "resource-panel"
+    value?: {
+        icon?: string
+        kicker?: string
+        title?: string
+        links?: RawHybridLink[]
+        buttonText?: string
+    }
+}
+
+export const resourcePanelIcons = ["chart"] as const
+
+export type ResourcePanelIcon = (typeof resourcePanelIcons)[number]
+
+export type EnrichedBlockResourcePanel = {
+    type: "resource-panel"
+    icon?: ResourcePanelIcon
+    kicker?: string
+    title: string
+    links: EnrichedHybridLink[]
+    buttonText?: string
+} & EnrichedBlockWithParseErrors
 
 export type RawBlockRecirc = {
     type: "recirc"
     value?: {
         title?: string
         align?: string
-        links?: RawRecircLink[]
+        links?: RawHybridLink[]
     }
 }
 
@@ -412,18 +445,11 @@ export const recircAlignments = ["left", "center", "right"] as const
 
 export type RecircAlignment = (typeof recircAlignments)[number]
 
-export type EnrichedRecircLink = {
-    url: string
-    title?: string
-    subtitle?: string
-    type: "recirc-link"
-}
-
 export type EnrichedBlockRecirc = {
     type: "recirc"
     title: string
     align?: RecircAlignment
-    links: EnrichedRecircLink[]
+    links: EnrichedHybridLink[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockText = {
@@ -1056,6 +1082,7 @@ export type OwidRawGdocBlock =
     | RawBlockResearchAndWriting
     | RawBlockText
     | RawBlockUrl
+    | RawBlockResourcePanel
     | RawBlockPosition
     | RawBlockHeading
     | RawBlockHtml
@@ -1122,6 +1149,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockAdditionalCharts
     | EnrichedBlockNumberedList
     | EnrichedBlockSimpleText
+    | EnrichedBlockResourcePanel
     | EnrichedBlockExpandableParagraph
     | EnrichedBlockTopicPageIntro
     | EnrichedBlockKeyInsights

@@ -437,6 +437,22 @@ export class GdocBase implements OwidGdocBaseInterface {
 
                 return links
             })
+            .with({ type: "resource-panel" }, (block) => {
+                const links: DbInsertPostGdocLink[] = []
+
+                block.links.forEach(({ url }, i) => {
+                    links.push(
+                        createLinkFromUrl({
+                            url,
+                            sourceId: this.id,
+                            componentType: block.type,
+                            text: `Resource panel link ${i + 1}`,
+                        })
+                    )
+                })
+
+                return links
+            })
             .with({ type: "scroller" }, (block) => {
                 const links: DbInsertPostGdocLink[] = []
 

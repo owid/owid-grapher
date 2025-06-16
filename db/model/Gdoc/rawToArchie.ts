@@ -52,6 +52,7 @@ import {
     RawBlockCode,
     RawBlockCookieNotice,
     RawBlockExpander,
+    RawBlockResourcePanel,
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
 
@@ -336,6 +337,29 @@ function* rawBlockRecircToArchieMLString(
     if (block.value) {
         yield* propertyToArchieMLString("title", block.value)
         yield* propertyToArchieMLString("align", block.value)
+        const links = block.value.links
+        if (links) {
+            yield "[.links]"
+            for (const link of links) {
+                yield* propertyToArchieMLString("url", link)
+                yield* propertyToArchieMLString("title", link)
+                yield* propertyToArchieMLString("subtitle", link)
+            }
+            yield "[]"
+        }
+    }
+    yield "{}"
+}
+
+function* rawBlockResourcePanelToArchieMLString(
+    block: RawBlockResourcePanel
+): Generator<string, void, undefined> {
+    yield "{.resource-panel}"
+    if (block.value) {
+        yield* propertyToArchieMLString("icon", block.value)
+        yield* propertyToArchieMLString("kicker", block.value)
+        yield* propertyToArchieMLString("title", block.value)
+        yield* propertyToArchieMLString("buttonText", block.value)
         const links = block.value.links
         if (links) {
             yield "[.links]"
@@ -918,6 +942,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             rawBlockHorizontalRuleToArchieMLString
         )
         .with({ type: "recirc" }, rawBlockRecircToArchieMLString)
+        .with({ type: "resource-panel" }, rawBlockResourcePanelToArchieMLString)
         .with({ type: "text" }, rawBlockTextToArchieMLString)
         .with({ type: "html" }, rawBlockHtmlToArchieMLString)
         .with({ type: "url" }, rawBlockUrlToArchieMLString)
