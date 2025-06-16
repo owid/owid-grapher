@@ -1,7 +1,5 @@
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { SearchClient } from "algoliasearch"
-import { TagGraphRoot } from "@ourworldindata/types"
 import cx from "classnames"
 import * as React from "react"
 import { useState } from "react"
@@ -9,14 +7,10 @@ import { useSearchContext } from "./SearchContext.js"
 import { useSelectedTopic } from "./searchHooks.js"
 import { getSelectableTopics } from "./searchUtils.js"
 
-export const SearchTopicsRefinementList = ({
-    topicTagGraph,
-}: {
-    searchClient: SearchClient
-    topicTagGraph: TagGraphRoot
-}) => {
+export const SearchTopicsRefinementList = () => {
     const {
         actions: { setTopic },
+        topicTagGraph,
     } = useSearchContext()
     const selectedTopic = useSelectedTopic()
     const selectableTopics = getSelectableTopics(topicTagGraph, selectedTopic)

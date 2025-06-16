@@ -255,3 +255,10 @@ export enum SearchTopicType {
     Topic = "topic",
     Area = "area",
 }
+
+export interface TemplateConfig {
+    resultType: SearchResultType
+    topicType: SearchTopicType | null
+    hasCountry: boolean
+    hasQuery: boolean
+}
