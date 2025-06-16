@@ -11,6 +11,11 @@ export interface TabItem {
     }
 }
 
+// props?: TabProps &
+//     React.RefAttributes<object> & {
+//         "data-track-note"?: string
+//     }
+
 export const Tabs = ({
     items,
     selectedKey,
@@ -20,6 +25,8 @@ export const Tabs = ({
     slot,
     className,
     variant = "default",
+    onHoverStart,
+    onHoverEnd,
 }: {
     items: TabItem[]
     selectedKey: TabKey
@@ -29,6 +36,8 @@ export const Tabs = ({
     slot?: React.ReactElement
     className?: string
     variant?: "default" | "slim"
+    onHoverStart?: (event: any) => void
+    onHoverEnd?: (event: any) => void
 }) => {
     let style: React.CSSProperties | undefined = undefined
     if (maxTabWidth !== undefined && Number.isFinite(maxTabWidth)) {
@@ -49,7 +58,6 @@ export const Tabs = ({
             <div className="Tabs__TabList">
                 {items.map((label) => {
                     const active = label.key === selectedKey
-                    console.log(label.key, active)
                     return (
                         <button
                             key={label.key}
@@ -72,3 +80,15 @@ export const Tabs = ({
         </div>
     )
 }
+
+//    <Tab
+//                 key={item.key}
+//                 id={item.key.toString()}
+//                 style={{ maxWidth: maxTabWidth }}
+//                 onHoverStart={onHoverStart}
+//                 onHoverEnd={onHoverEnd}
+//                 {...item.props}
+//                 className={cx("Tabs__Tab", item.props?.className)}
+//             >
+//                 {item.element}
+//             </Tab>

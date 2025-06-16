@@ -370,12 +370,7 @@ export class SettingsMenu extends React.Component<{
                     className="settings-menu-backdrop"
                     onClick={this.toggleVisibility}
                 ></div>
-                <div
-                    className="settings-menu-wrapper"
-                    style={{
-                        ...this.layout,
-                    }}
-                >
+                <div className="settings-menu-wrapper" style={this.layout}>
                     <OverlayHeader
                         className="settings-menu-header"
                         title={menuTitle}
