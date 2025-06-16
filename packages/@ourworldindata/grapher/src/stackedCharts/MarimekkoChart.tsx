@@ -493,7 +493,7 @@ export class MarimekkoChart
     }
 
     @computed private get bounds(): Bounds {
-        return (this.props.bounds ?? DEFAULT_BOUNDS).padRight(10)
+        return this.props.bounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get innerBounds(): Bounds {
@@ -772,11 +772,17 @@ export class MarimekkoChart
         let currentX = 0
         for (const item of sortedItems) {
             placedItems.push({ ...item, xPosition: currentX })
-            const xValue = item.xPoint?.value ?? 1 // one is the default here because if no x dim is given we make all bars the same width
-            const preciseX =
-                dualAxis.horizontalAxis.place(xValue) -
-                dualAxis.horizontalAxis.place(x0)
-            currentX += preciseX
+            if (item.xPoint?.value === undefined) {
+                const barWidth =
+                    this.dualAxis.innerBounds.width / sortedItems.length
+                currentX += barWidth
+            } else {
+                const xValue = item.xPoint.value
+                const preciseX =
+                    dualAxis.horizontalAxis.place(xValue) -
+                    dualAxis.horizontalAxis.place(x0)
+                currentX += preciseX
+            }
         }
         return placedItems
     }
@@ -1137,10 +1143,15 @@ export class MarimekkoChart
             const { entityName, bars, xPoint, entityColor } = item
             const currentX = dualAxis.horizontalAxis.place(x0) + item.xPosition
 
-            const xValue = xPoint?.value ?? 1
-            const barWidth =
-                dualAxis.horizontalAxis.place(xValue) -
-                dualAxis.horizontalAxis.place(x0)
+            let barWidth = 0
+            if (xPoint?.value !== undefined) {
+                const xValue = xPoint?.value ?? 1
+                barWidth =
+                    dualAxis.horizontalAxis.place(xValue) -
+                    dualAxis.horizontalAxis.place(x0)
+            } else {
+                barWidth = dualAxis.innerBounds.width / placedItems.length
+            }
 
             const isSelected = selectionSet.has(entityName)
             const isHovered =
