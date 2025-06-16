@@ -41,7 +41,6 @@ import {
     OwidGdocDataInsightInterface,
     TombstonePageData,
     mergeGrapherConfigs,
-    createTagGraph,
 } from "@ourworldindata/utils"
 import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
 import {
@@ -57,8 +56,8 @@ import {
     knexRaw,
     KnexReadonlyTransaction,
     getHomepageId,
-    getFlatTagGraph,
     getPublishedExplorersBySlug,
+    generateTopicTagGraph,
 } from "../db/db.js"
 import { getPageOverrides, isPageOverridesCitable } from "./pageOverrides.js"
 import { ProminentLink } from "../site/blocks/ProminentLink.js"
@@ -103,10 +102,9 @@ export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
 
 export const renderSearchPage = async (knex: KnexReadonlyTransaction) => {
-    const { __rootId, ...flatTagGraph } = await getFlatTagGraph(knex)
-    const rootTagGraph = createTagGraph(flatTagGraph, __rootId)
+    const topicTagGraph = await generateTopicTagGraph(knex)
     return renderToHtmlPage(
-        <SearchPage baseUrl={BAKED_BASE_URL} tagGraph={rootTagGraph} />
+        <SearchPage baseUrl={BAKED_BASE_URL} topicTagGraph={topicTagGraph} />
     )
 }
 
