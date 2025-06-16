@@ -1,5 +1,3 @@
-import { TagGraphRoot } from "@ourworldindata/types"
-import { SearchClient } from "algoliasearch"
 import { useQuery } from "@tanstack/react-query"
 import { DataCatalogRibbon } from "./DataCatalogRibbon.js"
 import { DataCatalogRibbonViewSkeleton } from "./DataCatalogRibbonViewSkeleton.js"
@@ -8,14 +6,8 @@ import { queryDataCatalogRibbons, searchQueryKeys } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedTopic } from "./searchHooks.js"
 
-export const DataCatalogRibbonView = ({
-    topicTagGraph,
-    searchClient,
-}: {
-    topicTagGraph: TagGraphRoot
-    searchClient: SearchClient
-}) => {
-    const { state } = useSearchContext()
+export const DataCatalogRibbonView = () => {
+    const { state, searchClient, topicTagGraph } = useSearchContext()
     const selectedTopic = useSelectedTopic()
 
     const query = useQuery<DataCatalogRibbonResult[], Error>({
