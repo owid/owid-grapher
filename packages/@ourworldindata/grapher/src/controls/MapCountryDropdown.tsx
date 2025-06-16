@@ -6,16 +6,22 @@ import {
     EntityName,
     FuzzySearch,
     getRegionAlternativeNames,
-    getUserCountryInformation,
     getUserNavigatorLanguagesNonEnglish,
+    GlobeRegionName,
     mappableCountries,
     MapRegionName,
     sortBy,
+    checkIsOwidIncomeGroupName,
+    getUserCountryInformation,
+    regions,
 } from "@ourworldindata/utils"
 import { GlobeController } from "../mapCharts/GlobeController"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationArrow } from "@fortawesome/free-solid-svg-icons"
 import { SearchDropdown } from "./SearchDropdown"
+import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants"
+import { match } from "ts-pattern"
+import * as R from "remeda"
 
 export interface MapCountryDropdownManager {
     mapConfig?: MapConfig
@@ -27,11 +33,17 @@ export interface MapCountryDropdownManager {
 }
 
 interface DropdownOption {
+    type: "country" | "continent"
     label: string
     value: string
     isLocal?: boolean
     alternativeNames?: string[]
-    trackNote: "map_zoom_to_country"
+    trackNote: "map_zoom_mobile"
+}
+
+interface GroupedDropdownOption {
+    label: string
+    options: DropdownOption[]
 }
 
 @observer
@@ -39,7 +51,7 @@ export class MapCountryDropdown extends React.Component<{
     manager: MapCountryDropdownManager
 }> {
     @observable private searchInput = ""
-    @observable private localCountryName?: EntityName
+    @observable private localEntityNames?: EntityName[]
 
     static shouldShow(manager: MapCountryDropdownManager): boolean {
         const menu = new MapCountryDropdown({ manager })
@@ -66,7 +78,7 @@ export class MapCountryDropdown extends React.Component<{
 
     @computed get fuzzy(): FuzzySearch<DropdownOption> {
         return FuzzySearch.withKeyArray(
-            this.options,
+            this.flatOptions,
             (entity) => [entity.label, ...(entity.alternativeNames ?? [])],
             (entity) => entity.label
         )
@@ -78,60 +90,129 @@ export class MapCountryDropdown extends React.Component<{
     }
 
     @action.bound private onChange(selected: DropdownOption | null): void {
-        const country = selected?.value
-        if (!country) return
+        if (!selected?.value) return
 
-        // reset the region if a non-world region is currently selected
-        if (this.mapConfig.region !== MapRegionName.World) {
-            this.mapConfig.region = MapRegionName.World
-        }
+        match(selected.type)
+            .with("country", () => {
+                // reset the region if a non-world region is currently selected
+                if (this.mapConfig.region !== MapRegionName.World) {
+                    this.mapConfig.region = MapRegionName.World
+                }
 
-        // focus the country on the globe
-        this.manager.globeController?.focusOnCountry(country)
+                // focus the country on the globe
+                this.manager.globeController?.focusOnCountry(selected.value)
+            })
+            .with("continent", () => {
+                this.manager.globeController?.rotateToOwidContinent(
+                    selected.value as GlobeRegionName
+                )
+            })
+            .exhaustive()
     }
 
     @computed private get sortedCountries(): EntityName[] {
         return sortBy(mappableCountries.map((country) => country.name))
     }
 
-    @computed private get options(): DropdownOption[] {
+    @computed private get options(): GroupedDropdownOption[] {
+        const { localEntityNames = [] } = this
         const langs = getUserNavigatorLanguagesNonEnglish()
 
-        const toOption = (country: EntityName): DropdownOption => ({
-            value: country,
-            label: country,
-            alternativeNames: getRegionAlternativeNames(country, langs),
-            trackNote: "map_zoom_to_country",
-        })
+        const countryOptions: DropdownOption[] = this.sortedCountries.map(
+            (country) => ({
+                type: "country",
+                value: country,
+                label: country,
+                alternativeNames: getRegionAlternativeNames(country, langs),
+                isLocal: this.localEntityNames?.includes(country),
+                trackNote: "map_zoom_mobile",
+            })
+        )
 
-        if (this.localCountryName) {
-            return [
-                { ...toOption(this.localCountryName), isLocal: true },
-                ...this.sortedCountries
-                    .filter((country) => country !== this.localCountryName)
-                    .map(toOption),
-            ]
+        const continentOptions: DropdownOption[] = Object.values(MapRegionName)
+            .filter((region) => region !== MapRegionName.World)
+            .map((region) => {
+                return {
+                    type: "continent",
+                    value: region,
+                    label: MAP_REGION_LABELS[region as MapRegionName],
+                    isLocal: this.localEntityNames?.includes(region),
+                    trackNote: "map_zoom_mobile",
+                }
+            })
+
+        const sortLocalEntitiesToTop = (
+            options: DropdownOption[]
+        ): DropdownOption[] => {
+            if (localEntityNames.length === 0) return options
+            const [local, nonLocal] = R.partition(
+                options,
+                (option) => !!option.isLocal
+            )
+            return [...local, ...nonLocal]
         }
 
-        return this.sortedCountries.map(toOption)
+        return [
+            {
+                label: "Continents",
+                options: sortLocalEntitiesToTop(continentOptions),
+            },
+            {
+                label: "Countries",
+                options: sortLocalEntitiesToTop(countryOptions),
+            },
+        ]
     }
 
-    @computed private get filteredOptions(): DropdownOption[] {
+    @computed private get flatOptions(): DropdownOption[] {
+        return this.options.flatMap((option) => option.options)
+    }
+
+    @computed private get filteredOptions():
+        | DropdownOption[]
+        | GroupedDropdownOption[] {
         if (!this.searchInput) return this.options
         return this.fuzzy.search(this.searchInput)
     }
 
     @computed private get value(): DropdownOption | null {
+        const { region } = this.mapConfig
         const { focusCountry } = this.manager.mapConfig?.globe ?? {}
-        if (!focusCountry) return null
-        return this.options.find((opt) => focusCountry === opt.value) ?? null
+        const currentValue = focusCountry ?? region
+        return (
+            this.flatOptions.find((opt) => currentValue === opt.value) ?? null
+        )
     }
 
     @action.bound async populateLocalCountryName(): Promise<void> {
         try {
             const localCountryInfo = await getUserCountryInformation()
             if (!localCountryInfo) return
-            this.localCountryName = localCountryInfo.name
+
+            const countryRegionsWithoutIncomeGroups = localCountryInfo.regions
+                ? localCountryInfo.regions.filter(
+                      (region) => !checkIsOwidIncomeGroupName(region)
+                  )
+                : []
+
+            const userEntityCodes = [
+                localCountryInfo.code,
+                ...countryRegionsWithoutIncomeGroups,
+            ]
+
+            const userRegions = regions.filter((region) =>
+                userEntityCodes.includes(region.code)
+            )
+
+            const sortedUserRegions = sortBy(userRegions, (region) =>
+                userEntityCodes.indexOf(region.code)
+            )
+
+            const localEntityNames = sortedUserRegions.map(
+                (region) => region.name
+            )
+
+            this.localEntityNames = localEntityNames
         } catch {
             // ignore
         }
