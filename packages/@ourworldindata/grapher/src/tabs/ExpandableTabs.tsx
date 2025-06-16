@@ -2,21 +2,21 @@ import { useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
-import { TabLabel, Tabs } from "./Tabs"
+import { TabKey, TabItem, Tabs } from "./Tabs"
 
 export const ExpandableTabs = ({
-    labels,
-    activeIndex,
-    setActiveIndex,
+    items,
+    selectedKey,
+    onChange,
     isExpandedDefault = false,
-    getVisibleLabels = (labels: TabLabel[]) => labels.slice(0, 3),
+    getVisibleItems = (items: TabItem[]) => items.slice(0, 3),
     maxTabWidth,
 }: {
-    labels: TabLabel[]
-    activeIndex: number
-    setActiveIndex: (index: number) => void
+    items: TabItem[]
+    selectedKey: TabKey
+    onChange: (key: TabKey) => void
     isExpandedDefault?: boolean
-    getVisibleLabels?: (tabLabels: TabLabel[]) => TabLabel[]
+    getVisibleItems?: (items: TabItem[]) => TabItem[]
     maxTabWidth?: number // if undefined, don't clip labels
 }) => {
     const [isExpanded, setExpanded] = useState(isExpandedDefault)
@@ -25,10 +25,13 @@ export const ExpandableTabs = ({
         setExpanded(!isExpanded)
     }
 
-    const visibleLabels = isExpanded ? labels : getVisibleLabels(labels)
+    const visibleItems = isExpanded ? items : getVisibleItems(items)
 
-    const moreButton = (
-        <button className="Tabs__tab ExpandableTabs__button" onClick={toggle}>
+    const showMoreButton = (
+        <button
+            className="Tabs__Tab ExpandableTabs__ShowMoreButton"
+            onClick={toggle}
+        >
             <FontAwesomeIcon icon={isExpanded ? faMinus : faPlus} />
             <span>{isExpanded ? "Show less" : "Show more"}</span>
         </button>
@@ -41,10 +44,10 @@ export const ExpandableTabs = ({
             })}
         >
             <Tabs
-                labels={visibleLabels}
-                activeIndex={activeIndex}
-                setActiveIndex={setActiveIndex}
-                slot={moreButton}
+                items={visibleItems}
+                selectedKey={selectedKey}
+                onChange={onChange}
+                slot={showMoreButton}
                 maxTabWidth={maxTabWidth}
             />
         </div>

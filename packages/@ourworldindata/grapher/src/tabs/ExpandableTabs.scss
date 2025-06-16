@@ -3,12 +3,12 @@
         white-space: nowrap;
     }
 
-    .Tabs__tab.ExpandableTabs__button {
+    .Tabs__Tab.ExpandableTabs__ShowMoreButton {
         color: $dark-text;
         border-color: $gray-10;
         background: $gray-10;
 
-        &:hover {
+        &[data-hovered] {
             background: $gray-20;
         }
 

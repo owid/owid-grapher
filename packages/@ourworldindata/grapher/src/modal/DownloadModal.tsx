@@ -80,6 +80,11 @@ interface DownloadModalProps {
     manager: DownloadModalManager
 }
 
+enum TabName {
+    "Vis" = "Viz",
+    "Data" = "Data",
+}
+
 export const DownloadModal = (
     props: DownloadModalProps
 ): React.ReactElement => {
@@ -96,10 +101,10 @@ export const DownloadModal = (
         [props.manager]
     )
 
-    const [activeTabIndex, setActiveTabIndex] = useState(0)
+    const [activeTab, setActiveTab] = useState(TabName.Vis)
 
-    const isVisTabActive = activeTabIndex === 0
-    const isDataTabActive = activeTabIndex === 1
+    const isVisTabActive = activeTab === TabName.Vis
+    const isDataTabActive = activeTab === TabName.Data
 
     return (
         <Modal bounds={modalBounds} onDismiss={onDismiss} alignVertical="top">
@@ -111,24 +116,26 @@ export const DownloadModal = (
                 <div className="download-modal__tab-list">
                     <Tabs
                         variant="slim"
-                        labels={[
+                        items={[
                             {
+                                key: TabName.Vis,
                                 element: <>Visualization</>,
-                                buttonProps: {
+                                props: {
                                     "data-track-note":
                                         "chart_download_modal_tab_visualization",
-                                } as any,
+                                },
                             },
                             {
+                                key: TabName.Data,
                                 element: <>Data</>,
-                                buttonProps: {
+                                props: {
                                     "data-track-note":
                                         "chart_download_modal_tab_data",
-                                } as any,
+                                },
                             },
                         ]}
-                        activeIndex={activeTabIndex}
-                        setActiveIndex={setActiveTabIndex}
+                        selectedKey={activeTab}
+                        onChange={(key) => setActiveTab(key as TabName)}
                     />
                 </div>
 
