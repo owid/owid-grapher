@@ -1,6 +1,7 @@
 import { commafyNumber } from "@ourworldindata/utils"
 import { useQuery } from "@tanstack/react-query"
 import { ChartHitMedium } from "./ChartHitMedium.js"
+import { ChartHitLarge } from "./ChartHitLarge.js"
 import { DataCatalogPagination } from "./DataCatalogPagination.js"
 import { SearchNoResults } from "./SearchNoResults.js"
 import { DataCatalogResultsSkeleton } from "./DataCatalogResultsSkeleton.js"
@@ -12,7 +13,11 @@ import { useSelectedCountries } from "./searchHooks.js"
 
 const analytics = new SiteAnalytics()
 
-export const DataCatalogResults = () => {
+export const DataCatalogResults = ({
+    enableLargeFirstResult = true,
+}: {
+    enableLargeFirstResult?: boolean
+}) => {
     const {
         state,
         actions: { setPage },
@@ -41,24 +46,50 @@ export const DataCatalogResults = () => {
                     </p>
                 )}
                 <ul className="data-catalog-search-list">
-                    {hits.map((hit, i) => (
-                        <li
-                            className="data-catalog-search-hit"
-                            key={hit.objectID}
-                        >
-                            <ChartHitMedium
-                                onClick={() => {
-                                    analytics.logDataCatalogResultClick(
-                                        hit,
-                                        i + 1,
-                                        "search"
-                                    )
-                                }}
-                                hit={hit}
-                                searchQueryRegionsMatches={selectedCountries}
-                            />
-                        </li>
-                    ))}
+                    {hits.map((hit, i) => {
+                        const isFirstResult = i === 0
+                        const shouldChartHitLarge =
+                            enableLargeFirstResult &&
+                            isFirstResult &&
+                            page === 0
+
+                        return (
+                            <li
+                                className="data-catalog-search-hit"
+                                key={hit.objectID}
+                            >
+                                {shouldChartHitLarge ? (
+                                    <ChartHitLarge
+                                        onClick={() => {
+                                            analytics.logDataCatalogResultClick(
+                                                hit,
+                                                i + 1,
+                                                "search"
+                                            )
+                                        }}
+                                        hit={hit}
+                                        searchQueryRegionsMatches={
+                                            selectedCountries
+                                        }
+                                    />
+                                ) : (
+                                    <ChartHitMedium
+                                        onClick={() => {
+                                            analytics.logDataCatalogResultClick(
+                                                hit,
+                                                i + 1,
+                                                "search"
+                                            )
+                                        }}
+                                        hit={hit}
+                                        searchQueryRegionsMatches={
+                                            selectedCountries
+                                        }
+                                    />
+                                )}
+                            </li>
+                        )
+                    })}
                 </ul>
             </div>
             <DataCatalogPagination
