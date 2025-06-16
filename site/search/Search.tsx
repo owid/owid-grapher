@@ -2,7 +2,6 @@ import { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
 import { Url } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
 import { useReducer, useMemo, useEffect } from "react"
-import { DataCatalogRibbonView } from "./DataCatalogRibbonView.js"
 import { Searchbar } from "./Searchbar.js"
 import { SearchTopicsRefinementList } from "./SearchTopicsRefinementList.js"
 import {
@@ -11,12 +10,7 @@ import {
     searchStateToUrl,
     urlToSearchState,
 } from "./searchState.js"
-import {
-    SearchState,
-    FilterType,
-    SearchResultType,
-    SearchTopicType,
-} from "./searchTypes.js"
+import { SearchState, FilterType, TemplateConfig } from "./searchTypes.js"
 import {
     syncDataCatalogURL,
     getFilterNamesOfType,
@@ -24,12 +18,9 @@ import {
 } from "./searchUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { AsDraft } from "../AsDraft/AsDraft.js"
-import { match } from "ts-pattern"
 import { SearchContext } from "./SearchContext.js"
-import { SearchDataInsights } from "./SearchDataInsightsSection.js"
 import { SearchResultTypeToggle } from "./SearchResultTypeToggle.js"
-import { queryTopicTagGraph, searchQueryKeys } from "./queries.js"
-import { useQuery } from "@tanstack/react-query"
+import { SearchTemplates } from "./SearchTemplates.js"
 
 const analytics = new SiteAnalytics()
 
@@ -97,7 +88,7 @@ export const Search = ({
         }
     }, [actions])
 
-    const templateConfig = {
+    const templateConfig: TemplateConfig = {
         resultType: state.resultType,
         topicType: getSelectedTopicType(state.filters, AREA_NAMES),
         hasCountry:
@@ -106,7 +97,15 @@ export const Search = ({
     }
 
     return (
-        <SearchContext.Provider value={{ state, actions }}>
+        <SearchContext.Provider
+            value={{
+                state,
+                actions,
+                searchClient,
+                templateConfig,
+                topicTagGraph,
+            }}
+        >
             <div className="data-catalog-header span-cols-14 grid grid-cols-12-full-width">
                 <header className="data-catalog-heading span-cols-12 col-start-2">
                     <h1 className="h1-semibold">Data Catalog</h1>
@@ -119,56 +118,14 @@ export const Search = ({
                     <Searchbar allTopics={ALL_TOPICS} />
                 </div>
             </div>
-            <SearchTopicsRefinementList
-                searchClient={searchClient}
-                topicTagGraph={topicTagGraph}
-            />
+            <SearchTopicsRefinementList />
             <AsDraft
                 className="col-start-11 span-cols-3 as-draft--align-self-start"
                 name="Search result type"
             >
                 <SearchResultTypeToggle />
             </AsDraft>
-            {match(templateConfig)
-                .with(
-                    {
-                        resultType: SearchResultType.ALL,
-                        topicType: SearchTopicType.Area,
-                        hasCountry: true,
-                        hasQuery: true,
-                    },
-                    () => (
-                        <>
-                            <DataCatalogRibbonView
-                                topicTagGraph={topicTagGraph}
-                                searchClient={searchClient}
-                            />
-                            <SearchDataInsights searchClient={searchClient} />
-                        </>
-                    )
-                )
-                .with(
-                    {
-                        resultType: SearchResultType.ALL,
-                        topicType: SearchTopicType.Area,
-                        hasCountry: false,
-                        hasQuery: false,
-                    },
-                    () => (
-                        <div className="col-start-2 span-cols-12">
-                            <h2>
-                                Please enter a search query to see results for
-                                all areas of research.
-                            </h2>
-                        </div>
-                    )
-                )
-
-                .otherwise(() => (
-                    <div className="col-start-2 span-cols-12">
-                        <h2>🚧 Template configuration under construction 🚧</h2>
-                    </div>
-                ))}
+            <SearchTemplates />
         </SearchContext.Provider>
     )
 }
