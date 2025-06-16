@@ -243,11 +243,14 @@ ${items}
 
             return `> ${quote}\n\n${content}`
         })
-        .with({ type: "recirc" }, (b): string | undefined => {
-            const items = b.links.map((i) => `* ${i.url}`).join("\n")
-            return `### ${b.title}
+        .with(
+            { type: P.union("recirc", "resource-panel") },
+            (b): string | undefined => {
+                const items = b.links.map((i) => `* ${i.url}`).join("\n")
+                return `### ${b.title}
 ${items}`
-        })
+            }
+        )
         .with({ type: "html" }, (b): string | undefined =>
             exportComponents ? b.value : undefined
         )

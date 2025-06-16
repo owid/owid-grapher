@@ -246,6 +246,7 @@ export function extractFilenamesFromBlock(
                     "pill-row",
                     "pull-quote",
                     "recirc",
+                    "resource-panel",
                     "scroller",
                     "sdg-grid",
                     "sdg-toc",

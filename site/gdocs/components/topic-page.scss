@@ -279,4 +279,16 @@
     .article-block__chart {
         margin-bottom: 32px;
     }
+
+    .article-block__resource-panel {
+        @include md-up {
+            /*
+             * For LTPs, there should only be one of these components and it should be placed beside the first paragraph
+             * of the article (grid-row-1 is the header)
+             **/
+            grid-row: 2;
+            /* Make sure the resource panel spans all the rows that the intro content creates */
+            grid-row-end: span 6;
+        }
+    }
 }
