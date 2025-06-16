@@ -1,7 +1,6 @@
 import { commafyNumber } from "@ourworldindata/utils"
-import { SearchClient } from "algoliasearch"
 import { useQuery } from "@tanstack/react-query"
-import { ChartHit } from "./ChartHit.js"
+import { ChartHitMedium } from "./ChartHitMedium.js"
 import { DataCatalogPagination } from "./DataCatalogPagination.js"
 import { SearchNoResults } from "./SearchNoResults.js"
 import { DataCatalogResultsSkeleton } from "./DataCatalogResultsSkeleton.js"
@@ -13,14 +12,11 @@ import { useSelectedCountries } from "./searchHooks.js"
 
 const analytics = new SiteAnalytics()
 
-export const DataCatalogResults = ({
-    searchClient,
-}: {
-    searchClient: SearchClient
-}) => {
+export const DataCatalogResults = () => {
     const {
         state,
         actions: { setPage },
+        searchClient,
     } = useSearchContext()
     const selectedCountries = useSelectedCountries()
 
@@ -44,13 +40,13 @@ export const DataCatalogResults = ({
                         {nbHits === 1 ? "indicator" : "indicators"}
                     </p>
                 )}
-                <ul className="data-catalog-search-list grid grid-cols-4 grid-sm-cols-1">
+                <ul className="data-catalog-search-list">
                     {hits.map((hit, i) => (
                         <li
                             className="data-catalog-search-hit"
                             key={hit.objectID}
                         >
-                            <ChartHit
+                            <ChartHitMedium
                                 onClick={() => {
                                     analytics.logDataCatalogResultClick(
                                         hit,
