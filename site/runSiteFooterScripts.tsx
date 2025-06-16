@@ -49,9 +49,12 @@ import { SiteHeaderNavigation } from "./SiteHeader.js"
 
 function hydrateSearchPage() {
     const root = document.getElementById("search-page-root")
-    const tagGraph = window._OWID_TAG_GRAPH as TagGraphRoot
+    const topicTagGraph = window._OWID_TOPIC_TAG_GRAPH as TagGraphRoot
     if (root) {
-        hydrate(<SearchInstantSearchWrapper tagGraph={tagGraph} />, root)
+        hydrate(
+            <SearchInstantSearchWrapper topicTagGraph={topicTagGraph} />,
+            root
+        )
     }
 }
 
