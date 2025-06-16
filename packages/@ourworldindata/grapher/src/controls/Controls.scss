@@ -133,12 +133,12 @@ nav.controlsRow .controls {
 
 // reduce the horizontal padding of a content switcher tab based on grapher's size
 @container grapher (max-width:725px) {
-    .ContentSwitchers .Tabs__tab {
+    .ContentSwitchers .Tabs__Tab {
         --tab-padding: 12px;
     }
 }
 @container grapher (max-width:335px) {
-    .ContentSwitchers .Tabs__tab {
+    .ContentSwitchers .Tabs__Tab {
         --tab-padding: 8px;
     }
 }
