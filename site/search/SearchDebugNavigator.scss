@@ -1,0 +1,250 @@
+/* SearchDebugNavigator component styles */
+
+/* Main container */
+.search-debug-navigator {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.search-debug-navigator--error {
+    padding: 1.5rem;
+    background-color: #dc3545;
+    color: white;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Layout sections */
+.search-debug-navigator__left-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+}
+
+.search-debug-navigator__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.search-debug-navigator__info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.search-debug-navigator__primary-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.search-debug-navigator__description-section {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Buttons */
+.search-debug-navigator__button {
+    padding: 0.5rem 1rem;
+    background-color: #007cba;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-debug-navigator__button:hover {
+    background-color: #005a87;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-debug-navigator__button:active {
+    background-color: #004466;
+    transform: translateY(0);
+}
+
+.search-debug-navigator__button:focus {
+    outline: 2px solid #007cba;
+    outline-offset: 2px;
+}
+
+.search-debug-navigator__button--outline {
+    background-color: transparent;
+    color: #007cba;
+    border: 2px solid #007cba;
+}
+
+.search-debug-navigator__button--outline:hover {
+    background-color: #007cba;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-debug-navigator__button--outline:active {
+    background-color: #005a87;
+    border-color: #005a87;
+    transform: translateY(0);
+}
+
+/* Form controls */
+.search-debug-navigator__checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #495057;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.search-debug-navigator__checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* Text elements */
+.search-debug-navigator__description {
+    font-weight: 600;
+    color: #212529;
+    font-size: 1.1rem;
+}
+
+.search-debug-navigator__counter {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.search-debug-navigator__figma-link {
+    padding: 0.5rem 1rem;
+    background-color: #6f42c1;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.search-debug-navigator__figma-link:hover {
+    background-color: #5a359a;
+}
+
+/* Config part buttons (clickable text elements) */
+.search-debug-navigator__config-part {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    cursor: default;
+}
+
+.search-debug-navigator__config-part--clickable {
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    outline: none;
+}
+
+.search-debug-navigator__config-part--locked {
+    cursor: not-allowed;
+    opacity: 0.5;
+    color: #6c757d;
+}
+
+.search-debug-navigator__config-part--locked:disabled {
+    pointer-events: none;
+}
+
+/* Crossed-out styling - must come after clickable to override */
+.search-debug-navigator__config-part--crossed-out {
+    text-decoration: line-through;
+    opacity: 0.6;
+    color: #6c757d;
+}
+
+/* Hover states - order matters for specificity */
+.search-debug-navigator__config-part--clickable:hover {
+    color: #007cba;
+}
+
+/* Crossed-out hover overrides normal hover */
+.search-debug-navigator__config-part--clickable.search-debug-navigator__config-part--crossed-out:hover {
+    color: #868e96;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .search-debug-navigator {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+        padding: 1rem;
+    }
+
+    .search-debug-navigator__left-controls {
+        order: -1;
+        align-items: center;
+        flex-direction: row;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .search-debug-navigator__info {
+        order: 0;
+        text-align: center;
+    }
+
+    .search-debug-navigator__info-row {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .search-debug-navigator__primary-controls {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .search-debug-navigator__button {
+        min-width: 80px;
+        font-size: 0.85rem;
+    }
+
+    .search-debug-navigator__description {
+        font-size: 0.85rem;
+    }
+}
