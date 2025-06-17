@@ -1,14 +1,16 @@
 import { OwidGdocType, TagGraphRoot } from "@ourworldindata/types"
 import { flattenNonTopicNodes } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
-import { SearchResponse } from "instantsearch.js"
 import {
+    ArticleSearchResponse,
     DataCatalogRibbonResult,
     DataCatalogSearchResult,
+    DataInsightSearchResponse,
     FilterType,
     IDataCatalogHit,
     SearchIndexName,
     SearchState,
+    TopicPageSearchResponse,
 } from "./searchTypes.js"
 import {
     getSelectableTopics,
@@ -17,6 +19,7 @@ import {
     CHARTS_INDEX,
     DATA_CATALOG_ATTRIBUTES,
     setToFacetFilters,
+    getTopicFacetFilters,
 } from "./searchUtils.js"
 
 /**
@@ -34,6 +37,10 @@ export const searchQueryKeys = {
     writing: [SearchIndexName.Pages] as const,
     dataInsights: (state: SearchState) =>
         [...searchQueryKeys.writing, "data-insights", state] as const,
+    articles: (state: SearchState) =>
+        [...searchQueryKeys.writing, "articles", state] as const,
+    topicPages: (state: SearchState) =>
+        [...searchQueryKeys.writing, "topic-pages", state] as const,
 } as const
 
 export async function queryDataCatalogRibbons(
@@ -107,7 +114,7 @@ export async function queryDataCatalogSearch(
 export async function queryDataInsights(
     searchClient: SearchClient,
     state: SearchState
-): Promise<SearchResponse<any>> {
+): Promise<DataInsightSearchResponse> {
     const searchParams = [
         {
             indexName: SearchIndexName.Pages,
@@ -129,7 +136,60 @@ export async function queryDataInsights(
 
     return searchClient
         .search(searchParams)
-        .then((response) => response.results[0] as SearchResponse<any>)
+        .then((response) => response.results[0] as DataInsightSearchResponse)
+}
+
+export async function queryArticles(
+    searchClient: SearchClient,
+    state: SearchState
+): Promise<ArticleSearchResponse> {
+    const searchParams = [
+        {
+            indexName: SearchIndexName.Pages,
+            query: state.query,
+            filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
+            facetFilters: getTopicFacetFilters(state.filters),
+            highlightPostTag: "</mark>",
+            highlightPreTag: "<mark>",
+            attributesToRetrieve: [
+                "title",
+                "thumbnailUrl",
+                "date",
+                "slug",
+                "type",
+                "content",
+                "authors",
+            ],
+            hitsPerPage: 5,
+            page: state.page < 0 ? 0 : state.page,
+        },
+    ]
+
+    return searchClient
+        .search(searchParams)
+        .then((response) => response.results[0] as ArticleSearchResponse)
+}
+
+export async function queryTopicPages(
+    searchClient: SearchClient,
+    state: SearchState
+): Promise<TopicPageSearchResponse> {
+    const searchParams = [
+        {
+            indexName: SearchIndexName.Pages,
+            filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
+            facetFilters: getTopicFacetFilters(state.filters),
+            highlightPostTag: "</mark>",
+            highlightPreTag: "<mark>",
+            attributesToRetrieve: ["title", "type", "slug", "excerpt"],
+            hitsPerPage: 5,
+            page: state.page < 0 ? 0 : state.page,
+        },
+    ]
+
+    return searchClient
+        .search(searchParams)
+        .then((response) => response.results[0] as TopicPageSearchResponse)
 }
 
 export async function queryTopicTagGraph(): Promise<TagGraphRoot> {
