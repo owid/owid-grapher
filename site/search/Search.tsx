@@ -10,7 +10,12 @@ import {
     searchStateToUrl,
     urlToSearchState,
 } from "./searchState.js"
-import { SearchState, FilterType, TemplateConfig } from "./searchTypes.js"
+import {
+    SearchState,
+    FilterType,
+    TemplateConfig,
+    SearchResultType,
+} from "./searchTypes.js"
 import {
     syncDataCatalogURL,
     getFilterNamesOfType,
@@ -20,7 +25,10 @@ import { SiteAnalytics } from "../SiteAnalytics.js"
 import { AsDraft } from "../AsDraft/AsDraft.js"
 import { SearchContext } from "./SearchContext.js"
 import { SearchResultTypeToggle } from "./SearchResultTypeToggle.js"
-import { SearchTemplates } from "./SearchTemplates.js"
+import { match } from "ts-pattern"
+import { SearchTemplatesAll } from "./SearchTemplatesAll.js"
+import { SearchTemplatesData } from "./SearchTemplatesData.js"
+import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
 
 const analytics = new SiteAnalytics()
 
@@ -125,7 +133,13 @@ export const Search = ({
             >
                 <SearchResultTypeToggle />
             </AsDraft>
-            <SearchTemplates />
+            {match(templateConfig.resultType)
+                .with(SearchResultType.ALL, () => <SearchTemplatesAll />)
+                .with(SearchResultType.DATA, () => <SearchTemplatesData />)
+                .with(SearchResultType.WRITING, () => (
+                    <SearchTemplatesWriting />
+                ))
+                .exhaustive()}
         </SearchContext.Provider>
     )
 }
