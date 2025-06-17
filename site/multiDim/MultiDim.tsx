@@ -36,10 +36,11 @@ export default function MultiDim({
     const grapherRef = useRef<Grapher>(null)
     const grapherContainerRef = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(grapherContainerRef)
-    const baseGrapherConfig = useBaseGrapherConfig({
-        archivedChartInfo,
-        isEmbeddedInAnOwidPage: true,
-    })
+    const additionalConfig = useMemo(
+        () => ({ archivedChartInfo, isEmbeddedInAnOwidPage: true }),
+        [archivedChartInfo]
+    )
+    const baseGrapherConfig = useBaseGrapherConfig(additionalConfig)
     const [manager, setManager] = useState({
         ...localGrapherConfig?.manager,
     })

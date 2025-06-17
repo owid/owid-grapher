@@ -101,7 +101,11 @@ export function DataPageContent({
     const [varDatapageData, setVarDatapageData] =
         useState<VariableDataPageData | null>(null)
     const titleFragments = useTitleFragments(config)
-    const baseGrapherConfig = useBaseGrapherConfig({ archivedChartInfo })
+    const additionalConfig = useMemo(
+        () => ({ archivedChartInfo }),
+        [archivedChartInfo]
+    )
+    const baseGrapherConfig = useBaseGrapherConfig(additionalConfig)
 
     const settings = useMemo(() => {
         const choices = extractMultiDimChoicesFromSearchParams(
