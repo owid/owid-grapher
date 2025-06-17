@@ -1,5 +1,4 @@
 // index.ts
-import fetch from "node-fetch"
 import Papa from "papaparse"
 import * as db from "./db.js"
 import { DbPlainAnalyticsPageview } from "@ourworldindata/types"
