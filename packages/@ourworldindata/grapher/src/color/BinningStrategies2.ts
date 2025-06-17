@@ -16,13 +16,11 @@ type EqualSizeBinningStrategy =
     | "equalSizeBins-few-bins"
     | "equalSizeBins-normal"
     | "equalSizeBins-many-bins"
+    | "equalSizeBins-percent"
+
 type ResolvedLogBinningStrategy = Exclude<LogBinningStrategy, "log-auto">
 
-type BinningStrategy =
-    | "auto"
-    | EqualSizeBinningStrategy
-    | LogBinningStrategy
-    | "percent"
+type BinningStrategy = "auto" | EqualSizeBinningStrategy | LogBinningStrategy
 
 type ResolvedBinningStrategy = Exclude<BinningStrategy, "auto">
 
@@ -35,7 +33,7 @@ export const automaticBinningStrategies: BinningStrategy[] = [
     "equalSizeBins-few-bins",
     "equalSizeBins-normal",
     "equalSizeBins-many-bins",
-    "percent", // TODO get rid
+    "equalSizeBins-percent",
 ]
 
 // TODO aspirational
@@ -179,15 +177,15 @@ const computeMinMaxForStrategy = (
     }
 
     match(strategy)
+        .with("equalSizeBins-percent", () => {
+            // Percent strategy always uses 0 to 100
+            minValue ??= 0
+            maxValue ??= 100
+        })
         .when(isEqualSizeBinningStrategy, () => {
             const uniqValues = sortedUniq(sortedValues)
             minValue ??= quantile(uniqValues, 0.05)
             maxValue ??= quantile(uniqValues, 0.95)
-        })
-        .with("percent", () => {
-            // Percent strategy always uses 0 to 100
-            minValue ??= 0
-            maxValue ??= 100
         })
         .when(isLogBinningStrategy, () => {
             const posValues = R.dropWhile(sortedValues, (v) => v <= 0)
@@ -319,8 +317,9 @@ const getTargetBinCountForEqualSizeBinsStrategy = (
         .with("equalSizeBins-normal", () =>
             hasMidpoint ? ([3, 6] as const) : ([5, 9] as const)
         )
-        .with("equalSizeBins-many-bins", () =>
-            hasMidpoint ? ([4, 8] as const) : ([8, 12] as const)
+        .with(
+            P.union("equalSizeBins-many-bins", "equalSizeBins-percent"),
+            () => (hasMidpoint ? ([4, 8] as const) : ([8, 12] as const))
         )
         .exhaustive()
 }
@@ -343,13 +342,6 @@ const runResolvedBinningStrategy = (
                     conf.strategy as EqualSizeBinningStrategy,
                     { hasMidpoint }
                 ),
-            })
-        )
-        .with("percent", () =>
-            equalSizeBins({
-                minValue,
-                maxValue,
-                targetBinCount: hasMidpoint ? [3, 5] : [6, 10],
             })
         )
         .when(isLogBinningStrategy, () =>
@@ -430,7 +422,7 @@ const autoChooseBinningStrategy = (
             const lastValue = lastOfNonEmptyArray(posValuesOnly)
             const percentile99 = quantile(posValuesOnly, 0.99)
             if (lastValue <= 100 && percentile99 >= 60) {
-                return "percent"
+                return "equalSizeBins-percent"
             }
         }
 
