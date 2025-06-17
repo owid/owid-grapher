@@ -11,13 +11,14 @@ export const SearchTopicsRefinementList = () => {
     const {
         actions: { setTopic },
         topicTagGraph,
+        state: { query },
     } = useSearchContext()
     const selectedTopic = useSelectedTopic()
     const selectableTopics = getSelectableTopics(topicTagGraph, selectedTopic)
 
     const [isExpanded, setIsExpanded] = useState(false)
 
-    return selectableTopics.length > 0 ? (
+    return selectableTopics.length > 0 && !query ? (
         <div className="search-topics-refinement-list span-cols-9 col-start-2">
             <h3 className="data-catalog-ribbons__refinements-heading h5-black-caps">
                 All areas of research
