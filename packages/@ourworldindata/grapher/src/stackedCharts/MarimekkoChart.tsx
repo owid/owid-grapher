@@ -640,6 +640,7 @@ export class MarimekkoChart
             bounds: this.innerBounds,
             verticalAxis: this.verticalAxisPart,
             horizontalAxis: this.horizontalAxisPart,
+            comparisonLines: this.manager.comparisonLines,
         })
     }
 
@@ -1001,6 +1002,8 @@ export class MarimekkoChart
                     dualAxis={dualAxis}
                     showTickMarks={true}
                     detailsMarker={manager.detailsMarkerInSvg}
+                    fontSize={this.fontSize}
+                    backgroundColor={manager.backgroundColor}
                 />
                 <HorizontalCategoricalColorLegend manager={this} />
                 {this.renderBars()}

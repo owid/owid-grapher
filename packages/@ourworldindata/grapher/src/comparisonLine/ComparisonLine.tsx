@@ -13,6 +13,7 @@ import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
 import { Halo } from "@ourworldindata/components"
 import { Color, ComparisonLineConfig } from "@ourworldindata/types"
 import {
+    BASE_FONT_SIZE,
     GRAPHER_FONT_SCALE_10_5,
     GRAPHER_TEXT_OUTLINE_FACTOR,
 } from "../core/GrapherConstants"
@@ -21,10 +22,14 @@ import {
 export class ComparisonLine extends React.Component<{
     dualAxis: DualAxis
     comparisonLine: ComparisonLineConfig
-    baseFontSize: number
+    baseFontSize?: number
     backgroundColor?: Color
 }> {
     private renderUid = guid()
+
+    @computed private get baseFontSize(): number {
+        return this.props.baseFontSize ?? BASE_FONT_SIZE
+    }
 
     @computed private get controlData(): [number, number][] {
         const { comparisonLine, dualAxis } = this.props
@@ -84,11 +89,11 @@ export class ComparisonLine extends React.Component<{
         }
     }
 
-    render(): React.ReactElement {
+    render(): React.ReactElement | null {
         const { innerBounds } = this.props.dualAxis
         const { linePath, renderUid, placedLabel } = this
 
-        const fontSize = GRAPHER_FONT_SCALE_10_5 * this.props.baseFontSize
+        const fontSize = GRAPHER_FONT_SCALE_10_5 * this.baseFontSize
 
         return (
             <g
