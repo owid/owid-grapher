@@ -29,6 +29,7 @@ import { match } from "ts-pattern"
 import { SearchTemplatesAll } from "./SearchTemplatesAll.js"
 import { SearchTemplatesData } from "./SearchTemplatesData.js"
 import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
+import { SearchDebugNavigator } from "./SearchDebugNavigator.js"
 
 const analytics = new SiteAnalytics()
 
@@ -126,6 +127,10 @@ export const Search = ({
                     <Searchbar allTopics={ALL_TOPICS} />
                 </div>
             </div>
+            <SearchDebugNavigator
+                availableAreas={AREA_NAMES}
+                availableTopics={ALL_TOPICS}
+            />
             <SearchTopicsRefinementList />
             <AsDraft
                 className="col-start-11 span-cols-3 as-draft--align-self-start"
