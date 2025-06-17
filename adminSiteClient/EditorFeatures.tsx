@@ -84,7 +84,13 @@ export class EditorFeatures {
     }
 
     @computed get comparisonLine() {
-        return this.grapherState.isLineChart || this.grapherState.isScatter
+        return (
+            this.grapherState.isLineChart ||
+            this.grapherState.isScatter ||
+            this.grapherState.isStackedArea ||
+            this.grapherState.isStackedBar ||
+            this.grapherState.isMarimekko
+        )
     }
 
     @computed get canSpecifySortOrder() {
