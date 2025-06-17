@@ -11,7 +11,7 @@ import { sortedUniq } from "lodash-es"
 import * as R from "remeda"
 import { match, P } from "ts-pattern"
 
-type LogBinningStrategy = "log-fake-2" | "log-fake-3" | "log-10" | "log-auto"
+type LogBinningStrategy = "log-1-2-5" | "log-1-3" | "log-10" | "log-auto"
 type EqualSizeBinningStrategy =
     | "equalSizeBins-few-bins"
     | "equalSizeBins-normal"
@@ -29,8 +29,8 @@ type ResolvedBinningStrategy = Exclude<BinningStrategy, "auto">
 export const automaticBinningStrategies: BinningStrategy[] = [
     "auto",
     "log-auto",
-    "log-fake-2",
-    "log-fake-3",
+    "log-1-2-5",
+    "log-1-3",
     "log-10",
     "equalSizeBins-few-bins",
     "equalSizeBins-normal",
@@ -368,9 +368,9 @@ const autoChooseLogBinningStrategy = (
         return "log-10"
     }
     if (magnitudeDiff >= 2.6) {
-        return "log-fake-3"
+        return "log-1-3"
     }
-    return "log-fake-2"
+    return "log-1-2-5"
 }
 
 const runLogBinningStrategy = (
@@ -396,10 +396,10 @@ const runLogBinningStrategy = (
         .with("log-10", () =>
             fakeLogBins({ minValue, maxValue, logSteps: [1] })
         )
-        .with("log-fake-3", () =>
+        .with("log-1-3", () =>
             fakeLogBins({ minValue, maxValue, logSteps: [1, 3] })
         )
-        .with("log-fake-2", () =>
+        .with("log-1-2-5", () =>
             fakeLogBins({ minValue, maxValue, logSteps: [1, 2, 5] })
         )
         .exhaustive()
@@ -443,9 +443,6 @@ const autoChooseBinningStrategy = (
 const log10 = [1]
 const log125 = [1, 2, 5]
 const log13 = [1, 3]
-
-const IDEAL_TARGET_BIN_COUNT = [5, 9]
-const IDEAL_TARGET_BIN_COUNT_WITH_MIDPOINT = [3, 5]
 
 export const autoChooseLogBins = ({
     minValue,
@@ -526,11 +523,11 @@ export const mirrorBinsAroundMidpoint = (
 export const equalSizeBins = ({
     minValue,
     maxValue,
-    targetBinCount = IDEAL_TARGET_BIN_COUNT,
+    targetBinCount,
 }: {
     minValue: number
     maxValue: number
-    targetBinCount?: readonly number[]
+    targetBinCount: readonly number[]
 }): number[] => {
     if (minValue > maxValue) {
         throw new Error("minValue must be less than maxValue")
