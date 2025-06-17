@@ -82,6 +82,21 @@ const isLogBinningStrategy = (
     strategy: BinningStrategy | ResolvedBinningStrategy
 ): strategy is LogBinningStrategy => strategy.startsWith("log-")
 
+export const pruneUnusedBins = (
+    bins: number[],
+    { minValue, maxValue }: { minValue?: number; maxValue?: number }
+): number[] => {
+    if (minValue !== undefined) {
+        bins = R.dropWhile(bins, (v, i) => bins[i + 1] <= minValue)
+    }
+
+    if (maxValue !== undefined) {
+        bins = R.dropLastWhile(bins, (v, i) => bins[i - 1] >= maxValue)
+    }
+
+    return bins
+}
+
 export const runBinningStrategy = (
     conf: BinningStrategyConfig
 ): BinningStrategyOutput => {
@@ -434,7 +449,7 @@ export const fakeLogBins = ({
     const magnitudeMin = numberMagnitude(minValue) - 1
     const magnitudeMax = numberMagnitude(maxValue) - 1
 
-    // These are number between 1 and 9.99999
+    // These are normalised to numbers between 1 and 9.99999
     const normalisedMin = minValue / Math.pow(10, magnitudeMin)
     const normalisedMax = maxValue / Math.pow(10, magnitudeMax)
 
@@ -530,39 +545,4 @@ export const equalSizeBins = ({
         const value = i * actualStepSize
         return minValueRounded + roundSigFig(value, 3) // to avoid floating point issues
     })
-}
-
-export const equalSizeBinsWithMidpoint = ({
-    minValue,
-    maxValue,
-    midpoint,
-}: {
-    minValue: number
-    maxValue: number
-    midpoint: number
-    targetBinCount?: number[]
-}): number[] => {
-    const rangeOnOneSide = Math.max(
-        Math.abs(midpoint - minValue),
-        Math.abs(maxValue - midpoint)
-    )
-    const bins = equalSizeBins({
-        minValue: 0,
-        maxValue: rangeOnOneSide,
-        targetBinCount: [3, 4],
-    })
-
-    const mirroredBins = mirrorBinsAroundMidpoint(bins, midpoint)
-
-    const negBins = equalSizeBins({
-        minValue: Math.min(minValue - midpoint, midpoint),
-        maxValue: midpoint,
-        targetBinCount: [3, 4],
-    })
-    const posBins = equalSizeBins({
-        minValue: midpoint,
-        maxValue: Math.max(maxValue - midpoint, midpoint),
-        targetBinCount: [3, 4],
-    })
-    return [...negBins, midpoint, ...posBins]
 }

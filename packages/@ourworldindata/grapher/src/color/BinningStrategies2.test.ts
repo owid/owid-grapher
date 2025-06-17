@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
 import {
     equalSizeBins,
-    equalSizeBinsWithMidpoint,
     fakeLogBins,
     mirrorBinsAroundMidpoint,
+    pruneUnusedBins,
 } from "./BinningStrategies2.js"
 
 describe(fakeLogBins, () => {
@@ -109,48 +109,10 @@ describe(equalSizeBins, () => {
     })
 })
 
-describe(equalSizeBinsWithMidpoint, () => {
-    it("should generate bins with midpoint", () => {
-        const bins = equalSizeBinsWithMidpoint({
-            minValue: 0,
-            maxValue: 10,
-            midpoint: 5,
-        })
-        expect(bins).toEqual([-1, 1, 3, 5, 7, 9, 11])
-    })
-
-    it("should handle negative values with midpoint", () => {
-        const bins = equalSizeBinsWithMidpoint({
-            minValue: -10,
-            maxValue: 10,
-            midpoint: 0,
-        })
-        expect(bins).toEqual([-10, -7.5, -5, -2.5, 0, 2.5, 5, 7.5, 10])
-    })
-
-    it("should handle single value at midpoint", () => {
-        const bins = equalSizeBinsWithMidpoint({
-            minValue: 5,
-            maxValue: 12,
-            midpoint: 10,
-        })
-        expect(bins).toEqual([4, 6, 8, 10, 12, 14, 16])
-    })
-    it("should handle minValue equal to midpoint", () => {
-        const bins = equalSizeBinsWithMidpoint({
-            minValue: 25,
-            maxValue: 50,
-            midpoint: 25,
-        })
-        expect(bins).toEqual([-5, 5, 15, 25, 35, 45, 55])
-    })
-
-    it("should handle minValue equal to midpoint", () => {
-        const bins = equalSizeBinsWithMidpoint({
-            minValue: 0,
-            maxValue: 25,
-            midpoint: 25,
-        })
-        expect(bins).toEqual([-5, 5, 15, 25, 35, 45, 55])
+describe(pruneUnusedBins, () => {
+    it("should remove unused bins", () => {
+        const bins = [0, 1, 2, 3, 4, 5]
+        const prunedBins = pruneUnusedBins(bins, { minValue: 1, maxValue: 4.2 })
+        expect(prunedBins).toEqual([1, 2, 3, 4, 5])
     })
 })
