@@ -1,6 +1,7 @@
 import { match } from "ts-pattern"
 import { useSearchContext } from "./SearchContext.js"
 import { SearchTopicType } from "./searchTypes.js"
+import { SearchWritingResults } from "./SearchWritingResults.js"
 
 export const SearchTemplatesWriting = () => {
     const { templateConfig } = useSearchContext()
@@ -16,7 +17,11 @@ export const SearchTemplatesWriting = () => {
             // Writing + Topic + Country + No Query
             .with([SearchTopicType.Topic, true, false], () => <></>)
             // Writing + Topic + No Country + Query
-            .with([SearchTopicType.Topic, false, true], () => <></>)
+            .with([SearchTopicType.Topic, false, true], () => (
+                <>
+                    <SearchWritingResults />
+                </>
+            ))
             // Writing + Topic + No Country + No Query
             .with([SearchTopicType.Topic, false, false], () => <></>)
             // Writing + Area + Country + Query
