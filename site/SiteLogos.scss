@@ -4,14 +4,6 @@
     justify-content: space-between;
     flex-shrink: 0;
 
-    .logo-owid {
-        margin-right: 24px;
-
-        @include sm-only {
-            margin-right: 0;
-        }
-    }
-
     .logo-owid a {
         @include md-up {
             font-size: 20px;
@@ -30,6 +22,7 @@
         @include column-gap(6px);
         align-items: flex-start;
         margin-top: 5px;
+        margin-left: 24px;
 
         a {
             color: white;
