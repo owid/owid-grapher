@@ -325,6 +325,7 @@ export interface AxisConfigInterface {
 export interface ComparisonLineConfig {
     label?: string
     yEquals?: string
+    xEquals?: number
 }
 
 export enum LogoOption {

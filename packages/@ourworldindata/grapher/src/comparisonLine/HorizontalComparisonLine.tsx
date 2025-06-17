@@ -1,7 +1,6 @@
 import { line as d3_line, curveLinear } from "d3-shape"
 import {
     guid,
-    Bounds,
     PointVector,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
@@ -14,26 +13,45 @@ import { Halo } from "@ourworldindata/components"
 import { Color, ComparisonLineConfig } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
-    GRAPHER_FONT_SCALE_10_5,
     GRAPHER_TEXT_OUTLINE_FACTOR,
 } from "../core/GrapherConstants"
+import { makeClipPath } from "../chart/ChartUtils"
+import {
+    COMPARISON_FONT_SCALE,
+    COMPARISON_LINE_STYLE,
+    COMPARISON_LINE_TEXT_STYLE,
+} from "./ComparisonLineConstants"
 
 @observer
-export class ComparisonLine extends React.Component<{
+export class HorizontalComparisonLine extends React.Component<{
     dualAxis: DualAxis
     comparisonLine: ComparisonLineConfig
     baseFontSize?: number
     backgroundColor?: Color
 }> {
     private renderUid = guid()
+    private pathId = `path-${this.renderUid}`
 
     @computed private get baseFontSize(): number {
         return this.props.baseFontSize ?? BASE_FONT_SIZE
     }
 
+    @computed private get fontSize(): number {
+        return COMPARISON_FONT_SCALE * this.baseFontSize
+    }
+
+    @computed private get haloOutlineWidth(): number {
+        return GRAPHER_TEXT_OUTLINE_FACTOR * this.fontSize
+    }
+
+    @computed get clipPath(): { id: string; element: React.ReactElement } {
+        return makeClipPath(this.renderUid, this.props.dualAxis.innerBounds)
+    }
+
     @computed private get controlData(): [number, number][] {
         const { comparisonLine, dualAxis } = this.props
         const { horizontalAxis, verticalAxis } = dualAxis
+
         return generateComparisonLinePoints(
             comparisonLine.yEquals,
             horizontalAxis.domain,
@@ -54,7 +72,7 @@ export class ComparisonLine extends React.Component<{
     }
 
     @computed private get placedLabel():
-        | { x: number; y: number; bounds: Bounds; angle: number; text: string }
+        | { x: number; y: number; angle: number; text: string }
         | undefined {
         const { label } = this.props.comparisonLine
         if (!label) return
@@ -75,79 +93,64 @@ export class ComparisonLine extends React.Component<{
             .filter((p) => innerBounds.contains(p))
         if (!linePoints.length) return
 
-        const midPoint = linePoints[Math.floor(linePoints.length / 2)]
+        // For horizontal lines, position label in the middle of the line
+        const labelPosition = linePoints[Math.floor(linePoints.length / 2)]
         const p1 = linePoints[0]
         const p2 = linePoints[linePoints.length - 1]
         const angle = (Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180) / Math.PI
-        const bounds = Bounds.forText(label)
+
         return {
-            x: midPoint.x,
-            y: midPoint.y,
-            bounds: bounds,
+            x: labelPosition.x,
+            y: labelPosition.y,
             angle: angle,
             text: label,
         }
     }
 
-    render(): React.ReactElement {
-        const { innerBounds } = this.props.dualAxis
-        const { linePath, renderUid, placedLabel } = this
+    private renderLabel(): React.ReactElement | null {
+        const { pathId, renderUid, placedLabel } = this
 
-        const fontSize = GRAPHER_FONT_SCALE_10_5 * this.baseFontSize
+        if (!placedLabel) return null
 
         return (
-            <g
-                id={makeIdForHumanConsumption("comparison-line")}
-                className="comparisonLine"
+            <text
+                style={{
+                    ...COMPARISON_LINE_TEXT_STYLE,
+                    textAnchor: "end",
+                    fontSize: this.fontSize,
+                }}
+                clipPath={this.clipPath.id}
             >
-                <defs>
-                    <clipPath id={`axisBounds-${renderUid}`}>
-                        <rect
-                            x={innerBounds.x}
-                            y={innerBounds.y}
-                            width={innerBounds.width}
-                            height={innerBounds.height}
-                        />
-                    </clipPath>
-                </defs>
-                <path
-                    style={{
-                        opacity: 0.9,
-                        fill: "none",
-                        stroke: "#ccc",
-                        strokeDasharray: "2 2",
-                    }}
-                    id={`path-${renderUid}`}
-                    d={linePath || undefined}
-                    clipPath={`url(#axisBounds-${renderUid})`}
-                />
-                {placedLabel && (
-                    <text
-                        style={{
-                            fontSize,
-                            opacity: 0.9,
-                            textAnchor: "end",
-                            fill: "#999",
-                        }}
-                        clipPath={`url(#axisBounds-${renderUid})`}
+                <Halo
+                    id={`halo-${renderUid}`}
+                    outlineWidth={this.haloOutlineWidth}
+                    outlineColor={this.props.backgroundColor}
+                >
+                    <textPath
+                        baselineShift="-0.2rem"
+                        href={`${pathId}`}
+                        startOffset="90%"
                     >
-                        <Halo
-                            id={`path-${renderUid}`}
-                            outlineWidth={
-                                GRAPHER_TEXT_OUTLINE_FACTOR * fontSize
-                            }
-                            outlineColor={this.props.backgroundColor}
-                        >
-                            <textPath
-                                baselineShift="-0.2rem"
-                                href={`#path-${renderUid}`}
-                                startOffset="90%"
-                            >
-                                {placedLabel.text}
-                            </textPath>
-                        </Halo>
-                    </text>
-                )}
+                        {placedLabel.text}
+                    </textPath>
+                </Halo>
+            </text>
+        )
+    }
+
+    render(): React.ReactElement | null {
+        if (!this.linePath) return null
+
+        return (
+            <g id={makeIdForHumanConsumption("horizontal-comparison-line")}>
+                {this.clipPath.element}
+                <path
+                    id={this.pathId}
+                    d={this.linePath}
+                    clipPath={this.clipPath.id}
+                    style={COMPARISON_LINE_STYLE}
+                />
+                {this.renderLabel()}
             </g>
         )
     }

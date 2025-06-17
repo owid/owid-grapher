@@ -15,7 +15,7 @@ import { VerticalAxis, HorizontalAxis, DualAxis } from "./Axis"
 import classNames from "classnames"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { ScaleType, DetailsMarker, AxisAlign } from "@ourworldindata/types"
-import { ComparisonLine } from "../scatterCharts/ComparisonLine"
+import { ComparisonLine } from "../comparisonLine/ComparisonLine"
 
 const TICK_COLOR = "#ddd"
 const FAINT_TICK_COLOR = "#eee"

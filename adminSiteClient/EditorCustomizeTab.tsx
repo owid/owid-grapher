@@ -504,13 +504,74 @@ class ComparisonLineSection<
         grapherState.comparisonLines.splice(index, 1)
     }
 
+    @action.bound onSetComparisonLineOrientation(
+        index: number,
+        orientation: "horizontal" | "vertical"
+    ) {
+        const { grapher } = this.props.editor
+        if (!grapher.comparisonLines) return
+
+        const line = grapher.comparisonLines[index]
+        if (!line) return
+
+        if (orientation === "horizontal") {
+            delete line.xEquals
+            if (!line.yEquals) {
+                line.yEquals = "x"
+            }
+        } else {
+            delete line.yEquals
+            if (line.xEquals === undefined) {
+                line.xEquals = 0
+            }
+        }
+    }
+
+    @action.bound onUpdateHorizontalEquation(index: number, value: string) {
+        const { grapher } = this.props.editor
+        if (!grapher.comparisonLines) return
+
+        const line = grapher.comparisonLines[index]
+        if (!line) return
+
+        line.yEquals = value || undefined
+    }
+
+    @action.bound onUpdateVerticalValue(
+        index: number,
+        value: number | undefined
+    ) {
+        const { grapher } = this.props.editor
+        if (!grapher.comparisonLines) return
+
+        const line = grapher.comparisonLines[index]
+        if (!line) return
+
+        // When in vertical mode, xEquals should never be undefined to prevent
+        // radio button from resetting to horizontal. Use 0 as default when cleared.
+        line.xEquals = value !== undefined ? value : 0
+    }
+
+    @action.bound onUpdateComparisonLineLabel(index: number, value: string) {
+        const { grapher } = this.props.editor
+        if (!grapher.comparisonLines) return
+
+        const line = grapher.comparisonLines[index]
+        if (!line) return
+
+        line.label = value || undefined
+    }
+
     render() {
         const { comparisonLines = [] } = this.props.editor.grapherState
 
         return (
             <Section name="Comparison line">
                 <p>
-                    Overlay a line onto the chart for comparison. Supports basic{" "}
+                    Overlay horizontal or vertical lines onto the chart for
+                    comparison.
+                    <br />
+                    <strong>Horizontal lines</strong> support{" "}
                     <a href="https://github.com/bylexus/fparse#features">
                         mathematical expressions
                     </a>
@@ -524,6 +585,9 @@ class ComparisonLineSection<
                         )
                     )}
                     .
+                    <br />
+                    <strong>Vertical lines</strong> support constant values like{" "}
+                    <code>100</code>, <code>0</code>, <code>2020</code>.
                 </p>
 
                 <Button onClick={this.onAddComparisonLine}>
@@ -535,20 +599,66 @@ class ComparisonLineSection<
                         <Button onClick={() => this.onRemoveComparisonLine(i)}>
                             <FontAwesomeIcon icon={faMinus} />
                         </Button>
-                        <TextField
-                            label={`y=`}
-                            placeholder="x"
-                            value={comparisonLine.yEquals}
-                            onValue={action((value: string) => {
-                                comparisonLine.yEquals = value || undefined
-                            })}
-                        />
+                        <div style={{ marginTop: "10px" }}>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name={`orientation-${i}`}
+                                    checked={
+                                        comparisonLine.xEquals === undefined
+                                    }
+                                    onChange={() =>
+                                        this.onSetComparisonLineOrientation(
+                                            i,
+                                            "horizontal"
+                                        )
+                                    }
+                                />{" "}
+                                Horizontal (y = f(x))
+                            </label>
+                            <br />
+                            <label>
+                                <input
+                                    type="radio"
+                                    name={`orientation-${i}`}
+                                    checked={
+                                        comparisonLine.xEquals !== undefined
+                                    }
+                                    onChange={() =>
+                                        this.onSetComparisonLineOrientation(
+                                            i,
+                                            "vertical"
+                                        )
+                                    }
+                                />{" "}
+                                Vertical (x = constant)
+                            </label>
+                        </div>
+                        {comparisonLine.xEquals !== undefined ? (
+                            <NumberField
+                                label="x ="
+                                placeholder="100"
+                                value={comparisonLine.xEquals}
+                                onValue={(value) =>
+                                    this.onUpdateVerticalValue(i, value)
+                                }
+                            />
+                        ) : (
+                            <TextField
+                                label="y ="
+                                placeholder="x"
+                                value={comparisonLine.yEquals}
+                                onValue={(value) =>
+                                    this.onUpdateHorizontalEquation(i, value)
+                                }
+                            />
+                        )}
                         <TextField
                             label="Label"
                             value={comparisonLine.label}
-                            onValue={action((value: string) => {
-                                comparisonLine.label = value || undefined
-                            })}
+                            onValue={(value) =>
+                                this.onUpdateComparisonLineLabel(i, value)
+                            }
                         />
                     </div>
                 ))}
