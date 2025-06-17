@@ -6,7 +6,7 @@ import { DataCatalogRibbonResult } from "./searchTypes.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedCountries } from "./searchHooks.js"
-import { ChartHitMedium } from "./ChartHitMedium.js"
+import { SearchChartHitMedium } from "./SearchChartHitMedium.js"
 import { AsDraft } from "../AsDraft/AsDraft.js"
 
 const analytics = new SiteAnalytics()
@@ -57,7 +57,7 @@ export const DataCatalogRibbon = ({
                                 className="data-catalog-ribbon-hit"
                                 key={hit.objectID}
                             >
-                                <ChartHitMedium
+                                <SearchChartHitMedium
                                     hit={hit}
                                     onClick={() => {
                                         analytics.logDataCatalogResultClick(
