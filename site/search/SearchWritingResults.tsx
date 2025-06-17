@@ -19,7 +19,7 @@ export const SearchWritingResults = () => {
     const {
         state,
         searchClient,
-        templateConfig: { topicType },
+        templateConfig: { topicType, hasQuery },
     } = useSearchContext()
 
     const articlesQueryParamsConfig: SearchParamsConfig = {
@@ -39,16 +39,18 @@ export const SearchWritingResults = () => {
         queryKey: searchQueryKeys.topicPages(state),
         queryFn: () =>
             queryTopicPages(searchClient, state, topicPagesQueryParamsConfig),
+        enabled: !!topicType || hasQuery,
     })
 
-    const isLoading = articlesQuery.isLoading || topicPagesQuery.isLoading
+    const isInitialLoading =
+        articlesQuery.isInitialLoading || topicPagesQuery.isInitialLoading
 
     const articles = articlesQuery.data?.hits || []
     const topicPages = topicPagesQuery.data?.hits || []
 
     return (
         <AsDraft name="Writing Results" className="col-start-2 span-cols-12">
-            {isLoading ? (
+            {isInitialLoading ? (
                 <WritingSearchResultsSkeleton />
             ) : (
                 <div className="search-writing-results">
