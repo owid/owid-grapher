@@ -27,6 +27,7 @@ export async function sendEventToGA4(
                 events: [event],
             }),
         })
+
         if (!response.ok) {
             const text = await response.text()
             Sentry.captureException(
@@ -44,14 +45,25 @@ export async function sendEventToGA4(
 
 export function getCommonEventParams(request: Request, pathname: string) {
     const url = new URL(request.url)
-    return {
-        page_location: url.href,
-        page_path: pathname,
-        referrer: request.headers.get("referer"),
-        user_agent: request.headers.get("user-agent"),
+
+    // null values aren't allowed & param values must be 100 characters or less
+    const referrer = (request.headers.get("referer") || "").slice(0, 100)
+    const user_agent = (request.headers.get("user-agent") || "").slice(0, 100)
+
+    const params = {
+        pathname: pathname,
+        referrer,
+        user_agent,
         method: request.method,
-        country: request.headers.get("cf-ipcountry"),
+        country: request.headers.get("cf-ipcountry") || "",
     }
+
+    const searchParams = url.searchParams
+    for (const [key, value] of searchParams) {
+        params[key] = value.slice(0, 100)
+    }
+
+    return params
 }
 
 function validateAnalyticsEnvVariables(env: Env): boolean {
