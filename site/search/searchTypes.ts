@@ -287,3 +287,11 @@ export interface TemplateConfig {
     hasCountry: boolean
     hasQuery: boolean
 }
+
+export interface SearchParamsConfig {
+    shouldIgnoreQuery?: boolean
+    shouldIgnoreCountry?: boolean
+    shouldIgnoreTopic?: boolean
+}
+
+export type SearchFacetFilters = (string | string[])[]
