@@ -2,24 +2,25 @@ import { OwidGdocType, TagGraphRoot } from "@ourworldindata/types"
 import { flattenNonTopicNodes } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
 import {
-    ArticleSearchResponse,
-    DataCatalogRibbonResult,
-    DataCatalogSearchResult,
-    DataInsightSearchResponse,
-    FilterType,
-    IDataCatalogHit,
-    SearchIndexName,
     SearchState,
+    DataCatalogSearchResult,
+    IDataCatalogHit,
+    DataCatalogRibbonResult,
+    DataInsightSearchResponse,
+    ArticleSearchResponse,
     TopicPageSearchResponse,
+    FilterType,
+    SearchParamsConfig,
+    SearchIndexName,
 } from "./searchTypes.js"
 import {
-    getSelectableTopics,
     getFilterNamesOfType,
     formatCountryFacetFilters,
+    setToFacetFilters,
+    getSelectableTopics,
+    createSearchParamsFromConfig,
     CHARTS_INDEX,
     DATA_CATALOG_ATTRIBUTES,
-    setToFacetFilters,
-    getTopicFacetFilters,
 } from "./searchUtils.js"
 
 /**
@@ -141,14 +142,13 @@ export async function queryDataInsights(
 
 export async function queryArticles(
     searchClient: SearchClient,
-    state: SearchState
+    state: SearchState,
+    searchParamsConfig: SearchParamsConfig
 ): Promise<ArticleSearchResponse> {
     const searchParams = [
         {
             indexName: SearchIndexName.Pages,
-            query: state.query,
             filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
-            facetFilters: getTopicFacetFilters(state.filters),
             highlightPostTag: "</mark>",
             highlightPreTag: "<mark>",
             attributesToRetrieve: [
@@ -162,6 +162,7 @@ export async function queryArticles(
             ],
             hitsPerPage: 5,
             page: state.page < 0 ? 0 : state.page,
+            ...createSearchParamsFromConfig(searchParamsConfig, state),
         },
     ]
 
@@ -172,18 +173,19 @@ export async function queryArticles(
 
 export async function queryTopicPages(
     searchClient: SearchClient,
-    state: SearchState
+    state: SearchState,
+    searchParamsConfig: SearchParamsConfig
 ): Promise<TopicPageSearchResponse> {
     const searchParams = [
         {
             indexName: SearchIndexName.Pages,
             filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
-            facetFilters: getTopicFacetFilters(state.filters),
             highlightPostTag: "</mark>",
             highlightPreTag: "<mark>",
             attributesToRetrieve: ["title", "type", "slug", "excerpt"],
             hitsPerPage: 5,
             page: state.page < 0 ? 0 : state.page,
+            ...createSearchParamsFromConfig(searchParamsConfig, state),
         },
     ]
 
