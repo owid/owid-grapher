@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { getCanonicalUrl } from "@ourworldindata/components"
-import { ArticleHit, TopicPageHit } from "./searchTypes.js"
+import { ArticleHit, TopicPageHit, SearchParamsConfig } from "./searchTypes.js"
 import { searchQueryKeys, queryArticles, queryTopicPages } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
 import { AsDraft } from "../AsDraft/AsDraft.js"
@@ -8,8 +8,81 @@ import DataInsightDateline from "../gdocs/components/DataInsightDateline.js"
 import { Snippet } from "react-instantsearch"
 import { OwidGdocType } from "@ourworldindata/types"
 import { formatAuthors } from "@ourworldindata/utils"
+import { generateAsDraftName } from "./searchUtils.js"
 
-const SearchArticleHit = ({ hit }: { hit: ArticleHit }) => {
+export const SearchWritingResults = () => {
+    const { state, searchClient } = useSearchContext()
+
+    const searchParamsConfig: SearchParamsConfig = {
+        shouldIgnoreCountry: true,
+    }
+    const articlesQuery = useQuery({
+        queryKey: searchQueryKeys.articles(state),
+        queryFn: () => queryArticles(searchClient, state, searchParamsConfig),
+    })
+
+    const topicPagesQuery = useQuery({
+        queryKey: searchQueryKeys.topicPages(state),
+        queryFn: () => queryTopicPages(searchClient, state, searchParamsConfig),
+    })
+
+    const isLoading = articlesQuery.isLoading || topicPagesQuery.isLoading
+
+    const articles = articlesQuery.data?.hits || []
+    const topicPages = topicPagesQuery.data?.hits || []
+
+    return (
+        <AsDraft name="Writing Results" className="col-start-2 span-cols-12">
+            {isLoading ? (
+                <WritingSearchResultsSkeleton />
+            ) : (
+                <div className="search-writing-results">
+                    <div className="search-writing-results__container">
+                        <div className="search-writing-results__hits-list">
+                            {articles.length > 0 ? (
+                                articles.map((hit) => (
+                                    <SearchArticleHit
+                                        key={hit.objectID}
+                                        hit={hit}
+                                        searchParamsConfig={searchParamsConfig}
+                                    />
+                                ))
+                            ) : (
+                                <p className="search-writing-results__no-results">
+                                    No articles found
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="search-writing-results__hits-list">
+                            {topicPages.length > 0 ? (
+                                topicPages.map((hit) => (
+                                    <SearchTopicPageHit
+                                        key={hit.objectID}
+                                        hit={hit}
+                                        searchParamsConfig={searchParamsConfig}
+                                    />
+                                ))
+                            ) : (
+                                <p className="search-writing-results__no-results">
+                                    No topic pages found
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+        </AsDraft>
+    )
+}
+
+const SearchArticleHit = ({
+    hit,
+    searchParamsConfig,
+}: {
+    hit: ArticleHit
+    searchParamsConfig: SearchParamsConfig
+}) => {
     const isArticle = hit.type === OwidGdocType.Article
 
     const href = getCanonicalUrl("", {
@@ -20,7 +93,7 @@ const SearchArticleHit = ({ hit }: { hit: ArticleHit }) => {
     })
 
     return (
-        <AsDraft name="Article Hit - 🙈 country">
+        <AsDraft name={generateAsDraftName("Article Hit", searchParamsConfig)}>
             <a href={href} className="search-writing-results__hit">
                 {hit.thumbnailUrl && (
                     <div className="search-writing-results__hit-image-container">
@@ -66,7 +139,13 @@ const SearchArticleHit = ({ hit }: { hit: ArticleHit }) => {
     )
 }
 
-const SearchTopicPageHit = ({ hit }: { hit: TopicPageHit }) => {
+const SearchTopicPageHit = ({
+    hit,
+    searchParamsConfig,
+}: {
+    hit: TopicPageHit
+    searchParamsConfig: SearchParamsConfig
+}) => {
     const href = getCanonicalUrl("", {
         slug: hit.slug,
         content: {
@@ -75,7 +154,9 @@ const SearchTopicPageHit = ({ hit }: { hit: TopicPageHit }) => {
     })
 
     return (
-        <AsDraft name="Topic Page Hit - 🙈 query - 🙈 country">
+        <AsDraft
+            name={generateAsDraftName("Topic Page Hit", searchParamsConfig)}
+        >
             <a href={href} className="search-writing-results__hit">
                 <div className="search-writing-results__hit-content">
                     <header className="search-writing-results__hit-header">
@@ -88,71 +169,6 @@ const SearchTopicPageHit = ({ hit }: { hit: TopicPageHit }) => {
                     </div>
                 </div>
             </a>
-        </AsDraft>
-    )
-}
-
-export const SearchWritingResults = () => {
-    const { state, searchClient } = useSearchContext()
-
-    const articlesQuery = useQuery({
-        queryKey: searchQueryKeys.articles(state),
-        queryFn: () => queryArticles(searchClient, state),
-    })
-
-    const topicPagesQuery = useQuery({
-        queryKey: searchQueryKeys.topicPages(state),
-        queryFn: () => queryTopicPages(searchClient, state),
-    })
-
-    const isLoading = articlesQuery.isLoading || topicPagesQuery.isLoading
-
-    const articles = articlesQuery.data?.hits || []
-    const topicPages = topicPagesQuery.data?.hits || []
-
-    return (
-        <AsDraft name="Writing Results" className="col-start-2 span-cols-12">
-            {isLoading ? (
-                <WritingSearchResultsSkeleton />
-            ) : (
-                <div className="search-writing-results">
-                    <div className="search-writing-results__container">
-                        <div className="search-writing-results__section">
-                            <div className="search-writing-results__hits-list">
-                                {articles.length > 0 ? (
-                                    articles.map((hit) => (
-                                        <SearchArticleHit
-                                            key={hit.objectID}
-                                            hit={hit}
-                                        />
-                                    ))
-                                ) : (
-                                    <p className="search-writing-results__no-results">
-                                        No articles found
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="search-writing-results__section">
-                            <div className="search-writing-results__hits-list">
-                                {topicPages.length > 0 ? (
-                                    topicPages.map((hit) => (
-                                        <SearchTopicPageHit
-                                            key={hit.objectID}
-                                            hit={hit}
-                                        />
-                                    ))
-                                ) : (
-                                    <p className="search-writing-results__no-results">
-                                        No topic pages found
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
         </AsDraft>
     )
 }
