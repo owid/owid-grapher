@@ -26,10 +26,12 @@ type ResolvedBinningStrategy = Exclude<BinningStrategy, "auto">
 
 export const automaticBinningStrategies: BinningStrategy[] = [
     "auto",
+
     "log-auto",
     "log-1-2-5",
     "log-1-3",
     "log-10",
+
     "equalSizeBins-few-bins",
     "equalSizeBins-normal",
     "equalSizeBins-many-bins",
@@ -122,17 +124,19 @@ export const runBinningStrategy = (
         return { bins: [0] }
     }
 
-    const hasNegValues = conf.sortedValues[0] < 0
-    const hasPosValues = lastOfNonEmptyArray(conf.sortedValues) > 0
-    const hasNegAndPosValues = hasNegValues && hasPosValues
-    const hasOnlyNegValues = hasNegValues && !hasPosValues
+    conf.midpoint ??= 0
 
-    if (hasNegAndPosValues && conf.midpointMode === undefined) {
-        // Default to symmetric-full if there are negative and positive values
+    const hasValuesBelowMidpoint = conf.sortedValues[0] < conf.midpoint
+    const hasValuesAboveMidpoint =
+        lastOfNonEmptyArray(conf.sortedValues) > conf.midpoint
+    const hasValuesBelowAndAboveMidpoint =
+        hasValuesBelowMidpoint && hasValuesAboveMidpoint
+
+    if (hasValuesBelowAndAboveMidpoint && conf.midpointMode === undefined) {
+        // Default to symmetric midpoint if there are negative and positive values
         conf.midpointMode ??= "symmetric"
     }
 
-    conf.midpoint ??= 0
     conf.midpointMode ??= "none"
 
     const midpointCount = countValues(conf.sortedValues, conf.midpoint)
@@ -168,7 +172,7 @@ export const runBinningStrategy = (
 const computeMinMaxForStrategy = (
     strategy: ResolvedBinningStrategy,
     sortedValues: number[],
-    conf?: ResolvedBinningStrategyConfig
+    conf?: Partial<ResolvedBinningStrategyConfig>
 ): { minValue: number; maxValue: number } => {
     let { minValue, maxValue } = conf || {}
     if (minValue !== undefined && maxValue !== undefined) {
@@ -197,6 +201,9 @@ const computeMinMaxForStrategy = (
             minValue ??= quantile(uniqValues, 0.15)
             maxValue ??= quantile(uniqValues, 0.995)
 
+            if (minValue === undefined || maxValue === undefined)
+                throw new Error("Couldn't obtain minValue or maxValue")
+
             if (conf?.numDecimalPlaces !== undefined) {
                 if (minValue > 0)
                     minValue = Math.max(
@@ -211,6 +218,9 @@ const computeMinMaxForStrategy = (
             }
         })
         .exhaustive()
+
+    if (minValue === undefined || maxValue === undefined)
+        throw new Error("Couldn't obtain minValue or maxValue")
 
     maxValue = Math.max(minValue, maxValue)
     return { minValue, maxValue }
@@ -412,7 +422,8 @@ const autoChooseBinningStrategy = (
 
     const { minValue, maxValue } = computeMinMaxForStrategy(
         "log-auto",
-        posValuesOnly
+        posValuesOnly,
+        { minValue: conf.minValue, maxValue: conf.maxValue }
     )
 
     const magnitudeDiff = calcMagnitudeDiff(minValue, maxValue)
@@ -421,7 +432,11 @@ const autoChooseBinningStrategy = (
         if (conf.isPercent) {
             const lastValue = lastOfNonEmptyArray(posValuesOnly)
             const percentile99 = quantile(posValuesOnly, 0.99)
-            if (lastValue <= 100 && percentile99 >= 60) {
+            if (
+                lastValue <= 100 &&
+                percentile99 !== undefined &&
+                percentile99 >= 60
+            ) {
                 return "equalSizeBins-percent"
             }
         }
@@ -448,8 +463,6 @@ export const autoChooseLogBins = ({
     }
 
     const magnitudeDiff = Math.log10(maxValue) - Math.log10(minValue)
-
-    console.log(magnitudeDiff)
 
     if (magnitudeDiff >= 3.6) {
         return fakeLogBins({
@@ -495,7 +508,7 @@ export const fakeLogBins = ({
         }
     )
 
-    if (R.last(candidates) < maxValue) {
+    if ((R.last(candidates) ?? 0) < maxValue) {
         candidates.push(1 * Math.pow(10, magnitudeMax + 1))
     }
 
