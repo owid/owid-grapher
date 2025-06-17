@@ -154,10 +154,8 @@ export function SearchChartHitLarge({
                             <img
                                 key={previewUrl}
                                 className={cx("search-chart-hit-large__img", {
-                                    "search-chart-hit-large__img--loaded":
-                                        imgLoaded,
-                                    "search-chart-hit-large__img--error":
-                                        imgError,
+                                    "search-chart-hit-large__img--loaded": imgLoaded,
+                                    "search-chart-hit-large__img--error": imgError,
                                 })}
                                 loading="lazy"
                                 width={DEFAULT_GRAPHER_WIDTH}
