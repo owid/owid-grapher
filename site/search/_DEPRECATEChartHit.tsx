@@ -28,7 +28,7 @@ import {
 import { Highlight } from "react-instantsearch"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 
-export function ChartHit({
+export function DEPRECATEDChartHit({
     hit,
     searchQueryRegionsMatches,
     onClick,
