@@ -1,6 +1,11 @@
 import { useQuery } from "@tanstack/react-query"
 import { getCanonicalUrl } from "@ourworldindata/components"
-import { ArticleHit, TopicPageHit, SearchParamsConfig } from "./searchTypes.js"
+import {
+    ArticleHit,
+    TopicPageHit,
+    SearchParamsConfig,
+    SearchTopicType,
+} from "./searchTypes.js"
 import { searchQueryKeys, queryArticles, queryTopicPages } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
 import { AsDraft } from "../AsDraft/AsDraft.js"
@@ -11,19 +16,29 @@ import { formatAuthors } from "@ourworldindata/utils"
 import { generateAsDraftName } from "./searchUtils.js"
 
 export const SearchWritingResults = () => {
-    const { state, searchClient } = useSearchContext()
+    const {
+        state,
+        searchClient,
+        templateConfig: { topicType },
+    } = useSearchContext()
 
-    const searchParamsConfig: SearchParamsConfig = {
+    const articlesQueryParamsConfig: SearchParamsConfig = {
         shouldIgnoreCountry: true,
+    }
+    const topicPagesQueryParamsConfig: SearchParamsConfig = {
+        shouldIgnoreCountry: true,
+        shouldIgnoreQuery: topicType === SearchTopicType.Topic,
     }
     const articlesQuery = useQuery({
         queryKey: searchQueryKeys.articles(state),
-        queryFn: () => queryArticles(searchClient, state, searchParamsConfig),
+        queryFn: () =>
+            queryArticles(searchClient, state, articlesQueryParamsConfig),
     })
 
     const topicPagesQuery = useQuery({
         queryKey: searchQueryKeys.topicPages(state),
-        queryFn: () => queryTopicPages(searchClient, state, searchParamsConfig),
+        queryFn: () =>
+            queryTopicPages(searchClient, state, topicPagesQueryParamsConfig),
     })
 
     const isLoading = articlesQuery.isLoading || topicPagesQuery.isLoading
@@ -44,7 +59,9 @@ export const SearchWritingResults = () => {
                                     <SearchArticleHit
                                         key={hit.objectID}
                                         hit={hit}
-                                        searchParamsConfig={searchParamsConfig}
+                                        searchParamsConfig={
+                                            articlesQueryParamsConfig
+                                        }
                                     />
                                 ))
                             ) : (
@@ -60,7 +77,9 @@ export const SearchWritingResults = () => {
                                     <SearchTopicPageHit
                                         key={hit.objectID}
                                         hit={hit}
-                                        searchParamsConfig={searchParamsConfig}
+                                        searchParamsConfig={
+                                            topicPagesQueryParamsConfig
+                                        }
                                     />
                                 ))
                             ) : (
