@@ -32,7 +32,6 @@ import { easeLinear } from "d3-ease"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { LineLegend } from "../lineLegend/LineLegend"
-import { ComparisonLine } from "../scatterCharts/ComparisonLine"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
     Tooltip,
@@ -956,6 +955,8 @@ export class LineChart
                 dualAxis={dualAxis}
                 showTickMarks={true}
                 detailsMarker={manager.detailsMarkerInSvg}
+                fontSize={this.fontSize}
+                backgroundColor={manager.backgroundColor}
             />
         )
     }
@@ -966,22 +967,12 @@ export class LineChart
     }
 
     /**
-     * Render the lines themselves, their labels, and comparison lines if given
+     * Render the lines themselves and their labels
      */
     renderChartElements(): React.ReactElement {
         const { manager } = this
-        const { comparisonLines = [] } = manager
         return (
             <>
-                {comparisonLines.map((line, index) => (
-                    <ComparisonLine
-                        key={index}
-                        dualAxis={this.dualAxis}
-                        comparisonLine={line}
-                        baseFontSize={this.fontSize}
-                        backgroundColor={this.manager.backgroundColor}
-                    />
-                ))}
                 {manager.showLegend && (
                     <LineLegend
                         series={this.lineLegendSeries}
@@ -1488,6 +1479,7 @@ export class LineChart
                 .padBottom(2),
             verticalAxis: this.verticalAxisPart,
             horizontalAxis: this.horizontalAxisPart,
+            comparisonLines: this.manager.comparisonLines,
         })
     }
 

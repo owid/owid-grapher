@@ -1,7 +1,7 @@
 import { expect, it, describe } from "vitest"
 import * as R from "remeda"
 
-import { HorizontalAxis } from "../axis/Axis"
+import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { ScaleType, AxisConfigInterface } from "@ourworldindata/types"
 import {
     SynthesizeFruitTable,
@@ -217,4 +217,25 @@ describe("manual ticks", () => {
             defaultAxis.tickLabels.map((label) => label.value)
         ).not.toContain(99)
     })
+})
+
+it("DualAxis should store comparison lines configuration", () => {
+    const comparisonLines = [
+        { label: "Linear", yEquals: "x" },
+        { label: "Quadratic", yEquals: "x^2" },
+    ]
+
+    const axisConfig = new AxisConfig()
+    const horizontalAxis = axisConfig.toHorizontalAxis()
+    const verticalAxis = axisConfig.toVerticalAxis()
+
+    const dualAxis = new DualAxis({
+        horizontalAxis,
+        verticalAxis,
+        comparisonLines,
+    })
+
+    expect(dualAxis.comparisonLines).toHaveLength(2)
+    expect(dualAxis.comparisonLines[0].label).toBe("Linear")
+    expect(dualAxis.comparisonLines[1].yEquals).toBe("x^2")
 })

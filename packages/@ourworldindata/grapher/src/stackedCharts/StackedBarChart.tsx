@@ -490,6 +490,8 @@ export class StackedBarChart
                 dualAxis={this.dualAxis}
                 showTickMarks={true}
                 detailsMarker={manager.detailsMarkerInSvg}
+                fontSize={this.fontSize}
+                backgroundColor={this.manager.backgroundColor}
             />
         )
     }

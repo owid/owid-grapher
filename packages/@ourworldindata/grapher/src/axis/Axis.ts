@@ -21,6 +21,7 @@ import {
     cloneDeep,
     OwidVariableRoundingMode,
 } from "@ourworldindata/utils"
+import { ComparisonLineConfig } from "@ourworldindata/types"
 import { AxisConfig, AxisManager } from "./AxisConfig"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { ColumnTypeMap, CoreColumn } from "@ourworldindata/core-table"
@@ -801,6 +802,7 @@ interface DualAxisProps {
     bounds?: Bounds
     horizontalAxis: HorizontalAxis
     verticalAxis: VerticalAxis
+    comparisonLines?: ComparisonLineConfig[]
 }
 
 // DualAxis has the important task of coordinating two axes so that they work together!
@@ -856,6 +858,10 @@ export class DualAxis {
 
     @computed get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
+    }
+
+    @computed get comparisonLines(): ComparisonLineConfig[] {
+        return this.props.comparisonLines ?? []
     }
 }
 
