@@ -116,10 +116,19 @@ export async function queryDataInsights(
     searchClient: SearchClient,
     state: SearchState
 ): Promise<DataInsightSearchResponse> {
+    const selectedCountryNames = getFilterNamesOfType(
+        state.filters,
+        FilterType.COUNTRY
+    )
+    // Using the selected countries as query search terms until data insights
+    // are tagged with countries
+    const query = [state.query, ...selectedCountryNames]
+        .filter(Boolean)
+        .join(" ")
     const searchParams = [
         {
             indexName: SearchIndexName.Pages,
-            query: state.query,
+            query,
             filters: `type:${OwidGdocType.DataInsight}`,
             highlightPostTag: "</mark>",
             highlightPreTag: "<mark>",
