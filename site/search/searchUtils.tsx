@@ -182,6 +182,9 @@ export function setToFacetFilters(
     return Array.from(facetSet).map((facet) => `${attribute}:${facet}`)
 }
 
+export const getTopicFacetFilters = (filters: Filter[]) =>
+    setToFacetFilters(getFilterNamesOfType(filters, FilterType.TOPIC), "tags")
+
 function getAllTopicsInArea(area: TagGraphNode): string[] {
     const topics = area.children.reduce((tags, child) => {
         tags.push(child.name)
