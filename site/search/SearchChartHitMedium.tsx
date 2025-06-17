@@ -29,7 +29,7 @@ import { Highlight } from "react-instantsearch"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { AsDraft } from "../AsDraft/AsDraft.js"
 
-export function ChartHitMedium({
+export function SearchChartHitMedium({
     hit,
     searchQueryRegionsMatches,
     onClick,
@@ -110,31 +110,31 @@ export function ChartHitMedium({
     return (
         <AsDraft
             name={`Chart (Medium${!showThumbnails ? ", no thumbnails" : ""})`}
-            className="chart-hit-medium"
+            className="search-chart-hit-medium"
         >
-            <div className="chart-hit-medium__container">
-                <div className="chart-hit-medium__content">
-                    <div className="chart-hit-medium__title-container">
+            <div className="search-chart-hit-medium__container">
+                <div className="search-chart-hit-medium__content">
+                    <div className="search-chart-hit-medium__title-container">
                         <Highlight
                             attribute="title"
                             highlightedTagName="strong"
-                            className="chart-hit-medium__title"
+                            className="search-chart-hit-medium__title"
                             hit={hit}
                         />{" "}
-                        <span className="chart-hit-medium__variant">
+                        <span className="search-chart-hit-medium__variant">
                             {hit.variantName}
                         </span>
                     </div>
                     {entities.length > 0 && (
-                        <ul className="chart-hit-medium__entities">
+                        <ul className="search-chart-hit-medium__entities">
                             {entities.map((entity, i) => (
                                 <li
                                     key={entity}
-                                    className="chart-hit-medium__entity"
+                                    className="search-chart-hit-medium__entity"
                                 >
                                     {i === 0 && (
                                         <FontAwesomeIcon
-                                            className="chart-hit-medium__icon"
+                                            className="search-chart-hit-medium__icon"
                                             icon={faMapMarkerAlt}
                                         />
                                     )}
@@ -145,7 +145,7 @@ export function ChartHitMedium({
                     )}
                 </div>
                 {showThumbnails && (
-                    <div className="chart-hit-medium__thumbnails">
+                    <div className="search-chart-hit-medium__thumbnails">
                         {chartTypes.map((chartType, index) => {
                             const isMainChart = index === 0
                             const thumbnailUrl = isMainChart ? previewUrl : ""
@@ -154,7 +154,7 @@ export function ChartHitMedium({
                                 <a
                                     key={chartType.type}
                                     href={chartUrl}
-                                    className="chart-hit-medium__thumbnail-link"
+                                    className="search-chart-hit-medium__thumbnail-link"
                                     onClick={onClick}
                                     data-algolia-index={getIndexName(
                                         SearchIndexName.ExplorerViewsMdimViewsAndCharts
@@ -162,9 +162,9 @@ export function ChartHitMedium({
                                     data-algolia-object-id={hit.objectID}
                                     data-algolia-position={hit.__position}
                                 >
-                                    <div className="chart-hit-medium__img-container">
+                                    <div className="search-chart-hit-medium__img-container">
                                         {isMainChart && imgError && (
-                                            <div className="chart-hit-medium__img-error">
+                                            <div className="search-chart-hit-medium__img-error">
                                                 <FontAwesomeIcon
                                                     icon={faHeartBroken}
                                                 />
@@ -177,11 +177,11 @@ export function ChartHitMedium({
                                             <img
                                                 key={previewUrl}
                                                 className={cx(
-                                                    "chart-hit-medium__img",
+                                                    "search-chart-hit-medium__img",
                                                     {
-                                                        "chart-hit-medium__img--loaded":
+                                                        "search-chart-hit-medium__img--loaded":
                                                             imgLoaded,
-                                                        "chart-hit-medium__img--error":
+                                                        "search-chart-hit-medium__img--error":
                                                             imgError,
                                                     }
                                                 )}
@@ -197,14 +197,14 @@ export function ChartHitMedium({
                                                 }
                                             />
                                         ) : (
-                                            <div className="chart-hit-medium__img-placeholder">
-                                                <span className="chart-hit-medium__placeholder-text">
+                                            <div className="search-chart-hit-medium__img-placeholder">
+                                                <span className="search-chart-hit-medium__placeholder-text">
                                                     {chartType.type.toUpperCase()}
                                                 </span>
                                             </div>
                                         )}
                                     </div>
-                                    <div className="chart-hit-medium__thumbnail-label">
+                                    <div className="search-chart-hit-medium__thumbnail-label">
                                         {chartType.label}
                                     </div>
                                 </a>
