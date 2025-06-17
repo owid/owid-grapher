@@ -9,7 +9,7 @@ import {
 import { quantile } from "d3"
 import { sortedUniq } from "lodash-es"
 import * as R from "remeda"
-import { match } from "ts-pattern"
+import { match, P } from "ts-pattern"
 
 type LogBinningStrategy = "log-fake-2" | "log-fake-3" | "log-10" | "log-auto"
 type ResolvedLogBinningStrategy = Exclude<LogBinningStrategy, "log-auto">
@@ -224,7 +224,7 @@ const runBinningStrategyAroundMidpoint = (
         .with("none", () => {
             return runResolvedBinningStrategy(conf, { hasMidpoint: false })
         })
-        .with("symmetric", () => {
+        .with(P.union("symmetric", "asymmetric"), () => {
             const leftRange = Math.max(conf.midpoint - minValue, 0)
             const rightRange = Math.max(maxValue - conf.midpoint, 0)
             const biggerRange = Math.max(leftRange, rightRange)
@@ -248,7 +248,18 @@ const runBinningStrategyAroundMidpoint = (
                 { ...conf, sortedValues: posValues },
                 { hasMidpoint: true }
             )
-            return mirrorBinsAroundMidpoint(binsRight, conf.midpoint)
+            const bins = mirrorBinsAroundMidpoint(binsRight, conf.midpoint)
+
+            if (conf.midpointMode === "symmetric") {
+                return bins
+            } else {
+                // asymmetric: create bins the same way, but then prune any unused ones
+
+                return pruneUnusedBins(bins, {
+                    minValue,
+                    maxValue,
+                })
+            }
         })
         .with("same-num-bins", () => {
             const leftValues = R.takeWhile(
@@ -277,10 +288,6 @@ const runBinningStrategyAroundMidpoint = (
                 conf.midpoint,
                 ...binsRight.map((v) => v + conf.midpoint),
             ]
-        })
-        .with("asymmetric", () => {
-            // probably want to get rid of this one, and keep it manual-only
-            throw new Error("Asymmetric mode is not implemented")
         })
         .exhaustive()
 
