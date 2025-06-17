@@ -1,7 +1,7 @@
 import { commafyNumber } from "@ourworldindata/utils"
 import { useQuery } from "@tanstack/react-query"
-import { ChartHitMedium } from "./ChartHitMedium.js"
-import { ChartHitLarge } from "./ChartHitLarge.js"
+import { SearchChartHitMedium } from "./SearchChartHitMedium.js"
+import { SearchChartHitLarge } from "./SearchChartHitLarge.js"
 import { DataCatalogPagination } from "./DataCatalogPagination.js"
 import { SearchNoResults } from "./SearchNoResults.js"
 import { DataCatalogResultsSkeleton } from "./DataCatalogResultsSkeleton.js"
@@ -59,7 +59,7 @@ export const DataCatalogResults = ({
                                 key={hit.objectID}
                             >
                                 {shouldChartHitLarge ? (
-                                    <ChartHitLarge
+                                    <SearchChartHitLarge
                                         onClick={() => {
                                             analytics.logDataCatalogResultClick(
                                                 hit,
@@ -73,7 +73,7 @@ export const DataCatalogResults = ({
                                         }
                                     />
                                 ) : (
-                                    <ChartHitMedium
+                                    <SearchChartHitMedium
                                         onClick={() => {
                                             analytics.logDataCatalogResultClick(
                                                 hit,
