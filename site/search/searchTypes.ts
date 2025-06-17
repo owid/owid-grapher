@@ -164,6 +164,31 @@ export type DataInsightHit = {
 
 export type DataInsightSearchResponse = SearchResponse<DataInsightHit>
 
+export type ArticleHit = {
+    title: string
+    thumbnailUrl: string
+    date: string
+    slug: string
+    type: OwidGdocType.Article | OwidGdocType.AboutPage
+    content: string
+    authors: string[]
+    objectID: string
+    __position: number
+}
+
+export type ArticleSearchResponse = SearchResponse<ArticleHit>
+
+export type TopicPageHit = {
+    title: string
+    type: OwidGdocType.TopicPage | OwidGdocType.LinearTopicPage
+    slug: string
+    excerpt: string
+    objectID: string
+    __position: number
+}
+
+export type TopicPageSearchResponse = SearchResponse<TopicPageHit>
+
 export enum FilterType {
     COUNTRY = "country",
     TOPIC = "topic",
