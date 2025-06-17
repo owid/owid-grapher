@@ -87,6 +87,7 @@ describe(equalSizeBins, () => {
         const bins = equalSizeBins({
             minValue: 0,
             maxValue: 10,
+            targetBinCount: [5, 9],
         })
         expect(bins).toEqual([0, 2, 4, 6, 8, 10])
     })
@@ -95,6 +96,7 @@ describe(equalSizeBins, () => {
         const bins = equalSizeBins({
             minValue: 0,
             maxValue: 5,
+            targetBinCount: [5, 9],
         })
         expect(bins).toEqual([0, 1, 2, 3, 4, 5])
     })
