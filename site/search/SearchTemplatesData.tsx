@@ -1,6 +1,5 @@
 import { match } from "ts-pattern"
 import { SearchTopicType } from "./searchTypes.js"
-import { DebugFigmaLink } from "./DebugFigmaLink.js"
 import { useSearchContext } from "./SearchContext.js"
 
 export const SearchTemplatesData = () => {
@@ -13,77 +12,29 @@ export const SearchTemplatesData = () => {
             templateConfig.hasQuery,
         ] as const)
             // Data + Topic + Country + Query
-            .with([SearchTopicType.Topic, true, true], () => (
-                <>
-                    <DebugFigmaLink figmaNodeId="399%3A25055" />
-                </>
-            ))
+            .with([SearchTopicType.Topic, true, true], () => <></>)
             // Data + Topic + Country + No Query
-            .with([SearchTopicType.Topic, true, false], () => (
-                <>
-                    <DebugFigmaLink figmaNodeId="394%3A16183" />
-                </>
-            ))
+            .with([SearchTopicType.Topic, true, false], () => <></>)
             // Data + Topic + No Country + Query
-            .with([SearchTopicType.Topic, false, true], () => (
-                <>
-                    <DebugFigmaLink figmaNodeId="397%3A19281" />
-                </>
-            ))
+            .with([SearchTopicType.Topic, false, true], () => <></>)
             // Data + Topic + No Country + No Query
-            .with([SearchTopicType.Topic, false, false], () => (
-                <>
-                    <DebugFigmaLink figmaNodeId="112%3A6780" />
-                </>
-            ))
+            .with([SearchTopicType.Topic, false, false], () => <></>)
             // Data + Area + Country + Query
-            .with([SearchTopicType.Area, true, true], () => (
-                <>
-                    <DebugFigmaLink figmaNodeId="399%3A23571" />
-                </>
-            ))
+            .with([SearchTopicType.Area, true, true], () => <></>)
             // Data + Area + Country + No Query
-            .with([SearchTopicType.Area, true, false], () => (
-                <>
-                    <DebugFigmaLink figmaNodeId="302%3A27755" />
-                </>
-            ))
+            .with([SearchTopicType.Area, true, false], () => <></>)
             // Data + Area + No Country + Query
-            .with([SearchTopicType.Area, false, true], () => (
-                <>
-                    <DebugFigmaLink figmaNodeId="302%3A29747" />
-                </>
-            ))
+            .with([SearchTopicType.Area, false, true], () => <></>)
             // Data + Area + No Country + No Query
-            .with([SearchTopicType.Area, false, false], () => (
-                <>
-                    <DebugFigmaLink figmaNodeId="302%3A15602" />
-                </>
-            ))
+            .with([SearchTopicType.Area, false, false], () => <></>)
             // Data + No Topic + Country + Query
-            .with([null, true, true], () => (
-                <>
-                    <DebugFigmaLink figmaNodeId="399%3A22146" />
-                </>
-            ))
+            .with([null, true, true], () => <></>)
             // Data + No Topic + Country + No Query
-            .with([null, true, false], () => (
-                <>
-                    <DebugFigmaLink figmaNodeId="286%3A9579" />
-                </>
-            ))
+            .with([null, true, false], () => <></>)
             // Data + No Topic + No Country + Query
-            .with([null, false, true], () => (
-                <>
-                    <DebugFigmaLink figmaNodeId="133%3A4452" />
-                </>
-            ))
+            .with([null, false, true], () => <></>)
             // Data + No Topic + No Country + No Query
-            .with([null, false, false], () => (
-                <>
-                    <DebugFigmaLink figmaNodeId="211%3A5904" />
-                </>
-            ))
+            .with([null, false, false], () => <></>)
             .exhaustive()
     )
 }
