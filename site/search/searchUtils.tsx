@@ -3,7 +3,6 @@ import { HitAttributeHighlightResult } from "instantsearch.js"
 import {
     EntityName,
     GrapherQueryParams,
-    TagGraphNode,
     TagGraphRoot,
 } from "@ourworldindata/types"
 import {
@@ -16,6 +15,7 @@ import {
     countriesByName,
     FuzzySearch,
     FuzzySearchResult,
+    getAllChildrenOfArea,
 } from "@ourworldindata/utils"
 import { partition } from "remeda"
 import { generateSelectedEntityNamesParam } from "@ourworldindata/grapher"
@@ -185,27 +185,18 @@ export function setToFacetFilters(
     return Array.from(facetSet).map((facet) => `${attribute}:${facet}`)
 }
 
-function getAllTopicsInArea(area: TagGraphNode): string[] {
-    const topics = area.children.reduce((tags, child) => {
-        tags.push(child.name)
-        if (child.children.length > 0) {
-            tags.push(...getAllTopicsInArea(child))
-        }
-        return tags
-    }, [] as string[])
-    return Array.from(new Set(topics))
-}
-
 export function getSelectableTopics(
     tagGraph: TagGraphRoot,
     selectedTopic: string | undefined
-): string[] {
-    if (!selectedTopic) return tagGraph.children.map((child) => child.name)
+): Set<string> {
+    if (!selectedTopic)
+        return new Set(tagGraph.children.map((child) => child.name))
 
     const area = tagGraph.children.find((child) => child.name === selectedTopic)
-    if (area) return getAllTopicsInArea(area)
+    if (area)
+        return new Set(getAllChildrenOfArea(area).map((node) => node.name))
 
-    return []
+    return new Set()
 }
 
 export function formatCountryFacetFilters(
@@ -225,6 +216,11 @@ export function formatCountryFacetFilters(
         facetFilters.push("isIncomeGroupSpecificFM:false")
     }
     return facetFilters
+}
+
+const formatTopicFacetFilters = (topics: Set<string>): SearchFacetFilters => {
+    // disjunction mode (A OR B): [[attribute:"A", attribute:"B"]]
+    return [setToFacetFilters(topics, "tags")]
 }
 
 export function getCountryData(selectedCountries: Set<string>): Region[] {
@@ -536,16 +532,19 @@ export const isValidResultType = (
     return Object.values(SearchResultType).includes(value as SearchResultType)
 }
 
+export const getSelectedTopic = (filters: Filter[]): string | undefined => {
+    const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
+    return selectedTopics.size > 0 ? [...selectedTopics][0] : undefined
+}
+
 export function getSelectedTopicType(
     filters: Filter[],
     areaNames: string[]
 ): SearchTopicType | null {
-    const firstTopicFilter = filters.find(
-        (filter) => filter.type === FilterType.TOPIC
-    )
-    if (!firstTopicFilter) return null
+    const selectedTopic = getSelectedTopic(filters)
+    if (!selectedTopic) return null
 
-    return areaNames.includes(firstTopicFilter.name)
+    return areaNames.includes(selectedTopic)
         ? SearchTopicType.Area
         : SearchTopicType.Topic
 }
@@ -556,14 +555,24 @@ export function getSelectedTopicType(
  */
 export function createSearchParamsFromConfig(
     config: SearchParamsConfig,
-    state: SearchState
+    state: SearchState,
+    topicTagGraph: TagGraphRoot
 ): Partial<{ query: string; facetFilters: SearchFacetFilters }> {
+    const selectedTopic = getSelectedTopic(state.filters)
+    // we want to include the currently selected topic, along with any
+    // selectable topics that are children of the selected topic
+    // (e.g. if the selected area is "Health", we want to include all
+    // topics that are children of "Health" in the facet filters)
+    const topicFacets: Set<string> = selectedTopic
+        ? new Set([
+              selectedTopic,
+              ...getSelectableTopics(topicTagGraph, selectedTopic),
+          ])
+        : new Set()
+
     const facetFilters = [
         ...(!config.shouldIgnoreTopic
-            ? setToFacetFilters(
-                  getFilterNamesOfType(state.filters, FilterType.TOPIC),
-                  "tags"
-              )
+            ? formatTopicFacetFilters(topicFacets)
             : []),
         ...(!config.shouldIgnoreCountry
             ? formatCountryFacetFilters(
