@@ -31,13 +31,11 @@ export class ColorScaleConfigDefaults implements ColorScaleConfigInterface {
     // ============
 
     /** The strategy for generating the bin boundaries */
-    binningStrategy: string = "auto"
+    binningStrategy: BinningStrategy = "auto"
     createBinForMidpoint?: boolean
     minValue?: number
     maxValue?: number
     midpointMode?: string
-    /** The *suggested* number of bins for the automatic binning algorithm */
-    binningStrategyBinCount: number | undefined = undefined
 
     /** Custom maximum brackets for each numeric bin. Only applied when strategy is `manual`. */
     customNumericValues: number[] = []
@@ -178,7 +176,7 @@ export class ColorScaleConfig
         const binningStrategy = scale.colorScaleBinningStrategy
             ? (scale.colorScaleBinningStrategy as BinningStrategy)
             : scale.colorScaleNumericBins || scale.colorScaleCategoricalBins
-              ? BinningStrategy.manual
+              ? "manual"
               : undefined
 
         const legendDescription = scale.colorScaleLegendDescription
