@@ -39,6 +39,7 @@ import {
     OwidGdocDataInsightInterface,
     TombstonePageData,
     mergeGrapherConfigs,
+    flattenNonTopicNodes,
 } from "@ourworldindata/utils"
 import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
 import {
@@ -104,8 +105,12 @@ export const renderToHtmlPage = (element: any) =>
 
 export const renderSearchPage = async (knex: KnexReadonlyTransaction) => {
     const topicTagGraph = await generateTopicTagGraph(knex)
+    const flattenedTopicTagGraph = flattenNonTopicNodes(topicTagGraph) // no need for sub-areas
     return renderToHtmlPage(
-        <SearchPage baseUrl={BAKED_BASE_URL} topicTagGraph={topicTagGraph} />
+        <SearchPage
+            baseUrl={BAKED_BASE_URL}
+            topicTagGraph={flattenedTopicTagGraph}
+        />
     )
 }
 
