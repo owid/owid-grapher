@@ -50,7 +50,7 @@ export async function queryDataCatalogRibbons(
     tagGraph: TagGraphRoot,
     selectedTopic: string | undefined
 ): Promise<DataCatalogRibbonResult[]> {
-    const topicsForRibbons = getSelectableTopics(tagGraph, selectedTopic)
+    const topicsForRibbons = [...getSelectableTopics(tagGraph, selectedTopic)]
 
     const countryFacetFilters = formatCountryFacetFilters(
         getFilterNamesOfType(state.filters, FilterType.COUNTRY),
@@ -152,7 +152,8 @@ export async function queryDataInsights(
 export async function queryArticles(
     searchClient: SearchClient,
     state: SearchState,
-    searchParamsConfig: SearchParamsConfig
+    searchParamsConfig: SearchParamsConfig,
+    topicTagGraph: TagGraphRoot
 ): Promise<ArticleSearchResponse> {
     const searchParams = [
         {
@@ -171,7 +172,11 @@ export async function queryArticles(
             ],
             hitsPerPage: 5,
             page: state.page < 0 ? 0 : state.page,
-            ...createSearchParamsFromConfig(searchParamsConfig, state),
+            ...createSearchParamsFromConfig(
+                searchParamsConfig,
+                state,
+                topicTagGraph
+            ),
         },
     ]
 
@@ -183,7 +188,8 @@ export async function queryArticles(
 export async function queryTopicPages(
     searchClient: SearchClient,
     state: SearchState,
-    searchParamsConfig: SearchParamsConfig
+    searchParamsConfig: SearchParamsConfig,
+    topicTagGraph: TagGraphRoot
 ): Promise<TopicPageSearchResponse> {
     const searchParams = [
         {
@@ -194,7 +200,11 @@ export async function queryTopicPages(
             attributesToRetrieve: ["title", "type", "slug", "excerpt"],
             hitsPerPage: 5,
             page: state.page < 0 ? 0 : state.page,
-            ...createSearchParamsFromConfig(searchParamsConfig, state),
+            ...createSearchParamsFromConfig(
+                searchParamsConfig,
+                state,
+                topicTagGraph
+            ),
         },
     ]
 
