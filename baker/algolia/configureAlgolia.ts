@@ -345,7 +345,6 @@ export const configureAlgolia = async () => {
         replaceExistingSynonyms: true,
     })
 
-
     if (TOPICS_CONTENT_GRAPH) {
         const graphIndex = client.initIndex(CONTENT_GRAPH_ALGOLIA_INDEX)
 
