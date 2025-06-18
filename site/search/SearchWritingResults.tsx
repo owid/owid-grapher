@@ -20,6 +20,7 @@ export const SearchWritingResults = () => {
         state,
         searchClient,
         templateConfig: { topicType, hasQuery },
+        topicTagGraph,
     } = useSearchContext()
 
     const articlesQueryParamsConfig: SearchParamsConfig = {
@@ -32,13 +33,23 @@ export const SearchWritingResults = () => {
     const articlesQuery = useQuery({
         queryKey: searchQueryKeys.articles(state),
         queryFn: () =>
-            queryArticles(searchClient, state, articlesQueryParamsConfig),
+            queryArticles(
+                searchClient,
+                state,
+                articlesQueryParamsConfig,
+                topicTagGraph
+            ),
     })
 
     const topicPagesQuery = useQuery({
         queryKey: searchQueryKeys.topicPages(state),
         queryFn: () =>
-            queryTopicPages(searchClient, state, topicPagesQueryParamsConfig),
+            queryTopicPages(
+                searchClient,
+                state,
+                topicPagesQueryParamsConfig,
+                topicTagGraph
+            ),
         enabled: !!topicType || hasQuery,
     })
 
