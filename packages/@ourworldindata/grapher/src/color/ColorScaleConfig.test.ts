@@ -23,7 +23,6 @@ describe("fromDSL", () => {
     it("handles comprehensive test case", () => {
         expect(colorScale.baseColorScheme).toEqual(ColorSchemeName.Magma)
         expect(colorScale.colorSchemeInvert).toBeTruthy()
-        expect(colorScale.customNumericMinValue).toEqual(0.5)
         expect(colorScale.customCategoryLabels).toEqual({
             one: "uno",
             two: "dos",
@@ -52,7 +51,7 @@ describe("fromDSL", () => {
             colorScaleNumericBins: "1;2;3",
         })!
         expect(numericScale.binningStrategy).toEqual(BinningStrategy.manual)
-        expect(numericScale.customNumericValues).toEqual([1, 2, 3])
+        expect(numericScale.customNumericValues).toEqual([0, 1, 2, 3])
         expect(numericScale.customNumericColorsActive).toBeTruthy()
     })
 
@@ -72,7 +71,7 @@ describe("fromDSL", () => {
         const colorScale = ColorScaleConfig.fromDSL({
             colorScaleNumericBins: "1;2;3",
         })!
-        expect(colorScale.customNumericValues).toEqual([1, 2, 3])
+        expect(colorScale.customNumericValues).toEqual([0, 1, 2, 3])
         expect(colorScale.customNumericLabels).toEqual([
             undefined,
             undefined,
@@ -86,7 +85,7 @@ describe("fromDSL", () => {
         const colorScale2 = ColorScaleConfig.fromDSL({
             colorScaleNumericBins: "1,#ddd;2,#eee;3,#fff",
         })!
-        expect(colorScale2.customNumericValues).toEqual([1, 2, 3])
+        expect(colorScale2.customNumericValues).toEqual([0, 1, 2, 3])
         expect(colorScale2.customNumericColors).toEqual([
             "#ddd",
             "#eee",
@@ -100,7 +99,7 @@ describe("fromDSL", () => {
         const colorScale3 = ColorScaleConfig.fromDSL({
             colorScaleNumericBins: "1,,One;2,,Two;3,,Three",
         })!
-        expect(colorScale3.customNumericValues).toEqual([1, 2, 3])
+        expect(colorScale3.customNumericValues).toEqual([0, 1, 2, 3])
         expect(colorScale3.customNumericColors).toEqual([
             undefined,
             undefined,

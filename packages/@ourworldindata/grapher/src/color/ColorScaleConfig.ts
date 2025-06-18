@@ -36,8 +36,6 @@ export class ColorScaleConfigDefaults {
     /** The *suggested* number of bins for the automatic binning algorithm */
     @observable binningStrategyBinCount?: number
 
-    /** The minimum bracket of the first bin */
-    @observable customNumericMinValue?: number
     /** Custom maximum brackets for each numeric bin. Only applied when strategy is `manual`. */
     @observable customNumericValues: number[] = []
     /**
@@ -108,25 +106,27 @@ export class ColorScaleConfig
         const customNumericValues: number[] = []
         const customNumericLabels: (string | undefined)[] = []
         const customNumericColors: (Color | undefined)[] = []
-        scale.colorScaleNumericBins
-            ?.split(INTER_BIN_DELIMITER)
-            .forEach((bin: string): void => {
-                const [value, color, ...label] = bin.split(
-                    INTRA_BIN_DELIMITER
-                ) as (string | undefined)[]
-                if (!value) return
-                customNumericValues.push(parseFloat(value))
-                customNumericColors.push(color?.trim() || undefined)
-                customNumericLabels.push(
-                    label.join(INTRA_BIN_DELIMITER).trim() || undefined
-                )
-            })
+
+        if (scale.colorScaleNumericBins) {
+            customNumericValues.push(scale.colorScaleNumericMinValue ?? 0)
+
+            scale.colorScaleNumericBins
+                .split(INTER_BIN_DELIMITER)
+                .forEach((bin: string): void => {
+                    const [value, color, ...label] = bin.split(
+                        INTRA_BIN_DELIMITER
+                    ) as (string | undefined)[]
+                    if (!value) return
+                    customNumericValues.push(parseFloat(value))
+                    customNumericColors.push(color?.trim() || undefined)
+                    customNumericLabels.push(
+                        label.join(INTRA_BIN_DELIMITER).trim() || undefined
+                    )
+                })
+        }
 
         // TODO: once Grammar#parse() is called for all values, we can remove parseFloat() here
         // See issue: https://www.notion.so/owid/ColumnGrammar-parse-function-does-not-get-applied-67b578b8af7642c5859a1db79c8d5712
-        const customNumericMinValue = scale.colorScaleNumericMinValue
-            ? parseFloat(scale.colorScaleNumericMinValue as any)
-            : undefined
 
         const customNumericColorsActive =
             customNumericColors.length > 0 ? true : undefined
@@ -170,57 +170,12 @@ export class ColorScaleConfig
             customNumericColors,
             customNumericColorsActive,
             customNumericLabels,
-            customNumericMinValue,
             customCategoryLabels,
             customCategoryColors,
             legendDescription,
         })
 
         return isEmpty(trimmed) ? undefined : new ColorScaleConfig(trimmed)
-    }
-
-    toDSL(): ColumnColorScale {
-        const {
-            colorSchemeInvert,
-            baseColorScheme,
-            binningStrategy,
-            customNumericValues,
-            customNumericColors,
-            customNumericLabels,
-            customNumericMinValue,
-            customCategoryLabels,
-            customCategoryColors,
-            legendDescription,
-        } = this.toObject()
-
-        const columnColorScale: ColumnColorScale = {
-            colorScaleScheme: baseColorScheme,
-            colorScaleInvert: colorSchemeInvert,
-            colorScaleBinningStrategy: binningStrategy,
-            colorScaleLegendDescription: legendDescription,
-            colorScaleNumericMinValue: customNumericMinValue,
-            colorScaleNumericBins: (customNumericValues ?? [])
-                .map((value: any, index: number) =>
-                    [
-                        value,
-                        customNumericColors[index] ?? "",
-                        customNumericLabels[index],
-                    ].join(INTRA_BIN_DELIMITER)
-                )
-                .join(INTER_BIN_DELIMITER),
-            colorScaleNoDataLabel: customCategoryLabels[NO_DATA_LABEL],
-            colorScaleCategoricalBins: Object.keys(customCategoryColors ?? {})
-                .map((value) =>
-                    [
-                        value,
-                        customCategoryColors[value],
-                        customCategoryLabels[value],
-                    ].join(INTRA_BIN_DELIMITER)
-                )
-                .join(INTER_BIN_DELIMITER),
-        }
-
-        return trimObject(columnColorScale)
     }
 }
 

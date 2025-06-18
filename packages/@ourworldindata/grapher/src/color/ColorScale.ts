@@ -6,6 +6,7 @@ import {
     roundSigFig,
     mapNullToUndefined,
     sortNumeric,
+    pairs,
 } from "@ourworldindata/utils"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { ColorScheme } from "../color/ColorScheme"
@@ -73,7 +74,7 @@ export class ColorScale {
 
         const labels =
             mapNullToUndefined(toJS(this.config.customNumericLabels)) || []
-        while (labels.length < this.numBins) labels.push(undefined)
+        while (labels.length < this.numNumericBins) labels.push(undefined)
         return labels
     }
 
@@ -149,35 +150,32 @@ export class ColorScale {
     }
 
     @computed private get minBinValue(): number {
-        return this.config.customNumericMinValue ?? this.autoMinBinValue
+        return this.config.customNumericValues?.[0] ?? this.autoMinBinValue
     }
 
-    @computed private get manualBinMaximums(): number[] {
-        if (!this.sortedNumericValues.length || this.numBins <= 0) return []
+    @computed private get manualBinThresholds(): number[] {
+        if (!this.sortedNumericValues.length || this.numNumericBins <= 0)
+            return []
 
-        const { numBins, customNumericValues } = this
-
-        let values = [...customNumericValues]
-        while (values.length < numBins) values.push(0)
-        while (values.length > numBins) values = values.slice(0, numBins)
-        return values
+        return this.customNumericValues
     }
 
     // When automatic classification is turned on, this takes the numeric map data
     // and works out some discrete ranges to assign colors to
-    @computed get autoBinMaximums(): number[] {
-        return getBinMaximums({
+    @computed get autoBinThresholds(): number[] {
+        const binMaximums = getBinMaximums({
             binningStrategy: this.config.binningStrategy,
             sortedValues: this.sortedNumericBinningValues,
             binCount: this.numAutoBins,
-            minBinValue: this.minBinValue,
+            minBinValue: this.autoMinBinValue,
         })
+        return [this.autoMinBinValue, ...binMaximums]
     }
 
-    @computed private get bucketMaximums(): number[] {
+    @computed private get bucketThresholds(): number[] {
         return this.isManualBuckets
-            ? this.manualBinMaximums
-            : this.autoBinMaximums
+            ? this.manualBinThresholds
+            : this.autoBinThresholds
     }
 
     // Ensure there's always a custom color for "No data"
@@ -193,13 +191,8 @@ export class ColorScale {
     }
 
     @computed get baseColors(): Color[] {
-        const {
-            categoricalValues,
-            colorScheme,
-            bucketMaximums,
-            isColorSchemeInverted,
-        } = this
-        const numColors = bucketMaximums.length + categoricalValues.length
+        const { categoricalValues, colorScheme, isColorSchemeInverted } = this
+        const numColors = this.numNumericBins + categoricalValues.length
         const colors = colorScheme.getColors(numColors)
 
         if (isColorSchemeInverted) return colors.toReversed()
@@ -214,9 +207,11 @@ export class ColorScale {
         return this.config.binningStrategy === BinningStrategy.manual
     }
 
-    @computed get numBins(): number {
+    @computed get numNumericBins(): number {
+        if (!this.sortedNumericValues.length) return 0
+
         return this.isManualBuckets
-            ? this.customNumericValues.length
+            ? Math.max(this.customNumericValues.length - 1, 0)
             : this.numAutoBins
     }
 
@@ -250,20 +245,17 @@ export class ColorScale {
     @computed private get numericLegendBins(): NumericBin[] {
         const {
             customNumericLabels,
-            minBinValue,
             minPossibleValue,
             maxPossibleValue,
             customNumericColors,
-            bucketMaximums,
+            bucketThresholds,
             baseColors,
         } = this
 
         if (minPossibleValue === undefined || maxPossibleValue === undefined)
             return []
 
-        let min = minBinValue
-
-        return bucketMaximums.map((max, index) => {
+        return pairs(bucketThresholds).map(([min, max], index) => {
             const baseColor = baseColors[index]
             const color = customNumericColors[index] ?? baseColor
             const label = customNumericLabels[index]
@@ -278,15 +270,13 @@ export class ColorScale {
                 this.colorScaleColumn?.formatValueShort(max, roundingOptions) ??
                 max.toString()
 
-            const currentMin = min
             const isFirst = index === 0
-            const isLast = index === bucketMaximums.length - 1
-            min = max
+            const isLast = index === bucketThresholds.length - 2
             return new NumericBin({
                 isFirst,
-                isOpenLeft: isFirst && currentMin > minPossibleValue,
+                isOpenLeft: isFirst && min > minPossibleValue,
                 isOpenRight: isLast && max < maxPossibleValue,
-                min: currentMin,
+                min,
                 max,
                 color,
                 label,
@@ -310,7 +300,7 @@ export class ColorScale {
 
     @computed get categoricalLegendBins(): CategoricalBin[] {
         const {
-            bucketMaximums,
+            bucketThresholds,
             baseColors,
             hasNoDataBin,
             categoricalValues,
@@ -331,9 +321,9 @@ export class ColorScale {
         }
 
         return allCategoricalValues.map((value, index) => {
-            const boundingOffset = isEmpty(bucketMaximums)
+            const boundingOffset = isEmpty(bucketThresholds)
                 ? 0
-                : bucketMaximums.length - 1
+                : bucketThresholds.length - 1
             const baseColor = baseColors[index + boundingOffset]
             const color = customCategoryColors[value] ?? baseColor
             const label = customCategoryLabels[value] ?? value

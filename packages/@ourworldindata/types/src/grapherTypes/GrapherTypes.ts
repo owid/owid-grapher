@@ -360,8 +360,6 @@ export class ColorScaleConfigDefaults {
     /** The *suggested* number of bins for the automatic binning algorithm */
     @observable binningStrategyBinCount?: number
 
-    /** The minimum bracket of the first bin */
-    @observable customNumericMinValue?: number
     /** Custom maximum brackets for each numeric bin. Only applied when strategy is `manual`. */
     @observable customNumericValues: number[] = []
     /**
@@ -417,7 +415,6 @@ export type ColorScaleConfigInterface = ColorScaleConfigDefaults
 //     colorSchemeInvert?: boolean
 //     binningStrategy?: BinningStrategy
 //     binningStrategyBinCount?: number
-//     customNumericMinValue?: number
 //     customNumericValues: number[]
 //     customNumericLabels: (string | undefined | null)[]
 //     customNumericColorsActive?: boolean
