@@ -4,7 +4,7 @@ import {
 } from "../OwidVariableDisplayConfigInterface.js"
 import { ColumnSlugs, EntityName } from "../domainTypes/CoreTableTypes.js"
 import { AxisAlign, Position } from "../domainTypes/Layout.js"
-import { Integer } from "../domainTypes/Various.js"
+import { Integer, OwidVariableId } from "../domainTypes/Various.js"
 import { DetailDictionary } from "../gdocTypes/Gdoc.js"
 import { observable } from "mobx"
 import {
@@ -15,6 +15,7 @@ import {
     GRAPHER_TAB_QUERY_PARAMS,
     GRAPHER_TAB_TYPES,
 } from "./GrapherConstants.js"
+import { OwidVariableDataMetadataDimensions } from "../OwidVariable.js"
 
 export interface Box {
     x: number
@@ -754,7 +755,6 @@ export const grapherKeysToSerialize = [
     // internals
     "adminBaseUrl",
     "bakedGrapherURL",
-    "dataApiUrl",
 ]
 
 export enum GrapherStaticFormat {
@@ -773,3 +773,7 @@ export enum GrapherWindowType {
     modal = "modal",
     drawer = "drawer",
 }
+
+export type AdditionalGrapherDataFetchFn = (
+    varId: OwidVariableId
+) => Promise<OwidVariableDataMetadataDimensions>

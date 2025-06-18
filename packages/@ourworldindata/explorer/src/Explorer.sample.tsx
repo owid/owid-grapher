@@ -1,6 +1,9 @@
 import { DimensionProperty } from "@ourworldindata/utils"
 import { GRAPHER_TAB_OPTIONS } from "@ourworldindata/types"
-import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
+import {
+    GrapherProgrammaticInterface,
+    legacyToOwidTableAndDimensionsWithMandatorySlug,
+} from "@ourworldindata/grapher"
 import { Explorer, ExplorerProps } from "./Explorer.js"
 
 const SampleExplorerOfGraphersProgram = `explorerTitle	CO₂
@@ -44,61 +47,67 @@ graphers
 
 export const SampleExplorerOfGraphers = (props?: Partial<ExplorerProps>) => {
     const title = "AlphaBeta"
-    const first: GrapherProgrammaticInterface = {
-        id: 488,
-        title,
-        dimensions: [
+    const owidDataset = new Map([
+        [
+            142609,
             {
-                variableId: 142609,
-                property: DimensionProperty.y,
-            },
-        ],
-        tab: GRAPHER_TAB_OPTIONS.chart,
-        owidDataset: new Map([
-            [
-                142609,
-                {
-                    data: {
-                        years: [-1, 0, 1, 2],
-                        entities: [1, 2, 1, 2],
-                        values: [51, 52, 53, 54],
-                    },
-                    metadata: {
-                        id: 142609,
-                        display: { zeroDay: "2020-01-21", yearIsDay: true },
-                        dimensions: {
-                            entities: {
-                                values: [
-                                    {
-                                        name: "United Kingdom",
-                                        code: "GBR",
-                                        id: 1,
-                                    },
-                                    { name: "Ireland", code: "IRL", id: 2 },
-                                ],
-                            },
-                            years: {
-                                values: [
-                                    {
-                                        id: -1,
-                                    },
-                                    {
-                                        id: 0,
-                                    },
-                                    {
-                                        id: 1,
-                                    },
-                                    {
-                                        id: 2,
-                                    },
-                                ],
-                            },
+                data: {
+                    years: [-1, 0, 1, 2],
+                    entities: [1, 2, 1, 2],
+                    values: [51, 52, 53, 54],
+                },
+                metadata: {
+                    id: 142609,
+                    display: { zeroDay: "2020-01-21", yearIsDay: true },
+                    dimensions: {
+                        entities: {
+                            values: [
+                                {
+                                    name: "United Kingdom",
+                                    code: "GBR",
+                                    id: 1,
+                                },
+                                { name: "Ireland", code: "IRL", id: 2 },
+                            ],
+                        },
+                        years: {
+                            values: [
+                                {
+                                    id: -1,
+                                },
+                                {
+                                    id: 0,
+                                },
+                                {
+                                    id: 1,
+                                },
+                                {
+                                    id: 2,
+                                },
+                            ],
                         },
                     },
                 },
-            ],
-        ]),
+            },
+        ],
+    ])
+    const dimensions = [
+        {
+            variableId: 142609,
+            property: DimensionProperty.y,
+        },
+    ]
+    const first: GrapherProgrammaticInterface = {
+        id: 488,
+        title,
+        dimensions,
+        tab: GRAPHER_TAB_OPTIONS.chart,
     }
+    first.table = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        owidDataset,
+        dimensions,
+        {}
+    )
     const grapherConfigs: GrapherProgrammaticInterface[] = [
         first,
         {

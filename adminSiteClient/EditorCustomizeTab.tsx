@@ -8,7 +8,7 @@ import {
     FacetStrategy,
     GRAPHER_CHART_TYPES,
 } from "@ourworldindata/types"
-import { Grapher } from "@ourworldindata/grapher"
+import { GrapherState } from "@ourworldindata/grapher"
 import {
     NumberField,
     Toggle,
@@ -115,7 +115,7 @@ class TimeField<
 
 @observer
 export class ColorSchemeSelector extends React.Component<{
-    grapher: Grapher
+    grapherState: GrapherState
     defaultValue?: ColorSchemeName
 }> {
     @action.bound onChange(selected: ColorSchemeOption) {
@@ -124,31 +124,31 @@ export class ColorSchemeSelector extends React.Component<{
         // we are not using the multi-option select we can force the type to be
         // a single value.
 
-        this.props.grapher.baseColorScheme = (
+        this.props.grapherState.baseColorScheme = (
             selected.value === "default" ? undefined : selected.value
         ) as ColorSchemeName
 
         // clear out saved, pre-computed colors so the color scheme change is immediately visible
-        this.props.grapher.seriesColorMap?.clear()
+        this.props.grapherState.seriesColorMap?.clear()
     }
 
     @action.bound onBlur() {
-        if (this.props.grapher.baseColorScheme === undefined) {
-            this.props.grapher.baseColorScheme = this.props.defaultValue
+        if (this.props.grapherState.baseColorScheme === undefined) {
+            this.props.grapherState.baseColorScheme = this.props.defaultValue
 
             // clear out saved, pre-computed colors so the color scheme change is immediately visible
-            this.props.grapher.seriesColorMap?.clear()
+            this.props.grapherState.seriesColorMap?.clear()
         }
     }
 
     @action.bound onInvertColorScheme(value: boolean) {
-        this.props.grapher.invertColorScheme = value || undefined
+        this.props.grapherState.invertColorScheme = value || undefined
 
-        this.props.grapher.seriesColorMap?.clear()
+        this.props.grapherState.seriesColorMap?.clear()
     }
 
     render() {
-        const { grapher } = this.props
+        const { grapherState } = this.props
 
         return (
             <React.Fragment>
@@ -156,14 +156,16 @@ export class ColorSchemeSelector extends React.Component<{
                     <div className="form-group">
                         <label>Color scheme</label>
                         <ColorSchemeDropdown
-                            value={grapher.baseColorScheme}
+                            value={grapherState.baseColorScheme}
                             onChange={this.onChange}
                             onBlur={this.onBlur}
                             chartType={
-                                this.props.grapher.chartType ??
+                                this.props.grapherState.chartType ??
                                 GRAPHER_CHART_TYPES.LineChart
                             }
-                            invertedColorScheme={!!grapher.invertColorScheme}
+                            invertedColorScheme={
+                                !!grapherState.invertColorScheme
+                            }
                             additionalOptions={[
                                 {
                                     colorScheme: undefined,
@@ -178,7 +180,7 @@ export class ColorSchemeSelector extends React.Component<{
                 <FieldsRow>
                     <Toggle
                         label="Invert colors"
-                        value={!!grapher.invertColorScheme}
+                        value={!!grapherState.invertColorScheme}
                         onValue={this.onInvertColorScheme}
                     />
                 </FieldsRow>
@@ -198,11 +200,11 @@ class SortOrderSection<
     Editor extends AbstractChartEditor,
 > extends React.Component<{ editor: Editor }> {
     @computed get sortConfig(): SortConfig {
-        return this.grapher._sortConfig
+        return this.grapherState._sortConfig
     }
 
-    @computed get grapher() {
-        return this.props.editor.grapher
+    @computed get grapherState() {
+        return this.props.editor.grapherState
     }
 
     @computed get sortOptions(): SortOrderDropdownOption[] {
@@ -210,7 +212,7 @@ class SortOrderSection<
 
         let dimensionSortOptions: SortOrderDropdownOption[] = []
         if (features.canSortByColumn) {
-            dimensionSortOptions = this.grapher.yColumnsFromDimensions.map(
+            dimensionSortOptions = this.grapherState.yColumnsFromDimensions.map(
                 (column): SortOrderDropdownOption => ({
                     label: column.displayName,
                     display: {
@@ -237,12 +239,12 @@ class SortOrderSection<
     }
 
     @action.bound onSortByChange(selected: SortOrderDropdownOption | null) {
-        this.grapher.sortBy = selected?.value.sortBy
-        this.grapher.sortColumnSlug = selected?.value.sortColumnSlug
+        this.grapherState.sortBy = selected?.value.sortBy
+        this.grapherState.sortColumnSlug = selected?.value.sortColumnSlug
     }
 
     @action.bound onSortOrderChange(sortOrder: string) {
-        this.grapher.sortOrder = sortOrder as SortOrder
+        this.grapherState.sortOrder = sortOrder as SortOrder
     }
 
     render() {
@@ -301,8 +303,8 @@ class FacetSection<Editor extends AbstractChartEditor> extends React.Component<{
 }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @computed get grapher() {
-        return this.props.editor.grapher
+    @computed get grapherState() {
+        return this.props.editor.grapherState
     }
 
     @computed get facetOptions(): Array<{
@@ -310,14 +312,14 @@ class FacetSection<Editor extends AbstractChartEditor> extends React.Component<{
         value?: FacetStrategy
     }> {
         return [{ label: "auto" }].concat(
-            this.grapher.availableFacetStrategies.map((s) => {
+            this.grapherState.availableFacetStrategies.map((s) => {
                 return { label: s.toString(), value: s }
             })
         )
     }
 
     @computed get facetSelection(): { label: string; value?: FacetStrategy } {
-        const strategy = this.grapher.selectedFacetStrategy
+        const strategy = this.grapherState.selectedFacetStrategy
         if (strategy) {
             return { label: strategy.toString(), value: strategy }
         }
@@ -331,11 +333,11 @@ class FacetSection<Editor extends AbstractChartEditor> extends React.Component<{
             value?: FacetStrategy
         } | null
     ) {
-        this.grapher.selectedFacetStrategy = selected?.value
+        this.grapherState.selectedFacetStrategy = selected?.value
     }
 
     render() {
-        const yAxisConfig = this.props.editor.grapher.yAxis
+        const yAxisConfig = this.props.editor.grapherState.yAxis
 
         return (
             <Section name="Faceting">
@@ -350,9 +352,9 @@ class FacetSection<Editor extends AbstractChartEditor> extends React.Component<{
                 <FieldsRow>
                     <Toggle
                         label={`Hide facet control`}
-                        value={this.grapher.hideFacetControl}
+                        value={this.grapherState.hideFacetControl}
                         onValue={(value) => {
-                            this.grapher.hideFacetControl = value
+                            this.grapherState.hideFacetControl = value
                         }}
                     />
                 </FieldsRow>
@@ -380,29 +382,29 @@ class TimelineSection<
 > extends React.Component<{ editor: Editor }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @computed get grapher() {
-        return this.props.editor.grapher
+    @computed get grapherState() {
+        return this.props.editor.grapherState
     }
 
     @action.bound onToggleHideTimeline(value: boolean) {
-        this.grapher.hideTimeline = value || undefined
+        this.grapherState.hideTimeline = value || undefined
     }
 
     @action.bound onToggleShowYearLabels(value: boolean) {
-        this.grapher.showYearLabels = value || undefined
+        this.grapherState.showYearLabels = value || undefined
     }
 
     render() {
         const { editor } = this.props
         const { features } = editor
-        const { grapher } = this
+        const { grapherState } = this
 
         return (
             <Section name="Timeline selection">
                 <FieldsRow>
                     {features.timeDomain && (
                         <TimeField
-                            store={this.grapher}
+                            store={this.grapherState}
                             field="minTime"
                             label="Selection start"
                             defaultValue={TimeBoundValue.negativeInfinity}
@@ -416,7 +418,7 @@ class TimelineSection<
                         />
                     )}
                     <TimeField
-                        store={this.grapher}
+                        store={this.grapherState}
                         field="maxTime"
                         label={
                             features.timeDomain
@@ -434,7 +436,7 @@ class TimelineSection<
                 {features.timelineRange && (
                     <FieldsRow>
                         <TimeField
-                            store={this.grapher}
+                            store={this.grapherState}
                             field="timelineMinTime"
                             label="Timeline min"
                             defaultValue={TimeBoundValue.negativeInfinity}
@@ -449,7 +451,7 @@ class TimelineSection<
                             )}
                         />
                         <TimeField
-                            store={this.grapher}
+                            store={this.grapherState}
                             field="timelineMaxTime"
                             label="Timeline max"
                             defaultValue={TimeBoundValue.positiveInfinity}
@@ -468,13 +470,13 @@ class TimelineSection<
                 <FieldsRow>
                     <Toggle
                         label="Hide timeline"
-                        value={!!grapher.hideTimeline}
+                        value={!!grapherState.hideTimeline}
                         onValue={this.onToggleHideTimeline}
                     />
                     {features.showYearLabels && (
                         <Toggle
                             label="Always show year labels"
-                            value={!!grapher.showYearLabels}
+                            value={!!grapherState.showYearLabels}
                             onValue={this.onToggleShowYearLabels}
                         />
                     )}
@@ -491,19 +493,19 @@ class ComparisonLineSection<
     @observable comparisonLines: ComparisonLineConfig[] = []
 
     @action.bound onAddComparisonLine() {
-        const { grapher } = this.props.editor
-        if (!grapher.comparisonLines) grapher.comparisonLines = []
-        grapher.comparisonLines.push({})
+        const { grapherState } = this.props.editor
+        if (!grapherState.comparisonLines) grapherState.comparisonLines = []
+        grapherState.comparisonLines.push({})
     }
 
     @action.bound onRemoveComparisonLine(index: number) {
-        const { grapher } = this.props.editor
-        if (!grapher.comparisonLines) grapher.comparisonLines = []
-        grapher.comparisonLines.splice(index, 1)
+        const { grapherState } = this.props.editor
+        if (!grapherState.comparisonLines) grapherState.comparisonLines = []
+        grapherState.comparisonLines.splice(index, 1)
     }
 
     render() {
-        const { comparisonLines = [] } = this.props.editor.grapher
+        const { comparisonLines = [] } = this.props.editor.grapherState
 
         return (
             <Section name="Comparison line">
@@ -567,11 +569,11 @@ export class EditorCustomizeTab<
     }
 
     render() {
-        const xAxisConfig = this.props.editor.grapher.xAxis
-        const yAxisConfig = this.props.editor.grapher.yAxis
+        const xAxisConfig = this.props.editor.grapherState.xAxis
+        const yAxisConfig = this.props.editor.grapherState.yAxis
 
         const { features, activeParentConfig } = this.props.editor
-        const { grapher } = this.props.editor
+        const { grapherState } = this.props.editor
 
         return (
             <div>
@@ -741,7 +743,7 @@ export class EditorCustomizeTab<
                 <FacetSection editor={this.props.editor} />
                 <Section name="Color scheme">
                     <ColorSchemeSelector
-                        grapher={grapher}
+                        grapherState={grapherState}
                         defaultValue={
                             this.props.editor.activeParentConfig
                                 ?.baseColorScheme
@@ -751,13 +753,14 @@ export class EditorCustomizeTab<
                 {features.canSpecifySortOrder && (
                     <SortOrderSection editor={this.props.editor} />
                 )}
-                {grapher.chartInstanceExceptMap.colorScale && (
+                {grapherState.chartInstanceExceptMap.colorScale && (
                     <EditorColorScaleSection
-                        scale={grapher.chartInstanceExceptMap.colorScale}
+                        scale={grapherState.chartInstanceExceptMap.colorScale}
                         chartType={
-                            grapher.chartType ?? GRAPHER_CHART_TYPES.LineChart
+                            grapherState.chartType ??
+                            GRAPHER_CHART_TYPES.LineChart
                         }
-                        showLineChartColors={grapher.isLineChart}
+                        showLineChartColors={grapherState.isLineChart}
                         features={{
                             legendDescription: true,
                         }}
@@ -768,9 +771,10 @@ export class EditorCustomizeTab<
                         <FieldsRow>
                             <Toggle
                                 label={`Hide legend`}
-                                value={!!grapher.hideLegend}
+                                value={!!grapherState.hideLegend}
                                 onValue={(value) =>
-                                    (grapher.hideLegend = value || undefined)
+                                    (grapherState.hideLegend =
+                                        value || undefined)
                                 }
                             />
                         </FieldsRow>
@@ -784,7 +788,7 @@ export class EditorCustomizeTab<
                                     </>
                                 }
                                 field="facettingLabelByYVariables"
-                                store={grapher}
+                                store={grapherState}
                                 helpText={
                                     "When facetting is active, one option is to split " +
                                     "by entity/country, the other is by metric. This option  " +
@@ -800,9 +804,9 @@ export class EditorCustomizeTab<
                         <FieldsRow>
                             <Toggle
                                 label={`Hide relative toggle`}
-                                value={!!grapher.hideRelativeToggle}
+                                value={!!grapherState.hideRelativeToggle}
                                 onValue={(value) =>
-                                    (grapher.hideRelativeToggle =
+                                    (grapherState.hideRelativeToggle =
                                         value || false)
                                 }
                             />
@@ -814,9 +818,9 @@ export class EditorCustomizeTab<
                         <FieldsRow>
                             <Toggle
                                 label={`Hide total value label`}
-                                value={!!grapher.hideTotalValueLabel}
+                                value={!!grapherState.hideTotalValueLabel}
                                 onValue={(value) =>
-                                    (grapher.hideTotalValueLabel =
+                                    (grapherState.hideTotalValueLabel =
                                         value || false)
                                 }
                             />

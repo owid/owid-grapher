@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest"
-import { Grapher } from "../core/Grapher"
+import { GrapherState } from "../core/Grapher"
 import {
     SynthesizeFruitTable,
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
 
 it("updates the selection based on the active tab", () => {
-    const grapher = new Grapher()
+    const grapher = new GrapherState({})
 
     // updates the chart selection when shown next to the chart
     grapher.entitySelector.onChange("Italy")
@@ -21,13 +21,13 @@ it("updates the selection based on the active tab", () => {
 describe("filter by dropdown", () => {
     it("doesn't show a dropdown for non-geographic data", () => {
         const table = SynthesizeFruitTable()
-        const grapher = new Grapher({ table })
+        const grapher = new GrapherState({ table })
         expect(grapher.entitySelector.shouldShowFilterBar).toBe(false)
     })
 
     it("doesn't show a dropdown if there is a single category", () => {
         const table = SynthesizeGDPTable({ entityNames: ["Spain", "France"] })
-        const grapher = new Grapher({ table })
+        const grapher = new GrapherState({ table })
         expect(grapher.entitySelector.shouldShowFilterBar).toBe(false)
     })
 
@@ -35,7 +35,7 @@ describe("filter by dropdown", () => {
         const table = SynthesizeGDPTable({
             entityNames: ["Spain", "France", "Europe"],
         })
-        const grapher = new Grapher({ table })
+        const grapher = new GrapherState({ table })
         expect(grapher.entitySelector.shouldShowFilterBar).toBe(true)
         expect(
             grapher.entitySelector.filterOptions.map((option) => option.value)

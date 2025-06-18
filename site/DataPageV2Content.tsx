@@ -1,10 +1,9 @@
-import { useState, useEffect, useMemo } from "react"
-import { Grapher, GrapherProgrammaticInterface } from "@ourworldindata/grapher"
+import { useMemo } from "react"
+import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import {
     REUSE_THIS_WORK_SECTION_ID,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
 } from "@ourworldindata/components"
-import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
     DataPageV2ContentFields,
@@ -12,14 +11,19 @@ import {
     joinTitleFragments,
     ImageMetadata,
 } from "@ourworldindata/utils"
-import { DocumentContext } from "./gdocs/DocumentContext.js"
-import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import StickyNav from "./blocks/StickyNav.js"
+import {
+    ADMIN_BASE_URL,
+    BAKED_GRAPHER_URL,
+} from "../settings/clientSettings.js"
 import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
 import TopicTags from "./TopicTags.js"
 import { processRelatedResearch } from "./dataPage.js"
+import { GrapherWithFallback } from "./GrapherWithFallback.js"
+import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
+import { DocumentContext } from "./gdocs/DocumentContext.js"
 
 declare global {
     interface Window {
@@ -42,8 +46,6 @@ export const DataPageV2Content = ({
     grapherConfig: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>
 }) => {
-    const [grapher, setGrapher] = useState<Grapher | undefined>(undefined)
-
     const titleFragments = joinTitleFragments(
         datapageData.attributionShort,
         datapageData.titleVariant
@@ -53,17 +55,14 @@ export const DataPageV2Content = ({
     const mergedGrapherConfig: GrapherProgrammaticInterface = useMemo(
         () => ({
             ...grapherConfig,
-            isEmbeddedInADataPage: true,
-            bindUrlToWindow: true,
+            bindUrlToWindow: typeof window !== "undefined",
+            adminBaseUrl: ADMIN_BASE_URL,
+            bakedGrapherURL: BAKED_GRAPHER_URL,
+            enableKeyboardShortcuts: typeof window !== "undefined",
             archivedChartInfo,
         }),
         [grapherConfig, archivedChartInfo]
     )
-
-    useEffect(() => {
-        setGrapher(new Grapher(mergedGrapherConfig))
-    }, [mergedGrapherConfig])
-
     const stickyNavLinks = [
         {
             text: "Explore the Data",
@@ -101,9 +100,16 @@ export const DataPageV2Content = ({
             <DocumentContext.Provider value={{ isPreviewing }}>
                 <div className="DataPageContent__grapher-for-embed">
                     <GrapherWithFallback
-                        grapher={grapher}
-                        slug={grapherConfig.slug}
+                        config={mergedGrapherConfig}
+                        slug={grapherConfig.slug!}
+                        queryStr={
+                            typeof window !== "undefined"
+                                ? window?.location?.search
+                                : undefined
+                        }
                         enablePopulatingUrlParams
+                        isEmbeddedInAnOwidPage={false}
+                        isEmbeddedInADataPage={false}
                     />
                 </div>
                 <div className="DataPageContent grid grid-cols-12-full-width">
@@ -133,16 +139,21 @@ export const DataPageV2Content = ({
                     </nav>
                     <div className="span-cols-14 grid grid-cols-12-full-width full-width--border">
                         <div className="chart-key-info col-start-2 span-cols-12">
-                            <GrapherWithFallback
-                                grapher={grapher}
-                                slug={grapherConfig.slug} // TODO: On grapher pages,
-                                // there will always be a slug, but if we just show a data page preview for an indicator in the admin, there will be no slug
-                                // and then thumbnails will be broken for those. When we consider baking data pages for
-                                // non-grapher pages then we need to make sure that there are thunbnails that are generated for the these non-chart graphers and
-                                // then this piece will have to change anyhow and know how to provide the thumbnail.
-                                id="explore-the-data"
-                                enablePopulatingUrlParams
-                            />
+                            {grapherConfig.slug && (
+                                <GrapherWithFallback
+                                    slug={grapherConfig.slug}
+                                    config={mergedGrapherConfig}
+                                    id="explore-the-data"
+                                    queryStr={
+                                        typeof window !== "undefined"
+                                            ? window?.location?.search
+                                            : undefined
+                                    }
+                                    enablePopulatingUrlParams
+                                    isEmbeddedInADataPage={true}
+                                    isEmbeddedInAnOwidPage={false}
+                                />
+                            )}
                             <AboutThisData
                                 datapageData={datapageData}
                                 hasFaq={!!faqEntries?.faqs.length}

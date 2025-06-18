@@ -6,13 +6,17 @@ import "./owid.scss"
 import "@fortawesome/fontawesome-svg-core/styles.css"
 
 import { ENV } from "../settings/clientSettings.js"
-import { Grapher } from "@ourworldindata/grapher"
+import {
+    Grapher,
+    renderSingleGrapherOnGrapherPage,
+} from "@ourworldindata/grapher"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { runMonkeyPatchForGoogleTranslate } from "./hacks.js"
 import { runSiteFooterScriptsForArchive } from "./runSiteFooterScripts.js"
 
 declare let window: any
 window.Grapher = Grapher
+window.renderSingleGrapherOnGrapherPage = renderSingleGrapherOnGrapherPage
 
 // Note: do a text search of the project for "runSiteFooterScripts" to find the usage. todo: clean that up.
 window.runSiteFooterScripts = runSiteFooterScriptsForArchive
