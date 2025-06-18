@@ -70,6 +70,7 @@ export interface DownloadModalManager {
     isOnTableTab?: boolean
     showAdminControls?: boolean
     isSocialMediaExport?: boolean
+    isWikimediaExport?: boolean
     isPublished?: boolean
     activeColumnSlugs?: string[]
     isServerSideDownloadAvailable?: boolean
@@ -181,6 +182,10 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
         return this.manager.isSocialMediaExport ?? false
     }
 
+    @computed private get isWikimediaExport(): boolean {
+        return this.manager.isWikimediaExport ?? false
+    }
+
     @computed private get shouldIncludeDetails(): boolean {
         return !!this.manager.shouldIncludeDetailsInStaticExport
     }
@@ -267,6 +272,10 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
 
     @action.bound private toggleExportForUseInSocialMedia(): void {
         this.manager.isSocialMediaExport = !this.isSocialMediaExport
+    }
+
+    @action.bound private toggleExportForUseOnWikimedia(): void {
+        this.manager.isWikimediaExport = !this.isWikimediaExport
     }
 
     @action.bound private toggleIncludeDetails(): void {
@@ -391,6 +400,18 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                                 this.manager.shouldIncludeDetailsInStaticExport =
                                                     false
                                             }
+
+                                            this.export()
+                                        })}
+                                    />
+                                )}
+                                {this.manager.showAdminControls && (
+                                    <Checkbox
+                                        checked={this.isWikimediaExport}
+                                        label="For use on Wikimedia"
+                                        onChange={action((): void => {
+                                            this.reset()
+                                            this.toggleExportForUseOnWikimedia()
 
                                             this.export()
                                         })}

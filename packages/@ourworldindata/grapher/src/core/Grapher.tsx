@@ -1173,6 +1173,7 @@ export class Grapher
     @observable.ref renderToStatic = false
     @observable.ref isExportingToSvgOrPng = false
     @observable.ref isSocialMediaExport = false
+    @observable.ref isWikimediaExport = false
 
     tooltip?: TooltipManager["tooltip"] = observable.box(undefined, {
         deep: false,
@@ -3569,6 +3570,10 @@ export class Grapher
             this.isStaticAndSmall &&
             this.isSocialMediaExport
         )
+    }
+
+    @computed get isExportingForWikimedia(): boolean {
+        return this.isExportingToSvgOrPng && this.isWikimediaExport
     }
 
     @computed get backgroundColor(): Color {
