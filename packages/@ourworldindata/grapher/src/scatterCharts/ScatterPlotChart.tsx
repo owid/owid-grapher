@@ -11,7 +11,6 @@ import {
     ColorSchemeName,
     ValueRange,
     ColumnSlug,
-    AxisAlign,
     ChartErrorInfo,
 } from "@ourworldindata/types"
 import { ComparisonLine } from "../scatterCharts/ComparisonLine"
@@ -1033,7 +1032,6 @@ export class ScatterPlotChart
         const { yAxisConfig = {} } = this.manager
         const config = {
             ...yAxisConfig,
-            labelPosition: AxisAlign.end,
             labelPadding: this.manager.isNarrow ? 10 : 14,
         }
         return new AxisConfig(config, this)
