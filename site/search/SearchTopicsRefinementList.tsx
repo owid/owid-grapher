@@ -14,7 +14,9 @@ export const SearchTopicsRefinementList = () => {
         state: { query },
     } = useSearchContext()
     const selectedTopic = useSelectedTopic()
-    const selectableTopics = getSelectableTopics(topicTagGraph, selectedTopic)
+    const selectableTopics = [
+        ...getSelectableTopics(topicTagGraph, selectedTopic),
+    ]
 
     const [isExpanded, setIsExpanded] = useState(false)
 
