@@ -30,9 +30,6 @@
     @include sm-up {
         @include column-gap(24px);
     }
-    @include md-only {
-        @include column-gap(0px);
-    }
 
     .SiteNavigationToggle--mobile-menu {
         flex: 1; // center owid logo
