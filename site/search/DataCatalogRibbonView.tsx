@@ -5,6 +5,8 @@ import { DataCatalogRibbonResult } from "./searchTypes.js"
 import { queryDataCatalogRibbons, searchQueryKeys } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedTopic } from "./searchHooks.js"
+import { SearchResultHeader } from "./SearchResultHeader.js"
+import { AsDraft } from "../AsDraft/AsDraft.js"
 
 export const DataCatalogRibbonView = () => {
     const { state, searchClient, topicTagGraph } = useSearchContext()
@@ -29,13 +31,22 @@ export const DataCatalogRibbonView = () => {
         (a, b) => b.nbHits - a.nbHits
     )
 
+    const totalCount =
+        query.data?.reduce((acc, result) => acc + result.nbHits, 0) || 0
+
     return (
-        <>
-            <div className="span-cols-14 grid grid-cols-12-full-width data-catalog-ribbons">
-                {resultsSortedByHitCount?.map((result) => (
-                    <DataCatalogRibbon key={result.title} result={result} />
-                ))}
+        <AsDraft
+            name="Data Catalog Ribbons"
+            className="span-cols-12 col-start-2"
+        >
+            <div className=" data-catalog-ribbons">
+                <div>
+                    <SearchResultHeader title="Charts" count={totalCount} />
+                    {resultsSortedByHitCount?.map((result) => (
+                        <DataCatalogRibbon key={result.title} result={result} />
+                    ))}
+                </div>
             </div>
-        </>
+        </AsDraft>
     )
 }
