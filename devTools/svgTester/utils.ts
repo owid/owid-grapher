@@ -25,7 +25,10 @@ import util from "util"
 import { getHeapStatistics } from "v8"
 import { queryStringsByChartType } from "./chart-configurations.js"
 import * as d3 from "d3"
-import { legacyToOwidTableAndDimensions } from "@ourworldindata/grapher"
+import {
+    legacyToOwidTableAndDimensions,
+    migrateGrapherConfigToLatestVersion,
+} from "@ourworldindata/grapher"
 import prettier from "prettier"
 import { hashMd5 } from "../../serverUtils/hash.js"
 import * as R from "remeda"
@@ -520,7 +523,8 @@ export async function loadGrapherConfigAndData(
         throw `Input directory does not exist ${inputDir}`
 
     const configPath = path.join(inputDir, CONFIG_FILENAME)
-    const config = (await readJsonFile(configPath)) as GrapherInterface
+    const rawConfig = (await readJsonFile(configPath)) as GrapherInterface
+    const config = migrateGrapherConfigToLatestVersion(rawConfig) // ensure the config is migrated to the latest schema version
 
     // TODO: this bakes the same commonly used variables over and over again - deduplicate
     // this on the variable level and bake those separately into a different directory
