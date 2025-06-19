@@ -163,6 +163,7 @@ export function DataPageContent({
                 assetMap
             ).then((json) => {
                 const mergedMetadata = merge(
+                    {}, // merge mutates the first argument
                     json,
                     config.config?.metadata,
                     newView.metadata
