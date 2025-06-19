@@ -10,6 +10,7 @@ import {
     faDownload,
     faArrowRight,
     IconDefinition,
+    faHeart,
 } from "@fortawesome/free-solid-svg-icons"
 import {
     ShareMenu,
@@ -60,10 +61,12 @@ export class ActionButtons extends React.Component<{
         const {
             buttonCount,
             hasDownloadButton,
+            hasDonateButton,
             hasShareButton,
             hasFullScreenButton,
             hasExploreTheDataButton,
             downloadButtonWithLabelWidth,
+            donateButtonWithLabelWidth,
             shareButtonWithLabelWidth,
             fullScreenButtonWithLabelWidth,
             exploreTheDataButtonWithLabelWidth,
@@ -72,6 +75,9 @@ export class ActionButtons extends React.Component<{
         let width = 0
         if (hasDownloadButton) {
             width += downloadButtonWithLabelWidth
+        }
+        if (hasDonateButton) {
+            width += donateButtonWithLabelWidth
         }
         if (hasShareButton) {
             width += shareButtonWithLabelWidth
@@ -89,23 +95,28 @@ export class ActionButtons extends React.Component<{
     @computed get widthWithIconsOnly(): number {
         const {
             buttonCount,
+            donateButtonWidth,
+            hasDonateButton,
             hasExploreTheDataButton,
             exploreTheDataButtonWidth,
         } = this
 
-        if (hasExploreTheDataButton) {
-            // the "Explore the data" label is always shown
-            return (
-                exploreTheDataButtonWidth +
-                (buttonCount - 1) * BUTTON_WIDTH_ICON_ONLY +
-                (buttonCount - 1) * PADDING_BETWEEN_BUTTONS
-            )
-        } else {
-            return (
-                buttonCount * BUTTON_WIDTH_ICON_ONLY +
-                (buttonCount - 1) * PADDING_BETWEEN_BUTTONS
-            )
+        let width = 0
+        let remainingButtonCount = buttonCount
+
+        // When shown, the donate and explore the data buttons always have labels
+        if (hasDonateButton) {
+            width += donateButtonWidth
+            remainingButtonCount--
         }
+        if (hasExploreTheDataButton) {
+            width += exploreTheDataButtonWidth
+            remainingButtonCount--
+        }
+        width += remainingButtonCount * BUTTON_WIDTH_ICON_ONLY
+        width += (buttonCount - 1) * PADDING_BETWEEN_BUTTONS
+
+        return width
     }
 
     @computed get showButtonLabels(): boolean {
@@ -131,6 +142,10 @@ export class ActionButtons extends React.Component<{
 
     @computed private get downloadButtonWithLabelWidth(): number {
         return ActionButtons.computeButtonWidth("Download")
+    }
+
+    @computed private get donateButtonWithLabelWidth(): number {
+        return ActionButtons.computeButtonWidth("Donate")
     }
 
     @computed private get shareButtonWithLabelWidth(): number {
@@ -159,6 +174,13 @@ export class ActionButtons extends React.Component<{
         if (!hasDownloadButton) return 0
         if (!showButtonLabels) return BUTTON_WIDTH_ICON_ONLY
         return downloadButtonWithLabelWidth
+    }
+
+    // The donate button is always shown with a label
+    @computed private get donateButtonWidth(): number {
+        const { hasDonateButton, donateButtonWithLabelWidth } = this
+        if (!hasDonateButton) return 0
+        return donateButtonWithLabelWidth
     }
 
     @computed private get shareButtonWidth(): number {
@@ -204,6 +226,10 @@ export class ActionButtons extends React.Component<{
         return true
     }
 
+    @computed private get hasDonateButton(): boolean {
+        return true // TODO only show when there's space, and only when archived
+    }
+
     @computed private get hasShareButton(): boolean {
         return (
             !this.manager.hideShareButton && ShareMenu.shouldShow(this.manager)
@@ -222,6 +248,7 @@ export class ActionButtons extends React.Component<{
     @computed private get buttonCount(): number {
         let count = 0
         if (this.hasDownloadButton) count += 1
+        if (this.hasDonateButton) count += 1
         if (this.hasShareButton) count += 1
         if (this.hasFullScreenButton) count += 1
         if (this.hasExploreTheDataButton) count += 1
@@ -266,7 +293,18 @@ export class ActionButtons extends React.Component<{
                                     this.manager.isDownloadModalOpen = true
                                     e.stopPropagation()
                                 }}
-                                style={{ width: "100%" }}
+                            />
+                        </li>
+                    )}
+                    {this.hasDonateButton && (
+                        <li style={{ width: this.donateButtonWidth }}>
+                            <ActionButton
+                                className="ActionButton--donate"
+                                label="Donate"
+                                dataTrackNote="chart_click_donate"
+                                showLabel={true}
+                                icon={faHeart}
+                                href="https://ourworldindata.org/donate"
                             />
                         </li>
                     )}
@@ -282,7 +320,6 @@ export class ActionButtons extends React.Component<{
                                     e.stopPropagation()
                                 }}
                                 isActive={this.manager.isShareMenuActive}
-                                style={{ width: "100%" }}
                             />
                             {isShareMenuActive && this.renderShareMenu()}
                         </li>
@@ -299,7 +336,6 @@ export class ActionButtons extends React.Component<{
                                         : faExpand
                                 }
                                 onClick={this.toggleFullScreenMode}
-                                style={{ width: "100%" }}
                             />
                         </li>
                     )}
