@@ -8,13 +8,10 @@ import DataInsightDateline from "../gdocs/components/DataInsightDateline.js"
 import { Snippet } from "react-instantsearch"
 import { OwidGdocType } from "@ourworldindata/types"
 import { formatAuthors } from "@ourworldindata/utils"
+import { SearchResultHeader } from "./SearchResultHeader.js"
 
 export const SearchWritingResults = () => {
-    const {
-        state,
-        searchClient,
-        templateConfig: { topicType, hasQuery },
-    } = useSearchContext()
+    const { state, searchClient } = useSearchContext()
 
     const articlesQuery = useQuery({
         queryKey: searchQueryKeys.articles(state),
@@ -24,51 +21,60 @@ export const SearchWritingResults = () => {
     const topicPagesQuery = useQuery({
         queryKey: searchQueryKeys.topicPages(state),
         queryFn: () => queryTopicPages(searchClient, state),
-        enabled: !!topicType || hasQuery,
     })
 
-    const isInitialLoading =
-        articlesQuery.isInitialLoading || topicPagesQuery.isInitialLoading
+    const isLoading = articlesQuery.isLoading || topicPagesQuery.isLoading
 
     const articles = articlesQuery.data?.hits || []
     const topicPages = topicPagesQuery.data?.hits || []
 
+    const totalCount =
+        (articlesQuery.data?.nbHits || 0) + (topicPagesQuery.data?.nbHits || 0)
+
     return (
         <AsDraft name="Writing Results" className="col-start-2 span-cols-12">
-            {isInitialLoading ? (
+            {isLoading ? (
                 <WritingSearchResultsSkeleton />
             ) : (
                 <div className="search-writing-results">
+                    {!!totalCount && (
+                        <SearchResultHeader
+                            title="Research & Writing"
+                            count={totalCount}
+                        />
+                    )}
                     <div className="search-writing-results__container">
-                        <div className="search-writing-results__hits-list">
-                            {articles.length > 0 ? (
-                                articles.map((hit) => (
-                                    <SearchArticleHit
-                                        key={hit.objectID}
-                                        hit={hit}
-                                    />
-                                ))
-                            ) : (
-                                <p className="search-writing-results__no-results">
-                                    No articles found
-                                </p>
-                            )}
-                        </div>
+                        {articles.length > 0 && (
+                            <div className="search-writing-results__section">
+                                <div className="search-writing-results__hits-list">
+                                    {articles.map((hit) => (
+                                        <SearchArticleHit
+                                            key={hit.objectID}
+                                            hit={hit}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
-                        <div className="search-writing-results__hits-list">
-                            {topicPages.length > 0 ? (
-                                topicPages.map((hit) => (
-                                    <SearchTopicPageHit
-                                        key={hit.objectID}
-                                        hit={hit}
-                                    />
-                                ))
-                            ) : (
-                                <p className="search-writing-results__no-results">
-                                    No topic pages found
-                                </p>
-                            )}
-                        </div>
+                        {topicPages.length > 0 && (
+                            <div className="search-writing-results__section">
+                                <div className="search-writing-results__hits-list">
+                                    {topicPages.map((hit) => (
+                                        <SearchTopicPageHit
+                                            key={hit.objectID}
+                                            hit={hit}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {!totalCount && (
+                            <p className="search-writing-results__no-results">
+                                No writing content found
+                            </p>
+                        )}
                     </div>
                 </div>
             )}
