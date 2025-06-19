@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { unstable_batchedUpdates } from "react-dom"
 import { useSearchParams } from "react-router-dom-v5-compat"
@@ -13,10 +14,8 @@ import {
 import {
     DataPageDataV2,
     joinTitleFragments,
-    compact,
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
-    merge,
     isInIFrame,
 } from "@ourworldindata/utils"
 import {
@@ -162,11 +161,16 @@ export function DataPageContent({
                 variableId,
                 assetMap
             ).then((json) => {
-                const mergedMetadata = merge(
+                const mergedMetadata = _.mergeWith(
                     {}, // merge mutates the first argument
                     json,
                     config.config?.metadata,
-                    newView.metadata
+                    newView.metadata,
+                    // Overwrite arrays completely instead of merging them.
+                    // Otherwise fall back to the default merge behavior.
+                    (_, srcValue) => {
+                        return Array.isArray(srcValue) ? srcValue : undefined
+                    }
                 )
                 return {
                     ...getDatapageDataV2(mergedMetadata, newView.config ?? {}),
@@ -338,7 +342,7 @@ export function DataPageContent({
     )
 
     const faqEntriesForView = useMemo(() => {
-        return compact(
+        return _.compact(
             varDatapageData?.faqs?.flatMap(
                 (faq) => faqEntries?.faqs?.[faq.gdocId]?.[faq.fragmentId]
             )
