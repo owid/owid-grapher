@@ -1,11 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { getCanonicalUrl } from "@ourworldindata/components"
-import {
-    ArticleHit,
-    TopicPageHit,
-    SearchParamsConfig,
-    SearchTopicType,
-} from "./searchTypes.js"
+import { ArticleHit, TopicPageHit } from "./searchTypes.js"
 import { searchQueryKeys, queryArticles, queryTopicPages } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
 import { AsDraft } from "../AsDraft/AsDraft.js"
@@ -13,43 +8,22 @@ import DataInsightDateline from "../gdocs/components/DataInsightDateline.js"
 import { Snippet } from "react-instantsearch"
 import { OwidGdocType } from "@ourworldindata/types"
 import { formatAuthors } from "@ourworldindata/utils"
-import { generateAsDraftName } from "./searchUtils.js"
 
 export const SearchWritingResults = () => {
     const {
         state,
         searchClient,
         templateConfig: { topicType, hasQuery },
-        topicTagGraph,
     } = useSearchContext()
 
-    const articlesQueryParamsConfig: SearchParamsConfig = {
-        shouldIgnoreCountry: true,
-    }
-    const topicPagesQueryParamsConfig: SearchParamsConfig = {
-        shouldIgnoreCountry: true,
-        shouldIgnoreQuery: topicType === SearchTopicType.Topic,
-    }
     const articlesQuery = useQuery({
         queryKey: searchQueryKeys.articles(state),
-        queryFn: () =>
-            queryArticles(
-                searchClient,
-                state,
-                articlesQueryParamsConfig,
-                topicTagGraph
-            ),
+        queryFn: () => queryArticles(searchClient, state),
     })
 
     const topicPagesQuery = useQuery({
         queryKey: searchQueryKeys.topicPages(state),
-        queryFn: () =>
-            queryTopicPages(
-                searchClient,
-                state,
-                topicPagesQueryParamsConfig,
-                topicTagGraph
-            ),
+        queryFn: () => queryTopicPages(searchClient, state),
         enabled: !!topicType || hasQuery,
     })
 
@@ -72,9 +46,6 @@ export const SearchWritingResults = () => {
                                     <SearchArticleHit
                                         key={hit.objectID}
                                         hit={hit}
-                                        searchParamsConfig={
-                                            articlesQueryParamsConfig
-                                        }
                                     />
                                 ))
                             ) : (
@@ -90,9 +61,6 @@ export const SearchWritingResults = () => {
                                     <SearchTopicPageHit
                                         key={hit.objectID}
                                         hit={hit}
-                                        searchParamsConfig={
-                                            topicPagesQueryParamsConfig
-                                        }
                                     />
                                 ))
                             ) : (
@@ -108,13 +76,7 @@ export const SearchWritingResults = () => {
     )
 }
 
-const SearchArticleHit = ({
-    hit,
-    searchParamsConfig,
-}: {
-    hit: ArticleHit
-    searchParamsConfig: SearchParamsConfig
-}) => {
+const SearchArticleHit = ({ hit }: { hit: ArticleHit }) => {
     const isArticle = hit.type === OwidGdocType.Article
 
     const href = getCanonicalUrl("", {
@@ -125,7 +87,7 @@ const SearchArticleHit = ({
     })
 
     return (
-        <AsDraft name={generateAsDraftName("Article Hit", searchParamsConfig)}>
+        <AsDraft name="Article Hit">
             <a href={href} className="search-writing-results__hit">
                 {hit.thumbnailUrl && (
                     <div className="search-writing-results__hit-image-container">
@@ -171,13 +133,7 @@ const SearchArticleHit = ({
     )
 }
 
-const SearchTopicPageHit = ({
-    hit,
-    searchParamsConfig,
-}: {
-    hit: TopicPageHit
-    searchParamsConfig: SearchParamsConfig
-}) => {
+const SearchTopicPageHit = ({ hit }: { hit: TopicPageHit }) => {
     const href = getCanonicalUrl("", {
         slug: hit.slug,
         content: {
@@ -186,9 +142,7 @@ const SearchTopicPageHit = ({
     })
 
     return (
-        <AsDraft
-            name={generateAsDraftName("Topic Page Hit", searchParamsConfig)}
-        >
+        <AsDraft name={"Topic Page Hit"}>
             <a href={href} className="search-writing-results__hit">
                 <div className="search-writing-results__hit-content">
                     <header className="search-writing-results__hit-header">
