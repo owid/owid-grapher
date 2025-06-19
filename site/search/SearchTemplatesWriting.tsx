@@ -2,6 +2,7 @@ import { match } from "ts-pattern"
 import { useSearchContext } from "./SearchContext.js"
 import { SearchTopicType } from "./searchTypes.js"
 import { SearchWritingResults } from "./SearchWritingResults.js"
+import { SearchDataInsightsResults } from "./SearchDataInsightsResults.js"
 
 export const SearchTemplatesWriting = () => {
     const { templateConfig } = useSearchContext()
@@ -20,10 +21,16 @@ export const SearchTemplatesWriting = () => {
             .with([SearchTopicType.Topic, false, true], () => (
                 <>
                     <SearchWritingResults />
+                    <SearchDataInsightsResults />
                 </>
             ))
             // Writing + Topic + No Country + No Query
-            .with([SearchTopicType.Topic, false, false], () => <></>)
+            .with([SearchTopicType.Topic, false, false], () => (
+                <>
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
             // Writing + Area + Country + Query
             .with([SearchTopicType.Area, true, true], () => <></>)
             // Writing + Area + Country + No Query
@@ -31,11 +38,26 @@ export const SearchTemplatesWriting = () => {
             // Writing + Area + No Country + Query
             .with([SearchTopicType.Area, false, true], () => <></>)
             // Writing + Area + No Country + No Query
-            .with([SearchTopicType.Area, false, false], () => <></>)
+            .with([SearchTopicType.Area, false, false], () => (
+                <>
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
             // Writing + No Topic + Country + Query
-            .with([null, true, true], () => <></>)
+            .with([null, true, true], () => (
+                <>
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
             // Writing + No Topic + Country + No Query
-            .with([null, true, false], () => <></>)
+            .with([null, true, false], () => (
+                <>
+                    <SearchDataInsightsResults />
+                    <SearchWritingResults />
+                </>
+            ))
             // Writing + No Topic + No Country + Query
             .with([null, false, true], () => <></>)
             // Writing + No Topic + No Country + No Query
