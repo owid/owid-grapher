@@ -27,8 +27,6 @@ import {
     ScoredSearchResult,
     SearchResultType,
     SearchTopicType,
-    SearchParamsConfig,
-    SearchState,
     SearchFacetFilters,
 } from "./searchTypes.js"
 import { faTag } from "@fortawesome/free-solid-svg-icons"
@@ -218,7 +216,9 @@ export function formatCountryFacetFilters(
     return facetFilters
 }
 
-const formatTopicFacetFilters = (topics: Set<string>): SearchFacetFilters => {
+export const formatTopicFacetFilters = (
+    topics: Set<string>
+): SearchFacetFilters => {
     // disjunction mode (A OR B): [[attribute:"A", attribute:"B"]]
     return [setToFacetFilters(topics, "tags")]
 }
@@ -547,67 +547,4 @@ export function getSelectedTopicType(
     return areaNames.includes(selectedTopic)
         ? SearchTopicType.Area
         : SearchTopicType.Topic
-}
-
-/**
- * Creates a partial search parameters object from SearchParamsConfig that can
- * be merged into query functions
- */
-export function createSearchParamsFromConfig(
-    config: SearchParamsConfig,
-    state: SearchState,
-    topicTagGraph: TagGraphRoot
-): Partial<{ query: string; facetFilters: SearchFacetFilters }> {
-    const selectedTopic = getSelectedTopic(state.filters)
-    // we want to include the currently selected topic, along with any
-    // selectable topics that are children of the selected topic
-    // (e.g. if the selected area is "Health", we want to include all
-    // topics that are children of "Health" in the facet filters)
-    const topicFacets: Set<string> = selectedTopic
-        ? new Set([
-              selectedTopic,
-              ...getSelectableTopics(topicTagGraph, selectedTopic),
-          ])
-        : new Set()
-
-    const facetFilters = [
-        ...(!config.shouldIgnoreTopic
-            ? formatTopicFacetFilters(topicFacets)
-            : []),
-        ...(!config.shouldIgnoreCountry
-            ? formatCountryFacetFilters(
-                  getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-                  state.requireAllCountries
-              )
-            : []),
-    ]
-
-    return {
-        ...(!config.shouldIgnoreQuery && { query: state.query }),
-        ...(facetFilters.length > 0 && { facetFilters }),
-    }
-}
-
-/**
- * Generates AsDraft name string from SearchParamsConfig
- */
-export function generateAsDraftName(
-    baseName: string,
-    config: SearchParamsConfig
-): string {
-    const parts = [baseName]
-
-    if (config.shouldIgnoreQuery) {
-        parts.push("🙈 query")
-    }
-
-    if (config.shouldIgnoreCountry) {
-        parts.push("🙈 country")
-    }
-
-    if (config.shouldIgnoreTopic) {
-        parts.push("🙈 topic")
-    }
-
-    return parts.join(" • ")
 }
