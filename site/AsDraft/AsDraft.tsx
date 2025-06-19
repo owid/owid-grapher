@@ -1,13 +1,24 @@
 import { useEffect } from "react"
 import cx from "classnames"
 
-interface AsDraftProps {
-    name?: string
-    className?: string
-    children: React.ReactNode
+interface DebugInfo {
+    tags?: string[]
+    query?: string
 }
 
-export const AsDraft = ({ name, className, children }: AsDraftProps) => {
+interface AsDraftProps {
+    name: string
+    className?: string
+    children: React.ReactNode
+    debug?: DebugInfo
+}
+
+const DEBUG_LABELS: Record<keyof DebugInfo, string> = {
+    query: "Query",
+    tags: "Tags",
+}
+
+export const AsDraft = ({ name, className, children, debug }: AsDraftProps) => {
     useEffect(() => {
         // Add Google Fonts to document head
         const preconnect1 = document.createElement("link")
@@ -38,14 +49,35 @@ export const AsDraft = ({ name, className, children }: AsDraftProps) => {
         }
     }, [])
 
-    if (name) {
+    const renderDebugInfo = () => {
+        if (!debug) return null
+
+        const debugEntries = Object.entries(debug).filter(([_, value]) => {
+            if (Array.isArray(value)) {
+                return value.length > 0
+            }
+            return value !== undefined && value !== null && value !== ""
+        })
+
+        if (debugEntries.length === 0) return null
+
         return (
-            <fieldset className={cx("as-draft", className)}>
-                <legend className="as-draft__legend">{name}</legend>
-                {children}
-            </fieldset>
+            <div className="as-draft__debug">
+                {debugEntries.map(([key, value]) => (
+                    <div key={key} className="as-draft__debug-item">
+                        <strong>{DEBUG_LABELS[key as keyof DebugInfo]}:</strong>{" "}
+                        {Array.isArray(value) ? value.join(", ") : value}
+                    </div>
+                ))}
+            </div>
         )
     }
 
-    return <div className={cx("as-draft", className)}>{children}</div>
+    return (
+        <fieldset className={cx("as-draft", className)}>
+            <legend className="as-draft__legend">{name}</legend>
+            {renderDebugInfo()}
+            {children}
+        </fieldset>
+    )
 }
