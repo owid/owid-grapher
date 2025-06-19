@@ -14,6 +14,7 @@ import {
     DbEnrichedImage,
     OwidGdocDataInsightInterface,
     OwidGdocAboutInterface,
+    getUniqueNamesFromTagHierarchies,
 } from "@ourworldindata/utils"
 import { getAlgoliaClient } from "../configureAlgolia.js"
 import {
@@ -134,11 +135,12 @@ function formatGdocMarkdown(content: string): string {
     return withoutArrow
 }
 
-function generateGdocRecords(
+async function generateGdocRecords(
     gdocs: (OwidGdocPostInterface | OwidGdocDataInsightInterface)[],
     pageviews: Record<string, RawPageview>,
-    cloudflareImagesByFilename: Record<string, DbEnrichedImage>
-): PageRecord[] {
+    cloudflareImagesByFilename: Record<string, DbEnrichedImage>,
+    knex: db.KnexReadonlyTransaction
+): Promise<PageRecord[]> {
     const getPostImportance = (
         gdoc:
             | OwidGdocAboutInterface
@@ -159,11 +161,14 @@ function generateGdocRecords(
             .exhaustive()
     }
 
+    const topicHierarchiesByChildName =
+        await db.getTopicHierarchiesByChildName(knex)
+
     const records: PageRecord[] = []
     for (const gdoc of gdocs) {
         if (!gdoc.content.body || !gdoc.content.type) {
-            console.log(
-                `Skipping Gdoc ${gdoc.id} in search indexing (missing content or type)`
+            await logErrorAndMaybeCaptureInSentry(
+                new Error(`Gdoc ${gdoc.id} has no content or type. Skipping.`)
             )
             continue
         }
@@ -177,6 +182,19 @@ function generateGdocRecords(
         let i = 0
 
         const thumbnailUrl = getThumbnailUrl(gdoc, cloudflareImagesByFilename)
+
+        const originalTagNames = gdoc.tags?.map((t) => t.name) ?? []
+        // Some Gdocs have don't have topic tags by design (e.g. announcements)
+        // so we don't log an error if no tags are found.
+        // We want to get the parent topic tags as well as the original tags to
+        // simplify client-side search queries when searching through areas.
+        const topicTags = new Set<string>(
+            originalTagNames.flatMap((tagName) =>
+                getUniqueNamesFromTagHierarchies(
+                    topicHierarchiesByChildName[tagName] ?? [] // in case the gdoc has a non-topic tag
+                )
+            )
+        )
 
         for (const chunk of chunks) {
             const record = {
@@ -193,7 +211,7 @@ function generateGdocRecords(
                 modifiedDate: (
                     gdoc.updatedAt ?? gdoc.publishedAt!
                 ).toISOString(),
-                tags: gdoc.tags?.map((t) => t.name),
+                tags: [...topicTags],
                 documentType: "gdoc" as const,
                 authors: gdoc.content.authors,
                 thumbnailUrl,
@@ -227,10 +245,11 @@ export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
         .getCloudflareImages(knex)
         .then((images) => _.keyBy(images, "filename"))
 
-    const gdocsRecords = generateGdocRecords(
+    const gdocsRecords = await generateGdocRecords(
         gdocs,
         pageviews,
-        cloudflareImagesByFilename
+        cloudflareImagesByFilename,
+        knex
     )
 
     return [...countryRecords, ...gdocsRecords]
@@ -315,10 +334,12 @@ export async function indexIndividualGdocPost(
             url: gdoc.slug,
         },
     }
-    const records = generateGdocRecords(
+
+    const records = await generateGdocRecords(
         [gdoc],
         pageviewsForGdoc,
-        cloudflareImagesByFilename
+        cloudflareImagesByFilename,
+        knex
     )
 
     const existingRecordsForPost: ObjectWithObjectID[] =
