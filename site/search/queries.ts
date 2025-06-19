@@ -100,7 +100,6 @@ export async function queryDataCatalogSearch(
             facetFilters: facetFilters,
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
-            maxValuesPerFacet: 15,
             hitsPerPage: 10,
             page: state.page < 0 ? 0 : state.page,
         },
