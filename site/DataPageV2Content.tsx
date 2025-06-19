@@ -10,6 +10,7 @@ import {
     GrapherInterface,
     joinTitleFragments,
     ImageMetadata,
+    excludeNull,
 } from "@ourworldindata/utils"
 import StickyNav from "./blocks/StickyNav.js"
 import {
@@ -63,23 +64,27 @@ export const DataPageV2Content = ({
         }),
         [grapherConfig, archivedChartInfo]
     )
-    const stickyNavLinks = [
+    const stickyNavLinks = excludeNull([
         {
             text: "Explore the Data",
             target: "#explore-the-data",
         },
-        {
-            text: "Research & Writing",
-            target: "#research-and-writing",
-        },
-        { text: "All Charts", target: "#all-charts" },
-        { text: "FAQs", target: "#faqs" },
+        datapageData.relatedResearch?.length
+            ? {
+                  text: "Research & Writing",
+                  target: "#research-and-writing",
+              }
+            : null,
+        datapageData.allCharts?.length
+            ? { text: "All Charts", target: "#all-charts" }
+            : null,
+        faqEntries?.faqs?.length ? { text: "FAQs", target: "#faqs" } : null,
         {
             text: "Sources & Processing",
             target: "#" + DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
         },
         { text: "Reuse This Work", target: "#" + REUSE_THIS_WORK_SECTION_ID },
-    ]
+    ])
 
     const relatedResearch = processRelatedResearch(
         datapageData.relatedResearch,
