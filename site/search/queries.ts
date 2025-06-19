@@ -10,7 +10,6 @@ import {
     ArticleSearchResponse,
     TopicPageSearchResponse,
     FilterType,
-    SearchParamsConfig,
     SearchIndexName,
 } from "./searchTypes.js"
 import {
@@ -18,9 +17,9 @@ import {
     formatCountryFacetFilters,
     setToFacetFilters,
     getSelectableTopics,
-    createSearchParamsFromConfig,
     CHARTS_INDEX,
     DATA_CATALOG_ATTRIBUTES,
+    formatTopicFacetFilters,
 } from "./searchUtils.js"
 
 /**
@@ -98,8 +97,6 @@ export async function queryDataCatalogSearch(
             attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
             query: state.query,
             facetFilters: facetFilters,
-            highlightPostTag: "</mark>",
-            highlightPreTag: "<mark>",
             facets: ["tags"],
             maxValuesPerFacet: 15,
             hitsPerPage: 10,
@@ -120,18 +117,33 @@ export async function queryDataInsights(
         state.filters,
         FilterType.COUNTRY
     )
+    const hasCountry = selectedCountryNames.size > 0
+    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
     // Using the selected countries as query search terms until data insights
-    // are tagged with countries
+    // are tagged with countries.
     const query = [state.query, ...selectedCountryNames]
         .filter(Boolean)
         .join(" ")
+
     const searchParams = [
         {
             indexName: SearchIndexName.Pages,
             query,
             filters: `type:${OwidGdocType.DataInsight}`,
-            highlightPostTag: "</mark>",
-            highlightPreTag: "<mark>",
+            facetFilters: formatTopicFacetFilters(selectedTopics),
+            // Do not search through the content of data insights in case there
+            // is a country filter present. This is to avoid returning data
+            // insights that might mention a country, but are not *about* that
+            // country (e.g. "Unlike Germany...").
+            ...(hasCountry && {
+                // a subset of searchableAttributes on the Pages index
+                restrictSearchableAttributes: [
+                    "title",
+                    "excerpt",
+                    "tags",
+                    "authors",
+                ],
+            }),
             attributesToRetrieve: [
                 "title",
                 "thumbnailUrl",
@@ -151,16 +163,39 @@ export async function queryDataInsights(
 
 export async function queryArticles(
     searchClient: SearchClient,
-    state: SearchState,
-    searchParamsConfig: SearchParamsConfig,
-    topicTagGraph: TagGraphRoot
+    state: SearchState
 ): Promise<ArticleSearchResponse> {
+    const selectedCountryNames = getFilterNamesOfType(
+        state.filters,
+        FilterType.COUNTRY
+    )
+    const hasCountry = selectedCountryNames.size > 0
+    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+    // Using the selected countries as query search terms until articles
+    // are tagged with countries.
+    const query = [state.query, ...selectedCountryNames]
+        .filter(Boolean)
+        .join(" ")
+
     const searchParams = [
         {
             indexName: SearchIndexName.Pages,
+            query,
             filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
-            highlightPostTag: "</mark>",
-            highlightPreTag: "<mark>",
+            facetFilters: formatTopicFacetFilters(selectedTopics),
+            // Do not search through the content of articles in case there is a
+            // country filter present. This is to avoid returning articles that
+            // might mention a country, but are not *about* that country (e.g.
+            // "Unlike Germany...").
+            ...(hasCountry && {
+                // a subset of searchableAttributes on the Pages index
+                restrictSearchableAttributes: [
+                    "title",
+                    "excerpt",
+                    "tags",
+                    "authors",
+                ],
+            }),
             attributesToRetrieve: [
                 "title",
                 "thumbnailUrl",
@@ -172,11 +207,6 @@ export async function queryArticles(
             ],
             hitsPerPage: 5,
             page: state.page < 0 ? 0 : state.page,
-            ...createSearchParamsFromConfig(
-                searchParamsConfig,
-                state,
-                topicTagGraph
-            ),
         },
     ]
 
@@ -187,24 +217,19 @@ export async function queryArticles(
 
 export async function queryTopicPages(
     searchClient: SearchClient,
-    state: SearchState,
-    searchParamsConfig: SearchParamsConfig,
-    topicTagGraph: TagGraphRoot
+    state: SearchState
 ): Promise<TopicPageSearchResponse> {
+    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
+
     const searchParams = [
         {
             indexName: SearchIndexName.Pages,
+            query: state.query,
             filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
-            highlightPostTag: "</mark>",
-            highlightPreTag: "<mark>",
+            facetFilters: formatTopicFacetFilters(selectedTopics),
             attributesToRetrieve: ["title", "type", "slug", "excerpt"],
             hitsPerPage: 5,
             page: state.page < 0 ? 0 : state.page,
-            ...createSearchParamsFromConfig(
-                searchParamsConfig,
-                state,
-                topicTagGraph
-            ),
         },
     ]
 
