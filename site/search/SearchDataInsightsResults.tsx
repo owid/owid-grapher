@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 import { queryDataInsights, searchQueryKeys } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
 import { SearchDataInsightHit } from "./SearchDataInsightHit.js"
+import { SearchResultHeader } from "./SearchResultHeader.js"
 
 export function SearchDataInsightsResults() {
     const { state, searchClient } = useSearchContext()
@@ -21,14 +22,7 @@ export function SearchDataInsightsResults() {
     return (
         <AsDraft name="Data Insights" className="grid span-cols-12 col-start-2">
             <section className="search-data-insights-results span-cols-12">
-                <header className="search-data-insights-results__header">
-                    <h3 className="search-data-insights-results__title">
-                        Data Insights
-                    </h3>
-                    <span className="search-data-insights-results__count">
-                        ({nbHits} results)
-                    </span>
-                </header>
+                <SearchResultHeader title="Data Insights" count={nbHits} />
                 <div className="search-data-insights-results__hits grid">
                     {hits.map((hit: DataInsightHit) => (
                         <SearchDataInsightHit

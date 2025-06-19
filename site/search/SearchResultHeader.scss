@@ -1,0 +1,17 @@
+.search-result-header {
+    margin-bottom: 1.5rem;
+
+    &__content {
+        display: flex;
+        align-items: baseline;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    &__title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--blue-90);
+    }
+}
