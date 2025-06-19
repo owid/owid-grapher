@@ -1214,6 +1214,13 @@ div.raw-html-table__container {
     }
 }
 
+// Compensation for MDIM dropdown height in side-by-side charts
+.mdim-compensation {
+    @include sm-up {
+        margin-top: 74px;
+    }
+}
+
 .article-block__prominent-link {
     margin-bottom: 8px;
     color: $blue-90;
