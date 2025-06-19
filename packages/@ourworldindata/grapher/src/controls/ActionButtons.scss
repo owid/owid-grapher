@@ -42,6 +42,13 @@ div.ActionButton {
         --hover-decoration: underline;
     }
 
+    &.ActionButton--donate {
+        --light-fill: #{rgba($vermillion, 0.15)};
+        --hover-fill: #{rgba(#f4a39f, 0.15)};
+        --active-fill: var(--hover-fill);
+        --text-color: #{$vermillion};
+    }
+
     height: 100%;
     border-radius: 4px;
     position: relative;
