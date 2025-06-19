@@ -68,14 +68,17 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
         }
     }, [props.versionsFileUrl])
 
-    const nextVersion = useMemo(() => {
+    const { previousVersion, nextVersion } = useMemo(() => {
         const versionsObj = versions as unknown
         if (
             !R.isPlainObject(versionsObj) ||
             !("versions" in versionsObj) ||
             !Array.isArray(versionsObj.versions)
         )
-            return props.nextVersion
+            return {
+                previousVersion: props.previousVersion,
+                nextVersion: props.nextVersion,
+            }
 
         const versionsArr = versionsObj.versions as ArchiveVersions["versions"]
 
@@ -84,17 +87,21 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
             versionsArr,
             (item) => item.archivalDate < pageArchivalDate
         )
-        if (versionsArr[currentVersionIdx]?.archivalDate !== pageArchivalDate) {
-            console.error(
-                `Current version not found in the list of versions. Current version: ${pageArchivalDate}, Versions: `,
-                versionsArr
-            )
-            return undefined
+        if (versionsArr[currentVersionIdx]?.archivalDate === pageArchivalDate) {
+            return {
+                previousVersion: versionsArr[currentVersionIdx - 1],
+                nextVersion: versionsArr[currentVersionIdx + 1],
+            }
+        } else {
+            // This case is rare but could in theory happen: The current version could not be found in the array.
+            // In this case, we have versionsArr[currentVersionIdx] > pageArchivalDate,
+            // so we need a slightly different logic to find the previous and next versions.
+            return {
+                previousVersion: versionsArr[currentVersionIdx - 1],
+                nextVersion: versionsArr[currentVersionIdx],
+            }
         }
-
-        const prevVersion = versionsArr.at(currentVersionIdx + 1)
-        return prevVersion
-    }, [versions, props.nextVersion, pageArchivalDate])
+    }, [versions, props.previousVersion, props.nextVersion, pageArchivalDate])
 
     return (
         <nav className="archive-navigation-bar">
@@ -113,10 +120,10 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
                 </div>
                 {hasButtons && (
                     <div className="archive-navigation-bar__buttons grid grid-cols-3">
-                        {props.previousVersion && (
+                        {previousVersion && (
                             <Button
                                 className="archive-navigation-bar__button archive-navigation-bar__button-left"
-                                href={props.previousVersion.url}
+                                href={previousVersion.url}
                                 theme="outline-white"
                                 icon={faArrowLeft}
                                 iconPosition="left"
