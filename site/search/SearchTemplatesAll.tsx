@@ -3,6 +3,8 @@ import { SearchTopicType } from "./searchTypes.js"
 import { DataCatalogRibbonView } from "./DataCatalogRibbonView.js"
 import { DataCatalogResults } from "./DataCatalogResults.js"
 import { useSearchContext } from "./SearchContext.js"
+import { SearchWritingResults } from "./SearchWritingResults.js"
+import { SearchDataInsightsResults } from "./SearchDataInsightsResults.js"
 
 export const SearchTemplatesAll = () => {
     const { templateConfig } = useSearchContext()
@@ -24,7 +26,13 @@ export const SearchTemplatesAll = () => {
             // All + Topic + No Country + Query
             .with([SearchTopicType.Topic, false, true], () => <></>)
             // All + Topic + No Country + No Query
-            .with([SearchTopicType.Topic, false, false], () => <></>)
+            .with([SearchTopicType.Topic, false, false], () => (
+                <>
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                    <DataCatalogResults />
+                </>
+            ))
             // All + Area + Country + Query
             .with([SearchTopicType.Area, true, true], () => <></>)
             // All + Area + Country + No Query
