@@ -36,7 +36,14 @@ export const SearchTemplatesWriting = () => {
             // Writing + Area + Country + No Query
             .with([SearchTopicType.Area, true, false], () => <></>)
             // Writing + Area + No Country + Query
-            .with([SearchTopicType.Area, false, true], () => <></>)
+            .with([SearchTopicType.Area, false, true], () => (
+                <>
+                    <>
+                        <SearchWritingResults />
+                        <SearchDataInsightsResults />
+                    </>
+                </>
+            ))
             // Writing + Area + No Country + No Query
             .with([SearchTopicType.Area, false, false], () => (
                 <>
