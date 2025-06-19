@@ -1,4 +1,3 @@
-import { commafyNumber } from "@ourworldindata/utils"
 import { useQuery } from "@tanstack/react-query"
 import { SearchChartHitMedium } from "./SearchChartHitMedium.js"
 import { SearchChartHitLarge } from "./SearchChartHitLarge.js"
@@ -10,6 +9,8 @@ import { queryDataCatalogSearch, searchQueryKeys } from "./queries.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedCountries } from "./searchHooks.js"
+import { AsDraft } from "../AsDraft/AsDraft.js"
+import { SearchResultHeader } from "./SearchResultHeader.js"
 
 const analytics = new SiteAnalytics()
 
@@ -37,14 +38,9 @@ export const DataCatalogResults = ({
 
     const { page, nbPages, nbHits } = query.data
     return (
-        <>
-            <div className="span-cols-12 col-start-2 data-catalog-search-hits">
-                {nbHits && (
-                    <p className="data-catalog-search-list__results-count body-3-medium">
-                        {commafyNumber(nbHits)}{" "}
-                        {nbHits === 1 ? "indicator" : "indicators"}
-                    </p>
-                )}
+        <AsDraft name="Data Results" className="span-cols-12 col-start-2">
+            <div className="data-catalog-search-hits">
+                <SearchResultHeader title="Data" count={nbHits} />
                 <ul className="data-catalog-search-list">
                     {hits.map((hit, i) => {
                         const isFirstResult = i === 0
@@ -97,6 +93,6 @@ export const DataCatalogResults = ({
                 setPage={setPage}
                 nbPages={nbPages}
             />
-        </>
+        </AsDraft>
     )
 }
