@@ -18,6 +18,7 @@ import {
     shouldShareUsingShareApi,
 } from "./ShareMenu.js"
 import { DEFAULT_BOUNDS, Bounds } from "@ourworldindata/utils"
+import classNames from "classnames"
 
 export interface ActionButtonsManager extends ShareMenuManager {
     isShareMenuActive?: boolean
@@ -304,22 +305,14 @@ export class ActionButtons extends React.Component<{
                     )}
                     {this.hasExploreTheDataButton && (
                         <li style={{ width: this.exploreTheDataButtonWidth }}>
-                            <div
-                                className="ActionButton ActionButton--exploreData"
-                                style={{ width: "100%" }}
-                            >
-                                <a
-                                    data-track-note="chart_click_exploredata"
+                            <ActionButton
+                                label="Explore the data"
+                                dataTrackNote="chart_click_exploredata"
+                                icon={faArrowRight}
                                     href={manager.canonicalUrl}
-                                    target="_blank"
-                                    rel="noopener"
-                                >
-                                    <span className="label">
-                                        Explore the data
-                                    </span>
-                                    <FontAwesomeIcon icon={faArrowRight} />
-                                </a>
-                            </div>
+                                className="ActionButton--exploreData"
+                                showLabel={true}
+                            />
                         </li>
                     )}
                 </ul>
@@ -331,25 +324,36 @@ export class ActionButtons extends React.Component<{
 export function ActionButton(props: {
     label: string
     icon: IconDefinition
+    href?: string
     width?: number
     dataTrackNote?: string
-    onClick?: React.MouseEventHandler<HTMLButtonElement>
-    onMouseDown?: React.MouseEventHandler<HTMLButtonElement>
+    onClick?: React.MouseEventHandler<HTMLDivElement>
+    onMouseDown?: React.MouseEventHandler<HTMLDivElement>
     showLabel?: boolean
     isActive?: boolean
     style?: React.CSSProperties
+    className?: string
 }): React.ReactElement {
     const [showTooltip, setShowTooltip] = useState(false)
 
+    const buttonClassnames = classNames({
+        active: props.isActive,
+        "icon-only": !props.showLabel,
+    })
+
+    const buttonContents = (
+        <>
+            <FontAwesomeIcon icon={props.icon} />
+            {props.showLabel && <span className="label">{props.label}</span>}
+        </>
+    )
+
     return (
-        <div className="ActionButton" style={props.style}>
-            <button
-                className={
-                    (props.isActive ? "active" : "") +
-                    (props.showLabel ? "" : " icon-only")
-                }
+        <div
+            className={classNames("ActionButton", props.className)}
+            style={props.style}
                 data-track-note={props.dataTrackNote}
-                onClick={(e: React.MouseEvent<HTMLButtonElement>): void => {
+            onClick={(e: React.MouseEvent<HTMLDivElement>): void => {
                     if (props.onClick) props.onClick(e)
                     setShowTooltip(false)
                 }}
@@ -360,14 +364,25 @@ export function ActionButton(props: {
                 onMouseLeave={(): void => {
                     setShowTooltip(false)
                 }}
+        >
+            {props.href ? (
+                <a
+                    href={props.href}
+                    target="_blank"
+                    className={buttonClassnames}
+                    rel="noopener"
+                >
+                    {buttonContents}
+                </a>
+            ) : (
+                <button
+                    className={buttonClassnames}
                 aria-label={props.label}
                 type="button"
             >
-                <FontAwesomeIcon icon={props.icon} />
-                {props.showLabel && (
-                    <span className="label">{props.label}</span>
+                    {buttonContents}
+                </button>
                 )}
-            </button>
             {showTooltip && <div className="hover-label">{props.label}</div>}
         </div>
     )
