@@ -15,7 +15,6 @@ import {
     BarShape,
     Item,
     MarimekkoChartManager,
-    PlacedItem,
 } from "./MarimekkoChartConstants"
 import { MarimekkoChartState } from "./MarimekkoChartState"
 
@@ -103,8 +102,15 @@ it("can display a Marimekko chart correctly", () => {
     expect(chartState.series[0].points).toEqual(expectedYPoints)
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
 
+    const placedItemsWithoutXPosition = chart.placedItems.map((placedItem) =>
+        _.omit(placedItem, "xPosition")
+    )
+    const xPositions = chart.placedItems.map(
+        (placedItem) => placedItem.xPosition
+    )
+
     // placedItems should be in default sort order
-    expect(chart.placedItems.map(roundXPosition)).toEqual([
+    expect(placedItemsWithoutXPosition).toEqual([
         {
             entityName: "big",
             entityColor: undefined,
@@ -118,7 +124,6 @@ it("can display a Marimekko chart correctly", () => {
                 },
             ],
             xPoint: expectedXPoints[1],
-            xPosition: 0,
         },
         {
             entityName: "medium",
@@ -133,7 +138,6 @@ it("can display a Marimekko chart correctly", () => {
                 },
             ],
             xPoint: expectedXPoints[0],
-            xPosition: Math.round(xAxisRange * 0.5),
         },
         {
             entityName: "small",
@@ -148,17 +152,13 @@ it("can display a Marimekko chart correctly", () => {
                 },
             ],
             xPoint: expectedXPoints[2],
-            xPosition: Math.round(xAxisRange * 0.9),
         },
     ])
-})
 
-function roundXPosition(item: PlacedItem): PlacedItem {
-    return {
-        ...item,
-        xPosition: Math.round(item.xPosition),
-    }
-}
+    expect(xPositions[0]).toEqual(0)
+    expect(xPositions[1]).toBeCloseTo(xAxisRange * 0.5, 0)
+    expect(xPositions[2]).toBeCloseTo(xAxisRange * 0.9, 0)
+})
 
 it("can display two time series stacked correctly", () => {
     const csv = `year,entityName,population,percentBelow2USD,percentBelow10USD
@@ -241,8 +241,16 @@ it("can display two time series stacked correctly", () => {
     expect(chartState.series[0].points).toEqual(expectedYPointsFirstSeries)
     expect(chartState.series[1].points).toEqual(expectedYPointsSecondSeries)
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
+
+    const placedItemsWithoutXPosition = chart.placedItems.map((placedItem) =>
+        _.omit(placedItem, "xPosition")
+    )
+    const xPositions = chart.placedItems.map(
+        (placedItem) => placedItem.xPosition
+    )
+
     // placedItems should be in default sort order
-    expect(chart.placedItems.map(roundXPosition)).toEqual([
+    expect(placedItemsWithoutXPosition).toEqual([
         {
             entityName: "big",
             entityColor: undefined,
@@ -263,7 +271,6 @@ it("can display two time series stacked correctly", () => {
                 },
             ],
             xPoint: expectedXPoints[1],
-            xPosition: 0,
         },
         {
             entityName: "medium",
@@ -285,7 +292,6 @@ it("can display two time series stacked correctly", () => {
                 },
             ],
             xPoint: expectedXPoints[0],
-            xPosition: Math.round(xAxisRange * 0.5),
         },
         {
             entityName: "small",
@@ -307,9 +313,12 @@ it("can display two time series stacked correctly", () => {
                 },
             ],
             xPoint: expectedXPoints[2],
-            xPosition: Math.round(xAxisRange * 0.9),
         },
     ])
+
+    expect(xPositions[0]).toEqual(0)
+    expect(xPositions[1]).toBeCloseTo(xAxisRange * 0.5, 0)
+    expect(xPositions[2]).toBeCloseTo(xAxisRange * 0.9, 0)
 })
 
 it("can do sorting", () => {
@@ -541,8 +550,16 @@ it("can filter years correctly", () => {
     ]
     expect(chartState.series[0].points).toEqual(expectedYPoints)
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
+
+    const placedItemsWithoutXPosition = chart.placedItems.map((placedItem) =>
+        _.omit(placedItem, "xPosition")
+    )
+    const xPositions = chart.placedItems.map(
+        (placedItem) => placedItem.xPosition
+    )
+
     // placedItems should be in default sort order
-    expect(chart.placedItems.map(roundXPosition)).toEqual([
+    expect(placedItemsWithoutXPosition).toEqual([
         {
             entityName: "big",
             entityColor: undefined,
@@ -556,7 +573,6 @@ it("can filter years correctly", () => {
                 },
             ],
             xPoint: expectedXPoints[1],
-            xPosition: 0,
         },
         {
             entityName: "medium",
@@ -571,7 +587,6 @@ it("can filter years correctly", () => {
                 },
             ],
             xPoint: expectedXPoints[0],
-            xPosition: Math.round(xAxisRange * 0.5),
         },
         {
             entityName: "small",
@@ -586,9 +601,12 @@ it("can filter years correctly", () => {
                 },
             ],
             xPoint: expectedXPoints[2],
-            xPosition: Math.round(xAxisRange * 0.9),
         },
     ])
+
+    expect(xPositions[0]).toEqual(0)
+    expect(xPositions[1]).toBeCloseTo(xAxisRange * 0.5, 0)
+    expect(xPositions[2]).toBeCloseTo(xAxisRange * 0.9, 0)
 })
 
 it("shows no data points at the end", () => {
@@ -648,8 +666,16 @@ it("shows no data points at the end", () => {
     ]
     expect(chartState.series[0].points).toEqual(expectedYPoints)
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
+
+    const placedItemsWithoutXPosition = chart.placedItems.map((placedItem) =>
+        _.omit(placedItem, "xPosition")
+    )
+    const xPositions = chart.placedItems.map(
+        (placedItem) => placedItem.xPosition
+    )
+
     // placedItems should be in default sort order
-    expect(chart.placedItems.map(roundXPosition)).toEqual([
+    expect(placedItemsWithoutXPosition).toEqual([
         {
             entityName: "big",
             entityColor: undefined,
@@ -663,7 +689,6 @@ it("shows no data points at the end", () => {
                 },
             ],
             xPoint: expectedXPoints[1],
-            xPosition: 0,
         },
         {
             entityName: "small",
@@ -678,16 +703,18 @@ it("shows no data points at the end", () => {
                 },
             ],
             xPoint: expectedXPoints[2],
-            xPosition: Math.round(xAxisRange * 0.5),
         },
         {
             entityName: "medium",
             entityColor: undefined,
             bars: [],
             xPoint: expectedXPoints[0],
-            xPosition: Math.round(xAxisRange * 0.6),
         },
     ])
+
+    expect(xPositions[0]).toEqual(0)
+    expect(xPositions[1]).toBeCloseTo(xAxisRange * 0.5, 0)
+    expect(xPositions[2]).toBeCloseTo(xAxisRange * 0.6, 0)
 })
 
 test("interpolation works as expected", () => {
@@ -758,8 +785,16 @@ test("interpolation works as expected", () => {
     ]
     expect(chartState.series[0].points).toEqual(expectedYPoints)
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
+
+    const placedItemsWithoutXPosition = chart.placedItems.map((placedItem) =>
+        _.omit(placedItem, "xPosition")
+    )
+    const xPositions = chart.placedItems.map(
+        (placedItem) => placedItem.xPosition
+    )
+
     // placedItems should be in default sort order
-    expect(chart.placedItems.map(roundXPosition)).toEqual([
+    expect(placedItemsWithoutXPosition).toEqual([
         {
             entityName: "big",
             entityColor: undefined,
@@ -773,7 +808,6 @@ test("interpolation works as expected", () => {
                 },
             ],
             xPoint: expectedXPoints[0],
-            xPosition: 0,
         },
         {
             entityName: "medium",
@@ -788,7 +822,6 @@ test("interpolation works as expected", () => {
                 },
             ],
             xPoint: expectedXPoints[1],
-            xPosition: Math.round(xAxisRange * 0.5),
         },
         {
             entityName: "small",
@@ -803,9 +836,12 @@ test("interpolation works as expected", () => {
                 },
             ],
             xPoint: expectedXPoints[2],
-            xPosition: Math.round(xAxisRange * 0.9),
         },
     ])
+
+    expect(xPositions[0]).toEqual(0)
+    expect(xPositions[1]).toBeCloseTo(xAxisRange * 0.5, 0)
+    expect(xPositions[2]).toBeCloseTo(xAxisRange * 0.9, 0)
 })
 
 it("can deal with y columns with missing values", () => {
