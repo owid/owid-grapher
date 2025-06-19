@@ -3,7 +3,6 @@ import cx from "classnames"
 import { Region } from "@ourworldindata/utils"
 import {
     ChartRecordType,
-    IChartHit,
     IDataCatalogHit,
     SearchIndexName,
 } from "./searchTypes.js"
@@ -34,7 +33,7 @@ export function SearchChartHitLarge({
     searchQueryRegionsMatches,
     onClick,
 }: {
-    hit: IChartHit | IDataCatalogHit
+    hit: IDataCatalogHit
     searchQueryRegionsMatches?: Region[] | undefined
     // Search uses a global onClick handler to track analytics
     // But the data catalog passes a function to this component explicitly
@@ -154,8 +153,10 @@ export function SearchChartHitLarge({
                             <img
                                 key={previewUrl}
                                 className={cx("search-chart-hit-large__img", {
-                                    "search-chart-hit-large__img--loaded": imgLoaded,
-                                    "search-chart-hit-large__img--error": imgError,
+                                    "search-chart-hit-large__img--loaded":
+                                        imgLoaded,
+                                    "search-chart-hit-large__img--error":
+                                        imgError,
                                 })}
                                 loading="lazy"
                                 width={DEFAULT_GRAPHER_WIDTH}
