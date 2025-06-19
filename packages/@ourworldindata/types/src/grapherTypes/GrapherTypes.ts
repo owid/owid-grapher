@@ -269,13 +269,6 @@ export interface AxisConfigInterface {
     minSize?: number
 
     /**
-     * Position of the axis label.
-     * For vertical axes, 'middle' rotates the label and places it to the left of the axis,
-     * 'end' places the label above the axis.
-     */
-    labelPosition?: AxisAlign
-
-    /**
      * The padding between an axis label and an axis tick
      */
     labelPadding?: number
