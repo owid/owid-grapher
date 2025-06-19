@@ -32,7 +32,7 @@ export const DataCatalogRibbon = ({
 
     return (
         <AsDraft
-            name="Ribbon"
+            name="Data Ribbon"
             className="col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-13>"
         >
             <div className="data-catalog-ribbon ">
