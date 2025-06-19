@@ -15,6 +15,29 @@ fieldset.as-draft {
     color: grey;
 }
 
+.as-draft__debug {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    font-family: monospace;
+    color: #666;
+}
+
+.as-draft__debug-item {
+    margin-bottom: 4px;
+    
+    &:last-child {
+        margin-bottom: 0;
+    }
+    
+    strong {
+        color: #333;
+    }
+}
+
 .as-draft--align-self-start {
     align-self: start;
 }
