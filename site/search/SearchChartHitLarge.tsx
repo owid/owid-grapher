@@ -26,7 +26,7 @@ import {
 } from "@ourworldindata/grapher"
 import { Highlight } from "react-instantsearch"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
-import { AsDraft } from "../AsDraft/AsDraft.js"
+import { SearchAsDraft } from "./SearchAsDraft.js"
 
 export function SearchChartHitLarge({
     hit,
@@ -99,7 +99,7 @@ export function SearchChartHitLarge({
     }, [previewUrl])
 
     return (
-        <AsDraft name="Chart (Large)" className="search-chart-hit-large">
+        <SearchAsDraft name="Chart (Large)" className="search-chart-hit-large">
             <div className="search-chart-hit-large__container">
                 <div className="search-chart-hit-large__content">
                     <div className="search-chart-hit-large__title-container">
@@ -169,6 +169,6 @@ export function SearchChartHitLarge({
                     </a>
                 </div>
             </div>
-        </AsDraft>
+        </SearchAsDraft>
     )
 }
