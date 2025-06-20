@@ -890,7 +890,7 @@ export class FacetChart
     }
 
     override componentDidMount(): void {
-        exposeInstanceOnWindow(this, "facets")
+        exposeInstanceOnWindow(this, "facetChart")
     }
 
     override render(): React.ReactElement {
