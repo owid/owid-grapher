@@ -35,7 +35,6 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref hideAxis?: boolean = undefined
     @observable.ref hideGridlines?: boolean = undefined
     @observable.ref hideTickLabels?: boolean = undefined
-    @observable.ref labelPosition?: AxisAlign = AxisAlign.middle
     @observable.ref labelPadding?: number = undefined
     @observable.ref tickPadding?: number = undefined
     @observable.ref nice?: boolean = undefined

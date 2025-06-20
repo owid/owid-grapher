@@ -14,7 +14,6 @@ import {
     BarShape,
     Item,
     MarimekkoChartManager,
-    PlacedItem,
 } from "./MarimekkoChartConstants"
 
 it("can create a chart", () => {
@@ -98,8 +97,16 @@ it("can display a Marimekko chart correctly", () => {
     ]
     expect(chart.series[0].points).toEqual(expectedYPoints)
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
+
+    const placedItemsWithoutXPosition = chart.placedItems.map((placedItem) =>
+        omit(placedItem, "xPosition")
+    )
+    const xPositions = chart.placedItems.map(
+        (placedItem) => placedItem.xPosition
+    )
+
     // placedItems should be in default sort order
-    expect(chart.placedItems.map(roundXPosition)).toEqual([
+    expect(placedItemsWithoutXPosition).toEqual([
         {
             entityName: "big",
             entityColor: undefined,
@@ -108,11 +115,11 @@ it("can display a Marimekko chart correctly", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[1],
                 },
             ],
             xPoint: expectedXPoints[1],
-            xPosition: 0,
         },
         {
             entityName: "medium",
@@ -122,11 +129,11 @@ it("can display a Marimekko chart correctly", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[0],
                 },
             ],
             xPoint: expectedXPoints[0],
-            xPosition: Math.round(xAxisRange * 0.5),
         },
         {
             entityName: "small",
@@ -136,21 +143,18 @@ it("can display a Marimekko chart correctly", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[2],
                 },
             ],
             xPoint: expectedXPoints[2],
-            xPosition: Math.round(xAxisRange * 0.9),
         },
     ])
-})
 
-function roundXPosition(item: PlacedItem): PlacedItem {
-    return {
-        ...item,
-        xPosition: Math.round(item.xPosition),
-    }
-}
+    expect(xPositions[0]).toEqual(0)
+    expect(xPositions[1]).toBeCloseTo(xAxisRange * 0.5, 0)
+    expect(xPositions[2]).toBeCloseTo(xAxisRange * 0.9, 0)
+})
 
 it("can display two time series stacked correctly", () => {
     const csv = `year,entityName,population,percentBelow2USD,percentBelow10USD
@@ -232,8 +236,16 @@ it("can display two time series stacked correctly", () => {
     expect(chart.series[0].points).toEqual(expectedYPointsFirstSeries)
     expect(chart.series[1].points).toEqual(expectedYPointsSecondSeries)
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
+
+    const placedItemsWithoutXPosition = chart.placedItems.map((placedItem) =>
+        omit(placedItem, "xPosition")
+    )
+    const xPositions = chart.placedItems.map(
+        (placedItem) => placedItem.xPosition
+    )
+
     // placedItems should be in default sort order
-    expect(chart.placedItems.map(roundXPosition)).toEqual([
+    expect(placedItemsWithoutXPosition).toEqual([
         {
             entityName: "big",
             entityColor: undefined,
@@ -242,17 +254,18 @@ it("can display two time series stacked correctly", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPointsFirstSeries[1],
                 },
                 {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][1],
                     seriesName: "percentBelow10USD",
+                    columnSlug: "percentBelow10USD",
                     yPoint: expectedYPointsSecondSeries[1],
                 },
             ],
             xPoint: expectedXPoints[1],
-            xPosition: 0,
         },
         {
             entityName: "medium",
@@ -262,17 +275,18 @@ it("can display two time series stacked correctly", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPointsFirstSeries[0],
                 },
                 {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][1],
                     seriesName: "percentBelow10USD",
+                    columnSlug: "percentBelow10USD",
                     yPoint: expectedYPointsSecondSeries[0],
                 },
             ],
             xPoint: expectedXPoints[0],
-            xPosition: Math.round(xAxisRange * 0.5),
         },
         {
             entityName: "small",
@@ -282,19 +296,24 @@ it("can display two time series stacked correctly", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPointsFirstSeries[2],
                 },
                 {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][1],
                     seriesName: "percentBelow10USD",
+                    columnSlug: "percentBelow10USD",
                     yPoint: expectedYPointsSecondSeries[2],
                 },
             ],
             xPoint: expectedXPoints[2],
-            xPosition: Math.round(xAxisRange * 0.9),
         },
     ])
+
+    expect(xPositions[0]).toEqual(0)
+    expect(xPositions[1]).toBeCloseTo(xAxisRange * 0.5, 0)
+    expect(xPositions[2]).toBeCloseTo(xAxisRange * 0.9, 0)
 })
 
 it("can do sorting", () => {
@@ -372,6 +391,7 @@ it("can do sorting", () => {
                         kind: BarShape.Bar,
                         color: DefaultColorScheme.colorSets[0][0],
                         seriesName: "percentBelow2USD",
+                        columnSlug: "percentBelow2USD",
                         yPoint: expectedYPoints[1],
                     },
                 ],
@@ -388,6 +408,7 @@ it("can do sorting", () => {
                         kind: BarShape.Bar,
                         color: DefaultColorScheme.colorSets[0][0],
                         seriesName: "percentBelow2USD",
+                        columnSlug: "percentBelow2USD",
                         yPoint: expectedYPoints[0],
                     },
                 ],
@@ -404,6 +425,7 @@ it("can do sorting", () => {
                         kind: BarShape.Bar,
                         color: DefaultColorScheme.colorSets[0][0],
                         seriesName: "percentBelow2USD",
+                        columnSlug: "percentBelow2USD",
                         yPoint: expectedYPoints[2],
                     },
                 ],
@@ -516,8 +538,16 @@ it("can filter years correctly", () => {
     ]
     expect(chart.series[0].points).toEqual(expectedYPoints)
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
+
+    const placedItemsWithoutXPosition = chart.placedItems.map((placedItem) =>
+        omit(placedItem, "xPosition")
+    )
+    const xPositions = chart.placedItems.map(
+        (placedItem) => placedItem.xPosition
+    )
+
     // placedItems should be in default sort order
-    expect(chart.placedItems.map(roundXPosition)).toEqual([
+    expect(placedItemsWithoutXPosition).toEqual([
         {
             entityName: "big",
             entityColor: undefined,
@@ -526,11 +556,11 @@ it("can filter years correctly", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[1],
                 },
             ],
             xPoint: expectedXPoints[1],
-            xPosition: 0,
         },
         {
             entityName: "medium",
@@ -540,11 +570,11 @@ it("can filter years correctly", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[0],
                 },
             ],
             xPoint: expectedXPoints[0],
-            xPosition: Math.round(xAxisRange * 0.5),
         },
         {
             entityName: "small",
@@ -554,13 +584,17 @@ it("can filter years correctly", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[2],
                 },
             ],
             xPoint: expectedXPoints[2],
-            xPosition: Math.round(xAxisRange * 0.9),
         },
     ])
+
+    expect(xPositions[0]).toEqual(0)
+    expect(xPositions[1]).toBeCloseTo(xAxisRange * 0.5, 0)
+    expect(xPositions[2]).toBeCloseTo(xAxisRange * 0.9, 0)
 })
 
 it("shows no data points at the end", () => {
@@ -619,8 +653,16 @@ it("shows no data points at the end", () => {
     ]
     expect(chart.series[0].points).toEqual(expectedYPoints)
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
+
+    const placedItemsWithoutXPosition = chart.placedItems.map((placedItem) =>
+        omit(placedItem, "xPosition")
+    )
+    const xPositions = chart.placedItems.map(
+        (placedItem) => placedItem.xPosition
+    )
+
     // placedItems should be in default sort order
-    expect(chart.placedItems.map(roundXPosition)).toEqual([
+    expect(placedItemsWithoutXPosition).toEqual([
         {
             entityName: "big",
             entityColor: undefined,
@@ -629,11 +671,11 @@ it("shows no data points at the end", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[0],
                 },
             ],
             xPoint: expectedXPoints[1],
-            xPosition: 0,
         },
         {
             entityName: "small",
@@ -643,20 +685,23 @@ it("shows no data points at the end", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[1],
                 },
             ],
             xPoint: expectedXPoints[2],
-            xPosition: Math.round(xAxisRange * 0.5),
         },
         {
             entityName: "medium",
             entityColor: undefined,
             bars: [],
             xPoint: expectedXPoints[0],
-            xPosition: Math.round(xAxisRange * 0.6),
         },
     ])
+
+    expect(xPositions[0]).toEqual(0)
+    expect(xPositions[1]).toBeCloseTo(xAxisRange * 0.5, 0)
+    expect(xPositions[2]).toBeCloseTo(xAxisRange * 0.6, 0)
 })
 
 test("interpolation works as expected", () => {
@@ -726,8 +771,16 @@ test("interpolation works as expected", () => {
     ]
     expect(chart.series[0].points).toEqual(expectedYPoints)
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
+
+    const placedItemsWithoutXPosition = chart.placedItems.map((placedItem) =>
+        omit(placedItem, "xPosition")
+    )
+    const xPositions = chart.placedItems.map(
+        (placedItem) => placedItem.xPosition
+    )
+
     // placedItems should be in default sort order
-    expect(chart.placedItems.map(roundXPosition)).toEqual([
+    expect(placedItemsWithoutXPosition).toEqual([
         {
             entityName: "big",
             entityColor: undefined,
@@ -736,11 +789,11 @@ test("interpolation works as expected", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[0],
                 },
             ],
             xPoint: expectedXPoints[0],
-            xPosition: 0,
         },
         {
             entityName: "medium",
@@ -750,11 +803,11 @@ test("interpolation works as expected", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[1],
                 },
             ],
             xPoint: expectedXPoints[1],
-            xPosition: Math.round(xAxisRange * 0.5),
         },
         {
             entityName: "small",
@@ -764,13 +817,17 @@ test("interpolation works as expected", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints[2],
                 },
             ],
             xPoint: expectedXPoints[2],
-            xPosition: Math.round(xAxisRange * 0.9),
         },
     ])
+
+    expect(xPositions[0]).toEqual(0)
+    expect(xPositions[1]).toBeCloseTo(xAxisRange * 0.5, 0)
+    expect(xPositions[2]).toBeCloseTo(xAxisRange * 0.9, 0)
 })
 
 it("can deal with y columns with missing values", () => {
@@ -871,12 +928,14 @@ it("can deal with y columns with missing values", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints1[0],
                 },
                 {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][1],
                     seriesName: "percentBelow10USD",
+                    columnSlug: "percentBelow10USD",
                     yPoint: expectedYPoints2[0],
                 },
             ],
@@ -890,12 +949,14 @@ it("can deal with y columns with missing values", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints1[2],
                 },
                 {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][1],
                     seriesName: "percentBelow10USD",
+                    columnSlug: "percentBelow10USD",
                     yPoint: expectedYPoints2[1],
                 },
             ],
@@ -909,6 +970,7 @@ it("can deal with y columns with missing values", () => {
                     kind: BarShape.Bar,
                     color: DefaultColorScheme.colorSets[0][0],
                     seriesName: "percentBelow2USD",
+                    columnSlug: "percentBelow2USD",
                     yPoint: expectedYPoints1[1],
                 },
             ],
