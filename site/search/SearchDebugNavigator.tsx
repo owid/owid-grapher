@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from "react"
+import { useMemo, useState, useEffect, useRef, useCallback } from "react"
 import cx from "classnames"
 import { SearchAsDraft } from "./SearchAsDraft.js"
 import { useSearchContext } from "./SearchContext.js"
@@ -247,27 +247,27 @@ export const SearchDebugNavigator = ({
     }, [currentConfig, syncFigmaPopup, figmaUrl])
 
     // Get random country, topic, area, and vowel
-    const getRandomCountry = () => {
+    const getRandomCountry = useCallback(() => {
         return availableCountries[
             Math.floor(Math.random() * availableCountries.length)
         ]
-    }
+    }, [availableCountries])
 
-    const getRandomTopic = () => {
+    const getRandomTopic = useCallback(() => {
         return availableTopics[
             Math.floor(Math.random() * availableTopics.length)
         ]
-    }
+    }, [availableTopics])
 
-    const getRandomArea = () => {
+    const getRandomArea = useCallback(() => {
         return availableAreas[Math.floor(Math.random() * availableAreas.length)]
-    }
+    }, [availableAreas])
 
-    const getRandomVowel = () => {
+    const getRandomVowel = useCallback(() => {
         return VOWELS[Math.floor(Math.random() * VOWELS.length)]
-    }
+    }, [])
 
-    const openFigmaPopup = () => {
+    const openFigmaPopup = useCallback(() => {
         if (!currentConfig) return
 
         // Manually sync popup if needed
@@ -282,72 +282,52 @@ export const SearchDebugNavigator = ({
             "figma-popup",
             "width=1200,height=800,scrollbars=yes,resizable=yes"
         )
-    }
+    }, [currentConfig, figmaUrl])
 
-    const navigateToConfig = (targetIndex: number) => {
-        if (targetIndex < 0 || targetIndex >= ALL_TEMPLATE_CONFIGS.length)
-            return
+    const navigateToConfig = useCallback(
+        (targetIndex: number) => {
+            if (targetIndex < 0 || targetIndex >= ALL_TEMPLATE_CONFIGS.length)
+                return
 
-        const targetConfig = ALL_TEMPLATE_CONFIGS[targetIndex]
+            const targetConfig = ALL_TEMPLATE_CONFIGS[targetIndex]
 
-        // Reset the state first
-        actions.reset()
+            // Reset the state first
+            actions.reset()
 
-        // Set result type
-        actions.setResultType(targetConfig.resultType)
+            // Set result type
+            actions.setResultType(targetConfig.resultType)
 
-        // Set topic if needed (only generate if params are not locked)
-        if (targetConfig.topicType === SearchTopicType.Topic) {
-            const randomTopic = getRandomTopic()
-            actions.setTopic(randomTopic)
-        } else if (targetConfig.topicType === SearchTopicType.Area) {
-            const randomArea = getRandomArea()
-            actions.setTopic(randomArea)
-        }
+            // Set topic if needed (only generate if params are not locked)
+            if (targetConfig.topicType === SearchTopicType.Topic) {
+                const randomTopic = getRandomTopic()
+                actions.setTopic(randomTopic)
+            } else if (targetConfig.topicType === SearchTopicType.Area) {
+                const randomArea = getRandomArea()
+                actions.setTopic(randomArea)
+            }
 
-        // Set country if needed (only generate if params are not locked)
-        if (targetConfig.hasCountry) {
-            const randomCountry = getRandomCountry()
-            actions.addCountry(randomCountry)
-        }
+            // Set country if needed (only generate if params are not locked)
+            if (targetConfig.hasCountry) {
+                const randomCountry = getRandomCountry()
+                actions.addCountry(randomCountry)
+            }
 
-        // Set query if needed (only generate if params are not locked)
-        if (targetConfig.hasQuery) {
-            const randomVowel = getRandomVowel()
-            actions.setQuery(randomVowel)
-        }
-    }
+            // Set query if needed (only generate if params are not locked)
+            if (targetConfig.hasQuery) {
+                const randomVowel = getRandomVowel()
+                actions.setQuery(randomVowel)
+            }
+        },
+        [
+            actions,
+            getRandomTopic,
+            getRandomArea,
+            getRandomCountry,
+            getRandomVowel,
+        ]
+    )
 
-    const goToPrevious = () => {
-        const prevIndex =
-            currentIndex > 0
-                ? currentIndex - 1
-                : ALL_TEMPLATE_CONFIGS.length - 1
-        navigateToConfig(prevIndex)
-    }
-
-    const goToNext = () => {
-        const nextIndex =
-            currentIndex < ALL_TEMPLATE_CONFIGS.length - 1
-                ? currentIndex + 1
-                : 0
-        navigateToConfig(nextIndex)
-    }
-
-    const goToRandom = () => {
-        if (!lockParams) {
-            // Randomize configuration combination
-            const randomIndex = Math.floor(
-                Math.random() * ALL_TEMPLATE_CONFIGS.length
-            )
-            navigateToConfig(randomIndex)
-        } else {
-            // Randomize current config params only
-            regenerateCurrentParams()
-        }
-    }
-
-    const regenerateCurrentParams = () => {
+    const regenerateCurrentParams = useCallback(() => {
         const currentConfig = templateConfig
 
         // Regenerate topic if needed
@@ -358,11 +338,6 @@ export const SearchDebugNavigator = ({
             const randomArea = getRandomArea()
             actions.setTopic(randomArea)
         }
-
-            // Don't trigger shortcuts if modifier keys are pressed (Cmd, Ctrl, Alt, Shift)
-            if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
-                return
-            }
 
         // Regenerate country if needed
         if (currentConfig.hasCountry) {
@@ -379,7 +354,112 @@ export const SearchDebugNavigator = ({
             const randomVowel = getRandomVowel()
             actions.setQuery(randomVowel)
         }
-    }
+    }, [
+        templateConfig,
+        actions,
+        selectedCountryNames,
+        getRandomTopic,
+        getRandomArea,
+        getRandomCountry,
+        getRandomVowel,
+    ])
+
+    const goToPrevious = useCallback(() => {
+        const prevIndex =
+            currentIndex > 0
+                ? currentIndex - 1
+                : ALL_TEMPLATE_CONFIGS.length - 1
+        navigateToConfig(prevIndex)
+    }, [currentIndex, navigateToConfig])
+
+    const goToNext = useCallback(() => {
+        const nextIndex =
+            currentIndex < ALL_TEMPLATE_CONFIGS.length - 1
+                ? currentIndex + 1
+                : 0
+        navigateToConfig(nextIndex)
+    }, [currentIndex, navigateToConfig])
+
+    const goToRandom = useCallback(() => {
+        if (!lockParams) {
+            // Randomize configuration combination
+            const randomIndex = Math.floor(
+                Math.random() * ALL_TEMPLATE_CONFIGS.length
+            )
+            navigateToConfig(randomIndex)
+        } else {
+            // Randomize current config params only
+            regenerateCurrentParams()
+        }
+    }, [lockParams, navigateToConfig, regenerateCurrentParams])
+
+    // Global keyboard shortcuts
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            // Don't trigger shortcuts if user is typing in an input
+            if (
+                event.target instanceof HTMLInputElement ||
+                event.target instanceof HTMLTextAreaElement ||
+                event.target instanceof HTMLSelectElement ||
+                (event.target instanceof HTMLElement &&
+                    event.target.isContentEditable)
+            ) {
+                return
+            }
+
+            // Don't trigger shortcuts if modifier keys are pressed (Cmd, Ctrl, Alt, Shift)
+            if (
+                event.metaKey ||
+                event.ctrlKey ||
+                event.altKey ||
+                event.shiftKey
+            ) {
+                return
+            }
+
+            switch (event.key) {
+                case "ArrowLeft":
+                    event.preventDefault()
+                    goToPrevious()
+                    break
+                case "ArrowRight":
+                    event.preventDefault()
+                    goToNext()
+                    break
+                case "l":
+                case "L":
+                    event.preventDefault()
+                    setLockParams((prev: boolean) => !prev)
+                    break
+                case "r":
+                case "R":
+                    event.preventDefault()
+                    goToRandom()
+                    break
+                case "z":
+                case "Z":
+                    event.preventDefault()
+                    setZenMode(!isZenMode)
+                    break
+                case "f":
+                case "F":
+                    event.preventDefault()
+                    openFigmaPopup()
+                    break
+            }
+        }
+
+        window.addEventListener("keydown", handleKeyDown)
+        return () => window.removeEventListener("keydown", handleKeyDown)
+    }, [
+        goToPrevious,
+        goToNext,
+        goToRandom,
+        setLockParams,
+        setZenMode,
+        isZenMode,
+        openFigmaPopup,
+    ])
 
     if (!currentConfig) {
         return (
@@ -410,33 +490,53 @@ export const SearchDebugNavigator = ({
                         className="search-debug-navigator__button"
                         aria-label={
                             !lockParams
-                                ? "Go to random configuration"
-                                : "Randomize current configuration parameters"
+                                ? "Go to random configuration (R key)"
+                                : "Randomize current configuration parameters (R key)"
+                        }
+                        title={
+                            !lockParams
+                                ? "Go to random configuration (R key)"
+                                : "Randomize current configuration parameters (R key)"
                         }
                     >
                         {!lockParams
                             ? "📊 Random template"
                             : "🔄 Random content"}
+                        <span className="search-debug-navigator__shortcut-hint">
+                            (R)
+                        </span>
                     </button>
-                    <label className="search-debug-navigator__checkbox-label">
+                    <label
+                        className="search-debug-navigator__checkbox-label"
+                        title="Lock configuration to prevent auto-generation (L key)"
+                    >
                         <input
                             type="checkbox"
                             checked={lockParams}
                             onChange={(e) => setLockParams(e.target.checked)}
                             className="search-debug-navigator__checkbox"
-                            aria-label="Lock configuration to prevent auto-generation"
+                            aria-label="Lock configuration to prevent auto-generation (L key)"
                         />
                         🔒 Lock template for random
+                        <span className="search-debug-navigator__shortcut-hint">
+                            (L)
+                        </span>
                     </label>
-                    <label className="search-debug-navigator__checkbox-label">
+                    <label
+                        className="search-debug-navigator__checkbox-label"
+                        title="Toggle zen mode (Z key)"
+                    >
                         <input
                             type="checkbox"
                             checked={isZenMode}
                             onChange={(e) => setZenMode(e.target.checked)}
                             className="search-debug-navigator__checkbox"
-                            aria-label="Toggle zen mode"
+                            aria-label="Toggle zen mode (Z key)"
                         />
                         🪷 Zen mode
+                        <span className="search-debug-navigator__shortcut-hint">
+                            (Z)
+                        </span>
                     </label>
                 </div>
 
@@ -451,18 +551,18 @@ export const SearchDebugNavigator = ({
                                 onClick={goToPrevious}
                                 className="search-debug-navigator__button search-debug-navigator__button--outline"
                                 aria-label={`Previous configuration (currently ${currentIndex + 1} of ${ALL_TEMPLATE_CONFIGS.length})`}
-                                title="Previous configuration"
+                                title="Previous configuration (← key)"
                             >
-                                ← Prev
+                                (←) Prev
                             </button>
 
                             <button
                                 onClick={goToNext}
                                 className="search-debug-navigator__button search-debug-navigator__button--outline"
                                 aria-label={`Next configuration (currently ${currentIndex + 1} of ${ALL_TEMPLATE_CONFIGS.length})`}
-                                title="Next configuration"
+                                title="Next configuration (→ key)"
                             >
-                                Next →
+                                Next (→)
                             </button>
                         </div>
                         <div className="search-debug-navigator__description-section">
@@ -487,10 +587,13 @@ export const SearchDebugNavigator = ({
                     <button
                         onClick={openFigmaPopup}
                         className="search-debug-navigator__figma-link"
-                        aria-label="View current configuration design in Figma popup"
-                        title="Open in Figma popup"
+                        aria-label="View current configuration design in Figma popup (F key)"
+                        title="Open in Figma popup (F key)"
                     >
                         🎨 Open Figma
+                        <span className="search-debug-navigator__shortcut-hint">
+                            (F)
+                        </span>
                     </button>
                     <label className="search-debug-navigator__checkbox-label">
                         <input
