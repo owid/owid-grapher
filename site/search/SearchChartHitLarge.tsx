@@ -113,6 +113,45 @@ export function SearchChartHitLarge({
                             {hit.variantName}
                         </span>
                     </div>
+                    <div className="search-chart-hit-large__thumbnail">
+                        <a
+                            href={chartUrl}
+                            className="search-chart-hit-large__thumbnail-link"
+                            onClick={onClick}
+                            data-algolia-index={getIndexName(
+                                SearchIndexName.ExplorerViewsMdimViewsAndCharts
+                            )}
+                            data-algolia-object-id={hit.objectID}
+                            data-algolia-position={hit.__position}
+                        >
+                            <div className="search-chart-hit-large__img-container">
+                                {imgError && (
+                                    <div className="search-chart-hit-large__img-error">
+                                        <FontAwesomeIcon icon={faHeartBroken} />
+                                        <span>Chart preview not available</span>
+                                    </div>
+                                )}
+                                <img
+                                    key={previewUrl}
+                                    className={cx(
+                                        "search-chart-hit-large__img",
+                                        {
+                                            "search-chart-hit-large__img--loaded":
+                                                imgLoaded,
+                                            "search-chart-hit-large__img--error":
+                                                imgError,
+                                        }
+                                    )}
+                                    loading="lazy"
+                                    width={DEFAULT_GRAPHER_WIDTH}
+                                    height={DEFAULT_GRAPHER_HEIGHT}
+                                    src={previewUrl}
+                                    onLoad={() => setImgLoaded(true)}
+                                    onError={() => setImgError(true)}
+                                />
+                            </div>
+                        </a>
+                    </div>
                     {entities.length > 0 && (
                         <ul className="search-chart-hit-large__entities">
                             {entities.map((entity, i) => (
@@ -131,42 +170,6 @@ export function SearchChartHitLarge({
                             ))}
                         </ul>
                     )}
-                </div>
-                <div className="search-chart-hit-large__thumbnail">
-                    <a
-                        href={chartUrl}
-                        className="search-chart-hit-large__thumbnail-link"
-                        onClick={onClick}
-                        data-algolia-index={getIndexName(
-                            SearchIndexName.ExplorerViewsMdimViewsAndCharts
-                        )}
-                        data-algolia-object-id={hit.objectID}
-                        data-algolia-position={hit.__position}
-                    >
-                        <div className="search-chart-hit-large__img-container">
-                            {imgError && (
-                                <div className="search-chart-hit-large__img-error">
-                                    <FontAwesomeIcon icon={faHeartBroken} />
-                                    <span>Chart preview not available</span>
-                                </div>
-                            )}
-                            <img
-                                key={previewUrl}
-                                className={cx("search-chart-hit-large__img", {
-                                    "search-chart-hit-large__img--loaded":
-                                        imgLoaded,
-                                    "search-chart-hit-large__img--error":
-                                        imgError,
-                                })}
-                                loading="lazy"
-                                width={DEFAULT_GRAPHER_WIDTH}
-                                height={DEFAULT_GRAPHER_HEIGHT}
-                                src={previewUrl}
-                                onLoad={() => setImgLoaded(true)}
-                                onError={() => setImgError(true)}
-                            />
-                        </div>
-                    </a>
                 </div>
             </div>
         </SearchAsDraft>
