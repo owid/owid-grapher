@@ -14,10 +14,10 @@ export function SearchDataInsightsResults() {
         queryFn: () => queryDataInsights(searchClient, state),
     })
 
-    const hits = query.data?.hits
-    if (!query.data || !hits || !hits.length) return null
+    const nbHits = query.data?.nbHits || 0
+    if (nbHits === 0) return null
 
-    const { nbHits } = query.data
+    const hits = query.data?.hits || []
 
     return (
         <SearchAsDraft
