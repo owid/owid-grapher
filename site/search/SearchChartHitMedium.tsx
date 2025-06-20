@@ -27,7 +27,7 @@ import {
 } from "@ourworldindata/grapher"
 import { Highlight } from "react-instantsearch"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
-import { AsDraft } from "../AsDraft/AsDraft.js"
+import { SearchAsDraft } from "./SearchAsDraft.js"
 
 export function SearchChartHitMedium({
     hit,
@@ -108,7 +108,7 @@ export function SearchChartHitMedium({
     ]
 
     return (
-        <AsDraft
+        <SearchAsDraft
             name={`Chart (Medium${!showThumbnails ? ", no thumbnails" : ""})`}
             className="search-chart-hit-medium"
         >
@@ -213,6 +213,6 @@ export function SearchChartHitMedium({
                     </div>
                 )}
             </div>
-        </AsDraft>
+        </SearchAsDraft>
     )
 }
