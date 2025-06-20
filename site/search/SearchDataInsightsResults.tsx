@@ -1,4 +1,4 @@
-import { AsDraft } from "../AsDraft/AsDraft.js"
+import { SearchAsDraft } from "./SearchAsDraft.js"
 import { DataInsightHit, DataInsightSearchResponse } from "./searchTypes.js"
 import { useQuery } from "@tanstack/react-query"
 import { queryDataInsights, searchQueryKeys } from "./queries.js"
@@ -20,7 +20,10 @@ export function SearchDataInsightsResults() {
     const { nbHits } = query.data
 
     return (
-        <AsDraft name="Data Insights" className="grid span-cols-12 col-start-2">
+        <SearchAsDraft
+            name="Data Insights"
+            className="grid span-cols-12 col-start-2"
+        >
             <section className="search-data-insights-results span-cols-12">
                 <SearchResultHeader title="Data Insights" count={nbHits} />
                 <div className="search-data-insights-results__hits grid">
@@ -33,6 +36,6 @@ export function SearchDataInsightsResults() {
                     ))}
                 </div>
             </section>
-        </AsDraft>
+        </SearchAsDraft>
     )
 }
