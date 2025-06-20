@@ -31,6 +31,9 @@ import { SearchTemplatesData } from "./SearchTemplatesData.js"
 import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
 import { SearchDebugNavigator } from "./SearchDebugNavigator.js"
 import { SearchDebugProvider } from "./SearchDebugProvider.js"
+import { useIsFetching } from "@tanstack/react-query"
+import { SearchDataTopicsResultsViewSkeleton } from "./SearchDataTopicsResultsViewSkeleton.js"
+import { SearchNoResults } from "./SearchNoResults.js"
 
 const analytics = new SiteAnalytics()
 
@@ -98,6 +101,8 @@ export const Search = ({
         }
     }, [actions])
 
+    const isFetching = useIsFetching()
+
     const templateConfig: TemplateConfig = {
         resultType: state.resultType,
         topicType: getSelectedTopicType(state.filters, AREA_NAMES),
@@ -119,10 +124,10 @@ export const Search = ({
             >
                 <div className="data-catalog-header span-cols-14 grid grid-cols-12-full-width">
                     <header className="data-catalog-heading span-cols-12 col-start-2">
-                        <h1 className="h1-semibold">Data Catalog</h1>
+                        <h1 className="h1-semibold">Search & Explore</h1>
                         <p className="body-2-regular">
-                            Search for a specific chart, or browse all our
-                            charts by area and topic.
+                            Search for a specific chart, topic or article or
+                            explore all our content.
                         </p>
                     </header>
                     <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
@@ -140,13 +145,25 @@ export const Search = ({
                 >
                     <SearchResultTypeToggle />
                 </SearchAsDraft>
-                {match(templateConfig.resultType)
-                    .with(SearchResultType.ALL, () => <SearchTemplatesAll />)
-                    .with(SearchResultType.DATA, () => <SearchTemplatesData />)
-                    .with(SearchResultType.WRITING, () => (
-                        <SearchTemplatesWriting />
-                    ))
-                    .exhaustive()}
+                <div className="search-template-results grid span-cols-14 grid grid-cols-12-full-width">
+                    {!isFetching ? (
+                        match(templateConfig.resultType)
+                            .with(SearchResultType.ALL, () => (
+                                <SearchTemplatesAll />
+                            ))
+                            .with(SearchResultType.DATA, () => (
+                                <SearchTemplatesData />
+                            ))
+                            .with(SearchResultType.WRITING, () => (
+                                <SearchTemplatesWriting />
+                            ))
+                            .exhaustive()
+                    ) : (
+                        // TODO: add a grace period before showing skeletons to avoid flickering
+                        <SearchDataTopicsResultsViewSkeleton />
+                    )}
+                    <SearchNoResults />
+                </div>
             </SearchContext.Provider>
         </SearchDebugProvider>
     )
