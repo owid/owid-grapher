@@ -1,6 +1,7 @@
 import { useRef } from "react"
 import * as React from "react"
 import cx from "classnames"
+import { Tabs as AriaTabs } from "react-aria-components"
 
 export interface TabLabel {
     element: React.ReactElement
@@ -69,35 +70,43 @@ export const Tabs = ({
     }
 
     return (
-        <div
-            className={cx("Tabs", "Tabs--variant-" + variant, extraClassNames, {
-                "Tabs--horizontal-scroll": horizontalScroll,
-            })}
-            role="tablist"
-            ref={container}
-        >
-            {labels.map((label, index) => {
-                const isActive = index === activeIndex
-                return (
-                    <button
-                        key={index}
-                        className={cx("Tabs__tab", {
-                            active: isActive,
-                        })}
-                        style={style}
-                        type="button"
-                        role="tab"
-                        tabIndex={isActive ? 0 : -1}
-                        aria-selected={isActive}
-                        onClick={() => setActiveIndex(index)}
-                        onKeyDown={handleKeyDown}
-                        {...label.buttonProps}
-                    >
-                        {label.element}
-                    </button>
-                )
-            })}
-            {slot}
-        </div>
+        <>
+            <div
+                className={cx(
+                    "Tabs",
+                    "Tabs--variant-" + variant,
+                    extraClassNames,
+                    {
+                        "Tabs--horizontal-scroll": horizontalScroll,
+                    }
+                )}
+                role="tablist"
+                ref={container}
+            >
+                {labels.map((label, index) => {
+                    const isActive = index === activeIndex
+                    return (
+                        <button
+                            key={index}
+                            className={cx("Tabs__tab", {
+                                active: isActive,
+                            })}
+                            style={style}
+                            type="button"
+                            role="tab"
+                            tabIndex={isActive ? 0 : -1}
+                            aria-selected={isActive}
+                            onClick={() => setActiveIndex(index)}
+                            onKeyDown={handleKeyDown}
+                            {...label.buttonProps}
+                        >
+                            {label.element}
+                        </button>
+                    )
+                })}
+                {slot}
+            </div>
+            <AriaTabs />
+        </>
     )
 }
