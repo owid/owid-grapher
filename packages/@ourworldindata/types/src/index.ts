@@ -68,7 +68,6 @@ export {
 } from "./grapherTypes/GrapherConstants.js"
 
 export {
-    type EntityYearHighlight,
     type Box,
     type BasicChartInformation,
     SortBy,

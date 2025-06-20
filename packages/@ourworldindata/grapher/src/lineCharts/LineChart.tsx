@@ -55,6 +55,7 @@ import {
     VerticalAlign,
     InteractionState,
     ChartErrorInfo,
+    Time,
 } from "@ourworldindata/types"
 import { BASE_FONT_SIZE, GRAPHER_OPACITY_MUTE } from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
@@ -474,7 +475,7 @@ export class LineChart
     }
 
     @observable tooltipState = new TooltipState<{
-        x: number
+        time: number
     }>({ fade: "immediate" })
 
     @action.bound private onCursorMove(
@@ -499,14 +500,14 @@ export class LineChart
             right: boxPadding,
         })
 
-        let hoverX
+        let hoverTime
         if (boundedBox.contains(mouse)) {
             const invertedX = this.dualAxis.horizontalAxis.invert(mouse.x)
 
             const closestValue = minBy(this.allValues, (point) =>
                 Math.abs(invertedX - point.x)
             )
-            hoverX = closestValue?.x
+            hoverTime = closestValue?.x
         }
 
         // be sure all lines are un-dimmed if the cursor is above the graph itself
@@ -514,7 +515,8 @@ export class LineChart
             this.lineLegendHoveredSeriesName = undefined
         }
 
-        this.tooltipState.target = hoverX === undefined ? null : { x: hoverX }
+        this.tooltipState.target =
+            hoverTime === undefined ? null : { time: hoverTime }
     }
 
     @computed private get manager(): LineChartManager {
@@ -564,60 +566,64 @@ export class LineChart
         return this.manager.focusArray ?? new FocusArray()
     }
 
-    @computed get activeX(): number | undefined {
-        return (
-            this.tooltipState.target?.x ??
-            this.props.manager.entityYearHighlight?.year
-        )
+    @computed get activeTimes(): Time[] {
+        const { highlightedTimesInLineChart = [] } = this.manager
+        return this.tooltipState.target?.time
+            ? [this.tooltipState.target.time, ...highlightedTimesInLineChart]
+            : highlightedTimesInLineChart
     }
 
-    @computed get activeXVerticalLine(): React.ReactElement | undefined {
-        const { activeX, dualAxis } = this
+    @computed get activeXVerticalLines(): React.ReactElement | null {
+        const { activeTimes, dualAxis } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
-        if (activeX === undefined) return undefined
+        if (!activeTimes) return null
 
         return (
-            <g className="hoverIndicator">
-                <line
-                    x1={horizontalAxis.place(activeX)}
-                    y1={verticalAxis.range[0]}
-                    x2={horizontalAxis.place(activeX)}
-                    y2={verticalAxis.range[1]}
-                    stroke="rgba(180,180,180,.4)"
-                />
-                {this.renderSeries.map((series, index) => {
-                    const value = series.points.find(
-                        (point) => point.x === activeX
-                    )
-                    if (!value || series.hover.background) return null
-
-                    const valueColor = this.hasColorScale
-                        ? darkenColorForLine(
-                              this.getColorScaleColor(value.colorValue)
-                          )
-                        : series.color
-                    const color =
-                        !series.focus.background || series.hover.active
-                            ? valueColor
-                            : GRAY_50
-
-                    return (
-                        <circle
-                            key={getSeriesKey(series, index)}
-                            cx={horizontalAxis.place(value.x)}
-                            cy={verticalAxis.place(value.y)}
-                            r={this.lineStrokeWidth / 2 + 3.5}
-                            fill={color}
-                            stroke={
-                                this.manager.backgroundColor ??
-                                GRAPHER_BACKGROUND_DEFAULT
-                            }
-                            strokeWidth={0.5}
+            <>
+                {activeTimes.map((time) => (
+                    <g className="hoverIndicator" key={time}>
+                        <line
+                            x1={horizontalAxis.place(time)}
+                            y1={verticalAxis.range[0]}
+                            x2={horizontalAxis.place(time)}
+                            y2={verticalAxis.range[1]}
+                            stroke="rgba(180,180,180,.4)"
                         />
-                    )
-                })}
-            </g>
+                        {this.renderSeries.map((series, index) => {
+                            const value = series.points.find(
+                                (point) => point.x === time
+                            )
+                            if (!value || series.hover.background) return null
+
+                            const valueColor = this.hasColorScale
+                                ? darkenColorForLine(
+                                      this.getColorScaleColor(value.colorValue)
+                                  )
+                                : series.color
+                            const color =
+                                !series.focus.background || series.hover.active
+                                    ? valueColor
+                                    : GRAY_50
+
+                            return (
+                                <circle
+                                    key={getSeriesKey(series, index)}
+                                    cx={horizontalAxis.place(value.x)}
+                                    cy={verticalAxis.place(value.y)}
+                                    r={this.lineStrokeWidth / 2 + 3.5}
+                                    fill={color}
+                                    stroke={
+                                        this.manager.backgroundColor ??
+                                        GRAPHER_BACKGROUND_DEFAULT
+                                    }
+                                    strokeWidth={0.5}
+                                />
+                            )
+                        })}
+                    </g>
+                ))}
+            </>
         )
     }
 
@@ -641,7 +647,7 @@ export class LineChart
             (segments) =>
                 segments.find((series) =>
                     // Ideally pick series with a defined value at the target time
-                    series.points.find((point) => point.x === target.x)
+                    series.points.find((point) => point.x === target.time)
                 ) ??
                 segments.find((series): boolean | void => {
                     // Otherwise pick the series whose start & end contains the target time
@@ -650,8 +656,8 @@ export class LineChart
                     return (
                         isNumber(startX) &&
                         isNumber(endX) &&
-                        startX < target.x &&
-                        target.x < endX
+                        startX < target.time &&
+                        target.time < endX
                     )
                 }) ??
                 null // If neither series matches, exclude the entity from the tooltip altogether
@@ -661,13 +667,13 @@ export class LineChart
             excludeNullish(R.values(seriesSegments)),
             (series) => {
                 const value = series.points.find(
-                    (point) => point.x === target.x
+                    (point) => point.x === target.time
                 )
                 return value !== undefined ? -value.y : Infinity
             }
         )
 
-        const formattedTime = formatColumn.formatTime(target.x),
+        const formattedTime = formatColumn.formatTime(target.time),
             { unit, shortUnit } = formatColumn,
             { isRelativeMode, startTime } = this.manager
 
@@ -728,7 +734,7 @@ export class LineChart
                         )
 
                         const point = series.points.find(
-                            (point) => point.x === target.x
+                            (point) => point.x === target.time
                         )
 
                         const blurred =
@@ -793,7 +799,6 @@ export class LineChart
     @computed get hoveredSeriesNames(): string[] {
         const { externalLegendHoverBin } = this.manager
         const hoveredSeriesNames = excludeUndefined([
-            this.props.manager.entityYearHighlight?.entityName,
             this.lineLegendHoveredSeriesName,
         ])
         if (externalLegendHoverBin) {
@@ -824,8 +829,9 @@ export class LineChart
         return !isTouchDevice() && this.series.length > 1
     }
 
-    @computed private get hasEntityYearHighlight(): boolean {
-        return this.props.manager.entityYearHighlight !== undefined
+    @computed private get hasTimeHighlights(): boolean {
+        const { highlightedTimesInLineChart = [] } = this.manager
+        return highlightedTimesInLineChart.length > 0
     }
 
     @action.bound onDocumentClick(e: MouseEvent): void {
@@ -1054,8 +1060,8 @@ export class LineChart
                 {this.renderDualAxis()}
                 <g clipPath={this.clipPath.id}>{this.renderChartElements()}</g>
 
-                {(this.isTooltipActive || this.hasEntityYearHighlight) &&
-                    this.activeXVerticalLine}
+                {(this.isTooltipActive || this.hasTimeHighlights) &&
+                    this.activeXVerticalLines}
                 {this.tooltip}
             </g>
         )
