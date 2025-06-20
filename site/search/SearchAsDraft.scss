@@ -1,21 +1,20 @@
-.as-draft {
+/* SearchAsDraft component styles */
+
+.search-as-draft {
     border: 2px dashed grey;
     border-radius: 8px;
     background-color: #fafafa;
     margin-bottom: 16px;
     font-family: "Gochi Hand", cursive;
     color: #333;
-}
-
-fieldset.as-draft {
     padding: 16px;
 }
 
-.as-draft__legend {
+.search-as-draft__legend {
     color: grey;
 }
 
-.as-draft__debug {
+.search-as-draft__debug {
     background-color: #f0f0f0;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -26,20 +25,29 @@ fieldset.as-draft {
     color: #666;
 }
 
-.as-draft__debug-item {
+.search-as-draft__debug-item {
     margin-bottom: 4px;
-    
+
     &:last-child {
         margin-bottom: 0;
     }
-    
+
     strong {
         color: #333;
     }
 }
 
-.as-draft--align-self-start {
+.search-as-draft--align-self-start {
     align-self: start;
+}
+
+.search-as-draft--zen {
+    border-color: lightgrey;
+    background-color: transparent;
+
+    .search-as-draft__legend {
+        display: none;
+    }
 }
 
 .ais-Snippet-highlighted {
