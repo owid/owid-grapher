@@ -22,7 +22,7 @@ import {
     getSelectedTopicType,
 } from "./searchUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
-import { AsDraft } from "../AsDraft/AsDraft.js"
+import { SearchAsDraft } from "./SearchAsDraft.js"
 import { SearchContext } from "./SearchContext.js"
 import { SearchResultTypeToggle } from "./SearchResultTypeToggle.js"
 import { match } from "ts-pattern"
@@ -30,6 +30,7 @@ import { SearchTemplatesAll } from "./SearchTemplatesAll.js"
 import { SearchTemplatesData } from "./SearchTemplatesData.js"
 import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
 import { SearchDebugNavigator } from "./SearchDebugNavigator.js"
+import { SearchDebugProvider } from "./SearchDebugProvider.js"
 
 const analytics = new SiteAnalytics()
 
@@ -106,45 +107,47 @@ export const Search = ({
     }
 
     return (
-        <SearchContext.Provider
-            value={{
-                state,
-                actions,
-                searchClient,
-                templateConfig,
-                topicTagGraph,
-            }}
-        >
-            <div className="data-catalog-header span-cols-14 grid grid-cols-12-full-width">
-                <header className="data-catalog-heading span-cols-12 col-start-2">
-                    <h1 className="h1-semibold">Data Catalog</h1>
-                    <p className="body-2-regular">
-                        Search for a specific chart, or browse all our charts by
-                        area and topic.
-                    </p>
-                </header>
-                <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
-                    <Searchbar allTopics={ALL_TOPICS} />
-                </div>
-            </div>
-            <SearchDebugNavigator
-                availableAreas={AREA_NAMES}
-                availableTopics={ALL_TOPICS}
-            />
-            <SearchTopicsRefinementList />
-            <AsDraft
-                className="col-start-11 span-cols-3 as-draft--align-self-start"
-                name="Search result type"
+        <SearchDebugProvider>
+            <SearchContext.Provider
+                value={{
+                    state,
+                    actions,
+                    searchClient,
+                    templateConfig,
+                    topicTagGraph,
+                }}
             >
-                <SearchResultTypeToggle />
-            </AsDraft>
-            {match(templateConfig.resultType)
-                .with(SearchResultType.ALL, () => <SearchTemplatesAll />)
-                .with(SearchResultType.DATA, () => <SearchTemplatesData />)
-                .with(SearchResultType.WRITING, () => (
-                    <SearchTemplatesWriting />
-                ))
-                .exhaustive()}
-        </SearchContext.Provider>
+                <div className="data-catalog-header span-cols-14 grid grid-cols-12-full-width">
+                    <header className="data-catalog-heading span-cols-12 col-start-2">
+                        <h1 className="h1-semibold">Data Catalog</h1>
+                        <p className="body-2-regular">
+                            Search for a specific chart, or browse all our
+                            charts by area and topic.
+                        </p>
+                    </header>
+                    <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
+                        <Searchbar allTopics={ALL_TOPICS} />
+                    </div>
+                </div>
+                <SearchDebugNavigator
+                    availableAreas={AREA_NAMES}
+                    availableTopics={ALL_TOPICS}
+                />
+                <SearchTopicsRefinementList />
+                <SearchAsDraft
+                    className="col-start-11 span-cols-3 as-draft--align-self-start"
+                    name="Search result type"
+                >
+                    <SearchResultTypeToggle />
+                </SearchAsDraft>
+                {match(templateConfig.resultType)
+                    .with(SearchResultType.ALL, () => <SearchTemplatesAll />)
+                    .with(SearchResultType.DATA, () => <SearchTemplatesData />)
+                    .with(SearchResultType.WRITING, () => (
+                        <SearchTemplatesWriting />
+                    ))
+                    .exhaustive()}
+            </SearchContext.Provider>
+        </SearchDebugProvider>
     )
 }

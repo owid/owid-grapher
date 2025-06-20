@@ -3,7 +3,7 @@ import { getCanonicalUrl } from "@ourworldindata/components"
 import { ArticleHit, TopicPageHit } from "./searchTypes.js"
 import { searchQueryKeys, queryArticles, queryTopicPages } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
-import { AsDraft } from "../AsDraft/AsDraft.js"
+import { SearchAsDraft } from "./SearchAsDraft.js"
 import DataInsightDateline from "../gdocs/components/DataInsightDateline.js"
 import { Snippet } from "react-instantsearch"
 import { OwidGdocType } from "@ourworldindata/types"
@@ -32,7 +32,10 @@ export const SearchWritingResults = () => {
         (articlesQuery.data?.nbHits || 0) + (topicPagesQuery.data?.nbHits || 0)
 
     return (
-        <AsDraft name="Writing Results" className="col-start-2 span-cols-12">
+        <SearchAsDraft
+            name="Writing Results"
+            className="col-start-2 span-cols-12"
+        >
             {isLoading ? (
                 <WritingSearchResultsSkeleton />
             ) : (
@@ -78,7 +81,7 @@ export const SearchWritingResults = () => {
                     </div>
                 </div>
             )}
-        </AsDraft>
+        </SearchAsDraft>
     )
 }
 
@@ -93,7 +96,7 @@ const SearchArticleHit = ({ hit }: { hit: ArticleHit }) => {
     })
 
     return (
-        <AsDraft name="Article Hit">
+        <SearchAsDraft name="Article Hit">
             <a href={href} className="search-writing-results__hit">
                 {hit.thumbnailUrl && (
                     <div className="search-writing-results__hit-image-container">
@@ -135,7 +138,7 @@ const SearchArticleHit = ({ hit }: { hit: ArticleHit }) => {
                     />
                 </div>
             </a>
-        </AsDraft>
+        </SearchAsDraft>
     )
 }
 
@@ -148,7 +151,7 @@ const SearchTopicPageHit = ({ hit }: { hit: TopicPageHit }) => {
     })
 
     return (
-        <AsDraft name={"Topic Page Hit"}>
+        <SearchAsDraft name={"Topic Page Hit"}>
             <a href={href} className="search-writing-results__hit">
                 <div className="search-writing-results__hit-content">
                     <header className="search-writing-results__hit-header">
@@ -161,7 +164,7 @@ const SearchTopicPageHit = ({ hit }: { hit: TopicPageHit }) => {
                     </div>
                 </div>
             </a>
-        </AsDraft>
+        </SearchAsDraft>
     )
 }
 
