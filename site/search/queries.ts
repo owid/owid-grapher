@@ -30,7 +30,7 @@ export const searchQueryKeys = {
     topicTagGraph: ["topicTagGraph"] as const,
     // Base key for all data catalog queries
     data: [SearchIndexName.ExplorerViewsMdimViewsAndCharts] as const,
-    dataSearches: (state: SearchState) =>
+    dataSearches: (state: Omit<SearchState, "page">) =>
         [...searchQueryKeys.data, "searches", state] as const,
     dataRibbons: (state: SearchState) =>
         [...searchQueryKeys.data, "ribbons", state] as const,
@@ -79,7 +79,8 @@ export async function queryDataCatalogRibbons(
 
 export async function queryDataCatalogSearch(
     searchClient: SearchClient,
-    state: SearchState
+    state: Omit<SearchState, "page">,
+    pageParam: number = 0
 ): Promise<DataCatalogSearchResult> {
     const facetFilters = formatCountryFacetFilters(
         getFilterNamesOfType(state.filters, FilterType.COUNTRY),
@@ -100,8 +101,8 @@ export async function queryDataCatalogSearch(
             facetFilters: facetFilters,
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
-            hitsPerPage: 10,
-            page: state.page < 0 ? 0 : state.page,
+            hitsPerPage: 5,
+            page: pageParam < 0 ? 0 : pageParam,
         },
     ]
 
