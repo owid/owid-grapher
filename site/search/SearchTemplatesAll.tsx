@@ -24,35 +24,85 @@ export const SearchTemplatesAll = () => {
                 </>
             ))
             // All + Topic + Country + No Query
-            .with([SearchTopicType.Topic, true, false], () => <></>)
+            .with([SearchTopicType.Topic, true, false], () => (
+                <>
+                    <SearchDataInsightsResults />
+                    <SearchWritingResults />
+                    <SearchDataResults />
+                </>
+            ))
             // All + Topic + No Country + Query
-            .with([SearchTopicType.Topic, false, true], () => <></>)
+            .with([SearchTopicType.Topic, false, true], () => (
+                <>
+                    <SearchDataResults />
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
             // All + Topic + No Country + No Query
             .with([SearchTopicType.Topic, false, false], () => (
                 <>
                     <SearchWritingResults />
                     <SearchDataInsightsResults />
-                    <SearchDataResults />
+                    <SearchDataResults isFirstChartLarge={false} />
                 </>
             ))
             // All + Area + Country + Query
-            .with([SearchTopicType.Area, true, true], () => <></>)
+            .with([SearchTopicType.Area, true, true], () => (
+                <>
+                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
             // All + Area + Country + No Query
-            .with([SearchTopicType.Area, true, false], () => <></>)
+            .with([SearchTopicType.Area, true, false], () => (
+                <>
+                    <SearchDataInsightsResults />
+                    <SearchWritingResults />
+                    <SearchDataTopicsResults />
+                </>
+            ))
             // All + Area + No Country + Query
-            .with([SearchTopicType.Area, false, true], () => <></>)
+            .with([SearchTopicType.Area, false, true], () => (
+                <>
+                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
             // All + Area + No Country + No Query
-            .with([SearchTopicType.Area, false, false], () => <></>)
+            .with([SearchTopicType.Area, false, false], () => (
+                <>
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                    <SearchDataTopicsResults />
+                </>
+            ))
             // All + No Topic + Country + Query
-            .with([null, true, true], () => <></>)
+            .with([null, true, true], () => (
+                <>
+                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
             // All + No Topic + Country + No Query
             .with([null, true, false], () => (
                 <>
+                    <SearchDataInsightsResults />
+                    <SearchWritingResults />
                     <SearchDataTopicsResults />
                 </>
             ))
             // All + No Topic + No Country + Query
-            .with([null, false, true], () => <></>)
+            .with([null, false, true], () => (
+                <>
+                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
             // All + No Topic + No Country + No Query
             .with([null, false, false], () => null)
             .exhaustive()
