@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query"
-import { SearchDataTopicsResultsViewSkeleton } from "./SearchDataTopicsResultsViewSkeleton.js"
 import { queryDataTopics, searchQueryKeys } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedTopic } from "./searchHooks.js"
@@ -18,16 +17,14 @@ export const SearchDataTopicsResults = () => {
             queryDataTopics(searchClient, state, topicTagGraph, selectedTopic),
     })
 
-    if (query.isLoading) {
-        return <SearchDataTopicsResultsViewSkeleton />
-    }
-
     const resultsSortedByHitCount = query.data?.sort(
         (a, b) => b.nbHits - a.nbHits
     )
 
     const totalCount =
         query.data?.reduce((acc, result) => acc + result.nbHits, 0) || 0
+
+    if (totalCount === 0) return null
 
     return (
         <SearchAsDraft
