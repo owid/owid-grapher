@@ -100,6 +100,7 @@
         }
         @include grid(12);
 
+        figure[data-grapher-src],
         figure.GrapherWithFallback__fallback,
         figure.grapher-component {
             grid-column: span 12;
