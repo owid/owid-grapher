@@ -141,7 +141,6 @@ import {
     GRAPHER_BACKGROUND_DEFAULT,
 } from "../color/ColorConstants.js"
 import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
-import { MapRegionDropdownValue } from "../controls/MapRegionDropdown.js"
 import { isValidDataTableFilter } from "../dataTable/DataTable.js"
 import { DataTableConfig } from "../dataTable/DataTableConstants.js"
 import {
@@ -157,7 +156,6 @@ import {
 } from "../mapCharts/MapChartConstants.js"
 import { MapConfig } from "../mapCharts/MapConfig.js"
 import {
-    isValidGlobeRegionName,
     isValidMapRegionName,
     isOnTheMap,
     getCountriesByRegion,
@@ -350,12 +348,6 @@ export class GrapherState {
         } else this.applyOriginalSelectionAsAuthored()
     }
 
-    mapRegionDropdownValue: MapRegionDropdownValue | undefined = undefined
-
-    @action.bound resetMapRegionDropdownValue(): void {
-        this.mapRegionDropdownValue = undefined
-    }
-
     legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
     entitySelectorState: Partial<EntitySelectorState> = {}
     @computed get dataTableSlugs(): ColumnSlug[] {
@@ -481,7 +473,6 @@ export class GrapherState {
             bakedGrapherURL: observable,
             externalQueryParams: observable.ref,
             _inputTable: observable.ref,
-            mapRegionDropdownValue: observable,
             legacyConfigAsAuthored: observable.ref,
             entitySelectorState: observable,
             isConfigReady: observable,
@@ -633,16 +624,6 @@ export class GrapherState {
             obj.timelineMaxTime
         )
 
-        // if a region is specified, show it on the globe
-        if (
-            obj.map?.region !== undefined &&
-            isValidGlobeRegionName(obj.map.region)
-        ) {
-            this.mapRegionDropdownValue = obj.map.region
-            this.globeController.jumpToOwidContinent(obj.map.region)
-            this.globeController.showGlobe()
-        }
-
         // Todo: remove once we are more RAII.
         if (obj?.dimensions?.length)
             this.setDimensionsFromConfigs(obj.dimensions)
@@ -735,9 +716,6 @@ export class GrapherState {
         const region = params.region
         if (region !== undefined && isValidMapRegionName(region)) {
             this.map.region = region
-
-            if (isValidGlobeRegionName(region))
-                this.mapRegionDropdownValue = region
         }
 
         // map selection
@@ -3337,16 +3315,9 @@ export class GrapherState {
         this.dismissTooltip()
     }
 
-    @action.bound resetMapRegionDropdown(): void {
-        this.mapRegionDropdownValue = undefined
-    }
-
     // called when an entity is selected in the entity selector
     @action.bound onSelectEntity(entityName: EntityName): void {
         const { selectedCountryNamesInForeground } = this.mapConfig.selection
-
-        if (this.mapRegionDropdownValue === "Selection")
-            this.resetMapRegionDropdown()
 
         if (!this.isOnMapTab || !this.isMapSelectionEnabled) return
 
@@ -3362,7 +3333,6 @@ export class GrapherState {
                 // rotate to the selected country
                 this.globeController.rotateToCountry(region.name)
                 this.mapConfig.region = MapRegionName.World
-                this.resetMapRegionDropdown()
             } else if (checkIsOwidContinent(region)) {
                 // rotate to the selected owid continent
                 const regionName = MAP_REGION_NAMES[
@@ -3370,18 +3340,15 @@ export class GrapherState {
                 ] as GlobeRegionName
                 this.globeController.rotateToOwidContinent(regionName)
                 this.mapConfig.region = regionName
-                this.mapRegionDropdownValue = regionName
             } else if (checkIsIncomeGroup(region)) {
                 // switch back to the map if an income group is selected
                 this.globeController.hideGlobe()
                 this.globeController.resetGlobe()
                 this.mapConfig.region = MapRegionName.World
-                this.resetMapRegionDropdown()
             } else if (checkHasMembers(region)) {
                 // rotate to the selected region
                 this.globeController.rotateToRegion(region.name)
                 this.mapConfig.region = MapRegionName.World
-                this.resetMapRegionDropdown()
             }
         }
     }
@@ -3390,12 +3357,6 @@ export class GrapherState {
     @action.bound onDeselectEntity(entityName: EntityName): void {
         // Remove focus from an entity that has been removed from the selection
         this.focusArray.remove(entityName)
-
-        // Remove focus from the deselected country
-        this.globeController.dismissCountryFocus()
-
-        if (this.mapRegionDropdownValue === "Selection")
-            this.resetMapRegionDropdown()
     }
 
     // called when all entities are cleared in the entity selector
@@ -3408,9 +3369,6 @@ export class GrapherState {
             this.globeController.hideGlobe()
             this.globeController.resetGlobe()
         }
-
-        if (this.mapRegionDropdownValue === "Selection")
-            this.resetMapRegionDropdown()
     }
 
     isEntityMutedInSelector(entityName: EntityName): boolean {
@@ -3581,14 +3539,13 @@ export class GrapherState {
     @computed get isMapSelectionEnabled(): boolean {
         if (this.enableMapSelection) return true
 
-        return (
-            // If the entity controls are hidden, then selecting entities from
-            // the map should also be disabled
-            !this.hideEntityControls &&
-            // only show the entity selector on the map tab if it's rendered
-            // into the side panel or into the slide-in drawer
-            this.shouldShowEntitySelectorAs !== GrapherWindowType.modal
-        )
+        // If the entity controls are hidden, then selecting entities from
+        // the map should also be disabled
+        return !this.hideEntityControls
+    }
+
+    @computed get shouldShowMapZoomToSelectionButton(): boolean {
+        return this.shouldShowEntitySelectorAs !== GrapherWindowType.modal
     }
 
     // This is just a helper method to return the correct table for providing entity choices. We want to

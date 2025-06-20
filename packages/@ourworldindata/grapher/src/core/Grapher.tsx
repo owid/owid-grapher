@@ -550,7 +550,10 @@ export class Grapher extends React.Component<GrapherProps> {
                         <EmbedModal manager={this.grapherState} />
                     )}
                 {this.grapherState.isEntitySelectorModalOpen && (
-                    <EntitySelectorModal manager={this.grapherState} />
+                    <EntitySelectorModal
+                        manager={this.grapherState}
+                        selection={entitySelectorArray}
+                    />
                 )}
 
                 {/* Entity selector in a slide-in drawer */}
