@@ -475,10 +475,6 @@ export class ChoroplethGlobe extends React.Component<{
         if (this.manager.isMapSelectionEnabled) {
             this.mapConfig.selection.toggleSelection(country)
 
-            // reset the map region dropdown if the selection changed
-            if (this.manager.mapRegionDropdownValue === "Selection")
-                this.manager.resetMapRegionDropdownValue?.()
-
             // make sure country focus is dismissed for unselected countries
             if (!this.mapConfig.selection.selectedSet.has(country))
                 this.globeController.dismissCountryFocus()
@@ -568,7 +564,6 @@ export class ChoroplethGlobe extends React.Component<{
 
                 this.clearHover() // dismiss the tooltip
                 this.mapConfig.region = MapRegionName.World // reset region
-                this.manager.resetMapRegionDropdownValue?.() // reset map region dropdown
 
                 const wheeling = (): void => {
                     this.zoomGlobe(-event.sourceEvent.deltaY)

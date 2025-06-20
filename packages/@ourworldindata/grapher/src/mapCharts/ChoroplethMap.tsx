@@ -263,7 +263,7 @@ export class ChoroplethMap extends React.Component<{
                     feature,
                     projection: this.projection,
                     formattedValue: this.formatAnnotationLabel(series.value),
-                    fontSizeScale: this.viewportScale,
+                    fontSizeScale: this.viewportScaleSqrt,
                     color: labelColor,
                 }
 
@@ -374,27 +374,21 @@ export class ChoroplethMap extends React.Component<{
 
         this.setHoverEnterFeature(feature)
 
-        const is2dContinentActive =
-            !this.mapConfig.globe.isActive &&
-            this.mapConfig.region !== MapRegionName.World
+        const is2dContinentActive = this.mapConfig.is2dContinentActive()
 
         if (isMapSelectionEnabled) {
-            // select/deselect the country if allowed
+            // Select/deselect the country if allowed
             selection.toggleSelection(feature.id)
-        } else {
-            globeController?.setFocusCountry(feature.id)
-
-            // rotate to the selected country on the globe
-            if (
-                // don't rotate if the maps shows a continent in 2d mode
-                !is2dContinentActive &&
-                // don't rotate if the map is faceted
-                !this.manager.isFaceted &&
-                // don't rotate if the user is zoomed in, otherwise they can get stuck in 3D mode
-                window?.visualViewport?.scale === 1
-            ) {
-                globeController?.rotateToCountry(feature.id)
-            }
+        } else if (
+            // Don't rotate if the maps shows a continent in 2d mode
+            !is2dContinentActive &&
+            // Don't rotate if the map is faceted
+            !this.manager.isFaceted &&
+            // Don't rotate if the user is zoomed in, otherwise they can get stuck in 3D mode
+            window?.visualViewport?.scale === 1
+        ) {
+            // Rotate to the selected country on the globe
+            globeController?.rotateToCountry(feature.id)
         }
     }
 

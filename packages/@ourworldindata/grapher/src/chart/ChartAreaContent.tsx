@@ -10,12 +10,12 @@ import {
 import { DataTable } from "../dataTable/DataTable"
 import { CaptionedChartManager } from "../captionedChart/CaptionedChart"
 import { LoadingIndicator } from "@ourworldindata/components"
-import { FacetChart } from "../facetChart/FacetChart"
+import { FacetChart } from "../facet/FacetChart"
 import { getChartSvgProps, NoDataPattern } from "./ChartUtils"
 import { ChartComponent, makeChartState } from "./ChartTypeMap"
 import { GRAPHER_CHART_AREA_CLASS } from "../core/GrapherConstants"
 import { ChartState } from "./ChartInterface"
-import { FacetMap } from "../facetMap/FacetMap.js"
+import { FacetMap } from "../facet/FacetMap.js"
 
 interface ChartAreaContentProps {
     manager: CaptionedChartManager

@@ -2,24 +2,20 @@ import * as React from "react"
 import { computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { MapConfig } from "../mapCharts/MapConfig"
-import { MapRegionName, GlobeRegionName } from "@ourworldindata/types"
+import { MapRegionName } from "@ourworldindata/types"
 import { Dropdown } from "./Dropdown"
 import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants"
 import { GlobeController } from "../mapCharts/GlobeController"
-
-export type MapRegionDropdownValue = GlobeRegionName | "Selection"
 
 export interface MapRegionDropdownManager {
     mapConfig?: MapConfig
     globeController?: GlobeController
     isOnMapTab?: boolean
-    mapRegionDropdownValue?: MapRegionDropdownValue
-    isMapSelectionEnabled?: boolean
     isFaceted?: boolean
 }
 
 interface MapRegionDropdownOption {
-    value: MapRegionDropdownValue
+    value: MapRegionName
     label: string
     trackNote: "map_zoom_to_region"
 }
@@ -47,71 +43,42 @@ export class MapRegionDropdown extends React.Component<{
     }
 
     @computed private get showMenu(): boolean {
-        const { isOnMapTab, isMapSelectionEnabled } = this.manager
+        const { isOnMapTab, isFaceted, mapConfig } = this.manager
 
-        return !!(isOnMapTab && isMapSelectionEnabled)
+        return !!(
+            isOnMapTab &&
+            // Hide the dropdown when the globe is active
+            !mapConfig?.globe.isActive &&
+            // Hide the dropdown when the map is not faceted unless a 2d continent is active
+            !(this.mapConfig.region === MapRegionName.World && !isFaceted)
+        )
     }
 
     @action.bound onChange(selected: MapRegionDropdownOption | null): void {
-        if (!selected) {
-            this.manager.mapRegionDropdownValue = undefined
-            this.mapConfig.region = MapRegionName.World
-            this.manager.globeController?.hideGlobe()
-            this.manager.globeController?.resetGlobe()
-            return
-        }
+        const value = selected?.value
+        if (!value) return
 
-        // update active option
-        const { value } = selected
-        this.manager.mapRegionDropdownValue = value
-
-        // Rotate to the selection in any case, even if we're in 2D mode
-        if (value === "Selection") {
-            this.manager.globeController?.rotateToSelection()
-            return
-        }
-
-        // Don't rotate to a continent if faceted (unless we're already on the globe)
-        if (!this.manager.isFaceted || this.manager.mapConfig?.globe.isActive)
-            this.manager.globeController?.rotateToOwidContinent(value)
-
+        // Update the current region
         this.mapConfig.region = value
-    }
-
-    @computed private get hasSelectionOption(): boolean {
-        return this.mapConfig.selection.hasSelection
     }
 
     @computed get options(): MapRegionDropdownOption[] {
         const continentOptions: MapRegionDropdownOption[] = Object.values(
             MapRegionName
-        )
-            .filter((region) => region !== MapRegionName.World)
-            .map((region) => {
-                return {
-                    value: region,
-                    label: MAP_REGION_LABELS[region as MapRegionName],
-                    trackNote: "map_zoom_to_region",
-                }
-            })
+        ).map((region) => {
+            return {
+                value: region,
+                label: MAP_REGION_LABELS[region as MapRegionName],
+                trackNote: "map_zoom_to_region",
+            }
+        })
 
-        const selectionOption: MapRegionDropdownOption = {
-            value: "Selection",
-            label: "Selection",
-            trackNote: "map_zoom_to_region",
-        }
-
-        return this.hasSelectionOption
-            ? [selectionOption, ...continentOptions]
-            : continentOptions
+        return continentOptions
     }
 
     @computed get value(): MapRegionDropdownOption | null {
-        const { mapRegionDropdownValue } = this.manager
-        return (
-            this.options.find((opt) => opt.value === mapRegionDropdownValue) ??
-            null
-        )
+        const { region } = this.mapConfig
+        return this.options.find((opt) => opt.value === region) ?? null
     }
 
     override render(): React.ReactElement | null {
@@ -123,13 +90,7 @@ export class MapRegionDropdown extends React.Component<{
                 options={this.options}
                 onChange={this.onChange}
                 value={this.value}
-                isClearable
-                placeholder="Zoom to..."
-                aria-label={
-                    this.hasSelectionOption
-                        ? "Zoom to selection or continent"
-                        : "Zoom to continent"
-                }
+                aria-label="Select continent"
             />
         )
     }

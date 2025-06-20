@@ -25,7 +25,7 @@ import {
     calculateAspectRatio,
     getFacetGridPadding,
     getLabelPadding as getFacetLabelPadding,
-} from "../facetChart/FacetChartUtils"
+} from "./FacetChartUtils"
 import {
     FacetMapManager,
     MapFacetSeries,
@@ -53,6 +53,7 @@ import {
     MAP_VIEWPORT_FACETED_WORLD,
     MAP_VIEWPORTS,
     MapChartManager,
+    MapViewport,
 } from "../mapCharts/MapChartConstants"
 import { ChartState } from "../chart/ChartInterface.js"
 
@@ -61,6 +62,8 @@ export class FacetMap
     extends React.Component<FacetMapProps>
     implements ChartState, HorizontalColorLegendManager
 {
+    private legendHoverBin: ColorScaleBin | undefined = undefined
+
     constructor(props: FacetMapProps) {
         super(props)
         makeObservable<FacetMap, "legendHoverBin">(this, {
@@ -125,9 +128,9 @@ export class FacetMap
     @computed private get facetsContainerBounds(): Bounds {
         return (
             this.bounds
-                // make space for facet labels
+                // Make space for facet labels
                 .padTop(this.labelHeight + this.labelPadding)
-                // make space for the legend
+                // Make space for the legend
                 .padBottom(
                     this.legendHeight +
                         PADDING_BETWEEN_MAP_AND_LEGEND +
@@ -148,6 +151,16 @@ export class FacetMap
         return Math.floor(this.fontSize * GRAPHER_FONT_SCALE_18)
     }
 
+    @computed private get mapViewport(): MapViewport {
+        const { mapConfig } = this.manager
+
+        // Use a custom viewport for the World map that zooms in a little bit to make best use of the space
+        const region: MapRegionName = mapConfig?.region ?? MapRegionName.World
+        if (region === MapRegionName.World) return MAP_VIEWPORT_FACETED_WORLD
+
+        return MAP_VIEWPORTS[region]
+    }
+
     private getGridParams(bounds: Bounds): GridParameters {
         const { mapConfig } = this.manager
 
@@ -160,16 +173,15 @@ export class FacetMap
 
         if (mapConfig?.globe.isActive) return horizontalLayout
 
-        const region = mapConfig?.region ?? MapRegionName.World
-        const mapAspectRatio = MAP_VIEWPORTS[region].ratio
+        const mapAspectRatio = this.mapViewport.ratio
 
-        // If faceted maps are side-by-side
+        // If the faceted maps are side-by-side
         const horizontalLayoutAspectRatio = calculateAspectRatio(
             bounds.width / 2,
             bounds.height
         )
 
-        // If faceted maps are stacked vertically
+        // If the faceted maps are stacked vertically
         const verticalLayoutAspectRatio = calculateAspectRatio(
             bounds.width,
             bounds.height / 2
@@ -228,6 +240,7 @@ export class FacetMap
             table,
             transformedTableFromGrapher,
             targetTimes,
+            mapViewport,
             facetFontSize,
             legendHoverBin,
             logGrapherInteractionEvent,
@@ -248,8 +261,6 @@ export class FacetMap
             mapConfig,
             isMapSelectionEnabled,
             colorScale,
-            mapRegionDropdownValue,
-            resetMapRegionDropdownValue,
             globeController,
             base,
             tooltip,
@@ -257,13 +268,6 @@ export class FacetMap
             projectionColumnInfoBySlug,
             isFaceted,
         } = manager
-
-        // Use a custom viewport for the World map that zooms in a little bit to make best use of the space
-        const region: MapRegionName = mapConfig?.region ?? MapRegionName.World
-        const mapViewport =
-            region === MapRegionName.World
-                ? MAP_VIEWPORT_FACETED_WORLD
-                : MAP_VIEWPORTS[region]
 
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]
@@ -279,8 +283,6 @@ export class FacetMap
                 mapConfig,
                 isMapSelectionEnabled,
                 colorScale,
-                mapRegionDropdownValue,
-                resetMapRegionDropdownValue,
                 globeController,
                 base,
                 tooltip,
@@ -401,8 +403,6 @@ export class FacetMap
         return this.categoryLegendHeight + this.numericLegendHeight
     }
 
-    private legendHoverBin: ColorScaleBin | undefined = undefined
-
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
         this.legendHoverBin = bin
     }
@@ -428,7 +428,7 @@ export class FacetMap
     }
 
     override componentDidMount(): void {
-        exposeInstanceOnWindow(this, "facet")
+        exposeInstanceOnWindow(this, "facetMap")
     }
 
     private getLabelPosition(facet: PlacedMapFacetSeries): {
@@ -452,7 +452,7 @@ export class FacetMap
         // It looks nicer to position the facet label closer to the actual map content
         // rather than at the very top
 
-        const mapAspectRatio = MAP_VIEWPORTS[MapRegionName.World].ratio
+        const mapAspectRatio = MAP_VIEWPORT_FACETED_WORLD.ratio
 
         // Find the map's width and height
         let mapWidth = bounds.width
@@ -502,7 +502,6 @@ export class FacetMap
                                 style={{ fontWeight: 700 }}
                             >
                                 {seriesName}
-                                <title>{seriesName}</title>
                             </text>
                             <g id={makeIdForHumanConsumption(seriesName)}>
                                 <ChartComponent

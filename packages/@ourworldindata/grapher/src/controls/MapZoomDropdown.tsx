@@ -24,17 +24,15 @@ import {
     DropdownCollectionItem,
     DropdownOptionGroup,
 } from "./Dropdown.js"
-import { getCountriesByRegion } from "../mapCharts/MapHelpers"
 import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants"
 import { match } from "ts-pattern"
 import * as R from "remeda"
 
-export interface MapCountryDropdownManager {
+export interface MapZoomDropdownManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
     isMapSelectionEnabled?: boolean
     globeController?: GlobeController
-    isFaceted?: boolean
 }
 
 interface DropdownOption {
@@ -55,26 +53,23 @@ function isGroupedOption(
 }
 
 @observer
-export class MapCountryDropdown extends React.Component<{
-    manager: MapCountryDropdownManager
+export class MapZoomDropdown extends React.Component<{
+    manager: MapZoomDropdownManager
 }> {
     private searchInput = ""
     private localEntityNames: EntityName[] | undefined = undefined
 
-    constructor(props: { manager: MapCountryDropdownManager }) {
+    constructor(props: { manager: MapZoomDropdownManager }) {
         super(props)
 
-        makeObservable<MapCountryDropdown, "searchInput" | "localEntityNames">(
+        makeObservable<MapZoomDropdown, "searchInput" | "localEntityNames">(
             this,
-            {
-                searchInput: observable,
-                localEntityNames: observable,
-            }
+            { searchInput: observable, localEntityNames: observable }
         )
     }
 
-    static shouldShow(manager: MapCountryDropdownManager): boolean {
-        const menu = new MapCountryDropdown({ manager })
+    static shouldShow(manager: MapZoomDropdownManager): boolean {
+        const menu = new MapZoomDropdown({ manager })
         return menu.showMenu
     }
 
@@ -88,7 +83,7 @@ export class MapCountryDropdown extends React.Component<{
         )
     }
 
-    @computed private get manager(): MapCountryDropdownManager {
+    @computed private get manager(): MapZoomDropdownManager {
         return this.props.manager
     }
 
@@ -107,57 +102,29 @@ export class MapCountryDropdown extends React.Component<{
     @action.bound private onChange(selected: DropdownOption | null): void {
         if (!selected?.value) return
 
-        // if a 2d continent is active or we're in faceting mode,
-        // we don't want to switch to the globe
-        const isGlobeDisabled =
-            this.mapConfig.is2dContinentActive() || this.manager.isFaceted
-
         match(selected.type)
             .with("country", () => {
-                const country = selected.value
-
-                this.manager.globeController?.setFocusCountry(country)
-
-                if (!isGlobeDisabled) {
-                    this.manager.globeController?.rotateToCountry(country)
+                // reset the region if a non-world region is currently selected
+                if (this.mapConfig.region !== MapRegionName.World) {
+                    this.mapConfig.region = MapRegionName.World
                 }
+
+                // rotate to the country on the globe and show its tooltip
+                this.manager.globeController?.setFocusCountry(selected.value)
+                this.manager.globeController?.rotateToCountry(selected.value)
             })
             .with("continent", () => {
-                const continent = selected.value as GlobeRegionName
-
-                this.mapConfig.region = continent
-
-                if (!isGlobeDisabled) {
-                    this.manager.globeController?.rotateToOwidContinent(
-                        continent
-                    )
-                }
+                this.manager.globeController?.rotateToOwidContinent(
+                    selected.value as GlobeRegionName
+                )
             })
             .exhaustive()
 
         this.searchInput = ""
     }
 
-    @computed private get availableCountries(): EntityName[] {
-        const mappableCountryNames = mappableCountries
-            .map((country) => country.name)
-            // Exclude Antarctica since it's not shown on the the 2D
-            .filter((countryName) => countryName !== "Antarctica")
-
-        // Only show the countries for the active continent if in 2d mode
-        if (this.mapConfig.is2dContinentActive()) {
-            const countriesInRegion = getCountriesByRegion(
-                MAP_REGION_LABELS[this.mapConfig.region]
-            )
-            if (!countriesInRegion) return mappableCountryNames
-            return Array.from(countriesInRegion)
-        }
-
-        return mappableCountryNames
-    }
-
     @computed private get sortedCountries(): EntityName[] {
-        return _.sortBy(this.availableCountries)
+        return _.sortBy(mappableCountries.map((country) => country.name))
     }
 
     @computed private get options(): DropdownCollection<DropdownOption> {
@@ -175,33 +142,25 @@ export class MapCountryDropdown extends React.Component<{
             })
         )
 
-        const continentOptionsIncludingWorld: DropdownOption[] = Object.values(
-            MapRegionName
-        ).map((region) => {
-            return {
-                type: "continent",
-                value: region,
-                label: MAP_REGION_LABELS[region as MapRegionName],
-                isLocal: this.localEntityNames?.includes(region),
-                trackNote: "map_zoom_mobile",
-            }
-        })
+        const continentOptions: DropdownOption[] = Object.values(MapRegionName)
+            .filter((region) => region !== MapRegionName.World)
+            .map((region) => {
+                return {
+                    type: "continent",
+                    value: region,
+                    label: MAP_REGION_LABELS[region as MapRegionName],
+                    isLocal: this.localEntityNames?.includes(region),
+                    trackNote: "map_zoom_mobile",
+                }
+            })
 
-        const continentOptions =
-            this.manager.isFaceted || this.mapConfig.is2dContinentActive()
-                ? continentOptionsIncludingWorld
-                : continentOptionsIncludingWorld.filter(
-                      (option) => option.value !== MapRegionName.World
-                  )
-
-        const sortLocalEntitiesAndWorldToTop = (
+        const sortLocalEntitiesToTop = (
             options: DropdownOption[]
         ): DropdownOption[] => {
             if (localEntityNames.length === 0) return options
             const [local, nonLocal] = R.partition(
                 options,
-                (option) =>
-                    !!option.isLocal || option.value === MapRegionName.World
+                (option) => !!option.isLocal
             )
             return [...local, ...nonLocal]
         }
@@ -209,11 +168,11 @@ export class MapCountryDropdown extends React.Component<{
         return [
             {
                 label: "Continents",
-                options: sortLocalEntitiesAndWorldToTop(continentOptions),
+                options: sortLocalEntitiesToTop(continentOptions),
             },
             {
                 label: "Countries",
-                options: sortLocalEntitiesAndWorldToTop(countryOptions),
+                options: sortLocalEntitiesToTop(countryOptions),
             },
         ]
     }
@@ -237,16 +196,6 @@ export class MapCountryDropdown extends React.Component<{
         return (
             this.flatOptions.find((opt) => currentValue === opt.value) ?? null
         )
-    }
-
-    @computed private get placeholder(): string {
-        if (
-            this.mapConfig.globe.isActive ||
-            (this.mapConfig.region === MapRegionName.World &&
-                !this.manager.isFaceted)
-        )
-            return "Zoom to..."
-        return "Search for a country"
     }
 
     @action.bound async populateLocalCountryName(): Promise<void> {
@@ -289,7 +238,7 @@ export class MapCountryDropdown extends React.Component<{
 
     override render(): React.ReactElement | null {
         return this.showMenu ? (
-            <div className="map-country-dropdown">
+            <div className="map-zoom-dropdown">
                 <Dropdown
                     options={
                         this.searchInput ? this.filteredOptions : this.options
@@ -301,14 +250,14 @@ export class MapCountryDropdown extends React.Component<{
                         (this.searchInput = inputValue)
                     }
                     isSearchable
-                    placeholder={this.placeholder}
+                    placeholder="Zoom to..."
                     aria-label="Search for country or continent"
                     renderMenuOption={(option) => (
                         <>
                             {option.label}
                             {option.isLocal && (
                                 <FontAwesomeIcon
-                                    className="map-country-dropdown-local-icon"
+                                    className="map-zoom-dropdown-local-icon"
                                     icon={faLocationArrow}
                                 />
                             )}

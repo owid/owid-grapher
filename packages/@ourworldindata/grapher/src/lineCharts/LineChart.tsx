@@ -140,9 +140,9 @@ export class LineChart
         return this.placedSeries.flatMap((series) => series.points)
     }
 
-    private tooltipState = new TooltipState<{
-        time: Time
-    }>({ fade: "immediate" })
+    private tooltipState = new TooltipState<{ time: Time }>({
+        fade: "immediate",
+    })
 
     @action.bound private onCursorMove(
         ev: React.MouseEvent | React.TouchEvent
@@ -249,15 +249,15 @@ export class LineChart
                             stroke="rgba(180,180,180,.4)"
                         />
                         {this.renderSeries.map((series, index) => {
-                            const value = series.points.find(
+                            const point = series.points.find(
                                 (point) => point.x === time
                             )
-                            if (!value || series.hover.background) return null
+                            if (!point || series.hover.background) return null
 
                             const valueColor = this.hasColorScale
                                 ? darkenColorForLine(
                                       this.chartState.getColorScaleColor(
-                                          value.colorValue
+                                          point.colorValue
                                       )
                                   )
                                 : series.color
@@ -269,8 +269,8 @@ export class LineChart
                             return (
                                 <circle
                                     key={getSeriesKey(series, index)}
-                                    cx={horizontalAxis.place(value.x)}
-                                    cy={verticalAxis.place(value.y)}
+                                    cx={horizontalAxis.place(point.x)}
+                                    cy={verticalAxis.place(point.y)}
                                     r={this.lineStrokeWidth / 2 + 3.5}
                                     fill={color}
                                     stroke={

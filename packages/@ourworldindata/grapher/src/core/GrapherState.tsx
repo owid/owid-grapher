@@ -141,14 +141,13 @@ import {
     GRAPHER_BACKGROUND_DEFAULT,
 } from "../color/ColorConstants.js"
 import { ColorScaleConfig } from "../color/ColorScaleConfig.js"
-import { MapRegionDropdownValue } from "../controls/MapRegionDropdown.js"
 import { isValidDataTableFilter } from "../dataTable/DataTable.js"
 import { DataTableConfig } from "../dataTable/DataTableConstants.js"
 import {
     type EntitySelectorState,
     EntitySelector,
 } from "../entitySelector/EntitySelector.js"
-import { FacetChart } from "../facetChart/FacetChart.js"
+import { FacetChart } from "../facet/FacetChart.js"
 import { FocusArray } from "../focus/FocusArray.js"
 import { GlobeController } from "../mapCharts/GlobeController.js"
 import {
@@ -157,7 +156,6 @@ import {
 } from "../mapCharts/MapChartConstants.js"
 import { MapConfig } from "../mapCharts/MapConfig.js"
 import {
-    isValidGlobeRegionName,
     isValidMapRegionName,
     isOnTheMap,
     getCountriesByRegion,
@@ -350,12 +348,6 @@ export class GrapherState {
         } else this.applyOriginalSelectionAsAuthored()
     }
 
-    mapRegionDropdownValue: MapRegionDropdownValue | undefined = undefined
-
-    @action.bound resetMapRegionDropdownValue(): void {
-        this.mapRegionDropdownValue = undefined
-    }
-
     legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
     entitySelectorState: Partial<EntitySelectorState> = {}
     @computed get dataTableSlugs(): ColumnSlug[] {
@@ -481,7 +473,6 @@ export class GrapherState {
             bakedGrapherURL: observable,
             externalQueryParams: observable.ref,
             _inputTable: observable.ref,
-            mapRegionDropdownValue: observable,
             legacyConfigAsAuthored: observable.ref,
             entitySelectorState: observable,
             isConfigReady: observable,
@@ -625,16 +616,6 @@ export class GrapherState {
             obj.timelineMaxTime
         )
 
-        // if a region is specified, show it on the globe
-        if (
-            obj.map?.region !== undefined &&
-            isValidGlobeRegionName(obj.map.region)
-        ) {
-            this.mapRegionDropdownValue = obj.map.region
-            this.globeController.jumpToOwidContinent(obj.map.region)
-            this.globeController.showGlobe()
-        }
-
         // Todo: remove once we are more RAII.
         if (obj?.dimensions?.length)
             this.setDimensionsFromConfigs(obj.dimensions)
@@ -727,9 +708,6 @@ export class GrapherState {
         const region = params.region
         if (region !== undefined && isValidMapRegionName(region)) {
             this.map.region = region
-
-            if (isValidGlobeRegionName(region))
-                this.mapRegionDropdownValue = region
         }
 
         // map selection
@@ -1501,20 +1479,13 @@ export class GrapherState {
     private checkOnlySingleTimeSelectionPossible = (
         tabName: GrapherTabName
     ): boolean => {
+        // Scatters aren't included here because although single-time selection
+        // is preferred, start and end time selection is still possible
         return [
             GRAPHER_TAB_NAMES.DiscreteBar,
             GRAPHER_TAB_NAMES.StackedDiscreteBar,
             GRAPHER_TAB_NAMES.Marimekko,
         ].includes(tabName as any)
-    }
-
-    private checkSingleTimeSelectionPreferred = (
-        tabName: GrapherTabName
-    ): boolean => {
-        return (
-            this.checkOnlySingleTimeSelectionPossible(tabName) ||
-            tabName === GRAPHER_TAB_NAMES.ScatterPlot
-        )
     }
 
     private checkStartAndEndTimeSelectionPreferred = (
@@ -1531,7 +1502,7 @@ export class GrapherState {
     @action.bound ensureTimeHandlesAreSensibleForTab(
         tab: GrapherTabName
     ): void {
-        if (this.checkSingleTimeSelectionPreferred(tab)) {
+        if (this.checkOnlySingleTimeSelectionPossible(tab)) {
             this.ensureHandlesAreOnSameTime()
         } else if (this.checkStartAndEndTimeSelectionPreferred(tab)) {
             this.ensureHandlesAreOnDifferentTimes()
@@ -1676,7 +1647,7 @@ export class GrapherState {
             )
 
             // If a start time is provided, use it; otherwise, set it to the end time
-            // so that a single map (not a facetted one) is shown by default
+            // so that a single map (not a faceted one) is shown by default
             const startTime =
                 this.map.startTime === undefined
                     ? endTime
@@ -3323,16 +3294,9 @@ export class GrapherState {
         this.dismissTooltip()
     }
 
-    @action.bound resetMapRegionDropdown(): void {
-        this.mapRegionDropdownValue = undefined
-    }
-
     // called when an entity is selected in the entity selector
     @action.bound onSelectEntity(entityName: EntityName): void {
         const { selectedCountryNamesInForeground } = this.mapConfig.selection
-
-        if (this.mapRegionDropdownValue === "Selection")
-            this.resetMapRegionDropdown()
 
         if (!this.isOnMapTab || !this.isMapSelectionEnabled) return
 
@@ -3345,29 +3309,25 @@ export class GrapherState {
                 region.isMappable &&
                 selectedCountryNamesInForeground.includes(region.name)
             ) {
-                // rotate to the selected country
+                // Rotate to the selected country
                 this.globeController.rotateToCountry(region.name)
                 this.mapConfig.region = MapRegionName.World
-                this.resetMapRegionDropdown()
             } else if (checkIsOwidContinent(region)) {
-                // rotate to the selected owid continent
+                // Rotate to the selected owid continent
                 const regionName = MAP_REGION_NAMES[
                     region.name
                 ] as GlobeRegionName
                 this.globeController.rotateToOwidContinent(regionName)
                 this.mapConfig.region = regionName
-                this.mapRegionDropdownValue = regionName
             } else if (checkIsIncomeGroup(region)) {
-                // switch back to the map if an income group is selected
+                // Switch back to the 2d map if an income group is selected
                 this.globeController.hideGlobe()
                 this.globeController.resetGlobe()
                 this.mapConfig.region = MapRegionName.World
-                this.resetMapRegionDropdown()
             } else if (checkHasMembers(region)) {
-                // rotate to the selected region
+                // Rotate to the selected region
                 this.globeController.rotateToRegion(region.name)
                 this.mapConfig.region = MapRegionName.World
-                this.resetMapRegionDropdown()
             }
         }
     }
@@ -3379,9 +3339,6 @@ export class GrapherState {
 
         // Remove focus from the deselected country
         this.globeController.dismissCountryFocus()
-
-        if (this.mapRegionDropdownValue === "Selection")
-            this.resetMapRegionDropdown()
     }
 
     // called when all entities are cleared in the entity selector
@@ -3394,16 +3351,13 @@ export class GrapherState {
             this.globeController.hideGlobe()
             this.globeController.resetGlobe()
         }
-
-        if (this.mapRegionDropdownValue === "Selection")
-            this.resetMapRegionDropdown()
     }
 
     isEntityMutedInSelector(entityName: EntityName): boolean {
-        // for now, muted entities are only relevant on the map tab
+        // For now, muted entities are only relevant on the map tab
         if (!this.isOnMapTab) return false
 
-        // entities disabled on the map are muted
+        // Entities disabled on the map are muted
         if (
             this.mapConfig.selection.selectedCountryNamesInBackground.includes(
                 entityName
@@ -3411,13 +3365,13 @@ export class GrapherState {
         )
             return true
 
-        // if a 2d continent is active, then all countries outside of the continent
-        // are disabled, so they are also muted in the entity selector
+        // If a 2d continent is active, then all countries outside of the continent
+        // are not shown on the map, so they're muted in the entity selector as well
         if (this.mapConfig.is2dContinentActive()) {
             const region = getRegionByName(entityName)
             if (!region) return false
 
-            // don't mute the selected continent
+            // Don't mute the selected continent
             if (checkIsOwidContinent(region))
                 return region.name !== MAP_REGION_LABELS[this.mapConfig.region]
 
@@ -3571,7 +3525,7 @@ export class GrapherState {
             // If the entity controls are hidden, then selecting entities from
             // the map should also be disabled
             !this.hideEntityControls &&
-            // only show the entity selector on the map tab if it's rendered
+            // Only show the entity selector on the map tab if it's rendered
             // into the side panel or into the slide-in drawer
             this.shouldShowEntitySelectorAs !== GrapherWindowType.modal
         )

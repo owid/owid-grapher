@@ -59,7 +59,6 @@ import { Component, createRef } from "react"
 import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
-import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 import { match } from "ts-pattern"
 import { makeProjectedDataPatternId } from "./MapComponents"
@@ -127,7 +126,7 @@ export class MapChart
     }
 
     @computed private get targetTime(): number | undefined {
-        return this.manager.targetTime ?? this.manager.endTime
+        return this.chartState.targetTime
     }
 
     @computed private get bounds(): Bounds {
@@ -179,16 +178,8 @@ export class MapChart
         return this.manager.isFaceted
     }
 
-    @computed get mapRegionDropdownValue(): MapRegionDropdownValue | undefined {
-        return this.manager.mapRegionDropdownValue
-    }
-
     @computed get isMapSelectionEnabled(): boolean {
         return !!this.manager.isMapSelectionEnabled
-    }
-
-    @action.bound resetMapRegionDropdownValue(): void {
-        this.manager.resetMapRegionDropdownValue?.()
     }
 
     override componentWillUnmount(): void {
@@ -225,7 +216,7 @@ export class MapChart
     }
 
     @action.bound onDocumentKeyDown(e: KeyboardEvent): void {
-        // hide the globe on hitting the Escape key
+        // Hide the globe on hitting the Escape key
         if (e.key === "Escape" && this.mapConfig.globe.isActive) {
             this.globeController.hideGlobe()
             this.globeController.resetGlobe()
@@ -240,14 +231,15 @@ export class MapChart
             categoricalBinStroke,
             legendMaxWidth,
         } = this
-        if (!this.manager.showLegend)
-            return {
-                numericLegendData,
-                categoricalLegendData,
-                categoricalBinStroke,
-                legendMaxWidth,
-            }
-        return undefined
+
+        if (this.manager.showLegend) return undefined
+
+        return {
+            numericLegendData,
+            categoricalLegendData,
+            categoricalBinStroke,
+            legendMaxWidth,
+        }
     }
 
     @computed private get disableIntroAnimation(): boolean {
@@ -300,10 +292,13 @@ export class MapChart
         const { mapConfig, hoverBracket } = this
         const { externalLegendHoverBin } = this.manager
 
+        // Check if a country is focused on the globe
         if (mapConfig.globe.focusCountry === featureId) return true
 
+        // Check if a country is hovered
         if (mapConfig.hoverCountry === featureId) return true
 
+        // Check if the legend bracket of a country is hovered
         const series = this.choroplethData.get(featureId)
         if (
             hoverBracket?.contains(series?.value, {
@@ -311,7 +306,10 @@ export class MapChart
             })
         )
             return true
+
+        // Check if the external legend bracket of a country is hovered (used in faceted maps)
         if (externalLegendHoverBin?.contains(series?.value)) return true
+
         return false
     }
 
@@ -321,10 +319,10 @@ export class MapChart
 
     getHoverState(featureId: string): InteractionState {
         const isHovered = this.isHovered(featureId)
-        return new InteractionState(
-            isHovered,
-            !!(this.hoverBracket || this.manager.externalLegendHoverBin)
+        const isHoverModeActive = !!(
+            this.hoverBracket || this.manager.externalLegendHoverBin
         )
+        return new InteractionState(isHovered, isHoverModeActive)
     }
 
     @computed get fontSize(): number {
@@ -503,7 +501,6 @@ export class MapChart
     }
 
     @computed get legendHeight(): number {
-        if (!this.manager.showLegend) return 0
         return this.categoryLegendHeight + this.numericLegendHeight
     }
 
@@ -537,6 +534,7 @@ export class MapChart
 
     @computed get categoryLegendY(): number {
         if (!this.categoryLegend) return 0
+
         return (
             this.bounds.bottom -
             this.categoryLegend.height -
@@ -668,14 +666,14 @@ export class MapChart
                         position={tooltipState.position}
                         fading={tooltipState.fading}
                         timeSeriesTable={this.chartState.inputTable}
+                        formatValueForTooltip={
+                            this.chartState.formatValueForTooltip
+                        }
                         manager={this.manager}
                         lineColorScale={this.colorScale}
                         targetTime={this.targetTime}
                         targetTimes={this.manager.highlightedTimesInTooltip}
                         sparklineWidth={sparklineWidth}
-                        formatValueForTooltip={
-                            this.chartState.formatValueForTooltip
-                        }
                         dismissTooltip={action(() => {
                             this.mapConfig.hoverCountry = undefined
                             this.tooltipState.target = null
