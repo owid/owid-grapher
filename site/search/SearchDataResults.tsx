@@ -13,9 +13,9 @@ import { SearchResultHeader } from "./SearchResultHeader.js"
 const analytics = new SiteAnalytics()
 
 export const SearchDataResults = ({
-    enableLargeFirstResult = true,
+    isFirstChartLarge = true,
 }: {
-    enableLargeFirstResult?: boolean
+    isFirstChartLarge?: boolean
 }) => {
     const { state, searchClient } = useSearchContext()
     const selectedCountries = useSelectedCountries()
@@ -47,7 +47,8 @@ export const SearchDataResults = ({
                     {hits.map((hit, i) => {
                         const isFirstResult = i === 0
                         const shouldChartHitLarge =
-                            enableLargeFirstResult && isFirstResult
+                            isFirstChartLarge && isFirstResult
+                        const showThumbnails = i < 5
 
                         return (
                             <li
@@ -81,6 +82,7 @@ export const SearchDataResults = ({
                                         searchQueryRegionsMatches={
                                             selectedCountries
                                         }
+                                        showThumbnails={showThumbnails}
                                     />
                                 )}
                             </li>
