@@ -6,7 +6,7 @@ import { queryDataCatalogRibbons, searchQueryKeys } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedTopic } from "./searchHooks.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
-import { AsDraft } from "../AsDraft/AsDraft.js"
+import { SearchAsDraft } from "./SearchAsDraft.js"
 
 export const DataCatalogRibbonView = () => {
     const { state, searchClient, topicTagGraph } = useSearchContext()
@@ -35,7 +35,7 @@ export const DataCatalogRibbonView = () => {
         query.data?.reduce((acc, result) => acc + result.nbHits, 0) || 0
 
     return (
-        <AsDraft
+        <SearchAsDraft
             name="Data Catalog Ribbons"
             className="span-cols-12 col-start-2"
         >
@@ -47,6 +47,6 @@ export const DataCatalogRibbonView = () => {
                     ))}
                 </div>
             </div>
-        </AsDraft>
+        </SearchAsDraft>
     )
 }
