@@ -9,7 +9,7 @@ import { queryDataCatalogSearch, searchQueryKeys } from "./queries.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedCountries } from "./searchHooks.js"
-import { AsDraft } from "../AsDraft/AsDraft.js"
+import { SearchAsDraft } from "./SearchAsDraft.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 
 const analytics = new SiteAnalytics()
@@ -38,7 +38,7 @@ export const DataCatalogResults = ({
 
     const { page, nbPages, nbHits } = query.data
     return (
-        <AsDraft name="Data Results" className="span-cols-12 col-start-2">
+        <SearchAsDraft name="Data Results" className="span-cols-12 col-start-2">
             <div className="data-catalog-search-hits">
                 <SearchResultHeader title="Data" count={nbHits} />
                 <ul className="data-catalog-search-list">
@@ -93,6 +93,6 @@ export const DataCatalogResults = ({
                 setPage={setPage}
                 nbPages={nbPages}
             />
-        </AsDraft>
+        </SearchAsDraft>
     )
 }
