@@ -232,17 +232,19 @@ export const SearchDebugNavigator = ({
     const currentConfig =
         currentIndex >= 0 ? ALL_TEMPLATE_CONFIGS[currentIndex] : null
 
+    const figmaUrl = currentConfig
+        ? `${!isFigmaDevMode ? "https://www.figma.com/embed?embed_host=share&url=" : ""}https://www.figma.com/file/lAIoPy94qgSocFKYO6HBTh/?node-id=${currentConfig.figmaNodeId}`
+        : ""
+
     // Update Figma popup when configuration changes
     useEffect(() => {
         if (syncFigmaPopup && currentConfig && figmaPopupRef.current) {
-            const figmaUrl = `${!isFigmaDevMode ? "https://www.figma.com/embed?embed_host=share&url=" : ""}https://www.figma.com/file/lAIoPy94qgSocFKYO6HBTh/?node-id=${currentConfig.figmaNodeId}`
-
             // Check if popup is still open
             if (!figmaPopupRef.current.closed) {
                 figmaPopupRef.current.location.href = figmaUrl
             }
         }
-    }, [currentConfig, syncFigmaPopup, isFigmaDevMode])
+    }, [currentConfig, syncFigmaPopup, figmaUrl])
 
     // Get random country, topic, area, and vowel
     const getRandomCountry = () => {
@@ -268,11 +270,10 @@ export const SearchDebugNavigator = ({
     const openFigmaPopup = () => {
         if (!currentConfig) return
 
-        const figmaUrl = `https://www.figma.com/file/lAIoPy94qgSocFKYO6HBTh/?node-id=${currentConfig.figmaNodeId}`
-
-        // Close existing popup if it exists
+        // Manually sync popup if needed
         if (figmaPopupRef.current && !figmaPopupRef.current.closed) {
-            figmaPopupRef.current.close()
+            figmaPopupRef.current.location.href = figmaUrl
+            return
         }
 
         // Open new popup
