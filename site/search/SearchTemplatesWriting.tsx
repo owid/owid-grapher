@@ -3,6 +3,7 @@ import { useSearchContext } from "./SearchContext.js"
 import { SearchTopicType } from "./searchTypes.js"
 import { SearchWritingResults } from "./SearchWritingResults.js"
 import { SearchDataInsightsResults } from "./SearchDataInsightsResults.js"
+import { SearchAsDraft } from "./SearchAsDraft.js"
 
 export const SearchTemplatesWriting = () => {
     const { templateConfig } = useSearchContext()
@@ -14,9 +15,19 @@ export const SearchTemplatesWriting = () => {
             templateConfig.hasQuery,
         ] as const)
             // Writing + Topic + Country + Query
-            .with([SearchTopicType.Topic, true, true], () => <></>)
+            .with([SearchTopicType.Topic, true, true], () => (
+                <>
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
             // Writing + Topic + Country + No Query
-            .with([SearchTopicType.Topic, true, false], () => <></>)
+            .with([SearchTopicType.Topic, true, false], () => (
+                <>
+                    <SearchDataInsightsResults />
+                    <SearchWritingResults />
+                </>
+            ))
             // Writing + Topic + No Country + Query
             .with([SearchTopicType.Topic, false, true], () => (
                 <>
@@ -32,16 +43,24 @@ export const SearchTemplatesWriting = () => {
                 </>
             ))
             // Writing + Area + Country + Query
-            .with([SearchTopicType.Area, true, true], () => <></>)
+            .with([SearchTopicType.Area, true, true], () => (
+                <>
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
             // Writing + Area + Country + No Query
-            .with([SearchTopicType.Area, true, false], () => <></>)
+            .with([SearchTopicType.Area, true, false], () => (
+                <>
+                    <SearchDataInsightsResults />
+                    <SearchWritingResults />
+                </>
+            ))
             // Writing + Area + No Country + Query
             .with([SearchTopicType.Area, false, true], () => (
                 <>
-                    <>
-                        <SearchWritingResults />
-                        <SearchDataInsightsResults />
-                    </>
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
                 </>
             ))
             // Writing + Area + No Country + No Query
@@ -66,9 +85,21 @@ export const SearchTemplatesWriting = () => {
                 </>
             ))
             // Writing + No Topic + No Country + Query
-            .with([null, false, true], () => <></>)
+            .with([null, false, true], () => (
+                <>
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
             // Writing + No Topic + No Country + No Query
-            .with([null, false, false], () => <></>)
+            .with([null, false, false], () => (
+                <SearchAsDraft
+                    name="Writing Results"
+                    className="col-start-2 span-cols-12"
+                >
+                    <h1>🚧 Browse interface for Research & Writing </h1>
+                </SearchAsDraft>
+            ))
             .exhaustive()
     )
 }
