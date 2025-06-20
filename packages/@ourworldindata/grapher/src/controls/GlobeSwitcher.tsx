@@ -10,7 +10,6 @@ import { MapRegionDropdownValue } from "./MapRegionDropdown"
 export interface GlobeSwitcherManager {
     mapConfig?: MapConfig
     globeController?: GlobeController
-    mapRegionDropdownValue?: MapRegionDropdownValue
 }
 
 enum TabName {

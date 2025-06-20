@@ -32,6 +32,7 @@ import {
     DataTableSearchField,
     DataTableSearchFieldManager,
 } from "../DataTableSearchField"
+import { ZoomToSelectionButton } from "../ZoomToSelectionButton"
 
 export interface ControlsRowManager
     extends ContentSwitchersManager,
@@ -108,8 +109,10 @@ export class ControlsRow extends Component<{
             <div className="controls map-controls">
                 {this.manager.isMapSelectionEnabled ? (
                     <>
+                        <ZoomToSelectionButton manager={this.manager} />
+                        <CloseGlobeViewButton manager={this.manager} />
                         <MapRegionDropdown manager={this.manager} />
-                        <GlobeSwitcher manager={this.manager} />
+                        {/* <GlobeSwitcher manager={this.manager} /> */}
                         <EntitySelectionToggle manager={this.manager} />
                     </>
                 ) : (
