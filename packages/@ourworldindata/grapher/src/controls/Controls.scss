@@ -22,7 +22,7 @@ nav.controlsRow .controls {
     justify-content: flex-end;
     gap: 8px;
 
-    button.menu-toggle {
+    button {
         font: $medium 13px/16px $lato;
         letter-spacing: 0.01em;
         display: flex;
