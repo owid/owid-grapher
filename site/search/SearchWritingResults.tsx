@@ -23,64 +23,52 @@ export const SearchWritingResults = () => {
         queryFn: () => queryTopicPages(searchClient, state),
     })
 
-    const isLoading = articlesQuery.isLoading || topicPagesQuery.isLoading
-
     const articles = articlesQuery.data?.hits || []
     const topicPages = topicPagesQuery.data?.hits || []
 
     const totalCount =
         (articlesQuery.data?.nbHits || 0) + (topicPagesQuery.data?.nbHits || 0)
 
+    if (totalCount === 0) return null
+
     return (
         <SearchAsDraft
             name="Writing Results"
             className="col-start-2 span-cols-12"
         >
-            {isLoading ? (
-                <WritingSearchResultsSkeleton />
-            ) : (
-                <div className="search-writing-results">
-                    {!!totalCount && (
-                        <SearchResultHeader
-                            title="Research & Writing"
-                            count={totalCount}
-                        />
+            <div className="search-writing-results">
+                <SearchResultHeader
+                    title="Research & Writing"
+                    count={totalCount}
+                />
+                <div className="search-writing-results__container">
+                    {articles.length > 0 && (
+                        <div className="search-writing-results__section">
+                            <div className="search-writing-results__hits-list">
+                                {articles.map((hit) => (
+                                    <SearchArticleHit
+                                        key={hit.objectID}
+                                        hit={hit}
+                                    />
+                                ))}
+                            </div>
+                        </div>
                     )}
-                    <div className="search-writing-results__container">
-                        {articles.length > 0 && (
-                            <div className="search-writing-results__section">
-                                <div className="search-writing-results__hits-list">
-                                    {articles.map((hit) => (
-                                        <SearchArticleHit
-                                            key={hit.objectID}
-                                            hit={hit}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        )}
 
-                        {topicPages.length > 0 && (
-                            <div className="search-writing-results__section">
-                                <div className="search-writing-results__hits-list">
-                                    {topicPages.map((hit) => (
-                                        <SearchTopicPageHit
-                                            key={hit.objectID}
-                                            hit={hit}
-                                        />
-                                    ))}
-                                </div>
+                    {topicPages.length > 0 && (
+                        <div className="search-writing-results__section">
+                            <div className="search-writing-results__hits-list">
+                                {topicPages.map((hit) => (
+                                    <SearchTopicPageHit
+                                        key={hit.objectID}
+                                        hit={hit}
+                                    />
+                                ))}
                             </div>
-                        )}
-
-                        {!totalCount && (
-                            <p className="search-writing-results__no-results">
-                                No writing content found
-                            </p>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
-            )}
+            </div>
         </SearchAsDraft>
     )
 }
@@ -165,46 +153,5 @@ const SearchTopicPageHit = ({ hit }: { hit: TopicPageHit }) => {
                 </div>
             </a>
         </SearchAsDraft>
-    )
-}
-
-const WritingSearchResultsSkeleton = () => {
-    return (
-        <div className="search-writing-results__skeleton">
-            <div className="search-writing-results__section">
-                <div className="search-writing-results__section-title skeleton-item"></div>
-                <div className="search-writing-results__hits-list">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                        <div
-                            key={i}
-                            className="search-writing-results__hit skeleton-item"
-                        >
-                            <div className="search-writing-results__hit-image-container skeleton-item"></div>
-                            <div className="search-writing-results__hit-content">
-                                <div className="search-writing-results__hit-title skeleton-item"></div>
-                                <div className="search-writing-results__hit-excerpt skeleton-item"></div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-            <div className="search-writing-results__section">
-                <div className="search-writing-results__section-title skeleton-item"></div>
-                <div className="search-writing-results__hits-list">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                        <div
-                            key={i}
-                            className="search-writing-results__hit skeleton-item"
-                        >
-                            <div className="search-writing-results__hit-image-container skeleton-item"></div>
-                            <div className="search-writing-results__hit-content">
-                                <div className="search-writing-results__hit-title skeleton-item"></div>
-                                <div className="search-writing-results__hit-excerpt skeleton-item"></div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
     )
 }
