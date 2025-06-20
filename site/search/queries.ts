@@ -79,8 +79,7 @@ export async function queryDataTopics(
 
 export async function queryCharts(
     searchClient: SearchClient,
-    state: Omit<SearchState, "page">,
-    pageParam: number = 0
+    state: SearchState
 ): Promise<SearchChartsResponse> {
     const facetFilters = formatCountryFacetFilters(
         getFilterNamesOfType(state.filters, FilterType.COUNTRY),
@@ -102,7 +101,7 @@ export async function queryCharts(
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
             hitsPerPage: 5,
-            page: pageParam < 0 ? 0 : pageParam,
+            page: state.page < 0 ? 0 : state.page,
         },
     ]
 
