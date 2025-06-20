@@ -1,19 +1,12 @@
 import * as React from "react"
-import {
-    Tabs as AriaTabs,
-    TabList,
-    Tab,
-    type Key,
-    type TabProps,
-} from "react-aria-components"
 import cx from "classnames"
 
-export type TabKey = Key
+export type TabKey = string
 
 export interface TabItem {
-    key: TabKey
+    key: string
     element: React.ReactElement
-    props?: TabProps & {
+    props?: React.ButtonHTMLAttributes<HTMLButtonElement> & {
         "data-track-note"?: string
     }
 }
@@ -37,28 +30,45 @@ export const Tabs = ({
     className?: string
     variant?: "default" | "slim"
 }) => {
+    let style: React.CSSProperties | undefined = undefined
+    if (maxTabWidth !== undefined && Number.isFinite(maxTabWidth)) {
+        style = {
+            maxWidth: maxTabWidth,
+            textOverflow: "ellipsis",
+            overflow: "hidden",
+        }
+    }
+
     return (
-        <AriaTabs
-            selectedKey={selectedKey}
-            onSelectionChange={onChange}
+        <div
             className={cx("Tabs", "Tabs--variant-" + variant, className, {
                 "Tabs--horizontal-scroll": horizontalScroll,
             })}
+            role="tablist"
         >
-            <TabList className="Tabs__TabList">
-                {items.map((item) => (
-                    <Tab
-                        key={item.key}
-                        id={item.key.toString()}
-                        className="Tabs__Tab"
-                        style={{ maxWidth: maxTabWidth }}
-                        {...item.props}
-                    >
-                        {item.element}
-                    </Tab>
-                ))}
-            </TabList>
+            <div className="Tabs__TabList">
+                {items.map((label) => {
+                    const active = label.key === selectedKey
+                    console.log(label.key, active)
+                    return (
+                        <button
+                            key={label.key}
+                            className={cx("Tabs__Tab", { active })}
+                            style={style}
+                            type="button"
+                            role="tab"
+                            tabIndex={active ? 0 : -1}
+                            data-selected={active ? true : undefined}
+                            aria-selected={active}
+                            onClick={() => onChange(label.key)}
+                            {...label.props}
+                        >
+                            {label.element}
+                        </button>
+                    )
+                })}
+            </div>
             {slot}
-        </AriaTabs>
+        </div>
     )
 }
