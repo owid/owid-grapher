@@ -79,7 +79,6 @@ import { Component, createRef } from "react"
 import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
-import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
 import { getCountriesByRegion, isOnTheMap } from "./MapHelpers.js"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 import { match, P } from "ts-pattern"
@@ -421,16 +420,8 @@ export class MapChart
         return this.manager.isFaceted
     }
 
-    @computed get mapRegionDropdownValue(): MapRegionDropdownValue | undefined {
-        return this.manager.mapRegionDropdownValue
-    }
-
     @computed get isMapSelectionEnabled(): boolean {
         return !!this.manager.isMapSelectionEnabled
-    }
-
-    @action.bound resetMapRegionDropdownValue(): void {
-        this.manager.resetMapRegionDropdownValue?.()
     }
 
     componentWillUnmount(): void {
