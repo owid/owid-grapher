@@ -521,26 +521,6 @@
     line-height: 18px;
 }
 
-.data-catalog-search-no-results {
-    text-align: center;
-    margin-top: min(200px, 15vh);
-    h2 {
-        color: $blue-90;
-        margin-bottom: 4px;
-        margin-top: 16px;
-    }
-    p {
-        color: $blue-60;
-    }
-    .data-catalog-search-no-results__icon {
-        background-color: $blue-10;
-        color: $blue-50;
-        font-size: 20px;
-        padding: 12px;
-        border-radius: 32px;
-    }
-}
-
 // Skeletons
 .data-catalog-search-list__results-count--skeleton {
     display: block;
