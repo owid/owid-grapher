@@ -1,7 +1,7 @@
 import { match } from "ts-pattern"
 import { SearchTopicType } from "./searchTypes.js"
-import { DataCatalogRibbonView } from "./DataCatalogRibbonView.js"
-import { DataCatalogResults } from "./DataCatalogResults.js"
+import { SearchDataTopicsResults } from "./SearchDataTopicsResults.js"
+import { SearchDataResults } from "./SearchDataResults.js"
 import { useSearchContext } from "./SearchContext.js"
 import { SearchWritingResults } from "./SearchWritingResults.js"
 import { SearchDataInsightsResults } from "./SearchDataInsightsResults.js"
@@ -18,7 +18,7 @@ export const SearchTemplatesAll = () => {
             // All + Topic + Country + Query
             .with([SearchTopicType.Topic, true, true], () => (
                 <>
-                    <DataCatalogResults />
+                    <SearchDataResults />
                 </>
             ))
             // All + Topic + Country + No Query
@@ -30,7 +30,7 @@ export const SearchTemplatesAll = () => {
                 <>
                     <SearchWritingResults />
                     <SearchDataInsightsResults />
-                    <DataCatalogResults />
+                    <SearchDataResults />
                 </>
             ))
             // All + Area + Country + Query
@@ -46,7 +46,7 @@ export const SearchTemplatesAll = () => {
             // All + No Topic + Country + No Query
             .with([null, true, false], () => (
                 <>
-                    <DataCatalogRibbonView />
+                    <SearchDataTopicsResults />
                 </>
             ))
             // All + No Topic + No Country + Query
