@@ -143,6 +143,7 @@
     background-color: #6f42c1;
     color: white;
     text-decoration: none;
+    border: none;
     border-radius: 6px;
     font-size: 0.9rem;
     font-weight: 500;
@@ -150,10 +151,18 @@
     align-items: center;
     justify-content: center;
     transition: background-color 0.2s ease;
+    cursor: pointer;
 }
 
 .search-debug-navigator__figma-link:hover {
     background-color: #5a359a;
+}
+
+.search-debug-navigator__figma-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
 }
 
 /* Config part buttons (clickable text elements) */
