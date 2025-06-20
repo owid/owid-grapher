@@ -2,7 +2,7 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { commafyNumber } from "@ourworldindata/utils"
 import * as React from "react"
-import { DataCatalogRibbonResult } from "./searchTypes.js"
+import { SearchDataTopicsResponse } from "./searchTypes.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedCountries } from "./searchHooks.js"
@@ -11,10 +11,10 @@ import { SearchAsDraft } from "./SearchAsDraft.js"
 
 const analytics = new SiteAnalytics()
 
-export const DataCatalogRibbon = ({
+export const SearchDataTopic = ({
     result,
 }: {
-    result: DataCatalogRibbonResult
+    result: SearchDataTopicsResponse
 }) => {
     const {
         actions: { setTopic },
@@ -32,7 +32,7 @@ export const DataCatalogRibbon = ({
 
     return (
         <SearchAsDraft
-            name="Data Ribbon"
+            name="Data Topic"
             className="col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-13>"
         >
             <div className="data-catalog-ribbon ">
