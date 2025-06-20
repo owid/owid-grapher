@@ -1,6 +1,6 @@
 import { ChartSkeleton } from "./ChartSkeleton.js"
 
-export const DataCatalogRibbonViewSkeleton = () => {
+export const SearchDataTopicsResultsViewSkeleton = () => {
     const RibbonSkeleton = () => (
         <div className="data-catalog-ribbon span-cols-12 col-start-2">
             <div className="data-catalog-ribbon__header--skeleton"></div>
