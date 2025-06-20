@@ -1,0 +1,27 @@
+.search-show-more {
+    display: flex;
+    justify-content: center;
+
+    .search-show-more__button {
+        background-color: $blue-60;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 200ms ease;
+
+        &:hover:not(:disabled) {
+            background-color: $gray-70;
+        }
+
+        &:disabled {
+            background-color: $blue-30;
+            cursor: not-allowed;
+        }
+
+        &--loading {
+            opacity: 0.8;
+        }
+    }
+}
