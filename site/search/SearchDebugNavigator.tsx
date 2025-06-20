@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect, useRef } from "react"
 import cx from "classnames"
 import { SearchAsDraft } from "./SearchAsDraft.js"
 import { useSearchContext } from "./SearchContext.js"
@@ -68,9 +68,11 @@ export const SearchDebugNavigator = ({
 }) => {
     const { templateConfig, actions } = useSearchContext()
     const [lockParams, setLockParams] = useState(true)
+    const [syncFigmaPopup, setSyncFigmaPopup] = useState(true)
     const { isZenMode, setZenMode } = useSearchDebugContext()
     const selectedTopic = useSelectedTopic()
     const selectedCountryNames = useSelectedCountryNames()
+    const figmaPopupRef = useRef<Window | null>(null)
 
     const availableCountries = useMemo(() => {
         return Object.keys(countriesByName())
@@ -229,6 +231,18 @@ export const SearchDebugNavigator = ({
     const currentConfig =
         currentIndex >= 0 ? ALL_TEMPLATE_CONFIGS[currentIndex] : null
 
+    // Update Figma popup when configuration changes
+    useEffect(() => {
+        if (syncFigmaPopup && currentConfig && figmaPopupRef.current) {
+            const figmaUrl = `https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/file/lAIoPy94qgSocFKYO6HBTh/?node-id=${currentConfig.figmaNodeId}`
+
+            // Check if popup is still open
+            if (!figmaPopupRef.current.closed) {
+                figmaPopupRef.current.location.href = figmaUrl
+            }
+        }
+    }, [currentConfig, syncFigmaPopup])
+
     // Get random country, topic, area, and vowel
     const getRandomCountry = () => {
         return availableCountries[
@@ -248,6 +262,24 @@ export const SearchDebugNavigator = ({
 
     const getRandomVowel = () => {
         return VOWELS[Math.floor(Math.random() * VOWELS.length)]
+    }
+
+    const openFigmaPopup = () => {
+        if (!currentConfig) return
+
+        const figmaUrl = `https://www.figma.com/file/lAIoPy94qgSocFKYO6HBTh/?node-id=${currentConfig.figmaNodeId}`
+
+        // Close existing popup if it exists
+        if (figmaPopupRef.current && !figmaPopupRef.current.closed) {
+            figmaPopupRef.current.close()
+        }
+
+        // Open new popup
+        figmaPopupRef.current = window.open(
+            figmaUrl,
+            "figma-popup",
+            "width=1200,height=800,scrollbars=yes,resizable=yes"
+        )
     }
 
     const navigateToConfig = (targetIndex: number) => {
@@ -449,16 +481,28 @@ export const SearchDebugNavigator = ({
                     </div>
                 </div>
 
-                <a
-                    href={`https://www.figma.com/file/lAIoPy94qgSocFKYO6HBTh/?node-id=${currentConfig.figmaNodeId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="search-debug-navigator__figma-link"
-                    aria-label="View current configuration design in Figma (opens in new tab)"
-                    title="View in Figma"
-                >
-                    🎨 Figma
-                </a>
+                <div className="search-debug-navigator__figma-section">
+                    <button
+                        onClick={openFigmaPopup}
+                        className="search-debug-navigator__figma-link"
+                        aria-label="View current configuration design in Figma popup"
+                        title="Open in Figma popup"
+                    >
+                        🎨 Open Figma
+                    </button>
+                    <label className="search-debug-navigator__checkbox-label">
+                        <input
+                            type="checkbox"
+                            checked={syncFigmaPopup}
+                            onChange={(e) =>
+                                setSyncFigmaPopup(e.target.checked)
+                            }
+                            className="search-debug-navigator__checkbox"
+                            aria-label="Sync Figma popup with configuration changes"
+                        />
+                        ⚡ Auto-sync popup
+                    </label>
+                </div>
             </div>
         </SearchAsDraft>
     )
