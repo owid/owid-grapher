@@ -1,5 +1,7 @@
 import { faCaretDown } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import cx from "classnames"
+import { useState } from "react"
 import {
     Select,
     Button,
@@ -15,7 +17,6 @@ import * as _ from "lodash-es"
 
 import { CloseButton, RadioButton } from "@ourworldindata/components"
 import { Choice, DimensionEnriched } from "@ourworldindata/types"
-import { useState } from "react"
 
 function DimensionItem({ choice }: { choice: Choice }) {
     return (
@@ -50,10 +51,12 @@ function DimensionItem({ choice }: { choice: Choice }) {
 }
 
 export default function DimensionDropdown({
+    className,
     dimension,
     value,
     onChange,
 }: {
+    className?: string
     dimension: DimensionEnriched
     value: string
     onChange: (value: string) => void
@@ -62,7 +65,7 @@ export default function DimensionDropdown({
     const isDisabled = dimension.choices.length === 1
     return (
         <Select
-            className="md-settings__dropdown"
+            className={cx("md-settings__dropdown", className)}
             isDisabled={isDisabled}
             isOpen={isOpen}
             onOpenChange={setIsOpen}

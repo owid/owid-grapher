@@ -49,15 +49,14 @@ export default function MultiDimEmbedSettingsPanel({
 
         const containerWidth = container.offsetWidth
         const containerPadding = 32 // 16px on each side
-        const gap = 8 // Gap between dropdowns as defined in CSS
-        const toggleButtonWidth = 88 // Width for "Show more" button
+        const buffer = 5 // For some reason the numbers don't add up precisely
+        const availableWidth = containerWidth - containerPadding - buffer
+        const gap = 8 // Gap between dropdowns (and also toggle button) as defined in CSS
+        const toggleButtonWidth = 90
 
-        // Get all dropdown elements
         const dropdowns = Array.from(
             dropdownsContainer.querySelectorAll(".md-settings__dropdown")
         ) as HTMLDivElement[]
-
-        const availableWidth = containerWidth - containerPadding
 
         // First, try to fit all dropdowns without toggle button
         let totalWidthAllDropdowns = 0
@@ -67,34 +66,35 @@ export default function MultiDimEmbedSettingsPanel({
             if (i > 0) totalWidthAllDropdowns += gap
         }
 
+        let newCollapsedCount: number
         if (totalWidthAllDropdowns <= availableWidth) {
             // All dropdowns fit without toggle button
-            setCollapsedCount(dropdowns.length)
-            return
-        }
+            newCollapsedCount = dropdowns.length
+        } else {
+            // Not all dropdowns fit, so we need toggle button
+            // Try to fit as many as possible with toggle button space reserved
+            let totalWidth = 0
+            let fittingDropdowns = 0
+            const availableWidthWithToggle = availableWidth - toggleButtonWidth
 
-        // Not all dropdowns fit, so we need toggle button
-        // Try to fit as many as possible with toggle button space reserved
-        let totalWidth = 0
-        let fittingDropdowns = 0
-        const availableWidthWithToggle = availableWidth - toggleButtonWidth
-
-        for (let i = 0; i < dropdowns.length; i++) {
-            const dropdownWidth = dropdowns[i].offsetWidth
-            const widthWithGap = i === 0 ? dropdownWidth : dropdownWidth + gap
-
-            if (totalWidth + widthWithGap <= availableWidthWithToggle) {
-                totalWidth += widthWithGap
-                fittingDropdowns++
-            } else {
-                break
+            for (const dropdown of dropdowns) {
+                // We always add the gap, because it exists also between the
+                // last dropdown and the toggle button.
+                const dropdownWidth = dropdown.offsetWidth + gap
+                const totalWidthWithThisDropdown = totalWidth + dropdownWidth
+                if (totalWidthWithThisDropdown <= availableWidthWithToggle) {
+                    totalWidth = totalWidthWithThisDropdown
+                    fittingDropdowns++
+                } else {
+                    break
+                }
             }
+
+            // Ensure at least 1 dropdown is visible if there are any
+            newCollapsedCount = Math.max(1, fittingDropdowns)
         }
 
-        // Ensure at least 1 dropdown is visible if there are any
-        fittingDropdowns = Math.max(1, fittingDropdowns)
-
-        setCollapsedCount(fittingDropdowns)
+        setCollapsedCount(newCollapsedCount)
     }, [dimensionsArray.length, isSmallScreen])
 
     useResizeObserver({
