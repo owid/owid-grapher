@@ -13,7 +13,7 @@ import {
 } from "react-aria-components"
 import * as _ from "lodash-es"
 
-import { OverlayHeader, RadioButton } from "@ourworldindata/components"
+import { CloseButton, RadioButton } from "@ourworldindata/components"
 import { Choice, DimensionEnriched } from "@ourworldindata/types"
 import { useState } from "react"
 
@@ -94,22 +94,29 @@ export default function DimensionDropdown({
                 placement="bottom start"
                 offset={4}
             >
-                <OverlayHeader
-                    title={dimension.name}
-                    onDismiss={() => setIsOpen(false)}
-                />
-                {dimension.description && (
-                    <p className="md-description menu-dimension__description">
-                        {dimension.description}
-                    </p>
-                )}
-                <ListBox className="md-menu__options">
+                <div className="md-menu__overlay-header">
+                    <div>
+                        <h2 className="md-menu__overlay-header-title">
+                            {dimension.name}
+                        </h2>
+                        {dimension.description && (
+                            <p className="md-menu__dimension-description">
+                                {dimension.description}
+                            </p>
+                        )}
+                    </div>
+                    <CloseButton
+                        className="md-menu__overlay-header-close-button"
+                        onClick={() => setIsOpen(false)}
+                    />
+                </div>
+                <ListBox>
                     {Object.entries(dimension.choicesByGroup).map(
                         ([groupLabel, groupChoices]) =>
                             groupLabel !== "undefined" ? (
                                 <ListBoxSection
                                     key={groupLabel}
-                                    className="md-menu__group is-group"
+                                    className="md-menu__group"
                                 >
                                     <Header className="md-menu__group-label">
                                         {groupLabel}

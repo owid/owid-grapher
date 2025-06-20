@@ -426,7 +426,7 @@ body {
     font-size: 0.8125rem;
     font-weight: 500;
     letter-spacing: 0.01em;
-    line-height: 1.25;
+    line-height: normal;
 }
 
 .label-2-medium {
@@ -438,11 +438,23 @@ body {
     font-size: 0.8125rem;
     font-weight: 400;
     letter-spacing: 0.01em;
-    line-height: 0.833;
+    line-height: normal;
 }
 
 .label-2-regular {
     @include label-2-regular;
+}
+
+@mixin label-2-bold {
+    font-family: $sans-serif-font-stack;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: normal;
+    letter-spacing: 0.01em;
+}
+
+.label-2-bold {
+    @include label-2-bold;
 }
 
 @mixin note-1-medium {
@@ -455,6 +467,19 @@ body {
 
 .note-1-medium {
     @include note-1-medium;
+}
+
+@mixin note-2-regular {
+    font-family: $sans-serif-font-stack;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    letter-spacing: 0.22px;
+}
+
+.note-2-regular {
+    @include note-2-regular;
 }
 
 @mixin note-13-medium {

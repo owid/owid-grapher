@@ -1,5 +1,3 @@
-$indent: 16px;
-
 $toggle-height: 32px;
 $toggle-full-width-breakpoint: 520px;
 
@@ -84,41 +82,64 @@ $toggle-full-width-breakpoint: 520px;
 .md-menu {
     width: 400px;
     background: white;
+    padding: 16px 16px 24px;
     border-radius: 4px;
     box-shadow: 0px 4px 23px 4px #0000000f;
     z-index: $zindex-controls-popup;
     overflow-y: auto;
 
-    .overlay-header {
-        padding-bottom: 0;
+    .md-menu__overlay-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
     }
 
-    .md-label {
-        display: block;
+    .md-menu__overlay-header-title {
+        @include h5-black-caps;
+        color: $light-text;
+
+        // Align with the close button. We don't use align-items: center,
+        // because the children below the title can have arbitrary height.
+        margin-top: 9px;
         margin-bottom: 4px;
     }
 
-    .md-description {
+    .md-menu__overlay-header-close-button {
+        margin-left: 8px;
+    }
+
+    .md-menu__dimension-description {
         color: $gray-70;
-        font-size: 11px;
+        font-size: 13px;
+        line-height: normal;
+        margin-top: 0;
+        margin-bottom: 4px;
     }
 
-    .menu-dimension__description {
-        margin: 0 $indent;
+    .md-label {
+        @include label-2-regular;
+        display: block;
     }
 
-    .md-menu__options {
-        padding: 0 $indent;
+    .md-description {
+        @include note-2-regular;
+        display: block;
+        color: $gray-70;
+        margin-top: 4px;
     }
 
     .md-menu__group {
-        .md-menu__group-label {
-            color: $light-text;
-            font-weight: 600;
-            font-size: 14px;
-        }
+        margin-bottom: 16px;
 
-        margin-bottom: 0.25em;
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    .md-menu__group-label {
+        @include label-2-bold;
+        color: $light-text;
+        margin-bottom: 16px;
     }
 
     .md-menu__radio-button {
@@ -126,7 +147,12 @@ $toggle-full-width-breakpoint: 520px;
         border-bottom: 1px solid $gray-20;
         cursor: pointer;
 
+        &:first-of-type {
+            padding-top: 0;
+        }
+
         &:last-child {
+            padding-bottom: 0;
             border-bottom: none;
         }
     }
