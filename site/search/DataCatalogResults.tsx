@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query"
+import { useInfiniteQuery } from "@tanstack/react-query"
 import { SearchChartHitMedium } from "./SearchChartHitMedium.js"
 import { SearchChartHitLarge } from "./SearchChartHitLarge.js"
-import { DataCatalogPagination } from "./DataCatalogPagination.js"
+import { SearchShowMore } from "./SearchShowMore.js"
 import { SearchNoResults } from "./SearchNoResults.js"
 import { DataCatalogResultsSkeleton } from "./DataCatalogResultsSkeleton.js"
 import { DataCatalogSearchResult } from "./searchTypes.js"
@@ -19,35 +19,39 @@ export const DataCatalogResults = ({
 }: {
     enableLargeFirstResult?: boolean
 }) => {
-    const {
-        state,
-        actions: { setPage },
-        searchClient,
-    } = useSearchContext()
+    const { state, searchClient } = useSearchContext()
     const selectedCountries = useSelectedCountries()
 
-    const query = useQuery<DataCatalogSearchResult, Error>({
-        queryKey: searchQueryKeys.dataSearches(state),
-        queryFn: () => queryDataCatalogSearch(searchClient, state),
+    // Create state without page for infinite query key so that a single cache
+    // entry is shared across all pages
+    const { page: _page, ...stateWithoutPage } = state
+
+    const query = useInfiniteQuery<DataCatalogSearchResult, Error>({
+        queryKey: searchQueryKeys.dataSearches(stateWithoutPage),
+        queryFn: ({ pageParam = 0 }) =>
+            queryDataCatalogSearch(searchClient, stateWithoutPage, pageParam),
+        getNextPageParam: (lastPage) => {
+            const { page, nbPages } = lastPage
+            return page < nbPages - 1 ? page + 1 : undefined
+        },
     })
 
     if (query.isLoading) return <DataCatalogResultsSkeleton />
 
-    const hits = query.data?.hits
-    if (!query.data || !hits || !hits.length) return <SearchNoResults />
+    const hits = query.data?.pages.flatMap((page) => page.hits) || []
+    const totalResults = query.data?.pages[0]?.nbHits || 0
 
-    const { page, nbPages, nbHits } = query.data
+    if (!query.data || !hits.length) return <SearchNoResults />
+
     return (
         <SearchAsDraft name="Data Results" className="span-cols-12 col-start-2">
             <div className="data-catalog-search-hits">
-                <SearchResultHeader title="Data" count={nbHits} />
+                <SearchResultHeader title="Data" count={totalResults} />
                 <ul className="data-catalog-search-list">
                     {hits.map((hit, i) => {
                         const isFirstResult = i === 0
                         const shouldChartHitLarge =
-                            enableLargeFirstResult &&
-                            isFirstResult &&
-                            page === 0
+                            enableLargeFirstResult && isFirstResult
 
                         return (
                             <li
@@ -88,10 +92,10 @@ export const DataCatalogResults = ({
                     })}
                 </ul>
             </div>
-            <DataCatalogPagination
-                currentPage={page}
-                setPage={setPage}
-                nbPages={nbPages}
+            <SearchShowMore
+                hasNextPage={query.hasNextPage ?? false}
+                isFetchingNextPage={query.isFetchingNextPage}
+                fetchNextPage={query.fetchNextPage}
             />
         </SearchAsDraft>
     )
