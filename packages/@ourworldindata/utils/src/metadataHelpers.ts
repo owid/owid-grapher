@@ -6,9 +6,6 @@ import {
     DisplaySource,
     IndicatorTitleWithFragments,
     OwidSource,
-    OwidVariableWithSourceAndDimension,
-    LinkedIndicator,
-    joinTitleFragments,
 } from "@ourworldindata/types"
 import { compact, uniq, excludeUndefined } from "./Util"
 import dayjs from "./dayjs.js"
@@ -284,24 +281,6 @@ export const formatSourceDate = (
     const parsedDate = dayjs(date ?? "", ["YYYY-MM-DD", "DD/MM/YYYY"])
     if (!parsedDate.isValid()) return date || null
     return parsedDate.format(format)
-}
-
-export function grabMetadataForGdocLinkedIndicator(
-    metadata: OwidVariableWithSourceAndDimension,
-    { chartConfigTitle }: { chartConfigTitle: string }
-): Omit<LinkedIndicator, "id"> {
-    return {
-        title:
-            metadata.presentation?.titlePublic ||
-            chartConfigTitle ||
-            metadata.display?.name ||
-            metadata.name ||
-            "",
-        attributionShort: joinTitleFragments(
-            metadata.presentation?.attributionShort,
-            metadata.presentation?.titleVariant
-        ),
-    }
 }
 
 export const getDateRange = (dateRange: string): string | null => {
