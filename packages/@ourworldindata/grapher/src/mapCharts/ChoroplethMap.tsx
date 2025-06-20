@@ -374,9 +374,9 @@ export class ChoroplethMap extends React.Component<{
         if (isMapSelectionEnabled) {
             // select/deselect the country if allowed
             selection.toggleSelection(feature.id)
-        } else {
-            globeController?.setFocusCountry(feature.id)
+        }
 
+        if (!this.manager.shouldShowMapZoomToSelectionButton) {
             // rotate to the selected country on the globe
             if (
                 // don't rotate if the maps shows a continent in 2d mode
@@ -392,7 +392,6 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @action.bound private onDocumentClick(): void {
-        this.manager.globeController?.dismissCountryFocus()
         if (this.hoverEnterFeature || this.hoverNearbyFeature) {
             this.hoverEnterFeature = undefined
             this.hoverNearbyFeature = undefined

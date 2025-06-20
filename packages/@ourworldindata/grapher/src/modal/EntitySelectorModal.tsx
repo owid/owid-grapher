@@ -8,6 +8,7 @@ import {
     EntitySelectorManager,
 } from "../entitySelector/EntitySelector"
 import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants"
+import { SelectionArray } from "../selection/SelectionArray"
 
 export interface EntitySelectorModalManager extends EntitySelectorManager {
     isEntitySelectorModalOrDrawerOpen?: boolean
@@ -17,6 +18,7 @@ export interface EntitySelectorModalManager extends EntitySelectorManager {
 @observer
 export class EntitySelectorModal extends React.Component<{
     manager: EntitySelectorModalManager
+    selection?: SelectionArray
 }> {
     constructor(props: { manager: EntitySelectorModalManager }) {
         super(props)
@@ -50,6 +52,7 @@ export class EntitySelectorModal extends React.Component<{
             >
                 <EntitySelector
                     manager={this.manager}
+                    selection={this.props.selection}
                     onDismiss={this.onDismiss}
                     autoFocus={true}
                 />

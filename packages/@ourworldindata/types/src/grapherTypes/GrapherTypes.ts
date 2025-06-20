@@ -549,7 +549,6 @@ export interface GlobeConfig {
     isActive: boolean
     rotation: [number, number]
     zoom: number
-    focusCountry?: EntityName
 }
 
 export interface MapConfigInterface {
