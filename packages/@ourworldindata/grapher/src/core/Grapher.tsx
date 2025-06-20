@@ -2958,6 +2958,7 @@ export class GrapherState {
             // @ts-expect-error grapherKeysToSerialize is not properly typed
             this[key] = grapherState[key]
         }
+        this.seriesColorMap = new Map()
 
         this.ySlugs = grapherState.ySlugs
         this.xSlug = grapherState.xSlug
