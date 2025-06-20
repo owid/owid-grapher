@@ -1,30 +1,25 @@
 import { useQuery } from "@tanstack/react-query"
-import { DataCatalogRibbon } from "./DataCatalogRibbon.js"
-import { DataCatalogRibbonViewSkeleton } from "./DataCatalogRibbonViewSkeleton.js"
-import { DataCatalogRibbonResult } from "./searchTypes.js"
-import { queryDataCatalogRibbons, searchQueryKeys } from "./queries.js"
+import { SearchDataTopicsResultsViewSkeleton } from "./SearchDataTopicsResultsViewSkeleton.js"
+import { queryDataTopics, searchQueryKeys } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedTopic } from "./searchHooks.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 import { SearchAsDraft } from "./SearchAsDraft.js"
+import { SearchDataTopicsResponse } from "./searchTypes.js"
+import { SearchDataTopic } from "./SearchDataTopic.js"
 
-export const DataCatalogRibbonView = () => {
+export const SearchDataTopicsResults = () => {
     const { state, searchClient, topicTagGraph } = useSearchContext()
     const selectedTopic = useSelectedTopic()
 
-    const query = useQuery<DataCatalogRibbonResult[], Error>({
-        queryKey: searchQueryKeys.dataRibbons(state),
+    const query = useQuery<SearchDataTopicsResponse[], Error>({
+        queryKey: searchQueryKeys.topics(state),
         queryFn: () =>
-            queryDataCatalogRibbons(
-                searchClient,
-                state,
-                topicTagGraph,
-                selectedTopic
-            ),
+            queryDataTopics(searchClient, state, topicTagGraph, selectedTopic),
     })
 
     if (query.isLoading) {
-        return <DataCatalogRibbonViewSkeleton />
+        return <SearchDataTopicsResultsViewSkeleton />
     }
 
     const resultsSortedByHitCount = query.data?.sort(
@@ -36,14 +31,14 @@ export const DataCatalogRibbonView = () => {
 
     return (
         <SearchAsDraft
-            name="Data Catalog Ribbons"
+            name="Data Topics Results"
             className="span-cols-12 col-start-2"
         >
             <div className=" data-catalog-ribbons">
                 <div>
                     <SearchResultHeader title="Charts" count={totalCount} />
                     {resultsSortedByHitCount?.map((result) => (
-                        <DataCatalogRibbon key={result.title} result={result} />
+                        <SearchDataTopic key={result.title} result={result} />
                     ))}
                 </div>
             </div>
