@@ -29,7 +29,7 @@ export const SearchDataResults = ({
     const query = useInfiniteQuery<SearchChartsResponse, Error>({
         queryKey: searchQueryKeys.charts(stateWithoutPage),
         queryFn: ({ pageParam = 0 }) =>
-            queryCharts(searchClient, stateWithoutPage, pageParam),
+            queryCharts(searchClient, { ...state, page: pageParam }),
         getNextPageParam: (lastPage) => {
             const { page, nbPages } = lastPage
             return page < nbPages - 1 ? page + 1 : undefined
