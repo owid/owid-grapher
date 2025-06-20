@@ -11,6 +11,7 @@ export interface CloseGlobeViewButtonManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
     globeController?: GlobeController
+    isFaceted?: boolean
 }
 
 @observer
@@ -22,8 +23,15 @@ export class CloseGlobeViewButton extends React.Component<{
         return menu.showMenu
     }
 
+    @computed private get isUnfaceted2dContinentActive(): boolean {
+        return this.mapConfig.is2dContinentActive() && !this.manager.isFaceted
+    }
+
     @computed private get showMenu(): boolean {
         const { isOnMapTab, mapConfig } = this.props.manager
+
+        if (this.isUnfaceted2dContinentActive) return true
+
         return !!(isOnMapTab && mapConfig?.globe.isActive)
     }
 
@@ -45,7 +53,9 @@ export class CloseGlobeViewButton extends React.Component<{
         return this.showMenu ? (
             <button className="CloseGlobeViewButton" onClick={this.onClick}>
                 <FontAwesomeIcon icon={faArrowLeft} />
-                Back to map view
+                {this.isUnfaceted2dContinentActive
+                    ? "Back to world map"
+                    : "Back to map view"}
             </button>
         ) : null
     }

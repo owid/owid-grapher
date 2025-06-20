@@ -51,7 +51,7 @@ export class EntitySelectionToggle extends React.Component<{
         const shouldShowModal =
             shouldShowEntitySelectorAs === GrapherWindowType.modal
 
-        if (isOnMapTab) return false
+        if (isOnMapTab) return shouldShowDrawer
 
         return !!(
             isOnChartTab &&
