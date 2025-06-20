@@ -166,7 +166,8 @@ import { DownloadModal } from "../modal/DownloadModal"
 import { observer } from "mobx-react"
 import "d3-transition"
 import { SourcesModal } from "../modal/SourcesModal"
-import { DataTableConfig, isValidDataTableFilter } from "../dataTable/DataTable"
+import { isValidDataTableFilter } from "../dataTable/DataTable"
+import { DataTableConfig } from "../dataTable/DataTableConstants"
 import { MAP_REGION_NAMES } from "../mapCharts/MapChartConstants"
 import { MapChart } from "../mapCharts/MapChart"
 import {
@@ -180,7 +181,10 @@ import {
     CaptionedChart,
     StaticCaptionedChart,
 } from "../captionedChart/CaptionedChart"
-import { TimelineController } from "../timeline/TimelineController"
+import {
+    TimelineController,
+    TimelineDragTarget,
+} from "../timeline/TimelineController"
 import Mousetrap from "mousetrap"
 import { SlideShowController } from "../slideshowController/SlideShowController"
 import {
@@ -1057,6 +1061,8 @@ export class GrapherState {
 
     @observable.ref animationStartTime?: Time
     @observable.ref areHandlesOnSameTimeBeforeAnimation?: boolean
+    @observable.ref timelineDragTarget?: TimelineDragTarget
+
     @observable.ref isEntitySelectorModalOrDrawerOpen = false
     @observable.ref isSourcesModalOpen = false
     @observable.ref isDownloadModalOpen = false
@@ -1282,6 +1288,15 @@ export class GrapherState {
 
     // Keeps a running cache of series colors at the Grapher level.
     seriesColorMap: SeriesColorMap = new Map()
+
+    @computed get closestTimelineMinTime(): number | undefined {
+        return findClosestTime(this.times, this.timelineMinTime ?? -Infinity)
+    }
+
+    @computed get closestTimelineMaxTime(): number | undefined {
+        return findClosestTime(this.times, this.timelineMaxTime ?? Infinity)
+    }
+
     @computed get startTime(): Time | undefined {
         return findClosestTime(this.times, this.startHandleTimeBound)
     }
