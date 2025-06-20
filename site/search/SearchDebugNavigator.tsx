@@ -69,6 +69,7 @@ export const SearchDebugNavigator = ({
     const { templateConfig, actions } = useSearchContext()
     const [lockParams, setLockParams] = useState(true)
     const [syncFigmaPopup, setSyncFigmaPopup] = useState(true)
+    const [isFigmaDevMode, setFigmaDevMode] = useState(false)
     const { isZenMode, setZenMode } = useSearchDebugContext()
     const selectedTopic = useSelectedTopic()
     const selectedCountryNames = useSelectedCountryNames()
@@ -234,14 +235,14 @@ export const SearchDebugNavigator = ({
     // Update Figma popup when configuration changes
     useEffect(() => {
         if (syncFigmaPopup && currentConfig && figmaPopupRef.current) {
-            const figmaUrl = `https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/file/lAIoPy94qgSocFKYO6HBTh/?node-id=${currentConfig.figmaNodeId}`
+            const figmaUrl = `${!isFigmaDevMode ? "https://www.figma.com/embed?embed_host=share&url=" : ""}https://www.figma.com/file/lAIoPy94qgSocFKYO6HBTh/?node-id=${currentConfig.figmaNodeId}`
 
             // Check if popup is still open
             if (!figmaPopupRef.current.closed) {
                 figmaPopupRef.current.location.href = figmaUrl
             }
         }
-    }, [currentConfig, syncFigmaPopup])
+    }, [currentConfig, syncFigmaPopup, isFigmaDevMode])
 
     // Get random country, topic, area, and vowel
     const getRandomCountry = () => {
@@ -501,6 +502,16 @@ export const SearchDebugNavigator = ({
                             aria-label="Sync Figma popup with configuration changes"
                         />
                         ⚡ Auto-sync popup
+                    </label>
+                    <label className="search-debug-navigator__checkbox-label">
+                        <input
+                            type="checkbox"
+                            checked={isFigmaDevMode}
+                            onChange={(e) => setFigmaDevMode(e.target.checked)}
+                            className="search-debug-navigator__checkbox"
+                            aria-label="Toggle Figma dev mode"
+                        />
+                        🔧 Dev mode
                     </label>
                 </div>
             </div>
