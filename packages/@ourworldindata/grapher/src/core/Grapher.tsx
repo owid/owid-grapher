@@ -614,6 +614,16 @@ export class GrapherState {
             }
         }
 
+        // if a region is specified, show it on the globe
+        if (
+            obj.map?.region !== undefined &&
+            isValidGlobeRegionName(obj.map.region)
+        ) {
+            this.mapRegionDropdownValue = obj.map.region
+            this.globeController.jumpToOwidContinent(obj.map.region)
+            this.globeController.showGlobe()
+        }
+
         // Todo: remove once we are more RAII.
         if (obj?.dimensions?.length)
             this.setDimensionsFromConfigs(obj.dimensions)
