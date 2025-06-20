@@ -1,7 +1,7 @@
 import { ChartSkeleton } from "./ChartSkeleton.js"
 
 // 💀 Beware! Spooky skeletons for the data catalog 💀
-export const DataCatalogResultsSkeleton = () => {
+export const SearchDataResultsSkeleton = () => {
     return (
         <div className="data-catalog-results-skeleton grid grid-cols-12-full-width span-cols-14">
             <div className="search-topics-refinement-list search-topics-refinement-list--skeleton span-cols-12 col-start-2" />
