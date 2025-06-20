@@ -72,6 +72,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 5px;
 }
 
 .search-debug-navigator__button:hover {
@@ -152,6 +153,8 @@
     justify-content: center;
     transition: background-color 0.2s ease;
     cursor: pointer;
+    display: flex;
+    gap: 5px;
 }
 
 .search-debug-navigator__figma-link:hover {
