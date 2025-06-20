@@ -126,7 +126,7 @@ export type MultipleQueriesResponse<TObject> = {
  * This is the type for the hits that we get back from algolia when we search
  * response.results[0].hits is an array of these
  */
-export type IDataCatalogHit = {
+export type SearchChartHit = {
     title: string
     slug: string
     availableEntities: string[]
@@ -141,10 +141,10 @@ export type IDataCatalogHit = {
 }
 
 // SearchResponse adds the extra fields from Algolia: page, nbHits, etc
-export type DataCatalogSearchResult = SearchResponse<IDataCatalogHit>
+export type SearchChartsResponse = SearchResponse<SearchChartHit>
 
 // We add a title field to the SearchResponse for the ribbons
-export type DataCatalogRibbonResult = SearchResponse<IDataCatalogHit> & {
+export type SearchDataTopicsResponse = SearchResponse<SearchChartHit> & {
     title: string
 }
 
@@ -162,7 +162,7 @@ export type DataInsightHit = {
     __position: number
 }
 
-export type DataInsightSearchResponse = SearchResponse<DataInsightHit>
+export type SearchDataInsightResponse = SearchResponse<DataInsightHit>
 
 export type ArticleHit = {
     title: string
@@ -176,7 +176,7 @@ export type ArticleHit = {
     __position: number
 }
 
-export type ArticleSearchResponse = SearchResponse<ArticleHit>
+export type SearchArticleResponse = SearchResponse<ArticleHit>
 
 export type TopicPageHit = {
     title: string
@@ -187,7 +187,7 @@ export type TopicPageHit = {
     __position: number
 }
 
-export type TopicPageSearchResponse = SearchResponse<TopicPageHit>
+export type SearchTopicPageResponse = SearchResponse<TopicPageHit>
 
 export enum FilterType {
     COUNTRY = "country",
