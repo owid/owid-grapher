@@ -5,6 +5,7 @@ import {
     SeriesName,
     InteractionState,
     GlobeRegionName,
+    ProjectionColumnInfo,
 } from "@ourworldindata/types"
 import { ChartManager } from "../chart/ChartManager"
 import { MapConfig } from "./MapConfig"
@@ -33,6 +34,8 @@ export const PATTERN_STROKE_WIDTH = 0.7
 
 export const BLUR_FILL_OPACITY = 0.2
 export const BLUR_STROKE_OPACITY = 0.5
+
+export const PROJECTED_DATA_LEGEND_COLOR = "#ffffff"
 
 export const MAP_CHART_CLASSNAME = "MapChart"
 export const CHOROPLETH_MAP_CLASSNAME = "ChoroplethMap"
@@ -83,6 +86,7 @@ export const MAP_REGION_NAMES = R.invert(MAP_REGION_LABELS)
 export interface ChoroplethSeries extends ChartSeries {
     value: number | string
     time: number
+    isProjection?: boolean
 }
 
 export type ChoroplethSeriesByName = Map<SeriesName, ChoroplethSeries>
@@ -103,6 +107,8 @@ export interface ChoroplethMapManager {
     onMapMouseLeave: () => void
     isMapSelectionEnabled?: boolean
     isStatic?: boolean
+    binColors?: string[]
+    hasProjectedData?: boolean
 }
 
 export enum RenderFeatureType {
@@ -129,7 +135,7 @@ export interface GlobeRenderFeature extends RenderFeature {
 }
 
 export interface MapChartManager extends ChartManager {
-    mapColumnSlug?: ColumnSlug
+    mapColumnSlug: ColumnSlug
     mapConfig?: MapConfig
     globeController?: GlobeController
     mapRegionDropdownValue?: MapRegionDropdownValue
@@ -138,6 +144,7 @@ export interface MapChartManager extends ChartManager {
         action: GrapherInteractionEvent,
         target?: string
     ) => void
+    projectionColumnInfoBySlug?: Map<ColumnSlug, ProjectionColumnInfo>
 }
 
 export interface GlobeViewport {
@@ -206,3 +213,14 @@ export type Direction =
     | "leftBottom"
     | "rightTop"
     | "rightBottom"
+
+export type MapColumnInfo =
+    // the map column isn't a projection
+    | { type: "historical"; slug: ColumnSlug }
+    // the map column is a projection without an historical counterpart
+    | { type: "projected"; slug: ColumnSlug }
+    // the map column is a projection and has an historical counterpart
+    | ({
+          type: "historical+projected"
+          slug: ColumnSlug
+      } & ProjectionColumnInfo)

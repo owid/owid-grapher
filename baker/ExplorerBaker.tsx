@@ -120,10 +120,10 @@ export const transformExplorerProgramToResolveCatalogPaths = async (
                 type: ColumnTypeNames.Integer,
             },
             (row) => {
-                const variableId = row[ColumnGrammar.variableId.keyword]
+                const variableId = row[ColumnGrammar.variableId.keyword].value
                 if (isNotErrorValueOrEmptyCell(variableId)) return variableId
 
-                const catalogPath = row[ColumnGrammar.catalogPath.keyword]
+                const catalogPath = row[ColumnGrammar.catalogPath.keyword].value
                 if (
                     isNotErrorValueOrEmptyCell(catalogPath) &&
                     typeof catalogPath === "string"

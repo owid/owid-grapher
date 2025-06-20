@@ -23,6 +23,7 @@ import {
     ANNOTATION_COLOR_LIGHT,
     ANNOTATION_COLOR_DARK,
     RenderFeature,
+    PROJECTED_DATA_LEGEND_COLOR,
 } from "./MapChartConstants"
 import { getGeoFeaturesForMap } from "./GeoFeatures"
 import {
@@ -32,6 +33,7 @@ import {
     ExternalValueAnnotation,
     InternalValueAnnotation,
     NoDataPattern,
+    ProjectedDataPattern,
 } from "./MapComponents"
 import { Patterns } from "../core/GrapherConstants"
 import {
@@ -165,6 +167,10 @@ export class ChoroplethMap extends React.Component<{
 
     @computed private get featuresWithNoData(): MapRenderFeature[] {
         return difference(this.foregroundFeatures, this.featuresWithData)
+    }
+
+    @computed private get binColors(): string[] {
+        return this.manager.binColors ?? []
     }
 
     @computed private get quadtree(): Quadtree<MapRenderFeature> {
@@ -354,6 +360,9 @@ export class ChoroplethMap extends React.Component<{
                         key={annotation.id}
                         annotation={annotation}
                         strokeScale={this.viewportScaleSqrt}
+                        showOutline={
+                            this.choroplethData.get(annotation.id)?.isProjection
+                        }
                     />
                 ))}
             </g>
@@ -444,6 +453,36 @@ export class ChoroplethMap extends React.Component<{
 
         return (
             <g id={makeIdForHumanConsumption("countries-with-data")}>
+                {this.manager.hasProjectedData && (
+                    <defs>
+                        {/* Pattern used by the map legend for the projected data bin */}
+                        <ProjectedDataPattern
+                            key={PROJECTED_DATA_LEGEND_COLOR}
+                            color={PROJECTED_DATA_LEGEND_COLOR}
+                            forLegend
+                        />
+                        {/* Patterns used by the map legend. The map legend can't re-use
+                            the features' patterns defined below because those are scaled
+                            by the viewport. */}
+                        {this.binColors.map((color) => (
+                            <ProjectedDataPattern
+                                key={color}
+                                color={color}
+                                forLegend
+                            />
+                        ))}
+
+                        {/* Pattern used by features */}
+                        {this.binColors.map((color) => (
+                            <ProjectedDataPattern
+                                key={color}
+                                color={color}
+                                scale={1 / this.viewportScale}
+                            />
+                        ))}
+                    </defs>
+                )}
+
                 {this.sortedFeaturesWithData.map((feature) => {
                     const series = this.choroplethData.get(feature.id)
                     if (!series) return null

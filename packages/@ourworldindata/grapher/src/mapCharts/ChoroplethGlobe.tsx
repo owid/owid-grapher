@@ -43,6 +43,7 @@ import {
     GlobeRenderFeature,
     InternalAnnotation,
     MAP_HOVER_TARGET_RANGE,
+    PROJECTED_DATA_LEGEND_COLOR,
     RenderFeature,
     SVGMouseEvent,
 } from "./MapChartConstants"
@@ -55,6 +56,7 @@ import {
     ExternalValueAnnotation,
     InternalValueAnnotation,
     NoDataPattern,
+    ProjectedDataPattern,
 } from "./MapComponents"
 import { Patterns } from "../core/GrapherConstants"
 import {
@@ -150,6 +152,10 @@ export class ChoroplethGlobe extends React.Component<{
 
     @computed private get featuresWithNoData(): GlobeRenderFeature[] {
         return difference(this.foregroundFeatures, this.featuresWithData)
+    }
+
+    @computed private get binColors(): string[] {
+        return this.manager.binColors ?? []
     }
 
     // Map uses a hybrid approach to mouseover
@@ -764,6 +770,32 @@ export class ChoroplethGlobe extends React.Component<{
 
         return (
             <g id={makeIdForHumanConsumption("countries-with-data")}>
+                {this.manager.hasProjectedData && (
+                    <defs>
+                        {/* Pattern used by the map legend for the projected data bin */}
+                        <ProjectedDataPattern
+                            key={PROJECTED_DATA_LEGEND_COLOR}
+                            color={PROJECTED_DATA_LEGEND_COLOR}
+                            forLegend
+                        />
+
+                        {/* Patterns used by the map legend. These duplicate the patterns below,
+                            but use a legend-specific id */}
+                        {this.binColors.map((color) => (
+                            <ProjectedDataPattern
+                                key={color}
+                                color={color}
+                                forLegend
+                            />
+                        ))}
+
+                        {/* Pattern used by features */}
+                        {this.binColors.map((color) => (
+                            <ProjectedDataPattern key={color} color={color} />
+                        ))}
+                    </defs>
+                )}
+
                 {this.sortedFeaturesWithData.map((feature) => {
                     const series = this.choroplethData.get(feature.id)
                     if (!series) return null
@@ -801,6 +833,9 @@ export class ChoroplethGlobe extends React.Component<{
                     <InternalValueAnnotation
                         key={annotation.id}
                         annotation={annotation}
+                        showOutline={
+                            this.choroplethData.get(annotation.id)?.isProjection
+                        }
                     />
                 ))}
             </g>

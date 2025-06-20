@@ -20,6 +20,9 @@ import {
 } from "./MapChartConstants"
 import { isMapRenderFeature } from "./MapHelpers"
 import { getExternalMarkerEndPosition } from "./MapAnnotations"
+import { Patterns } from "../core/GrapherConstants"
+import { calculateLightnessScore, isDarkColor } from "../color/ColorUtils"
+import { Halo } from "@ourworldindata/components"
 
 export function BackgroundCountry<Feature extends RenderFeature>({
     feature,
@@ -64,6 +67,7 @@ export function CountryWithData<Feature extends RenderFeature>({
     onMouseEnter?: (feature: Feature, event: MouseEvent) => void
     onMouseLeave?: () => void
 }): React.ReactElement {
+    const isProjection = series.isProjection
     const isHovered = hover.active
 
     const stroke =
@@ -71,7 +75,9 @@ export function CountryWithData<Feature extends RenderFeature>({
     const strokeWidth = getStrokeWidth({ isHovered, isSelected }) / strokeScale
     const strokeOpacity = hover.background ? BLUR_STROKE_OPACITY : 1
 
-    const fill = series.color
+    const fill = isProjection
+        ? `url(#${makeProjectedDataPatternId(series.color)})`
+        : series.color
     const fillOpacity = hover.background ? BLUR_FILL_OPACITY : 1
 
     return (
@@ -171,28 +177,97 @@ export function NoDataPattern({
     )
 }
 
+export function ProjectedDataPattern({
+    color,
+    scale = 1,
+    forLegend = false,
+}: {
+    color: string
+    scale?: number
+    forLegend?: boolean
+}): React.ReactElement {
+    return (
+        <DottedProjectedDataPattern
+            patternId={makeProjectedDataPatternId(color, { forLegend })}
+            color={color}
+            scale={scale}
+            dotOpacity={forLegend ? 0.2 : undefined}
+        />
+    )
+}
+
+function DottedProjectedDataPattern({
+    patternId,
+    color,
+    scale = 1,
+    patternSize = 4,
+    dotSize = patternSize / 4,
+    dotOpacity,
+}: {
+    patternId: string
+    color: string
+    scale?: number
+    patternSize?: number
+    dotSize?: number
+    dotOpacity?: number // inferred from color lightness if not provided
+}): React.ReactElement {
+    // Choose the dot opacity based on the lightness of the color:
+    // - If the color is light, make the dots more transparent
+    // - If the color is dark, make the dots more opaque
+    const lightness = calculateLightnessScore(color) ?? 0
+    const opacity = dotOpacity ?? Math.max(1 - lightness, 0.1)
+
+    return (
+        <pattern
+            id={patternId}
+            patternUnits="userSpaceOnUse"
+            width={patternSize}
+            height={patternSize}
+            patternTransform={`rotate(45) scale(${scale})`}
+        >
+            {/* colored background */}
+            <rect width={patternSize} height={patternSize} fill={color} />
+
+            {/* dots */}
+            <circle
+                cx={patternSize / 2}
+                cy={patternSize / 2}
+                r={dotSize}
+                fill="black"
+                fillOpacity={opacity}
+            />
+        </pattern>
+    )
+}
+
 export function InternalValueAnnotation({
     annotation,
     strokeScale = 1,
+    showOutline = false,
 }: {
     annotation: InternalAnnotation
     strokeScale?: number
+    showOutline?: boolean
 }): React.ReactElement {
     const { id, text, color, placedBounds, fontSize } = annotation
 
+    const showHalo = showOutline && isDarkColor(color)
+
     return (
-        <text
-            id={makeIdForHumanConsumption(id)}
-            x={placedBounds.topLeft.x}
-            y={placedBounds.topLeft.y + placedBounds.height - 1}
-            fontSize={fontSize}
-            fontWeight={700}
-            fill={color}
-            strokeWidth={DEFAULT_STROKE_WIDTH / strokeScale}
-            style={{ pointerEvents: "none" }}
-        >
-            {text}
-        </text>
+        <Halo id={id} outlineWidth={3} show={showHalo}>
+            <text
+                id={makeIdForHumanConsumption(id)}
+                x={placedBounds.topLeft.x}
+                y={placedBounds.topLeft.y + placedBounds.height - 1}
+                fontSize={fontSize}
+                fontWeight={700}
+                fill={color}
+                strokeWidth={DEFAULT_STROKE_WIDTH / strokeScale}
+                style={{ pointerEvents: "none" }}
+            >
+                {text}
+            </text>
+        </Halo>
     )
 }
 
@@ -252,4 +327,14 @@ function getStrokeWidth({
     if (isHovered) return HOVER_STROKE_WIDTH
     if (isSelected) return SELECTED_STROKE_WIDTH
     return DEFAULT_STROKE_WIDTH
+}
+
+export function makeProjectedDataPatternId(
+    color: string,
+    options?: { forLegend: boolean }
+): string {
+    const prefix = options?.forLegend
+        ? Patterns.projectedDataPatternForLegend
+        : Patterns.projectedDataPattern
+    return `${prefix}_${color}`
 }
