@@ -31,15 +31,15 @@ const MultiDimDropdowns = forwardRef<
     const [isExpanded, setIsExpanded] = useState(false)
     const dimensionsArray = Object.values(availableSettings)
     const needsToggle = dimensionsArray.length > collapsedCount
-    const displayedDimensions = isExpanded
-        ? dimensionsArray
-        : dimensionsArray.slice(0, collapsedCount)
 
     return (
         <div className={cx("md-dropdowns", className)} ref={ref}>
-            {displayedDimensions.map((dim) => (
+            {dimensionsArray.map((dim, index) => (
                 <DimensionDropdown
                     key={dim.slug}
+                    className={cx({
+                        hidden: !isExpanded && index >= collapsedCount,
+                    })}
                     dimension={dim}
                     value={resolvedSettings[dim.slug]}
                     onChange={(value) => {

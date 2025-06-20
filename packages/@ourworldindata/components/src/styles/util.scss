@@ -34,6 +34,10 @@
     display: block;
 }
 
+.hidden {
+    display: none;
+}
+
 .hide-sm-only {
     @include sm-only {
         display: none !important;
