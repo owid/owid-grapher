@@ -7,7 +7,7 @@ import { SiteAnalytics } from "../SiteAnalytics.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedCountries } from "./searchHooks.js"
 import { SearchChartHitMedium } from "./SearchChartHitMedium.js"
-import { AsDraft } from "../AsDraft/AsDraft.js"
+import { SearchAsDraft } from "./SearchAsDraft.js"
 
 const analytics = new SiteAnalytics()
 
@@ -31,7 +31,7 @@ export const DataCatalogRibbon = ({
     }
 
     return (
-        <AsDraft
+        <SearchAsDraft
             name="Data Ribbon"
             className="col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-13>"
         >
@@ -87,6 +87,6 @@ export const DataCatalogRibbon = ({
                     <FontAwesomeIcon icon={faArrowRight} />
                 </button>
             </div>
-        </AsDraft>
+        </SearchAsDraft>
     )
 }
