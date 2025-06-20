@@ -1,5 +1,5 @@
 import { SearchAsDraft } from "./SearchAsDraft.js"
-import { DataInsightHit, DataInsightSearchResponse } from "./searchTypes.js"
+import { DataInsightHit, SearchDataInsightResponse } from "./searchTypes.js"
 import { useQuery } from "@tanstack/react-query"
 import { queryDataInsights, searchQueryKeys } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
@@ -9,7 +9,7 @@ import { SearchResultHeader } from "./SearchResultHeader.js"
 export function SearchDataInsightsResults() {
     const { state, searchClient } = useSearchContext()
 
-    const query = useQuery<DataInsightSearchResponse, Error>({
+    const query = useQuery<SearchDataInsightResponse, Error>({
         queryKey: [searchQueryKeys.dataInsights(state)],
         queryFn: () => queryDataInsights(searchClient, state),
     })

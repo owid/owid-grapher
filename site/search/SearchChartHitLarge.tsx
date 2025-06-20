@@ -3,7 +3,7 @@ import cx from "classnames"
 import { Region } from "@ourworldindata/utils"
 import {
     ChartRecordType,
-    IDataCatalogHit,
+    SearchChartHit,
     SearchIndexName,
 } from "./searchTypes.js"
 import { getEntityQueryStr, pickEntitiesForChartHit } from "./searchUtils.js"
@@ -33,7 +33,7 @@ export function SearchChartHitLarge({
     searchQueryRegionsMatches,
     onClick,
 }: {
-    hit: IDataCatalogHit
+    hit: SearchChartHit
     searchQueryRegionsMatches?: Region[] | undefined
     // Search uses a global onClick handler to track analytics
     // But the data catalog passes a function to this component explicitly
