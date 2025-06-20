@@ -309,7 +309,8 @@ export class ActionButtons extends React.Component<{
                                 label="Explore the data"
                                 dataTrackNote="chart_click_exploredata"
                                 icon={faArrowRight}
-                                    href={manager.canonicalUrl}
+                                iconPlacement="right"
+                                href={manager.canonicalUrl}
                                 className="ActionButton--exploreData"
                                 showLabel={true}
                             />
@@ -324,6 +325,7 @@ export class ActionButtons extends React.Component<{
 export function ActionButton(props: {
     label: string
     icon: IconDefinition
+    iconPlacement?: "left" | "right"
     href?: string
     width?: number
     dataTrackNote?: string
@@ -341,10 +343,13 @@ export function ActionButton(props: {
         "icon-only": !props.showLabel,
     })
 
+    const iconPlacement = props.iconPlacement ?? "left"
+
     const buttonContents = (
         <>
-            <FontAwesomeIcon icon={props.icon} />
+            {iconPlacement === "left" && <FontAwesomeIcon icon={props.icon} />}
             {props.showLabel && <span className="label">{props.label}</span>}
+            {iconPlacement === "right" && <FontAwesomeIcon icon={props.icon} />}
         </>
     )
 
@@ -352,18 +357,18 @@ export function ActionButton(props: {
         <div
             className={classNames("ActionButton", props.className)}
             style={props.style}
-                data-track-note={props.dataTrackNote}
+            data-track-note={props.dataTrackNote}
             onClick={(e: React.MouseEvent<HTMLDivElement>): void => {
-                    if (props.onClick) props.onClick(e)
-                    setShowTooltip(false)
-                }}
-                onMouseDown={props.onMouseDown}
-                onMouseEnter={(): void => {
-                    if (!props.showLabel) setShowTooltip(true)
-                }}
-                onMouseLeave={(): void => {
-                    setShowTooltip(false)
-                }}
+                if (props.onClick) props.onClick(e)
+                setShowTooltip(false)
+            }}
+            onMouseDown={props.onMouseDown}
+            onMouseEnter={(): void => {
+                if (!props.showLabel) setShowTooltip(true)
+            }}
+            onMouseLeave={(): void => {
+                setShowTooltip(false)
+            }}
         >
             {props.href ? (
                 <a
@@ -377,12 +382,12 @@ export function ActionButton(props: {
             ) : (
                 <button
                     className={buttonClassnames}
-                aria-label={props.label}
-                type="button"
-            >
+                    aria-label={props.label}
+                    type="button"
+                >
                     {buttonContents}
                 </button>
-                )}
+            )}
             {showTooltip && <div className="hover-label">{props.label}</div>}
         </div>
     )
