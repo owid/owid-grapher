@@ -1,15 +1,21 @@
 import { Url } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
-import { SearchState, SearchAction, Filter, FilterType } from "./searchTypes.js"
+import {
+    SearchState,
+    SearchAction,
+    Filter,
+    FilterType,
+    SearchResultType,
+} from "./searchTypes.js"
 import {
     createCountryFilter,
     createTopicFilter,
     deserializeSet,
     getFilterNamesOfType,
+    isValidResultType,
     serializeSet,
 } from "./searchUtils.js"
 
-// Helper functions to handle filter actions
 function handleAddFilter(state: SearchState, filter: Filter): SearchState {
     const filterExists = state.filters.some(
         (f) => f.type === filter.type && f.name === filter.name
@@ -63,12 +69,20 @@ export function searchReducer(
         .with({ type: "removeCountry" }, ({ country }) =>
             handleRemoveFilter(state, createCountryFilter(country))
         )
-        .with({ type: "addTopic" }, ({ topic }) =>
-            handleAddFilter(state, createTopicFilter(topic))
-        )
         .with({ type: "removeTopic" }, ({ topic }) =>
             handleRemoveFilter(state, createTopicFilter(topic))
         )
+        .with({ type: "setTopic" }, ({ topic }) => {
+            // Remove all existing topic filters and add the new one
+            const newFilters = state.filters.filter(
+                (f) => f.type !== FilterType.TOPIC
+            )
+            return {
+                ...state,
+                page: 0,
+                filters: [...newFilters, createTopicFilter(topic)],
+            }
+        })
         .with({ type: "toggleRequireAllCountries" }, () => ({
             ...state,
             requireAllCountries: !state.requireAllCountries,
@@ -82,6 +96,11 @@ export function searchReducer(
             ...state,
             ...getInitialSearchState(),
         }))
+        .with({ type: "setResultType" }, ({ resultType }) => ({
+            ...state,
+            page: 0,
+            resultType,
+        }))
         .exhaustive()
 }
 
@@ -89,7 +108,7 @@ export function createActions(dispatch: (action: SearchAction) => void) {
     // prettier-ignore
     return {
         addCountry: (country: string) => dispatch({ type: "addCountry", country }),
-        addTopic: (topic: string) => dispatch({ type: "addTopic", topic }),
+        setTopic: (topic: string) => dispatch({ type: "setTopic", topic }),
         removeCountry: (country: string) => dispatch({ type: "removeCountry", country }),
         removeTopic: (topic: string) => dispatch({ type: "removeTopic", topic }),
         addFilter: (filter: Filter) => dispatch({ type: "addFilter", filter }),
@@ -98,6 +117,7 @@ export function createActions(dispatch: (action: SearchAction) => void) {
         setQuery: (query: string) => dispatch({ type: "setQuery", query }),
         setState: (state: SearchState) => dispatch({ type: "setState", state }),
         toggleRequireAllCountries: () => dispatch({ type: "toggleRequireAllCountries" }),
+        setResultType: (resultType: SearchResultType) => dispatch({ type: "setResultType", resultType }),
         reset: () => dispatch({ type: "reset" }),
     }
 }
@@ -110,6 +130,7 @@ export function getInitialSearchState(): SearchState {
         filters: [],
         requireAllCountries: false,
         page: 0,
+        resultType: SearchResultType.ALL,
     }
 }
 
@@ -127,6 +148,9 @@ export function urlToSearchState(url: Url): SearchState {
         filters,
         requireAllCountries: url.queryParams.requireAllCountries === "true",
         page: url.queryParams.page ? parseInt(url.queryParams.page) - 1 : 0,
+        resultType: isValidResultType(url.queryParams.resultType)
+            ? url.queryParams.resultType
+            : SearchResultType.ALL,
     }
 }
 
@@ -145,6 +169,10 @@ export function searchStateToUrl(state: SearchState) {
         ),
         requireAllCountries: state.requireAllCountries ? "true" : undefined,
         page: state.page > 0 ? (state.page + 1).toString() : undefined,
+        resultType:
+            state.resultType !== SearchResultType.ALL
+                ? state.resultType
+                : undefined,
     }
 
     Object.entries(params).forEach(([key, value]) => {

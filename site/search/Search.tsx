@@ -1,11 +1,9 @@
-import { TagGraphRoot, TagGraphNode } from "@ourworldindata/types"
+import { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
 import { Url } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
 import { useReducer, useMemo, useEffect } from "react"
-import { useQuery } from "@tanstack/react-query"
-import { DataCatalogRibbonView } from "./DataCatalogRibbonView.js"
-import { DataCatalogResults } from "./DataCatalogResults.js"
 import { Searchbar } from "./Searchbar.js"
+import { SearchTopicsRefinementList } from "./SearchTopicsRefinementList.js"
 import {
     searchReducer,
     createActions,
@@ -13,39 +11,47 @@ import {
     urlToSearchState,
 } from "./searchState.js"
 import {
-    DataCatalogRibbonResult,
-    DataCatalogSearchResult,
     SearchState,
     FilterType,
+    TemplateConfig,
+    SearchResultType,
 } from "./searchTypes.js"
 import {
-    checkShouldShowRibbonView,
-    getCountryData,
     syncDataCatalogURL,
     getFilterNamesOfType,
-    queryDataCatalogRibbons,
-    queryDataCatalogSearch,
+    getSelectedTopicType,
 } from "./searchUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
-import { searchQueryKeys } from "./searchQueryKeys.js"
+import { SearchAsDraft } from "./SearchAsDraft.js"
+import { SearchContext } from "./SearchContext.js"
+import { SearchResultTypeToggle } from "./SearchResultTypeToggle.js"
+import { match } from "ts-pattern"
+import { SearchTemplatesAll } from "./SearchTemplatesAll.js"
+import { SearchTemplatesData } from "./SearchTemplatesData.js"
+import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
+import { SearchDebugNavigator } from "./SearchDebugNavigator.js"
+import { SearchDebugProvider } from "./SearchDebugProvider.js"
+import { useIsFetching } from "@tanstack/react-query"
+import { SearchDataTopicsResultsViewSkeleton } from "./SearchDataTopicsResultsViewSkeleton.js"
+import { SearchNoResults } from "./SearchNoResults.js"
 
 const analytics = new SiteAnalytics()
 
 export const Search = ({
     initialState,
-    tagGraph,
+    topicTagGraph,
     searchClient,
 }: {
     initialState: SearchState
-    tagGraph: TagGraphRoot
+    topicTagGraph: TagGraphRoot
     searchClient: SearchClient
 }) => {
     const [state, dispatch] = useReducer(searchReducer, initialState)
     const actions = useMemo(() => createActions(dispatch), [dispatch])
 
     const AREA_NAMES = useMemo(
-        () => tagGraph.children.map((child) => child.name),
-        [tagGraph]
+        () => topicTagGraph.children.map((child) => child.name) || [],
+        [topicTagGraph]
     )
 
     const ALL_TOPICS = useMemo(() => {
@@ -61,41 +67,8 @@ export const Search = ({
                 return acc
             }, new Set<string>())
         }
-        return Array.from(getAllTopics(tagGraph))
-    }, [tagGraph])
-
-    const selectedTopics = useMemo(
-        () => getFilterNamesOfType(state.filters, FilterType.TOPIC),
-        [state.filters]
-    )
-
-    const selectedCountryNames = useMemo(
-        () => getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        [state.filters]
-    )
-
-    const shouldShowRibbons = useMemo(
-        () =>
-            checkShouldShowRibbonView(state.query, selectedTopics, AREA_NAMES),
-        [state.query, selectedTopics, AREA_NAMES]
-    )
-
-    const selectedCountries = useMemo(
-        () => getCountryData(selectedCountryNames),
-        [selectedCountryNames]
-    )
-
-    const searchQuery = useQuery<DataCatalogSearchResult, Error>({
-        queryKey: searchQueryKeys.search(state),
-        queryFn: () => queryDataCatalogSearch(searchClient, state),
-        enabled: !shouldShowRibbons,
-    })
-
-    const ribbonsQuery = useQuery<DataCatalogRibbonResult[], Error>({
-        queryKey: searchQueryKeys.ribbons(state), // the tagGraph can only change on page load, so we don't need to include it in the key
-        queryFn: () => queryDataCatalogRibbons(searchClient, state, tagGraph),
-        enabled: shouldShowRibbons,
-    })
+        return [...getAllTopics(topicTagGraph)]
+    }, [topicTagGraph])
 
     const stateAsUrl = searchStateToUrl(state)
 
@@ -128,53 +101,70 @@ export const Search = ({
         }
     }, [actions])
 
+    const isFetching = useIsFetching()
+
+    const templateConfig: TemplateConfig = {
+        resultType: state.resultType,
+        topicType: getSelectedTopicType(state.filters, AREA_NAMES),
+        hasCountry:
+            getFilterNamesOfType(state.filters, FilterType.COUNTRY).size > 0,
+        hasQuery: state.query.length > 0,
+    }
+
     return (
-        <>
-            <div className="data-catalog-header span-cols-14 grid grid-cols-12-full-width">
-                <header className="data-catalog-heading span-cols-12 col-start-2">
-                    <h1 className="h1-semibold">Data Catalog</h1>
-                    <p className="body-2-regular">
-                        Search for a specific chart, or browse all our charts by
-                        area and topic.
-                    </p>
-                </header>
-                <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
-                    <Searchbar
-                        allTopics={ALL_TOPICS}
-                        filters={state.filters}
-                        addCountry={actions.addCountry}
-                        removeCountry={actions.removeCountry}
-                        addTopic={actions.addTopic}
-                        removeTopic={actions.removeTopic}
-                        query={state.query}
-                        requireAllCountries={state.requireAllCountries}
-                        setQuery={actions.setQuery}
-                        toggleRequireAllCountries={
-                            actions.toggleRequireAllCountries
-                        }
-                        reset={actions.reset}
-                    />
+        <SearchDebugProvider>
+            <SearchContext.Provider
+                value={{
+                    state,
+                    actions,
+                    searchClient,
+                    templateConfig,
+                    topicTagGraph,
+                }}
+            >
+                <div className="data-catalog-header span-cols-14 grid grid-cols-12-full-width">
+                    <header className="data-catalog-heading span-cols-12 col-start-2">
+                        <h1 className="h1-semibold">Search & Explore</h1>
+                        <p className="body-2-regular">
+                            Search for a specific chart, topic or article or
+                            explore all our content.
+                        </p>
+                    </header>
+                    <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
+                        <Searchbar allTopics={ALL_TOPICS} />
+                    </div>
                 </div>
-            </div>
-            {shouldShowRibbons ? (
-                <DataCatalogRibbonView
-                    addTopic={actions.addTopic}
-                    isLoading={ribbonsQuery.isLoading}
-                    results={ribbonsQuery.data}
-                    selectedCountries={selectedCountries}
-                    tagGraph={tagGraph}
-                    topics={selectedTopics}
+                <SearchDebugNavigator
+                    availableAreas={AREA_NAMES}
+                    availableTopics={ALL_TOPICS}
                 />
-            ) : (
-                <DataCatalogResults
-                    addTopic={actions.addTopic}
-                    isLoading={searchQuery.isLoading}
-                    results={searchQuery.data}
-                    selectedCountries={selectedCountries}
-                    setPage={actions.setPage}
-                    topics={selectedTopics}
-                />
-            )}
-        </>
+                <SearchTopicsRefinementList />
+                <SearchAsDraft
+                    className="col-start-11 span-cols-3 as-draft--align-self-start"
+                    name="Search result type"
+                >
+                    <SearchResultTypeToggle />
+                </SearchAsDraft>
+                <div className="search-template-results grid span-cols-14 grid grid-cols-12-full-width">
+                    {!isFetching ? (
+                        match(templateConfig.resultType)
+                            .with(SearchResultType.ALL, () => (
+                                <SearchTemplatesAll />
+                            ))
+                            .with(SearchResultType.DATA, () => (
+                                <SearchTemplatesData />
+                            ))
+                            .with(SearchResultType.WRITING, () => (
+                                <SearchTemplatesWriting />
+                            ))
+                            .exhaustive()
+                    ) : (
+                        // TODO: add a grace period before showing skeletons to avoid flickering
+                        <SearchDataTopicsResultsViewSkeleton />
+                    )}
+                    <SearchNoResults />
+                </div>
+            </SearchContext.Provider>
+        </SearchDebugProvider>
     )
 }

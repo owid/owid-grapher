@@ -1,0 +1,41 @@
+import { SearchResultType } from "./searchTypes.js"
+import cx from "classnames"
+import { useSearchContext } from "./SearchContext.js"
+
+const OPTIONS = [
+    { value: SearchResultType.ALL, label: "All" },
+    { value: SearchResultType.DATA, label: "Data" },
+    { value: SearchResultType.WRITING, label: "Writing" },
+]
+
+export const SearchResultTypeToggle = () => {
+    const {
+        state,
+        actions: { setResultType },
+    } = useSearchContext()
+    const { resultType: value } = state
+    return (
+        <fieldset
+            className="search-result-type-toggle"
+            role="radiogroup"
+            aria-label="Result type"
+        >
+            {OPTIONS.map((option) => (
+                <label key={option.value}>
+                    <input
+                        type="radio"
+                        name="search-result-type"
+                        className={cx("search-result-type-toggle__button", {
+                            "search-result-type-toggle__button--selected":
+                                value === option.value,
+                        })}
+                        value={option.value}
+                        checked={value === option.value}
+                        onChange={() => setResultType(option.value)}
+                    />
+                    <span>{option.label}</span>
+                </label>
+            ))}
+        </fieldset>
+    )
+}

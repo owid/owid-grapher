@@ -1,0 +1,105 @@
+import { match } from "ts-pattern"
+import { useSearchContext } from "./SearchContext.js"
+import { SearchTopicType } from "./searchTypes.js"
+import { SearchWritingResults } from "./SearchWritingResults.js"
+import { SearchDataInsightsResults } from "./SearchDataInsightsResults.js"
+import { SearchAsDraft } from "./SearchAsDraft.js"
+
+export const SearchTemplatesWriting = () => {
+    const { templateConfig } = useSearchContext()
+
+    return (
+        match([
+            templateConfig.topicType,
+            templateConfig.hasCountry,
+            templateConfig.hasQuery,
+        ] as const)
+            // Writing + Topic + Country + Query
+            .with([SearchTopicType.Topic, true, true], () => (
+                <>
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // Writing + Topic + Country + No Query
+            .with([SearchTopicType.Topic, true, false], () => (
+                <>
+                    <SearchDataInsightsResults />
+                    <SearchWritingResults />
+                </>
+            ))
+            // Writing + Topic + No Country + Query
+            .with([SearchTopicType.Topic, false, true], () => (
+                <>
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // Writing + Topic + No Country + No Query
+            .with([SearchTopicType.Topic, false, false], () => (
+                <>
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // Writing + Area + Country + Query
+            .with([SearchTopicType.Area, true, true], () => (
+                <>
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // Writing + Area + Country + No Query
+            .with([SearchTopicType.Area, true, false], () => (
+                <>
+                    <SearchDataInsightsResults />
+                    <SearchWritingResults />
+                </>
+            ))
+            // Writing + Area + No Country + Query
+            .with([SearchTopicType.Area, false, true], () => (
+                <>
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // Writing + Area + No Country + No Query
+            .with([SearchTopicType.Area, false, false], () => (
+                <>
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // Writing + No Topic + Country + Query
+            .with([null, true, true], () => (
+                <>
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // Writing + No Topic + Country + No Query
+            .with([null, true, false], () => (
+                <>
+                    <SearchDataInsightsResults />
+                    <SearchWritingResults />
+                </>
+            ))
+            // Writing + No Topic + No Country + Query
+            .with([null, false, true], () => (
+                <>
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // Writing + No Topic + No Country + No Query
+            .with([null, false, false], () => (
+                <SearchAsDraft
+                    name="Writing Results"
+                    className="col-start-2 span-cols-12"
+                >
+                    <h1>🚧 Browse interface for Research & Writing </h1>
+                </SearchAsDraft>
+            ))
+            .exhaustive()
+    )
+}
