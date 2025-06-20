@@ -79,7 +79,6 @@ import { Component, createRef } from "react"
 import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
-import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
 import { getCountriesByRegion, isOnTheMap } from "./MapHelpers.js"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 import { match, P } from "ts-pattern"
@@ -421,16 +420,12 @@ export class MapChart
         return this.manager.isFaceted
     }
 
-    @computed get mapRegionDropdownValue(): MapRegionDropdownValue | undefined {
-        return this.manager.mapRegionDropdownValue
+    @computed get shouldShowMapZoomToSelectionButton(): boolean {
+        return !!this.manager.shouldShowMapZoomToSelectionButton
     }
 
     @computed get isMapSelectionEnabled(): boolean {
         return !!this.manager.isMapSelectionEnabled
-    }
-
-    @action.bound resetMapRegionDropdownValue(): void {
-        this.manager.resetMapRegionDropdownValue?.()
     }
 
     componentWillUnmount(): void {
@@ -603,8 +598,6 @@ export class MapChart
     private isHovered(featureId: string): boolean {
         const { mapConfig, hoverBracket } = this
         const { externalLegendHoverBin } = this.manager
-
-        if (mapConfig.globe.focusCountry === featureId) return true
 
         if (mapConfig.hoverCountry === featureId) return true
 
@@ -909,12 +902,7 @@ export class MapChart
             )
         }
 
-        const tooltipCountry =
-            tooltipState.target?.featureId ??
-            // show a pinned-to-the-bottom tooltip when focused on a country
-            (this.manager.shouldPinTooltipToBottom
-                ? this.mapConfig.globe.focusCountry
-                : undefined)
+        const tooltipCountry = tooltipState.target?.featureId
 
         return (
             <g
@@ -943,7 +931,6 @@ export class MapChart
                         dismissTooltip={() => {
                             this.mapConfig.hoverCountry = undefined
                             this.tooltipState.target = null
-                            this.globeController.dismissCountryFocus()
                         }}
                     />
                 )}

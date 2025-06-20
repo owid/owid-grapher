@@ -12,7 +12,6 @@ import { ChartManager } from "../chart/ChartManager"
 import { MapConfig } from "./MapConfig"
 import { ChartSeries } from "../chart/ChartInterface"
 import { GlobeController } from "./GlobeController"
-import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { GrapherInteractionEvent } from "../core/GrapherAnalytics"
@@ -98,8 +97,6 @@ export interface ChoroplethMapManager {
     mapConfig: MapConfig
     mapColumn: CoreColumn
     globeController?: GlobeController
-    mapRegionDropdownValue?: MapRegionDropdownValue
-    resetMapRegionDropdownValue?: () => void
     selectionArray: MapSelectionArray
     fontSize?: number
     getHoverState: (featureId: string) => InteractionState
@@ -112,6 +109,7 @@ export interface ChoroplethMapManager {
     hasProjectedData?: boolean
     mapViewport?: MapViewport
     isFaceted?: boolean
+    shouldShowMapZoomToSelectionButton?: boolean
 }
 
 export enum RenderFeatureType {
@@ -142,8 +140,6 @@ export interface MapChartManager extends ChartManager {
     mapConfig?: MapConfig
     targetTime?: Time
     globeController?: GlobeController
-    mapRegionDropdownValue?: MapRegionDropdownValue
-    resetMapRegionDropdownValue?: () => void
     isMapSelectionEnabled?: boolean
     highlightedTimesInTooltip?: [Time, Time]
     mapViewport?: MapViewport
@@ -153,6 +149,7 @@ export interface MapChartManager extends ChartManager {
         target?: string
     ) => void
     projectionColumnInfoBySlug?: Map<ColumnSlug, ProjectionColumnInfo>
+    shouldShowMapZoomToSelectionButton?: boolean
 }
 
 export interface GlobeViewport {

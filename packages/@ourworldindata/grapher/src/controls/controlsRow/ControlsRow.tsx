@@ -18,12 +18,7 @@ import {
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_FRAME_PADDING_VERTICAL,
 } from "../../core/GrapherConstants"
-import {
-    MapCountryDropdown,
-    MapCountryDropdownManager,
-} from "../MapCountryDropdown"
 import { CloseGlobeViewButton } from "../CloseGlobeViewButton"
-import { GlobeSwitcher } from "../GlobeSwitcher"
 import {
     DataTableFilterDropdown,
     DataTableFilterDropdownManager,
@@ -32,12 +27,12 @@ import {
     DataTableSearchField,
     DataTableSearchFieldManager,
 } from "../DataTableSearchField"
+import { ZoomToSelectionButton } from "../ZoomToSelectionButton"
 
 export interface ControlsRowManager
     extends ContentSwitchersManager,
         EntitySelectionManager,
         MapRegionDropdownManager,
-        MapCountryDropdownManager,
         SettingsMenuManager,
         DataTableFilterDropdownManager,
         DataTableSearchFieldManager {
@@ -72,7 +67,6 @@ export class ControlsRow extends Component<{
             SettingsMenu.shouldShow(this.manager) ||
             EntitySelectionToggle.shouldShow(this.manager) ||
             MapRegionDropdown.shouldShow(this.manager) ||
-            MapCountryDropdown.shouldShow(this.manager) ||
             CloseGlobeViewButton.shouldShow(this.manager) ||
             ContentSwitchers.shouldShow(this.manager) ||
             DataTableFilterDropdown.shouldShow(this.manager) ||
@@ -117,13 +111,13 @@ export class ControlsRow extends Component<{
             <div className="controls map-controls">
                 {this.manager.isMapSelectionEnabled ? (
                     <>
+                        <ZoomToSelectionButton manager={this.manager} />
+                        <CloseGlobeViewButton manager={this.manager} />
                         <MapRegionDropdown manager={this.manager} />
-                        <GlobeSwitcher manager={this.manager} />
                         <EntitySelectionToggle manager={this.manager} />
                     </>
                 ) : (
                     <>
-                        <MapCountryDropdown manager={this.manager} />
                         <CloseGlobeViewButton manager={this.manager} />
                     </>
                 )}
