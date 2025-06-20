@@ -3,7 +3,6 @@ import cx from "classnames"
 import { Region } from "@ourworldindata/utils"
 import {
     ChartRecordType,
-    IChartHit,
     SearchChartHit,
     SearchIndexName,
 } from "./searchTypes.js"
@@ -114,17 +113,28 @@ export function SearchChartHitMedium({
         >
             <div className="search-chart-hit-medium__container">
                 <div className="search-chart-hit-medium__content">
-                    <div className="search-chart-hit-medium__title-container">
-                        <Highlight
-                            attribute="title"
-                            highlightedTagName="strong"
-                            className="search-chart-hit-medium__title"
-                            hit={hit}
-                        />{" "}
-                        <span className="search-chart-hit-medium__variant">
-                            {hit.variantName}
-                        </span>
-                    </div>
+                    <a
+                        href={chartUrl}
+                        className="search-chart-hit-medium__title-link"
+                        onClick={onClick}
+                        data-algolia-index={getIndexName(
+                            SearchIndexName.ExplorerViewsMdimViewsAndCharts
+                        )}
+                        data-algolia-object-id={hit.objectID}
+                        data-algolia-position={hit.__position}
+                    >
+                        <div className="search-chart-hit-medium__title-container">
+                            <Highlight
+                                attribute="title"
+                                highlightedTagName="strong"
+                                className="search-chart-hit-medium__title"
+                                hit={hit}
+                            />{" "}
+                            <span className="search-chart-hit-medium__variant">
+                                {hit.variantName}
+                            </span>
+                        </div>
+                    </a>
                     {entities.length > 0 && (
                         <ul className="search-chart-hit-medium__entities">
                             {entities.map((entity, i) => (
