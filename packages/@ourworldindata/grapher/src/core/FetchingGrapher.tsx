@@ -72,10 +72,10 @@ export function FetchingGrapher(
                         signal: abortController.signal,
                     }).then((res) => res.json())
 
+                    if (abortController.signal.aborted) return
+
                     const migratedConfig =
                         migrateGrapherConfigToLatestVersion(fetchedConfig)
-
-                    if (abortController.signal.aborted) return
 
                     const mergedConfig = {
                         ...defaultGrapherConfig,
@@ -88,6 +88,7 @@ export function FetchingGrapher(
                     // multiple times while flashing.
                     // https://stackoverflow.com/a/48610973/9846837
                     unstable_batchedUpdates(() => {
+                        grapherState.current.reset()
                         grapherState.current.updateFromObject(mergedConfig)
                         grapherState.current.legacyConfigAsAuthored =
                             mergedConfig
