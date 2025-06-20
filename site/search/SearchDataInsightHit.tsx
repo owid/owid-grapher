@@ -3,7 +3,7 @@ import DataInsightDateline from "../gdocs/components/DataInsightDateline.js"
 import { getIndexName } from "./searchClient.js"
 import { DataInsightHit, SearchIndexName } from "./searchTypes.js"
 import cx from "classnames"
-import { AsDraft } from "../AsDraft/AsDraft.js"
+import { SearchAsDraft } from "./SearchAsDraft.js"
 import { OwidGdocType } from "@ourworldindata/types"
 
 export const SearchDataInsightHit = ({
@@ -21,7 +21,7 @@ export const SearchDataInsightHit = ({
     })
 
     return (
-        <AsDraft name="Data Insight" className={className}>
+        <SearchAsDraft name="Data Insight" className={className}>
             <a
                 href={href}
                 data-algolia-index={getIndexName(SearchIndexName.Pages)}
@@ -46,6 +46,6 @@ export const SearchDataInsightHit = ({
                 />
                 <h4 className="search-data-insight-hit__title">{hit.title}</h4>
             </a>
-        </AsDraft>
+        </SearchAsDraft>
     )
 }
