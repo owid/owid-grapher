@@ -6,10 +6,12 @@ import {
     SearchResultType,
     SearchTopicType,
     TemplateConfig,
+    Filter,
 } from "./searchTypes.js"
 import { useSelectedTopic, useSelectedCountryNames } from "./searchHooks.js"
 import { countriesByName } from "@ourworldindata/utils"
 import { useSearchDebugContext } from "./SearchDebugContext.js"
+import { createTopicFilter, createCountryFilter } from "./searchUtils.js"
 
 // All possible template configurations based on the CSV data
 // prettier-ignore
@@ -229,8 +231,10 @@ export const SearchDebugNavigator = ({
         )
     }, [templateConfig])
 
-    const currentConfig =
-        currentIndex >= 0 ? ALL_TEMPLATE_CONFIGS[currentIndex] : null
+    const currentConfig = useMemo(
+        () => (currentIndex >= 0 ? ALL_TEMPLATE_CONFIGS[currentIndex] : null),
+        [currentIndex]
+    )
 
     const figmaUrl = currentConfig
         ? `${!isFigmaDevMode ? "https://www.figma.com/embed?embed_host=share&url=" : ""}https://www.figma.com/file/lAIoPy94qgSocFKYO6HBTh/?node-id=${currentConfig.figmaNodeId}`
@@ -291,32 +295,38 @@ export const SearchDebugNavigator = ({
 
             const targetConfig = ALL_TEMPLATE_CONFIGS[targetIndex]
 
-            // Reset the state first
-            actions.reset()
+            // Build the complete new state first
+            const newFilters: Filter[] = []
+            let newQuery = ""
 
-            // Set result type
-            actions.setResultType(targetConfig.resultType)
-
-            // Set topic if needed (only generate if params are not locked)
+            // Add topic filter if needed
             if (targetConfig.topicType === SearchTopicType.Topic) {
                 const randomTopic = getRandomTopic()
-                actions.setTopic(randomTopic)
+                newFilters.push(createTopicFilter(randomTopic))
             } else if (targetConfig.topicType === SearchTopicType.Area) {
                 const randomArea = getRandomArea()
-                actions.setTopic(randomArea)
+                newFilters.push(createTopicFilter(randomArea))
             }
 
-            // Set country if needed (only generate if params are not locked)
+            // Add country filter if needed
             if (targetConfig.hasCountry) {
                 const randomCountry = getRandomCountry()
-                actions.addCountry(randomCountry)
+                newFilters.push(createCountryFilter(randomCountry))
             }
 
-            // Set query if needed (only generate if params are not locked)
+            // Set query if needed
             if (targetConfig.hasQuery) {
-                const randomVowel = getRandomVowel()
-                actions.setQuery(randomVowel)
+                newQuery = getRandomVowel()
             }
+
+            // Apply all changes at once using setState
+            actions.setState({
+                query: newQuery,
+                filters: newFilters,
+                requireAllCountries: false,
+                page: 0,
+                resultType: targetConfig.resultType,
+            })
         },
         [
             actions,
@@ -330,34 +340,41 @@ export const SearchDebugNavigator = ({
     const regenerateCurrentParams = useCallback(() => {
         const currentConfig = templateConfig
 
-        // Regenerate topic if needed
-        if (currentConfig.topicType === SearchTopicType.Topic) {
-            const randomTopic = getRandomTopic()
-            actions.setTopic(randomTopic)
-        } else if (currentConfig.topicType === SearchTopicType.Area) {
-            const randomArea = getRandomArea()
-            actions.setTopic(randomArea)
-        }
+        // Build the new filters array atomically
+        const newFilters: Filter[] = []
 
-        // Regenerate country if needed
-        if (currentConfig.hasCountry) {
-            // Remove all current countries
-            for (const countryName of selectedCountryNames) {
-                actions.removeCountry(countryName)
-            }
-            const randomCountry = getRandomCountry()
-            actions.addCountry(randomCountry)
-        }
+        // Keep existing topic filters if they exist
+        const existingTopicFilters = currentConfig.topicType
+            ? [
+                  createTopicFilter(
+                      currentConfig.topicType === SearchTopicType.Topic
+                          ? getRandomTopic()
+                          : getRandomArea()
+                  ),
+              ]
+            : []
 
-        // Regenerate query if needed
-        if (currentConfig.hasQuery) {
-            const randomVowel = getRandomVowel()
-            actions.setQuery(randomVowel)
-        }
+        // Keep existing country filters or add new ones
+        const newCountryFilters = currentConfig.hasCountry
+            ? [createCountryFilter(getRandomCountry())]
+            : []
+
+        newFilters.push(...existingTopicFilters, ...newCountryFilters)
+
+        // Generate new query
+        const newQuery = currentConfig.hasQuery ? getRandomVowel() : ""
+
+        // Apply all changes atomically
+        actions.setState({
+            query: newQuery,
+            filters: newFilters,
+            requireAllCountries: false,
+            page: 0,
+            resultType: currentConfig.resultType,
+        })
     }, [
         templateConfig,
         actions,
-        selectedCountryNames,
         getRandomTopic,
         getRandomArea,
         getRandomCountry,
