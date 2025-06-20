@@ -19,6 +19,8 @@ export const SearchTemplatesAll = () => {
             .with([SearchTopicType.Topic, true, true], () => (
                 <>
                     <SearchDataResults />
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
                 </>
             ))
             // All + Topic + Country + No Query
