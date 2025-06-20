@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import cx from "classnames"
-import { AsDraft } from "../AsDraft/AsDraft.js"
+import { SearchAsDraft } from "./SearchAsDraft.js"
 import { useSearchContext } from "./SearchContext.js"
 import {
     SearchResultType,
@@ -9,6 +9,7 @@ import {
 } from "./searchTypes.js"
 import { useSelectedTopic, useSelectedCountryNames } from "./searchHooks.js"
 import { countriesByName } from "@ourworldindata/utils"
+import { useSearchDebugContext } from "./SearchDebugContext.js"
 
 // All possible template configurations based on the CSV data
 // prettier-ignore
@@ -66,7 +67,8 @@ export const SearchDebugNavigator = ({
     availableTopics: string[]
 }) => {
     const { templateConfig, actions } = useSearchContext()
-    const [lockParams, setLockParams] = useState(false)
+    const [lockParams, setLockParams] = useState(true)
+    const { isZenMode, setZenMode } = useSearchDebugContext()
     const selectedTopic = useSelectedTopic()
     const selectedCountryNames = useSelectedCountryNames()
 
@@ -261,25 +263,22 @@ export const SearchDebugNavigator = ({
         actions.setResultType(targetConfig.resultType)
 
         // Set topic if needed (only generate if params are not locked)
-        if (targetConfig.topicType === SearchTopicType.Topic && !lockParams) {
+        if (targetConfig.topicType === SearchTopicType.Topic) {
             const randomTopic = getRandomTopic()
             actions.setTopic(randomTopic)
-        } else if (
-            targetConfig.topicType === SearchTopicType.Area &&
-            !lockParams
-        ) {
+        } else if (targetConfig.topicType === SearchTopicType.Area) {
             const randomArea = getRandomArea()
             actions.setTopic(randomArea)
         }
 
         // Set country if needed (only generate if params are not locked)
-        if (targetConfig.hasCountry && !lockParams) {
+        if (targetConfig.hasCountry) {
             const randomCountry = getRandomCountry()
             actions.addCountry(randomCountry)
         }
 
         // Set query if needed (only generate if params are not locked)
-        if (targetConfig.hasQuery && !lockParams) {
+        if (targetConfig.hasQuery) {
             const randomVowel = getRandomVowel()
             actions.setQuery(randomVowel)
         }
@@ -350,19 +349,19 @@ export const SearchDebugNavigator = ({
 
     if (!currentConfig) {
         return (
-            <AsDraft
+            <SearchAsDraft
                 className="col-start-2 span-cols-12"
                 name="Search Debug Navigator"
             >
                 <div className="search-debug-navigator search-debug-navigator--error">
                     Configuration not found in template list
                 </div>
-            </AsDraft>
+            </SearchAsDraft>
         )
     }
 
     return (
-        <AsDraft
+        <SearchAsDraft
             className="col-start-2 span-cols-12"
             name="Search Debug Navigator"
         >
@@ -380,13 +379,10 @@ export const SearchDebugNavigator = ({
                                 ? "Go to random configuration"
                                 : "Randomize current configuration parameters"
                         }
-                        title={
-                            !lockParams
-                                ? "Random configuration"
-                                : "Randomize params"
-                        }
                     >
-                        🔄 Random
+                        {!lockParams
+                            ? "📊 Random template"
+                            : "🔄 Random content"}
                     </button>
                     <label className="search-debug-navigator__checkbox-label">
                         <input
@@ -396,7 +392,17 @@ export const SearchDebugNavigator = ({
                             className="search-debug-navigator__checkbox"
                             aria-label="Lock configuration to prevent auto-generation"
                         />
-                        🔒 Lock configuration
+                        🔒 Lock template for random
+                    </label>
+                    <label className="search-debug-navigator__checkbox-label">
+                        <input
+                            type="checkbox"
+                            checked={isZenMode}
+                            onChange={(e) => setZenMode(e.target.checked)}
+                            className="search-debug-navigator__checkbox"
+                            aria-label="Toggle zen mode"
+                        />
+                        🪷 Zen mode
                     </label>
                 </div>
 
@@ -454,6 +460,6 @@ export const SearchDebugNavigator = ({
                     🎨 Figma
                 </a>
             </div>
-        </AsDraft>
+        </SearchAsDraft>
     )
 }
