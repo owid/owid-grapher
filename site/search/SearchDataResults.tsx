@@ -3,9 +3,9 @@ import { SearchChartHitMedium } from "./SearchChartHitMedium.js"
 import { SearchChartHitLarge } from "./SearchChartHitLarge.js"
 import { SearchShowMore } from "./SearchShowMore.js"
 import { SearchNoResults } from "./SearchNoResults.js"
-import { DataCatalogResultsSkeleton } from "./DataCatalogResultsSkeleton.js"
-import { DataCatalogSearchResult } from "./searchTypes.js"
-import { queryDataCatalogSearch, searchQueryKeys } from "./queries.js"
+import { SearchDataResultsSkeleton } from "./SearchDataResultsSkeleton.js"
+import { SearchChartsResponse } from "./searchTypes.js"
+import { queryCharts, searchQueryKeys } from "./queries.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedCountries } from "./searchHooks.js"
@@ -14,7 +14,7 @@ import { SearchResultHeader } from "./SearchResultHeader.js"
 
 const analytics = new SiteAnalytics()
 
-export const DataCatalogResults = ({
+export const SearchDataResults = ({
     enableLargeFirstResult = true,
 }: {
     enableLargeFirstResult?: boolean
@@ -26,17 +26,17 @@ export const DataCatalogResults = ({
     // entry is shared across all pages
     const { page: _page, ...stateWithoutPage } = state
 
-    const query = useInfiniteQuery<DataCatalogSearchResult, Error>({
-        queryKey: searchQueryKeys.dataSearches(stateWithoutPage),
+    const query = useInfiniteQuery<SearchChartsResponse, Error>({
+        queryKey: searchQueryKeys.charts(stateWithoutPage),
         queryFn: ({ pageParam = 0 }) =>
-            queryDataCatalogSearch(searchClient, stateWithoutPage, pageParam),
+            queryCharts(searchClient, stateWithoutPage, pageParam),
         getNextPageParam: (lastPage) => {
             const { page, nbPages } = lastPage
             return page < nbPages - 1 ? page + 1 : undefined
         },
     })
 
-    if (query.isLoading) return <DataCatalogResultsSkeleton />
+    if (query.isLoading) return <SearchDataResultsSkeleton />
 
     const hits = query.data?.pages.flatMap((page) => page.hits) || []
     const totalResults = query.data?.pages[0]?.nbHits || 0

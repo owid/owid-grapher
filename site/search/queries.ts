@@ -3,12 +3,12 @@ import { flattenNonTopicNodes } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
 import {
     SearchState,
-    DataCatalogSearchResult,
-    IDataCatalogHit,
-    DataCatalogRibbonResult,
-    DataInsightSearchResponse,
-    ArticleSearchResponse,
-    TopicPageSearchResponse,
+    SearchChartsResponse,
+    SearchChartHit,
+    SearchDataTopicsResponse,
+    SearchDataInsightResponse,
+    SearchArticleResponse,
+    SearchTopicPageResponse,
     FilterType,
     SearchIndexName,
 } from "./searchTypes.js"
@@ -30,10 +30,10 @@ export const searchQueryKeys = {
     topicTagGraph: ["topicTagGraph"] as const,
     // Base key for all data catalog queries
     data: [SearchIndexName.ExplorerViewsMdimViewsAndCharts] as const,
-    dataSearches: (state: Omit<SearchState, "page">) =>
-        [...searchQueryKeys.data, "searches", state] as const,
-    dataRibbons: (state: SearchState) =>
-        [...searchQueryKeys.data, "ribbons", state] as const,
+    charts: (state: Omit<SearchState, "page">) =>
+        [...searchQueryKeys.data, "charts", state] as const,
+    topics: (state: SearchState) =>
+        [...searchQueryKeys.data, "topics", state] as const,
     writing: [SearchIndexName.Pages] as const,
     dataInsights: (state: SearchState) =>
         [...searchQueryKeys.writing, "data-insights", state] as const,
@@ -43,19 +43,19 @@ export const searchQueryKeys = {
         [...searchQueryKeys.writing, "topic-pages", state] as const,
 } as const
 
-export async function queryDataCatalogRibbons(
+export async function queryDataTopics(
     searchClient: SearchClient,
     state: SearchState,
     tagGraph: TagGraphRoot,
     selectedTopic: string | undefined
-): Promise<DataCatalogRibbonResult[]> {
-    const topicsForRibbons = [...getSelectableTopics(tagGraph, selectedTopic)]
+): Promise<SearchDataTopicsResponse[]> {
+    const dataTopics = [...getSelectableTopics(tagGraph, selectedTopic)]
 
     const countryFacetFilters = formatCountryFacetFilters(
         getFilterNamesOfType(state.filters, FilterType.COUNTRY),
         state.requireAllCountries
     )
-    const searchParams = topicsForRibbons.map((topic) => {
+    const searchParams = dataTopics.map((topic) => {
         const facetFilters = [[`tags:${topic}`], ...countryFacetFilters]
         return {
             indexName: CHARTS_INDEX,
@@ -69,19 +69,19 @@ export async function queryDataCatalogRibbons(
         }
     })
 
-    return searchClient.search<IDataCatalogHit>(searchParams).then((response) =>
+    return searchClient.search<SearchChartHit>(searchParams).then((response) =>
         response.results.map((res, i: number) => ({
-            ...(res as DataCatalogSearchResult),
-            title: topicsForRibbons[i],
+            ...(res as SearchChartsResponse),
+            title: dataTopics[i],
         }))
     )
 }
 
-export async function queryDataCatalogSearch(
+export async function queryCharts(
     searchClient: SearchClient,
     state: Omit<SearchState, "page">,
     pageParam: number = 0
-): Promise<DataCatalogSearchResult> {
+): Promise<SearchChartsResponse> {
     const facetFilters = formatCountryFacetFilters(
         getFilterNamesOfType(state.filters, FilterType.COUNTRY),
         state.requireAllCountries
@@ -107,14 +107,14 @@ export async function queryDataCatalogSearch(
     ]
 
     return searchClient
-        .search<IDataCatalogHit>(searchParams)
-        .then((response) => response.results[0] as DataCatalogSearchResult)
+        .search<SearchChartHit>(searchParams)
+        .then((response) => response.results[0] as SearchChartsResponse)
 }
 
 export async function queryDataInsights(
     searchClient: SearchClient,
     state: SearchState
-): Promise<DataInsightSearchResponse> {
+): Promise<SearchDataInsightResponse> {
     const selectedCountryNames = getFilterNamesOfType(
         state.filters,
         FilterType.COUNTRY
@@ -162,13 +162,13 @@ export async function queryDataInsights(
 
     return searchClient
         .search(searchParams)
-        .then((response) => response.results[0] as DataInsightSearchResponse)
+        .then((response) => response.results[0] as SearchDataInsightResponse)
 }
 
 export async function queryArticles(
     searchClient: SearchClient,
     state: SearchState
-): Promise<ArticleSearchResponse> {
+): Promise<SearchArticleResponse> {
     const selectedCountryNames = getFilterNamesOfType(
         state.filters,
         FilterType.COUNTRY
@@ -218,13 +218,13 @@ export async function queryArticles(
 
     return searchClient
         .search(searchParams)
-        .then((response) => response.results[0] as ArticleSearchResponse)
+        .then((response) => response.results[0] as SearchArticleResponse)
 }
 
 export async function queryTopicPages(
     searchClient: SearchClient,
     state: SearchState
-): Promise<TopicPageSearchResponse> {
+): Promise<SearchTopicPageResponse> {
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
 
     const searchParams = [
@@ -243,7 +243,7 @@ export async function queryTopicPages(
 
     return searchClient
         .search(searchParams)
-        .then((response) => response.results[0] as TopicPageSearchResponse)
+        .then((response) => response.results[0] as SearchTopicPageResponse)
 }
 
 export async function queryTopicTagGraph(): Promise<TagGraphRoot> {
