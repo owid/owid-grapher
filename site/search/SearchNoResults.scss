@@ -1,0 +1,24 @@
+.search-no-results {
+    display: none;
+    text-align: center;
+    margin-top: min(100px, 15vh);
+    h2 {
+        color: $blue-90;
+        margin-bottom: 4px;
+        margin-top: 16px;
+    }
+    p {
+        color: $blue-60;
+    }
+    .search-no-results__icon {
+        background-color: $blue-10;
+        color: $blue-50;
+        font-size: 20px;
+        padding: 12px;
+        border-radius: 32px;
+    }
+}
+
+.search-no-results:only-child {
+    display: block;
+}
