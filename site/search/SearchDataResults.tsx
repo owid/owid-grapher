@@ -2,8 +2,6 @@ import { useInfiniteQuery } from "@tanstack/react-query"
 import { SearchChartHitMedium } from "./SearchChartHitMedium.js"
 import { SearchChartHitLarge } from "./SearchChartHitLarge.js"
 import { SearchShowMore } from "./SearchShowMore.js"
-import { SearchNoResults } from "./SearchNoResults.js"
-import { SearchDataResultsSkeleton } from "./SearchDataResultsSkeleton.js"
 import { SearchChartsResponse } from "./searchTypes.js"
 import { queryCharts, searchQueryKeys } from "./queries.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
@@ -36,12 +34,10 @@ export const SearchDataResults = ({
         },
     })
 
-    if (query.isLoading) return <SearchDataResultsSkeleton />
-
     const hits = query.data?.pages.flatMap((page) => page.hits) || []
     const totalResults = query.data?.pages[0]?.nbHits || 0
 
-    if (!query.data || !hits.length) return <SearchNoResults />
+    if (totalResults === 0) return null
 
     return (
         <SearchAsDraft name="Data Results" className="span-cols-12 col-start-2">
