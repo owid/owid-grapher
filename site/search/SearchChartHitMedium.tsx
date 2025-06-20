@@ -4,7 +4,7 @@ import { Region } from "@ourworldindata/utils"
 import {
     ChartRecordType,
     IChartHit,
-    IDataCatalogHit,
+    SearchChartHit,
     SearchIndexName,
 } from "./searchTypes.js"
 import { getEntityQueryStr, pickEntitiesForChartHit } from "./searchUtils.js"
@@ -35,7 +35,7 @@ export function SearchChartHitMedium({
     onClick,
     showThumbnails = true,
 }: {
-    hit: IChartHit | IDataCatalogHit
+    hit: SearchChartHit
     searchQueryRegionsMatches?: Region[] | undefined
     // Search uses a global onClick handler to track analytics
     // But the data catalog passes a function to this component explicitly
