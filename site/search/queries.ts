@@ -100,7 +100,7 @@ export async function queryCharts(
             facetFilters: facetFilters,
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
-            hitsPerPage: 5,
+            hitsPerPage: 8,
             page: state.page < 0 ? 0 : state.page,
         },
     ]
