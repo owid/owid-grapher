@@ -1,4 +1,5 @@
-.CloseGlobeViewButton {
+.CloseGlobeViewButton,
+.ZoomToSelectionButton {
     @include grapher_label-2-medium;
 
     padding: 0 8px;
@@ -21,3 +22,24 @@
         margin-right: 6px;
     }
 }
+
+/* .CloseGlobeViewButton,
+.ZoomToSelectionButton {
+    --light-fill: #{$gray-10};
+    --hover-fill: #{$gray-20};
+    --active-fill: #{$blue-20};
+    --text-color: #{$dark-text};
+
+    border: none;
+    background: var(--light-fill);
+
+    &:hover {
+        background: var(--hover-fill);
+        border-color: var(--hover-fill);
+    }
+
+    &:active {
+        background: var(--active-fill);
+        border-color: var(--active-fill);
+    }
+} */
