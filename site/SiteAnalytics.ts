@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 import { GrapherAnalytics, EventCategory } from "@ourworldindata/grapher"
 import {
     type SearchCategoryFilter,
-    type IDataCatalogHit,
+    type SearchChartHit,
     type SearchState,
     FilterType,
 } from "./search/searchTypes.js"
@@ -107,7 +107,7 @@ export class SiteAnalytics extends GrapherAnalytics {
     }
 
     logDataCatalogResultClick(
-        hit: IDataCatalogHit,
+        hit: SearchChartHit,
         position: number,
         source: "ribbon" | "search",
         ribbonTag?: string
