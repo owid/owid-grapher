@@ -789,7 +789,6 @@ export class ScatterPlotChart
                     dualAxis={this.dualAxis}
                     showTickMarks={false}
                     detailsMarker={this.manager.detailsMarkerInSvg}
-                    fontSize={this.fontSize}
                     backgroundColor={this.manager.backgroundColor}
                 />
                 {this.points}

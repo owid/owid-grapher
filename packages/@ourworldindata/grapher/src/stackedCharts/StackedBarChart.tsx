@@ -571,7 +571,10 @@ export class StackedBarChart
         const { dualAxis, renderUid, bounds } = this
         const { innerBounds } = dualAxis
 
-        const clipPath = makeClipPath(renderUid, innerBounds)
+        const clipPath = makeClipPath({
+            renderUid: renderUid,
+            box: innerBounds,
+        })
 
         return (
             <g

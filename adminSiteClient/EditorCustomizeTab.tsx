@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { observable, computed, action } from "mobx"
+import { computed, action } from "mobx"
 import { observer } from "mobx-react"
 import {
     ComparisonLineConfig,
@@ -9,7 +9,10 @@ import {
     FacetStrategy,
     GRAPHER_CHART_TYPES,
 } from "@ourworldindata/types"
-import { GrapherState } from "@ourworldindata/grapher"
+import {
+    GrapherState,
+    isValidVerticalComparisonLineConfig,
+} from "@ourworldindata/grapher"
 import {
     NumberField,
     Toggle,
@@ -20,6 +23,7 @@ import {
     Button,
     RadioGroup,
     BindAutoFloatExt,
+    SelectField,
 } from "./Forms.js"
 import {
     trimObject,
@@ -40,6 +44,7 @@ import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import Select from "react-select"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { ErrorMessages } from "./ChartEditorTypes.js"
+import { match } from "ts-pattern"
 
 const debounceOnLeadingEdge = (fn: (...args: any[]) => void) =>
     _.debounce(fn, 0, { leading: true, trailing: false })
@@ -488,7 +493,27 @@ class TimelineSection<
 class ComparisonLineSection<
     Editor extends AbstractChartEditor,
 > extends React.Component<{ editor: Editor }> {
-    @observable comparisonLines: ComparisonLineConfig[] = []
+    private getComparisonLineType(comparisonLine: ComparisonLineConfig) {
+        return isValidVerticalComparisonLineConfig(comparisonLine)
+            ? "xEquals"
+            : "yEquals"
+    }
+
+    @computed private get comparisonLineOptions() {
+        const { features } = this.props.editor
+
+        const options = []
+
+        if (features.customComparisonLine) {
+            options.push({ label: "y", value: "yEquals" })
+        }
+
+        if (features.verticalComparisonLine) {
+            options.push({ label: "x", value: "xEquals" })
+        }
+
+        return options
+    }
 
     @action.bound onAddComparisonLine() {
         const { grapherState } = this.props.editor
@@ -502,45 +527,96 @@ class ComparisonLineSection<
         grapherState.comparisonLines.splice(index, 1)
     }
 
+    @action.bound onComparisonLineTypeChange(
+        comparisonLine: any,
+        newType: "xEquals" | "yEquals"
+    ) {
+        match(newType)
+            .with("xEquals", () => {
+                comparisonLine.xEquals = 0
+                delete comparisonLine["yEquals"]
+            })
+            .with("yEquals", () => {
+                comparisonLine.yEquals = "x"
+                delete comparisonLine["xEquals"]
+            })
+            .exhaustive()
+    }
+
     render() {
+        if (this.comparisonLineOptions.length === 0) return null
+
         const { comparisonLines = [] } = this.props.editor.grapherState
 
         return (
             <Section name="Comparison line">
                 <p>
-                    Overlay a line onto the chart for comparison. Supports basic{" "}
+                    Overlay lines onto the chart for comparison.
+                    <br />
+                    <strong>Lines defined by y = f(x)</strong> support{" "}
                     <a href="https://github.com/bylexus/fparse#features">
                         mathematical expressions
                     </a>
                     , like:{" "}
                     {["2*x^2", "sqrt(x)", "sin(x*PI)", "ln(x+1)*e"].map(
                         (expr, i) => (
-                            <>
+                            <React.Fragment key={i}>
                                 {i > 0 && ", "}
-                                <code key={i}>{expr}</code>
-                            </>
+                                <code>{expr}</code>
+                            </React.Fragment>
                         )
                     )}
                     .
+                    <br />
+                    <strong>Lines defined by x = constant</strong> (vertical
+                    lines) support numeric constant values like <code>100</code>
+                    , <code>0</code>, <code>2020</code>.
                 </p>
 
                 <Button onClick={this.onAddComparisonLine}>
                     <FontAwesomeIcon icon={faPlus} /> Add comparison line
                 </Button>
                 {comparisonLines.map((comparisonLine, i) => (
-                    <div key={i}>
-                        {`Line ${i + 1}`}{" "}
+                    <div key={i} className="comparisonLine">
+                        <b>{`Line ${i + 1}`} </b>
                         <Button onClick={() => this.onRemoveComparisonLine(i)}>
                             <FontAwesomeIcon icon={faMinus} />
                         </Button>
-                        <TextField
-                            label={`y=`}
-                            placeholder="x"
-                            value={comparisonLine.yEquals}
-                            onValue={action((value: string) => {
-                                comparisonLine.yEquals = value || undefined
-                            })}
-                        />
+                        <FieldsRow>
+                            <SelectField
+                                options={this.comparisonLineOptions}
+                                value={this.getComparisonLineType(
+                                    comparisonLine
+                                )}
+                                onValue={(type) =>
+                                    this.onComparisonLineTypeChange(
+                                        comparisonLine,
+                                        type as "xEquals" | "yEquals"
+                                    )
+                                }
+                            />
+                            <span style={{ flexGrow: 0 }}>{"="}</span>
+                            {isValidVerticalComparisonLineConfig(
+                                comparisonLine
+                            ) ? (
+                                <NumberField
+                                    placeholder="0"
+                                    value={comparisonLine.xEquals}
+                                    onValue={action((value?: number) => {
+                                        comparisonLine.xEquals = value ?? 0
+                                    })}
+                                />
+                            ) : (
+                                <TextField
+                                    placeholder="x"
+                                    value={comparisonLine.yEquals}
+                                    onValue={action((value: string) => {
+                                        comparisonLine.yEquals =
+                                            value || undefined
+                                    })}
+                                />
+                            )}
+                        </FieldsRow>
                         <TextField
                             label="Label"
                             value={comparisonLine.label}

@@ -1,10 +1,7 @@
 import * as _ from "lodash-es"
-import {
-    ComparisonLineConfig,
-    ScatterPointLabelStrategy,
-} from "@ourworldindata/types"
+import { ScatterPointLabelStrategy } from "@ourworldindata/types"
 import { GrapherState } from "@ourworldindata/grapher"
-import { action, observable } from "mobx"
+import { action } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
 import { NumberField, Section, SelectField, Toggle } from "./Forms.js"
@@ -13,8 +10,6 @@ import { NumberField, Section, SelectField, Toggle } from "./Forms.js"
 export class EditorScatterTab extends Component<{
     grapherState: GrapherState
 }> {
-    @observable comparisonLine: ComparisonLineConfig = { yEquals: undefined }
-
     constructor(props: { grapherState: GrapherState }) {
         super(props)
     }
