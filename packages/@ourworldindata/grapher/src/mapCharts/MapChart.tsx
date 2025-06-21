@@ -69,6 +69,7 @@ import {
     Time,
 } from "@ourworldindata/types"
 import {
+    ClipPath,
     combineHistoricalAndProjectionColumns,
     makeClipPath,
 } from "../chart/ChartUtils"
@@ -776,8 +777,11 @@ export class MapChart
         return guid()
     }
 
-    @computed get clipPath(): { id: string; element: React.ReactElement } {
-        return makeClipPath(this.renderUid, this.choroplethMapBounds)
+    @computed get clipPath(): ClipPath {
+        return makeClipPath({
+            renderUid: this.renderUid,
+            box: this.choroplethMapBounds,
+        })
     }
 
     renderMapLegend(): React.ReactElement {

@@ -217,17 +217,28 @@ properties:
         default: true
         description: Whether to hide the relative mode UI toggle
     comparisonLines:
-        description: List of vertical comparison lines to draw
+        description: List of comparison lines to draw
         type: array
         default: []
         items:
-            type: object
-            properties:
-                label:
-                    type: string
-                yEquals:
-                    type: string
-            additionalProperties: false
+            anyOf:
+                - type: object
+                  description: Comparison line of arbitrary shape defined by a formula. Defaults to `yEquals = x` if not specified
+                  properties:
+                      label:
+                          type: string
+                      yEquals:
+                          type: string
+                  additionalProperties: false
+                - type: object
+                  description: Vertical comparison line drawn at a specific x-value
+                  properties:
+                      label:
+                          type: string
+                      xEquals:
+                          type: number
+                  required: [xEquals]
+                  additionalProperties: false
     slug:
         type: string
         description: Slug of the chart on Our World In Data

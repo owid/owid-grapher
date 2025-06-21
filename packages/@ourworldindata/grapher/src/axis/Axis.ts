@@ -20,9 +20,13 @@ import { ComparisonLineConfig } from "@ourworldindata/types"
 import { AxisConfig, AxisManager } from "./AxisConfig"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { ColumnTypeMap, CoreColumn } from "@ourworldindata/core-table"
-import { GRAPHER_FONT_SCALE_12 } from "../core/GrapherConstants.js"
+import {
+    GRAPHER_FONT_SCALE_10_5,
+    GRAPHER_FONT_SCALE_12,
+} from "../core/GrapherConstants.js"
 import { makeAxisLabel } from "../chart/ChartUtils"
 import * as R from "remeda"
+import { isValidVerticalComparisonLineConfig } from "../comparisonLine/ComparisonLineHelpers"
 
 interface TickLabelPlacement {
     value: number
@@ -850,6 +854,8 @@ export class DualAxis {
                 })
                 // make space for the y-axis label if plotted above the axis
                 .padTop(this.props.verticalAxis.labelOffsetTop)
+                // make space for vertical comparison line labels if any
+                .padTop(this.comparisonLineLabelOffset)
         )
     }
 
@@ -859,6 +865,22 @@ export class DualAxis {
 
     @computed get comparisonLines(): ComparisonLineConfig[] {
         return this.props.comparisonLines ?? []
+    }
+
+    @computed get comparisonLineLabelFontSize(): number {
+        return Math.floor(
+            GRAPHER_FONT_SCALE_10_5 * this.props.verticalAxis.fontSize
+        )
+    }
+
+    @computed private get comparisonLineLabelOffset(): number {
+        const hasVerticalComparisonLines = this.comparisonLines.some((line) =>
+            isValidVerticalComparisonLineConfig(line)
+        )
+
+        if (!hasVerticalComparisonLines) return 0
+
+        return this.comparisonLineLabelFontSize
     }
 }
 

@@ -1470,3 +1470,9 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
         }
     }
 }
+
+// Make the x/y dropdown in the comparison line editor narrow
+.comparisonLine .form-group:first-of-type {
+    flex-grow: 0;
+    flex-basis: 65px;
+}
