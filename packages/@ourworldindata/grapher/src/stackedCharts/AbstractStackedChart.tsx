@@ -215,15 +215,9 @@ export class AbstractStackedChart
     }
 
     @computed get innerBounds(): Bounds {
-        return (
-            this.bounds
-                .padTop(this.paddingForLegendTop)
-                .padRight(this.paddingForLegendRight)
-                // top padding leaves room for tick labels
-                .padTop(6)
-                // bottom padding avoids axis labels to be cut off at some resolutions
-                .padBottom(2)
-        )
+        return this.bounds
+            .padTop(this.paddingForLegendTop)
+            .padRight(this.paddingForLegendRight)
     }
 
     @computed protected get dualAxis(): DualAxis {

@@ -852,10 +852,18 @@ export class DualAxis {
                     [this.props.horizontalAxis.orient]: this.horizontalAxisSize,
                     [this.props.verticalAxis.orient]: this.verticalAxisSize,
                 })
-                // make space for the y-axis label if plotted above the axis
-                .padTop(this.props.verticalAxis.labelOffsetTop)
+                .padTop(
+                    Math.max(
+                        // make space for tick labels (they might overflow since they're center-aligned)
+                        0.5 * this.props.verticalAxis.tickFontSize,
+                        // make space for the y-axis label if plotted above the axis
+                        this.props.verticalAxis.labelOffsetTop
+                    )
+                )
                 // make space for vertical comparison line labels if any
                 .padTop(this.comparisonLineLabelOffset)
+                // avoid axis labels being cut off at some resolutions
+                .padBottom(2)
         )
     }
 

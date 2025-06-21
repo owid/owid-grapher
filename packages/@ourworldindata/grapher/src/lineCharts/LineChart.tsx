@@ -1460,18 +1460,17 @@ export class LineChart
         return axis
     }
 
+    @computed private get innerBounds(): Bounds {
+        return this.boundsWithoutColorLegend.padRight(
+            this.manager.showLegend
+                ? this.lineLegendWidth
+                : this.defaultRightPadding
+        )
+    }
+
     @computed get dualAxis(): DualAxis {
         return new DualAxis({
-            bounds: this.boundsWithoutColorLegend
-                .padRight(
-                    this.manager.showLegend
-                        ? this.lineLegendWidth
-                        : this.defaultRightPadding
-                )
-                // top padding leaves room for tick labels
-                .padTop(6)
-                // bottom padding avoids axis labels to be cut off at some resolutions
-                .padBottom(2),
+            bounds: this.innerBounds,
             verticalAxis: this.verticalAxisPart,
             horizontalAxis: this.horizontalAxisPart,
             comparisonLines: this.manager.comparisonLines,
