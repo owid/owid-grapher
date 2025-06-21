@@ -155,7 +155,6 @@ export {
     getDateRange,
     getCitationLong,
     getCitationShort,
-    grabMetadataForGdocLinkedIndicator,
     getPhraseForArchivalDate,
 } from "./metadataHelpers.js"
 

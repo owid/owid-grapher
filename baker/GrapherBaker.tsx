@@ -82,7 +82,7 @@ const renderDatapageIfApplicable = async (
         archivedChartInfo?: ArchiveContext
     } = {}
 ) => {
-    const variable = await getVariableOfDatapageIfApplicable(grapher)
+    const variable = await getVariableOfDatapageIfApplicable(knex, grapher)
 
     if (!variable) return undefined
 

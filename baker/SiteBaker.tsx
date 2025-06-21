@@ -47,7 +47,6 @@ import {
     DATA_INSIGHTS_INDEX_PAGE_SIZE,
     OwidGdocMinimalPostInterface,
     excludeUndefined,
-    grabMetadataForGdocLinkedIndicator,
     TombstonePageData,
     gdocUrlRegex,
     NarrativeChartInfo,
@@ -69,7 +68,6 @@ import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import { mapSlugsToConfigs } from "../db/model/Chart.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
-import { getVariableMetadata } from "../db/model/Variable.js"
 import {
     gdocFromJSON,
     getAllMinimalGdocBaseObjects,
@@ -81,6 +79,7 @@ import {
     makeExplorerLinkedChart,
     makeGrapherLinkedChart,
     makeMultiDimLinkedChart,
+    getLinkedIndicatorsForCharts,
 } from "../db/model/Gdoc/GdocBase.js"
 import { DATA_INSIGHTS_ATOM_FEED_NAME } from "../site/SiteConstants.js"
 import { getTombstones } from "../db/model/GdocTombstone.js"
@@ -338,6 +337,7 @@ export class SiteBaker {
                     publishedChartsRawChunk.map(async (chart) => {
                         publishedCharts.push(
                             await makeGrapherLinkedChart(
+                                knex,
                                 chart.config,
                                 chart.slug
                             )
@@ -368,18 +368,14 @@ export class SiteBaker {
                     allLinkedIndicatorSlugs.has(chart.originalSlug) &&
                     chart.indicatorId
             )
-            const linkedIndicators: LinkedIndicator[] = await Promise.all(
-                linkedIndicatorCharts.map(async (linkedChart) => {
-                    const indicatorId = linkedChart.indicatorId as number
-                    const metadata = await getVariableMetadata(indicatorId)
-                    return {
-                        id: indicatorId,
-                        ...grabMetadataForGdocLinkedIndicator(metadata, {
-                            chartConfigTitle: linkedChart.title,
-                        }),
-                    }
-                })
-            )
+            const linkedIndicators: LinkedIndicator[] =
+                await getLinkedIndicatorsForCharts(
+                    knex,
+                    linkedIndicatorCharts.map((linkedChart) => ({
+                        indicatorId: linkedChart.indicatorId as number,
+                        chartTitle: linkedChart.title,
+                    }))
+                )
             const datapageIndicatorsById = keyBy(linkedIndicators, "id")
             console.log(`✅ Prefetched ${linkedIndicators.length} indicators`)
 
