@@ -128,6 +128,12 @@ export class DataTable extends React.Component<{
     @computed get table(): OwidTable {
         let table = this.manager.tableForDisplay
 
+        // make sure the given table doesn't contain any rows outside of the time range
+        table = table.filterByTimeRange(
+            this.manager.closestTimelineMinTime ?? -Infinity,
+            this.manager.closestTimelineMaxTime ?? Infinity
+        )
+
         // apply the region type filter if given
         const keepEntityNames = this.filteredEntityNames
         if (keepEntityNames && keepEntityNames.length > 0)
