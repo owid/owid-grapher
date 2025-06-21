@@ -35,7 +35,6 @@ import { HeaderManager } from "../header/HeaderManager"
 import { SelectionArray } from "../selection/SelectionArray"
 import {
     EntityName,
-    GRAPHER_CHART_TYPES,
     RelatedQuestionsConfig,
     Color,
     GrapherTabName,
@@ -86,7 +85,6 @@ export interface CaptionedChartManager
     isOnTableTab?: boolean
     activeChartType?: GrapherChartType
     isFaceted?: boolean
-    isLineChartThatTurnedIntoDiscreteBarActive?: boolean
     isExportingForSocialMedia?: boolean
 
     // timeline
@@ -191,11 +189,8 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         const { manager } = this
         if (manager.isOnTableTab) return undefined
         if (manager.isOnMapTab) return GRAPHER_MAP_TYPE
-        if (manager.isOnChartTab) {
-            return manager.isLineChartThatTurnedIntoDiscreteBarActive
-                ? GRAPHER_CHART_TYPES.DiscreteBar
-                : manager.activeChartType
-        }
+        if (manager.isOnChartTab) return manager.activeChartType
+
         return undefined
     }
 
