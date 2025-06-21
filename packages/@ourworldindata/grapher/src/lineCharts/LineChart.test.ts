@@ -350,11 +350,10 @@ describe("color scale", () => {
                 customCategoryColors: {},
                 customCategoryLabels: {},
                 customHiddenCategories: {},
-                customNumericMinValue: 0,
                 customNumericColors: ["#111111", "#222222"],
                 customNumericColorsActive: true,
                 customNumericLabels: [],
-                customNumericValues: [1.5, 2.5],
+                customNumericValues: [0, 1.5, 2.5],
             },
         }
         const chart = new LineChart({ manager })

@@ -91,6 +91,34 @@ export const migrateFrom006To007 = (
     return config
 }
 
+export const migrateFrom007To008 = (
+    config: AnyConfigWithValidSchema
+): AnyConfigWithValidSchema => {
+    // remove colorScale.customNumericMinValue, merge it into colorScale.customNumericValues
+    if (config.map?.colorScale?.customNumericValues) {
+        config.map.colorScale.customNumericValues = [
+            config.map.colorScale.customNumericMinValue ?? 0,
+            ...config.map.colorScale.customNumericValues,
+        ]
+    }
+    if (config.map?.colorScale?.customNumericMinValue !== undefined) {
+        delete config.map.colorScale.customNumericMinValue
+    }
+
+    if (config.colorScale?.customNumericValues) {
+        config.colorScale.customNumericValues = [
+            config.colorScale.customNumericMinValue ?? 0,
+            ...config.colorScale.customNumericValues,
+        ]
+    }
+    if (config.colorScale?.customNumericMinValue !== undefined) {
+        delete config.colorScale.customNumericMinValue
+    }
+
+    config.$schema = createSchemaForVersion("008")
+    return config
+}
+
 export const runMigration = (
     config: AnyConfigWithValidSchema
 ): AnyConfigWithValidSchema => {
@@ -103,5 +131,6 @@ export const runMigration = (
         .with("004", () => migrateFrom004To005(config))
         .with("005", () => migrateFrom005To006(config))
         .with("006", () => migrateFrom006To007(config))
+        .with("007", () => migrateFrom007To008(config))
         .exhaustive()
 }
