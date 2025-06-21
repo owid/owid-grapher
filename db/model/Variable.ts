@@ -572,9 +572,12 @@ export async function getAllChartsForIndicator(
 
 // TODO: these are domain functions and should live somewhere else
 export async function getVariableMetadata(
-    variableId: number
+    variableId: number,
+    { noCache }: { noCache?: boolean } = {}
 ): Promise<OwidVariableWithSourceAndDimension> {
-    const metadataPath = getVariableMetadataRoute(DATA_API_URL, variableId)
+    const metadataPath = getVariableMetadataRoute(DATA_API_URL, variableId, {
+        noCache,
+    })
     const metadata = await fetchS3MetadataByPath(metadataPath)
     return metadata
 }
@@ -885,7 +888,9 @@ export async function getVariableOfDatapageIfApplicable(
             xVariableIds.length === 0)
     ) {
         const variableId = yVariableIds[0]
-        const variableMetadata = await getVariableMetadata(variableId)
+        const variableMetadata = await getVariableMetadata(variableId, {
+            noCache: true,
+        })
 
         if (
             variableMetadata.schemaVersion !== undefined &&
