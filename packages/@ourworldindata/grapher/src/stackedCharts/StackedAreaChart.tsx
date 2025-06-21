@@ -658,7 +658,6 @@ export class StackedAreaChart extends AbstractStackedChart {
                 dualAxis={this.dualAxis}
                 showTickMarks={true}
                 detailsMarker={manager.detailsMarkerInSvg}
-                fontSize={this.fontSize}
                 backgroundColor={this.manager.backgroundColor}
             />
         )
@@ -699,10 +698,13 @@ export class StackedAreaChart extends AbstractStackedChart {
     renderInteractive(): React.ReactElement {
         const { bounds, dualAxis, renderUid, series } = this
 
-        const clipPath = makeClipPath(renderUid, {
-            ...bounds,
-            height: bounds.height * 2,
-            x: dualAxis.innerBounds.x,
+        const clipPath = makeClipPath({
+            renderUid,
+            box: {
+                ...bounds,
+                height: bounds.height * 2,
+                x: dualAxis.innerBounds.x,
+            },
         })
 
         return (

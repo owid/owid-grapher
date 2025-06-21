@@ -183,8 +183,10 @@ function makeSafeForFigma(name: string): string {
  *
  * Note that these IDs are not meant to be used in CSS!
  */
-export function makeIdForHumanConsumption(...unsafeKeys: string[]): string {
-    return makeSafeForFigma(unsafeKeys.join("__"))
+export function makeIdForHumanConsumption(
+    ...unsafeKeys: (string | undefined)[]
+): string {
+    return makeSafeForFigma(unsafeKeys.filter((key) => key).join("__"))
 }
 
 export function convertDaysSinceEpochToDate(dayAsYear: number): dayjs.Dayjs {

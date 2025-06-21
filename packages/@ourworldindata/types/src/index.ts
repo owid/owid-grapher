@@ -119,6 +119,8 @@ export {
     type GlobeRegionName,
     LogoOption,
     type ComparisonLineConfig,
+    type VerticalComparisonLineConfig,
+    type CustomComparisonLineConfig,
     type AxisConfigInterface,
     type ColorSchemeInterface,
     type Tickmark,
