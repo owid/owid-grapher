@@ -286,14 +286,7 @@ export class ScatterPlotChart
     }
 
     @computed private get innerBounds(): Bounds {
-        return (
-            this.bounds
-                .padRight(this.sidebarWidth + 20)
-                // top padding leaves room for tick labels
-                .padTop(this.currentVerticalAxisLabel ? 0 : 6)
-                // bottom padding makes sure the x-axis label doesn't overflow
-                .padBottom(2)
-        )
+        return this.bounds.padRight(this.sidebarWidth + 20)
     }
 
     @computed get axisBounds(): Bounds {
