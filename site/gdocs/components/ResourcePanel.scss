@@ -1,0 +1,64 @@
+.resource-panel {
+    align-self: start;
+    background-color: $blue-20;
+    padding: 16px;
+    margin-bottom: 24px;
+
+    @include md-down {
+        margin-top: 8px;
+    }
+
+    .resource-panel__icon {
+        background-color: $blue-10;
+        padding: 12px;
+        display: inline-block;
+        font-size: 0;
+        margin-bottom: 8px;
+        color: $vermillion;
+        svg {
+            height: 30px;
+            width: 30px;
+        }
+    }
+
+    .resource-panel__kicker {
+        color: $blue-60;
+        margin: 0;
+        display: block;
+    }
+    .resource-panel__title {
+        color: $blue-90;
+        margin: 0;
+    }
+
+    .hybrid-link-list {
+        margin-top: 16px;
+        margin-bottom: 24px;
+    }
+
+    .hybrid-link-thumbnail {
+        display: none;
+    }
+
+    .hybrid-link-item__external-icon {
+        display: none;
+    }
+
+    .hybrid-link-item {
+        padding: 0;
+        margin: 0;
+        margin-top: 16px;
+        h4 {
+            @include body-3-bold;
+            color: $blue-90;
+        }
+        p {
+            @include note-13-medium;
+            color: $blue-60;
+        }
+        &:not(:last-child) {
+            padding-bottom: 16px;
+            border-bottom: 1px solid $blue-30;
+        }
+    }
+}
