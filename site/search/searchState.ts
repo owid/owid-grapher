@@ -12,6 +12,7 @@ import {
     createTopicFilter,
     deserializeSet,
     getFilterNamesOfType,
+    getResultTypeIfBrowsing,
     isValidResultType,
     serializeSet,
 } from "./searchUtils.js"
@@ -44,6 +45,11 @@ function handleRemoveFilter(state: SearchState, filter: Filter): SearchState {
             ? state.requireAllCountries
             : false,
         filters: newFilters,
+        resultType: getResultTypeIfBrowsing(
+            newFilters,
+            state.query,
+            state.resultType
+        ),
     }
 }
 
@@ -56,6 +62,11 @@ export function searchReducer(
             ...state,
             page: 0,
             query: query.trim(),
+            resultType: getResultTypeIfBrowsing(
+                state.filters,
+                query,
+                state.resultType
+            ),
         }))
         .with({ type: "addFilter" }, ({ filter }) =>
             handleAddFilter(state, filter)
@@ -130,7 +141,7 @@ export function getInitialSearchState(): SearchState {
         filters: [],
         requireAllCountries: false,
         page: 0,
-        resultType: SearchResultType.ALL,
+        resultType: SearchResultType.DATA,
     }
 }
 
@@ -150,7 +161,7 @@ export function urlToSearchState(url: Url): SearchState {
         page: url.queryParams.page ? parseInt(url.queryParams.page) - 1 : 0,
         resultType: isValidResultType(url.queryParams.resultType)
             ? url.queryParams.resultType
-            : SearchResultType.ALL,
+            : SearchResultType.DATA,
     }
 }
 
