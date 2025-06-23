@@ -499,7 +499,7 @@ export class StackedDiscreteBarChart
     // legend props
 
     @computed get legendPaddingTop(): number {
-        return this.baseFontSize
+        return 0.5 * this.baseFontSize
     }
 
     @computed get legendX(): number {
