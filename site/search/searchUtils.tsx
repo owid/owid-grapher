@@ -548,3 +548,25 @@ export function getSelectedTopicType(
         ? SearchTopicType.Area
         : SearchTopicType.Topic
 }
+
+/**
+ * Checks if the search is in browsing mode, which is defined as having no query
+ * and no filters applied.
+ */
+export const isBrowsing = (filters: Filter[], query: string) => {
+    return query.trim() === "" && filters.length === 0
+}
+
+/**
+ * Determines the appropriate result type based on browsing state.
+ * Returns "data" when browsing (no query and no filters), otherwise preserves the current result type.
+ */
+export const getResultTypeIfBrowsing = (
+    filters: Filter[],
+    query: string,
+    currentResultType: SearchResultType
+): SearchResultType => {
+    return isBrowsing(filters, query)
+        ? SearchResultType.DATA
+        : currentResultType
+}

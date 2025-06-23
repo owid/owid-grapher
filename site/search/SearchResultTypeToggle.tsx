@@ -1,6 +1,7 @@
 import { SearchResultType } from "./searchTypes.js"
 import cx from "classnames"
 import { useSearchContext } from "./SearchContext.js"
+import { isBrowsing } from "./searchUtils.js"
 
 const OPTIONS = [
     { value: SearchResultType.ALL, label: "All" },
@@ -13,14 +14,19 @@ export const SearchResultTypeToggle = () => {
         state,
         actions: { setResultType },
     } = useSearchContext()
-    const { resultType: value } = state
+    const { resultType: value, filters, query } = state
+
+    const optionsToShow = isBrowsing(filters, query)
+        ? OPTIONS.filter((option) => option.value !== SearchResultType.ALL)
+        : OPTIONS
+
     return (
         <fieldset
             className="search-result-type-toggle"
             role="radiogroup"
             aria-label="Result type"
         >
-            {OPTIONS.map((option) => (
+            {optionsToShow.map((option) => (
                 <label key={option.value}>
                     <input
                         type="radio"
