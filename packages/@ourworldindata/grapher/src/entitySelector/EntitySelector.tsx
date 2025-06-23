@@ -24,6 +24,7 @@ import {
     checkHasMembers,
     Region,
     getRegionByName,
+    makeSafeForCSS,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -1502,7 +1503,7 @@ export class EntitySelector extends React.Component<{
                             <FlippedListItem
                                 index={entityIndex}
                                 key={entity.name}
-                                flipId={"selected_" + entity.name}
+                                flipId={`selected_${makeSafeForCSS(entity.name)}`}
                             >
                                 <SelectableEntity
                                     name={entity.name}
@@ -1544,7 +1545,7 @@ export class EntitySelector extends React.Component<{
                                     <FlippedListItem
                                         index={entityIndex}
                                         key={entity.name}
-                                        flipId={"available_" + entity.name}
+                                        flipId={`available_${makeSafeForCSS(entity.name)}`}
                                     >
                                         <SelectableEntity
                                             name={entity.name}
