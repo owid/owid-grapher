@@ -6,8 +6,13 @@ import { useState } from "react"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedTopic } from "./searchHooks.js"
 import { getSelectableTopics } from "./searchUtils.js"
+import { SearchTopicType } from "./searchTypes.js"
 
-export const SearchTopicsRefinementList = () => {
+export const SearchTopicsRefinementList = ({
+    topicType,
+}: {
+    topicType: SearchTopicType | null
+}) => {
     const {
         actions: { setTopic },
         topicTagGraph,
@@ -23,7 +28,11 @@ export const SearchTopicsRefinementList = () => {
     return selectableTopics.length > 0 && !query ? (
         <div className="search-topics-refinement-list span-cols-9 col-start-2">
             <h3 className="data-catalog-ribbons__refinements-heading h5-black-caps">
-                All areas of research
+                Filter by{" "}
+                {topicType === SearchTopicType.Area
+                    ? "topic"
+                    : "area of research"}
+                :
             </h3>
             <button
                 aria-expanded={isExpanded}
