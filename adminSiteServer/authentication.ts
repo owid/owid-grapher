@@ -216,7 +216,7 @@ export function getSafeRedirectUrl(nextUrl: string | undefined) {
                 `Invalid redirect URL: ${nextUrl}. Redirecting to /admin.`
             )
         }
-        return redirectUrl.pathname
+        return redirectUrl.pathname + redirectUrl.search + redirectUrl.hash
     } catch (err) {
         console.error(err)
         return "/admin"
