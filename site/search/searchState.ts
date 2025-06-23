@@ -55,7 +55,7 @@ export function searchReducer(
         .with({ type: "setQuery" }, ({ query }) => ({
             ...state,
             page: 0,
-            query,
+            query: query.trim(),
         }))
         .with({ type: "addFilter" }, ({ filter }) =>
             handleAddFilter(state, filter)
