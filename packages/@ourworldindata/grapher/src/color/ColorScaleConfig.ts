@@ -125,9 +125,6 @@ export class ColorScaleConfig
                 })
         }
 
-        // TODO: once Grammar#parse() is called for all values, we can remove parseFloat() here
-        // See issue: https://www.notion.so/owid/ColumnGrammar-parse-function-does-not-get-applied-67b578b8af7642c5859a1db79c8d5712
-
         const customNumericColorsActive =
             customNumericColors.length > 0 ? true : undefined
 
