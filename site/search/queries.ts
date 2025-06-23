@@ -30,7 +30,7 @@ export const searchQueryKeys = {
     topicTagGraph: ["topicTagGraph"] as const,
     // Base key for all data catalog queries
     data: [SearchIndexName.ExplorerViewsMdimViewsAndCharts] as const,
-    charts: (state: Omit<SearchState, "page">) =>
+    charts: (state: SearchState) =>
         [...searchQueryKeys.data, "charts", state] as const,
     topics: (state: SearchState) =>
         [...searchQueryKeys.data, "topics", state] as const,
