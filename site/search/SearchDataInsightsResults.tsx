@@ -1,23 +1,20 @@
 import { SearchAsDraft } from "./SearchAsDraft.js"
 import { DataInsightHit, SearchDataInsightResponse } from "./searchTypes.js"
-import { useQuery } from "@tanstack/react-query"
 import { queryDataInsights, searchQueryKeys } from "./queries.js"
-import { useSearchContext } from "./SearchContext.js"
 import { SearchDataInsightHit } from "./SearchDataInsightHit.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
+import { SearchShowMore } from "./SearchShowMore.js"
+import { useInfiniteSearch } from "./searchHooks.js"
 
 export function SearchDataInsightsResults() {
-    const { state, searchClient } = useSearchContext()
-
-    const query = useQuery<SearchDataInsightResponse, Error>({
-        queryKey: [searchQueryKeys.dataInsights(state)],
-        queryFn: () => queryDataInsights(searchClient, state),
+    const query = useInfiniteSearch<SearchDataInsightResponse, DataInsightHit>({
+        queryKey: (state) => searchQueryKeys.dataInsights(state),
+        queryFn: queryDataInsights,
     })
 
-    const nbHits = query.data?.nbHits || 0
-    if (nbHits === 0) return null
+    const { hits, totalResults } = query
 
-    const hits = query.data?.hits || []
+    if (totalResults === 0) return null
 
     return (
         <SearchAsDraft
@@ -25,7 +22,10 @@ export function SearchDataInsightsResults() {
             className="grid span-cols-12 col-start-2"
         >
             <section className="search-data-insights-results span-cols-12">
-                <SearchResultHeader title="Data Insights" count={nbHits} />
+                <SearchResultHeader
+                    title="Data Insights"
+                    count={totalResults}
+                />
                 <div className="search-data-insights-results__hits grid">
                     {hits.map((hit: DataInsightHit) => (
                         <SearchDataInsightHit
@@ -36,6 +36,12 @@ export function SearchDataInsightsResults() {
                     ))}
                 </div>
             </section>
+            <SearchShowMore
+                hasNextPage={query.hasNextPage ?? false}
+                isFetchingNextPage={query.isFetchingNextPage}
+                fetchNextPage={query.fetchNextPage}
+                className="span-cols-12"
+            />
         </SearchAsDraft>
     )
 }
