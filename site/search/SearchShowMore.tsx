@@ -7,7 +7,7 @@ export const SearchShowMore = ({
     fetchNextPage,
     className,
 }: {
-    hasNextPage: boolean | undefined
+    hasNextPage: boolean
     isFetchingNextPage: boolean
     fetchNextPage: () => void
     className?: string

@@ -1,33 +1,57 @@
-import { useQuery } from "@tanstack/react-query"
-import { getCanonicalUrl } from "@ourworldindata/components"
-import { ArticleHit, TopicPageHit } from "./searchTypes.js"
+import {
+    ArticleHit,
+    SearchArticleResponse,
+    SearchTopicPageResponse,
+    TopicPageHit,
+} from "./searchTypes.js"
 import { searchQueryKeys, queryArticles, queryTopicPages } from "./queries.js"
-import { useSearchContext } from "./SearchContext.js"
 import { SearchAsDraft } from "./SearchAsDraft.js"
 import DataInsightDateline from "../gdocs/components/DataInsightDateline.js"
 import { Snippet } from "react-instantsearch"
 import { OwidGdocType } from "@ourworldindata/types"
 import { formatAuthors } from "@ourworldindata/utils"
 import { SearchResultHeader } from "./SearchResultHeader.js"
+import { getCanonicalUrl } from "@ourworldindata/components"
+import { useInfiniteSearch } from "./searchHooks.js"
+import { SearchShowMore } from "./SearchShowMore.js"
 
 export const SearchWritingResults = () => {
-    const { state, searchClient } = useSearchContext()
-
-    const articlesQuery = useQuery({
-        queryKey: searchQueryKeys.articles(state),
-        queryFn: () => queryArticles(searchClient, state),
+    const articlesQuery = useInfiniteSearch<SearchArticleResponse, ArticleHit>({
+        queryKey: (state) => searchQueryKeys.articles(state),
+        queryFn: queryArticles,
     })
 
-    const topicPagesQuery = useQuery({
-        queryKey: searchQueryKeys.topicPages(state),
-        queryFn: () => queryTopicPages(searchClient, state),
+    const topicPagesQuery = useInfiniteSearch<
+        SearchTopicPageResponse,
+        TopicPageHit
+    >({
+        queryKey: (state) => searchQueryKeys.topicPages(state),
+        queryFn: queryTopicPages,
     })
 
-    const articles = articlesQuery.data?.hits || []
-    const topicPages = topicPagesQuery.data?.hits || []
+    const articles = articlesQuery.hits
+    const topicPages = topicPagesQuery.hits
 
     const totalCount =
-        (articlesQuery.data?.nbHits || 0) + (topicPagesQuery.data?.nbHits || 0)
+        (articlesQuery.totalResults || 0) + (topicPagesQuery.totalResults || 0)
+
+    // Combined "show more" logic
+    const hasNextPage =
+        (articlesQuery.hasNextPage ?? false) ||
+        (topicPagesQuery.hasNextPage ?? false)
+
+    const isFetchingNextPage =
+        articlesQuery.isFetchingNextPage || topicPagesQuery.isFetchingNextPage
+
+    const fetchNextPage = () =>
+        Promise.all([
+            articlesQuery.hasNextPage
+                ? articlesQuery.fetchNextPage()
+                : undefined,
+            topicPagesQuery.hasNextPage
+                ? topicPagesQuery.fetchNextPage()
+                : undefined,
+        ])
 
     if (totalCount === 0) return null
 
@@ -68,6 +92,11 @@ export const SearchWritingResults = () => {
                         </div>
                     )}
                 </div>
+                <SearchShowMore
+                    hasNextPage={hasNextPage}
+                    isFetchingNextPage={isFetchingNextPage}
+                    fetchNextPage={fetchNextPage}
+                />
             </div>
         </SearchAsDraft>
     )
