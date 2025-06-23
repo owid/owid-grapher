@@ -1,3 +1,8 @@
+// see https://github.com/owid/owid-grapher/issues/4982
+.search-writing-results__hit-excerpt {
+    overflow-wrap: anywhere;
+}
+
 .search-writing-results {
     &__container {
         display: grid;
