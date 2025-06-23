@@ -53,6 +53,7 @@ $zindex-controls-drawer: 150;
 .GrapherComponent {
     @import "../controls/CommandPalette.scss";
     @import "../controls/Controls.scss";
+    @import "../popover/Popover.scss";
     @import "../controls/SettingsMenu.scss";
     @import "../controls/MapRegionDropdown.scss";
     @import "../controls/MapCountryDropdown.scss";
