@@ -44,16 +44,17 @@ export const TopicsRefinementList = ({
                 })}
             >
                 {entries.map(([facetName, count], i) => {
+                    const facetNameLabel = facetName.replace(" and ", " & ")
                     const isLast = i === entries.length - 1
                     return (
                         <React.Fragment key={i}>
                             <li className="data-catalog-refinement-list__list-item">
                                 <button
-                                    aria-label={`Filter by ${facetName}`}
+                                    aria-label={`Filter by ${facetNameLabel}`}
                                     onClick={() => addTopic(facetName)}
                                 >
                                     <span className="body-3-bold">
-                                        {facetName}
+                                        {facetNameLabel}
                                     </span>{" "}
                                     <span className="body-3-regular">
                                         ({commafyNumber(count)})

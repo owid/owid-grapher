@@ -18,9 +18,10 @@ export const DataCatalogRibbon = ({
     selectedCountries: Region[]
 }) => {
     if (result.nbHits === 0) return null
+    const titleLabel = result.title.replace(" and ", " & ")
     const handleAddTopicClick = (e: React.MouseEvent) => {
         e.preventDefault()
-        addTopic(result.title)
+        addTopic(titleLabel)
         window.scrollTo({
             top: 0,
         })
@@ -30,11 +31,11 @@ export const DataCatalogRibbon = ({
         <div className="data-catalog-ribbon col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-13">
             <button
                 className="data-catalog-ribbon__header-button"
-                aria-label={`Add topic ${result.title} to filters`}
+                aria-label={`Add topic ${titleLabel} to filters`}
                 onClick={handleAddTopicClick}
             >
                 <div className="data-catalog-ribbon__header">
-                    <h2 className="body-1-regular">{result.title}</h2>
+                    <h2 className="body-1-regular">{titleLabel}</h2>
                     <span className="data-catalog-ribbon__hit-count body-2-semibold">
                         {commafyNumber(result.nbHits)}{" "}
                         {result.nbHits === 1 ? "chart" : "charts"}
@@ -56,7 +57,7 @@ export const DataCatalogRibbon = ({
                                         hit,
                                         i + 1,
                                         "ribbon",
-                                        result.title
+                                        titleLabel
                                     )
                                 }}
                                 searchQueryRegionsMatches={selectedCountries}
@@ -67,7 +68,7 @@ export const DataCatalogRibbon = ({
             </div>
             <button
                 className="data-catalog-ribbon__see-all-button"
-                aria-label={`Add ${result.title} to filters`}
+                aria-label={`Add ${titleLabel} to filters`}
                 onClick={handleAddTopicClick}
             >
                 {result.nbHits === 1
