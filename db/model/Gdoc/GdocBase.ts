@@ -18,7 +18,6 @@ import {
     BreadcrumbItem,
     OwidGdocMinimalPostInterface,
     urlToSlug,
-    grabMetadataForGdocLinkedIndicator,
     GRAPHER_TAB_OPTIONS,
     DbInsertPostGdocLink,
     DbPlainTag,
@@ -44,10 +43,7 @@ import {
 } from "./gdocUtils.js"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
-import {
-    getVariableMetadata,
-    getVariableOfDatapageIfApplicable,
-} from "../Variable.js"
+import { getDatapageIndicatorId } from "../Variable.js"
 import { createLinkForNarrativeChart, createLinkFromUrl } from "../Link.js"
 import {
     getMultiDimDataPageBySlug,
@@ -66,6 +62,10 @@ import {
     OwidGdoc,
     OwidGdocContent,
     OwidGdocType,
+    DbRawVariable,
+    VariablesTableName,
+    parseVariableDisplayConfig,
+    joinTitleFragments,
 } from "@ourworldindata/types"
 import {
     getAllNarrativeChartNames,
@@ -73,6 +73,39 @@ import {
 } from "../NarrativeChart.js"
 import { indexBy } from "remeda"
 import { getDods } from "../Dod.js"
+
+export async function getLinkedIndicatorsForCharts(
+    knex: db.KnexReadonlyTransaction,
+    indicatorsWithTitles: Array<{ indicatorId: number; chartTitle: string }>
+): Promise<LinkedIndicator[]> {
+    if (indicatorsWithTitles.length === 0) return []
+    const indicatorIds = indicatorsWithTitles.map((item) => item.indicatorId)
+    const rows = await knex<DbRawVariable>(VariablesTableName)
+        .select(
+            "id",
+            "name",
+            "display",
+            "titlePublic",
+            "attributionShort",
+            "titleVariant"
+        )
+        .whereIn("id", indicatorIds)
+    const metadataById = new Map(rows.map((row) => [row.id, row]))
+    return indicatorsWithTitles.map(({ indicatorId, chartTitle }) => {
+        const row = metadataById.get(indicatorId)
+        if (!row) {
+            throw new Error(`Variable with id ${indicatorId} not found`)
+        }
+        const display = parseVariableDisplayConfig(row.display)
+        const title =
+            row.titlePublic || chartTitle || display?.name || row.name || ""
+        const attributionShort = joinTitleFragments(
+            row.attributionShort ?? undefined,
+            row.titleVariant ?? undefined
+        )
+        return { id: indicatorId, title, attributionShort }
+    })
+}
 
 export class GdocBase implements OwidGdocBaseInterface {
     id!: string
@@ -674,7 +707,11 @@ export class GdocBase implements OwidGdocBaseInterface {
                 if (chartId) {
                     const chart = await getChartConfigById(knex, chartId)
                     if (!chart) return
-                    return makeGrapherLinkedChart(chart.config, originalSlug)
+                    return makeGrapherLinkedChart(
+                        knex,
+                        chart.config,
+                        originalSlug
+                    )
                 } else {
                     const multiDim = await getMultiDimDataPageBySlug(
                         knex,
@@ -707,23 +744,23 @@ export class GdocBase implements OwidGdocBaseInterface {
         )
     }
 
-    async loadLinkedIndicators(): Promise<void> {
-        const linkedIndicators = await Promise.all(
-            this.linkedKeyIndicatorSlugs.map(async (originalSlug) => {
-                const linkedChart = this.linkedCharts[originalSlug]
-                if (!linkedChart || !linkedChart.indicatorId) return
-                const metadata = await getVariableMetadata(
-                    linkedChart.indicatorId
-                )
-                const linkedIndicator: LinkedIndicator = {
-                    id: linkedChart.indicatorId,
-                    ...grabMetadataForGdocLinkedIndicator(metadata, {
-                        chartConfigTitle: linkedChart.title,
-                    }),
-                }
-                return linkedIndicator
+    async loadLinkedIndicators(
+        knex: db.KnexReadonlyTransaction
+    ): Promise<void> {
+        const indicatorsWithTitles = []
+        for (const originalSlug of this.linkedKeyIndicatorSlugs) {
+            const linkedChart = this.linkedCharts[originalSlug]
+            if (!linkedChart?.indicatorId) continue
+            indicatorsWithTitles.push({
+                indicatorId: linkedChart.indicatorId,
+                chartTitle: linkedChart.title,
             })
-        ).then(excludeNullish)
+        }
+
+        const linkedIndicators = await getLinkedIndicatorsForCharts(
+            knex,
+            indicatorsWithTitles
+        )
 
         this.linkedIndicators = keyBy(linkedIndicators, "id")
     }
@@ -951,7 +988,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         await this.loadLinkedDocuments(knex)
         await this.loadImageMetadataFromDB(knex)
         await this.loadLinkedCharts(knex)
-        await this.loadLinkedIndicators() // depends on linked charts
+        await this.loadLinkedIndicators(knex) // depends on linked charts
         await this.loadNarrativeChartsInfo(knex)
         await this._loadSubclassAttachments(knex)
         await this.validate(knex)
@@ -1052,6 +1089,7 @@ export async function getMinimalAuthorsByNames(
 }
 
 export async function makeGrapherLinkedChart(
+    knex: db.KnexReadonlyTransaction,
     config: GrapherInterface,
     originalSlug: string
 ): Promise<LinkedChart> {
@@ -1063,7 +1101,7 @@ export async function makeGrapherLinkedChart(
     }).plaintext
     const resolvedUrl = `${BAKED_GRAPHER_URL}/${resolvedSlug}`
     const tab = config.tab ?? GRAPHER_TAB_OPTIONS.chart
-    const datapageIndicator = await getVariableOfDatapageIfApplicable(config)
+    const indicatorId = await getDatapageIndicatorId(knex, config)
     return {
         configType: ChartConfigType.Grapher,
         originalSlug,
@@ -1073,7 +1111,7 @@ export async function makeGrapherLinkedChart(
         resolvedUrl,
         thumbnail: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${resolvedSlug}.png`,
         tags: [],
-        indicatorId: datapageIndicator?.id,
+        indicatorId,
     }
 }
 
