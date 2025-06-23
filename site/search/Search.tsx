@@ -70,6 +70,8 @@ export const Search = ({
         return [...getAllTopics(topicTagGraph)]
     }, [topicTagGraph])
 
+    const topicType = getSelectedTopicType(state.filters, AREA_NAMES)
+
     const stateAsUrl = searchStateToUrl(state)
 
     useEffect(() => {
@@ -105,7 +107,7 @@ export const Search = ({
 
     const templateConfig: TemplateConfig = {
         resultType: state.resultType,
-        topicType: getSelectedTopicType(state.filters, AREA_NAMES),
+        topicType,
         hasCountry:
             getFilterNamesOfType(state.filters, FilterType.COUNTRY).size > 0,
         hasQuery: state.query.length > 0,
@@ -138,7 +140,7 @@ export const Search = ({
                     availableAreas={AREA_NAMES}
                     availableTopics={ALL_TOPICS}
                 />
-                <SearchTopicsRefinementList />
+                <SearchTopicsRefinementList topicType={topicType} />
                 <SearchAsDraft
                     className="col-start-11 span-cols-3 as-draft--align-self-start"
                     name="Search result type"
