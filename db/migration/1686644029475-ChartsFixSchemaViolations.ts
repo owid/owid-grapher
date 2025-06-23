@@ -1,4 +1,4 @@
-import { cloneDeep } from "lodash-es"
+import * as _ from "lodash-es"
 import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class ChartsFixSchemaViolations1686644029475
@@ -9,7 +9,7 @@ export class ChartsFixSchemaViolations1686644029475
     ): { id: number; config: string }[] {
         const fixedCharts: { id: number; config: string }[] = []
         for (const oldChart of charts) {
-            const chart = cloneDeep(oldChart)
+            const chart = _.cloneDeep(oldChart)
             // Make sure that every chart in the db has an id field in the config
             if (!chart.config.id) {
                 chart.config.id = chart.id

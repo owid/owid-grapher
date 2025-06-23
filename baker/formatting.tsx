@@ -1,5 +1,6 @@
+import * as _ from "lodash-es"
 import * as cheerio from "cheerio"
-import { FormattedPost, Country, capitalize, Url } from "@ourworldindata/utils"
+import { FormattedPost, Country, Url } from "@ourworldindata/utils"
 import { countryProfileDefaultCountryPlaceholder } from "../site/countryProfileProjects.js"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
 import { getBodyHtml } from "../site/formatting.js"
@@ -79,7 +80,7 @@ export const formatImages = ($: CheerioStatic) => {
         }
 
         if (!el.attribs["alt"]) {
-            el.attribs["alt"] = capitalize(
+            el.attribs["alt"] = _.capitalize(
                 originalFilename.replace(/[-_]/g, " ")
             )
         }

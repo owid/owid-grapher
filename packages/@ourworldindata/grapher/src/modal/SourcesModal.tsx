@@ -1,8 +1,7 @@
+import * as _ from "lodash-es"
 import {
     Bounds,
     DEFAULT_BOUNDS,
-    uniq,
-    sum,
     getAttributionFragmentsFromVariable,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
@@ -14,7 +13,6 @@ import {
     joinTitleFragments,
     getCitationShort,
     getCitationLong,
-    uniqBy,
 } from "@ourworldindata/utils"
 import {
     IndicatorSources,
@@ -132,7 +130,7 @@ export class SourcesModal extends React.Component<
         column: CoreColumn
         label: { element: React.ReactElement }
     }[] {
-        const tabs = uniqBy(
+        const tabs = _.uniqBy(
             this.columns.map((column) => {
                 const title = column.titlePublicOrDisplayName.title
                 const attribution = joinTitleFragments(
@@ -213,7 +211,7 @@ export class SourcesModal extends React.Component<
         )
 
         // check if all tab labels fit into a single line
-        if (sum(this.tabLabelWidths) <= maxWidth) {
+        if (_.sum(this.tabLabelWidths) <= maxWidth) {
             return (
                 <Tabs
                     labels={this.tabLabels}
@@ -228,7 +226,7 @@ export class SourcesModal extends React.Component<
         )
 
         // check if all tab labels fit into a single line when they are clipped
-        if (sum(clippedLabelWidths) <= maxWidth) {
+        if (_.sum(clippedLabelWidths) <= maxWidth) {
             return (
                 <Tabs
                     labels={this.tabLabels}
@@ -406,7 +404,7 @@ export class Source extends React.Component<{
 
     @computed private get producers(): string[] {
         if (!this.def.origins) return []
-        return uniq(excludeUndefined(this.def.origins.map((o) => o.producer)))
+        return _.uniq(excludeUndefined(this.def.origins.map((o) => o.producer)))
     }
 
     @computed get attributions(): string | undefined {

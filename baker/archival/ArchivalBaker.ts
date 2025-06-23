@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     ArchiveMetaInformation,
     ArchiveSiteNavigationInfo,
@@ -13,7 +14,6 @@ import {
     UrlAndMaybeDate,
 } from "@ourworldindata/types"
 import fs from "fs-extra"
-import { keyBy } from "lodash-es"
 import path from "path"
 import * as db from "../../db/db.js"
 import { getAllImages } from "../../db/model/Image.js"
@@ -304,7 +304,7 @@ export const createCommonArchivalContext = async (
     const { staticAssetMap } = await bakeAssets(archiveDir)
     const commonRuntimeFiles = await bakeDods(knex, archiveDir)
     const imageMetadataDictionary = await getAllImages(knex).then((images) =>
-        keyBy(images, "filename")
+        _.keyBy(images, "filename")
     )
 
     return {
@@ -328,7 +328,7 @@ export const bakeArchivalGrapherPagesToFolder = async (
     const latestArchivalVersions = await getLatestGrapherArchivedVersionsFromDb(
         knex,
         grapherIds
-    ).then((rows) => keyBy(rows, (v) => v.grapherId))
+    ).then((rows) => _.keyBy(rows, (v) => v.grapherId))
 
     await fs.mkdirp(path.join(commonCtx.archiveDir, "grapher"))
     console.log(`Baking grapher pages locally to dir '${commonCtx.archiveDir}'`)
@@ -388,7 +388,7 @@ export const bakeArchivalMultiDimPagesToFolder = async (
     )
     const latestArchivalVersions =
         await getLatestMultiDimArchivedVersionsFromDb(knex, multiDimIds).then(
-            (rows) => keyBy(rows, (v) => v.multiDimId)
+            (rows) => _.keyBy(rows, (v) => v.multiDimId)
         )
 
     let i = 0

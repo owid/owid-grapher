@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
@@ -35,14 +36,11 @@ import {
 import {
     Bounds,
     ColumnSlug,
-    debounce,
     DEFAULT_BOUNDS,
     DimensionProperty,
     excludeUndefined,
     exposeInstanceOnWindow,
-    identity,
     isInIFrame,
-    keyBy,
     keyMap,
     mergeGrapherConfigs,
     omitUndefinedValues,
@@ -52,8 +50,6 @@ import {
     SerializedGridProgram,
     setWindowUrl,
     Tippy,
-    uniq,
-    uniqBy,
     Url,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
@@ -369,7 +365,7 @@ export class Explorer
 
     private attachEventListeners() {
         if (typeof window !== "undefined" && "ResizeObserver" in window) {
-            const onResizeThrottled = debounce(this.onResize, 200, {
+            const onResizeThrottled = _.debounce(this.onResize, 200, {
                 leading: true,
             })
             const resizeObserver = new ResizeObserver(onResizeThrottled)
@@ -521,7 +517,7 @@ export class Explorer
         OwidColumnDef
     > {
         const { columnDefsWithoutTableSlug } = this.explorerProgram
-        return keyBy(
+        return _.keyBy(
             columnDefsWithoutTableSlug,
             (def: OwidColumnDef) => def.owidVariableId ?? def.slug
         )
@@ -692,13 +688,15 @@ export class Explorer
         //      referred to in any Grapher row)
 
         // all slugs specified by the author in the explorer config
-        const uniqueSlugsInGrapherRow = uniq(
-            [...ySlugs.split(" "), xSlug, colorSlug, sizeSlug].filter(identity)
+        const uniqueSlugsInGrapherRow = _.uniq(
+            [...ySlugs.split(" "), xSlug, colorSlug, sizeSlug].filter(
+                _.identity
+            )
         ) as string[]
 
         // find all variables that the transformed columns depend on and add them to the dimensions array
         if (uniqueSlugsInGrapherRow.length) {
-            const baseVariableIds = uniq(
+            const baseVariableIds = _.uniq(
                 uniqueSlugsInGrapherRow.flatMap((slug) =>
                     this.getBaseVariableIdsForColumnWithTransform(slug)
                 )
@@ -724,7 +722,7 @@ export class Explorer
         this.inputTableTransformer = (table: OwidTable) => {
             // add transformed (and intermediate) columns to the grapher table
             if (uniqueSlugsInGrapherRow.length) {
-                const allColumnSlugs = uniq(
+                const allColumnSlugs = _.uniq(
                     uniqueSlugsInGrapherRow.flatMap((slug) => [
                         ...this.getBaseColumnsForColumnWithTransform(slug),
                         slug,
@@ -739,7 +737,7 @@ export class Explorer
                         (slug) =>
                             this.columnDefsWithoutTableSlugByIdOrSlug[slug]
                     )
-                    .filter(identity)
+                    .filter(_.identity)
                 table = table.appendColumns(requiredColumnDefs)
             }
 
@@ -865,7 +863,7 @@ export class Explorer
         // There is a surprisingly considerable performance overhead to updating the url
         // while animating, so we debounce to allow e.g. smoother timelines
         const pushParams = () => setWindowUrl(this.currentUrl)
-        const debouncedPushParams = debounce(pushParams, 100)
+        const debouncedPushParams = _.debounce(pushParams, 100)
 
         this.disposers.push(
             reaction(
@@ -1163,7 +1161,7 @@ export class Explorer
     }
 
     @computed get entityPickerColumnDefs(): CoreColumnDef[] {
-        const allColumnDefs = uniqBy(
+        const allColumnDefs = _.uniqBy(
             Array.from(
                 this.explorerProgram.columnDefsByTableSlug.values()
             ).flat(),

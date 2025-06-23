@@ -1,6 +1,7 @@
+import * as _ from "lodash-es"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
 import { stringify } from "safe-stable-stringify"
-import { omit, OwidGdoc } from "@ourworldindata/utils"
+import { OwidGdoc } from "@ourworldindata/utils"
 import { GDOC_DIFF_OMITTABLE_PROPERTIES } from "./constants.js"
 
 export const GdocsDiff = ({
@@ -12,12 +13,12 @@ export const GdocsDiff = ({
 }) => (
     <ReactDiffViewer
         oldValue={stringify(
-            omit(originalGdoc, GDOC_DIFF_OMITTABLE_PROPERTIES),
+            _.omit(originalGdoc, GDOC_DIFF_OMITTABLE_PROPERTIES),
             null,
             2
         )}
         newValue={stringify(
-            omit(currentGdoc, GDOC_DIFF_OMITTABLE_PROPERTIES),
+            _.omit(currentGdoc, GDOC_DIFF_OMITTABLE_PROPERTIES),
             null,
             2
         )}

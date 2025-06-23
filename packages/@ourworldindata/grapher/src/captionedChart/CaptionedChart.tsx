@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -5,7 +6,6 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     exposeInstanceOnWindow,
-    isEmpty,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
@@ -570,7 +570,7 @@ export class StaticCaptionedChart extends CaptionedChart {
 
         const includeDetailsInStaticExport =
             manager.shouldIncludeDetailsInStaticExport &&
-            !isEmpty(this.manager.detailRenderers)
+            !_.isEmpty(this.manager.detailRenderers)
 
         return (
             <svg

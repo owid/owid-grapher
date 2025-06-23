@@ -1,10 +1,10 @@
+import * as _ from "lodash-es"
 import {
     ChartConfigsTableName,
     DbEnrichedMultiDimDataPage,
     DbPlainMultiDimXChartConfig,
     DbRawChartConfig,
     getUniqueNamesFromTagHierarchies,
-    merge,
     multiDimDimensionsToViewId,
     MultiDimXChartConfigsTableName,
     parseChartConfig,
@@ -77,7 +77,7 @@ async function getRecords(
         }
         const queryStr = queryParamsToStr(view.dimensions)
         const variableId = view.indicators.y[0].id
-        const metadata = merge(
+        const metadata = _.merge(
             relevantVariableMetadata[variableId],
             multiDim.config.metadata,
             view.metadata

@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -19,7 +20,6 @@ import {
 } from "@ourworldindata/types"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
-    isNumber,
     PrimitiveType,
     excludeUndefined,
     anyToString,
@@ -148,7 +148,7 @@ export class MapTooltip
             const customValueLabel = formatValueIfCustom(datum.value)
             if (customValueLabel !== undefined) {
                 valueLabel = customValueLabel
-            } else if (isNumber(datum.value)) {
+            } else if (_.isNumber(datum.value)) {
                 valueLabel = mapColumn?.formatValueShort(datum.value)
                 isValueLabelRounded = true
             } else {

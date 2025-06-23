@@ -1,4 +1,4 @@
-import { uniq } from "lodash-es"
+import * as _ from "lodash-es"
 
 import {
     defaultGrapherConfig,
@@ -243,7 +243,7 @@ export async function upsertMultiDim(
     )
     const variableConfigs = await getMergedGrapherConfigsForVariables(
         knex,
-        uniq(config.views.map((view) => view.indicators.y[0].id))
+        _.uniq(config.views.map((view) => view.indicators.y[0].id))
     )
     const existingViewIdsToChartConfigIds = await getViewIdToChartConfigIdMap(
         knex,

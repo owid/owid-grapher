@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { Fragment } from "react"
 import { Head } from "./Head.js"
 import { CitationMeta } from "./CitationMeta.js"
@@ -14,7 +15,6 @@ import {
     TocHeading,
     formatAuthors,
     formatAuthorsForBibtex,
-    omit,
 } from "@ourworldindata/utils"
 import { FormattingOptions } from "@ourworldindata/types"
 import { BreadcrumbsFromSubnav } from "./Breadcrumb/Breadcrumb.js"
@@ -87,7 +87,7 @@ export const LongFormPage = (props: {
     }
 
     const tocHeadingsNoHtml: Array<Omit<TocHeading, "html">> = tocHeadings.map(
-        (tocHeading) => omit(tocHeading, "html")
+        (tocHeading) => _.omit(tocHeading, "html")
     )
 
     const bodyClasses = []

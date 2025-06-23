@@ -5,6 +5,7 @@
  *
  */
 
+import * as _ from "lodash-es"
 import {
     type RawPageview,
     ChartRedirect,
@@ -12,8 +13,6 @@ import {
     GrapherInterface,
     getParentVariableIdFromChartConfig,
     mergeGrapherConfigs,
-    isEmpty,
-    omit,
     NARRATIVE_CHART_PROPS_TO_OMIT,
 } from "@ourworldindata/utils"
 import { DbChartTagJoin } from "@ourworldindata/types"
@@ -215,7 +214,7 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     ): Promise<{ success: boolean; errorMsg?: string }> {
         const { patchConfig, grapherState } = this
 
-        const chartJson = omit(patchConfig, NARRATIVE_CHART_PROPS_TO_OMIT)
+        const chartJson = _.omit(patchConfig, NARRATIVE_CHART_PROPS_TO_OMIT)
 
         const body = {
             type: "chart",
@@ -273,7 +272,7 @@ export async function fetchMergedGrapherConfigByVariableId(
     const indicatorChart = await admin.getJSON(
         `/api/variables/mergedGrapherConfig/${indicatorId}.json`
     )
-    return isEmpty(indicatorChart) ? undefined : indicatorChart
+    return _.isEmpty(indicatorChart) ? undefined : indicatorChart
 }
 
 export function isChartEditorInstance(

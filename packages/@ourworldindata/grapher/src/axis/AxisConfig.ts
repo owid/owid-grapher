@@ -1,6 +1,6 @@
+import * as _ from "lodash-es"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import {
-    extend,
     trimObject,
     deleteRuntimeAndUnchangedProps,
     Persistable,
@@ -77,7 +77,7 @@ export class AxisConfig
 
     // todo: test/refactor
     updateFromObject(props?: AxisConfigInterface): void {
-        if (props) extend(this, props)
+        if (props) _.extend(this, props)
         if (props?.min) this.min = parseMinFromJSON(props?.min)
         if (props?.max) this.max = parseMaxFromJSON(props?.max)
     }

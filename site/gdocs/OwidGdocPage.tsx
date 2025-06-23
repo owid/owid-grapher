@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
@@ -9,7 +10,6 @@ import {
     SiteFooterContext,
     OwidGdocType,
     spansToUnformattedPlainText,
-    get,
     extractGdocPageData,
     OwidGdocPageData,
 } from "@ourworldindata/utils"
@@ -184,7 +184,7 @@ export default function OwidGdocPage({
     ) {
         imageUrl = `${baseUrl}/${ARCHVED_THUMBNAIL_FILENAME}`
     } else if (featuredImageFilename) {
-        const cloudflareId = get(gdoc, [
+        const cloudflareId = _.get(gdoc, [
             "imageMetadata",
             featuredImageFilename,
             "cloudflareId",

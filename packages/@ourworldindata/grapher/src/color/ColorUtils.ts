@@ -1,7 +1,7 @@
+import * as _ from "lodash-es"
 import { Color } from "@ourworldindata/types"
 import { rgb, color, RGBColor } from "d3-color"
 import { interpolate } from "d3-interpolate"
-import { difference, groupBy, minBy } from "@ourworldindata/utils"
 
 export const interpolateArray = (
     scaleArr: string[]
@@ -30,15 +30,15 @@ export function getLeastUsedColor(
     usedColors: Color[]
 ): Color | undefined {
     // If there are unused colors, return the first available
-    const unusedColors = difference(availableColors, usedColors)
+    const unusedColors = _.difference(availableColors, usedColors)
     if (unusedColors.length > 0) return unusedColors[0]
 
     // If all colors are used, we want to count the times each color is used, and use the most
     // unused one.
-    const colorCounts = Object.entries(groupBy(usedColors)).map(
+    const colorCounts = Object.entries(_.groupBy(usedColors)).map(
         ([color, arr]): any[] => [color, arr.length]
     )
-    const mostUnusedColor = minBy(colorCounts, ([, count]) => count) as [
+    const mostUnusedColor = _.minBy(colorCounts, ([, count]) => count) as [
         string,
         number,
     ]

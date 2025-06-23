@@ -1,5 +1,5 @@
+import * as _ from "lodash-es"
 import { BodyDiv } from "../bodyDiv/BodyDiv"
-import { sortBy } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
 import * as React from "react"
 
@@ -36,7 +36,7 @@ export class CommandPalette extends React.Component<{
         const commands = this.props.commands.filter(
             (command) => command.title && command.category
         )
-        const sortedCommands = sortBy(commands, "category").map(
+        const sortedCommands = _.sortBy(commands, "category").map(
             (command, index) => {
                 let cat = undefined
                 if (command.category !== lastCat) {

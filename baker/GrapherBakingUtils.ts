@@ -1,9 +1,10 @@
+import * as _ from "lodash-es"
 import fs from "fs-extra"
 import { glob } from "glob"
 import * as R from "remeda"
 
 import * as db from "../db/db.js"
-import { DbPlainTag, Url, without } from "@ourworldindata/utils"
+import { DbPlainTag, Url } from "@ourworldindata/utils"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 import { hashMd5 } from "../serverUtils/hash.js"
 
@@ -88,7 +89,7 @@ export async function deleteOldGraphers(
         .map((slug) =>
             slug.replace(`${bakedSiteDir}/grapher/`, "").replace(".html", "")
         )
-    const toRemove = without(oldSlugs, ...newSlugs)
+    const toRemove = _.without(oldSlugs, ...newSlugs)
         // do not delete grapher slugs redirected to explorers
         .filter((slug) => !isPathRedirectedToExplorer(`/grapher/${slug}`))
     for (const slug of toRemove) {

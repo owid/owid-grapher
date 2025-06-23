@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as R from "remeda"
 import { Component, Fragment } from "react"
 import { action, computed, runInAction } from "mobx"
@@ -18,7 +19,6 @@ import {
     CategoricalBin,
     binningStrategyLabels,
 } from "@ourworldindata/grapher"
-import { clone, noop } from "@ourworldindata/utils"
 import {
     Section,
     Toggle,
@@ -315,7 +315,7 @@ class BinLabelView extends Component<{
             scale.config.customNumericLabels[index] = value
         } else {
             const { scale, bin } = this.props
-            const customCategoryLabels = clone(
+            const customCategoryLabels = _.clone(
                 scale.config.customCategoryLabels
             )
             customCategoryLabels[bin.value] = value
@@ -499,7 +499,7 @@ class CategoricalBinView extends Component<{
             scale.config.customNumericColorsActive = true
         }
 
-        const customCategoryColors = clone(scale.config.customCategoryColors)
+        const customCategoryColors = _.clone(scale.config.customCategoryColors)
         if (color === undefined) delete customCategoryColors[bin.value]
         else customCategoryColors[bin.value] = color
         scale.config.customCategoryColors = customCategoryColors
@@ -508,7 +508,7 @@ class CategoricalBinView extends Component<{
 
     @action.bound onLabel(value: string) {
         const { scale, bin } = this.props
-        const customCategoryLabels = clone(scale.config.customCategoryLabels)
+        const customCategoryLabels = _.clone(scale.config.customCategoryLabels)
         customCategoryLabels[bin.value] = value
         scale.config.customCategoryLabels = customCategoryLabels
         this.props.onChange?.()
@@ -517,7 +517,7 @@ class CategoricalBinView extends Component<{
     @action.bound onToggleHidden() {
         const { scale, bin } = this.props
 
-        const customHiddenCategories = clone(
+        const customHiddenCategories = _.clone(
             scale.config.customHiddenCategories
         )
         if (bin.isHidden) delete customHiddenCategories[bin.value]
@@ -536,7 +536,7 @@ class CategoricalBinView extends Component<{
                     onColor={this.onColor}
                     showLineChartColors={this.props.showLineChartColors}
                 />
-                <TextField value={bin.value} disabled={true} onValue={noop} />
+                <TextField value={bin.value} disabled={true} onValue={_.noop} />
                 <Toggle
                     label="Hide"
                     value={!!bin.isHidden}

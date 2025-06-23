@@ -1,11 +1,11 @@
 // Original work from https://github.com/rdmurphy/doc-to-archieml
 // Forked and expanded in https://github.com/owid/doc-to-archieml
+import * as _ from "lodash-es"
 import { type docs_v1 } from "@googleapis/docs"
 import {
     Span,
     RawBlockHorizontalRule,
     RawBlockHeading,
-    isNil,
     RawBlockTableRow,
     RawBlockTableCell,
     RawBlockText,
@@ -21,7 +21,7 @@ function paragraphToString(
     let text = ""
 
     // this is a list
-    const needsBullet = !isNil(paragraph.bullet)
+    const needsBullet = !_.isNil(paragraph.bullet)
     if (needsBullet && !context.isInList) {
         context.isInList = true
         text += `\n[.list]\n`

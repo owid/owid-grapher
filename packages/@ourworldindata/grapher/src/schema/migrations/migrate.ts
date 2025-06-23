@@ -1,5 +1,5 @@
+import * as _ from "lodash-es"
 import { GrapherInterface } from "@ourworldindata/types"
-import { cloneDeep } from "@ourworldindata/utils"
 
 import { defaultGrapherConfig } from "../defaultGrapherConfig"
 import {
@@ -40,7 +40,7 @@ export const migrateGrapherConfigToLatestVersion = (
 
     // if the schema version is outdated, migrate it
     if (hasValidSchema(config) && hasOutdatedSchema(config)) {
-        return migrate(cloneDeep(config))
+        return migrate(_.cloneDeep(config))
     }
 
     // throw if the schema is invalid or missing

@@ -1,4 +1,4 @@
-import { cloneDeep } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
 import { MigrationInterface, QueryRunner } from "typeorm"
 
 export class FixChartConfigDisplayShortUnitNull1690795517408
@@ -9,7 +9,7 @@ export class FixChartConfigDisplayShortUnitNull1690795517408
     ): { id: number; config: string }[] {
         const fixedCharts: { id: number; config: string }[] = []
         for (const oldChart of charts) {
-            const chart = cloneDeep(oldChart)
+            const chart = _.cloneDeep(oldChart)
             let chartModified = false
             // if any of the dimensions has a shortUnit field that is null, remove it
             if (chart.config.dimensions) {

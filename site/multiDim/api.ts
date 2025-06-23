@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { getVariableMetadataRoute } from "@ourworldindata/grapher"
 import {
     AssetMap,
@@ -6,9 +7,8 @@ import {
 } from "@ourworldindata/types"
 import { fetchWithRetry, readFromAssetMap } from "@ourworldindata/utils"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
-import { memoize } from "lodash-es"
 
-export const cachedGetVariableMetadata = memoize(
+export const cachedGetVariableMetadata = _.memoize(
     async (
         variableId: number,
         assetMap?: AssetMap
@@ -22,7 +22,7 @@ export const cachedGetVariableMetadata = memoize(
     }
 )
 
-export const cachedGetGrapherConfigByUuid = memoize(
+export const cachedGetGrapherConfigByUuid = _.memoize(
     async (
         grapherConfigUuid: string,
         isPreviewing: boolean,

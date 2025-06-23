@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import { observer } from "mobx-react"
 import { computed, action, reaction, when, IReactionDisposer } from "mobx"
@@ -5,21 +6,17 @@ import cx from "classnames"
 import a from "indefinite"
 import {
     isTouchDevice,
-    partition,
     SortOrder,
-    orderBy,
     isFiniteWithGuard,
     CoreValueType,
     getUserCountryInformation,
     regions,
-    sortBy,
     Tippy,
     excludeUndefined,
     FuzzySearch,
     getUserNavigatorLanguagesNonEnglish,
     getRegionAlternativeNames,
     convertDaysSinceEpochToDate,
-    max,
     checkIsOwidIncomeGroupName,
     checkHasMembers,
     Region,
@@ -361,7 +358,7 @@ export class EntitySelector extends React.Component<{
                 userEntityCodes.includes(region.code)
             )
 
-            const sortedUserRegions = sortBy(userRegions, (region) =>
+            const sortedUserRegions = _.sortBy(userRegions, (region) =>
                 userEntityCodes.indexOf(region.code)
             )
 
@@ -1042,7 +1039,7 @@ export class EntitySelector extends React.Component<{
 
         // sort by name, ignoring local entities
         if (shouldBeSortedByName && !options.sortLocalsAndWorldToTop) {
-            return orderBy(
+            return _.orderBy(
                 entities,
                 (entity: SearchableEntity) => entity.name,
                 sortConfig.order
@@ -1051,23 +1048,23 @@ export class EntitySelector extends React.Component<{
 
         // sort by name, with local entities at the top
         if (shouldBeSortedByName && options.sortLocalsAndWorldToTop) {
-            const [[worldEntity], entitiesWithoutWorld] = partition(
+            const [[worldEntity], entitiesWithoutWorld] = _.partition(
                 entities,
                 (entity) => isWorldEntityName(entity.name)
             )
 
-            const [localEntities, otherEntities] = partition(
+            const [localEntities, otherEntities] = _.partition(
                 entitiesWithoutWorld,
                 (entity: SearchableEntity) => entity.isLocal
             )
 
-            const sortedLocalEntities = sortBy(
+            const sortedLocalEntities = _.sortBy(
                 localEntities,
                 (entity: SearchableEntity) =>
                     this.localEntityNames?.indexOf(entity.name)
             )
 
-            const sortedOtherEntities = orderBy(
+            const sortedOtherEntities = _.orderBy(
                 otherEntities,
                 (entity: SearchableEntity) => entity.name,
                 sortConfig.order
@@ -1081,18 +1078,18 @@ export class EntitySelector extends React.Component<{
         }
 
         // sort by number column, with missing values at the end
-        const [withValues, withoutValues] = partition(
+        const [withValues, withoutValues] = _.partition(
             entities,
             (entity: SearchableEntity) =>
                 isFiniteWithGuard(entity.sortColumnValues[sortConfig.slug])
         )
-        const sortedEntitiesWithValues = orderBy(
+        const sortedEntitiesWithValues = _.orderBy(
             withValues,
             (entity: SearchableEntity) =>
                 entity.sortColumnValues[sortConfig.slug],
             sortConfig.order
         )
-        const sortedEntitiesWithoutValues = orderBy(
+        const sortedEntitiesWithoutValues = _.orderBy(
             withoutValues,
             (entity: SearchableEntity) => entity.name,
             SortOrder.asc
@@ -1432,7 +1429,7 @@ export class EntitySelector extends React.Component<{
         if (!selectedSortColumn) return undefined
         const time = this.toColumnCompatibleTime(endTime, selectedSortColumn)
         const values = selectedSortColumn.valuesByTime.get(time)
-        return max(values)
+        return _.max(values)
     }
 
     @computed private get barScale(): ScaleLinear<number, number> {

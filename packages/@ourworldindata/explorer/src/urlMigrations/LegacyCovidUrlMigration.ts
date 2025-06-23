@@ -1,5 +1,6 @@
+import * as _ from "lodash-es"
 import { legacyToCurrentGrapherUrl } from "@ourworldindata/grapher"
-import { omit, QueryParams, Url } from "@ourworldindata/utils"
+import { QueryParams, Url } from "@ourworldindata/utils"
 import { EXPLORERS_ROUTE_FOLDER } from "../ExplorerConstants.js"
 import { ExplorerUrlMigrationSpec } from "./ExplorerUrlMigrations.js"
 
@@ -63,7 +64,7 @@ const legacyToCurrentCovidQueryParams = (
     queryParams: QueryParams,
     baseQueryParams: QueryParams = {}
 ): QueryParams => {
-    const restQueryParams = omit(
+    const restQueryParams = _.omit(
         {
             ...baseQueryParams,
             ...queryParams,

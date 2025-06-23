@@ -1,8 +1,9 @@
+import * as _ from "lodash-es"
 import * as R from "remeda"
 import { ckmeans } from "simple-statistics"
 import { range, quantile } from "d3-array"
 
-import { excludeUndefined, uniq, roundSigFig } from "@ourworldindata/utils"
+import { excludeUndefined, roundSigFig } from "@ourworldindata/utils"
 import { BinningStrategy } from "@ourworldindata/types"
 
 /** Human-readable labels for the binning strategies */
@@ -38,7 +39,7 @@ function normalizeBinValues(
     binValues: (number | undefined)[],
     minBinValue?: number
 ): any {
-    const values = uniq(excludeUndefined(binValues))
+    const values = _.uniq(excludeUndefined(binValues))
     return minBinValue !== undefined
         ? values.filter((v) => v > minBinValue)
         : values

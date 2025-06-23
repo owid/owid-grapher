@@ -1,9 +1,9 @@
+import * as _ from "lodash-es"
 import * as db from "../../db.js"
 import { getUrlTarget, MarkdownTextWrap } from "@ourworldindata/components"
 import {
     LinkedChart,
     LinkedIndicator,
-    keyBy,
     ImageMetadata,
     OwidGdocErrorMessage,
     OwidGdocErrorMessageType,
@@ -12,7 +12,6 @@ import {
     OwidEnrichedGdocBlock,
     Span,
     traverseEnrichedSpan,
-    uniq,
     OwidGdocBaseInterface,
     OwidGdocPublicationContext,
     BreadcrumbItem,
@@ -22,7 +21,6 @@ import {
     DbInsertPostGdocLink,
     DbPlainTag,
     formatDate,
-    omit,
 } from "@ourworldindata/utils"
 import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
 import { docs as googleDocs } from "@googleapis/docs"
@@ -279,7 +277,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     get linkedDocumentIds(): string[] {
-        return uniq(
+        return _.uniq(
             this.links
                 .filter((link) => link.linkType === "gdoc")
                 .map((link) => link.target)
@@ -738,7 +736,7 @@ export class GdocBase implements OwidGdocBaseInterface {
             })
         )
 
-        this.linkedCharts = keyBy(
+        this.linkedCharts = _.keyBy(
             [...linkedGrapherCharts, ...linkedExplorerCharts],
             "originalSlug"
         )
@@ -762,14 +760,14 @@ export class GdocBase implements OwidGdocBaseInterface {
             indicatorsWithTitles
         )
 
-        this.linkedIndicators = keyBy(linkedIndicators, "id")
+        this.linkedIndicators = _.keyBy(linkedIndicators, "id")
     }
 
     async loadLinkedDocuments(knex: db.KnexReadonlyTransaction): Promise<void> {
         const linkedDocuments: OwidGdocMinimalPostInterface[] =
             await getMinimalGdocPostsByIds(knex, this.linkedDocumentIds)
 
-        this.linkedDocuments = keyBy(linkedDocuments, "id")
+        this.linkedDocuments = _.keyBy(linkedDocuments, "id")
     }
 
     /**
@@ -790,7 +788,7 @@ export class GdocBase implements OwidGdocBaseInterface {
 
         this.imageMetadata = {
             ...this.imageMetadata,
-            ...keyBy(imageMetadata, "filename"),
+            ..._.keyBy(imageMetadata, "filename"),
         }
     }
 
@@ -801,7 +799,7 @@ export class GdocBase implements OwidGdocBaseInterface {
             knex,
             this.linkedNarrativeChartNames
         )
-        this.linkedNarrativeCharts = keyBy(result, "name")
+        this.linkedNarrativeCharts = _.keyBy(result, "name")
     }
 
     async fetchAndEnrichGdoc(): Promise<void> {
@@ -1000,7 +998,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         // shrink the object we send over the wire at the /gdoc/:id endpoint).
         // My hunch is that we'll want to clean up the class instance vs objects
         // divergence a bit in the near future - until then this can stay as is.
-        return omit(this, [
+        return _.omit(this, [
             "_enrichSubclassContent",
             "_filenameProperties",
             "_getSubclassEnrichedBlocks",

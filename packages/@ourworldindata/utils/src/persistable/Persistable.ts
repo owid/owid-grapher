@@ -1,5 +1,5 @@
 import { toJS } from "mobx"
-import { isEqual } from "../Util.js"
+import * as _ from "lodash-es"
 
 // Any classes that the user can edit, save, and then rehydrate should implement this interface
 export interface Persistable {
@@ -74,7 +74,7 @@ export function deleteRuntimeAndUnchangedProps<T>(
 
         const currentValue = obj[key]
         const defaultValue = defaultObj[key]
-        if (isEqual(currentValue, defaultValue)) {
+        if (_.isEqual(currentValue, defaultValue)) {
             // Don't persist any values that weren't changed from the default
             delete obj[key]
         }

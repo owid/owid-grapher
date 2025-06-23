@@ -1,6 +1,7 @@
 import { expect, it, test } from "vitest"
 
-import { Bounds, ColumnTypeNames, omit } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
+import { Bounds, ColumnTypeNames } from "@ourworldindata/utils"
 import {
     OwidTable,
     SampleColumnSlugs,
@@ -856,7 +857,7 @@ it("can deal with y columns with missing values", () => {
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
 
     const placedItemsWithoutXPosition = chart.placedItems.map((placedItem) =>
-        omit(placedItem, "xPosition")
+        _.omit(placedItem, "xPosition")
     )
     const xPositions = chart.placedItems.map(
         (placedItem) => placedItem.xPosition

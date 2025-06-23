@@ -1,7 +1,8 @@
+import * as _ from "lodash-es"
 import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
-import { range, IndexPost } from "@ourworldindata/utils"
+import { IndexPost } from "@ourworldindata/utils"
 import PostCard from "./PostCard/PostCard.js"
 import { Html } from "./Html.js"
 
@@ -12,7 +13,7 @@ export const BlogIndexPage = (props: {
     baseUrl: string
 }) => {
     const { posts, pageNum, numPages, baseUrl } = props
-    const pageNums = range(1, numPages + 1)
+    const pageNums = _.range(1, numPages + 1)
     const pageTitle = "Latest"
 
     return (

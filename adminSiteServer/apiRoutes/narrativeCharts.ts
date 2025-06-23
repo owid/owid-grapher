@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     defaultGrapherConfig,
     grapherConfigToQueryParams,
@@ -22,12 +23,7 @@ import {
     MultiDimXChartConfigsTableName,
     DbInsertChartConfig,
 } from "@ourworldindata/types"
-import {
-    diffGrapherConfigs,
-    mergeGrapherConfigs,
-    uniqBy,
-} from "@ourworldindata/utils"
-import { omit, pick } from "lodash-es"
+import { diffGrapherConfigs, mergeGrapherConfigs } from "@ourworldindata/utils"
 import { z } from "zod"
 import {
     ApiNarrativeChartOverview,
@@ -58,7 +54,7 @@ const createPatchConfigAndQueryParamsForNarrativeChart = async (
     parentChartConfig: GrapherInterface,
     config: GrapherInterface
 ) => {
-    config = omit(config, NARRATIVE_CHART_PROPS_TO_OMIT)
+    config = _.omit(config, NARRATIVE_CHART_PROPS_TO_OMIT)
 
     const patchToParentChart = diffGrapherConfigs(config, parentChartConfig)
 
@@ -73,7 +69,10 @@ const createPatchConfigAndQueryParamsForNarrativeChart = async (
         // always, so they never change when the parent chart changes.
         // For this, we need to ensure we include the default layer, so that we even
         // persist these props when they are the same as the default.
-        ...pick(fullConfigIncludingDefaults, NARRATIVE_CHART_PROPS_TO_PERSIST),
+        ..._.pick(
+            fullConfigIncludingDefaults,
+            NARRATIVE_CHART_PROPS_TO_PERSIST
+        ),
     }
 
     const queryParams = grapherConfigToQueryParams(patchConfigToSave)
@@ -626,7 +625,7 @@ export async function getNarrativeChartReferences(
         trx,
         [name],
         ContentGraphLinkType.NarrativeChart
-    ).then((refs) => uniqBy(refs, "slug"))
+    ).then((refs) => _.uniqBy(refs, "slug"))
 
     const dataInsights = await getDataInsightsForNarrativeChart(trx, id)
 

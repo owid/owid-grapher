@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     ArchivedChartVersionsTableName,
     ArchivedMultiDimVersionsTableName,
@@ -12,7 +13,6 @@ import {
     MultiDimDataPageConfigEnriched,
 } from "@ourworldindata/types"
 import * as db from "../../db/db.js"
-import { partition, pick } from "lodash-es"
 import { stringify } from "safe-stable-stringify"
 import { hashHex } from "../../serverUtils/hash.js"
 import {
@@ -203,7 +203,7 @@ export const getLatestMultiDimArchivedVersions = async (
 
 const hashGrapherChecksumsObj = (checksums: GrapherChecksums) => {
     const stringified = stringify(
-        pick(checksums, "chartConfigMd5", "indicators")
+        _.pick(checksums, "chartConfigMd5", "indicators")
     )
     const hashed = hashHex(stringified, null)
     return hashed
@@ -211,7 +211,7 @@ const hashGrapherChecksumsObj = (checksums: GrapherChecksums) => {
 
 const hashMultiDimChecksumsObj = (checksums: MultiDimChecksums) => {
     const stringified = stringify(
-        pick(checksums, "multiDimConfigMd5", "chartConfigs", "indicators")
+        _.pick(checksums, "multiDimConfigMd5", "chartConfigs", "indicators")
     )
     const hashed = hashHex(stringified, null)
     return hashed
@@ -251,7 +251,7 @@ export const findChangedGrapherPages = async (
         knex,
         allChartChecksums.map((c) => c.checksumsHashed)
     )
-    const [alreadyArchived, needToBeArchived] = partition(
+    const [alreadyArchived, needToBeArchived] = _.partition(
         allChartChecksums,
         (c) => hashesFoundInDb.has(c.checksumsHashed)
     )
@@ -273,7 +273,7 @@ export const findChangedMultiDimPages = async (
         knex,
         allMultiDimChecksums.map((c) => c.checksumsHashed)
     )
-    const [alreadyArchived, needToBeArchived] = partition(
+    const [alreadyArchived, needToBeArchived] = _.partition(
         allMultiDimChecksums,
         (c) => hashesFoundInDb.has(c.checksumsHashed)
     )

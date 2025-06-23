@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as R from "remeda"
 import fs from "fs-extra"
 import path from "path"
@@ -17,7 +18,7 @@ import {
     ArchivedPageVersion,
     DataPageRelatedResearch,
 } from "@ourworldindata/types"
-import { MultiDimDataPageConfig, pick, uniq } from "@ourworldindata/utils"
+import { MultiDimDataPageConfig } from "@ourworldindata/utils"
 import * as db from "../db/db.js"
 import { getImagesByFilenames } from "../db/model/Image.js"
 import { getRelatedResearchAndWritingForVariables } from "../db/model/Post.js"
@@ -91,7 +92,7 @@ const getFaqEntries = async (
     variableIds: Iterable<number>
 ): Promise<FaqEntryKeyedByGdocIdAndFragmentId> => {
     const faqRelations = await getFaqRelationsFromDb(knex, [...variableIds])
-    const faqGdocIds = uniq(faqRelations.map((rel) => rel.gdocId))
+    const faqGdocIds = _.uniq(faqRelations.map((rel) => rel.gdocId))
     const faqGdocs = await fetchAndParseFaqs(knex, faqGdocIds, {
         isPreviewing: false,
     })
@@ -147,7 +148,7 @@ export async function renderMultiDimDataPageFromConfig({
         // TAGS
         const fullTagToSlugMap = await getTagToSlugMap(knex)
         // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
-        tagToSlugMap = pick(fullTagToSlugMap, config.topicTags ?? [])
+        tagToSlugMap = _.pick(fullTagToSlugMap, config.topicTags ?? [])
 
         // Related research
         relatedResearchCandidates =
@@ -157,12 +158,12 @@ export async function renderMultiDimDataPageFromConfig({
                   ])
                 : []
 
-        const relatedResearchFilenames = uniq(
+        const relatedResearchFilenames = _.uniq(
             relatedResearchCandidates.map((r) => r.imageUrl).filter(Boolean)
         )
 
         if (imageMetadataDictionary) {
-            imageMetadata = pick(
+            imageMetadata = _.pick(
                 imageMetadataDictionary,
                 relatedResearchFilenames
             )

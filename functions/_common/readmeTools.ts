@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     excludeUndefined,
     formatSourceDate,
@@ -7,13 +8,10 @@ import {
     getPhraseForProcessingLevel,
     OwidColumnDef,
     getDateRange,
-    uniq,
     getCitationShort,
     getCitationLong,
     prepareSourcesForDisplay,
-    uniqBy,
     formatDate,
-    isEmpty,
 } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { GrapherState } from "@ourworldindata/grapher"
@@ -130,7 +128,7 @@ export function yieldMultilineTextAsLines(line: string): string[] {
 export function* getSources(
     def: OwidColumnDef
 ): Generator<string, void, undefined> {
-    const sourcesForDisplay = uniqBy(prepareSourcesForDisplay(def), "label")
+    const sourcesForDisplay = _.uniqBy(prepareSourcesForDisplay(def), "label")
 
     if (sourcesForDisplay.length === 0) return
     else if (sourcesForDisplay.length === 1) {
@@ -169,7 +167,7 @@ export function getSource(attribution: string, def: OwidColumnDef): string {
 }
 
 export function getAttribution(def: OwidColumnDef): string {
-    const producers = uniq(
+    const producers = _.uniq(
         excludeUndefined((def.origins ?? []).map((o) => o.producer))
     )
 
@@ -265,7 +263,7 @@ export function constructReadme(
     // Some computed columns have neither a source nor origins - filter these away
     const sources = columns
         .filter(
-            (column) => !!column.source.name || !isEmpty(column.def.origins)
+            (column) => !!column.source.name || !_.isEmpty(column.def.origins)
         )
         .flatMap((col) => [...columnReadmeText(col)])
     let readme: string

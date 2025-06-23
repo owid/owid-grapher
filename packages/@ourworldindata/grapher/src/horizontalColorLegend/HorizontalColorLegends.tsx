@@ -1,12 +1,9 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import * as R from "remeda"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import {
-    sortBy,
-    min,
-    max,
-    sum,
     dyFromAlign,
     removeAllWhitespace,
     Bounds,
@@ -222,7 +219,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                 ? this.getCategoricalBinWidth(bin) + itemMargin
                 : 0
         )
-        return sum(widths)
+        return _.sum(widths)
     }
 
     @computed private get isAutoWidth(): boolean {
@@ -237,7 +234,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
             const tickLabelWidth = this.getTickLabelWidth(bin.text)
             return tickLabelWidth + MINIMUM_LABEL_DISTANCE
         } else {
-            const combinedLabelWidths = sum(
+            const combinedLabelWidths = _.sum(
                 [bin.minText, bin.maxText].map(
                     (text) =>
                         // because labels are center-aligned, only half the label space is required
@@ -261,7 +258,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         // so they look visually balanced somewhat.
         const minBinWidth = this.fontSize * 3.25
         const maxBinWidth =
-            max(
+            _.max(
                 spaceRequirements.map(({ labelSpace }) =>
                     Math.max(labelSpace, minBinWidth)
                 )
@@ -458,7 +455,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
 
     @computed get height(): number {
         return Math.abs(
-            min(this.numericLabels.map((label) => label.bounds.y)) ?? 0
+            _.min(this.numericLabels.map((label) => label.bounds.y)) ?? 0
         )
     }
 
@@ -503,7 +500,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
                     ))}
                 </g>
                 <g id={makeIdForHumanConsumption("swatches")}>
-                    {sortBy(
+                    {_.sortBy(
                         positionedBins.map((positionedBin, index) => {
                             const bin = positionedBin.bin
                             const isFocus =
@@ -697,7 +694,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
     }
 
     @computed private get contentWidth(): number {
-        return max(this.markLines.map((l) => l.totalWidth)) as number
+        return _.max(this.markLines.map((l) => l.totalWidth)) as number
     }
 
     @computed private get containerWidth(): number {
@@ -730,7 +727,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
     }
 
     @computed get height(): number {
-        return max(this.marks.map((mark) => mark.y + mark.rectSize)) ?? 0
+        return _.max(this.marks.map((mark) => mark.y + mark.rectSize)) ?? 0
     }
 
     renderLabels(): React.ReactElement {

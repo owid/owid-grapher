@@ -1,8 +1,5 @@
-import {
-    checkIsGdocPostExcludingFragments,
-    isEqual,
-    omit,
-} from "@ourworldindata/utils"
+import * as _ from "lodash-es"
+import { checkIsGdocPostExcludingFragments } from "@ourworldindata/utils"
 import {
     OwidGdoc,
     OwidGdocBaseInterface,
@@ -166,22 +163,22 @@ export const checkIsLightningUpdate = (
     // comparison will then fail if the other operand in the comparison is
     // an OwidGdocPostInterface object. To avoid this, we spread into new objects
     // in order to compare the same types.
-    const prevOmitted = omit({ ...prevGdoc }, keysToOmit)
-    const nextOmitted = omit({ ...nextGdoc }, keysToOmit)
+    const prevOmitted = _.omit({ ...prevGdoc }, keysToOmit)
+    const nextOmitted = _.omit({ ...nextGdoc }, keysToOmit)
 
-    return isEqual(prevOmitted, nextOmitted)
+    return _.isEqual(prevOmitted, nextOmitted)
 }
 
 export const checkHasChanges = (prevGdoc: OwidGdoc, nextGdoc: OwidGdoc) =>
-    !isEqual(
-        omit(
+    !_.isEqual(
+        _.omit(
             {
                 ...prevGdoc,
                 tags: prevGdoc.tags?.map((tag) => JSON.stringify(tag)),
             },
             GDOC_DIFF_OMITTABLE_PROPERTIES
         ),
-        omit(
+        _.omit(
             {
                 ...nextGdoc,
                 tags: nextGdoc.tags?.map((tag) => JSON.stringify(tag)),

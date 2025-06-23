@@ -1,10 +1,10 @@
+import * as _ from "lodash-es"
 import { StrictMode } from "react"
 import { hydrate, render } from "react-dom"
 import {
     ArchiveMetaInformation,
     DataPageV2ContentFields,
     deserializeOwidGdocPageData,
-    isNil,
     MultiDimDataPageConfig,
     OwidGdocType,
     parseIntOrUndefined,
@@ -134,7 +134,7 @@ function runFootnotes() {
 
     footnotes.forEach((f) => {
         const footnoteContent = getFootnoteContent(f)
-        if (isNil(footnoteContent)) return
+        if (_.isNil(footnoteContent)) return
 
         hydrate(
             <Footnote

@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
     GdocsContentSource,
@@ -11,7 +12,6 @@ import {
     PostsGdocsComponentsTableName,
 } from "@ourworldindata/types"
 import { checkIsGdocPostExcludingFragments } from "@ourworldindata/utils"
-import { isEmpty } from "lodash-es"
 import { match } from "ts-pattern"
 import {
     checkHasChanges,
@@ -44,7 +44,6 @@ import { GdocHomepage } from "../../db/model/Gdoc/GdocHomepage.js"
 import { GdocPost } from "../../db/model/Gdoc/GdocPost.js"
 import { triggerStaticBuild, enqueueLightningChange } from "./routeUtils.js"
 import * as db from "../../db/db.js"
-import * as lodash from "lodash-es"
 import { Request } from "../authentication.js"
 import e from "express"
 
@@ -109,7 +108,7 @@ async function indexAndBakeGdocIfNeccesary(
     const isGdocPost = checkIsGdocPostExcludingFragments(nextJson)
 
     await match(action)
-        .with(GdocPublishingAction.SavingDraft, lodash.noop)
+        .with(GdocPublishingAction.SavingDraft, _.noop)
         .with(GdocPublishingAction.Publishing, async () => {
             if (isGdocPost) {
                 await indexIndividualGdocPost(
@@ -171,7 +170,7 @@ export async function createOrUpdateGdoc(
 ) {
     const { id } = req.params
 
-    if (isEmpty(req.body)) {
+    if (_.isEmpty(req.body)) {
         return createOrLoadGdocById(trx, id)
     }
 

@@ -1,16 +1,13 @@
+import * as _ from "lodash-es"
 import { GrapherPage } from "../site/GrapherPage.js"
 import { DataPageV2 } from "../site/DataPageV2.js"
 import { renderToHtmlPage } from "../baker/siteRenderers.js"
 import {
     excludeUndefined,
     urlToSlug,
-    uniq,
-    keyBy,
-    compact,
     mergeGrapherConfigs,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
-import * as lodash from "lodash-es"
 import {
     ARCHIVE_BASE_URL,
     BAKED_BASE_URL,
@@ -91,7 +88,7 @@ const renderDatapageIfApplicable = async (
     // And this function is the point in the two paths where it makes sense to do so
     if (!imageMetadataDictionary) {
         imageMetadataDictionary = await getAllImages(knex).then((images) =>
-            keyBy(images, "filename")
+            _.keyBy(images, "filename")
         )
     }
 
@@ -167,8 +164,8 @@ export async function renderDataPageV2(
         ? mergeGrapherConfigs(grapherConfigForVariable ?? {}, pageGrapher ?? {})
         : (pageGrapher ?? {})
 
-    const faqDocIds = compact(
-        uniq(variableMetadata.presentation?.faqs?.map((faq) => faq.gdocId))
+    const faqDocIds = _.compact(
+        _.uniq(variableMetadata.presentation?.faqs?.map((faq) => faq.gdocId))
     )
 
     const faqGdocs = await fetchAndParseFaqs(knex, faqDocIds, { isPreviewing })
@@ -237,9 +234,9 @@ export async function renderDataPageV2(
             .map((r) => r.imageUrl)
             .filter((f): f is string => !!f)
 
-        imageMetadata = lodash.pick(
+        imageMetadata = _.pick(
             imageMetadataDictionary,
-            uniq(relatedResearchFilenames)
+            _.uniq(relatedResearchFilenames)
         )
 
         tagToSlugMap = await getTagToSlugMap(knex)
@@ -434,7 +431,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
     // individually. imageMetadata is used by the google docs powering rich
     // text (including images) in data pages.
     const imageMetadataDictionary = await getAllImages(knex).then((images) =>
-        keyBy(images, "filename")
+        _.keyBy(images, "filename")
     )
 
     const archivedVersions = await getLatestChartArchivedVersionsIfEnabled(knex)

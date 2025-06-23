@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { Component } from "react"
 import { observer } from "mobx-react"
 import { Section, Toggle } from "./Forms.js"
@@ -7,7 +8,6 @@ import {
     NARRATIVE_CHART_PROPS_TO_OMIT,
     copyToClipboard,
     mergeGrapherConfigs,
-    omit,
 } from "@ourworldindata/utils"
 import YAML from "yaml"
 import { Modal, notification } from "antd"
@@ -248,7 +248,7 @@ class EditorDebugTabForNarrativeChart extends Component<{
                             2
                         )}
                         oldValue={stringify(
-                            omit(
+                            _.omit(
                                 this.props.editor.parentConfig,
                                 NARRATIVE_CHART_PROPS_TO_OMIT
                             ),

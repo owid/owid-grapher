@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import fs from "fs-extra"
 import { BuildkiteTrigger } from "../baker/BuildkiteTrigger.js"
 import { DeployQueueServer } from "./DeployQueueServer.js"
@@ -10,7 +11,7 @@ import {
 } from "../settings/serverSettings.js"
 import { SiteBaker } from "../baker/SiteBaker.js"
 import { WebClient } from "@slack/web-api"
-import { DeployChange, DeployMetadata, memoize } from "@ourworldindata/utils"
+import { DeployChange, DeployMetadata } from "@ourworldindata/utils"
 import { KnexReadonlyTransaction } from "../db/db.js"
 
 const deployQueueServer = new DeployQueueServer()
@@ -130,7 +131,7 @@ const getEmailSlackMentionsMap = async (
  * Slack has a tight limit of 20 requests per minute for email lookups, so we
  * memoize this.
  */
-const getSlackMentionByEmail = memoize(
+const getSlackMentionByEmail = _.memoize(
     async (
         email: string | undefined,
         slackClient: WebClient

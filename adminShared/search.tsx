@@ -1,4 +1,4 @@
-import { escapeRegExp, sortBy } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
 import * as React from "react"
 import * as R from "remeda"
 
@@ -9,7 +9,7 @@ export interface SearchWord {
 }
 
 function buildRegexFromSearchWord(str: string): RegExp {
-    const escapedString = escapeRegExp(str)
+    const escapedString = _.escapeRegExp(str)
     const moreTolerantMatchReplacements =
         // Match digit or superscript/subscript variant
         [
@@ -121,7 +121,7 @@ export function highlightFunctionForSearchWords(
             let lastIndex = 0
             if (firstMatches.length > 0) {
                 // sort descending by end position and then length
-                const sortedFirstMatches = sortBy(firstMatches, [
+                const sortedFirstMatches = _.sortBy(firstMatches, [
                     ({ matchStart, matchLength }): number =>
                         -(matchStart + matchLength),
                     ({ matchLength }): number => -matchLength,
@@ -146,7 +146,7 @@ export function highlightFunctionForSearchWords(
                     }
                 }
                 // sort ascending
-                const sortedMergedMatches = sortBy(
+                const sortedMergedMatches = _.sortBy(
                     mergedMatches,
                     (match) => match.matchStart
                 )

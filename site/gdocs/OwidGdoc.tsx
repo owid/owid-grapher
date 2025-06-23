@@ -1,6 +1,7 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import { OwidGdocType } from "@ourworldindata/types"
-import { get, OwidGdocPageProps } from "@ourworldindata/utils"
+import { OwidGdocPageProps } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import { GdocPost } from "./pages/GdocPost.js"
 import { DataInsightPage } from "./pages/DataInsight.js"
@@ -79,17 +80,21 @@ export function OwidGdoc({
     return (
         <AttachmentsContext.Provider
             value={{
-                donors: get(props, "donors", []),
-                linkedAuthors: get(props, "linkedAuthors", []),
-                linkedDocuments: get(props, "linkedDocuments", {}),
-                imageMetadata: get(props, "imageMetadata", {}),
-                linkedCharts: get(props, "linkedCharts", {}),
-                linkedIndicators: get(props, "linkedIndicators", {}),
-                relatedCharts: get(props, "relatedCharts", []),
-                latestDataInsights: get(props, "latestDataInsights", []),
-                homepageMetadata: get(props, "homepageMetadata", {}),
-                latestWorkLinks: get(props, "latestWorkLinks", []),
-                linkedNarrativeCharts: get(props, "linkedNarrativeCharts", {}),
+                donors: _.get(props, "donors", []),
+                linkedAuthors: _.get(props, "linkedAuthors", []),
+                linkedDocuments: _.get(props, "linkedDocuments", {}),
+                imageMetadata: _.get(props, "imageMetadata", {}),
+                linkedCharts: _.get(props, "linkedCharts", {}),
+                linkedIndicators: _.get(props, "linkedIndicators", {}),
+                relatedCharts: _.get(props, "relatedCharts", []),
+                latestDataInsights: _.get(props, "latestDataInsights", []),
+                homepageMetadata: _.get(props, "homepageMetadata", {}),
+                latestWorkLinks: _.get(props, "latestWorkLinks", []),
+                linkedNarrativeCharts: _.get(
+                    props,
+                    "linkedNarrativeCharts",
+                    {}
+                ),
                 // lodash doesn't use fallback when value is null
                 tags: props.tags ?? [],
             }}

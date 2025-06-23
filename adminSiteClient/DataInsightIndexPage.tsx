@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     useContext,
     useEffect,
@@ -48,12 +49,7 @@ import {
     MinimalTag,
     MinimalTagWithIsTopic,
 } from "@ourworldindata/types"
-import {
-    copyToClipboard,
-    dayjs,
-    RequiredBy,
-    startCase,
-} from "@ourworldindata/utils"
+import { copyToClipboard, dayjs, RequiredBy } from "@ourworldindata/utils"
 import {
     BAKED_BASE_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
@@ -365,7 +361,7 @@ export function DataInsightIndexPage() {
             (dataInsight: OwidGdocDataInsightIndexItem) => [
                 dataInsight.title,
                 dataInsight.slug,
-                startCase(dataInsight.chartType),
+                _.startCase(dataInsight.chartType),
                 ...(dataInsight.tags ?? []).map((tag) => tag.name),
                 ...dataInsight.authors,
                 dataInsight.markdown ?? "",
@@ -513,7 +509,7 @@ export function DataInsightIndexPage() {
                                 options={[
                                     ...ALL_GRAPHER_CHART_TYPES.map((type) => ({
                                         value: type,
-                                        label: startCase(type),
+                                        label: _.startCase(type),
                                     })),
                                     {
                                         value: GRAPHER_MAP_TYPE,

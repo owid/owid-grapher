@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
 import dayjs from "dayjs"
@@ -9,7 +10,6 @@ import {
     HtmlOrSimpleMarkdownText,
 } from "@ourworldindata/components"
 import { DataPageDataV2, OwidOrigin } from "@ourworldindata/types"
-import { uniq } from "@ourworldindata/utils"
 import KeyDataTable from "./KeyDataTable.js"
 
 function getYearSuffixFromOrigin(origin: OwidOrigin) {
@@ -31,7 +31,7 @@ export default function AboutThisData({
 }) {
     const hasDescriptionKey =
         datapageData.descriptionKey && datapageData.descriptionKey.length > 0
-    const producersWithYear = uniq(
+    const producersWithYear = _.uniq(
         datapageData.origins.map(
             (o) => `${o.producer}${getYearSuffixFromOrigin(o)}`
         )

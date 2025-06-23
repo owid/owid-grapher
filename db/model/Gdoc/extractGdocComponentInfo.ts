@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     DbInsertPostGdocComponent,
     EnrichedBlockKeyInsights,
@@ -5,7 +6,7 @@ import {
     OwidEnrichedGdocBlock,
     serializePostGdocComponentConfig,
 } from "@ourworldindata/types"
-import { omit, spansToUnformattedPlainText } from "@ourworldindata/utils"
+import { spansToUnformattedPlainText } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 interface ChildIterationInfo {
     child: OwidEnrichedGdocBlock
@@ -135,7 +136,7 @@ function handleComponent<T extends OwidEnrichedGdocBlock>(
     // For the component itself we want to omit the children and convert the spans to plain text.
     const item: ComponentInfo = {
         content: convertSpansToPlainText(
-            omit({ ...component }, props)
+            _.omit({ ...component }, props)
         ) as Record<string, unknown>,
         parentPath: parentPath,
         path: path,

@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { EntityName } from "@ourworldindata/types"
@@ -7,7 +8,7 @@ import {
     SelectionArray,
     setSelectedEntityNamesParam,
 } from "@ourworldindata/grapher"
-import { union, Url } from "@ourworldindata/utils"
+import { Url } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
@@ -44,7 +45,7 @@ export class ProminentLink extends Component<{
     }
 
     @computed private get updatedUrl(): Url {
-        const newEntityList = union(
+        const newEntityList = _.union(
             this.originalSelectedEntities,
             this.entitiesInGlobalEntitySelection
         )

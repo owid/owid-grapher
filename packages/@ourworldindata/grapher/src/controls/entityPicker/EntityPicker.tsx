@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import * as R from "remeda"
 import { action, computed, observable, runInAction, reaction } from "mobx"
@@ -11,20 +12,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faSearch, faTimes } from "@fortawesome/free-solid-svg-icons"
 import {
     FuzzySearch,
-    partition,
     scrollIntoViewIfNeeded,
-    max,
-    isNumber,
     sortByUndefinedLast,
     getStylesForTargetHeight,
     ColumnSlug,
     getUserCountryInformation,
     regions,
-    sortBy,
-    upperFirst,
     SortOrder,
     EntityName,
-    compact,
     CoreColumnDef,
     OwidTableSlugs,
 } from "@ourworldindata/utils"
@@ -141,11 +136,11 @@ export class EntityPicker extends React.Component<{
         const entityNameColumnInPickerColumnDefs = !!this.pickerColumnDefs.find(
             (col) => col.slug === entityNameColumn?.slug
         )
-        return compact([
+        return _.compact([
             { label: "Relevance", value: undefined },
             !entityNameColumnInPickerColumnDefs &&
                 entityNameColumn && {
-                    label: upperFirst(this.manager.entityType) || "Name",
+                    label: _.upperFirst(this.manager.entityType) || "Name",
                     value: entityNameColumn?.slug,
                 },
             ...this.pickerColumnDefs.map(
@@ -200,7 +195,7 @@ export class EntityPicker extends React.Component<{
                 "OWID_WRL",
             ]
 
-            const userRegionNames = sortBy(
+            const userRegionNames = _.sortBy(
                 regions.filter((region) =>
                     userEntityCodes.includes(region.code)
                 ),
@@ -279,7 +274,7 @@ export class EntityPicker extends React.Component<{
             sortOrder
         )
 
-        let [selected, unselected] = partition(sorted, (option) =>
+        let [selected, unselected] = _.partition(sorted, (option) =>
             selectionSet.has(option.entityName)
         )
         if (this.metric === undefined) {
@@ -437,10 +432,10 @@ export class EntityPicker extends React.Component<{
     }
 
     @computed private get barScale(): ScaleLinear<number, number> {
-        const maxValue = max(
+        const maxValue = _.max(
             this.entitiesWithMetricValue
                 .map((option) => option.plotValue)
-                .filter(isNumber)
+                .filter(_.isNumber)
         )
         return scaleLinear()
             .domain([0, maxValue ?? 1])
@@ -490,9 +485,9 @@ export class EntityPicker extends React.Component<{
     ): boolean {
         return (
             // If columnSlug is undefined, we're sorting by relevance, which is (mostly) by country name.
+            // If the column is currently missing (not loaded yet), assume it is numeric.
             columnSlug !== undefined &&
             columnSlug !== OwidTableSlugs.entityName &&
-            // If the column is currently missing (not loaded yet), assume it is numeric.
             (col === undefined ||
                 col.isMissing ||
                 col instanceof ColumnTypeMap.Numeric)
@@ -748,7 +743,7 @@ class PickerOption extends React.Component<PickerOptionProps> {
                                 <div className="metric">{metricValue}</div>
                             )}
                         </div>
-                        {barScale && isNumber(plotValue) ? (
+                        {barScale && _.isNumber(plotValue) ? (
                             <div className="plot">
                                 <div
                                     className="bar"

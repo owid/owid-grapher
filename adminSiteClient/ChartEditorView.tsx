@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import { observer } from "mobx-react"
 import {
@@ -11,11 +12,7 @@ import {
 import { Prompt, Redirect } from "react-router-dom"
 import {
     Bounds,
-    capitalize,
     DetailDictionary,
-    get,
-    set,
-    groupBy,
     extractDetailsFromSyntax,
     getIndexableKeys,
 } from "@ourworldindata/utils"
@@ -149,7 +146,7 @@ export class ChartEditorView<
 
         this.setDb(namespaces)
 
-        const groupedByNamespace = groupBy(
+        const groupedByNamespace = _.groupBy(
             variables.datasets,
             (d) => d.namespace
         )
@@ -220,9 +217,9 @@ export class ChartEditorView<
         const allReferences = Object.values(this.currentDetailReferences).flat()
 
         allReferences.forEach((term) => {
-            const detail = get(this.details, term)
+            const detail = _.get(this.details, term)
             if (detail) {
-                set(grapherConfigDetails, term, detail)
+                _.set(grapherConfigDetails, term, detail)
             }
         })
 
@@ -379,7 +376,7 @@ export class ChartEditorView<
                                                 tab === "export"
                                         }}
                                     >
-                                        {capitalize(tab)}
+                                        {_.capitalize(tab)}
                                         {tab === "refs" && editor?.references
                                             ? ` (${getFullReferencesCount(
                                                   editor.references

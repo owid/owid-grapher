@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as R from "remeda"
 import { select } from "d3-selection"
 import { ScaleLinear } from "d3-scale"
@@ -10,7 +11,6 @@ import {
     makeSafeForCSS,
     getRelativeMouse,
     intersection,
-    isEmpty,
     guid,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
@@ -649,7 +649,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         const { bounds, renderSeries, renderUid } = this
         const clipBounds = bounds.pad(-10)
 
-        if (isEmpty(renderSeries))
+        if (_.isEmpty(renderSeries))
             return (
                 <NoDataModal
                     manager={this.props.noDataModalManager}

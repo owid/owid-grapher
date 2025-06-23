@@ -1,4 +1,5 @@
-import { maxBy, SeriesName } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
+import { SeriesName } from "@ourworldindata/utils"
 import { PlacedSeries } from "./LineLegendTypes"
 import { LEGEND_ITEM_MIN_SPACING } from "./LineLegendConstants"
 import * as R from "remeda"
@@ -198,7 +199,7 @@ export function pickCandidateWithMaxDistanceToReferenceCandidate(params: {
     const { context, candidateSubset, referenceCandidate } = params
 
     const getMaxDistCandidate = (candidates: PlacedSeries[]) =>
-        maxBy(candidates, (c) => dist(c, referenceCandidate))
+        _.maxBy(candidates, (c) => dist(c, referenceCandidate))
 
     return pickCandidateWithRetry({
         context,

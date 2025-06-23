@@ -1,4 +1,4 @@
-import { keyBy } from "lodash-es"
+import * as _ from "lodash-es"
 import * as db from "../db.js"
 import {
     DbPlainAnalyticsPageview,
@@ -34,5 +34,5 @@ export async function getAnalyticsPageviewsByUrlObj(
         }
     )
 
-    return keyBy(pageviewsNormalized, (p) => p.url)
+    return _.keyBy(pageviewsNormalized, (p) => p.url)
 }

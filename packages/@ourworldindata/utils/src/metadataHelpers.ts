@@ -7,7 +7,8 @@ import {
     IndicatorTitleWithFragments,
     OwidSource,
 } from "@ourworldindata/types"
-import { compact, uniq, excludeUndefined } from "./Util"
+import * as _ from "lodash-es"
+import { excludeUndefined } from "./Util"
 import dayjs from "./dayjs.js"
 import { parseArchivalDate } from "./archival/archivalDate.js"
 
@@ -52,7 +53,7 @@ export function getAttributionFragmentsFromVariable(
         variable.origins
     )
     const name = variable.source?.name
-    return uniq(compact([name, ...originAttributionFragments]))
+    return _.uniq(_.compact([name, ...originAttributionFragments]))
 }
 
 interface ETLPathComponents {
@@ -194,7 +195,7 @@ export const getCitationShort = (
     attributions: string[],
     owidProcessingLevel: OwidProcessingLevel | undefined
 ): string => {
-    const producersWithYear = uniq(
+    const producersWithYear = _.uniq(
         origins.map((o) => `${o.producer}${getYearSuffixFromOrigin(o)}`)
     )
     const processingLevelPhrase =
@@ -237,7 +238,7 @@ export const getCitationLong = (
         attributionShort && titleVariant
             ? `${attributionShort} – ${titleVariant}`
             : attributionShort || titleVariant
-    const producersWithYear = uniq(
+    const producersWithYear = _.uniq(
         origins.map((o) => `${o.producer}${getYearSuffixFromOrigin(o)}`)
     )
     const processingLevelPhrase =
@@ -250,7 +251,7 @@ export const getCitationLong = (
         indicatorTitle.title,
         sourceShortName,
     ]).join(" – ")
-    const originsLong = uniq(
+    const originsLong = _.uniq(
         origins.map(
             (o) =>
                 `${o.producer}, “${o.title ?? o.titleSnapshot}${

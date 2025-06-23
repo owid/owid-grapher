@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import path from "path"
 import {
     Span,
@@ -30,7 +31,6 @@ import {
     traverseEnrichedSpan,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
-import { compact, partition } from "lodash-es"
 import * as cheerio from "cheerio"
 import { spansToSimpleString } from "./gdocUtils.js"
 
@@ -38,7 +38,7 @@ import { spansToSimpleString } from "./gdocUtils.js"
 function spanFallback(element: CheerioElement): SpanFallback {
     return {
         spanType: "span-fallback",
-        children: compact(element.children?.map(cheerioToSpan)) ?? [],
+        children: _.compact(element.children?.map(cheerioToSpan)) ?? [],
     }
 }
 
@@ -102,7 +102,7 @@ function consolidateSpans(
 
 export function htmlToSimpleTextBlock(html: string): EnrichedBlockSimpleText {
     const spans = htmlToSpans(html)
-    const [simpleTextSpans, otherSpans] = partition(
+    const [simpleTextSpans, otherSpans] = _.partition(
         spans,
         (s) => s.spanType === "span-simple-text"
     )
@@ -129,7 +129,7 @@ export function htmlToSimpleTextBlock(html: string): EnrichedBlockSimpleText {
 export function htmlToSpans(html: string): Span[] {
     const $ = cheerio.load(html)
     const elements = $("body").contents().toArray()
-    return compact(elements.map(cheerioToSpan)) ?? []
+    return _.compact(elements.map(cheerioToSpan)) ?? []
 }
 
 function cheerioToSpan(element: CheerioElement): Span | undefined {
@@ -145,7 +145,7 @@ function cheerioToSpan(element: CheerioElement): Span | undefined {
                 const url: string | undefined = element.attribs.href
                 const className = element.attribs.class
                 const children =
-                    compact(element.children?.map(cheerioToSpan)) ?? []
+                    _.compact(element.children?.map(cheerioToSpan)) ?? []
                 if (className === "ref") {
                     return { spanType: "span-ref", children, url }
                 }
@@ -157,12 +157,12 @@ function cheerioToSpan(element: CheerioElement): Span | undefined {
             })
             .with("b", (): SpanBold => {
                 const children =
-                    compact(element.children?.map(cheerioToSpan)) ?? []
+                    _.compact(element.children?.map(cheerioToSpan)) ?? []
                 return { spanType: "span-bold", children }
             })
             .with("i", (): SpanItalic => {
                 const children =
-                    compact(element.children?.map(cheerioToSpan)) ?? []
+                    _.compact(element.children?.map(cheerioToSpan)) ?? []
                 return { spanType: "span-italic", children }
             })
             .with("br", (): Span => ({ spanType: "span-newline" }))
@@ -173,7 +173,7 @@ function cheerioToSpan(element: CheerioElement): Span | undefined {
                 (): SpanItalic => ({
                     spanType: "span-italic",
                     children:
-                        compact(element.children?.map(cheerioToSpan)) ?? [],
+                        _.compact(element.children?.map(cheerioToSpan)) ?? [],
                 })
             )
             .with(
@@ -181,29 +181,29 @@ function cheerioToSpan(element: CheerioElement): Span | undefined {
                 (): SpanQuote => ({
                     spanType: "span-quote",
                     children:
-                        compact(element.children?.map(cheerioToSpan)) ?? [],
+                        _.compact(element.children?.map(cheerioToSpan)) ?? [],
                 })
             )
             .with("small", () => spanFallback(element))
             .with("span", () => spanFallback(element))
             .with("strong", (): SpanBold => {
                 const children =
-                    compact(element.children?.map(cheerioToSpan)) ?? []
+                    _.compact(element.children?.map(cheerioToSpan)) ?? []
                 return { spanType: "span-bold", children }
             })
             .with("sup", (): SpanSuperscript => {
                 const children =
-                    compact(element.children?.map(cheerioToSpan)) ?? []
+                    _.compact(element.children?.map(cheerioToSpan)) ?? []
                 return { spanType: "span-superscript", children }
             })
             .with("sub", (): SpanSubscript => {
                 const children =
-                    compact(element.children?.map(cheerioToSpan)) ?? []
+                    _.compact(element.children?.map(cheerioToSpan)) ?? []
                 return { spanType: "span-subscript", children }
             })
             .with("u", (): SpanUnderline => {
                 const children =
-                    compact(element.children?.map(cheerioToSpan)) ?? []
+                    _.compact(element.children?.map(cheerioToSpan)) ?? []
                 return { spanType: "span-underline", children }
             })
             .with("wbr", () => spanFallback(element))
@@ -438,7 +438,7 @@ function cheerioToArchieML(
                 { tagName: "figure" },
                 (): BlockParseResult<ArchieBlockOrWpComponent> => {
                     const errors: BlockParseError[] = []
-                    const [figcaptionChildren, otherChildren] = partition(
+                    const [figcaptionChildren, otherChildren] = _.partition(
                         element.children,
                         (n) => n.tagName === "figcaption"
                     )
@@ -656,7 +656,7 @@ function cheerioToArchieML(
                     context
                 )
 
-                const [textChildren, otherChildren] = partition(
+                const [textChildren, otherChildren] = _.partition(
                     children.content,
                     isEnrichedTextBlock
                 )
@@ -704,7 +704,7 @@ function cheerioToArchieML(
                     const handleListChildren = (
                         listContent: BlockParseResult<ArchieBlockOrWpComponent>
                     ): BlockParseResult<EnrichedBlockText> => {
-                        const [textChildren, otherChildren] = partition(
+                        const [textChildren, otherChildren] = _.partition(
                             listContent.content,
                             isEnrichedTextBlock
                         )
@@ -769,7 +769,7 @@ function cheerioToArchieML(
                     const handleListChildren = (
                         listContent: BlockParseResult<ArchieBlockOrWpComponent>
                     ): BlockParseResult<EnrichedBlockText> => {
-                        const [textChildren, otherChildren] = partition(
+                        const [textChildren, otherChildren] = _.partition(
                             listContent.content,
                             isEnrichedTextBlock
                         )
@@ -963,7 +963,7 @@ function getSpansFromBlockParseResult(
 function getEnrichedBlockTextFromBlockParseResult(
     result: BlockParseResult<ArchieBlockOrWpComponent>
 ): BlockParseResult<EnrichedBlockText> {
-    const [textChildren, otherChildren] = partition(
+    const [textChildren, otherChildren] = _.partition(
         result.content,
         isEnrichedTextBlock
     )

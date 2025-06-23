@@ -1,5 +1,6 @@
 import { expect, it, describe } from "vitest"
 
+import * as _ from "lodash-es"
 import { ScatterPlotChart } from "../scatterCharts/ScatterPlotChart"
 import {
     SampleColumnSlugs,
@@ -25,7 +26,6 @@ import {
     GRAPHER_CHART_TYPES,
 } from "@ourworldindata/types"
 import { ContinentColors } from "../color/CustomSchemes"
-import { sortBy, uniq, uniqBy } from "@ourworldindata/utils"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { GrapherState } from "../core/Grapher"
 
@@ -761,8 +761,8 @@ describe("scatter plot with xOverrideTime", () => {
     const chart = new ScatterPlotChart({ manager })
 
     it("all points have correct times", () => {
-        expect(uniq(chart.allPoints.map((p) => p.timeValue))).toEqual([2001])
-        expect(uniq(chart.allPoints.map((p) => p.time.y))).toEqual([2001])
+        expect(_.uniq(chart.allPoints.map((p) => p.timeValue))).toEqual([2001])
+        expect(_.uniq(chart.allPoints.map((p) => p.time.y))).toEqual([2001])
         expect(chart.allPoints.map((p) => p.time.x)).toEqual(
             expect.arrayContaining([2000, 2001, 2003])
         )
@@ -839,10 +839,10 @@ describe("x/y tolerance", () => {
 
     it("applies tolerance on color & size before filtering rows", () => {
         expect(
-            uniq(transformedTable.get("color").valuesIncludingErrorValues)
+            _.uniq(transformedTable.get("color").valuesIncludingErrorValues)
         ).toEqual(["Europe"])
         expect(
-            uniq(transformedTable.get("size").valuesIncludingErrorValues)
+            _.uniq(transformedTable.get("size").valuesIncludingErrorValues)
         ).toEqual([100])
     })
 
@@ -853,7 +853,7 @@ describe("x/y tolerance", () => {
         const rows = transformedTable.rows
         expect(rows.length).toEqual(6)
 
-        const uniqRows = uniqBy(
+        const uniqRows = _.uniqBy(
             rows,
             (row) => `${row[xTimeSlug]}-${row[yTimeSlug]}`
         )
@@ -955,7 +955,7 @@ describe("correct bubble sizes", () => {
             quadtree: chart["quadtree"],
         })
 
-        const sortedRenderSeries = sortBy(
+        const sortedRenderSeries = _.sortBy(
             scatterPoints["initialRenderSeries"],
             (s) => s.seriesName
         )
@@ -1021,7 +1021,7 @@ describe("correct bubble sizes", () => {
             quadtree: chart["quadtree"],
         })
 
-        const sortedRenderSeries = sortBy(
+        const sortedRenderSeries = _.sortBy(
             scatterPoints["initialRenderSeries"],
             (s) => s.seriesName
         )
@@ -1076,6 +1076,6 @@ it("applies color tolerance before applying the author timeline filter", () => {
     const chart = grapher.chartInstance as ScatterPlotChart
 
     expect(
-        uniq(chart.transformedTable.get("color").valuesIncludingErrorValues)
+        _.uniq(chart.transformedTable.get("color").valuesIncludingErrorValues)
     ).toEqual(["Europe"])
 })

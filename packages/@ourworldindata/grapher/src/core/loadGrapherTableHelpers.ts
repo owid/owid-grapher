@@ -1,7 +1,7 @@
+import * as _ from "lodash-es"
 import { OwidTable } from "@ourworldindata/core-table"
 import {
     ArchiveContext,
-    isEqual,
     OwidChartDimensionInterface,
     OwidVariableDataMetadataDimensions,
 } from "@ourworldindata/utils"
@@ -64,8 +64,8 @@ export function getCachingInputTableFetcher(
         const selectedEntityColors = toJS(selectedEntityColorsMobx)
 
         if (
-            isEqual(previousDimensions, dimensions) &&
-            isEqual(previousSelectedEntityColors, selectedEntityColors)
+            _.isEqual(previousDimensions, dimensions) &&
+            _.isEqual(previousSelectedEntityColors, selectedEntityColors)
         ) {
             return undefined // No changes in dimensions
         }

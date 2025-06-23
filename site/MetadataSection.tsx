@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import dayjs from "dayjs"
 
 import {
@@ -21,7 +22,6 @@ import {
     getCitationShort,
     getCitationLong,
     excludeUndefined,
-    uniq,
     getPhraseForArchivalDate,
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
@@ -72,7 +72,7 @@ export default function MetadataSection({
         archivedChartInfo?.archivalDate
     )
     const currentYear = dayjs().year()
-    const producers = uniq(origins.map((o) => `${o.producer}`))
+    const producers = _.uniq(origins.map((o) => `${o.producer}`))
     const adaptedFrom =
         producers.length > 0 ? producers.join(", ") : source?.name
 

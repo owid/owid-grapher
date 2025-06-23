@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     useEffect,
     RefObject,
@@ -9,10 +10,8 @@ import {
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import {
     Bounds,
-    debounce,
     DEFAULT_BOUNDS,
     getWindowQueryStr,
-    throttle,
 } from "@ourworldindata/utils"
 import { useInterval, useResizeObserver } from "usehooks-ts"
 import { reaction } from "mobx"
@@ -57,7 +56,7 @@ export const useScrollDirection = () => {
             lastScrollY = scrollY
         }
 
-        const updateDirectionThrottled = throttle(() => {
+        const updateDirectionThrottled = _.throttle(() => {
             updateDirection()
         }, 500)
 
@@ -83,7 +82,7 @@ export const useEmbedChart = (
 }
 
 export const useDebounceCallback = (callback: any, delay: number) => {
-    return useRef(debounce(callback, delay)).current
+    return useRef(_.debounce(callback, delay)).current
 }
 
 export const useTriggerOnEscape = (trigger: VoidFunction) => {
@@ -122,7 +121,7 @@ export const useElementBounds = (
     const updateBoundsThrottled = useMemo(
         () =>
             throttleTime !== undefined
-                ? throttle(
+                ? _.throttle(
                       updateBoundsImmediately,
                       throttleTime,
 

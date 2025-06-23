@@ -1,7 +1,7 @@
+import * as _ from "lodash-es"
 import React from "react"
 import {
     Bounds,
-    difference,
     isTouchDevice,
     makeIdForHumanConsumption,
     excludeUndefined,
@@ -142,7 +142,7 @@ export class ChoroplethMap extends React.Component<{
 
     @computed
     private get backgroundFeatures(): MapRenderFeature[] {
-        return difference(this.features, this.foregroundFeatures)
+        return _.difference(this.features, this.foregroundFeatures)
     }
 
     @computed private get backgroundFeatureIdSet(): Set<EntityName> {
@@ -166,7 +166,7 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @computed private get featuresWithNoData(): MapRenderFeature[] {
-        return difference(this.foregroundFeatures, this.featuresWithData)
+        return _.difference(this.foregroundFeatures, this.featuresWithData)
     }
 
     @computed private get binColors(): string[] {

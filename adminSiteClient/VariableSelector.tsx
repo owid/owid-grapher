@@ -1,13 +1,6 @@
+import * as _ from "lodash-es"
 import * as React from "react"
-import * as lodash from "lodash-es"
-import {
-    groupBy,
-    sortBy,
-    OwidVariableId,
-    excludeUndefined,
-    uniq,
-    isNumber,
-} from "@ourworldindata/utils"
+import { OwidVariableId, excludeUndefined } from "@ourworldindata/utils"
 import {
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
@@ -90,18 +83,18 @@ export class VariableSelector<
 
     @computed get datasets(): Dataset[] {
         const datasets = this.editorData.flatMap((d) => d.datasets)
-        return sortBy(datasets, (d) => d.name)
+        return _.sortBy(datasets, (d) => d.name)
     }
 
     @computed get datasetsById(): Record<number, Dataset> {
-        return lodash.keyBy(this.datasets, (d) => d.id)
+        return _.keyBy(this.datasets, (d) => d.id)
     }
 
     @computed get availableVariables(): Variable[] {
         const { variableUsageCounts } = this.database
         const variables: Variable[] = []
         this.datasets.forEach((dataset) => {
-            const sorted = sortBy(dataset.variables, [
+            const sorted = _.sortBy(dataset.variables, [
                 (v) => (variableUsageCounts.get(v.id) ?? 0) * -1,
                 (v) => v.name,
             ])
@@ -142,7 +135,7 @@ export class VariableSelector<
         if (searchWords.length === 0) {
             datasetListToUse = availableVariables
         }
-        return groupBy(datasetListToUse, (d) => d.datasetId)
+        return _.groupBy(datasetListToUse, (d) => d.datasetId)
     }
 
     @computed get searchResultRows() {
@@ -150,10 +143,10 @@ export class VariableSelector<
 
         const rows: Array<number | Variable[]> = []
         const unsorted = Object.entries(resultsByDataset)
-        const sorted = lodash.sortBy(unsorted, ([_, variables]) => {
-            const sizes = lodash.map(
+        const sorted = _.sortBy(unsorted, ([__, variables]) => {
+            const sizes = _.map(
                 variables,
-                (variable) => variable.usageCount ?? 0
+                (variable: Variable) => variable.usageCount ?? 0
             )
             return Math.max(...sizes) * -1
         })
@@ -288,7 +281,7 @@ export class VariableSelector<
                                                 rowOffset + numVisibleRows
                                             )
                                             .map((d) => {
-                                                if (isNumber(d)) {
+                                                if (_.isNumber(d)) {
                                                     const dataset =
                                                         datasetsById[d]
                                                     return (
@@ -526,7 +519,7 @@ export class VariableSelector<
             }
         })
 
-        const uniqueNamespaces = uniq(
+        const uniqueNamespaces = _.uniq(
             this.chosenVariables.map((v) => v.namespaceName)
         )
         this.chosenNamespaces = this.database.namespaces.filter((n) => {

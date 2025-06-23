@@ -1,10 +1,10 @@
+import * as _ from "lodash-es"
+import * as R from "remeda"
 import { load } from "archieml"
 import { createHash } from "crypto"
 import {
     OwidGdocPostContent,
     TocHeadingWithTitleSupertitle,
-    compact,
-    isArray,
     recursivelyMapArticleContent,
     OwidGdocStickyNavItem,
     OwidGdocType,
@@ -19,8 +19,6 @@ import {
     CITATION_ID,
     LICENSE_ID,
     RESEARCH_AND_WRITING_ID,
-    identity,
-    isEmpty,
 } from "@ourworldindata/utils"
 import { convertHeadingTextToId } from "@ourworldindata/components"
 import {
@@ -32,7 +30,6 @@ import urlSlug from "url-slug"
 import { extractUrl, parseAuthors, spansToSimpleString } from "./gdocUtils.js"
 import { htmlToSimpleTextBlock } from "./htmlToEnriched.js"
 import { RESEARCH_AND_WRITING_DEFAULT_HEADING } from "@ourworldindata/types"
-import * as R from "remeda"
 
 // Topic page headings have predictable heading names which are used in the sticky nav.
 // If the user hasn't explicitly defined a sticky-nav in archie to map nav items to headings,
@@ -106,7 +103,7 @@ export function generateStickyNav(
         })
     )
 
-    if (!isEmpty(content.refs?.definitions)) {
+    if (!_.isEmpty(content.refs?.definitions)) {
         stickyNavItems.push({
             text: "Endnotes",
             target: `#${ENDNOTES_ID}`,
@@ -199,7 +196,7 @@ export function formatCitation(
     rawCitation?: string | string[]
 ): undefined | EnrichedBlockSimpleText[] {
     if (!rawCitation) return
-    const citationArray = isArray(rawCitation) ? rawCitation : [rawCitation]
+    const citationArray = _.isArray(rawCitation) ? rawCitation : [rawCitation]
     return citationArray.map(htmlToSimpleTextBlock)
 }
 
@@ -281,7 +278,7 @@ export const archieToEnriched = (
     text: string,
     additionalEnrichmentFunction: (
         content: Record<string, unknown>
-    ) => void = identity
+    ) => void = _.identity
 ): OwidGdocPostContent => {
     const { extractedText, refsByFirstAppearance, rawInlineRefs } =
         extractRefs(text)
@@ -319,10 +316,12 @@ export const archieToEnriched = (
     }
 
     // Parse elements of the ArchieML into enrichedBlocks
-    parsed.body = compact(parsed.body.map(parseRawBlocksToEnrichedBlocks))
+    parsed.body = _.compact(parsed.body.map(parseRawBlocksToEnrichedBlocks))
     const deprecationNotice = parsed["deprecation-notice"]
     if (deprecationNotice) {
-        parsed["deprecation-notice"] = compact(deprecationNotice.map(parseText))
+        parsed["deprecation-notice"] = _.compact(
+            deprecationNotice.map(parseText)
+        )
     }
 
     const parsedRefs = parseRefs({

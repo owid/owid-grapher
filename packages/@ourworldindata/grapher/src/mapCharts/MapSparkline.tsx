@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -11,13 +12,7 @@ import {
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import { LineChart } from "../lineCharts/LineChart"
-import {
-    Bounds,
-    isNumber,
-    checkIsVeryShortUnit,
-    min,
-    max,
-} from "@ourworldindata/utils"
+import { Bounds, checkIsVeryShortUnit } from "@ourworldindata/utils"
 import { LineChartManager } from "../lineCharts/LineChartConstants"
 import { ColorScale } from "../color/ColorScale.js"
 import * as R from "remeda"
@@ -65,7 +60,7 @@ export class MapSparkline extends React.Component<{
             .filterByEntityNames([this.manager.entityName])
             .columnFilter(
                 this.mapColumnSlug,
-                isNumber,
+                _.isNumber,
                 "Drop rows with non-number values in Y column"
             )
             .sortBy([this.manager.timeSeriesTable.timeColumn.slug])
@@ -191,13 +186,13 @@ export class MapSparkline extends React.Component<{
 
         const { yAxisConfig } = this.sparklineManager,
             yColumn = this.sparklineTable.get(this.mapColumnSlug),
-            minVal = min([yColumn.minValue, yAxisConfig?.min]),
-            maxVal = max([yColumn.maxValue, yAxisConfig?.max]),
+            minVal = _.min([yColumn.minValue, yAxisConfig?.min]),
+            maxVal = _.max([yColumn.maxValue, yAxisConfig?.max]),
             minCustom =
-                isNumber(minVal) &&
+                _.isNumber(minVal) &&
                 this.manager.lineColorScale?.getBinForValue(minVal)?.label,
             maxCustom =
-                isNumber(maxVal) &&
+                _.isNumber(maxVal) &&
                 this.manager.lineColorScale?.getBinForValue(maxVal)?.label,
             useCustom = R.isString(minCustom) && R.isString(maxCustom),
             minLabel = useCustom

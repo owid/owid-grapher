@@ -1,9 +1,8 @@
+import * as _ from "lodash-es"
 import * as Papa from "papaparse"
 import * as R from "remeda"
 import {
     findIndexFast,
-    max,
-    range,
     sampleFrom,
     slugifySameCase,
     ColumnSlug,
@@ -378,7 +377,7 @@ export const makeKeyFn = (
 }
 
 const getColumnStoreLength = (store: CoreColumnStore): number => {
-    return max(Object.values(store).map((v) => v.length)) ?? 0
+    return _.max(Object.values(store).map((v) => v.length)) ?? 0
 }
 
 export const concatColumnStores = (
@@ -495,7 +494,7 @@ export const getDropIndexes = (
     arrayLength: number,
     howMany: number,
     seed = Date.now()
-): Set<number> => new Set(sampleFrom(range(0, arrayLength), howMany, seed))
+): Set<number> => new Set(sampleFrom(_.range(0, arrayLength), howMany, seed))
 
 export const replaceRandomCellsInColumnStore = (
     columnStore: CoreColumnStore,
@@ -682,7 +681,7 @@ export const sortColumnStore = (
 
     const newStore: CoreColumnStore = {}
     // Compute an array of the new sort order, i.e. [0, 1, 2, ...] -> [2, 0, 1]
-    const newOrder = range(0, len).sort(sortFn)
+    const newOrder = _.range(0, len).sort(sortFn)
     Object.entries(columnStore).forEach(([slug, colValues]) => {
         newStore[slug] = applyNewSortOrder(colValues, newOrder)
     })

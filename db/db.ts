@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { knex, Knex } from "knex"
 import {
     GRAPHER_DB_HOST,
@@ -8,7 +9,7 @@ import {
     BAKED_BASE_URL,
 } from "../settings/serverSettings.js"
 import { registerExitHandler } from "./cleanup.js"
-import { createTagGraph, keyBy, Url } from "@ourworldindata/utils"
+import { createTagGraph, Url } from "@ourworldindata/utils"
 import {
     ImageMetadata,
     MinimalDataInsightInterface,
@@ -41,7 +42,6 @@ import {
     TagGraphTableName,
     ExplorersTableName,
 } from "@ourworldindata/types"
-import { groupBy } from "lodash-es"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
 
@@ -213,7 +213,7 @@ export const getPublishedExplorersBySlug = async (
     knex: KnexReadonlyTransaction
 ): Promise<Record<string, MinimalExplorerInfo>> => {
     const tags = await getExplorerTags(knex)
-    const tagsBySlug = keyBy(tags, "slug")
+    const tagsBySlug = _.keyBy(tags, "slug")
     return knexRaw(
         knex,
         `-- sql
@@ -241,7 +241,7 @@ export const getPublishedExplorersBySlug = async (
                 updatedAt: row.updatedAt,
             }
         })
-        return keyBy(processed, "slug")
+        return _.keyBy(processed, "slug")
     })
 }
 
@@ -390,7 +390,7 @@ export const getImageMetadataByFilenames = async (
         AND replacedBy IS NULL`,
         [filenames]
     )
-    return keyBy(rows, "filename")
+    return _.keyBy(rows, "filename")
 }
 
 export const getPublishedGdocsWithTags = async (
@@ -502,7 +502,7 @@ export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
                 OwidGdocType.Article,
             ],
         }
-    ).then((rows) => groupBy(rows, "parentId"))
+    ).then((rows) => _.groupBy(rows, "parentId"))
 
     const tagGraphRootIdResult = await knexRawFirst<{
         id: number
@@ -530,7 +530,7 @@ export async function getTagHierarchiesByChildName(
     const tagGraph = createTagGraph(flatTagGraph, __rootId)
     const tagsById = await trx<DbPlainTag>("tags")
         .select("id", "name", "slug")
-        .then((tags) => keyBy(tags, "id"))
+        .then((tags) => _.keyBy(tags, "id"))
 
     const pathsByChildName: Record<
         DbPlainTag["name"],
@@ -939,7 +939,7 @@ export const getFeaturedMetricsByParentTagName = async (
         JOIN ${TagsTableName} t ON m.parentTagId = t.id
         ORDER BY m.ranking ASC`
     ).then((rows) =>
-        groupBy(rows, "parentTagName")
+        _.groupBy(rows, "parentTagName")
     )) as FeaturedMetricByParentTagNameDictionary
 
     return {

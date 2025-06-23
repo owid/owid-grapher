@@ -1,8 +1,8 @@
 #! /usr/bin/env node
 
+import * as _ from "lodash-es"
 import parseArgs from "minimist"
 import fs from "fs-extra"
-import { range } from "lodash-es"
 
 const TEMPLATE_FILENAME = "./devTools/schema/template"
 
@@ -71,7 +71,7 @@ async function main(parsedArgs: parseArgs.ParsedArgs) {
         const template = fs.readFileSync(TEMPLATE_FILENAME, "utf8")
 
         const latestVersion = getSchemaVersion(defaultConfig)
-        const outdatedVersionsAsInts = range(1, parseInt(latestVersion))
+        const outdatedVersionsAsInts = _.range(1, parseInt(latestVersion))
         const outdatedVersions = outdatedVersionsAsInts.map((versionNumber) =>
             versionNumber.toString().padStart(3, "0")
         )

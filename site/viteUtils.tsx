@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import findBaseDir from "../settings/findBaseDir.js"
 import fs from "fs-extra"
@@ -8,7 +9,7 @@ import {
 } from "../settings/serverSettings.js"
 import { POLYFILL_URL } from "./SiteConstants.js"
 import type { Manifest, ManifestChunk } from "vite"
-import { readFromAssetMap, sortBy } from "@ourworldindata/utils"
+import { readFromAssetMap } from "@ourworldindata/utils"
 import urljoin from "url-join"
 import { AssetMap } from "@ourworldindata/types"
 import { VITE_ENTRYPOINT_INFO, ViteEntryPoint } from "./viteConstants.js"
@@ -176,7 +177,10 @@ const prodAssets = (
 
     return {
         // sort for some kind of consistency: first modulepreload, then preload, then stylesheet
-        forHeader: sortBy([polyfillPreload, ...assets.forHeader], "props.rel"),
+        forHeader: _.sortBy(
+            [polyfillPreload, ...assets.forHeader],
+            "props.rel"
+        ),
         forFooter: [polyfillScript, ...assets.forFooter],
     }
 }

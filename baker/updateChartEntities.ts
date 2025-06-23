@@ -4,6 +4,7 @@
  * To do this, we need to instantiate a grapher, download its data, and then look at the available entities.
  */
 
+import * as _ from "lodash-es"
 import {
     GrapherState,
     legacyToOwidTableAndDimensions,
@@ -21,7 +22,6 @@ import * as db from "../db/db.js"
 import pMap from "p-map"
 import { mapEntityNamesToEntityIds } from "../db/model/Entity.js"
 import { getVariableData } from "../db/model/Variable.js"
-import { uniq } from "@ourworldindata/utils"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 
@@ -91,7 +91,7 @@ const obtainAvailableEntitiesForGrapherConfig = async (
     })
 
     // Manually fetch data for grapher, so we can employ caching
-    const variableIds = uniq(grapher.dimensions.map((d) => d.variableId))
+    const variableIds = _.uniq(grapher.dimensions.map((d) => d.variableId))
     const variableData: MultipleOwidVariableDataDimensionsMap = new Map(
         await pMap(variableIds, async (variableId) => [
             variableId,

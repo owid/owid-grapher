@@ -1,13 +1,5 @@
+import * as _ from "lodash-es"
 import { MigrationInterface, QueryRunner } from "typeorm"
-import {
-    cloneDeep,
-    forEach,
-    forOwn,
-    isArray,
-    isEqual,
-    isObject,
-    set,
-} from "lodash-es"
 import { OwidGdocPostContent } from "@ourworldindata/utils"
 
 export class UpdateGdocRecircComponent1685107433682
@@ -16,7 +8,7 @@ export class UpdateGdocRecircComponent1685107433682
     public async up(queryRunner: QueryRunner): Promise<void> {
         // sanity check that the migration works
         recursivelyFixRecircComponents(recircBefore)
-        if (!isEqual(recircBefore, recircAfter)) {
+        if (!_.isEqual(recircBefore, recircAfter)) {
             throw new Error(
                 "The migration did not work as expected. Please check the code."
             )
@@ -28,7 +20,7 @@ export class UpdateGdocRecircComponent1685107433682
         )
         for (const gdoc of allGdocs) {
             gdoc.content = JSON.parse(gdoc.content) as OwidGdocPostContent
-            const old = cloneDeep(gdoc.content.body)
+            const old = _.cloneDeep(gdoc.content.body)
             recursivelyFixRecircComponents(gdoc.content.body)
             if (JSON.stringify(old) !== JSON.stringify(gdoc.content.body)) {
                 console.log(`Updating callout component in gdoc ${gdoc.slug}`)
@@ -45,17 +37,17 @@ export class UpdateGdocRecircComponent1685107433682
     }
 }
 function recursivelyFixRecircComponents(node: any): void {
-    if (isArray(node)) {
+    if (_.isArray(node)) {
         // If the argument is an array, iterate over its elements.
-        forEach(node, (item) => {
+        _.forEach(node, (item) => {
             recursivelyFixRecircComponents(item)
         })
-    } else if (isObject(node)) {
+    } else if (_.isObject(node)) {
         if (
             "type" in node &&
             node.type === "recirc" &&
             "items" in node &&
-            isArray(node.items)
+            _.isArray(node.items)
         ) {
             const items = node.items
             delete node.items
@@ -63,10 +55,10 @@ function recursivelyFixRecircComponents(node: any): void {
                 url: item.url,
                 type: "recirc-link",
             }))
-            set(node, ["links"], links)
+            _.set(node, ["links"], links)
         }
         // If the argument is an object, iterate over its keys.
-        forOwn(node, (value) => {
+        _.forOwn(node, (value) => {
             // Recurse on the key's value.
             recursivelyFixRecircComponents(value)
         })
