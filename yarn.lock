@@ -12889,7 +12889,7 @@ __metadata:
     p-map: "npm:^4.0.0"
     papaparse: "npm:^5.4.1"
     polylabel: "npm:^2.0.1"
-    prettier: "npm:^3.5.0"
+    prettier: "npm:^3.6.0"
     progress: "npm:^2.0.3"
     react: "npm:^17.0.2"
     react-animate-height: "npm:^3.1.1"
@@ -17284,12 +17284,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.5.0":
-  version: 3.5.0
-  resolution: "prettier@npm:3.5.0"
+"prettier@npm:^3.6.0":
+  version: 3.6.0
+  resolution: "prettier@npm:3.6.0"
   bin:
     prettier: bin/prettier.cjs
-  checksum: 10/fc26c74bd317282f2a49ffe3ac0ffa79adbe6b2d7a1cdcadd96acf7fec77d3fa45b15f3728c1a2f281f4beccb35d97207187452a581d4919d18b460d0c37e480
+  checksum: 10/5c0db5a8e32d2ac9824d8bc652990dfd534bc7a7c6f26d99d50c9146a2d9befb3cd1cc86c4aee71caf6b264d421a4b4b5961e31a62dda3790b8fec2521a76eef
   languageName: node
   linkType: hard
 

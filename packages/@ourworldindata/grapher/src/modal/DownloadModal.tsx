@@ -368,8 +368,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                             this.toggleExportFormat()
 
                                             if (!this.isExportingSquare) {
-                                                this.manager.isSocialMediaExport =
-                                                    false
+                                                this.manager.isSocialMediaExport = false
                                             }
 
                                             this.export()
@@ -388,8 +387,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                             if (this.isSocialMediaExport) {
                                                 this.manager.staticFormat =
                                                     GrapherStaticFormat.square
-                                                this.manager.shouldIncludeDetailsInStaticExport =
-                                                    false
+                                                this.manager.shouldIncludeDetailsInStaticExport = false
                                             }
 
                                             this.export()
