@@ -235,12 +235,6 @@ class ColorsSection extends Component<{
                     </div>
                 </FieldsRow>
                 <FieldsRow>
-                    <BindAutoFloat
-                        field="customNumericMinValue"
-                        store={config}
-                        label="Minimum value"
-                        auto={scale.autoMinBinValue}
-                    />
                     {!scale.isManualBuckets && (
                         <BindAutoFloat
                             field="binningStrategyBinCount"
@@ -314,7 +308,9 @@ class BinLabelView extends Component<{
     @action.bound onLabel(value: string) {
         if (this.props.bin instanceof NumericBin) {
             const { scale, index } = this.props
-            while (scale.config.customNumericLabels.length < scale.numBins)
+            while (
+                scale.config.customNumericLabels.length < scale.numNumericBins
+            )
                 scale.config.customNumericLabels.push(undefined)
             scale.config.customNumericLabels[index] = value
         } else {
@@ -335,19 +331,9 @@ class BinLabelView extends Component<{
             <EditableListItem className="BinLabelView">
                 <FieldsRow>
                     {bin instanceof NumericBin ? (
-                        <NumberField
-                            value={bin.max}
-                            onValue={() => null}
-                            allowDecimal
-                            allowNegative
-                            disabled
-                        />
+                        <TextField value={`${bin.min} – ${bin.max}`} disabled />
                     ) : (
-                        <TextField
-                            value={bin.value}
-                            onValue={() => null}
-                            disabled
-                        />
+                        <TextField value={bin.value} disabled />
                     )}
                     <TextField
                         placeholder="Custom label"
@@ -363,7 +349,7 @@ class BinLabelView extends Component<{
 function populateManualBinValuesIfAutomatic(scale: ColorScale) {
     runInAction(() => {
         if (scale.config.binningStrategy !== BinningStrategy.manual) {
-            scale.config.customNumericValues = scale.autoBinMaximums
+            scale.config.customNumericValues = scale.autoBinThresholds
             scale.config.customNumericLabels = []
             scale.config.binningStrategy = BinningStrategy.manual
         }
@@ -388,7 +374,7 @@ class NumericBinView extends Component<{
             scale.config.customNumericColorsActive = true
         }
 
-        while (scale.config.customNumericColors.length < scale.numBins)
+        while (scale.config.customNumericColors.length < scale.numNumericBins)
             scale.config.customNumericColors.push(undefined)
 
         scale.config.customNumericColors[index] = color
@@ -398,13 +384,21 @@ class NumericBinView extends Component<{
     @action.bound onMaximumValue(value: number | undefined) {
         const { scale, index } = this.props
         populateManualBinValuesIfAutomatic(scale)
-        if (value !== undefined) scale.config.customNumericValues[index] = value
+        if (value !== undefined)
+            scale.config.customNumericValues[index + 1] = value
+        this.props.onChange?.()
+    }
+
+    @action.bound onMinimumValue(value: number | undefined) {
+        const { scale } = this.props
+        populateManualBinValuesIfAutomatic(scale)
+        if (value !== undefined) scale.config.customNumericValues[0] = value
         this.props.onChange?.()
     }
 
     @action.bound onLabel(value: string) {
         const { scale, index } = this.props
-        while (scale.config.customNumericLabels.length < scale.numBins)
+        while (scale.config.customNumericLabels.length < scale.numNumericBins)
             scale.config.customNumericLabels.push(undefined)
         scale.config.customNumericLabels[index] = value
         this.props.onChange?.()
@@ -457,8 +451,20 @@ class NumericBinView extends Component<{
                             : bin.props.isFirst
                               ? "≥"
                               : ">"}
-                        {bin.min} ⁠–⁠ {"≤"}
                     </span>
+                    <span style={{ width: 80 }}>
+                        {bin.props.isFirst ? (
+                            <NumberField
+                                value={bin.min}
+                                onValue={this.onMinimumValue}
+                                allowNegative
+                                allowDecimal
+                            />
+                        ) : (
+                            bin.min
+                        )}
+                    </span>
+                    <span>⁠–⁠ {"≤"}</span>
                     <NumberField
                         value={bin.max}
                         onValue={this.onMaximumValue}

@@ -27,7 +27,7 @@ describe(ColorScale, () => {
     describe("numerical color scale", () => {
         const colorScaleConfig: ColorScaleConfigInterface = {
             binningStrategy: BinningStrategy.manual,
-            customNumericValues: [1, 2, 3],
+            customNumericValues: [-10, 1, 2, 3],
             customNumericLabels: [],
             customNumericColorsActive: true,
             customNumericColors: ["#182f4d", "#3b4c61", "#5875a6"],
@@ -63,7 +63,7 @@ describe(ColorScale, () => {
                 colorScaleConfig
             )
             const bins = scale.legendBins
-            expect(scale.getBinForValue(-100)).toBeUndefined() // doesn't belong in any bin
+            expect(scale.getBinForValue(-100)).toEqual(undefined) // doesn't belong in any bin
             expect(scale.getBinForValue(-10)).toEqual(bins[0])
             expect(scale.getBinForValue(0)).toEqual(bins[0])
             expect(scale.getBinForValue(0.9)).toEqual(bins[0])
@@ -132,7 +132,7 @@ describe(ColorScale, () => {
     it("transforms all colors", () => {
         const colorScaleConfig: ColorScaleConfigInterface = {
             binningStrategy: BinningStrategy.manual,
-            customNumericValues: [1, 2, 3],
+            customNumericValues: [0, 1, 2, 3],
             customNumericLabels: [],
             customNumericColorsActive: true,
             customNumericColors: ["#111", "#222", "#333"],

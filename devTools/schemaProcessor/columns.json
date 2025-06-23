@@ -141,11 +141,6 @@
         "editor": "numeric"
     },
     {
-        "type": "number",
-        "pointer": "/map/colorScale/customNumericMinValue",
-        "editor": "numeric"
-    },
-    {
         "type": "integer",
         "pointer": "/map/timeTolerance",
         "editor": "numeric"
@@ -381,11 +376,6 @@
         "type": "integer",
         "pointer": "/colorScale/binningStrategyBinCount",
         "default": 5,
-        "editor": "numeric"
-    },
-    {
-        "type": "number",
-        "pointer": "/colorScale/customNumericMinValue",
         "editor": "numeric"
     },
     {

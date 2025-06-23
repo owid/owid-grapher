@@ -1107,7 +1107,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     async getFieldDefinitions() {
         const json = await fetch(
-            "https://files.ourworldindata.org/schemas/grapher-schema.007.json"
+            "https://files.ourworldindata.org/schemas/grapher-schema.008.json"
         ).then((response) => response.json())
         const fieldDescriptions = extractFieldDescriptionsFromSchema(json)
         runInAction(() => {
