@@ -16,6 +16,7 @@ export interface GrapherFigureViewProps {
     slug?: string
     configUrl?: string
     config?: Partial<GrapherProgrammaticInterface>
+    useProvidedConfigOnly?: boolean // If true, will not fetch config from URL
     queryStr?: string
     isEmbeddedInAnOwidPage: boolean
     isEmbeddedInADataPage: boolean
@@ -48,18 +49,26 @@ export function GrapherFigureView(props: GrapherFigureViewProps): JSX.Element {
         props.isEmbeddedInADataPage,
     ])
 
+    if (props.configUrl && props.useProvidedConfigOnly) {
+        throw new Error(
+            "useProvidedConfigOnly is true, but configUrl has been provided. This will not work as expected."
+        )
+    }
+
+    const slugConfigUrl = slug
+        ? `${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json`
+        : undefined
+
+    const configUrl = !props.useProvidedConfigOnly
+        ? (props.configUrl ?? slugConfigUrl)
+        : undefined
+
     return (
         <figure className="chart grapher-component" ref={base}>
             {bounds && (
                 <FetchingGrapher
                     config={config}
-                    configUrl={
-                        props.configUrl
-                            ? props.configUrl
-                            : slug
-                              ? `${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json`
-                              : undefined
-                    }
+                    configUrl={configUrl}
                     dataApiUrl={DATA_API_URL}
                     archivedChartInfo={config.archivedChartInfo}
                     queryStr={props.queryStr}

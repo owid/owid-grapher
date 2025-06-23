@@ -7,6 +7,7 @@ import { useIntersectionObserver, useIsClient } from "usehooks-ts"
 export interface GrapherWithFallbackProps {
     slug?: string
     configUrl?: string // Optional, if provided will override slug
+    useProvidedConfigOnly?: boolean // If true, will not fetch config from URL
     className?: string
     id?: string
     enablePopulatingUrlParams?: boolean
@@ -75,6 +76,7 @@ export function GrapherWithFallback(
                     slug={slug}
                     configUrl={props.configUrl}
                     config={config}
+                    useProvidedConfigOnly={props.useProvidedConfigOnly}
                     queryStr={queryStr}
                     isEmbeddedInAnOwidPage={props.isEmbeddedInAnOwidPage}
                     isEmbeddedInADataPage={props.isEmbeddedInADataPage}

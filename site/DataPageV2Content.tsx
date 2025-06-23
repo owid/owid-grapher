@@ -106,6 +106,7 @@ export const DataPageV2Content = ({
                 <div className="DataPageContent__grapher-for-embed">
                     <GrapherWithFallback
                         config={mergedGrapherConfig}
+                        useProvidedConfigOnly
                         slug={grapherConfig.slug!}
                         queryStr={
                             typeof window !== "undefined"
@@ -148,6 +149,7 @@ export const DataPageV2Content = ({
                                 <GrapherWithFallback
                                     slug={grapherConfig.slug}
                                     config={mergedGrapherConfig}
+                                    useProvidedConfigOnly
                                     id="explore-the-data"
                                     queryStr={
                                         typeof window !== "undefined"
