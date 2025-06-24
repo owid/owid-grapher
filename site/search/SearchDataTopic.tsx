@@ -12,7 +12,7 @@ import { SearchAsDraft } from "./SearchAsDraft.js"
 const analytics = new SiteAnalytics()
 
 export const SearchDataTopic = ({
-    result,
+    result: { title, charts },
 }: {
     result: SearchDataTopicsResponse
 }) => {
@@ -22,12 +22,12 @@ export const SearchDataTopic = ({
 
     const selectedCountries = useSelectedCountries()
 
-    if (result.nbHits === 0) return null
-    const titleLabel = result.title.replaceAll(" and ", " & ")
+    if (charts.nbHits === 0) return null
+    const titleLabel = title.replaceAll(" and ", " & ")
 
     const handleAddTopicClick = (e: React.MouseEvent) => {
         e.preventDefault()
-        setTopic(result.title)
+        setTopic(title)
         window.scrollTo({
             top: 0,
         })
@@ -41,21 +41,21 @@ export const SearchDataTopic = ({
             <div className="search-data-topic">
                 <button
                     className="search-data-topic__header-button"
-                    aria-label={`Add topic ${result.title} to filters`}
+                    aria-label={`Add topic ${title} to filters`}
                     onClick={handleAddTopicClick}
                 >
                     <div className="search-data-topic__header">
                         <h2>{titleLabel}</h2>
                         <span className="search-data-topic__hit-count">
-                            {commafyNumber(result.nbHits)}{" "}
-                            {result.nbHits === 1 ? "chart" : "charts"}
+                            {commafyNumber(charts.nbHits)}{" "}
+                            {charts.nbHits === 1 ? "chart" : "charts"}
                             <FontAwesomeIcon icon={faArrowRight} />
                         </span>
                     </div>
                 </button>
                 <div className="search-data-topic-hits">
                     <ul className="search-data-topic-list">
-                        {result.hits.map((hit, i) => (
+                        {charts.hits.map((hit, i) => (
                             <li
                                 className="search-data-topic-hit"
                                 key={hit.objectID}
@@ -67,7 +67,7 @@ export const SearchDataTopic = ({
                                             hit,
                                             i + 1,
                                             "ribbon",
-                                            result.title
+                                            title
                                         )
                                     }}
                                     searchQueryRegionsMatches={
@@ -81,12 +81,12 @@ export const SearchDataTopic = ({
                 </div>
                 <button
                     className="search-data-topic__see-all-button"
-                    aria-label={`Add ${result.title} to filters`}
+                    aria-label={`Add ${title} to filters`}
                     onClick={handleAddTopicClick}
                 >
-                    {result.nbHits === 1
+                    {charts.nbHits === 1
                         ? `See 1 chart`
-                        : `See ${commafyNumber(result.nbHits)} charts`}
+                        : `See ${commafyNumber(charts.nbHits)} charts`}
                     <FontAwesomeIcon icon={faArrowRight} />
                 </button>
             </div>
