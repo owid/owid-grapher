@@ -356,10 +356,21 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                 >
                                     embed an interactive version
                                 </a>
-                                . You can choose between a live embed that
-                                always reflects our latest data updates, or a
-                                snapshot embed that stays fixed at the time you
-                                created it.
+                                .{" "}
+                                {this.manager.isOnArchivalPage ? (
+                                    <>
+                                        The interactive version will stay fixed
+                                        over time and will always show the same
+                                        chart and data you are seeing now.
+                                    </>
+                                ) : (
+                                    <>
+                                        You can choose between a live embed that
+                                        always reflects our latest data updates,
+                                        or a snapshot embed that stays fixed at
+                                        the time you created it.
+                                    </>
+                                )}
                             </Callout>
                         )}
                         <div>
