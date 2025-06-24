@@ -73,9 +73,6 @@ export class ActionButtons extends React.Component<{
         } = this
 
         let width = 0
-        if (hasDonateButton) {
-            width += donateButtonWithLabelWidth
-        }
         if (hasDownloadButton) {
             width += downloadButtonWithLabelWidth
         }
@@ -84,6 +81,9 @@ export class ActionButtons extends React.Component<{
         }
         if (hasFullScreenButton) {
             width += fullScreenButtonWithLabelWidth
+        }
+        if (hasDonateButton) {
+            width += donateButtonWithLabelWidth
         }
         if (hasExploreTheDataButton) {
             width += exploreTheDataButtonWithLabelWidth
@@ -138,10 +138,6 @@ export class ActionButtons extends React.Component<{
         return ActionButtons.computeButtonWidth("Download")
     }
 
-    @computed private get donateButtonWithLabelWidth(): number {
-        return ActionButtons.computeButtonWidth("Donate")
-    }
-
     @computed private get shareButtonWithLabelWidth(): number {
         return ActionButtons.computeButtonWidth("Share")
     }
@@ -153,6 +149,10 @@ export class ActionButtons extends React.Component<{
 
     @computed private get fullScreenButtonWithLabelWidth(): number {
         return ActionButtons.computeButtonWidth(this.fullScreenButtonLabel)
+    }
+
+    @computed private get donateButtonWithLabelWidth(): number {
+        return ActionButtons.computeButtonWidth("Donate")
     }
 
     @computed private get exploreTheDataButtonWithLabelWidth(): number {
@@ -168,17 +168,6 @@ export class ActionButtons extends React.Component<{
         if (!hasDownloadButton) return 0
         if (!showButtonLabels) return BUTTON_WIDTH_ICON_ONLY
         return downloadButtonWithLabelWidth
-    }
-
-    @computed private get donateButtonWidth(): number {
-        const {
-            hasDonateButton,
-            showButtonLabels,
-            donateButtonWithLabelWidth,
-        } = this
-        if (!hasDonateButton) return 0
-        if (!showButtonLabels) return BUTTON_WIDTH_ICON_ONLY
-        return donateButtonWithLabelWidth
     }
 
     @computed private get shareButtonWidth(): number {
@@ -198,6 +187,17 @@ export class ActionButtons extends React.Component<{
         if (!hasFullScreenButton) return 0
         if (!showButtonLabels) return BUTTON_WIDTH_ICON_ONLY
         return fullScreenButtonWithLabelWidth
+    }
+
+    @computed private get donateButtonWidth(): number {
+        const {
+            hasDonateButton,
+            showButtonLabels,
+            donateButtonWithLabelWidth,
+        } = this
+        if (!hasDonateButton) return 0
+        if (!showButtonLabels) return BUTTON_WIDTH_ICON_ONLY
+        return donateButtonWithLabelWidth
     }
 
     // the "Explore the data" button is never shown without a label
@@ -245,10 +245,10 @@ export class ActionButtons extends React.Component<{
 
     @computed private get buttonCount(): number {
         let count = 0
-        if (this.hasDonateButton) count += 1
         if (this.hasDownloadButton) count += 1
         if (this.hasShareButton) count += 1
         if (this.hasFullScreenButton) count += 1
+        if (this.hasDonateButton) count += 1
         if (this.hasExploreTheDataButton) count += 1
         return count
     }
@@ -280,18 +280,6 @@ export class ActionButtons extends React.Component<{
                 style={{ height: this.height, width: this.width }}
             >
                 <ul>
-                    {this.hasDonateButton && (
-                        <li style={{ width: this.donateButtonWidth }}>
-                            <ActionButton
-                                className="ActionButton--donate"
-                                label="Donate"
-                                dataTrackNote="chart_click_donate"
-                                showLabel={this.showButtonLabels}
-                                icon={faHeart}
-                                href="https://ourworldindata.org/donate"
-                            />
-                        </li>
-                    )}
                     {this.hasDownloadButton && (
                         <li style={{ width: this.downloadButtonWidth }}>
                             <ActionButton
@@ -334,6 +322,18 @@ export class ActionButtons extends React.Component<{
                                         : faExpand
                                 }
                                 onClick={this.toggleFullScreenMode}
+                            />
+                        </li>
+                    )}
+                    {this.hasDonateButton && (
+                        <li style={{ width: this.donateButtonWidth }}>
+                            <ActionButton
+                                className="ActionButton--donate"
+                                label="Donate"
+                                dataTrackNote="chart_click_donate"
+                                showLabel={this.showButtonLabels}
+                                icon={faHeart}
+                                href="https://ourworldindata.org/donate"
                             />
                         </li>
                     )}
