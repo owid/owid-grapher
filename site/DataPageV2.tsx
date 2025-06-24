@@ -115,6 +115,7 @@ export const DataPageV2 = (props: {
                 imageUrl={imageUrl}
                 baseUrl={baseUrl}
                 staticAssetMap={assetMaps?.static}
+                archivedChartInfo={archivedChartInfo}
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />

@@ -1,7 +1,12 @@
 import { viteAssetsForSite } from "./viteUtils.js"
 import { GOOGLE_TAG_MANAGER_ID } from "../settings/clientSettings.js"
 import { NoJSDetector } from "./NoJSDetector.js"
-import { AssetMap, DEFAULT_THUMBNAIL_FILENAME } from "@ourworldindata/types"
+import {
+    ArchiveContext,
+    AssetMap,
+    DEFAULT_THUMBNAIL_FILENAME,
+} from "@ourworldindata/types"
+import { parseArchivalDate } from "@ourworldindata/utils"
 
 export const GTMScriptTags = ({ gtmId }: { gtmId: string }) => {
     if (!gtmId || /["']/.test(gtmId)) return null
@@ -42,6 +47,7 @@ export const Head = (props: {
         href: string
     }
     staticAssetMap?: AssetMap
+    archivedChartInfo?: ArchiveContext
 }) => {
     const { canonicalUrl, baseUrl } = props
     const pageTitle = props.pageTitle || `Our World in Data`
@@ -62,6 +68,15 @@ export const Head = (props: {
         staticAssetMap: props.staticAssetMap,
     }).forHeader
 
+    let archivalDateStr = undefined
+    if (props.archivedChartInfo?.archivalDate) {
+        archivalDateStr = parseArchivalDate(
+            props.archivedChartInfo?.archivalDate
+        )
+            .utc()
+            .format("YYYY-MM-DD")
+    }
+
     return (
         <head>
             <meta
@@ -77,6 +92,14 @@ export const Head = (props: {
                 href={atom.href}
                 title={atom.title}
             />
+            {props.archivedChartInfo && (
+                <link
+                    rel="archives"
+                    href={props.archivedChartInfo.archiveUrl}
+                    title={`Archived version of this chart as of ${archivalDateStr}`}
+                    data-archival-date={props.archivedChartInfo.archivalDate}
+                />
+            )}
             <link
                 rel="apple-touch-icon"
                 sizes="180x180"
