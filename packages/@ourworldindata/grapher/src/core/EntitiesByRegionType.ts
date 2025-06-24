@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { EntityName } from "@ourworldindata/types"
 import {
     AggregateSource,
@@ -5,7 +6,6 @@ import {
     Country,
     excludeUndefined,
     getRegionByName,
-    groupBy,
 } from "@ourworldindata/utils"
 import { CUSTOM_REGION_SOURCE_IDS, isWorldEntityName } from "./GrapherConstants"
 import * as R from "remeda"
@@ -68,7 +68,10 @@ export function groupEntityNamesByRegionType(
     )
 
     // group regions by type
-    const regionsGroupedByType = groupBy(availableRegions, (r) => r.regionType)
+    const regionsGroupedByType = _.groupBy(
+        availableRegions,
+        (r) => r.regionType
+    )
 
     const entitiesByType: EntityRegionTypeGroup[] = []
 

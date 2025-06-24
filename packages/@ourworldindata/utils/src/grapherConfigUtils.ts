@@ -1,15 +1,10 @@
 import { GrapherInterface } from "@ourworldindata/types"
+import * as _ from "lodash-es"
 import {
-    isEqual,
-    mergeWith,
-    uniq,
-    omit,
-    pick,
     excludeUndefined,
     omitUndefinedValuesRecursive,
     omitEmptyObjectsRecursive,
     traverseObjects,
-    isEmpty,
 } from "./Util"
 
 const REQUIRED_KEYS = ["$schema", "dimensions"]
@@ -31,7 +26,7 @@ const KEYS_EXCLUDED_FROM_INHERITANCE = [
 export function simpleMerge(
     ...grapherConfigs: GrapherInterface[]
 ): GrapherInterface {
-    return mergeWith(
+    return _.mergeWith(
         {}, // mergeWith mutates the first argument
         ...grapherConfigs,
         (_: unknown, childValue: unknown): any => {
@@ -46,7 +41,7 @@ export function simpleMerge(
 export function mergeGrapherConfigs(
     ...grapherConfigs: GrapherInterface[]
 ): GrapherInterface {
-    const configsToMerge = grapherConfigs.filter((c) => !isEmpty(c))
+    const configsToMerge = grapherConfigs.filter((c) => !_.isEmpty(c))
 
     // return early if there are no configs to merge
     if (configsToMerge.length === 0) return {}
@@ -64,7 +59,7 @@ export function mergeGrapherConfigs(
     }
 
     // abort if the grapher configs have different schema versions
-    const uniqueSchemas = uniq(
+    const uniqueSchemas = _.uniq(
         excludeUndefined(configsToMerge.map((c) => c["$schema"]))
     )
     if (uniqueSchemas.length > 1) {
@@ -78,7 +73,7 @@ export function mergeGrapherConfigs(
     // keys that should not be inherited are removed from all but the last config
     const cleanedConfigs = configsToMerge.map((config, index) => {
         if (index === configsToMerge.length - 1) return config
-        return omit(config, KEYS_EXCLUDED_FROM_INHERITANCE)
+        return _.omit(config, KEYS_EXCLUDED_FROM_INHERITANCE)
     })
 
     return simpleMerge(...cleanedConfigs)
@@ -89,13 +84,13 @@ export function diffGrapherConfigs(
     reference: GrapherInterface
 ): GrapherInterface {
     const keepKeys = [...REQUIRED_KEYS, ...KEYS_EXCLUDED_FROM_INHERITANCE]
-    const keep = pick(config, keepKeys)
+    const keep = _.pick(config, keepKeys)
 
     const diffed = omitEmptyObjectsRecursive(
         omitUndefinedValuesRecursive(
             traverseObjects(config, reference, (value, refValue) => {
                 if (refValue === undefined) return value
-                if (!isEqual(value, refValue)) return value
+                if (!_.isEqual(value, refValue)) return value
                 return undefined
             })
         )

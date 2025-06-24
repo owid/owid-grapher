@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -10,7 +11,6 @@ import {
     GlobeRegionName,
     mappableCountries,
     MapRegionName,
-    sortBy,
     checkIsOwidIncomeGroupName,
     getUserCountryInformation,
     regions,
@@ -111,7 +111,7 @@ export class MapCountryDropdown extends React.Component<{
     }
 
     @computed private get sortedCountries(): EntityName[] {
-        return sortBy(mappableCountries.map((country) => country.name))
+        return _.sortBy(mappableCountries.map((country) => country.name))
     }
 
     @computed private get options(): GroupedDropdownOption[] {
@@ -204,7 +204,7 @@ export class MapCountryDropdown extends React.Component<{
                 userEntityCodes.includes(region.code)
             )
 
-            const sortedUserRegions = sortBy(userRegions, (region) =>
+            const sortedUserRegions = _.sortBy(userRegions, (region) =>
                 userEntityCodes.indexOf(region.code)
             )
 

@@ -1,13 +1,10 @@
+import * as _ from "lodash-es"
 import { useCallback, useEffect, useMemo } from "react"
 import * as React from "react"
 import cx from "classnames"
 import {
-    keyBy,
     getWindowQueryParams,
-    get,
-    mapValues,
     isElementHidden,
-    sortBy,
     OwidGdocType,
 } from "@ourworldindata/utils"
 import {
@@ -182,9 +179,9 @@ function Filters({
     const { scopedResults } = useInstantSearch()
     if (isHidden) return null
 
-    const resultsByIndexName = keyBy(scopedResults, "indexId")
-    const hitsLengthByIndexName = mapValues(resultsByIndexName, (results) =>
-        get(results, ["results", "hits", "length"], 0)
+    const resultsByIndexName = _.keyBy(scopedResults, "indexId")
+    const hitsLengthByIndexName = _.mapValues(resultsByIndexName, (results) =>
+        _.get(results, ["results", "hits", "length"], 0)
     )
 
     hitsLengthByIndexName[getIndexName("all")] = Object.values(
@@ -346,7 +343,7 @@ const SearchResults = (props: SearchResultsProps) => {
     const searchQueryRegionsMatches = useMemo(() => {
         const extractedRegions = extractRegionNamesFromSearchQuery(props.query)
         if (!extractedRegions) return undefined
-        return sortBy(extractedRegions, (r) => r.name) // For some deterministic order
+        return _.sortBy(extractedRegions, (r) => r.name) // For some deterministic order
     }, [props.query])
     if (isHidden) return null
 

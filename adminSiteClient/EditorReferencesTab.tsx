@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 /* eslint-disable react-refresh/only-export-components */
 
 import { Component, createContext, Fragment, useState } from "react"
@@ -17,8 +18,6 @@ import {
     stringifyUnknownError,
     formatValue,
     ChartRedirect,
-    partition,
-    round,
 } from "@ourworldindata/utils"
 import { AbstractChartEditor, References } from "./AbstractChartEditor.js"
 import {
@@ -109,7 +108,10 @@ export class EditorReferencesTabForChart extends Component<{
                             </strong>{" "}
                             {this.renderPageview(
                                 this.pageviews?.views_365d
-                                    ? round(this.pageviews?.views_365d / 365, 1)
+                                    ? _.round(
+                                          this.pageviews?.views_365d / 365,
+                                          1
+                                      )
                                     : undefined
                             )}
                         </div>
@@ -315,10 +317,11 @@ export class EditorReferencesTabForIndicator extends Component<{
         const { references } = this.props.editor
 
         const publishedChildren = references?.childCharts ?? []
-        const [chartsInheritanceEnabled, chartsInheritanceDisabled] = partition(
-            publishedChildren,
-            (chart) => chart.isInheritanceEnabled
-        )
+        const [chartsInheritanceEnabled, chartsInheritanceDisabled] =
+            _.partition(
+                publishedChildren,
+                (chart) => chart.isInheritanceEnabled
+            )
 
         const renderChartList = (charts: IndicatorChartInfo[]) => (
             <ul>

@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { useCallback, useMemo, useState } from "react"
 import * as React from "react"
 import { observable, computed, action } from "mobx"
@@ -7,11 +8,8 @@ import {
     DEFAULT_BOUNDS,
     getOriginAttributionFragments,
     getPhraseForProcessingLevel,
-    isEmpty,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
-    uniq,
-    uniqBy,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -278,7 +276,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
     }
 
     @computed private get hasDetails(): boolean {
-        return !isEmpty(this.manager.detailsOrderedByReference)
+        return !_.isEmpty(this.manager.detailsOrderedByReference)
     }
 
     @computed private get showExportControls(): boolean {
@@ -551,7 +549,7 @@ export const getNonRedistributableInfo = (
         })
         .filter((link): link is string => !!link)
 
-    return { cols: nonRedistributableCols, sourceLinks: uniq(sourceLinks) }
+    return { cols: nonRedistributableCols, sourceLinks: _.uniq(sourceLinks) }
 }
 
 const CodeExamplesBlock = (props: { csvUrl: string; metadataUrl: string }) => {
@@ -614,7 +612,7 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
                 })
             ) ?? []
 
-    const originsUniq = uniqBy(
+    const originsUniq = _.uniqBy(
         [...origins, ...otherSources],
         (o) => o.urlMain ?? o.datePublished
     )

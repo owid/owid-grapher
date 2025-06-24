@@ -1,18 +1,10 @@
+import * as _ from "lodash-es"
 import {
-    max,
-    min,
     intersectionOfSets,
     findClosestTimeIndex,
-    sumBy,
-    uniq,
     sortNumeric,
-    groupBy,
-    isNumber,
-    isEmpty,
     getClosestTimePairs,
     sortedFindClosest,
-    maxBy,
-    minBy,
     cagr,
     makeAnnotationsSlug,
     isPresent,
@@ -74,11 +66,11 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     @imemo get minTime(): Time {
-        return min(this.allTimes) as Time
+        return _.min(this.allTimes) as Time
     }
 
     @imemo get maxTime(): number | undefined {
-        return max(this.allTimes)
+        return _.max(this.allTimes)
     }
 
     @imemo private get allTimes(): Time[] {
@@ -90,7 +82,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     }
 
     getAnnotationColumnSlug(columnDef: OwidColumnDef): string | undefined {
-        return isEmpty(columnDef?.annotationsColumnSlug)
+        return _.isEmpty(columnDef?.annotationsColumnSlug)
             ? makeAnnotationsSlug(columnDef.slug)
             : columnDef.annotationsColumnSlug
     }
@@ -105,7 +97,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
     getTimesUniqSortedAscForColumns(columnSlugs: ColumnSlug[]): number[] {
         // todo: should be easy to speed up if necessary.
         return sortNumeric(
-            uniq(
+            _.uniq(
                 this.getColumns(columnSlugs)
                     .filter((col) => col)
                     .flatMap((col) => col.uniqTimesAsc)
@@ -117,16 +109,16 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const cols = this.getColumns(slugs)
         const mins = cols.map((col) => col.minTime)
         const maxes = cols.map((col) => col.maxTime)
-        return [min(mins), max(maxes)]
+        return [_.min(mins), _.max(maxes)]
     }
 
     originalTimeDomainFor(
         slugs: ColumnSlug[]
     ): [Time | undefined, Time | undefined] {
         const cols = this.getColumns(slugs)
-        const mins = cols.map((col) => min(col.originalTimes))
-        const maxes = cols.map((col) => max(col.originalTimes))
-        return [min(mins), max(maxes)]
+        const mins = cols.map((col) => _.min(col.originalTimes))
+        const maxes = cols.map((col) => _.max(col.originalTimes))
+        return [_.min(mins), _.max(maxes)]
     }
 
     filterByEntityNames(names: EntityName[]): this {
@@ -478,17 +470,17 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const columnStore = this.columnStore
         const columnStorePatch: CoreColumnStore = {}
 
-        const totals = new Array(this.numRows).fill(0).map((_, i) =>
-            sumBy(columnSlugs, (slug) => {
+        const totals = new Array(this.numRows).fill(0).map((__, i) =>
+            _.sumBy(columnSlugs, (slug) => {
                 const value = columnStore[slug][i]
-                return isNumber(value) ? Math.abs(value) : 0
+                return _.isNumber(value) ? Math.abs(value) : 0
             })
         )
 
         columnSlugs.forEach((slug) => {
             columnStorePatch[slug] = columnStore[slug].map((value, i) => {
                 const total = totals[i]
-                if (!isNumber(value) || !isNumber(total)) return value
+                if (!_.isNumber(value) || !_.isNumber(total)) return value
                 if (total === 0) return ErrorValueTypes.DivideByZeroError
                 return (100 * Math.abs(value)) / total
             })
@@ -526,7 +518,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             return def
         })
         const newRows = Object.values(
-            groupBy(this.sortedByTime.rows, (row) => row[this.entityNameSlug])
+            _.groupBy(this.sortedByTime.rows, (row) => row[this.entityNameSlug])
         ).flatMap((rowsForSingleEntity) => {
             columnSlugs.forEach((valueSlug) => {
                 let comparisonValue: number
@@ -541,7 +533,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
                         if (row[timeColumnSlug] < startTimeBound) {
                             newRow[valueSlug] =
                                 ErrorValueTypes.MissingValuePlaceholder
-                        } else if (!isNumber(value)) {
+                        } else if (!_.isNumber(value)) {
                             newRow[valueSlug] =
                                 ErrorValueTypes.NaNButShouldBeNumber
                         } else if (comparisonValue !== undefined) {
@@ -582,7 +574,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         const timeValues = timeColumn.valuesIncludingErrorValues
         const matchingIndices = new Set<number>()
         indexMap.forEach((indices) =>
-            [minBy, maxBy]
+            [_.minBy, _.maxBy]
                 .map((f) => f(indices, (index) => timeValues[index]))
                 .filter(isPresent)
                 .forEach((index) => matchingIndices.add(index))
@@ -610,14 +602,14 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
             const nonZeroValueIndices = indices.filter((index) =>
                 columns.every((col) => {
                     const value = col.valuesIncludingErrorValues[index]
-                    return isNumber(value) && value !== 0
+                    return _.isNumber(value) && value !== 0
                 })
             )
-            const minIndex = minBy(
+            const minIndex = _.minBy(
                 nonZeroValueIndices,
                 (index) => timeValues[index]
             )
-            const maxIndex = maxBy(indices, (index) => timeValues[index])
+            const maxIndex = _.maxBy(indices, (index) => timeValues[index])
             if (minIndex === undefined || maxIndex === undefined) return
 
             const allValuePairsHaveDistinctTime = columns.every((col) => {

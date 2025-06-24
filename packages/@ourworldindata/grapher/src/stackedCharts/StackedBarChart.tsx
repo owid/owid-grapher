@@ -1,17 +1,13 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
     Bounds,
     Time,
-    uniq,
     makeSafeForCSS,
-    sum,
     getRelativeMouse,
     excludeUndefined,
-    min,
-    max,
-    partition,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { DualAxisComponent } from "../axis/AxisViews"
@@ -184,7 +180,7 @@ export class StackedBarChart
         const yValues = this.allStackedPoints.map(
             (point) => point.value + point.valueOffset
         )
-        return [min([0, ...yValues]) ?? 0, max([0, ...yValues]) ?? 0]
+        return [_.min([0, ...yValues]) ?? 0, _.max([0, ...yValues]) ?? 0]
     }
 
     @computed get barWidth(): number {
@@ -226,7 +222,7 @@ export class StackedBarChart
         const hoverKeys =
             hoverColor === undefined
                 ? []
-                : uniq(
+                : _.uniq(
                       this.series
                           .filter((g) => g.color === hoverColor)
                           .map((g) => g.seriesName)
@@ -248,9 +244,9 @@ export class StackedBarChart
 
         if (!activeKeys.length)
             // No hover means they're all active by default
-            return uniq(this.series.map((g) => g.color))
+            return _.uniq(this.series.map((g) => g.color))
 
-        return uniq(
+        return _.uniq(
             this.series
                 .filter((g) => activeKeys.indexOf(g.seriesName) !== -1)
                 .map((g) => g.color)
@@ -351,7 +347,7 @@ export class StackedBarChart
 
         const { unit, shortUnit } = formatColumn
 
-        const totalValue = sum(
+        const totalValue = _.sum(
             series.map(
                 ({ points }) =>
                     points.find((bar) => bar.position === hoverTime)?.value ?? 0
@@ -378,7 +374,7 @@ export class StackedBarChart
                 point,
             }
         })
-        const [positivePoints, negativePoints] = partition(
+        const [positivePoints, negativePoints] = _.partition(
             hoverPoints,
             ({ point }) => (point?.value ?? 0) >= 0
         )
@@ -675,7 +671,7 @@ export class StackedBarChart
     }
 
     @computed private get xValues(): number[] {
-        return uniq(
+        return _.uniq(
             this.unstackedSeriesWithMissingValuesAsZeroes.flatMap((s) =>
                 s.points.map((p) => p.position)
             )

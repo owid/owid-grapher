@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { useRef, useMemo } from "react"
 import {
     grapherInterfaceWithHiddenControls,
@@ -9,9 +10,7 @@ import {
     ChartTabKeyword,
     EnrichedBlockChart,
     Url,
-    merge,
     excludeUndefined,
-    isEmpty,
 } from "@ourworldindata/utils"
 import { ChartConfigType, GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import { useLinkedChart } from "../utils.js"
@@ -72,7 +71,7 @@ export default function Chart({
                 tabs.map(mapTabKeywordToGrapherConfig)
             )
 
-            config = merge(
+            config = _.merge(
                 {},
                 !showAllControls ? allControlsHidden : {},
                 !showAllTabs ? allTabsHidden : {},
@@ -127,7 +126,7 @@ export default function Chart({
                     data-is-multi-dim={isMultiDim || undefined}
                     data-grapher-src={isExplorer ? undefined : resolvedUrl}
                     data-grapher-config={
-                        isExplorer || isEmpty(chartConfig)
+                        isExplorer || _.isEmpty(chartConfig)
                             ? undefined
                             : JSON.stringify(chartConfig)
                     }

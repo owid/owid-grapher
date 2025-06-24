@@ -1,4 +1,5 @@
-import { FuzzySearch, FuzzySearchResult, keyBy } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
+import { FuzzySearch, FuzzySearchResult } from "@ourworldindata/utils"
 import { action, autorun, computed, observable } from "mobx"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 interface ChartItem {
@@ -35,7 +36,7 @@ class ChartFilter {
     }
 
     @computed get resultsByTitle(): { [key: string]: FuzzySearchResult } {
-        return keyBy(this.searchResults, "target")
+        return _.keyBy(this.searchResults, "target")
     }
 
     constructor() {
@@ -56,7 +57,7 @@ class ChartFilter {
             li: li,
             ul: li.closest("ul") as HTMLUListElement,
         }))
-        this.chartItemsByTitle = keyBy(this.chartItems, "title")
+        this.chartItemsByTitle = _.keyBy(this.chartItems, "title")
     }
 
     analytics = new SiteAnalytics()

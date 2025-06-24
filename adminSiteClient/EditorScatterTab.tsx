@@ -1,9 +1,9 @@
+import * as _ from "lodash-es"
 import {
     ComparisonLineConfig,
     ScatterPointLabelStrategy,
 } from "@ourworldindata/types"
 import { GrapherState } from "@ourworldindata/grapher"
-import { debounce } from "@ourworldindata/utils"
 import { action, observable } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
@@ -60,7 +60,7 @@ export class EditorScatterTab extends Component<{
                     <NumberField
                         label="Override X axis target year"
                         value={grapherState.xOverrideTime}
-                        onValue={debounce(this.onXOverrideYear, 300)}
+                        onValue={_.debounce(this.onXOverrideYear, 300)}
                         allowNegative
                     />
                 </Section>

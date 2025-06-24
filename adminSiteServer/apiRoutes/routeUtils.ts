@@ -1,7 +1,7 @@
+import * as _ from "lodash-es"
 import { DbPlainUser } from "@ourworldindata/types"
 import { DeployQueueServer } from "../../baker/DeployQueueServer.js"
 import { BAKE_ON_CHANGE } from "../../settings/serverSettings.js"
-import { isObject } from "lodash-es"
 
 // Call this to trigger build and deployment of static charts on change
 export const triggerStaticBuild = async (
@@ -50,7 +50,7 @@ export const enqueueLightningChange = async (
  * the error object so that we can log the error without it being truncated.
  */
 export function extractSqlError(error: unknown): Record<string, unknown> {
-    if (!isObject(error))
+    if (!_.isObject(error))
         return {
             message: String(error),
         }

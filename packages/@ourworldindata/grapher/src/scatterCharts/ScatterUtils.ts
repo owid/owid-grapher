@@ -1,5 +1,6 @@
+import * as _ from "lodash-es"
 import * as R from "remeda"
-import { Bounds, PointVector, maxBy } from "@ourworldindata/utils"
+import { Bounds, PointVector } from "@ourworldindata/utils"
 import {
     SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES,
     ScatterLabel,
@@ -112,7 +113,7 @@ export const makeMidLabels = (
                 .normals()
                 .map((x) => x.times(5))
             const potentialSpots = normals.map((n) => v.position.add(n))
-            pos = maxBy(potentialSpots, (p) => {
+            pos = _.maxBy(potentialSpots, (p) => {
                 return (
                     PointVector.distance(p, prevPos) +
                     PointVector.distance(p, nextPos)

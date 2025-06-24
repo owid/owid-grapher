@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import { computed, observable, action } from "mobx"
 import { observer } from "mobx-react"
@@ -21,21 +22,14 @@ import {
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import {
-    capitalize,
-    orderBy,
-    upperFirst,
     valuesByEntityAtTimes,
     es6mapValues,
-    sortBy,
-    union,
     exposeInstanceOnWindow,
     DataValue,
     Bounds,
     DEFAULT_BOUNDS,
     TickFormattingOptions,
     Tippy,
-    maxBy,
-    minBy,
     excludeUndefined,
     joinTitleFragments,
     FuzzySearch,
@@ -254,7 +248,7 @@ export class DataTable extends React.Component<{
     }
 
     private get entityHeaderText(): string {
-        return capitalize(this.entityType)
+        return _.capitalize(this.entityType)
     }
 
     private get entityHeader(): React.ReactElement {
@@ -304,8 +298,8 @@ export class DataTable extends React.Component<{
 
         const accessor = (row: MinimalOwidRow): number | undefined =>
             typeof row.value === "string" ? row.value.length : row.value
-        const maxValue = maxBy(values, accessor)
-        const minValue = minBy(values, accessor)
+        const maxValue = _.maxBy(values, accessor)
+        const minValue = _.minBy(values, accessor)
 
         const measureWidth = (text: string): number =>
             Bounds.forText(text, { fontSize: 14 }).width
@@ -342,7 +336,7 @@ export class DataTable extends React.Component<{
             const dimensionHeaderText = (
                 <React.Fragment>
                     <div className="name">
-                        {upperFirst(display.columnName.title)}{" "}
+                        {_.upperFirst(display.columnName.title)}{" "}
                         <span className="title-fragments">
                             {joinTitleFragments(
                                 display.columnName.attributionShort,
@@ -703,7 +697,7 @@ export class DataTable extends React.Component<{
         const numEntitiesInTable = this.entityNames.length
 
         this.columnsToShow.forEach((column): boolean => {
-            const numberOfEntitiesWithDataSortedByTime = sortBy(
+            const numberOfEntitiesWithDataSortedByTime = _.sortBy(
                 Object.entries(R.countBy(column.uniqTimesAsc, R.identity())),
                 ([time, _count]) => parseInt(time)
             )
@@ -751,7 +745,7 @@ export class DataTable extends React.Component<{
     }
 
     @computed private get availableEntityNames(): EntityName[] {
-        return union(
+        return _.union(
             ...this.columnsToShow.map(
                 (col) => this.table.get(col.slug).uniqEntityNames
             )
@@ -1062,7 +1056,7 @@ export class DataTable extends React.Component<{
 
     @computed private get sortedDisplayRows(): DataTableRow[] {
         const { order } = this.tableState.sort
-        return orderBy(this.displayRows, this.sortValueMapper, order)
+        return _.orderBy(this.displayRows, this.sortValueMapper, order)
     }
 }
 

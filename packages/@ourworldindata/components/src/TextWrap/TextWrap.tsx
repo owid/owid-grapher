@@ -1,5 +1,6 @@
+import * as _ from "lodash-es"
 import * as R from "remeda"
-import { max, stripHTML, Bounds, FontFamily } from "@ourworldindata/utils"
+import { stripHTML, Bounds, FontFamily } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import * as React from "react"
 import { Fragment, joinFragments, splitIntoFragments } from "./TextWrapUtils"
@@ -214,7 +215,7 @@ export class TextWrap {
     }
 
     @computed get width(): number {
-        return max(this.lines.map((l) => l.width)) ?? 0
+        return _.max(this.lines.map((l) => l.width)) ?? 0
     }
 
     @computed get lastLineWidth(): number {
@@ -240,7 +241,7 @@ export class TextWrap {
         // overlap.
         const HEIGHT_CORRECTION_FACTOR = 0.74
 
-        const textHeight = max(lines.map((line) => line.height)) ?? 0
+        const textHeight = _.max(lines.map((line) => line.height)) ?? 0
         const correctedTextHeight = textHeight * HEIGHT_CORRECTION_FACTOR
         const containerHeight = lineHeight * fontSize
         const yOffset =

@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import {
     observable,
@@ -27,7 +28,6 @@ import {
     DimensionProperty,
     moveArrayItemToIndex,
     OwidVariableId,
-    startCase,
     OwidChartDimensionInterface,
     copyToClipboard,
 } from "@ourworldindata/utils"
@@ -490,7 +490,7 @@ export class EditorBasicTab<
     }[] {
         const chartTypeOptions = ALL_GRAPHER_CHART_TYPES.map((key) => ({
             value: key,
-            label: startCase(key),
+            label: _.startCase(key),
         }))
 
         return [

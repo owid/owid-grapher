@@ -1,10 +1,10 @@
+import * as _ from "lodash-es"
 import cx from "classnames"
 
 import {
     EnrichedBlockKeyIndicator,
     EnrichedBlockText,
 } from "@ourworldindata/types"
-import { capitalize } from "@ourworldindata/utils"
 import { Button } from "@ourworldindata/components"
 
 import Chart from "./Chart.js"
@@ -26,7 +26,7 @@ export default function KeyIndicator({
     if (!linkedChart) return null
     if (!linkedIndicator) return null
 
-    const source = capitalize(d.source || linkedIndicator.attributionShort)
+    const source = _.capitalize(d.source || linkedIndicator.attributionShort)
 
     return (
         <div className={cx("key-indicator grid grid-cols-12", className)}>

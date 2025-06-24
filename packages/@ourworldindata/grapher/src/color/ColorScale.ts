@@ -1,8 +1,8 @@
+import * as _ from "lodash-es"
 import { computed, toJS } from "mobx"
 import { mean, deviation } from "d3-array"
 import { ColorScaleConfig, ColorScaleConfigDefaults } from "./ColorScaleConfig"
 import {
-    isEmpty,
     roundSigFig,
     mapNullToUndefined,
     sortNumeric,
@@ -336,7 +336,7 @@ export class ColorScale {
         }
 
         return allCategoricalValues.map((value, index) => {
-            const boundingOffset = isEmpty(bucketThresholds)
+            const boundingOffset = _.isEmpty(bucketThresholds)
                 ? 0
                 : bucketThresholds.length - 1
             const baseColor = baseColors[index + boundingOffset]

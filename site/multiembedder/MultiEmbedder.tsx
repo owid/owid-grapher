@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     getSelectedEntityNamesParam,
     GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
@@ -18,7 +19,6 @@ import {
     isPresent,
     Url,
     GRAPHER_TAB_OPTIONS,
-    merge,
     fetchWithRetry,
     NarrativeChartInfo,
     searchParamsToMultiDimView,
@@ -197,7 +197,7 @@ class MultiEmbedder {
                 localConfig.hasTableTab = true
         }
 
-        const config = merge(
+        const config = _.merge(
             {}, // merge mutates the first argument
             grapherPageConfig,
             common,

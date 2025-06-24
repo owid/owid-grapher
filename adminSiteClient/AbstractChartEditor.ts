@@ -1,12 +1,10 @@
+import * as _ from "lodash-es"
 import {
-    isEqual,
-    omit,
     GrapherInterface,
     diffGrapherConfigs,
     mergeGrapherConfigs,
     PostReference,
     SeriesName,
-    difference,
 } from "@ourworldindata/utils"
 import { action, computed, observable, when } from "mobx"
 import { EditorFeatures } from "./EditorFeatures.js"
@@ -148,9 +146,9 @@ export abstract class AbstractChartEditor<
     }
 
     @computed get isModified(): boolean {
-        return !isEqual(
-            omit(this.patchConfig, "version"),
-            omit(this.savedPatchConfig, "version")
+        return !_.isEqual(
+            _.omit(this.patchConfig, "version"),
+            _.omit(this.savedPatchConfig, "version")
         )
     }
 
@@ -191,7 +189,7 @@ export abstract class AbstractChartEditor<
         // find invalid focused series
         const availableSeriesNames = grapherState.chartSeriesNames
         const focusedSeriesNames = grapherState.focusArray.seriesNames
-        return difference(focusedSeriesNames, availableSeriesNames)
+        return _.difference(focusedSeriesNames, availableSeriesNames)
     }
 
     @computed get invalidSelectedEntityNames(): SeriesName[] {
@@ -200,7 +198,7 @@ export abstract class AbstractChartEditor<
         // find invalid selected entities
         const { availableEntityNames } = grapherState
         const selectedEntityNames = grapherState.selection.selectedEntityNames
-        return difference(selectedEntityNames, availableEntityNames)
+        return _.difference(selectedEntityNames, availableEntityNames)
     }
 
     @action.bound removeInvalidFocusedSeriesNames(): void {

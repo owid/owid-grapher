@@ -1,6 +1,6 @@
+import * as _ from "lodash-es"
 import { Component, createRef } from "react"
 import cx from "classnames"
-import { throttle } from "@ourworldindata/utils"
 
 function getTotalOffset(element: HTMLElement): {
     x: number
@@ -57,7 +57,7 @@ class StickyNav extends Component<
         window.requestAnimationFrame(() => this.setHeadingPositions())
     }
 
-    handleScroll: () => void = throttle(() => {
+    handleScroll: () => void = _.throttle(() => {
         this.setCurrentHeading()
     }, 50)
 

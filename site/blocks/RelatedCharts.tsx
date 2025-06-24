@@ -1,6 +1,7 @@
+import * as _ from "lodash-es"
 import { useState, useRef } from "react"
 import * as React from "react"
-import { orderBy, RelatedChart } from "@ourworldindata/utils"
+import { RelatedChart } from "@ourworldindata/utils"
 import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import { GalleryArrow } from "./GalleryArrow.js"
 import { GalleryArrowDirection } from "../SiteConstants.js"
@@ -23,7 +24,7 @@ export const RelatedCharts = ({
         ? charts.filter((chart) => !!chart.keyChartLevel)
         : charts
 
-    const sortedCharts = orderBy(
+    const sortedCharts = _.orderBy(
         chartsToShow,
         (chart) => chart.keyChartLevel,
         "desc"

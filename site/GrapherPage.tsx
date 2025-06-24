@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
@@ -9,7 +10,6 @@ import {
     RelatedChart,
     serializeJSONForHTML,
     GrapherInterface,
-    uniq,
     SiteFooterContext,
     Url,
 } from "@ourworldindata/utils"
@@ -87,7 +87,7 @@ export const GrapherPage = (props: {
 const archivedChartInfo = ${JSON.stringify(archivedChartInfo || undefined)}
 window.renderSingleGrapherOnGrapherPage(jsonConfig, "${DATA_API_URL}", { archivedChartInfo })`
 
-    const variableIds = uniq(grapher.dimensions!.map((d) => d.variableId))
+    const variableIds = _.uniq(grapher.dimensions!.map((d) => d.variableId))
 
     const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
     const assetMaps = isOnArchivalPage ? archivedChartInfo.assets : undefined

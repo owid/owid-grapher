@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -15,7 +16,6 @@ import { zoom } from "d3-zoom"
 import versor from "versor"
 import {
     makeIdForHumanConsumption,
-    difference,
     Bounds,
     isTouchDevice,
     getRelativeMouse,
@@ -127,7 +127,7 @@ export class ChoroplethGlobe extends React.Component<{
 
     @computed
     private get backgroundFeatures(): GlobeRenderFeature[] {
-        return difference(this.features, this.foregroundFeatures)
+        return _.difference(this.features, this.foregroundFeatures)
     }
 
     @computed private get backgroundFeatureIdSet(): Set<EntityName> {
@@ -151,7 +151,7 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @computed private get featuresWithNoData(): GlobeRenderFeature[] {
-        return difference(this.foregroundFeatures, this.featuresWithData)
+        return _.difference(this.foregroundFeatures, this.featuresWithData)
     }
 
     @computed private get binColors(): string[] {

@@ -1,7 +1,7 @@
+import * as _ from "lodash-es"
 import {
     sampleFrom,
     getRandomNumberGenerator,
-    range,
     countries,
     OwidVariableDisplayConfigInterface,
     ColumnSlug,
@@ -53,7 +53,7 @@ const SynthesizeOwidTable = (
 
     const rows = entities.map((entity, index) => {
         let values = columnDefs.map((def) => def.generator!())
-        return range(timeRange[0], timeRange[1])
+        return _.range(timeRange[0], timeRange[1])
             .map((year) => {
                 values = columnDefs.map((def, index) =>
                     Math.round(

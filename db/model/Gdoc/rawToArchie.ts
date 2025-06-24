@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     OwidRawGdocBlock,
     RawBlockHeading,
@@ -52,7 +53,6 @@ import {
     RawBlockCookieNotice,
     RawBlockExpander,
 } from "@ourworldindata/types"
-import { isArray } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
 
 export function appendDotEndIfMultiline(
@@ -630,7 +630,7 @@ function* rawResearchAndWritingToArchieMLString(
     yield* propertyToArchieMLString("hide-authors", block.value)
     if (primary) {
         yield "[.primary]"
-        if (isArray(primary)) {
+        if (_.isArray(primary)) {
             for (const link of primary) {
                 yield* rawLinkToArchie(link)
             }
@@ -641,7 +641,7 @@ function* rawResearchAndWritingToArchieMLString(
     }
     if (secondary) {
         yield "[.secondary]"
-        if (isArray(secondary)) {
+        if (_.isArray(secondary)) {
             for (const link of secondary) {
                 yield* rawLinkToArchie(link)
             }

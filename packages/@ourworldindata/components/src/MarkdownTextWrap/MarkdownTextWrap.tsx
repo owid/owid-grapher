@@ -1,16 +1,12 @@
+import * as _ from "lodash-es"
 import { CSSProperties } from "react"
 import * as React from "react"
 import { computed } from "mobx"
 import {
     excludeUndefined,
-    sum,
-    sumBy,
     imemo,
-    max,
-    get,
     Bounds,
     FontFamily,
-    cloneDeep,
 } from "@ourworldindata/utils"
 import { DetailsMarker } from "@ourworldindata/types"
 import { TextWrap } from "../TextWrap/TextWrap.js"
@@ -231,7 +227,7 @@ export class IRSuperscript implements IRToken {
         // replace numerals with literals, for everything else let the font-feature handle it
         const style = { fontFeatureSettings: '"sups"' }
         const text = this.text.replace(/./g, (c) =>
-            get(SUPERSCRIPT_NUMERALS, c, c)
+            _.get(SUPERSCRIPT_NUMERALS, c, c)
         )
         return (
             <React.Fragment key={key}>
@@ -416,7 +412,7 @@ export function getBreakpointBefore(
 }
 
 export function getLineWidth(tokens: IRToken[]): number {
-    return sum(tokens.map((token) => token.width))
+    return _.sum(tokens.map((token) => token.width))
 }
 
 // useful for debugging
@@ -502,7 +498,7 @@ export const sumTextWrapHeights = (
     elements: MarkdownTextWrap[] | TextWrap[],
     spacer: number = 0
 ): number =>
-    sum(elements.map((element) => element.height)) +
+    _.sum(elements.map((element) => element.height)) +
     (elements.length - 1) * spacer
 
 type MarkdownTextWrapOptions = {
@@ -664,9 +660,9 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     @computed get width(): number {
         const { htmlLines } = this
         const lineLengths = htmlLines.map((tokens) =>
-            sumBy(tokens, (token) => token.width)
+            _.sumBy(tokens, (token) => token.width)
         )
-        return max(lineLengths) ?? 0
+        return _.max(lineLengths) ?? 0
     }
 
     @computed get singleLineHeight(): number {
@@ -674,7 +670,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     }
 
     @computed get lastLineWidth(): number {
-        return sumBy(R.last(this.htmlLines), (token) => token.width) ?? 0
+        return _.sumBy(R.last(this.htmlLines), (token) => token.width) ?? 0
     }
 
     @computed get height(): number {
@@ -1149,7 +1145,7 @@ function appendReferenceNumbers(
         return callback(token)
     }
 
-    const appendedTokens: IRToken[] = cloneDeep(tokens).flatMap((token) =>
+    const appendedTokens: IRToken[] = _.cloneDeep(tokens).flatMap((token) =>
         traverse(token, (token: IRToken) => {
             if (token instanceof IRDetailOnDemand) {
                 const referenceIndex =

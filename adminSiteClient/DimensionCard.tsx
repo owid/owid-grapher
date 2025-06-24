@@ -1,9 +1,9 @@
+import * as _ from "lodash-es"
 import { Component, Fragment } from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartDimension } from "@ourworldindata/grapher"
 import { OwidColumnDef, OwidVariableRoundingMode } from "@ourworldindata/types"
-import { startCase } from "@ourworldindata/utils"
 import {
     Toggle,
     BindAutoString,
@@ -208,7 +208,7 @@ export class DimensionCard<
                             options={Object.keys(OwidVariableRoundingMode).map(
                                 (key) => ({
                                     value: key,
-                                    label: startCase(key),
+                                    label: _.startCase(key),
                                 })
                             )}
                         />

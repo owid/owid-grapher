@@ -1,10 +1,9 @@
+import * as _ from "lodash-es"
 import { observable, computed, action } from "mobx"
 import {
     queryParamsToStr,
     differenceObj,
-    identity,
     trimObject,
-    uniq,
     parseIntOrUndefined,
 } from "@ourworldindata/utils"
 import { ColumnTypeNames } from "@ourworldindata/types"
@@ -130,7 +129,7 @@ export class DecisionMatrix {
 
     get requiredVariableIds() {
         // only the first partial Grapher config of the y-dimension is taken into account
-        return uniq(
+        return _.uniq(
             this.table
                 .get(GrapherGrammar.yVariableIds.keyword)
                 .values.map((value: string) =>
@@ -140,7 +139,7 @@ export class DecisionMatrix {
                         .filter((id) => !isNaN(id))
                 )
                 .map((ids: number[]) => ids[0])
-                .filter(identity)
+                .filter(_.identity)
         )
     }
 

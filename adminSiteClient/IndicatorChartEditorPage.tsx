@@ -1,7 +1,7 @@
+import * as _ from "lodash-es"
 import React from "react"
 import { observer } from "mobx-react"
 import { computed, action } from "mobx"
-import { isEmpty } from "@ourworldindata/utils"
 import { GrapherInterface, DimensionProperty } from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -41,7 +41,7 @@ export class IndicatorChartEditorPage
         const config = await this.context.admin.getJSON(
             `/api/variables/grapherConfigAdmin/${variableId}.patchConfig.json`
         )
-        if (isEmpty(config)) {
+        if (_.isEmpty(config)) {
             this.patchConfig = {
                 $schema: latestGrapherConfigSchema,
                 dimensions: [{ variableId, property: DimensionProperty.y }],
@@ -58,7 +58,7 @@ export class IndicatorChartEditorPage
         const etlConfig = await this.context.admin.getJSON(
             `/api/variables/grapherConfigETL/${variableId}.patchConfig.json`
         )
-        this.parentConfig = isEmpty(etlConfig) ? undefined : etlConfig
+        this.parentConfig = _.isEmpty(etlConfig) ? undefined : etlConfig
         this.isInheritanceEnabled = true
     }
 

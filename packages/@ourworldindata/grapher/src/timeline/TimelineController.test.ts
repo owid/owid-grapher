@@ -1,12 +1,13 @@
 import { expect, it } from "vitest"
 
-import { TimeBoundValue, range } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
+import { TimeBoundValue } from "@ourworldindata/utils"
 import { TimelineController, TimelineManager } from "./TimelineController"
 
 it("can play a timeline", async () => {
     let wasPlayed = false
     const manager: TimelineManager = {
-        times: range(2000, 2010),
+        times: _.range(2000, 2010),
         startHandleTimeBound: 2000,
         endHandleTimeBound: 2005,
         isPlaying: false,
@@ -50,7 +51,7 @@ it("can play a timeline", async () => {
 
 it("can handle when an end handle is dragged past a start handle", () => {
     const manager: TimelineManager = {
-        times: range(1900, 2010),
+        times: _.range(1900, 2010),
         startHandleTimeBound: 2000,
         endHandleTimeBound: 2005,
     }
@@ -63,7 +64,7 @@ it("can handle when an end handle is dragged past a start handle", () => {
 
 it("can report correct progress with Infinity values", () => {
     const manager: TimelineManager = {
-        times: range(1900, 2010),
+        times: _.range(1900, 2010),
         startHandleTimeBound: -Infinity,
         endHandleTimeBound: Infinity,
     }
@@ -75,7 +76,7 @@ it("can report correct progress with Infinity values", () => {
 
 it("pins time to unboundedLeft or unboundedRight when range is dragged beyond end of timeline", () => {
     const manager: TimelineManager = {
-        times: range(1900, 2010),
+        times: _.range(1900, 2010),
         startHandleTimeBound: 2000,
         endHandleTimeBound: 2005,
     }
@@ -100,7 +101,7 @@ it("pins time to unboundedLeft or unboundedRight when range is dragged beyond en
 
 it("pins time to unboundedLeft or unboundedRight when marker is dragged beyond end of timeline", () => {
     const manager: TimelineManager = {
-        times: range(1900, 2010),
+        times: _.range(1900, 2010),
         startHandleTimeBound: 2005,
         endHandleTimeBound: 2005,
     }

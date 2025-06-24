@@ -1,7 +1,8 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import cx from "classnames"
 import { ExpandableToggle } from "../ExpandableToggle/ExpandableToggle.js"
-import { DisplaySource, uniqBy, formatSourceDate } from "@ourworldindata/utils"
+import { DisplaySource, formatSourceDate } from "@ourworldindata/utils"
 import { SimpleMarkdownText } from "../SimpleMarkdownText.js"
 import { CodeSnippet } from "../CodeSnippet/CodeSnippet.js"
 import { REUSE_THIS_WORK_SECTION_ID } from "../SharedDataPageConstants.js"
@@ -14,7 +15,7 @@ export interface IndicatorSourcesProps {
 
 export const IndicatorSources = (props: IndicatorSourcesProps) => {
     const isEmbeddedInADataPage = props.isEmbeddedInADataPage ?? true
-    const uniqueSources = uniqBy(props.sources, "label")
+    const uniqueSources = _.uniqBy(props.sources, "label")
 
     return (
         <div

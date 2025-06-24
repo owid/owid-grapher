@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import ReactDOM from "react-dom"
 import { action, observable, IReactionDisposer, reaction, computed } from "mobx"
@@ -14,10 +15,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faTimes } from "@fortawesome/free-solid-svg-icons"
 import {
     countries,
-    throttle,
-    noop,
     getUserCountryInformation,
-    sortBy,
     getWindowUrl,
     setWindowUrl,
     lazy,
@@ -47,7 +45,7 @@ interface DropdownEntity {
 }
 
 const getAllEntitiesSortedWithWorld = lazy(() =>
-    sortBy(countries, (c) => c.name)
+    _.sortBy(countries, (c) => c.name)
         // Add 'World'
         .concat([
             {
@@ -114,7 +112,7 @@ function SelectedItems(props: {
     onRemove?: (item: EntityName) => void
 }): React.ReactElement {
     const canRemove = (props.canRemove ?? true) && props.onRemove !== undefined
-    const onRemove = props.onRemove || noop
+    const onRemove = props.onRemove || _.noop
     const isEmpty = props.selectedEntityNames.length === 0
     return (
         <div className="selected-items-container">
@@ -182,7 +180,7 @@ export class GlobalEntitySelector extends React.Component<{
         this.disposers.forEach((dispose): void => dispose())
     }
 
-    private onResizeThrottled = throttle(this.onResize, 200)
+    private onResizeThrottled = _.throttle(this.onResize, 200)
     @action.bound private onResize(): void {
         const container = this.refContainer.current
         if (container) this.isNarrow = container.offsetWidth <= 640

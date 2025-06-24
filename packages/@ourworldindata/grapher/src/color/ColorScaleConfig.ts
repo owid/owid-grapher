@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { observable } from "mobx"
 import {
     Color,
@@ -7,8 +8,6 @@ import {
     ColorScaleConfigInterface,
 } from "@ourworldindata/types"
 import {
-    extend,
-    isEmpty,
     trimObject,
     deleteRuntimeAndUnchangedProps,
     objectWithPersistablesToObject,
@@ -84,7 +83,7 @@ export class ColorScaleConfig
     implements Persistable
 {
     updateFromObject(obj: Record<string, unknown>): void {
-        extend(this, obj)
+        _.extend(this, obj)
     }
 
     toObject(): ColorScaleConfigInterface {
@@ -172,7 +171,7 @@ export class ColorScaleConfig
             legendDescription,
         })
 
-        return isEmpty(trimmed) ? undefined : new ColorScaleConfig(trimmed)
+        return _.isEmpty(trimmed) ? undefined : new ColorScaleConfig(trimmed)
     }
 }
 

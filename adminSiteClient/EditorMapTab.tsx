@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     GrapherInterface,
     MapRegionName,
@@ -9,7 +10,7 @@ import {
     MapConfig,
     MAP_REGION_LABELS,
 } from "@ourworldindata/grapher"
-import { ColumnSlug, isEmpty, ToleranceStrategy } from "@ourworldindata/utils"
+import { ColumnSlug, ToleranceStrategy } from "@ourworldindata/utils"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import { Component, Fragment } from "react"
@@ -43,7 +44,7 @@ class VariableSection extends Component<{
     render() {
         const { mapConfig, filledDimensions } = this.props
 
-        if (isEmpty(filledDimensions))
+        if (_.isEmpty(filledDimensions))
             return (
                 <section>
                     <h2>Add some indicators on data tab first</h2>

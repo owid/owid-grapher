@@ -1,5 +1,6 @@
+import * as _ from "lodash-es"
 import { SelectionArray } from "@ourworldindata/grapher"
-import { Bounds, deserializeJSONFromHTML, isArray } from "@ourworldindata/utils"
+import { Bounds, deserializeJSONFromHTML } from "@ourworldindata/utils"
 import {
     EMBEDDED_EXPLORER_DELIMITER,
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
@@ -26,14 +27,14 @@ export async function buildExplorerProps(
         html,
         EMBEDDED_EXPLORER_PARTIAL_GRAPHER_CONFIGS
     )
-    if (isArray(grapherConfigs)) {
+    if (_.isArray(grapherConfigs)) {
         grapherConfigs = grapherConfigs.map((grapherConfig) => ({
             ...grapherConfig,
             adminBaseUrl: explorerConstants.adminBaseUrl,
             bakedGrapherURL: explorerConstants.bakedGrapherUrl,
         }))
     }
-    if (isArray(partialGrapherConfigs)) {
+    if (_.isArray(partialGrapherConfigs)) {
         partialGrapherConfigs = partialGrapherConfigs.map((grapherConfig) => ({
             ...grapherConfig,
             adminBaseUrl: explorerConstants.adminBaseUrl,

@@ -1,10 +1,11 @@
+import * as _ from "lodash-es"
 import { useContext } from "react"
 import cx from "classnames"
 import {
     EnrichedBlockHomepageIntro,
     EnrichedBlockHomepageIntroPost,
 } from "@ourworldindata/types"
-import { formatAuthors, groupBy } from "@ourworldindata/utils"
+import { formatAuthors } from "@ourworldindata/utils"
 import { Button } from "@ourworldindata/components"
 import { useLinkedDocument } from "../utils.js"
 import { DocumentContext } from "../DocumentContext.js"
@@ -110,7 +111,7 @@ export type HomepageIntroProps = {
 } & EnrichedBlockHomepageIntro
 
 export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
-    const { primary, secondary, tertiary } = groupBy(
+    const { primary, secondary, tertiary } = _.groupBy(
         featuredWork,
         (work) => work.type
     )

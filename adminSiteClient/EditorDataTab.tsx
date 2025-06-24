@@ -1,11 +1,6 @@
+import * as _ from "lodash-es"
 import * as React from "react"
-import {
-    difference,
-    differenceOfSets,
-    moveArrayItemToIndex,
-    omit,
-    sortBy,
-} from "@ourworldindata/utils"
+import { differenceOfSets, moveArrayItemToIndex } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
 import cx from "classnames"
@@ -100,7 +95,7 @@ class EntityListItem extends React.Component<EntityListItemProps> {
     render() {
         const { props, color } = this
         const { entityName, grapherState } = props
-        const rest = omit(props, [
+        const rest = _.omit(props, [
             "entityName",
             "onRemove",
             "grapherState",
@@ -141,7 +136,7 @@ class SeriesListItem extends React.Component<SeriesListItemProps> {
     render() {
         const { props } = this
         const { seriesName, isValid } = props
-        const rest = omit(props, ["seriesName", "isValid", "onRemove"])
+        const rest = _.omit(props, ["seriesName", "isValid", "onRemove"])
 
         const className = cx("ListItem", "list-group-item", {
             invalid: !isValid,
@@ -210,7 +205,7 @@ export class EntitySelectionSection extends React.Component<{
         const { selection } = grapherState
         const { selectedEntityNames } = selection
 
-        const unselectedEntityNames = difference(
+        const unselectedEntityNames = _.difference(
             grapherState.availableEntityNames,
             selectedEntityNames
         )
@@ -353,7 +348,7 @@ export class FocusSection extends React.Component<{
         if (focusedSeriesNameSet.size === 0 && availableSeriesNameSet.size < 2)
             return null
 
-        const availableSeriesNames: SeriesName[] = sortBy(
+        const availableSeriesNames: SeriesName[] = _.sortBy(
             Array.from(availableSeriesNameSet)
         )
 

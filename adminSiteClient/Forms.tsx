@@ -4,6 +4,7 @@
  * Reusable React components to keep admin UI succint and consistent
  */
 
+import * as _ from "lodash-es"
 import * as React from "react"
 import { useState } from "react"
 import { bind } from "decko"
@@ -12,13 +13,7 @@ import { observer } from "mobx-react"
 import cx from "classnames"
 import { useTimeout } from "usehooks-ts"
 
-import {
-    pick,
-    capitalize,
-    dayjs,
-    Tippy,
-    copyToClipboard,
-} from "@ourworldindata/utils"
+import { dayjs, Tippy, copyToClipboard } from "@ourworldindata/utils"
 import { Colorpicker } from "./Colorpicker.js"
 import {
     faCog,
@@ -120,7 +115,7 @@ export class TextField extends React.Component<TextFieldProps> {
 
     render() {
         const { props } = this
-        const passthroughProps = pick(props, [
+        const passthroughProps = _.pick(props, [
             "placeholder",
             "title",
             "disabled",
@@ -222,7 +217,7 @@ export class TextAreaField extends React.Component<TextFieldProps> {
 
     render() {
         const { props } = this
-        const passthroughProps = pick(props, [
+        const passthroughProps = _.pick(props, [
             "placeholder",
             "title",
             "disabled",
@@ -585,7 +580,7 @@ export class Toggle extends React.Component<ToggleProps> {
 
     render() {
         const { props } = this
-        const passthroughProps = pick(props, ["label", "disabled", "title"])
+        const passthroughProps = _.pick(props, ["label", "disabled", "title"])
 
         return (
             <div className="form-check">
@@ -815,7 +810,7 @@ export class BindString extends React.Component<{
         if (textarea)
             return (
                 <TextAreaField
-                    label={label === undefined ? capitalize(field) : label}
+                    label={label === undefined ? _.capitalize(field) : label}
                     secondaryLabel={this.props.secondaryLabel}
                     value={value || ""}
                     onValue={this.onValue}
@@ -826,7 +821,7 @@ export class BindString extends React.Component<{
         else
             return (
                 <TextField
-                    label={label === undefined ? capitalize(field) : label}
+                    label={label === undefined ? _.capitalize(field) : label}
                     secondaryLabel={this.props.secondaryLabel}
                     value={value || ""}
                     onValue={this.onValue}
@@ -861,7 +856,7 @@ export class BindStringArray extends React.Component<{
         const values = store[field] as string[] | []
         return (
             <TextAreaField
-                label={label === undefined ? capitalize(field) : label}
+                label={label === undefined ? _.capitalize(field) : label}
                 secondaryLabel={this.props.secondaryLabel}
                 value={createBulletList(values || [])}
                 onValue={this.onValue}
@@ -946,7 +941,7 @@ export class BindAutoString<
 
         return (
             <AutoTextField
-                label={label || capitalize(field)}
+                label={label || _.capitalize(field)}
                 value={value === undefined ? auto : value}
                 isAuto={value === undefined}
                 onValue={this.onValue}
@@ -1117,7 +1112,7 @@ export class BindFloat<
 
         return (
             <FloatField
-                label={label || capitalize(field)}
+                label={label || _.capitalize(field)}
                 value={value}
                 onValue={this.onValue}
                 {...rest}
@@ -1155,7 +1150,7 @@ export class BindAutoFloat<
 
         return (
             <AutoFloatField
-                label={label || capitalize(field)}
+                label={label || _.capitalize(field)}
                 value={value === undefined ? auto : value}
                 isAuto={value === undefined}
                 onValue={this.onValue}

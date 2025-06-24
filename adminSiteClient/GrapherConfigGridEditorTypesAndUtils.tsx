@@ -1,8 +1,8 @@
 // FIXME: Don't mix components and business logic in this file.
 /* eslint-disable react-refresh/only-export-components */
+import * as _ from "lodash-es"
 import {
     excludeUndefined,
-    isArray,
     QueryParams,
     queryParamsToStr,
 } from "@ourworldindata/utils"
@@ -53,7 +53,6 @@ import {
     ImmutableTree,
 } from "@react-awesome-query-builder/antd"
 import { match } from "ts-pattern"
-import { isNil } from "lodash-es"
 import * as R from "remeda"
 
 export function parseVariableAnnotationsRow(
@@ -351,7 +350,7 @@ export function SExpressionToJsonLogic(
 export function postprocessJsonLogicTree(filterTree: JsonTree | JsonItem) {
     if (filterTree.type === "group" && filterTree.children1) {
         if (
-            isArray(filterTree.children1) ||
+            _.isArray(filterTree.children1) ||
             R.isPlainObject(filterTree.children1)
         )
             for (const child of Object.values(filterTree.children1))
@@ -389,7 +388,7 @@ export function filterTreeToSExpression(
 
         let children: Operation[] = []
         if (
-            isArray(filterTree.children1) ||
+            _.isArray(filterTree.children1) ||
             R.isPlainObject(filterTree.children1)
         )
             children = excludeUndefined(
@@ -413,7 +412,7 @@ export function filterTreeToSExpression(
         if (filterTree.properties?.not) return new Negation(operation)
         else return operation
     } else if (filterTree.type === "rule") {
-        if (isNil(filterTree.properties.field)) return undefined
+        if (_.isNil(filterTree.properties.field)) return undefined
         const field = getFieldSymbol(
             filterTree.properties.field as string,
             context,

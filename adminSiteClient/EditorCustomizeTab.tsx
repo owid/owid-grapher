@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -21,9 +22,6 @@ import {
     BindAutoFloatExt,
 } from "./Forms.js"
 import {
-    debounce,
-    isEqual,
-    omit,
     trimObject,
     TimeBoundValue,
     SortOrder,
@@ -44,7 +42,7 @@ import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { ErrorMessages } from "./ChartEditorTypes.js"
 
 const debounceOnLeadingEdge = (fn: (...args: any[]) => void) =>
-    debounce(fn, 0, { leading: true, trailing: false })
+    _.debounce(fn, 0, { leading: true, trailing: false })
 
 @observer
 class TimeField<
@@ -260,9 +258,9 @@ class SortOrderSection<
                         options={this.sortOptions}
                         onChange={this.onSortByChange}
                         value={this.sortOptions.find((opt) =>
-                            isEqual(
+                            _.isEqual(
                                 opt.value,
-                                trimObject(omit(this.sortConfig, "sortOrder"))
+                                trimObject(_.omit(this.sortConfig, "sortOrder"))
                             )
                         )}
                         formatOptionLabel={(opt, { context }) =>

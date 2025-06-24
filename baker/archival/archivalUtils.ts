@@ -1,6 +1,6 @@
+import * as _ from "lodash-es"
 import {
     lazy,
-    omit,
     convertToArchivalDateStringIfNecessary,
 } from "@ourworldindata/utils"
 import { AssetMap } from "@ourworldindata/types"
@@ -79,7 +79,7 @@ export const assembleGrapherManifest = async (manifestInfo: {
     const commitShas = { "owid-grapher": await getOwidGrapherCommitSha() }
 
     const manifest = {
-        ...omit(manifestInfo, [
+        ..._.omit(manifestInfo, [
             "staticAssetMap",
             "runtimeAssetMap",
             "checksumsObj",
@@ -121,7 +121,7 @@ export const assembleMultiDimManifest = async (manifestInfo: {
     const commitShas = { "owid-grapher": await getOwidGrapherCommitSha() }
 
     const manifest = {
-        ...omit(manifestInfo, [
+        ..._.omit(manifestInfo, [
             "staticAssetMap",
             "runtimeAssetMap",
             "checksumsObj",

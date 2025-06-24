@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import React from "react"
 import ReactDOMServer from "react-dom/server.js"
 
@@ -11,19 +12,14 @@ import {
 } from "mobx"
 import { bind } from "decko"
 import {
-    uniqWith,
-    isEqual,
-    uniq,
     slugify,
     lowerCaseFirstLetterUnlessAbbreviation,
     isMobile,
     next,
     sampleFrom,
-    range,
     exposeInstanceOnWindow,
     findClosestTime,
     excludeUndefined,
-    debounce,
     isInIFrame,
     differenceObj,
     QueryParams,
@@ -55,11 +51,8 @@ import {
     OwidChartDimensionInterface,
     firstOfNonEmptyArray,
     EnrichedDetail,
-    isEmpty,
-    compact,
     getOriginAttributionFragments,
     extractDetailsFromSyntax,
-    omit,
     isTouchDevice,
     isArrayDifferentFromReference,
     getRegionByName,
@@ -505,7 +498,7 @@ export class GrapherState {
         // if both are passed in and the manager's selection is not empty.
         // this is necessary for the global entity selector to work correctly.
         if (options.manager?.selection?.hasSelection) {
-            this.updateFromObject(omit(options, "selectedEntityNames"))
+            this.updateFromObject(_.omit(options, "selectedEntityNames"))
         } else {
             this.updateFromObject(options)
         }
@@ -631,7 +624,7 @@ export class GrapherState {
     }
 
     @action.bound populateFromQueryParams(params: GrapherQueryParams): void {
-        this.externalQueryParams = omit(params, GRAPHER_QUERY_PARAM_KEYS)
+        this.externalQueryParams = _.omit(params, GRAPHER_QUERY_PARAM_KEYS)
 
         // Set tab if specified
         if (params.tab) {
@@ -1020,7 +1013,7 @@ export class GrapherState {
         // collect series names from all chart instances when faceted
         if (this.isFaceted) {
             const facetChartInstance = new FacetChart({ manager: this })
-            return uniq(
+            return _.uniq(
                 facetChartInstance.intermediateChartInstances.flatMap(
                     (chartInstance) =>
                         chartInstance.series.map((series) => series.seriesName)
@@ -1361,7 +1354,7 @@ export class GrapherState {
         return true
     }
     @computed.struct private get variableIds(): number[] {
-        return uniq(this.dimensions.map((d) => d.variableId))
+        return _.uniq(this.dimensions.map((d) => d.variableId))
     }
 
     @computed get hasOWIDLogo(): boolean {
@@ -1526,7 +1519,7 @@ export class GrapherState {
             }),
             autorun(() => {
                 const validDimensions = this.validDimensions
-                if (!isEqual(this.dimensions, validDimensions))
+                if (!_.isEqual(this.dimensions, validDimensions))
                     this.dimensions = validDimensions
             }),
         ]
@@ -1541,7 +1534,7 @@ export class GrapherState {
 
         this.dimensionSlots.forEach((slot) => {
             if (!slot.allowMultiple)
-                validDimensions = uniqWith(
+                validDimensions = _.uniqWith(
                     validDimensions,
                     (
                         a: OwidChartDimensionInterface,
@@ -1661,7 +1654,7 @@ export class GrapherState {
         )
 
         // text fragments are ordered by appearance
-        const uniqueDetails = uniq([
+        const uniqueDetails = _.uniq([
             ...subtitleDetails,
             ...yAxisDetails,
             ...xAxisDetails,
@@ -2021,9 +2014,10 @@ export class GrapherState {
         ])
 
         return this.inputTable
-            .getColumns(uniq(columnSlugs))
+            .getColumns(_.uniq(columnSlugs))
             .filter(
-                (column) => !!column.source.name || !isEmpty(column.def.origins)
+                (column) =>
+                    !!column.source.name || !_.isEmpty(column.def.origins)
             )
     }
 
@@ -2073,9 +2067,10 @@ export class GrapherState {
         columnSlugs.push(...this.getColumnSlugsForCondensedSources())
 
         return this.inputTable
-            .getColumns(uniq(columnSlugs))
+            .getColumns(_.uniq(columnSlugs))
             .filter(
-                (column) => !!column.source.name || !isEmpty(column.def.origins)
+                (column) =>
+                    !!column.source.name || !_.isEmpty(column.def.origins)
             )
     }
     @computed private get defaultSourcesLine(): string {
@@ -2099,7 +2094,7 @@ export class GrapherState {
             }
         )
 
-        const uniqueAttributions = uniq(compact(attributions))
+        const uniqueAttributions = _.uniq(_.compact(attributions))
 
         if (uniqueAttributions.length > 3)
             return `${uniqueAttributions[0]} and other sources`
@@ -2130,7 +2125,7 @@ export class GrapherState {
                 )
                 .join(" vs. ")
 
-        const uniqueDatasetNames = uniq(
+        const uniqueDatasetNames = _.uniq(
             excludeUndefined(
                 yColumns.map((col) => (col.def as OwidColumnDef).datasetName)
             )
@@ -2318,7 +2313,7 @@ export class GrapherState {
     @computed get staticBoundsWithDetails(): Bounds {
         const includeDetails =
             this.shouldIncludeDetailsInStaticExport &&
-            !isEmpty(this.detailRenderers)
+            !_.isEmpty(this.detailRenderers)
 
         let height = this.staticBounds.height
         if (includeDetails) {
@@ -2827,8 +2822,7 @@ export class GrapherState {
             // We're not inside the admin
             window.admin === undefined &&
             // The slug is set
-            !!this.slug &&
-            // We're not in a narrative chart
+            !!this.slug && // We're not in a narrative chart
             !this.narrativeChartInfo
         )
     }
@@ -3410,8 +3404,7 @@ export class GrapherState {
         return (
             // If the entity controls are hidden, then selecting entities from
             // the map should also be disabled
-            !this.hideEntityControls &&
-            // only show the entity selector on the map tab if it's rendered
+            !this.hideEntityControls && // only show the entity selector on the map tab if it's rendered
             // into the side panel or into the slide-in drawer
             this.shouldShowEntitySelectorAs !== GrapherWindowType.modal
         )
@@ -3554,7 +3547,7 @@ export class Grapher extends React.Component<GrapherProps> {
     }
 
     private get keyboardShortcuts(): Command[] {
-        const temporaryFacetTestCommands = range(0, 10).map((num) => {
+        const temporaryFacetTestCommands = _.range(0, 10).map((num) => {
             return {
                 combo: `${num}`,
                 fn: (): void => this.randomSelection(num),
@@ -3976,7 +3969,7 @@ export class Grapher extends React.Component<GrapherProps> {
         // while animating, so we debounce to allow e.g. smoother timelines
         const pushParams = (): void =>
             setWindowQueryStr(queryParamsToStr(this.grapherState.changedParams))
-        const debouncedPushParams = debounce(pushParams, 100)
+        const debouncedPushParams = _.debounce(pushParams, 100)
 
         reaction(
             () => this.grapherState.changedParams,
@@ -3991,7 +3984,7 @@ export class Grapher extends React.Component<GrapherProps> {
             this.grapherState.windowInnerWidth = window.innerWidth
             this.grapherState.windowInnerHeight = window.innerHeight
         }
-        const onResize = debounce(updateWindowDimensions, 400, {
+        const onResize = _.debounce(updateWindowDimensions, 400, {
             leading: true,
         })
 

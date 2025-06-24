@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     useMutation,
     UseMutationResult,
@@ -19,7 +20,6 @@ import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import {
     DbPlainFeaturedMetric,
-    groupBy,
     Json,
     FeaturedMetricByParentTagNameDictionary,
     FeaturedMetricIncomeGroup,
@@ -163,7 +163,7 @@ function FeaturedMetricSection({
     rerankFeaturedMetrics: RerankFeaturedMetricsMutation
 }) {
     const byIncomeGroup = useMemo(() => {
-        return groupBy(
+        return _.groupBy(
             featuredMetrics,
             (featuredMetric) => featuredMetric.incomeGroup
         )

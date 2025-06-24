@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { expect, it, describe } from "vitest"
 
 import { SlopeChart, SlopeChartManager } from "./SlopeChart"
@@ -13,7 +14,6 @@ import { ChartManager } from "../chart/ChartManager"
 import {
     ColumnTypeNames,
     FacetStrategy,
-    isNumber,
     ScaleType,
     SeriesStrategy,
 } from "@ourworldindata/utils"
@@ -50,7 +50,7 @@ it("filters non-numeric values", () => {
     expect(
         chart.series.every(
             (series) =>
-                isNumber(series.start.value) && isNumber(series.end.value)
+                _.isNumber(series.start.value) && _.isNumber(series.end.value)
         )
     ).toBeTruthy()
 })

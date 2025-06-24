@@ -1,10 +1,10 @@
+import * as _ from "lodash-es"
 import "dayjs"
 import { getLinkType, getUrlTarget } from "@ourworldindata/components"
 import {
     GdocsContentSource,
     OwidVariableWithSource,
     gdocIdRegex,
-    partition,
 } from "@ourworldindata/utils"
 import {
     getGdocBaseObjectById,
@@ -124,7 +124,7 @@ export const resolveFaqsForVariable = (
           })
         : []
 
-    const [resolvedFaqs, errors] = partition(
+    const [resolvedFaqs, errors] = _.partition(
         resolvedFaqResults,
         (result) => result.type === "success"
     ) as [EnrichedFaqLookupSuccess[], EnrichedFaqLookupError[]]

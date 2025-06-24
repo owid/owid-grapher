@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import {
     Bounds,
@@ -36,16 +37,6 @@ import {
     reaction,
 } from "mobx"
 import { match, P } from "ts-pattern"
-import {
-    cloneDeep,
-    isArray,
-    isEmpty,
-    isEqual,
-    isNil,
-    omitBy,
-    pick,
-    range,
-} from "lodash-es"
 
 import { BaseEditorComponent, HotColumn, HotTable } from "@handsontable/react"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -262,7 +253,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
         const fetchDataObservable = dataFetchParametersObservable.pipe(
             debounceTime(200), // debounce by 200 MS (this also introduces a min delay of 200ms)
-            distinctUntilChanged(isEqual), // don't emit new values if the value hasn't changed
+            distinctUntilChanged(_.isEqual), // don't emit new values if the value hasn't changed
             switchMap((params) => {
                 // use switchmap to create a new fetch (as an observable) and
                 // automatically cancel stale fetch requests
@@ -673,7 +664,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         [
                             fieldDesc.pointer,
                             row.config !== undefined
-                                ? cloneDeep(
+                                ? _.cloneDeep(
                                       fieldDesc.getter(
                                           row.config as Record<string, unknown>
                                       )
@@ -681,7 +672,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                                 : undefined,
                         ] as const
                 )
-                .filter(([, val]) => !isNil(val))
+                .filter(([, val]) => !_.isNil(val))
             const fields = Object.fromEntries(fieldsArray)
             const readOnlyColumnValues = [...readOnlyColumns.values()].map(
                 (field) => [field.key, (row as any)[field.key]]
@@ -830,7 +821,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             (item): item is ColumnDataSourceUnknown =>
                 item.kind === ColumnDataSourceType.Unkown
         )
-        if (!isEmpty(undefinedColumns))
+        if (!_.isEmpty(undefinedColumns))
             console.error("Some columns could not be found!", undefinedColumns)
         return definedColumns
     }
@@ -930,8 +921,8 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         )
             return
 
-        const selectedRows = range(selectedRow, selectionEndRow + 1)
-        const selectedColumns = range(selectedColumn, selectionEndColumn + 1)
+        const selectedRows = _.range(selectedRow, selectionEndRow + 1)
+        const selectedColumns = _.range(selectedColumn, selectionEndColumn + 1)
         const patches: GrapherConfigPatch[] = []
 
         for (const column of selectedColumns) {
@@ -1071,7 +1062,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             // If we have an array of both strings and number then the value we get here will always
             // be a string. Check if we can coerce it to number and do so if possible
             if (
-                isArray(fieldDesc?.type) &&
+                _.isArray(fieldDesc?.type) &&
                 fieldDesc?.type.find(
                     (type) =>
                         type === FieldType.number || type === FieldType.integer
@@ -1181,13 +1172,13 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             const defaultValuesAsStrings =
                 fetchVariablesParametersToQueryParameters(defaultValues)
             // Only store non-default values in the query params
-            const nonDefaultValues = omitBy(
+            const nonDefaultValues = _.omitBy(
                 fetchParamsFromQueryParamsAsStrings,
                 (value, key) => (defaultValuesAsStrings as any)[key] === value
             )
             const url = getWindowUrl()
             const newUrl = url.setQueryParams(nonDefaultValues)
-            if (!isEqual(url, newUrl)) setWindowUrl(newUrl)
+            if (!_.isEqual(url, newUrl)) setWindowUrl(newUrl)
         })
         this.disposers.push(disposer)
     }
@@ -1685,8 +1676,8 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         const { filterState } = this
 
         const updateFilterState = !(
-            isEqual(filterState?.tree, immutableTree) &&
-            isEqual(filterState?.config, config)
+            _.isEqual(filterState?.tree, immutableTree) &&
+            _.isEqual(filterState?.config, config)
         )
 
         if (updateFilterState) {
@@ -1744,7 +1735,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     @computed get FilterPanelConfig(): Config | undefined {
         const { filterPanelConfigFields } = this
 
-        if (isEmpty(filterPanelConfigFields)) return undefined
+        if (_.isEmpty(filterPanelConfigFields)) return undefined
 
         const fieldsObject = Object.fromEntries(filterPanelConfigFields)
         const config = {
@@ -1784,7 +1775,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         //     "multiselect_equals",
         //     "multiselect_not_equals",
         // ]
-        config.operators = pick(config.operators, operatorsToKeep) as any
+        config.operators = _.pick(config.operators, operatorsToKeep) as any
 
         config.operators = {
             ...config.operators,

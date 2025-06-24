@@ -1,5 +1,5 @@
+import * as _ from "lodash-es"
 import { MigrationInterface, QueryRunner } from "typeorm"
-import { cloneDeep, forEach, forOwn, isArray, isObject } from "lodash-es"
 import { OwidGdocPostContent } from "@ourworldindata/utils"
 
 export class UpdateGdocCalloutComponent1685091238139
@@ -20,7 +20,7 @@ export class UpdateGdocCalloutComponent1685091238139
         )
         for (const gdoc of allGdocs) {
             gdoc.content = JSON.parse(gdoc.content) as OwidGdocPostContent
-            const old = cloneDeep(gdoc.content.body)
+            const old = _.cloneDeep(gdoc.content.body)
             recursivelyFixCalloutComponents(gdoc.content.body)
             if (JSON.stringify(old) !== JSON.stringify(gdoc.content.body)) {
                 console.log(`Updating callout component in gdoc ${gdoc.slug}`)
@@ -37,24 +37,24 @@ export class UpdateGdocCalloutComponent1685091238139
     }
 }
 function recursivelyFixCalloutComponents(node: any): void {
-    if (isArray(node)) {
+    if (_.isArray(node)) {
         // If the argument is an array, iterate over its elements.
-        forEach(node, (item) => {
+        _.forEach(node, (item) => {
             recursivelyFixCalloutComponents(item)
         })
-    } else if (isObject(node)) {
+    } else if (_.isObject(node)) {
         if (
             "type" in node &&
             node.type === "callout" &&
             "text" in node &&
-            isArray(node.text)
+            _.isArray(node.text)
         ) {
             node.text = node.text.map((text: string[]) => {
                 return { type: "text", value: text }
             })
         }
         // If the argument is an object, iterate over its keys.
-        forOwn(node, (value) => {
+        _.forOwn(node, (value) => {
             // Recurse on the key's value.
             recursivelyFixCalloutComponents(value)
         })

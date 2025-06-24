@@ -2,10 +2,10 @@
 // set up before any errors are thrown.
 import "../serverUtils/instrument.js"
 
+import * as _ from "lodash-es"
 import fs from "fs-extra"
 import path from "path"
 import { glob } from "glob"
-import { keyBy, without, mapValues, pick } from "lodash-es"
 import ProgressBar from "progress"
 import * as db from "../db/db.js"
 import { BLOG_POSTS_PER_PAGE, BASE_DIR } from "../settings/serverSettings.js"
@@ -269,7 +269,7 @@ export class SiteBaker {
                     path !== "google8272294305985984"
             )
 
-        return without(existingSlugs, ...postSlugsFromDb)
+        return _.without(existingSlugs, ...postSlugsFromDb)
     }
 
     // Prefetches all linkedAuthors, linkedDocuments, imageMetadata,
@@ -288,12 +288,12 @@ export class SiteBaker {
 
             console.log("Prefetching gdocs")
             const publishedGdocs = await getAllMinimalGdocBaseObjects(knex)
-            const publishedGdocsDictionary = keyBy(publishedGdocs, "id")
+            const publishedGdocsDictionary = _.keyBy(publishedGdocs, "id")
             console.log(`✅ Prefetched ${publishedGdocs.length} gdocs`)
 
             console.log("Prefetching images")
             const imageMetadataDictionary = await getAllImages(knex).then(
-                (images) => keyBy(images, "filename")
+                (images) => _.keyBy(images, "filename")
             )
             console.log(
                 `✅ Prefetched ${Object.keys(imageMetadataDictionary).length} images`
@@ -303,7 +303,7 @@ export class SiteBaker {
             const publishedExplorersBySlug = await this.explorerAdminServer
                 .getAllPublishedExplorersBySlugCached(knex)
                 .then((results) =>
-                    mapValues(results, (explorer) => {
+                    _.mapValues(results, (explorer) => {
                         return makeExplorerLinkedChart(explorer, explorer.slug)
                     })
                 )
@@ -351,7 +351,10 @@ export class SiteBaker {
                 publishedCharts.push(makeMultiDimLinkedChart(config, slug))
             }
 
-            const publishedChartsBySlug = keyBy(publishedCharts, "originalSlug")
+            const publishedChartsBySlug = _.keyBy(
+                publishedCharts,
+                "originalSlug"
+            )
             console.log(`✅ Prefetched ${publishedCharts.length} charts`)
 
             // The only reason we need linkedIndicators is for the KeyIndicator+KeyIndicatorCollection components.
@@ -376,7 +379,7 @@ export class SiteBaker {
                         chartTitle: linkedChart.title,
                     }))
                 )
-            const datapageIndicatorsById = keyBy(linkedIndicators, "id")
+            const datapageIndicatorsById = _.keyBy(linkedIndicators, "id")
             console.log(`✅ Prefetched ${linkedIndicators.length} indicators`)
 
             console.log("Prefetching authors")
@@ -385,7 +388,10 @@ export class SiteBaker {
 
             console.log("Prefetching narrative charts")
             const narrativeChartsInfo = await getNarrativeChartsInfo(knex)
-            const narrativeChartsInfoByName = keyBy(narrativeChartsInfo, "name")
+            const narrativeChartsInfoByName = _.keyBy(
+                narrativeChartsInfo,
+                "name"
+            )
             console.log(
                 `✅ Prefetched ${narrativeChartsInfo.length} narrative charts`
             )
@@ -413,7 +419,7 @@ export class SiteBaker {
                 linkedExplorerSlugs,
                 linkedNarrativeChartNames,
             ] = picks
-            const linkedDocuments = pick(
+            const linkedDocuments = _.pick(
                 this._prefetchedAttachmentsCache.linkedDocuments,
                 linkedDocumentIds
             )
@@ -423,7 +429,7 @@ export class SiteBaker {
                 .map((gdoc) => gdoc["featured-image"])
                 .filter((filename): filename is string => !!filename)
 
-            const linkedGrapherCharts = pick(
+            const linkedGrapherCharts = _.pick(
                 this._prefetchedAttachmentsCache.linkedCharts.graphers,
                 linkedGrapherSlugs
             )
@@ -436,7 +442,7 @@ export class SiteBaker {
             return {
                 donors: this._prefetchedAttachmentsCache.donors,
                 linkedDocuments,
-                imageMetadata: pick(
+                imageMetadata: _.pick(
                     this._prefetchedAttachmentsCache.imageMetadata,
                     [...imageFilenames, ...featuredImages]
                 ),
@@ -445,14 +451,14 @@ export class SiteBaker {
                         ...linkedGrapherCharts,
                     },
                     explorers: {
-                        ...pick(
+                        ..._.pick(
                             this._prefetchedAttachmentsCache.linkedCharts
                                 .explorers,
                             linkedExplorerSlugs
                         ),
                     },
                 },
-                linkedIndicators: pick(
+                linkedIndicators: _.pick(
                     this._prefetchedAttachmentsCache.linkedIndicators,
                     linkedIndicatorIds
                 ),
@@ -460,7 +466,7 @@ export class SiteBaker {
                     this._prefetchedAttachmentsCache.linkedAuthors.filter(
                         (author) => authorNames.includes(author.name)
                     ),
-                linkedNarrativeCharts: pick(
+                linkedNarrativeCharts: _.pick(
                     this._prefetchedAttachmentsCache.linkedNarrativeCharts,
                     linkedNarrativeChartNames
                 ),

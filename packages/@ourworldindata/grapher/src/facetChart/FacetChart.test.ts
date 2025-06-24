@@ -1,5 +1,6 @@
 import { expect, it, describe } from "vitest"
 
+import * as _ from "lodash-es"
 import { FacetChart } from "./FacetChart"
 import { SynthesizeGDPTable, OwidTable } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
@@ -9,11 +10,10 @@ import {
     FacetStrategy,
     ColumnTypeNames,
 } from "@ourworldindata/types"
-import { uniq } from "@ourworldindata/utils"
 import { LineChart } from "../lineCharts/LineChart"
 
 const allElementsAreEqual = (array: any[]): boolean => {
-    return uniq(array).length === 1
+    return _.uniq(array).length === 1
 }
 
 it("can create a new FacetChart", () => {

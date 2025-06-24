@@ -1,4 +1,4 @@
-import { isEmpty } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
 
 export type Fragment = {
     text: string
@@ -9,7 +9,7 @@ export function splitIntoFragments(
     text: string,
     separators = [" "]
 ): Fragment[] {
-    if (isEmpty(text)) return []
+    if (_.isEmpty(text)) return []
     const fragments: Fragment[] = []
     let currText = ""
     for (const char of text) {

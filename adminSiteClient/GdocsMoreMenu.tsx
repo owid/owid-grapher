@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { useState } from "react"
 import { Dropdown, Button, Modal, Form, Checkbox, Input } from "antd"
 import {
@@ -16,7 +17,6 @@ import {
     gdocUrlRegex,
     OwidGdoc,
     Url,
-    omit,
 } from "@ourworldindata/utils"
 
 import { DEFAULT_TOMBSTONE_REASON } from "../site/SiteConstants.js"
@@ -160,7 +160,7 @@ function DeleteModal({
 
     async function handleOnFinish(fields: DeleteFields) {
         const tombstone = shouldCreateTombstone
-            ? omit(fields, "shouldCreateTombstone")
+            ? _.omit(fields, "shouldCreateTombstone")
             : undefined
         setIsSubmitting(true)
         await onOk(tombstone)

@@ -1,5 +1,6 @@
+import * as _ from "lodash-es"
 import * as React from "react"
-import { sum, max, makeIdForHumanConsumption } from "@ourworldindata/utils"
+import { makeIdForHumanConsumption } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -121,13 +122,13 @@ export class VerticalColorLegend extends React.Component<{
     @computed get width(): number {
         const widths = this.series.map((series) => series.width)
         if (this.title) widths.push(this.title.width)
-        return max(widths) ?? 0
+        return _.max(widths) ?? 0
     }
 
     @computed get height(): number {
         return (
             this.titleHeight +
-            sum(this.series.map((series) => series.height)) +
+            _.sum(this.series.map((series) => series.height)) +
             this.lineHeight * this.series.length
         )
     }

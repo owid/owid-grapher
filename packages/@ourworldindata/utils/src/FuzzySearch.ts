@@ -1,5 +1,5 @@
 import { PrimitiveType } from "@ourworldindata/types"
-import { groupBy, uniqBy } from "./Util.js"
+import * as _ from "lodash-es"
 import fuzzysort from "fuzzysort"
 
 export class FuzzySearch<T> {
@@ -25,7 +25,7 @@ export class FuzzySearch<T> {
         keyFn: (obj: T) => string,
         opts?: Fuzzysort.Options
     ): FuzzySearch<T> {
-        const datamap = groupBy(data, keyFn)
+        const datamap = _.groupBy(data, keyFn)
         return new FuzzySearch(datamap, undefined, opts)
     }
 
@@ -56,7 +56,7 @@ export class FuzzySearch<T> {
             .flatMap((result) => this.datamap[result.target])
 
         if (this.uniqByFn) {
-            return uniqBy(results, this.uniqByFn)
+            return _.uniqBy(results, this.uniqByFn)
         }
         return results
     }

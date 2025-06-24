@@ -1,10 +1,10 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import { select } from "d3-selection"
 import cx from "classnames"
 import {
     getRelativeMouse,
     isMobile,
-    debounce,
     Bounds,
     DEFAULT_BOUNDS,
 } from "@ourworldindata/utils"
@@ -182,10 +182,10 @@ export class TimelineComponent extends React.Component<{
         this.mouseHoveringOverTimeline = false
     }
 
-    private hideStartTooltip = debounce(() => {
+    private hideStartTooltip = _.debounce(() => {
         this.startTooltipVisible = false
     }, HANDLE_TOOLTIP_FADE_TIME_MS)
-    private hideEndTooltip = debounce(() => {
+    private hideEndTooltip = _.debounce(() => {
         this.endTooltipVisible = false
     }, HANDLE_TOOLTIP_FADE_TIME_MS)
 

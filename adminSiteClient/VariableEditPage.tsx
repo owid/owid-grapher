@@ -34,7 +34,6 @@ import {
     OwidOrigin,
     OwidSource,
     stringifyUnknownError,
-    startCase,
 } from "@ourworldindata/utils"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { OriginList } from "./OriginList.js"
@@ -292,7 +291,7 @@ class VariableEditor extends Component<{
                                             OwidVariableRoundingMode
                                         ).map((key) => ({
                                             value: key,
-                                            label: startCase(key),
+                                            label: _.startCase(key),
                                         }))}
                                     />
                                     <BindFloat

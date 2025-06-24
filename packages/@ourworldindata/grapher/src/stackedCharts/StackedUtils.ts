@@ -1,8 +1,6 @@
+import * as _ from "lodash-es"
 import {
-    keyBy,
     sortNumeric,
-    uniq,
-    range,
     isArrayOfNumbers,
     findGreatestCommonDivisorOfArray,
     rollingMap,
@@ -55,7 +53,7 @@ export function withUniformSpacing(values: number[]): number[] {
     const deltas = rollingMap(values, (a, b) => b - a)
     const gcd = findGreatestCommonDivisorOfArray(deltas)
     if (gcd === null) return values
-    return range(values[0], values[values.length - 1] + gcd, gcd)
+    return _.range(values[0], values[values.length - 1] + gcd, gcd)
 }
 
 // Adds a Y = 0 value for each missing x value (where X is usually Time)
@@ -66,7 +64,7 @@ export const withMissingValuesAsZeroes = <
     { enforceUniformSpacing = false }: { enforceUniformSpacing?: boolean } = {}
 ): StackedSeries<PositionType>[] => {
     let allXValuesSorted = sortNumeric(
-        uniq(
+        _.uniq(
             seriesArr
                 .flatMap((series) => series.points)
                 .map((point) => point.position)
@@ -80,7 +78,7 @@ export const withMissingValuesAsZeroes = <
     }
 
     return seriesArr.map((series) => {
-        const pointsByPosition = keyBy(series.points, "position")
+        const pointsByPosition = _.keyBy(series.points, "position")
         return {
             ...series,
             points: allXValuesSorted.map((position) => {

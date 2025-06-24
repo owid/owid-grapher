@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { HitAttributeHighlightResult, SearchResponse } from "instantsearch.js"
 import {
     EntityName,
@@ -9,7 +10,6 @@ import {
     Region,
     getRegionByNameOrVariantName,
     regions,
-    escapeRegExp,
     removeTrailingParenthetical,
     lazy,
     Url,
@@ -69,7 +69,7 @@ const getRegionNameRegex = lazy(() => {
 
     // A RegExp that matches any country, region and variant name. Case-independent.
     return new RegExp(
-        `\\b(${allCountryNamesAndVariants().map(escapeRegExp).join("|")})\\b`,
+        `\\b(${allCountryNamesAndVariants().map(_.escapeRegExp).join("|")})\\b`,
         "gi"
     )
 })

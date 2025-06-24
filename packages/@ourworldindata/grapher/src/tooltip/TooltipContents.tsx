@@ -1,17 +1,11 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import classnames from "classnames"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { NO_DATA_LABEL } from "../color/ColorScale.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faInfoCircle, faS } from "@fortawesome/free-solid-svg-icons"
-import {
-    sum,
-    uniq,
-    isNumber,
-    sortBy,
-    formatInlineList,
-    GrapherTooltipAnchor,
-} from "@ourworldindata/utils"
+import { formatInlineList, GrapherTooltipAnchor } from "@ourworldindata/utils"
 import {
     TooltipTableProps,
     TooltipValueProps,
@@ -26,7 +20,7 @@ export const NO_DATA_COLOR = "#999"
 export class TooltipValue extends React.Component<TooltipValueProps> {
     render(): React.ReactElement | null {
         const { column, value, color, notice, isProjection } = this.props,
-            displayValue = isNumber(value)
+            displayValue = _.isNumber(value)
                 ? column.formatValueShort(value)
                 : (value ?? NO_DATA_LABEL),
             displayColor =
@@ -82,7 +76,7 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
             [firstTerm, lastTerm] =
                 // TODO: would be nicer to actually measure the typeset text but we would need to
                 // add Lato's metrics to the `string-pixel-width` module to use Bounds.forText
-                sum([firstValue?.length, lastValue?.length]) > 20
+                _.sum([firstValue?.length, lastValue?.length]) > 20
                     ? values.map((v) =>
                           column.formatValueShortWithAbbreviations(v)
                       )
@@ -142,7 +136,7 @@ class Variable extends React.Component<{
         })
 
         const displayNotice =
-            uniq((notice ?? []).filter((t) => t !== undefined))
+            _.uniq((notice ?? []).filter((t) => t !== undefined))
                 .map((time) =>
                     typeof time === "number" ? column.formatTime(time) : time
                 )
@@ -358,8 +352,11 @@ export function makeTooltipRoundingNotice(
     numSignificantFigures: number[],
     { plural }: { plural: boolean } = { plural: true }
 ): string {
-    const uniqueNumSigFigs = uniq(numSignificantFigures)
-    const formattedNumSigFigs = formatInlineList(sortBy(uniqueNumSigFigs), "or")
+    const uniqueNumSigFigs = _.uniq(numSignificantFigures)
+    const formattedNumSigFigs = formatInlineList(
+        _.sortBy(uniqueNumSigFigs),
+        "or"
+    )
 
     const values = plural ? "Values" : "Value"
     const are = plural ? "are" : "is"

@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { expect, it, describe } from "vitest"
 import {
     GRAPHER_CHART_TYPES,
@@ -16,7 +17,6 @@ import {
     TimeBound,
     TimeBounds,
     isSubsetOf,
-    orderBy,
     queryParamsToStr,
     ColumnTypeNames,
     Url,
@@ -468,10 +468,10 @@ describe("line chart to bar chart and bar chart race", () => {
 
         it("color goes to monochrome when the chart switches from line chart to bar chart", () => {
             const barSeries = grapher.chartInstance.series
-            const barColors = orderBy(barSeries, "seriesName").map(
+            const barColors = _.orderBy(barSeries, "seriesName").map(
                 (series) => series.color
             )
-            const linecolors = orderBy(lineSeries, "seriesName").map(
+            const linecolors = _.orderBy(lineSeries, "seriesName").map(
                 (series) => series.color
             )
             expect(

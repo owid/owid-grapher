@@ -1,6 +1,6 @@
+import * as _ from "lodash-es"
 import { DbPlainUser, UsersTableName, JsonError } from "@ourworldindata/types"
 import { parseIntOrUndefined } from "@ourworldindata/utils"
-import { pick } from "lodash-es"
 import { getUserById, updateUser, insertUser } from "../../db/model/User.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import * as db from "../../db/db.js"
@@ -69,7 +69,7 @@ export async function updateUserHandler(
     user.fullName = req.body.fullName
     user.isActive = req.body.isActive
 
-    await updateUser(trx, userId!, pick(user, ["fullName", "isActive"]))
+    await updateUser(trx, userId!, _.pick(user, ["fullName", "isActive"]))
 
     return { success: true }
 }

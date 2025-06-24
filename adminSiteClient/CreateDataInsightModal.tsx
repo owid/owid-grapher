@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     faCheck,
     faSpinner,
@@ -38,7 +39,6 @@ import { LoadingImage } from "./ReuploadImageForDataInsightModal"
 import { ApiNarrativeChartOverview } from "../adminShared/AdminTypes"
 import {
     downloadImage,
-    isEmpty,
     MinimalTag,
     MinimalTagWithIsTopic,
     RequiredBy,
@@ -963,11 +963,11 @@ function makeHelpText(progress: Progress): string | undefined {
 function isValidForImageUpload(
     formData: FormData
 ): formData is FormDataWithImageFilename {
-    return !isEmpty(formData.imageFilename)
+    return !_.isEmpty(formData.imageFilename)
 }
 
 function isValid(formData: FormData): formData is FormDataWithTitle {
-    return !isEmpty(formData.title)
+    return !_.isEmpty(formData.title)
 }
 
 function useProgress(...tasks: Task[]) {

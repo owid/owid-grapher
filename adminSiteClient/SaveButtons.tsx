@@ -1,8 +1,9 @@
+import * as _ from "lodash-es"
 import { Component } from "react"
 import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { excludeUndefined, omit, slugify } from "@ourworldindata/utils"
+import { excludeUndefined, slugify } from "@ourworldindata/utils"
 import {
     IndicatorChartEditor,
     isIndicatorChartEditorInstance,
@@ -27,7 +28,7 @@ export class SaveButtons<Editor extends AbstractChartEditor> extends Component<{
 }> {
     render() {
         const { editor } = this.props
-        const passthroughProps = omit(this.props, "editor")
+        const passthroughProps = _.omit(this.props, "editor")
         if (isChartEditorInstance(editor))
             return <SaveButtonsForChart editor={editor} {...passthroughProps} />
         else if (isIndicatorChartEditorInstance(editor))

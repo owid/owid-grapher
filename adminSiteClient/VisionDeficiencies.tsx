@@ -1,9 +1,10 @@
+import * as _ from "lodash-es"
 import { Component } from "react"
 import Select, { GroupBase, components, OptionProps } from "react-select"
 import classNames from "classnames"
 import { observer } from "mobx-react"
 import { computed, action } from "mobx"
-import { groupBy, getStylesForTargetHeight } from "@ourworldindata/utils"
+import { getStylesForTargetHeight } from "@ourworldindata/utils"
 
 // Transformation matrices taken from Chromium source: https://github.com/chromium/chromium/blob/a08db9fd8a986495c18226f9fb2f1e836bb87e62/third_party/blink/renderer/core/css/vision_deficiency.cc#L41-L82
 // "Affected" numbers from https://en.wikipedia.org/wiki/Color_blindness#Epidemiology
@@ -131,7 +132,7 @@ export class VisionDeficiencyDropdown extends Component<VisionDeficiencyDropdown
             value: deficiency.id,
             deficiency,
         }))
-        const grouped = groupBy(options, (option) => option.deficiency.group)
+        const grouped = _.groupBy(options, (option) => option.deficiency.group)
         const selectGroups = Object.entries(grouped).map(
             ([label, options]) => ({ label, options })
         )
