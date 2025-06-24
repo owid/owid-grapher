@@ -17,7 +17,6 @@ import {
 import {
     getFilterNamesOfType,
     formatCountryFacetFilters,
-    setToFacetFilters,
     getSelectableTopics,
     CHARTS_INDEX,
     DATA_CATALOG_ATTRIBUTES,
@@ -60,7 +59,8 @@ export async function queryDataTopics(
         state.requireAllCountries
     )
     const searchParams = dataTopics.map((topic) => {
-        const facetFilters = [[`tags:${topic}`], ...countryFacetFilters]
+        const topicFacetFilters = formatTopicFacetFilters(new Set([topic]))
+        const facetFilters = [...countryFacetFilters, ...topicFacetFilters]
         return {
             indexName: CHARTS_INDEX,
             attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
@@ -85,17 +85,14 @@ export async function queryCharts(
     searchClient: SearchClient,
     state: SearchState
 ): Promise<SearchChartsResponse> {
-    const facetFilters = formatCountryFacetFilters(
+    const countryFacetFilters = formatCountryFacetFilters(
         getFilterNamesOfType(state.filters, FilterType.COUNTRY),
         state.requireAllCountries
     )
-    // TODO formatTopicFacetFilters should be used here
-    facetFilters.push(
-        ...setToFacetFilters(
-            getFilterNamesOfType(state.filters, FilterType.TOPIC),
-            "tags"
-        )
+    const topicFacetFilters = formatTopicFacetFilters(
+        getFilterNamesOfType(state.filters, FilterType.TOPIC)
     )
+    const facetFilters = [...countryFacetFilters, ...topicFacetFilters]
 
     const searchParams = [
         {
