@@ -11,9 +11,10 @@ import {
     Bounds,
     debounce,
     DEFAULT_BOUNDS,
+    getWindowQueryStr,
     throttle,
 } from "@ourworldindata/utils"
-import { useResizeObserver } from "usehooks-ts"
+import { useInterval, useResizeObserver } from "usehooks-ts"
 import { reaction } from "mobx"
 
 export const useTriggerWhenClickOutside = (
@@ -197,4 +198,46 @@ export const useFocusTrap = (
             document.removeEventListener("keydown", handleKeyDown)
         }
     }, [ref, isActive])
+}
+
+declare global {
+    interface Window {
+        navigation?: {
+            addEventListener: (type: string, listener: () => void) => void
+            removeEventListener: (type: string, listener: () => void) => void
+        }
+    }
+}
+
+export const useWindowQueryParams = () => {
+    const hasWindowObj = typeof window !== "undefined"
+
+    const handleNavigation = useCallback(() => {
+        if (!hasWindowObj) return
+        setQueryParams(getWindowQueryStr())
+    }, [hasWindowObj])
+
+    const [queryParams, setQueryParams] = useState(() =>
+        hasWindowObj ? getWindowQueryStr() : ""
+    )
+
+    const hasNavigationApi = hasWindowObj && "navigation" in window
+
+    // If the Navigation API is available, we can use it to listen for URL changes
+    useEffect(() => {
+        if (!hasWindowObj || !hasNavigationApi) return
+        window.navigation?.addEventListener("navigate", handleNavigation)
+        return () => {
+            window.navigation?.removeEventListener("navigate", handleNavigation)
+        }
+    }, [hasWindowObj, hasNavigationApi, handleNavigation])
+
+    // There's not a great cross-browser way to observe changes to the URL query string,
+    // so we use a polling approach to update them in case the Navigation API is not available.
+    useInterval(
+        () => setQueryParams(getWindowQueryStr()),
+        hasWindowObj && !hasNavigationApi ? 1000 : null
+    )
+
+    return queryParams
 }

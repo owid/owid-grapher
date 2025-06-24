@@ -9,6 +9,7 @@ import {
 import { PROD_URL } from "../SiteConstants.js"
 import { useEffect, useMemo, useState } from "react"
 import * as R from "remeda"
+import { useWindowQueryParams } from "../hooks.js"
 
 export interface ArchiveSiteNavigationProps extends ArchiveSiteNavigationInfo {
     archivalDate: Date | string
@@ -68,6 +69,8 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
         }
     }, [props.versionsFileUrl])
 
+    const queryStr = useWindowQueryParams() ?? ""
+
     const { previousVersion, nextVersion } = useMemo(() => {
         const versionsObj = versions as unknown
         if (
@@ -123,7 +126,7 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
                         {previousVersion && (
                             <Button
                                 className="archive-navigation-bar__button archive-navigation-bar__button-left"
-                                href={previousVersion.url}
+                                href={previousVersion.url + queryStr}
                                 theme="outline-white"
                                 icon={faArrowLeft}
                                 iconPosition="left"
@@ -134,7 +137,7 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
                         {props.liveUrl && (
                             <Button
                                 className="archive-navigation-bar__button archive-navigation-bar__button-center"
-                                href={props.liveUrl}
+                                href={props.liveUrl + queryStr}
                                 theme="solid-dark-blue"
                                 icon={null}
                                 text="Go to the live version"
@@ -144,7 +147,7 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
                         {nextVersion && (
                             <Button
                                 className="archive-navigation-bar__button archive-navigation-bar__button-right"
-                                href={nextVersion.url}
+                                href={nextVersion.url + queryStr}
                                 theme="outline-white"
                                 icon={faArrowRight}
                                 iconPosition="right"
