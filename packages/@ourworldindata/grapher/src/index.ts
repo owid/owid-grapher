@@ -97,11 +97,7 @@ export {
 } from "./slideshowController/SlideShowController"
 export { defaultGrapherConfig } from "./schema/defaultGrapherConfig"
 export { migrateGrapherConfigToLatestVersion } from "./schema/migrations/migrate"
-export {
-    generateGrapherImageSrcSet,
-    getChartTypeFromConfig,
-    getChartTypeFromConfigAndQueryParams,
-} from "./chart/ChartUtils"
+export { generateGrapherImageSrcSet } from "./chart/ChartUtils"
 export {
     isValidTabQueryParam,
     findPotentialChartTypeSiblings,
