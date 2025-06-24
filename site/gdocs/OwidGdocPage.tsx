@@ -1,10 +1,18 @@
 import * as _ from "lodash-es"
+import type {
+    Article,
+    ProfilePage,
+    Person,
+    Organization,
+    WithContext,
+} from "schema-dts"
 import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { CitationMeta } from "../CitationMeta.js"
 import { OwidGdoc } from "./OwidGdoc.js"
 import {
+    checkIsAuthor,
     getFeaturedImageFilename,
     OwidGdoc as OwidGdocUnionType,
     SiteFooterContext,
@@ -20,6 +28,7 @@ import {
     ARCHVED_THUMBNAIL_FILENAME,
     EnrichedBlockText,
     OwidGdocPostInterface,
+    OwidGdocAuthorInterface,
 } from "@ourworldindata/types"
 import { DATA_INSIGHT_ATOM_FEED_PROPS } from "../SiteConstants.js"
 import { Html } from "../Html.js"
@@ -77,11 +86,7 @@ function getPageDesc(gdoc: OwidGdocUnionType): string | undefined {
         .exhaustive()
 }
 
-interface JsonLdAuthor {
-    "@type": "Person" | "Organization"
-    name: string
-    url?: string
-}
+type JsonLdAuthor = Person | Organization
 
 function makeJsonLdAuthors(
     baseUrl: string,
@@ -93,9 +98,9 @@ function makeJsonLdAuthors(
                 "@type": "Organization",
                 name: "Our World in Data",
                 url: baseUrl,
-            }
+            } satisfies Organization
         }
-        const author: JsonLdAuthor = {
+        const author: Person = {
             "@type": "Person",
             name: gdocAuthor,
         }
@@ -123,18 +128,73 @@ function JsonLdArticle({
     baseUrl: string
     imageUrl?: string
 }) {
-    const data = {
+    const data: WithContext<Article> = {
         "@context": "https://schema.org",
         "@type": "Article",
         headline: gdoc.content.title,
         image: imageUrl ? [imageUrl] : [],
-        datePublished: gdoc.publishedAt,
-        // NOTE: We don't set dateModified to gdoc.updatedAt, because the
-        // semantics of these fields is different. gdoc.updatedAt is the time
-        // the gdoc row was updated in the database, even if the content hasn't
-        // changed and can be even earlier than gdoc.publishedAt for articles
-        // scheduled for publication into the future.
+        // NOTE: We don't set dateModified. We have gdoc.updatedAt, but that's
+        // not correct because the semantics of these fields is different.
+        // gdoc.updatedAt is the time the gdoc row was updated in the database,
+        // even if the content hasn't changed and can be even earlier than
+        // gdoc.publishedAt for articles scheduled for publication into the
+        // future.
+        datePublished: gdoc.publishedAt?.toISOString(),
         author: makeJsonLdAuthors(baseUrl, gdoc),
+    }
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+                __html: JSON.stringify(data),
+            }}
+        />
+    )
+}
+
+function JsonLdProfilePage({
+    gdoc,
+    baseUrl,
+    imageUrl,
+}: {
+    gdoc: OwidGdocAuthorInterface
+    baseUrl: string
+    imageUrl?: string
+}) {
+    const mainAuthorId = `#${gdoc.slug}`
+    const data: WithContext<ProfilePage> = {
+        "@context": "https://schema.org",
+        "@type": "ProfilePage",
+        // NOTE: We don't set dateModified. We have gdoc.updatedAt, but that's
+        // not correct because the semantics of these fields is different.
+        // gdoc.updatedAt is the time the gdoc row was updated in the database,
+        // even if the content hasn't changed and can be even earlier than
+        // gdoc.publishedAt for articles scheduled for publication into the
+        // future.
+        dateCreated: gdoc.publishedAt?.toISOString(),
+        mainEntity: {
+            "@id": mainAuthorId,
+            "@type": "Person",
+            name: gdoc.content.title,
+            jobTitle: gdoc.content.role,
+            description: gdoc.content.bio
+                ?.map((block) => spansToUnformattedPlainText(block.value))
+                .join(" "),
+            image: imageUrl,
+            url: getCanonicalUrl(baseUrl, gdoc),
+        },
+        hasPart: gdoc.latestWorkLinks?.slice(0, 10).map((work) => {
+            return {
+                "@type": "Article",
+                headline: work.title,
+                url: getCanonicalUrl(baseUrl, {
+                    slug: work.slug,
+                    content: { type: OwidGdocType.Article },
+                }),
+                datePublished: work.publishedAt,
+                author: { "@id": mainAuthorId },
+            }
+        }),
     }
     return (
         <script
@@ -174,7 +234,7 @@ export default function OwidGdocPage({
     const canonicalUrl = getCanonicalUrl(baseUrl, gdoc)
     const pageTitle = getPageTitle(gdoc)
     const isDataInsight = gdoc.content.type === OwidGdocType.DataInsight
-    const isAuthor = gdoc.content.type === OwidGdocType.Author
+    const isAuthor = checkIsAuthor(gdoc)
     const isPost = isPostPredicate(gdoc)
 
     let imageUrl
@@ -219,6 +279,13 @@ export default function OwidGdocPage({
                 )}
                 {isPost && (
                     <JsonLdArticle
+                        gdoc={gdoc}
+                        baseUrl={baseUrl}
+                        imageUrl={imageUrl}
+                    />
+                )}
+                {isAuthor && (
+                    <JsonLdProfilePage
                         gdoc={gdoc}
                         baseUrl={baseUrl}
                         imageUrl={imageUrl}

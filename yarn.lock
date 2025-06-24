@@ -12905,6 +12905,7 @@ __metadata:
     s-expression: "npm:^3.1.1"
     safe-stable-stringify: "npm:^2.4.1"
     sass: "npm:^1.77.8"
+    schema-dts: "npm:^1.1.5"
     search-insights: "npm:^2.14.0"
     sharp: "npm:^0.33.5"
     simple-git: "npm:^3.16.1"
@@ -19328,6 +19329,13 @@ __metadata:
     loose-envify: "npm:^1.1.0"
     object-assign: "npm:^4.1.1"
   checksum: 10/898917fa475386953d998add9107c04bf2c335eee86172833995dee126d12a68bee3c29edbd61fa0bcbcb8ee511c422eaab23b86b02f95aab26ecfaed8df5e64
+  languageName: node
+  linkType: hard
+
+"schema-dts@npm:^1.1.5":
+  version: 1.1.5
+  resolution: "schema-dts@npm:1.1.5"
+  checksum: 10/74f8376449241f008349cbd938e30e2174f0c974bb5155c852bdbbb4873a0f151a12601cf2fe115ae0811a0f7ccaefd3525e21c2a8f0fab7ada9c0309230db0a
   languageName: node
   linkType: hard
 
