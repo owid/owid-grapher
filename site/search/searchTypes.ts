@@ -136,9 +136,9 @@ export type SearchChartHit = {
 // SearchResponse adds the extra fields from Algolia: page, nbHits, etc
 export type SearchChartsResponse = SearchResponse<SearchChartHit>
 
-// We add a title field to the SearchResponse for the ribbons
-export type SearchDataTopicsResponse = SearchResponse<SearchChartHit> & {
+export type SearchDataTopicsResponse = {
     title: string
+    charts: SearchResponse<SearchChartHit>
 }
 
 export type ScoredSearchResult = {
@@ -183,7 +183,7 @@ export type TopicPageHit = {
 export type SearchTopicPageResponse = SearchResponse<TopicPageHit>
 
 export type SearchWritingTopicsResponse = {
-    title: string // The topic title
+    title: string
     articles: SearchResponse<ArticleHit>
     topicPages: SearchResponse<TopicPageHit>
     totalCount: number
