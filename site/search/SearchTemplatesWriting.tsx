@@ -3,7 +3,7 @@ import { useSearchContext } from "./SearchContext.js"
 import { SearchTopicType } from "./searchTypes.js"
 import { SearchWritingResults } from "./SearchWritingResults.js"
 import { SearchDataInsightsResults } from "./SearchDataInsightsResults.js"
-import { SearchAsDraft } from "./SearchAsDraft.js"
+import { SearchWritingTopicResults } from "./SearchWritingTopicResults.js"
 
 export const SearchTemplatesWriting = () => {
     const { templateConfig } = useSearchContext()
@@ -92,14 +92,7 @@ export const SearchTemplatesWriting = () => {
                 </>
             ))
             // Writing + No Topic + No Country + No Query
-            .with([null, false, false], () => (
-                <SearchAsDraft
-                    name="Writing Results"
-                    className="col-start-2 span-cols-12"
-                >
-                    <h1>🚧 Browse interface for Research & Writing </h1>
-                </SearchAsDraft>
-            ))
+            .with([null, false, false], () => <SearchWritingTopicResults />)
             .exhaustive()
     )
 }
