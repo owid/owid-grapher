@@ -19,8 +19,11 @@ export const SearchDataTopic = ({
     const {
         actions: { setTopic },
     } = useSearchContext()
+
     const selectedCountries = useSelectedCountries()
+
     if (result.nbHits === 0) return null
+
     const handleAddTopicClick = (e: React.MouseEvent) => {
         e.preventDefault()
         setTopic(result.title)
@@ -34,26 +37,26 @@ export const SearchDataTopic = ({
             name="Data Topic"
             className="col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-13>"
         >
-            <div className="data-catalog-ribbon ">
+            <div className="search-data-topic">
                 <button
-                    className="data-catalog-ribbon__header-button"
+                    className="search-data-topic__header-button"
                     aria-label={`Add topic ${result.title} to filters`}
                     onClick={handleAddTopicClick}
                 >
-                    <div className="data-catalog-ribbon__header">
-                        <h2 className="body-1-regular">{result.title}</h2>
-                        <span className="data-catalog-ribbon__hit-count body-2-semibold">
+                    <div className="search-data-topic__header">
+                        <h2>{result.title}</h2>
+                        <span className="search-data-topic__hit-count">
                             {commafyNumber(result.nbHits)}{" "}
                             {result.nbHits === 1 ? "chart" : "charts"}
                             <FontAwesomeIcon icon={faArrowRight} />
                         </span>
                     </div>
                 </button>
-                <div className="data-catalog-ribbon-hits">
-                    <ul className="data-catalog-ribbon-list">
+                <div className="search-data-topic-hits">
+                    <ul className="search-data-topic-list">
                         {result.hits.map((hit, i) => (
                             <li
-                                className="data-catalog-ribbon-hit"
+                                className="search-data-topic-hit"
                                 key={hit.objectID}
                             >
                                 <SearchChartHitMedium
@@ -76,7 +79,7 @@ export const SearchDataTopic = ({
                     </ul>
                 </div>
                 <button
-                    className="data-catalog-ribbon__see-all-button"
+                    className="search-data-topic__see-all-button"
                     aria-label={`Add ${result.title} to filters`}
                     onClick={handleAddTopicClick}
                 >
