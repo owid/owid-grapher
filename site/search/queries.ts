@@ -1,5 +1,4 @@
 import { OwidGdocType, TagGraphRoot } from "@ourworldindata/types"
-import { flattenNonTopicNodes } from "@ourworldindata/utils"
 import { SearchClient } from "algoliasearch"
 import {
     SearchState,
@@ -35,7 +34,7 @@ export const searchQueryKeys = {
     data: [SearchIndexName.ExplorerViewsMdimViewsAndCharts] as const,
     charts: (state: SearchState) =>
         [...searchQueryKeys.data, "charts", state] as const,
-    topics: (state: SearchState) =>
+    dataTopics: (state: SearchState) =>
         [...searchQueryKeys.data, "topics", state] as const,
     writing: [SearchIndexName.Pages] as const,
     dataInsights: (state: SearchState) =>
@@ -90,6 +89,7 @@ export async function queryCharts(
         getFilterNamesOfType(state.filters, FilterType.COUNTRY),
         state.requireAllCountries
     )
+    // TODO formatTopicFacetFilters should be used here
     facetFilters.push(
         ...setToFacetFilters(
             getFilterNamesOfType(state.filters, FilterType.TOPIC),
@@ -315,9 +315,4 @@ export async function queryWritingTopics(
                 }
             })
         })
-}
-
-export async function queryTopicTagGraph(): Promise<TagGraphRoot> {
-    const data = await fetch("/topicTagGraph.json").then((res) => res.json())
-    return flattenNonTopicNodes(data)
 }
