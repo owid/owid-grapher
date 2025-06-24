@@ -1,0 +1,117 @@
+.search-writing-topic-section {
+    background: #f0f4fa;
+    border-radius: 4px;
+    padding: 16px;
+
+    &__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        height: 28px;
+    }
+
+    &__title {
+        color: #1d3d63;
+        margin: 0;
+    }
+
+    &__count-button {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+
+    &__count {
+        color: #577291;
+    }
+
+    &__arrow {
+        background: #577291;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #f0f4fa;
+        font-size: 10px;
+    }
+
+    &__content {
+        display: flex;
+        gap: 24px;
+    }
+
+    &__left {
+        width: 286px;
+        flex-shrink: 0;
+    }
+
+    &__right {
+        flex: 1;
+    }
+}
+
+.search-writing-featured-topics {
+    &__title {
+        color: #577291;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        margin: 0 0 16px 0;
+    }
+
+    &__list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+}
+
+.search-writing-topic-link {
+    &__anchor {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        color: #1d3d63;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    &__text {
+        color: #1d3d63;
+    }
+
+    &__icon {
+        font-size: 10px;
+        color: #1d3d63;
+    }
+}
+
+.search-writing-featured-articles {
+    &__title {
+        color: #577291;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        margin: 0 0 16px 0;
+    }
+
+    &__grid {
+        display: flex;
+        gap: 24px;
+    }
+}
