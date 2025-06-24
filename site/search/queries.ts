@@ -75,8 +75,8 @@ export async function queryDataTopics(
 
     return searchClient.search<SearchChartHit>(searchParams).then((response) =>
         response.results.map((res, i: number) => ({
-            ...(res as SearchChartsResponse),
             title: dataTopics[i],
+            charts: res as SearchChartsResponse,
         }))
     )
 }
