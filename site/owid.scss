@@ -58,8 +58,12 @@
 @import "./search/DEPRECATEDSearch.scss";
 @import "./search/SearchDataInsightsResults.scss";
 @import "./search/SearchDataInsightHit.scss";
-@import "search/SearchDebugNavigator.scss";
+@import "./search/SearchDebugNavigator.scss";
+@import "./search/SearchWritingTopicResults.scss";
+@import "./search/SearchWritingTopic.scss";
 @import "./search/SearchWritingResults.scss";
+@import "./search/SearchArticleHit.scss";
+@import "./search/SearchTopicPageHit.scss";
 @import "./search/SearchResultHeader.scss";
 @import "./search/SearchAsDraft.scss";
 @import "./search/SearchShowMore.scss";
