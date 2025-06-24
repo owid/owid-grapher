@@ -409,6 +409,7 @@ export function ActionButton(props: {
                     href={props.href}
                     target="_blank"
                     className={buttonClassnames}
+                    aria-label={props.label}
                     rel="noopener"
                 >
                     {buttonContents}
