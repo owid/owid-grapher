@@ -36,6 +36,17 @@
         text-transform: uppercase;
         @include h5-black-caps;
         margin-bottom: 4px;
+        display: flex;
+        gap: 8px;
+    }
+
+    .archive-navigation-bar__archive_text--tooltip {
+        color: $blue-30;
+
+        &:hover,
+        &:active {
+            color: white;
+        }
     }
 
     .archive-navigation-bar__date {

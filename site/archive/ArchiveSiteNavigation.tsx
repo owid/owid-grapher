@@ -1,7 +1,15 @@
 import { Button } from "@ourworldindata/components"
 import { SiteLogos } from "../SiteLogos.js"
-import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
-import { formatAsArchivalDate, parseArchivalDate } from "@ourworldindata/utils"
+import {
+    faArrowLeft,
+    faArrowRight,
+    faInfoCircle,
+} from "@fortawesome/free-solid-svg-icons"
+import {
+    formatAsArchivalDate,
+    parseArchivalDate,
+    Tippy,
+} from "@ourworldindata/utils"
 import {
     ArchiveSiteNavigationInfo,
     ArchiveVersions,
@@ -10,6 +18,7 @@ import { PROD_URL } from "../SiteConstants.js"
 import { useEffect, useMemo, useState } from "react"
 import * as R from "remeda"
 import { useWindowQueryParams } from "../hooks.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 export interface ArchiveSiteNavigationProps extends ArchiveSiteNavigationInfo {
     archivalDate: Date | string
@@ -111,6 +120,19 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
             <div className="archive-navigation-bar__wrapper">
                 <div className="archive-navigation-bar__archive_text">
                     Archive
+                    <Tippy
+                        content="We update our data regularly. To aid transparency and reproducibility, we archive versions of the data when an update is made. This allows users to cite a specific version of the data that does not change."
+                        theme="owid-footnote"
+                        placement="right"
+                        appendTo={() => document.body}
+                        trigger="mouseenter focus click"
+                        interactive
+                        interactiveDebounce={50}
+                    >
+                        <span className="archive-navigation-bar__archive_text--tooltip">
+                            <FontAwesomeIcon icon={faInfoCircle} />
+                        </span>
+                    </Tippy>
                 </div>
                 <div className="archive-navigation-bar__date">
                     <span className="archive-navigation-bar__date-value">
