@@ -477,7 +477,8 @@ export class GrapherState {
     focusArray = new FocusArray()
     analytics: GrapherAnalytics
 
-    additionalDataLoaderFn: AdditionalGrapherDataFetchFn | undefined = undefined
+    _additionalDataLoaderFn: AdditionalGrapherDataFetchFn | undefined =
+        undefined
     /**
      * todo: factor this out and make more RAII.
      *
@@ -509,7 +510,7 @@ export class GrapherState {
             this.updateFromObject(options)
         }
 
-        this.additionalDataLoaderFn = options.additionalDataLoaderFn
+        this._additionalDataLoaderFn = options.additionalDataLoaderFn
         this.isEmbeddedInAnOwidPage = options.isEmbeddedInAnOwidPage ?? false
         this.isEmbeddedInADataPage = options.isEmbeddedInADataPage ?? false
         if (options.staticFormat) this._staticFormat = options.staticFormat
@@ -844,6 +845,13 @@ export class GrapherState {
         return this.archivedChartInfo?.type === "archive-page"
             ? this.archivedChartInfo.assets.runtime
             : undefined
+    }
+
+    @computed get additionalDataLoaderFn():
+        | AdditionalGrapherDataFetchFn
+        | undefined {
+        if (this.isOnArchivalPage) return undefined
+        return this._additionalDataLoaderFn
     }
 
     /**

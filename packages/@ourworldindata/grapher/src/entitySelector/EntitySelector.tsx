@@ -658,6 +658,10 @@ export class EntitySelector extends React.Component<{
     }
 
     @computed private get supportsSortingByExternalIndicators(): boolean {
+        // If we can't dynamically load variables, don't ever the option to sort
+        // by external indicators
+        if (!this.manager.additionalDataLoaderFn) return false
+
         // Adding external indicators like population and gdp per capita
         // only makes sense for charts with countries or regions
         return this.entitiesAreCountriesOrRegions
