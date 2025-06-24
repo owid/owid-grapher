@@ -61,21 +61,25 @@ const IGNORED_FILES_PATTERNS = [
 ]
 export const copyPublicDir = async (archiveDir: string) => {
     const publicDir = path.join(projBaseDir, "public")
+    const archivalPublicDir = path.join(__dirname, "public")
     const targetDir = archiveDir
     const ignoredFilesPattern = new RegExp(
         IGNORED_FILES_PATTERNS.map((p) => p.source).join("|")
     )
-    await fs.copy(publicDir, targetDir, {
-        overwrite: true,
-        filter: (src) => {
-            const relativePath = path.relative(publicDir, src)
-            if (ignoredFilesPattern.test(relativePath)) {
-                console.log(`Ignoring ${relativePath}`)
-                return false
-            }
-            return true
-        },
-    })
+
+    for (const srcDir of [publicDir, archivalPublicDir]) {
+        await fs.copy(srcDir, targetDir, {
+            overwrite: true,
+            filter: (src) => {
+                const relativePath = path.relative(srcDir, src)
+                if (ignoredFilesPattern.test(relativePath)) {
+                    console.log(`Ignoring ${relativePath}`)
+                    return false
+                }
+                return true
+            },
+        })
+    }
 }
 
 export const bakeDods = async (
