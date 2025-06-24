@@ -27,7 +27,7 @@ export const SearchTopicsRefinementList = ({
 
     return selectableTopics.length > 0 && !query ? (
         <div className="search-topics-refinement-list span-cols-9 col-start-2">
-            <h3 className="data-catalog-ribbons__refinements-heading h5-black-caps">
+            <h3 className="search-topics-refinement-list__heading h5-black-caps">
                 Filter by{" "}
                 {topicType === SearchTopicType.Area
                     ? "topic"
@@ -37,7 +37,7 @@ export const SearchTopicsRefinementList = ({
             <button
                 aria-expanded={isExpanded}
                 aria-label={isExpanded ? "Collapse topics" : "Expand topics"}
-                className="search-topics-refinement-expand-button"
+                className="search-topics-refinement-list__expand-button"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
                 <h5 className="h5-black-caps">Filter by topic</h5>
