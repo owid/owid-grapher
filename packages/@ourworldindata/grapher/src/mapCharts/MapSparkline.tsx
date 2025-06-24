@@ -12,10 +12,7 @@ import {
 import { OwidTable } from "@ourworldindata/core-table"
 import { LineChart } from "../lineCharts/LineChart"
 import { LineChartState } from "../lineCharts/LineChartState"
-import {
-    Bounds,
-    checkIsVeryShortUnit,
-} from "@ourworldindata/utils"
+import { Bounds, checkIsVeryShortUnit } from "@ourworldindata/utils"
 import { LineChartManager } from "../lineCharts/LineChartConstants"
 import { ColorScale } from "../color/ColorScale.js"
 import * as R from "remeda"
