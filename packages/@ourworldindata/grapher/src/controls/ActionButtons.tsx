@@ -30,7 +30,6 @@ export interface ActionButtonsManager extends ShareMenuManager {
     isInFullScreenMode?: boolean
     isDownloadModalOpen?: boolean
     hideFullScreenButton?: boolean
-    hideDonateButton?: boolean
 }
 
 // keep in sync with sass variables in ActionButtons.scss
@@ -171,7 +170,6 @@ export class ActionButtons extends React.Component<{
         return downloadButtonWithLabelWidth
     }
 
-    // The donate button is always shown with a label
     @computed private get donateButtonWidth(): number {
         const {
             hasDonateButton,
@@ -227,7 +225,7 @@ export class ActionButtons extends React.Component<{
     }
 
     @computed private get hasDonateButton(): boolean {
-        return !this.manager.hideDonateButton
+        return !!this.manager.isInIFrame
     }
 
     @computed private get hasShareButton(): boolean {

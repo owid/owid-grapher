@@ -2498,10 +2498,6 @@ export class GrapherState {
         return fullScreenHeight < this.frameBounds.height + 80
     }
 
-    @computed get hideDonateButton(): boolean {
-        return !this.isOnArchivalPage
-    }
-
     @computed private get availableWidth(): number {
         const {
             externalBounds,
