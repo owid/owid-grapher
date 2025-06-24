@@ -1,5 +1,5 @@
-import * as _ from "lodash-es"
 // This implements the line labels that appear to the right of the lines/polygons in LineCharts/StackedAreas.
+import * as _ from "lodash-es"
 import * as React from "react"
 import {
     Bounds,
@@ -471,13 +471,13 @@ export class LineLegend extends React.Component<LineLegendProps> {
     }
 
     @computed get onMouseOver(): any {
-        return this.props.onMouseOver ?? noop
+        return this.props.onMouseOver ?? _.noop
     }
     @computed get onMouseLeave(): any {
-        return this.props.onMouseLeave ?? noop
+        return this.props.onMouseLeave ?? _.noop
     }
     @computed get onClick(): any {
-        return this.props.onClick ?? noop
+        return this.props.onClick ?? _.noop
     }
 
     @computed get legendX(): number {
