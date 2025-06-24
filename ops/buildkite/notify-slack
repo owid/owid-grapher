@@ -12,4 +12,9 @@ notify_slack() {
     echo "$CHANGES_SLACK_MENTIONS" | slacktee -a good -t "$BUILDKITE_MESSAGE" -c "$BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL" -u "Live deploy" --plain-text
 }
 
-notify_slack
+# Only notify if required environment variables are set
+if [[ -n "${CHANGES_SLACK_MENTIONS:-}" && -n "${BUILDKITE_DEPLOY_CONTENT_SLACK_CHANNEL:-}" ]]; then
+    notify_slack
+else
+    echo "Skipping Slack notification: required environment variables not set"
+fi
