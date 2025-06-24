@@ -464,18 +464,18 @@ export class ChoroplethMap extends React.Component<{
                         {/* Patterns used by the map legend. The map legend can't re-use
                             the features' patterns defined below because those are scaled
                             by the viewport. */}
-                        {this.binColors.map((color) => (
+                        {this.binColors.map((color, index) => (
                             <ProjectedDataPattern
-                                key={color}
+                                key={`${color}-${index}`}
                                 color={color}
                                 forLegend
                             />
                         ))}
 
                         {/* Pattern used by features */}
-                        {this.binColors.map((color) => (
+                        {this.binColors.map((color, index) => (
                             <ProjectedDataPattern
-                                key={color}
+                                key={`${color}-${index}`}
                                 color={color}
                                 scale={1 / this.viewportScale}
                             />
