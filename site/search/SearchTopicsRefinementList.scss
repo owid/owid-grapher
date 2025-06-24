@@ -7,7 +7,16 @@
     }
 }
 
-.search-topics-refinement-expand-button {
+.search-topics-refinement-list__heading {
+    color: $blue-60;
+    margin-bottom: 4px;
+    margin-top: 0;
+    @include sm-only {
+        display: none;
+    }
+}
+
+.search-topics-refinement-list__expand-button {
     display: none;
     cursor: pointer;
     color: $blue-60;
