@@ -462,8 +462,6 @@
                     }
 
                     .unit {
-                        text-transform: capitalize;
-
                         &::after,
                         &::before {
                             content: none;
