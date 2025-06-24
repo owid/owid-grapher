@@ -9,6 +9,9 @@ import {
     SearchDataInsightResponse,
     SearchArticleResponse,
     SearchTopicPageResponse,
+    SearchWritingTopicsResponse,
+    ArticleHit,
+    TopicPageHit,
     FilterType,
     SearchIndexName,
 } from "./searchTypes.js"
@@ -41,6 +44,8 @@ export const searchQueryKeys = {
         [...searchQueryKeys.writing, "articles", state] as const,
     topicPages: (state: SearchState) =>
         [...searchQueryKeys.writing, "topic-pages", state] as const,
+    writingTopics: (state: SearchState) =>
+        [...searchQueryKeys.writing, "topics", state] as const,
 } as const
 
 export async function queryDataTopics(
@@ -243,6 +248,73 @@ export async function queryTopicPages(
     return searchClient
         .search(searchParams)
         .then((response) => response.results[0] as SearchTopicPageResponse)
+}
+
+export async function queryWritingTopics(
+    searchClient: SearchClient,
+    tagGraph: TagGraphRoot,
+    selectedTopic: string | undefined
+): Promise<SearchWritingTopicsResponse[]> {
+    const writingTopics = [...getSelectableTopics(tagGraph, selectedTopic)]
+
+    // Create search parameters for both articles and topic pages for each topic
+    const searchParams = writingTopics.flatMap((topic) => {
+        const topicFacetFilters = formatTopicFacetFilters(new Set([topic]))
+
+        return [
+            {
+                indexName: SearchIndexName.Pages,
+                attributesToRetrieve: [
+                    "title",
+                    "slug",
+                    "thumbnailUrl",
+                    "content",
+                    "type",
+                    "authors",
+                ],
+                filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
+                facetFilters: topicFacetFilters,
+                highlightPreTag: "<mark>",
+                highlightPostTag: "</mark>",
+                hitsPerPage: 3,
+                page: 0,
+            },
+            {
+                indexName: SearchIndexName.Pages,
+                attributesToRetrieve: ["title", "slug", "type"],
+                filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
+                facetFilters: topicFacetFilters,
+                highlightPreTag: "<mark>",
+                highlightPostTag: "</mark>",
+                hitsPerPage: 8,
+                page: 0,
+            },
+        ]
+    })
+
+    return searchClient
+        .search<ArticleHit | TopicPageHit>(searchParams)
+        .then((response) => {
+            // Process results in pairs (articles, then topic pages for each topic)
+            return writingTopics.map((topic, i) => {
+                const articlesResult = response.results[
+                    i * 2
+                ] as SearchArticleResponse
+                const topicPagesResult = response.results[
+                    i * 2 + 1
+                ] as SearchTopicPageResponse
+
+                const totalCount =
+                    articlesResult.nbHits + topicPagesResult.nbHits
+
+                return {
+                    title: topic,
+                    articles: articlesResult,
+                    topicPages: topicPagesResult,
+                    totalCount,
+                }
+            })
+        })
 }
 
 export async function queryTopicTagGraph(): Promise<TagGraphRoot> {
