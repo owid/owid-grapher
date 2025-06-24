@@ -1,0 +1,42 @@
+.search-topic-page-hit {
+    display: block;
+    padding: 1rem;
+    border: 1px solid $gray-20;
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+
+    &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+
+    &__content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__header {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    &__title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0;
+        line-height: 1.3;
+        color: $gray-100;
+    }
+
+    &__excerpt {
+        font-size: 0.875rem;
+        color: $gray-70;
+        line-height: 1.4;
+        margin: 0;
+        // see https://github.com/owid/owid-grapher/issues/4982
+        overflow-wrap: anywhere;
+    }
+}
