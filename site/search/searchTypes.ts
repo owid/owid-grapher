@@ -1,5 +1,5 @@
 import { OwidGdocType } from "@ourworldindata/types"
-import { SearchResponse, SearchForFacetValuesResponse } from "instantsearch.js"
+import { SearchResponse } from "instantsearch.js"
 import {
     BaseHit,
     Hit,
@@ -114,14 +114,6 @@ export const searchCategoryFilters: [string, SearchCategoryFilter][] = [
     ["Research & Writing", SearchIndexName.Pages],
     ["Charts", SearchIndexName.ExplorerViewsMdimViewsAndCharts],
 ]
-
-/**
- * This is a type that algolia doesn't export but is necessary to work with the algolia client
- * Effectively the same as Awaited<ReturnType<SearchClient["search"]>>, but generic
- */
-export type MultipleQueriesResponse<TObject> = {
-    results: Array<SearchResponse<TObject> | SearchForFacetValuesResponse>
-}
 
 /**
  * This is the type for the hits that we get back from algolia when we search
