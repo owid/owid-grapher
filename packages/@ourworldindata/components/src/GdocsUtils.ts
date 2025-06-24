@@ -130,6 +130,15 @@ export const getCanonicalUrl = (
     return getPrefixedGdocPath(baseUrl, gdoc)
 }
 
+export const getCanonicalPath = (slug: string, type: OwidGdocType): string => {
+    return getCanonicalUrl("", {
+        slug,
+        content: {
+            type,
+        },
+    })
+}
+
 export function getPageTitle(gdoc: OwidGdoc) {
     return match(gdoc)
         .with(
