@@ -28,9 +28,9 @@ export const SearchDataResults = ({
 
     return (
         <SearchAsDraft name="Data Results" className="span-cols-12 col-start-2">
-            <div className="data-catalog-search-hits">
+            <div className="search-data-results__hits">
                 <SearchResultHeader title="Data" count={totalResults} />
-                <ul className="data-catalog-search-list">
+                <ul className="search-data-results__list">
                     {hits.map((hit, i) => {
                         const isFirstResult = i === 0
                         const shouldChartHitLarge =
@@ -39,7 +39,7 @@ export const SearchDataResults = ({
 
                         return (
                             <li
-                                className="data-catalog-search-hit"
+                                className="search-data-results__hit"
                                 key={hit.objectID}
                             >
                                 {shouldChartHitLarge ? (

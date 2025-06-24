@@ -6,13 +6,13 @@
     }
 }
 
-.data-catalog-header {
+.search-header {
     background-color: $blue-5;
     margin-bottom: 16px;
     padding-bottom: 24px;
 }
 
-.data-catalog-heading {
+.search-heading {
     h1 {
         margin-top: 24px;
         margin-bottom: 8px;
@@ -81,7 +81,7 @@
     }
 }
 
-.data-catalog-search-controls-container {
+.search-controls-container {
     position: relative;
 }
 
@@ -357,219 +357,5 @@
     background-color: $accent-pale-blue;
     &:hover {
         background-color: $accent-pale-blue;
-    }
-}
-
-.data-catalog-search-hits {
-    margin-bottom: 24px;
-}
-.data-catalog-search-list__results-count {
-    font-style: italic;
-    color: $blue-60;
-    margin-bottom: 8px;
-    margin-top: 0;
-}
-
-.data-catalog-search-hit,
-.data-catalog-ribbon-hit {
-    .chart-hit-title-container .chart-hit-variant {
-        font-size: 1em;
-    }
-    &:hover {
-        .ais-Highlight {
-            text-decoration: underline;
-        }
-    }
-}
-
-.data-catalog-ribbons__refinements-heading {
-    color: $blue-60;
-    margin-bottom: 4px;
-    margin-top: 0;
-    @include sm-only {
-        display: none;
-    }
-}
-
-.data-catalog-ribbon {
-    background-color: $blue-5;
-    padding: 24px;
-    margin-bottom: 24px;
-
-    @include sm-only {
-        background: transparent;
-        overflow: hidden;
-        padding: 0;
-        margin-bottom: 32px;
-    }
-}
-
-.data-catalog-ribbon-list {
-    @include sm-only {
-        overflow-x: scroll;
-        scrollbar-width: thin;
-        margin-bottom: 12px;
-        .data-catalog-ribbon-hit {
-            width: var(--thumbnail-width-sm);
-            .chart-hit-img-container img {
-                margin-top: 16px;
-            }
-        }
-    }
-}
-
-.data-catalog-ribbon__header {
-    display: flex;
-    justify-content: space-between;
-    h2 {
-        margin: 0;
-        font-weight: bold;
-        color: $blue-90;
-    }
-    @include sm-only {
-        width: calc(100% - 16px);
-    }
-}
-
-.data-catalog-ribbon__header-button {
-    background-color: transparent;
-    width: 100%;
-    line-height: 38.4px;
-    margin-right: 16px;
-    margin-bottom: 16px;
-    cursor: pointer;
-    padding: 0;
-    &:focus {
-        text-decoration: none;
-    }
-    &:hover {
-        text-decoration: underline;
-        text-decoration-color: $blue-90;
-    }
-    @include sm-only {
-        // Remove margin and instead add a margin-top to the ChartHits, so that their box shadows don't clip
-        margin-bottom: 0;
-    }
-}
-
-.data-catalog-ribbon__hit-count {
-    color: $blue-65;
-
-    svg {
-        height: 10px;
-        width: 10px;
-        background-color: $blue-65;
-        border-radius: 50px;
-        padding: 2px;
-        color: $blue-10;
-        margin-left: 8px;
-    }
-    @include sm-only {
-        display: none;
-    }
-}
-
-.data-catalog-ribbon__see-all-button {
-    @include body-3-medium;
-    display: none;
-    background-color: $blue-20;
-    color: $blue-90;
-    padding: 0 8px;
-    height: 40px;
-    line-height: 40px;
-    border: none;
-    cursor: pointer;
-    justify-content: center;
-    align-items: center;
-    // the ribbon container is 13 columns wide to be flush with the right edge so that the thumbnail horizontal scroll is also flush,
-    // but we want the see all button to be inset as if the container were only 12 columns wide
-    width: calc(100% - 16px);
-    margin-right: 16px;
-    &:hover {
-        text-decoration: underline;
-    }
-    @include sm-only {
-        display: flex;
-    }
-    svg {
-        height: 10px;
-        margin-left: 8px;
-        margin-bottom: 1px;
-    }
-}
-
-.data-catalog-search-list,
-.data-catalog-ribbon-list {
-    list-style: none;
-    grid-gap: var(--grid-gap);
-}
-
-@keyframes hop {
-    0% {
-        transform: translateY(0);
-    }
-    20% {
-        transform: translateY(-4px);
-    }
-    40% {
-        transform: translateY(0);
-    }
-}
-
-.chart-hit-title-container {
-    @include body-3-regular;
-    line-height: 18px;
-}
-
-// Skeletons
-.data-catalog-search-list__results-count--skeleton {
-    display: block;
-    background-color: $gray-10;
-    width: 192px;
-    height: 21px;
-    margin-bottom: 8px;
-}
-
-.data-catalog-search-hit__thumbnail--skeleton {
-    background-color: $gray-10;
-    padding-bottom: calc(100% * 210 / 297);
-}
-
-.data-catalog-search-hit__thumbnail-title--skeleton {
-    background-color: $gray-10;
-    height: 20px;
-    margin-bottom: 0;
-    margin-top: 8px;
-    width: 100%;
-    &:last-child {
-        margin-top: 0px;
-        width: 50%;
-    }
-}
-
-.data-catalog-ribbon-list--skeleton {
-    @include sm-only {
-        display: flex;
-        .data-catalog-search-hit--skeleton {
-            min-width: var(--thumbnail-width-sm);
-        }
-    }
-}
-
-.data-catalog-ribbon__header--skeleton {
-    height: 28px;
-    background-color: $blue-10;
-    width: 200px;
-    margin-bottom: 16px;
-}
-
-.data-catalog-ribbon__see-all-button--skeleton {
-    display: none;
-    background-color: $blue-20;
-    height: 40px;
-    width: 100%;
-    margin-right: 16px;
-    @include sm-only {
-        display: block;
     }
 }
