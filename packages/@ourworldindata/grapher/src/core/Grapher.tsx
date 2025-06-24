@@ -1415,6 +1415,10 @@ export class GrapherState {
         // Switching to a slope chart
         if (newTab === GRAPHER_TAB_NAMES.SlopeChart) {
             if (
+                // Don't automatically switch to a different time when editing
+                // a chart, so authors don't accidentally save the chart with
+                // the wrong time
+                !this.isEditor &&
                 this.facetStrategy === FacetStrategy.none &&
                 !this.hasUserChangedTimeHandles &&
                 this.startTime !== undefined &&
