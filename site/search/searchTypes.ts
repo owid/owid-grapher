@@ -190,6 +190,13 @@ export type TopicPageHit = {
 
 export type SearchTopicPageResponse = SearchResponse<TopicPageHit>
 
+export type SearchWritingTopicsResponse = {
+    title: string // The topic title
+    articles: SearchResponse<ArticleHit>
+    topicPages: SearchResponse<TopicPageHit>
+    totalCount: number
+}
+
 export enum FilterType {
     COUNTRY = "country",
     TOPIC = "topic",
