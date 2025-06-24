@@ -64,6 +64,7 @@ export interface DownloadModalManager {
     shouldIncludeDetailsInStaticExport?: boolean
     detailsOrderedByReference?: string[]
     isDownloadModalOpen?: boolean
+    isEmbedModalOpen?: boolean
     frameBounds?: Bounds
     captionedChartBounds?: Bounds
     isOnChartOrMapTab?: boolean
@@ -288,6 +289,11 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
         return !!(this.manager.isOnArchivalPage || this.manager.hasArchivedPage)
     }
 
+    @action.bound openEmbedDialog(): void {
+        this.manager.isDownloadModalOpen = false
+        this.manager.isEmbedModalOpen = true
+    }
+
     componentDidMount(): void {
         this.export()
     }
@@ -343,11 +349,17 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                 icon={<FontAwesomeIcon icon={faInfoCircle} />}
                             >
                                 Instead of downloading a static image of this
-                                chart, you can also embed an interactive
-                                version. You can choose between a live embed
-                                that always reflects our latest data updates, or
-                                a snapshot embed that stays fixed at the time
-                                you created it.
+                                chart, you can also{" "}
+                                <a
+                                    onClick={this.openEmbedDialog}
+                                    data-track-note="chart_download_click_interactive_embed"
+                                >
+                                    embed an interactive version
+                                </a>
+                                . You can choose between a live embed that
+                                always reflects our latest data updates, or a
+                                snapshot embed that stays fixed at the time you
+                                created it.
                             </Callout>
                         )}
                         <div>
