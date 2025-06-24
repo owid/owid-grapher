@@ -32,7 +32,7 @@ import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
 import { SearchDebugNavigator } from "./SearchDebugNavigator.js"
 import { SearchDebugProvider } from "./SearchDebugProvider.js"
 import { useIsFetching } from "@tanstack/react-query"
-import { SearchDataTopicsResultsViewSkeleton } from "./SearchDataTopicsResultsViewSkeleton.js"
+import { SearchDataTopicsResultsSkeleton } from "./SearchDataTopicsResultsSkeleton.js"
 import { SearchNoResults } from "./SearchNoResults.js"
 
 const analytics = new SiteAnalytics()
@@ -162,7 +162,7 @@ export const Search = ({
                             .exhaustive()
                     ) : (
                         // TODO: add a grace period before showing skeletons to avoid flickering
-                        <SearchDataTopicsResultsViewSkeleton />
+                        <SearchDataTopicsResultsSkeleton />
                     )}
                     <SearchNoResults />
                 </div>
