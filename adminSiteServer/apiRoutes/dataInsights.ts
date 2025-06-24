@@ -5,6 +5,8 @@ import {
     DbRawChartConfig,
     DbRawImage,
     DbRawPostGdoc,
+    GRAPHER_MAP_TYPE,
+    GRAPHER_TAB_NAMES,
     GrapherChartOrMapType,
     GrapherInterface,
     MinimalTag,
@@ -19,14 +21,11 @@ import {
     getTagsGroupedByGdocId,
 } from "../../db/model/Gdoc/GdocFactory.js"
 import {
-    getChartTypeFromConfig,
-    getChartTypeFromConfigAndQueryParams,
-} from "@ourworldindata/grapher"
-import {
     createGdocFromTemplate,
     replacePlaceholdersInGdoc,
 } from "../../db/model/Gdoc/archieToGdoc.js"
 import { GDOCS_DATA_INSIGHT_API_TEMPLATE_ID } from "../../settings/clientSettings.js"
+import { GrapherState } from "@ourworldindata/grapher"
 
 const GRAPHER_URL_PREFIX = "https://ourworldindata.org/grapher/"
 const EXPLORER_URL_PREFIX = "https://ourworldindata.org/explorers/"
@@ -45,8 +44,8 @@ type DataInsightRow = Pick<
     }
 
 export async function getAllDataInsightIndexItems(
-    req: Request,
-    res: e.Response<any, Record<string, any>>,
+    _req: Request,
+    _res: e.Response<any, Record<string, any>>,
     trx: db.KnexReadonlyTransaction
 ) {
     return getAllDataInsightIndexItemsOrderedByUpdatedAt(trx)
@@ -250,6 +249,27 @@ function detectChartType({
             url.searchParams
         )
     }
+
+    return undefined
+}
+
+export function getChartTypeFromConfig(
+    chartConfig: GrapherInterface
+): GrapherChartOrMapType | undefined {
+    return getChartTypeFromConfigAndQueryParams(chartConfig)
+}
+
+export function getChartTypeFromConfigAndQueryParams(
+    chartConfig: GrapherInterface,
+    queryParams?: URLSearchParams
+): GrapherChartOrMapType | undefined {
+    const queryStr = queryParams?.toString()
+    const grapherState = new GrapherState({ ...chartConfig, queryStr })
+
+    if (grapherState.activeChartType) return grapherState.activeChartType
+
+    if (grapherState.activeTab === GRAPHER_TAB_NAMES.WorldMap)
+        return GRAPHER_MAP_TYPE
 
     return undefined
 }
