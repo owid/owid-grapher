@@ -120,6 +120,14 @@ export function FetchingGrapher(
                                         )
                                     grapherState.current.chartTab = chartTab
                                 })
+                                .with("discrete-bar", () => {
+                                    grapherState.current.tab = "chart"
+                                    const chartTab =
+                                        mapTabOptionToChartTypeName(
+                                            mergedConfig.tab!
+                                        )
+                                    grapherState.current.chartTab = chartTab
+                                })
                                 .exhaustive()
                         }
                         // We now need to make sure that the query params are re-applied again
