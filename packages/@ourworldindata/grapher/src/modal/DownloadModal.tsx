@@ -68,6 +68,8 @@ export interface DownloadModalManager {
     captionedChartBounds?: Bounds
     isOnChartOrMapTab?: boolean
     isOnTableTab?: boolean
+    isOnArchivalPage?: boolean
+    hasArchivedPage?: boolean
     showAdminControls?: boolean
     isSocialMediaExport?: boolean
     isPublished?: boolean
@@ -282,6 +284,10 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
         return this.hasDetails || !!this.manager.showAdminControls
     }
 
+    @computed private get showInteractiveEmbedTip(): boolean {
+        return !!(this.manager.isOnArchivalPage || this.manager.hasArchivedPage)
+    }
+
     componentDidMount(): void {
         this.export()
     }
@@ -295,6 +301,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
             captionedChartBounds,
             targetWidth,
             targetHeight,
+            showInteractiveEmbedTip,
         } = this
         const pngPreviewUrl = this.pngPreviewUrl || this.fallbackPngUrl
 
@@ -330,6 +337,19 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
             <div>
                 {manager.isOnChartOrMapTab ? (
                     <div className="download-modal__vis-section">
+                        {showInteractiveEmbedTip && (
+                            <Callout
+                                title="Did you know?"
+                                icon={<FontAwesomeIcon icon={faInfoCircle} />}
+                            >
+                                Instead of downloading a static image of this
+                                chart, you can also embed an interactive
+                                version. You can choose between a live embed
+                                that always reflects our latest data updates, or
+                                a snapshot embed that stays fixed at the time
+                                you created it.
+                            </Callout>
+                        )}
                         <div>
                             <DownloadButton
                                 title="Image (PNG)"

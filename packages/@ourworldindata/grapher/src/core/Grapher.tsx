@@ -832,8 +832,12 @@ export class GrapherState {
         return this.isScatter || this.isMarimekko
     }
 
-    @computed private get isOnArchivalPage(): boolean {
+    @computed get isOnArchivalPage(): boolean {
         return this.archivedChartInfo?.type === "archive-page"
+    }
+
+    @computed get hasArchivedPage(): boolean {
+        return this.archivedChartInfo?.type === "archived-page-version"
     }
 
     @computed private get runtimeAssetMap(): AssetMap | undefined {
