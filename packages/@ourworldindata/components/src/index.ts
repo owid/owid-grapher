@@ -17,6 +17,7 @@ export {
     getPrefixedGdocPath,
     getBakePath,
     getCanonicalUrl,
+    getCanonicalPath,
     getPageTitle,
 } from "./GdocsUtils.js"
 
