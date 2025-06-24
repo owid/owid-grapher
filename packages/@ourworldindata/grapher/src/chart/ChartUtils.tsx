@@ -1,21 +1,10 @@
 import * as React from "react"
-import {
-    Box,
-    getCountryByName,
-    getTimeDomainFromQueryString,
-    Url,
-} from "@ourworldindata/utils"
+import { Box, getCountryByName, Url } from "@ourworldindata/utils"
 import {
     SeriesStrategy,
     EntityName,
-    GrapherChartType,
-    GRAPHER_CHART_TYPES,
-    GRAPHER_TAB_QUERY_PARAMS,
     InteractionState,
     SeriesName,
-    GrapherInterface,
-    GrapherChartOrMapType,
-    GRAPHER_MAP_TYPE,
     ColumnSlug,
     GrapherTabName,
     GRAPHER_TAB_NAMES,
@@ -40,10 +29,6 @@ import {
     isNotErrorValueOrEmptyCell,
     OwidTable,
 } from "@ourworldindata/core-table"
-import {
-    isValidTabQueryParam,
-    mapTabQueryParamToChartTypeName,
-} from "./ChartTabs"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
     if (manager.yColumnSlugs && manager.yColumnSlugs.length)
@@ -243,94 +228,6 @@ export function generateGrapherImageSrcSet(defaultSrc: string): string {
         .join(", ")
 
     return srcSet
-}
-
-export function getChartTypeFromConfig(
-    chartConfig: GrapherInterface
-): GrapherChartOrMapType | undefined {
-    return getChartTypeFromConfigAndQueryParams(chartConfig)
-}
-
-// TODO: use GrapherState to detect chart type
-export function getChartTypeFromConfigAndQueryParams(
-    chartConfig: GrapherInterface,
-    queryParams?: URLSearchParams
-): GrapherChartOrMapType | undefined {
-    // If the tab query parameter is set, use it to determine the chart type
-    const tab = queryParams?.get("tab")
-    if (tab && isValidTabQueryParam(tab)) {
-        // Handle cases where tab is set to 'chart', 'map' or 'table'
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.table) return undefined
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.map) return GRAPHER_MAP_TYPE
-        if (tab === GRAPHER_TAB_QUERY_PARAMS.chart) {
-            const chartType =
-                getChartTypeFromConfigField(chartConfig.chartTypes) ??
-                GRAPHER_CHART_TYPES.LineChart
-            return maybeLineChartThatTurnedIntoDiscreteBar(
-                chartType,
-                chartConfig,
-                queryParams
-            )
-        }
-
-        // Handle cases where tab is set to 'line' or 'slope'
-        const chartType = mapTabQueryParamToChartTypeName(tab)
-        if (chartType)
-            return maybeLineChartThatTurnedIntoDiscreteBar(
-                chartType,
-                chartConfig,
-                queryParams
-            )
-    }
-
-    // If the chart has a map tab and it's the default tab, use the map type
-    if (
-        chartConfig.hasMapTab &&
-        chartConfig.tab === GRAPHER_TAB_QUERY_PARAMS.map
-    )
-        return GRAPHER_MAP_TYPE
-
-    // Otherwise, rely on the config's chartTypes field
-    const chartType = getChartTypeFromConfigField(chartConfig.chartTypes)
-    if (chartType) {
-        return maybeLineChartThatTurnedIntoDiscreteBar(
-            chartType,
-            chartConfig,
-            queryParams
-        )
-    }
-
-    return undefined
-}
-
-function getChartTypeFromConfigField(
-    chartTypes?: GrapherChartType[]
-): GrapherChartType | undefined {
-    if (!chartTypes) return GRAPHER_CHART_TYPES.LineChart
-    if (chartTypes.length === 0) return undefined
-    return chartTypes[0]
-}
-
-function maybeLineChartThatTurnedIntoDiscreteBar(
-    chartType: GrapherChartType,
-    chartConfig: GrapherInterface,
-    queryParams?: URLSearchParams
-): GrapherChartType {
-    if (chartType !== GRAPHER_CHART_TYPES.LineChart) return chartType
-
-    const time = queryParams?.get("time")
-    if (time) {
-        const [minTime, maxTime] = getTimeDomainFromQueryString(time)
-        if (minTime === maxTime) return GRAPHER_CHART_TYPES.DiscreteBar
-    }
-
-    if (
-        chartConfig.minTime !== undefined &&
-        chartConfig.minTime === chartConfig.maxTime
-    )
-        return GRAPHER_CHART_TYPES.DiscreteBar
-
-    return chartType
 }
 
 /** Find a start time for which a slope chart shows as many lines as possible */
