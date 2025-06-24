@@ -81,14 +81,11 @@ export const SearchCountrySelector = ({
     }, [countrySearchQuery, selectedCountryNames, alphabetizedCountriesByName])
 
     return (
-        <div className="data-catalog-country-selector" ref={countrySelectorRef}>
+        <div className="search-country-selector" ref={countrySelectorRef}>
             <button
-                className={cx(
-                    "data-catalog-country-selector-button body-3-medium",
-                    {
-                        "data-catalog-country-selector-button--is-open": isOpen,
-                    }
-                )}
+                className={cx("search-country-selector-button body-3-medium", {
+                    "search-country-selector-button--is-open": isOpen,
+                })}
                 aria-expanded={isOpen}
                 aria-label={
                     isOpen ? "Close country selector" : "Open country selector"
@@ -96,43 +93,43 @@ export const SearchCountrySelector = ({
                 onClick={toggleOpen}
             >
                 <FontAwesomeIcon icon={faMapMarkerAlt} />
-                <span className="data-catalog-country-selector-button__text">
+                <span className="search-country-selector-button__text">
                     Country selector
                 </span>
             </button>
             {isOpen ? (
                 <div
-                    className="data-catalog-country-selector-list-container"
+                    className="search-country-selector-list-container"
                     ref={listContainerRef}
                 >
-                    <div className="data-catalog-country-selector-header">
-                        <h5 className="h5-black-caps data-catalog-country-selector__heading">
+                    <div className="search-country-selector-header">
+                        <h5 className="h5-black-caps search-country-selector__heading">
                             Select or search for a country
                         </h5>
                         <button
                             aria-label="Close country selector"
-                            className="data-catalog-country-selector-close-button"
+                            className="search-country-selector-close-button"
                             onClick={() => setIsOpen(false)}
                         >
                             <FontAwesomeIcon icon={faClose} />
                         </button>
                     </div>
                     <LabeledSwitch
-                        className="data-catalog-country-selector-switch"
+                        className="search-country-selector-switch"
                         value={requireAllCountries}
                         disabled={selectedCountryNames.size === 0}
                         onToggle={toggleRequireAllCountries}
                         label="Only show charts with data for all selected countries"
                     />
-                    <div className="data-catalog-country-selector-search-container">
+                    <div className="search-country-selector-search-container">
                         <FontAwesomeIcon
-                            className="data-catalog-country-selector__search-icon"
+                            className="search-country-selector__search-icon"
                             icon={faMagnifyingGlass}
                         />
                         <input
                             type="text"
                             placeholder="Search for a country"
-                            className="data-catalog-country-selector-search-input body-3-regular"
+                            className="search-country-selector-search-input body-3-regular"
                             value={countrySearchQuery}
                             onChange={(e) =>
                                 setCountrySearchQuery(e.target.value)
@@ -142,22 +139,22 @@ export const SearchCountrySelector = ({
                             <button
                                 onClick={() => setCountrySearchQuery("")}
                                 data-label="Clear country search"
-                                className="data-catalog-country-selector__clear-button"
+                                className="search-country-selector__clear-button"
                             >
                                 <FontAwesomeIcon icon={faTimesCircle} />
                             </button>
                         )}
                     </div>
-                    <ol className="data-catalog-country-selector-list">
+                    <ol className="search-country-selector-list">
                         {Object.values(filteredCountriesByName).map(
                             (country: Country) => (
                                 <li
                                     value={country.name}
                                     key={country.name}
                                     className={cx(
-                                        "data-catalog-country-selector-list__item",
+                                        "search-country-selector-list__item",
                                         {
-                                            "data-catalog-country-selector-list__item--selected":
+                                            "search-country-selector-list__item--selected":
                                                 selectedCountryNames.has(
                                                     country.name
                                                 ),
