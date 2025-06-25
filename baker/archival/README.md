@@ -18,7 +18,7 @@ flowchart TD
         versions["Versions files<br><br><code>/versions/charts/CHARTID.json</code>"]
   end
   subgraph other["Other files"]
-    manifests["Archived grapher page<br><br><code>/DATE-TIME/grapher/SLUG.manifest.json</code><br><code>/latest/grapher/SLUG.manifest.json</code>"]
+    manifests["Archive manifest files<br><br><code>/DATE-TIME/grapher/SLUG.manifest.json</code><br><code>/latest/grapher/SLUG.manifest.json</code>"]
   end
     page["Archived grapher page<br><br><code>/DATE-TIME/grapher/SLUG.html</code><br><code>/latest/grapher/SLUG.html</code>"]
     page -- bakes into HTML --> static
