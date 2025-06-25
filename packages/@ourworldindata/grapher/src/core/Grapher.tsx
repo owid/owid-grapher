@@ -1066,6 +1066,8 @@ export class GrapherState {
     @observable.ref renderToStatic = false
     @observable.ref isExportingToSvgOrPng = false
     @observable.ref isSocialMediaExport = false
+    @observable.ref isWikimediaExport = false
+
     enableKeyboardShortcuts: boolean = false
     bindUrlToWindow: boolean = false
     tooltip?: TooltipManager["tooltip"] = observable.box(undefined, {
@@ -2891,6 +2893,10 @@ export class GrapherState {
             this.isStaticAndSmall &&
             this.isSocialMediaExport
         )
+    }
+
+    @computed get isExportingForWikimedia(): boolean {
+        return this.isExportingToSvgOrPng && this.isWikimediaExport
     }
 
     @computed get backgroundColor(): Color {

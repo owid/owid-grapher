@@ -88,6 +88,7 @@ export interface CaptionedChartManager
     isFaceted?: boolean
     isLineChartThatTurnedIntoDiscreteBarActive?: boolean
     isExportingForSocialMedia?: boolean
+    isExportingForWikimedia?: boolean
 
     // timeline
     hasTimeline?: boolean
@@ -572,6 +573,8 @@ export class StaticCaptionedChart extends CaptionedChart {
             manager.shouldIncludeDetailsInStaticExport &&
             !_.isEmpty(this.manager.detailRenderers)
 
+        const includeFontsStyle = !manager.isExportingForWikimedia
+
         return (
             <svg
                 {...this.svgProps}
@@ -579,7 +582,7 @@ export class StaticCaptionedChart extends CaptionedChart {
                 height={height}
                 viewBox={`0 0 ${width} ${height}`}
             >
-                {this.fonts}
+                {includeFontsStyle && this.fonts}
                 {this.patterns}
                 <StaticHeader
                     manager={manager}
