@@ -574,6 +574,7 @@ export class StaticCaptionedChart extends CaptionedChart {
             !_.isEmpty(this.manager.detailRenderers)
 
         const includeFontsStyle = !manager.isExportingForWikimedia
+        const includeBackgroundRect = !!manager.isExportingForWikimedia
 
         return (
             <svg
@@ -584,6 +585,14 @@ export class StaticCaptionedChart extends CaptionedChart {
             >
                 {includeFontsStyle && this.fonts}
                 {this.patterns}
+                {includeBackgroundRect && (
+                    <rect
+                        className="background-fill"
+                        fill={this.backgroundColor}
+                        width={width}
+                        height={height}
+                    />
+                )}
                 <StaticHeader
                     manager={manager}
                     maxWidth={maxWidth}

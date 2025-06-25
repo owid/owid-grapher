@@ -447,7 +447,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                 {this.manager.showAdminControls && (
                                     <Checkbox
                                         checked={this.isWikimediaExport}
-                                        label="For use on Wikimedia"
+                                        label="Optimize SVG for Wikipedia upload"
                                         onChange={action((): void => {
                                             this.reset()
                                             this.toggleExportForUseOnWikimedia()
