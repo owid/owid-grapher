@@ -92,6 +92,30 @@ $toggle-full-width-breakpoint: 520px;
     box-shadow: 0px 4px 23px 4px #0000000f;
     z-index: $zindex-controls-popup;
     overflow-y: auto;
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+
+    // Reduce right padding in webkit browsers to accommodate scrollbar
+    @supports selector(::-webkit-scrollbar) {
+        padding-right: 6px;
+    }
+
+    // Always show scrollbar in webkit browsers. This makes it clear that there
+    // are more options to scroll through.
+    &::-webkit-scrollbar {
+        width: 11px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-clip: content-box;
+        background-color: $gray-70;
+        border-radius: 11px;
+        border: 3px solid transparent;
+    }
 
     .md-menu__overlay-header {
         display: flex;
