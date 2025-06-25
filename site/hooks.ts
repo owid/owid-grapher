@@ -225,9 +225,12 @@ export const useWindowQueryParams = () => {
     // If the Navigation API is available, we can use it to listen for URL changes
     useEffect(() => {
         if (!hasWindowObj || !hasNavigationApi) return
-        window.navigation?.addEventListener("navigate", handleNavigation)
+        window.navigation?.addEventListener("navigatesuccess", handleNavigation)
         return () => {
-            window.navigation?.removeEventListener("navigate", handleNavigation)
+            window.navigation?.removeEventListener(
+                "navigatesuccess",
+                handleNavigation
+            )
         }
     }, [hasWindowObj, hasNavigationApi, handleNavigation])
 
