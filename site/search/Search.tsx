@@ -1,42 +1,39 @@
-import { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
-import { Url } from "@ourworldindata/utils"
+import { TagGraphRoot } from "@ourworldindata/types"
 import { SearchClient } from "algoliasearch"
-import { useReducer, useMemo, useEffect } from "react"
-import { Searchbar } from "./Searchbar.js"
-import { SearchTopicsRefinementList } from "./SearchTopicsRefinementList.js"
-import {
-    searchReducer,
-    createActions,
-    searchStateToUrl,
-    urlToSearchState,
-} from "./searchState.js"
+import { useReducer, useMemo } from "react"
+import { match } from "ts-pattern"
+import { useIsFetching } from "@tanstack/react-query"
+
+// Search state and types
+import { searchReducer, createActions } from "./searchState.js"
 import {
     SearchState,
     FilterType,
     TemplateConfig,
     SearchResultType,
 } from "./searchTypes.js"
+
+// Utils and hooks
+import { getFilterNamesOfType, getSelectedTopicType } from "./searchUtils.js"
 import {
-    syncDataCatalogURL,
-    getFilterNamesOfType,
-    getSelectedTopicType,
-} from "./searchUtils.js"
-import { SiteAnalytics } from "../SiteAnalytics.js"
+    useUrlSync,
+    useTagGraphTopics,
+    useSearchAnalytics,
+} from "./searchHooks.js"
+
+// Components
+import { Searchbar } from "./Searchbar.js"
+import { SearchTopicsRefinementList } from "./SearchTopicsRefinementList.js"
 import { SearchAsDraft } from "./SearchAsDraft.js"
 import { SearchContext } from "./SearchContext.js"
 import { SearchResultTypeToggle } from "./SearchResultTypeToggle.js"
-import { match } from "ts-pattern"
 import { SearchTemplatesAll } from "./SearchTemplatesAll.js"
 import { SearchTemplatesData } from "./SearchTemplatesData.js"
 import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
 import { SearchDebugNavigator } from "./SearchDebugNavigator.js"
 import { SearchDebugProvider } from "./SearchDebugProvider.js"
-import { useIsFetching } from "@tanstack/react-query"
 import { SearchDataTopicsResultsSkeleton } from "./SearchDataTopicsResultsSkeleton.js"
 import { SearchNoResults } from "./SearchNoResults.js"
-import { useSyncUrlToState } from "./searchHooks.js"
-
-const analytics = new SiteAnalytics()
 
 export const Search = ({
     initialState,
@@ -47,49 +44,24 @@ export const Search = ({
     topicTagGraph: TagGraphRoot
     searchClient: SearchClient
 }) => {
+    // State management
     const [state, dispatch] = useReducer(searchReducer, initialState)
     const actions = useMemo(() => createActions(dispatch), [dispatch])
-    const isInitialUrlStateLoaded = useSyncUrlToState(actions.setState)
 
-    const AREA_NAMES = useMemo(
-        () => topicTagGraph.children.map((child) => child.name) || [],
-        [topicTagGraph]
-    )
+    // Extract topic and area data from the graph
+    const { allAreas, allTopics } = useTagGraphTopics(topicTagGraph)
 
-    const ALL_TOPICS = useMemo(() => {
-        function getAllTopics(node: TagGraphNode): Set<string> {
-            return node.children.reduce((acc, child) => {
-                if (child.isTopic) {
-                    acc.add(child.name)
-                }
-                if (child.children.length) {
-                    const topics = getAllTopics(child)
-                    topics.forEach((topic) => acc.add(topic))
-                }
-                return acc
-            }, new Set<string>())
-        }
-        return [...getAllTopics(topicTagGraph)]
-    }, [topicTagGraph])
+    // Bidirectional URL synchronization
+    const isInitialUrlStateLoaded = useUrlSync(state, actions.setState)
 
-    const topicType = getSelectedTopicType(state.filters, AREA_NAMES)
+    // Handle analytics tracking
+    useSearchAnalytics(state, isInitialUrlStateLoaded)
 
-    const stateAsUrl = searchStateToUrl(state)
-
-    useEffect(() => {
-        // Reconstructing state from the `stateAsUrl` serialization to avoid a `state` dependency in this effect,
-        // which would cause it to run on every state change (even no-ops)
-        const url = Url.fromURL(stateAsUrl)
-        const state = urlToSearchState(url)
-        analytics.logDataCatalogSearch(state)
-    }, [stateAsUrl])
-
-    useEffect(() => {
-        syncDataCatalogURL(stateAsUrl)
-    }, [stateAsUrl])
-
+    // Loading state
     const isFetching = useIsFetching()
 
+    // Derived state for template configuration
+    const topicType = getSelectedTopicType(state.filters, allAreas)
     const templateConfig: TemplateConfig = {
         resultType: state.resultType,
         topicType,
@@ -118,12 +90,12 @@ export const Search = ({
                         </p>
                     </header>
                     <div className="search-controls-container span-cols-12 col-start-2">
-                        <Searchbar allTopics={ALL_TOPICS} />
+                        <Searchbar allTopics={allTopics} />
                     </div>
                 </div>
                 <SearchDebugNavigator
-                    availableAreas={AREA_NAMES}
-                    availableTopics={ALL_TOPICS}
+                    availableAreas={allAreas}
+                    availableTopics={allTopics}
                 />
                 <SearchTopicsRefinementList topicType={topicType} />
                 <SearchAsDraft
