@@ -34,6 +34,7 @@ import { SearchDebugProvider } from "./SearchDebugProvider.js"
 import { useIsFetching } from "@tanstack/react-query"
 import { SearchDataTopicsResultsSkeleton } from "./SearchDataTopicsResultsSkeleton.js"
 import { SearchNoResults } from "./SearchNoResults.js"
+import { useSyncUrlToState } from "./searchHooks.js"
 
 const analytics = new SiteAnalytics()
 
@@ -48,6 +49,7 @@ export const Search = ({
 }) => {
     const [state, dispatch] = useReducer(searchReducer, initialState)
     const actions = useMemo(() => createActions(dispatch), [dispatch])
+    const isInitialUrlStateLoaded = useSyncUrlToState(actions.setState)
 
     const AREA_NAMES = useMemo(
         () => topicTagGraph.children.map((child) => child.name) || [],
@@ -75,12 +77,6 @@ export const Search = ({
     const stateAsUrl = searchStateToUrl(state)
 
     useEffect(() => {
-        const url = Url.fromURL(window.location.href)
-        const urlState = urlToSearchState(url)
-        actions.setState(urlState)
-    }, [actions])
-
-    useEffect(() => {
         // Reconstructing state from the `stateAsUrl` serialization to avoid a `state` dependency in this effect,
         // which would cause it to run on every state change (even no-ops)
         const url = Url.fromURL(stateAsUrl)
@@ -91,17 +87,6 @@ export const Search = ({
     useEffect(() => {
         syncDataCatalogURL(stateAsUrl)
     }, [stateAsUrl])
-
-    useEffect(() => {
-        const handlePopState = () => {
-            const url = Url.fromURL(window.location.href)
-            actions.setState(urlToSearchState(url))
-        }
-        window.addEventListener("popstate", handlePopState)
-        return () => {
-            window.removeEventListener("popstate", handlePopState)
-        }
-    }, [actions])
 
     const isFetching = useIsFetching()
 
@@ -148,7 +133,7 @@ export const Search = ({
                     <SearchResultTypeToggle />
                 </SearchAsDraft>
                 <div className="search-template-results grid span-cols-14 grid grid-cols-12-full-width">
-                    {!isFetching ? (
+                    {isInitialUrlStateLoaded && !isFetching ? (
                         match(templateConfig.resultType)
                             .with(SearchResultType.ALL, () => (
                                 <SearchTemplatesAll />
