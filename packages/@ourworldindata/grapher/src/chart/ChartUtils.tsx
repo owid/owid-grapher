@@ -40,7 +40,6 @@ import {
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
 import {
-    CoreColumn,
     ErrorValueTypes,
     isNotErrorValueOrEmptyCell,
     OwidTable,
@@ -419,74 +418,6 @@ function maybeLineChartThatTurnedIntoDiscreteBar(
         return GRAPHER_CHART_TYPES.DiscreteBar
 
     return chartType
-}
-
-/** Find a start time for which a slope chart shows as many lines as possible */
-export function findStartTimeForSlopeChart(
-    table: OwidTable,
-    columnSlugs: ColumnSlug[],
-    originalStartTime: number,
-    endTime: number
-): number {
-    const timeCol = table.timeColumn
-    const times = timeCol.uniqTimesAsc
-    const startTimeIndex = times.findIndex((time) => time >= originalStartTime)
-
-    // Bail if we can't find the start time
-    if (startTimeIndex === -1) return originalStartTime
-
-    const pairsToCheck: [CoreColumn, string][] = []
-
-    // Find all (col, entityName) pairings that have an endpoint available at endTime.
-    // These are the series we need to consider, because we never change endTime,
-    // and if there's no data at the end time, we can't show a line.
-    for (const columnSlug of columnSlugs) {
-        const column = table.get(columnSlug)
-        for (const [
-            entityName,
-            timeMap,
-        ] of column.owidRowByEntityNameAndTime.entries()) {
-            const endValue = timeMap.get(endTime)
-
-            if (endValue !== undefined) {
-                pairsToCheck.push([column, entityName])
-            }
-        }
-    }
-
-    const maxNumSeries = pairsToCheck.length
-
-    let candidate = { time: originalStartTime, numSeries: 0 }
-
-    // Iterate over all times and keep track of how many lines can be displayed on the chart
-    for (let i = startTimeIndex; i < times.length; i++) {
-        const time = times[i]
-
-        // Don't pick a start time that is after the end time
-        if (time >= endTime) break
-
-        let numSeries = maxNumSeries
-        for (const [col, entityName] of pairsToCheck) {
-            const owidRows = col.owidRowByEntityNameAndTime.get(entityName)
-
-            const startValue = owidRows?.get(time)
-
-            if (startValue === undefined) {
-                numSeries -= 1
-
-                // Stop early if the current time has less data than the current candidate
-                if (numSeries <= candidate.numSeries) break
-            }
-        }
-
-        // We found a time for which all lines can be drawn
-        if (numSeries === maxNumSeries) return time
-
-        // Update the candidate if we found a better time
-        if (numSeries > candidate.numSeries) candidate = { time, numSeries }
-    }
-
-    return candidate.time
 }
 
 export const isChartTab = (tab: GrapherTabName): boolean =>

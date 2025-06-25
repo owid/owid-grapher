@@ -189,7 +189,6 @@ import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidT
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
-    findStartTimeForSlopeChart,
     findValidChartTypeCombination,
     isChartTab,
     isMapTab,
@@ -1414,32 +1413,6 @@ export class GrapherState {
                 } else {
                     this.endHandleTimeBound = Infinity
                 }
-            }
-        }
-
-        // Switching to a slope chart
-        if (newTab === GRAPHER_TAB_NAMES.SlopeChart) {
-            if (
-                // Don't automatically switch to a different time when editing
-                // a chart, so authors don't accidentally save the chart with
-                // the wrong time
-                !this.isEditor &&
-                this.facetStrategy === FacetStrategy.none &&
-                !this.hasUserChangedTimeHandles &&
-                this.startTime !== undefined &&
-                this.endTime !== undefined
-            ) {
-                // Find a start time for which a slope chart shows as many lines
-                // as possible. This is useful for charts where only a few
-                // countries stretch the whole length of the time range
-                const idealStartTime = findStartTimeForSlopeChart(
-                    this.tableAfterAuthorTimelineAndActiveChartTransform,
-                    this.yColumnSlugs,
-                    this.startTime,
-                    this.endTime
-                )
-                if (idealStartTime !== this.startTime)
-                    this.startHandleTimeBound = idealStartTime
             }
         }
     }
