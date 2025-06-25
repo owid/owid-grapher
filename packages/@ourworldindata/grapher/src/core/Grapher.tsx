@@ -1888,6 +1888,7 @@ export class GrapherState {
         )
         return start === end
     }
+
     @computed get mapColumnSlug(): string {
         const mapColumnSlug = this.map.columnSlug
         // If there's no mapColumnSlug or there is one but it's not in the dimensions array, use the first ycolumn

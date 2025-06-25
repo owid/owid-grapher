@@ -271,7 +271,7 @@ export class MapChart
     }
 
     @computed private get mapColumnInfo(): MapColumnInfo {
-        const { mapColumnSlug, table } = this.manager
+        const mapColumnSlug = this.manager.mapColumnSlug!
 
         // If projection info is available, then we can stitch together the
         // historical and projected columns
@@ -285,7 +285,7 @@ export class MapChart
             }
         }
 
-        const type = table.get(mapColumnSlug).isProjection
+        const type = this.manager.table.get(mapColumnSlug).isProjection
             ? "projected"
             : "historical"
 

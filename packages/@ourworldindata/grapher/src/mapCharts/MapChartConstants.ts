@@ -135,7 +135,7 @@ export interface GlobeRenderFeature extends RenderFeature {
 }
 
 export interface MapChartManager extends ChartManager {
-    mapColumnSlug: ColumnSlug
+    mapColumnSlug?: ColumnSlug
     mapConfig?: MapConfig
     globeController?: GlobeController
     mapRegionDropdownValue?: MapRegionDropdownValue
