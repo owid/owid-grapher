@@ -32,7 +32,13 @@ Note: compatibility dates between local development, production and preview envi
 
 We have two cloudflare projects set up that you can deploy previews to. `owid` which is also where our production deployment runs, and `owid-staging`. Currently, `owid` is configured to require authentication while `owid-staging` is accessible from the internet without any kind of auth.
 
-`yarn deployContentPreview` deploys the staging `bakedSite` to a Cloudflare preview at https://[PREVIEW_BRANCH].[PROJECT].pages.dev. This is the recommended way to test functions in a production-like environment. See [../ops/buildkite/deploy-content-preview](../ops/buildkite/deploy-content-preview) for more details.
+To deploy to Cloudflare preview at https://[PREVIEW_BRANCH].[PROJECT].pages.dev run the following from `ops` repository
+
+```bash
+BUILDKITE_BRANCH=$PREVIEW_BRANCH bash templates/owid-site-staging/deploy-content-preview.sh $HOST
+```
+
+This is the recommended way to test functions in a production-like environment.
 
 ### Rationale
 
@@ -203,6 +209,7 @@ Note: this will send the `checkout.session.completed` event expected in `/donati
 The thank-you webhook can subscribe donors to a Mailchimp newsletter list. To test this functionality:
 
 1. Set up the following environment variables in your `.dev.vars`:
+
     - `MAILCHIMP_API_KEY`: You can find this in 1Password.
     - `MAILCHIMP_API_SERVER`: The server prefix for our Mailchimp account (e.g., "us1"). You can find this in the URL when you log into Mailchimp (e.g., `https://us1.admin.mailchimp.com`).
     - `MAILCHIMP_DONOR_LIST_ID`: The ID of the donor newsletter Mailchimp list you want to subscribe donors to. You can find this in 1Password.

@@ -17,7 +17,6 @@
         "bakeGdocPosts": "tsx --tsconfig tsconfig.tsx.json baker/bakeGdocPosts.ts",
         "cleanTsc": "rm -rf itsJustJavascript && tsc -b -clean",
         "createDbMigration": "tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration:create",
-        "deployContentPreview": "PREVIEW_BRANCH=${PREVIEW_BRANCH:-} ./ops/buildkite/deploy-content-preview",
         "fetchServerStatus": "tsx --tsconfig tsconfig.tsx.json baker/liveCommit.ts",
         "fixLint": "eslint . --fix",
         "fixPrettierAll": "yarn prettier --write \"**/*.{tsx,ts,jsx,js,json,md,html,css,scss,yml}\"",

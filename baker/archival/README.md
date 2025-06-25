@@ -97,7 +97,7 @@ There are two env variables relevant to archiving:
 
 ## Staging servers
 
-> [!NOTE]  
+> [!NOTE]
 > The links in this section lead to a private repo, and are only accessible to the OWID team.
 
 A staging server automatically creates and serves an archive, on port 8789.
@@ -141,7 +141,7 @@ Aside from the behind-the-scenes changes, like how variables and other files are
 
 ## Deployment
 
-The archive is built as part of every `deploy-content` step in Buildkite. This is done by running [the `deploy-archive` script](https://github.com/owid/owid-grapher/blob/f939ba985e4159f1dcd98d33802aae78a0c7b8a3/ops/buildkite/deploy-archive).
+The archive is built as part of every [deploy-content](https://buildkite.com/our-world-in-data/owid-deploy-content-master) step in Buildkite.
 It runs Vite to build the JS assets, and then runs the `yarn buildArchive` command to create the archive.
 After that, it sends the changed archive files to R2 (bucket `owid-archive`) using `rclone`.
 
