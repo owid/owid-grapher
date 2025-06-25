@@ -93,7 +93,9 @@ export default function DimensionDropdown({
             </Button>
             <Popover
                 className="md-menu"
-                maxHeight={400}
+                // Avoid multiple of 4 to increase the chance the next option is
+                // partially visible when scrolling is required.
+                maxHeight={393}
                 placement="bottom start"
                 offset={4}
             >
