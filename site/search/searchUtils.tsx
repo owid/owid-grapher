@@ -164,18 +164,6 @@ export const DATA_CATALOG_ATTRIBUTES = [
     "queryParams",
 ]
 
-/**
- * Set url if it's different from the current url.
- * When the user navigates back, we derive the state from the url and set it
- * so the url is already identical to the state - we don't need to push it again (otherwise we'd get an infinite loop)
- */
-export function syncDataCatalogURL(stateAsUrl: string) {
-    const currentUrl = window.location.href
-    if (currentUrl !== stateAsUrl) {
-        window.history.pushState({}, "", stateAsUrl)
-    }
-}
-
 export function setToFacetFilters(
     facetSet: Set<string>,
     attribute: "tags" | "availableEntities"
