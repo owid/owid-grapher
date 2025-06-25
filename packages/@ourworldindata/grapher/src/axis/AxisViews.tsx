@@ -168,7 +168,6 @@ interface DualAxisViewProps {
     lineWidth?: number
     gridDashPattern?: string
     detailsMarker?: DetailsMarker
-    fontSize?: number
     backgroundColor?: string
 }
 
@@ -183,7 +182,6 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
             lineWidth,
             gridDashPattern,
             detailsMarker,
-            fontSize,
             backgroundColor,
         } = this.props
         const { bounds, horizontalAxis, verticalAxis, innerBounds } = dualAxis
@@ -234,7 +232,6 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
                 key={`${line.label}-${index}`}
                 dualAxis={dualAxis}
                 comparisonLine={line}
-                baseFontSize={fontSize}
                 backgroundColor={backgroundColor}
             />
         ))

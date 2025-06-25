@@ -69,6 +69,7 @@ import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
     byHoverThenFocusState,
+    ClipPath,
     getDefaultFailMessage,
     getHoverStateForSeries,
     getSeriesKey,
@@ -896,8 +897,11 @@ export class LineChart
             .expand(10)
     }
 
-    @computed get clipPath(): { id: string; element: React.ReactElement } {
-        return makeClipPath(this.renderUid, this.clipPathBounds)
+    @computed get clipPath(): ClipPath {
+        return makeClipPath({
+            renderUid: this.renderUid,
+            box: this.clipPathBounds,
+        })
     }
 
     private runFancyIntroAnimation(): void {
@@ -948,7 +952,6 @@ export class LineChart
                 dualAxis={dualAxis}
                 showTickMarks={true}
                 detailsMarker={manager.detailsMarkerInSvg}
-                fontSize={this.fontSize}
                 backgroundColor={manager.backgroundColor}
             />
         )

@@ -107,3 +107,4 @@ export {
     renderSingleGrapherOnGrapherPage,
 } from "./core/GrapherUseHelpers.js"
 export { GeoFeatures } from "./mapCharts/GeoFeatures"
+export { isValidVerticalComparisonLineConfig } from "./comparisonLine/ComparisonLineHelpers"

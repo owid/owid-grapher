@@ -83,7 +83,7 @@ export class EditorFeatures {
         )
     }
 
-    @computed get comparisonLine() {
+    @computed get customComparisonLine() {
         return (
             this.grapherState.isLineChart ||
             this.grapherState.isScatter ||
@@ -91,6 +91,19 @@ export class EditorFeatures {
             this.grapherState.isStackedBar ||
             this.grapherState.isMarimekko
         )
+    }
+
+    @computed get verticalComparisonLine() {
+        return (
+            this.grapherState.isLineChart ||
+            this.grapherState.isScatter ||
+            this.grapherState.isStackedArea ||
+            this.grapherState.isStackedBar
+        )
+    }
+
+    @computed get comparisonLine() {
+        return this.customComparisonLine || this.verticalComparisonLine
     }
 
     @computed get canSpecifySortOrder() {
