@@ -7,5 +7,5 @@ export default defineConfig({
     splitting: true,
     clean: true,
     esbuildPlugins: [sassPlugin()],
-    tsconfig: "./tsconfig.src.json",
+    tsconfig: "./tsconfig.json",
 })

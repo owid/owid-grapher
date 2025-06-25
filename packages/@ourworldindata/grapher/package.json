@@ -13,7 +13,8 @@
   },
   "scripts": {
     "build": "tsup src/index.ts",
-    "watch": "tsup src/index.ts --watch"
+    "watch": "tsup src/index.ts --watch",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",

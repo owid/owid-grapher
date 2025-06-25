@@ -1,8 +1,7 @@
 {
     "extends": "../../../devTools/tsconfigs/tsconfig.base.json",
-    "references": [
-        { "path": "./tsconfig.src.json" },
-        { "path": "./tsconfig.test.json" }
-    ],
-    "exclude": ["./dist"]
+    "compilerOptions": {
+        "composite": false,
+        "outDir": "./dist"
+    }
 }
