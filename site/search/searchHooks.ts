@@ -5,10 +5,12 @@ import {
     getSelectedTopic,
 } from "./searchUtils.js"
 import { useSearchContext } from "./SearchContext.js"
-import { Region } from "@ourworldindata/utils"
+import { Region, Url } from "@ourworldindata/utils"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { SearchClient } from "algoliasearch"
 import { SearchResponse } from "instantsearch.js"
+import { useState, useEffect } from "react"
+import { urlToSearchState } from "./searchState.js"
 
 export const useSelectedCountries = (): Region[] => {
     const selectedCountryNames = useSelectedCountryNames()
@@ -53,4 +55,42 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
         hits,
         totalResults,
     }
+}
+
+/**
+ * Synchronizes the URL with the search state on initial load and handles
+ * browser back/forward navigation.
+ *
+ * Returns true when the initial URL state has been loaded. This flag prevents
+ * firing default search queries unnecessarily. These default queries would only
+ * be used if the loaded template happened to exactly match the default state
+ * (no topic, no country, no query - see getInitialSearchState()). In most
+ * cases, the URL will correspond to a different template, requiring a different
+ * set of queries.
+ */
+export function useSyncUrlToState(
+    setState: (state: SearchState) => void
+): boolean {
+    const [isInitialUrlStateLoaded, setIsInitialUrlStateLoaded] =
+        useState(false)
+
+    // Initial URL parsing on mount
+    useEffect(() => {
+        const url = Url.fromURL(window.location.href)
+        const urlState = urlToSearchState(url)
+        setState(urlState)
+        setIsInitialUrlStateLoaded(true)
+    }, [setState])
+
+    // Handle browser back/forward navigation
+    useEffect(() => {
+        const handlePopState = () => {
+            const url = Url.fromURL(window.location.href)
+            setState(urlToSearchState(url))
+        }
+        window.addEventListener("popstate", handlePopState)
+        return () => window.removeEventListener("popstate", handlePopState)
+    }, [setState])
+
+    return isInitialUrlStateLoaded
 }
