@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { expect, it, describe } from "vitest"
 
 import {
@@ -8,7 +9,7 @@ import {
 } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
 import { SelectionArray } from "../selection/SelectionArray"
-import { isNumber, ColumnTypeNames } from "@ourworldindata/utils"
+import { ColumnTypeNames } from "@ourworldindata/utils"
 import { StackedBarChart } from "./StackedBarChart"
 
 it("can create a chart", () => {
@@ -92,7 +93,7 @@ it("filters non-numeric values", () => {
     expect(
         chart.series.every((series) =>
             series.points.every(
-                (point) => isNumber(point.position) && isNumber(point.value)
+                (point) => _.isNumber(point.position) && _.isNumber(point.value)
             )
         )
     ).toBeTruthy()

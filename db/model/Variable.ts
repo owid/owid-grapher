@@ -3,7 +3,6 @@ import { Writable } from "stream"
 import * as db from "../db.js"
 import {
     retryPromise,
-    isEmpty,
     omitUndefinedValues,
     mergeGrapherConfigs,
     diffGrapherConfigs,
@@ -570,11 +569,67 @@ export async function getAllChartsForIndicator(
     }))
 }
 
+/**
+ * Returns the indicator ID to use for datapage metadata if the grapher is
+ * eligible for a datapage, otherwise undefined.
+ *
+ * If we have a single Y indicator and it has schema version >= 2, meaning it
+ * has the metadata necessary to render a datapage, AND if the metadata includes
+ * text for at least one of the description* fields or titlePublic, then we can
+ * use it in a datapage.
+ */
+export async function getDatapageIndicatorId(
+    knex: db.KnexReadonlyTransaction,
+    grapher: GrapherInterface
+): Promise<number | undefined> {
+    const yVariableIds = grapher
+        .dimensions!.filter((d) => d.property === DimensionProperty.y)
+        .map((d) => d.variableId)
+    const xVariableIds = grapher
+        .dimensions!.filter((d) => d.property === DimensionProperty.x)
+        .map((d) => d.variableId)
+
+    // For scatter plots we want to only show a data page if it has no X indicator mapped, which
+    // is a special case where time is the X axis. Marimekko charts are the other chart that uses
+    // the X dimension but there we usually map population on X which should not prevent us from
+    // showing a data page.
+    if (
+        yVariableIds.length === 1 &&
+        (grapher.chartTypes?.[0] !== GRAPHER_CHART_TYPES.ScatterPlot ||
+            xVariableIds.length === 0)
+    ) {
+        const variableId = yVariableIds[0]
+        const result = await knexRawFirst<{ id: number }>(
+            knex,
+            `-- sql
+                SELECT id
+                FROM variables
+                WHERE id = ?
+                  AND schemaVersion >= 2
+                  AND (
+                    (descriptionShort IS NOT NULL AND descriptionShort != '') OR
+                    (descriptionProcessing IS NOT NULL AND descriptionProcessing != '') OR
+                    (descriptionKey IS NOT NULL AND descriptionKey != '' AND descriptionKey != '[]') OR
+                    (descriptionFromProducer IS NOT NULL AND descriptionFromProducer != '') OR
+                    (titlePublic IS NOT NULL AND titlePublic != '')
+                  )
+            `,
+            [variableId]
+        )
+
+        return result?.id
+    }
+    return undefined
+}
+
 // TODO: these are domain functions and should live somewhere else
 export async function getVariableMetadata(
-    variableId: number
+    variableId: number,
+    { noCache }: { noCache?: boolean } = {}
 ): Promise<OwidVariableWithSourceAndDimension> {
-    const metadataPath = getVariableMetadataRoute(DATA_API_URL, variableId)
+    const metadataPath = getVariableMetadataRoute(DATA_API_URL, variableId, {
+        noCache,
+    })
     const metadata = await fetchS3MetadataByPath(metadataPath)
     return metadata
 }
@@ -856,6 +911,7 @@ export const readSQLasDF = async (
 }
 
 export async function getVariableOfDatapageIfApplicable(
+    knex: db.KnexReadonlyTransaction,
     grapher: GrapherInterface
 ): Promise<
     | {
@@ -864,40 +920,12 @@ export async function getVariableOfDatapageIfApplicable(
       }
     | undefined
 > {
-    // If we have a single Y variable and that one has a schema version >= 2,
-    // meaning it has the metadata to render a datapage, AND if the metadata includes
-    // text for at least one of the description* fields or titlePublic, then we show the datapage
-    // based on this information.
-    const yVariableIds = grapher
-        .dimensions!.filter((d) => d.property === DimensionProperty.y)
-        .map((d) => d.variableId)
-    const xVariableIds = grapher
-        .dimensions!.filter((d) => d.property === DimensionProperty.x)
-        .map((d) => d.variableId)
-    // Make a data page for single indicator indicator charts.
-    // For scatter plots we want to only show a data page if it has no X variable mapped, which
-    // is a special case where time is the X axis. Marimekko charts are the other chart that uses
-    // the X dimension but there we usually map population on X which should not prevent us from
-    // showing a data page.
-    if (
-        yVariableIds.length === 1 &&
-        (grapher.chartTypes?.[0] !== GRAPHER_CHART_TYPES.ScatterPlot ||
-            xVariableIds.length === 0)
-    ) {
-        const variableId = yVariableIds[0]
-        const variableMetadata = await getVariableMetadata(variableId)
-
-        if (
-            variableMetadata.schemaVersion !== undefined &&
-            variableMetadata.schemaVersion >= 2 &&
-            (!isEmpty(variableMetadata.descriptionShort) ||
-                !isEmpty(variableMetadata.descriptionProcessing) ||
-                !isEmpty(variableMetadata.descriptionKey) ||
-                !isEmpty(variableMetadata.descriptionFromProducer) ||
-                !isEmpty(variableMetadata.presentation?.titlePublic))
-        ) {
-            return { id: variableId, metadata: variableMetadata }
-        }
+    const indicatorId = await getDatapageIndicatorId(knex, grapher)
+    if (indicatorId) {
+        const fullMetadata = await getVariableMetadata(indicatorId, {
+            noCache: true,
+        })
+        return { id: indicatorId, metadata: fullMetadata }
     }
     return undefined
 }

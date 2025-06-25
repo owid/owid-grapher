@@ -1,11 +1,8 @@
+import * as _ from "lodash-es"
 import React from "react"
 import { select } from "d3-selection"
 import {
-    min,
-    max,
-    sortBy,
     exposeInstanceOnWindow,
-    uniq,
     Bounds,
     DEFAULT_BOUNDS,
     Time,
@@ -15,7 +12,6 @@ import {
     Color,
     HorizontalAlign,
     AxisAlign,
-    uniqBy,
     makeIdForHumanConsumption,
     dyFromAlign,
 } from "@ourworldindata/utils"
@@ -202,7 +198,7 @@ export class DiscreteBarChart
 
     // Account for the width of the legend
     @computed private get seriesLegendWidth(): number {
-        return max(this.sizedSeries.map((s) => s.label?.width ?? 0)) ?? 0
+        return _.max(this.sizedSeries.map((s) => s.label?.width ?? 0)) ?? 0
     }
 
     @computed private get hasPositive(): boolean {
@@ -218,7 +214,7 @@ export class DiscreteBarChart
         if (!this.hasPositive) return 0
 
         return (
-            max(
+            _.max(
                 this.series
                     .filter((d) => d.value >= 0)
                     .map((d) => this.formatValue(d).width)
@@ -240,7 +236,7 @@ export class DiscreteBarChart
                 return labelWidth + valueWidth + labelToTextPadding
             })
 
-        return max(labelAndValueWidths) ?? 0
+        return _.max(labelAndValueWidths) ?? 0
     }
 
     @computed private get x0(): number {
@@ -251,8 +247,8 @@ export class DiscreteBarChart
     @computed private get xDomainDefault(): [number, number] {
         const allValues = this.series.map((d) => d.value)
         return [
-            Math.min(this.x0, min(allValues) as number),
-            Math.max(this.x0, max(allValues) as number),
+            Math.min(this.x0, _.min(allValues) as number),
+            Math.max(this.x0, _.max(allValues) as number),
         ]
     }
 
@@ -481,17 +477,26 @@ export class DiscreteBarChart
         const projections = this.series.filter(
             (series) => series.yColumn.isProjection
         )
-        const uniqProjections = uniqBy(projections, (series) => series.color)
+        const uniqProjections = _.uniqBy(projections, (series) => series.color)
         if (projections.length === 0) return
 
         return (
             <defs>
                 {/* passed to the legend as pattern for the projected data legend item */}
-                {makeProjectedDataPattern(this.projectedDataColorInLegend)}
+                <StripedProjectedDataPattern
+                    patternId={makeProjectedDataPatternId(
+                        this.projectedDataColorInLegend
+                    )}
+                    color={this.projectedDataColorInLegend}
+                />
                 {/* make a pattern for every series with a unique color */}
-                {uniqProjections.map((series) =>
-                    makeProjectedDataPattern(series.color)
-                )}
+                {uniqProjections.map((series) => (
+                    <StripedProjectedDataPattern
+                        key={series.color}
+                        patternId={makeProjectedDataPatternId(series.color)}
+                        color={series.color}
+                    />
+                ))}
             </defs>
         )
     }
@@ -703,7 +708,7 @@ export class DiscreteBarChart
                 sortByFunc = (item: DiscreteBarItem): number => item.value
                 break
         }
-        const sortedSeries = sortBy(raw, sortByFunc)
+        const sortedSeries = _.sortBy(raw, sortByFunc)
         const sortOrder = this.sortConfig.sortOrder ?? SortOrder.desc
         if (sortOrder === SortOrder.desc) return sortedSeries.toReversed()
         else return sortedSeries
@@ -724,7 +729,7 @@ export class DiscreteBarChart
         const { manager, colorScheme, sortedRawSeries } = this
 
         return colorScheme.getUniqValueColorMap(
-            uniq(sortedRawSeries.map((series) => series.value)),
+            _.uniq(sortedRawSeries.map((series) => series.value)),
             !manager.invertColorScheme // negate here to be consistent with how things worked before
         )
     }
@@ -739,8 +744,7 @@ export class DiscreteBarChart
         return (
             // For faceted charts, we have to get the values of inputTable before it's filtered by
             // the faceting logic.
-            this.manager.colorScaleColumnOverride ??
-            // We need to use inputTable in order to get consistent coloring for a variable across
+            this.manager.colorScaleColumnOverride ?? // We need to use inputTable in order to get consistent coloring for a variable across
             // charts, e.g. each continent being assigned to the same color.
             // inputTable is unfiltered, so it contains every value that exists in the variable.
             this.inputTable.get(this.colorColumnSlug)
@@ -809,12 +813,12 @@ export class DiscreteBarChart
         }
 
         // Move CategoricalBins to end
-        return sortBy(legendBins, (bin) => bin instanceof CategoricalBin)
+        return _.sortBy(legendBins, (bin) => bin instanceof CategoricalBin)
     }
 
     @computed get projectedDataColorInLegend(): string {
         // if a single color is in use, use that color in the legend
-        if (uniqBy(this.series, "color").length === 1)
+        if (_.uniqBy(this.series, "color").length === 1)
             return this.series[0].color
         return DEFAULT_PROJECTED_DATA_COLOR_IN_LEGEND
     }
@@ -959,35 +963,46 @@ export class DiscreteBarChart
     }
 }
 
-// Pattern IDs should be unique per document (!), not just per grapher instance.
-// Including the color in the id guarantees that the pattern uses the correct color,
-// even if it gets resolved to a striped pattern of a different grapher instance.
-function makeProjectedDataPatternId(color: string): string {
-    return `DiscreteBarChart_stripes_${color}`
-}
-
-function makeProjectedDataPattern(color: string): React.ReactElement {
-    const size = 7
+function StripedProjectedDataPattern({
+    patternId,
+    color,
+    opacity = 0.5,
+    size = 7,
+    strokeWidth = 10,
+}: {
+    patternId: string
+    color: string
+    opacity?: number
+    size?: number
+    strokeWidth?: number
+}): React.ReactElement {
     return (
         <pattern
-            key={color}
-            id={makeProjectedDataPatternId(color)}
+            id={patternId}
             patternUnits="userSpaceOnUse"
             width={size}
             height={size}
             patternTransform="rotate(45)"
         >
-            {/* transparent background */}
-            <rect width={size} height={size} fill={color} opacity={0.5} />
+            {/* semi-transparent background */}
+            <rect width={size} height={size} fill={color} opacity={opacity} />
+
             {/* stripes */}
             <line
                 x1="0"
-                y="0"
+                y1="0"
                 x2="0"
                 y2={size}
                 stroke={color}
-                strokeWidth="10"
+                strokeWidth={strokeWidth}
             />
         </pattern>
     )
+}
+
+// Pattern IDs should be unique per document (!), not just per grapher instance.
+// Including the color in the id guarantees that the pattern uses the correct color,
+// even if it gets resolved to a striped pattern of a different grapher instance.
+function makeProjectedDataPatternId(color: string): string {
+    return `DiscreteBarChart_stripes_${color}`
 }

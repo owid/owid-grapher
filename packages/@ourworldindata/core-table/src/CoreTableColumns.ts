@@ -1,14 +1,11 @@
+import * as _ from "lodash-es"
 import {
     anyToString,
     csvEscape,
     formatYear,
     formatDay,
-    uniq,
     sortNumeric,
-    range,
-    union,
     dateDiffInDays,
-    isNumber,
     omitUndefinedValues,
     isPresent,
     dayjs,
@@ -22,9 +19,6 @@ import {
     imemo,
     ToleranceStrategy,
     IndicatorTitleWithFragments,
-    max,
-    min,
-    capitalize,
 } from "@ourworldindata/utils"
 import { CoreTable } from "./CoreTable.js"
 import {
@@ -265,7 +259,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     indicesWhere(value: JS_TYPE | JS_TYPE[]): any {
         const queries = Array.isArray(value) ? value : [value]
-        return union(
+        return _.union(
             ...queries
                 .map((val) => this.valuesToIndices.get(val))
                 .filter(isPresent)
@@ -358,11 +352,11 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
     }
 
     @imemo get minValue(): JS_TYPE | undefined {
-        return min(this.values)
+        return _.min(this.values)
     }
 
     @imemo get maxValue(): JS_TYPE | undefined {
-        return max(this.values)
+        return _.max(this.values)
     }
 
     @imemo get numErrorValues(): number {
@@ -402,22 +396,22 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
 
     // todo: remove. should not be on coretable
     @imemo get uniqTimesAsc(): Time[] {
-        return sortNumeric(uniq(this.allTimes))
+        return sortNumeric(_.uniq(this.allTimes))
     }
 
     // todo: remove. should not be on coretable
     @imemo get maxTime(): Time {
-        return max(this.allTimes) as Time
+        return _.max(this.allTimes) as Time
     }
 
     // todo: remove. should not be on coretable
     @imemo get minTime(): Time {
-        return min(this.allTimes) as Time
+        return _.min(this.allTimes) as Time
     }
 
     // todo: remove? Should not be on CoreTable
     @imemo get uniqEntityNames(): EntityName[] {
-        return uniq(this.allEntityNames)
+        return _.uniq(this.allEntityNames)
     }
 
     // todo: remove? Should not be on CoreTable
@@ -436,7 +430,7 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
         const values = this.values
         const originalTimes = this.originalTimes
         const originalValues = this.originalValues
-        return range(0, originalTimes.length).map((index) => {
+        return _.range(0, originalTimes.length).map((index) => {
             return omitUndefinedValues({
                 entityName: entities[index],
                 time: times[index],
@@ -485,6 +479,22 @@ export abstract class AbstractCoreColumn<JS_TYPE extends PrimitiveType> {
             map.get(row.time)!.push(row.value)
         })
         return map
+    }
+
+    // todo: remove? Should not be on CoreTable
+    @imemo get valueByTimeAndEntityName(): Map<Time, Map<EntityName, JS_TYPE>> {
+        const valueByTimeAndEntityName = new Map<
+            Time,
+            Map<EntityName, JS_TYPE>
+        >()
+        this.owidRows.forEach((row) => {
+            if (!valueByTimeAndEntityName.has(row.time))
+                valueByTimeAndEntityName.set(row.time, new Map())
+            valueByTimeAndEntityName
+                .get(row.time)!
+                .set(row.entityName, row.value)
+        })
+        return valueByTimeAndEntityName
     }
 
     // todo: remove? Should not be on CoreTable
@@ -567,7 +577,7 @@ abstract class AbstractColumnWithNumberFormatting<
     jsType = JsTypes.number
 
     formatValue(value: unknown, options?: TickFormattingOptions): string {
-        if (isNumber(value)) {
+        if (_.isNumber(value)) {
             return formatValue(value, {
                 roundingMode: this.roundingMode,
                 numDecimalPlaces: this.numDecimalPlaces,
@@ -634,7 +644,7 @@ class NumberOrStringColumn extends AbstractColumnWithNumberFormatting<
     number | string
 > {
     formatValue(value: unknown, options?: TickFormattingOptions): string {
-        if (isNumber(value)) {
+        if (_.isNumber(value)) {
             return super.formatValue(value, options)
         }
         return anyToString(value)
@@ -744,7 +754,7 @@ export abstract class TimeColumn extends AbstractCoreColumn<number> {
     abstract preposition: string
 
     @imemo get displayName(): string {
-        return capitalize(this.name)
+        return _.capitalize(this.name)
     }
 
     formatTime(time: number): string {

@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     GrapherInterface,
     MapRegionName,
@@ -9,7 +10,7 @@ import {
     MapConfig,
     MAP_REGION_LABELS,
 } from "@ourworldindata/grapher"
-import { ColumnSlug, isEmpty, ToleranceStrategy } from "@ourworldindata/utils"
+import { ColumnSlug, ToleranceStrategy } from "@ourworldindata/utils"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import { Component, Fragment } from "react"
@@ -43,7 +44,7 @@ class VariableSection extends Component<{
     render() {
         const { mapConfig, filledDimensions } = this.props
 
-        if (isEmpty(filledDimensions))
+        if (_.isEmpty(filledDimensions))
             return (
                 <section>
                     <h2>Add some indicators on data tab first</h2>
@@ -186,11 +187,11 @@ class InheritanceSection<Editor extends AbstractChartEditor> extends Component<{
     }
 
     @action.bound resetToParent() {
-        const { grapher, activeParentConfig } = this.editor
+        const { grapherState, activeParentConfig } = this.editor
         if (!activeParentConfig || !activeParentConfig.map) return
 
-        grapher.map = new MapConfig()
-        grapher.map.updateFromObject(activeParentConfig.map)
+        grapherState.map = new MapConfig()
+        grapherState.map.updateFromObject(activeParentConfig.map)
     }
 
     render() {
@@ -227,24 +228,24 @@ class InheritanceSection<Editor extends AbstractChartEditor> extends Component<{
 export class EditorMapTab<
     Editor extends AbstractChartEditor,
 > extends Component<{ editor: Editor }> {
-    @computed get grapher() {
-        return this.props.editor.grapher
+    @computed get grapherState() {
+        return this.props.editor.grapherState
     }
 
     render() {
-        const { grapher } = this
-        const mapConfig = grapher.map
-        const { mapColumnSlug } = grapher
-        const mapChart = new MapChart({ manager: this.grapher })
+        const { grapherState } = this
+        const mapConfig = grapherState.map
+        const { mapColumnSlug } = grapherState
+        const mapChart = new MapChart({ manager: this.grapherState })
         const colorScale = mapChart.colorScale
 
-        const isReady = !!mapColumnSlug && grapher.table.has(mapColumnSlug)
+        const isReady = !!mapColumnSlug && grapherState.table.has(mapColumnSlug)
 
         return (
             <div className="EditorMapTab tab-pane">
                 <VariableSection
                     mapConfig={mapConfig}
-                    filledDimensions={grapher.filledDimensions}
+                    filledDimensions={grapherState.filledDimensions}
                     parentConfig={this.props.editor.activeParentConfig}
                 />
                 {isReady && (

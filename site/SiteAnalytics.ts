@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { GrapherAnalytics, EventCategory } from "@ourworldindata/grapher"
 import {
     type SearchCategoryFilter,
@@ -5,7 +6,6 @@ import {
     type SearchState,
     FilterType,
 } from "./search/searchTypes.js"
-import { set } from "@ourworldindata/utils"
 import { getFilterNamesOfType } from "./search/searchUtils.js"
 
 export class SiteAnalytics extends GrapherAnalytics {
@@ -116,7 +116,7 @@ export class SiteAnalytics extends GrapherAnalytics {
             position,
             source,
         }
-        if (ribbonTag) set(eventContext, "ribbonTag", ribbonTag)
+        if (ribbonTag) _.set(eventContext, "ribbonTag", ribbonTag)
         this.logToGA({
             event: EventCategory.DataCatalogResultClick,
             eventAction: "click",

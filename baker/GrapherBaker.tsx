@@ -1,16 +1,13 @@
+import * as _ from "lodash-es"
 import { GrapherPage } from "../site/GrapherPage.js"
 import { DataPageV2 } from "../site/DataPageV2.js"
 import { renderToHtmlPage } from "../baker/siteRenderers.js"
 import {
     excludeUndefined,
     urlToSlug,
-    uniq,
-    keyBy,
-    compact,
     mergeGrapherConfigs,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
-import * as lodash from "lodash-es"
 import {
     ARCHIVE_BASE_URL,
     BAKED_BASE_URL,
@@ -35,8 +32,8 @@ import {
     DbRawChartConfig,
     DbEnrichedImage,
     ArchiveMetaInformation,
-    ChartArchivedVersion,
-    ArchivedChartOrArchivePageMeta,
+    ArchivedPageVersion,
+    ArchiveContext,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
 import {
@@ -58,16 +55,16 @@ import { getRelatedChartsForVariable } from "../db/model/Chart.js"
 import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
-import { ArchivalManifest } from "./archival/archivalUtils.js"
-import { getLatestChartArchivedVersions } from "./archival/archivalChecksum.js"
+import { GrapherArchivalManifest } from "./archival/archivalUtils.js"
+import { getLatestGrapherArchivedVersions } from "./archival/archivalChecksum.js"
 
 const getLatestChartArchivedVersionsIfEnabled = async (
     knex: db.KnexReadonlyTransaction,
     chartIds?: number[]
-): Promise<Record<number, ChartArchivedVersion>> => {
+): Promise<Record<number, ArchivedPageVersion>> => {
     if (!ARCHIVE_BASE_URL) return {}
 
-    return await getLatestChartArchivedVersions(knex, chartIds)
+    return await getLatestGrapherArchivedVersions(knex, chartIds)
 }
 
 const renderDatapageIfApplicable = async (
@@ -79,10 +76,10 @@ const renderDatapageIfApplicable = async (
         archivedChartInfo,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
-        archivedChartInfo?: ArchivedChartOrArchivePageMeta
+        archivedChartInfo?: ArchiveContext
     } = {}
 ) => {
-    const variable = await getVariableOfDatapageIfApplicable(grapher)
+    const variable = await getVariableOfDatapageIfApplicable(knex, grapher)
 
     if (!variable) return undefined
 
@@ -91,7 +88,7 @@ const renderDatapageIfApplicable = async (
     // And this function is the point in the two paths where it makes sense to do so
     if (!imageMetadataDictionary) {
         imageMetadataDictionary = await getAllImages(knex).then((images) =>
-            keyBy(images, "filename")
+            _.keyBy(images, "filename")
         )
     }
 
@@ -122,7 +119,7 @@ export const renderDataPageOrGrapherPage = async (
         archivedChartInfo,
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
-        archivedChartInfo?: ArchivedChartOrArchivePageMeta
+        archivedChartInfo?: ArchiveContext
     } = {}
 ): Promise<string> => {
     const datapage = await renderDatapageIfApplicable(grapher, false, knex, {
@@ -151,7 +148,7 @@ export async function renderDataPageV2(
         useIndicatorGrapherConfigs: boolean
         pageGrapher?: GrapherInterface
         imageMetadataDictionary?: Record<string, ImageMetadata>
-        archivedChartInfo?: ArchivedChartOrArchivePageMeta
+        archivedChartInfo?: ArchiveContext
     },
     knex: db.KnexReadonlyTransaction
 ) {
@@ -167,8 +164,8 @@ export async function renderDataPageV2(
         ? mergeGrapherConfigs(grapherConfigForVariable ?? {}, pageGrapher ?? {})
         : (pageGrapher ?? {})
 
-    const faqDocIds = compact(
-        uniq(variableMetadata.presentation?.faqs?.map((faq) => faq.gdocId))
+    const faqDocIds = _.compact(
+        _.uniq(variableMetadata.presentation?.faqs?.map((faq) => faq.gdocId))
     )
 
     const faqGdocs = await fetchAndParseFaqs(knex, faqDocIds, { isPreviewing })
@@ -237,9 +234,9 @@ export async function renderDataPageV2(
             .map((r) => r.imageUrl)
             .filter((f): f is string => !!f)
 
-        imageMetadata = lodash.pick(
+        imageMetadata = _.pick(
             imageMetadataDictionary,
-            uniq(relatedResearchFilenames)
+            _.uniq(relatedResearchFilenames)
         )
 
         tagToSlugMap = await getTagToSlugMap(knex)
@@ -298,7 +295,7 @@ const renderGrapherPage = async (
     {
         archivedChartInfo,
     }: {
-        archivedChartInfo?: ArchivedChartOrArchivePageMeta
+        archivedChartInfo?: ArchiveContext
     } = {}
 ) => {
     const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
@@ -340,7 +337,7 @@ export const bakeSingleGrapherPageForArchival = async (
     }: {
         imageMetadataDictionary?: Record<string, DbEnrichedImage>
         archiveInfo: ArchiveMetaInformation
-        manifest: ArchivalManifest
+        manifest: GrapherArchivalManifest
     }
 ) => {
     const outPathHtml = `${bakedSiteDir}/grapher/${grapher.slug}.html`
@@ -385,7 +382,7 @@ export interface BakeSingleGrapherChartArguments {
     bakedSiteDir: string
     slug: string
     imageMetadataDictionary: Record<string, DbEnrichedImage>
-    archivedChartInfo: ArchivedChartOrArchivePageMeta | undefined
+    archivedChartInfo: ArchiveContext | undefined
 }
 
 export const bakeSingleGrapherChart = async (
@@ -434,7 +431,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
     // individually. imageMetadata is used by the google docs powering rich
     // text (including images) in data pages.
     const imageMetadataDictionary = await getAllImages(knex).then((images) =>
-        keyBy(images, "filename")
+        _.keyBy(images, "filename")
     )
 
     const archivedVersions = await getLatestChartArchivedVersionsIfEnabled(knex)

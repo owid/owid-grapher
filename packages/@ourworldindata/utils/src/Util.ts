@@ -1,106 +1,5 @@
+import * as _ from "lodash-es"
 import * as R from "remeda"
-import {
-    capitalize,
-    clone,
-    cloneDeep,
-    compact,
-    debounce,
-    difference,
-    escapeRegExp,
-    extend,
-    get,
-    groupBy,
-    identity,
-    isArray,
-    isEmpty,
-    isEqual,
-    isInteger,
-    isNil,
-    isNumber,
-    isObject,
-    keyBy,
-    mapValues,
-    max,
-    maxBy,
-    memoize,
-    merge,
-    mergeWith,
-    min,
-    minBy,
-    noop,
-    omit,
-    orderBy,
-    partition,
-    pick,
-    range,
-    round,
-    set,
-    sortBy,
-    sortedUniqBy,
-    startCase,
-    sum,
-    sumBy,
-    tail,
-    throttle,
-    toString,
-    union,
-    uniq,
-    uniqBy,
-    uniqWith,
-    upperFirst,
-    without,
-} from "lodash-es"
-
-export {
-    capitalize,
-    clone,
-    cloneDeep,
-    compact,
-    debounce,
-    difference,
-    escapeRegExp,
-    extend,
-    get,
-    groupBy,
-    identity,
-    isArray,
-    isEmpty,
-    isEqual,
-    isInteger,
-    isNil,
-    isNumber,
-    keyBy,
-    mapValues,
-    max,
-    maxBy,
-    memoize,
-    merge,
-    mergeWith,
-    min,
-    minBy,
-    noop,
-    omit,
-    orderBy,
-    partition,
-    pick,
-    range,
-    round,
-    set,
-    sortBy,
-    sortedUniqBy,
-    startCase,
-    sum,
-    sumBy,
-    tail,
-    throttle,
-    toString,
-    union,
-    uniq,
-    uniqBy,
-    uniqWith,
-    upperFirst,
-    without,
-}
 import { extent, pairs } from "d3-array"
 export { pairs }
 import dayjs from "./dayjs.js"
@@ -333,7 +232,7 @@ export const numberMagnitude = (num: number): number => {
 export const roundSigFig = (num: number, sigfigs: number = 1): number => {
     if (num === 0) return 0
     const magnitude = numberMagnitude(num)
-    return round(num, -magnitude + sigfigs)
+    return _.round(num, -magnitude + sigfigs)
 }
 
 export const excludeUndefined = <T>(arr: (T | undefined)[]): T[] =>
@@ -509,7 +408,7 @@ export interface Json {
 
 // Escape a function for storage in a csv cell
 export const csvEscape = (value: unknown): string => {
-    const valueStr = toString(value)
+    const valueStr = _.toString(value)
     return valueStr.includes(",")
         ? `"${valueStr.replace(/"/g, '""')}"`
         : valueStr
@@ -530,7 +429,7 @@ export const trimObject = <Obj>(
     const clone: any = {}
     for (const key in obj) {
         const val = obj[key] as any
-        if (isObject(val) && isEmpty(val)) {
+        if (_.isObject(val) && _.isEmpty(val)) {
             // Drop empty objects
         } else if (trimStringEmptyStrings && val === "") {
             // ignore
@@ -560,7 +459,7 @@ const _getUserCountryInformation = async (): Promise<
 // This is okay currently, because currently this information is very much an optional nice-to-have.
 export const getUserCountryInformation: () => Promise<
     UserCountryInformation | undefined
-> = memoize(_getUserCountryInformation)
+> = _.memoize(_getUserCountryInformation)
 
 export const stripHTML = (html: string): string => striptags(html)
 
@@ -664,8 +563,8 @@ export const findClosestTime = (
     targetTime: Time,
     tolerance?: number
 ): Time | undefined => {
-    if (isNegativeInfinity(targetTime)) return min(times)
-    if (isPositiveInfinity(targetTime)) return max(times)
+    if (isNegativeInfinity(targetTime)) return _.min(times)
+    if (isPositiveInfinity(targetTime)) return _.max(times)
     const index = findClosestTimeIndex(times, targetTime, tolerance)
     return index !== undefined ? times[index] : undefined
 }
@@ -921,7 +820,7 @@ export function sortByUndefinedLast<T>(
     accessor: (t: T) => string | number | undefined,
     order: SortOrder = SortOrder.asc
 ): T[] {
-    const sorted = sortBy(array, (value) => {
+    const sorted = _.sortBy(array, (value) => {
         const mapped = accessor(value)
         if (mapped === undefined) {
             return order === SortOrder.asc ? Infinity : -Infinity
@@ -948,7 +847,7 @@ export const lowerCaseFirstLetterUnlessAbbreviation = (str: string): string =>
  */
 export const sortNumeric = <T>(
     arr: T[],
-    sortByFn: (el: T) => number = identity,
+    sortByFn: (el: T) => number = _.identity,
     sortOrder: SortOrder = SortOrder.asc
 ): T[] =>
     arr.sort(
@@ -1088,7 +987,7 @@ export function omitEmptyObjectsRecursive<T extends Record<string, any>>(
     const result: any = {}
     for (const key in obj) {
         if (R.isPlainObject(obj[key])) {
-            const isObjectEmpty = isEmpty(omitEmptyObjectsRecursive(obj[key]))
+            const isObjectEmpty = _.isEmpty(omitEmptyObjectsRecursive(obj[key]))
             if (!isObjectEmpty) result[key] = obj[key]
         } else {
             result[key] = obj[key]
@@ -1192,7 +1091,7 @@ export function stringifyUnknownError(error: unknown): string | undefined {
  */
 export function toRectangularMatrix<T, F>(arr: T[][], fill: F): (T | F)[][] {
     if (arr.length === 0) return []
-    const width = max(arr.map((row) => row.length)) as number
+    const width = _.max(arr.map((row) => row.length)) as number
 
     return arr.map((row) => {
         if (row.length < width)
@@ -1210,7 +1109,7 @@ export function checkIsStringIndexable(
 export function checkIsTouchEvent(
     event: unknown
 ): event is React.TouchEvent | TouchEvent {
-    if (isObject(event)) {
+    if (_.isObject(event)) {
         return "targetTouches" in event
     }
     return false
@@ -1820,7 +1719,7 @@ export function greatestCommonDivisor(a: number, b: number): number {
 export function findGreatestCommonDivisorOfArray(arr: number[]): number | null {
     if (arr.length === 0) return null
     if (arr.includes(1)) return 1
-    return uniq(arr).reduce((acc, num) => greatestCommonDivisor(acc, num))
+    return _.uniq(arr).reduce((acc, num) => greatestCommonDivisor(acc, num))
 }
 export function lowercaseObjectKeys(
     obj: Record<string, unknown>
@@ -1871,7 +1770,7 @@ export function extractDetailsFromSyntax(str: string): string[] {
  * See https://github.com/owid/owid-grapher/issues/3426
  */
 export function checkIsGdocPost(x: unknown): x is OwidGdocPostInterface {
-    const type = get(x, "content.type") as OwidGdocType | undefined
+    const type = _.get(x, "content.type") as OwidGdocType | undefined
     return [
         OwidGdocType.Article,
         OwidGdocType.TopicPage,
@@ -1890,7 +1789,7 @@ export function checkIsGdocPost(x: unknown): x is OwidGdocPostInterface {
 export function checkIsGdocPostExcludingFragments(
     x: unknown
 ): x is OwidGdocPostInterface {
-    const type = get(x, "content.type") as OwidGdocType | undefined
+    const type = _.get(x, "content.type") as OwidGdocType | undefined
     return [
         OwidGdocType.Article,
         OwidGdocType.TopicPage,
@@ -1902,12 +1801,12 @@ export function checkIsGdocPostExcludingFragments(
 export function checkIsDataInsight(
     x: unknown
 ): x is OwidGdocDataInsightInterface {
-    const type = get(x, "content.type")
+    const type = _.get(x, "content.type")
     return type === OwidGdocType.DataInsight
 }
 
 export function checkIsAuthor(x: unknown): x is OwidGdocAuthorInterface {
-    const type = get(x, "content.type")
+    const type = _.get(x, "content.type")
     return type === OwidGdocType.Author
 }
 
@@ -2141,7 +2040,7 @@ export function isArrayDifferentFromReference<T>(
     referenceArray: T[]
 ): boolean {
     if (array.length !== referenceArray.length) return true
-    return difference(array, referenceArray).length > 0
+    return _.difference(array, referenceArray).length > 0
 }
 
 // When reading from an asset map, we want a very particular behavior:

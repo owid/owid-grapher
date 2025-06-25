@@ -1,5 +1,5 @@
+import * as _ from "lodash-es"
 import cx from "classnames"
-import { isEmpty } from "lodash-es"
 import { useEffect, useRef } from "react"
 
 import { OwidGdocAboutInterface } from "@ourworldindata/types"
@@ -26,7 +26,7 @@ export default function AboutPage({ content, slug }: AboutPageProps) {
                     blocks={content.body}
                 />
             </div>
-            {content.refs && !isEmpty(content.refs.definitions) ? (
+            {content.refs && !_.isEmpty(content.refs.definitions) ? (
                 <Footnotes definitions={content.refs.definitions} />
             ) : null}
         </main>

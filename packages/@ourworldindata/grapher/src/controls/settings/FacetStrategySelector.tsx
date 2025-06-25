@@ -1,8 +1,9 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../../core/GrapherConstants"
-import { range, FacetStrategy } from "@ourworldindata/utils"
+import { FacetStrategy } from "@ourworldindata/utils"
 import classnames from "classnames"
 
 export interface FacetStrategySelectionManager {
@@ -83,7 +84,7 @@ export class FacetStrategySelector extends React.Component<{
                                 data-track-note={`chart_facet_${option}`}
                             >
                                 <div className="faceting-icon">
-                                    {range(value === "none" ? 1 : 6).map(
+                                    {_.range(value === "none" ? 1 : 6).map(
                                         (i) => (
                                             <span key={i}></span>
                                         )

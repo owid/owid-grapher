@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { expect, it, describe } from "vitest"
 
 import { DiscreteBarChart } from "./DiscreteBarChart"
@@ -11,7 +12,7 @@ import {
 import { DiscreteBarChartManager } from "./DiscreteBarChartConstants"
 import { ColorSchemeName, SeriesStrategy } from "@ourworldindata/types"
 import { SelectionArray } from "../selection/SelectionArray"
-import { isNumber, SortBy, SortOrder } from "@ourworldindata/utils"
+import { SortBy, SortOrder } from "@ourworldindata/utils"
 import { OwidDistinctColorScheme } from "../color/CustomSchemes"
 
 it("can create a new bar chart", () => {
@@ -135,7 +136,9 @@ it("filters non-numeric values", () => {
     }
     const chart = new DiscreteBarChart({ manager })
     expect(chart.series.length).toEqual(1)
-    expect(chart.series.every((series) => isNumber(series.value))).toBeTruthy()
+    expect(
+        chart.series.every((series) => _.isNumber(series.value))
+    ).toBeTruthy()
 })
 
 describe("sorting", () => {

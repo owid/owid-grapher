@@ -1,4 +1,4 @@
-import { isNil } from "lodash-es"
+import * as _ from "lodash-es"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { KeyChartLevel, ContentGraphLinkType } from "@ourworldindata/types"
 import * as db from "../../../db/db.js"
@@ -118,7 +118,7 @@ export const getChartsRecords = async (
             ContentGraphLinkType.Grapher
         )
 
-        const plaintextSubtitle = isNil(c.subtitle)
+        const plaintextSubtitle = _.isNil(c.subtitle)
             ? undefined
             : new MarkdownTextWrap({
                   text: c.subtitle,

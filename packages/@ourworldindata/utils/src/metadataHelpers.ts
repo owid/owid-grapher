@@ -6,11 +6,9 @@ import {
     DisplaySource,
     IndicatorTitleWithFragments,
     OwidSource,
-    OwidVariableWithSourceAndDimension,
-    LinkedIndicator,
-    joinTitleFragments,
 } from "@ourworldindata/types"
-import { compact, uniq, excludeUndefined } from "./Util"
+import * as _ from "lodash-es"
+import { excludeUndefined } from "./Util"
 import dayjs from "./dayjs.js"
 import { parseArchivalDate } from "./archival/archivalDate.js"
 
@@ -55,7 +53,7 @@ export function getAttributionFragmentsFromVariable(
         variable.origins
     )
     const name = variable.source?.name
-    return uniq(compact([name, ...originAttributionFragments]))
+    return _.uniq(_.compact([name, ...originAttributionFragments]))
 }
 
 interface ETLPathComponents {
@@ -197,7 +195,7 @@ export const getCitationShort = (
     attributions: string[],
     owidProcessingLevel: OwidProcessingLevel | undefined
 ): string => {
-    const producersWithYear = uniq(
+    const producersWithYear = _.uniq(
         origins.map((o) => `${o.producer}${getYearSuffixFromOrigin(o)}`)
     )
     const processingLevelPhrase =
@@ -240,7 +238,7 @@ export const getCitationLong = (
         attributionShort && titleVariant
             ? `${attributionShort} – ${titleVariant}`
             : attributionShort || titleVariant
-    const producersWithYear = uniq(
+    const producersWithYear = _.uniq(
         origins.map((o) => `${o.producer}${getYearSuffixFromOrigin(o)}`)
     )
     const processingLevelPhrase =
@@ -253,7 +251,7 @@ export const getCitationLong = (
         indicatorTitle.title,
         sourceShortName,
     ]).join(" – ")
-    const originsLong = uniq(
+    const originsLong = _.uniq(
         origins.map(
             (o) =>
                 `${o.producer}, “${o.title ?? o.titleSnapshot}${
@@ -284,24 +282,6 @@ export const formatSourceDate = (
     const parsedDate = dayjs(date ?? "", ["YYYY-MM-DD", "DD/MM/YYYY"])
     if (!parsedDate.isValid()) return date || null
     return parsedDate.format(format)
-}
-
-export function grabMetadataForGdocLinkedIndicator(
-    metadata: OwidVariableWithSourceAndDimension,
-    { chartConfigTitle }: { chartConfigTitle: string }
-): Omit<LinkedIndicator, "id"> {
-    return {
-        title:
-            metadata.presentation?.titlePublic ||
-            chartConfigTitle ||
-            metadata.display?.name ||
-            metadata.name ||
-            "",
-        attributionShort: joinTitleFragments(
-            metadata.presentation?.attributionShort,
-            metadata.presentation?.titleVariant
-        ),
-    }
 }
 
 export const getDateRange = (dateRange: string): string | null => {

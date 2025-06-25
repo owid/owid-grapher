@@ -1,16 +1,10 @@
+import * as _ from "lodash-es"
 import React from "react"
 import * as R from "remeda"
 import {
     Bounds,
     DEFAULT_BOUNDS,
-    min,
-    max,
-    maxBy,
     excludeUndefined,
-    sumBy,
-    partition,
-    cloneDeep,
-    sortBy,
     HorizontalAlign,
     Position,
     SortBy,
@@ -540,13 +534,13 @@ export class MarimekkoChart
             (point) => point.value + point.valueOffset
         )
         return [
-            Math.min(this.y0, min(maxValues) as number),
-            Math.max(this.y0, max(maxValues) as number),
+            Math.min(this.y0, _.min(maxValues) as number),
+            Math.max(this.y0, _.max(maxValues) as number),
         ]
     }
     @computed private get xDomainDefault(): [number, number] {
         if (this.xSeries !== undefined) {
-            const sum = sumBy(this.xSeries.points, (point) => point.value)
+            const sum = _.sumBy(this.xSeries.points, (point) => point.value)
 
             return [this.x0, sum]
         } else return [this.x0, this.items.length]
@@ -765,11 +759,11 @@ export class MarimekkoChart
                     (item: Item): string => item.entityName,
                 ]
         }
-        const sortedItems = sortBy(items, sortByFuncs)
+        const sortedItems = _.sortBy(items, sortByFuncs)
         const sortOrder = sortConfig.sortOrder ?? SortOrder.desc
         if (sortOrder === SortOrder.desc) sortedItems.reverse()
 
-        const [itemsWithValues, itemsWithoutValues] = partition(
+        const [itemsWithValues, itemsWithoutValues] = _.partition(
             sortedItems,
             (item) => item.bars.length !== 0
         )
@@ -1161,7 +1155,7 @@ export class MarimekkoChart
             const adjustedBars = []
             let currentY = 0
             for (const bar of bars) {
-                const barCopy = cloneDeep(bar)
+                const barCopy = _.cloneDeep(bar)
                 // we want to draw bars at least one pixel high so that they are guaranteed to have a
                 // visual representation in our chart (as a 1px line in this case)
                 barCopy.yPoint.value = Math.max(
@@ -1256,7 +1250,7 @@ export class MarimekkoChart
         let currentChunk: LabelCandidate[] = []
         let domainSizeOfChunk = 0
         const domainSizeThreshold = Math.ceil(
-            sumBy(validCandidates, (candidate) => candidate.item.xValue) /
+            _.sumBy(validCandidates, (candidate) => candidate.item.xValue) /
                 numChunks
         )
         for (const candidate of validCandidates) {
@@ -1345,7 +1339,7 @@ export class MarimekkoChart
             labelCandidates.reverse()
         }
 
-        const [sortedLabelsWithValues, sortedLabelsWithoutValues] = partition(
+        const [sortedLabelsWithValues, sortedLabelsWithoutValues] = _.partition(
             labelCandidates,
             (item) =>
                 item.item.ySortValue !== 0 && item.item.ySortValue !== undefined
@@ -1379,7 +1373,7 @@ export class MarimekkoChart
             const picked = chunk.filter((candidate) => candidate.isPicked)
             if (picked.length > 0) return picked
             else {
-                return maxBy(chunk, (candidate) => candidate.item.xValue)
+                return _.maxBy(chunk, (candidate) => candidate.item.xValue)
             }
         })
         for (const max of picks) {

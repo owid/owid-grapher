@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import React from "react"
 import {
     Bounds,
@@ -9,10 +10,7 @@ import {
     guid,
     excludeUndefined,
     getRelativeMouse,
-    minBy,
     dyFromAlign,
-    uniq,
-    sortBy,
     isTouchDevice,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
@@ -494,7 +492,7 @@ export class SlopeChart
         // sort by interaction state so that foreground series
         // are drawn on top of background series
         if (this.isHoverModeActive || this.isFocusModeActive) {
-            return sortBy(series, byHoverThenFocusState)
+            return _.sortBy(series, byHoverThenFocusState)
         }
 
         return series
@@ -939,7 +937,7 @@ export class SlopeChart
                 )
             }
 
-            const closestSlope = minBy(this.placedSeries, (s) =>
+            const closestSlope = _.minBy(this.placedSeries, (s) =>
                 distanceMap.get(s)
             )!
             const distanceSq = distanceMap.get(closestSlope)!
@@ -1237,7 +1235,7 @@ export class SlopeChart
         // don't show labels for the start values in relative mode since they're all trivially zero
         if (this.manager.isRelativeMode) return null
 
-        const uniqYValues = uniq(
+        const uniqYValues = _.uniq(
             this.lineLegendSeriesLeft.map((series) => series.yValue)
         )
         const allSlopesStartFromZero =

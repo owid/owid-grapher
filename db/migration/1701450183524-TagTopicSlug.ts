@@ -1,6 +1,6 @@
+import * as _ from "lodash-es"
 import { MigrationInterface, QueryRunner } from "typeorm"
 import fs from "fs/promises"
-import { get, set } from "lodash-es"
 
 /**
  * This file includes the code I used to generate the data we're inserting into the new column
@@ -170,13 +170,13 @@ async function readSlugMap(): Promise<Record<string, string>> {
 
 async function writeToSlugMap(path: string, slug: string): Promise<void> {
     let slugMap = await readSlugMap()
-    const value = get(slugMap, path)
+    const value = _.get(slugMap, path)
     if (value) {
         console.log(`${path} → ${slug} already exists in slugMap.json`)
         return
     }
 
-    slugMap = set(slugMap, path, slug)
+    slugMap = _.set(slugMap, path, slug)
 
     await fs.writeFile(SLUGMAP_PATH, JSON.stringify(slugMap, null, 2))
     return
@@ -189,8 +189,8 @@ async function resolveSlugs(): Promise<void> {
     for (const topicTagName of topicTagNames) {
         // Skip if already in slugMap
         if (
-            get(slugMap, topicTagName) ||
-            get(slugMap, ["unresolved", topicTagName])
+            _.get(slugMap, topicTagName) ||
+            _.get(slugMap, ["unresolved", topicTagName])
         )
             continue
 

@@ -1,5 +1,7 @@
 import {
+    ArchiveContext,
     AssetMap,
+    MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
 } from "@ourworldindata/types"
 import { fetchWithRetry, readFromAssetMap } from "@ourworldindata/utils"
@@ -61,4 +63,26 @@ export async function loadVariableDataAndMetadata(
     const data = await dataResponse.json()
     const metadata = await metadataResponse.json()
     return { data, metadata }
+}
+
+export async function loadVariablesDataSite(
+    variableIds: number[],
+    dataApiUrl: string,
+    archivedChartInfo: ArchiveContext | undefined
+): Promise<MultipleOwidVariableDataDimensionsMap> {
+    const loadVariableDataPromises = variableIds.map((variableId) =>
+        loadVariableDataAndMetadata(
+            variableId,
+            dataApiUrl,
+            archivedChartInfo?.type === "archive-page"
+                ? archivedChartInfo.assets.runtime
+                : undefined
+        )
+    )
+    const variablesData: OwidVariableDataMetadataDimensions[] =
+        await Promise.all(loadVariableDataPromises)
+    const variablesDataMap = new Map(
+        variablesData.map((data) => [data.metadata.id, data])
+    )
+    return variablesDataMap
 }

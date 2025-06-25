@@ -12,7 +12,6 @@ import { DEFAULT_PAGE_DESCRIPTION } from "../dataPage.js"
 
 export function MultiDimDataPage({
     baseUrl,
-    baseGrapherUrl,
     slug,
     configObj,
     tagToSlugMap,
@@ -21,6 +20,8 @@ export function MultiDimDataPage({
     relatedResearchCandidates,
     imageMetadata,
     isPreviewing,
+    archivedChartInfo,
+    canonicalUrl,
 }: MultiDimDataPageProps) {
     if (!slug && !isPreviewing) {
         throw new Error("Missing slug for multidimensional data page")
@@ -30,7 +31,6 @@ export function MultiDimDataPage({
         pageTitle += ` - ${configObj.title.titleVariant}`
     }
     const pageDesc = DEFAULT_PAGE_DESCRIPTION
-    const canonicalUrl = slug ? `${baseGrapherUrl}/${slug}` : ""
     const contentProps: MultiDimDataPageData = {
         canonicalUrl,
         slug,
@@ -40,6 +40,7 @@ export function MultiDimDataPage({
         relatedResearchCandidates,
         imageMetadata,
         tagToSlugMap,
+        archivedChartInfo,
     }
     const imageUrl: string = urljoin(
         baseUrl || "/",
@@ -47,6 +48,10 @@ export function MultiDimDataPage({
     )
     const imageWidth = "1200"
     const imageHeight = "628"
+
+    const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
+    const assetMaps = isOnArchivalPage ? archivedChartInfo.assets : undefined
+
     return (
         <Html>
             <Head
@@ -55,6 +60,8 @@ export function MultiDimDataPage({
                 pageDesc={pageDesc}
                 imageUrl={imageUrl}
                 baseUrl={baseUrl}
+                staticAssetMap={assetMaps?.static}
+                archivedChartInfo={archivedChartInfo}
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
@@ -73,7 +80,11 @@ export function MultiDimDataPage({
                 />
             </Head>
             <body className="DataPage MultiDimDataPage">
-                <SiteHeader />
+                <SiteHeader
+                    archiveInfo={
+                        isOnArchivalPage ? archivedChartInfo : undefined
+                    }
+                />
                 <main>
                     <script
                         dangerouslySetInnerHTML={{
@@ -99,6 +110,9 @@ export function MultiDimDataPage({
                 <SiteFooter
                     context={SiteFooterContext.multiDimDataPage}
                     isPreviewing={isPreviewing}
+                    archiveInfo={
+                        isOnArchivalPage ? archivedChartInfo : undefined
+                    }
                 />
             </body>
         </Html>

@@ -1,11 +1,10 @@
+import * as _ from "lodash-es"
 import cx from "classnames"
 import {
     ImageMetadata,
     LinkedChart,
     OwidGdocMinimalPostInterface,
-    merge,
     LinkedAuthor,
-    uniqBy,
     getPaginationPageNumbers,
 } from "@ourworldindata/utils"
 import { DataInsightBody } from "./gdocs/pages/DataInsight.js"
@@ -86,12 +85,15 @@ export const DataInsightsIndexPageContent = (
     const { imageMetadata, linkedAuthors, linkedCharts, linkedDocuments } =
         dataInsights.reduce(
             (acc, di) => ({
-                imageMetadata: merge(acc.imageMetadata, di.imageMetadata),
+                imageMetadata: _.merge(acc.imageMetadata, di.imageMetadata),
                 linkedAuthors: di.linkedAuthors
                     ? [...acc.linkedAuthors, ...di.linkedAuthors]
                     : acc.linkedAuthors,
-                linkedCharts: merge(acc.linkedCharts, di.linkedCharts),
-                linkedDocuments: merge(acc.linkedDocuments, di.linkedDocuments),
+                linkedCharts: _.merge(acc.linkedCharts, di.linkedCharts),
+                linkedDocuments: _.merge(
+                    acc.linkedDocuments,
+                    di.linkedDocuments
+                ),
             }),
             {
                 imageMetadata: {} as Record<string, ImageMetadata>,
@@ -108,7 +110,7 @@ export const DataInsightsIndexPageContent = (
             <AttachmentsContext.Provider
                 value={{
                     imageMetadata,
-                    linkedAuthors: uniqBy(linkedAuthors, ({ name }) => name),
+                    linkedAuthors: _.uniqBy(linkedAuthors, ({ name }) => name),
                     linkedCharts,
                     linkedDocuments,
                     linkedIndicators: {}, // not needed for data insights

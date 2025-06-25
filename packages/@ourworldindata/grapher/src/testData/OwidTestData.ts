@@ -1,4 +1,5 @@
-import { Region, regions, uniqBy } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
+import { Region, regions } from "@ourworldindata/utils"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableWithSource,
@@ -44,13 +45,13 @@ export function createOwidTestDataset(
                     ...metadata,
                     dimensions: {
                         entities: {
-                            values: uniqBy(
+                            values: _.uniqBy(
                                 data.map((d) => d.entity),
                                 "id"
                             ),
                         },
                         years: {
-                            values: uniqBy(
+                            values: _.uniqBy(
                                 data.map((d) => ({ id: d.year })),
                                 "id"
                             ),

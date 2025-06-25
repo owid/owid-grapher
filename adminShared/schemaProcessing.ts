@@ -1,4 +1,4 @@
-import { omit, isArray, mapValues } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
 import { compileGetValueFunction } from "./patchHelper.js"
 import * as R from "remeda"
 
@@ -44,7 +44,7 @@ function isPlainTypeString(item: string): item is FieldType {
 function isPlainTypeOrArrayOfPlainType(type: any): boolean {
     return (
         isPlainTypeString(type) ||
-        (isArray(type) && type.every(isPlainTypeStringOrNull))
+        (_.isArray(type) && type.every(isPlainTypeStringOrNull))
     )
 }
 function isPlainTypeStringOrNull(item: string): boolean {
@@ -71,7 +71,7 @@ function getEditorOptionForType(
     else if (typeIsGivenOrNull(type, "string")) return EditorOption.textfield
     else if (typeIsGivenOrNull(type, "boolean")) return EditorOption.checkbox
     else if (typeIsGivenOrNull(type, "integer")) return EditorOption.numeric
-    else if (isArray(type)) {
+    else if (_.isArray(type)) {
         // the following line is aspecial case hack for fields that are usually numeric but can have a
         // special string like "latest"
         if (type[0] === "number" && type[1] === "string")
@@ -226,7 +226,7 @@ function extractSchemaRecursive(
             // and yield a single FieldDefinition with the merged
             // type
             Object.prototype.hasOwnProperty.call(schema, "oneOf") &&
-            isArray(schema.oneOf) &&
+            _.isArray(schema.oneOf) &&
             schema.oneOf.map((item) => item.type).every(isPlainTypeStringOrNull)
         ) {
             const types = schema.oneOf.map((item: any) => item.type)
@@ -262,7 +262,7 @@ function recursiveDereference(
                 return schema
             } else return defs[refName] // Note: we are not using recursive dereferencing, i.e. if there are refs in the $defs section we don't resolve them here
         } else {
-            return mapValues(schema, (val) => recursiveDereference(val, defs))
+            return _.mapValues(schema, (val) => recursiveDereference(val, defs))
         }
     } else return schema
 }
@@ -272,7 +272,7 @@ function dereference(schema: Record<string, unknown>): any {
     const defs = schema["$defs"] as Record<string, unknown>
 
     const dereferenced = recursiveDereference(schema, defs)
-    const newSchema = omit(dereferenced, ["$defs"])
+    const newSchema = _.omit(dereferenced, ["$defs"])
     return newSchema
 }
 

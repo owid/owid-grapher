@@ -1,12 +1,7 @@
+import * as _ from "lodash-es"
 import {
     csvEscape,
-    min,
-    max,
-    range,
     intersection,
-    sum,
-    uniqBy,
-    isNumber,
     isPresent,
     ColumnSlug,
     PrimitiveType,
@@ -309,7 +304,7 @@ export class CoreTable<
         // as the filled columns.
         missingCols.forEach(
             (col) =>
-                (columnsObject[col.slug] = range(0, len).map(() =>
+                (columnsObject[col.slug] = _.range(0, len).map(() =>
                     col.parse(undefined)
                 ))
         )
@@ -404,7 +399,7 @@ export class CoreTable<
     }
 
     @imemo get indices(): number[] {
-        return range(0, this.numRows)
+        return _.range(0, this.numRows)
     }
 
     *[Symbol.iterator](): Generator<CoreRow, void, unknown> {
@@ -523,11 +518,11 @@ export class CoreTable<
     }
 
     @imemo get numErrorValues(): number {
-        return sum(this.columnsAsArray.map((col) => col.numErrorValues))
+        return _.sum(this.columnsAsArray.map((col) => col.numErrorValues))
     }
 
     @imemo get numValidCells(): number {
-        return sum(this.columnsAsArray.map((col) => col.numValues))
+        return _.sum(this.columnsAsArray.map((col) => col.numValues))
     }
 
     @imemo get colStoreIsEqualToParent(): boolean {
@@ -717,7 +712,7 @@ export class CoreTable<
         const cols = this.getColumns(slugs)
         const mins = cols.map((col) => col.minValue)
         const maxes = cols.map((col) => col.maxValue)
-        return [min(mins), max(maxes)]
+        return [_.min(mins), _.max(maxes)]
     }
 
     private get isRoot(): boolean {
@@ -743,7 +738,7 @@ export class CoreTable<
     rowsFrom(start: number, end: number): any {
         if (start >= this.numRows) return []
         if (end > this.numRows) end = this.numRows
-        return range(start, end).map((index) =>
+        return _.range(start, end).map((index) =>
             makeRowFromColumnStore(index, this.columnStore)
         )
     }
@@ -1055,16 +1050,29 @@ export class CoreTable<
     combineColumns(
         columnSlugs: ColumnSlug[],
         def: COL_DEF_TYPE,
-        combineFn: (values: Record<ColumnSlug, CoreValueType>) => CoreValueType
+        combineFn: (
+            row: Record<ColumnSlug, { value: CoreValueType; time: Time }>,
+            time: Time
+        ) => CoreValueType
     ): this {
         if (columnSlugs.length === 0) return this
         const newStore: CoreColumnStore = { ...this.columnStore }
         newStore[def.slug] = this.indices.map((index) => {
-            const values: Record<ColumnSlug, CoreValueType> = {}
+            const time = this.timeColumn.valuesIncludingErrorValues[index]
+
+            const row: Record<
+                ColumnSlug,
+                { value: CoreValueType; time: Time }
+            > = {}
             columnSlugs.forEach((slug) => {
-                values[slug] = this.get(slug).valuesIncludingErrorValues[index]
+                row[slug] = {
+                    value: this.get(slug).valuesIncludingErrorValues[index],
+                    time: this.get(slug).originalTimeColumn
+                        .valuesIncludingErrorValues[index] as Time,
+                }
             })
-            return combineFn(values)
+
+            return combineFn(row, time as Time)
         })
         return this.transform(
             newStore,
@@ -1092,7 +1100,7 @@ export class CoreTable<
 
     replaceNonNumericCellsWithErrorValues(columnSlugs: ColumnSlug[]): this {
         return this.replaceCells(columnSlugs, (val) =>
-            !isNumber(val) ? ErrorValueTypes.NaNButShouldBeNumber : val
+            !_.isNumber(val) ? ErrorValueTypes.NaNButShouldBeNumber : val
         )
     }
 
@@ -1171,7 +1179,7 @@ export class CoreTable<
     concat(tables: CoreTable[], message: string = `Combined tables`): this {
         const all = [this, ...tables] as CoreTable[]
         const defs = all.flatMap((table) => table.defs) as COL_DEF_TYPE[]
-        const uniqDefs = uniqBy(defs, (def) => def.slug)
+        const uniqDefs = _.uniqBy(defs, (def) => def.slug)
         return this.transform(
             concatColumnStores(
                 all.map((table) => table.columnStore),
@@ -1296,7 +1304,7 @@ class FilterMask {
         if (typeof input[0] === "boolean") this.mask = input as boolean[]
         else {
             const set = new Set(input as number[])
-            this.mask = range(0, numRows).map((index) =>
+            this.mask = _.range(0, numRows).map((index) =>
                 set.has(index) ? keepThese : !keepThese
             )
         }

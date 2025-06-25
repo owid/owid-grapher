@@ -1,7 +1,15 @@
 import { Button } from "@ourworldindata/components"
 import { SiteLogos } from "../SiteLogos.js"
-import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
-import { formatAsArchivalDate, parseArchivalDate } from "@ourworldindata/utils"
+import {
+    faArrowLeft,
+    faArrowRight,
+    faInfoCircle,
+} from "@fortawesome/free-solid-svg-icons"
+import {
+    formatAsArchivalDate,
+    parseArchivalDate,
+    Tippy,
+} from "@ourworldindata/utils"
 import {
     ArchiveSiteNavigationInfo,
     ArchiveVersions,
@@ -9,6 +17,8 @@ import {
 import { PROD_URL } from "../SiteConstants.js"
 import { useEffect, useMemo, useState } from "react"
 import * as R from "remeda"
+import { useWindowQueryParams } from "../hooks.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 export interface ArchiveSiteNavigationProps extends ArchiveSiteNavigationInfo {
     archivalDate: Date | string
@@ -68,14 +78,19 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
         }
     }, [props.versionsFileUrl])
 
-    const nextVersion = useMemo(() => {
+    const queryStr = useWindowQueryParams() ?? ""
+
+    const { previousVersion, nextVersion } = useMemo(() => {
         const versionsObj = versions as unknown
         if (
             !R.isPlainObject(versionsObj) ||
             !("versions" in versionsObj) ||
             !Array.isArray(versionsObj.versions)
         )
-            return props.nextVersion
+            return {
+                previousVersion: props.previousVersion,
+                nextVersion: props.nextVersion,
+            }
 
         const versionsArr = versionsObj.versions as ArchiveVersions["versions"]
 
@@ -84,23 +99,40 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
             versionsArr,
             (item) => item.archivalDate < pageArchivalDate
         )
-        if (versionsArr[currentVersionIdx]?.archivalDate !== pageArchivalDate) {
-            console.error(
-                `Current version not found in the list of versions. Current version: ${pageArchivalDate}, Versions: `,
-                versionsArr
-            )
-            return undefined
+        if (versionsArr[currentVersionIdx]?.archivalDate === pageArchivalDate) {
+            return {
+                previousVersion: versionsArr[currentVersionIdx - 1],
+                nextVersion: versionsArr[currentVersionIdx + 1],
+            }
+        } else {
+            // This case is rare but could in theory happen: The current version could not be found in the array.
+            // In this case, we have versionsArr[currentVersionIdx] > pageArchivalDate,
+            // so we need a slightly different logic to find the previous and next versions.
+            return {
+                previousVersion: versionsArr[currentVersionIdx - 1],
+                nextVersion: versionsArr[currentVersionIdx],
+            }
         }
-
-        const prevVersion = versionsArr.at(currentVersionIdx + 1)
-        return prevVersion
-    }, [versions, props.nextVersion, pageArchivalDate])
+    }, [versions, props.previousVersion, props.nextVersion, pageArchivalDate])
 
     return (
         <nav className="archive-navigation-bar">
             <div className="archive-navigation-bar__wrapper">
                 <div className="archive-navigation-bar__archive_text">
                     Archive
+                    <Tippy
+                        content="We update our data regularly. To aid transparency and reproducibility, we archive versions of the data when an update is made. This allows users to cite a specific version of the data that does not change."
+                        theme="owid-footnote"
+                        placement="right"
+                        appendTo={() => document.body}
+                        trigger="mouseenter focus click"
+                        interactive
+                        interactiveDebounce={50}
+                    >
+                        <span className="archive-navigation-bar__archive_text--tooltip">
+                            <FontAwesomeIcon icon={faInfoCircle} />
+                        </span>
+                    </Tippy>
                 </div>
                 <div className="archive-navigation-bar__date">
                     <span className="archive-navigation-bar__date-value">
@@ -113,10 +145,10 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
                 </div>
                 {hasButtons && (
                     <div className="archive-navigation-bar__buttons grid grid-cols-3">
-                        {props.previousVersion && (
+                        {previousVersion && (
                             <Button
                                 className="archive-navigation-bar__button archive-navigation-bar__button-left"
-                                href={props.previousVersion.url}
+                                href={previousVersion.url + queryStr}
                                 theme="outline-white"
                                 icon={faArrowLeft}
                                 iconPosition="left"
@@ -127,7 +159,7 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
                         {props.liveUrl && (
                             <Button
                                 className="archive-navigation-bar__button archive-navigation-bar__button-center"
-                                href={props.liveUrl}
+                                href={props.liveUrl + queryStr}
                                 theme="solid-dark-blue"
                                 icon={null}
                                 text="Go to the live version"
@@ -137,7 +169,7 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
                         {nextVersion && (
                             <Button
                                 className="archive-navigation-bar__button archive-navigation-bar__button-right"
-                                href={nextVersion.url}
+                                href={nextVersion.url + queryStr}
                                 theme="outline-white"
                                 icon={faArrowRight}
                                 iconPosition="right"

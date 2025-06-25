@@ -1,11 +1,7 @@
+import * as _ from "lodash-es"
 import jsonpointer from "json8-pointer"
 import { GrapherConfigPatch } from "./AdminSessionTypes.js"
-import {
-    isArray,
-    isEqual,
-    isNil,
-    checkIsStringIndexable,
-} from "@ourworldindata/utils"
+import { checkIsStringIndexable } from "@ourworldindata/utils"
 import * as R from "remeda"
 
 export function setValueRecursiveInplace(
@@ -26,7 +22,7 @@ export function setValueRecursiveInplace(
         }
     }
     if (pointer.length === 0) {
-        if (isArray(json) && !isNaN(currentPartAsNumber)) {
+        if (_.isArray(json) && !isNaN(currentPartAsNumber)) {
             if (json.length > currentPartAsNumber)
                 json[currentPartAsNumber] = newValue
             else json.push(newValue)
@@ -123,7 +119,7 @@ export function setValueRecursive(
                     pointer.slice(1),
                     newValue
                 )
-                if (isNil(updatedValue)) return null
+                if (_.isNil(updatedValue)) return null
                 else return [updatedValue]
             }
         }
@@ -154,10 +150,11 @@ export function applyPatch(patchSet: GrapherConfigPatch, config: unknown): any {
     }
 
     const currentValue = jsonpointer.find(config, patchSet.jsonPointer)
-    const currentIsOld = isEqual(currentValue, patchSet.oldValue)
+    const currentIsOld = _.isEqual(currentValue, patchSet.oldValue)
     const currentIsOldOrAllowedNull =
         currentIsOld ||
-        (patchSet.oldValueIsEquivalentToNullOrUndefined && isNil(currentValue))
+        (patchSet.oldValueIsEquivalentToNullOrUndefined &&
+            _.isNil(currentValue))
 
     // The case below is when we don't want to set a new value and the old json deserialized value is null. In
     // this case the equality is false but logically we are fine with this of course

@@ -1,4 +1,4 @@
-import { isNumber, mapValues, range } from "./Util.js"
+import * as _ from "lodash-es"
 import { PointVector } from "./PointVector.js"
 import pixelWidth from "string-pixel-width"
 import {
@@ -234,7 +234,7 @@ export class Bounds {
     }
 
     pad(amount: number | PadObject): Bounds {
-        if (isNumber(amount)) {
+        if (_.isNumber(amount)) {
             return new Bounds(
                 this.x + amount,
                 this.y + amount,
@@ -249,9 +249,9 @@ export class Bounds {
     }
 
     expand(amount: number | PadObject): Bounds {
-        if (isNumber(amount)) return this.pad(-amount)
+        if (_.isNumber(amount)) return this.pad(-amount)
         return this.pad(
-            mapValues(amount, (v) => (v !== undefined ? -v : undefined))
+            _.mapValues(amount, (v) => (v !== undefined ? -v : undefined))
         )
     }
 
@@ -377,7 +377,7 @@ export class Bounds {
             return true
         }
 
-        const grid = range(0, count).map((index: number) => {
+        const grid = _.range(0, count).map((index: number) => {
             const col = index % columns
             const row = Math.floor(index / columns)
 

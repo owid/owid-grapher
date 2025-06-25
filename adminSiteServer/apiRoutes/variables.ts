@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
@@ -29,7 +30,6 @@ import { DATA_API_URL } from "../../settings/clientSettings.js"
 import * as db from "../../db/db.js"
 import {
     getParentVariableIdFromChartConfig,
-    omit,
     parseIntOrUndefined,
 } from "@ourworldindata/utils"
 import {
@@ -40,7 +40,6 @@ import {
 import { updateExistingFullConfig } from "../../db/model/ChartConfigs.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "./routeUtils.js"
-import * as lodash from "lodash-es"
 import { updateGrapherConfigsInR2 } from "./charts.js"
 import { Request } from "../authentication.js"
 import e from "express"
@@ -263,7 +262,7 @@ export async function getVariablesVariableIdJson(
             parseChartConfig(chart.config)
         )
         const hasParentIndicator = parentIndicatorId !== undefined
-        return omit({ ...chart, hasParentIndicator }, "config")
+        return _.omit({ ...chart, hasParentIndicator }, "config")
     })
 
     await assignTagsForCharts(trx, charts)
@@ -280,7 +279,7 @@ export async function getVariablesVariableIdJson(
 
     // add the variable's display field to the merged grapher config
     if (mergedGrapherConfig) {
-        const [varDims, otherDims] = lodash.partition(
+        const [varDims, otherDims] = _.partition(
             mergedGrapherConfig.dimensions ?? [],
             (dim) => dim.variableId === variableId
         )

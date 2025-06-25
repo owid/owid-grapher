@@ -1,4 +1,3 @@
-import React from "react"
 import * as R from "remeda"
 import {
     Bounds,
@@ -39,9 +38,15 @@ import {
     ChoroplethSeriesByName,
     ChoroplethMapManager,
     MAP_CHART_CLASSNAME,
+    MapColumnInfo,
+    PROJECTED_DATA_LEGEND_COLOR,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
-import { ColorScale } from "../color/ColorScale"
+import {
+    ColorScale,
+    NO_DATA_LABEL,
+    PROJECTED_DATA_LABEL,
+} from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
@@ -56,19 +61,28 @@ import {
 } from "../color/ColorScaleBin"
 import {
     ColorSchemeName,
+    ColumnSlug,
+    EntityName,
     InteractionState,
     MapRegionName,
     SeriesName,
+    Time,
 } from "@ourworldindata/types"
-import { autoDetectYColumnSlugs, makeClipPath } from "../chart/ChartUtils"
+import {
+    combineHistoricalAndProjectionColumns,
+    makeClipPath,
+} from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import { Component, createRef } from "react"
 import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
 import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
 import { isOnTheMap } from "./MapHelpers.js"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
+import { match, P } from "ts-pattern"
+import { makeProjectedDataPatternId } from "./MapComponents"
 
 interface MapChartProps {
     bounds?: Bounds
@@ -78,7 +92,7 @@ interface MapChartProps {
 
 @observer
 export class MapChart
-    extends React.Component<MapChartProps>
+    extends Component<MapChartProps>
     implements
         ChartInterface,
         HorizontalColorLegendManager,
@@ -97,15 +111,63 @@ export class MapChart
     @observable tooltipState = new TooltipState<{ featureId: string }>()
 
     transformTable(table: OwidTable): OwidTable {
-        if (!table.has(this.mapColumnSlug)) return table
-        const transformedTable = this.dropNonMapEntities(table)
-            .dropRowsWithErrorValuesForColumn(this.mapColumnSlug)
+        // Drop non-mappable entities from the table
+        table = this.dropNonMapEntities(table)
+
+        return match(this.mapColumnInfo)
+            .with({ type: P.union("historical", "projected") }, (info) =>
+                this.transformTableForSingleMapColumn(table, info)
+            )
+            .with({ type: "historical+projected" }, (info) =>
+                this.transformTableForCombinedMapColumn(table, info)
+            )
+            .exhaustive()
+    }
+
+    private transformTableForSingleMapColumn(
+        table: OwidTable,
+        mapColumnInfo: Extract<
+            MapColumnInfo,
+            { type: "historical" | "projected" }
+        >
+    ): OwidTable {
+        return table
+            .dropRowsWithErrorValuesForColumn(mapColumnInfo.slug)
             .interpolateColumnWithTolerance(
-                this.mapColumnSlug,
+                mapColumnInfo.slug,
                 this.mapConfig.timeTolerance,
                 this.mapConfig.toleranceStrategy
             )
-        return transformedTable
+    }
+
+    private transformTableForCombinedMapColumn(
+        table: OwidTable,
+        mapColumnInfo: Extract<MapColumnInfo, { type: "historical+projected" }>
+    ): OwidTable {
+        const { historicalSlug, projectedSlug, combinedSlug } = mapColumnInfo
+
+        // Interpolate both columns separately
+        table = table
+            .interpolateColumnWithTolerance(
+                projectedSlug,
+                this.mapConfig.timeTolerance,
+                this.mapConfig.toleranceStrategy
+            )
+            .interpolateColumnWithTolerance(
+                historicalSlug,
+                this.mapConfig.timeTolerance,
+                this.mapConfig.toleranceStrategy
+            )
+
+        // Combine the projection column with its historical stem into one column
+        table = combineHistoricalAndProjectionColumns(table, mapColumnInfo, {
+            shouldAddIsProjectionColumn: true,
+        })
+
+        // Drop rows with error values for the combined column
+        table = table.dropRowsWithErrorValuesForColumn(combinedSlug)
+
+        return table
     }
 
     transformTableForSelection(table: OwidTable): OwidTable {
@@ -181,7 +243,15 @@ export class MapChart
     }
 
     @computed get inputTable(): OwidTable {
-        return this.manager.table
+        const { mapColumnInfo } = this
+        const { table } = this.manager
+
+        // For historical+projected data, we need to create the combined column
+        // on the input table. This ensures the color scale has access to the
+        // complete range of data across both columns
+        return mapColumnInfo.type === "historical+projected"
+            ? combineHistoricalAndProjectionColumns(table, mapColumnInfo)
+            : table
     }
 
     @computed get transformedTable(): OwidTable {
@@ -200,15 +270,53 @@ export class MapChart
         return ""
     }
 
-    @computed get mapColumnSlug(): string {
-        return (
-            this.manager.mapColumnSlug ??
-            autoDetectYColumnSlugs(this.manager)[0]!
-        )
+    @computed private get mapColumnInfo(): MapColumnInfo {
+        const { mapColumnSlug, table } = this.manager
+
+        // If projection info is available, then we can stitch together the
+        // historical and projected columns
+        const projectionInfo =
+            this.manager.projectionColumnInfoBySlug?.get(mapColumnSlug)
+        if (projectionInfo) {
+            return {
+                type: "historical+projected",
+                slug: projectionInfo.combinedSlug,
+                ...projectionInfo,
+            }
+        }
+
+        const type = table.get(mapColumnSlug).isProjection
+            ? "projected"
+            : "historical"
+
+        return { type, slug: mapColumnSlug }
+    }
+
+    @computed get mapColumnSlug(): ColumnSlug {
+        return this.mapColumnInfo.slug
+    }
+
+    @computed get columnIsProjection(): CoreColumn | undefined {
+        const slugForIsProjectionColumn =
+            this.mapColumnInfo?.type === "historical+projected"
+                ? this.mapColumnInfo.slugForIsProjectionColumn
+                : undefined
+
+        return slugForIsProjectionColumn
+            ? this.transformedTable.get(slugForIsProjectionColumn)
+            : undefined
     }
 
     @computed get mapColumn(): CoreColumn {
         return this.transformedTable.get(this.mapColumnSlug)
+    }
+
+    @computed get hasProjectedData(): boolean {
+        return this.mapColumnInfo.type !== "historical"
+    }
+
+    @computed get hasProjectedDataBin(): boolean {
+        return this.hasProjectedData
     }
 
     // The map column without tolerance and timeline filtering applied
@@ -228,7 +336,7 @@ export class MapChart
         return this.seriesMap
     }
 
-    base: React.RefObject<SVGGElement> = React.createRef()
+    base: React.RefObject<SVGGElement> = createRef()
     @action.bound onMapMouseOver(feature: GeoFeature): void {
         if (feature.id !== undefined) {
             const featureId = feature.id as string
@@ -317,6 +425,21 @@ export class MapChart
         }
     }
 
+    private checkIsProjection(
+        entityName: EntityName,
+        originalTime: Time
+    ): boolean {
+        return match(this.mapColumnInfo.type)
+            .with("historical", () => false)
+            .with("projected", () => true)
+            .with("historical+projected", () =>
+                this.columnIsProjection?.valueByEntityNameAndOriginalTime
+                    .get(entityName)
+                    ?.get(originalTime)
+            )
+            .exhaustive()
+    }
+
     @computed get series(): ChoroplethSeries[] {
         const { mapColumn, targetTime } = this
         if (mapColumn.isMissing) return []
@@ -327,12 +450,17 @@ export class MapChart
                 const { entityName, value, originalTime } = row
                 const color =
                     this.colorScale.getColor(value) || this.noDataColor
+                const isProjection = this.checkIsProjection(
+                    entityName,
+                    originalTime
+                )
                 return {
                     seriesName: entityName,
                     time: originalTime,
                     value,
                     color,
-                }
+                    isProjection,
+                } satisfies ChoroplethSeries
             })
             .filter(isPresent)
     }
@@ -370,8 +498,17 @@ export class MapChart
         }
     }
 
+    @computed private get disableIntroAnimation(): boolean {
+        // The intro animation transitions from a neutral color to the actual color.
+        // That doesn't work if a pattern is used to fill the country outlines,
+        // which is the case for projected data.
+        if (this.mapColumnInfo.type !== "historical") return true
+
+        return !!this.manager.disableIntroAnimation
+    }
+
     componentDidMount(): void {
-        if (!this.manager.disableIntroAnimation) {
+        if (!this.disableIntroAnimation) {
             select(this.base.current)
                 .selectAll(`.${MAP_CHART_CLASSNAME} path`)
                 .attr("data-fill", function () {
@@ -394,7 +531,7 @@ export class MapChart
     }
 
     @computed private get legendData(): ColorScaleBin[] {
-        return this.colorScale.legendBins
+        return this.colorScale.legendBins.filter((bin) => !bin.isHidden)
     }
 
     /** The value of the currently hovered feature/country */
@@ -416,7 +553,12 @@ export class MapChart
         else if (!hoverBracket) return false
 
         const series = this.choroplethData.get(featureId)
-        if (hoverBracket.contains(series?.value)) return true
+        if (
+            hoverBracket.contains(series?.value, {
+                isProjection: series?.isProjection,
+            })
+        )
+            return true
         else return false
     }
 
@@ -448,30 +590,62 @@ export class MapChart
         return this.mapConfig.region
     }
 
+    @computed private get shouldAddProjectionPatternToLegendBins(): boolean {
+        return match(this.mapColumnInfo)
+            .with({ type: "historical" }, () => false)
+            .with({ type: "projected" }, () => true)
+            .with({ type: "historical+projected" }, (info) =>
+                // Only add a pattern to the legend bins if _all_ values are projections.
+                // If there is even a single non-projected (historical) value, the legend
+                // should use solid colors.
+                this.transformedTable
+                    .get(info.slugForIsProjectionColumn)
+                    .values.every((value) => value === true)
+            )
+            .exhaustive()
+    }
+
+    private maybeAddPatternRefToBin<Bin extends ColorScaleBin>(bin: Bin): Bin {
+        if (isNoDataBin(bin))
+            return new CategoricalBin({
+                ...bin.props,
+                patternRef: Patterns.noDataPattern,
+            }) as Bin
+
+        if (isProjectedDataBin(bin)) {
+            const patternRef = makeProjectedDataPatternId(
+                PROJECTED_DATA_LEGEND_COLOR,
+                { forLegend: true }
+            )
+            return new CategoricalBin({ ...bin.props, patternRef }) as Bin
+        }
+
+        if (this.shouldAddProjectionPatternToLegendBins) {
+            const patternRef = makeProjectedDataPatternId(bin.color, {
+                forLegend: true,
+            })
+            return (
+                bin instanceof CategoricalBin
+                    ? new CategoricalBin({ ...bin.props, patternRef })
+                    : new NumericBin({ ...bin.props, patternRef })
+            ) as Bin
+        }
+
+        return bin
+    }
+
     @computed get numericLegendData(): ColorScaleBin[] {
-        if (
-            this.hasCategorical ||
-            !this.legendData.some(
-                (bin) =>
-                    (bin as CategoricalBin).value === "No data" && !bin.isHidden
-            )
-        )
-            return this.legendData.filter(
-                (bin) => bin instanceof NumericBin && !bin.isHidden
-            )
+        const hasNoDataBin = this.legendData.some((bin) => isNoDataBin(bin))
+        if (this.hasCategoricalLegendData || !hasNoDataBin)
+            return this.legendData
+                .filter((bin) => isNumericBin(bin))
+                .map((bin) => this.maybeAddPatternRefToBin(bin))
 
-        const bins: ColorScaleBin[] = this.legendData.filter(
-            (bin) =>
-                (bin instanceof NumericBin || bin.value === "No data") &&
-                !bin.isHidden
-        )
-        for (const bin of bins)
-            if (bin instanceof CategoricalBin && bin.value === "No data")
-                bin.props = {
-                    ...bin.props,
-                    patternRef: Patterns.noDataPattern,
-                }
+        const bins: ColorScaleBin[] = this.legendData
+            .filter((bin) => isNumericBin(bin) || isNoDataBin(bin))
+            .map((bin) => this.maybeAddPatternRefToBin(bin))
 
+        // Move the no-data bin from the end to the start
         return [bins[bins.length - 1], ...bins.slice(0, -1)]
     }
 
@@ -480,21 +654,17 @@ export class MapChart
     }
 
     @computed get categoricalLegendData(): CategoricalBin[] {
-        const bins = this.legendData.filter(
-            (bin): bin is CategoricalBin =>
-                bin instanceof CategoricalBin && !bin.isHidden
-        )
-        for (const bin of bins)
-            if (bin.value === "No data")
-                bin.props = {
-                    ...bin.props,
-                    patternRef: Patterns.noDataPattern,
-                }
-        return bins
+        return this.legendData
+            .filter((bin) => isCategoricalBin(bin))
+            .map((bin) => this.maybeAddPatternRefToBin(bin))
     }
 
-    @computed get hasCategorical(): boolean {
+    @computed get hasCategoricalLegendData(): boolean {
         return this.categoricalLegendData.length > 1
+    }
+
+    @computed get binColors(): string[] {
+        return this.legendData.map((bin) => bin.color)
     }
 
     @computed get numericHoverBracket(): ColorScaleBin | undefined {
@@ -686,6 +856,8 @@ export class MapChart
                 {this.renderMapLegend()}
                 {tooltipCountry && (
                     <MapTooltip
+                        mapColumnSlug={this.mapColumnSlug}
+                        mapColumnInfo={this.mapColumnInfo}
                         entityName={tooltipCountry}
                         position={tooltipState.position}
                         fading={tooltipState.fading}
@@ -718,4 +890,20 @@ export class MapChart
 
         return this.isStatic ? this.renderStatic() : this.renderInteractive()
     }
+}
+
+function isCategoricalBin(bin: ColorScaleBin): bin is CategoricalBin {
+    return bin instanceof CategoricalBin
+}
+
+function isNumericBin(bin: ColorScaleBin): bin is NumericBin {
+    return bin instanceof NumericBin
+}
+
+function isNoDataBin(bin: ColorScaleBin): bin is CategoricalBin {
+    return isCategoricalBin(bin) && bin.value === NO_DATA_LABEL
+}
+
+function isProjectedDataBin(bin: ColorScaleBin): bin is CategoricalBin {
+    return isCategoricalBin(bin) && bin.value === PROJECTED_DATA_LABEL
 }

@@ -6,8 +6,10 @@ import {
 } from "@tanstack/react-query"
 import { useContext, useEffect, useMemo, useState } from "react"
 import {
+    Flex,
     Input,
     Popconfirm,
+    Space,
     Switch,
     Table,
     TableColumnsType,
@@ -299,18 +301,41 @@ export function MultiDimIndexPage() {
         <AdminLayout title="Multidimensional Data Pages">
             {notificationContextHolder}
             <main>
-                <Input
-                    placeholder="Search by title or slug"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    style={{ width: 500, marginBottom: 20 }}
-                    autoFocus
-                />
-                <Table
-                    columns={columns}
-                    dataSource={filteredMdims}
-                    rowKey={(x) => x.id}
-                />
+                <Space direction="vertical" size="middle">
+                    <Flex align="center" justify="space-between" gap={24}>
+                        <Input
+                            placeholder="Search by title or slug"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            style={{ width: 500 }}
+                            autoFocus
+                        />
+                        <Space>
+                            <a
+                                href={urljoin(
+                                    ADMIN_BASE_URL,
+                                    "/admin/grapher/covid%2Flatest%2Fcovid%23dummy"
+                                )}
+                                target="_blank"
+                                rel="noopener"
+                            >
+                                Example
+                            </a>
+                            <a
+                                href="https://docs.owid.io/projects/etl/architecture/metadata/reference/collections/"
+                                target="_blank"
+                                rel="noopener"
+                            >
+                                Docs
+                            </a>
+                        </Space>
+                    </Flex>
+                    <Table
+                        columns={columns}
+                        dataSource={filteredMdims}
+                        rowKey={(x) => x.id}
+                    />
+                </Space>
             </main>
         </AdminLayout>
     )

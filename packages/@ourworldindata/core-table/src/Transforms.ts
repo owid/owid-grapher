@@ -1,4 +1,5 @@
-import { ColumnSlug, uniq, cloneDeep } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
+import { ColumnSlug } from "@ourworldindata/utils"
 import {
     ErrorValue,
     CoreColumnDef,
@@ -396,7 +397,7 @@ const duplicate: Transform = {
     fn: (
         columnStore: CoreColumnStore,
         columnSlug: ColumnSlug
-    ): CoreValueType[] => cloneDeep(columnStore[columnSlug]),
+    ): CoreValueType[] => _.cloneDeep(columnStore[columnSlug]),
 }
 
 const availableTransforms: Record<string, Transform> = {
@@ -478,5 +479,5 @@ export const extractPotentialDataSlugsFromTransform = (
     if (lastParam && isMaybeDataSlugParam(lastParam) && lastParam.spread) {
         dataSlugs.push(...params.slice(paramDefs.length))
     }
-    return uniq(dataSlugs)
+    return _.uniq(dataSlugs)
 }

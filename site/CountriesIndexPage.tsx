@@ -1,7 +1,8 @@
+import * as _ from "lodash-es"
 import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
-import { Country, sortBy } from "@ourworldindata/utils"
+import { Country } from "@ourworldindata/utils"
 import { Html } from "./Html.js"
 
 export const CountriesIndexPage = (props: {
@@ -10,7 +11,7 @@ export const CountriesIndexPage = (props: {
 }) => {
     const { countries, baseUrl } = props
 
-    const sortedCountries = sortBy(countries, (country) => country.name)
+    const sortedCountries = _.sortBy(countries, (country) => country.name)
 
     return (
         <Html>

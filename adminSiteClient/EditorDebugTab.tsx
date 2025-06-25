@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { Component } from "react"
 import { observer } from "mobx-react"
 import { Section, Toggle } from "./Forms.js"
@@ -7,7 +8,6 @@ import {
     NARRATIVE_CHART_PROPS_TO_OMIT,
     copyToClipboard,
     mergeGrapherConfigs,
-    omit,
 } from "@ourworldindata/utils"
 import YAML from "yaml"
 import { Modal, notification } from "antd"
@@ -69,7 +69,7 @@ class EditorDebugTabForChart extends Component<{
     @action.bound onToggleInheritance(shouldBeEnabled: boolean) {
         const { patchConfig, parentConfig } = this.props.editor
 
-        // update live grapher
+        // update live grapherState
         const newParentConfig = shouldBeEnabled ? parentConfig : undefined
         const newConfig = mergeGrapherConfigs(
             newParentConfig ?? {},
@@ -87,11 +87,11 @@ class EditorDebugTabForChart extends Component<{
             isInheritanceEnabled,
             fullConfig,
             parentVariableId,
-            grapher,
+            grapherState,
         } = this.props.editor
 
         const column = parentVariableId
-            ? grapher.inputTable.get(parentVariableId.toString())
+            ? grapherState.inputTable.get(parentVariableId.toString())
             : undefined
 
         const variableLink = (
@@ -132,7 +132,7 @@ class EditorDebugTabForChart extends Component<{
                                         <>
                                             {" "}
                                             But the parent indicator does not
-                                            yet have an associated Grapher
+                                            yet have an associated grapherState
                                             config. You can{" "}
                                             <a
                                                 href={`/admin/variables/${parentVariableId}/config`}
@@ -248,7 +248,7 @@ class EditorDebugTabForNarrativeChart extends Component<{
                             2
                         )}
                         oldValue={stringify(
-                            omit(
+                            _.omit(
                                 this.props.editor.parentConfig,
                                 NARRATIVE_CHART_PROPS_TO_OMIT
                             ),

@@ -1,8 +1,9 @@
+import * as _ from "lodash-es"
 import { Component } from "react"
 import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import { excludeUndefined, omit, slugify } from "@ourworldindata/utils"
+import { excludeUndefined, slugify } from "@ourworldindata/utils"
 import {
     IndicatorChartEditor,
     isIndicatorChartEditorInstance,
@@ -27,7 +28,7 @@ export class SaveButtons<Editor extends AbstractChartEditor> extends Component<{
 }> {
     render() {
         const { editor } = this.props
-        const passthroughProps = omit(this.props, "editor")
+        const passthroughProps = _.omit(this.props, "editor")
         if (isChartEditorInstance(editor))
             return <SaveButtonsForChart editor={editor} {...passthroughProps} />
         else if (isIndicatorChartEditorInstance(editor))
@@ -63,7 +64,7 @@ class SaveButtonsForChart extends Component<{
     }
 
     @action.bound onPublishToggle() {
-        if (this.props.editor.grapher.isPublished)
+        if (this.props.editor.grapherState.isPublished)
             this.props.editor.unpublishGrapher()
         else this.props.editor.publishGrapher()
     }
@@ -77,7 +78,7 @@ class SaveButtonsForChart extends Component<{
     }
 
     @computed get initialNarrativeChartName(): string {
-        return slugify(this.props.editor.grapher.title ?? "")
+        return slugify(this.props.editor.grapherState.title ?? "")
     }
 
     @observable isNarrativeChartNameModalOpen = false
@@ -97,10 +98,10 @@ class SaveButtonsForChart extends Component<{
     render() {
         const { editingErrors } = this
         const { editor } = this.props
-        const { grapher, isNewGrapher } = editor
+        const { grapherState, isNewGrapher } = editor
 
         const hasEditingErrors = editingErrors.length > 0
-        const isSavingDisabled = grapher.hasFatalErrors || hasEditingErrors
+        const isSavingDisabled = grapherState.hasFatalErrors || hasEditingErrors
 
         return (
             <div className="SaveButtons">
@@ -110,7 +111,7 @@ class SaveButtonsForChart extends Component<{
                         onClick={this.onSaveChart}
                         disabled={isSavingDisabled}
                     >
-                        {grapher.isPublished
+                        {grapherState.isPublished
                             ? "Update chart"
                             : isNewGrapher
                               ? "Create draft"
@@ -130,7 +131,9 @@ class SaveButtonsForChart extends Component<{
                                 onClick={this.onPublishToggle}
                                 disabled={isSavingDisabled}
                             >
-                                {grapher.isPublished ? "Unpublish" : "Publish"}
+                                {grapherState.isPublished
+                                    ? "Unpublish"
+                                    : "Publish"}
                             </button>
                         </>
                     )}
@@ -158,7 +161,7 @@ class SaveButtonsForChart extends Component<{
                         (this.isNarrativeChartNameModalOpen = false)
                     }
                 />
-                {grapher.isReady &&
+                {grapherState.isReady &&
                     editingErrors.map((error, i) => (
                         <div key={i} className="alert alert-danger mt-2">
                             {error}
@@ -190,12 +193,12 @@ class SaveButtonsForIndicatorChart extends Component<{
     render() {
         const { editingErrors } = this
         const { editor } = this.props
-        const { grapher } = editor
+        const { grapherState } = editor
 
         const isTrivial = editor.isNewGrapher && !editor.isModified
         const hasEditingErrors = editingErrors.length > 0
         const isSavingDisabled =
-            grapher.hasFatalErrors || hasEditingErrors || isTrivial
+            grapherState.hasFatalErrors || hasEditingErrors || isTrivial
 
         return (
             <div className="SaveButtons">
@@ -208,7 +211,7 @@ class SaveButtonsForIndicatorChart extends Component<{
                         ? "Create indicator chart"
                         : "Update indicator chart"}
                 </button>
-                {grapher.isReady &&
+                {grapherState.isReady &&
                     editingErrors.map((error, i) => (
                         <div key={i} className="alert alert-danger mt-2">
                             {error}
@@ -246,10 +249,10 @@ class SaveButtonsForNarrativeChart extends Component<{
     render() {
         const { editingErrors } = this
         const { editor } = this.props
-        const { grapher, isNewGrapher } = editor
+        const { grapherState, isNewGrapher } = editor
 
         const hasEditingErrors = editingErrors.length > 0
-        const isSavingDisabled = grapher.hasFatalErrors || hasEditingErrors
+        const isSavingDisabled = grapherState.hasFatalErrors || hasEditingErrors
 
         return (
             <div className="SaveButtons">
@@ -293,7 +296,7 @@ class SaveButtonsForNarrativeChart extends Component<{
                         Create DI
                     </button>
                 )}
-                {grapher.isReady &&
+                {grapherState.isReady &&
                     editingErrors.map((error, i) => (
                         <div key={i} className="alert alert-danger mt-2">
                             {error}
@@ -305,10 +308,10 @@ class SaveButtonsForNarrativeChart extends Component<{
                         narrativeChart={{
                             name: editor.manager.name!,
                             configId: editor.manager.configId!,
-                            title: grapher.currentTitle,
+                            title: grapherState.currentTitle,
                         }}
                         initialValues={{
-                            title: grapher.currentTitle,
+                            title: grapherState.currentTitle,
                             imageFilename: editor.manager.name
                                 ? `${editor.manager.name}.png`
                                 : undefined,

@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     EnrichedBlockResearchAndWriting,
     Span,
@@ -5,7 +6,6 @@ import {
     EnrichedBlockResearchAndWritingLink,
     DATA_INSIGHTS_INDEX_PAGE_SIZE,
     OwidEnrichedGdocBlock,
-    noop,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import * as cheerio from "cheerio"
@@ -259,7 +259,7 @@ export function extractFilenamesFromBlock(
                     "topic-page-intro"
                 ),
             },
-            noop
+            _.noop
         )
         .exhaustive()
     return [...filenames]

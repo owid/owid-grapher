@@ -1,17 +1,11 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import classnames from "classnames"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { NO_DATA_LABEL } from "../color/ColorScale.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faInfoCircle, faS } from "@fortawesome/free-solid-svg-icons"
-import {
-    sum,
-    uniq,
-    isNumber,
-    sortBy,
-    formatInlineList,
-    GrapherTooltipAnchor,
-} from "@ourworldindata/utils"
+import { formatInlineList, GrapherTooltipAnchor } from "@ourworldindata/utils"
 import {
     TooltipTableProps,
     TooltipValueProps,
@@ -25,8 +19,8 @@ export const NO_DATA_COLOR = "#999"
 
 export class TooltipValue extends React.Component<TooltipValueProps> {
     render(): React.ReactElement | null {
-        const { column, value, color, notice } = this.props,
-            displayValue = isNumber(value)
+        const { column, value, color, notice, isProjection } = this.props,
+            displayValue = _.isNumber(value)
                 ? column.formatValueShort(value)
                 : (value ?? NO_DATA_LABEL),
             displayColor =
@@ -43,6 +37,7 @@ export class TooltipValue extends React.Component<TooltipValueProps> {
             <Variable
                 column={column}
                 color={displayColor}
+                isProjection={isProjection}
                 notice={notice ? [notice] : undefined}
             >
                 <span>
@@ -81,7 +76,7 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
             [firstTerm, lastTerm] =
                 // TODO: would be nicer to actually measure the typeset text but we would need to
                 // add Lato's metrics to the `string-pixel-width` module to use Bounds.forText
-                sum([firstValue?.length, lastValue?.length]) > 20
+                _.sum([firstValue?.length, lastValue?.length]) > 20
                     ? values.map((v) =>
                           column.formatValueShortWithAbbreviations(v)
                       )
@@ -125,11 +120,12 @@ export class TooltipValueRange extends React.Component<TooltipValueRangeProps> {
 class Variable extends React.Component<{
     column: CoreColumn
     color?: string
+    isProjection?: boolean
     notice?: (number | string | undefined)[]
     children?: React.ReactNode
 }> {
     render(): React.ReactElement | null {
-        const { column, children, color, notice } = this.props
+        const { column, children, color, notice, isProjection } = this.props
 
         if (column.isMissing || column.name === "time") return null
 
@@ -140,7 +136,7 @@ class Variable extends React.Component<{
         })
 
         const displayNotice =
-            uniq((notice ?? []).filter((t) => t !== undefined))
+            _.uniq((notice ?? []).filter((t) => t !== undefined))
                 .map((time) =>
                     typeof time === "number" ? column.formatTime(time) : time
                 )
@@ -152,6 +148,9 @@ class Variable extends React.Component<{
                     {label && <span className="name">{label}</span>}
                     {unit && unit.length > 1 && (
                         <span className="unit">{unit}</span>
+                    )}
+                    {isProjection && (
+                        <span className="projection">projected data</span>
                     )}
                 </div>
                 <div className="values" style={{ color }}>
@@ -353,8 +352,11 @@ export function makeTooltipRoundingNotice(
     numSignificantFigures: number[],
     { plural }: { plural: boolean } = { plural: true }
 ): string {
-    const uniqueNumSigFigs = uniq(numSignificantFigures)
-    const formattedNumSigFigs = formatInlineList(sortBy(uniqueNumSigFigs), "or")
+    const uniqueNumSigFigs = _.uniq(numSignificantFigures)
+    const formattedNumSigFigs = formatInlineList(
+        _.sortBy(uniqueNumSigFigs),
+        "or"
+    )
 
     const values = plural ? "Values" : "Value"
     const are = plural ? "are" : "is"

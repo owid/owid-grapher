@@ -1,4 +1,5 @@
-import { excludeUndefined, sortBy, uniq } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
+import { excludeUndefined } from "@ourworldindata/utils"
 import { MigrationInterface, QueryRunner } from "typeorm"
 
 import { entityNameById } from "./data/entityNameById.js"
@@ -54,7 +55,7 @@ export class MigrateSelectedData1661264304751 implements MigrationInterface {
         const newConfig = { ...legacyConfig } as GrapherInterfaceBeforeMigration
 
         // Migrate selected entities
-        newConfig.selectedEntityIds = uniq(
+        newConfig.selectedEntityIds = _.uniq(
             legacyConfig.selectedData.map((row) => row.entityId)
         ) // We need to do uniq because an EntityName may appear multiple times in the old graphers, once for each dimension
 
@@ -100,7 +101,7 @@ export class MigrateSelectedData1661264304751 implements MigrationInterface {
                 ) ?? []
             )
 
-            newConfig.dimensions = sortBy(newConfig.dimensions || [], (dim) =>
+            newConfig.dimensions = _.sortBy(newConfig.dimensions || [], (dim) =>
                 variableIDsInSelectionOrder.findIndex(
                     (variableId) => dim.variableId === variableId
                 )

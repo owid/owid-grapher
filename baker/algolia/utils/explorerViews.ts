@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     ExplorerChoiceParams,
     ExplorerControlType,
@@ -5,15 +6,6 @@ import {
     DecisionMatrix,
     TableDef,
 } from "@ourworldindata/explorer"
-import {
-    at,
-    get,
-    groupBy,
-    mapValues,
-    orderBy,
-    partition,
-    uniq,
-} from "lodash-es"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import { obtainAvailableEntitiesForGraphers } from "../../updateChartEntities.js"
@@ -31,7 +23,7 @@ import {
 
 import * as db from "../../../db/db.js"
 import { DATA_API_URL } from "../../../settings/serverSettings.js"
-import { getUniqueNamesFromTagHierarchies, keyBy } from "@ourworldindata/utils"
+import { getUniqueNamesFromTagHierarchies } from "@ourworldindata/utils"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import {
     CsvUnenrichedExplorerViewRecord,
@@ -119,7 +111,7 @@ function addDuplicateYVariableIds(
 export function scaleExplorerRecordScores(
     explorerViews: FinalizedExplorerRecord[]
 ): ChartRecord[] {
-    const [firstViews, rest] = partition(
+    const [firstViews, rest] = _.partition(
         explorerViews,
         (view) => view.isFirstExplorerView
     )
@@ -197,15 +189,15 @@ async function fetchIndicatorMetadata(
     })) as ExplorerIndicatorMetadataFromDb[]
 
     const indicatorMetadataByIdAndPath = {
-        ...keyBy(metadataFromDB, "id"),
-        ...keyBy(metadataFromDB, "catalogPath"),
+        ..._.keyBy(metadataFromDB, "id"),
+        ..._.keyBy(metadataFromDB, "catalogPath"),
     } as ExplorerIndicatorMetadataDictionary
 
     async function fetchEntitiesForId(id: number) {
         const metadata = await fetchS3MetadataByPath(
             getVariableMetadataRoute(DATA_API_URL, id)
         )
-        const entityNames = get(metadata, "dimensions.entities.values", [])
+        const entityNames = _.get(metadata, "dimensions.entities.values", [])
             .map((value) => value.name)
             .filter((name): name is string => !!name)
 
@@ -298,7 +290,7 @@ async function getEntitiesPerColumnPerTable(
                     )
 
                     // Convert sets to arrays
-                    const entityNamesAsArray = mapValues(
+                    const entityNamesAsArray = _.mapValues(
                         entitiesPerColumn,
                         (set) => Array.from(set)
                     ) as Record<string, string[]>
@@ -402,7 +394,7 @@ const fetchGrapherInfo = async (
         .join("chart_configs", { "charts.configId": "chart_configs.id" })
         .whereIn("charts.id", grapherIds)
         .andWhereRaw("chart_configs.full->>'$.isPublished' = 'true'")
-        .then((rows) => keyBy(rows, "id"))
+        .then((rows) => _.keyBy(rows, "id"))
 }
 
 async function enrichRecordWithGrapherInfo(
@@ -474,7 +466,7 @@ async function enrichRecordWithTableData(
         return
     }
 
-    const availableEntities = uniq(
+    const availableEntities = _.uniq(
         ySlugs.flatMap((ySlug) => entitiesPerColumnPerTable[tableSlug][ySlug])
     ).filter((name): name is string => !!name)
 
@@ -507,11 +499,14 @@ async function enrichRecordWithIndicatorData(
     record: IndicatorUnenrichedExplorerViewRecord,
     indicatorMetadataDictionary: ExplorerIndicatorMetadataDictionary
 ): Promise<IndicatorEnrichedExplorerViewRecord | undefined> {
-    const allEntityNames = at(indicatorMetadataDictionary, record.yVariableIds)
+    const allEntityNames = _.at(
+        indicatorMetadataDictionary,
+        record.yVariableIds
+    )
         .filter(Boolean)
         .flatMap((meta) => meta.entityNames)
 
-    const uniqueNonEmptyEntityNames = uniq(allEntityNames).filter(
+    const uniqueNonEmptyEntityNames = _.uniq(allEntityNames).filter(
         (name): name is string => !!name
     )
 
@@ -611,7 +606,7 @@ async function finalizeRecords(
 
     const withPageviews = withCleanEntities.map((record) => ({
         ...record,
-        views_7d: get(pageviews, [`/explorers/${slug}`, "views_7d"], 0),
+        views_7d: _.get(pageviews, [`/explorers/${slug}`, "views_7d"], 0),
     }))
 
     const unsortedFinalRecords = withPageviews.map(
@@ -642,13 +637,13 @@ async function finalizeRecords(
             }) as Omit<FinalizedExplorerRecord, "viewTitleIndexWithinExplorer">
     )
 
-    const sortedByScore = orderBy(
+    const sortedByScore = _.orderBy(
         unsortedFinalRecords,
         computeExplorerViewScore,
         "desc"
     ) as Omit<FinalizedExplorerRecord, "viewTitleIndexWithinExplorer">[]
 
-    const groupedByTitle = groupBy(sortedByScore, "title")
+    const groupedByTitle = _.groupBy(sortedByScore, "title")
 
     const indexedExplorerViewData = Object.values(groupedByTitle).flatMap(
         (records) =>
@@ -691,7 +686,7 @@ export const getExplorerViewRecordsForExplorer = async (
         duplicateTransforms
     )
 
-    const [grapherBaseRecords, nonGrapherBaseRecords] = partition(
+    const [grapherBaseRecords, nonGrapherBaseRecords] = _.partition(
         baseRecordsWithDuplicatedYVariableIdsAdded,
         (record) => record.viewGrapherId !== undefined
     ) as [GrapherUnenrichedExplorerViewRecord[], ExplorerViewBaseRecord[]]
@@ -705,7 +700,7 @@ export const getExplorerViewRecordsForExplorer = async (
         )
     }
 
-    const [indicatorBaseRecords, csvBaseRecords] = partition(
+    const [indicatorBaseRecords, csvBaseRecords] = _.partition(
         nonGrapherBaseRecords,
         (record) => record.yVariableIds.length > 0
     ) as [

@@ -1,5 +1,6 @@
 // todo: Remove this file when we've migrated OWID data and OWID charts to next version
 
+import * as _ from "lodash-es"
 import {
     ColumnTypeNames,
     CoreColumnDef,
@@ -10,6 +11,7 @@ import {
     OwidVariableDataMetadataDimensions,
     ErrorValue,
     OwidChartDimensionInterfaceWithMandatorySlug,
+    OwidChartDimensionInterface,
     EntityName,
 } from "@ourworldindata/types"
 import {
@@ -19,14 +21,10 @@ import {
 } from "@ourworldindata/core-table"
 import {
     diffDateISOStringInDays,
-    difference,
     getYearFromISOStringAndDayOffset,
     intersection,
-    isNumber,
-    isInteger,
     makeAnnotationsSlug,
     trimObject,
-    uniqBy,
     OwidEntityKey,
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableWithSource,
@@ -35,11 +33,30 @@ import {
     ColumnSlug,
     EPOCH_DATE,
     OwidVariableType,
-    memoize,
-    isEmpty,
 } from "@ourworldindata/utils"
 import { isContinentsVariableId } from "./GrapherConstants"
 import * as R from "remeda"
+import { getDimensionColumnSlug } from "../chart/ChartDimension.js"
+
+export const legacyToOwidTableAndDimensionsWithMandatorySlug = (
+    json: MultipleOwidVariableDataDimensionsMap,
+    dimensions: OwidChartDimensionInterface[],
+    selectedEntityColors:
+        | { [entityName: string]: string | undefined }
+        | undefined
+): OwidTable => {
+    const dimensionsWithSlug = dimensions?.map((dimension) => ({
+        ...dimension,
+        slug:
+            dimension.slug ??
+            getDimensionColumnSlug(dimension.variableId, dimension.targetYear),
+    }))
+    return legacyToOwidTableAndDimensions(
+        json,
+        dimensionsWithSlug,
+        selectedEntityColors
+    )
+}
 
 export const legacyToOwidTableAndDimensions = (
     json: MultipleOwidVariableDataDimensionsMap,
@@ -66,7 +83,7 @@ export const legacyToOwidTableAndDimensions = (
 
     // We need to create a column for each unique [variable, targetTime] pair. So there can be
     // multiple columns for a single variable.
-    const dimensionColumns = uniqBy(dimensions, (dim) => dim.slug)
+    const dimensionColumns = _.uniqBy(dimensions, (dim) => dim.slug)
 
     const variableTablesToJoinByYear: OwidTable[] = []
     const variableTablesToJoinByDay: OwidTable[] = []
@@ -90,7 +107,8 @@ export const legacyToOwidTableAndDimensions = (
         const valueColumnColor = dimension.display?.color
         // Ensure the column slug is unique by copying it from the dimensions
         // (there can be two columns of the same variable with different targetTimes)
-        valueColumnDef.slug = dimension.slug
+        if (dimension.slug) valueColumnDef.slug = dimension.slug
+        else throw new Error("Dimension slug was undefined")
         // Because database columns can contain mixed types, we want to avoid
         // parsing for Grapher data until we fix that.
         valueColumnDef.skipParsing = true
@@ -133,14 +151,14 @@ export const legacyToOwidTableAndDimensions = (
         const conversionFactor = valueColumnDef.display?.conversionFactor
         if (conversionFactor !== undefined) {
             values = values.map((value) =>
-                isNumber(value) ? value * conversionFactor : value
+                _.isNumber(value) ? value * conversionFactor : value
             )
 
             // If a non-int conversion factor is applied to an integer column,
             // we end up with a numeric column.
             if (
                 valueColumnDef.type === ColumnTypeNames.Integer &&
-                !isInteger(conversionFactor)
+                !_.isInteger(conversionFactor)
             )
                 valueColumnDef.type = ColumnTypeNames.Numeric
         }
@@ -171,7 +189,7 @@ export const legacyToOwidTableAndDimensions = (
         // We do this by dropping the column. We interpolate before which adds an originalTime
         // column which can be used to recover the time.
         const targetTime = dimension?.targetYear
-        if (isNumber(targetTime)) {
+        if (_.isNumber(targetTime)) {
             variableTable = variableTable
                 // interpolateColumnWithTolerance() won't handle injecting times beyond the current
                 // allTimes. So if targetYear is 2018, and we have data up to 2017, the
@@ -235,7 +253,7 @@ export const legacyToOwidTableAndDimensions = (
         const daysColumn = variablesJoinedByDay.getColumns([
             OwidTableSlugs.day,
         ])[0]
-        const getYearFromISOStringMemoized = memoize((dayValue: number) =>
+        const getYearFromISOStringMemoized = _.memoize((dayValue: number) =>
             getYearFromISOStringAndDayOffset(EPOCH_DATE, dayValue)
         )
         const yearsForDaysValues = daysColumn.values.map((dayValue) =>
@@ -328,7 +346,7 @@ export const legacyToOwidTableAndDimensions = (
     }
 
     // Append the entity color column if we have selected entity colors
-    if (!isEmpty(selectedEntityColors)) {
+    if (!_.isEmpty(selectedEntityColors)) {
         const entityColorColumnSlug = OwidTableSlugs.entityColor
 
         const valueFn = (
@@ -392,7 +410,7 @@ const fullJoinTables = (
         // columns of the main index. In this case, just return an empty map because that will lead all
         // lookups by main index to fail and we'll try the fallback index
         mergeFallbackLookupColumns &&
-        difference(indexColumnNames, table.columnSlugs).length > 0
+        _.difference(indexColumnNames, table.columnSlugs).length > 0
             ? new Map()
             : table.rowIndex(indexColumnNames)
     )
@@ -421,7 +439,7 @@ const fullJoinTables = (
 
     // Now identify for each table which columns should be copied (i.e. all non-index columns).
     const columnsToAddPerTable = tables.map((table) =>
-        difference(table.columnSlugs, sharedColumnNames)
+        _.difference(table.columnSlugs, sharedColumnNames)
     )
     // Prepare a special entry for the Table + column names tuple that we will zip and
     // map in the next step. This special entry is the first table and contains only the
@@ -794,14 +812,14 @@ export function buildVariableTable(
     const conversionFactor = valueColumnDef.display?.conversionFactor
     if (conversionFactor !== undefined) {
         values = values.map((value) =>
-            isNumber(value) ? value * conversionFactor : value
+            _.isNumber(value) ? value * conversionFactor : value
         )
 
         // If a non-int conversion factor is applied to an integer column,
         // we end up with a numeric column.
         if (
             valueColumnDef.type === ColumnTypeNames.Integer &&
-            !isInteger(conversionFactor)
+            !_.isInteger(conversionFactor)
         )
             valueColumnDef.type = ColumnTypeNames.Numeric
     }

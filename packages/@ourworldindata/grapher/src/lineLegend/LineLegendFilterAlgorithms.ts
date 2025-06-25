@@ -1,4 +1,4 @@
-import { maxBy, partition } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
 import {
     computeCandidateScores,
     LineLegendFilterAlgorithmContext,
@@ -26,7 +26,7 @@ export function findImportantSeriesThatFitIntoTheAvailableSpace(
         keepSeriesHeight: 0,
     }
 
-    const [focusedCandidates, nonFocusedCandidates] = partition(
+    const [focusedCandidates, nonFocusedCandidates] = _.partition(
         seriesSortedByImportance,
         (series) => series.focus?.active
     )
@@ -39,7 +39,7 @@ export function findImportantSeriesThatFitIntoTheAvailableSpace(
     )
 
     const getMostImportantCandidate = (candidates: PlacedSeries[]) =>
-        maxBy(candidates, (c) => importanceScore.get(c.seriesName))
+        _.maxBy(candidates, (c) => importanceScore.get(c.seriesName))
 
     // focused series have priority
     context = pickAsManyAsPossibleWithRetry({
@@ -81,7 +81,7 @@ export function findSeriesThatFitIntoTheAvailableSpace(
         keepSeriesHeight: 0,
     }
 
-    const [focusedCandidates, nonFocusedCandidates] = partition(
+    const [focusedCandidates, nonFocusedCandidates] = _.partition(
         series,
         (series) => series.focus?.active
     )
@@ -98,7 +98,7 @@ export function findSeriesThatFitIntoTheAvailableSpace(
         // pick two candidates with maximal distance to each other.
         // by convention we pick the max candidate first, but we could also
         // start by picking the min cadidate
-        const maxCandidate = maxBy(nonFocusedCandidates, (c) => c.midY)
+        const maxCandidate = _.maxBy(nonFocusedCandidates, (c) => c.midY)
         if (maxCandidate) {
             context = pickCandidate(context, maxCandidate)
 
@@ -130,7 +130,7 @@ export function findSeriesThatFitIntoTheAvailableSpace(
 
         // pick the candidate with the highest score
         const getBestCandidate = (candidates: PlacedSeries[]) =>
-            maxBy(candidates, (c) => scoreMap.get(c.seriesName))
+            _.maxBy(candidates, (c) => scoreMap.get(c.seriesName))
 
         context = pickCandidateWithRetry({
             context,

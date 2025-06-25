@@ -134,6 +134,7 @@ export {
     type InteractionState,
     type MapConfigInterface,
     type GlobeConfig,
+    type ProjectionColumnInfo,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {
@@ -490,6 +491,12 @@ export {
     ArchivedChartVersionsTableName,
 } from "./dbTypes/ArchivedChartVersion.js"
 export {
+    type DbInsertArchivedMultiDimVersion,
+    type DbPlainArchivedMultiDimVersion,
+    type DbEnrichedArchivedMultiDimVersion,
+    ArchivedMultiDimVersionsTableName,
+} from "./dbTypes/ArchivedMultiDimVersion.js"
+export {
     type DbInsertChartConfig,
     type DbRawChartConfig,
     type DbEnrichedChartConfig,
@@ -594,11 +601,11 @@ export {
 export {
     type DbInsertFeaturedMetric,
     type DbPlainFeaturedMetric,
-    type ExpandedFeaturedMetric,
     FeaturedMetricIncomeGroup,
     FeaturedMetricsTableName,
     type DbPlainFeaturedMetricWithParentTagName,
     type FeaturedMetricByParentTagNameDictionary,
+    type ExpandedFeaturedMetric,
 } from "./dbTypes/FeaturedMetrics.js"
 export {
     type DbEnrichedMultiDimDataPage,
@@ -796,7 +803,8 @@ export {
     type UrlAndMaybeDate,
     type ArchiveSiteNavigationInfo,
     type ArchiveMetaInformation,
-    type ChartArchivedVersion,
+    type ArchivedPageVersion,
     type ArchiveVersions,
-    type ArchivedChartOrArchivePageMeta,
+    type ArchiveContext,
 } from "./domainTypes/Archive.js"
+export { type AdditionalGrapherDataFetchFn } from "./grapherTypes/GrapherTypes.js"

@@ -1,17 +1,15 @@
+import * as _ from "lodash-es"
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
 import {
-    uniq,
     SiteFooterContext,
     DataPageDataV2,
     serializeJSONForHTML,
     mergeGrapherConfigs,
-    compact,
     FaqEntryData,
-    pick,
     GrapherInterface,
     ImageMetadata,
     Url,
@@ -33,7 +31,7 @@ import { SiteHeader } from "./SiteHeader.js"
 import { IFrameDetector } from "./IframeDetector.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
-import { ArchivedChartOrArchivePageMeta } from "@ourworldindata/types"
+import { ArchiveContext } from "@ourworldindata/types"
 import { DEFAULT_PAGE_DESCRIPTION } from "./dataPage.js"
 
 export const DataPageV2 = (props: {
@@ -45,7 +43,7 @@ export const DataPageV2 = (props: {
     faqEntries?: FaqEntryData
     imageMetadata: Record<string, ImageMetadata>
     tagToSlugMap: Record<string | number, string>
-    archivedChartInfo?: ArchivedChartOrArchivePageMeta
+    archivedChartInfo?: ArchiveContext
     dataApiUrl?: string
 }) => {
     const {
@@ -77,8 +75,8 @@ export const DataPageV2 = (props: {
     const imageWidth = "1200"
     const imageHeight = "628"
 
-    const variableIds: number[] = uniq(
-        compact(grapher?.dimensions?.map((d) => d.variableId))
+    const variableIds: number[] = _.uniq(
+        _.compact(grapher?.dimensions?.map((d) => d.variableId))
     )
 
     const mergedGrapherConfig = mergeGrapherConfigs(
@@ -95,11 +93,10 @@ export const DataPageV2 = (props: {
         ...mergedGrapherConfig,
         bakedGrapherURL: BAKED_GRAPHER_URL,
         adminBaseUrl: ADMIN_BASE_URL,
-        dataApiUrl: DATA_API_URL,
     }
 
     // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
-    const minimalTagToSlugMap = pick(
+    const minimalTagToSlugMap = _.pick(
         tagToSlugMap,
         datapageData.topicTagsLinks || []
     )
@@ -116,6 +113,7 @@ export const DataPageV2 = (props: {
                 imageUrl={imageUrl}
                 baseUrl={baseUrl}
                 staticAssetMap={assetMaps?.static}
+                archivedChartInfo={archivedChartInfo}
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />

@@ -6,7 +6,7 @@ import {
     grapherObjectToQueryParams,
 } from "./GrapherUrl.js"
 import { MapConfig } from "../mapCharts/MapConfig.js"
-import { Grapher } from "./Grapher.js"
+import { GrapherState } from "./Grapher.js"
 
 describe(grapherConfigToQueryParams, () => {
     it("should convert an empty grapher config to an empty object", () => {
@@ -108,7 +108,7 @@ describe(grapherConfigToQueryParams, () => {
 describe(grapherObjectToQueryParams, () => {
     it("globe", () => {
         const queryParams = grapherObjectToQueryParams(
-            new Grapher({
+            new GrapherState({
                 map: {
                     globe: { isActive: true, rotation: [-30, 40], zoom: 2 },
                 },

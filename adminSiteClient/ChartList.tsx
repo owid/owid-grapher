@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import { observer } from "mobx-react"
 import { runInAction, observable, computed, action } from "mobx"
@@ -11,7 +12,6 @@ import {
     SortOrder,
 } from "@ourworldindata/types"
 import {
-    startCase,
     DbChartTagJoin,
     sortNumeric,
     queryParamsToStr,
@@ -311,7 +311,7 @@ export function showChartType(chart: ChartListItem): string {
     if (!chartType) return "Map"
 
     const displayType = GRAPHER_CHART_TYPES[chartType]
-        ? startCase(GRAPHER_CHART_TYPES[chartType])
+        ? _.startCase(GRAPHER_CHART_TYPES[chartType])
         : "Unknown"
 
     if (chart.tab === GRAPHER_TAB_OPTIONS.map) {

@@ -1,10 +1,10 @@
+import * as _ from "lodash-es"
 import {
     countries,
     countriesByName,
     incomeGroupsByName,
     DbPlainFeaturedMetricWithParentTagName,
     FeaturedMetricIncomeGroup,
-    orderBy,
     removeTrailingParenthetical,
     slugify,
     Url,
@@ -46,7 +46,7 @@ export const processAvailableEntities = (
     // Also, entities containing a hyphen like "low-income countries" can also
     // only be found if they're within the first 100-or-so entries.
     // - @marcelgerber, 2024-03-25
-    return orderBy(
+    return _.orderBy(
         availableEntities,
         [
             (entityName) =>

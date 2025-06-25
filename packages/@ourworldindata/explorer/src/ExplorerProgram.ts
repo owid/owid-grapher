@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 /* eslint-disable no-sparse-arrays */
 import {
     CoreMatrix,
@@ -21,7 +22,6 @@ import {
     PromiseCache,
     SerializedGridProgram,
     trimObject,
-    merge,
     fetchWithRetry,
 } from "@ourworldindata/utils"
 import {
@@ -393,7 +393,7 @@ export class ExplorerProgram extends GridProgram {
             partialConfigs.push(cellDef.toGrapherObject(value))
         }
 
-        const mergedConfig = merge({}, ...partialConfigs)
+        const mergedConfig = _.merge({}, ...partialConfigs)
 
         // assume config is valid against the latest schema
         mergedConfig.$schema = latestGrapherConfigSchema

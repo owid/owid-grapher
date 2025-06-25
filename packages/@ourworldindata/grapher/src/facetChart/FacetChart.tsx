@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import React from "react"
 import * as R from "remeda"
 import { observer } from "mobx-react"
@@ -6,18 +7,12 @@ import {
     DEFAULT_BOUNDS,
     excludeUndefined,
     getIdealGridParams,
-    max,
-    maxBy,
-    min,
-    sortBy,
-    uniqWith,
     IDEAL_PLOT_ASPECT_RATIO,
     GridParameters,
     Position,
     PositionMap,
     HorizontalAlign,
     Color,
-    uniq,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { shortenForTargetWidth } from "@ourworldindata/components"
@@ -414,7 +409,7 @@ export class FacetChart
         }
         R.values(axes).forEach(({ config, axisAccessor, uniform, shared }) => {
             // max size is the width (if vertical axis) or height (if horizontal axis)
-            const axisWithMaxSize = maxBy(
+            const axisWithMaxSize = _.maxBy(
                 intermediateChartInstances.map(axisAccessor),
                 (axis) => axis?.size
             )
@@ -425,17 +420,17 @@ export class FacetChart
 
                 // If the axes are uniform, we want to find the full domain extent across all facets
                 const domains = axes.map((axis) => axis.domain)
-                config.min = min(domains.map((d) => d[0]))
-                config.max = max(domains.map((d) => d[1]))
+                config.min = _.min(domains.map((d) => d[0]))
+                config.max = _.max(domains.map((d) => d[1]))
 
                 // Find domain values across all facets
-                const domainValues = uniq(
+                const domainValues = _.uniq(
                     axes.flatMap((axis) => axis.config.domainValues ?? [])
                 )
                 if (domainValues.length > 0) config.domainValues = domainValues
 
                 // Find ticks across all facets
-                const ticks = uniq(
+                const ticks = _.uniq(
                     axes.flatMap((axis) => axis.config.ticks ?? [])
                 )
                 if (ticks.length > 0) config.ticks = ticks
@@ -659,7 +654,7 @@ export class FacetChart
     }
 
     private getUniqBins<Bin extends ColorScaleBin>(bins: Bin[]): Bin[] {
-        return uniqWith(bins, (binA, binB): boolean => {
+        return _.uniqWith(bins, (binA, binB): boolean => {
             // For categorical bins, the `.equals()` method isn't good enough,
             // because it only compares `.index`, which in this case can be
             // identical even when the bins are not, because they are coming
@@ -739,7 +734,7 @@ export class FacetChart
         if (!focusArray) return undefined
 
         // find colours of all currently focused series
-        const activeColors = uniq(
+        const activeColors = _.uniq(
             this.intermediateChartInstances.flatMap((chartInstance) =>
                 chartInstance.series
                     .filter((series) => focusArray.has(series.seriesName))
@@ -759,7 +754,7 @@ export class FacetChart
             ]
         )
         const uniqBins = this.getUniqBins(allBins)
-        const sortedBins = sortBy(
+        const sortedBins = _.sortBy(
             uniqBins,
             (bin) => bin instanceof CategoricalBin
         )
@@ -785,7 +780,7 @@ export class FacetChart
         )
         if (this.facetStrategy === FacetStrategy.metric && newBins.length <= 1)
             return []
-        const sortedBins = sortBy(newBins, (bin) => bin.label)
+        const sortedBins = _.sortBy(newBins, (bin) => bin.label)
         return sortedBins
     }
 
@@ -804,7 +799,7 @@ export class FacetChart
         if (!this.manager.focusArray || !this.isFocusModeSupported) return
 
         // find all series (of all facets) that are contained in the bin
-        const seriesNames = uniq(
+        const seriesNames = _.uniq(
             this.intermediateChartInstances.flatMap((chartInstance) =>
                 chartInstance.series
                     .filter((series) => bin.contains(series.seriesName))

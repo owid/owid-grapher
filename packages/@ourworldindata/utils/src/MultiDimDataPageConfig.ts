@@ -10,7 +10,7 @@ import {
     DimensionProperty,
     MultiDimDataPageConfigEnriched,
 } from "@ourworldindata/types"
-import { groupBy, isEmpty, keyBy } from "./Util.js"
+import * as _ from "lodash-es"
 
 interface FilterToAvailableResult {
     selectedChoices: MultiDimDimensionChoices
@@ -37,8 +37,8 @@ export class MultiDimDataPageConfig {
     ): ChoicesEnriched {
         return {
             choices,
-            choicesBySlug: keyBy(choices, "slug"),
-            choicesByGroup: groupBy(choices, "group"),
+            choicesBySlug: _.keyBy(choices, "slug"),
+            choicesByGroup: _.groupBy(choices, "group"),
         }
     }
 
@@ -49,7 +49,7 @@ export class MultiDimDataPageConfig {
                 dimension.choices
             ),
         }))
-        return keyBy(dimensionsEnriched, "slug")
+        return _.keyBy(dimensionsEnriched, "slug")
     }
 
     filterViewsByDimensions(
@@ -215,7 +215,7 @@ export function searchParamsToMultiDimView(
         searchParams,
         mdimConfig
     )
-    if (isEmpty(dimensions)) {
+    if (_.isEmpty(dimensions)) {
         // Get the default dimensions.
         dimensions = mdimConfig.filterToAvailableChoices({}).selectedChoices
     }

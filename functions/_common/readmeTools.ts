@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     excludeUndefined,
     formatSourceDate,
@@ -7,16 +8,13 @@ import {
     getPhraseForProcessingLevel,
     OwidColumnDef,
     getDateRange,
-    uniq,
     getCitationShort,
     getCitationLong,
     prepareSourcesForDisplay,
-    uniqBy,
     formatDate,
-    isEmpty,
 } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
-import { Grapher } from "@ourworldindata/grapher"
+import { GrapherState } from "@ourworldindata/grapher"
 import { getGrapherFilters } from "./urlTools.js"
 
 const markdownNewlineEnding = "  "
@@ -130,7 +128,7 @@ export function yieldMultilineTextAsLines(line: string): string[] {
 export function* getSources(
     def: OwidColumnDef
 ): Generator<string, void, undefined> {
-    const sourcesForDisplay = uniqBy(prepareSourcesForDisplay(def), "label")
+    const sourcesForDisplay = _.uniqBy(prepareSourcesForDisplay(def), "label")
 
     if (sourcesForDisplay.length === 0) return
     else if (sourcesForDisplay.length === 1) {
@@ -169,7 +167,7 @@ export function getSource(attribution: string, def: OwidColumnDef): string {
 }
 
 export function getAttribution(def: OwidColumnDef): string {
-    const producers = uniq(
+    const producers = _.uniq(
         excludeUndefined((def.origins ?? []).map((o) => o.producer))
     )
 
@@ -256,7 +254,7 @@ function* activeFilterSettings(
 }
 
 export function constructReadme(
-    grapher: Grapher,
+    grapherState: GrapherState,
     columns: CoreColumn[],
     searchParams: URLSearchParams,
     multiDimAvailableDimensions?: string[]
@@ -265,17 +263,17 @@ export function constructReadme(
     // Some computed columns have neither a source nor origins - filter these away
     const sources = columns
         .filter(
-            (column) => !!column.source.name || !isEmpty(column.def.origins)
+            (column) => !!column.source.name || !_.isEmpty(column.def.origins)
         )
         .flatMap((col) => [...columnReadmeText(col)])
     let readme: string
-    const urlWithFilters = `${grapher.canonicalUrl}`
+    const urlWithFilters = `${grapherState.canonicalUrl}`
 
     const downloadDate = formatDate(new Date()) // formats the date as "October 10, 2024"
     if (isSingleColumn)
-        readme = `# ${grapher.displayTitle} - Data package
+        readme = `# ${grapherState.displayTitle} - Data package
 
-This data package contains the data that powers the chart ["${grapher.displayTitle}"](${urlWithFilters}) on the Our World in Data website. It was downloaded on ${downloadDate}.
+This data package contains the data that powers the chart ["${grapherState.displayTitle}"](${urlWithFilters}) on the Our World in Data website. It was downloaded on ${downloadDate}.
 ${[...activeFilterSettings(searchParams, multiDimAvailableDimensions)].join("\n")}
 ## CSV Structure
 
@@ -301,9 +299,9 @@ ${sources.join("\n")}
 
     `
     else
-        readme = `# ${grapher.displayTitle} - Data package
+        readme = `# ${grapherState.displayTitle} - Data package
 
-This data package contains the data that powers the chart ["${grapher.displayTitle}"](${urlWithFilters}) on the Our World in Data website.
+This data package contains the data that powers the chart ["${grapherState.displayTitle}"](${urlWithFilters}) on the Our World in Data website.
 
 ## CSV Structure
 

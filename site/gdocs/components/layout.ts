@@ -1,5 +1,5 @@
+import * as _ from "lodash-es"
 import cx from "classnames"
-import { get } from "lodash-es"
 
 export type Container =
     | "default"
@@ -140,11 +140,11 @@ export function getLayout(
     blockType: string = "default",
     containerType: Container = "default"
 ): string {
-    const layout = get(
+    const layout = _.get(
         layouts,
         [containerType, blockType],
         // fallback to the default for the container
-        get(layouts, [containerType, "default"])
+        _.get(layouts, [containerType, "default"])
     )
     return cx(`article-block__${blockType}`, layout)
 }

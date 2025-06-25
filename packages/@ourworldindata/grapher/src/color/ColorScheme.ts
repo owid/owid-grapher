@@ -1,6 +1,7 @@
+import * as _ from "lodash-es"
 import { rgb } from "d3-color"
 import { interpolate } from "d3-interpolate"
-import { lastOfNonEmptyArray, clone, Color } from "@ourworldindata/utils"
+import { lastOfNonEmptyArray, Color } from "@ourworldindata/utils"
 import { ColorSchemeInterface } from "@ourworldindata/types"
 import { interpolateArray } from "./ColorUtils"
 
@@ -27,7 +28,7 @@ export class ColorScheme implements ColorSchemeInterface {
         shortColors: Color[],
         numColors: number
     ): Color[] {
-        const newColors = clone(shortColors)
+        const newColors = _.clone(shortColors)
 
         while (newColors.length < numColors) {
             for (let index = newColors.length - 1; index > 0; index -= 1) {
@@ -58,7 +59,7 @@ export class ColorScheme implements ColorSchemeInterface {
     getGradientColors(numColors: number): Color[] {
         const { colorSets } = this
 
-        if (colorSets[numColors]) return clone(colorSets[numColors])
+        if (colorSets[numColors]) return _.clone(colorSets[numColors])
 
         const prevColors = colorSets
             .toReversed()
@@ -75,7 +76,7 @@ export class ColorScheme implements ColorSchemeInterface {
     getDistinctColors(numColors: number): Color[] {
         const { colorSets } = this
         if (colorSets.length === 0) return []
-        if (colorSets[numColors]) return clone(colorSets[numColors])
+        if (colorSets[numColors]) return _.clone(colorSets[numColors])
 
         if (numColors > colorSets.length - 1) {
             // If more colors are wanted than we have defined, have to improvise

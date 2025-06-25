@@ -1,4 +1,5 @@
-import { omit, lazy } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
+import { lazy } from "@ourworldindata/utils"
 import { ColorSchemeInterface, ColorSchemeName } from "@ourworldindata/types"
 import * as R from "remeda"
 
@@ -58,7 +59,7 @@ const darkerColorReplacementsHexToReplacementColorName = {
 
 // TODO: Make this into a lazy initialization
 export const OwidDistinctLinesColors = {
-    ...omit(OwidDistinctColors, Object.keys(DarkerOwidDistinctColors)),
+    ..._.omit(OwidDistinctColors, Object.keys(DarkerOwidDistinctColors)),
     ...DarkerOwidDistinctColors,
 }
 

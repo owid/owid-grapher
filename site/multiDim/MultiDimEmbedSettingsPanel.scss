@@ -1,0 +1,25 @@
+.md-embed-settings {
+    // Needs to be kept in sync with calculateCollapsedCount in
+    // MultiDimEmbedSettingsPanel.tsx.
+    padding: 16px;
+
+    margin-bottom: 8px;
+    background-color: white;
+    border: 1px solid $gray-10;
+
+    @include sm-only {
+        margin-bottom: 0;
+        border-bottom: 0;
+    }
+}
+
+.md-embed-settings__header {
+    display: none;
+    color: $blue-60;
+    margin-top: 0;
+    margin-bottom: 8px;
+
+    @include sm-only {
+        display: block;
+    }
+}

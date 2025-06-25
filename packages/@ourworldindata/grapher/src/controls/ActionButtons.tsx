@@ -10,6 +10,7 @@ import {
     faDownload,
     faArrowRight,
     IconDefinition,
+    faHeart,
 } from "@fortawesome/free-solid-svg-icons"
 import {
     ShareMenu,
@@ -18,6 +19,7 @@ import {
     shouldShareUsingShareApi,
 } from "./ShareMenu.js"
 import { DEFAULT_BOUNDS, Bounds } from "@ourworldindata/utils"
+import classNames from "classnames"
 
 export interface ActionButtonsManager extends ShareMenuManager {
     isShareMenuActive?: boolean
@@ -59,10 +61,12 @@ export class ActionButtons extends React.Component<{
         const {
             buttonCount,
             hasDownloadButton,
+            hasDonateButton,
             hasShareButton,
             hasFullScreenButton,
             hasExploreTheDataButton,
             downloadButtonWithLabelWidth,
+            donateButtonWithLabelWidth,
             shareButtonWithLabelWidth,
             fullScreenButtonWithLabelWidth,
             exploreTheDataButtonWithLabelWidth,
@@ -78,6 +82,9 @@ export class ActionButtons extends React.Component<{
         if (hasFullScreenButton) {
             width += fullScreenButtonWithLabelWidth
         }
+        if (hasDonateButton) {
+            width += donateButtonWithLabelWidth
+        }
         if (hasExploreTheDataButton) {
             width += exploreTheDataButtonWithLabelWidth
         }
@@ -92,19 +99,18 @@ export class ActionButtons extends React.Component<{
             exploreTheDataButtonWidth,
         } = this
 
+        let width = 0
+        let remainingButtonCount = buttonCount
+
+        // When shown, the explore the data button always has a label
         if (hasExploreTheDataButton) {
-            // the "Explore the data" label is always shown
-            return (
-                exploreTheDataButtonWidth +
-                (buttonCount - 1) * BUTTON_WIDTH_ICON_ONLY +
-                (buttonCount - 1) * PADDING_BETWEEN_BUTTONS
-            )
-        } else {
-            return (
-                buttonCount * BUTTON_WIDTH_ICON_ONLY +
-                (buttonCount - 1) * PADDING_BETWEEN_BUTTONS
-            )
+            width += exploreTheDataButtonWidth
+            remainingButtonCount--
         }
+        width += remainingButtonCount * BUTTON_WIDTH_ICON_ONLY
+        width += (buttonCount - 1) * PADDING_BETWEEN_BUTTONS
+
+        return width
     }
 
     @computed get showButtonLabels(): boolean {
@@ -145,6 +151,10 @@ export class ActionButtons extends React.Component<{
         return ActionButtons.computeButtonWidth(this.fullScreenButtonLabel)
     }
 
+    @computed private get donateButtonWithLabelWidth(): number {
+        return ActionButtons.computeButtonWidth("Donate")
+    }
+
     @computed private get exploreTheDataButtonWithLabelWidth(): number {
         return ActionButtons.computeButtonWidth("Explore the data")
     }
@@ -179,6 +189,17 @@ export class ActionButtons extends React.Component<{
         return fullScreenButtonWithLabelWidth
     }
 
+    @computed private get donateButtonWidth(): number {
+        const {
+            hasDonateButton,
+            showButtonLabels,
+            donateButtonWithLabelWidth,
+        } = this
+        if (!hasDonateButton) return 0
+        if (!showButtonLabels) return BUTTON_WIDTH_ICON_ONLY
+        return donateButtonWithLabelWidth
+    }
+
     // the "Explore the data" button is never shown without a label
     @computed private get exploreTheDataButtonWidth(): number {
         const { hasExploreTheDataButton, exploreTheDataButtonWithLabelWidth } =
@@ -203,6 +224,10 @@ export class ActionButtons extends React.Component<{
         return true
     }
 
+    @computed private get hasDonateButton(): boolean {
+        return !!this.manager.isInIFrame
+    }
+
     @computed private get hasShareButton(): boolean {
         return (
             !this.manager.hideShareButton && ShareMenu.shouldShow(this.manager)
@@ -223,6 +248,7 @@ export class ActionButtons extends React.Component<{
         if (this.hasDownloadButton) count += 1
         if (this.hasShareButton) count += 1
         if (this.hasFullScreenButton) count += 1
+        if (this.hasDonateButton) count += 1
         if (this.hasExploreTheDataButton) count += 1
         return count
     }
@@ -265,7 +291,6 @@ export class ActionButtons extends React.Component<{
                                     this.manager.isDownloadModalOpen = true
                                     e.stopPropagation()
                                 }}
-                                style={{ width: "100%" }}
                             />
                         </li>
                     )}
@@ -281,7 +306,6 @@ export class ActionButtons extends React.Component<{
                                     e.stopPropagation()
                                 }}
                                 isActive={this.manager.isShareMenuActive}
-                                style={{ width: "100%" }}
                             />
                             {isShareMenuActive && this.renderShareMenu()}
                         </li>
@@ -298,28 +322,32 @@ export class ActionButtons extends React.Component<{
                                         : faExpand
                                 }
                                 onClick={this.toggleFullScreenMode}
-                                style={{ width: "100%" }}
+                            />
+                        </li>
+                    )}
+                    {this.hasDonateButton && (
+                        <li style={{ width: this.donateButtonWidth }}>
+                            <ActionButton
+                                className="ActionButton--donate"
+                                label="Donate"
+                                dataTrackNote="chart_click_donate"
+                                showLabel={this.showButtonLabels}
+                                icon={faHeart}
+                                href="https://ourworldindata.org/donate"
                             />
                         </li>
                     )}
                     {this.hasExploreTheDataButton && (
                         <li style={{ width: this.exploreTheDataButtonWidth }}>
-                            <div
-                                className="ActionButton ActionButton--exploreData"
-                                style={{ width: "100%" }}
-                            >
-                                <a
-                                    data-track-note="chart_click_exploredata"
-                                    href={manager.canonicalUrl}
-                                    target="_blank"
-                                    rel="noopener"
-                                >
-                                    <span className="label">
-                                        Explore the data
-                                    </span>
-                                    <FontAwesomeIcon icon={faArrowRight} />
-                                </a>
-                            </div>
+                            <ActionButton
+                                label="Explore the data"
+                                dataTrackNote="chart_click_exploredata"
+                                icon={faArrowRight}
+                                iconPlacement="right"
+                                href={manager.canonicalUrl}
+                                className="ActionButton--exploreData"
+                                showLabel={true}
+                            />
                         </li>
                     )}
                 </ul>
@@ -331,43 +359,70 @@ export class ActionButtons extends React.Component<{
 export function ActionButton(props: {
     label: string
     icon: IconDefinition
+    iconPlacement?: "left" | "right"
+    href?: string
     width?: number
     dataTrackNote?: string
-    onClick?: React.MouseEventHandler<HTMLButtonElement>
-    onMouseDown?: React.MouseEventHandler<HTMLButtonElement>
+    onClick?: React.MouseEventHandler<HTMLDivElement>
+    onMouseDown?: React.MouseEventHandler<HTMLDivElement>
     showLabel?: boolean
     isActive?: boolean
     style?: React.CSSProperties
+    className?: string
 }): React.ReactElement {
     const [showTooltip, setShowTooltip] = useState(false)
 
+    const buttonClassnames = classNames({
+        active: props.isActive,
+        "icon-only": !props.showLabel,
+    })
+
+    const iconPlacement = props.iconPlacement ?? "left"
+
+    const buttonContents = (
+        <>
+            {iconPlacement === "left" && <FontAwesomeIcon icon={props.icon} />}
+            {props.showLabel && <span className="label">{props.label}</span>}
+            {iconPlacement === "right" && <FontAwesomeIcon icon={props.icon} />}
+        </>
+    )
+
     return (
-        <div className="ActionButton" style={props.style}>
-            <button
-                className={
-                    (props.isActive ? "active" : "") +
-                    (props.showLabel ? "" : " icon-only")
-                }
-                data-track-note={props.dataTrackNote}
-                onClick={(e: React.MouseEvent<HTMLButtonElement>): void => {
-                    if (props.onClick) props.onClick(e)
-                    setShowTooltip(false)
-                }}
-                onMouseDown={props.onMouseDown}
-                onMouseEnter={(): void => {
-                    if (!props.showLabel) setShowTooltip(true)
-                }}
-                onMouseLeave={(): void => {
-                    setShowTooltip(false)
-                }}
-                aria-label={props.label}
-                type="button"
-            >
-                <FontAwesomeIcon icon={props.icon} />
-                {props.showLabel && (
-                    <span className="label">{props.label}</span>
-                )}
-            </button>
+        <div
+            className={classNames("ActionButton", props.className)}
+            style={props.style}
+            data-track-note={props.dataTrackNote}
+            onClick={(e: React.MouseEvent<HTMLDivElement>): void => {
+                if (props.onClick) props.onClick(e)
+                setShowTooltip(false)
+            }}
+            onMouseDown={props.onMouseDown}
+            onMouseEnter={(): void => {
+                if (!props.showLabel) setShowTooltip(true)
+            }}
+            onMouseLeave={(): void => {
+                setShowTooltip(false)
+            }}
+        >
+            {props.href ? (
+                <a
+                    href={props.href}
+                    target="_blank"
+                    className={buttonClassnames}
+                    aria-label={props.label}
+                    rel="noopener"
+                >
+                    {buttonContents}
+                </a>
+            ) : (
+                <button
+                    className={buttonClassnames}
+                    aria-label={props.label}
+                    type="button"
+                >
+                    {buttonContents}
+                </button>
+            )}
             {showTooltip && <div className="hover-label">{props.label}</div>}
         </div>
     )

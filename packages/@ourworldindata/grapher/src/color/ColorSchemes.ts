@@ -1,7 +1,7 @@
+import * as _ from "lodash-es"
 import { CustomColorSchemes } from "./CustomSchemes"
 import { ColorScheme } from "./ColorScheme"
 import { match } from "ts-pattern"
-import { partition } from "@ourworldindata/utils"
 import {
     GRAPHER_CHART_TYPES,
     ColorSchemeInterface,
@@ -138,7 +138,7 @@ export function getColorSchemeForChartType(type: GrapherChartOrMapType): {
 } {
     const preferred = new Set(getPreferredSchemesByType(type))
     const allSchemes = getAllColorSchemes()
-    const [preferredSchemes, otherSchemes] = partition(
+    const [preferredSchemes, otherSchemes] = _.partition(
         [...allSchemes.entries()],
         (schemeKeyValue) => preferred.has(schemeKeyValue[0])
     )

@@ -1,10 +1,6 @@
+import * as _ from "lodash-es"
 import { LoadingIndicator } from "@ourworldindata/grapher"
-import {
-    dayjs,
-    debounce,
-    orderBy,
-    SerializedGridProgram,
-} from "@ourworldindata/utils"
+import { dayjs, SerializedGridProgram } from "@ourworldindata/utils"
 import {
     action,
     computed,
@@ -177,7 +173,7 @@ export class ExplorersIndexPage extends Component<{
     @observable highlightSearch?: string
 
     @computed get explorersToShow(): ExplorerProgram[] {
-        return orderBy(
+        return _.orderBy(
             this.explorers,
             (program) => dayjs(program.lastCommit?.date).unix(),
             ["desc"]
@@ -315,7 +311,7 @@ export class ExplorersIndexPage extends Component<{
     componentDidMount() {
         this.dispose = reaction(
             () => this.searchInput || this.maxVisibleRows,
-            debounce(() => this.fetchAllExplorers(), 200)
+            _.debounce(() => this.fetchAllExplorers(), 200)
         )
         void this.fetchAllExplorers()
     }

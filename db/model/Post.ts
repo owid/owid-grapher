@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as db from "../db"
 import {
     DbRawPost,
@@ -21,13 +22,7 @@ import {
     ARCHVED_THUMBNAIL_FILENAME,
     DbEnrichedImage,
 } from "@ourworldindata/types"
-import {
-    uniqBy,
-    memoize,
-    orderBy,
-    keyBy,
-    LARGEST_IMAGE_WIDTH,
-} from "@ourworldindata/utils"
+import { LARGEST_IMAGE_WIDTH } from "@ourworldindata/utils"
 import { Knex } from "knex"
 import {
     BAKED_BASE_URL,
@@ -156,16 +151,16 @@ const getFullPost = async (
             : undefined,
 })
 
-export const getBlogIndex = memoize(
+export const getBlogIndex = _.memoize(
     async (knex: db.KnexReadonlyTransaction): Promise<IndexPost[]> => {
         const gdocPosts = await getAndLoadListedGdocPosts(knex)
         const imagesByFilename = await db
             .getCloudflareImages(knex)
-            .then((images) => keyBy(images, "filename"))
+            .then((images) => _.keyBy(images, "filename"))
 
         const posts = [...mapGdocsToWordpressPosts(gdocPosts, imagesByFilename)]
 
-        return orderBy(posts, (post) => post.date.getTime(), ["desc"])
+        return _.orderBy(posts, (post) => post.date.getTime(), ["desc"])
     }
 )
 
@@ -396,7 +391,7 @@ export const getRelatedResearchAndWritingForVariables = async (
     // the queries above use distinct but because of the information we pull in if the same piece of research
     // uses different charts that all use a single indicator we would get duplicates for the post to link to so
     // here we deduplicate by url. The first item is retained by uniqBy, latter ones are discarded.
-    return uniqBy(allSortedRelatedResearch, "url").slice(0, 20)
+    return _.uniqBy(allSortedRelatedResearch, "url").slice(0, 20)
 }
 
 export const getLatestWorkByAuthor = async (

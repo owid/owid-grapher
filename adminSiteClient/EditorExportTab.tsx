@@ -1,14 +1,19 @@
-import { IReactionDisposer, action, autorun, computed, observable } from "mobx"
+import { IReactionDisposer, action, computed, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
 import { Section, Toggle } from "./Forms.js"
-import { Grapher } from "@ourworldindata/grapher"
+import {
+    GrapherState,
+    loadVariableDataAndMetadata,
+} from "@ourworldindata/grapher"
 import {
     triggerDownloadFromBlob,
     GrapherStaticFormat,
+    OwidVariableDataMetadataDimensions,
+    OwidVariableId,
 } from "@ourworldindata/utils"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
+import { DATA_API_URL, ETL_WIZARD_URL } from "../settings/clientSettings.js"
 import { faHatWizard, faDownload } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -16,7 +21,7 @@ import urljoin from "url-join"
 
 type ExportSettings = Required<
     Pick<
-        Grapher,
+        GrapherState,
         | "hideTitle"
         | "forceHideAnnotationFieldsInTitle"
         | "hideSubtitle"
@@ -27,7 +32,7 @@ type ExportSettings = Required<
 >
 
 type OriginalGrapher = Pick<
-    Grapher,
+    GrapherState,
     | "currentTitle"
     | "shouldAddEntitySuffixToTitle"
     | "shouldAddTimeSuffixToTitle"
@@ -77,9 +82,23 @@ export class EditorExportTab<
 
     componentDidMount(): void {
         this.saveOriginalSettings()
+        this.grapherState.renderToStatic = true
 
-        // needs to run before settings are loaded from session storage
-        const dispose = autorun(() => this.updateGrapher())
+        // Use autorun with the computed property to track settings changes
+        const dispose = reaction(
+            () => this.currentSettings,
+            () => {
+                // store min and max time because these are not part of currentSettings
+                // but undefined will reset to -infinity and +infinity
+                action(() => {
+                    const minTime = this.grapherState.minTime
+                    const maxTime = this.grapherState.maxTime
+                    this.grapherState.updateFromObject(this.currentSettings)
+                    this.grapherState.minTime = minTime
+                    this.grapherState.maxTime = maxTime
+                })()
+            }
+        )
 
         if (sessionStorage) {
             this.loadSettingsFromSessionStorage()
@@ -90,6 +109,7 @@ export class EditorExportTab<
 
     componentWillUnmount(): void {
         this.resetGrapher()
+        this.grapherState.renderToStatic = false
 
         if (sessionStorage) {
             this.saveSettingsToSessionStorage()
@@ -116,52 +136,67 @@ export class EditorExportTab<
 
     private saveOriginalSettings() {
         this.originalSettings = {
-            hideTitle: this.grapher.hideTitle,
+            hideTitle: this.grapherState.hideTitle,
             forceHideAnnotationFieldsInTitle:
-                this.grapher.forceHideAnnotationFieldsInTitle,
-            hideSubtitle: this.grapher.hideSubtitle,
-            hideNote: this.grapher.hideNote,
-            hideOriginUrl: this.grapher.hideOriginUrl,
+                this.grapherState.forceHideAnnotationFieldsInTitle,
+            hideSubtitle: this.grapherState.hideSubtitle,
+            hideNote: this.grapherState.hideNote,
+            hideOriginUrl: this.grapherState.hideOriginUrl,
             shouldIncludeDetailsInStaticExport:
-                this.grapher.shouldIncludeDetailsInStaticExport,
+                this.grapherState.shouldIncludeDetailsInStaticExport,
         }
     }
 
     // a deep clone of Grapher would be simpler and cleaner, but takes too long
     private grabRelevantPropertiesFromGrapher(): OriginalGrapher {
         return {
-            currentTitle: this.grapher.currentTitle,
+            currentTitle: this.grapherState.currentTitle,
             shouldAddEntitySuffixToTitle:
-                this.grapher.shouldAddEntitySuffixToTitle,
-            shouldAddTimeSuffixToTitle: this.grapher.shouldAddTimeSuffixToTitle,
-            currentSubtitle: this.grapher.currentSubtitle,
-            note: this.grapher.note,
-            originUrl: this.grapher.originUrl,
+                this.grapherState.shouldAddEntitySuffixToTitle,
+            shouldAddTimeSuffixToTitle:
+                this.grapherState.shouldAddTimeSuffixToTitle,
+            currentSubtitle: this.grapherState.currentSubtitle,
+            note: this.grapherState.note,
+            originUrl: this.grapherState.originUrl,
             shouldIncludeDetailsInStaticExport:
-                this.grapher.shouldIncludeDetailsInStaticExport,
-            detailsOrderedByReference: this.grapher.detailsOrderedByReference,
+                this.grapherState.shouldIncludeDetailsInStaticExport,
+            detailsOrderedByReference:
+                this.grapherState.detailsOrderedByReference,
         }
     }
 
-    private resetGrapher() {
-        Object.assign(this.grapher, this.originalSettings)
+    @action private resetGrapher() {
+        const minTime = this.grapherState.minTime
+        const maxTime = this.grapherState.maxTime
+        this.grapherState.updateFromObject(this.originalSettings)
+        this.grapherState.minTime = minTime
+        this.grapherState.maxTime = maxTime
     }
 
-    private updateGrapher() {
-        Object.assign(this.grapher, this.settings)
+    @computed private get currentSettings(): ExportSettings {
+        return {
+            hideTitle: this.settings.hideTitle,
+            forceHideAnnotationFieldsInTitle:
+                this.settings.forceHideAnnotationFieldsInTitle,
+            hideSubtitle: this.settings.hideSubtitle,
+            hideNote: this.settings.hideNote,
+            hideOriginUrl: this.settings.hideOriginUrl,
+            shouldIncludeDetailsInStaticExport:
+                this.settings.shouldIncludeDetailsInStaticExport,
+        }
     }
 
-    @computed private get grapher(): Grapher {
-        return this.props.editor.grapher
+    @computed private get grapherState(): GrapherState {
+        return this.props.editor.grapherState
     }
 
     @computed private get chartId(): number {
         // the id is undefined for unsaved charts
-        return this.grapher.id ?? 0
+        return this.grapherState.id ?? 0
     }
 
     @computed private get baseFilename(): string {
-        return this.props.editor.grapher.displaySlug
+        return this.props.editor.grapherState.displaySlug
     }
 
     @action.bound private onDownloadDesktopSVG() {
@@ -206,21 +241,29 @@ export class EditorExportTab<
         }
     ) {
         try {
-            let grapher = this.grapher
+            let grapherState = this.grapherState
             if (
-                this.grapher.staticFormat !== format ||
-                this.grapher.isSocialMediaExport !== isSocialMediaExport
+                this.grapherState.staticFormat !== format ||
+                this.grapherState.isSocialMediaExport !== isSocialMediaExport
             ) {
-                grapher = new Grapher({
-                    ...this.grapher,
+                grapherState = new GrapherState({
+                    ...this.grapherState.toObject(),
                     staticFormat: format,
-                    selectedEntityNames:
-                        this.grapher.selection.selectedEntityNames,
-                    focusedSeriesNames: this.grapher.focusedSeriesNames,
+                    selectedEntityNames: [
+                        ...this.grapherState.selection.selectedEntityNames,
+                    ],
+                    focusedSeriesNames: [
+                        ...this.grapherState.focusedSeriesNames,
+                    ],
                     isSocialMediaExport,
+                    additionalDataLoaderFn: (
+                        varId: OwidVariableId
+                    ): Promise<OwidVariableDataMetadataDimensions> =>
+                        loadVariableDataAndMetadata(varId, DATA_API_URL),
                 })
+                grapherState.inputTable = this.grapherState.inputTable
             }
-            const { blob: pngBlob, svgBlob } = await grapher.rasterize()
+            const { blob: pngBlob, svgBlob } = await grapherState.rasterize()
             if (filename.endsWith("svg") && svgBlob) {
                 triggerDownloadFromBlob(filename, svgBlob)
             } else if (filename.endsWith("png") && pngBlob) {
@@ -235,10 +278,10 @@ export class EditorExportTab<
         const chartAnimationUrl = new URL(
             urljoin(ETL_WIZARD_URL, "chart-animation")
         )
-        if (this.grapher.canonicalUrl)
+        if (this.grapherState.canonicalUrl)
             chartAnimationUrl.searchParams.set(
                 "animation_chart_url",
-                this.grapher.canonicalUrl
+                this.grapherState.canonicalUrl
             )
         chartAnimationUrl.searchParams.set("animation_skip_button", "True")
         // chartAnimationUrl.searchParams.set(
@@ -253,9 +296,9 @@ export class EditorExportTab<
                         <Toggle
                             label="Title"
                             value={!this.settings.hideTitle}
-                            onValue={(value) =>
-                                (this.settings.hideTitle = !value)
-                            }
+                            onValue={action((value) => {
+                                this.settings.hideTitle = !value
+                            })}
                         />
                     )}
                     {this.originalGrapher.currentTitle &&
@@ -267,10 +310,11 @@ export class EditorExportTab<
                                         .forceHideAnnotationFieldsInTitle
                                         ?.entity
                                 }
-                                onValue={(value) =>
-                                    (this.settings.forceHideAnnotationFieldsInTitle.entity =
-                                        !value)
-                                }
+                                onValue={action(
+                                    (value) =>
+                                        (this.settings.forceHideAnnotationFieldsInTitle.entity =
+                                            !value)
+                                )}
                             />
                         )}
                     {this.originalGrapher.currentTitle &&
@@ -281,38 +325,40 @@ export class EditorExportTab<
                                     !this.settings
                                         .forceHideAnnotationFieldsInTitle?.time
                                 }
-                                onValue={(value) =>
-                                    (this.settings.forceHideAnnotationFieldsInTitle.time =
-                                        !value)
-                                }
+                                onValue={action(
+                                    (value) =>
+                                        (this.settings.forceHideAnnotationFieldsInTitle.time =
+                                            !value)
+                                )}
                             />
                         )}
                     {this.originalGrapher.currentSubtitle && (
                         <Toggle
                             label="Subtitle"
                             value={!this.settings.hideSubtitle}
-                            onValue={(value) =>
-                                (this.settings.hideSubtitle = !value)
-                            }
+                            onValue={action(
+                                (value) => (this.settings.hideSubtitle = !value)
+                            )}
                         />
                     )}
                     {this.originalGrapher.note && (
                         <Toggle
                             label="Note"
                             value={!this.settings.hideNote}
-                            onValue={(value) =>
-                                (this.settings.hideNote = !value)
-                            }
+                            onValue={action(
+                                (value) => (this.settings.hideNote = !value)
+                            )}
                         />
                     )}
                     {this.originalGrapher.originUrl &&
-                        !this.grapher.isStaticAndSmall && (
+                        !this.grapherState.isStaticAndSmall && (
                             <Toggle
                                 label="Origin URL"
                                 value={!this.settings.hideOriginUrl}
-                                onValue={(value) =>
-                                    (this.settings.hideOriginUrl = !value)
-                                }
+                                onValue={action(
+                                    (value) =>
+                                        (this.settings.hideOriginUrl = !value)
+                                )}
                             />
                         )}
                     {this.originalGrapher.detailsOrderedByReference.length >
@@ -322,10 +368,11 @@ export class EditorExportTab<
                             value={
                                 this.settings.shouldIncludeDetailsInStaticExport
                             }
-                            onValue={(value) =>
-                                (this.settings.shouldIncludeDetailsInStaticExport =
-                                    value)
-                            }
+                            onValue={action(
+                                (value) =>
+                                    (this.settings.shouldIncludeDetailsInStaticExport =
+                                        value)
+                            )}
                         />
                     )}
                 </Section>
@@ -371,7 +418,7 @@ export class EditorExportTab<
                 </Section>
 
                 {/* Link to Wizard dataset preview */}
-                {this.grapher.isPublished && (
+                {this.grapherState.isPublished && (
                     <Section name="Animate chart">
                         <a
                             href={chartAnimationUrl.toString()}

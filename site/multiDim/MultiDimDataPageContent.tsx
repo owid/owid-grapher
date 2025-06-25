@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { unstable_batchedUpdates } from "react-dom"
 import { useSearchParams } from "react-router-dom-v5-compat"
@@ -5,23 +6,20 @@ import * as Sentry from "@sentry/react"
 import {
     Grapher,
     GrapherAnalytics,
-    GrapherProgrammaticInterface,
+    GrapherState,
+    getCachingInputTableFetcher,
+    GrapherManager,
+    loadVariableDataAndMetadata,
 } from "@ourworldindata/grapher"
 import {
     DataPageDataV2,
     joinTitleFragments,
-    compact,
     MultiDimDataPageConfig,
     extractMultiDimChoicesFromSearchParams,
-    merge,
     isInIFrame,
 } from "@ourworldindata/utils"
 import {
-    ADMIN_BASE_URL,
-    BAKED_GRAPHER_URL,
-    DATA_API_URL,
-} from "../../settings/clientSettings.js"
-import {
+    ArchiveContext,
     DataPageRelatedResearch,
     FaqEntryKeyedByGdocIdAndFragmentId,
     FaqLink,
@@ -45,16 +43,15 @@ import {
     cachedGetVariableMetadata,
 } from "./api.js"
 import MultiDim from "./MultiDim.js"
+import { useBaseGrapherConfig } from "./hooks.js"
+import {
+    DATA_API_URL,
+    BAKED_GRAPHER_URL,
+    ADMIN_BASE_URL,
+} from "../../settings/clientSettings.js"
 
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
 const isIframe = isInIFrame()
-
-const baseGrapherConfig: GrapherProgrammaticInterface = {
-    bakedGrapherURL: BAKED_GRAPHER_URL,
-    adminBaseUrl: ADMIN_BASE_URL,
-    dataApiUrl: DATA_API_URL,
-    canHideExternalControlsInEmbed: true,
-}
 
 const useTitleFragments = (config: MultiDimDataPageConfig) => {
     const title = config.config.title
@@ -76,6 +73,7 @@ export type MultiDimDataPageContentProps = {
     relatedResearchCandidates: DataPageRelatedResearch[]
     imageMetadata: Record<string, ImageMetadata>
     isPreviewing?: boolean
+    archivedChartInfo?: ArchiveContext
 }
 
 export type MultiDimDataPageData = Omit<
@@ -105,14 +103,34 @@ export function DataPageContent({
     relatedResearchCandidates,
     tagToSlugMap,
     imageMetadata,
+    archivedChartInfo,
 }: MultiDimDataPageContentProps) {
-    const grapherRef = useRef<Grapher | null>(null)
+    // A non-empty manager is used in the size calculations
+    // within grapher, so we have to initialize it early with
+    // a truthy value
+    const manager = useRef<GrapherManager>({ adminEditPath: "" })
+    const grapherStateRef = useRef<GrapherState>(
+        new GrapherState({
+            additionalDataLoaderFn: (varId: number) =>
+                loadVariableDataAndMetadata(varId, DATA_API_URL),
+            manager: manager.current,
+        })
+    )
     const grapherFigureRef = useRef<HTMLDivElement>(null)
     const [searchParams, setSearchParams] = useSearchParams()
-    const [manager, setManager] = useState({})
     const [varDatapageData, setVarDatapageData] =
         useState<VariableDataPageData | null>(null)
+    const inputTableFetcher = useMemo(
+        () => getCachingInputTableFetcher(DATA_API_URL, undefined),
+        []
+    )
+
     const titleFragments = useTitleFragments(config)
+    const additionalConfig = useMemo(
+        () => ({ archivedChartInfo }),
+        [archivedChartInfo]
+    )
+    const baseGrapherConfig = useBaseGrapherConfig(additionalConfig)
 
     const settings = useMemo(() => {
         const choices = extractMultiDimChoicesFromSearchParams(
@@ -124,7 +142,7 @@ export function DataPageContent({
 
     const updateGrapher = useCallback(
         (
-            grapher: Grapher,
+            grapherState: GrapherState,
             settings: MultiDimDimensionChoices,
             grapherQueryParams: GrapherQueryParams
         ) => {
@@ -134,13 +152,25 @@ export function DataPageContent({
             const variableId = newView.indicators?.["y"]?.[0]?.id
             if (!variableId) return
 
+            const assetMap =
+                archivedChartInfo?.type === "archive-page"
+                    ? archivedChartInfo.assets.runtime
+                    : undefined
+
             const datapageDataPromise = cachedGetVariableMetadata(
-                variableId
+                variableId,
+                assetMap
             ).then((json) => {
-                const mergedMetadata = merge(
+                const mergedMetadata = _.mergeWith(
+                    {}, // merge mutates the first argument
                     json,
                     config.config?.metadata,
-                    newView.metadata
+                    newView.metadata,
+                    // Overwrite arrays completely instead of merging them.
+                    // Otherwise fall back to the default merge behavior.
+                    (_, srcValue) => {
+                        return Array.isArray(srcValue) ? srcValue : undefined
+                    }
                 )
                 return {
                     ...getDatapageDataV2(mergedMetadata, newView.config ?? {}),
@@ -148,24 +178,24 @@ export function DataPageContent({
                 }
             })
             const grapherConfigUuid = newView.fullConfigId
+
             const grapherConfigPromise = cachedGetGrapherConfigByUuid(
                 grapherConfigUuid,
-                isPreviewing ?? false
+                isPreviewing ?? false,
+                assetMap
             )
             const variables = newView.indicators?.["y"]
             const adminEditPath =
                 variables?.length === 1
                     ? `variables/${variables[0].id}/config`
                     : undefined
-            setManager((prev) => ({
-                ...prev,
-                analyticsContext: { mdimSlug: slug, mdimView: settings },
-                adminEditPath,
-                adminCreateNarrativeChartPath: `narrative-charts/create?type=multiDim&chartConfigId=${grapherConfigUuid}`,
-            }))
+            const analyticsContext = { mdimSlug: slug!, mdimView: settings }
+            manager.current.adminEditPath = adminEditPath
+            manager.current.analyticsContext = analyticsContext
+            manager.current.adminCreateNarrativeChartPath = `narrative-charts/create?type=multiDim&chartConfigId=${grapherConfigUuid}`
 
             void Promise.allSettled([datapageDataPromise, grapherConfigPromise])
-                .then(([datapageData, grapherConfig]) => {
+                .then(async ([datapageData, grapherConfig]) => {
                     if (datapageData.status === "rejected")
                         throw new Error(
                             `Fetching variable by uuid failed: ${grapherConfigUuid}`,
@@ -177,6 +207,16 @@ export function DataPageContent({
                             ...grapherConfig.value,
                             ...baseGrapherConfig,
                         }
+                        if (config.manager)
+                            config.manager.adminEditPath = adminEditPath
+                        else config.manager = { adminEditPath }
+                        void inputTableFetcher(
+                            grapherConfig.value.dimensions!,
+                            grapherConfig.value.selectedEntityColors
+                        ).then((inputTable) => {
+                            if (inputTable) grapherState.inputTable = inputTable
+                        })
+
                         if (slug) {
                             config.slug = slug // Needed for the URL used for sharing.
                         }
@@ -185,22 +225,31 @@ export function DataPageContent({
                         // multiple times while flashing.
                         // https://stackoverflow.com/a/48610973/9846837
                         unstable_batchedUpdates(() => {
-                            grapher.setAuthoredVersion(config)
-                            grapher.reset()
-                            grapher.updateFromObject(config)
-                            grapher.downloadData()
-                            grapher.populateFromQueryParams(grapherQueryParams)
+                            grapherState.setAuthoredVersion(config)
+                            grapherState.reset()
+                            grapherState.updateFromObject(config)
+
+                            grapherState.populateFromQueryParams(
+                                grapherQueryParams
+                            )
                         })
                     }
                 })
                 .catch(Sentry.captureException)
         },
-        [config, isPreviewing, slug]
+        [
+            config,
+            inputTableFetcher,
+            isPreviewing,
+            slug,
+            baseGrapherConfig,
+            archivedChartInfo,
+        ]
     )
 
     const handleSettingsChange = useCallback(
         (settings: MultiDimDimensionChoices) => {
-            const grapher = grapherRef.current
+            const grapher = grapherStateRef.current
             if (!grapher) return
 
             const { selectedChoices } =
@@ -232,9 +281,13 @@ export function DataPageContent({
 
     // Set state from query params on page load.
     useEffect(() => {
-        const grapher = grapherRef.current
+        const grapher = grapherStateRef.current
         if (!grapher) return
         const queryParams = Object.fromEntries(searchParams.entries())
+        // this is not taking into account what used to be passed as "manager"
+        grapher.externalBounds = bounds
+        grapher.bakedGrapherURL = BAKED_GRAPHER_URL
+        grapher.adminBaseUrl = ADMIN_BASE_URL
         updateGrapher(grapher, settings, queryParams)
         // NOTE (Martin): This is the only way I was able to set the initial
         // state on page load. Reconsider after the Grapher state refactor, i.e.
@@ -245,8 +298,8 @@ export function DataPageContent({
 
     // De-mobx grapher.changedParams by transforming it into React state
     const grapherChangedParams = useMobxStateToReactState(
-        useCallback(() => grapherRef.current?.changedParams, []),
-        !!grapherRef.current
+        useCallback(() => grapherStateRef.current?.changedParams, []),
+        !!grapherStateRef.current
     )
 
     useEffect(() => {
@@ -259,8 +312,8 @@ export function DataPageContent({
     }, [grapherChangedParams, settings, setSearchParams])
 
     const grapherCurrentTitle = useMobxStateToReactState(
-        useCallback(() => grapherRef.current?.currentTitle, []),
-        !!grapherRef.current
+        useCallback(() => grapherStateRef.current?.currentTitle, []),
+        !!grapherStateRef.current
     )
 
     useEffect(() => {
@@ -270,6 +323,12 @@ export function DataPageContent({
     }, [grapherCurrentTitle])
 
     const bounds = useElementBounds(grapherFigureRef)
+
+    useEffect(() => {
+        if (bounds) {
+            grapherStateRef.current.externalBounds = bounds
+        }
+    }, [bounds])
 
     const hasTopicTags = !!config.config.topicTags?.length
 
@@ -283,7 +342,7 @@ export function DataPageContent({
     )
 
     const faqEntriesForView = useMemo(() => {
-        return compact(
+        return _.compact(
             varDatapageData?.faqs?.flatMap(
                 (faq) => faqEntries?.faqs?.[faq.gdocId]?.[faq.fragmentId]
             )
@@ -338,10 +397,7 @@ export function DataPageContent({
                         >
                             <figure data-grapher-src ref={grapherFigureRef}>
                                 <Grapher
-                                    ref={grapherRef}
-                                    {...baseGrapherConfig}
-                                    bounds={bounds}
-                                    manager={manager}
+                                    grapherState={grapherStateRef.current}
                                 />
                             </figure>
                         </div>
@@ -377,6 +433,7 @@ export function DataPageContent({
                         source={varDatapageData.source}
                         title={varDatapageData.title}
                         titleVariant={varDatapageData.titleVariant}
+                        archivedChartInfo={archivedChartInfo}
                     />
                 )}
             </div>
@@ -394,9 +451,15 @@ export function MultiDimDataPageContent({
     relatedResearchCandidates,
     tagToSlugMap,
     imageMetadata,
+    archivedChartInfo,
 }: MultiDimDataPageContentProps) {
     return isIframe ? (
-        <MultiDim config={config} slug={slug} queryStr={location.search} />
+        <MultiDim
+            config={config}
+            slug={slug}
+            queryStr={location.search}
+            archivedChartInfo={archivedChartInfo}
+        />
     ) : (
         <DataPageContent
             slug={slug}
@@ -408,6 +471,7 @@ export function MultiDimDataPageContent({
             relatedResearchCandidates={relatedResearchCandidates}
             tagToSlugMap={tagToSlugMap}
             imageMetadata={imageMetadata}
+            archivedChartInfo={archivedChartInfo}
         />
     )
 }

@@ -1,4 +1,4 @@
-import { isNil } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
 import crypto, { Hash } from "crypto"
 import { pipeline } from "node:stream/promises"
 
@@ -14,7 +14,7 @@ const DEFAULT_HASH_LENGTH = 10
 
 const _hashHex = (hash: Hash, hashLength: number | null | undefined) => {
     const hashHex = hash.digest("hex")
-    if (isNil(hashLength)) return hashHex
+    if (_.isNil(hashLength)) return hashHex
     else return hashHex.substring(0, hashLength)
 }
 
@@ -31,7 +31,7 @@ const _hashBase36 = (hash: Hash, hashLength: number | null | undefined) => {
 
     // Convert hex to base36 to make it contain more information in fewer characters
     const hashBase36 = BigInt(`0x${hashHex}`).toString(36)
-    if (isNil(hashLength)) return hashBase36
+    if (_.isNil(hashLength)) return hashBase36
     else return hashBase36.substring(0, hashLength)
 }
 

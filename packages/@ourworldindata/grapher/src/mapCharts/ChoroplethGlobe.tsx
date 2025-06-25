@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -15,7 +16,6 @@ import { zoom } from "d3-zoom"
 import versor from "versor"
 import {
     makeIdForHumanConsumption,
-    difference,
     Bounds,
     isTouchDevice,
     getRelativeMouse,
@@ -43,6 +43,7 @@ import {
     GlobeRenderFeature,
     InternalAnnotation,
     MAP_HOVER_TARGET_RANGE,
+    PROJECTED_DATA_LEGEND_COLOR,
     RenderFeature,
     SVGMouseEvent,
 } from "./MapChartConstants"
@@ -55,6 +56,7 @@ import {
     ExternalValueAnnotation,
     InternalValueAnnotation,
     NoDataPattern,
+    ProjectedDataPattern,
 } from "./MapComponents"
 import { Patterns } from "../core/GrapherConstants"
 import {
@@ -63,6 +65,7 @@ import {
     isPointPlacedOnVisibleHemisphere,
     sortFeaturesByInteractionStateAndSize,
     getForegroundFeatures,
+    isValidGlobeRegionName,
 } from "./MapHelpers"
 import {
     makeInternalAnnotationForFeature,
@@ -124,7 +127,7 @@ export class ChoroplethGlobe extends React.Component<{
 
     @computed
     private get backgroundFeatures(): GlobeRenderFeature[] {
-        return difference(this.features, this.foregroundFeatures)
+        return _.difference(this.features, this.foregroundFeatures)
     }
 
     @computed private get backgroundFeatureIdSet(): Set<EntityName> {
@@ -148,7 +151,11 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @computed private get featuresWithNoData(): GlobeRenderFeature[] {
-        return difference(this.foregroundFeatures, this.featuresWithData)
+        return _.difference(this.foregroundFeatures, this.featuresWithData)
+    }
+
+    @computed private get binColors(): string[] {
+        return this.manager.binColors ?? []
     }
 
     // Map uses a hybrid approach to mouseover
@@ -653,7 +660,7 @@ export class ChoroplethGlobe extends React.Component<{
 
     componentDidMount(): void {
         // rotate to the selected region
-        if (this.mapConfig.region !== MapRegionName.World) {
+        if (isValidGlobeRegionName(this.mapConfig.region)) {
             this.globeController.jumpToOwidContinent(this.mapConfig.region)
         }
 
@@ -763,6 +770,35 @@ export class ChoroplethGlobe extends React.Component<{
 
         return (
             <g id={makeIdForHumanConsumption("countries-with-data")}>
+                {this.manager.hasProjectedData && (
+                    <defs>
+                        {/* Pattern used by the map legend for the projected data bin */}
+                        <ProjectedDataPattern
+                            key={PROJECTED_DATA_LEGEND_COLOR}
+                            color={PROJECTED_DATA_LEGEND_COLOR}
+                            forLegend
+                        />
+
+                        {/* Patterns used by the map legend. These duplicate the patterns below,
+                            but use a legend-specific id */}
+                        {this.binColors.map((color, index) => (
+                            <ProjectedDataPattern
+                                key={`${color}-${index}`}
+                                color={color}
+                                forLegend
+                            />
+                        ))}
+
+                        {/* Pattern used by features */}
+                        {this.binColors.map((color, index) => (
+                            <ProjectedDataPattern
+                                key={`${color}-${index}`}
+                                color={color}
+                            />
+                        ))}
+                    </defs>
+                )}
+
                 {this.sortedFeaturesWithData.map((feature) => {
                     const series = this.choroplethData.get(feature.id)
                     if (!series) return null
@@ -800,6 +836,9 @@ export class ChoroplethGlobe extends React.Component<{
                     <InternalValueAnnotation
                         key={annotation.id}
                         annotation={annotation}
+                        showOutline={
+                            this.choroplethData.get(annotation.id)?.isProjection
+                        }
                     />
                 ))}
             </g>

@@ -1,7 +1,7 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import {
     DEFAULT_BOUNDS,
-    range,
     LogoOption,
     makeIdForHumanConsumption,
     Bounds,
@@ -125,7 +125,7 @@ export class Header<
 
         const originalLineCount = title.lines.length
         // decrease the initial font size by no more than 15% using 0.5px steps
-        const potentialFontSizes = range(
+        const potentialFontSizes = _.range(
             initialFontSize,
             initialFontSize * 0.85,
             -0.5
@@ -150,8 +150,7 @@ export class Header<
             this.manager.isSemiNarrow || this.manager.isStaticAndSmall
         return (
             // if the subtitle is entirely below the logo, we can go underneath it
-            this.title.height > this.logoHeight ||
-            // on narrow screens, long subtitles should also go underneath the logo
+            this.title.height > this.logoHeight || // on narrow screens, long subtitles should also go underneath the logo
             !!(isSmall && subtitleWidth > 2 * this.maxWidth)
         )
     }

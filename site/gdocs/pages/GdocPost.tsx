@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import cx from "classnames"
 import { useIntersectionObserver } from "usehooks-ts"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -8,7 +9,6 @@ import {
     OwidGdocPostInterface,
     CITATION_ID,
     LICENSE_ID,
-    isEmpty,
     OwidGdocType,
     formatAuthorsForBibtex,
     EnrichedBlockText,
@@ -114,7 +114,6 @@ export function GdocPost({
                     />
                 </nav>
             ) : null}
-
             {content.summary ? (
                 <details
                     className="article-summary col-start-5 span-cols-6 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12"
@@ -127,15 +126,12 @@ export function GdocPost({
                     />
                 </details>
             ) : null}
-
             {content.body ? (
                 <ArticleBlocks toc={content.toc} blocks={content.body} />
             ) : null}
-
-            {content.refs && !isEmpty(content.refs.definitions) ? (
+            {content.refs && !_.isEmpty(content.refs.definitions) ? (
                 <Footnotes definitions={content.refs.definitions} />
             ) : null}
-
             {!content["hide-citation"] && (
                 <section
                     id={CITATION_ID}
@@ -170,7 +166,6 @@ export function GdocPost({
                     </div>
                 </section>
             )}
-
             <section
                 id={LICENSE_ID}
                 className="grid grid-cols-12-full-width col-start-1 col-end-limit"

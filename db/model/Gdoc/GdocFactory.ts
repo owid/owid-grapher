@@ -1,4 +1,4 @@
-import { get, groupBy } from "lodash-es"
+import * as _ from "lodash-es"
 import { match, P } from "ts-pattern"
 import {
     ARCHVED_THUMBNAIL_FILENAME,
@@ -360,7 +360,7 @@ export async function loadGdocFromGdocBase(
     base: OwidGdocBaseInterface,
     contentSource?: GdocsContentSource
 ): Promise<GdocPost | GdocDataInsight | GdocHomepage | GdocAbout | GdocAuthor> {
-    const type = get(base, "content.type") as unknown
+    const type = _.get(base, "content.type") as unknown
     if (!type)
         throw new Error(
             `Database record for Google Doc with id "${base.id}" has no type`
@@ -419,7 +419,7 @@ export async function getAndLoadPublishedDataInsights(
                 WHERE gt.gdocId in (:ids)`,
         { ids: ids }
     )
-    const groupedTags = groupBy(tags, "gdocId")
+    const groupedTags = _.groupBy(tags, "gdocId")
     const enrichedRows = rows.map((row) => {
         return {
             ...parsePostsGdocsRow(row),
@@ -548,7 +548,7 @@ export async function getAndLoadListedGdocPosts(
                 WHERE gt.gdocId in (:ids)`,
         { ids: ids }
     )
-    const groupedTags = groupBy(tags, "gdocId")
+    const groupedTags = _.groupBy(tags, "gdocId")
     const enrichedRows = rows.map((row) => {
         return {
             ...parsePostsGdocsRow(row),
@@ -646,7 +646,7 @@ export async function getTagsGroupedByGdocId(
             WHERE gt.gdocId in (:ids)`,
         { ids: gdocIds }
     )
-    return groupBy(tags, "gdocId")
+    return _.groupBy(tags, "gdocId")
 }
 
 export async function getAllGdocIndexItemsOrderedByUpdatedAt(

@@ -1,9 +1,9 @@
+import * as _ from "lodash-es"
 import { Component, Fragment } from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { ChartDimension } from "@ourworldindata/grapher"
 import { OwidColumnDef, OwidVariableRoundingMode } from "@ourworldindata/types"
-import { startCase } from "@ourworldindata/utils"
 import {
     Toggle,
     BindAutoString,
@@ -39,7 +39,7 @@ export class DimensionCard<
     @observable.ref isExpanded: boolean = false
 
     @computed get table(): OwidTable {
-        return this.props.editor.grapher.table
+        return this.props.editor.grapherState.table
     }
 
     @action.bound onToggleExpand() {
@@ -111,7 +111,7 @@ export class DimensionCard<
 
     render() {
         const { dimension, editor, isDndEnabled } = this.props
-        const { grapher } = editor
+        const { grapherState } = editor
         const { column } = dimension
         const columnDef = column.def as OwidColumnDef
 
@@ -137,7 +137,7 @@ export class DimensionCard<
                         <ColorBox
                             color={this.color}
                             onColor={this.onColor}
-                            showLineChartColors={grapher.isLineChart}
+                            showLineChartColors={grapherState.isLineChart}
                         />
                     </div>
                     <Link
@@ -208,7 +208,7 @@ export class DimensionCard<
                             options={Object.keys(OwidVariableRoundingMode).map(
                                 (key) => ({
                                     value: key,
-                                    label: startCase(key),
+                                    label: _.startCase(key),
                                 })
                             )}
                         />
@@ -253,14 +253,14 @@ export class DimensionCard<
                                 set in the Map tab, if defined, overrides the map
                                 tolerance defined here.`}
                         />
-                        {grapher.isLineChart && (
+                        {grapherState.isLineChart && (
                             <Toggle
                                 label="Is projection"
                                 value={column.isProjection}
                                 onValue={this.onIsProjection}
                             />
                         )}
-                        {grapher.isLineChart && (
+                        {grapherState.isLineChart && (
                             <Toggle
                                 label="Plot markers only"
                                 value={

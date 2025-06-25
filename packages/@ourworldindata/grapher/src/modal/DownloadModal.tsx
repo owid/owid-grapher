@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { useCallback, useMemo, useState } from "react"
 import * as React from "react"
 import { observable, computed, action } from "mobx"
@@ -7,11 +8,8 @@ import {
     DEFAULT_BOUNDS,
     getOriginAttributionFragments,
     getPhraseForProcessingLevel,
-    isEmpty,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
-    uniq,
-    uniqBy,
 } from "@ourworldindata/utils"
 import {
     Checkbox,
@@ -64,10 +62,13 @@ export interface DownloadModalManager {
     shouldIncludeDetailsInStaticExport?: boolean
     detailsOrderedByReference?: string[]
     isDownloadModalOpen?: boolean
+    isEmbedModalOpen?: boolean
     frameBounds?: Bounds
     captionedChartBounds?: Bounds
     isOnChartOrMapTab?: boolean
     isOnTableTab?: boolean
+    isOnArchivalPage?: boolean
+    hasArchivedPage?: boolean
     showAdminControls?: boolean
     isSocialMediaExport?: boolean
     isWikimediaExport?: boolean
@@ -284,11 +285,20 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
     }
 
     @computed private get hasDetails(): boolean {
-        return !isEmpty(this.manager.detailsOrderedByReference)
+        return !_.isEmpty(this.manager.detailsOrderedByReference)
     }
 
     @computed private get showExportControls(): boolean {
         return this.hasDetails || !!this.manager.showAdminControls
+    }
+
+    @computed private get showInteractiveEmbedTip(): boolean {
+        return !!(this.manager.isOnArchivalPage || this.manager.hasArchivedPage)
+    }
+
+    @action.bound openEmbedDialog(): void {
+        this.manager.isDownloadModalOpen = false
+        this.manager.isEmbedModalOpen = true
     }
 
     componentDidMount(): void {
@@ -304,6 +314,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
             captionedChartBounds,
             targetWidth,
             targetHeight,
+            showInteractiveEmbedTip,
         } = this
         const pngPreviewUrl = this.pngPreviewUrl || this.fallbackPngUrl
 
@@ -339,6 +350,36 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
             <div>
                 {manager.isOnChartOrMapTab ? (
                     <div className="download-modal__vis-section">
+                        {showInteractiveEmbedTip && (
+                            <Callout
+                                title="Did you know?"
+                                icon={<FontAwesomeIcon icon={faInfoCircle} />}
+                            >
+                                Instead of downloading a static image of this
+                                chart, you can also{" "}
+                                <a
+                                    onClick={this.openEmbedDialog}
+                                    data-track-note="chart_download_click_interactive_embed"
+                                >
+                                    embed an interactive version
+                                </a>
+                                .{" "}
+                                {this.manager.isOnArchivalPage ? (
+                                    <>
+                                        The interactive version will stay fixed
+                                        over time and will always show the same
+                                        chart and data you are seeing now.
+                                    </>
+                                ) : (
+                                    <>
+                                        You can choose between a live embed that
+                                        always reflects our latest data updates,
+                                        or a snapshot embed that stays fixed at
+                                        the time you created it.
+                                    </>
+                                )}
+                            </Callout>
+                        )}
                         <div>
                             <DownloadButton
                                 title="Image (PNG)"
@@ -377,8 +418,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                             this.toggleExportFormat()
 
                                             if (!this.isExportingSquare) {
-                                                this.manager.isSocialMediaExport =
-                                                    false
+                                                this.manager.isSocialMediaExport = false
                                             }
 
                                             this.export()
@@ -397,8 +437,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                             if (this.isSocialMediaExport) {
                                                 this.manager.staticFormat =
                                                     GrapherStaticFormat.square
-                                                this.manager.shouldIncludeDetailsInStaticExport =
-                                                    false
+                                                this.manager.shouldIncludeDetailsInStaticExport = false
                                             }
 
                                             this.export()
@@ -531,7 +570,7 @@ export const getNonRedistributableInfo = (
         })
         .filter((link): link is string => !!link)
 
-    return { cols: nonRedistributableCols, sourceLinks: uniq(sourceLinks) }
+    return { cols: nonRedistributableCols, sourceLinks: _.uniq(sourceLinks) }
 }
 
 const CodeExamplesBlock = (props: { csvUrl: string; metadataUrl: string }) => {
@@ -594,7 +633,7 @@ const SourceAndCitationSection = ({ table }: { table?: OwidTable }) => {
                 })
             ) ?? []
 
-    const originsUniq = uniqBy(
+    const originsUniq = _.uniqBy(
         [...origins, ...otherSources],
         (o) => o.urlMain ?? o.datePublished
     )

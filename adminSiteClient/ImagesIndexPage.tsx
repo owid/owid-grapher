@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     createContext,
     useCallback,
@@ -32,7 +33,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { type File, fileToBase64 } from "./imagesHelpers.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
-import { keyBy } from "lodash-es"
 import { NotificationInstance } from "antd/es/notification/interface.js"
 import { EditableTextarea } from "./EditableTextarea.js"
 
@@ -548,13 +548,13 @@ export function ImageIndexPage() {
                 const json = await admin.getJSON<{
                     images: DbEnrichedImageWithUserId[]
                 }>("/api/images.json")
-                setImages(keyBy(json.images, "id"))
+                setImages(_.keyBy(json.images, "id"))
             },
             getUsers: async () => {
                 const json = await admin.getJSON<{ users: DbPlainUser[] }>(
                     "/api/users.json"
                 )
-                setUsers(keyBy(json.users, "id"))
+                setUsers(_.keyBy(json.users, "id"))
             },
             patchImage: async (image, patch) => {
                 const response = await admin.requestJSON<{

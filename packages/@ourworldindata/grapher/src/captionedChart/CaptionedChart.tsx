@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
@@ -5,7 +6,6 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
     exposeInstanceOnWindow,
-    isEmpty,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
@@ -43,7 +43,8 @@ import {
     GrapherChartOrMapType,
     GrapherChartType,
 } from "@ourworldindata/types"
-import { DataTable, DataTableManager } from "../dataTable/DataTable"
+import { DataTable } from "../dataTable/DataTable"
+import { DataTableManager } from "../dataTable/DataTableConstants"
 import {
     TimelineComponent,
     TIMELINE_HEIGHT,
@@ -534,9 +535,11 @@ export class StaticCaptionedChart extends CaptionedChart {
                     {this.manager.detailRenderers.map((detail, i) => {
                         previousOffset = yOffset
                         yOffset += detail.height + STATIC_EXPORT_DETAIL_SPACING
-                        return detail.renderSVG(0, previousOffset, {
-                            textProps: { key: i },
-                        })
+                        return (
+                            <React.Fragment key={i}>
+                                {detail.renderSVG(0, previousOffset)}
+                            </React.Fragment>
+                        )
                     })}
                 </g>
             </>
@@ -568,7 +571,7 @@ export class StaticCaptionedChart extends CaptionedChart {
 
         const includeDetailsInStaticExport =
             manager.shouldIncludeDetailsInStaticExport &&
-            !isEmpty(this.manager.detailRenderers)
+            !_.isEmpty(this.manager.detailRenderers)
 
         const includeFontsStyle = !manager.isExportingForWikimedia
 

@@ -1,7 +1,7 @@
+import * as _ from "lodash-es"
 import { match } from "ts-pattern"
 import parse from "s-expression"
 import pointer from "json8-pointer"
-import { isArray, tail, without } from "@ourworldindata/utils"
 // This type models what we get from the s-expression library. This library
 // transforms lists in S-Expressions into array, strings inside double quotes
 // as String (note the uppercase! It really uses the rarely used String object) and
@@ -562,7 +562,7 @@ export function parseOperationRecursive(
     context: OperationContext
 ): Operation | undefined {
     if (sExpr === undefined) return undefined
-    if (isArray(sExpr)) {
+    if (_.isArray(sExpr)) {
         if (sExpr.length === 0) return undefined
         else {
             const firstElement = sExpr[0]
@@ -579,8 +579,8 @@ export function parseOperationRecursive(
 
             // Check if the arity matches the number of arguments
             const expectedArgs = arityToNumberMap.get(op.arity)
-            const parsedArgs = without(
-                tail(sExpr).map((subexpr) =>
+            const parsedArgs = _.without(
+                _.tail(sExpr).map((subexpr) =>
                     parseOperationRecursive(subexpr, context)
                 ),
                 undefined

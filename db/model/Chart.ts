@@ -499,7 +499,7 @@ export async function getGptTopicSuggestions(
     const openai = new OpenAI({
         apiKey: OPENAI_API_KEY,
     })
-    const completion = await openai.beta.chat.completions.parse({
+    const completion = await openai.chat.completions.parse({
         messages: [{ role: "user", content: prompt }],
         model: "gpt-4o",
         response_format: zodResponseFormat(TopicsResponseSchema, "topics"),

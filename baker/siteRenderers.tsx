@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { LongFormPage, PageOverrides } from "../site/LongFormPage.js"
 import { BlogIndexPage } from "../site/BlogIndexPage.js"
 import { SearchPage } from "../site/search/SearchPage.js"
@@ -11,7 +12,6 @@ import { ThankYouPage } from "../site/ThankYouPage.js"
 import TombstonePage from "../site/TombstonePage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import ReactDOMServer from "react-dom/server.js"
-import * as lodash from "lodash-es"
 import { formatCountryProfile, isCanonicalInternalUrl } from "./formatting.js"
 import * as cheerio from "cheerio"
 import {
@@ -29,8 +29,6 @@ import { FeedbackPage } from "../site/FeedbackPage.js"
 import {
     getCountryBySlug,
     Country,
-    get,
-    memoize,
     FormattedPost,
     FullPost,
     JsonError,
@@ -394,16 +392,16 @@ ${dataInsights
         const content = ReactDOMServer.renderToStaticMarkup(
             <AttachmentsContext.Provider
                 value={{
-                    linkedAuthors: get(post, "linkedAuthors", []),
-                    linkedDocuments: get(post, "linkedDocuments", {}),
-                    imageMetadata: get(post, "imageMetadata", {}),
-                    linkedCharts: get(post, "linkedCharts", {}),
-                    linkedIndicators: get(post, "linkedIndicators", {}),
-                    relatedCharts: get(post, "relatedCharts", []),
-                    latestDataInsights: get(post, "latestDataInsights", []),
-                    homepageMetadata: get(post, "homepageMetadata", {}),
-                    latestWorkLinks: get(post, "latestWorkLinks", []),
-                    linkedNarrativeCharts: get(
+                    linkedAuthors: _.get(post, "linkedAuthors", []),
+                    linkedDocuments: _.get(post, "linkedDocuments", {}),
+                    imageMetadata: _.get(post, "imageMetadata", {}),
+                    linkedCharts: _.get(post, "linkedCharts", {}),
+                    linkedIndicators: _.get(post, "linkedIndicators", {}),
+                    relatedCharts: _.get(post, "relatedCharts", []),
+                    latestDataInsights: _.get(post, "latestDataInsights", []),
+                    homepageMetadata: _.get(post, "homepageMetadata", {}),
+                    latestWorkLinks: _.get(post, "latestWorkLinks", []),
+                    linkedNarrativeCharts: _.get(
                         post,
                         "linkedNarrativeCharts",
                         {}
@@ -438,7 +436,7 @@ ${dataInsights
 export const feedbackPage = () =>
     renderToHtmlPage(<FeedbackPage baseUrl={BAKED_BASE_URL} />)
 
-const getCountryProfilePost = memoize(
+const getCountryProfilePost = _.memoize(
     async (
         profileSpec: CountryProfileSpec,
         knex: KnexReadonlyTransaction
@@ -463,7 +461,7 @@ const getCountryProfilePost = memoize(
 )
 
 // todo: we used to flush cache of this thing.
-const getCountryProfileLandingPost = memoize(
+const getCountryProfileLandingPost = _.memoize(
     async (profileSpec: CountryProfileSpec, knex: KnexReadonlyTransaction) => {
         return getFullPostBySlugFromSnapshot(knex, profileSpec.landingPageSlug)
     }
@@ -754,7 +752,7 @@ export const renderExplorerPage = async (
                 : {}
             const mergedConfig = mergeGrapherConfigs(etlConfig, adminConfig)
             // explorers set their own dimensions, so we don't need to include them here
-            const mergedConfigWithoutDimensions = lodash.omit(
+            const mergedConfigWithoutDimensions = _.omit(
                 mergedConfig,
                 "dimensions"
             )

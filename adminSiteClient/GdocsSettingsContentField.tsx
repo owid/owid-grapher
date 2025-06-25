@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import { Input, InputProps } from "antd"
 import {
@@ -6,7 +7,6 @@ import {
     OwidGdocErrorMessageType,
     OwidGdocDataInsightInterface,
     OwidGdocErrorMessageProperty,
-    get,
     OwidGdocHomepageInterface,
     OwidGdocAuthorInterface,
     OwidGdocAboutInterface,
@@ -40,7 +40,7 @@ export const GdocsSettingsContentField = ({
     description?: string
 }) => {
     const error = getPropertyMostCriticalError(property, errors)
-    const value = get(gdoc, ["content", property])
+    const value = _.get(gdoc, ["content", property])
     return (
         <div className="form-group">
             <label htmlFor={property}>

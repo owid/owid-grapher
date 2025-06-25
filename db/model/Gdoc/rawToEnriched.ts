@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     BlockPositionChoice,
     ChartPositionChoice,
@@ -142,15 +143,10 @@ import {
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
-    keyBy,
     filterValidStringValues,
-    uniq,
     excludeNullish,
     omitUndefinedValues,
     Url,
-    isArray,
-    partition,
-    compact,
     toAsciiQuotes,
 } from "@ourworldindata/utils"
 import { checkIsInternalLink, getLinkType } from "@ourworldindata/components"
@@ -166,7 +162,6 @@ import {
     htmlToSpans,
 } from "./htmlToEnriched.js"
 import { P, match } from "ts-pattern"
-import { isObject, parseInt } from "lodash-es"
 import * as R from "remeda"
 
 export function parseRawBlocksToEnrichedBlocks(
@@ -290,7 +285,7 @@ function parseAllCharts(raw: RawBlockAllCharts): EnrichedBlockAllCharts {
 
     const top = raw.value.top
     if (top) {
-        if (!isArray(top)) {
+        if (!_.isArray(top)) {
             return createError({
                 message: `all-charts malformed "top" property: ${typeof raw
                     .value.top}`,
@@ -298,7 +293,7 @@ function parseAllCharts(raw: RawBlockAllCharts): EnrichedBlockAllCharts {
         }
 
         for (const item of top) {
-            if (!isObject(item)) {
+            if (!_.isObject(item)) {
                 return createError({
                     message: `all-charts invalid top item: ${item}`,
                 })
@@ -329,12 +324,12 @@ function parseAdditionalCharts(
         parseErrors: [error],
     })
 
-    if (isArray(raw.value))
+    if (_.isArray(raw.value))
         return createError({
             message: `additional-charts block is using an array tag (e.g. [.additional-charts]). Please update it to use curly braces (e.g. {.additional-charts})`,
         })
 
-    if (!isArray(raw.value.list))
+    if (!_.isArray(raw.value.list))
         return createError({ message: "Block does not contain a list" })
 
     for (const item of raw.value.list) {
@@ -417,7 +412,7 @@ const parseBlockquote = (raw: RawBlockBlockquote): EnrichedBlockBlockquote => {
         })
     }
 
-    if (!isArray(raw.value.text))
+    if (!_.isArray(raw.value.text))
         return createError({
             message:
                 "Text is not a freeform array. Make sure you've written [.+text]",
@@ -486,7 +481,7 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
         const subtitle = val.subtitle
 
         const validControlKeywords = Object.values(ChartControlKeyword)
-        const controls = uniq(
+        const controls = _.uniq(
             filterValidStringValues(
                 val.controls?.flatMap((d: { list: string[] }) => d.list) || [],
                 validControlKeywords,
@@ -499,7 +494,7 @@ const parseChart = (raw: RawBlockChart): EnrichedBlockChart => {
         )
 
         const validTabKeywords = Object.values(ChartTabKeyword)
-        const tabs = uniq(
+        const tabs = _.uniq(
             filterValidStringValues(
                 val.tabs?.flatMap((d: { list: string[] }) => d.list) || [],
                 validTabKeywords,
@@ -700,7 +695,7 @@ const parseChartStory = (raw: RawBlockChartStory): EnrichedBlockChartStory => {
                     message:
                         "Item is missing chart property or it is not a string value",
                 }
-            if (isArray(item?.technical))
+            if (_.isArray(item?.technical))
                 return {
                     message: `Item's technical tag is an array (e.g. "[.technical]"). Please update this tag to use curly braces (e.g. {.technical})`,
                 }
@@ -714,7 +709,7 @@ const parseChartStory = (raw: RawBlockChartStory): EnrichedBlockChartStory => {
         }
     )
 
-    const [errors, enrichedItems] = partition(
+    const [errors, enrichedItems] = _.partition(
         items,
         (item): item is ParseError => "message" in item
     )
@@ -1020,7 +1015,7 @@ const parsePullQuote = (raw: RawBlockPullQuote): EnrichedBlockPullQuote => {
 
     const parsedContent = content.map(parseRawBlocksToEnrichedBlocks)
 
-    const [parsedText, otherBlocks] = partition(
+    const [parsedText, otherBlocks] = _.partition(
         parsedContent,
         (item): item is EnrichedBlockText => item?.type === "text"
     )
@@ -1415,10 +1410,10 @@ const parseSdgGrid = (raw: RawBlockSDGGrid): EnrichedBlockSDGGrid => {
         }
     )
 
-    const [errors, enrichedItems] = partition(
+    const [errors, enrichedItems] = _.partition(
         items,
         (item: EnrichedSDGGridItem | ParseError[]): item is ParseError[] =>
-            isArray(item)
+            _.isArray(item)
     )
 
     const flattenedErrors = errors.flat()
@@ -1434,8 +1429,8 @@ function parseStickyRight(
     raw: RawBlockStickyRightContainer
 ): EnrichedBlockStickyRightContainer {
     const { left = [], right = [] } = raw.value
-    const enrichedLeft = compact(left.map(parseRawBlocksToEnrichedBlocks))
-    const enrichedRight = compact(right.map(parseRawBlocksToEnrichedBlocks))
+    const enrichedLeft = _.compact(left.map(parseRawBlocksToEnrichedBlocks))
+    const enrichedRight = _.compact(right.map(parseRawBlocksToEnrichedBlocks))
     return {
         type: "sticky-right",
         left: enrichedLeft,
@@ -1448,8 +1443,8 @@ function parseStickyLeft(
     raw: RawBlockStickyLeftContainer
 ): EnrichedBlockStickyLeftContainer {
     const { left = [], right = [] } = raw.value
-    const enrichedLeft = compact(left.map(parseRawBlocksToEnrichedBlocks))
-    const enrichedRight = compact(right.map(parseRawBlocksToEnrichedBlocks))
+    const enrichedLeft = _.compact(left.map(parseRawBlocksToEnrichedBlocks))
+    const enrichedRight = _.compact(right.map(parseRawBlocksToEnrichedBlocks))
     return {
         type: "sticky-left",
         left: enrichedLeft,
@@ -1462,8 +1457,8 @@ function parseSideBySide(
     raw: RawBlockSideBySideContainer
 ): EnrichedBlockSideBySideContainer {
     const { left = [], right = [] } = raw.value
-    const enrichedLeft = compact(left.map(parseRawBlocksToEnrichedBlocks))
-    const enrichedRight = compact(right.map(parseRawBlocksToEnrichedBlocks))
+    const enrichedLeft = _.compact(left.map(parseRawBlocksToEnrichedBlocks))
+    const enrichedRight = _.compact(right.map(parseRawBlocksToEnrichedBlocks))
     return {
         type: "side-by-side",
         left: enrichedLeft,
@@ -1475,7 +1470,7 @@ function parseSideBySide(
 function parseGraySection(raw: RawBlockGraySection): EnrichedBlockGraySection {
     return {
         type: "gray-section",
-        items: compact(raw.value.map(parseRawBlocksToEnrichedBlocks)),
+        items: _.compact(raw.value.map(parseRawBlocksToEnrichedBlocks)),
         parseErrors: [],
     }
 }
@@ -1532,7 +1527,7 @@ function parseCallout(raw: RawBlockCallout): EnrichedBlockCallout {
         return createError({ message: "No text provided for callout block" })
     }
 
-    if (!isArray(raw.value.text)) {
+    if (!_.isArray(raw.value.text)) {
         return createError({
             message:
                 "Text must be provided as an array e.g. inside a [.+text] block",
@@ -1705,7 +1700,7 @@ function parseExpander(raw: RawBlockExpander): EnrichedBlockExpander {
             message: "Expander block is missing content",
         })
     }
-    if (!isArray(content)) {
+    if (!_.isArray(content)) {
         return createError({
             message: "Expander block content must be an array",
         })
@@ -1803,7 +1798,7 @@ function parseKeyInsights(raw: RawBlockKeyInsights): EnrichedBlockKeyInsights {
         if (!rawInsight.content) {
             parseErrors.push({ message: "Key insight is missing content" })
         } else {
-            for (const rawContent of compact(rawInsight.content)) {
+            for (const rawContent of _.compact(rawInsight.content)) {
                 const enrichedBlock = parseRawBlocksToEnrichedBlocks(rawContent)
                 if (enrichedBlock) enrichedContent.push(enrichedBlock)
             }
@@ -1878,14 +1873,14 @@ export function parseFaqs(
                 message: `Faq with id "${faq.id}" does not have any blocks`,
             })
 
-        const enrichedText = compact(
+        const enrichedText = _.compact(
             faq.content.map(parseRawBlocksToEnrichedBlocks)
         )
 
         return {
             id: faq.id,
             content: enrichedText,
-            parseErrors: compact([
+            parseErrors: _.compact([
                 ...enrichedText.flatMap((block) =>
                     block?.parseErrors.map((parseError) => ({
                         ...parseError,
@@ -1896,13 +1891,13 @@ export function parseFaqs(
         }
     }
 
-    const [enrichedFaqs, faqsWithErrors] = partition(
+    const [enrichedFaqs, faqsWithErrors] = _.partition(
         faqs.map(parseFaq),
         (detail) => !detail.parseErrors.length
     )
 
     return {
-        faqs: keyBy(enrichedFaqs, "id"),
+        faqs: _.keyBy(enrichedFaqs, "id"),
         parseErrors: faqsWithErrors.flatMap((faq) => faq.parseErrors),
     }
 }
@@ -1926,7 +1921,7 @@ export function parseExpandableParagraph(
     }
     return {
         type: "expandable-paragraph",
-        items: compact(raw.value.map(parseRawBlocksToEnrichedBlocks)),
+        items: _.compact(raw.value.map(parseRawBlocksToEnrichedBlocks)),
         parseErrors: [],
     }
 }
@@ -1990,14 +1985,14 @@ function parseResearchAndWritingBlock(
     }
 
     const primary: EnrichedBlockResearchAndWritingLink[] = []
-    if (isArray(raw.value.primary)) {
+    if (_.isArray(raw.value.primary)) {
         primary.push(...raw.value.primary.map((link) => enrichLink(link)))
     } else if (raw.value.primary) {
         primary.push(enrichLink(raw.value.primary))
     }
 
     const secondary: EnrichedBlockResearchAndWritingLink[] = []
-    if (isArray(raw.value.secondary)) {
+    if (_.isArray(raw.value.secondary)) {
         secondary.push(...raw.value.secondary.map((link) => enrichLink(link)))
     } else if (raw.value.secondary) {
         secondary.push(enrichLink(raw.value.secondary))
@@ -2084,7 +2079,7 @@ function parseAlign(b: RawBlockAlign): EnrichedBlockAlign {
     return {
         type: "align",
         alignment: b.value.alignment as HorizontalAlign,
-        content: compact(b.value.content.map(parseRawBlocksToEnrichedBlocks)),
+        content: _.compact(b.value.content.map(parseRawBlocksToEnrichedBlocks)),
         parseErrors: [],
     }
 }
@@ -2176,7 +2171,7 @@ export function parseRefs({
             type: OwidGdocErrorMessageType.Error,
         })
     }
-    if (isArray(refs)) {
+    if (_.isArray(refs)) {
         for (const ref of refs) {
             if (typeof ref.id === "string") {
                 const enrichedBlocks: OwidEnrichedGdocBlock[] = []
@@ -2187,7 +2182,7 @@ export function parseRefs({
                         `A ref with ID "${ref.id}" has been defined but isn't used in this document`
                     )
                 }
-                if (!isArray(ref.content) || !ref.content.length) {
+                if (!_.isArray(ref.content) || !ref.content.length) {
                     pushRefError(
                         `Ref with ID ${ref.id} has no content. Make sure the ID is defined and it has a [.+content] block`
                     )
@@ -2280,7 +2275,7 @@ const parseKeyIndicator = (
 
     if (!val.text) return createError({ message: "text is missing" }, url)
 
-    if (!isArray(val.text))
+    if (!_.isArray(val.text))
         return createError(
             {
                 message:
@@ -2336,7 +2331,7 @@ function parseKeyIndicatorCollection(
         })
     }
 
-    const parsedBlocks = compact(
+    const parsedBlocks = _.compact(
         keyIndicatorBlocks.map(parseRawBlocksToEnrichedBlocks)
     ) as EnrichedBlockKeyIndicator[]
 

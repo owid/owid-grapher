@@ -1,20 +1,13 @@
+import * as _ from "lodash-es"
 import React from "react"
 import * as R from "remeda"
 import {
-    sortBy,
-    groupBy,
-    mapValues,
-    sum,
     guid,
     excludeNullish,
     getRelativeMouse,
     pointsToPath,
-    minBy,
     exposeInstanceOnWindow,
-    round,
     excludeUndefined,
-    isNumber,
-    sortedUniqBy,
     isMobile,
     Bounds,
     DEFAULT_BOUNDS,
@@ -161,7 +154,7 @@ class Lines extends React.Component<LinesProps> {
     // Note that we're using circle elements instead of marker-mid because marker performance in Safari 10 is very poor for some reason
     @computed private get hasMarkers(): boolean {
         if (this.props.hidePoints) return false
-        const totalPoints = sum(
+        const totalPoints = _.sum(
             this.props.series
                 .filter((series) => this.seriesHasMarkers(series))
                 .map((series) => series.placedPoints.length)
@@ -502,7 +495,7 @@ export class LineChart
         if (boundedBox.contains(mouse)) {
             const invertedX = this.dualAxis.horizontalAxis.invert(mouse.x)
 
-            const closestValue = minBy(this.allValues, (point) =>
+            const closestValue = _.minBy(this.allValues, (point) =>
                 Math.abs(invertedX - point.x)
             )
             hoverX = closestValue?.x
@@ -635,8 +628,8 @@ export class LineChart
         if (!target) return undefined
 
         // Duplicate seriesNames will be present if there is a projected-values line
-        const seriesSegments = mapValues(
-            groupBy(this.series, "seriesName"),
+        const seriesSegments = _.mapValues(
+            _.groupBy(this.series, "seriesName"),
             (segments) =>
                 segments.find((series) =>
                     // Ideally pick series with a defined value at the target time
@@ -647,8 +640,8 @@ export class LineChart
                     // and display a "No data" notice.
                     const [startX, endX] = extent(series.points, ({ x }) => x)
                     return (
-                        isNumber(startX) &&
-                        isNumber(endX) &&
+                        _.isNumber(startX) &&
+                        _.isNumber(endX) &&
                         startX < target.x &&
                         target.x < endX
                     )
@@ -656,7 +649,7 @@ export class LineChart
                 null // If neither series matches, exclude the entity from the tooltip altogether
         )
 
-        const sortedData = sortBy(
+        const sortedData = _.sortBy(
             excludeNullish(R.values(seriesSegments)),
             (series) => {
                 const value = series.points.find(
@@ -1115,8 +1108,7 @@ export class LineChart
         return (
             // For faceted charts, we have to get the values of inputTable before it's filtered by
             // the faceting logic.
-            this.manager.colorScaleColumnOverride ??
-            // We need to use inputTable in order to get consistent coloring for a variable across
+            this.manager.colorScaleColumnOverride ?? // We need to use inputTable in order to get consistent coloring for a variable across
             // charts, e.g. each continent being assigned to the same color.
             // inputTable is unfiltered, so it contains every value that exists in the variable.
             this.inputTable.get(this.colorColumnSlug)
@@ -1168,7 +1160,7 @@ export class LineChart
     // TODO just pass colorScale to legend and let it figure it out?
     @computed get numericLegendData(): ColorScaleBin[] {
         // Move CategoricalBins to end
-        return sortBy(
+        return _.sortBy(
             this.colorScale.legendBins,
             (bin) => bin instanceof CategoricalBin
         )
@@ -1255,10 +1247,10 @@ export class LineChart
         const colorValues = colorColumn.valuesIncludingErrorValues
         // If Y and Color are the same column, we need to get rid of any duplicate rows.
         // Duplicates occur because Y doesn't have tolerance applied, but Color does.
-        const rowIndexes = sortedUniqBy(
+        const rowIndexes = _.sortedUniqBy(
             this.transformedTable.rowIndicesByEntityName
                 .get(entityName)!
-                .filter((index) => isNumber(values[index])),
+                .filter((index) => _.isNumber(values[index])),
             (index) => timeValues[index]
         )
         const points = rowIndexes.map((index) => {
@@ -1337,8 +1329,8 @@ export class LineChart
                 placedPoints: series.points.map(
                     (point): PlacedPoint => ({
                         time: point.x,
-                        x: round(horizontalAxis.place(point.x), 1),
-                        y: round(verticalAxis.place(point.y), 1),
+                        x: _.round(horizontalAxis.place(point.x), 1),
+                        y: _.round(verticalAxis.place(point.y), 1),
                         color: this.hasColorScale
                             ? darkenColorForLine(
                                   this.getColorScaleColor(point.colorValue)
@@ -1373,12 +1365,12 @@ export class LineChart
         )
 
         // draw lines on top of markers-only series
-        series = sortBy(series, (series) => !series.plotMarkersOnly)
+        series = _.sortBy(series, (series) => !series.plotMarkersOnly)
 
         // sort by interaction state so that foreground series
         // are drawn on top of background series
         if (this.isHoverModeActive || this.isFocusModeActive) {
-            series = sortBy(series, byHoverThenFocusState)
+            series = _.sortBy(series, byHoverThenFocusState)
         }
 
         return series
@@ -1394,7 +1386,7 @@ export class LineChart
 
         // Deduplicate series by seriesName to avoid showing the same label multiple times
         const deduplicatedSeries: LineChartSeries[] = []
-        const seriesGroupedByName = groupBy(series, "seriesName")
+        const seriesGroupedByName = _.groupBy(series, "seriesName")
         for (const duplicates of Object.values(seriesGroupedByName)) {
             // keep only the label for the series with the most recent data
             // (series are sorted by time, so we can just take the last one)

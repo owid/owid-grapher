@@ -1,4 +1,4 @@
-import { pick } from "@ourworldindata/utils"
+import * as _ from "lodash-es"
 import { GRAPHER_QUERY_PARAM_KEYS } from "@ourworldindata/types"
 
 export function getGrapherFilters(
@@ -13,7 +13,7 @@ export function getGrapherFilters(
     delete params.v1
     delete params.csvType
     delete params.useColumnShortNames
-    return pick(params, [
+    return _.pick(params, [
         ...GRAPHER_QUERY_PARAM_KEYS,
         ...(multiDimAvailableDimensions ?? []),
     ])

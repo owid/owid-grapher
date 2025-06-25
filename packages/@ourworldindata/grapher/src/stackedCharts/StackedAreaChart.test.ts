@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { expect, it, describe } from "vitest"
 
 import { StackedAreaChart } from "./StackedAreaChart"
@@ -12,7 +13,7 @@ import { ChartManager } from "../chart/ChartManager"
 import { observable } from "mobx"
 import { AxisConfig } from "../axis/AxisConfig"
 import { SelectionArray } from "../selection/SelectionArray"
-import { isNumber, ColumnTypeNames, FacetStrategy } from "@ourworldindata/utils"
+import { ColumnTypeNames, FacetStrategy } from "@ourworldindata/utils"
 
 class MockManager implements ChartManager {
     table = SynthesizeGDPTable({
@@ -123,7 +124,7 @@ it("filters non-numeric values", () => {
     expect(
         chart.series.every((series) =>
             series.points.every(
-                (point) => isNumber(point.position) && isNumber(point.value)
+                (point) => _.isNumber(point.position) && _.isNumber(point.value)
             )
         )
     ).toBeTruthy()

@@ -1,19 +1,15 @@
+import * as _ from "lodash-es"
 import * as React from "react"
 import * as R from "remeda"
 import {
-    extend,
     pointsToPath,
     getRelativeMouse,
     makeSafeForCSS,
-    minBy,
     excludeUndefined,
     isMobile,
     Time,
     lastOfNonEmptyArray,
     makeIdForHumanConsumption,
-    maxBy,
-    sumBy,
-    max,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { InteractionState, SeriesName } from "@ourworldindata/types"
@@ -269,7 +265,7 @@ export class StackedAreaChart extends AbstractStackedChart {
         const yValues = this.allStackedPoints.map(
             (point) => point.value + point.valueOffset
         )
-        return [0, max(yValues) ?? 0]
+        return [0, _.max(yValues) ?? 0]
     }
 
     @computed protected get xAxisConfig(): AxisConfig {
@@ -342,7 +338,7 @@ export class StackedAreaChart extends AbstractStackedChart {
 
     @action.bound private onAreaMouseEnter(seriesName: SeriesName): void {
         if (this.tooltipState.target) {
-            extend(this.tooltipState.target, { series: seriesName })
+            _.extend(this.tooltipState.target, { series: seriesName })
         } else {
             this.tooltipState.target = {
                 index: 0, // might be incorrect but will be updated immediately by the move event handler
@@ -352,7 +348,7 @@ export class StackedAreaChart extends AbstractStackedChart {
     }
 
     @action.bound private onAreaMouseLeave(): void {
-        extend(this.tooltipState.target, { series: undefined })
+        _.extend(this.tooltipState.target, { series: undefined })
     }
 
     @observable lineLegendHoveredSeriesName?: SeriesName
@@ -380,8 +376,8 @@ export class StackedAreaChart extends AbstractStackedChart {
                     if (s2.isAllZeros && !s1.isAllZeros) return PREFER_S1
 
                     // prefer series with a higher maximum value
-                    const yMax1 = maxBy(s1.points, (p) => p.value)?.value ?? 0
-                    const yMax2 = maxBy(s2.points, (p) => p.value)?.value ?? 0
+                    const yMax1 = _.maxBy(s1.points, (p) => p.value)?.value ?? 0
+                    const yMax2 = _.maxBy(s2.points, (p) => p.value)?.value ?? 0
                     if (yMax1 > yMax2) return PREFER_S1
                     if (yMax2 > yMax1) return PREFER_S2
 
@@ -392,8 +388,8 @@ export class StackedAreaChart extends AbstractStackedChart {
                     if (yLast2 > yLast1) return PREFER_S2
 
                     // prefer series with a higher total area
-                    const area1 = sumBy(s1.points, (p) => p.value)
-                    const area2 = sumBy(s2.points, (p) => p.value)
+                    const area1 = _.sumBy(s1.points, (p) => p.value)
+                    const area2 = _.sumBy(s2.points, (p) => p.value)
                     if (area1 > area2) return PREFER_S1
                     if (area2 > area1) return PREFER_S2
 
@@ -432,8 +428,7 @@ export class StackedAreaChart extends AbstractStackedChart {
             // if the chart area is hovered
             this.tooltipState.target?.series ??
             // if the line legend is hovered
-            this.lineLegendHoveredSeriesName ??
-            // if the facet legend is hovered
+            this.lineLegendHoveredSeriesName ?? // if the facet legend is hovered
             this.facetLegendHoveredSeriesName
         )
     }
@@ -478,7 +473,7 @@ export class StackedAreaChart extends AbstractStackedChart {
         let hoveredIndex
         if (boundedBox.contains(mouse)) {
             const invertedX = this.dualAxis.horizontalAxis.invert(mouse.x)
-            const closestPoint = minBy(series[0].points, (d) =>
+            const closestPoint = _.minBy(series[0].points, (d) =>
                 Math.abs(d.position - invertedX)
             )
             if (closestPoint) {

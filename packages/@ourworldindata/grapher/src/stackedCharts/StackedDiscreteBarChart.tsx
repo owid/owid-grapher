@@ -1,13 +1,10 @@
+import * as _ from "lodash-es"
 import React from "react"
 import * as R from "remeda"
 import {
     Bounds,
     DEFAULT_BOUNDS,
-    min,
-    max,
-    maxBy,
     excludeUndefined,
-    sortBy,
     numberMagnitude,
     Color,
     SortOrder,
@@ -265,7 +262,7 @@ export class StackedDiscreteBarChart
 
     // Account for the width of the legend
     @computed private get labelWidth(): number {
-        return max(this.sizedItems.map((d) => d.label.width)) ?? 0
+        return _.max(this.sizedItems.map((d) => d.label.width)) ?? 0
     }
 
     @computed get showTotalValueLabel(): boolean {
@@ -283,7 +280,7 @@ export class StackedDiscreteBarChart
         const labels = this.sizedItems.map((d) =>
             this.formatValueForLabel(d.totalValue)
         )
-        const longestLabel = maxBy(labels, (l) => l.length)
+        const longestLabel = _.maxBy(labels, (l) => l.length)
         return Bounds.forText(longestLabel, this.totalValueLabelStyle).width
     }
 
@@ -301,8 +298,8 @@ export class StackedDiscreteBarChart
             (point) => point.value + point.valueOffset
         )
         return [
-            Math.min(this.x0, min(maxValues) as number),
-            Math.max(this.x0, max(maxValues) as number),
+            Math.min(this.x0, _.min(maxValues) as number),
+            Math.max(this.x0, _.max(maxValues) as number),
         ]
     }
 
@@ -454,7 +451,7 @@ export class StackedDiscreteBarChart
                     return lastPoint.valueOffset + lastPoint.value
                 }
         }
-        const sortedItems = sortBy(this.sizedItems, sortByFunc)
+        const sortedItems = _.sortBy(this.sizedItems, sortByFunc)
         const sortOrder = this.sortConfig.sortOrder ?? SortOrder.desc
         if (sortOrder === SortOrder.desc) return sortedItems.toReversed()
         else return sortedItems
@@ -499,7 +496,7 @@ export class StackedDiscreteBarChart
     // legend props
 
     @computed get legendPaddingTop(): number {
-        return this.baseFontSize
+        return 0.5 * this.baseFontSize
     }
 
     @computed get legendX(): number {
