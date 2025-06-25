@@ -41,10 +41,19 @@ export class MapRegionDropdown extends React.Component<{
     }
 
     @computed private get showMenu(): boolean {
-        const { hideMapRegionDropdown, isOnMapTab, isMapSelectionEnabled } =
-            this.manager
+        const {
+            hideMapRegionDropdown,
+            isOnMapTab,
+            isMapSelectionEnabled,
+            isFaceted,
+        } = this.manager
 
-        return !!(!hideMapRegionDropdown && isOnMapTab && isMapSelectionEnabled)
+        return !!(
+            !hideMapRegionDropdown &&
+            isOnMapTab &&
+            isMapSelectionEnabled &&
+            isFaceted
+        )
     }
 
     @action.bound onChange(

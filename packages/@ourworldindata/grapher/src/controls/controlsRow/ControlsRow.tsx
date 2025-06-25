@@ -120,8 +120,8 @@ export class ControlsRow extends Component<{
                     <>
                         <ZoomToSelectionButton manager={this.manager} />
                         <CloseGlobeViewButton manager={this.manager} />
-                        <EntitySelectionToggle manager={this.manager} />
                         <MapRegionDropdown manager={this.manager} />
+                        <EntitySelectionToggle manager={this.manager} />
                         {/* <GlobeSwitcher manager={this.manager} /> */}
                     </>
                 ) : (
