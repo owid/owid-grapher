@@ -182,7 +182,7 @@ export function searchStateToUrl(state: SearchState) {
         requireAllCountries: state.requireAllCountries ? "true" : undefined,
         page: state.page > 0 ? (state.page + 1).toString() : undefined,
         resultType:
-            state.resultType !== SearchResultType.ALL
+            state.resultType !== SearchResultType.DATA
                 ? state.resultType
                 : undefined,
     }
