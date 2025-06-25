@@ -134,8 +134,9 @@ export function createActions(dispatch: (action: SearchAction) => void) {
 }
 
 export function getInitialSearchState(): SearchState {
-    // Always return the default state to prevent hydration mismatches
-    // The actual URL state will be applied client-side after hydration
+    // Always return the default state to prevent hydration mismatches. The
+    // actual URL state will be applied client-side after hydration using the
+    // useSyncUrlToState hook.
     return {
         query: "",
         filters: [],
