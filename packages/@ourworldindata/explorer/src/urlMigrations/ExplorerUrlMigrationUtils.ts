@@ -28,7 +28,7 @@ export const transformQueryParams = (
         if (!(oldParamName in oldQueryParams)) continue
         const { newName, transformValue } = transformMap[oldParamName]
         const name = newName ?? oldParamName
-        const transform = transformValue ?? identity
+        const transform = transformValue ?? _.identity
         newQueryParams[name] = transform(oldQueryParams[oldParamName])
     }
     return newQueryParams
