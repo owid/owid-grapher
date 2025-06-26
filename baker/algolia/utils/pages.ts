@@ -184,7 +184,7 @@ async function generateGdocRecords(
         const thumbnailUrl = getThumbnailUrl(gdoc, cloudflareImagesByFilename)
 
         const originalTagNames = gdoc.tags?.map((t) => t.name) ?? []
-        // Some Gdocs have don't have topic tags by design (e.g. announcements)
+        // Some Gdocs don't have topic tags by design (e.g. announcements)
         // so we don't log an error if no tags are found.
         // We want to get the parent topic tags as well as the original tags to
         // simplify client-side search queries when searching through areas.
