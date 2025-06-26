@@ -32,7 +32,13 @@ Note: compatibility dates between local development, production and preview envi
 
 We have two cloudflare projects set up that you can deploy previews to. `owid` which is also where our production deployment runs, and `owid-staging`. Currently, `owid` is configured to require authentication while `owid-staging` is accessible from the internet without any kind of auth.
 
-`yarn deployContentPreview` deploys the staging `bakedSite` to a Cloudflare preview at https://[PREVIEW_BRANCH].[PROJECT].pages.dev. This is the recommended way to test functions in a production-like environment. See [../ops/buildkite/deploy-content-preview](../ops/buildkite/deploy-content-preview) for more details.
+To deploy to Cloudflare preview at https://[PREVIEW_BRANCH].[PROJECT].pages.dev run the following from `ops` repository
+
+```bash
+BUILDKITE_BRANCH=$PREVIEW_BRANCH bash templates/owid-site-staging/deploy-content-preview.sh $HOST
+```
+
+This is the recommended way to test functions in a production-like environment.
 
 ### Rationale
 
