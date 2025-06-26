@@ -18,7 +18,7 @@ export const DataCatalogRibbon = ({
     selectedCountries: Region[]
 }) => {
     if (result.nbHits === 0) return null
-    const titleLabel = result.title.replace(" and ", " & ")
+    const titleLabel = result.title.replaceAll(" and ", " & ")
     const handleAddTopicClick = (e: React.MouseEvent) => {
         e.preventDefault()
         addTopic(result.title)

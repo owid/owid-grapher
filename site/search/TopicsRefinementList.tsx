@@ -44,7 +44,7 @@ export const TopicsRefinementList = ({
                 })}
             >
                 {entries.map(([facetName, count], i) => {
-                    const facetNameLabel = facetName.replace(" and ", " & ")
+                    const facetNameLabel = facetName.replaceAll(" and ", " & ")
                     const isLast = i === entries.length - 1
                     return (
                         <React.Fragment key={i}>
