@@ -81,10 +81,6 @@ export const useEmbedChart = (
     }, [activeChartIdx, refChartContainer])
 }
 
-export const useDebounceCallback = (callback: any, delay: number) => {
-    return useRef(_.debounce(callback, delay)).current
-}
-
 export const useTriggerOnEscape = (trigger: VoidFunction) => {
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
