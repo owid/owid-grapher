@@ -1,12 +1,5 @@
 import * as _ from "lodash-es"
-import {
-    useEffect,
-    RefObject,
-    useState,
-    useRef,
-    useCallback,
-    useMemo,
-} from "react"
+import { useEffect, RefObject, useState, useCallback, useMemo } from "react"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import {
     Bounds,
