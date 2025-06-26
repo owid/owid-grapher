@@ -79,7 +79,9 @@
     text-underline-offset: 2px;
     cursor: help;
 
-    span {
+    span,
+    strong,
+    em {
         pointer-events: none;
     }
 }
