@@ -163,9 +163,11 @@ export class StackedDiscreteBarChart
         table = this.applyMissingDataStrategy(table)
 
         if (this.manager.isRelativeMode) {
-            table = table.toPercentageFromEachColumnForEachEntityAndTime(
-                this.yColumnSlugs
-            )
+            table = table
+                .replaceNegativeCellsWithErrorValues(this.yColumnSlugs)
+                .toPercentageFromEachColumnForEachEntityAndTime(
+                    this.yColumnSlugs
+                )
         }
 
         return table
