@@ -31,7 +31,6 @@ import {
     PrimaryTopic,
 } from "@ourworldindata/types"
 import AboutThisData from "../AboutThisData.js"
-import TopicTags from "../TopicTags.js"
 import MetadataSection from "../MetadataSection.js"
 import { useElementBounds, useMobxStateToReactState } from "../hooks.js"
 import { MultiDimSettingsPanel } from "./MultiDimDataPageSettingsPanel.js"
@@ -67,7 +66,6 @@ export type MultiDimDataPageContentProps = {
     canonicalUrl: string
     slug: string | null
     config: MultiDimDataPageConfig
-    tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic
     relatedResearchCandidates: DataPageRelatedResearch[]
@@ -101,7 +99,6 @@ export function DataPageContent({
     faqEntries,
     primaryTopic,
     relatedResearchCandidates,
-    tagToSlugMap,
     imageMetadata,
     archivedChartInfo,
 }: MultiDimDataPageContentProps) {
@@ -330,8 +327,6 @@ export function DataPageContent({
         }
     }, [bounds])
 
-    const hasTopicTags = !!config.config.topicTags?.length
-
     const relatedResearch = useMemo(
         () =>
             processRelatedResearch(
@@ -363,7 +358,7 @@ export function DataPageContent({
             <div className="DataPageContent MultiDimDataPageContent grid grid-cols-12-full-width">
                 <div className="bg-blue-10 span-cols-14">
                     <div className="header__wrapper grid grid-cols-12-full-width">
-                        <div className="header__left col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
+                        <div className="header__left col-start-2 span-cols-12">
                             <div className="header__supertitle">Data</div>
                             <h1 className="header__title">
                                 {config.config.title.title}
@@ -372,13 +367,6 @@ export function DataPageContent({
                                 {titleFragments}
                             </div>
                         </div>
-                        {hasTopicTags && tagToSlugMap && (
-                            <TopicTags
-                                className="header__right col-start-10 span-cols-4 col-sm-start-2 span-sm-cols-12"
-                                topicTagsLinks={config.config.topicTags ?? []}
-                                tagToSlugMap={tagToSlugMap}
-                            />
-                        )}
                         <div className="settings-row__wrapper col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-12">
                             <MultiDimSettingsPanel
                                 config={config}
@@ -449,7 +437,6 @@ export function MultiDimDataPageContent({
     faqEntries,
     primaryTopic,
     relatedResearchCandidates,
-    tagToSlugMap,
     imageMetadata,
     archivedChartInfo,
 }: MultiDimDataPageContentProps) {
@@ -469,7 +456,6 @@ export function MultiDimDataPageContent({
             faqEntries={faqEntries}
             primaryTopic={primaryTopic}
             relatedResearchCandidates={relatedResearchCandidates}
-            tagToSlugMap={tagToSlugMap}
             imageMetadata={imageMetadata}
             archivedChartInfo={archivedChartInfo}
         />
