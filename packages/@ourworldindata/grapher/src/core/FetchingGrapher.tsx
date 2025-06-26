@@ -16,8 +16,6 @@ import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 import { unstable_batchedUpdates } from "react-dom"
 import { Bounds } from "@ourworldindata/utils"
 import { migrateGrapherConfigToLatestVersion } from "../schema/migrations/migrate.js"
-import { match } from "ts-pattern"
-import { mapTabOptionToChartTypeName } from "../chart/ChartUtils.js"
 import { defaultGrapherConfig } from "../schema/defaultGrapherConfig.js"
 
 export interface FetchingGrapherProps {
@@ -92,44 +90,6 @@ export function FetchingGrapher(
                         grapherState.current.updateFromObject(mergedConfig)
                         grapherState.current.legacyConfigAsAuthored =
                             mergedConfig
-                        // Special logic to handle the tab option
-                        if (mergedConfig.tab) {
-                            match(mergedConfig.tab)
-                                .with("table", () => {
-                                    grapherState.current.tab = "table"
-                                })
-                                .with("map", () => {
-                                    grapherState.current.tab = "map"
-                                })
-                                .with("chart", () => {
-                                    grapherState.current.tab = "chart"
-                                })
-                                .with("line", () => {
-                                    grapherState.current.tab = "chart"
-                                    const chartTab =
-                                        mapTabOptionToChartTypeName(
-                                            mergedConfig.tab!
-                                        )
-                                    grapherState.current.chartTab = chartTab
-                                })
-                                .with("slope", () => {
-                                    grapherState.current.tab = "chart"
-                                    const chartTab =
-                                        mapTabOptionToChartTypeName(
-                                            mergedConfig.tab!
-                                        )
-                                    grapherState.current.chartTab = chartTab
-                                })
-                                .with("discrete-bar", () => {
-                                    grapherState.current.tab = "chart"
-                                    const chartTab =
-                                        mapTabOptionToChartTypeName(
-                                            mergedConfig.tab!
-                                        )
-                                    grapherState.current.chartTab = chartTab
-                                })
-                                .exhaustive()
-                        }
                         // We now need to make sure that the query params are re-applied again
                         grapherState.current.populateFromQueryParams(
                             legacyToCurrentGrapherQueryParams(
