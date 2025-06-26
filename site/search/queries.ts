@@ -69,7 +69,6 @@ export async function queryDataTopics(
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
             hitsPerPage: 4,
-            page: state.page < 0 ? 0 : state.page,
         }
     })
 
@@ -83,7 +82,8 @@ export async function queryDataTopics(
 
 export async function queryCharts(
     searchClient: SearchClient,
-    state: SearchState
+    state: SearchState,
+    page: number = 0
 ): Promise<SearchChartsResponse> {
     const countryFacetFilters = formatCountryFacetFilters(
         getFilterNamesOfType(state.filters, FilterType.COUNTRY),
@@ -103,7 +103,7 @@ export async function queryCharts(
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
             hitsPerPage: 8,
-            page: state.page < 0 ? 0 : state.page,
+            page,
         },
     ]
 
@@ -114,7 +114,8 @@ export async function queryCharts(
 
 export async function queryDataInsights(
     searchClient: SearchClient,
-    state: SearchState
+    state: SearchState,
+    page: number = 0
 ): Promise<SearchDataInsightResponse> {
     const selectedCountryNames = getFilterNamesOfType(
         state.filters,
@@ -157,7 +158,7 @@ export async function queryDataInsights(
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
             hitsPerPage: 4,
-            page: state.page < 0 ? 0 : state.page,
+            page,
         },
     ]
 
@@ -168,7 +169,8 @@ export async function queryDataInsights(
 
 export async function queryArticles(
     searchClient: SearchClient,
-    state: SearchState
+    state: SearchState,
+    page: number = 0
 ): Promise<SearchArticleResponse> {
     const selectedCountryNames = getFilterNamesOfType(
         state.filters,
@@ -213,7 +215,7 @@ export async function queryArticles(
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
             hitsPerPage: 5,
-            page: state.page < 0 ? 0 : state.page,
+            page,
         },
     ]
 
@@ -224,7 +226,8 @@ export async function queryArticles(
 
 export async function queryTopicPages(
     searchClient: SearchClient,
-    state: SearchState
+    state: SearchState,
+    page: number = 0
 ): Promise<SearchTopicPageResponse> {
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
 
@@ -238,7 +241,7 @@ export async function queryTopicPages(
             hitsPerPage: 5,
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
-            page: state.page < 0 ? 0 : state.page,
+            page,
         },
     ]
 
@@ -274,7 +277,6 @@ export async function queryWritingTopics(
                 highlightPreTag: "<mark>",
                 highlightPostTag: "</mark>",
                 hitsPerPage: 3,
-                page: 0,
             },
             {
                 indexName: SearchIndexName.Pages,
@@ -284,7 +286,6 @@ export async function queryWritingTopics(
                 highlightPreTag: "<mark>",
                 highlightPostTag: "</mark>",
                 hitsPerPage: 8,
-                page: 0,
             },
         ]
     })
