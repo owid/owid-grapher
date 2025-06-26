@@ -14,7 +14,7 @@ export function SearchFilterPill({
     icon: ReactNode
     className?: string
 }) {
-    const nameLabel = name.replace(" and ", " & ")
+    const nameLabel = name.replaceAll(" and ", " & ")
     return (
         <span
             className={cx(
