@@ -209,7 +209,6 @@ export type SearchState = Readonly<{
     query: string
     filters: Filter[]
     requireAllCountries: boolean
-    page: number
     resultType: SearchResultType
 }>
 
@@ -248,10 +247,6 @@ type SetStateAction = {
     type: "setState"
     state: SearchState
 }
-type SetPageAction = {
-    type: "setPage"
-    page: number
-}
 type ResetAction = {
     type: "reset"
 }
@@ -267,7 +262,6 @@ export type SearchAction =
     | SetTopicAction
     | RemoveCountryAction
     | RemoveTopicAction
-    | SetPageAction
     | SetQueryAction
     | SetStateAction
     | ToggleRequireAllCountriesAction
