@@ -105,6 +105,10 @@ export function DataPageContent({
     imageMetadata,
     archivedChartInfo,
 }: MultiDimDataPageContentProps) {
+    const assetMap =
+        archivedChartInfo?.type === "archive-page"
+            ? archivedChartInfo.assets.runtime
+            : undefined
     // A non-empty manager is used in the size calculations
     // within grapher, so we have to initialize it early with
     // a truthy value
@@ -112,7 +116,10 @@ export function DataPageContent({
     const grapherStateRef = useRef<GrapherState>(
         new GrapherState({
             additionalDataLoaderFn: (varId: number) =>
-                loadVariableDataAndMetadata(varId, DATA_API_URL),
+                loadVariableDataAndMetadata(varId, DATA_API_URL, {
+                    assetMap,
+                    noCache: isPreviewing,
+                }),
             manager: manager.current,
         })
     )
@@ -121,8 +128,13 @@ export function DataPageContent({
     const [varDatapageData, setVarDatapageData] =
         useState<VariableDataPageData | null>(null)
     const inputTableFetcher = useMemo(
-        () => getCachingInputTableFetcher(DATA_API_URL, undefined),
-        []
+        () =>
+            getCachingInputTableFetcher(
+                DATA_API_URL,
+                archivedChartInfo,
+                isPreviewing
+            ),
+        [archivedChartInfo, isPreviewing]
     )
 
     const titleFragments = useTitleFragments(config)
@@ -152,14 +164,10 @@ export function DataPageContent({
             const variableId = newView.indicators?.["y"]?.[0]?.id
             if (!variableId) return
 
-            const assetMap =
-                archivedChartInfo?.type === "archive-page"
-                    ? archivedChartInfo.assets.runtime
-                    : undefined
-
             const datapageDataPromise = cachedGetVariableMetadata(
                 variableId,
-                assetMap
+                assetMap,
+                isPreviewing
             ).then((json) => {
                 const mergedMetadata = _.mergeWith(
                     {}, // merge mutates the first argument
@@ -238,12 +246,12 @@ export function DataPageContent({
                 .catch(Sentry.captureException)
         },
         [
+            assetMap,
             config,
             inputTableFetcher,
             isPreviewing,
             slug,
             baseGrapherConfig,
-            archivedChartInfo,
         ]
     )
 
