@@ -40,6 +40,7 @@ export function MultiDimDataPage({
         relatedResearchCandidates,
         imageMetadata,
         tagToSlugMap,
+        isPreviewing,
         archivedChartInfo,
     }
     const imageUrl: string = urljoin(

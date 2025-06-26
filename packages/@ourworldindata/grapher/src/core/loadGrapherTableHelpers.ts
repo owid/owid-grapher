@@ -38,7 +38,8 @@ export async function fetchInputTableForConfig(
 
 export function getCachingInputTableFetcher(
     dataApiUrl: string,
-    archivedChartInfo: ArchiveContext | undefined
+    archivedChartInfo: ArchiveContext | undefined,
+    noCache?: boolean
 ): (
     dimensions: OwidChartDimensionInterface[],
     selectedEntityColors:
@@ -80,13 +81,13 @@ export function getCachingInputTableFetcher(
         if (variablesToFetch.length > 0) {
             const fetchedData = await Promise.all(
                 variablesToFetch.map((variableId) =>
-                    loadVariableDataAndMetadata(
-                        variableId,
-                        dataApiUrl,
-                        archivedChartInfo?.type === "archive-page"
-                            ? archivedChartInfo.assets.runtime
-                            : undefined
-                    )
+                    loadVariableDataAndMetadata(variableId, dataApiUrl, {
+                        assetMap:
+                            archivedChartInfo?.type === "archive-page"
+                                ? archivedChartInfo.assets.runtime
+                                : undefined,
+                        noCache,
+                    })
                 )
             )
             fetchedData.forEach((data) => cache.set(data.metadata.id, data))
