@@ -68,7 +68,7 @@ export const DataCatalogRibbon = ({
             </div>
             <button
                 className="data-catalog-ribbon__see-all-button"
-                aria-label={`Add ${titleLabel} to filters`}
+                aria-label={`Add ${result.title} to filters`}
                 onClick={handleAddTopicClick}
             >
                 {result.nbHits === 1
