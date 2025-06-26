@@ -324,7 +324,6 @@ export const SearchDebugNavigator = ({
                 query: newQuery,
                 filters: newFilters,
                 requireAllCountries: false,
-                page: 0,
                 resultType: targetConfig.resultType,
             })
         },
@@ -369,7 +368,6 @@ export const SearchDebugNavigator = ({
             query: newQuery,
             filters: newFilters,
             requireAllCountries: false,
-            page: 0,
             resultType: currentConfig.resultType,
         })
     }, [
