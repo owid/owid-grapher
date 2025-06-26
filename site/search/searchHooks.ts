@@ -150,16 +150,18 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
     queryFn,
 }: {
     queryKey: (state: SearchState) => readonly (string | SearchState)[]
-    queryFn: (searchClient: SearchClient, state: SearchState) => Promise<T>
+    queryFn: (
+        searchClient: SearchClient,
+        state: SearchState,
+        page: number
+    ) => Promise<T>
 }) {
     const { state, searchClient } = useSearchContext()
 
     const query = useInfiniteQuery<T, Error>({
-        // Create a state with a static page param so that a single cache entry
-        // is shared across all pages
-        queryKey: queryKey({ ...state, page: 0 }),
-        queryFn: ({ pageParam = 0 }) =>
-            queryFn(searchClient, { ...state, page: pageParam }),
+        // All paginated subqueries share the same query key
+        queryKey: queryKey(state),
+        queryFn: ({ pageParam = 0 }) => queryFn(searchClient, state, pageParam),
         getNextPageParam: (lastPage) => {
             const { page, nbPages } = lastPage
             return page < nbPages - 1 ? page + 1 : undefined
