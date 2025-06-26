@@ -24,7 +24,6 @@ function handleAddFilter(state: SearchState, filter: Filter): SearchState {
     const newFilters = filterExists ? state.filters : [...state.filters, filter]
     return {
         ...state,
-        page: 0,
         filters: newFilters,
     }
 }
@@ -40,7 +39,6 @@ function handleRemoveFilter(state: SearchState, filter: Filter): SearchState {
 
     return {
         ...state,
-        page: 0,
         requireAllCountries: hasCountryFilters
             ? state.requireAllCountries
             : false,
@@ -60,7 +58,6 @@ export function searchReducer(
     return match(action)
         .with({ type: "setQuery" }, ({ query }) => ({
             ...state,
-            page: 0,
             query: query.trim(),
             resultType: getResultTypeIfBrowsing(
                 state.filters,
@@ -90,17 +87,12 @@ export function searchReducer(
             )
             return {
                 ...state,
-                page: 0,
                 filters: [...newFilters, createTopicFilter(topic)],
             }
         })
         .with({ type: "toggleRequireAllCountries" }, () => ({
             ...state,
             requireAllCountries: !state.requireAllCountries,
-        }))
-        .with({ type: "setPage" }, ({ page }) => ({
-            ...state,
-            page,
         }))
         .with({ type: "setState" }, ({ state }) => state)
         .with({ type: "reset" }, () => ({
@@ -109,7 +101,6 @@ export function searchReducer(
         }))
         .with({ type: "setResultType" }, ({ resultType }) => ({
             ...state,
-            page: 0,
             resultType,
         }))
         .exhaustive()
@@ -124,7 +115,6 @@ export function createActions(dispatch: (action: SearchAction) => void) {
         removeTopic: (topic: string) => dispatch({ type: "removeTopic", topic }),
         addFilter: (filter: Filter) => dispatch({ type: "addFilter", filter }),
         removeFilter: (filter: Filter) => dispatch({ type: "removeFilter", filter }),
-        setPage: (page: number) => dispatch({ type: "setPage", page }),
         setQuery: (query: string) => dispatch({ type: "setQuery", query }),
         setState: (state: SearchState) => dispatch({ type: "setState", state }),
         toggleRequireAllCountries: () => dispatch({ type: "toggleRequireAllCountries" }),
@@ -141,7 +131,6 @@ export function getInitialSearchState(): SearchState {
         query: "",
         filters: [],
         requireAllCountries: false,
-        page: 0,
         resultType: SearchResultType.DATA,
     }
 }
@@ -159,7 +148,6 @@ export function urlToSearchState(url: Url): SearchState {
         query: url.queryParams.q || "",
         filters,
         requireAllCountries: url.queryParams.requireAllCountries === "true",
-        page: url.queryParams.page ? parseInt(url.queryParams.page) - 1 : 0,
         resultType: isValidResultType(url.queryParams.resultType)
             ? url.queryParams.resultType
             : SearchResultType.DATA,
@@ -180,7 +168,6 @@ export function searchStateToUrl(state: SearchState) {
             getFilterNamesOfType(state.filters, FilterType.COUNTRY)
         ),
         requireAllCountries: state.requireAllCountries ? "true" : undefined,
-        page: state.page > 0 ? (state.page + 1).toString() : undefined,
         resultType:
             state.resultType !== SearchResultType.DATA
                 ? state.resultType
