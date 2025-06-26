@@ -50,7 +50,7 @@ export const TopicsRefinementList = ({
                         <React.Fragment key={i}>
                             <li className="data-catalog-refinement-list__list-item">
                                 <button
-                                    aria-label={`Filter by ${facetNameLabel}`}
+                                    aria-label={`Filter by ${facetName}`}
                                     onClick={() => addTopic(facetName)}
                                 >
                                     <span className="body-3-bold">

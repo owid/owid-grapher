@@ -21,7 +21,7 @@ export const DataCatalogRibbon = ({
     const titleLabel = result.title.replace(" and ", " & ")
     const handleAddTopicClick = (e: React.MouseEvent) => {
         e.preventDefault()
-        addTopic(titleLabel)
+        addTopic(result.title)
         window.scrollTo({
             top: 0,
         })
@@ -31,7 +31,7 @@ export const DataCatalogRibbon = ({
         <div className="data-catalog-ribbon col-start-2 span-cols-12 col-sm-start-2 span-sm-cols-13">
             <button
                 className="data-catalog-ribbon__header-button"
-                aria-label={`Add topic ${titleLabel} to filters`}
+                aria-label={`Add topic ${result.title} to filters`}
                 onClick={handleAddTopicClick}
             >
                 <div className="data-catalog-ribbon__header">
@@ -57,7 +57,7 @@ export const DataCatalogRibbon = ({
                                         hit,
                                         i + 1,
                                         "ribbon",
-                                        titleLabel
+                                        result.title
                                     )
                                 }}
                                 searchQueryRegionsMatches={selectedCountries}
