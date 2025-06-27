@@ -195,6 +195,62 @@ it("can display a chart with missing variable data for some entities, while hidi
     ])
 })
 
+it("can display chart with negative values", () => {
+    const csv = `coal,gas,year,entityName
+-20,30,2000,France
+40,10,2000,Spain`
+    const table = new OwidTable(csv, [
+        { slug: "coal", type: ColumnTypeNames.Numeric },
+        { slug: "gas", type: ColumnTypeNames.Numeric },
+        { slug: "year", type: ColumnTypeNames.Year },
+    ])
+
+    const manager: ChartManager = {
+        table,
+        selection: table.availableEntityNames,
+        yColumnSlugs: ["coal", "gas"],
+    }
+    const chart = new StackedDiscreteBarChart({ manager })
+
+    expect(chart.failMessage).toEqual("")
+    expect(chart.series.length).toEqual(2)
+
+    expect(chart.series[0].points).toEqual([
+        {
+            position: "France",
+            value: -20,
+            valueOffset: 0,
+            time: 2000,
+            fake: false,
+        },
+        {
+            position: "Spain",
+            value: 40,
+            valueOffset: 0,
+            time: 2000,
+            fake: false,
+        },
+    ])
+
+    expect(chart.series[1].points).toEqual([
+        {
+            position: "France",
+            value: 30,
+            // offset is 0 because the previous series has a negative value
+            valueOffset: 0,
+            time: 2000,
+            fake: false,
+        },
+        {
+            position: "Spain",
+            value: 10,
+            valueOffset: 40,
+            time: 2000,
+            fake: false,
+        },
+    ])
+})
+
 describe("columns as series", () => {
     const table = SynthesizeFruitTable({
         timeRange: [2000, 2001],
