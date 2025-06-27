@@ -77,7 +77,7 @@ export function useSearchAnalytics(
         // every state change (even no-ops)
         const state = urlToSearchState(Url.fromURL(stateAsUrl))
         const analytics = new SiteAnalytics()
-        analytics.logDataCatalogSearch(state)
+        analytics.logSearch(state)
     }, [stateAsUrl, isInitialUrlStateLoaded])
 }
 
