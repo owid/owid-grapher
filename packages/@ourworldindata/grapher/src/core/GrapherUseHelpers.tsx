@@ -15,7 +15,10 @@ export function renderGrapherIntoContainer(
     config: GrapherProgrammaticInterface,
     containerNode: Element,
     dataApiUrl: string,
-    { archivedChartInfo }: { archivedChartInfo?: ArchiveContext } = {}
+    {
+        archivedChartInfo,
+        noCache,
+    }: { archivedChartInfo?: ArchiveContext; noCache?: boolean } = {}
 ): void {
     const setBoundsFromContainerAndRender = (
         entries: ResizeObserverEntry[]
@@ -35,7 +38,7 @@ export function renderGrapherIntoContainer(
             additionalDataLoaderFn: (
                 varId: OwidVariableId
             ): Promise<OwidVariableDataMetadataDimensions> =>
-                loadVariableDataAndMetadata(varId, dataApiUrl),
+                loadVariableDataAndMetadata(varId, dataApiUrl, { noCache }),
         }
 
         ReactDOM.render(
@@ -46,6 +49,7 @@ export function renderGrapherIntoContainer(
                     archivedChartInfo={archivedChartInfo}
                     externalBounds={Bounds.fromRect(entry.contentRect)}
                     queryStr={grapherConfigWithBounds.queryStr}
+                    noCache={noCache}
                 />
             </Sentry.ErrorBoundary>,
             containerNode
@@ -75,7 +79,10 @@ export function renderGrapherIntoContainer(
 export function renderSingleGrapherOnGrapherPage(
     jsonConfig: GrapherProgrammaticInterface,
     dataApiUrl: string,
-    { archivedChartInfo }: { archivedChartInfo?: ArchiveContext } = {}
+    {
+        archivedChartInfo,
+        noCache,
+    }: { archivedChartInfo?: ArchiveContext; noCache?: boolean } = {}
 ): void {
     const container = document.getElementsByTagName("figure")[0]
     try {
@@ -89,7 +96,7 @@ export function renderSingleGrapherOnGrapherPage(
             },
             container,
             dataApiUrl,
-            { archivedChartInfo }
+            { archivedChartInfo, noCache }
         )
     } catch (err) {
         container.innerHTML = `<p>Unable to load interactive visualization</p>`

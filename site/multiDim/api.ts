@@ -11,13 +11,13 @@ import { DATA_API_URL } from "../../settings/clientSettings.js"
 export const cachedGetVariableMetadata = _.memoize(
     async (
         variableId: number,
-        assetMap?: AssetMap,
-        noCache?: boolean
+        isPreviewing: boolean,
+        assetMap?: AssetMap
     ): Promise<OwidVariableWithSourceAndDimension> => {
         const response = await fetchWithRetry(
             getVariableMetadataRoute(DATA_API_URL, variableId, {
                 assetMap,
-                noCache,
+                noCache: isPreviewing,
             })
         )
         return await response.json()

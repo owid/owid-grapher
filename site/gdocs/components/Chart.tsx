@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import { useRef, useMemo } from "react"
+import { useRef, useMemo, useContext } from "react"
 import {
     grapherInterfaceWithHiddenControls,
     grapherInterfaceWithHiddenTabs,
@@ -19,6 +19,7 @@ import cx from "classnames"
 import { GrapherWithFallback } from "../../GrapherWithFallback.js"
 import { MultiDimEmbed } from "../../MultiDimEmbed.js"
 import { useEmbedChart } from "../../hooks.js"
+import { DocumentContext } from "../DocumentContext.js"
 
 export default function Chart({
     d,
@@ -29,8 +30,9 @@ export default function Chart({
     className?: string
     fullWidthOnMobile?: boolean
 }) {
+    const { isPreviewing } = useContext(DocumentContext)
     const refChartContainer = useRef<HTMLDivElement>(null)
-    useEmbedChart(0, refChartContainer)
+    useEmbedChart(0, refChartContainer, isPreviewing)
 
     // d.url may use an old slug that has since had a redirect created for it
     // useLinkedChart references a hashmap that has resolved these old slugs to their current chart
@@ -140,7 +142,11 @@ export default function Chart({
                     <div className="js--show-warning-block-if-js-disabled" />
                 </figure>
             ) : isMultiDim ? (
-                <MultiDimEmbed url={d.url} chartConfig={chartConfig} />
+                <MultiDimEmbed
+                    url={d.url}
+                    chartConfig={chartConfig}
+                    isPreviewing={isPreviewing}
+                />
             ) : (
                 <GrapherWithFallback
                     slug={slug}
@@ -148,6 +154,7 @@ export default function Chart({
                     queryStr={queryStr}
                     isEmbeddedInAnOwidPage={true}
                     isEmbeddedInADataPage={false}
+                    isPreviewing={isPreviewing}
                 />
             )}
             {d.caption ? (

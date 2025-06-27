@@ -116,6 +116,7 @@ export const DataPageV2Content = ({
                         enablePopulatingUrlParams
                         isEmbeddedInAnOwidPage={false}
                         isEmbeddedInADataPage={false}
+                        isPreviewing={isPreviewing}
                     />
                 </div>
                 <div className="DataPageContent grid grid-cols-12-full-width">
@@ -159,6 +160,7 @@ export const DataPageV2Content = ({
                                     enablePopulatingUrlParams
                                     isEmbeddedInADataPage={true}
                                     isEmbeddedInAnOwidPage={false}
+                                    isPreviewing={isPreviewing}
                                 />
                             )}
                             <AboutThisData

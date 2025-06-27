@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect, useCallback, useContext } from "react"
 import { useIntersectionObserver } from "usehooks-ts"
 import {
     EnrichedBlockScroller,
@@ -8,6 +8,7 @@ import {
 import { useEmbedChart } from "../../hooks.js"
 import SpanElements from "./SpanElements.js"
 import cx from "classnames"
+import { DocumentContext } from "../DocumentContext.js"
 
 function ScrollerParagraph({
     value,
@@ -46,9 +47,10 @@ export default function Scroller({
 }) {
     const [figureSrc, setFigureSrc] = useState(d.blocks[0].url)
     const refChartContainer = useRef<HTMLDivElement>(null)
+    const { isPreviewing } = useContext(DocumentContext)
 
     const [activeChartIdx, setActiveChartIdx] = useState(0)
-    useEmbedChart(activeChartIdx, refChartContainer)
+    useEmbedChart(activeChartIdx, refChartContainer, isPreviewing)
 
     const onVisible = useCallback(
         (index: number, url: string) => {
