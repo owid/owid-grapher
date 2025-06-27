@@ -32,6 +32,7 @@ import {
     flattenNonTopicNodes,
     imemo,
     normaliseToSingleDigitNumber,
+    getUniqueNamesFromTopicHierarchies,
 } from "./Util.js"
 import {
     BlockImageSize,
@@ -966,5 +967,101 @@ describe(imemo, () => {
         expect(firstValue).toEqual(secondValue)
         expect(firstValue).toBeTypeOf("number")
         expect(spy).toHaveBeenCalledOnce()
+    })
+})
+
+describe(getUniqueNamesFromTopicHierarchies, () => {
+    it("returns empty array when given empty tag names", () => {
+        const topicHierarchiesByChildName = {}
+        expect(
+            getUniqueNamesFromTopicHierarchies([], topicHierarchiesByChildName)
+        ).toEqual([])
+    })
+
+    it("returns empty array when tag names have no hierarchies", () => {
+        const tagNames = ["Not A Topic"]
+        const topicHierarchiesByChildName = {}
+        expect(
+            getUniqueNamesFromTopicHierarchies(
+                tagNames,
+                topicHierarchiesByChildName
+            )
+        ).toEqual([])
+    })
+
+    it("returns unique names from multiple hierarchies for same tag", () => {
+        const tagNames = ["Child Mortality"]
+        const topicHierarchiesByChildName = {
+            "Child Mortality": [
+                [
+                    { id: 1, name: "Health", slug: "health" },
+                    { id: 2, name: "Life Expectancy", slug: "life-expectancy" },
+                    { id: 3, name: "Child Mortality", slug: "child-mortality" },
+                ],
+                [
+                    { id: 1, name: "Health", slug: "health" },
+                    {
+                        id: 4,
+                        name: "Infant Mortality",
+                        slug: "infant-mortality",
+                    },
+                    { id: 5, name: "Child Mortality", slug: "child-mortality" },
+                ],
+            ],
+        }
+        expect(
+            getUniqueNamesFromTopicHierarchies(
+                tagNames,
+                topicHierarchiesByChildName
+            )
+        ).toEqual([
+            "Health",
+            "Life Expectancy",
+            "Child Mortality",
+            "Infant Mortality",
+        ])
+    })
+
+    it("removes duplicates when multiple tags share hierarchies", () => {
+        const tagNames = ["COVID-19", "Air Pollution"]
+        const topicHierarchiesByChildName = {
+            "COVID-19": [
+                [
+                    { id: 1, name: "Health", slug: "health" },
+                    { id: 2, name: "COVID-19", slug: "covid-19" },
+                ],
+            ],
+            "Air Pollution": [
+                [
+                    { id: 1, name: "Health", slug: "health" },
+                    { id: 3, name: "Air Pollution", slug: "air-pollution" },
+                ],
+            ],
+        }
+        expect(
+            getUniqueNamesFromTopicHierarchies(
+                tagNames,
+                topicHierarchiesByChildName
+            )
+        ).toEqual(["Health", "COVID-19", "Air Pollution"])
+    })
+
+    it("handles mix of tags with and without hierarchies", () => {
+        const tagNames = ["Water Topic", "Biodiversity"]
+        const topicHierarchiesByChildName = {
+            "Water Topic": [
+                [
+                    { id: 1, name: "Environment", slug: "environment" },
+                    { id: 2, name: "Water Topic", slug: "water-topic" },
+                ],
+            ],
+            // "Biodiversity" intentionally missing
+        }
+        expect(
+            getUniqueNamesFromTopicHierarchies(
+                tagNames,
+                topicHierarchiesByChildName
+            )
+        ).toEqual(["Environment", "Water Topic"])
     })
 })
