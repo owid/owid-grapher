@@ -33,7 +33,7 @@ import {
 } from "./ExplorerIndex.js"
 import { getInitialState } from "./cookiePreferences.js"
 import { CookiePreferencesManager } from "./CookiePreferencesManager.js"
-import { SearchInstantSearchWrapper } from "./search/SearchInstantSearchWrapper.js"
+import { SearchWrapper } from "./search/SearchWrapper.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
@@ -51,10 +51,7 @@ function hydrateSearchPage() {
     const root = document.getElementById("search-page-root")
     const topicTagGraph = window._OWID_TOPIC_TAG_GRAPH as TagGraphRoot
     if (root) {
-        hydrateRoot(
-            <SearchInstantSearchWrapper topicTagGraph={topicTagGraph} />,
-            root
-        )
+        hydrateRoot(root, <SearchWrapper topicTagGraph={topicTagGraph} />)
     }
 }
 
