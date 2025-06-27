@@ -118,7 +118,6 @@ export const Search = ({
                             ))
                             .exhaustive()
                     ) : (
-                        // TODO: add a grace period before showing skeletons to avoid flickering
                         <SearchDataTopicsResultsSkeleton />
                     )}
                     <SearchNoResults />
