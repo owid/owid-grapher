@@ -4,7 +4,7 @@ import {
     DbEnrichedMultiDimDataPage,
     DbPlainMultiDimXChartConfig,
     DbRawChartConfig,
-    getUniqueNamesFromTagHierarchies,
+    getUniqueNamesFromTopicHierarchies,
     multiDimDimensionsToViewId,
     MultiDimXChartConfigsTableName,
     parseChartConfig,
