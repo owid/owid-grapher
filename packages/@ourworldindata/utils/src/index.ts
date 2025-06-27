@@ -127,7 +127,7 @@ export {
     isArrayDifferentFromReference,
     readFromAssetMap,
     downloadImage,
-    getUniqueNamesFromTagHierarchies,
+    getUniqueNamesFromTopicHierarchies,
     getUserNavigatorLanguages,
     getUserNavigatorLanguagesNonEnglish,
     convertDaysSinceEpochToDate,
