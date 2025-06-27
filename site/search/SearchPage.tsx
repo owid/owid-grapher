@@ -2,7 +2,7 @@ import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { SiteFooterContext, TagGraphRoot } from "@ourworldindata/utils"
-import { SearchInstantSearchWrapper } from "./SearchInstantSearchWrapper.js"
+import { SearchWrapper } from "./SearchWrapper.js"
 import { Html } from "../Html.js"
 
 declare global {
@@ -40,7 +40,7 @@ export const SearchPage = (props: {
                     id="search-page-root"
                     className="grid grid-cols-12-full-width"
                 >
-                    <SearchInstantSearchWrapper topicTagGraph={topicTagGraph} />
+                    <SearchWrapper topicTagGraph={topicTagGraph} />
                 </main>
                 <SiteFooter context={SiteFooterContext.searchPage} />
             </body>
