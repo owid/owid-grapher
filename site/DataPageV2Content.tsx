@@ -20,7 +20,6 @@ import {
 import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
 import MetadataSection from "./MetadataSection.js"
-import TopicTags from "./TopicTags.js"
 import { processRelatedResearch } from "./dataPage.js"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
@@ -40,7 +39,6 @@ export const DataPageV2Content = ({
     isPreviewing = false,
     faqEntries,
     canonicalUrl = "{URL}", // when we bake pages to their proper url this will be set correctly but on preview pages we leave this undefined
-    tagToSlugMap,
     imageMetadata,
     archivedChartInfo,
 }: DataPageV2ContentFields & {
@@ -121,7 +119,7 @@ export const DataPageV2Content = ({
                 <div className="DataPageContent grid grid-cols-12-full-width">
                     <div className="bg-blue-10 span-cols-14">
                         <div className="header__wrapper grid grid-cols-12-full-width">
-                            <div className="header__left col-start-2 span-cols-8 col-sm-start-2 span-sm-cols-12">
+                            <div className="header__left col-start-2 span-cols-12">
                                 <div className="header__supertitle">Data</div>
                                 <h1 className="header__title">
                                     {datapageData.title.title}
@@ -130,11 +128,6 @@ export const DataPageV2Content = ({
                                     {titleFragments}
                                 </div>
                             </div>
-                            <TopicTags
-                                className="header__right col-start-10 span-cols-4 col-sm-start-2 span-sm-cols-12"
-                                topicTagsLinks={datapageData.topicTagsLinks}
-                                tagToSlugMap={tagToSlugMap}
-                            />
                         </div>
                     </div>
                     <nav className="sticky-nav sticky-nav--dark span-cols-14 grid grid-cols-12-full-width">

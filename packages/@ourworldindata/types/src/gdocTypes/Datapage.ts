@@ -133,7 +133,6 @@ export interface DataPageV2ContentFields {
     // TODO: add gdocs for FAQs
     isPreviewing?: boolean
     canonicalUrl: string
-    tagToSlugMap: Record<string, string>
     imageMetadata: Record<string, ImageMetadata>
     archivedChartInfo?: ArchiveContext
 }

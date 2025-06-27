@@ -114,7 +114,6 @@ export interface MultiDimDataPageProps {
     canonicalUrl: string
     slug: string | null
     configObj: MultiDimDataPageConfigEnriched
-    tagToSlugMap?: Record<string, string>
     faqEntries?: FaqEntryKeyedByGdocIdAndFragmentId
     primaryTopic?: PrimaryTopic
     relatedResearchCandidates: DataPageRelatedResearch[]
