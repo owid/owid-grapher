@@ -13,7 +13,7 @@ import { isPathRedirectedToExplorer } from "../../../explorerAdminServer/Explore
 import { ParsedChartRecordRow, RawChartRecordRow } from "./types.js"
 import {
     excludeNullish,
-    getUniqueNamesFromTagHierarchies,
+    getUniqueNamesFromTopicHierarchies,
 } from "@ourworldindata/utils"
 import { processAvailableEntities } from "./shared.js"
 
@@ -125,13 +125,9 @@ export const getChartsRecords = async (
                   fontSize: 10, // doesn't matter, but is a mandatory field
               }).plaintext
 
-        const topicTags = new Set<string>(
-            c.tags.flatMap((tagName) => {
-                const topicHierarchies = topicHierarchiesByChildName[tagName]
-                // a chart can be tagged with a tag that isn't in the tag graph
-                if (!topicHierarchies) return []
-                return getUniqueNamesFromTagHierarchies(topicHierarchies)
-            })
+        const topicTags = getUniqueNamesFromTopicHierarchies(
+            c.tags,
+            topicHierarchiesByChildName
         )
 
         const record = {
@@ -147,7 +143,7 @@ export const getChartsRecords = async (
             numDimensions: parseInt(c.numDimensions),
             publishedAt: c.publishedAt,
             updatedAt: c.updatedAt,
-            tags: [...topicTags],
+            tags: topicTags,
             keyChartForTags: c.keyChartForTags as string[],
             titleLength: c.title.length,
             // Number of references to this chart in all our posts and pages
