@@ -1947,17 +1947,28 @@ export function isFiniteWithGuard(value: unknown): value is number {
     return isFinite(value as any)
 }
 
-// Use with getTagHierarchiesByChildName to collapse all paths to the child into a single array of unique parent tag names
-export function getUniqueNamesFromTagHierarchies(
-    tagHierarchies: Pick<DbPlainTag, "id" | "name" | "slug">[][]
-): string[] {
-    const tagNames = new Set<string>(
-        tagHierarchies.flatMap((tagHierarchy) =>
-            tagHierarchy.map((tag) => tag.name)
+/**
+ * Collapse all paths to topic tags into a single array of unique parent tag
+ * names, including the original tags if they are topics. This is used across
+ * all Algolia indexing utilities to ensure comprehensive search results when
+ * faceting by topic.
+ *
+ * Use with getTagHierarchiesByChildName to get the topic hierarchies
+ *
+ */
+export const getUniqueNamesFromTopicHierarchies = (
+    tagNames: string[],
+    topicHierarchiesByChildName: Record<
+        string,
+        Pick<DbPlainTag, "id" | "name" | "slug">[][]
+    >
+): string[] => {
+    return R.unique(
+        tagNames.flatMap((tagName) =>
+            (topicHierarchiesByChildName[tagName] ?? []) // fallback for non-topic tags
+                .flatMap((tagHierarchy) => tagHierarchy.map((tag) => tag.name))
         )
     )
-
-    return [...tagNames]
 }
 
 export function createTagGraph(
