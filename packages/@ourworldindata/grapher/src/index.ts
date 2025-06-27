@@ -101,6 +101,8 @@ export {
     generateGrapherImageSrcSet,
     getChartTypeFromConfig,
     getChartTypeFromConfigAndQueryParams,
+    isGrapherTabOption,
+    findPotentialChartTypeSiblings,
 } from "./chart/ChartUtils.js"
 export {
     renderGrapherIntoContainer,
