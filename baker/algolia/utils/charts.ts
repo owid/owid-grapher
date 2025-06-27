@@ -13,7 +13,7 @@ import { isPathRedirectedToExplorer } from "../../../explorerAdminServer/Explore
 import { ParsedChartRecordRow, RawChartRecordRow } from "./types.js"
 import {
     excludeNullish,
-    getUniqueNamesFromTagHierarchies,
+    getUniqueNamesFromTopicHierarchies,
 } from "@ourworldindata/utils"
 import { processAvailableEntities } from "./shared.js"
 
