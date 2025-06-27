@@ -13,7 +13,6 @@ Requirements for the component:
 - Create a tsx file for the component in the site/search directory
 - Always create a companion scss file in the same directory and list it in #owid.scss
 - When necessary, get algolia data from useQuery() in the component itself
-- Add a skeleton for loading state
 - Use #searchTypes.ts for types
 - Use #searchQueries.ts
 - Use #searchHooks.ts
