@@ -19,7 +19,7 @@ const queryClient = new QueryClient({
     },
 })
 
-export const SearchInstantSearchWrapper = ({
+export const SearchWrapper = ({
     topicTagGraph,
 }: {
     topicTagGraph: TagGraphRoot
