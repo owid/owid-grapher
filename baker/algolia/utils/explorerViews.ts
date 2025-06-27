@@ -23,7 +23,7 @@ import {
 
 import * as db from "../../../db/db.js"
 import { DATA_API_URL } from "../../../settings/serverSettings.js"
-import { getUniqueNamesFromTagHierarchies } from "@ourworldindata/utils"
+import { getUniqueNamesFromTopicHierarchies } from "@ourworldindata/utils"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import {
     CsvUnenrichedExplorerViewRecord,
@@ -767,19 +767,14 @@ async function getExplorersWithInheritedTags(trx: db.KnexReadonlyTransaction) {
                 message: `Explorer "${explorer.slug}" has no tags.`,
             })
         }
-        const topicTags = new Set<string>(
-            explorer.tags
-                .filter((tag) => tag !== "Unlisted")
-                .flatMap((tagName) =>
-                    getUniqueNamesFromTagHierarchies(
-                        topicHierarchiesByChildName[tagName]
-                    )
-                )
+        const topicTags = getUniqueNamesFromTopicHierarchies(
+            explorer.tags.filter((tag) => tag !== "Unlisted"),
+            topicHierarchiesByChildName
         )
 
         publishedExplorersWithTags.push({
             ...explorer,
-            tags: [...topicTags],
+            tags: topicTags,
         })
     }
 
