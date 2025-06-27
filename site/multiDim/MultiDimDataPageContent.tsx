@@ -105,15 +105,22 @@ export function DataPageContent({
     imageMetadata,
     archivedChartInfo,
 }: MultiDimDataPageContentProps) {
+    const assetMap =
+        archivedChartInfo?.type === "archive-page"
+            ? archivedChartInfo.assets.runtime
+            : undefined
     // A non-empty manager is used in the size calculations
     // within grapher, so we have to initialize it early with
     // a truthy value
-    const manager = useRef<GrapherManager>({ adminEditPath: "" })
+    const managerRef = useRef<GrapherManager>({ adminEditPath: "" })
     const grapherStateRef = useRef<GrapherState>(
         new GrapherState({
             additionalDataLoaderFn: (varId: number) =>
-                loadVariableDataAndMetadata(varId, DATA_API_URL),
-            manager: manager.current,
+                loadVariableDataAndMetadata(varId, DATA_API_URL, {
+                    assetMap,
+                    noCache: isPreviewing,
+                }),
+            manager: managerRef.current,
         })
     )
     const grapherFigureRef = useRef<HTMLDivElement>(null)
@@ -121,8 +128,13 @@ export function DataPageContent({
     const [varDatapageData, setVarDatapageData] =
         useState<VariableDataPageData | null>(null)
     const inputTableFetcher = useMemo(
-        () => getCachingInputTableFetcher(DATA_API_URL, undefined),
-        []
+        () =>
+            getCachingInputTableFetcher(
+                DATA_API_URL,
+                archivedChartInfo,
+                isPreviewing
+            ),
+        [archivedChartInfo, isPreviewing]
     )
 
     const titleFragments = useTitleFragments(config)
@@ -152,13 +164,9 @@ export function DataPageContent({
             const variableId = newView.indicators?.["y"]?.[0]?.id
             if (!variableId) return
 
-            const assetMap =
-                archivedChartInfo?.type === "archive-page"
-                    ? archivedChartInfo.assets.runtime
-                    : undefined
-
             const datapageDataPromise = cachedGetVariableMetadata(
                 variableId,
+                Boolean(isPreviewing),
                 assetMap
             ).then((json) => {
                 const mergedMetadata = _.mergeWith(
@@ -181,7 +189,7 @@ export function DataPageContent({
 
             const grapherConfigPromise = cachedGetGrapherConfigByUuid(
                 grapherConfigUuid,
-                isPreviewing ?? false,
+                Boolean(isPreviewing),
                 assetMap
             )
             const variables = newView.indicators?.["y"]
@@ -190,9 +198,9 @@ export function DataPageContent({
                     ? `variables/${variables[0].id}/config`
                     : undefined
             const analyticsContext = { mdimSlug: slug!, mdimView: settings }
-            manager.current.adminEditPath = adminEditPath
-            manager.current.analyticsContext = analyticsContext
-            manager.current.adminCreateNarrativeChartPath = `narrative-charts/create?type=multiDim&chartConfigId=${grapherConfigUuid}`
+            managerRef.current.adminEditPath = adminEditPath
+            managerRef.current.analyticsContext = analyticsContext
+            managerRef.current.adminCreateNarrativeChartPath = `narrative-charts/create?type=multiDim&chartConfigId=${grapherConfigUuid}`
 
             void Promise.allSettled([datapageDataPromise, grapherConfigPromise])
                 .then(async ([datapageData, grapherConfig]) => {
@@ -238,12 +246,12 @@ export function DataPageContent({
                 .catch(Sentry.captureException)
         },
         [
+            assetMap,
             config,
             inputTableFetcher,
             isPreviewing,
             slug,
             baseGrapherConfig,
-            archivedChartInfo,
         ]
     )
 
@@ -459,6 +467,7 @@ export function MultiDimDataPageContent({
             slug={slug}
             queryStr={location.search}
             archivedChartInfo={archivedChartInfo}
+            isPreviewing={isPreviewing}
         />
     ) : (
         <DataPageContent

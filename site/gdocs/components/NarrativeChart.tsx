@@ -30,11 +30,10 @@ export default function NarrativeChart({
     fullWidthOnMobile?: boolean
 }) {
     const refChartContainer = useRef<HTMLDivElement>(null)
-    useEmbedChart(0, refChartContainer)
+    const { isPreviewing } = useContext(DocumentContext)
+    useEmbedChart(0, refChartContainer, isPreviewing)
 
     const viewMetadata = useLinkedNarrativeChart(d.name)
-
-    const { isPreviewing } = useContext(DocumentContext)
 
     if (!viewMetadata) {
         if (isPreviewing) {

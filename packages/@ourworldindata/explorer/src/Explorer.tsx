@@ -210,7 +210,9 @@ export class Explorer
             adminBaseUrl: this.adminBaseUrl,
             canHideExternalControlsInEmbed: true,
             additionalDataLoaderFn: (varId: number) =>
-                loadVariableDataAndMetadata(varId, this.dataApiUrl),
+                loadVariableDataAndMetadata(varId, this.dataApiUrl, {
+                    noCache: props.isPreview,
+                }),
         })
 
         this.grapher = new Grapher({ grapherState: this.grapherState })
@@ -589,7 +591,8 @@ export class Explorer
                 config.dimensions ?? [],
                 config.selectedEntityColors,
                 this.props.dataApiUrl,
-                undefined
+                undefined,
+                this.props.isPreview
             )
             if (inputTable)
                 grapherState.inputTable = this.inputTableTransformer(inputTable)
@@ -773,7 +776,8 @@ export class Explorer
                 config.dimensions,
                 config.selectedEntityColors,
                 this.props.dataApiUrl,
-                undefined
+                undefined,
+                this.props.isPreview
             )
             if (inputTable)
                 grapherState.inputTable = this.inputTableTransformer(inputTable)

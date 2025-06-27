@@ -720,13 +720,16 @@ class VariableEditor extends Component<{
         this.grapherState = new GrapherState({
             ...this.grapherConfig,
             additionalDataLoaderFn: (varId: number) =>
-                loadVariableDataAndMetadata(varId, DATA_API_URL),
+                loadVariableDataAndMetadata(varId, DATA_API_URL, {
+                    noCache: true,
+                }),
         })
         void fetchInputTableForConfig(
             this.grapherConfig.dimensions ?? [],
             this.grapherConfig.selectedEntityColors,
             DATA_API_URL,
-            undefined
+            undefined,
+            true
         ).then((inputTable) => {
             if (inputTable) this.grapherState!.inputTable = inputTable
         })

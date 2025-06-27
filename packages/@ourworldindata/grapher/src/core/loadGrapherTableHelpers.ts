@@ -18,14 +18,16 @@ export async function fetchInputTableForConfig(
         | { [entityName: string]: string | undefined }
         | undefined,
     dataApiUrl: string,
-    archivedChartInfo: ArchiveContext | undefined
+    archivedChartInfo: ArchiveContext | undefined,
+    noCache?: boolean
 ): Promise<OwidTable | undefined> {
     if (dimensions.length === 0) return undefined
     const variables = dimensions.map((d) => d.variableId)
     const variablesDataMap = await loadVariablesDataSite(
         variables,
         dataApiUrl,
-        archivedChartInfo
+        archivedChartInfo,
+        noCache
     )
     const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
         variablesDataMap,
@@ -38,7 +40,8 @@ export async function fetchInputTableForConfig(
 
 export function getCachingInputTableFetcher(
     dataApiUrl: string,
-    archivedChartInfo: ArchiveContext | undefined
+    archivedChartInfo: ArchiveContext | undefined,
+    noCache?: boolean
 ): (
     dimensions: OwidChartDimensionInterface[],
     selectedEntityColors:
@@ -80,13 +83,13 @@ export function getCachingInputTableFetcher(
         if (variablesToFetch.length > 0) {
             const fetchedData = await Promise.all(
                 variablesToFetch.map((variableId) =>
-                    loadVariableDataAndMetadata(
-                        variableId,
-                        dataApiUrl,
-                        archivedChartInfo?.type === "archive-page"
-                            ? archivedChartInfo.assets.runtime
-                            : undefined
-                    )
+                    loadVariableDataAndMetadata(variableId, dataApiUrl, {
+                        assetMap:
+                            archivedChartInfo?.type === "archive-page"
+                                ? archivedChartInfo.assets.runtime
+                                : undefined,
+                        noCache,
+                    })
                 )
             )
             fetchedData.forEach((data) => cache.set(data.metadata.id, data))

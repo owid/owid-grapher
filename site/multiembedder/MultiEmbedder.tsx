@@ -66,6 +66,7 @@ const globalEntitySelectorElement = () =>
 
 class MultiEmbedder {
     private figuresObserver: IntersectionObserver | undefined
+    private isPreviewing?: boolean
     selection: SelectionArray = new SelectionArray()
     graphersAndExplorersToUpdate: Set<SelectionArray> = new Set()
 
@@ -98,8 +99,8 @@ class MultiEmbedder {
      * BEWARE: this method is hardcoded in some scripts, make sure to check
      * thoroughly before making any changes.
      */
-    embedAll() {
-        this.observeFigures()
+    embedAll(isPreviewing?: boolean) {
+        this.observeFigures(undefined, isPreviewing)
     }
 
     /**
@@ -107,7 +108,11 @@ class MultiEmbedder {
      *
      * Use this when you programmatically create/replace charts.
      */
-    observeFigures(container: HTMLElement | Document = document) {
+    observeFigures(
+        container: HTMLElement | Document = document,
+        isPreviewing?: boolean
+    ) {
+        this.isPreviewing = isPreviewing
         const figures = figuresFromDOM(container, GRAPHER_EMBEDDED_FIGURE_ATTR)
             .concat(
                 figuresFromDOM(container, EXPLORER_EMBEDDED_FIGURE_SELECTOR)
@@ -214,7 +219,9 @@ class MultiEmbedder {
         if (config.manager?.selection)
             this.graphersAndExplorersToUpdate.add(config.manager.selection)
 
-        renderGrapherIntoContainer(config, figure, DATA_API_URL)
+        renderGrapherIntoContainer(config, figure, DATA_API_URL, {
+            noCache: this.isPreviewing,
+        })
 
         // Special handling for shared collections
         // TODO: re-enable this
@@ -228,7 +235,7 @@ class MultiEmbedder {
         if (!embedUrlRaw) return
         const embedUrl = Url.fromURL(embedUrlRaw)
 
-        const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/${embedUrl.slug}.config.json`
+        const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/${embedUrl.slug}.config.json${this.isPreviewing ? "?nocache" : ""}`
 
         await this._renderGrapherComponentIntoFigure(figure, {
             configUrl,
@@ -263,6 +270,7 @@ class MultiEmbedder {
                 config={MultiDimDataPageConfig.fromObject(multiDimConfig)}
                 localGrapherConfig={localGrapherConfig}
                 queryStr={queryStr}
+                isPreviewing={this.isPreviewing}
             />,
             figure
         )
@@ -276,7 +284,7 @@ class MultiEmbedder {
         const { queryStr, slug } = embedUrl
         if (!slug) return
 
-        const mdimConfigUrl = `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${slug}.json`
+        const mdimConfigUrl = `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${slug}.json${this.isPreviewing ? "?nocache" : ""}`
         const multiDimConfig = await fetchWithRetry(mdimConfigUrl).then((res) =>
             res.json()
         )
@@ -286,7 +294,7 @@ class MultiEmbedder {
                 multiDimConfig,
                 new URLSearchParams(queryStr)
             )
-            const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${view.fullConfigId}.config.json`
+            const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${view.fullConfigId}.config.json${this.isPreviewing ? "?nocache" : ""}`
             await this._renderGrapherComponentIntoFigure(figure, {
                 configUrl,
                 embedUrl,
@@ -311,7 +319,7 @@ class MultiEmbedder {
         )
         if (!narrativeChartInfo) return
 
-        const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${narrativeChartInfo.chartConfigId}.config.json`
+        const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${narrativeChartInfo.chartConfigId}.config.json${this.isPreviewing ? "?nocache" : ""}`
 
         await this._renderGrapherComponentIntoFigure(figure, {
             configUrl,

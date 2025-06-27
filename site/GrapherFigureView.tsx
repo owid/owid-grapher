@@ -20,6 +20,7 @@ export interface GrapherFigureViewProps {
     queryStr?: string
     isEmbeddedInAnOwidPage: boolean
     isEmbeddedInADataPage: boolean
+    isPreviewing?: boolean
 }
 
 export function GrapherFigureView(props: GrapherFigureViewProps): JSX.Element {
@@ -56,7 +57,7 @@ export function GrapherFigureView(props: GrapherFigureViewProps): JSX.Element {
     }
 
     const slugConfigUrl = slug
-        ? `${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json`
+        ? `${GRAPHER_DYNAMIC_CONFIG_URL}/${slug}.config.json${props.isPreviewing ? "?nocache" : ""}`
         : undefined
 
     const configUrl = !props.useProvidedConfigOnly
@@ -73,6 +74,7 @@ export function GrapherFigureView(props: GrapherFigureViewProps): JSX.Element {
                     archivedChartInfo={config.archivedChartInfo}
                     queryStr={props.queryStr}
                     externalBounds={bounds}
+                    noCache={props.isPreviewing}
                 />
             )}
         </figure>

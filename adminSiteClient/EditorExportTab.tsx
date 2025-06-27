@@ -259,7 +259,9 @@ export class EditorExportTab<
                     additionalDataLoaderFn: (
                         varId: OwidVariableId
                     ): Promise<OwidVariableDataMetadataDimensions> =>
-                        loadVariableDataAndMetadata(varId, DATA_API_URL),
+                        loadVariableDataAndMetadata(varId, DATA_API_URL, {
+                            noCache: true,
+                        }),
                 })
                 grapherState.inputTable = this.grapherState.inputTable
             }

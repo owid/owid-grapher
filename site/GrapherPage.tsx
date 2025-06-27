@@ -42,6 +42,7 @@ export const GrapherPage = (props: {
     baseUrl: string
     baseGrapherUrl: string
     archivedChartInfo?: ArchiveContext
+    isPreviewing?: boolean
 }) => {
     const {
         grapher,
@@ -50,6 +51,7 @@ export const GrapherPage = (props: {
         baseGrapherUrl,
         baseUrl,
         archivedChartInfo,
+        isPreviewing,
     } = props
     const pageTitle = grapher.title
     const canonicalUrl = urljoin(baseGrapherUrl, grapher.slug as string)
@@ -85,7 +87,8 @@ export const GrapherPage = (props: {
         bakedGrapherURL: BAKED_GRAPHER_URL,
     })}
 const archivedChartInfo = ${JSON.stringify(archivedChartInfo || undefined)}
-window.renderSingleGrapherOnGrapherPage(jsonConfig, "${DATA_API_URL}", { archivedChartInfo })`
+const isPreviewing = ${isPreviewing}
+window.renderSingleGrapherOnGrapherPage(jsonConfig, "${DATA_API_URL}", { archivedChartInfo, isPreviewing })`
 
     const variableIds = _.uniq(grapher.dimensions!.map((d) => d.variableId))
 
@@ -111,9 +114,11 @@ window.renderSingleGrapherOnGrapherPage(jsonConfig, "${DATA_API_URL}", { archive
                     [
                         getVariableDataRoute(DATA_API_URL, variableId, {
                             assetMap: assetMaps?.runtime,
+                            noCache: isPreviewing,
                         }),
                         getVariableMetadataRoute(DATA_API_URL, variableId, {
                             assetMap: assetMaps?.runtime,
+                            noCache: isPreviewing,
                         }),
                     ].map((href) => (
                         <link
@@ -194,6 +199,7 @@ window.renderSingleGrapherOnGrapherPage(jsonConfig, "${DATA_API_URL}", { archive
                     archiveInfo={
                         isOnArchivalPage ? archivedChartInfo : undefined
                     }
+                    isPreviewing={isPreviewing}
                 />
                 <script
                     type="module"

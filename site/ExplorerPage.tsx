@@ -131,7 +131,10 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
                     <LoadingIndicator />
                 </main>
                 {wpContent && <ExplorerContent content={wpContent} />}
-                <SiteFooter context={SiteFooterContext.explorerPage} />
+                <SiteFooter
+                    context={SiteFooterContext.explorerPage}
+                    isPreviewing={props.isPreviewing}
+                />
                 <script
                     type="module"
                     dangerouslySetInnerHTML={{ __html: inlineJs }}

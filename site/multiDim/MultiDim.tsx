@@ -30,12 +30,14 @@ export default function MultiDim({
     slug,
     queryStr,
     archivedChartInfo,
+    isPreviewing,
 }: {
     config: MultiDimDataPageConfig
     localGrapherConfig?: GrapherProgrammaticInterface
     slug: string | null
     queryStr: string
     archivedChartInfo?: ArchiveContext
+    isPreviewing?: boolean
 }) {
     const manager = useRef(localGrapherConfig?.manager ?? {})
     const grapherRef = useRef<GrapherState>(
@@ -43,11 +45,13 @@ export default function MultiDim({
             manager: manager.current,
             queryStr,
             additionalDataLoaderFn: (varId: number) =>
-                loadVariableDataAndMetadata(varId, DATA_API_URL),
+                loadVariableDataAndMetadata(varId, DATA_API_URL, {
+                    noCache: isPreviewing,
+                }),
         })
     )
     const grapherDataLoader = useRef(
-        getCachingInputTableFetcher(DATA_API_URL, undefined)
+        getCachingInputTableFetcher(DATA_API_URL, undefined, isPreviewing)
     )
     const grapherContainerRef = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(grapherContainerRef)
@@ -129,7 +133,11 @@ export default function MultiDim({
                 ? archivedChartInfo.assets.runtime
                 : undefined
 
-        cachedGetGrapherConfigByUuid(newView.fullConfigId, false, assetMap)
+        cachedGetGrapherConfigByUuid(
+            newView.fullConfigId,
+            Boolean(isPreviewing),
+            assetMap
+        )
             .then((viewGrapherConfig) => {
                 if (ignoreFetchedData) return
                 const grapherConfig = {
@@ -161,6 +169,7 @@ export default function MultiDim({
         }
     }, [
         config,
+        isPreviewing,
         localGrapherConfig,
         searchParams,
         settings,
