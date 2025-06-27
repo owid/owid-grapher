@@ -90,7 +90,7 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logDataCatalogSearch(state: SearchState) {
+    logSearch(state: SearchState) {
         this.logToGA({
             event: EventCategory.DataCatalogSearch,
             eventAction: "search",
