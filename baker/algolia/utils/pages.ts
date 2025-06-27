@@ -14,7 +14,7 @@ import {
     DbEnrichedImage,
     OwidGdocDataInsightInterface,
     OwidGdocAboutInterface,
-    getUniqueNamesFromTagHierarchies,
+    getUniqueNamesFromTopicHierarchies,
 } from "@ourworldindata/utils"
 import { getAlgoliaClient } from "../configureAlgolia.js"
 import {
@@ -188,12 +188,9 @@ async function generateGdocRecords(
         // so we don't log an error if no tags are found.
         // We want to get the parent topic tags as well as the original tags to
         // simplify client-side search queries when searching through areas.
-        const topicTags = new Set<string>(
-            originalTagNames.flatMap((tagName) =>
-                getUniqueNamesFromTagHierarchies(
-                    topicHierarchiesByChildName[tagName] ?? [] // in case the gdoc has a non-topic tag
-                )
-            )
+        const topicTags = getUniqueNamesFromTopicHierarchies(
+            originalTagNames,
+            topicHierarchiesByChildName
         )
 
         for (const chunk of chunks) {
