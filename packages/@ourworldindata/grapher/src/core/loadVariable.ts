@@ -68,7 +68,8 @@ export async function loadVariableDataAndMetadata(
 export async function loadVariablesDataSite(
     variableIds: number[],
     dataApiUrl: string,
-    archivedChartInfo: ArchiveContext | undefined
+    archivedChartInfo: ArchiveContext | undefined,
+    noCache?: boolean
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
     const loadVariableDataPromises = variableIds.map((variableId) =>
         loadVariableDataAndMetadata(variableId, dataApiUrl, {
@@ -76,6 +77,7 @@ export async function loadVariablesDataSite(
                 archivedChartInfo?.type === "archive-page"
                     ? archivedChartInfo.assets.runtime
                     : undefined,
+            noCache,
         })
     )
     const variablesData: OwidVariableDataMetadataDimensions[] =

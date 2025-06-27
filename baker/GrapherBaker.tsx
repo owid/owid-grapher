@@ -286,6 +286,7 @@ export const renderPreviewDataPageOrGrapherPage = async (
 
     return renderGrapherPage(grapher, knex, {
         archivedChartInfo: archivedVersion[chartId],
+        isPreviewing: true,
     })
 }
 
@@ -294,8 +295,10 @@ const renderGrapherPage = async (
     knex: db.KnexReadonlyTransaction,
     {
         archivedChartInfo,
+        isPreviewing,
     }: {
         archivedChartInfo?: ArchiveContext
+        isPreviewing?: boolean
     } = {}
 ) => {
     const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
@@ -322,6 +325,7 @@ const renderGrapherPage = async (
             baseUrl={BAKED_BASE_URL}
             baseGrapherUrl={BAKED_GRAPHER_URL}
             archivedChartInfo={archivedChartInfo}
+            isPreviewing={isPreviewing}
         />
     )
 }

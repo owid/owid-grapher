@@ -166,8 +166,8 @@ export function DataPageContent({
 
             const datapageDataPromise = cachedGetVariableMetadata(
                 variableId,
-                assetMap,
-                isPreviewing
+                Boolean(isPreviewing),
+                assetMap
             ).then((json) => {
                 const mergedMetadata = _.mergeWith(
                     {}, // merge mutates the first argument
@@ -189,7 +189,7 @@ export function DataPageContent({
 
             const grapherConfigPromise = cachedGetGrapherConfigByUuid(
                 grapherConfigUuid,
-                isPreviewing ?? false,
+                Boolean(isPreviewing),
                 assetMap
             )
             const variables = newView.indicators?.["y"]
@@ -467,6 +467,7 @@ export function MultiDimDataPageContent({
             slug={slug}
             queryStr={location.search}
             archivedChartInfo={archivedChartInfo}
+            isPreviewing={isPreviewing}
         />
     ) : (
         <DataPageContent

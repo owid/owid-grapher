@@ -56,11 +56,12 @@ export abstract class AbstractChartEditor<
 
     @observable.ref grapherState = new GrapherState({
         additionalDataLoaderFn: (varId: number) =>
-            loadVariableDataAndMetadata(varId, DATA_API_URL),
+            loadVariableDataAndMetadata(varId, DATA_API_URL, { noCache: true }),
     })
     cachingGrapherDataLoader = getCachingInputTableFetcher(
         DATA_API_URL,
-        undefined
+        undefined,
+        true
     )
     @observable.ref currentRequest: Promise<any> | undefined // Whether the current chart state is saved or not
     @observable.ref tab: EditorTab = "basic"

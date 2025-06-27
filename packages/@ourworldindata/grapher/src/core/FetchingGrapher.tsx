@@ -27,6 +27,7 @@ export interface FetchingGrapherProps {
     archivedChartInfo: ArchiveContext | undefined
     queryStr?: string
     externalBounds?: Bounds
+    noCache?: boolean
 }
 
 export function FetchingGrapher(
@@ -44,7 +45,9 @@ export function FetchingGrapher(
             additionalDataLoaderFn: (
                 varId: OwidVariableId
             ): Promise<OwidVariableDataMetadataDimensions> =>
-                loadVariableDataAndMetadata(varId, props.dataApiUrl),
+                loadVariableDataAndMetadata(varId, props.dataApiUrl, {
+                    noCache: props.noCache,
+                }),
             queryStr: props.queryStr,
             bounds: props.externalBounds,
         })
@@ -153,7 +156,8 @@ export function FetchingGrapher(
                 downloadedConfig?.selectedEntityColors ??
                     props.config?.selectedEntityColors,
                 props.dataApiUrl,
-                props.archivedChartInfo
+                props.archivedChartInfo,
+                props.noCache
             )
 
             if (isCancelled) return
@@ -172,6 +176,7 @@ export function FetchingGrapher(
         downloadedConfig?.selectedEntityColors,
         props.config?.selectedEntityColors,
         props.archivedChartInfo,
+        props.noCache,
     ])
 
     return <Grapher grapherState={grapherState.current} />

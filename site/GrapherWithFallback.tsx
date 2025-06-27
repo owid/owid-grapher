@@ -15,12 +15,13 @@ export interface GrapherWithFallbackProps {
     queryStr?: string
     isEmbeddedInAnOwidPage: boolean
     isEmbeddedInADataPage: boolean
+    isPreviewing?: boolean
 }
 
 export function GrapherWithFallback(
     props: GrapherWithFallbackProps
 ): JSX.Element {
-    const { slug, className, id, config, queryStr } = props
+    const { slug, className, id, config, queryStr, isPreviewing } = props
 
     if (!slug && !props.configUrl) {
         console.error(
@@ -80,6 +81,7 @@ export function GrapherWithFallback(
                     queryStr={queryStr}
                     isEmbeddedInAnOwidPage={props.isEmbeddedInAnOwidPage}
                     isEmbeddedInADataPage={props.isEmbeddedInADataPage}
+                    isPreviewing={isPreviewing}
                 />
             ) : (
                 // Optional loading placeholder while waiting to come into view

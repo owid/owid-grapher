@@ -160,7 +160,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     @observable.ref grapherState = new GrapherState({
         additionalDataLoaderFn: (varId: number) =>
-            loadVariableDataAndMetadata(varId, DATA_API_URL),
+            loadVariableDataAndMetadata(varId, DATA_API_URL, { noCache: true }),
     }) // the grapher instance we keep around and update
     numTotalRows: number | undefined = undefined
     @observable selectedRow: number | undefined = undefined
@@ -322,7 +322,8 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             newConfig.dimensions ?? [],
             newConfig.selectedEntityColors,
             this.context.admin.settings.DATA_API_FOR_ADMIN_UI || DATA_API_URL,
-            undefined
+            undefined,
+            true
         )
         if (inputTable) this.grapherState.inputTable = inputTable
     }

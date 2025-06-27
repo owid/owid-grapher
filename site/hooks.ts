@@ -65,14 +65,18 @@ export const useScrollDirection = () => {
 
 export const useEmbedChart = (
     activeChartIdx: number,
-    refChartContainer: React.RefObject<HTMLDivElement>
+    refChartContainer: React.RefObject<HTMLDivElement>,
+    isPreviewing: boolean
 ) => {
     useEffect(() => {
         if (refChartContainer.current) {
             // Track newly injected <figure> elements in embedder
-            MultiEmbedderSingleton.observeFigures(refChartContainer.current)
+            MultiEmbedderSingleton.observeFigures(
+                refChartContainer.current,
+                isPreviewing
+            )
         }
-    }, [activeChartIdx, refChartContainer])
+    }, [activeChartIdx, refChartContainer, isPreviewing])
 }
 
 export const useTriggerOnEscape = (trigger: VoidFunction) => {

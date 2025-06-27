@@ -339,7 +339,7 @@ export const runSiteFooterScripts = (
             runSiteNavigation(hideDonationFlag)
             hydrateCodeSnippets()
             MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
-            MultiEmbedderSingleton.embedAll()
+            MultiEmbedderSingleton.embedAll(isPreviewing)
             runAllGraphersLoadedListener()
             runLightbox()
             hydrateProminentLink(MultiEmbedderSingleton.selection)

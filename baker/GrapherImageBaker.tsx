@@ -130,7 +130,8 @@ export async function grapherToSVG(
         jsonConfig.dimensions ?? [],
         jsonConfig.selectedEntityColors,
         DATA_API_URL,
-        undefined
+        undefined,
+        false
     )
     if (inputTable) grapher.grapherState.inputTable = inputTable
     return grapher.staticSVG

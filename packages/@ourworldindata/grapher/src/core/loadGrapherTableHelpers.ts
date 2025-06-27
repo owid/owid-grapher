@@ -18,14 +18,16 @@ export async function fetchInputTableForConfig(
         | { [entityName: string]: string | undefined }
         | undefined,
     dataApiUrl: string,
-    archivedChartInfo: ArchiveContext | undefined
+    archivedChartInfo: ArchiveContext | undefined,
+    noCache?: boolean
 ): Promise<OwidTable | undefined> {
     if (dimensions.length === 0) return undefined
     const variables = dimensions.map((d) => d.variableId)
     const variablesDataMap = await loadVariablesDataSite(
         variables,
         dataApiUrl,
-        archivedChartInfo
+        archivedChartInfo,
+        noCache
     )
     const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
         variablesDataMap,

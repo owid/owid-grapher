@@ -17,12 +17,13 @@ import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 interface MultiDimEmbedProps {
     url: string
     chartConfig: Partial<GrapherProgrammaticInterface>
+    isPreviewing?: boolean
 }
 
 export const MultiDimEmbed: React.FC<MultiDimEmbedProps> = (
     props: MultiDimEmbedProps
 ) => {
-    const { url } = props
+    const { url, isPreviewing } = props
     const [config, setConfig] = useState<MultiDimDataPageConfigEnriched | null>(
         null
     )
@@ -40,7 +41,7 @@ export const MultiDimEmbed: React.FC<MultiDimEmbedProps> = (
 
         const fetchConfig = async () => {
             try {
-                const mdimConfigUrl = `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${slug}.json`
+                const mdimConfigUrl = `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${slug}.json${isPreviewing ? "?nocache" : ""}`
                 const multiDimConfig = await fetchWithRetry(mdimConfigUrl).then(
                     (res) => res.json()
                 )
@@ -56,7 +57,7 @@ export const MultiDimEmbed: React.FC<MultiDimEmbedProps> = (
         return () => {
             ignore = true
         }
-    }, [slug])
+    }, [isPreviewing, slug])
 
     if (error) {
         return <div>Error: {error}</div>
@@ -71,7 +72,7 @@ export const MultiDimEmbed: React.FC<MultiDimEmbedProps> = (
             config,
             new URLSearchParams(queryStr)
         )
-        const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${view.fullConfigId}.config.json`
+        const configUrl = `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${view.fullConfigId}.config.json${isPreviewing ? "?nocache" : ""}`
 
         return (
             <GrapherWithFallback
@@ -80,6 +81,7 @@ export const MultiDimEmbed: React.FC<MultiDimEmbedProps> = (
                 config={props.chartConfig}
                 isEmbeddedInAnOwidPage={true}
                 isEmbeddedInADataPage={false}
+                isPreviewing={isPreviewing}
             />
         )
     }
@@ -90,6 +92,7 @@ export const MultiDimEmbed: React.FC<MultiDimEmbedProps> = (
             config={MultiDimDataPageConfig.fromObject(config)}
             localGrapherConfig={props.chartConfig}
             queryStr={queryStr}
+            isPreviewing={isPreviewing}
         />
     )
 }
