@@ -6,7 +6,7 @@ import { SearchAsDraft } from "./SearchAsDraft.js"
 import { SearchWritingTopicsResponse } from "./searchTypes.js"
 import { SearchWritingTopic } from "./SearchWritingTopic.js"
 
-export const SearchWritingTopicResults = () => {
+export const SearchWritingTopicsResults = () => {
     const { state, searchClient, topicTagGraph } = useSearchContext()
     const selectedTopic = useSelectedTopic()
 
