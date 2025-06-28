@@ -53,7 +53,7 @@ function recursivelyFixRecircComponents(node: any): void {
             delete node.items
             const links = items.map((item) => ({
                 url: item.url,
-                type: "recirc-link",
+                type: "hybrid-link",
             }))
             _.set(node, ["links"], links)
         }
@@ -97,8 +97,8 @@ const recircBefore = {
 
 const recircAfter = {
     links: [
-        { url: "https://ourworldindata.org", type: "recirc-link" },
-        { url: "https://ourworldindata.org", type: "recirc-link" },
+        { url: "https://ourworldindata.org", type: "hybrid-link" },
+        { url: "https://ourworldindata.org", type: "hybrid-link" },
     ],
     title: { spanType: "span-simple-text", text: "I am a recirc" },
     type: "recirc",
