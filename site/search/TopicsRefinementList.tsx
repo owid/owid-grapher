@@ -44,6 +44,7 @@ export const TopicsRefinementList = ({
                 })}
             >
                 {entries.map(([facetName, count], i) => {
+                    const facetNameLabel = facetName.replaceAll(" and ", " & ")
                     const isLast = i === entries.length - 1
                     return (
                         <React.Fragment key={i}>
@@ -53,7 +54,7 @@ export const TopicsRefinementList = ({
                                     onClick={() => addTopic(facetName)}
                                 >
                                     <span className="body-3-bold">
-                                        {facetName}
+                                        {facetNameLabel}
                                     </span>{" "}
                                     <span className="body-3-regular">
                                         ({commafyNumber(count)})
