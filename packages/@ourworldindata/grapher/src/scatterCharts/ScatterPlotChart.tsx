@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import React from "react"
 import * as R from "remeda"
 import {
-    ComparisonLineConfig,
     ScaleType,
     EntitySelectionMode,
     ScatterPointLabelStrategy,
@@ -14,7 +13,6 @@ import {
     ColumnSlug,
     AxisAlign,
 } from "@ourworldindata/types"
-import { ComparisonLine } from "../scatterCharts/ComparisonLine"
 import { observable, computed, action } from "mobx"
 import { ScaleLinear, scaleSqrt } from "d3-scale"
 import { Quadtree, quadtree } from "d3-quadtree"
@@ -502,6 +500,7 @@ export class ScatterPlotChart
             bounds: this.axisBounds,
             horizontalAxis: horizontalAxisPart,
             verticalAxis: verticalAxisPart,
+            comparisonLines: this.manager.comparisonLines,
         })
     }
 
@@ -511,12 +510,6 @@ export class ScatterPlotChart
 
     @computed get xAxis(): HorizontalAxis {
         return this.dualAxis.horizontalAxis
-    }
-
-    @computed private get comparisonLines():
-        | ComparisonLineConfig[]
-        | undefined {
-        return this.manager.comparisonLines
     }
 
     @action.bound private onToggleEndpoints(): void {
@@ -705,24 +698,6 @@ export class ScatterPlotChart
         exposeInstanceOnWindow(this)
     }
 
-    renderComparisonLines(): React.ReactElement | void {
-        if (!this.comparisonLines) return
-
-        return (
-            <>
-                {this.comparisonLines.map((line, i) => (
-                    <ComparisonLine
-                        key={i}
-                        dualAxis={this.dualAxis}
-                        comparisonLine={line}
-                        baseFontSize={this.fontSize}
-                        backgroundColor={this.manager.backgroundColor}
-                    />
-                ))}
-            </>
-        )
-    }
-
     renderSidebar(): React.ReactElement {
         const {
             bounds,
@@ -814,8 +789,9 @@ export class ScatterPlotChart
                     dualAxis={this.dualAxis}
                     showTickMarks={false}
                     detailsMarker={this.manager.detailsMarkerInSvg}
+                    fontSize={this.fontSize}
+                    backgroundColor={this.manager.backgroundColor}
                 />
-                {this.renderComparisonLines()}
                 {this.points}
                 {this.renderSidebar()}
             </>
@@ -830,7 +806,6 @@ export class ScatterPlotChart
                     showTickMarks={false}
                     detailsMarker={this.manager.detailsMarkerInSvg}
                 />
-                {this.renderComparisonLines()}
                 {this.points}
                 {this.renderSidebar()}
                 {this.tooltip}

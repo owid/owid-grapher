@@ -232,6 +232,7 @@ export class AbstractStackedChart
             bounds: this.innerBounds,
             horizontalAxis: horizontalAxisPart,
             verticalAxis: verticalAxisPart,
+            comparisonLines: this.manager.comparisonLines,
         })
     }
 
