@@ -54,7 +54,7 @@ import {
     ControlsRow,
     ControlsRowManager,
 } from "../controls/controlsRow/ControlsRow"
-import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
+import { GRAPHER_BACKGROUND_BEIGE } from "../color/ColorConstants"
 
 export interface CaptionedChartManager
     extends ChartManager,
@@ -449,7 +449,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
     }
 
     @computed protected get backgroundColor(): Color {
-        return this.manager.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
+        return this.manager.backgroundColor ?? GRAPHER_BACKGROUND_BEIGE
     }
 
     @computed protected get svgProps(): React.SVGProps<SVGSVGElement> {
