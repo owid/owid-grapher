@@ -211,7 +211,9 @@ export const useWindowQueryParams = () => {
 
     const hasNavigationApi = hasWindowObj && "navigation" in window
 
-    // If the Navigation API is available, we can use it to listen for URL changes
+    // If the Navigation API is available, we can use it to listen for URL changes. At the time of
+    // writing (June 2025), it is only available in Chrome/Edge 102+, and not in Firefox or Safari.
+    // https://caniuse.com/mdn-api_navigation
     useEffect(() => {
         if (!hasWindowObj || !hasNavigationApi) return
         window.navigation?.addEventListener("navigatesuccess", handleNavigation)
