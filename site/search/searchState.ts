@@ -6,6 +6,7 @@ import {
     Filter,
     FilterType,
     SearchResultType,
+    SearchUrlParam,
 } from "./searchTypes.js"
 import {
     createCountryFilter,
@@ -133,8 +134,13 @@ export function urlToSearchState(url: Url): SearchState {
         [...countriesSet].map((country) => createCountryFilter(country)),
     ].flat()
 
+    const queryParams = url.queryParams as Record<
+        SearchUrlParam,
+        string | undefined
+    >
+
     return {
-        query: url.queryParams.q || "",
+        query: queryParams.q || "",
         filters,
         requireAllCountries: url.queryParams.requireAllCountries === "true",
         resultType: isValidResultType(url.queryParams.resultType)
@@ -148,16 +154,18 @@ export function searchStateToUrl(state: SearchState) {
         typeof window === "undefined" ? "" : window.location.href
     )
 
-    const params = {
-        q: state.query || undefined,
-        topics: serializeSet(
+    const params: Record<SearchUrlParam, string | undefined> = {
+        [SearchUrlParam.QUERY]: state.query || undefined,
+        [SearchUrlParam.TOPIC]: serializeSet(
             getFilterNamesOfType(state.filters, FilterType.TOPIC)
         ),
-        countries: serializeSet(
+        [SearchUrlParam.COUNTRY]: serializeSet(
             getFilterNamesOfType(state.filters, FilterType.COUNTRY)
         ),
-        requireAllCountries: state.requireAllCountries ? "true" : undefined,
-        resultType:
+        [SearchUrlParam.REQUIRE_ALL_COUNTRIES]: state.requireAllCountries
+            ? "true"
+            : undefined,
+        [SearchUrlParam.RESULT_TYPE]:
             state.resultType !== SearchResultType.DATA
                 ? state.resultType
                 : undefined,
