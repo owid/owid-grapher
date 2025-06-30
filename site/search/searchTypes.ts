@@ -222,6 +222,14 @@ export type Filter = {
     name: string
 }
 
+export enum SearchUrlParam {
+    COUNTRY = "countries",
+    TOPIC = "topics",
+    QUERY = "q",
+    REQUIRE_ALL_COUNTRIES = "requireAllCountries",
+    RESULT_TYPE = "resultType",
+}
+
 export type SearchState = Readonly<{
     query: string
     filters: Filter[]
