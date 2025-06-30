@@ -78,7 +78,7 @@ const ArchiveNavigationBar = (props: ArchiveSiteNavigationProps) => {
         }
     }, [props.versionsFileUrl])
 
-    const queryStr = useWindowQueryParams() ?? ""
+    const queryStr = useWindowQueryParams()
 
     const { previousVersion, nextVersion } = useMemo(() => {
         const versionsObj = versions as unknown

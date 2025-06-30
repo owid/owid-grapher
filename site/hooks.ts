@@ -1,12 +1,13 @@
 import * as _ from "lodash-es"
 import { useEffect, RefObject, useState, useCallback, useMemo } from "react"
+import { useSyncExternalStore } from "use-sync-external-store/shim"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import {
     Bounds,
     DEFAULT_BOUNDS,
     getWindowQueryStr,
 } from "@ourworldindata/utils"
-import { useInterval, useResizeObserver } from "usehooks-ts"
+import { useResizeObserver } from "usehooks-ts"
 import { reaction } from "mobx"
 
 export const useTriggerWhenClickOutside = (
@@ -198,39 +199,38 @@ declare global {
 }
 
 export const useWindowQueryParams = () => {
-    const hasWindowObj = typeof window !== "undefined"
-
-    const handleNavigation = useCallback(() => {
-        if (!hasWindowObj) return
-        setQueryParams(getWindowQueryStr())
-    }, [hasWindowObj])
-
-    const [queryParams, setQueryParams] = useState(() =>
-        hasWindowObj ? getWindowQueryStr() : ""
-    )
-
-    const hasNavigationApi = hasWindowObj && "navigation" in window
-
-    // If the Navigation API is available, we can use it to listen for URL changes. At the time of
-    // writing (June 2025), it is only available in Chrome/Edge 102+, and not in Firefox or Safari.
-    // https://caniuse.com/mdn-api_navigation
-    useEffect(() => {
-        if (!hasWindowObj || !hasNavigationApi) return
-        window.navigation?.addEventListener("navigatesuccess", handleNavigation)
-        return () => {
-            window.navigation?.removeEventListener(
-                "navigatesuccess",
-                handleNavigation
-            )
+    function subscribe(callback: () => void) {
+        const navigation = window.navigation
+        if (navigation) {
+            // At the time of writing (June 2025), the Navigation API is only
+            // available in Chrome/Edge 102+, and not in Firefox or Safari.
+            // https://caniuse.com/mdn-api_navigation
+            navigation.addEventListener("navigatesuccess", callback)
+            return () => {
+                navigation.removeEventListener("navigatesuccess", callback)
+            }
+        } else {
+            // Fall back to polling.
+            let lastQueryString = getWindowQueryStr()
+            const interval = setInterval(() => {
+                const currentQueryString = getWindowQueryStr()
+                if (currentQueryString !== lastQueryString) {
+                    lastQueryString = currentQueryString
+                    callback()
+                }
+            }, 1000)
+            return () => clearInterval(interval)
         }
-    }, [hasWindowObj, hasNavigationApi, handleNavigation])
+    }
 
-    // There's not a great cross-browser way to observe changes to the URL query string,
-    // so we use a polling approach to update them in case the Navigation API is not available.
-    useInterval(
-        () => setQueryParams(getWindowQueryStr()),
-        hasWindowObj && !hasNavigationApi ? 1000 : null
-    )
+    function getSnapshot() {
+        if (typeof window === "undefined") return ""
+        return getWindowQueryStr()
+    }
 
-    return queryParams
+    function getServerSnapshot() {
+        return ""
+    }
+
+    return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 }
