@@ -249,7 +249,7 @@ export class ChartEditorView<
                 const references = invalidDetailReferences[key]
                 if (references.length) {
                     errorMessages[key] =
-                        `Invalid detail(s) specified: ${references.join(", ")}`
+                        `Invalid DoD(s) specified: ${references.join(", ")}`
                 }
             }
         )
