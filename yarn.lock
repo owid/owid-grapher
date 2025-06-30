@@ -7756,6 +7756,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/use-sync-external-store@npm:^1":
+  version: 1.5.0
+  resolution: "@types/use-sync-external-store@npm:1.5.0"
+  checksum: 10/39e5be8dc2cca080b490f2f79fed4381ae7eebee3f981208e359856733eafb2479d229db07a552f6c99fe0b5c09b3e46a3e6a870e00a88b50f3e690e73d2649b
+  languageName: node
+  linkType: hard
+
 "@types/yargs-parser@npm:*":
   version: 21.0.3
   resolution: "@types/yargs-parser@npm:21.0.3"
@@ -12805,6 +12812,7 @@ __metadata:
     "@types/topojson-client": "npm:^3.1.1"
     "@types/topojson-server": "npm:^3.0.1"
     "@types/url-parse": "npm:^1.4.8"
+    "@types/use-sync-external-store": "npm:^1"
     "@types/yargs": "npm:^17.0.33"
     "@vitejs/plugin-react": "npm:^4.5.1"
     "@vitest/coverage-v8": "npm:^3.2.0"
@@ -12926,6 +12934,7 @@ __metadata:
     url-join: "npm:^5.0.0"
     url-parse: "npm:^1.5.10"
     url-slug: "npm:^3.0.2"
+    use-sync-external-store: "npm:^1.5.0"
     usehooks-ts: "npm:^3.1.0"
     uuidv7: "npm:^1.0.1"
     versor: "npm:^0.2.0"
@@ -21392,7 +21401,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"use-sync-external-store@npm:^1.0.0, use-sync-external-store@npm:^1.2.0, use-sync-external-store@npm:^1.4.0":
+"use-sync-external-store@npm:^1.0.0, use-sync-external-store@npm:^1.2.0, use-sync-external-store@npm:^1.4.0, use-sync-external-store@npm:^1.5.0":
   version: 1.5.0
   resolution: "use-sync-external-store@npm:1.5.0"
   peerDependencies:
