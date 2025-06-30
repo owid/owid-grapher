@@ -5,7 +5,7 @@ import {
     getSelectedTopic,
 } from "./searchUtils.js"
 import { useSearchContext } from "./SearchContext.js"
-import { Region, Url } from "@ourworldindata/utils"
+import { flattenNonTopicNodes, Region, Url } from "@ourworldindata/utils"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { SearchClient } from "algoliasearch"
 import { SearchResponse } from "instantsearch.js"
@@ -184,4 +184,22 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
         hits,
         totalResults,
     }
+}
+export const useTopicTagGraph = () => {
+    const [tagGraph, setTagGraph] = useState<TagGraphRoot | null>(null)
+
+    useEffect(() => {
+        const fetchTagGraph = async () => {
+            const response = await fetch("/topicTagGraph.json")
+            const tagGraph = await response.json()
+            setTagGraph(flattenNonTopicNodes(tagGraph))
+        }
+        if (!tagGraph) {
+            fetchTagGraph().catch((err) => {
+                throw new Error(`Failed to fetch tag graph: ${err}`)
+            })
+        }
+    }, [tagGraph, setTagGraph])
+
+    return tagGraph
 }
