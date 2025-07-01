@@ -47,6 +47,7 @@ import {
     ChartRecordType,
     SearchChartHit,
     IChartHit,
+    SearchUrlParam,
 } from "./searchTypes.js"
 import { faTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -1093,4 +1094,15 @@ export function getRowCountForGridSlot(
         .with(GridSlot.SmallSlotRight, () => 0)
         .exhaustive()
     return numColumns * numRowsPerColumn
+}
+
+export const getUrlParamNameForFilter = (filter: Filter) =>
+    match(filter.type)
+        .with(FilterType.COUNTRY, () => SearchUrlParam.COUNTRY)
+        .with(FilterType.TOPIC, () => SearchUrlParam.TOPIC)
+        .with(FilterType.QUERY, () => SearchUrlParam.QUERY)
+        .exhaustive()
+
+export const getItemUrlForFilter = (filter: Filter): string => {
+    return `${BAKED_BASE_URL}/data${queryParamsToStr({ [getUrlParamNameForFilter(filter)]: filter.name })}`
 }
