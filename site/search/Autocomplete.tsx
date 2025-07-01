@@ -61,14 +61,6 @@ const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
                     itemUrl: `/search${queryParamsToStr({ q: item.id })}`,
                 } as any)
             },
-            templates: {
-                ...source.templates,
-                header() {
-                    return (
-                        <h5 className="overline-black-caps">Recent Searches</h5>
-                    )
-                },
-            },
         }
     },
 })
@@ -148,9 +140,6 @@ const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
     },
 
     templates: {
-        header: () => (
-            <h5 className="overline-black-caps">Featured Searches</h5>
-        ),
         item: ({ item }) => {
             return (
                 <div>
@@ -203,7 +192,6 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
     },
 
     templates: {
-        header: () => <h5 className="overline-black-caps">Top Results</h5>,
         item: ({ item, components }) => {
             const index = parseIndexName(
                 item.__autocomplete_indexName as string
