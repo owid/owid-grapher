@@ -228,25 +228,3 @@ section[data-autocomplete-source-id="autocomplete"] {
         color: $blue-50;
     }
 }
-
-section[data-autocomplete-source-id="runSearch"] {
-    &:not(:first-child) {
-        border-top: 1px solid $blue-10;
-        margin-top: 10px;
-        padding-top: 10px;
-    }
-
-    .aa-Item {
-        padding: 9px;
-    }
-
-    .aa-ItemIcon {
-        box-shadow: none;
-        width: 16px;
-        margin-left: 8px;
-        background: none;
-        svg {
-            width: 100%;
-        }
-    }
-}
