@@ -23,7 +23,7 @@ export function SearchAutocompleteItemContents({
                 .with(FilterType.QUERY, () => (
                     <>
                         <FontAwesomeIcon
-                            className="search-autocomplete-item-contents__search-icon"
+                            className="search-autocomplete-item-contents__type-icon"
                             icon={faSearch}
                         />
                         {renderActiveFilters(activeFilters)}
