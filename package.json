@@ -4,7 +4,7 @@
     "engines": {
         "node": ">=22.0"
     },
-    "packageManager": "yarn@4.6.0",
+    "packageManager": "yarn@4.9.2",
     "scripts": {
         "batchTagWithGpt": "tsx --tsconfig tsconfig.tsx.json baker/batchTagWithGpt.ts",
         "buildArchive": "tsx --tsconfig tsconfig.tsx.json baker/archival/archiveChangedPages.ts",
