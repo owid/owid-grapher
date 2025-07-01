@@ -34,11 +34,11 @@
   "devDependencies": {
     "@types/d3": "^6",
     "@types/d3-format": "^2",
-    "@types/lodash-es": "^4.17.12",
-    "@types/react": "^17.0.69",
+    "@types/lodash-es": "^4",
+    "@types/react": "^17.0.83",
     "@types/string-pixel-width": "^1.7.2",
     "@types/url-parse": "^1.4.8",
-    "eslint": "^9.21.0",
+    "eslint": "^9.23.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "typescript": "~5.8.2"
   },
