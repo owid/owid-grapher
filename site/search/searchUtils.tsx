@@ -16,6 +16,7 @@ import {
     FuzzySearch,
     FuzzySearchResult,
     getAllChildrenOfArea,
+    queryParamsToStr,
 } from "@ourworldindata/utils"
 import { partition } from "remeda"
 import { generateSelectedEntityNamesParam } from "@ourworldindata/grapher"
@@ -28,11 +29,13 @@ import {
     SearchResultType,
     SearchTopicType,
     SearchFacetFilters,
+    SearchUrlParam,
 } from "./searchTypes.js"
 import { faTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { match, P } from "ts-pattern"
 import { ForwardedRef } from "react"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -559,4 +562,15 @@ export const getResultTypeIfBrowsing = (
         currentResultType === SearchResultType.ALL
         ? SearchResultType.DATA
         : currentResultType
+}
+
+export const getUrlParamNameForFilter = (filter: Filter) =>
+    match(filter.type)
+        .with(FilterType.COUNTRY, () => SearchUrlParam.COUNTRY)
+        .with(FilterType.TOPIC, () => SearchUrlParam.TOPIC)
+        .with(FilterType.QUERY, () => SearchUrlParam.QUERY)
+        .exhaustive()
+
+export const getItemUrlForFilter = (filter: Filter): string => {
+    return `${BAKED_BASE_URL}/data${queryParamsToStr({ [getUrlParamNameForFilter(filter)]: filter.name })}`
 }
