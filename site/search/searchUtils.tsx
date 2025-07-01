@@ -3,6 +3,7 @@ import { HitAttributeHighlightResult } from "instantsearch.js"
 import {
     EntityName,
     GrapherQueryParams,
+    OwidGdocType,
     TagGraphRoot,
 } from "@ourworldindata/types"
 import {
@@ -30,11 +31,21 @@ import {
     SearchTopicType,
     SearchFacetFilters,
     SearchUrlParam,
+    PageType,
+    WordpressPageType,
 } from "./searchTypes.js"
-import { faTag } from "@fortawesome/free-solid-svg-icons"
+import {
+    faBook,
+    faBookmark,
+    faFileLines,
+    faGlobe,
+    faLightbulb,
+    faTag,
+    IconDefinition,
+} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { match, P } from "ts-pattern"
-import { ForwardedRef } from "react"
+import React, { ForwardedRef } from "react"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 
 /**
@@ -573,4 +584,36 @@ export const getUrlParamNameForFilter = (filter: Filter) =>
 
 export const getItemUrlForFilter = (filter: Filter): string => {
     return `${BAKED_BASE_URL}/data${queryParamsToStr({ [getUrlParamNameForFilter(filter)]: filter.name })}`
+}
+
+export function getPageTypeNameAndIcon(pageType: PageType): {
+    name: string
+    icon: IconDefinition
+} {
+    return match(pageType)
+        .with(OwidGdocType.AboutPage, () => ({
+            name: "About",
+            icon: faFileLines,
+        }))
+        .with(OwidGdocType.Article, () => ({ name: "Article", icon: faBook }))
+        .with(OwidGdocType.DataInsight, () => ({
+            name: "Data Insight",
+            icon: faLightbulb,
+        }))
+        .with(OwidGdocType.LinearTopicPage, OwidGdocType.TopicPage, () => ({
+            name: "Topic",
+            icon: faBookmark,
+        }))
+        .with(WordpressPageType.Country, () => ({
+            name: "Country",
+            icon: faGlobe,
+        }))
+        .with(
+            WordpressPageType.Other,
+            OwidGdocType.Author, // Should never be indexed
+            OwidGdocType.Fragment, // Should never be indexed
+            OwidGdocType.Homepage, // Should never be indexed
+            () => ({ name: "", icon: faFileLines })
+        )
+        .exhaustive()
 }
