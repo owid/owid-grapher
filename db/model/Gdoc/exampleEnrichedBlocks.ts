@@ -507,6 +507,7 @@ export const enrichedBlockExamples: Record<
         parseErrors: [],
         heading: "Featured Work",
         "hide-authors": true,
+        "hide-date": true,
         primary: [
             {
                 value: {

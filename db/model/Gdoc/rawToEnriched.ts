@@ -1984,6 +1984,11 @@ function parseResearchAndWritingBlock(
         parseErrors.push(hideAuthorsValidation)
     }
 
+    const hideDateValidation = validateRawBoolean("hide-date", raw.value)
+    if (!hideDateValidation.isValid) {
+        parseErrors.push(hideDateValidation)
+    }
+
     const primary: EnrichedBlockResearchAndWritingLink[] = []
     if (_.isArray(raw.value.primary)) {
         primary.push(...raw.value.primary.map((link) => enrichLink(link)))
@@ -2042,6 +2047,7 @@ function parseResearchAndWritingBlock(
         type: "research-and-writing",
         heading: raw.value.heading,
         "hide-authors": raw.value["hide-authors"] === "true",
+        "hide-date": raw.value["hide-date"] === "true",
         primary,
         secondary,
         more,

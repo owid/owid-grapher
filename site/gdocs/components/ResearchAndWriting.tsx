@@ -54,6 +54,7 @@ function ResearchAndWritingLink(
         shouldHideThumbnailSm?: boolean
         shouldHideSubtitle?: boolean
         shouldHideAuthors?: boolean
+        shouldHideDate?: boolean
     }
 ) {
     let {
@@ -70,6 +71,7 @@ function ResearchAndWritingLink(
         isSmall = false,
         shouldHideSubtitle = false,
         shouldHideAuthors = false,
+        shouldHideDate = false,
         className,
     } = props
     const { linkedDocument, errorMessage } = useLinkedDocument(url)
@@ -98,6 +100,7 @@ function ResearchAndWritingLink(
         authors = linkedDocument.authors || authors
         subtitle = linkedDocument.excerpt || subtitle
         filename = linkedDocument["featured-image"] || filename
+        date = linkedDocument.publishedAt || date
     }
 
     return (
@@ -122,7 +125,7 @@ function ResearchAndWritingLink(
                     />
                 </figure>
             ) : null}
-            {date ? (
+            {date && !shouldHideDate ? (
                 <p className="research-and-writing-link__date">
                     {formatDate(new Date(date))}
                 </p>
@@ -171,6 +174,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
     const {
         heading,
         "hide-authors": hideAuthors,
+        "hide-date": hideDate,
         primary,
         secondary,
         more,
@@ -244,6 +248,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                             className="span-cols-6 span-sm-cols-12"
                             key={i}
                             shouldHideAuthors={hideAuthors}
+                            shouldHideDate={hideDate}
                             {...link}
                         />
                     ))}
@@ -253,6 +258,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                             className="span-cols-3 span-md-cols-6 span-sm-cols-12"
                             isSmall
                             shouldHideAuthors={hideAuthors}
+                            shouldHideDate={hideDate}
                             {...link}
                         />
                     ))}
@@ -268,6 +274,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                             <ResearchAndWritingLink
                                 shouldHideSubtitle
                                 shouldHideAuthors={hideAuthors}
+                                shouldHideDate={hideDate}
                                 isSmall
                                 className="span-cols-1"
                                 key={i}
@@ -288,6 +295,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                                 shouldHideThumbnail
                                 shouldHideSubtitle
                                 shouldHideAuthors={hideAuthors}
+                                shouldHideDate={hideDate}
                                 isSmall
                                 className="span-cols-1"
                                 key={i}
@@ -308,6 +316,7 @@ export function ResearchAndWriting(props: ResearchAndWritingProps) {
                                 isSmall
                                 shouldHideThumbnailSm
                                 shouldHideAuthors={hideAuthors}
+                                shouldHideDate={hideDate}
                                 className="span-cols-1"
                                 key={i}
                                 {...link}

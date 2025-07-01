@@ -691,6 +691,7 @@ export type RawBlockResearchAndWriting = {
     value: {
         heading?: string
         "hide-authors"?: string
+        "hide-date"?: string
         // We're migrating these to be arrays, but have to support the old use-case until it's done
         primary?:
             | RawBlockResearchAndWritingLink
@@ -729,6 +730,7 @@ export type EnrichedBlockResearchAndWriting = {
     type: "research-and-writing"
     heading?: string
     "hide-authors": boolean
+    "hide-date": boolean
     primary: EnrichedBlockResearchAndWritingLink[]
     secondary: EnrichedBlockResearchAndWritingLink[]
     more?: EnrichedBlockResearchAndWritingRow
