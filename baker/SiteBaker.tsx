@@ -50,6 +50,7 @@ import {
     TombstonePageData,
     gdocUrlRegex,
     NarrativeChartInfo,
+    ArchiveContext,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
@@ -100,6 +101,10 @@ type PrefetchedAttachments = {
     linkedAuthors: LinkedAuthor[]
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
     imageMetadata: Record<string, ImageMetadata>
+    archivedVersions: {
+        charts: Record<number, ArchiveContext | undefined>
+        multiDims: Record<number, ArchiveContext | undefined>
+    }
     linkedCharts: {
         graphers: Record<string, LinkedChart>
         explorers: Record<string, LinkedChart>
@@ -315,6 +320,24 @@ export class SiteBaker {
                 `✅ Prefetched ${Object.keys(publishedExplorersBySlug).length} explorers`
             )
 
+            console.log("Prefetching archived versions")
+            const [archivedChartVersions, archivedMultiDimVersions] =
+                await Promise.all([
+                    getLatestChartArchivedVersionsIfEnabled(knex),
+                    getLatestMultiDimArchivedVersionsIfEnabled(knex),
+                ])
+
+            const archivedVersions = {
+                charts: archivedChartVersions,
+                multiDims: archivedMultiDimVersions,
+            }
+            const archiveCount = _.sum(
+                Object.values(archivedVersions).map(
+                    (v) => Object.keys(v).length
+                )
+            )
+            console.log(`✅ Prefetched ${archiveCount} archived versions`)
+
             console.log("Prefetching charts")
             // Get all grapher links from the database so that we only prefetch the ones that are actually in use
             // 2024-06-25 before/after: 6266/2194
@@ -322,9 +345,6 @@ export class SiteBaker {
                 .getGrapherLinkTargets(knex)
                 .then((rows) => rows.map((row) => row.target))
                 .then((targets) => new Set(targets))
-
-            const archivedChartVersions =
-                await getLatestChartArchivedVersionsIfEnabled(knex)
 
             // Includes redirects
             const publishedChartsRaw = await mapSlugsToConfigs(knex).then(
@@ -349,7 +369,7 @@ export class SiteBaker {
                                 chart.slug,
                                 {
                                     archivedChartInfo:
-                                        archivedChartVersions[chart.id] ||
+                                        archivedVersions.charts[chart.id] ||
                                         undefined,
                                 }
                             )
@@ -359,13 +379,11 @@ export class SiteBaker {
             }
 
             const multiDims = await getAllLinkedPublishedMultiDimDataPages(knex)
-            const archivedMultiDimVersions =
-                await getLatestMultiDimArchivedVersionsIfEnabled(knex)
             for (const { id, slug, config } of multiDims) {
                 publishedCharts.push(
                     makeMultiDimLinkedChart(config, slug, {
                         archivedChartInfo:
-                            archivedMultiDimVersions[id] || undefined,
+                            archivedVersions.multiDims[id] || undefined,
                     })
                 )
             }
@@ -420,6 +438,10 @@ export class SiteBaker {
                 linkedAuthors: publishedAuthors,
                 linkedDocuments: publishedGdocsDictionary,
                 imageMetadata: imageMetadataDictionary,
+                archivedVersions: {
+                    charts: archivedVersions.charts,
+                    multiDims: archivedVersions.multiDims,
+                },
                 linkedCharts: {
                     explorers: publishedExplorersBySlug,
                     graphers: publishedChartsBySlug,
@@ -465,6 +487,11 @@ export class SiteBaker {
                     this._prefetchedAttachmentsCache.imageMetadata,
                     [...imageFilenames, ...featuredImages]
                 ),
+
+                // not using _.pick on these, since they're not directly attached to the _OWID_GDOC_PROPS object anyhow
+                archivedVersions:
+                    this._prefetchedAttachmentsCache.archivedVersions,
+
                 linkedCharts: {
                     graphers: {
                         ...linkedGrapherCharts,
@@ -570,7 +597,10 @@ export class SiteBaker {
 
             // this is a no-op if the gdoc doesn't have an all-chart block
             if ("loadRelatedCharts" in publishedGdoc) {
-                await publishedGdoc.loadRelatedCharts(knex)
+                await publishedGdoc.loadRelatedCharts(
+                    knex,
+                    attachments.archivedVersions.charts
+                )
             }
 
             await publishedGdoc.validate(knex)

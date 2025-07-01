@@ -9,8 +9,9 @@ import {
     RelatedChart,
     OwidGdocMinimalPostInterface,
     OwidGdocBaseInterface,
-    excludeNullish,
-} from "@ourworldindata/utils"
+    ArchiveContext,
+} from "@ourworldindata/types"
+import { excludeNullish } from "@ourworldindata/utils"
 import {
     formatCitation,
     generateStickyNav,
@@ -140,7 +141,10 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         (knex: KnexReadonlyTransaction): Promise<void> =>
             this.loadRelatedCharts(knex)
 
-    async loadRelatedCharts(knex: KnexReadonlyTransaction): Promise<void> {
+    async loadRelatedCharts(
+        knex: KnexReadonlyTransaction,
+        archivedVersions?: Record<number, ArchiveContext | undefined>
+    ): Promise<void> {
         if (!this.tags?.length || !this.hasAllChartsBlock) return
 
         const relatedCharts = await knexRaw<{
@@ -167,15 +171,14 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             `,
             [this.tags.map((tag) => tag.id)]
         )
-        const archivedChartVersions =
-            await getLatestChartArchivedVersionsIfEnabled(
-                knex,
-                relatedCharts.map((c) => c.id)
-            )
+        archivedVersions ??= await getLatestChartArchivedVersionsIfEnabled(
+            knex,
+            relatedCharts.map((c) => c.id)
+        )
 
         this.relatedCharts = relatedCharts.map((chart) => ({
             ...chart,
-            archivedChartInfo: archivedChartVersions[chart.id] || undefined,
+            archivedChartInfo: archivedVersions[chart.id] || undefined,
         }))
     }
 }
