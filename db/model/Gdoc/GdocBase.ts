@@ -703,6 +703,13 @@ export class GdocBase implements OwidGdocBaseInterface {
 
     async loadLinkedCharts(knex: db.KnexReadonlyTransaction): Promise<void> {
         const slugToIdMap = await mapSlugsToIds(knex)
+
+        const [archivedChartVersions, archivedMultiDimVersions] =
+            await Promise.all([
+                getLatestChartArchivedVersionsIfEnabled(knex),
+                getLatestMultiDimArchivedVersionsIfEnabled(knex),
+            ])
+
         // TODO: rewrite this as a single query instead of N queries
         const linkedGrapherCharts = await Promise.all(
             this.linkedChartSlugs.grapher.map(async (originalSlug) => {
@@ -711,15 +718,14 @@ export class GdocBase implements OwidGdocBaseInterface {
                     const chart = await getChartConfigById(knex, chartId)
                     if (!chart) return
 
-                    const archivedChartInfo =
-                        await getLatestChartArchivedVersionsIfEnabled(knex, [
-                            chartId,
-                        ])
                     return makeGrapherLinkedChart(
                         knex,
                         chart.config,
                         originalSlug,
-                        { archivedChartInfo: archivedChartInfo[chartId] }
+                        {
+                            archivedChartInfo:
+                                archivedChartVersions[chartId] || undefined,
+                        }
                     )
                 } else {
                     const multiDim = await getMultiDimDataPageBySlug(
@@ -728,16 +734,14 @@ export class GdocBase implements OwidGdocBaseInterface {
                         { onlyPublished: false }
                     )
                     if (!multiDim) return
-                    const archivedChartInfo =
-                        await getLatestMultiDimArchivedVersionsIfEnabled(knex, [
-                            multiDim.id,
-                        ])
+
                     return makeMultiDimLinkedChart(
                         multiDim.config,
                         originalSlug,
                         {
                             archivedChartInfo:
-                                archivedChartInfo[multiDim.id] || undefined,
+                                archivedMultiDimVersions[multiDim.id] ||
+                                undefined,
                         }
                     )
                 }

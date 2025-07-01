@@ -155,6 +155,7 @@ export default function Chart({
                     isEmbeddedInAnOwidPage={true}
                     isEmbeddedInADataPage={false}
                     isPreviewing={isPreviewing}
+                    archivedChartInfo={linkedChart.archivedChartInfo}
                 />
             )}
             {d.caption ? (
