@@ -21,6 +21,7 @@ import {
     DbInsertPostGdocLink,
     DbPlainTag,
     formatDate,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
 import { docs as googleDocs } from "@googleapis/docs"
@@ -706,7 +707,14 @@ export class GdocBase implements OwidGdocBaseInterface {
 
         const [archivedChartVersions, archivedMultiDimVersions] =
             await Promise.all([
-                getLatestChartArchivedVersionsIfEnabled(knex),
+                getLatestChartArchivedVersionsIfEnabled(
+                    knex,
+                    excludeUndefined(
+                        this.linkedChartSlugs.grapher.map(
+                            (slug) => slugToIdMap[slug]
+                        )
+                    )
+                ),
                 getLatestMultiDimArchivedVersionsIfEnabled(knex),
             ])
 
