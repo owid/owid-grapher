@@ -1,13 +1,9 @@
-import {
-    ArchiveContext,
-    GRAPHER_PREVIEW_CLASS,
-    GrapherInterface,
-} from "@ourworldindata/types"
+import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import { GrapherFigureView } from "./GrapherFigureView.js"
 import cx from "classnames"
 import GrapherImage from "./GrapherImage.js"
 import { useIntersectionObserver, useIsClient } from "usehooks-ts"
-import { useMemo } from "react"
+import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 
 export interface GrapherWithFallbackProps {
     slug?: string
@@ -16,12 +12,11 @@ export interface GrapherWithFallbackProps {
     className?: string
     id?: string
     enablePopulatingUrlParams?: boolean
-    config: Partial<GrapherInterface>
+    config: Partial<GrapherProgrammaticInterface>
     queryStr?: string
     isEmbeddedInAnOwidPage: boolean
     isEmbeddedInADataPage: boolean
     isPreviewing?: boolean
-    archivedChartInfo?: ArchiveContext | undefined
 }
 
 export function GrapherWithFallback(
@@ -41,14 +36,6 @@ export function GrapherWithFallback(
         // Only trigger once
         freezeOnceVisible: true,
     })
-
-    const mergedConfig = useMemo(
-        () => ({
-            ...config,
-            archivedChartInfo: props.archivedChartInfo,
-        }),
-        [config, props.archivedChartInfo]
-    )
 
     // Render fallback png when javascript disabled or while
     // grapher is loading
@@ -90,7 +77,7 @@ export function GrapherWithFallback(
                 <GrapherFigureView
                     slug={slug}
                     configUrl={props.configUrl}
-                    config={mergedConfig}
+                    config={config}
                     useProvidedConfigOnly={props.useProvidedConfigOnly}
                     queryStr={queryStr}
                     isEmbeddedInAnOwidPage={props.isEmbeddedInAnOwidPage}
