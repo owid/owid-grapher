@@ -40,6 +40,7 @@ import {
     SearchFacetFilters,
     ChartRecordType,
     SearchChartHit,
+    SearchUrlParam,
 } from "./searchTypes.js"
 import { faTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -704,4 +705,15 @@ export async function fetchJson<TResult>(url: string): Promise<TResult> {
         throw new Error(`Failed to fetch ${url}: ${response.statusText}`)
     }
     return response.json()
+}
+
+export const getUrlParamNameForFilter = (filter: Filter) =>
+    match(filter.type)
+        .with(FilterType.COUNTRY, () => SearchUrlParam.COUNTRY)
+        .with(FilterType.TOPIC, () => SearchUrlParam.TOPIC)
+        .with(FilterType.QUERY, () => SearchUrlParam.QUERY)
+        .exhaustive()
+
+export const getItemUrlForFilter = (filter: Filter): string => {
+    return `${BAKED_BASE_URL}/data${queryParamsToStr({ [getUrlParamNameForFilter(filter)]: filter.name })}`
 }
