@@ -179,11 +179,15 @@
     padding: 0;
 }
 
+/*
+ * Autocomplete item contents styles
+ */
+
 .aa-Item {
-    padding: 0 10px;
-    height: 45px;
+    display: flex;
+    padding: 4px 10px;
+    min-height: 45px;
     line-height: 1.5;
-    border-radius: 0;
     color: $blue-90;
 
     &[aria-selected="true"] {
@@ -192,8 +196,16 @@
 }
 
 section[data-autocomplete-source-id="recentSearchesPlugin"] {
+    .aa-ItemIcon {
+        @include autocomplete-item-icon;
+    }
     .aa-ItemContentTitle {
         @include body-3-medium;
+        font-weight: bold;
+
+        mark {
+            font-weight: normal;
+        }
     }
     .aa-ItemActionButton {
         &:hover {
@@ -207,42 +219,55 @@ section[data-autocomplete-source-id="recentSearchesPlugin"] {
             outline: none;
         }
     }
-    .aa-ItemIcon {
-        @include autocomplete-item-icon;
-    }
 }
 
-section[data-autocomplete-source-id="recentSearchesPlugin"] {
-    .aa-ItemContentTitle {
-        font-weight: bold;
+.autocomplete-item-contents {
+    @include body-3-medium;
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    width: 100%; // for ellispses on the query to work
+}
 
-        mark {
-            font-weight: normal;
+section[data-autocomplete-source-id="filters"] {
+    .autocomplete-item-contents__description {
+        @include sm-only {
+            display: none;
         }
+    }
+
+    .autocomplete-item-contents__description--type {
+        font-style: italic;
+        color: $blue-50;
+        svg {
+            margin-right: 4px;
+        }
+    }
+
+    .search-filter-pill {
+        flex-shrink: 0;
     }
 }
 
 section[data-autocomplete-source-id="autocomplete"] {
-    .aa-ItemWrapper {
-        text-wrap: pretty;
-    }
-
-    .aa-ItemWrapper__contentType {
+    .autocomplete-item-contents__contentType {
+        margin-left: 8px;
         color: $blue-50;
     }
 }
 
-.autocomplete-item-contents__description {
-    @include body-3-medium;
+.autocomplete-item-contents__type-icon {
+    @include autocomplete-item-icon;
 }
 
-.autocomplete-item-contents__description--type {
-    font-style: italic;
-    color: $blue-50;
-    svg {
-        margin-right: 4px;
+.autocomplete-item-contents__query {
+    &:not(:last-child) {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    &:last-child {
+        text-wrap: pretty;
+        font-weight: bold;
     }
 }
-
-// 👀 see SearchAutocompleteItemContents.scss for shared styles of search
-// autocomplete items
