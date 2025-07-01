@@ -16,11 +16,13 @@ const charts = [
         title: "Chart 1",
         slug: "chart-1",
         keyChartLevel: KeyChartLevel.Middle,
+        chartId: 1,
     },
     {
         title: "Chart 2",
         slug: "chart-2",
         keyChartLevel: KeyChartLevel.Top,
+        chartId: 2,
     },
 ]
 
