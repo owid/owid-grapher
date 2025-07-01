@@ -88,6 +88,7 @@ export interface BasicChartInformation {
     variantName?: string | null
 }
 export interface RelatedChart extends BasicChartInformation {
+    chartId: number
     keyChartLevel?: KeyChartLevel
     archivedChartInfo?: ArchiveContext | undefined
 }

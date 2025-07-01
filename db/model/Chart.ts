@@ -608,6 +608,7 @@ export const getRelatedChartsForVariable = async (
         knex,
         `-- sql
             SELECT
+                charts.id AS chartId,
                 chart_configs.slug,
                 chart_configs.full->>"$.title" AS title,
                 chart_configs.full->>"$.variantName" AS variantName,

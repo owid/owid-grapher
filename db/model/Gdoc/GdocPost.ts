@@ -148,7 +148,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         if (!this.tags?.length || !this.hasAllChartsBlock) return
 
         const relatedCharts = await knexRaw<{
-            id: number
+            chartId: number
             slug: string
             title: string
             variantName: string
@@ -157,7 +157,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             knex,
             `-- sql
                 SELECT DISTINCT
-                    charts.id AS id,
+                    charts.id AS chartId,
                     chart_configs.slug,
                     chart_configs.full->>"$.title" AS title,
                     chart_configs.full->>"$.variantName" AS variantName,
@@ -173,12 +173,12 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         )
         archivedVersions ??= await getLatestChartArchivedVersionsIfEnabled(
             knex,
-            relatedCharts.map((c) => c.id)
+            relatedCharts.map((c) => c.chartId)
         )
 
         this.relatedCharts = relatedCharts.map((chart) => ({
             ...chart,
-            archivedChartInfo: archivedVersions[chart.id] || undefined,
+            archivedChartInfo: archivedVersions[chart.chartId] || undefined,
         }))
     }
 }
