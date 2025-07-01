@@ -543,3 +543,9 @@
         }
     }
 }
+
+@mixin autocomplete-item-icon {
+    width: 16px;
+    height: 16px;
+    color: $blue-50;
+}
