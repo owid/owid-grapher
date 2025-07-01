@@ -1,5 +1,4 @@
-.search-autocomplete-item-contents,
-.autocomplete-item-contents {
+.search-autocomplete-item-contents {
     display: flex;
     gap: 8px;
     align-items: center;
@@ -23,13 +22,11 @@
     }
 }
 
-.search-autocomplete-item-contents__search-icon,
-.autocomplete-item-contents__search-icon {
+.search-autocomplete-item-contents__type-icon {
     @include autocomplete-item-icon;
 }
 
-.search-autocomplete-item-contents__query,
-.autocomplete-item-contents__query {
+.search-autocomplete-item-contents__query {
     @include body-3-medium;
     color: $blue-90;
     white-space: nowrap;
@@ -37,8 +34,4 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
-}
-
-.autocomplete-item-contents__query--highlight {
-    font-weight: bold;
 }
