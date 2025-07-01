@@ -4,5 +4,9 @@
         "outDir": "../itsJustJavascript/db",
         "rootDir": "."
     },
-    "references": [{ "path": "../settings" }, { "path": "../site" }]
+    "references": [
+        { "path": "../settings" },
+        { "path": "../serverUtils" },
+        { "path": "../site" }
+    ]
 }

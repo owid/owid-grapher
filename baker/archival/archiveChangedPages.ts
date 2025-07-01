@@ -11,11 +11,13 @@ import {
     findChangedMultiDimPages,
     getGrapherChecksumsFromDb,
     getMultiDimChecksumsFromDb,
-    GrapherChecksumsObjectWithHash,
-    MultiDimChecksumsObjectWithHash,
     insertChartVersions,
     insertMultiDimVersions,
-} from "./archivalChecksum.js"
+} from "../../db/model/archival/archivalDb.js"
+import {
+    GrapherChecksumsObjectWithHash,
+    MultiDimChecksumsObjectWithHash,
+} from "@ourworldindata/types"
 import {
     getDateForArchival,
     getAllVariableIds,

@@ -3,15 +3,15 @@ import {
     lazy,
     convertToArchivalDateStringIfNecessary,
 } from "@ourworldindata/utils"
-import { AssetMap } from "@ourworldindata/types"
 import {
+    AssetMap,
     GrapherChecksums,
     GrapherChecksumsObjectWithHash,
     MultiDimChecksums,
     MultiDimChecksumsObjectWithHash,
-} from "./archivalChecksum.js"
+} from "@ourworldindata/types"
 import { simpleGit } from "simple-git"
-import { ARCHIVE_BASE_URL } from "../../settings/serverSettings.js"
+import { ARCHIVE_BASE_URL } from "../settings/serverSettings.js"
 
 export interface GrapherArchivalManifest {
     assets: {

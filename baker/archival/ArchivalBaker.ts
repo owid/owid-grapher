@@ -12,6 +12,8 @@ import {
     GrapherInterface,
     MultiDimDataPageConfigEnriched,
     UrlAndMaybeDate,
+    GrapherChecksumsObjectWithHash,
+    MultiDimChecksumsObjectWithHash,
 } from "@ourworldindata/types"
 import fs from "fs-extra"
 import path from "path"
@@ -21,7 +23,10 @@ import { getVariableData } from "../../db/model/Variable.js"
 import findProjectBaseDir from "../../settings/findBaseDir.js"
 import { bakeSingleGrapherPageForArchival } from "../GrapherBaker.js"
 import { bakeSingleMultiDimDataPageForArchival } from "../MultiDimBaker.js"
-import { hashAndCopyFile, hashAndWriteFile } from "./archivalFileUtils.js"
+import {
+    hashAndCopyFile,
+    hashAndWriteFile,
+} from "../../serverUtils/archivalFileUtils.js"
 import {
     GrapherArchivalManifest,
     MultiDimArchivalManifest,
@@ -29,16 +34,14 @@ import {
     assembleGrapherManifest,
     assembleMultiDimArchivalUrl,
     assembleMultiDimManifest,
-} from "./archivalUtils.js"
+} from "../../serverUtils/archivalUtils.js"
 import pMap from "p-map"
 import {
     getAllChartVersionsForChartId,
     getAllMultiDimVersionsForId,
     getLatestGrapherArchivedVersionsFromDb,
     getLatestMultiDimArchivedVersionsFromDb,
-    GrapherChecksumsObjectWithHash,
-    MultiDimChecksumsObjectWithHash,
-} from "./archivalChecksum.js"
+} from "../../db/model/archival/archivalDb.js"
 import { ARCHIVE_BASE_URL } from "../../settings/serverSettings.js"
 import {
     ArchivalTimestamp,

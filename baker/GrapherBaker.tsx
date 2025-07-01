@@ -9,7 +9,6 @@ import {
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import {
-    ARCHIVE_BASE_URL,
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
@@ -32,7 +31,6 @@ import {
     DbRawChartConfig,
     DbEnrichedImage,
     ArchiveMetaInformation,
-    ArchivedPageVersion,
     ArchiveContext,
 } from "@ourworldindata/types"
 import ProgressBar from "progress"
@@ -55,17 +53,8 @@ import { getRelatedChartsForVariable } from "../db/model/Chart.js"
 import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
-import { GrapherArchivalManifest } from "./archival/archivalUtils.js"
-import { getLatestGrapherArchivedVersions } from "./archival/archivalChecksum.js"
-
-const getLatestChartArchivedVersionsIfEnabled = async (
-    knex: db.KnexReadonlyTransaction,
-    chartIds?: number[]
-): Promise<Record<number, ArchivedPageVersion>> => {
-    if (!ARCHIVE_BASE_URL) return {}
-
-    return await getLatestGrapherArchivedVersions(knex, chartIds)
-}
+import { GrapherArchivalManifest } from "../serverUtils/archivalUtils.js"
+import { getLatestChartArchivedVersionsIfEnabled } from "../db/model/archival/archivalDb.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,

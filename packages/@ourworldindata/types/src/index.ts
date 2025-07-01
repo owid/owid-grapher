@@ -806,5 +806,9 @@ export {
     type ArchivedPageVersion,
     type ArchiveVersions,
     type ArchiveContext,
+    type GrapherChecksums,
+    type GrapherChecksumsObjectWithHash,
+    type MultiDimChecksums,
+    type MultiDimChecksumsObjectWithHash,
 } from "./domainTypes/Archive.js"
 export { type AdditionalGrapherDataFetchFn } from "./grapherTypes/GrapherTypes.js"
