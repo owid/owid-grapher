@@ -545,3 +545,11 @@
         }
     }
 }
+
+@mixin autocomplete-item-icon {
+    @include body-3-medium;
+    width: 16px;
+    height: 16px;
+    font-size: 12px;
+    color: $blue-50;
+}
