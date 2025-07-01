@@ -16,7 +16,6 @@ import {
     PageType,
     SearchIndexName,
     WordpressPageType,
-    pageTypeDisplayNames,
     Filter,
     FilterType,
 } from "./searchTypes.js"
@@ -41,10 +40,15 @@ import {
     getAutocompleteSuggestionsWithUnmatchedQuery,
     getFilterIcon,
     getItemUrlForFilter,
+    getPageTypeNameAndIcon,
 } from "./searchUtils.js"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faChartSimple, faSearch } from "@fortawesome/free-solid-svg-icons"
+import {
+    faChartSimple,
+    faLineChart,
+    faSearch,
+} from "@fortawesome/free-solid-svg-icons"
 
 const siteAnalytics = new SiteAnalytics()
 
@@ -196,28 +200,40 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
             const index = parseIndexName(
                 item.__autocomplete_indexName as string
             )
+
             const indexLabel =
                 index === SearchIndexName.ExplorerViewsMdimViewsAndCharts
                     ? item.type === ChartRecordType.ExplorerView
                         ? "Explorer"
                         : "Chart"
-                    : pageTypeDisplayNames[item.type as PageType]
+                    : getPageTypeNameAndIcon(item.type as PageType).name
+
+            const indexIcon =
+                index === SearchIndexName.ExplorerViewsMdimViewsAndCharts
+                    ? faLineChart
+                    : getPageTypeNameAndIcon(item.type as PageType).icon
 
             return (
                 <div
-                    className="aa-ItemWrapper"
+                    className="autocomplete-item-contents"
                     key={item.title as string}
                     translate="no"
                 >
+                    <span>
+                        <FontAwesomeIcon
+                            icon={indexIcon}
+                            className="autocomplete-item-contents__type-icon"
+                        />
+                    </span>
                     <span>
                         <components.Highlight
                             hit={item}
                             attribute={"title"}
                             tagName="strong"
                         />
-                    </span>
-                    <span className="aa-ItemWrapper__contentType">
-                        {indexLabel}
+                        <span className="autocomplete-item-contents__contentType">
+                            {indexLabel}
+                        </span>
                     </span>
                 </div>
             )
@@ -269,21 +285,19 @@ const createFiltersSource = (
                     {match(filter.type)
                         .with(FilterType.QUERY, () => (
                             <>
-                                <FontAwesomeIcon
-                                    className="autocomplete-item-contents__search-icon"
-                                    icon={faSearch}
-                                />
-                                <span className="autocomplete-item-contents__query autocomplete-item-contents__query--highlight">
+                                <span className="autocomplete-item-contents__type-icon">
+                                    <FontAwesomeIcon icon={faSearch} />
+                                </span>
+                                <span className="autocomplete-item-contents__query">
                                     {filter.name}
                                 </span>
                             </>
                         ))
                         .with(FilterType.COUNTRY, () => (
                             <>
-                                <FontAwesomeIcon
-                                    className="autocomplete-item-contents__search-icon"
-                                    icon={faSearch}
-                                />
+                                <span className="autocomplete-item-contents__type-icon">
+                                    <FontAwesomeIcon icon={faSearch} />
+                                </span>
                                 {unmatchedQuery && (
                                     <span className="autocomplete-item-contents__query">
                                         {unmatchedQuery}
@@ -297,10 +311,9 @@ const createFiltersSource = (
                         ))
                         .with(FilterType.TOPIC, () => (
                             <>
-                                <FontAwesomeIcon
-                                    className="autocomplete-item-contents__search-icon"
-                                    icon={faSearch}
-                                />
+                                <span className="autocomplete-item-contents__type-icon">
+                                    <FontAwesomeIcon icon={faSearch} />
+                                </span>
                                 <span className="autocomplete-item-contents__description">
                                     All
                                 </span>
