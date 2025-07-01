@@ -331,7 +331,7 @@ export function Autocomplete({
             getSources({ query }) {
                 const sources: AutocompleteSource<BaseItem>[] = []
                 if (query) {
-                    sources.push(AlgoliaSource, AllResultsSource)
+                    sources.push(AlgoliaSource)
                 } else {
                     sources.push(FeaturedSearchesSource)
                 }
