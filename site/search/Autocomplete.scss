@@ -122,18 +122,12 @@
 }
 
 .aa-SubmitButton,
-.aa-ItemActionButton,
 .aa-DetachedSearchButtonIcon {
     svg {
         fill: $blue-50;
         color: $blue-50;
         stroke: none;
     }
-}
-
-.aa-ItemActionButton:focus {
-    background: $blue-10;
-    outline: none;
 }
 
 // A magic number slightly higher than our $md breakpoint to ensure there's enough room
@@ -181,7 +175,7 @@
 }
 
 .aa-PanelLayout {
-    margin: 8px;
+    margin: 6px;
     padding: 0;
 }
 
@@ -195,27 +189,45 @@
 }
 
 .aa-Item {
-    padding: 12px 16px;
+    padding: 0 10px;
+    height: 45px;
     line-height: 1.5;
     border-radius: 0;
     color: $blue-90;
 
     &[aria-selected="true"] {
-        background-color: $blue-10;
+        background-color: $blue-5;
     }
 }
 
-// Less padding for these ones because of the icons
-section[data-autocomplete-source-id="recentSearchesPlugin"] .aa-Item {
-    padding: 9px;
+section[data-autocomplete-source-id="recentSearchesPlugin"] {
+    .aa-ItemContentTitle {
+        @include body-3-medium;
+    }
+    .aa-ItemActionButton {
+        &:hover {
+            background-color: $blue-20;
+        }
+        svg {
+            @include autocomplete-item-icon;
+        }
+        &:focus {
+            background: $blue-20;
+            outline: none;
+        }
+    }
+    .aa-ItemIcon {
+        @include autocomplete-item-icon;
+    }
 }
 
-section[data-autocomplete-source-id="recentSearchesPlugin"]
+section[data-autocomplete-source-id="recentSearchesPlugin"] {
     .aa-ItemContentTitle {
-    font-weight: bold;
+        font-weight: bold;
 
-    mark {
-        font-weight: normal;
+        mark {
+            font-weight: normal;
+        }
     }
 }
 
@@ -228,3 +240,18 @@ section[data-autocomplete-source-id="autocomplete"] {
         color: $blue-50;
     }
 }
+
+.autocomplete-item-contents__description {
+    @include body-3-medium;
+}
+
+.autocomplete-item-contents__description--type {
+    font-style: italic;
+    color: $blue-50;
+    svg {
+        margin-right: 4px;
+    }
+}
+
+// 👀 see SearchAutocompleteItemContents.scss for shared styles of search
+// autocomplete items
