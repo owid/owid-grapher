@@ -90,6 +90,7 @@ import { getNarrativeChartsInfo } from "../db/model/NarrativeChart.js"
 import { getGrapherRedirectsMap } from "./redirectsFromDb.js"
 import * as R from "remeda"
 import { getDods, getParsedDodsDictionary } from "../db/model/Dod.js"
+import { getLatestChartArchivedVersionsIfEnabled } from "../db/model/archival/archivalDb.js"
 
 type PrefetchedAttachments = {
     donors: string[]
@@ -319,6 +320,9 @@ export class SiteBaker {
                 .then((rows) => rows.map((row) => row.target))
                 .then((targets) => new Set(targets))
 
+            const archivedChartVersions =
+                await getLatestChartArchivedVersionsIfEnabled(knex)
+
             // Includes redirects
             const publishedChartsRaw = await mapSlugsToConfigs(knex).then(
                 (configs) => {
@@ -339,7 +343,12 @@ export class SiteBaker {
                             await makeGrapherLinkedChart(
                                 knex,
                                 chart.config,
-                                chart.slug
+                                chart.slug,
+                                {
+                                    archivedChartInfo:
+                                        archivedChartVersions[chart.id] ||
+                                        undefined,
+                                }
                             )
                         )
                     })

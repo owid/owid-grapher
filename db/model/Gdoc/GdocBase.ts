@@ -64,6 +64,7 @@ import {
     VariablesTableName,
     parseVariableDisplayConfig,
     joinTitleFragments,
+    ArchivedPageVersion,
 } from "@ourworldindata/types"
 import {
     getAllNarrativeChartNames,
@@ -71,6 +72,7 @@ import {
 } from "../NarrativeChart.js"
 import { indexBy } from "remeda"
 import { getDods } from "../Dod.js"
+import { getLatestChartArchivedVersionsIfEnabled } from "../archival/archivalDb.js"
 
 export async function getLinkedIndicatorsForCharts(
     knex: db.KnexReadonlyTransaction,
@@ -705,10 +707,16 @@ export class GdocBase implements OwidGdocBaseInterface {
                 if (chartId) {
                     const chart = await getChartConfigById(knex, chartId)
                     if (!chart) return
+
+                    const archivedChartInfo =
+                        await getLatestChartArchivedVersionsIfEnabled(knex, [
+                            chartId,
+                        ])
                     return makeGrapherLinkedChart(
                         knex,
                         chart.config,
-                        originalSlug
+                        originalSlug,
+                        { archivedChartInfo: archivedChartInfo[chartId] }
                     )
                 } else {
                     const multiDim = await getMultiDimDataPageBySlug(
@@ -1089,7 +1097,8 @@ export async function getMinimalAuthorsByNames(
 export async function makeGrapherLinkedChart(
     knex: db.KnexReadonlyTransaction,
     config: GrapherInterface,
-    originalSlug: string
+    originalSlug: string,
+    { archivedChartInfo }: { archivedChartInfo?: ArchivedPageVersion } = {}
 ): Promise<LinkedChart> {
     const resolvedSlug = config.slug ?? ""
     const resolvedTitle = config.title ?? ""
@@ -1110,6 +1119,7 @@ export async function makeGrapherLinkedChart(
         thumbnail: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${resolvedSlug}.png`,
         tags: [],
         indicatorId,
+        archivedChartInfo,
     }
 }
 
