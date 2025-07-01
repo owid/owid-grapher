@@ -16,6 +16,7 @@ import {
     GRAPHER_TAB_TYPES,
 } from "./GrapherConstants.js"
 import { OwidVariableDataMetadataDimensions } from "../OwidVariable.js"
+import { ArchiveContext } from "../domainTypes/Archive.js"
 
 export interface Box {
     x: number
@@ -88,6 +89,7 @@ export interface BasicChartInformation {
 }
 export interface RelatedChart extends BasicChartInformation {
     keyChartLevel?: KeyChartLevel
+    archivedChartInfo?: ArchiveContext | undefined
 }
 export enum DimensionProperty {
     y = "y",

@@ -20,6 +20,7 @@ import { parseFaqs } from "./rawToEnriched.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { GdocBase } from "./GdocBase.js"
 import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
+import { getLatestChartArchivedVersionsIfEnabled } from "../archival/archivalDb.js"
 
 export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     content!: OwidGdocPostContent
@@ -143,6 +144,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         if (!this.tags?.length || !this.hasAllChartsBlock) return
 
         const relatedCharts = await knexRaw<{
+            id: number
             slug: string
             title: string
             variantName: string
@@ -151,6 +153,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             knex,
             `-- sql
                 SELECT DISTINCT
+                    charts.id AS id,
                     chart_configs.slug,
                     chart_configs.full->>"$.title" AS title,
                     chart_configs.full->>"$.variantName" AS variantName,
@@ -164,7 +167,15 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             `,
             [this.tags.map((tag) => tag.id)]
         )
+        const archivedChartVersions =
+            await getLatestChartArchivedVersionsIfEnabled(
+                knex,
+                relatedCharts.map((c) => c.id)
+            )
 
-        this.relatedCharts = relatedCharts
+        this.relatedCharts = relatedCharts.map((chart) => ({
+            ...chart,
+            archivedChartInfo: archivedChartVersions[chart.id] || undefined,
+        }))
     }
 }

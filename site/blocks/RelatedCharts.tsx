@@ -55,6 +55,7 @@ export const RelatedCharts = ({
             isEmbeddedInADataPage={false}
             config={{}}
             isPreviewing={isPreviewing}
+            archivedChartInfo={activeChart.archivedChartInfo}
         />
     )
 
