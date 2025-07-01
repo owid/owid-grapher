@@ -32,16 +32,18 @@ export const useSelectedCountryNames = (): Set<string> => {
 /**
  * Extracts and memoizes area names and all topics from the topic tag graph
  */
-export function useTagGraphTopics(topicTagGraph: TagGraphRoot): {
+export function useTagGraphTopics(topicTagGraph: TagGraphRoot | null): {
     allAreas: string[]
     allTopics: string[]
 } {
     const allAreas = useMemo(
-        () => topicTagGraph.children.map((child) => child.name) || [],
+        () => topicTagGraph?.children.map((child) => child.name) || [],
         [topicTagGraph]
     )
 
     const allTopics = useMemo(() => {
+        if (!topicTagGraph) return []
+
         function getAllTopics(node: TagGraphNode): Set<string> {
             return node.children.reduce((acc, child) => {
                 if (child.isTopic) {
