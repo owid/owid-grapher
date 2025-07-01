@@ -71,13 +71,16 @@ export const getAllPublishedMultiDimDataPagesBySlug = async (
 
 export async function getAllLinkedPublishedMultiDimDataPages(
     knex: KnexReadonlyTransaction
-): Promise<{ slug: string; config: MultiDimDataPageConfigEnriched }[]> {
+): Promise<
+    { id: number; slug: string; config: MultiDimDataPageConfigEnriched }[]
+> {
     const rows = await knexRaw<
-        Pick<DbPlainMultiDimDataPage, "config"> & { slug: string }
+        Pick<DbPlainMultiDimDataPage, "config"> & { id: number; slug: string }
     >(
         knex,
         `-- sql
         SELECT
+            mddp.id as id,
             mddp.slug as slug,
             mddp.config as config
         FROM multi_dim_data_pages mddp

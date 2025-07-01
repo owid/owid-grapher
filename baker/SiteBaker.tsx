@@ -90,7 +90,10 @@ import { getNarrativeChartsInfo } from "../db/model/NarrativeChart.js"
 import { getGrapherRedirectsMap } from "./redirectsFromDb.js"
 import * as R from "remeda"
 import { getDods, getParsedDodsDictionary } from "../db/model/Dod.js"
-import { getLatestChartArchivedVersionsIfEnabled } from "../db/model/archival/archivalDb.js"
+import {
+    getLatestChartArchivedVersionsIfEnabled,
+    getLatestMultiDimArchivedVersionsIfEnabled,
+} from "../db/model/archival/archivalDb.js"
 
 type PrefetchedAttachments = {
     donors: string[]
@@ -356,8 +359,15 @@ export class SiteBaker {
             }
 
             const multiDims = await getAllLinkedPublishedMultiDimDataPages(knex)
-            for (const { slug, config } of multiDims) {
-                publishedCharts.push(makeMultiDimLinkedChart(config, slug))
+            const archivedMultiDimVersions =
+                await getLatestMultiDimArchivedVersionsIfEnabled(knex)
+            for (const { id, slug, config } of multiDims) {
+                publishedCharts.push(
+                    makeMultiDimLinkedChart(config, slug, {
+                        archivedChartInfo:
+                            archivedMultiDimVersions[id] || undefined,
+                    })
+                )
             }
 
             const publishedChartsBySlug = _.keyBy(

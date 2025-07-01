@@ -194,6 +194,15 @@ export const getLatestMultiDimArchivedVersions = async (
     )
 }
 
+export const getLatestMultiDimArchivedVersionsIfEnabled = async (
+    knex: db.KnexReadonlyTransaction,
+    multiDimIds?: number[]
+): Promise<Record<number, ArchivedPageVersion>> => {
+    if (!ARCHIVE_BASE_URL) return {}
+
+    return await getLatestMultiDimArchivedVersions(knex, multiDimIds)
+}
+
 const hashGrapherChecksumsObj = (checksums: GrapherChecksums): string => {
     const stringified = stringify(
         _.pick(checksums, "chartConfigMd5", "indicators")

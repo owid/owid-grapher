@@ -72,7 +72,10 @@ import {
 } from "../NarrativeChart.js"
 import { indexBy } from "remeda"
 import { getDods } from "../Dod.js"
-import { getLatestChartArchivedVersionsIfEnabled } from "../archival/archivalDb.js"
+import {
+    getLatestChartArchivedVersionsIfEnabled,
+    getLatestMultiDimArchivedVersionsIfEnabled,
+} from "../archival/archivalDb.js"
 
 export async function getLinkedIndicatorsForCharts(
     knex: db.KnexReadonlyTransaction,
@@ -725,9 +728,17 @@ export class GdocBase implements OwidGdocBaseInterface {
                         { onlyPublished: false }
                     )
                     if (!multiDim) return
+                    const archivedChartInfo =
+                        await getLatestMultiDimArchivedVersionsIfEnabled(knex, [
+                            multiDim.id,
+                        ])
                     return makeMultiDimLinkedChart(
                         multiDim.config,
-                        originalSlug
+                        originalSlug,
+                        {
+                            archivedChartInfo:
+                                archivedChartInfo[multiDim.id] || undefined,
+                        }
                     )
                 }
             })
@@ -1149,7 +1160,8 @@ export function makeExplorerLinkedChart(
 
 export function makeMultiDimLinkedChart(
     config: MultiDimDataPageConfigEnriched,
-    slug: string
+    slug: string,
+    { archivedChartInfo }: { archivedChartInfo?: ArchivedPageVersion } = {}
 ): LinkedChart {
     let title = config.title.title
     const titleVariant = config.title.titleVariant
@@ -1162,5 +1174,6 @@ export function makeMultiDimLinkedChart(
         title,
         resolvedUrl: `${BAKED_GRAPHER_URL}/${slug}`,
         tags: [],
+        archivedChartInfo,
     }
 }
