@@ -1,3 +1,5 @@
+@use "sass:math";
+
 .grapher-dropdown {
     $option-checkmark: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOSIgdmlld0JveD0iMCAwIDEyIDkiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xMS4wMTU2IDAuOTg0Mzc1QzExLjMyMDMgMS4yNjU2MiAxMS4zMjAzIDEuNzU3ODEgMTEuMDE1NiAyLjAzOTA2TDUuMDE1NjIgOC4wMzkwNkM0LjczNDM4IDguMzQzNzUgNC4yNDIxOSA4LjM0Mzc1IDMuOTYwOTQgOC4wMzkwNkwwLjk2MDkzOCA1LjAzOTA2QzAuNjU2MjUgNC43NTc4MSAwLjY1NjI1IDQuMjY1NjIgMC45NjA5MzggMy45ODQzOEMxLjI0MjE5IDMuNjc5NjkgMS43MzQzOCAzLjY3OTY5IDIuMDE1NjIgMy45ODQzOEw0LjQ3NjU2IDYuNDQ1MzFMOS45NjA5NCAwLjk4NDM3NUMxMC4yNDIyIDAuNjc5Njg4IDEwLjczNDQgMC42Nzk2ODggMTEuMDE1NiAwLjk4NDM3NVoiIGZpbGw9IiMxRDNENjMiLz4KPC9zdmc+";
     $menu-caret-up: "data:image/svg+xml;base64, PHN2ZyB3aWR0aD0iOCIgaGVpZ2h0PSI1IiB2aWV3Qm94PSIwIDAgOCA1IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMC40NjA5MzggMy43MzQzOEwzLjQzNzUgMC43MzQzNzVDMy42MDE1NiAwLjU5Mzc1IDMuNzg5MDYgMC41IDQgMC41QzQuMTg3NSAwLjUgNC4zNzUgMC41OTM3NSA0LjUxNTYyIDAuNzM0Mzc1TDcuNDkyMTkgMy43MzQzOEM3LjcwMzEyIDMuOTQ1MzEgNy43NzM0NCA0LjI3MzQ0IDcuNjU2MjUgNC41NTQ2OUM3LjUzOTA2IDQuODM1OTQgNy4yODEyNSA1IDYuOTc2NTYgNUgxQzAuNjk1MzEyIDUgMC40MTQwNjIgNC44MzU5NCAwLjI5Njg3NSA0LjU1NDY5QzAuMTc5Njg4IDQuMjczNDQgMC4yNSAzLjk0NTMxIDAuNDYwOTM4IDMuNzM0MzhaIiBmaWxsPSIjNUI1QjVCIi8+Cjwvc3ZnPg==";
@@ -43,7 +45,7 @@
             background: url($clear) no-repeat center;
             width: 12px;
             height: 12px;
-            transform: scaleY(1 / $scaleY); // invert scaling of parent
+            transform: scaleY(math.div(1, $scaleY)); // invert scaling of parent
         }
 
         &:hover::after {
