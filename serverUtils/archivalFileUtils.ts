@@ -26,7 +26,7 @@ export const hashAndCopyFile = async (srcFile: string, targetDir: string) => {
     const targetFilename = path
         .basename(srcFile)
         .replace(/^(.*\/)?([^.]+\.)/, `$1$2${hash}.`)
-    const targetFile = path.resolve(targetDir, targetDir, targetFilename)
+    const targetFile = path.resolve(targetDir, targetFilename)
 
     // eslint-disable-next-line no-console
     console.log(`Copying ${srcFile} to ${targetFile}`)
