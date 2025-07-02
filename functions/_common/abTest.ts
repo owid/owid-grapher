@@ -1,12 +1,17 @@
+import * as Sentry from "@sentry/react"
+import { isInIFrame } from "@ourworldindata/utils"
+import {
+    getPreferenceValue,
+    PreferenceType,
+} from "../../site/cookiePreferences.js"
 import tests from "./ab-tests.json" with { type: "json" }
-// todo: send GA paramaters with all events, listing all experimental arms/conditions
 
 export const abTest = async (context) => {
     const originalResponse = await context.next()
     const cookie = context.request.headers.get("cookie")
 
-    if (tests && tests.length) {
-        let anyTrt = false
+    if (tests && tests.length && !isInIFrame()) {
+        let anyTreat = false
         tests.map((test) => {
             if (!cookie || !cookie.includes(test["id"])) {
                 // todo: what if cumul doesn't sum to 1?
@@ -29,20 +34,28 @@ export const abTest = async (context) => {
                 }
                 const expiresAt = test["expires"]
                     ? new Date(test["expires"])
-                    : new Date(Date.now() + 7 * (24 * 60 * 60 * 1000)) // fallback: expires in 7 days
+                    : new Date(Date.now() + 7 * (24 * 60 * 60 * 1000)) // fallback: cookie expires in 7 days
                 if (assignedArm) {
                     originalResponse.headers.append(
                         "Set-Cookie",
                         `${test["id"]}=${assignedArm}; expires=${expiresAt.toUTCString()}; path=/grapher/`
                     )
                     if (assignedArm !== "ctl") {
-                        anyTrt = true
+                        anyTreat = true
                     }
                 }
             }
         })
-        if (anyTrt) {
-            // todo: if user has accepted cookies, record this session replay
+
+        const analyticsConsent = getPreferenceValue(PreferenceType.Analytics)
+        console.log("analytics consent: ", analyticsConsent)
+        console.log("anyTreat", anyTreat)
+        if (analyticsConsent && anyTreat) {
+            // if user has accepted cookies and is assigned to at least one treatment
+            // condition, record this session replay
+            const replay = Sentry.getReplay()
+            replay.start()
+            console.log("started session replay")
         }
         return originalResponse
     }
