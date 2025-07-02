@@ -252,9 +252,7 @@ const createFiltersSource = (
 ): AutocompleteSource<BaseItem> => ({
     sourceId: "filters",
     onSelect,
-    getItemUrl({ item }) {
-        return getItemUrlForFilter(item.filter as Filter)
-    },
+    getItemUrl,
     getItems({ query }) {
         if (!query.trim()) return []
 
