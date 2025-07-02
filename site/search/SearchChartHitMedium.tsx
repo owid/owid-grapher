@@ -32,14 +32,12 @@ export function SearchChartHitMedium({
     hit,
     searchQueryRegionsMatches,
     onClick,
-    showThumbnails = true,
 }: {
     hit: SearchChartHit
     searchQueryRegionsMatches?: Region[] | undefined
     // Search uses a global onClick handler to track analytics
     // But the data catalog passes a function to this component explicitly
     onClick?: () => void
-    showThumbnails?: boolean
 }) {
     const [imgLoaded, setImgLoaded] = useState(false)
     const [imgError, setImgError] = useState(false)
@@ -108,7 +106,7 @@ export function SearchChartHitMedium({
 
     return (
         <SearchAsDraft
-            name={`Chart (Medium${!showThumbnails ? ", no thumbnails" : ""})`}
+            name={`Chart (Medium)`}
             className="search-chart-hit-medium"
         >
             <div className="search-chart-hit-medium__container">
@@ -156,74 +154,69 @@ export function SearchChartHitMedium({
                         </ul>
                     )}
                 </div>
-                {showThumbnails && (
-                    <div className="search-chart-hit-medium__thumbnails">
-                        {chartTypes.map((chartType, index) => {
-                            const isMainChart = index === 0
-                            const thumbnailUrl = isMainChart ? previewUrl : ""
 
-                            return (
-                                <a
-                                    key={chartType.type}
-                                    href={chartUrl}
-                                    className="search-chart-hit-medium__thumbnail-link"
-                                    onClick={onClick}
-                                    data-algolia-index={getIndexName(
-                                        SearchIndexName.ExplorerViewsMdimViewsAndCharts
-                                    )}
-                                    data-algolia-object-id={hit.objectID}
-                                    data-algolia-position={hit.__position}
-                                >
-                                    <div className="search-chart-hit-medium__img-container">
-                                        {isMainChart && imgError && (
-                                            <div className="search-chart-hit-medium__img-error">
-                                                <FontAwesomeIcon
-                                                    icon={faHeartBroken}
-                                                />
-                                                <span>
-                                                    Chart preview not available
-                                                </span>
-                                            </div>
-                                        )}
-                                        {isMainChart ? (
-                                            <img
-                                                key={previewUrl}
-                                                className={cx(
-                                                    "search-chart-hit-medium__img",
-                                                    {
-                                                        "search-chart-hit-medium__img--loaded":
-                                                            imgLoaded,
-                                                        "search-chart-hit-medium__img--error":
-                                                            imgError,
-                                                    }
-                                                )}
-                                                loading="lazy"
-                                                width={DEFAULT_GRAPHER_WIDTH}
-                                                height={DEFAULT_GRAPHER_HEIGHT}
-                                                src={thumbnailUrl}
-                                                onLoad={() =>
-                                                    setImgLoaded(true)
-                                                }
-                                                onError={() =>
-                                                    setImgError(true)
-                                                }
+                <div className="search-chart-hit-medium__thumbnails">
+                    {chartTypes.map((chartType, index) => {
+                        const isMainChart = index === 0
+                        const thumbnailUrl = isMainChart ? previewUrl : ""
+
+                        return (
+                            <a
+                                key={chartType.type}
+                                href={chartUrl}
+                                className="search-chart-hit-medium__thumbnail-link"
+                                onClick={onClick}
+                                data-algolia-index={getIndexName(
+                                    SearchIndexName.ExplorerViewsMdimViewsAndCharts
+                                )}
+                                data-algolia-object-id={hit.objectID}
+                                data-algolia-position={hit.__position}
+                            >
+                                <div className="search-chart-hit-medium__img-container">
+                                    {isMainChart && imgError && (
+                                        <div className="search-chart-hit-medium__img-error">
+                                            <FontAwesomeIcon
+                                                icon={faHeartBroken}
                                             />
-                                        ) : (
-                                            <div className="search-chart-hit-medium__img-placeholder">
-                                                <span className="search-chart-hit-medium__placeholder-text">
-                                                    {chartType.type.toUpperCase()}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="search-chart-hit-medium__thumbnail-label">
-                                        {chartType.label}
-                                    </div>
-                                </a>
-                            )
-                        })}
-                    </div>
-                )}
+                                            <span>
+                                                Chart preview not available
+                                            </span>
+                                        </div>
+                                    )}
+                                    {isMainChart ? (
+                                        <img
+                                            key={previewUrl}
+                                            className={cx(
+                                                "search-chart-hit-medium__img",
+                                                {
+                                                    "search-chart-hit-medium__img--loaded":
+                                                        imgLoaded,
+                                                    "search-chart-hit-medium__img--error":
+                                                        imgError,
+                                                }
+                                            )}
+                                            loading="lazy"
+                                            width={DEFAULT_GRAPHER_WIDTH}
+                                            height={DEFAULT_GRAPHER_HEIGHT}
+                                            src={thumbnailUrl}
+                                            onLoad={() => setImgLoaded(true)}
+                                            onError={() => setImgError(true)}
+                                        />
+                                    ) : (
+                                        <div className="search-chart-hit-medium__img-placeholder">
+                                            <span className="search-chart-hit-medium__placeholder-text">
+                                                {chartType.type.toUpperCase()}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="search-chart-hit-medium__thumbnail-label">
+                                    {chartType.label}
+                                </div>
+                            </a>
+                        )
+                    })}
+                </div>
             </div>
         </SearchAsDraft>
     )
