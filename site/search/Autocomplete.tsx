@@ -247,12 +247,6 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
     },
 }
 
-type FilterBasedItem = BaseItem & {
-    filter: Filter
-    unmatchedQuery: string
-    slug: string
-}
-
 const createFiltersSource = (
     allTopics: string[]
 ): AutocompleteSource<BaseItem> => ({
@@ -270,7 +264,11 @@ const createFiltersSource = (
             [] // no selected filters in this context
         )
 
-        const items: FilterBasedItem[] = []
+        const items: {
+            filter: Filter
+            unmatchedQuery: string
+            slug: string
+        }[] = []
 
         suggestions.suggestions.forEach((filter) => {
             items.push({
