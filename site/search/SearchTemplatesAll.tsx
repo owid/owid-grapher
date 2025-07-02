@@ -91,7 +91,7 @@ export const SearchTemplatesAll = () => {
             .with([null, true, false], () => (
                 <>
                     <SearchDataInsightsResults />
-                    <SearchWritingResults />
+                    <SearchWritingResults hasTopicPages={false} />
                     <SearchDataTopicsResults />
                 </>
             ))
