@@ -261,14 +261,16 @@ section[data-autocomplete-source-id="autocomplete"] {
     @include autocomplete-item-icon;
 }
 
-.autocomplete-item-contents__query {
-    &:not(:last-child) {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    &:last-child {
-        text-wrap: pretty;
-        font-weight: bold;
-    }
+.autocomplete-item-contents__query--only {
+    text-wrap: pretty;
+}
+
+.autocomplete-item-contents__query--highlighted {
+    font-weight: bold;
+}
+
+.autocomplete-item-contents__query--unmatched {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
