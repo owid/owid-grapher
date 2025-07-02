@@ -225,7 +225,7 @@ export class EntitySelector extends React.Component<{
     static contextType = DrawerContext
 
     scrollableContainer: React.RefObject<HTMLDivElement> = React.createRef()
-    searchField: React.RefObject<HTMLInputElement> = React.createRef()
+    searchFieldRef: React.RefObject<HTMLInputElement> = React.createRef()
     contentRef: React.RefObject<HTMLDivElement> = React.createRef()
 
     private sortConfigByName: SortConfig = {
@@ -238,7 +238,7 @@ export class EntitySelector extends React.Component<{
         void this.populateLocalEntities()
 
         if (this.props.autoFocus && !isTouchDevice())
-            this.searchField.current?.focus()
+            this.searchFieldRef.current?.focus()
 
         // scroll to the top when the search input changes
         this.disposers.push(
@@ -1324,6 +1324,7 @@ export class EntitySelector extends React.Component<{
         return (
             <div className="entity-selector__search-bar">
                 <SearchField
+                    ref={this.searchFieldRef}
                     value={this.searchInput}
                     onChange={(value) => this.set({ searchInput: value })}
                     onClear={() => this.clearSearchInput()}
