@@ -311,8 +311,15 @@ export class GrapherAnalytics {
 function getPathname(url?: string): string | undefined {
     // GA4 trims metadata fields down to 100 characters, so we want to be concise and only send
     // the pathname, e.g. `/grapher/life-expectancy` or `/explorers/migration`
-    const urlObj = url !== undefined ? new URL(url) : undefined
-    return urlObj?.pathname
+    if (url === undefined) return undefined
+
+    try {
+        const urlObj = new URL(url)
+        return urlObj.pathname
+    } catch {
+        // Invalid URL, return undefined
+        return undefined
+    }
 }
 
 function grapherAnalyticsContextToGAEventFields(
