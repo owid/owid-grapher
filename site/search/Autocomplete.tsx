@@ -251,7 +251,15 @@ const createFiltersSource = (
     allTopics: string[]
 ): AutocompleteSource<BaseItem> => ({
     sourceId: "filters",
-    onSelect,
+    onSelect({ navigator, item, state }) {
+        const itemUrl = item.slug as string
+        siteAnalytics.logInstantSearchClick({
+            query: state.query,
+            url: itemUrl,
+            position: String(state.activeItemId),
+        })
+        navigator.navigate({ itemUrl, item, state })
+    },
     getItemUrl,
     getItems({ query }) {
         if (!query.trim()) return []
