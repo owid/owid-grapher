@@ -261,7 +261,8 @@ const createFiltersSource = (
         const suggestions = getAutocompleteSuggestionsWithUnmatchedQuery(
             query,
             allTopics,
-            [] // no selected filters in this context
+            [], // no selected filters in this context
+            1
         )
 
         const items: {
