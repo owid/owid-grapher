@@ -14,6 +14,7 @@ export function SearchFilterPill({
     icon: ReactNode
     className?: string
 }) {
+    const nameLabel = name.replaceAll(" and ", " & ")
     return (
         <span
             className={cx(
@@ -25,7 +26,7 @@ export function SearchFilterPill({
             )}
         >
             {icon}
-            <span className="name">{name}</span>
+            <span className="name">{nameLabel}</span>
             {selected && (
                 <span className="close">
                     <FontAwesomeIcon icon={faClose} />

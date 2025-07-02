@@ -18,6 +18,7 @@ export const DataCatalogRibbon = ({
     selectedCountries: Region[]
 }) => {
     if (result.nbHits === 0) return null
+    const titleLabel = result.title.replaceAll(" and ", " & ")
     const handleAddTopicClick = (e: React.MouseEvent) => {
         e.preventDefault()
         addTopic(result.title)
@@ -34,7 +35,7 @@ export const DataCatalogRibbon = ({
                 onClick={handleAddTopicClick}
             >
                 <div className="data-catalog-ribbon__header">
-                    <h2 className="body-1-regular">{result.title}</h2>
+                    <h2 className="body-1-regular">{titleLabel}</h2>
                     <span className="data-catalog-ribbon__hit-count body-2-semibold">
                         {commafyNumber(result.nbHits)}{" "}
                         {result.nbHits === 1 ? "chart" : "charts"}
