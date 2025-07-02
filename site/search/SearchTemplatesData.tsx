@@ -16,31 +16,31 @@ export const SearchTemplatesData = () => {
             // Data + Topic + Country + Query
             .with([SearchTopicType.Topic, true, true], () => (
                 <>
-                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchDataResults />
                 </>
             ))
             // Data + Topic + Country + No Query
             .with([SearchTopicType.Topic, true, false], () => (
                 <>
-                    <SearchDataResults isFirstChartLarge={false} />
+                    <SearchDataResults />
                 </>
             ))
             // Data + Topic + No Country + Query
             .with([SearchTopicType.Topic, false, true], () => (
                 <>
-                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchDataResults />
                 </>
             ))
             // Data + Topic + No Country + No Query
             .with([SearchTopicType.Topic, false, false], () => (
                 <>
-                    <SearchDataResults isFirstChartLarge={false} />
+                    <SearchDataResults />
                 </>
             ))
             // Data + Area + Country + Query
             .with([SearchTopicType.Area, true, true], () => (
                 <>
-                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchDataResults />
                 </>
             ))
             // Data + Area + Country + No Query
@@ -52,7 +52,7 @@ export const SearchTemplatesData = () => {
             // Data + Area + No Country + Query
             .with([SearchTopicType.Area, false, true], () => (
                 <>
-                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchDataResults />
                 </>
             ))
             // Data + Area + No Country + No Query
@@ -64,7 +64,7 @@ export const SearchTemplatesData = () => {
             // Data + No Topic + Country + Query
             .with([null, true, true], () => (
                 <>
-                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchDataResults />
                 </>
             ))
             // Data + No Topic + Country + No Query
@@ -76,7 +76,7 @@ export const SearchTemplatesData = () => {
             // Data + No Topic + No Country + Query
             .with([null, false, true], () => (
                 <>
-                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchDataResults />
                 </>
             ))
             // Data + No Topic + No Country + No Query
