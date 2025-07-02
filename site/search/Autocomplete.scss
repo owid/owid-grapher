@@ -139,6 +139,7 @@
 }
 
 .aa-ClearButton {
+    padding: 0 16px;
     &:hover {
         .aa-ClearIcon {
             background-color: $blue-60;
@@ -152,10 +153,10 @@
         position: relative;
     }
     .aa-ClearIcon {
-        width: 24px;
-        height: 24px;
-        padding: 4px;
-        border-radius: 16px;
+        width: 16px;
+        height: 16px;
+        padding: 2px;
+        border-radius: 8px;
         background-color: $blue-50;
         fill: #fff;
     }
