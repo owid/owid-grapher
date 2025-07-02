@@ -148,6 +148,7 @@ export function useUrlSync(
 export function useInfiniteSearch<T extends SearchResponse<U>, U>({
     queryKey,
     queryFn,
+    enabled = true,
 }: {
     queryKey: (state: SearchState) => readonly (string | SearchState)[]
     queryFn: (
@@ -155,6 +156,7 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
         state: SearchState,
         page: number
     ) => Promise<T>
+    enabled?: boolean
 }) {
     const { state, searchClient } = useSearchContext()
 
@@ -166,6 +168,7 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
             const { page, nbPages } = lastPage
             return page < nbPages - 1 ? page + 1 : undefined
         },
+        enabled,
     })
 
     const hits: U[] = query.data?.pages.flatMap((page) => page.hits) || []
