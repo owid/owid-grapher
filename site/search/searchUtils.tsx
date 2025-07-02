@@ -629,14 +629,15 @@ export function findMatches(
 export function getAutocompleteSuggestionsWithUnmatchedQuery(
     query: string,
     allTopics: string[],
-    filters: Filter[]
+    filters: Filter[],
+    limitPerFilter: number = 3
 ): {
     suggestions: Filter[]
     unmatchedQuery: string
 } {
     const sortOptions = {
         threshold: 0.5,
-        limit: 3,
+        limit: limitPerFilter,
     }
     const selectedCountryNames = getFilterNamesOfType(
         filters,
