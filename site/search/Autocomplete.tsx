@@ -147,9 +147,14 @@ const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
     templates: {
         item: ({ item }) => {
             return (
-                <div>
-                    <span>{item.title}</span>
-                </div>
+                <span className="autocomplete-item-contents">
+                    <span className="autocomplete-item-contents__type-icon">
+                        <FontAwesomeIcon icon={faSearch} />
+                    </span>
+                    <span className="autocomplete-item-contents__query autocomplete-item-contents__query--only">
+                        {item.title}
+                    </span>
+                </span>
             )
         },
     },
@@ -215,7 +220,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     : getPageTypeNameAndIcon(item.type as PageType).icon
 
             return (
-                <div
+                <span
                     className="autocomplete-item-contents"
                     key={item.title as string}
                     translate="no"
@@ -236,7 +241,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                             {indexLabel}
                         </span>
                     </span>
-                </div>
+                </span>
             )
         },
     },
@@ -289,7 +294,7 @@ const createFiltersSource = (
                                 <span className="autocomplete-item-contents__type-icon">
                                     <FontAwesomeIcon icon={faSearch} />
                                 </span>
-                                <span className="autocomplete-item-contents__query">
+                                <span className="autocomplete-item-contents__query autocomplete-item-contents__query--only autocomplete-item-contents__query--highlighted">
                                     {filter.name}
                                 </span>
                             </>
@@ -300,7 +305,7 @@ const createFiltersSource = (
                                     <FontAwesomeIcon icon={faSearch} />
                                 </span>
                                 {unmatchedQuery && (
-                                    <span className="autocomplete-item-contents__query">
+                                    <span className="autocomplete-item-contents__query autocomplete-item-contents__query--unmatched">
                                         {unmatchedQuery}
                                     </span>
                                 )}
