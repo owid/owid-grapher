@@ -44,8 +44,6 @@ export function SearchChartHitMedium({
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
     const isMultiDimView = hit.type === ChartRecordType.MultiDimView
 
-    console.log("hit", hit)
-
     const entities = useMemo(() => {
         const highlighted = (hit._highlightResult?.originalAvailableEntities ||
             hit._highlightResult?.availableEntities) as

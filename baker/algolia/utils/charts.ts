@@ -1,6 +1,10 @@
 import * as _ from "lodash-es"
 import { MarkdownTextWrap } from "@ourworldindata/components"
-import { KeyChartLevel, ContentGraphLinkType } from "@ourworldindata/types"
+import {
+    KeyChartLevel,
+    ContentGraphLinkType,
+    parseChartConfig,
+} from "@ourworldindata/types"
 import * as db from "../../../db/db.js"
 import {
     ChartRecord,
@@ -16,6 +20,7 @@ import {
     getUniqueNamesFromTopicHierarchies,
 } from "@ourworldindata/utils"
 import { processAvailableEntities } from "./shared.js"
+import { GrapherState } from "@ourworldindata/grapher"
 
 const computeChartScore = (record: Omit<ChartRecord, "score">): number => {
     const { numRelatedArticles, views_7d } = record
@@ -46,8 +51,11 @@ const parseAndProcessChartRecords = (
         rawRecord.keyChartForTags as string
     ).filter((t: string | null) => t)
 
+    const config = parseChartConfig(rawRecord.config)
+
     return {
         ...rawRecord,
+        config,
         entityNames,
         tags,
         keyChartForTags,
@@ -64,6 +72,7 @@ export const getChartsRecords = async (
         WITH indexable_charts_with_entity_names AS (
             SELECT c.id,
                    cc.slug,
+                   cc.full                                 AS config,
                    cc.full ->> "$.title"                   AS title,
                    cc.full ->> "$.variantName"             AS variantName,
                    cc.full ->> "$.subtitle"                AS subtitle,
@@ -81,6 +90,7 @@ export const getChartsRecords = async (
         )
         SELECT c.id,
                c.slug,
+               c.config,
                c.title,
                c.variantName,
                c.subtitle,
@@ -107,6 +117,8 @@ export const getChartsRecords = async (
 
     const records: ChartRecord[] = []
     for (const c of parsedRows) {
+        const grapherState = new GrapherState(c.config)
+
         // Our search currently cannot render explorers, so don't index them because
         // otherwise they will fail when rendered in the search results
         if (isPathRedirectedToExplorer(`/grapher/${c.slug}`)) continue
@@ -141,6 +153,7 @@ export const getChartsRecords = async (
             subtitle: plaintextSubtitle,
             availableEntities: c.entityNames,
             numDimensions: parseInt(c.numDimensions),
+            availableTabs: grapherState.availableTabs,
             publishedAt: c.publishedAt,
             updatedAt: c.updatedAt,
             tags: topicTags,
