@@ -62,34 +62,12 @@ export class MapRegionDropdown extends React.Component<{
         selected: MapRegionDropdownOption | null,
         mode: { action: unknown }
     ): void {
-        if (mode.action === "clear") {
-            this.mapConfig.region = MapRegionName.World
-            this.manager.globeController?.hideGlobe()
-            this.manager.globeController?.resetGlobe()
-            return
-        }
-
-        if (!selected) return
-
-        const { value } = selected
-
-        // Only rotate to a continent if we're already on the globe
-        if (
-            this.manager.mapConfig?.globe.isActive &&
-            value !== MapRegionName.World
-        )
-            this.manager.globeController?.rotateToOwidContinent(value)
-
-        if (value === MapRegionName.World) {
-            this.manager.globeController?.hideGlobe()
-            this.manager.globeController?.resetGlobe()
-        }
-
-        // update active option
+        const value = selected?.value
+        if (!value) return
         this.mapConfig.region = value
 
+        // drop all selected entities not on this continent
         if (this.mapConfig.region !== MapRegionName.World) {
-            // drop all selected entities not on this continent
             const countriesInRegion = getCountriesByRegion(
                 MAP_REGION_LABELS[this.mapConfig.region]
             )
