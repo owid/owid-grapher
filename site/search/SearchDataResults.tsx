@@ -1,5 +1,3 @@
-import { SearchChartHitMedium } from "./SearchChartHitMedium.js"
-import { SearchChartHitLarge } from "./SearchChartHitLarge.js"
 import { SearchShowMore } from "./SearchShowMore.js"
 import { queryCharts, searchQueryKeys } from "./queries.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
@@ -8,14 +6,11 @@ import { SearchAsDraft } from "./SearchAsDraft.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 import { SearchChartsResponse, SearchChartHit } from "./searchTypes.js"
 import { SearchDataResultsSkeleton } from "./SearchDataResultsSkeleton.js"
+import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
 
 const analytics = new SiteAnalytics()
 
-export const SearchDataResults = ({
-    isFirstChartLarge = true,
-}: {
-    isFirstChartLarge?: boolean
-}) => {
+export const SearchDataResults = () => {
     const selectedCountries = useSelectedCountries()
 
     const query = useInfiniteSearch<SearchChartsResponse, SearchChartHit>({
@@ -36,46 +31,30 @@ export const SearchDataResults = ({
                 </SearchResultHeader>
                 <ul className="search-data-results__list">
                     {hits.map((hit, i) => {
-                        const isFirstResult = i === 0
-                        const shouldChartHitLarge =
-                            isFirstChartLarge && isFirstResult
-                        const showThumbnails = i < 5
+                        const isMediumHit = i < 5
+                        const mode = isMediumHit ? "medium" : "small"
+
+                        const onClick = () => {
+                            analytics.logDataCatalogResultClick(
+                                hit,
+                                i + 1,
+                                "search"
+                            )
+                        }
 
                         return (
                             <li
                                 className="search-data-results__hit"
                                 key={hit.objectID}
                             >
-                                {shouldChartHitLarge ? (
-                                    <SearchChartHitLarge
-                                        onClick={() => {
-                                            analytics.logDataCatalogResultClick(
-                                                hit,
-                                                i + 1,
-                                                "search"
-                                            )
-                                        }}
-                                        hit={hit}
-                                        searchQueryRegionsMatches={
-                                            selectedCountries
-                                        }
-                                    />
-                                ) : (
-                                    <SearchChartHitMedium
-                                        onClick={() => {
-                                            analytics.logDataCatalogResultClick(
-                                                hit,
-                                                i + 1,
-                                                "search"
-                                            )
-                                        }}
-                                        hit={hit}
-                                        searchQueryRegionsMatches={
-                                            selectedCountries
-                                        }
-                                        showThumbnails={showThumbnails}
-                                    />
-                                )}
+                                <SearchChartHitComponent
+                                    hit={hit}
+                                    mode={mode}
+                                    searchQueryRegionsMatches={
+                                        selectedCountries
+                                    }
+                                    onClick={onClick}
+                                />
                             </li>
                         )
                     })}
