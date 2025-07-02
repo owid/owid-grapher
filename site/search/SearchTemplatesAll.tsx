@@ -44,13 +44,13 @@ export const SearchTemplatesAll = () => {
                 <>
                     <SearchWritingResults topicType={SearchTopicType.Topic} />
                     <SearchDataInsightsResults />
-                    <SearchDataResults isFirstChartLarge={false} />
+                    <SearchDataResults />
                 </>
             ))
             // All + Area + Country + Query
             .with([SearchTopicType.Area, true, true], () => (
                 <>
-                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchDataResults />
                     <SearchWritingResults topicType={SearchTopicType.Area} />
                     <SearchDataInsightsResults />
                 </>
@@ -66,7 +66,7 @@ export const SearchTemplatesAll = () => {
             // All + Area + No Country + Query
             .with([SearchTopicType.Area, false, true], () => (
                 <>
-                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchDataResults />
                     <SearchWritingResults topicType={SearchTopicType.Area} />
                     <SearchDataInsightsResults />
                 </>
@@ -82,7 +82,7 @@ export const SearchTemplatesAll = () => {
             // All + No Topic + Country + Query
             .with([null, true, true], () => (
                 <>
-                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchDataResults />
                     <SearchWritingResults />
                     <SearchDataInsightsResults />
                 </>
@@ -98,7 +98,7 @@ export const SearchTemplatesAll = () => {
             // All + No Topic + No Country + Query
             .with([null, false, true], () => (
                 <>
-                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchDataResults />
                     <SearchWritingResults />
                     <SearchDataInsightsResults />
                 </>
