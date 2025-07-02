@@ -81,7 +81,7 @@ export const SearchTemplatesWriting = () => {
             .with([null, true, false], () => (
                 <>
                     <SearchDataInsightsResults />
-                    <SearchWritingResults />
+                    <SearchWritingResults hasTopicPages={false} />
                 </>
             ))
             // Writing + No Topic + No Country + Query
