@@ -12,7 +12,11 @@ import { SearchShowMore } from "./SearchShowMore.js"
 import { SearchArticleHit } from "./SearchArticleHit.js"
 import { SearchTopicPageHit } from "./SearchTopicPageHit.js"
 
-export const SearchWritingResults = () => {
+export const SearchWritingResults = ({
+    hasTopicPages = true,
+}: {
+    hasTopicPages?: boolean
+}) => {
     const articlesQuery = useInfiniteSearch<SearchArticleResponse, ArticleHit>({
         queryKey: (state) => searchQueryKeys.articles(state),
         queryFn: queryArticles,
@@ -24,6 +28,7 @@ export const SearchWritingResults = () => {
     >({
         queryKey: (state) => searchQueryKeys.topicPages(state),
         queryFn: queryTopicPages,
+        enabled: hasTopicPages,
     })
 
     const articles = articlesQuery.hits
