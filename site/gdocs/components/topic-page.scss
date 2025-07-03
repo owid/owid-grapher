@@ -65,6 +65,9 @@
     a {
         @include body-3-medium;
         color: $blue-60;
+        &:hover {
+            text-decoration: underline;
+        }
     }
     svg {
         color: $blue-50;
