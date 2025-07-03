@@ -99,13 +99,13 @@ export class ChartList extends React.Component<{
         }
         // Create the confirmation message with staging warning if applicable
         let confirmMessage = `Delete the chart ${chart.slug}? This action cannot be undone!`
-        
+
         if (ENV === "staging") {
-            confirmMessage += "\n\n⚠️ WARNING: You are on a staging server. Deleted charts are NOT synced to production servers. If this chart exists on production, it will remain there even after deletion here."
+            confirmMessage +=
+                "\n\n⚠️ WARNING: You are on a staging server. Deleted charts are NOT synced to production servers. If this chart exists on production, it will remain there even after deletion here."
         }
-        
-        if (!window.confirm(confirmMessage))
-            return
+
+        if (!window.confirm(confirmMessage)) return
 
         const json = await this.context.admin.requestJSON(
             `/api/charts/${chart.id}`,
