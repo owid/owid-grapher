@@ -121,6 +121,7 @@ export function DataPageContent({
                     noCache: isPreviewing,
                 }),
             manager: managerRef.current,
+            isConfigReady: false,
         })
     )
     const grapherFigureRef = useRef<HTMLDivElement>(null)
@@ -236,6 +237,7 @@ export function DataPageContent({
                             grapherState.setAuthoredVersion(config)
                             grapherState.reset()
                             grapherState.updateFromObject(config)
+                            grapherState.isConfigReady = true
 
                             grapherState.populateFromQueryParams(
                                 grapherQueryParams

@@ -452,7 +452,8 @@ export class GrapherState {
     isEmbeddedInAnOwidPage?: boolean = false
     isEmbeddedInADataPage?: boolean = false
 
-    // This one's explicitly set to `false` if FetchingGrapher is fetching the config
+    // This one's explicitly set to `false` if FetchingGrapher or some other
+    // external code is fetching the config
     @observable isConfigReady?: boolean = true
     /** Whether external grapher controls can be hidden in embeds. */
     @observable.ref canHideExternalControlsInEmbed: boolean = false
