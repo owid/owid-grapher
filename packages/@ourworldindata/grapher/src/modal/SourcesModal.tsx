@@ -34,7 +34,7 @@ import { CoreColumn } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
 import { SourcesKeyDataTable } from "./SourcesKeyDataTable"
 import { SourcesDescriptions } from "./SourcesDescriptions"
-import { TabLabel, Tabs } from "../tabs/Tabs"
+import { TabItem, Tabs } from "../tabs/Tabs"
 import { ExpandableTabs } from "../tabs/ExpandableTabs"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { isContinentsVariableId } from "../core/GrapherConstants"
@@ -64,7 +64,7 @@ interface SourcesModalProps {
 }
 
 interface SourcesModalState {
-    activeTabIndex: number
+    activeTabKey: string
 }
 
 @observer
@@ -74,9 +74,7 @@ export class SourcesModal extends React.Component<
 > {
     constructor(props: SourcesModalProps) {
         super(props)
-        this.state = {
-            activeTabIndex: 0,
-        }
+        this.state = { activeTabKey: this.tabs[0].label.key }
     }
 
     @computed private get manager(): SourcesModalManager {
@@ -112,6 +110,10 @@ export class SourcesModal extends React.Component<
         return this.manager.columnsWithSourcesExtensive
     }
 
+    private makeTabLabelString(title: string, attribution?: string): string {
+        return `${title} ${attribution ?? ""}`.trim()
+    }
+
     private makeTabLabelElement(
         title: string,
         attribution?: string
@@ -128,30 +130,29 @@ export class SourcesModal extends React.Component<
 
     @computed private get tabs(): {
         column: CoreColumn
-        label: { element: React.ReactElement }
+        label: TabItem
     }[] {
-        const tabs = _.uniqBy(
+        return _.uniqBy(
             this.columns.map((column) => {
                 const title = column.titlePublicOrDisplayName.title
                 const attribution = joinTitleFragments(
                     column.titlePublicOrDisplayName.attributionShort,
                     column.titlePublicOrDisplayName.titleVariant
                 )
-                return { column, title, attribution }
+                return {
+                    column,
+                    label: {
+                        key: this.makeTabLabelString(title, attribution),
+                        element: this.makeTabLabelElement(title, attribution),
+                    },
+                }
             }),
             // deduplicate tabs by their label
-            (tab) => `${tab.title} ${tab.attribution}`
+            (tab) => tab.label.key
         )
-
-        return tabs.map((tab) => ({
-            column: tab.column,
-            label: {
-                element: this.makeTabLabelElement(tab.title, tab.attribution),
-            },
-        }))
     }
 
-    @computed private get tabLabels(): TabLabel[] {
+    @computed private get tabLabels(): TabItem[] {
         return this.tabs.map(({ label }) => label)
     }
 
@@ -182,11 +183,10 @@ export class SourcesModal extends React.Component<
     }
 
     private renderTabs(): React.ReactElement {
-        const activeIndex = this.state.activeTabIndex
-        const setActiveIndex = (index: number) =>
-            this.setState({
-                activeTabIndex: index,
-            })
+        const activeTabKey = this.state.activeTabKey
+        const onChange = (key: string) => {
+            this.setState({ activeTabKey: key })
+        }
 
         // tabs are clipped to this width
         const maxTabWidth = 240
@@ -195,9 +195,9 @@ export class SourcesModal extends React.Component<
         if (this.manager.isNarrow) {
             return (
                 <Tabs
-                    labels={this.tabLabels}
-                    activeIndex={activeIndex}
-                    setActiveIndex={setActiveIndex}
+                    items={this.tabLabels}
+                    selectedKey={activeTabKey}
+                    onChange={onChange}
                     horizontalScroll={true}
                     maxTabWidth={maxTabWidth}
                 />
@@ -214,9 +214,9 @@ export class SourcesModal extends React.Component<
         if (_.sum(this.tabLabelWidths) <= maxWidth) {
             return (
                 <Tabs
-                    labels={this.tabLabels}
-                    activeIndex={activeIndex}
-                    setActiveIndex={setActiveIndex}
+                    items={this.tabLabels}
+                    selectedKey={activeTabKey}
+                    onChange={onChange}
                 />
             )
         }
@@ -229,23 +229,23 @@ export class SourcesModal extends React.Component<
         if (_.sum(clippedLabelWidths) <= maxWidth) {
             return (
                 <Tabs
-                    labels={this.tabLabels}
-                    activeIndex={activeIndex}
-                    setActiveIndex={setActiveIndex}
+                    items={this.tabLabels}
+                    selectedKey={activeTabKey}
+                    onChange={onChange}
                     maxTabWidth={maxTabWidth}
                 />
             )
         }
 
         // compute the subset of tabs that fit into a single line
-        const getVisibleLabels = (labels: TabLabel[]): TabLabel[] => {
+        const getVisibleLabels = (labels: TabItem[]): TabItem[] => {
             // take width of the "Show more" button into account
             let width =
                 measureTabWidth("Show more") +
                 13 + // icon width
                 6 // icon padding
 
-            const visibleLabels: TabLabel[] = []
+            const visibleLabels: TabItem[] = []
             for (const [label, labelWidth] of R.zip(
                 labels,
                 clippedLabelWidths
@@ -263,9 +263,9 @@ export class SourcesModal extends React.Component<
         if (visibleLabels.length <= 1) {
             return (
                 <Tabs
-                    labels={this.tabLabels}
-                    activeIndex={activeIndex}
-                    setActiveIndex={setActiveIndex}
+                    items={this.tabLabels}
+                    selectedKey={activeTabKey}
+                    onChange={onChange}
                     horizontalScroll={true}
                     maxTabWidth={maxTabWidth}
                 />
@@ -274,16 +274,20 @@ export class SourcesModal extends React.Component<
 
         return (
             <ExpandableTabs
-                labels={this.tabLabels}
-                activeIndex={activeIndex}
-                setActiveIndex={setActiveIndex}
-                getVisibleLabels={getVisibleLabels}
+                items={this.tabLabels}
+                selectedKey={activeTabKey}
+                onChange={onChange}
+                getVisibleItems={getVisibleLabels}
                 maxTabWidth={maxTabWidth}
             />
         )
     }
 
     private renderMultipleSources(): React.ReactElement {
+        const activeColumn = this.tabs.find(
+            (tab) => tab.label.key === this.state.activeTabKey
+        )?.column
+
         return (
             <>
                 <p className="note-multiple-indicators">
@@ -291,7 +295,7 @@ export class SourcesModal extends React.Component<
                     indicator for more information.
                 </p>
                 {this.renderTabs()}
-                {this.renderSource(this.tabs[this.state.activeTabIndex].column)}
+                {this.renderSource(activeColumn)}
             </>
         )
     }

@@ -4,7 +4,7 @@
 
     $active-icon: $blue-50;
 
-    .Tabs__tab {
+    .Tabs__Tab {
         .label {
             margin-left: $icon-padding;
         }
@@ -27,11 +27,11 @@
                 }
             }
         }
-    }
 
-    .Tabs__tab.active {
-        svg {
-            color: $active-icon;
+        &[data-selected] {
+            svg {
+                color: $active-icon;
+            }
         }
     }
 }

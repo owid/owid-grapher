@@ -14,7 +14,7 @@
     &.Tabs--variant-default {
         margin: 16px 0;
 
-        .Tabs__tab {
+        .Tabs__Tab {
             @include grapher_label-2-medium;
             display: inline-block;
             margin: 0 8px 8px 0;
@@ -23,6 +23,8 @@
             background: #fff;
             color: $light-text;
             white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
 
             &:hover {
                 cursor: pointer;
@@ -30,7 +32,7 @@
                 border-color: $gray-10;
             }
 
-            &[aria-selected="true"] {
+            &[data-selected] {
                 background: $accent-pale-blue;
                 border-color: $accent-pale-blue;
                 color: $blue-90;
@@ -60,7 +62,7 @@
         box-shadow: inset 0 0 0 1px $light-stroke;
         border-radius: $border-radius;
 
-        .Tabs__tab {
+        .Tabs__Tab {
             position: relative;
 
             $height: $controlRowHeight - 2 * $visual-gap;
@@ -78,24 +80,27 @@
             letter-spacing: 0.01em;
             white-space: nowrap;
             user-select: none;
+            text-align: center;
+            text-overflow: ellipsis;
+            overflow: hidden;
 
             &:hover {
                 background-color: $hover-fill;
                 cursor: pointer;
             }
-        }
 
-        .Tabs__tab.active {
-            color: $active-text;
-            background-color: $active-fill;
+            &[data-selected] {
+                color: $active-text;
+                background-color: $active-fill;
 
-            &:hover {
-                cursor: default;
+                &:hover {
+                    cursor: default;
+                }
             }
         }
 
         // separators between tabs
-        .Tabs__tab + .Tabs__tab::before {
+        .Tabs__Tab + .Tabs__Tab::before {
             content: "";
             display: block;
             width: 1px;
@@ -107,10 +112,10 @@
         }
 
         // hide separators when a tab is hovered over or when a tab is active
-        .Tabs__tab.active::before,
-        .Tabs__tab:hover::before,
-        .Tabs__tab.active + .Tabs__tab::before,
-        .Tabs__tab:hover + .Tabs__tab::before {
+        .Tabs__Tab[data-selected]::before,
+        .Tabs__Tab:hover::before,
+        .Tabs__Tab[data-selected] + .Tabs__Tab::before,
+        .Tabs__Tab:hover + .Tabs__Tab::before {
             display: none;
         }
     }
