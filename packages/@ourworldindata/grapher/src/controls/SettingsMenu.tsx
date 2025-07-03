@@ -12,10 +12,7 @@ import {
 } from "@ourworldindata/types"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ChartDimension } from "../chart/ChartDimension"
-import {
-    isTargetOutsideElement,
-    makeSelectionArray,
-} from "../chart/ChartUtils.js"
+import { makeSelectionArray } from "../chart/ChartUtils.js"
 import { AxisConfig } from "../axis/AxisConfig"
 
 import { AxisScaleToggle } from "./settings/AxisScaleToggle"
@@ -33,7 +30,7 @@ import {
     NoDataAreaToggle,
     NoDataAreaToggleManager,
 } from "./settings/NoDataAreaToggle"
-import { OverlayHeader } from "@ourworldindata/components"
+import { Popover } from "../popover/Popover"
 import { GRAPHER_SETTINGS_CLASS } from "../core/GrapherConstants"
 
 const {
@@ -85,15 +82,12 @@ export interface SettingsMenuManager
 @observer
 export class SettingsMenu extends React.Component<{
     manager: SettingsMenuManager
-    top: number
-    bottom: number
-    right: number
+    popoverStyle?: React.CSSProperties
 }> {
     @observable.ref active: boolean = false
-    contentRef: React.RefObject<HTMLDivElement> = React.createRef() // the menu contents & backdrop
 
     static shouldShow(manager: SettingsMenuManager): boolean {
-        const test = new SettingsMenu({ manager, top: 0, bottom: 0, right: 0 })
+        const test = new SettingsMenu({ manager })
         return test.showSettingsMenuToggle
     }
 
@@ -217,34 +211,6 @@ export class SettingsMenu extends React.Component<{
         // TODO: add a showCompareEndPointsOnlyToggle to complement compareEndPointsOnly
     }
 
-    componentDidMount(): void {
-        document.addEventListener("keydown", this.onDocumentKeyDown)
-        document.addEventListener("click", this.onDocumentClick, {
-            capture: true,
-        })
-    }
-
-    componentWillUnmount(): void {
-        document.removeEventListener("keydown", this.onDocumentKeyDown)
-        document.removeEventListener("click", this.onDocumentClick, {
-            capture: true,
-        })
-    }
-
-    @action.bound private onDocumentKeyDown(e: KeyboardEvent): void {
-        // dismiss menu on esc
-        if (this.active && e.key === "Escape") this.toggleVisibility()
-    }
-
-    @action.bound private onDocumentClick(e: MouseEvent): void {
-        if (
-            this.active &&
-            this.contentRef?.current &&
-            isTargetOutsideElement(e.target!, this.contentRef.current)
-        )
-            this.toggleVisibility()
-    }
-
     @action.bound private toggleVisibility(): void {
         this.active = !this.active
     }
@@ -259,18 +225,6 @@ export class SettingsMenu extends React.Component<{
 
     @computed private get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager.selection)
-    }
-
-    @computed private get layout(): {
-        maxHeight: string
-        maxWidth: string
-        top: number
-        right: number
-    } {
-        const { top, bottom, right } = this.props,
-            maxHeight = `calc(100% - ${top + bottom}px)`,
-            maxWidth = `calc(100% - ${2 * right}px)`
-        return { maxHeight, maxWidth, top, right }
     }
 
     @computed private get menuContentsChart(): React.ReactElement {
@@ -353,44 +307,14 @@ export class SettingsMenu extends React.Component<{
         )
     }
 
-    @computed private get menu(): JSX.Element | void {
-        if (this.active) {
-            return this.menuContents
-        }
-    }
-
-    @computed private get menuContents(): JSX.Element {
+    @computed private get menuTitle(): string {
         const { chartTypeLabel } = this
-
-        const menuTitle = `${chartTypeLabel} settings`
-
-        return (
-            <div className={GRAPHER_SETTINGS_CLASS} ref={this.contentRef}>
-                <div
-                    className="settings-menu-backdrop"
-                    onClick={this.toggleVisibility}
-                ></div>
-                <div
-                    className="settings-menu-wrapper"
-                    style={{
-                        ...this.layout,
-                    }}
-                >
-                    <OverlayHeader
-                        className="settings-menu-header"
-                        title={menuTitle}
-                        onDismiss={this.toggleVisibility}
-                    />
-                    <div className="settings-menu-controls">
-                        {this.menuContentsChart}
-                    </div>
-                </div>
-            </div>
-        )
+        return `${chartTypeLabel} settings`
     }
 
     private renderSettingsButtonAndPopup(): JSX.Element {
         const { active } = this
+
         return (
             <div className="settings-menu">
                 <button
@@ -404,7 +328,15 @@ export class SettingsMenu extends React.Component<{
                     <FontAwesomeIcon icon={faGear} />
                     <span className="label"> Settings</span>
                 </button>
-                {this.menu}
+                <Popover
+                    title={this.menuTitle}
+                    isOpen={this.active}
+                    onClose={this.toggleVisibility}
+                    className={GRAPHER_SETTINGS_CLASS}
+                    style={this.props.popoverStyle}
+                >
+                    {this.menuContentsChart}
+                </Popover>
             </div>
         )
     }
