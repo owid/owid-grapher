@@ -50,6 +50,7 @@ export function FetchingGrapher(
                 }),
             queryStr: props.queryStr,
             bounds: props.externalBounds,
+            isConfigReady: !props.configUrl,
         })
     )
 
@@ -95,6 +96,7 @@ export function FetchingGrapher(
                         grapherState.current.updateFromObject(mergedConfig)
                         grapherState.current.legacyConfigAsAuthored =
                             mergedConfig
+                        grapherState.current.isConfigReady = true
                         // Special logic to handle the tab option
                         if (mergedConfig.tab) {
                             match(mergedConfig.tab)
