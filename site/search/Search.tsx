@@ -14,7 +14,7 @@ import {
 } from "./searchTypes.js"
 
 // Utils and hooks
-import { getFilterNamesOfType, getSelectedTopicType } from "./searchUtils.js"
+import { getFilterNamesOfType, getSelectedTopicType, getEffectiveResultType } from "./searchUtils.js"
 import {
     useUrlSync,
     useTagGraphTopics,
@@ -63,7 +63,7 @@ export const Search = ({
     // Derived state for template configuration
     const topicType = getSelectedTopicType(state.filters, allAreas)
     const templateConfig: TemplateConfig = {
-        resultType: state.resultType,
+        resultType: getEffectiveResultType(state.filters, state.query, state.resultType),
         topicType,
         hasCountry:
             getFilterNamesOfType(state.filters, FilterType.COUNTRY).size > 0,
