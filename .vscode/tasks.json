@@ -10,15 +10,6 @@
             }
         },
         {
-            "label": "buildLerna",
-            "type": "shell",
-            "command": "yarn buildLerna",
-            "presentation": {
-                "group": "watch2",
-                "reveal": "silent"
-            }
-        },
-        {
             "label": "startTscServer",
             "type": "shell",
             "command": "yarn startTscServer",
@@ -42,7 +33,6 @@
         {
             "label": "start (remote)",
             "dependsOn": [
-                "buildLerna",
                 "startTscServer",
                 "startSiteFront"
             ],
@@ -53,7 +43,6 @@
             "label": "start (full)",
             "dependsOn": [
                 "docker start (full)",
-                "buildLerna",
                 "startTscServer",
                 "startSiteFront"
             ],
