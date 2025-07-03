@@ -141,12 +141,7 @@ export async function queryDataInsights(
             // country (e.g. "Unlike Germany...").
             ...(hasCountry && {
                 // a subset of searchableAttributes on the Pages index
-                restrictSearchableAttributes: [
-                    "title",
-                    "excerpt",
-                    "tags",
-                    "authors",
-                ],
+                restrictSearchableAttributes: ["title", "tags", "authors"],
             }),
             attributesToRetrieve: [
                 "title",
@@ -196,12 +191,7 @@ export async function queryArticles(
             // "Unlike Germany...").
             ...(hasCountry && {
                 // a subset of searchableAttributes on the Pages index
-                restrictSearchableAttributes: [
-                    "title",
-                    "excerpt",
-                    "tags",
-                    "authors",
-                ],
+                restrictSearchableAttributes: ["title", "tags", "authors"],
             }),
             attributesToRetrieve: [
                 "title",
