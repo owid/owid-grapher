@@ -179,9 +179,7 @@
             grid-column: 2 / span 10 !important;
         }
 
-        .article-block__side-by-side,
-        .article-block__sticky-left,
-        .article-block__sticky-right {
+        @include column-block-override {
             grid-template-columns: repeat(12, 1fr);
             grid-column: 1 / span 12 !important;
             > div {
@@ -515,14 +513,6 @@ h3.article-block__heading {
     text-align: center;
     text-wrap: balance;
     margin-top: 16px;
-}
-
-.article-block__chart + .article-block__heading {
-    margin-top: 0;
-}
-
-.article-block__heading + .article-block__heading {
-    margin-top: 0;
 }
 
 h2.article-block__heading.has-supertitle {
@@ -922,31 +912,13 @@ div.raw-html-table__container {
     border-top: 1px solid $blue-10;
     padding: 0;
     margin: 48px 0;
-
-    + .article-block__heading {
-        margin-top: 0;
-    }
-}
-
-.sticky-column-wrapper {
-    .article-block__chart,
-    .article-block__explorer {
-        margin-top: 0;
-    }
-
-    .article-block__chart,
-    .article-block__image {
-        &:last-child {
-            margin-bottom: 0;
-        }
-    }
 }
 
 .article-block__chart,
 .article-block__explorer {
     // width is necessary for containerNode.getBoundingClientRect() in Grapher.renderGrapherIntoContainer
     width: 100%;
-    margin: 16px 0 48px 0;
+    margin: 32px 0 48px 0;
 
     figure {
         margin: 0;
@@ -1204,9 +1176,7 @@ div.raw-html-table__container {
     }
 }
 
-.article-block__sticky-right,
-.article-block__sticky-left,
-.article-block__side-by-side {
+@include column-block-override {
     margin: 48px 0;
 
     @include md-down {
