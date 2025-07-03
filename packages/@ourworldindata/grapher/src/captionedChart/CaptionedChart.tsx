@@ -421,29 +421,39 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                 <Header manager={this.manager} maxWidth={this.maxWidth} />
                 <VerticalSpace height={this.verticalPadding} />
 
-                {/* #2 [Controls] */}
-                {this.showControlsRow && this.renderControlsRow()}
-                {this.showControlsRow && (
-                    <VerticalSpace height={this.verticalPaddingSmall} />
+                {this.manager.isReady ? (
+                    <>
+                        {/* #2 [Controls] */}
+                        {this.showControlsRow && this.renderControlsRow()}
+                        {this.showControlsRow && (
+                            <VerticalSpace height={this.verticalPaddingSmall} />
+                        )}
+
+                        {/* #3 Chart/Map/Table */}
+                        {this.manager.isOnTableTab
+                            ? this.renderDataTable()
+                            : this.renderChartOrMap()}
+
+                        {/* #4 [Timeline] */}
+                        {this.manager.hasTimeline && (
+                            <VerticalSpace height={this.verticalPaddingSmall} />
+                        )}
+                        {this.manager.hasTimeline && this.renderTimeline()}
+
+                        {/* #5 Footer */}
+                        <VerticalSpace height={this.verticalPadding} />
+                        <Footer
+                            manager={this.manager}
+                            maxWidth={this.maxWidth}
+                        />
+
+                        {/* #6 [Related question] */}
+                        {this.showRelatedQuestion &&
+                            this.renderRelatedQuestion()}
+                    </>
+                ) : (
+                    this.renderLoadingIndicator()
                 )}
-
-                {/* #3 Chart/Map/Table */}
-                {this.manager.isOnTableTab
-                    ? this.renderDataTable()
-                    : this.renderChartOrMap()}
-
-                {/* #4 [Timeline] */}
-                {this.manager.hasTimeline && (
-                    <VerticalSpace height={this.verticalPaddingSmall} />
-                )}
-                {this.manager.hasTimeline && this.renderTimeline()}
-
-                {/* #5 Footer */}
-                <VerticalSpace height={this.verticalPadding} />
-                <Footer manager={this.manager} maxWidth={this.maxWidth} />
-
-                {/* #6 [Related question] */}
-                {this.showRelatedQuestion && this.renderRelatedQuestion()}
             </div>
         )
     }
