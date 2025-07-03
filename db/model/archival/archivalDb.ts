@@ -11,52 +11,26 @@ import {
     JsonString,
     MultiDimDataPagesTableName,
     MultiDimDataPageConfigEnriched,
+    GrapherChecksumsObjectWithHash,
+    GrapherChecksums,
+    MultiDimChecksums,
+    MultiDimChecksumsObjectWithHash,
 } from "@ourworldindata/types"
-import * as db from "../../db/db.js"
+import * as db from "../../db.js"
 import { stringify } from "safe-stable-stringify"
-import { hashHex } from "../../serverUtils/hash.js"
-import {
-    GrapherArchivalManifest,
-    MultiDimArchivalManifest,
-    assembleGrapherArchivalUrl,
-    assembleMultiDimArchivalUrl,
-} from "./archivalUtils.js"
+import { hashHex } from "../../../serverUtils/hash.js"
 import {
     ArchivalTimestamp,
     convertToArchivalDateStringIfNecessary,
     getAllVariableIds,
 } from "@ourworldindata/utils"
-
-export interface GrapherChecksums {
-    chartConfigMd5: string
-    indicators: {
-        [id: string]: { metadataChecksum: string; dataChecksum: string }
-    }
-}
-
-export interface GrapherChecksumsObjectWithHash {
-    chartId: number
-    chartSlug: string
-    checksums: GrapherChecksums
-    checksumsHashed: string
-}
-
-export interface MultiDimChecksums {
-    multiDimConfigMd5: string
-    chartConfigs: {
-        [id: string]: string // chartConfigId -> MD5
-    }
-    indicators: {
-        [id: string]: { metadataChecksum: string; dataChecksum: string }
-    }
-}
-
-export interface MultiDimChecksumsObjectWithHash {
-    multiDimId: number
-    multiDimSlug: string
-    checksums: MultiDimChecksums
-    checksumsHashed: string
-}
+import {
+    assembleGrapherArchivalUrl,
+    assembleMultiDimArchivalUrl,
+    GrapherArchivalManifest,
+    MultiDimArchivalManifest,
+} from "../../../serverUtils/archivalUtils.js"
+import { ARCHIVE_BASE_URL } from "../../../settings/serverSettings.js"
 
 // Fetches checksum/hash information about all published charts from the database
 export const getGrapherChecksumsFromDb = async (
@@ -111,7 +85,12 @@ export const getGrapherChecksumsFromDb = async (
 export const getLatestGrapherArchivedVersionsFromDb = async (
     knex: db.KnexReadonlyTransaction,
     chartIds?: number[]
-) => {
+): Promise<
+    Pick<
+        DbPlainArchivedChartVersion,
+        "grapherId" | "grapherSlug" | "archivalTimestamp"
+    >[]
+> => {
     const queryBuilder = knex<DbPlainArchivedChartVersion>(
         ArchivedChartVersionsTableName
     )
@@ -130,7 +109,12 @@ export const getLatestGrapherArchivedVersionsFromDb = async (
 export const getLatestMultiDimArchivedVersionsFromDb = async (
     knex: db.KnexReadonlyTransaction,
     multiDimIds?: number[]
-) => {
+): Promise<
+    Pick<
+        DbPlainArchivedMultiDimVersion,
+        "multiDimId" | "multiDimSlug" | "archivalTimestamp"
+    >[]
+> => {
     const queryBuilder = knex<DbPlainArchivedMultiDimVersion>(
         ArchivedMultiDimVersionsTableName
     )
@@ -172,6 +156,15 @@ export const getLatestGrapherArchivedVersions = async (
     )
 }
 
+export const getLatestChartArchivedVersionsIfEnabled = async (
+    knex: db.KnexReadonlyTransaction,
+    chartIds?: number[]
+): Promise<Record<number, ArchivedPageVersion>> => {
+    if (!ARCHIVE_BASE_URL) return {}
+
+    return await getLatestGrapherArchivedVersions(knex, chartIds)
+}
+
 export const getLatestMultiDimArchivedVersions = async (
     knex: db.KnexReadonlyTransaction,
     multiDimIds?: number[]
@@ -201,7 +194,16 @@ export const getLatestMultiDimArchivedVersions = async (
     )
 }
 
-const hashGrapherChecksumsObj = (checksums: GrapherChecksums) => {
+export const getLatestMultiDimArchivedVersionsIfEnabled = async (
+    knex: db.KnexReadonlyTransaction,
+    multiDimIds?: number[]
+): Promise<Record<number, ArchivedPageVersion>> => {
+    if (!ARCHIVE_BASE_URL) return {}
+
+    return await getLatestMultiDimArchivedVersions(knex, multiDimIds)
+}
+
+const hashGrapherChecksumsObj = (checksums: GrapherChecksums): string => {
     const stringified = stringify(
         _.pick(checksums, "chartConfigMd5", "indicators")
     )
@@ -209,7 +211,7 @@ const hashGrapherChecksumsObj = (checksums: GrapherChecksums) => {
     return hashed
 }
 
-const hashMultiDimChecksumsObj = (checksums: MultiDimChecksums) => {
+const hashMultiDimChecksumsObj = (checksums: MultiDimChecksums): string => {
     const stringified = stringify(
         _.pick(checksums, "multiDimConfigMd5", "chartConfigs", "indicators")
     )
@@ -220,7 +222,7 @@ const hashMultiDimChecksumsObj = (checksums: MultiDimChecksums) => {
 const findGrapherHashesInDb = async (
     knex: db.KnexReadonlyTransaction,
     hashes: string[]
-) => {
+): Promise<Set<string>> => {
     const rows = await knex<DbPlainArchivedChartVersion>(
         ArchivedChartVersionsTableName
     )
@@ -232,7 +234,7 @@ const findGrapherHashesInDb = async (
 const findMultiDimHashesInDb = async (
     knex: db.KnexReadonlyTransaction,
     hashes: string[]
-) => {
+): Promise<Set<string>> => {
     const rows = await knex<DbPlainArchivedMultiDimVersion>(
         ArchivedMultiDimVersionsTableName
     )
@@ -243,7 +245,7 @@ const findMultiDimHashesInDb = async (
 
 export const findChangedGrapherPages = async (
     knex: db.KnexReadonlyTransaction
-) => {
+): Promise<GrapherChecksumsObjectWithHash[]> => {
     const allChartChecksums = await getGrapherChecksumsFromDb(knex)
 
     // We're gonna find the hashes of all the graphers that are already archived and up-to-date
@@ -265,7 +267,7 @@ export const findChangedGrapherPages = async (
 
 export const findChangedMultiDimPages = async (
     knex: db.KnexReadonlyTransaction
-) => {
+): Promise<MultiDimChecksumsObjectWithHash[]> => {
     const allMultiDimChecksums = await getMultiDimChecksumsFromDb(knex)
 
     // We're gonna find the hashes of all the multi-dim pages that are already archived and up-to-date
@@ -290,7 +292,7 @@ export const insertChartVersions = async (
     versions: GrapherChecksumsObjectWithHash[],
     date: ArchivalTimestamp,
     manifests: Record<number, GrapherArchivalManifest>
-) => {
+): Promise<void> => {
     const rows: DbInsertArchivedChartVersion[] = versions.map((v) => ({
         grapherId: v.chartId,
         grapherSlug: v.chartSlug,
@@ -308,7 +310,7 @@ export const insertMultiDimVersions = async (
     versions: MultiDimChecksumsObjectWithHash[],
     date: ArchivalTimestamp,
     manifests: Record<number, MultiDimArchivalManifest>
-) => {
+): Promise<void> => {
     const rows: DbInsertArchivedMultiDimVersion[] = versions.map((v) => ({
         multiDimId: v.multiDimId,
         multiDimSlug: v.multiDimSlug,
@@ -324,7 +326,9 @@ export const insertMultiDimVersions = async (
 export const getAllChartVersionsForChartId = async (
     knex: db.KnexReadonlyTransaction,
     chartId: number
-) => {
+): Promise<
+    Pick<DbPlainArchivedChartVersion, "archivalTimestamp" | "grapherSlug">[]
+> => {
     const rows = await knex<DbPlainArchivedChartVersion>(
         ArchivedChartVersionsTableName
     )
@@ -442,7 +446,9 @@ export const getMultiDimChecksumsFromDb = async (
 export const getAllMultiDimVersionsForId = async (
     knex: db.KnexReadonlyTransaction,
     multiDimId: number
-) => {
+): Promise<
+    Pick<DbPlainArchivedMultiDimVersion, "archivalTimestamp" | "multiDimSlug">[]
+> => {
     const rows = await knex<DbPlainArchivedMultiDimVersion>(
         ArchivedMultiDimVersionsTableName
     )

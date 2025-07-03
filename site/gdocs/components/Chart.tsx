@@ -102,7 +102,13 @@ export default function Chart({
         return config
     }, [d.title, d.subtitle, d.controls, d.tabs, isExplorer])
 
-    const chartConfig = customizedChartConfig
+    const chartConfig = useMemo(
+        () => ({
+            archivedChartInfo: linkedChart?.archivedChartInfo,
+            ...customizedChartConfig,
+        }),
+        [linkedChart?.archivedChartInfo, customizedChartConfig]
+    )
 
     if (!linkedChart) return null
     return (

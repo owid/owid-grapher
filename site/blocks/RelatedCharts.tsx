@@ -53,7 +53,7 @@ export const RelatedCharts = ({
             enablePopulatingUrlParams={true}
             isEmbeddedInAnOwidPage={true}
             isEmbeddedInADataPage={false}
-            config={{}}
+            config={{ archivedChartInfo: activeChart.archivedChartInfo }}
             isPreviewing={isPreviewing}
         />
     )

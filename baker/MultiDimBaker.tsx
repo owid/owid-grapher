@@ -39,8 +39,8 @@ import {
     getMultiDimDataPageByCatalogPath,
     getMultiDimDataPageBySlug,
 } from "../db/model/MultiDimDataPage.js"
-import { MultiDimArchivalManifest } from "./archival/archivalUtils.js"
-import { getLatestMultiDimArchivedVersions } from "./archival/archivalChecksum.js"
+import { MultiDimArchivalManifest } from "../serverUtils/archivalUtils.js"
+import { getLatestMultiDimArchivedVersions } from "../db/model/archival/archivalDb.js"
 
 const getLatestMultiDimArchivedVersionsIfEnabled = async (
     knex: db.KnexReadonlyTransaction,

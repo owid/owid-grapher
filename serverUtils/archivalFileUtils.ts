@@ -1,6 +1,6 @@
 import fs from "fs-extra"
 import path from "path"
-import { hashBase36, hashBase36FromStream } from "../../serverUtils/hash.js"
+import { hashBase36, hashBase36FromStream } from "./hash.js"
 
 const hashFile = async (file: string) => {
     const stream = await fs.createReadStream(file)
@@ -13,6 +13,8 @@ export const hashAndWriteFile = async (targetPath: string, content: string) => {
         /^(.*\/)?([^.]+\.)/,
         `$1$2${hash}.`
     )
+
+    // eslint-disable-next-line no-console
     console.log(`Writing ${targetPathWithHash}`)
     await fs.mkdirp(path.dirname(targetPathWithHash))
     await fs.writeFile(targetPathWithHash, content)
@@ -24,7 +26,9 @@ export const hashAndCopyFile = async (srcFile: string, targetDir: string) => {
     const targetFilename = path
         .basename(srcFile)
         .replace(/^(.*\/)?([^.]+\.)/, `$1$2${hash}.`)
-    const targetFile = path.resolve(targetDir, targetDir, targetFilename)
+    const targetFile = path.resolve(targetDir, targetFilename)
+
+    // eslint-disable-next-line no-console
     console.log(`Copying ${srcFile} to ${targetFile}`)
     await fs.copyFile(srcFile, targetFile)
     return targetFile

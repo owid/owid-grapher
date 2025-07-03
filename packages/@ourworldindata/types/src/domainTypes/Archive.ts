@@ -43,3 +43,34 @@ export interface ArchiveVersions {
         url: string
     }>
 }
+
+export interface GrapherChecksums {
+    chartConfigMd5: string
+    indicators: {
+        [id: string]: { metadataChecksum: string; dataChecksum: string }
+    }
+}
+
+export interface GrapherChecksumsObjectWithHash {
+    chartId: number
+    chartSlug: string
+    checksums: GrapherChecksums
+    checksumsHashed: string
+}
+
+export interface MultiDimChecksums {
+    multiDimConfigMd5: string
+    chartConfigs: {
+        [id: string]: string // chartConfigId -> MD5
+    }
+    indicators: {
+        [id: string]: { metadataChecksum: string; dataChecksum: string }
+    }
+}
+
+export interface MultiDimChecksumsObjectWithHash {
+    multiDimId: number
+    multiDimSlug: string
+    checksums: MultiDimChecksums
+    checksumsHashed: string
+}

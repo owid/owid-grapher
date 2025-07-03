@@ -20,6 +20,7 @@ import { QueryParams } from "../domainTypes/Various.js"
 import { TagGraphRoot } from "../domainTypes/ContentGraph.js"
 import { DbRawImage } from "../dbTypes/Images.js"
 import { DbPlainNarrativeChart } from "../dbTypes/NarrativeCharts.js"
+import { ArchivedPageVersion } from "../domainTypes/Archive.js"
 
 export enum OwidGdocPublicationContext {
     unlisted = "unlisted",
@@ -58,6 +59,7 @@ export interface LinkedChart {
     tags: string[]
     tab?: GrapherTabOption
     indicatorId?: number // in case of a datapage
+    archivedChartInfo?: ArchivedPageVersion | undefined
 }
 
 // An object containing metadata needed for embedded narrative charts

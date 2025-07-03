@@ -21,6 +21,7 @@ import {
     DbInsertPostGdocLink,
     DbPlainTag,
     formatDate,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
 import { docs as googleDocs } from "@googleapis/docs"
@@ -64,6 +65,7 @@ import {
     VariablesTableName,
     parseVariableDisplayConfig,
     joinTitleFragments,
+    ArchivedPageVersion,
 } from "@ourworldindata/types"
 import {
     getAllNarrativeChartNames,
@@ -71,6 +73,10 @@ import {
 } from "../NarrativeChart.js"
 import { indexBy } from "remeda"
 import { getDods } from "../Dod.js"
+import {
+    getLatestChartArchivedVersionsIfEnabled,
+    getLatestMultiDimArchivedVersionsIfEnabled,
+} from "../archival/archivalDb.js"
 
 export async function getLinkedIndicatorsForCharts(
     knex: db.KnexReadonlyTransaction,
@@ -698,6 +704,20 @@ export class GdocBase implements OwidGdocBaseInterface {
 
     async loadLinkedCharts(knex: db.KnexReadonlyTransaction): Promise<void> {
         const slugToIdMap = await mapSlugsToIds(knex)
+
+        const [archivedChartVersions, archivedMultiDimVersions] =
+            await Promise.all([
+                getLatestChartArchivedVersionsIfEnabled(
+                    knex,
+                    excludeUndefined(
+                        this.linkedChartSlugs.grapher.map(
+                            (slug) => slugToIdMap[slug]
+                        )
+                    )
+                ),
+                getLatestMultiDimArchivedVersionsIfEnabled(knex),
+            ])
+
         // TODO: rewrite this as a single query instead of N queries
         const linkedGrapherCharts = await Promise.all(
             this.linkedChartSlugs.grapher.map(async (originalSlug) => {
@@ -705,10 +725,15 @@ export class GdocBase implements OwidGdocBaseInterface {
                 if (chartId) {
                     const chart = await getChartConfigById(knex, chartId)
                     if (!chart) return
+
                     return makeGrapherLinkedChart(
                         knex,
                         chart.config,
-                        originalSlug
+                        originalSlug,
+                        {
+                            archivedChartInfo:
+                                archivedChartVersions[chartId] || undefined,
+                        }
                     )
                 } else {
                     const multiDim = await getMultiDimDataPageBySlug(
@@ -717,9 +742,15 @@ export class GdocBase implements OwidGdocBaseInterface {
                         { onlyPublished: false }
                     )
                     if (!multiDim) return
+
                     return makeMultiDimLinkedChart(
                         multiDim.config,
-                        originalSlug
+                        originalSlug,
+                        {
+                            archivedChartInfo:
+                                archivedMultiDimVersions[multiDim.id] ||
+                                undefined,
+                        }
                     )
                 }
             })
@@ -1089,7 +1120,8 @@ export async function getMinimalAuthorsByNames(
 export async function makeGrapherLinkedChart(
     knex: db.KnexReadonlyTransaction,
     config: GrapherInterface,
-    originalSlug: string
+    originalSlug: string,
+    { archivedChartInfo }: { archivedChartInfo?: ArchivedPageVersion } = {}
 ): Promise<LinkedChart> {
     const resolvedSlug = config.slug ?? ""
     const resolvedTitle = config.title ?? ""
@@ -1110,6 +1142,7 @@ export async function makeGrapherLinkedChart(
         thumbnail: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${resolvedSlug}.png`,
         tags: [],
         indicatorId,
+        archivedChartInfo,
     }
 }
 
@@ -1139,7 +1172,8 @@ export function makeExplorerLinkedChart(
 
 export function makeMultiDimLinkedChart(
     config: MultiDimDataPageConfigEnriched,
-    slug: string
+    slug: string,
+    { archivedChartInfo }: { archivedChartInfo?: ArchivedPageVersion } = {}
 ): LinkedChart {
     let title = config.title.title
     const titleVariant = config.title.titleVariant
@@ -1152,5 +1186,6 @@ export function makeMultiDimLinkedChart(
         title,
         resolvedUrl: `${BAKED_GRAPHER_URL}/${slug}`,
         tags: [],
+        archivedChartInfo,
     }
 }

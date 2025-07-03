@@ -1,8 +1,9 @@
-import { GRAPHER_PREVIEW_CLASS, GrapherInterface } from "@ourworldindata/types"
+import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import { GrapherFigureView } from "./GrapherFigureView.js"
 import cx from "classnames"
 import GrapherImage from "./GrapherImage.js"
 import { useIntersectionObserver, useIsClient } from "usehooks-ts"
+import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 
 export interface GrapherWithFallbackProps {
     slug?: string
@@ -11,7 +12,7 @@ export interface GrapherWithFallbackProps {
     className?: string
     id?: string
     enablePopulatingUrlParams?: boolean
-    config: Partial<GrapherInterface>
+    config: Partial<GrapherProgrammaticInterface>
     queryStr?: string
     isEmbeddedInAnOwidPage: boolean
     isEmbeddedInADataPage: boolean

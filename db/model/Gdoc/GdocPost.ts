@@ -9,8 +9,9 @@ import {
     RelatedChart,
     OwidGdocMinimalPostInterface,
     OwidGdocBaseInterface,
-    excludeNullish,
-} from "@ourworldindata/utils"
+    ArchiveContext,
+} from "@ourworldindata/types"
+import { excludeNullish } from "@ourworldindata/utils"
 import {
     formatCitation,
     generateStickyNav,
@@ -20,6 +21,7 @@ import { parseFaqs } from "./rawToEnriched.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { GdocBase } from "./GdocBase.js"
 import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
+import { getLatestChartArchivedVersionsIfEnabled } from "../archival/archivalDb.js"
 
 export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     content!: OwidGdocPostContent
@@ -139,10 +141,14 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         (knex: KnexReadonlyTransaction): Promise<void> =>
             this.loadRelatedCharts(knex)
 
-    async loadRelatedCharts(knex: KnexReadonlyTransaction): Promise<void> {
+    async loadRelatedCharts(
+        knex: KnexReadonlyTransaction,
+        archivedVersions?: Record<number, ArchiveContext | undefined>
+    ): Promise<void> {
         if (!this.tags?.length || !this.hasAllChartsBlock) return
 
         const relatedCharts = await knexRaw<{
+            chartId: number
             slug: string
             title: string
             variantName: string
@@ -151,6 +157,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             knex,
             `-- sql
                 SELECT DISTINCT
+                    charts.id AS chartId,
                     chart_configs.slug,
                     chart_configs.full->>"$.title" AS title,
                     chart_configs.full->>"$.variantName" AS variantName,
@@ -164,7 +171,14 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             `,
             [this.tags.map((tag) => tag.id)]
         )
+        archivedVersions ??= await getLatestChartArchivedVersionsIfEnabled(
+            knex,
+            relatedCharts.map((c) => c.chartId)
+        )
 
-        this.relatedCharts = relatedCharts
+        this.relatedCharts = relatedCharts.map((chart) => ({
+            ...chart,
+            archivedChartInfo: archivedVersions[chart.chartId] || undefined,
+        }))
     }
 }
