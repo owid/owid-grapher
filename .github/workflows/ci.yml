@@ -44,7 +44,7 @@ jobs:
                   runPostinstallScripts: false
 
             - name: Run typecheck
-              run: yarn typecheckLerna
+              run: yarn typecheck
 
     prettier:
         runs-on: ubuntu-latest
