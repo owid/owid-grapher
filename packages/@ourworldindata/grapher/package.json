@@ -10,7 +10,6 @@
   },
   "scripts": {
     "build": "",
-    "watch": "tsup src/index.ts --watch",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [],
@@ -59,7 +58,6 @@
     "esbuild-sass-plugin": "^3.3.1",
     "eslint": "^9.23.0",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "tsup": "^8.4.0",
     "typescript": "~5.8.2"
   },
   "license": "MIT"
