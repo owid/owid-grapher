@@ -1,5 +1,5 @@
 import { DimensionProperty } from "@ourworldindata/utils"
-import { GRAPHER_TAB_OPTIONS } from "@ourworldindata/types"
+import { GRAPHER_TAB_CONFIG_OPTIONS } from "@ourworldindata/types"
 import {
     GrapherProgrammaticInterface,
     legacyToOwidTableAndDimensionsWithMandatorySlug,
@@ -101,7 +101,7 @@ export const SampleExplorerOfGraphers = (props?: Partial<ExplorerProps>) => {
         id: 488,
         title,
         dimensions,
-        tab: GRAPHER_TAB_OPTIONS.chart,
+        tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
     }
     first.table = legacyToOwidTableAndDimensionsWithMandatorySlug(
         owidDataset,
