@@ -916,7 +916,7 @@ const parseResourcePanel = (
         parseErrors: [error],
     })
 
-    if (typeof raw.value !== "object") {
+    if (!R.isPlainObject(raw.value)) {
         return createError({
             message: "Please use the correct syntax: {.resource-panel}",
         })
