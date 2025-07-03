@@ -7307,10 +7307,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/indefinite@npm:^2.3.2":
-  version: 2.3.2
-  resolution: "@types/indefinite@npm:2.3.2"
-  checksum: 10/d111c96da67ce18674ea159ca71d0f731fb0a65ce450ef7bf721709e863f24bd48a0a3510c444e97b2c2780abfd421c204751b2f1f942506b10c995ed1470e61
+"@types/indefinite@npm:^2.3.4":
+  version: 2.3.4
+  resolution: "@types/indefinite@npm:2.3.4"
+  checksum: 10/60fa5d8695523b3f278111c2d8c0fadfebc0c8f92c3b02a2e7857d7dddf06febe18d4753ca8b659a78c46a18ab1a79378b6df24a1b7eede6669e1b29ded93741
   languageName: node
   linkType: hard
 
@@ -12760,7 +12760,7 @@ __metadata:
     "@types/fs-extra": "npm:^11.0.1"
     "@types/geojson": "npm:^7946.0.10"
     "@types/history": "npm:4"
-    "@types/indefinite": "npm:^2.3.2"
+    "@types/indefinite": "npm:^2.3.4"
     "@types/ini": "npm:^4"
     "@types/js-cookie": "npm:^3.0.2"
     "@types/jsonwebtoken": "npm:^9.0.0"
@@ -12829,7 +12829,7 @@ __metadata:
     history: "npm:4"
     http-server: "npm:^14.1.1"
     husky: "npm:^9.0.11"
-    indefinite: "npm:^2.4.3"
+    indefinite: "npm:^2.5.1"
     ini: "npm:^4.1.2"
     instantsearch.js: "npm:^4.72.1"
     js-base64: "npm:^3.7.7"
@@ -13415,10 +13415,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"indefinite@npm:^2.4.3":
-  version: 2.4.3
-  resolution: "indefinite@npm:2.4.3"
-  checksum: 10/a6956379e120ad340ab7d69da35deb1d178cc4ede7b4452d9a479683a9f97ca346aee3e013756e312c8de56cfa720a0af8b4f67e84cc5e030f40ff7709e39d08
+"indefinite@npm:^2.5.1":
+  version: 2.5.1
+  resolution: "indefinite@npm:2.5.1"
+  checksum: 10/79ca0aa0ec29f94358b3d19c2980b6a9d8603e318ca3e6dae9b55eba36e054e14f5b0d74d11a78600b707d152b07123b60116916be762167a24322b919927225
   languageName: node
   linkType: hard
 
