@@ -38,8 +38,6 @@ packages/@ourworldindata/*/node_modules
 wpmigration
 dist/
 .wrangler/
-.nx/cache
-.nx/workspace-data
 .dev.vars
 cfstorage/
 vite.*.mjs
