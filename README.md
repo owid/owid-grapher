@@ -30,7 +30,7 @@ A client-side interactive data visualization library used by almost every chart 
 
 All grapher data is stored in a MySQL database that contains both JSON configuration objects for individual charts as well as the data values that they ingest.
 
-The Grapher project is built with [Lerna](https://github.com/lerna/lerna/) and [tsup](https://github.com/egoist/tsup).
+The Grapher project is built with [Lerna](https://github.com/lerna/lerna/).
 
 ### [Explorer](explorer/)
 
