@@ -1183,10 +1183,21 @@ export const getOwidGdocFromJSON = (json: OwidGdocJSON): OwidGdoc => {
     }
 }
 
+// NOTE (Martin): We have to do manual type casting around the content.type
+// property because it can be undefined in OwidGdocPostContent. That makes sense
+// during the gdoc creation, where we do manual validation for various
+// properties. But at some point we should only pass around a valid gdoc where
+// content.type can't be undefined anymore. So we should likely create a new
+// type for that use case and use the less strict type only until we do the
+// validation.
+//
+// I think we have to do the manual type casting in deserializeOwidGdocPageData
+// for the same/similar reason.
+//
 // We want to infer the return type from the existing types instead of having to
 // manually specify it.
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
-export function extractGdocPageData<T extends OwidGdoc>(gdoc: T) {
+export function extractGdocPageData(gdoc: OwidGdoc) {
     // Generic properties every gdoc has
     const commonProps = R.pick(gdoc, [
         "id",
@@ -1243,18 +1254,16 @@ export function extractGdocPageData<T extends OwidGdoc>(gdoc: T) {
         .otherwise(() => commonProps)
 }
 
-// Muanually update the type for invariants that should hold at this point, i.e.
-// id and slug must be strings etc.
+export type OwidGdocPageProps = ReturnType<typeof extractGdocPageData>
+
 export type OwidGdocPageData = Omit<
-    ReturnType<typeof extractGdocPageData>,
-    "createdAt" | "publishedAt" | "publishedAt"
+    OwidGdocPageProps,
+    "createdAt" | "publishedAt" | "updatedAt"
 > & {
     createdAt: string
     publishedAt: string | null
     updatedAt: string | null
 }
-
-export type OwidGdocPageProps = ReturnType<typeof extractGdocPageData>
 
 export function deserializeOwidGdocPageData(
     json: OwidGdocPageData
@@ -1264,7 +1273,7 @@ export function deserializeOwidGdocPageData(
         createdAt: new Date(json.createdAt),
         publishedAt: json.publishedAt ? new Date(json.publishedAt) : null,
         updatedAt: json.updatedAt ? new Date(json.updatedAt) : null,
-    }
+    } as OwidGdocPageProps
 }
 
 // Checking whether we have clipboard write access is surprisingly complicated.

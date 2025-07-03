@@ -18,7 +18,8 @@
     "@ourworldindata/utils": "workspace:^",
     "d3": "^6.1.1",
     "dayjs": "^1.11.11",
-    "papaparse": "^5.4.1"
+    "papaparse": "^5.4.1",
+    "remeda": "^2.23.3"
   },
   "devDependencies": {
     "@types/d3": "^6",
