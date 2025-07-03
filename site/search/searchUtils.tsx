@@ -576,7 +576,7 @@ export const getEffectiveResultType = (
         : desiredResultType
 }
 
-export const getUrlParamNameForFilter = (filter: Filter) =>
+export const getUrlParamNameForFilter = (filter: Filter): SearchUrlParam =>
     match(filter.type)
         .with(FilterType.COUNTRY, () => SearchUrlParam.COUNTRY)
         .with(FilterType.TOPIC, () => SearchUrlParam.TOPIC)
@@ -584,7 +584,13 @@ export const getUrlParamNameForFilter = (filter: Filter) =>
         .exhaustive()
 
 export const getItemUrlForFilter = (filter: Filter): string => {
-    return `${BAKED_BASE_URL}/data${queryParamsToStr({ [getUrlParamNameForFilter(filter)]: filter.name })}`
+    const queryParams = {
+        [getUrlParamNameForFilter(filter)]: filter.name,
+        ...(filter.type === FilterType.COUNTRY && {
+            [SearchUrlParam.RESULT_TYPE]: SearchResultType.ALL,
+        }),
+    }
+    return `${BAKED_BASE_URL}${SEARCH_BASE_PATH}${queryParamsToStr(queryParams)}`
 }
 
 export function getPageTypeNameAndIcon(pageType: PageType): {
@@ -618,3 +624,4 @@ export function getPageTypeNameAndIcon(pageType: PageType): {
         )
         .exhaustive()
 }
+export const SEARCH_BASE_PATH = "/data"
