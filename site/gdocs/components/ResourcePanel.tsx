@@ -8,13 +8,18 @@ import { AttachmentsContext } from "../AttachmentsContext"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings"
 import { HybridLinkList } from "./HybridLinkList"
 import { Button } from "@ourworldindata/components"
+import { queryParamsToStr } from "@ourworldindata/utils"
 
 function DataCatalogButton({ buttonText }: { buttonText?: string }) {
     const { tags } = useContext(AttachmentsContext)
     const firstTagName = tags[0]?.name
     if (!buttonText || !firstTagName) return null
 
-    const dataCatalogUrl = `${BAKED_BASE_URL}/data?topics=${firstTagName}`
+    const dataCatalogUrl =
+        `${BAKED_BASE_URL}/data` +
+        queryParamsToStr({
+            topics: firstTagName,
+        })
     return (
         <Button
             href={dataCatalogUrl}

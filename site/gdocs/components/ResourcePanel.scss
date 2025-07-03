@@ -15,6 +15,7 @@
         font-size: 0;
         margin-bottom: 8px;
         color: $vermillion;
+
         svg {
             height: 30px;
             width: 30px;
@@ -48,14 +49,16 @@
         padding: 0;
         margin: 0;
         margin-top: 16px;
+
         h4 {
             @include body-3-bold;
             color: $blue-90;
         }
+
         p {
-            @include note-13-medium;
             color: $blue-60;
         }
+
         &:not(:last-child) {
             padding-bottom: 16px;
             border-bottom: 1px solid $blue-30;
