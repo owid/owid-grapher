@@ -41,6 +41,7 @@ import {
     getFilterIcon,
     getItemUrlForFilter,
     getPageTypeNameAndIcon,
+    SEARCH_BASE_PATH,
 } from "./searchUtils.js"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -51,8 +52,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 
 const siteAnalytics = new SiteAnalytics()
-const SEARCH_BASE_PATH = "/data"
-
 type BaseItem = Record<string, unknown>
 
 const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
