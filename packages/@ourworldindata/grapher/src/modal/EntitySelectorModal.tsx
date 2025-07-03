@@ -7,6 +7,7 @@ import {
     EntitySelector,
     EntitySelectorManager,
 } from "../entitySelector/EntitySelector"
+import { SelectionArray } from "../selection/SelectionArray"
 
 export interface EntitySelectorModalManager extends EntitySelectorManager {
     isEntitySelectorModalOrDrawerOpen?: boolean
@@ -16,6 +17,7 @@ export interface EntitySelectorModalManager extends EntitySelectorManager {
 @observer
 export class EntitySelectorModal extends React.Component<{
     manager: EntitySelectorModalManager
+    selection?: SelectionArray
 }> {
     @computed private get manager(): EntitySelectorModalManager {
         return this.props.manager
@@ -44,6 +46,7 @@ export class EntitySelectorModal extends React.Component<{
             >
                 <EntitySelector
                     manager={this.manager}
+                    selection={this.props.selection}
                     onDismiss={this.onDismiss}
                     autoFocus={true}
                 />

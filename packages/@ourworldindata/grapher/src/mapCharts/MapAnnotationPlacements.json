@@ -134,7 +134,7 @@
         "id": "Canada",
         "ellipse": { "cx": -111.51, "cy": 58.25, "left": -132.65, "top": 62.83 }
     },
-    { "id": "Cape Verde", "direction": "left", "anchorPoint": [-24.82, 15.94] },
+    { "id": "Cape Verde", "direction": "top", "anchorPoint": [-24.1, 17.08] },
     {
         "id": "Central African Republic",
         "ellipse": { "cx": 21.55, "cy": 6.91, "left": 18.12, "top": 9.24 }
@@ -487,14 +487,12 @@
         "id": "Libya",
         "ellipse": { "cx": 17.78, "cy": 27.14, "left": 10.31, "top": 30.08 }
     },
-    { "id": "Liechtenstein" },
     {
         "id": "Lithuania",
         "ellipse": { "cx": 23.75, "cy": 55.56, "left": 21.18, "top": 56.2 },
         "direction": "left",
         "anchorPoint": [21.41, 55.65]
     },
-    { "id": "Luxembourg" },
     {
         "id": "Madagascar",
         "ellipse": { "cx": 46.52, "cy": -19.44, "left": 44.46, "top": -15.76 },
@@ -528,7 +526,11 @@
         "direction": "left",
         "anchorPoint": [-15.78, 18.8]
     },
-    { "id": "Mauritius", "direction": "right", "anchorPoint": [57.77, -20.34] },
+    {
+        "id": "Mauritius",
+        "direction": "bottom",
+        "anchorPoint": [57.53, -20.53]
+    },
     {
         "id": "Mexico",
         "ellipse": {
