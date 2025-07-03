@@ -1,4 +1,4 @@
-import { migrateGrapherConfigToLatestVersion } from "@ourworldindata/grapher"
+import { migrateGrapherConfigToLatestVersionAndFailOnError } from "@ourworldindata/grapher"
 import {
     GrapherInterface,
     JsonError,
@@ -315,7 +315,7 @@ export const saveGrapher = async (
     }
 ) => {
     // Try to migrate the new config to the latest version
-    newConfig = migrateGrapherConfigToLatestVersion(newConfig)
+    newConfig = migrateGrapherConfigToLatestVersionAndFailOnError(newConfig)
 
     // When a chart is published, check for conflicts
     if (newConfig.isPublished) {

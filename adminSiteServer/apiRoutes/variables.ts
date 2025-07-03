@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
-    migrateGrapherConfigToLatestVersion,
+    migrateGrapherConfigToLatestVersionAndFailOnError,
 } from "@ourworldindata/grapher"
 import {
     DbRawVariable,
@@ -317,7 +317,9 @@ export async function putVariablesVariableIdGrapherConfigETL(
 
     let validConfig: GrapherInterface
     try {
-        validConfig = migrateGrapherConfigToLatestVersion(req.body)
+        validConfig = migrateGrapherConfigToLatestVersionAndFailOnError(
+            req.body
+        )
     } catch (err) {
         return {
             success: false,
@@ -430,7 +432,9 @@ export async function putVariablesVariableIdGrapherConfigAdmin(
 
     let validConfig: GrapherInterface
     try {
-        validConfig = migrateGrapherConfigToLatestVersion(req.body)
+        validConfig = migrateGrapherConfigToLatestVersionAndFailOnError(
+            req.body
+        )
     } catch (err) {
         return {
             success: false,

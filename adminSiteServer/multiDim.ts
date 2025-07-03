@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 
 import {
     defaultGrapherConfig,
-    migrateGrapherConfigToLatestVersion,
+    migrateGrapherConfigToLatestVersionAndFailOnError,
 } from "@ourworldindata/grapher"
 import {
     ChartConfigsTableName,
@@ -268,7 +268,9 @@ export async function upsertMultiDim(
                     : view.config
                 if ("$schema" in viewGrapherConfig) {
                     viewGrapherConfig =
-                        migrateGrapherConfigToLatestVersion(viewGrapherConfig)
+                        migrateGrapherConfigToLatestVersionAndFailOnError(
+                            viewGrapherConfig
+                        )
                 }
             }
             const patchGrapherConfig = mergeGrapherConfigs(
