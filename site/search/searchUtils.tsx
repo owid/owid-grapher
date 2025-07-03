@@ -546,17 +546,17 @@ export const isBrowsing = (filters: Filter[], query: string) => {
 }
 
 /**
- * Determines the appropriate result type based on browsing state.
- * When browsing (no query and no filters), returns "data" only if the current result type is "all",
- * otherwise preserves the current result type to avoid unwanted switching.
+ * Computes the effective result type that should be displayed/used in the UI.
+ * This respects constraints (e.g., "all" is not allowed when browsing) while
+ * preserving the user's desired result type in the state.
  */
-export const getResultTypeIfBrowsing = (
+export const getEffectiveResultType = (
     filters: Filter[],
     query: string,
-    currentResultType: SearchResultType
+    desiredResultType: SearchResultType
 ): SearchResultType => {
     return isBrowsing(filters, query) &&
-        currentResultType === SearchResultType.ALL
+        desiredResultType === SearchResultType.ALL
         ? SearchResultType.DATA
-        : currentResultType
+        : desiredResultType
 }
