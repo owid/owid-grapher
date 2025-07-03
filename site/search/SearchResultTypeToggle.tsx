@@ -1,7 +1,7 @@
 import { SearchResultType } from "./searchTypes.js"
 import cx from "classnames"
 import { useSearchContext } from "./SearchContext.js"
-import { isBrowsing } from "./searchUtils.js"
+import { getEffectiveResultType, isBrowsing } from "./searchUtils.js"
 
 const OPTIONS = [
     { value: SearchResultType.ALL, label: "All" },
@@ -14,7 +14,13 @@ export const SearchResultTypeToggle = () => {
         state,
         actions: { setResultType },
     } = useSearchContext()
-    const { resultType: value, filters, query } = state
+    const { resultType, filters, query } = state
+
+    const effectiveResultType = getEffectiveResultType(
+        filters,
+        query,
+        resultType
+    )
 
     const optionsToShow = isBrowsing(filters, query)
         ? OPTIONS.filter((option) => option.value !== SearchResultType.ALL)
@@ -33,10 +39,10 @@ export const SearchResultTypeToggle = () => {
                         name="search-result-type"
                         className={cx("search-result-type-toggle__button", {
                             "search-result-type-toggle__button--selected":
-                                value === option.value,
+                                effectiveResultType === option.value,
                         })}
                         value={option.value}
-                        checked={value === option.value}
+                        checked={effectiveResultType === option.value}
                         onChange={() => setResultType(option.value)}
                     />
                     <span>{option.label}</span>
