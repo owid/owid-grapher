@@ -26,6 +26,7 @@ import {
     highlightFunctionForSearchWords,
 } from "../adminShared/search.js"
 import { TextField } from "./Forms.js"
+import { ENV } from "../settings/clientSettings.js"
 
 // These properties are coming from OldChart.ts
 export interface ChartListItem {
@@ -96,11 +97,14 @@ export class ChartList extends React.Component<{
             )
             return
         }
-        if (
-            !window.confirm(
-                `Delete the chart ${chart.slug}? This action cannot be undone!`
-            )
-        )
+        // Create the confirmation message with staging warning if applicable
+        let confirmMessage = `Delete the chart ${chart.slug}? This action cannot be undone!`
+        
+        if (ENV === "staging") {
+            confirmMessage += "\n\n⚠️ WARNING: You are on a staging server. Deleted charts are NOT synced to production servers. If this chart exists on production, it will remain there even after deletion here."
+        }
+        
+        if (!window.confirm(confirmMessage))
             return
 
         const json = await this.context.admin.requestJSON(
