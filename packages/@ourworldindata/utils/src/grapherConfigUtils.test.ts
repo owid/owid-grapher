@@ -1,5 +1,6 @@
-import { expect, it, describe } from "vitest"
+import { expect, it, describe, vi } from "vitest"
 
+import * as _ from "lodash-es"
 import {
     DimensionProperty,
     GrapherInterface,
@@ -132,13 +133,23 @@ describe(mergeGrapherConfigs, () => {
         })
     })
 
-    it("doesn't merge configs of different schema versions", () => {
-        expect(() =>
+    it("warns when merging configs of different schema versions", () => {
+        const consoleWarnSpy = vi
+            .spyOn(console, "warn")
+            .mockImplementation(_.noop)
+
+        expect(
             mergeGrapherConfigs(
                 { $schema: "1", title: "Title A" },
                 { $schema: "2", title: "Title B" }
             )
-        ).toThrowError()
+        ).toEqual({
+            $schema: "2",
+            title: "Title B",
+        })
+
+        expect(consoleWarnSpy).toHaveBeenCalled()
+        consoleWarnSpy.mockRestore()
     })
 
     it("excludes id, slug, version and isPublished from inheritance", () => {

@@ -6,6 +6,7 @@ import {
     omitEmptyObjectsRecursive,
     traverseObjects,
 } from "./Util"
+import * as Sentry from "@sentry/browser"
 
 const REQUIRED_KEYS = ["$schema", "dimensions"]
 
@@ -63,11 +64,13 @@ export function mergeGrapherConfigs(
         excludeUndefined(configsToMerge.map((c) => c["$schema"]))
     )
     if (uniqueSchemas.length > 1) {
-        throw new Error(
-            `Can't merge Grapher configs with different schema versions: ${uniqueSchemas.join(
-                ", "
-            )}`
-        )
+        const message = `Merging Grapher configs with different schema versions. This may lead to unexpected behavior. Found: ${uniqueSchemas.join(
+            ", "
+        )}`
+        console.warn(message)
+        Sentry.captureMessage(message, {
+            level: "warning",
+        })
     }
 
     // keys that should not be inherited are removed from all but the last config
