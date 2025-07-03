@@ -27,8 +27,6 @@
         "startAdminDevServer": "tsx watch --ignore '**.mjs' --tsconfig tsconfig.tsx.json adminSiteServer/app.ts",
         "startLocalCloudflareFunctions": "wrangler pages dev",
         "startDeployQueueServer": "tsx --tsconfig tsconfig.tsx.json baker/startDeployQueueServer.ts",
-        "startLernaWatcher": "lerna watch --scope '@ourworldindata/*' -- lerna run build --scope=\\$LERNA_PACKAGE_NAME --include-dependents",
-        "startTmuxServer": "node_modules/tmex/tmex dev \"yarn startLernaWatcher\" \"yarn startAdminDevServer\" \"yarn startViteServer\"",
         "startViteServer": "vite dev",
         "startSiteFront": "./devTools/vite/startVite.sh",
         "startLocalBakeServer": "http-server ./localBake -p 3000",
