@@ -1,6 +1,5 @@
 # Bash commands
 
-- yarn buildLerna: Build the packages (types and utils, core table, the grapher data viz component and the data explorer)
 - yarn typecheckLerna: runs the typescript typechecker across all files (both frontend code in lerna managed packages and the rest of the site)
 - yarn testLint: run eslint
 - yarn test: run vitest
