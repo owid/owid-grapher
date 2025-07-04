@@ -422,6 +422,7 @@ export {
     type OwidVariableWithSource,
     type OwidVariableWithSourceAndDimension,
     type OwidVariableWithSourceAndDimensionWithoutId,
+    type OwidVariableWithSourceAndDimensionById,
     type OwidVariableMixedData,
     type OwidVariableWithDataAndSource,
     type OwidVariableDimension,

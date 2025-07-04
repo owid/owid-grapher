@@ -298,7 +298,6 @@ export const DATA_CATALOG_ATTRIBUTES = [
     "queryParams",
     "availableTabs",
     "source",
-    "subtitle",
 ]
 
 export function setToFacetFilters(

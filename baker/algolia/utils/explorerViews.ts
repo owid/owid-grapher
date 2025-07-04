@@ -10,28 +10,31 @@ import {
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import { obtainAvailableEntitiesForGraphers } from "../../updateChartEntities.js"
-import { fetchS3MetadataByPath } from "../../../db/model/Variable.js"
-import { getVariableMetadataRoute, GrapherState } from "@ourworldindata/grapher"
+import { GrapherState } from "@ourworldindata/grapher"
 import pMap from "p-map"
 import { ExplorerAdminServer } from "../../../explorerAdminServer/ExplorerAdminServer.js"
-import { parseDelimited } from "@ourworldindata/core-table"
+import { OwidTable, parseDelimited } from "@ourworldindata/core-table"
 import {
     ColumnTypeNames,
     CoreRow,
+    DimensionProperty,
     MinimalExplorerInfo,
+    OwidChartDimensionInterface,
     OwidColumnDef,
+    OwidVariableWithSourceAndDimensionById,
 } from "@ourworldindata/types"
 
 import * as db from "../../../db/db.js"
-import { DATA_API_URL } from "../../../settings/serverSettings.js"
-import { getUniqueNamesFromTopicHierarchies } from "@ourworldindata/utils"
+import {
+    excludeUndefined,
+    getUniqueNamesFromTopicHierarchies,
+    parseIntOrUndefined,
+} from "@ourworldindata/utils"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import {
     CsvUnenrichedExplorerViewRecord,
     EnrichedExplorerRecord,
     EntitiesByColumnDictionary,
-    ExplorerIndicatorMetadataDictionary,
-    ExplorerIndicatorMetadataFromDb,
     ExplorerViewBaseRecord,
     ExplorerViewGrapherInfo,
     GrapherEnrichedExplorerViewRecord,
@@ -40,8 +43,11 @@ import {
     IndicatorUnenrichedExplorerViewRecord,
     CsvEnrichedExplorerViewRecord,
     FinalizedExplorerRecord,
+    DimensionSlug,
 } from "./types.js"
 import {
+    getVariableIdsFromChartConfig,
+    makeGrapherStateWithMetadata,
     MAX_NON_FM_RECORD_SCORE,
     processAvailableEntities as processRecordAvailableEntities,
     scaleRecordScores,
@@ -50,6 +56,8 @@ import {
     ChartRecord,
     ChartRecordType,
 } from "../../../site/search/searchTypes.js"
+import { transformExplorerProgramToResolveCatalogPaths } from "../../ExplorerBaker.js"
+import { getMetadataForMultipleVariables } from "../../../db/model/Variable.js"
 
 /**
  * Matches "duplicate 1234", to catch the (hacky) rows that are using the `duplicate` transformation to create
@@ -61,47 +69,6 @@ function getDuplicateTransformationRows(columnDefs: OwidColumnDef[]) {
     return columnDefs.filter((row) =>
         row.transform?.match(TRANSFORM_DUPLICATE_ID_REGEX)
     )
-}
-
-/**
- * Enhances explorer records by adding missing yVariableIds from transform definitions.
- *
- * Some indicator explorers have their variable IDs defined in the transforms column rather than
- * directly in yVariableIds. (e.g. https://github.com/owid/owid-content/commit/6f17c705d331a13380e9a52f3d319c9a51054625)
- *
- * This function extracts those IDs from "duplicate" transforms and adds them to the appropriate base records.
- *
- * Example:
- * - Base record: { ySlugs: ["gdp"], yVariableIds: [] }
- * - Transform: { slug: "gdp", transform: "duplicate 1234" }
- * - Result: { ySlugs: ["gdp"], yVariableIds: [1234] }
- */
-function addDuplicateYVariableIds(
-    baseRecords: ExplorerViewBaseRecord[],
-    duplicateTransforms: OwidColumnDef[]
-): ExplorerViewBaseRecord[] {
-    // e.g. { "gdp" => 1234 }
-    const slugToVariableId = duplicateTransforms.reduce(
-        (map, { slug, transform }) => {
-            const match = transform?.match(TRANSFORM_DUPLICATE_ID_REGEX)
-            if (match) {
-                map.set(slug, parseInt(match[1]))
-            }
-            return map
-        },
-        new Map<string, number>()
-    )
-
-    return baseRecords.map((record) => {
-        const yVariableIds = record.ySlugs
-            .map((slug) => slugToVariableId.get(slug))
-            .filter((id): id is number => !!id)
-
-        return {
-            ...record,
-            yVariableIds: [...record.yVariableIds, ...yVariableIds],
-        }
-    })
 }
 
 /**
@@ -138,90 +105,15 @@ const explorerChoiceToViewSettings = (
     })
 }
 
-/**
- * Takes records with `yVariableIds` and fetches their metadata.
- * First it fetches base metadata from the DB, then it fetches availableEntities from S3.
- * Returns a dictionary of metadata by id (and path, when possible):
- * ```
- * {
- *   123: { id: 123, name: "GDP", entityNames: ["United States", "Canada"] },
- *   "an/etl#path": { id: "an/etl#path", name: "GDP", entityNames: ["United States", "Canada"] }
- * }
- * ```
- */
 async function fetchIndicatorMetadata(
-    records: IndicatorUnenrichedExplorerViewRecord[],
-    trx: db.KnexReadonlyTransaction
-): Promise<ExplorerIndicatorMetadataDictionary> {
-    function checkIsETLPath(idOrPath: string | number): idOrPath is string {
-        return typeof idOrPath === "string"
-    }
-
-    const { etlPaths, ids } = records.reduce(
-        ({ etlPaths, ids }, record) => {
-            for (const yVariableId of record.yVariableIds) {
-                if (checkIsETLPath(yVariableId)) {
-                    etlPaths.add(yVariableId)
-                } else {
-                    ids.add(yVariableId)
-                }
-            }
-            return { etlPaths, ids }
-        },
-        { etlPaths: new Set<string>(), ids: new Set<number>() }
+    records: IndicatorUnenrichedExplorerViewRecord[]
+): Promise<OwidVariableWithSourceAndDimensionById> {
+    const variableIds = records.flatMap((record) =>
+        getVariableIdsFromChartConfig(record.chartConfig)
     )
-
-    const metadataFromDB = (
-        await trx
-            .table("variables")
-            .select(
-                "id",
-                "catalogPath",
-                "name",
-                "titlePublic",
-                "display",
-                "descriptionShort"
-            )
-            .whereIn("id", [...ids])
-            .orWhereIn("catalogPath", [...etlPaths])
-    ).map((row) => ({
-        ...row,
-        display: row.display ? JSON.parse(row.display) : {},
-    })) as ExplorerIndicatorMetadataFromDb[]
-
-    const indicatorMetadataByIdAndPath = {
-        ..._.keyBy(metadataFromDB, "id"),
-        ..._.keyBy(metadataFromDB, "catalogPath"),
-    } as ExplorerIndicatorMetadataDictionary
-
-    async function fetchEntitiesForId(id: number) {
-        const metadata = await fetchS3MetadataByPath(
-            getVariableMetadataRoute(DATA_API_URL, id)
-        )
-        const entityNames = _.get(metadata, "dimensions.entities.values", [])
-            .map((value) => value.name)
-            .filter((name): name is string => !!name)
-
-        const idEntry = indicatorMetadataByIdAndPath[id]
-        if (idEntry) {
-            idEntry.entityNames = entityNames
-        }
-        const path = metadata.catalogPath
-        if (path) {
-            const pathEntry = indicatorMetadataByIdAndPath[path]
-            if (pathEntry) {
-                pathEntry.entityNames = entityNames
-            }
-        }
-    }
-
-    await pMap(
-        metadataFromDB.map((meta) => meta.id),
-        fetchEntitiesForId,
-        { concurrency: 10 }
-    )
-
-    return indicatorMetadataByIdAndPath
+    const variableMetadataById =
+        await getMetadataForMultipleVariables(variableIds)
+    return variableMetadataById
 }
 
 /** Almost always `"country"`, but sometimes things like `"location"` */
@@ -315,15 +207,102 @@ const computeExplorerViewScore = (record: {
     record.numNonDefaultSettings * 50 -
     record.titleLength
 
-const parseYVariableIds = (matrixRow: CoreRow): (string | number)[] => {
-    return (
-        matrixRow.yVariableIds
-            ?.trim()
-            .split(" ")
-            .map((idOrPath: string) =>
-                isNaN(parseInt(idOrPath)) ? idOrPath : parseInt(idOrPath)
-            ) || []
+const parseSpaceSeparatedValues = (value?: string): string[] =>
+    value?.trim().split(" ") || []
+
+const parseYVariableIds = (matrixRow: CoreRow): number[] => {
+    return excludeUndefined(
+        parseSpaceSeparatedValues(matrixRow.yVariableIds).map(
+            (variableId: string) => parseIntOrUndefined(variableId)
+        )
     )
+}
+
+const parseYSlugs = (matrixRow: CoreRow): string[] => {
+    return parseSpaceSeparatedValues(matrixRow.ySlugs)
+}
+
+const makeDimensionsArray = (
+    matrixRow: CoreRow,
+    slugToVariableId: Map<string, number>
+): OwidChartDimensionInterface[] => {
+    // Some indicator explorers have their variable IDs defined in the transforms column rather than
+    // directly in yVariableIds. (e.g. https://github.com/owid/owid-content/commit/6f17c705d331a13380e9a52f3d319c9a51054625)
+    const ySlugs = parseYSlugs(matrixRow)
+    const yVariableIdsFromTransforms = ySlugs
+        .map((slug) => slugToVariableId.get(slug))
+        .filter((id): id is number => !!id)
+    const yVariableIds = _.uniq([
+        ...yVariableIdsFromTransforms,
+        ...parseYVariableIds(matrixRow),
+    ])
+
+    const dimensions: OwidChartDimensionInterface[] = []
+
+    // Add y dimensions
+    for (const variableId of yVariableIds)
+        dimensions.push({
+            variableId,
+            property: DimensionProperty.y,
+        })
+
+    // Add x dimension if present
+    if (matrixRow.xVariableId)
+        dimensions.push({
+            variableId: matrixRow.xVariableId,
+            property: DimensionProperty.x,
+        })
+
+    // Add color dimension if present
+    if (matrixRow.colorVariableId)
+        dimensions.push({
+            variableId: matrixRow.colorVariableId,
+            property: DimensionProperty.color,
+        })
+
+    // Add size dimension if present
+    if (matrixRow.sizeVariableId)
+        dimensions.push({
+            variableId: matrixRow.sizeVariableId,
+            property: DimensionProperty.size,
+        })
+
+    return dimensions
+}
+
+const makeDimensionSlugs = (matrixRow: CoreRow): DimensionSlug[] => {
+    const dimensionSlugs: DimensionSlug[] = []
+
+    // Add Y slugs
+    const ySlugs = parseYSlugs(matrixRow)
+    for (const slug of ySlugs)
+        dimensionSlugs.push({
+            slug,
+            property: DimensionProperty.y,
+        })
+
+    // Add X slug if present
+    if (matrixRow.xSlug)
+        dimensionSlugs.push({
+            slug: matrixRow.xSlug,
+            property: DimensionProperty.x,
+        })
+
+    // Add color slug if present
+    if (matrixRow.colorSlug)
+        dimensionSlugs.push({
+            slug: matrixRow.colorSlug,
+            property: DimensionProperty.color,
+        })
+
+    // Add size slug if present
+    if (matrixRow.sizeSlug)
+        dimensionSlugs.push({
+            slug: matrixRow.sizeSlug,
+            property: DimensionProperty.size,
+        })
+
+    return dimensionSlugs
 }
 
 const getNonDefaultSettings = (
@@ -347,16 +326,27 @@ const createBaseRecord = (
     choice: ExplorerChoiceParams,
     program: ExplorerProgram,
     index: number,
-    explorerInfo: MinimalExplorerInfo
+    explorerInfo: MinimalExplorerInfo,
+    slugToVariableId: Map<string, number>
 ): ExplorerViewBaseRecord => {
     const matrix = program.decisionMatrix
     matrix.setValuesFromChoiceParams(choice)
-
-    const grapherConfig = program.grapherConfig
-    const grapherState = new GrapherState(grapherConfig)
+    const row = matrix.selectedRow
 
     const nonDefaultSettings = getNonDefaultSettings(choice, matrix)
-    const yVariableIds = parseYVariableIds(matrix.selectedRow)
+
+    const grapherConfig = program.grapherConfig
+
+    // Add the dimensions array to the Grapher config if necessary.
+    // This is relevant for indicator-based explorers.
+    grapherConfig.dimensions =
+        grapherConfig.dimensions ?? makeDimensionsArray(row, slugToVariableId)
+
+    const grapherState = new GrapherState(grapherConfig)
+
+    const numYVariables = grapherConfig.dimensions.filter(
+        (dimension) => dimension.property === DimensionProperty.y
+    ).length
 
     return {
         availableEntities: [],
@@ -364,15 +354,16 @@ const createBaseRecord = (
         viewSubtitle: matrix.selectedRow.subtitle,
         viewAvailableTabs: grapherState.availableTabs,
         viewSettings: explorerChoiceToViewSettings(choice, matrix),
-        viewGrapherId: matrix.selectedRow.grapherId,
-        yVariableIds,
+        viewGrapherId: grapherConfig.id,
         viewQueryParams: matrix.toString(),
         viewIndexWithinExplorer: index,
         numNonDefaultSettings: nonDefaultSettings.length,
         tableSlug: matrix.selectedRow.tableSlug,
-        ySlugs: matrix.selectedRow.ySlugs?.split(" ") || [],
+        dimensionSlugs: makeDimensionSlugs(row),
         explorerSlug: explorerInfo.slug,
+        numYVariables,
         isFirstExplorerView: index === 0,
+        chartConfig: grapherConfig,
     }
 }
 
@@ -380,10 +371,31 @@ const createBaseRecords = (
     explorerInfo: MinimalExplorerInfo,
     explorerProgram: ExplorerProgram
 ): ExplorerViewBaseRecord[] => {
+    const duplicateTransforms = getDuplicateTransformationRows(
+        explorerProgram.columnDefsWithoutTableSlug
+    )
+    // Maps explorer slugs to variable IDs, e.g. { "gdp" => 1234 }
+    const slugToVariableId = duplicateTransforms.reduce(
+        (map, { slug, transform }) => {
+            const match = transform?.match(TRANSFORM_DUPLICATE_ID_REGEX)
+            if (match) {
+                map.set(slug, parseInt(match[1]))
+            }
+            return map
+        },
+        new Map<string, number>()
+    )
+
     return explorerProgram.decisionMatrix
         .allDecisionsAsQueryParams()
         .map((choice: ExplorerChoiceParams, index: number) =>
-            createBaseRecord(choice, explorerProgram, index, explorerInfo)
+            createBaseRecord(
+                choice,
+                explorerProgram,
+                index,
+                explorerInfo,
+                slugToVariableId
+            )
         )
 }
 
@@ -395,7 +407,8 @@ const fetchGrapherInfo = async (
         .select(
             trx.raw("charts.id as id"),
             trx.raw("chart_configs.full->>'$.title' as title"),
-            trx.raw("chart_configs.full->>'$.subtitle' as subtitle")
+            trx.raw("chart_configs.full->>'$.subtitle' as subtitle"),
+            trx.raw("chart_configs.full->>'$.sourceDesc' as source")
         )
         .from("charts")
         .join("chart_configs", { "charts.configId": "chart_configs.id" })
@@ -426,6 +439,7 @@ async function enrichRecordWithGrapherInfo(
             [],
         viewTitle: grapher.title,
         viewSubtitle: grapher.subtitle,
+        viewSource: grapher.source ?? "",
         titleLength: grapher.title.length,
     }
 }
@@ -462,9 +476,15 @@ const enrichWithGrapherData = async (
 
 async function enrichRecordWithTableData(
     record: CsvUnenrichedExplorerViewRecord,
-    entitiesPerColumnPerTable: EntitiesByColumnDictionary
+    entitiesPerColumnPerTable: EntitiesByColumnDictionary,
+    columnDefsByTableSlug: Map<string | undefined, OwidColumnDef[]>
 ): Promise<CsvEnrichedExplorerViewRecord | undefined> {
-    const { tableSlug, ySlugs, viewTitle } = record
+    const { tableSlug, dimensionSlugs, viewTitle } = record
+
+    const ySlugs = dimensionSlugs
+        .filter((d) => d.property === DimensionProperty.y)
+        .map((d) => d.slug)
+
     if (!tableSlug || !ySlugs?.length || !viewTitle) {
         await logErrorAndMaybeCaptureInSentry({
             name: "ExplorerViewMissingData",
@@ -477,23 +497,36 @@ async function enrichRecordWithTableData(
         ySlugs.flatMap((ySlug) => entitiesPerColumnPerTable[tableSlug][ySlug])
     ).filter((name): name is string => !!name)
 
+    // Construct Grapher's input table with all relevant metadata (but without data values)
+    const tableColDefs = columnDefsByTableSlug.get(tableSlug) ?? []
+    const slugs = new Set(dimensionSlugs.map((dimension) => dimension.slug))
+    const colDefs = tableColDefs.filter((colDef) => slugs.has(colDef.slug))
+    const inputTable = new OwidTable([], colDefs)
+
+    // Construct GrapherState enriched with metadata
+    const grapherState = new GrapherState(record.chartConfig)
+    if (inputTable) grapherState.inputTable = inputTable
+
     return {
         ...record,
         availableEntities,
         titleLength: viewTitle.length,
+        viewSource: grapherState.sourcesLine,
     }
 }
 
 async function enrichWithTableData(
     records: CsvUnenrichedExplorerViewRecord[],
-    entitiesPerColumnPerTable: EntitiesByColumnDictionary
+    entitiesPerColumnPerTable: EntitiesByColumnDictionary,
+    columnDefsByTableSlug: Map<string | undefined, OwidColumnDef[]>
 ): Promise<CsvEnrichedExplorerViewRecord[]> {
     const enrichedRecords: CsvEnrichedExplorerViewRecord[] = []
 
     for (const record of records) {
         const enrichedRecord = await enrichRecordWithTableData(
             record,
-            entitiesPerColumnPerTable
+            entitiesPerColumnPerTable,
+            columnDefsByTableSlug
         )
         if (enrichedRecord) {
             enrichedRecords.push(enrichedRecord)
@@ -504,22 +537,29 @@ async function enrichWithTableData(
 
 async function enrichRecordWithIndicatorData(
     record: IndicatorUnenrichedExplorerViewRecord,
-    indicatorMetadataDictionary: ExplorerIndicatorMetadataDictionary
+    indicatorMetadataDictionary: OwidVariableWithSourceAndDimensionById
 ): Promise<IndicatorEnrichedExplorerViewRecord | undefined> {
-    const allEntityNames = _.at(
-        indicatorMetadataDictionary,
-        record.yVariableIds
+    const yVariableIds = getVariableIdsFromChartConfig(record.chartConfig)
+    const allEntityNames = yVariableIds.flatMap(
+        (variableId) =>
+            indicatorMetadataDictionary
+                .get(variableId)
+                ?.dimensions.entities.values?.map((entity) => entity.name) ?? []
     )
-        .filter(Boolean)
-        .flatMap((meta) => meta.entityNames)
 
     const uniqueNonEmptyEntityNames = _.uniq(allEntityNames).filter(
         (name): name is string => !!name
     )
 
-    const firstYIndicator = record.yVariableIds[0]
+    // Construct GrapherState enriched with metadata
+    const grapherState = makeGrapherStateWithMetadata(
+        record.chartConfig,
+        indicatorMetadataDictionary
+    )
 
-    const indicatorInfo = indicatorMetadataDictionary[firstYIndicator]
+    const firstYIndicator = yVariableIds[0]
+
+    const indicatorInfo = indicatorMetadataDictionary.get(firstYIndicator)
     if (!indicatorInfo) {
         await logErrorAndMaybeCaptureInSentry(
             new Error(
@@ -530,27 +570,23 @@ async function enrichRecordWithIndicatorData(
         return
     }
 
-    const viewTitle =
-        record.viewTitle ||
-        indicatorInfo.titlePublic ||
-        indicatorInfo.display?.name ||
-        (indicatorInfo.name as string)
-
-    const viewSubtitle =
-        record.viewSubtitle || (indicatorInfo.descriptionShort as string)
+    const viewTitle = record.viewTitle || grapherState.displayTitle
+    const viewSubtitle = record.viewSubtitle || grapherState.currentSubtitle
+    const viewSource = grapherState.sourcesLine
 
     return {
         ...record,
         availableEntities: uniqueNonEmptyEntityNames,
         viewTitle,
         viewSubtitle,
+        viewSource,
         titleLength: viewTitle.length,
     }
 }
 
 async function enrichWithIndicatorMetadata(
     indicatorBaseRecords: IndicatorUnenrichedExplorerViewRecord[],
-    indicatorMetadataDictionary: ExplorerIndicatorMetadataDictionary
+    indicatorMetadataDictionary: OwidVariableWithSourceAndDimensionById
 ): Promise<IndicatorEnrichedExplorerViewRecord[]> {
     return pMap(indicatorBaseRecords, (indicatorBaseRecord) =>
         enrichRecordWithIndicatorData(
@@ -626,10 +662,11 @@ async function finalizeRecords(
                 publishedAt: explorerInfo.createdAt.toISOString(),
                 updatedAt: explorerInfo.updatedAt.toISOString(),
                 keyChartForTags: [],
-                numDimensions: record.yVariableIds.length,
+                numDimensions: record.numYVariables,
                 numRelatedArticles: 0,
                 title: record.viewTitle as string,
                 subtitle: record.viewSubtitle!,
+                source: record.viewSource,
                 slug: explorerInfo.slug,
                 queryParams: record.viewQueryParams,
                 availableTabs: record.viewAvailableTabs,
@@ -672,27 +709,26 @@ export const getExplorerViewRecordsForExplorer = async (
     skipGrapherViews: boolean
 ): Promise<FinalizedExplorerRecord[]> => {
     const { slug } = explorerInfo
-    const explorerProgram = await explorerAdminServer.getExplorerFromSlug(
+    const rawExplorerProgram = await explorerAdminServer.getExplorerFromSlug(
         trx,
         slug
     )
 
+    // Map catalog paths to indicator ids if necessary
+    const transformResult = await transformExplorerProgramToResolveCatalogPaths(
+        rawExplorerProgram,
+        trx
+    )
+    const explorerProgram = transformResult.program
+
     console.log(
         `Creating ${explorerProgram.decisionMatrix.numRows} base records for explorer ${slug}`
-    )
-    const duplicateTransforms = getDuplicateTransformationRows(
-        explorerProgram.columnDefsWithoutTableSlug
     )
 
     const baseRecords = createBaseRecords(explorerInfo, explorerProgram)
 
-    const baseRecordsWithDuplicatedYVariableIdsAdded = addDuplicateYVariableIds(
-        baseRecords,
-        duplicateTransforms
-    )
-
     const [grapherBaseRecords, nonGrapherBaseRecords] = _.partition(
-        baseRecordsWithDuplicatedYVariableIdsAdded,
+        baseRecords,
         (record) => record.viewGrapherId !== undefined
     ) as [GrapherUnenrichedExplorerViewRecord[], ExplorerViewBaseRecord[]]
 
@@ -707,7 +743,7 @@ export const getExplorerViewRecordsForExplorer = async (
 
     const [indicatorBaseRecords, csvBaseRecords] = _.partition(
         nonGrapherBaseRecords,
-        (record) => record.yVariableIds.length > 0
+        (record) => record.numYVariables > 0
     ) as [
         IndicatorUnenrichedExplorerViewRecord[],
         CsvUnenrichedExplorerViewRecord[],
@@ -715,10 +751,8 @@ export const getExplorerViewRecordsForExplorer = async (
 
     // Fetch and apply indicator metadata
     console.log("Fetching indicator metadata for explorer", slug)
-    const indicatorMetadataDictionary = await fetchIndicatorMetadata(
-        indicatorBaseRecords,
-        trx
-    )
+    const indicatorMetadataDictionary =
+        await fetchIndicatorMetadata(indicatorBaseRecords)
 
     console.log("Fetched indicator metadata for explorer", slug)
 
@@ -743,7 +777,8 @@ export const getExplorerViewRecordsForExplorer = async (
 
     const enrichedCsvRecords = await enrichWithTableData(
         csvBaseRecords,
-        entitiesPerColumnPerTable
+        entitiesPerColumnPerTable,
+        explorerProgram.columnDefsByTableSlug
     )
 
     const enrichedRecords = [

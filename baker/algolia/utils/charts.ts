@@ -1,5 +1,4 @@
 import * as _ from "lodash-es"
-import { MarkdownTextWrap } from "@ourworldindata/components"
 import {
     KeyChartLevel,
     ContentGraphLinkType,
@@ -11,6 +10,7 @@ import {
     ChartRecordType,
 } from "../../../site/search/searchTypes.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
+import { getMetadataForMultipleVariables } from "../../../db/model/Variable.js"
 import { getRelatedArticles } from "../../../db/model/Post.js"
 import { getPublishedLinksTo } from "../../../db/model/Link.js"
 import { isPathRedirectedToExplorer } from "../../../explorerAdminServer/ExplorerRedirects.js"
@@ -19,8 +19,12 @@ import {
     excludeNullish,
     getUniqueNamesFromTopicHierarchies,
 } from "@ourworldindata/utils"
-import { processAvailableEntities } from "./shared.js"
-import { GrapherState } from "@ourworldindata/grapher"
+import {
+    getVariableIdsFromChartConfig,
+    makeGrapherStateWithMetadata,
+    toPlainText,
+    processAvailableEntities,
+} from "./shared.js"
 
 const computeChartScore = (record: Omit<ChartRecord, "score">): number => {
     const { numRelatedArticles, views_7d } = record
@@ -111,11 +115,23 @@ export const getChartsRecords = async (
 
     const records: ChartRecord[] = []
     for (const c of parsedRows) {
-        const grapherState = new GrapherState(c.config)
-
         // Our search currently cannot render explorers, so don't index them because
         // otherwise they will fail when rendered in the search results
         if (isPathRedirectedToExplorer(`/grapher/${c.slug}`)) continue
+
+        // Construct GrapherState enriched with metadata
+        console.log(`Fetching metadata for chart ${c.slug}`)
+        const variableIds = getVariableIdsFromChartConfig(c.config)
+        const variablesMetadata =
+            await getMetadataForMultipleVariables(variableIds)
+        const grapherState = makeGrapherStateWithMetadata(
+            c.config,
+            variablesMetadata
+        )
+
+        const title = toPlainText(grapherState.displayTitle)
+        const subtitle = toPlainText(grapherState.currentSubtitle)
+        const source = toPlainText(grapherState.sourcesLine)
 
         const relatedArticles = (await getRelatedArticles(knex, c.id)) ?? []
         const linksFromGdocs = await getPublishedLinksTo(
@@ -123,13 +139,6 @@ export const getChartsRecords = async (
             [c.slug],
             ContentGraphLinkType.Grapher
         )
-
-        const plaintextSubtitle = _.isNil(c.config.subtitle)
-            ? undefined
-            : new MarkdownTextWrap({
-                  text: c.config.subtitle,
-                  fontSize: 10, // doesn't matter, but is a mandatory field
-              }).plaintext
 
         const topicTags = getUniqueNamesFromTopicHierarchies(
             c.tags,
@@ -142,9 +151,10 @@ export const getChartsRecords = async (
             type: ChartRecordType.Chart,
             chartId: c.id,
             slug: c.slug,
-            title: c.config.title,
-            variantName: c.config.variantName,
-            subtitle: plaintextSubtitle,
+            title,
+            variantName: grapherState.variantName,
+            subtitle,
+            source,
             availableEntities: c.entityNames,
             numDimensions: parseInt(c.numDimensions),
             availableTabs: grapherState.availableTabs,

@@ -72,6 +72,7 @@ export interface ChartRecord {
     queryParams?: string
     title: string
     subtitle: string | undefined
+    source: string
     variantName: string
     availableTabs: GrapherTabName[]
     keyChartForTags: string[]

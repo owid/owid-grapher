@@ -71,6 +71,7 @@ export { legacyToCurrentGrapherUrl } from "./core/GrapherUrlMigrations"
 export {
     legacyToOwidTableAndDimensions,
     legacyToOwidTableAndDimensionsWithMandatorySlug,
+    columnDefFromOwidVariable,
 } from "./core/LegacyToOwidTable"
 export { getErrorMessageRelatedQuestionUrl } from "./core/relatedQuestion"
 export { MapChartState } from "./mapCharts/MapChartState"

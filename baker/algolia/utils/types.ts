@@ -1,5 +1,6 @@
 import {
     DbEnrichedVariable,
+    DimensionProperty,
     FeaturedMetricIncomeGroup,
     GrapherInterface,
     GrapherTabName,
@@ -37,6 +38,7 @@ export interface ExplorerViewGrapherInfo {
     id: number
     title: string
     subtitle: string
+    source?: string
 }
 
 export type EntitiesByColumnDictionary = Record<
@@ -54,12 +56,7 @@ export type ExplorerIndicatorMetadataFromDb = Pick<
     | "descriptionShort"
 >
 
-export type ExplorerIndicatorMetadataDictionary = Record<
-    string | number,
-    ExplorerIndicatorMetadataFromDb & {
-        entityNames?: string[]
-    }
->
+export type DimensionSlug = { slug: string; property: DimensionProperty }
 
 export interface ExplorerViewBaseRecord {
     availableEntities: string[]
@@ -73,12 +70,13 @@ export interface ExplorerViewBaseRecord {
     viewSubtitle?: string
     viewTitle?: string
     viewAvailableTabs?: GrapherTabName[]
-    ySlugs: Array<string>
-    yVariableIds: Array<number | string>
+    numYVariables: number
+    dimensionSlugs: DimensionSlug[]
     explorerSlug: string
     // True when the record is the first view specified in the explorer's config
     // Used in order to downrank all other views for the same explorer in the data catalog
     isFirstExplorerView: boolean
+    chartConfig: GrapherInterface
 }
 
 export type GrapherUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
@@ -89,33 +87,33 @@ export type GrapherEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
     viewTitle: string
     viewSubtitle: string
     titleLength: number
+    viewSource: string
 }
 
 export type IndicatorUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
     viewGrapherId: never
-    ySlugs: []
+    dimensionSlugs: []
     tableSlug: never
 }
 
 export type IndicatorEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
     viewGrapherId: never
-    ySlugs: string[]
     tableSlug: never
     availableEntities: string[]
     titleLength: number
+    viewSource: string
 }
 
 export type CsvUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
     viewGrapherId: never
-    ySlugs: string[]
     tableSlug: string
 }
 
 export type CsvEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
     viewGrapherId: never
-    ySlugs: string[]
     tableSlug: string
     titleLength: number
+    viewSource: string
 }
 
 export type EnrichedExplorerRecord =

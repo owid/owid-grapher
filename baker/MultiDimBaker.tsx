@@ -30,8 +30,6 @@ import {
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
 import { deleteOldGraphers, getTagToSlugMap } from "./GrapherBakingUtils.js"
-import { getVariableMetadata } from "../db/model/Variable.js"
-import pMap from "p-map"
 import { fetchAndParseFaqs, getPrimaryTopic } from "./DatapageHelpers.js"
 import { getAllPublishedChartSlugs } from "../db/model/Chart.js"
 import {
@@ -60,20 +58,6 @@ export function getRelevantVariableIds(
         .filter((id) => id !== undefined)
 
     return new Set(allIndicatorIds)
-}
-
-export async function getRelevantVariableMetadata(
-    variableIds: Iterable<number>
-) {
-    const metadata = await pMap(
-        variableIds,
-        async (id) => {
-            return getVariableMetadata(id)
-        },
-        { concurrency: 10 }
-    )
-
-    return R.indexBy(metadata, (m) => m.id)
 }
 
 async function getFaqRelationsFromDb(
