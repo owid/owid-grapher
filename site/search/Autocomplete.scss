@@ -190,6 +190,7 @@
     min-height: 45px;
     line-height: 1.5;
     color: $blue-90;
+    border-radius: 0;
 
     &[aria-selected="true"] {
         background-color: $blue-5;
