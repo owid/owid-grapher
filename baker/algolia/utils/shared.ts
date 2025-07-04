@@ -8,6 +8,7 @@ import {
     removeTrailingParenthetical,
     slugify,
     Url,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import * as Sentry from "@sentry/node"
 import {
@@ -22,9 +23,20 @@ import urljoin from "url-join"
 import { groupBy } from "remeda"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 import { incomeGroupMap, REAL_FM_INCOME_GROUPS } from "./types.js"
-import { ExpandedFeaturedMetric } from "@ourworldindata/types"
+import {
+    DimensionProperty,
+    ExpandedFeaturedMetric,
+    GrapherInterface,
+    OwidVariableWithSourceAndDimensionById,
+} from "@ourworldindata/types"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
-import { GRAPHER_ROUTE_FOLDER } from "@ourworldindata/grapher"
+import {
+    GRAPHER_ROUTE_FOLDER,
+    GrapherState,
+    columnDefFromOwidVariable,
+} from "@ourworldindata/grapher"
+import { MarkdownTextWrap } from "@ourworldindata/components"
+import { OwidTable } from "@ourworldindata/core-table"
 
 const countriesWithVariantNames = new Set(
     countries
@@ -289,4 +301,48 @@ export async function createFeaturedMetricRecords(
     }
 
     return featuredMetricRecords
+}
+
+/** Construct GrapherState enriched with metadata (but without data values) */
+export const makeGrapherStateWithMetadata = (
+    chartConfig: GrapherInterface,
+    variablesMetadata: OwidVariableWithSourceAndDimensionById
+) => {
+    // Construct the input table without any data values,
+    // but with the relevant columns and their metadata
+    const dimensions = chartConfig.dimensions ?? []
+    const columnDefs = excludeUndefined(
+        dimensions.map((dimension) => {
+            const metadata = variablesMetadata.get(dimension.variableId)
+            return metadata ? columnDefFromOwidVariable(metadata) : undefined
+        })
+    )
+    const inputTable = new OwidTable([], columnDefs)
+
+    const grapherState = new GrapherState(chartConfig)
+    if (inputTable) grapherState.inputTable = inputTable
+
+    return grapherState
+}
+
+export const toPlainText = (markdown?: string): string | undefined => {
+    if (_.isNil(markdown)) return undefined
+
+    return new MarkdownTextWrap({
+        text: markdown,
+        fontSize: 10, // doesn't matter, but is a mandatory field
+    }).plaintext
+}
+
+export const getVariableIdsFromChartConfig = (
+    chartConfig: GrapherInterface,
+    property?: DimensionProperty
+): number[] => {
+    const { dimensions = [] } = chartConfig
+
+    const relevantDimensions = property
+        ? dimensions.filter((dimension) => dimension.property === property)
+        : dimensions
+
+    return relevantDimensions.map((dimension) => dimension.variableId)
 }
