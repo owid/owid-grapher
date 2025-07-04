@@ -814,9 +814,9 @@ export {
 export {
     StaticVizTableName,
     type DbRawStaticViz,
+    type DbEnrichedStaticViz,
     type StaticVizInsert,
     type StaticVizUpdate,
-    type DbEnrichedStaticViz,
     StaticVizInsertSchema,
     StaticVizUpdateSchema,
 } from "./domainTypes/StaticViz.js"
