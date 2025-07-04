@@ -1,0 +1,31 @@
+.search-writing-results {
+    &__container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+
+        @media (max-width: 768px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    &__section {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    &__section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e5e5e5;
+    }
+
+    &__hits-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}

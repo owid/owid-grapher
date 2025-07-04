@@ -1,5 +1,5 @@
 import { OwidGdocType } from "@ourworldindata/types"
-import { SearchResponse, SearchForFacetValuesResponse } from "instantsearch.js"
+import { SearchResponse } from "instantsearch.js"
 import {
     BaseHit,
     Hit,
@@ -115,18 +115,10 @@ export const searchCategoryFilters: [string, SearchCategoryFilter][] = [
 ]
 
 /**
- * This is a type that algolia doesn't export but is necessary to work with the algolia client
- * Effectively the same as Awaited<ReturnType<SearchClient["search"]>>, but generic
- */
-export type MultipleQueriesResponse<TObject> = {
-    results: Array<SearchResponse<TObject> | SearchForFacetValuesResponse>
-}
-
-/**
  * This is the type for the hits that we get back from algolia when we search
  * response.results[0].hits is an array of these
  */
-export type IDataCatalogHit = {
+export type SearchChartHit = {
     title: string
     slug: string
     availableEntities: string[]
@@ -141,11 +133,11 @@ export type IDataCatalogHit = {
 }
 
 // SearchResponse adds the extra fields from Algolia: page, nbHits, etc
-export type DataCatalogSearchResult = SearchResponse<IDataCatalogHit>
+export type SearchChartsResponse = SearchResponse<SearchChartHit>
 
-// We add a title field to the SearchResponse for the ribbons
-export type DataCatalogRibbonResult = SearchResponse<IDataCatalogHit> & {
+export type SearchDataTopicsResponse = {
     title: string
+    charts: SearchResponse<SearchChartHit>
 }
 
 export type ScoredSearchResult = {
@@ -153,10 +145,59 @@ export type ScoredSearchResult = {
     score: number
 }
 
+export type DataInsightHit = {
+    title: string
+    thumbnailUrl: string
+    date: string
+    slug: string
+    objectID: string
+    __position: number
+}
+
+export type SearchDataInsightResponse = SearchResponse<DataInsightHit>
+
+export type ArticleHit = {
+    title: string
+    thumbnailUrl: string
+    date: string
+    slug: string
+    type: OwidGdocType.Article | OwidGdocType.AboutPage
+    content: string
+    authors: string[]
+    objectID: string
+    __position: number
+}
+
+export type SearchArticleResponse = SearchResponse<ArticleHit>
+
+export type TopicPageHit = {
+    title: string
+    type: OwidGdocType.TopicPage | OwidGdocType.LinearTopicPage
+    slug: string
+    excerpt: string
+    objectID: string
+    __position: number
+}
+
+export type SearchTopicPageResponse = SearchResponse<TopicPageHit>
+
+export type SearchWritingTopicsResponse = {
+    title: string
+    articles: SearchResponse<ArticleHit>
+    topicPages: SearchResponse<TopicPageHit>
+    totalCount: number
+}
+
 export enum FilterType {
     COUNTRY = "country",
     TOPIC = "topic",
     QUERY = "query",
+}
+
+export enum SearchResultType {
+    ALL = "all",
+    DATA = "data",
+    WRITING = "writing",
 }
 
 export type Filter = {
@@ -168,7 +209,7 @@ export type SearchState = Readonly<{
     query: string
     filters: Filter[]
     requireAllCountries: boolean
-    page: number
+    resultType: SearchResultType
 }>
 
 type AddFilterAction = {
@@ -179,8 +220,8 @@ type RemoveFilterAction = {
     type: "removeFilter"
     filter: Filter
 }
-type AddTopicAction = {
-    type: "addTopic"
+type SetTopicAction = {
+    type: "setTopic"
     topic: string
 }
 type RemoveTopicAction = {
@@ -206,36 +247,37 @@ type SetStateAction = {
     type: "setState"
     state: SearchState
 }
-type SetPageAction = {
-    type: "setPage"
-    page: number
-}
 type ResetAction = {
     type: "reset"
+}
+type SetResultTypeAction = {
+    type: "setResultType"
+    resultType: SearchResultType
 }
 
 export type SearchAction =
     | AddFilterAction
     | RemoveFilterAction
     | AddCountryAction
-    | AddTopicAction
+    | SetTopicAction
     | RemoveCountryAction
     | RemoveTopicAction
-    | SetPageAction
     | SetQueryAction
     | SetStateAction
     | ToggleRequireAllCountriesAction
     | ResetAction
+    | SetResultTypeAction
 
-export interface SearchAutocompleteContextType {
-    activeIndex: number
-    setActiveIndex: (index: number) => void
-    suggestions: Filter[]
-    setSuggestions: (suggestions: Filter[]) => void
-    showSuggestions: boolean
-    setShowSuggestions: (isOpen: boolean) => void
-    onSelectActiveItem: () => void
-    registerSelectionHandler: (
-        handler: (filter: Filter, index: number) => void
-    ) => void
+export enum SearchTopicType {
+    Topic = "topic",
+    Area = "area",
 }
+
+export interface TemplateConfig {
+    resultType: SearchResultType
+    topicType: SearchTopicType | null
+    hasCountry: boolean
+    hasQuery: boolean
+}
+
+export type SearchFacetFilters = (string | string[])[]
