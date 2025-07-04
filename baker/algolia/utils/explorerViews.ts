@@ -60,18 +60,6 @@ import { transformExplorerProgramToResolveCatalogPaths } from "../../ExplorerBak
 import { getMetadataForMultipleVariables } from "../../../db/model/Variable.js"
 
 /**
- * Matches "duplicate 1234", to catch the (hacky) rows that are using the `duplicate` transformation to create
- * different views of the same indicator in indicator-based explorers
- */
-const TRANSFORM_DUPLICATE_ID_REGEX = /duplicate (\d+)$/
-
-function getDuplicateTransformationRows(columnDefs: OwidColumnDef[]) {
-    return columnDefs.filter((row) =>
-        row.transform?.match(TRANSFORM_DUPLICATE_ID_REGEX)
-    )
-}
-
-/**
  * Each explorer has a default view (whichever is defined first in the decision matrix)
  * We scale these default view scores between 0 and 10000, but the rest we scale between 0 and 1000
  * to bury them under the (higher quality) grapher views in the data catalog.
@@ -223,23 +211,12 @@ const parseYSlugs = (matrixRow: CoreRow): string[] => {
 }
 
 const makeDimensionsArray = (
-    matrixRow: CoreRow,
-    slugToVariableId: Map<string, number>
+    matrixRow: CoreRow
 ): OwidChartDimensionInterface[] => {
-    // Some indicator explorers have their variable IDs defined in the transforms column rather than
-    // directly in yVariableIds. (e.g. https://github.com/owid/owid-content/commit/6f17c705d331a13380e9a52f3d319c9a51054625)
-    const ySlugs = parseYSlugs(matrixRow)
-    const yVariableIdsFromTransforms = ySlugs
-        .map((slug) => slugToVariableId.get(slug))
-        .filter((id): id is number => !!id)
-    const yVariableIds = _.uniq([
-        ...yVariableIdsFromTransforms,
-        ...parseYVariableIds(matrixRow),
-    ])
-
     const dimensions: OwidChartDimensionInterface[] = []
 
     // Add y dimensions
+    const yVariableIds = parseYVariableIds(matrixRow)
     for (const variableId of yVariableIds)
         dimensions.push({
             variableId,
@@ -326,8 +303,7 @@ const createBaseRecord = (
     choice: ExplorerChoiceParams,
     program: ExplorerProgram,
     index: number,
-    explorerInfo: MinimalExplorerInfo,
-    slugToVariableId: Map<string, number>
+    explorerInfo: MinimalExplorerInfo
 ): ExplorerViewBaseRecord => {
     const matrix = program.decisionMatrix
     matrix.setValuesFromChoiceParams(choice)
@@ -340,7 +316,7 @@ const createBaseRecord = (
     // Add the dimensions array to the Grapher config if necessary.
     // This is relevant for indicator-based explorers.
     grapherConfig.dimensions =
-        grapherConfig.dimensions ?? makeDimensionsArray(row, slugToVariableId)
+        grapherConfig.dimensions ?? makeDimensionsArray(row)
 
     const grapherState = new GrapherState(grapherConfig)
 
@@ -371,31 +347,10 @@ const createBaseRecords = (
     explorerInfo: MinimalExplorerInfo,
     explorerProgram: ExplorerProgram
 ): ExplorerViewBaseRecord[] => {
-    const duplicateTransforms = getDuplicateTransformationRows(
-        explorerProgram.columnDefsWithoutTableSlug
-    )
-    // Maps explorer slugs to variable IDs, e.g. { "gdp" => 1234 }
-    const slugToVariableId = duplicateTransforms.reduce(
-        (map, { slug, transform }) => {
-            const match = transform?.match(TRANSFORM_DUPLICATE_ID_REGEX)
-            if (match) {
-                map.set(slug, parseInt(match[1]))
-            }
-            return map
-        },
-        new Map<string, number>()
-    )
-
     return explorerProgram.decisionMatrix
         .allDecisionsAsQueryParams()
         .map((choice: ExplorerChoiceParams, index: number) =>
-            createBaseRecord(
-                choice,
-                explorerProgram,
-                index,
-                explorerInfo,
-                slugToVariableId
-            )
+            createBaseRecord(choice, explorerProgram, index, explorerInfo)
         )
 }
 
