@@ -39,6 +39,7 @@ export const GRAPHER_TAB_OPTIONS = {
     chart: "chart",
     line: "line",
     slope: "slope",
+    "discrete-bar": "discrete-bar",
 } as const
 
 /**
