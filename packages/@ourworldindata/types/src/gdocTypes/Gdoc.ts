@@ -73,6 +73,16 @@ export interface NarrativeChartInfo {
     latestArchivedParent?: ArchivedPageVersion
 }
 
+export interface LinkedStaticViz {
+    desktop: ImageMetadata
+    mobile?: ImageMetadata
+    slug: string
+    title: string
+    grapherUrl?: string
+    sourceUrl?: string
+    description: string
+}
+
 /**
  * A linked indicator is derived from a linked grapher's config (see: getVariableOfDatapageIfApplicable)
  * e.g. https://ourworldindata.org/grapher/tomato-production -> config for grapher with { slug: "tomato-production" } -> indicator metadata

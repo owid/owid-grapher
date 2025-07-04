@@ -368,6 +368,7 @@ export {
     type LinkedAuthor,
     type LinkedChart,
     type LinkedIndicator,
+    type LinkedStaticViz,
     DYNAMIC_COLLECTION_PAGE_CONTAINER_ID,
     type OwidGdocContent,
     type OwidGdocIndexItem,
@@ -820,9 +821,10 @@ export {
 export {
     StaticVizTableName,
     type DbRawStaticViz,
-    type StaticVizUpdate,
     type DbEnrichedStaticViz,
+    type StaticVizUpdate,
     StaticVizUpdateSchema,
+    StaticVizInsertSchema,
 } from "./domainTypes/StaticViz.js"
 
 export type {

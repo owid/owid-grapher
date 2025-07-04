@@ -18,8 +18,6 @@ export interface DbRawStaticViz {
 }
 
 type StaticVizImage = {
-    alt: string
-    text: string
     id: number
     cloudflareId: string
     filename: string

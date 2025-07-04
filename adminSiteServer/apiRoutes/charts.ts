@@ -59,7 +59,6 @@ import {
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import { getLogsByChartId } from "../getLogsByChartId.js"
-import { getPublishedLinksTo } from "../../db/model/Link.js"
 
 import { Request } from "../authentication.js"
 import e from "express"
@@ -815,12 +814,14 @@ export async function deleteChart(
     trx: db.KnexReadWriteTransaction
 ) {
     const chart = await expectChartById(trx, req.params.chartId)
-    if (chart.slug) {
-        const links = await getPublishedLinksTo(trx, [chart.slug])
-        if (links.length) {
-            const sources = links.map((link) => link.slug).join(", ")
-            throw new Error(
-                `Cannot delete chart in-use in the following published documents: ${sources}`
+    if (chart.id) {
+        const references = await getReferencesByChartId(chart.id, trx).then(
+            (references) => Object.values(references).flat()
+        )
+        if (references.length) {
+            throw new JsonError(
+                `Cannot delete chart in-use in the following places:` +
+                    references.join(", ")
             )
         }
     }
