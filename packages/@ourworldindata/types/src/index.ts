@@ -817,6 +817,14 @@ export {
     parseLatestWork,
 } from "./domainTypes/Author.js"
 
+export {
+    StaticVizTableName,
+    type DbRawStaticViz,
+    type StaticVizUpdate,
+    type DbEnrichedStaticViz,
+    StaticVizUpdateSchema,
+} from "./domainTypes/StaticViz.js"
+
 export type {
     IndicatorConfig,
     IndicatorEntryBeforePreProcessing,

@@ -21,6 +21,10 @@ metadata:
           column: userId
         - table: narrative_charts
           column: lastEditedByUserId
+        - table: static_viz
+          column: createdBy
+        - table: static_viz
+          column: updatedBy
 fields:
     id:
         description: Unique identifier for the user
