@@ -13,6 +13,7 @@ export interface DbInsertImage {
     hash: string
     userId?: number | null
     replacedBy?: number | null
+    imageText?: string | null
     /**
      * Necessary to create a unique constraint with filename, so that we can have multiple versions of the same image,
      * but not multiple images with the same filename and version.
