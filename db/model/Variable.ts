@@ -15,6 +15,7 @@ import pl from "nodejs-polars"
 import { uuidv7 } from "uuidv7"
 import { DATA_API_URL } from "../../settings/serverSettings.js"
 import { escape } from "mysql2"
+import pMap from "p-map"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
@@ -32,6 +33,7 @@ import {
     DbEnrichedVariable,
     DbPlainChart,
     DbPlainMultiDimXChartConfig,
+    OwidVariableWithSourceAndDimensionById,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 import {
@@ -665,6 +667,20 @@ export async function getDataForMultipleVariables(
         allVariablesDataAndMetadata.map((item) => [item.metadata.id, item])
     )
     return allVariablesDataAndMetadataMap
+}
+
+export async function getMetadataForMultipleVariables(
+    variableIds: Iterable<number>
+): Promise<OwidVariableWithSourceAndDimensionById> {
+    const metadata = await pMap(
+        variableIds,
+        async (id) => {
+            return getVariableMetadata(id)
+        },
+        { concurrency: 10 }
+    )
+
+    return new Map(metadata.map((m) => [m.id, m]))
 }
 
 export async function writeVariableCSV(

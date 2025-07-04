@@ -191,6 +191,19 @@ export function mapQueryParamToChartTypeName(
     }
 }
 
+export function mapGrapherTabNameToQueryParam(
+    tabName: GrapherTabName
+): GrapherTabQueryParam {
+    switch (tabName) {
+        case GRAPHER_TAB_NAMES.Table:
+            return GRAPHER_TAB_QUERY_PARAMS.table
+        case GRAPHER_TAB_NAMES.WorldMap:
+            return GRAPHER_TAB_QUERY_PARAMS.map
+        default:
+            return mapChartTypeNameToQueryParam(tabName)
+    }
+}
+
 export function mapChartTypeNameToQueryParam(
     chartType: GrapherChartType
 ): GrapherTabQueryParam {

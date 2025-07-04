@@ -1,12 +1,16 @@
 import * as _ from "lodash-es"
-import { MarkdownTextWrap } from "@ourworldindata/components"
-import { KeyChartLevel, ContentGraphLinkType } from "@ourworldindata/types"
+import {
+    KeyChartLevel,
+    ContentGraphLinkType,
+    parseChartConfig,
+} from "@ourworldindata/types"
 import * as db from "../../../db/db.js"
 import {
     ChartRecord,
     ChartRecordType,
 } from "../../../site/search/searchTypes.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
+import { getMetadataForMultipleVariables } from "../../../db/model/Variable.js"
 import { getRelatedArticles } from "../../../db/model/Post.js"
 import { getPublishedLinksTo } from "../../../db/model/Link.js"
 import { isPathRedirectedToExplorer } from "../../../explorerAdminServer/ExplorerRedirects.js"
@@ -15,7 +19,12 @@ import {
     excludeNullish,
     getUniqueNamesFromTopicHierarchies,
 } from "@ourworldindata/utils"
-import { processAvailableEntities } from "./shared.js"
+import {
+    getVariableIdsFromChartConfig,
+    makeGrapherStateWithMetadata,
+    toPlainText,
+    processAvailableEntities,
+} from "./shared.js"
 
 const computeChartScore = (record: Omit<ChartRecord, "score">): number => {
     const { numRelatedArticles, views_7d } = record
@@ -46,8 +55,11 @@ const parseAndProcessChartRecords = (
         rawRecord.keyChartForTags as string
     ).filter((t: string | null) => t)
 
+    const config = parseChartConfig(rawRecord.config)
+
     return {
         ...rawRecord,
+        config,
         entityNames,
         tags,
         keyChartForTags,
@@ -64,6 +76,7 @@ export const getChartsRecords = async (
         WITH indexable_charts_with_entity_names AS (
             SELECT c.id,
                    cc.slug,
+                   cc.full                                 AS config,
                    cc.full ->> "$.title"                   AS title,
                    cc.full ->> "$.variantName"             AS variantName,
                    cc.full ->> "$.subtitle"                AS subtitle,
@@ -81,6 +94,7 @@ export const getChartsRecords = async (
         )
         SELECT c.id,
                c.slug,
+               c.config,
                c.title,
                c.variantName,
                c.subtitle,
@@ -111,19 +125,26 @@ export const getChartsRecords = async (
         // otherwise they will fail when rendered in the search results
         if (isPathRedirectedToExplorer(`/grapher/${c.slug}`)) continue
 
+        // Construct GrapherState enriched with metadata
+        console.log(`Fetching metadata for chart ${c.slug}`)
+        const variableIds = getVariableIdsFromChartConfig(c.config)
+        const variablesMetadata =
+            await getMetadataForMultipleVariables(variableIds)
+        const grapherState = makeGrapherStateWithMetadata(
+            c.config,
+            variablesMetadata
+        )
+
+        const title = toPlainText(grapherState.displayTitle)
+        const subtitle = toPlainText(grapherState.currentSubtitle)
+        const source = toPlainText(grapherState.sourcesLine)
+
         const relatedArticles = (await getRelatedArticles(knex, c.id)) ?? []
         const linksFromGdocs = await getPublishedLinksTo(
             knex,
             [c.slug],
             ContentGraphLinkType.Grapher
         )
-
-        const plaintextSubtitle = _.isNil(c.subtitle)
-            ? undefined
-            : new MarkdownTextWrap({
-                  text: c.subtitle,
-                  fontSize: 10, // doesn't matter, but is a mandatory field
-              }).plaintext
 
         const topicTags = getUniqueNamesFromTopicHierarchies(
             c.tags,
@@ -136,11 +157,13 @@ export const getChartsRecords = async (
             type: ChartRecordType.Chart,
             chartId: c.id,
             slug: c.slug,
-            title: c.title,
-            variantName: c.variantName,
-            subtitle: plaintextSubtitle,
+            title,
+            variantName: grapherState.variantName,
+            subtitle,
+            source,
             availableEntities: c.entityNames,
             numDimensions: parseInt(c.numDimensions),
+            availableTabs: grapherState.availableTabs,
             publishedAt: c.publishedAt,
             updatedAt: c.updatedAt,
             tags: topicTags,

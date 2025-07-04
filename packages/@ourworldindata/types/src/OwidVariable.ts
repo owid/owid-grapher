@@ -90,6 +90,11 @@ export type OwidVariableWithSourceAndDimensionWithoutId = Omit<
     "id"
 >
 
+export type OwidVariableWithSourceAndDimensionById = Map<
+    number,
+    OwidVariableWithSourceAndDimension
+>
+
 export interface OwidVariableMixedData {
     years: number[]
     entities: number[]
