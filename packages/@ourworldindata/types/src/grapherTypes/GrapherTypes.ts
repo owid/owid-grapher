@@ -325,10 +325,19 @@ export interface AxisConfigInterface {
     domainValues?: number[]
 }
 
-export interface ComparisonLineConfig {
+export interface VerticalComparisonLineConfig {
+    xEquals: number // x-coordinate of the vertical line
     label?: string
-    yEquals?: string
 }
+
+export interface CustomComparisonLineConfig {
+    yEquals?: string // line equation like "2*x^2" or "sqrt(x)"; defaults to "x"
+    label?: string
+}
+
+export type ComparisonLineConfig =
+    | VerticalComparisonLineConfig
+    | CustomComparisonLineConfig
 
 export enum LogoOption {
     owid = "owid",

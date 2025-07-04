@@ -100,17 +100,27 @@ export const autoDetectSeriesStrategy = (
         : SeriesStrategy.entity
 }
 
-export const makeClipPath = (
-    renderUid: number,
+export interface ClipPath {
+    id: string
+    element: React.ReactElement
+}
+
+export const makeClipPath = (props: {
+    name?: string
+    renderUid: number
     box: Box
-): { id: string; element: React.ReactElement } => {
-    const id = `boundsClip-${renderUid}`
+}): {
+    id: string
+    element: React.ReactElement
+} => {
+    const name = props.name ?? "boundsClip"
+    const id = `${name}-${props.renderUid}`
     return {
         id: `url(#${id})`,
         element: (
             <defs>
                 <clipPath id={id}>
-                    <rect {...box}></rect>
+                    <rect {...props.box}></rect>
                 </clipPath>
             </defs>
         ),
