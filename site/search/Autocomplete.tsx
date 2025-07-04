@@ -383,6 +383,7 @@ export function Autocomplete({
                 panel: panelClassName,
             },
             openOnFocus: true,
+            defaultActiveItemId: 0,
             onStateChange({ state, prevState }) {
                 if (onActivate && !prevState.isOpen && state.isOpen) {
                     onActivate()
