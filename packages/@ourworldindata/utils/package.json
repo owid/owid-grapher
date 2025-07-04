@@ -24,6 +24,7 @@
     "mobx-react": "5",
     "react": "^17.0.2",
     "react-select": "^5.8.0",
+    "remeda": "^2.23.3",
     "string-pixel-width": "^1.10.0",
     "striptags": "^3.2.0",
     "timezone-mock": "^1.0.18",
