@@ -116,13 +116,6 @@
         margin-bottom: 24px;
     }
 
-    // Remove some margins since margins don't collapse in display: grid.
-    @include column-block-override {
-        @include md-up {
-            margin: 0;
-        }
-    }
-
     .article-block__side-by-side {
         :first-child {
             margin-top: 0;
