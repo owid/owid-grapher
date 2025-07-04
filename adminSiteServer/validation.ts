@@ -24,7 +24,7 @@ async function isSlugUsedInRedirect(
     return rows.length > 0
 }
 
-async function isSlugUsedInOtherGrapher(
+export async function isSlugUsedInOtherGrapher(
     knex: db.KnexReadonlyTransaction,
     slug: string,
     existingConfigId?: number
