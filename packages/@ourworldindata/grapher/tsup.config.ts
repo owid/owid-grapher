@@ -6,6 +6,7 @@ export default defineConfig({
     sourcemap: true,
     splitting: true,
     clean: true,
+    format: "esm",
     esbuildPlugins: [sassPlugin()],
     tsconfig: "./tsconfig.json",
 })

@@ -2,6 +2,7 @@
   "name": "@ourworldindata/explorer",
   "version": "0.0.0",
   "description": "OWID's data exploration and visualization library.",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [

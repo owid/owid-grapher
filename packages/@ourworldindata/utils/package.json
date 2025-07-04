@@ -2,6 +2,7 @@
   "name": "@ourworldindata/utils",
   "version": "0.0.0",
   "description": "",
+  "type": "module",
   "main": "dist/index.js",
   "directories": {
     "lib": "src"
