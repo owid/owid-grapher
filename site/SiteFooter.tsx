@@ -1,5 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faRss } from "@fortawesome/free-solid-svg-icons"
+import { faRss, faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
+import * as React from "react"
+import { FeedbackForm } from "./Feedback.js"
 import {
     ArchiveMetaInformation,
     SiteFooterContext,
@@ -107,6 +109,44 @@ const FooterLinkColumnsArchive = () => (
     </div>
 )
 
+const FeedbackLinkWithPopup = () => {
+    const [isOpen, setIsOpen] = React.useState(false)
+
+    const handleClick = (e: React.MouseEvent) => {
+        e.preventDefault()
+        setIsOpen(true)
+    }
+
+    const handleClose = () => {
+        setIsOpen(false)
+    }
+
+    return (
+        <>
+            <li>
+                <a
+                    href="https://ourworldindata.org/feedback"
+                    className="body-3-medium"
+                    data-track-note="footer_feedback"
+                    onClick={handleClick}
+                >
+                    Feedback
+                </a>
+            </li>
+            {isOpen && (
+                <div className="feedbackPromptContainer active">
+                    <div style={{ display: "block" }}>
+                        <div className="overlay" onClick={handleClose} />
+                        <div className="box">
+                            <FeedbackForm onClose={handleClose} />
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    )
+}
+
 export const SiteFooter = (props: SiteFooterProps) => {
     const scripts: string[] = []
     if (props.archiveInfo)
@@ -202,9 +242,16 @@ export const SiteFooter = (props: SiteFooterProps) => {
                                 <FontAwesomeIcon icon={social.icon} />
                             </a>
                         ))}
+                        <a
+                            href="https://ourworldindata.org/#subscribe"
+                            data-track-note="footer_subscribe"
+                        >
+                            <FontAwesomeIcon icon={faEnvelopeOpenText} />
+                        </a>
                     </div>
                     <div className="footer-base__legal">
                         <FooterLinkList links={LEGAL_LINKS} />
+                        <FeedbackLinkWithPopup />
                     </div>
                 </div>
 
