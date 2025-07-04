@@ -125,7 +125,11 @@ export async function queryDataInsights(
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
     // Using the selected countries as query search terms until data insights
     // are tagged with countries.
-    const query = [state.query, ...selectedCountryNames]
+    const query = [
+        state.query,
+        // Use advanced syntax to search for countries as exact phrases
+        ...Array.from(selectedCountryNames).map((c) => `"${c}"`),
+    ]
         .filter(Boolean)
         .join(" ")
 
@@ -141,12 +145,7 @@ export async function queryDataInsights(
             // country (e.g. "Unlike Germany...").
             ...(hasCountry && {
                 // a subset of searchableAttributes on the Pages index
-                restrictSearchableAttributes: [
-                    "title",
-                    "excerpt",
-                    "tags",
-                    "authors",
-                ],
+                restrictSearchableAttributes: ["title", "tags", "authors"],
             }),
             attributesToRetrieve: [
                 "title",
@@ -180,7 +179,11 @@ export async function queryArticles(
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
     // Using the selected countries as query search terms until articles
     // are tagged with countries.
-    const query = [state.query, ...selectedCountryNames]
+    const query = [
+        state.query,
+        // Use advanced syntax to search for countries as exact phrases
+        ...Array.from(selectedCountryNames).map((c) => `"${c}"`),
+    ]
         .filter(Boolean)
         .join(" ")
 
@@ -196,12 +199,7 @@ export async function queryArticles(
             // "Unlike Germany...").
             ...(hasCountry && {
                 // a subset of searchableAttributes on the Pages index
-                restrictSearchableAttributes: [
-                    "title",
-                    "excerpt",
-                    "tags",
-                    "authors",
-                ],
+                restrictSearchableAttributes: ["title", "tags", "authors"],
             }),
             attributesToRetrieve: [
                 "title",
