@@ -2,7 +2,9 @@ import * as _ from "lodash-es"
 import { HitAttributeHighlightResult } from "instantsearch.js"
 import {
     EntityName,
+    GRAPHER_TAB_QUERY_PARAMS,
     GrapherQueryParams,
+    GrapherTabName,
     TagGraphRoot,
 } from "@ourworldindata/types"
 import {
@@ -18,7 +20,10 @@ import {
     getAllChildrenOfArea,
 } from "@ourworldindata/utils"
 import { partition } from "remeda"
-import { generateSelectedEntityNamesParam } from "@ourworldindata/grapher"
+import {
+    generateSelectedEntityNamesParam,
+    mapGrapherTabNameToQueryParam,
+} from "@ourworldindata/grapher"
 import { getIndexName } from "./searchClient.js"
 import {
     SearchIndexName,
@@ -28,11 +33,18 @@ import {
     SearchResultType,
     SearchTopicType,
     SearchFacetFilters,
+    ChartRecordType,
+    SearchChartHit,
 } from "./searchTypes.js"
 import { faTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { match, P } from "ts-pattern"
 import { ForwardedRef } from "react"
+import {
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_URL,
+} from "../../settings/clientSettings.js"
+import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -137,18 +149,60 @@ export function pickEntitiesForChartHit(
     return sortedEntities ?? []
 }
 
-export const getEntityQueryStr = (
-    entities: EntityName[] | null | undefined,
-    existingQueryStr: string = ""
-) => {
-    if (!entities?.length) return existingQueryStr
-    else {
-        return Url.fromQueryStr(existingQueryStr).updateQueryParams({
-            // If we have any entities pre-selected, we want to show the chart tab
-            tab: "chart",
-            country: generateSelectedEntityNamesParam(entities),
-        } satisfies GrapherQueryParams).queryStr
-    }
+export const getEntityQueryStr = ({
+    entities,
+    existingQueryStr = "",
+    tab,
+}: {
+    entities: EntityName[] | null | undefined
+    existingQueryStr?: string
+    tab?: GrapherTabName
+}) => {
+    const hasEntities = !!entities?.length
+
+    const tabParam = tab
+        ? mapGrapherTabNameToQueryParam(tab)
+        : // If we have any entities pre-selected, we want to show the chart tab
+          hasEntities
+          ? GRAPHER_TAB_QUERY_PARAMS.chart
+          : undefined
+    const countryParam = hasEntities
+        ? generateSelectedEntityNamesParam(entities)
+        : undefined
+
+    const queryParams = {
+        tab: tabParam,
+        country: countryParam,
+    } satisfies GrapherQueryParams
+
+    const url =
+        Url.fromQueryStr(existingQueryStr).updateQueryParams(queryParams)
+
+    return url.queryStr
+}
+
+export const constructChartUrl = ({
+    hit,
+    entities,
+    tab,
+}: {
+    hit: SearchChartHit
+    entities: EntityName[] | null | undefined
+    tab?: GrapherTabName
+}) => {
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    const isMultiDimView = hit.type === ChartRecordType.MultiDimView
+
+    const entityQueryStr = getEntityQueryStr({ entities, tab })
+
+    const fullQueryParams =
+        isExplorerView || isMultiDimView
+            ? hit.queryParams + entityQueryStr.replace("?", "&")
+            : entityQueryStr
+
+    return isExplorerView
+        ? `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}/${hit.slug}${fullQueryParams}`
+        : `${BAKED_GRAPHER_URL}/${hit.slug}${fullQueryParams}`
 }
 
 export const CHARTS_INDEX = getIndexName(
@@ -164,6 +218,7 @@ export const DATA_CATALOG_ATTRIBUTES = [
     "queryParams",
     "availableTabs",
     "source",
+    "subtitle",
 ]
 
 export function setToFacetFilters(

@@ -129,6 +129,9 @@ export type SearchChartHit = {
     variantName: string | null
     type: ChartRecordType
     queryParams: string
+    subtitle?: string
+    availableTabs: GrapherTabName[]
+    source: string
     __position: number
     _highlightResult?: HitHighlightResult
     _snippetResult?: HitHighlightResult

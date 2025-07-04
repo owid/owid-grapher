@@ -60,3 +60,5 @@ export {
 export { Button } from "./Button/Button.js"
 
 export { Halo } from "./Halo/Halo.js"
+
+export { GrapherTabIcon } from "./GrapherTabIcon.js"
