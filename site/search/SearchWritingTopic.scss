@@ -1,117 +1,96 @@
-.search-writing-topic-section {
-    background: #f0f4fa;
-    border-radius: 4px;
+.search-writing-topic {
+    background: $blue-5;
     padding: 16px;
+}
 
-    &__header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 16px;
-        height: 28px;
-    }
+.search-writing-topic__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    height: 28px;
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
 
-    &__title {
-        color: #1d3d63;
-        margin: 0;
-    }
-
-    &__count-button {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 0;
-
-        &:hover {
-            opacity: 0.8;
-        }
-    }
-
-    &__count {
-        color: #577291;
-    }
-
-    &__arrow {
-        background: #577291;
-        border-radius: 50%;
-        width: 16px;
-        height: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #f0f4fa;
-        font-size: 10px;
-    }
-
-    &__content {
-        display: flex;
-        gap: 24px;
-    }
-
-    &__left {
-        width: 286px;
-        flex-shrink: 0;
-    }
-
-    &__right {
-        flex: 1;
+    &:hover {
+        text-decoration: underline;
     }
 }
 
-.search-writing-featured-topics {
-    &__title {
-        color: #577291;
-        text-transform: uppercase;
-        letter-spacing: 1.2px;
-        margin: 0 0 16px 0;
-    }
+.search-writing-topic__title {
+    @include body-1-bold;
+    color: $blue-90;
+    margin: 0;
+}
 
-    &__list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
+.search-writing-topic__count {
+    @include body-2-semibold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: $blue-60;
+}
+
+.search-writing-topic__arrow {
+    background: $blue-60;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $blue-5;
+    font-size: 10px;
+}
+
+.search-writing-topic__content {
+    display: flex;
+    gap: 24px;
+}
+
+.search-writing-topic__sub-title {
+    @include h5-black-caps;
+    color: $blue-60;
+    margin: 0 0 16px 0;
+}
+
+.search-writing-topic__featured-topic-pages {
+    flex: 0 1 286px;
+}
+
+.search-writing-topic__featured-articles {
+    flex-shrink: 1;
+}
+
+.search-writing-featured-topics__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .search-writing-topic-link {
-    &__anchor {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        text-decoration: none;
-        color: #1d3d63;
+    @include body-3-medium;
+    display: block;
+    text-decoration: none;
+    color: $blue-90;
 
-        &:hover {
-            text-decoration: underline;
-        }
-    }
-
-    &__text {
-        color: #1d3d63;
-    }
-
-    &__icon {
-        font-size: 10px;
-        color: #1d3d63;
+    &:hover {
+        text-decoration: underline;
     }
 }
 
-.search-writing-featured-articles {
-    &__title {
-        color: #577291;
-        text-transform: uppercase;
-        letter-spacing: 1.2px;
-        margin: 0 0 16px 0;
-    }
+.search-writing-topic-link__icon {
+    font-size: 10px;
+    margin-left: 8px;
+}
 
-    &__grid {
-        display: flex;
-        gap: 24px;
-    }
+.search-writing-featured-articles__list {
+    display: flex;
+    gap: 24px;
 }
