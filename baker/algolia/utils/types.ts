@@ -56,7 +56,17 @@ export type ExplorerIndicatorMetadataFromDb = Pick<
     | "descriptionShort"
 >
 
-export type DimensionSlug = { slug: string; property: DimensionProperty }
+export type ExplorerChartDimension =
+    | {
+          definedBy: "slug"
+          slug: string
+          property: DimensionProperty
+      }
+    | {
+          definedBy: "variableId"
+          variableId: number
+          property: DimensionProperty
+      }
 
 export interface ExplorerViewBaseRecord {
     availableEntities: string[]
@@ -71,7 +81,7 @@ export interface ExplorerViewBaseRecord {
     viewTitle?: string
     viewAvailableTabs?: GrapherTabName[]
     numYVariables: number
-    dimensionSlugs: DimensionSlug[]
+    chartDimensions: ExplorerChartDimension[]
     explorerSlug: string
     // True when the record is the first view specified in the explorer's config
     // Used in order to downrank all other views for the same explorer in the data catalog
@@ -92,7 +102,6 @@ export type GrapherEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
 
 export type IndicatorUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
     viewGrapherId: never
-    dimensionSlugs: []
     tableSlug: never
 }
 

@@ -683,6 +683,41 @@ export async function getMetadataForMultipleVariables(
     return new Map(metadata.map((m) => [m.id, m]))
 }
 
+const variableMetadataCache: OwidVariableWithSourceAndDimensionById = new Map()
+export async function getCachedMetadataForMultipleVariables(
+    variableIds: Iterable<number>
+): Promise<OwidVariableWithSourceAndDimensionById> {
+    const missingVariableIds = new Set<number>()
+
+    // Check the cache and collect variables to be fetched
+    const metadataMap = new Map()
+    for (const id of variableIds) {
+        const cached = variableMetadataCache.get(id)
+        if (cached) {
+            metadataMap.set(id, cached)
+        } else {
+            missingVariableIds.add(id)
+        }
+    }
+
+    // Fetch metadata for missing variables
+    const fetchedMetadata = await pMap(
+        missingVariableIds,
+        async (id) => {
+            return getVariableMetadata(id)
+        },
+        { concurrency: 10 }
+    )
+
+    // Update the cache and result map
+    fetchedMetadata.forEach((metadata) => {
+        metadataMap.set(metadata.id, metadata)
+        variableMetadataCache.set(metadata.id, metadata)
+    })
+
+    return metadataMap
+}
+
 export async function writeVariableCSV(
     variableIds: number[],
     stream: Writable,

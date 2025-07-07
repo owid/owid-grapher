@@ -27,6 +27,7 @@ import {
     DimensionProperty,
     ExpandedFeaturedMetric,
     GrapherInterface,
+    OwidVariableWithSourceAndDimension,
     OwidVariableWithSourceAndDimensionById,
 } from "@ourworldindata/types"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
@@ -306,14 +307,27 @@ export async function createFeaturedMetricRecords(
 /** Construct GrapherState enriched with metadata (but without data values) */
 export const makeGrapherStateWithMetadata = (
     chartConfig: GrapherInterface,
-    variablesMetadata: OwidVariableWithSourceAndDimensionById
+    variablesMetadata: OwidVariableWithSourceAndDimensionById,
+    metadataOverwritesForYVariables?: Partial<OwidVariableWithSourceAndDimension>
 ) => {
     // Construct the input table without any data values,
     // but with the relevant columns and their metadata
     const dimensions = chartConfig.dimensions ?? []
     const columnDefs = excludeUndefined(
         dimensions.map((dimension) => {
-            const metadata = variablesMetadata.get(dimension.variableId)
+            let metadata = variablesMetadata.get(dimension.variableId)
+
+            if (
+                dimension.property === DimensionProperty.y &&
+                metadata &&
+                metadataOverwritesForYVariables
+            )
+                metadata = _.merge(
+                    {},
+                    metadata,
+                    metadataOverwritesForYVariables
+                )
+
             return metadata ? columnDefFromOwidVariable(metadata) : undefined
         })
     )

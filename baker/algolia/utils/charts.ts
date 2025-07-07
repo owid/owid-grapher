@@ -10,7 +10,7 @@ import {
     ChartRecordType,
 } from "../../../site/search/searchTypes.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
-import { getMetadataForMultipleVariables } from "../../../db/model/Variable.js"
+import { getCachedMetadataForMultipleVariables } from "../../../db/model/Variable.js"
 import { getRelatedArticles } from "../../../db/model/Post.js"
 import { getPublishedLinksTo } from "../../../db/model/Link.js"
 import { isPathRedirectedToExplorer } from "../../../explorerAdminServer/ExplorerRedirects.js"
@@ -123,7 +123,7 @@ export const getChartsRecords = async (
         console.log(`Fetching metadata for chart ${c.slug}`)
         const variableIds = getVariableIdsFromChartConfig(c.config)
         const variablesMetadata =
-            await getMetadataForMultipleVariables(variableIds)
+            await getCachedMetadataForMultipleVariables(variableIds)
         const grapherState = makeGrapherStateWithMetadata(
             c.config,
             variablesMetadata

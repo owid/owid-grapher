@@ -14,7 +14,7 @@ import {
 import * as db from "../../../db/db.js"
 import { getAllPublishedMultiDimDataPages } from "../../../db/model/MultiDimDataPage.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
-import { getMetadataForMultipleVariables } from "../../../db/model/Variable.js"
+import { getCachedMetadataForMultipleVariables } from "../../../db/model/Variable.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import {
     ChartRecord,
@@ -58,7 +58,7 @@ async function getRecords(
     )
     const variableIds = getMdimVariableIds(multiDim.config)
     const variableMetadataById =
-        await getMetadataForMultipleVariables(variableIds)
+        await getCachedMetadataForMultipleVariables(variableIds)
     return multiDim.config.views.map((view) => {
         const viewId = multiDimDimensionsToViewId(view.dimensions)
         const id = multiDimXChartConfigIdMap.get(`${multiDim.id}-${viewId}`)
@@ -75,18 +75,25 @@ async function getRecords(
             )
         }
 
+        const metadataOverwrites = _.merge(
+            {}, // merge mutates the first argument
+            multiDim.config.metadata,
+            view.metadata
+        )
+
         // Construct GrapherState enriched with metadata
         const grapherState = makeGrapherStateWithMetadata(
             chartConfig,
-            variableMetadataById
+            variableMetadataById,
+            metadataOverwrites
         )
 
         const queryStr = queryParamsToStr(view.dimensions)
         const variableId = view.indicators.y[0].id
         const metadata = _.merge(
-            variableMetadataById.get(variableId)!,
-            multiDim.config.metadata,
-            view.metadata
+            {}, // merge mutates the first argument
+            variableMetadataById.get(variableId),
+            metadataOverwrites
         )
         const title =
             metadata.presentation?.titlePublic ||
