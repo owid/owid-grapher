@@ -3,13 +3,13 @@
   "version": "0.0.0",
   "description": "This is our core tabular data structure class which parses JSON or delimited data and makes it available for charts. This class performs core transformations like filtering, grouping, etc. This is roughly our \"Pandas for TypeScript\".",
   "type": "module",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "directories": {
     "lib": "src"
   },
-  "types": "src/index.ts",
+  "types": "dist",
   "scripts": {
-    "build": "",
+    "build": "rm -rf ./dist && tsc --build",
     "watch": "tsc --watch"
   },
   "keywords": [],

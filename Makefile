@@ -64,6 +64,8 @@ up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz lerna
 			set remain-on-exit on \; \
 		new-window -n vite 'yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
+		new-window -n lerna 'yarn startLernaWatcher' \; \
+			set remain-on-exit on \; \
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
@@ -82,6 +84,8 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.
 			'devTools/docker/wait-for-mysql.sh && yarn startAdminDevServer' \; \
 			set remain-on-exit on \; \
 		new-window -n vite 'yarn run startSiteFront' \; \
+			set remain-on-exit on \; \
+		new-window -n lerna 'yarn startLernaWatcher' \; \
 			set remain-on-exit on \; \
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
@@ -108,6 +112,8 @@ up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz l
 			'devTools/docker/wait-for-mysql.sh && yarn startAdminDevServer' \; \
 			set remain-on-exit on \; \
 		new-window -n vite 'yarn run startSiteFront' \; \
+			set remain-on-exit on \; \
+		new-window -n lerna 'yarn startLernaWatcher' \; \
 			set remain-on-exit on \; \
 		new-window -n functions 'yarn startLocalCloudflareFunctions' \; \
 			set remain-on-exit on \; \

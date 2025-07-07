@@ -206,6 +206,7 @@ export default tseslint.config(
             "itsJustJavascript/**/*",
             "localBake/**/*",
             "packages/@ourworldindata/*/dist/",
+            "packages/@ourworldindata/grapher/tsup.config.bundled_*.mjs",
             "vite.*.mjs",
         ],
     }

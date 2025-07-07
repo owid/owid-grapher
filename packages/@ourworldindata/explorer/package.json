@@ -3,13 +3,18 @@
   "version": "0.0.0",
   "description": "OWID's data exploration and visualization library.",
   "type": "module",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/index.js",
+    "dist/index.css"
+  ],
   "directories": {
     "lib": "src"
   },
   "scripts": {
-    "build": "",
+    "build": "tsup src/index.ts",
+    "watch": "tsup src/index.ts --watch",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [],
@@ -57,10 +62,12 @@
     "@types/topojson-client": "^3.1.1",
     "@types/url-parse": "^1.4.8",
     "@wojtekmaj/enzyme-adapter-react-17": "^0.8.0",
+    "esbuild": "^0.25.0",
+    "esbuild-sass-plugin": "^3.3.1",
     "eslint": "^9.23.0",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "typescript": "~5.8.2",
-    "vitest": "^3.2.4"
+    "tsup": "^8.4.0",
+    "typescript": "~5.8.2"
   },
   "license": "MIT"
 }
