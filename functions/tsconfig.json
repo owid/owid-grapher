@@ -5,6 +5,10 @@
         "moduleResolution": "NodeNext",
         "lib": ["esnext"],
         "types": ["@cloudflare/workers-types"],
-        "esModuleInterop": true
+        "esModuleInterop": true,
+
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": false,
+        "useDefineForClassFields": false
     }
 }
