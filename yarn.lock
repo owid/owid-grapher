@@ -3304,7 +3304,6 @@ __metadata:
     "@ourworldindata/utils": "workspace:^"
     "@types/react": "npm:^17.0.83"
     "@types/react-dom": "npm:^17.0.22"
-    esbuild-sass-plugin: "npm:^3.3.1"
     eslint: "npm:^9.23.0"
     eslint-plugin-react-hooks: "npm:^5.2.0"
     mobx: "npm:^5.15.7"
@@ -3359,8 +3358,6 @@ __metadata:
     colorbrewer: "npm:^1.3.0"
     d3: "npm:^6.1.1"
     decko: "npm:^1.2.0"
-    esbuild: "npm:^0.25.0"
-    esbuild-sass-plugin: "npm:^3.3.1"
     eslint: "npm:^9.23.0"
     eslint-plugin-react-hooks: "npm:^5.2.0"
     js-cookie: "npm:^3.0.1"
@@ -3407,8 +3404,6 @@ __metadata:
     colorbrewer: "npm:^1.3.0"
     d3: "npm:^6.1.1"
     decko: "npm:^1.2.0"
-    esbuild: "npm:^0.25.0"
-    esbuild-sass-plugin: "npm:^3.3.1"
     eslint: "npm:^9.23.0"
     eslint-plugin-react-hooks: "npm:^5.2.0"
     fparser: "npm:^3.1.0"
@@ -11291,20 +11286,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esbuild-sass-plugin@npm:^3.3.1":
-  version: 3.3.1
-  resolution: "esbuild-sass-plugin@npm:3.3.1"
-  dependencies:
-    resolve: "npm:^1.22.8"
-    safe-identifier: "npm:^0.4.2"
-    sass: "npm:^1.71.1"
-  peerDependencies:
-    esbuild: ">=0.20.1"
-    sass-embedded: ^1.71.1
-  checksum: 10/8fe80d156354027797166a17f46cca97e9d8564360fd622d51cfe9685052d1625a8b84d087feeb412bbcf349ca82f2f3d138e7ee4da49d370e6549e65761ae71
-  languageName: node
-  linkType: hard
-
 "esbuild@npm:0.25.4, esbuild@npm:^0.25.0, esbuild@npm:~0.25.0":
   version: 0.25.4
   resolution: "esbuild@npm:0.25.4"
@@ -19142,13 +19123,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"safe-identifier@npm:^0.4.2":
-  version: 0.4.2
-  resolution: "safe-identifier@npm:0.4.2"
-  checksum: 10/c2697c0d2fe128aa5f5faa7bd3ccf02d06ba937cdff9b2f65afb247e222a1505fc414a3b6a04d2a6a71bb5a84b8bc345edc408fabc8afc498f04e367ddc02366
-  languageName: node
-  linkType: hard
-
 "safe-regex-test@npm:^1.1.0":
   version: 1.1.0
   resolution: "safe-regex-test@npm:1.1.0"
@@ -19174,7 +19148,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sass@npm:^1.71.1, sass@npm:^1.77.8":
+"sass@npm:^1.77.8":
   version: 1.77.8
   resolution: "sass@npm:1.77.8"
   dependencies:
