@@ -1,21 +1,22 @@
 import * as Sentry from "@sentry/react"
 import { isInIFrame } from "@ourworldindata/utils"
-import {
-    getPreferenceValue,
-    PreferenceType,
-} from "../../site/cookiePreferences.js"
+import { getAnalyticsConsentValue, parseCookies } from "./cookieTools.js"
 import tests from "./ab-tests.json" with { type: "json" }
 
 export const abTest = async (context) => {
     const originalResponse = await context.next()
-    const cookie = context.request.headers.get("cookie")
+    const cookies = parseCookies(context.request)
 
     if (tests && tests.length && !isInIFrame()) {
-        const analyticsConsent = getPreferenceValue(PreferenceType.Analytics)
+        const analyticsConsent = getAnalyticsConsentValue(context.request)
+        console.log(analyticsConsent)
         const replay = Sentry.getReplay()
         let isReplayRecording = !!replay.getReplayId()
         tests.map((test) => {
-            if (!cookie || !cookie.includes(test["id"])) {
+            if (
+                !cookies ||
+                !Object.prototype.hasOwnProperty.call(cookies, test["id"])
+            ) {
                 // todo: what if cumul doesn't sum to 1?
                 let cumul = 0
                 test["arms"].map((arm) => {
