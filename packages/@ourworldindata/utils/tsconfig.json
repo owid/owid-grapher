@@ -1,10 +1,8 @@
 {
     "extends": "../../../devTools/tsconfigs/tsconfig.base.json",
-    "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.json"],
     "compilerOptions": {
         "module": "es2022",
+        "composite": false,
         "outDir": "./dist"
-    },
-
-    "references": [{ "path": "../types" }]
+    }
 }

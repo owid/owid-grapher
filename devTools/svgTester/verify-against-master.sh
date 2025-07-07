@@ -94,6 +94,11 @@ unstashChanges() {
     rm $TMP_FILE
 }
 
+build() {
+    echo "=> Build project"
+    yarn buildLerna
+}
+
 checkoutMaster() {
     echo "=> Checking out master"
     git checkout master
@@ -106,7 +111,7 @@ checkoutLastBranch() {
 
 runExportScript() {
     # start from a clean slate
-    rm -rf $LOCAL_REFERENCE_DIR $LOCAL_DIFFERENCES_DIR
+    rm -rf $LOCAL_REFERENCE_DIR $LOCAL_DIFFERENCES_DIR 
 
     echo "=> Exporting graphs into $LOCAL_REFERENCE_DIR"
     yarn tsx --tsconfig tsconfig.tsx.json devTools/svgTester/export-graphs.ts\
@@ -149,13 +154,15 @@ main() {
 
         # run export script on master
         checkoutMaster
+        build
         runExportScript
 
         # restore original state
         checkoutLastBranch
         unstashChanges
+        build
     fi
-
+    
     # verify grapher charts and create an html report if there are differences
     runVerifyScript || createHTMLReport
 }

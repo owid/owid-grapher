@@ -12,6 +12,9 @@ jobs:
 
             - uses: ./.github/actions/setup-node-yarn-deps
 
+            - name: Build lerna
+              run: yarn buildLerna
+
             - name: Install dependencies
               run: cp .env.example-grapher .env
               shell: bash
@@ -44,7 +47,7 @@ jobs:
                   runPostinstallScripts: false
 
             - name: Run typecheck
-              run: yarn typecheck
+              run: yarn typecheckLerna
 
     prettier:
         runs-on: ubuntu-latest

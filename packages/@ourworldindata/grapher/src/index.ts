@@ -1,3 +1,5 @@
+import "./core/grapher.scss"
+
 export { binningStrategyLabels } from "./color/BinningStrategies"
 export {
     NumericBin,

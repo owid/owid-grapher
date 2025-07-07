@@ -64,9 +64,15 @@ Note: on Windows we strongly recommend using the [Windows Subsystem for Linux](h
 
 ## Running tests
 
-To run our test suite you first need to run vitest:
+To run our test suite you first need to build the internal packages and then run vitest:
 
-1. Run vitest
+1. Build packages
+
+    ```sh
+    yarn lerna run build
+    ```
+
+2. Run vitest
 
     ```sh
     yarn test

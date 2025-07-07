@@ -4,8 +4,5 @@
         "outDir": "../itsJustJavascript/adminShared",
         "rootDir": "."
     },
-    "references": [
-        { "path": "../packages/@ourworldindata/types" },
-        { "path": "../packages/@ourworldindata/utils" }
-    ]
+    "references": []
 }

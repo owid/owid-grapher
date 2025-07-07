@@ -11,6 +11,7 @@ cp .env.example .env
 Then run the three development processes:
 
 ```sh
+yarn startLernaWatcher
 yarn startAdminDevServer
 yarn startViteServer
 ```

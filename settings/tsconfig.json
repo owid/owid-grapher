@@ -3,6 +3,5 @@
     "compilerOptions": {
         "outDir": "../itsJustJavascript/settings",
         "rootDir": "."
-    },
-    "references": [{ "path": "../packages/@ourworldindata/utils" }]
+    }
 }
