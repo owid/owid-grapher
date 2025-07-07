@@ -5,14 +5,8 @@
         "rootDir": "."
     },
     "references": [
-        { "path": "../packages/@ourworldindata/core-table" },
-        { "path": "../packages/@ourworldindata/explorer" },
-        { "path": "../packages/@ourworldindata/grapher" },
-        { "path": "../packages/@ourworldindata/types" },
-        { "path": "../packages/@ourworldindata/utils" },
-
-        { "path": "../adminShared" },
         { "path": "../settings" },
-        { "path": "../site" }
+        { "path": "../site" },
+        { "path": "../adminShared" }
     ]
 }

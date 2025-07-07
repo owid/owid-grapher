@@ -7,23 +7,38 @@
     },
     "files": [],
     "references": [
-        { "path": "./packages/@ourworldindata/components" },
-        { "path": "./packages/@ourworldindata/core-table" },
-        { "path": "./packages/@ourworldindata/explorer" },
-        { "path": "./packages/@ourworldindata/grapher" },
-        { "path": "./packages/@ourworldindata/types" },
-        { "path": "./packages/@ourworldindata/utils" },
-
-        { "path": "./adminShared" },
-        { "path": "./adminSiteClient" },
-        { "path": "./adminSiteServer" },
-        { "path": "./devTools/markdownTest" },
-        { "path": "./devTools/regionsUpdater" },
-        { "path": "./devTools/schema" },
-        { "path": "./devTools/schemaProcessor" },
-        { "path": "./devTools/svgTester" },
-        { "path": "./devTools/syncGraphersToR2" },
-        { "path": "./settings" },
-        { "path": "./site" }
+        {
+            "path": "./site"
+        },
+        {
+            "path": "./settings"
+        },
+        {
+            "path": "./adminShared"
+        },
+        {
+            "path": "./adminSiteClient"
+        },
+        {
+            "path": "./adminSiteServer"
+        },
+        {
+            "path": "./devTools/svgTester"
+        },
+        {
+            "path": "./devTools/schema"
+        },
+        {
+            "path": "./devTools/schemaProcessor"
+        },
+        {
+            "path": "./devTools/markdownTest"
+        },
+        {
+            "path": "./devTools/regionsUpdater"
+        },
+        {
+            "path": "./devTools/syncGraphersToR2"
+        }
     ]
 }

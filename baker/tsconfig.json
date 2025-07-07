@@ -5,17 +5,10 @@
         "rootDir": "."
     },
     "references": [
-        { "path": "../packages/@ourworldindata/components" },
-        { "path": "../packages/@ourworldindata/core-table" },
-        { "path": "../packages/@ourworldindata/explorer" },
-        { "path": "../packages/@ourworldindata/grapher" },
-        { "path": "../packages/@ourworldindata/types" },
-        { "path": "../packages/@ourworldindata/utils" },
-
-        { "path": "../db" },
+        { "path": "../site" },
         { "path": "../explorerAdminServer" },
-        { "path": "../serverUtils" },
+        { "path": "../db" },
         { "path": "../settings" },
-        { "path": "../site" }
+        { "path": "../serverUtils" }
     ]
 }

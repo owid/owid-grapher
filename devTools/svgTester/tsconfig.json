@@ -5,12 +5,8 @@
         "rootDir": "."
     },
     "references": [
-        { "path": "../../packages/@ourworldindata/grapher" },
-        { "path": "../../packages/@ourworldindata/types" },
-        { "path": "../../packages/@ourworldindata/utils" },
-
         { "path": "../../baker" },
-        { "path": "../../serverUtils" },
-        { "path": "../../settings" }
+        { "path": "../../settings" },
+        { "path": "../../serverUtils" }
     ]
 }

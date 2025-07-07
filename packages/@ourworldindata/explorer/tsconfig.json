@@ -2,14 +2,7 @@
     "extends": "../../../devTools/tsconfigs/tsconfig.base.json",
     "compilerOptions": {
         "module": "es2022",
+        "composite": false,
         "outDir": "./dist"
-    },
-
-    "references": [
-        { "path": "../components" },
-        { "path": "../core-table" },
-        { "path": "../grapher" },
-        { "path": "../types" },
-        { "path": "../utils" }
-    ]
+    }
 }
