@@ -11,7 +11,9 @@ export const abTest = async (context) => {
     const cookie = context.request.headers.get("cookie")
 
     if (tests && tests.length && !isInIFrame()) {
-        let anyTreat = false
+        const analyticsConsent = getPreferenceValue(PreferenceType.Analytics)
+        const replay = Sentry.getReplay()
+        let isReplayRecording = !!replay.getReplayId()
         tests.map((test) => {
             if (!cookie || !cookie.includes(test["id"])) {
                 // todo: what if cumul doesn't sum to 1?
@@ -28,7 +30,7 @@ export const abTest = async (context) => {
                         arm["cumulSize"] - arm["size"] <= percentage &&
                         percentage < arm["cumulSize"]
                     if (assignToArm) {
-                        assignedArm = arm["id"]
+                        assignedArm = arm
                         break
                     }
                 }
@@ -38,25 +40,25 @@ export const abTest = async (context) => {
                 if (assignedArm) {
                     originalResponse.headers.append(
                         "Set-Cookie",
-                        `${test["id"]}=${assignedArm}; expires=${expiresAt.toUTCString()}; path=/grapher/`
+                        `${test["id"]}=${assignedArm["id"]}; expires=${expiresAt.toUTCString()}; path=/grapher/`
                     )
-                    if (assignedArm !== "ctl") {
-                        anyTreat = true
+                    if (
+                        analyticsConsent &&
+                        !isReplayRecording &&
+                        assignedArm["replaysSessionSampleRate"]
+                    ) {
+                        // if user has accepted cookies and replay is not already recording, record this session replay with
+                        // probability 0 < p < 1 = arm's replaysSessionSampleRate.
+                        const p = Math.random()
+                        if (p < assignedArm["replaysSessionSampleRate"]) {
+                            isReplayRecording = true
+                            replay.start()
+                        }
                     }
                 }
             }
         })
 
-        const analyticsConsent = getPreferenceValue(PreferenceType.Analytics)
-        console.log("analytics consent: ", analyticsConsent)
-        console.log("anyTreat", anyTreat)
-        if (analyticsConsent && anyTreat) {
-            // if user has accepted cookies and is assigned to at least one treatment
-            // condition, record this session replay
-            const replay = Sentry.getReplay()
-            replay.start()
-            console.log("started session replay")
-        }
         return originalResponse
     }
 
