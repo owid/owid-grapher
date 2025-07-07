@@ -30,6 +30,14 @@
         "useDefineForClassFields": false,
         "emitDecoratorMetadata": false,
 
-        "isolatedModules": true
+        "isolatedModules": true,
+
+        "paths": {
+            "@ourworldindata/*": [
+                "../packages/@ourworldindata/*",
+                "./packages/@ourworldindata/*",
+                "../../../packages/@ourworldindata/*"
+            ]
+        }
     }
 }
