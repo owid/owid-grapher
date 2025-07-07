@@ -188,11 +188,10 @@ If there is no text in the image, return an empty string.`,
 
     const content = completion.choices[0].message.content
 
-    console.log("content", content)
-
     if (content) {
-        // Normalize whitespace to a single space
-        return content.replaceAll(/\s/g, " ")
+        return content
+            .replaceAll(/\s+/g, " ") // Normalize whitespace to a single space
+            .replaceAll(/(www\.)?ourworldindata(\.org)?\/?/gi, "") // Remove OWID domain references
     }
 
     return null
