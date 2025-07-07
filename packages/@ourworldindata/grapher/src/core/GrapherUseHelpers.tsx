@@ -1,5 +1,5 @@
 import { Bounds } from "@ourworldindata/utils"
-import { debounce } from "lodash"
+import { debounce } from "lodash-es"
 import ReactDOM from "react-dom"
 import { GrapherProgrammaticInterface } from "../index.js"
 import * as Sentry from "@sentry/react"
