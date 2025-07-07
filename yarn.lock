@@ -14840,6 +14840,7 @@ __metadata:
     "@ourworldindata/utils": "workspace:^"
     "@resvg/resvg-wasm": "npm:^2.6.2"
     "@sentry/cloudflare": "npm:^10.0.0"
+    "@sentry/react": "npm:^9.31.0"
     "@types/lodash-es": "npm:^4"
     "@types/react": "npm:^19.1.8"
     "@types/react-dom": "npm:^19.1.6"
