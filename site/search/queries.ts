@@ -6,13 +6,14 @@ import {
     SearchChartHit,
     SearchDataTopicsResponse,
     SearchDataInsightResponse,
-    SearchArticleResponse,
+    SearchStackedArticleResponse,
     SearchTopicPageResponse,
     SearchWritingTopicsResponse,
-    ArticleHit,
+    StackedArticleHit,
     TopicPageHit,
     FilterType,
     SearchIndexName,
+    SearchFlatArticleResponse,
 } from "./searchTypes.js"
 import {
     getFilterNamesOfType,
@@ -170,7 +171,7 @@ export async function queryArticles(
     searchClient: SearchClient,
     state: SearchState,
     page: number = 0
-): Promise<SearchArticleResponse> {
+): Promise<SearchFlatArticleResponse> {
     const selectedCountryNames = getFilterNamesOfType(
         state.filters,
         FilterType.COUNTRY
@@ -219,7 +220,7 @@ export async function queryArticles(
 
     return searchClient
         .search(searchParams)
-        .then((response) => response.results[0] as SearchArticleResponse)
+        .then((response) => response.results[0] as SearchFlatArticleResponse)
 }
 
 export async function queryTopicPages(
@@ -268,7 +269,6 @@ export async function queryWritingTopics(
                     "thumbnailUrl",
                     "content",
                     "type",
-                    "authors",
                 ],
                 filters: `type:${OwidGdocType.Article} OR type:${OwidGdocType.AboutPage}`,
                 facetFilters: topicFacetFilters,
@@ -289,13 +289,13 @@ export async function queryWritingTopics(
     })
 
     return searchClient
-        .search<ArticleHit | TopicPageHit>(searchParams)
+        .search<StackedArticleHit | TopicPageHit>(searchParams)
         .then((response) => {
             // Process results in pairs (articles, then topic pages for each topic)
             return writingTopics.map((topic, i) => {
                 const articlesResult = response.results[
                     i * 2
-                ] as SearchArticleResponse
+                ] as SearchStackedArticleResponse
                 const topicPagesResult = response.results[
                     i * 2 + 1
                 ] as SearchTopicPageResponse
