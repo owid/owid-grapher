@@ -157,7 +157,7 @@ export type DataInsightHit = {
 
 export type SearchDataInsightResponse = SearchResponse<DataInsightHit>
 
-export type ArticleHit = {
+export type FlatArticleHit = {
     title: string
     thumbnailUrl: string
     date: string
@@ -169,7 +169,18 @@ export type ArticleHit = {
     __position: number
 }
 
-export type SearchArticleResponse = SearchResponse<ArticleHit>
+export type StackedArticleHit = {
+    title: string
+    thumbnailUrl: string
+    slug: string
+    type: OwidGdocType.Article | OwidGdocType.AboutPage
+    content: string
+    objectID: string
+    __position: number
+}
+
+export type SearchStackedArticleResponse = SearchResponse<StackedArticleHit>
+export type SearchFlatArticleResponse = SearchResponse<FlatArticleHit>
 
 export type TopicPageHit = {
     title: string
@@ -184,8 +195,8 @@ export type SearchTopicPageResponse = SearchResponse<TopicPageHit>
 
 export type SearchWritingTopicsResponse = {
     title: string
-    articles: SearchResponse<ArticleHit>
-    topicPages: SearchResponse<TopicPageHit>
+    articles: SearchStackedArticleResponse
+    topicPages: SearchTopicPageResponse
     totalCount: number
 }
 
