@@ -13,7 +13,7 @@ import {
     prepareSourcesForDisplay,
     formatDate,
 } from "@ourworldindata/utils"
-import { CoreColumn } from "@ourworldindata/core-table"
+import type { CoreColumn } from "@ourworldindata/core-table"
 import { GrapherState } from "@ourworldindata/grapher"
 import { getGrapherFilters } from "./urlTools.js"
 

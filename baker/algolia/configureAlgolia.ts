@@ -1,5 +1,5 @@
 import algoliasearch, { SearchClient } from "algoliasearch"
-import { Synonym, Settings } from "@algolia/client-search"
+import type { Synonym, Settings } from "@algolia/client-search"
 import {
     ALGOLIA_ID,
     TOPICS_CONTENT_GRAPH,

@@ -37,7 +37,7 @@ import {
     EditorOption,
     FieldDescription,
 } from "../adminShared/schemaProcessing.js"
-import { IconDefinition } from "@fortawesome/fontawesome-common-types"
+import type { IconDefinition } from "@fortawesome/fontawesome-common-types"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 
 import { GrapherInterface } from "@ourworldindata/types"
