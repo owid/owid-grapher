@@ -97,6 +97,7 @@ export default tseslint.config(
                     ],
                 },
             ],
+            "import-x/no-relative-packages": "error",
             "import-x/namespace": "off",
             "import-x/no-named-as-default-member": "off",
             "import-x/no-unresolved": "off",
