@@ -1,0 +1,41 @@
+.search-stacked-article-hit {
+    display: block;
+    flex: 1;
+    flex-basis: 0;
+    text-decoration: none;
+    cursor: pointer;
+    max-width: 294px;
+
+    &:hover {
+        .search-stacked-article-hit__title {
+            text-decoration: underline;
+        }
+    }
+}
+
+.search-stacked-article-hit__image {
+    display: flex;
+    width: auto;
+    height: auto;
+    max-height: 152px;
+    max-width: 100%;
+    object-fit: contain;
+    margin-bottom: 12px;
+}
+
+.search-stacked-article-hit__title {
+    font-family: $serif-font-stack;
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 1.25;
+    color: $blue-90;
+    text-wrap: balance;
+    margin: 0 0 4px 0;
+}
+
+.search-stacked-article-hit__excerpt {
+    @include note-12-medium;
+    display: block;
+    color: $blue-60;
+}
