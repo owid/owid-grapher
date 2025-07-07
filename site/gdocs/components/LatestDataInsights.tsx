@@ -9,7 +9,7 @@ import {
 import cx from "classnames"
 import useEmblaCarousel from "embla-carousel-react"
 import ClassNames from "embla-carousel-class-names"
-import { EmblaCarouselType } from "embla-carousel"
+import type { EmblaCarouselType } from "embla-carousel"
 
 import { Button } from "@ourworldindata/components"
 import {

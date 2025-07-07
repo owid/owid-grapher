@@ -2,6 +2,7 @@ import { svg2png, initialize as initializeSvg2Png } from "svg2png-wasm"
 import { TimeLogger } from "./timeLogger.js"
 import { png } from "itty-router"
 
+// eslint-disable-next-line import-x/no-relative-packages
 import svg2png_wasm from "../../node_modules/svg2png-wasm/svg2png_wasm_bg.wasm"
 
 // these are regular .ttf files, but cloudflare needs the .bin extension to serve them correctly

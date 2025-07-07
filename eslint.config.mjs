@@ -76,6 +76,28 @@ export default tseslint.config(
             "@typescript-eslint/prefer-for-of": "warn",
             "@typescript-eslint/restrict-plus-operands": "warn",
             eqeqeq: "warn",
+            "import-x/no-extraneous-dependencies": [
+                "warn",
+                {
+                    includeInternal: true,
+                    // The various d3 imports are all captured by d3 and @types/d3 already
+                    whitelist: [
+                        "@types/d3-array",
+                        "@types/d3-color",
+                        "@types/d3-ease",
+                        "@types/d3-force",
+                        "@types/d3-geo",
+                        "@types/d3-interpolate",
+                        "@types/d3-quadtree",
+                        "@types/d3-scale",
+                        "@types/d3-selection",
+                        "@types/d3-shape",
+                        "@types/d3-transition",
+                        "@types/d3-zoom",
+                    ],
+                },
+            ],
+            "import-x/no-relative-packages": "error",
             "import-x/namespace": "off",
             "import-x/no-named-as-default-member": "off",
             "import-x/no-unresolved": "off",

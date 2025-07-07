@@ -16,6 +16,7 @@
   "author": "",
   "dependencies": {
     "@ourworldindata/types": "workspace:^",
+    "@sentry/browser": "^9.31.0",
     "@tippyjs/react": "^4.2.6",
     "d3": "^6.1.1",
     "dayjs": "^1.11.11",
@@ -41,7 +42,9 @@
     "@types/url-parse": "^1.4.8",
     "eslint": "^9.23.0",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "typescript": "~5.8.2"
+    "remeda": "^2.21.2",
+    "typescript": "~5.8.2",
+    "vitest": "^3.2.4"
   },
   "license": "MIT"
 }

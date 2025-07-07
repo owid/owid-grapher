@@ -23,7 +23,7 @@ import {
 } from "../../../site/search/searchTypes.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { getIndexName } from "../../../site/search/searchClient.js"
-import { ObjectWithObjectID } from "@algolia/client-search"
+import type { ObjectWithObjectID } from "@algolia/client-search"
 import { SearchIndex } from "algoliasearch"
 import { match, P } from "ts-pattern"
 import { gdocFromJSON } from "../../../db/model/Gdoc/GdocFactory.js"

@@ -2,16 +2,20 @@
     "name": "owid-functions",
     "type": "module",
     "dependencies": {
+        "@ourworldindata/explorer": "workspace:^",
         "@ourworldindata/grapher": "workspace:^",
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
         "@sentry/cloudflare": "^9.31.0",
+        "@sinclair/typebox": "^0.28.5",
         "itty-router": "^5.0.17",
         "littlezipper": "^0.1.4",
         "stripe": "^14.20.0",
-        "svg2png-wasm": "^1.4.1"
+        "svg2png-wasm": "^1.4.1",
+        "uuidv7": "^1.0.1"
     },
     "devDependencies": {
-        "@cloudflare/workers-types": "^4.20250510.0"
+        "@cloudflare/workers-types": "^4.20250510.0",
+        "@types/lodash-es": "^4"
     }
 }
