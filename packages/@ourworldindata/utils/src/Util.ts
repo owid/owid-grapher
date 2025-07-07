@@ -1188,7 +1188,7 @@ export const getOwidGdocFromJSON = (json: OwidGdocJSON): OwidGdoc => {
 // We want to infer the return type from the existing types instead of having to
 // manually specify it.
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
-export function extractGdocPageData<T extends OwidGdoc>(gdoc: T) {
+export function extractGdocPageData(gdoc: OwidGdoc) {
     // Generic properties every gdoc has
     const commonProps = R.pick(gdoc, [
         "id",
@@ -1210,16 +1210,14 @@ export function extractGdocPageData<T extends OwidGdoc>(gdoc: T) {
         "tags",
     ])
 
-    return match(gdoc.content)
-        .with({ type: OwidGdocType.AboutPage }, () => {
-            const aboutGdoc = gdoc as OwidGdocAboutInterface // better if we didn't have to do that
+    return match(gdoc)
+        .when(checkIsAboutPage, (aboutGdoc) => {
             return {
                 ...commonProps,
                 ...R.pick(aboutGdoc, ["donors"]),
             }
         })
-        .with({ type: OwidGdocType.Homepage }, () => {
-            const homepageGdoc = gdoc as OwidGdocHomepageInterface
+        .when(checkIsHomepage, (homepageGdoc) => {
             return {
                 ...commonProps,
                 ...R.pick(homepageGdoc, [
@@ -1228,15 +1226,13 @@ export function extractGdocPageData<T extends OwidGdoc>(gdoc: T) {
                 ]),
             }
         })
-        .with({ type: OwidGdocType.DataInsight }, () => {
-            const dataInsightGdoc = gdoc as OwidGdocDataInsightInterface
+        .when(checkIsDataInsight, (dataInsightGdoc) => {
             return {
                 ...commonProps,
                 ...R.pick(dataInsightGdoc, ["latestDataInsights"]),
             }
         })
-        .with({ type: OwidGdocType.Author }, () => {
-            const authorGdoc = gdoc as OwidGdocAuthorInterface
+        .when(checkIsAuthor, (authorGdoc) => {
             return {
                 ...commonProps,
                 ...R.pick(authorGdoc, ["latestWorkLinks"]),
@@ -1245,28 +1241,33 @@ export function extractGdocPageData<T extends OwidGdoc>(gdoc: T) {
         .otherwise(() => commonProps)
 }
 
-// Muanually update the type for invariants that should hold at this point, i.e.
-// id and slug must be strings etc.
+export type OwidGdocPageProps = ReturnType<typeof extractGdocPageData>
+
 export type OwidGdocPageData = Omit<
-    ReturnType<typeof extractGdocPageData>,
-    "createdAt" | "publishedAt" | "publishedAt"
+    OwidGdocPageProps,
+    "createdAt" | "publishedAt" | "updatedAt"
 > & {
     createdAt: string
     publishedAt: string | null
     updatedAt: string | null
 }
 
-export type OwidGdocPageProps = ReturnType<typeof extractGdocPageData>
-
 export function deserializeOwidGdocPageData(
     json: OwidGdocPageData
 ): OwidGdocPageProps {
+    // NOTE: We have to do manual type casting around the content.type property
+    // because it can be undefined in OwidGdocPostContent. That makes sense
+    // during the gdoc creation, where we do manual validation for various
+    // properties. But at some point we should only pass around a valid gdoc
+    // where content.type can't be undefined anymore. So we should likely create
+    // a new type for that use case and use the less strict type only until we
+    // do the validation.
     return {
         ...json,
         createdAt: new Date(json.createdAt),
         publishedAt: json.publishedAt ? new Date(json.publishedAt) : null,
         updatedAt: json.updatedAt ? new Date(json.updatedAt) : null,
-    }
+    } as OwidGdocPageProps
 }
 
 // Checking whether we have clipboard write access is surprisingly complicated.
@@ -1801,15 +1802,25 @@ export function checkIsGdocPostExcludingFragments(
 }
 
 export function checkIsDataInsight(
-    x: unknown
-): x is OwidGdocDataInsightInterface {
-    const type = _.get(x, "content.type")
-    return type === OwidGdocType.DataInsight
+    gdoc: OwidGdoc
+): gdoc is OwidGdocDataInsightInterface {
+    return gdoc.content.type === OwidGdocType.DataInsight
 }
 
-export function checkIsAuthor(x: unknown): x is OwidGdocAuthorInterface {
-    const type = _.get(x, "content.type")
-    return type === OwidGdocType.Author
+export function checkIsAboutPage(
+    gdoc: OwidGdoc
+): gdoc is OwidGdocAboutInterface {
+    return gdoc.content.type === OwidGdocType.AboutPage
+}
+
+export function checkIsAuthor(gdoc: OwidGdoc): gdoc is OwidGdocAuthorInterface {
+    return gdoc.content.type === OwidGdocType.Author
+}
+
+export function checkIsHomepage(
+    gdoc: OwidGdoc
+): gdoc is OwidGdocHomepageInterface {
+    return gdoc.content.type === OwidGdocType.Homepage
 }
 
 /**
