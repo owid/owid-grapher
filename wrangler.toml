@@ -9,6 +9,8 @@ compatibility_flags = ["nodejs_als"]
 # upload_source_maps = true  # To get source maps in Sentry.
 pages_build_output_dir = "./localBake"
 
+tsconfig = "./functions/tsconfig.json"
+
 # Vars that should be available in all envs, including local dev
 [vars]
 ENV = "development"
