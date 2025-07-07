@@ -17,7 +17,7 @@ ifneq (,$(wildcard ./.env))
 	include .env
 endif
 
-.PHONY: help lerna up up.full down refresh refresh.wp refresh.full migrate svgtest
+.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest
 
 help:
 	@echo 'Available commands:'
@@ -44,7 +44,7 @@ help:
 
 up: export DEBUG = 'knex:query'
 
-up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz lerna
+up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz node_modules
 	@make validate.env
 	@make check-port-3306
 
@@ -71,7 +71,7 @@ up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz lerna
 		set -g mouse on \
 		|| make down
 
-up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.sql.gz lerna
+up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.sql.gz node_modules
 	@make validate.env
 	@make check-port-3306
 
@@ -90,7 +90,7 @@ up.devcontainer: create-if-missing.env.devcontainer tmp-downloads/owid_metadata.
 
 up.full: export DEBUG = 'knex:query'
 
-up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz lerna
+up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz node_modules
 	@make validate.env.full
 	@make check-port-3306
 
@@ -118,7 +118,7 @@ up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz l
 		set -g mouse on \
 		|| make down
 
-migrate: lerna
+migrate: node_modules
 	@echo '==> Running DB migrations'
 	yarn runDbMigrations
 
@@ -246,7 +246,7 @@ unittest: node_modules
 ../owid-grapher-svgs:
 	cd .. && git clone git@github.com:owid/owid-grapher-svgs
 
-svgtest: ../owid-grapher-svgs lerna
+svgtest: ../owid-grapher-svgs node_modules
 	@echo '==> Comparing against reference SVGs'
 
 	@# get ../owid-grapher-svgs reliably to a base state at origin/master
@@ -261,15 +261,11 @@ node_modules: package.json yarn.lock yarn.config.cjs
 	yarn install
 	touch -m $@
 
-lerna: node_modules
-	@echo '==> Running Lerna'
-	yarn lerna run build
-
-update.chart-entities: lerna
+update.chart-entities: node_modules
 	@echo '==> Updating chart entities table'
 	yarn tsx --tsconfig tsconfig.tsx.json baker/updateChartEntities.js --all
 
-reindex: lerna
+reindex: node_modules
 	@echo '==> Reindexing search in Algolia'
 	@echo '--- Running configureAlgolia...'
 	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/configureAlgolia.js
@@ -280,20 +276,20 @@ reindex: lerna
 	@echo '--- Running indexExplorerViewsMdimViewsAndChartsToAlgolia...'
 	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/indexExplorerViewsMdimViewsAndChartsToAlgolia.js
 
-delete-algolia-index: lerna
+delete-algolia-index: node_modules
 	@echo '==> Deleting Algolia index'
 	yarn tsx --tsconfig tsconfig.tsx.json baker/algolia/deleteAlgoliaIndex.js
 
-bench.search: lerna
+bench.search: node_modules
 	@echo '==> Running search benchmarks'
 	@yarn tsx --tsconfig tsconfig.tsx.json site/search/evaluateSearch.js
 
-local-bake: lerna
+local-bake: node_modules
 	@echo '==> Baking site'
 	yarn buildVite
 	yarn buildLocalBake
 
-archive: lerna
+archive: node_modules
 	@echo '==> Creating an archived version of our charts'
 	PRIMARY_ENV_FILE=.env.archive yarn buildViteArchive
 	PRIMARY_ENV_FILE=.env.archive yarn tsx --tsconfig tsconfig.tsx.json ./baker/archival/archiveChangedPages.ts --latestDir

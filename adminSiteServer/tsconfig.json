@@ -5,13 +5,18 @@
         "rootDir": "."
     },
     "references": [
-        { "path": "../site" },
+        { "path": "../packages/@ourworldindata/explorer" },
+        { "path": "../packages/@ourworldindata/grapher" },
+        { "path": "../packages/@ourworldindata/types" },
+        { "path": "../packages/@ourworldindata/utils" },
+
+        { "path": "../adminShared" },
+        { "path": "../adminSiteClient" },
+        { "path": "../baker" },
         { "path": "../db" },
         { "path": "../explorerAdminServer" },
-        { "path": "../adminSiteClient" },
-        { "path": "../settings" },
-        { "path": "../baker" },
         { "path": "../serverUtils" },
-        { "path": "../adminShared" }
+        { "path": "../settings" },
+        { "path": "../site" }
     ]
 }
