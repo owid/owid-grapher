@@ -1,6 +1,6 @@
 import {
-    ArticleHit,
-    SearchArticleResponse,
+    FlatArticleHit,
+    SearchFlatArticleResponse,
     SearchTopicPageResponse,
     TopicPageHit,
 } from "./searchTypes.js"
@@ -9,7 +9,7 @@ import { SearchAsDraft } from "./SearchAsDraft.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 import { useInfiniteSearch } from "./searchHooks.js"
 import { SearchShowMore } from "./SearchShowMore.js"
-import { SearchArticleHit } from "./SearchArticleHit.js"
+import { SearchFlatArticleHit } from "./SearchFlatArticleHit.js"
 import { SearchTopicPageHit } from "./SearchTopicPageHit.js"
 
 export const SearchWritingResults = ({
@@ -17,7 +17,10 @@ export const SearchWritingResults = ({
 }: {
     hasTopicPages?: boolean
 }) => {
-    const articlesQuery = useInfiniteSearch<SearchArticleResponse, ArticleHit>({
+    const articlesQuery = useInfiniteSearch<
+        SearchFlatArticleResponse,
+        FlatArticleHit
+    >({
         queryKey: (state) => searchQueryKeys.articles(state),
         queryFn: queryArticles,
     })
@@ -72,7 +75,7 @@ export const SearchWritingResults = ({
                         <div className="search-writing-results__section">
                             <div className="search-writing-results__hits-list">
                                 {articles.map((hit) => (
-                                    <SearchArticleHit
+                                    <SearchFlatArticleHit
                                         key={hit.objectID}
                                         hit={hit}
                                     />
