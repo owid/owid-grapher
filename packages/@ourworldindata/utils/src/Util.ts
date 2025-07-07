@@ -1219,16 +1219,14 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
         "tags",
     ])
 
-    return match(gdoc.content)
-        .with({ type: OwidGdocType.AboutPage }, () => {
-            const aboutGdoc = gdoc as OwidGdocAboutInterface // better if we didn't have to do that
+    return match(gdoc)
+        .when(isAboutGdoc, (aboutGdoc) => {
             return {
                 ...commonProps,
                 ...R.pick(aboutGdoc, ["donors"]),
             }
         })
-        .with({ type: OwidGdocType.Homepage }, () => {
-            const homepageGdoc = gdoc as OwidGdocHomepageInterface
+        .when(isHomepageGdoc, (homepageGdoc) => {
             return {
                 ...commonProps,
                 ...R.pick(homepageGdoc, [
@@ -1237,21 +1235,22 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
                 ]),
             }
         })
-        .with({ type: OwidGdocType.DataInsight }, () => {
-            const dataInsightGdoc = gdoc as OwidGdocDataInsightInterface
+        .when(isDataInsightGdoc, (dataInsightGdoc) => {
             return {
                 ...commonProps,
                 ...R.pick(dataInsightGdoc, ["latestDataInsights"]),
             }
         })
-        .with({ type: OwidGdocType.Author }, () => {
-            const authorGdoc = gdoc as OwidGdocAuthorInterface
+        .when(isAuthorGdoc, (authorGdoc) => {
             return {
                 ...commonProps,
                 ...R.pick(authorGdoc, ["latestWorkLinks"]),
             }
         })
-        .otherwise(() => commonProps)
+        .otherwise(() => ({
+            ...commonProps,
+            content: gdoc.content,
+        }))
 }
 
 export type OwidGdocPageProps = ReturnType<typeof extractGdocPageData>
@@ -1273,7 +1272,7 @@ export function deserializeOwidGdocPageData(
         createdAt: new Date(json.createdAt),
         publishedAt: json.publishedAt ? new Date(json.publishedAt) : null,
         updatedAt: json.updatedAt ? new Date(json.updatedAt) : null,
-    } as OwidGdocPageProps
+    }
 }
 
 // Checking whether we have clipboard write access is surprisingly complicated.
@@ -2085,4 +2084,23 @@ export const getUserNavigatorLanguages = (): readonly string[] => {
 
 export const getUserNavigatorLanguagesNonEnglish = (): readonly string[] => {
     return getUserNavigatorLanguages().filter((lang) => !lang.startsWith("en"))
+}
+
+// Type guard functions for OwidGdoc discriminated union
+function isAboutGdoc(gdoc: OwidGdoc): gdoc is OwidGdocAboutInterface {
+    return gdoc.content.type === OwidGdocType.AboutPage
+}
+
+function isHomepageGdoc(gdoc: OwidGdoc): gdoc is OwidGdocHomepageInterface {
+    return gdoc.content.type === OwidGdocType.Homepage
+}
+
+function isDataInsightGdoc(
+    gdoc: OwidGdoc
+): gdoc is OwidGdocDataInsightInterface {
+    return gdoc.content.type === OwidGdocType.DataInsight
+}
+
+function isAuthorGdoc(gdoc: OwidGdoc): gdoc is OwidGdocAuthorInterface {
+    return gdoc.content.type === OwidGdocType.Author
 }
