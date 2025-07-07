@@ -300,13 +300,22 @@ body {
 @mixin body-1-regular {
     font-family: $sans-serif-font-stack;
     font-size: 1.125rem;
-    line-height: 1.55;
+    line-height: 1.33;
     font-weight: 400;
     letter-spacing: 0;
 }
 
 .body-1-regular {
     @include body-1-regular;
+}
+
+@mixin body-1-bold {
+    @include body-1-regular;
+    font-weight: 700;
+}
+
+.body-1-bold {
+    @include body-1-bold;
 }
 
 @mixin body-1-regular-underlined {
@@ -500,6 +509,14 @@ body {
 
 .note-2-regular {
     @include note-2-regular;
+}
+
+@mixin note-12-medium {
+    font-family: $sans-serif-font-stack;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.33;
+    letter-spacing: 0.0075rem;
 }
 
 @mixin note-13-medium {
