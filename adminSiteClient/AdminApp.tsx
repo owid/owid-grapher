@@ -51,6 +51,8 @@ import { DataInsightIndexPage } from "./DataInsightIndexPage.js"
 import { MultiDimIndexPage } from "./MultiDimIndexPage.js"
 import { FeaturedMetricsPage } from "./FeaturedMetricsPage.js"
 import { DodsIndexPage } from "./DodsIndexPage.js"
+import { StaticVizIndexPage } from "./StaticVizIndexPage.js"
+import { StaticVizEditPage } from "./StaticVizEditPage.js"
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -222,6 +224,16 @@ export class AdminApp extends React.Component<{
                                 <Route
                                     path="/files"
                                     component={FilesIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/static-viz"
+                                    component={StaticVizIndexPage}
+                                />
+                                <Route
+                                    exact
+                                    path="/static-viz/:staticVizId"
+                                    component={StaticVizEditPage}
                                 />
                                 <Route
                                     exact
