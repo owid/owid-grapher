@@ -222,7 +222,8 @@
     display: none;
 }
 
-.ab-data-page-header-trt {
+// experiment: ab-data-page-header-trt
+body.ab-data-page-header-trt {
     .ab-data-page-header-trt {
         &.ab-hide {
             visibility: hidden;
@@ -231,7 +232,8 @@
     }
 }
 
-.ab-data-page-insights-1-trt {
+// experiment: ab-data-page-insights-1-trt
+body.ab-data-page-insights-1-trt {
     .ab-data-page-insights-1-trt {
         &.ab-show {
             visibility: visible;
