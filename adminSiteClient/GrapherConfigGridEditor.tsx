@@ -339,13 +339,14 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             // the same country selection as you zap through the variables
             this.grapherState.clearSelection()
         this.grapherState.updateFromObject(newConfig)
-        const inputTable = await fetchInputTableForConfig(
-            newConfig.dimensions ?? [],
-            newConfig.selectedEntityColors,
-            this.context.admin.settings.DATA_API_FOR_ADMIN_UI || DATA_API_URL,
-            undefined,
-            true
-        )
+        const inputTable = await fetchInputTableForConfig({
+            dimensions: newConfig.dimensions,
+            selectedEntityColors: newConfig.selectedEntityColors,
+            dataApiUrl:
+                this.context.admin.settings.DATA_API_FOR_ADMIN_UI ||
+                DATA_API_URL,
+            noCache: true,
+        })
         if (inputTable) this.grapherState.inputTable = inputTable
     }
 
