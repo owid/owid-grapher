@@ -1,25 +1,18 @@
 import { commafyNumber } from "@ourworldindata/utils"
-import { SearchAsDraft } from "./SearchAsDraft.js"
 
 export const SearchResultHeader = ({
-    title,
     count,
+    children,
 }: {
-    title: string
     count: number
+    children: React.ReactNode
 }) => {
     return (
-        <SearchAsDraft name="Result Header">
-            <div className="search-result-header">
-                <div className="search-result-header__content">
-                    <h2 className="search-result-header__title">{title}</h2>
-
-                    <p className="search-result-header__count">
-                        ({commafyNumber(count)}{" "}
-                        {count === 1 ? "result" : "results"})
-                    </p>
-                </div>
-            </div>
-        </SearchAsDraft>
+        <div className="search-result-header">
+            <h2 className="search-result-header__title">{children}</h2>
+            <span className="search-result-header__count">
+                ({commafyNumber(count)} {count === 1 ? "result" : "results"})
+            </span>
+        </div>
     )
 }

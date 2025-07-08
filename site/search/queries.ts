@@ -213,7 +213,7 @@ export async function queryArticles(
             ],
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
-            hitsPerPage: 5,
+            hitsPerPage: 3,
             page,
         },
     ]
@@ -237,7 +237,7 @@ export async function queryTopicPages(
             filters: `type:${OwidGdocType.TopicPage} OR type:${OwidGdocType.LinearTopicPage}`,
             facetFilters: formatTopicFacetFilters(selectedTopics),
             attributesToRetrieve: ["title", "type", "slug", "excerpt"],
-            hitsPerPage: 5,
+            hitsPerPage: 2,
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
             page,
