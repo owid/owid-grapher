@@ -77,12 +77,11 @@ async function fetchAndRenderGrapherToSvg(
     grapherLogger.log("initGrapher")
     const promises = []
     promises.push(
-        fetchInputTableForConfig(
-            grapher.grapherState.dimensions,
-            grapher.grapherState.selectedEntityColors,
-            getDataApiUrl(env),
-            undefined
-        )
+        fetchInputTableForConfig({
+            dimensions: grapher.grapherState.dimensions,
+            selectedEntityColors: grapher.grapherState.selectedEntityColors,
+            dataApiUrl: getDataApiUrl(env),
+        })
     )
     if (
         options.details &&

@@ -12,27 +12,25 @@ import {
 } from "./loadVariable.js"
 import { toJS } from "mobx"
 
-export async function fetchInputTableForConfig(
-    dimensions: OwidChartDimensionInterface[],
-    selectedEntityColors:
-        | { [entityName: string]: string | undefined }
-        | undefined,
-    dataApiUrl: string,
-    archivedChartInfo: ArchiveContext | undefined,
+export async function fetchInputTableForConfig(args: {
+    dimensions?: OwidChartDimensionInterface[]
+    selectedEntityColors?: { [entityName: string]: string | undefined }
+    dataApiUrl: string
+    archivedChartInfo?: ArchiveContext
     noCache?: boolean
-): Promise<OwidTable | undefined> {
-    if (dimensions.length === 0) return undefined
-    const variables = dimensions.map((d) => d.variableId)
+}): Promise<OwidTable | undefined> {
+    if (!args.dimensions || args.dimensions.length === 0) return undefined
+    const variables = args.dimensions.map((d) => d.variableId)
     const variablesDataMap = await loadVariablesDataSite(
         variables,
-        dataApiUrl,
-        archivedChartInfo,
-        noCache
+        args.dataApiUrl,
+        args.archivedChartInfo,
+        args.noCache
     )
     const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
         variablesDataMap,
-        dimensions,
-        selectedEntityColors
+        args.dimensions,
+        args.selectedEntityColors
     )
 
     return inputTable
