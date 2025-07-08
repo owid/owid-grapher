@@ -10,11 +10,13 @@ type ButtonCommonProps = {
         | "outline-vermillion"
         | "solid-blue"
         | "solid-dark-blue"
+        | "solid-light-blue"
         | "outline-white"
     /** Set to null to hide the icon */
     icon?: IconDefinition | null
     iconPosition?: "left" | "right"
     dataTrackNote?: string
+    disabled?: boolean
 }
 
 type WithHrefProps = {
@@ -46,6 +48,7 @@ export const Button = ({
     icon = faArrowRight,
     iconPosition = "right",
     dataTrackNote,
+    disabled,
 }: ButtonProps) => {
     const classes = cx("owid-btn", `owid-btn--${theme}`, className)
     const content = (
@@ -68,9 +71,13 @@ export const Button = ({
 
     if (href) {
         const aProps = {
-            href,
+            href: disabled ? undefined : href,
             className: classes,
             "data-track-note": dataTrackNote,
+            onClick: disabled
+                ? (e: React.MouseEvent) => e.preventDefault()
+                : undefined,
+            "aria-disabled": disabled,
         }
         return <a {...aProps}>{content}</a>
     }
@@ -81,6 +88,7 @@ export const Button = ({
         onClick,
         "aria-label": ariaLabel,
         "data-track-note": dataTrackNote,
+        disabled,
     }
     return <button {...buttonProps}>{content}</button>
 }
