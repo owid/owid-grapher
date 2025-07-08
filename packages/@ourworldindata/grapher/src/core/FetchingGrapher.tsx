@@ -16,7 +16,6 @@ import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 import { unstable_batchedUpdates } from "react-dom"
 import { Bounds } from "@ourworldindata/utils"
 import { migrateGrapherConfigToLatestVersion } from "../schema/migrations/migrate.js"
-import { defaultGrapherConfig } from "../schema/defaultGrapherConfig.js"
 
 export interface FetchingGrapherProps {
     config?: GrapherProgrammaticInterface
@@ -80,7 +79,6 @@ export function FetchingGrapher(
                         migrateGrapherConfigToLatestVersion(fetchedConfig)
 
                     const mergedConfig = {
-                        ...defaultGrapherConfig,
                         ...migratedConfig,
                         ...props.config,
                     }
