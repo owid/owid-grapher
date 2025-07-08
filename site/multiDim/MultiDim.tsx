@@ -48,6 +48,7 @@ export default function MultiDim({
                 loadVariableDataAndMetadata(varId, DATA_API_URL, {
                     noCache: isPreviewing,
                 }),
+            isConfigReady: false,
         })
     )
     const grapherDataLoader = useRef(
@@ -151,6 +152,7 @@ export default function MultiDim({
                 grapher.setAuthoredVersion(grapherConfig)
                 grapher.reset()
                 grapher.updateFromObject(grapherConfig)
+                grapher.isConfigReady = true
                 void grapherDataLoader
                     .current(
                         grapherConfig.dimensions ?? [],

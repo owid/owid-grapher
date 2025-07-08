@@ -283,6 +283,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bindUrlToWindow?: boolean
     isEmbeddedInAnOwidPage?: boolean
     isEmbeddedInADataPage?: boolean
+    isConfigReady?: boolean
     canHideExternalControlsInEmbed?: boolean
 
     narrativeChartInfo?: Pick<
@@ -450,6 +451,10 @@ export class GrapherState {
     }
     isEmbeddedInAnOwidPage?: boolean = false
     isEmbeddedInADataPage?: boolean = false
+
+    // This one's explicitly set to `false` if FetchingGrapher or some other
+    // external code is fetching the config
+    @observable isConfigReady?: boolean = true
     /** Whether external grapher controls can be hidden in embeds. */
     @observable.ref canHideExternalControlsInEmbed: boolean = false
 
@@ -1204,6 +1209,7 @@ export class GrapherState {
     }
     // Ready to go iff we have retrieved data for every variable associated with the chart
     @computed get isReady(): boolean {
+        if (!this.isConfigReady) return false
         return this.whatAreWeWaitingFor === ""
     }
 
