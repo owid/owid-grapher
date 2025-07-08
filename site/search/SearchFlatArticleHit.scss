@@ -1,9 +1,7 @@
 .search-flat-article-hit {
-    flex: 1;
-    flex-basis: 0;
+    display: flex;
     text-decoration: none;
     cursor: pointer;
-    display: flex;
     gap: 1rem;
 
     &:hover {
@@ -11,69 +9,55 @@
             text-decoration: underline;
         }
     }
+}
 
-    &__content {
-        display: flex;
-        gap: 1rem;
-        flex: 1;
-    }
+.search-flat-article-hit__content {
+    display: flex;
+}
 
-    &__header {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
+.search-flat-article-hit__image-container {
+    width: 84px; // Same size as the image in case the image is missing.
+    margin-right: 24px;
+}
 
-    &__title {
-        font-family: $serif-font-stack;
-        font-size: 1rem;
-        font-style: normal;
-        font-weight: 700;
-        line-height: 1.25;
-        color: $blue-90;
-        text-wrap: balance;
-        margin: 0 0 4px 0;
-    }
+.search-flat-article-hit__image {
+    width: 84px;
+}
 
-    &__dateline {
-        font-size: 0.875rem;
-        color: $gray-70;
-    }
+.search-flat-article-hit__title {
+    @include h3-bold;
+    color: $blue-90;
+    text-wrap: balance;
+    margin: 0 0 2px 0;
+}
 
-    &__authors {
-        font-size: 0.875rem;
-        color: $gray-70;
-    }
+.search-flat-article-hit__date {
+    @include h6-black-caps;
+    color: $blue-60;
+    margin-bottom: 2px;
+}
 
-    &__excerpt {
-        @include note-12-medium;
-        color: $blue-60;
-        margin: 0;
-        // see https://github.com/owid/owid-grapher/issues/4982
-        overflow-wrap: anywhere;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
+.search-flat-article-hit__authors-and-excerpt {
+    @include body-3-medium;
+    display: -webkit-box;
+    overflow: hidden;
+    // see https://github.com/owid/owid-grapher/issues/4982
+    overflow-wrap: anywhere;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
 
-    &__text {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-    }
+.search-flat-article-hit__authors {
+    color: $blue-60;
+}
 
-    &__image-container {
-        display: flex;
-        flex-shrink: 0;
-        width: 80px;
-        height: 60px;
-    }
+.search-flat-article-hit__excerpt {
+    color: $blue-90;
+}
 
-    &__image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
+.search-flat-article-hit__text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
