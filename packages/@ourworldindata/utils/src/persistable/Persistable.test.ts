@@ -6,7 +6,7 @@ import {
     updatePersistables,
     deleteRuntimeAndUnchangedProps,
 } from "./Persistable.js"
-import { observable } from "mobx"
+import { observable, makeObservable } from "mobx"
 
 interface CharacterInterface {
     name: string
@@ -19,6 +19,10 @@ class GameBoyGameDefaults {
     @observable relatedGames?: GameBoyGameDefaults[]
     @observable characters?: CharacterInterface[]
     @observable mainCharacter?: CharacterInterface
+
+    constructor() {
+        makeObservable(this)
+    }
 }
 
 type GameBoyGameInterface = GameBoyGameDefaults
@@ -26,6 +30,7 @@ type GameBoyGameInterface = GameBoyGameDefaults
 class GameBoyGame extends GameBoyGameDefaults implements Persistable {
     constructor(obj?: GameBoyGameInterface) {
         super()
+        makeObservable(this)
         if (obj) this.updateFromObject(obj)
     }
 
@@ -51,6 +56,10 @@ class GameBoyGame extends GameBoyGameDefaults implements Persistable {
 class CharacterDefaults {
     @observable name = ""
     @observable country = ""
+
+    constructor() {
+        makeObservable(this)
+    }
 }
 
 class Character

@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { differenceOfSets, moveArrayItemToIndex } from "@ourworldindata/utils"
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import cx from "classnames"
 import {
@@ -60,6 +60,11 @@ interface SeriesListItemProps extends React.HTMLProps<HTMLDivElement> {
 @observer
 class EntityListItem extends React.Component<EntityListItemProps> {
     @observable.ref isChoosingColor: boolean = false
+
+    constructor(props: EntityListItemProps) {
+        super(props);
+        makeObservable(this);
+    }
 
     @computed get table() {
         return this.props.grapherState.table
@@ -129,6 +134,11 @@ class EntityListItem extends React.Component<EntityListItemProps> {
 
 @observer
 class SeriesListItem extends React.Component<SeriesListItemProps> {
+    constructor(props: SeriesListItemProps) {
+        super(props);
+        makeObservable(this);
+    }
+
     @action.bound onRemove() {
         this.props.onRemove?.()
     }
@@ -161,6 +171,15 @@ export class EntitySelectionSection extends React.Component<{
     editor: AbstractChartEditor
 }> {
     @observable.ref dragKey?: EntityName
+
+    constructor(
+        props: {
+            editor: AbstractChartEditor
+        }
+    ) {
+        super(props);
+        makeObservable(this);
+    }
 
     @computed get editor() {
         return this.props.editor
@@ -305,6 +324,15 @@ export class EntitySelectionSection extends React.Component<{
 export class FocusSection extends React.Component<{
     editor: AbstractChartEditor
 }> {
+    constructor(
+        props: {
+            editor: AbstractChartEditor
+        }
+    ) {
+        super(props);
+        makeObservable(this);
+    }
+
     @computed get editor() {
         return this.props.editor
     }
@@ -401,6 +429,11 @@ export class FocusSection extends React.Component<{
 class MissingDataSection<
     Editor extends AbstractChartEditor,
 > extends React.Component<{ editor: Editor }> {
+    constructor(props: { editor: Editor }) {
+        super(props);
+        makeObservable(this);
+    }
+
     @computed get grapherState() {
         return this.props.editor.grapherState
     }
@@ -447,6 +480,11 @@ class MissingDataSection<
 class EntityFilterSection<
     Editor extends AbstractChartEditor,
 > extends React.Component<{ editor: Editor }> {
+    constructor(props: { editor: Editor }) {
+        super(props);
+        makeObservable(this);
+    }
+
     @computed private get editor(): Editor {
         return this.props.editor
     }

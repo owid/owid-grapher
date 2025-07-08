@@ -1,5 +1,5 @@
 import * as React from "react"
-import { action } from "mobx"
+import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { BodyDiv } from "../bodyDiv/BodyDiv"
 import { isTargetOutsideElement } from "../chart/ChartUtils"
@@ -11,6 +11,15 @@ export class FullScreen extends React.Component<{
     overlayColor?: string
 }> {
     content: React.RefObject<HTMLDivElement> = React.createRef()
+
+    constructor(props: {
+        children: React.ReactNode
+        onDismiss: () => void
+        overlayColor?: string
+    }) {
+        super(props)
+        makeObservable(this)
+    }
 
     @action.bound onDocumentClick(e: React.MouseEvent): void {
         if (

@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     AxisConfigInterface,
@@ -42,6 +42,15 @@ export class MapSparkline extends React.Component<{
     sparklineWidth?: number
     sparklineHeight?: number
 }> {
+    constructor(props: {
+        manager: MapSparklineManager
+        sparklineWidth?: number
+        sparklineHeight?: number
+    }) {
+        super(props)
+        makeObservable(this)
+    }
+
     static shouldShow(manager: MapSparklineManager): boolean {
         const test = new MapSparkline({ manager })
         return test.showSparkline

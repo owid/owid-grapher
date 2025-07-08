@@ -1,5 +1,5 @@
 import * as React from "react"
-import { observable, action, computed } from "mobx"
+import { observable, action, computed, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 
 import { Link } from "./Link.js"
@@ -27,6 +27,18 @@ export class AdminLayout extends React.Component<{
 
     @observable private showFAQ: boolean = false
     @observable private showSidebar: boolean = false
+
+    constructor(
+        props: {
+            noSidebar?: boolean
+            hasFixedNav?: boolean
+            title?: string
+            children: React.ReactNode
+        }
+    ) {
+        super(props);
+        makeObservable(this);
+    }
 
     @action.bound onToggleFAQ(): void {
         this.showFAQ = !this.showFAQ

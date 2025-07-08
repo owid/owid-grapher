@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faEye, faRightLeft, faPen } from "@fortawesome/free-solid-svg-icons"
@@ -30,6 +30,11 @@ interface EntitySelectionLabel {
 export class EntitySelectionToggle extends React.Component<{
     manager: EntitySelectionManager
 }> {
+    constructor(props: { manager: EntitySelectionManager }) {
+        super(props)
+        makeObservable(this)
+    }
+
     static shouldShow(manager: EntitySelectionManager): boolean {
         const toggle = new EntitySelectionToggle({ manager })
         return toggle.showToggle

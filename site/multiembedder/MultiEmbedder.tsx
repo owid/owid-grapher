@@ -24,7 +24,7 @@ import {
     searchParamsToMultiDimView,
     MultiDimDataPageConfig,
 } from "@ourworldindata/utils"
-import { action } from "mobx"
+import { action, makeObservable } from "mobx";
 import ReactDOM from "react-dom"
 import {
     Explorer,
@@ -71,6 +71,7 @@ class MultiEmbedder {
     graphersAndExplorersToUpdate: Set<SelectionArray> = new Set()
 
     constructor() {
+        makeObservable(this);
         if (typeof window !== "undefined" && "IntersectionObserver" in window) {
             this.figuresObserver = new IntersectionObserver(
                 this.onIntersecting.bind(this),

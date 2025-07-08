@@ -7,7 +7,8 @@ import {
     IReactionDisposer,
     when,
     computed,
-} from "mobx"
+    makeObservable,
+} from "mobx";
 import { observer } from "mobx-react"
 import {
     EntitySelectionMode,
@@ -71,6 +72,18 @@ class DimensionSlotView<
     disposers: IReactionDisposer[] = []
 
     @observable.ref isSelectingVariables: boolean = false
+
+    constructor(
+        props: {
+            slot: DimensionSlot
+            editor: Editor
+            database: EditorDatabase
+            errorMessagesForDimensions: ErrorMessagesForDimensions
+        }
+    ) {
+        super(props);
+        makeObservable(this);
+    }
 
     private get editor() {
         return this.props.editor
@@ -361,6 +374,17 @@ class VariablesSection<
     base: React.RefObject<HTMLDivElement> = React.createRef()
     @observable.ref isAddingVariable: boolean = false
 
+    constructor(
+        props: {
+            editor: Editor
+            database: EditorDatabase
+            errorMessagesForDimensions: ErrorMessagesForDimensions
+        }
+    ) {
+        super(props);
+        makeObservable(this);
+    }
+
     render() {
         const { props } = this
         const { dimensionSlots } = props.editor.grapherState
@@ -436,6 +460,17 @@ export class EditorBasicTab<
     context!: AdminAppContextType
 
     private chartTypeOptionNone = "None"
+
+    constructor(
+        props: {
+            editor: Editor
+            database: EditorDatabase
+            errorMessagesForDimensions: ErrorMessagesForDimensions
+        }
+    ) {
+        super(props);
+        makeObservable(this);
+    }
 
     @action.bound private updateParentConfig() {
         const { editor } = this.props

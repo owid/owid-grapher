@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as R from "remeda"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import { TextWrap, Halo } from "@ourworldindata/components"
 import {
@@ -50,6 +50,7 @@ const MIN_FONT_SIZE = 9
 export class ScatterSizeLegend {
     manager: ScatterSizeLegendManager
     constructor(manager: ScatterSizeLegendManager) {
+        makeObservable(this)
         this.manager = manager
     }
 

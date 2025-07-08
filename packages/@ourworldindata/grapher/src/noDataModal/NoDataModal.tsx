@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import a from "indefinite"
 import {
@@ -34,6 +34,17 @@ export class NoDataModal extends React.Component<{
     hideTextOutline?: boolean
     manager: NoDataModalManager
 }> {
+    constructor(props: {
+        bounds?: Bounds
+        message?: string
+        helpText?: string
+        hideTextOutline?: boolean
+        manager: NoDataModalManager
+    }) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed private get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }

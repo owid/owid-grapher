@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as Sentry from "@sentry/react"
 import cx from "classnames"
-import { observable, action, computed } from "mobx"
+import { observable, action, computed, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { bind } from "decko"
 import Recaptcha from "react-recaptcha"
@@ -128,6 +128,11 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
     @observable.ref captchaPromiseHandlers?: {
         resolve: (value: any) => void
         reject: (value: any) => void
+    }
+
+    constructor(props: { countryCode?: string }) {
+        super(props);
+        makeObservable(this);
     }
 
     @action.bound setInterval(interval: DonationInterval) {

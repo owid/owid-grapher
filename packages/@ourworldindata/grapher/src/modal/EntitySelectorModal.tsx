@@ -1,6 +1,6 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-import { computed, action } from "mobx"
+import { computed, action, makeObservable } from "mobx"
 import { Bounds, DEFAULT_BOUNDS } from "@ourworldindata/utils"
 import { Modal } from "./Modal"
 import {
@@ -17,6 +17,11 @@ export interface EntitySelectorModalManager extends EntitySelectorManager {
 export class EntitySelectorModal extends React.Component<{
     manager: EntitySelectorModalManager
 }> {
+    constructor(props: { manager: EntitySelectorModalManager }) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed private get manager(): EntitySelectorModalManager {
         return this.props.manager
     }

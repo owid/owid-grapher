@@ -1,5 +1,5 @@
 import { Component } from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 
 import { Bounds } from "@ourworldindata/utils"
@@ -53,6 +53,15 @@ export class ControlsRow extends Component<{
 }> {
     private framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
     private framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
+
+    constructor(props: {
+        manager: ControlsRowManager
+        maxWidth?: number
+        settingsMenuTop?: number
+    }) {
+        super(props)
+        makeObservable(this)
+    }
 
     static shouldShow(manager: ControlsRowManager): boolean {
         const test = new ControlsRow({ manager })

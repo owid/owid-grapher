@@ -1,6 +1,6 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
-import { action, observable, runInAction } from "mobx"
+import { action, observable, runInAction, makeObservable } from "mobx";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons"
@@ -23,6 +23,11 @@ export class DeployStatusPage extends Component {
     @observable deploys: Deploy[] = []
     @observable canManuallyDeploy = true
     refreshIntervalId?: number
+
+    constructor(props) {
+        super(props);
+        makeObservable(this);
+    }
 
     componentDidMount() {
         void this.getData()

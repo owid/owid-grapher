@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { computed, override } from "mobx"
+import { computed, override, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     Bounds,
@@ -115,6 +115,11 @@ const CONTROLS_ROW_HEIGHT = 32
 abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProps> {
     protected framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
     protected framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
+
+    constructor(props: CaptionedChartProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed protected get manager(): CaptionedChartManager {
         return this.props.manager
@@ -482,6 +487,7 @@ export class CaptionedChart extends AbstractCaptionedChart {}
 export class StaticCaptionedChart extends AbstractCaptionedChart {
     constructor(props: CaptionedChartProps) {
         super(props)
+        makeObservable(this)
     }
 
     @override protected get bounds(): Bounds {

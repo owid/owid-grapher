@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import { useCallback, useMemo, useState } from "react"
 import * as React from "react"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     Bounds,
@@ -167,6 +167,11 @@ export const DownloadModal = (
 
 @observer
 export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
+    constructor(props: DownloadModalProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed private get staticBounds(): Bounds {
         return this.manager.staticBounds ?? DEFAULT_BOUNDS
     }

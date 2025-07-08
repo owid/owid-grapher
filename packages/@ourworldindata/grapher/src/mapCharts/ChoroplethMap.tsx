@@ -7,7 +7,7 @@ import {
     excludeUndefined,
     EntityName,
 } from "@ourworldindata/utils"
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Quadtree, quadtree } from "d3-quadtree"
 import {
@@ -58,6 +58,11 @@ export class ChoroplethMap extends React.Component<{
 
     @observable private hoverEnterFeature?: MapRenderFeature
     @observable private hoverNearbyFeature?: MapRenderFeature
+
+    constructor(props: { manager: ChoroplethMapManager }) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed private get isTouchDevice(): boolean {
         return isTouchDevice()

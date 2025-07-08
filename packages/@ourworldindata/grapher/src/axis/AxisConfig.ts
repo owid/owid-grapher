@@ -9,7 +9,7 @@ import {
     TickFormattingOptions,
     Bounds,
 } from "@ourworldindata/utils"
-import { observable, computed } from "mobx"
+import { observable, computed, makeObservable } from "mobx"
 import { HorizontalAxis, VerticalAxis } from "./Axis"
 import {
     AxisMinMaxValueStr,
@@ -47,6 +47,10 @@ class AxisConfigDefaults implements AxisConfigInterface {
     @observable.ref singleValueAxisPointAlign?: AxisAlign = undefined
     @observable.ref label?: string = undefined
     @observable.ref domainValues?: number[] = undefined
+
+    constructor() {
+        makeObservable(this)
+    }
 }
 
 function parseMinFromJSON(
@@ -69,6 +73,7 @@ export class AxisConfig
 {
     constructor(props?: AxisConfigInterface, axisManager?: AxisManager) {
         super()
+        makeObservable(this)
         this.updateFromObject(props)
         this.axisManager = axisManager
     }

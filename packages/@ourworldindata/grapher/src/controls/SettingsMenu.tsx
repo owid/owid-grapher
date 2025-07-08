@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -92,6 +92,16 @@ export class SettingsMenu extends React.Component<{
 }> {
     @observable.ref active: boolean = false
     contentRef: React.RefObject<HTMLDivElement> = React.createRef() // the menu contents & backdrop
+
+    constructor(props: {
+        manager: SettingsMenuManager
+        top: number
+        bottom: number
+        right: number
+    }) {
+        super(props)
+        makeObservable(this)
+    }
 
     static shouldShow(manager: SettingsMenuManager): boolean {
         const test = new SettingsMenu({ manager, top: 0, bottom: 0, right: 0 })

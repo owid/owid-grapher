@@ -1,7 +1,14 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import * as R from "remeda"
-import { action, computed, observable, runInAction, reaction } from "mobx"
+import {
+    action,
+    computed,
+    observable,
+    runInAction,
+    reaction,
+    makeObservable,
+} from "mobx"
 import { observer } from "mobx-react"
 import { Flipper, Flipped } from "react-flip-toolkit"
 import { bind } from "decko"
@@ -83,6 +90,18 @@ export class EntityPicker extends React.Component<{
     @observable private isOpen = false
 
     @observable private localEntityNames?: string[]
+
+    constructor(props: {
+        manager: EntityPickerManager
+        selection: SelectionArray
+        isDropdownMenu?: boolean
+        onSelectEntity?: (entityName: EntityName) => void
+        onDeselectEntity?: (entityName: EntityName) => void
+        onClearEntities?: () => void
+    }) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed private get isDropdownMenu(): boolean {
         return !!this.props.isDropdownMenu

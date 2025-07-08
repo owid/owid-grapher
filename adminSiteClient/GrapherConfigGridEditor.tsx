@@ -35,7 +35,8 @@ import {
     runInAction,
     autorun,
     reaction,
-} from "mobx"
+    makeObservable,
+} from "mobx";
 import { match, P } from "ts-pattern"
 
 import { BaseEditorComponent, HotColumn, HotTable } from "@handsontable/react"
@@ -208,6 +209,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     constructor(props: GrapherConfigGridEditorProps) {
         super(props)
+        makeObservable(this);
         this.config = props.config
         this.currentColumnSet = this.config.columnSet[0]
     }

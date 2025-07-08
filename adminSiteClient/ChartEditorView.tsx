@@ -8,7 +8,8 @@ import {
     action,
     reaction,
     IReactionDisposer,
-} from "mobx"
+    makeObservable,
+} from "mobx";
 import { Prompt, Redirect } from "react-router-dom"
 import {
     Bounds,
@@ -87,6 +88,7 @@ export class EditorDatabase {
     @observable dataByNamespace: Map<string, NamespaceData> = new Map()
 
     constructor(json: any) {
+        makeObservable(this);
         this.namespaces = json.namespaces
     }
 }
@@ -106,6 +108,16 @@ export class ChartEditorView<
 }> {
     @observable.ref database = new EditorDatabase({})
     @observable details: DetailDictionary = {}
+
+    constructor(
+        props: {
+            manager: ChartEditorViewManager<Editor>
+        }
+    ) {
+        super(props);
+        makeObservable(this);
+    }
+
     @computed get grapherState(): GrapherState {
         return this.manager.editor.grapherState
     }

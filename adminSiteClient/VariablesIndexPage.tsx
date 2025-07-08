@@ -7,7 +7,8 @@ import {
     runInAction,
     reaction,
     IReactionDisposer,
-} from "mobx"
+    makeObservable,
+} from "mobx";
 import * as lodash from "lodash-es"
 
 import { AdminLayout } from "./AdminLayout.js"
@@ -27,6 +28,11 @@ export class VariablesIndexPage extends Component {
     @observable numTotalRows?: number
     @observable searchInput?: string
     @observable highlightSearch?: string
+
+    constructor(props) {
+        super(props);
+        makeObservable(this);
+    }
 
     @computed get variablesToShow(): VariableListItem[] {
         return this.variables

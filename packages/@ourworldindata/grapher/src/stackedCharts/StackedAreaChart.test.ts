@@ -10,7 +10,7 @@ import {
     OwidTable,
 } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
-import { observable } from "mobx"
+import { observable, makeObservable } from "mobx"
 import { AxisConfig } from "../axis/AxisConfig"
 import { SelectionArray } from "../selection/SelectionArray"
 import { ColumnTypeNames, FacetStrategy } from "@ourworldindata/utils"
@@ -23,6 +23,10 @@ class MockManager implements ChartManager {
     yAxisConfig = new AxisConfig({ min: 0, max: 200 })
     @observable isRelativeMode = false
     selection = new SelectionArray()
+
+    constructor() {
+        makeObservable(this)
+    }
 }
 
 it("can create a basic chart", () => {

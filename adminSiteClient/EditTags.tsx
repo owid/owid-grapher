@@ -1,5 +1,5 @@
 import { createRef, Component } from "react"
-import { action } from "mobx"
+import { action, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { DbChartTagJoin } from "@ourworldindata/utils"
 import {
@@ -18,6 +18,19 @@ export class EditTags extends Component<{
 }> {
     dismissable: boolean = true
     reactTagsApi = createRef<ReactTagsAPI>()
+
+    constructor(
+        props: {
+            tags: DbChartTagJoin[]
+            suggestions: DbChartTagJoin[]
+            onDelete: (index: number) => void
+            onAdd: (tag: DbChartTagJoin) => void
+            onSave: () => void
+        }
+    ) {
+        super(props);
+        makeObservable(this);
+    }
 
     @action.bound onClickSomewhere() {
         if (this.dismissable) this.props.onSave()

@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { computed, action, observable, override } from "mobx"
+import { computed, action, observable, override, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     Bounds,
@@ -85,6 +85,11 @@ class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 
     @observable mouseOver: boolean = false
 
+    constructor(props: StackedBarSegmentProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed get yPos(): number {
         const { bar, yAxis } = this.props
         // The top position of a bar
@@ -144,6 +149,7 @@ export class StackedBarChart
 
     constructor(props: AbstractStackedChartProps) {
         super(props)
+        makeObservable(this)
     }
 
     // currently hovered legend color

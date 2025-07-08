@@ -1,4 +1,4 @@
-import { observable } from "mobx"
+import { makeObservable, observable } from "mobx"
 import {
     GlobeConfig,
     MapRegionName,
@@ -43,6 +43,10 @@ class MapConfigDefaults {
     @observable colorScale = new ColorScaleConfig()
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
     @observable tooltipUseCustomLabels?: boolean = undefined
+
+    constructor() {
+        makeObservable(this)
+    }
 }
 
 export class MapConfig extends MapConfigDefaults implements Persistable {
@@ -113,6 +117,7 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
 
     constructor(obj?: Partial<MapConfigInterface>) {
         super()
+        makeObservable(this)
         if (obj) this.updateFromObject(obj)
     }
 }

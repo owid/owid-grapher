@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed, action } from "mobx"
+import { computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { MapRegionName, GlobeRegionName } from "@ourworldindata/types"
@@ -28,6 +28,11 @@ interface MapRegionDropdownOption {
 export class MapRegionDropdown extends React.Component<{
     manager: MapRegionDropdownManager
 }> {
+    constructor(props: { manager: MapRegionDropdownManager }) {
+        super(props)
+        makeObservable(this)
+    }
+
     static shouldShow(manager: MapRegionDropdownManager): boolean {
         const menu = new MapRegionDropdown({ manager })
         return menu.showMenu

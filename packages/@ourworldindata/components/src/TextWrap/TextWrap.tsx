@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
 import { stripHTML, Bounds, FontFamily } from "@ourworldindata/utils"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import * as React from "react"
 import { Fragment, joinFragments, splitIntoFragments } from "./TextWrapUtils"
 
@@ -66,6 +66,7 @@ export const shortenForTargetWidth = (
 export class TextWrap {
     props: TextWrapProps
     constructor(props: TextWrapProps) {
+        makeObservable(this)
         this.props = props
     }
 

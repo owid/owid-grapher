@@ -1,6 +1,6 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
-import { observable, action, runInAction } from "mobx"
+import { observable, action, runInAction, makeObservable } from "mobx";
 
 import { AdminLayout } from "./AdminLayout.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
@@ -12,6 +12,11 @@ export class ChartIndexPage extends Component {
     context!: AdminAppContextType
 
     @observable charts: ChartListItem[] = []
+
+    constructor(props) {
+        super(props);
+        makeObservable(this);
+    }
 
     render() {
         const { charts } = this

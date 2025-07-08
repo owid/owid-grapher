@@ -1,6 +1,6 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-import { observable, action, runInAction } from "mobx"
+import { observable, action, runInAction, makeObservable } from "mobx";
 
 import { Modal, Timeago } from "./Forms.js"
 import { Link } from "./Link.js"
@@ -20,6 +20,11 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
     @observable email: string = ""
     @observable fullName: string = ""
     @observable responseSuccess: boolean = false
+
+    constructor(props: { onClose: () => void }) {
+        super(props);
+        makeObservable(this);
+    }
 
     async submit() {
         runInAction(() => (this.responseSuccess = false))
@@ -98,6 +103,11 @@ export class UsersIndexPage extends React.Component {
 
     @observable users: UserIndexMetaWithLastSeen[] = []
     @observable isInviteModal: boolean = false
+
+    constructor(props) {
+        super(props);
+        makeObservable(this);
+    }
 
     @action.bound async onDelete(user: UserIndexMetaWithLastSeen) {
         if (

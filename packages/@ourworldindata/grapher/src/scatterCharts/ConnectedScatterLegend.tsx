@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { Triangle } from "./Triangle"
 import { TextWrap } from "@ourworldindata/components"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
@@ -16,6 +16,7 @@ export interface ConnectedScatterLegendManager {
 export class ConnectedScatterLegend {
     manager: ConnectedScatterLegendManager
     constructor(manager: ConnectedScatterLegendManager) {
+        makeObservable(this)
         this.manager = manager
     }
 

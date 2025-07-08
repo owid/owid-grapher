@@ -1,8 +1,9 @@
 import { EntityName } from "@ourworldindata/types"
-import { action, computed, observable } from "mobx"
+import { action, computed, observable, makeObservable } from "mobx"
 
 export class SelectionArray {
     constructor(selectedEntityNames: EntityName[] = []) {
+        makeObservable(this)
         this.selectedEntityNames = selectedEntityNames.slice()
     }
 

@@ -1,6 +1,6 @@
 import { observer } from "mobx-react"
 import * as React from "react"
-import { computed, action } from "mobx"
+import { computed, action, makeObservable } from "mobx"
 import { Bounds, DEFAULT_BOUNDS, Url } from "@ourworldindata/utils"
 import { Modal } from "./Modal"
 import {
@@ -31,6 +31,11 @@ interface EmbedOptions {
 
 @observer
 export class EmbedModal extends React.Component<EmbedModalProps> {
+    constructor(props: EmbedModalProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed get manager(): EmbedModalManager {
         return this.props.manager
     }

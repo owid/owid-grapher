@@ -8,7 +8,7 @@ import {
     Bounds,
     DEFAULT_BOUNDS,
 } from "@ourworldindata/utils"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -32,6 +32,14 @@ export class TimelineComponent extends React.Component<{
     maxWidth?: number
 }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
+
+    constructor(props: {
+        timelineController: TimelineController
+        maxWidth?: number
+    }) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_BOUNDS.width

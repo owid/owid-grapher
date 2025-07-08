@@ -3,7 +3,7 @@ import { Component } from "react"
 import Select, { GroupBase, components, OptionProps } from "react-select"
 import classNames from "classnames"
 import { observer } from "mobx-react"
-import { computed, action } from "mobx"
+import { computed, action, makeObservable } from "mobx";
 import { getStylesForTargetHeight } from "@ourworldindata/utils"
 
 // Transformation matrices taken from Chromium source: https://github.com/chromium/chromium/blob/a08db9fd8a986495c18226f9fb2f1e836bb87e62/third_party/blink/renderer/core/css/vision_deficiency.cc#L41-L82
@@ -124,6 +124,11 @@ export class VisionDeficiencyDropdown extends Component<VisionDeficiencyDropdown
     noDeficiencyOption = {
         label: "No deficiencies",
         value: "none",
+    }
+
+    constructor(props: VisionDeficiencyDropdownProps) {
+        super(props);
+        makeObservable(this);
     }
 
     @computed get options(): GroupBase<VisionDeficiencyEntity>[] {

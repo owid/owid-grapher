@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed, action } from "mobx"
+import { computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     GRAPHER_CHART_TYPES,
@@ -20,6 +20,11 @@ export interface AbsRelToggleManager {
 export class AbsRelToggle extends React.Component<{
     manager: AbsRelToggleManager
 }> {
+    constructor(props: { manager: AbsRelToggleManager }) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onToggle(): void {
         this.manager.stackMode = this.isRelativeMode
             ? StackMode.absolute

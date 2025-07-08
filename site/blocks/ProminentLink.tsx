@@ -9,7 +9,7 @@ import {
     setSelectedEntityNamesParam,
 } from "@ourworldindata/grapher"
 import { Url } from "@ourworldindata/utils"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { Component } from "react"
 import ReactDOM from "react-dom"
@@ -32,6 +32,20 @@ export class ProminentLink extends Component<{
     image?: string | null
     globalEntitySelection?: SelectionArray
 }> {
+    constructor(
+        props: {
+            href: string
+            style: string | null
+            title: string | null
+            content?: string | null
+            image?: string | null
+            globalEntitySelection?: SelectionArray
+        }
+    ) {
+        super(props);
+        makeObservable(this);
+    }
+
     @computed get originalUrl(): Url {
         return migrateSelectedEntityNamesParam(Url.fromURL(this.props.href))
     }

@@ -1,4 +1,4 @@
-import { computed, observable, runInAction, when } from "mobx"
+import { computed, observable, runInAction, when, makeObservable } from "mobx";
 import {
     AbstractChartEditor,
     AbstractChartEditorManager,
@@ -28,6 +28,8 @@ export class IndicatorChartEditor extends AbstractChartEditor<IndicatorChartEdit
 
     constructor(props: { manager: IndicatorChartEditorManager }) {
         super(props)
+
+        makeObservable(this);
 
         when(
             () => this.manager.isNewGrapher !== undefined,

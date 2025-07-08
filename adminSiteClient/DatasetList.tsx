@@ -1,5 +1,5 @@
 import * as React from "react"
-import { observable, action } from "mobx"
+import { observable, action, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import * as lodash from "lodash-es"
 import { bind } from "decko"
@@ -35,6 +35,17 @@ class DatasetRow extends React.Component<{
 }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
+
+    constructor(
+        props: {
+            dataset: DatasetListItem
+            availableTags: DbChartTagJoin[]
+            searchHighlight?: (text: string) => string | React.ReactElement
+        }
+    ) {
+        super(props);
+        makeObservable(this);
+    }
 
     async saveTags(tags: DbChartTagJoin[]) {
         const { dataset } = this.props
@@ -106,6 +117,16 @@ export class DatasetList extends React.Component<{
     context!: AdminAppContextType
 
     @observable availableTags: DbChartTagJoin[] = []
+
+    constructor(
+        props: {
+            datasets: DatasetListItem[]
+            searchHighlight?: (text: string) => string | React.ReactElement
+        }
+    ) {
+        super(props);
+        makeObservable(this);
+    }
 
     @bind async getTags() {
         const json = await this.context.admin.getJSON("/api/tags.json")

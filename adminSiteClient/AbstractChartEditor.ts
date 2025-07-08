@@ -6,7 +6,7 @@ import {
     PostReference,
     SeriesName,
 } from "@ourworldindata/utils"
-import { action, computed, observable, when } from "mobx"
+import { action, computed, observable, when, makeObservable } from "mobx";
 import { EditorFeatures } from "./EditorFeatures.js"
 import { Admin } from "./Admin.js"
 import {
@@ -76,6 +76,7 @@ export abstract class AbstractChartEditor<
     @observable.ref isInheritanceEnabled: boolean | undefined = undefined
 
     constructor(props: { manager: Manager }) {
+        makeObservable(this);
         this.manager = props.manager
         this.previewMode =
             localStorage.getItem("editorPreviewMode") === "mobile"

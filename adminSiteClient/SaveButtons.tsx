@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import { Component } from "react"
 import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
-import { action, computed, observable } from "mobx"
+import { action, computed, observable, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import { excludeUndefined, slugify } from "@ourworldindata/utils"
 import {
@@ -55,6 +55,17 @@ class SaveButtonsForChart extends Component<{
     errorMessages: ErrorMessages
     errorMessagesForDimensions: ErrorMessagesForDimensions
 }> {
+    constructor(
+        props: {
+            editor: ChartEditor
+            errorMessages: ErrorMessages
+            errorMessagesForDimensions: ErrorMessagesForDimensions
+        }
+    ) {
+        super(props);
+        makeObservable(this);
+    }
+
     @action.bound onSaveChart() {
         void this.props.editor.saveGrapher()
     }
@@ -178,6 +189,17 @@ class SaveButtonsForIndicatorChart extends Component<{
     errorMessages: ErrorMessages
     errorMessagesForDimensions: ErrorMessagesForDimensions
 }> {
+    constructor(
+        props: {
+            editor: IndicatorChartEditor
+            errorMessages: ErrorMessages
+            errorMessagesForDimensions: ErrorMessagesForDimensions
+        }
+    ) {
+        super(props);
+        makeObservable(this);
+    }
+
     @action.bound onSaveChart() {
         void this.props.editor.saveGrapher()
     }
@@ -229,6 +251,17 @@ class SaveButtonsForNarrativeChart extends Component<{
     errorMessagesForDimensions: ErrorMessagesForDimensions
 }> {
     @observable isCreateDataInsightModalOpen = false
+
+    constructor(
+        props: {
+            editor: NarrativeChartEditor
+            errorMessages: ErrorMessages
+            errorMessagesForDimensions: ErrorMessagesForDimensions
+        }
+    ) {
+        super(props);
+        makeObservable(this);
+    }
 
     @action.bound onSaveChart() {
         void this.props.editor.saveGrapher()

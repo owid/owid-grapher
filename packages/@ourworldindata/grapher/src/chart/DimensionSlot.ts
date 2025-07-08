@@ -1,7 +1,7 @@
 // todo: remove
 
 import { GrapherState } from "../core/Grapher"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { ChartDimension } from "./ChartDimension"
 import { DimensionProperty } from "@ourworldindata/utils"
 
@@ -9,6 +9,7 @@ export class DimensionSlot {
     private grapherState: GrapherState
     property: DimensionProperty
     constructor(grapher: GrapherState, property: DimensionProperty) {
+        makeObservable(this)
         this.grapherState = grapher
         this.property = property
     }

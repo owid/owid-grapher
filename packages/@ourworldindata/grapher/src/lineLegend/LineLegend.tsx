@@ -7,7 +7,7 @@ import {
     excludeUndefined,
 } from "@ourworldindata/utils"
 import { TextWrap, Halo, MarkdownTextWrap } from "@ourworldindata/components"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { VerticalAxis } from "../axis/Axis"
 import {
@@ -73,6 +73,22 @@ class LineLabels extends React.Component<{
     onMouseOver?: (series: PlacedSeries) => void
     onMouseLeave?: (series: PlacedSeries) => void
 }> {
+    constructor(props: {
+        series: PlacedSeries[]
+        needsConnectorLines: boolean
+        showTextOutline?: boolean
+        textOutlineColor?: Color
+        anchor?: "start" | "end"
+        isStatic?: boolean
+        cursor?: string
+        onClick?: (series: PlacedSeries) => void
+        onMouseOver?: (series: PlacedSeries) => void
+        onMouseLeave?: (series: PlacedSeries) => void
+    }) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed private get anchor(): "start" | "end" {
         return this.props.anchor ?? "start"
     }
@@ -317,6 +333,11 @@ export interface LineLegendProps {
 
 @observer
 export class LineLegend extends React.Component<LineLegendProps> {
+    constructor(props: LineLegendProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     /**
      * Larger than the actual width since the width of the connector lines
      * is always added, even if they're not rendered.

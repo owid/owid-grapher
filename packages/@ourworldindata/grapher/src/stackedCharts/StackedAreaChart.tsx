@@ -11,7 +11,7 @@ import {
     lastOfNonEmptyArray,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
-import { computed, action, observable, override } from "mobx"
+import { computed, action, observable, override, makeObservable } from "mobx"
 import { InteractionState, SeriesName } from "@ourworldindata/types"
 import {
     GRAPHER_AREA_OPACITY_DEFAULT,
@@ -80,6 +80,11 @@ const BORDER_WIDTH = {
 
 @observer
 class Areas extends React.Component<AreasProps> {
+    constructor(props: AreasProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @bind placePoint(point: StackedPoint<number>): StackedPlacedPoint {
         const { dualAxis } = this.props
         const { horizontalAxis, verticalAxis } = dualAxis
@@ -259,6 +264,7 @@ class Areas extends React.Component<AreasProps> {
 export class StackedAreaChart extends AbstractStackedChart {
     constructor(props: AbstractStackedChartProps) {
         super(props)
+        makeObservable(this)
     }
 
     @override protected get yAxisDomain(): [number, number] {

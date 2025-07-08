@@ -7,7 +7,7 @@ import {
     Bounds,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap, TextWrap } from "@ourworldindata/components"
-import { computed, override } from "mobx"
+import { computed, override, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Logo } from "../captionedChart/Logos"
 
@@ -29,6 +29,11 @@ abstract class AbstractHeader<
     Props extends HeaderProps = HeaderProps,
 > extends React.Component<Props> {
     protected verticalPadding = 4
+
+    constructor(props: Props) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed protected get manager(): HeaderManager {
         return this.props.manager

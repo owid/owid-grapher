@@ -1,8 +1,9 @@
 import { SeriesName, InteractionState } from "@ourworldindata/types"
-import { action, computed, observable } from "mobx"
+import { action, computed, observable, makeObservable } from "mobx"
 
 export class FocusArray {
     constructor() {
+        makeObservable(this)
         this.store = new Set()
     }
 

@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx"
 import {
     queryParamsToStr,
     differenceObj,
@@ -86,6 +86,7 @@ export class DecisionMatrix {
     table: CoreTable
     @observable currentParams: ExplorerChoiceParams = {}
     constructor(delimited: string, hash = "") {
+        makeObservable(this)
         this.choiceNameToControlTypeMap = makeChoicesMap(delimited)
         this.table = new CoreTable(parseDelimited(dropColumnTypes(delimited)), [
             // todo: remove col def?

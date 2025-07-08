@@ -16,7 +16,7 @@ import {
     NARRATIVE_CHART_PROPS_TO_OMIT,
 } from "@ourworldindata/utils"
 import { DbChartTagJoin } from "@ourworldindata/types"
-import { action, computed, observable, runInAction } from "mobx"
+import { action, computed, observable, runInAction, makeObservable } from "mobx";
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import {
     AbstractChartEditor,
@@ -56,6 +56,13 @@ export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     // This gets set when we save a new chart for the first time
     // so the page knows to update the url
     @observable.ref newChartId?: number
+
+    constructor() {
+        // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
+        super();
+
+        makeObservable(this);
+    }
 
     @computed get logs() {
         return this.manager.logs

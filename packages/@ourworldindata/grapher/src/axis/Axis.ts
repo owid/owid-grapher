@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import { scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic } from "d3-scale"
-import { observable, computed, override } from "mobx"
+import { observable, computed, override, makeObservable } from "mobx"
 import {
     rollingMap,
     numberMagnitude,
@@ -77,6 +77,7 @@ abstract class AbstractAxis {
     @observable private _label?: string
 
     constructor(config: AxisConfig, axisManager?: AxisManager) {
+        makeObservable(this)
         this.config = config
         this.domain = [config.domain[0], config.domain[1]]
         this.axisManager = axisManager
@@ -573,6 +574,13 @@ abstract class AbstractAxis {
 }
 
 export class HorizontalAxis extends AbstractAxis {
+    constructor() {
+        // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
+        super()
+
+        makeObservable(this)
+    }
+
     clone(): HorizontalAxis {
         return new HorizontalAxis(this.config, this.axisManager)._update(this)
     }
@@ -692,6 +700,13 @@ export class HorizontalAxis extends AbstractAxis {
 }
 
 export class VerticalAxis extends AbstractAxis {
+    constructor() {
+        // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
+        super()
+
+        makeObservable(this)
+    }
+
     clone(): VerticalAxis {
         return new VerticalAxis(this.config, this.axisManager)._update(this)
     }
@@ -813,6 +828,7 @@ interface DualAxisProps {
 export class DualAxis {
     private props: DualAxisProps
     constructor(props: DualAxisProps) {
+        makeObservable(this)
         this.props = props
     }
 

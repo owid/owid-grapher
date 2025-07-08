@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
 import { Component, Fragment } from "react"
-import { action, computed, runInAction } from "mobx"
+import { action, computed, runInAction, makeObservable } from "mobx";
 import { observer } from "mobx-react"
 import Select from "react-select"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -73,6 +73,17 @@ class ColorLegendSection extends Component<{
     features: EditorColorScaleSectionFeatures
     onChange?: () => void
 }> {
+    constructor(
+        props: {
+            scale: ColorScale
+            features: EditorColorScaleSectionFeatures
+            onChange?: () => void
+        }
+    ) {
+        super(props);
+        makeObservable(this);
+    }
+
     @action.bound onManualBins() {
         populateManualBinValuesIfAutomatic(this.props.scale)
         this.props.onChange?.()
@@ -122,6 +133,18 @@ class ColorsSection extends Component<{
     showLineChartColors: boolean
     onChange?: () => void
 }> {
+    constructor(
+        props: {
+            scale: ColorScale
+            chartType: GrapherChartOrMapType
+            showLineChartColors: boolean
+            onChange?: () => void
+        }
+    ) {
+        super(props);
+        makeObservable(this);
+    }
+
     @action.bound onColorScheme(selected: ColorSchemeOption) {
         const { config } = this
 
@@ -305,6 +328,18 @@ class BinLabelView extends Component<{
     index: number
     onChange?: () => void
 }> {
+    constructor(
+        props: {
+            scale: ColorScale
+            bin: ColorScaleBin
+            index: number
+            onChange?: () => void
+        }
+    ) {
+        super(props);
+        makeObservable(this);
+    }
+
     @action.bound onLabel(value: string) {
         if (this.props.bin instanceof NumericBin) {
             const { scale, index } = this.props
@@ -364,6 +399,19 @@ class NumericBinView extends Component<{
     showLineChartColors: boolean
     onChange?: () => void
 }> {
+    constructor(
+        props: {
+            scale: ColorScale
+            bin: NumericBin
+            index: number
+            showLineChartColors: boolean
+            onChange?: () => void
+        }
+    ) {
+        super(props);
+        makeObservable(this);
+    }
+
     @action.bound onColor(color: Color | undefined) {
         const { scale, index } = this.props
 
@@ -490,6 +538,18 @@ class CategoricalBinView extends Component<{
     showLineChartColors: boolean
     onChange?: () => void
 }> {
+    constructor(
+        props: {
+            scale: ColorScale
+            bin: CategoricalBin
+            showLineChartColors: boolean
+            onChange?: () => void
+        }
+    ) {
+        super(props);
+        makeObservable(this);
+    }
+
     @action.bound onColor(color: Color | undefined) {
         const { scale, bin } = this.props
         if (!scale.customNumericColorsActive) {

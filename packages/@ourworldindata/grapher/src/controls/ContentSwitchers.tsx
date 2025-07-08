@@ -1,5 +1,5 @@
 import * as React from "react"
-import { action, computed } from "mobx"
+import { action, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -27,6 +27,11 @@ export interface ContentSwitchersManager {
 export class ContentSwitchers extends React.Component<{
     manager: ContentSwitchersManager
 }> {
+    constructor(props: { manager: ContentSwitchersManager }) {
+        super(props)
+        makeObservable(this)
+    }
+
     static shouldShow(manager: ContentSwitchersManager): boolean {
         const test = new ContentSwitchers({ manager })
         return test.shouldShow

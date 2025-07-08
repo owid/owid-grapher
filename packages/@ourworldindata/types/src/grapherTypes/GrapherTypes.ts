@@ -6,7 +6,7 @@ import { ColumnSlugs, EntityName } from "../domainTypes/CoreTableTypes.js"
 import { AxisAlign, Position } from "../domainTypes/Layout.js"
 import { Integer, OwidVariableId } from "../domainTypes/Various.js"
 import { DetailDictionary } from "../gdocTypes/Gdoc.js"
-import { observable } from "mobx"
+import { observable, makeObservable } from "mobx"
 import {
     GRAPHER_CHART_TYPES,
     GRAPHER_MAP_TYPE,
@@ -420,6 +420,10 @@ export class ColorScaleConfigDefaults {
 
     /** A custom legend description. Only used in ScatterPlot legend titles for now. */
     @observable legendDescription?: string = undefined
+
+    constructor() {
+        makeObservable(this)
+    }
 }
 
 // TODO: It would be nice to replace the type definition below with

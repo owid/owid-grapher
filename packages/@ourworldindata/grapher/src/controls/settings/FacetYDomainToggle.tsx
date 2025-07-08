@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed, action } from "mobx"
+import { computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { FacetAxisDomain, FacetStrategy } from "@ourworldindata/types"
 import { AxisConfig } from "../../axis/AxisConfig"
@@ -14,6 +14,11 @@ export interface FacetYDomainToggleManager {
 export class FacetYDomainToggle extends React.Component<{
     manager: FacetYDomainToggleManager
 }> {
+    constructor(props: { manager: FacetYDomainToggleManager }) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onToggle(): void {
         const { yAxis } = this.props.manager
         if (yAxis) {
