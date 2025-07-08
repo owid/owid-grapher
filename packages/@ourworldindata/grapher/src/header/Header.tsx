@@ -7,7 +7,7 @@ import {
     Bounds,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap, TextWrap } from "@ourworldindata/components"
-import { computed } from "mobx"
+import { computed, override } from "mobx"
 import { observer } from "mobx-react"
 import { Logo } from "../captionedChart/Logos"
 
@@ -297,11 +297,11 @@ export class Header extends AbstractHeader<HeaderProps> {}
 export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
     protected verticalPadding = 6
 
-    @computed get titleLineHeight(): number {
+    @override get titleLineHeight(): number {
         return this.manager.isStaticAndSmall ? 1.1 : 1.2
     }
 
-    @computed get subtitleLineHeight(): number {
+    @override get subtitleLineHeight(): number {
         return 1.2
     }
 

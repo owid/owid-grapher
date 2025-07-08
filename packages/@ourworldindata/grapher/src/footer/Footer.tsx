@@ -1,5 +1,5 @@
 import * as React from "react"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, override } from "mobx"
 import { observer } from "mobx-react"
 import parseUrl from "url-parse"
 import {
@@ -647,7 +647,7 @@ export class StaticFooter extends AbstractFooter<StaticFooterProps> {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     componentWillUnmount(): void {}
 
-    @computed protected get hideOriginUrl(): boolean {
+    @override protected get hideOriginUrl(): boolean {
         return !!this.manager.hideOriginUrl || !!this.manager.isStaticAndSmall
     }
 
@@ -655,14 +655,14 @@ export class StaticFooter extends AbstractFooter<StaticFooterProps> {
         return GRAPHER_LIGHT_TEXT
     }
 
-    @computed protected get showLicenseNextToSources(): boolean {
+    @override protected get showLicenseNextToSources(): boolean {
         return (
             this.maxWidth - this.sources.width - HORIZONTAL_PADDING >
             this.licenseAndOriginUrl.width
         )
     }
 
-    @computed protected get finalUrlText(): string | undefined {
+    @override protected get finalUrlText(): string | undefined {
         const { correctedUrlText, licenseText, fontSize, maxWidth } = this
 
         if (this.hideOriginUrl) return undefined
@@ -684,7 +684,7 @@ export class StaticFooter extends AbstractFooter<StaticFooterProps> {
         return correctedUrlText
     }
 
-    @computed protected get licenseAndOriginUrlText(): string {
+    @override protected get licenseAndOriginUrlText(): string {
         const { finalUrl, finalUrlText, licenseText, licenseUrl, textColor } =
             this
         const linkStyle = `fill: ${textColor};`
@@ -694,34 +694,34 @@ export class StaticFooter extends AbstractFooter<StaticFooterProps> {
         return [originUrlSvg, licenseSvg].join(" | ")
     }
 
-    @computed protected get sourcesText(): string {
+    @override protected get sourcesText(): string {
         return `**Data source:** ${this.sourcesLine}`
     }
 
-    @computed protected get fontSize(): number {
+    @override protected get fontSize(): number {
         if (this.manager.isStaticAndSmall) return 14
         return this.useBaseFontSize
             ? Math.round((13 / BASE_FONT_SIZE) * this.baseFontSize)
             : 13
     }
 
-    @computed protected get sourcesFontSize(): number {
+    @override protected get sourcesFontSize(): number {
         return this.fontSize
     }
 
-    @computed protected get sourcesMaxWidth(): number {
+    @override protected get sourcesMaxWidth(): number {
         return this.maxWidth
     }
 
-    @computed protected get noteMaxWidth(): number {
+    @override protected get noteMaxWidth(): number {
         return this.maxWidth
     }
 
-    @computed protected get licenseAndOriginUrlMaxWidth(): number {
+    @override protected get licenseAndOriginUrlMaxWidth(): number {
         return this.maxWidth
     }
 
-    @computed get height(): number {
+    @override get height(): number {
         return (
             this.sources.height +
             (this.showNote ? this.note.height + this.verticalPadding : 0) +

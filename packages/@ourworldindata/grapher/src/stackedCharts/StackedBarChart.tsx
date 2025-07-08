@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, override } from "mobx"
 import { observer } from "mobx-react"
 import {
     Bounds,
@@ -164,7 +164,7 @@ export class StackedBarChart
         return GRAPHER_FONT_SCALE_12 * this.baseFontSize
     }
 
-    @computed protected get xAxisConfig(): AxisConfig {
+    @override protected get xAxisConfig(): AxisConfig {
         return new AxisConfig(
             {
                 hideGridlines: true,
@@ -176,7 +176,7 @@ export class StackedBarChart
         )
     }
 
-    @computed protected get yAxisDomain(): [number, number] {
+    @override protected get yAxisDomain(): [number, number] {
         const yValues = this.allStackedPoints.map(
             (point) => point.value + point.valueOffset
         )
@@ -209,7 +209,7 @@ export class StackedBarChart
             : 0
     }
 
-    @computed get shouldRunLinearInterpolation(): boolean {
+    @override get shouldRunLinearInterpolation(): boolean {
         // disabled by default
         return this.props.enableLinearInterpolation ?? false
     }
@@ -647,7 +647,7 @@ export class StackedBarChart
      * Colour positive and negative values differently if there is only one series
      * (and that series has both positive and negative values)
      */
-    @computed get shouldUseValueBasedColorScheme(): boolean {
+    @override get shouldUseValueBasedColorScheme(): boolean {
         return (
             this.rawSeries.length === 1 &&
             this.rawSeries[0].rows.some((row) => row.value < 0) &&
@@ -655,7 +655,7 @@ export class StackedBarChart
         )
     }
 
-    @computed get useValueBasedColorScheme(): boolean {
+    @override get useValueBasedColorScheme(): boolean {
         return (
             this.manager.useValueBasedColorScheme ||
             this.shouldUseValueBasedColorScheme
@@ -682,7 +682,7 @@ export class StackedBarChart
         )
     }
 
-    @computed
+    @override
     get series(): readonly StackedSeries<number>[] {
         return stackSeriesInBothDirections(
             this.unstackedSeriesWithMissingValuesAsZeroes

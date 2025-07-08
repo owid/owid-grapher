@@ -11,7 +11,7 @@ import {
     lastOfNonEmptyArray,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, override } from "mobx"
 import { InteractionState, SeriesName } from "@ourworldindata/types"
 import {
     GRAPHER_AREA_OPACITY_DEFAULT,
@@ -261,14 +261,14 @@ export class StackedAreaChart extends AbstractStackedChart {
         super(props)
     }
 
-    @computed protected get yAxisDomain(): [number, number] {
+    @override protected get yAxisDomain(): [number, number] {
         const yValues = this.allStackedPoints.map(
             (point) => point.value + point.valueOffset
         )
         return [0, _.max(yValues) ?? 0]
     }
 
-    @computed protected get xAxisConfig(): AxisConfig {
+    @override protected get xAxisConfig(): AxisConfig {
         return new AxisConfig(
             {
                 hideGridlines: true,
@@ -769,7 +769,7 @@ export class StackedAreaChart extends AbstractStackedChart {
         return [this.bounds.top, this.bounds.bottom]
     }
 
-    @computed get series(): readonly StackedSeries<number>[] {
+    @override get series(): readonly StackedSeries<number>[] {
         return stackSeries(withMissingValuesAsZeroes(this.unstackedSeries))
     }
 }
