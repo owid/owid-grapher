@@ -646,14 +646,14 @@ export class Explorer
         grapherState.inputTable = BlankOwidTable()
         grapherState.updateFromObject(config)
         if (!config.table) {
-            const inputTable = fetchInputTableForConfig(
-                config.dimensions ?? [],
-                config.selectedEntityColors,
-                this.props.dataApiUrl,
-                this.props.archiveContext,
-                this.props.isPreview,
-                this.props.loadMetadataOnly
-            ).then((owidTable) => (owidTable ? owidTable : BlankOwidTable()))
+            const inputTable = fetchInputTableForConfig({
+                dimensions: config.dimensions,
+                selectedEntityColors: config.selectedEntityColors,
+                dataApiUrl: this.props.dataApiUrl,
+                archiveContext: this.props.archiveContext,
+                noCache: this.props.isPreview,
+                loadMetadataOnly: this.props.loadMetadataOnly,
+            }).then((owidTable) => (owidTable ? owidTable : BlankOwidTable()))
             // We use the PromiseSwitcher here to make sure that only the last
             // of several user triggered load operations in quick succession
             // will actually set the table.
@@ -834,14 +834,14 @@ export class Explorer
             // so we don't end up confusingly showing stale data from a previous chart
             grapherState.inputTable = BlankOwidTable()
         } else {
-            const inputTable = fetchInputTableForConfig(
-                config.dimensions,
-                config.selectedEntityColors,
-                this.props.dataApiUrl,
-                this.props.archiveContext,
-                this.props.isPreview,
-                this.props.loadMetadataOnly
-            ).then((owidTable) => (owidTable ? owidTable : BlankOwidTable()))
+            const inputTable = fetchInputTableForConfig({
+                dimensions: config.dimensions,
+                selectedEntityColors: config.selectedEntityColors,
+                archiveContext: this.props.archiveContext,
+                dataApiUrl: this.props.dataApiUrl,
+                noCache: this.props.isPreview,
+                loadMetadataOnly: this.props.loadMetadataOnly,
+            }).then((owidTable) => (owidTable ? owidTable : BlankOwidTable()))
             // We use the PromiseSwitcher here to make sure that only the last
             // of several user triggered load operations in quick succession
             // will actually set the table.
