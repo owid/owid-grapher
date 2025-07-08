@@ -5,7 +5,6 @@ import {
     TopicPageHit,
 } from "./searchTypes.js"
 import { searchQueryKeys, queryArticles, queryTopicPages } from "./queries.js"
-import { SearchAsDraft } from "./SearchAsDraft.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 import { useInfiniteSearch } from "./searchHooks.js"
 import { SearchShowMore } from "./SearchShowMore.js"
@@ -36,15 +35,8 @@ export const SearchWritingResults = ({
 
     const articles = articlesQuery.hits
     const topicPages = topicPagesQuery.hits
-
-    const totalCount =
-        (articlesQuery.totalResults || 0) + (topicPagesQuery.totalResults || 0)
-
-    // Combined "show more" logic
-    const hasNextPage =
-        (articlesQuery.hasNextPage ?? false) ||
-        (topicPagesQuery.hasNextPage ?? false)
-
+    const totalCount = articlesQuery.totalResults + topicPagesQuery.totalResults
+    const hasNextPage = articlesQuery.hasNextPage || topicPagesQuery.hasNextPage
     const isFetchingNextPage =
         articlesQuery.isFetchingNextPage || topicPagesQuery.isFetchingNextPage
 
@@ -60,49 +52,49 @@ export const SearchWritingResults = ({
 
     if (totalCount === 0) return null
 
-    return (
-        <SearchAsDraft
-            name="Writing Results"
-            className="col-start-2 span-cols-12"
-        >
-            <div className="search-writing-results">
-                <SearchResultHeader
-                    title="Research & Writing"
-                    count={totalCount}
-                />
-                <div className="search-writing-results__container">
-                    {articles.length > 0 && (
-                        <div className="search-writing-results__section">
-                            <div className="search-writing-results__hits-list">
-                                {articles.map((hit) => (
-                                    <SearchFlatArticleHit
-                                        key={hit.objectID}
-                                        hit={hit}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    )}
+    // Calculate interleaved layout: 4 topics for every 5 articles (ratio
+    // maintained proportionally).
+    const interleavedTopicsCount = Math.round((articles.length * 4) / 5)
+    const interleavedTopics = topicPages.slice(0, interleavedTopicsCount)
+    const remainingTopics = topicPages.slice(interleavedTopicsCount)
 
-                    {topicPages.length > 0 && (
-                        <div className="search-writing-results__section">
-                            <div className="search-writing-results__hits-list">
-                                {topicPages.map((hit) => (
-                                    <SearchTopicPageHit
-                                        key={hit.objectID}
-                                        hit={hit}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
-                <SearchShowMore
-                    hasNextPage={hasNextPage}
-                    isFetchingNextPage={isFetchingNextPage}
-                    fetchNextPage={fetchNextPage}
-                />
+    return (
+        <section className="search-writing-results col-start-2 span-cols-12">
+            <SearchResultHeader count={totalCount}>
+                Research & Writing
+            </SearchResultHeader>
+            <div className="search-writing-results__grid">
+                {articles.length > 0 && (
+                    <div className="search-writing-results__articles">
+                        {articles.map((hit) => (
+                            <SearchFlatArticleHit
+                                key={hit.objectID}
+                                hit={hit}
+                            />
+                        ))}
+                    </div>
+                )}
+                {interleavedTopics.length > 0 && (
+                    <div className="search-writing-results__topics">
+                        {interleavedTopics.map((hit) => (
+                            <SearchTopicPageHit key={hit.objectID} hit={hit} />
+                        ))}
+                    </div>
+                )}
+                {remainingTopics.length > 0 && (
+                    <div className="search-writing-results__overflow">
+                        {remainingTopics.map((hit) => (
+                            <SearchTopicPageHit key={hit.objectID} hit={hit} />
+                        ))}
+                    </div>
+                )}
             </div>
-        </SearchAsDraft>
+            {hasNextPage && (
+                <SearchShowMore
+                    isLoading={isFetchingNextPage}
+                    onClick={fetchNextPage}
+                />
+            )}
+        </section>
     )
 }
