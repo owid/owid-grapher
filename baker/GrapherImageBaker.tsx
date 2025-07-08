@@ -127,13 +127,12 @@ export async function grapherToSVG(
     grapher.grapherState.isExportingToSvgOrPng = true
     grapher.grapherState.shouldIncludeDetailsInStaticExport = false
     // grapher.receiveOwidData(vardata)
-    const inputTable = await fetchInputTableForConfig(
-        jsonConfig.dimensions ?? [],
-        jsonConfig.selectedEntityColors,
-        DATA_API_URL,
-        undefined,
-        false
-    )
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: jsonConfig.dimensions ?? [],
+        selectedEntityColors: jsonConfig.selectedEntityColors,
+        dataApiUrl: DATA_API_URL,
+        noCache: false,
+    })
     if (inputTable) grapher.grapherState.inputTable = inputTable
     return grapher.grapherState.generateStaticSvg(
         ReactDOMServer.renderToStaticMarkup
