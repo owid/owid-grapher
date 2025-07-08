@@ -27,7 +27,7 @@
         "jsx": "react-jsx",
 
         "experimentalDecorators": true,
-        "useDefineForClassFields": false,
+        "useDefineForClassFields": true,
         "emitDecoratorMetadata": false,
 
         "isolatedModules": true
