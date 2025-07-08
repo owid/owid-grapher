@@ -117,14 +117,16 @@ export function FetchingGrapher(
         let isCancelled = false
 
         async function fetchData(): Promise<void> {
-            const inputTable = await fetchInputTableForConfig(
-                downloadedConfig?.dimensions ?? props.config?.dimensions ?? [],
-                downloadedConfig?.selectedEntityColors ??
+            const inputTable = await fetchInputTableForConfig({
+                dimensions:
+                    downloadedConfig?.dimensions ?? props.config?.dimensions,
+                selectedEntityColors:
+                    downloadedConfig?.selectedEntityColors ??
                     props.config?.selectedEntityColors,
-                props.dataApiUrl,
-                props.archivedChartInfo,
-                props.noCache
-            )
+                dataApiUrl: props.dataApiUrl,
+                archivedChartInfo: props.archivedChartInfo,
+                noCache: props.noCache,
+            })
 
             if (isCancelled) return
 
