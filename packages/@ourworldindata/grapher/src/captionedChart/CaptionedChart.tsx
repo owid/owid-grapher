@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { computed, makeObservable } from "mobx"
+import { computed, override, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     Bounds,
@@ -372,7 +372,7 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
     }
 
     /** Bounds without details */
-    @computed protected get bounds(): Bounds {
+    @override protected get bounds(): Bounds {
         return (
             this.props.bounds ??
             this.manager.staticBounds ??
@@ -388,7 +388,7 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
     }
 
     /** Bounds of the chart area (without header and footer) */
-    @computed protected get boundsForChartArea(): Bounds {
+    @override protected get boundsForChartArea(): Bounds {
         return this.innerBounds
             .padTop(this.staticHeader.height)
             .padBottom(this.staticFooter.height + this.verticalPadding)
