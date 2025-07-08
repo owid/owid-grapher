@@ -1,42 +1,24 @@
 .search-topic-page-hit {
     display: block;
-    padding: 1rem;
-    border: 1px solid $gray-20;
-    border-radius: 8px;
     text-decoration: none;
-    color: inherit;
-    transition: all 0.2s ease;
+    background-color: $blue-5;
+    padding: 16px;
 
     &:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        transform: translateY(-2px);
+        .search-topic-page-hit__title-text {
+            text-decoration: underline;
+        }
     }
+}
 
-    &__content {
-        display: flex;
-        flex-direction: column;
-    }
+.search-topic-page-hit__title {
+    @include h3-bold;
+    margin: 0;
+    color: $blue-90;
+    margin-bottom: 8px;
+}
 
-    &__header {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-
-    &__title {
-        font-size: 1rem;
-        font-weight: 600;
-        margin: 0;
-        line-height: 1.3;
-        color: $gray-100;
-    }
-
-    &__excerpt {
-        font-size: 0.875rem;
-        color: $gray-70;
-        line-height: 1.4;
-        margin: 0;
-        // see https://github.com/owid/owid-grapher/issues/4982
-        overflow-wrap: anywhere;
-    }
+.search-topic-page-hit__excerpt {
+    @include body-3-regular;
+    color: $blue-60;
 }
