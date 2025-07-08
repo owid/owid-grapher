@@ -24,9 +24,9 @@ import {
     DEFAULT_GRAPHER_HEIGHT,
     DEFAULT_GRAPHER_WIDTH,
 } from "@ourworldindata/grapher"
-import { Highlight } from "react-instantsearch"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { SearchAsDraft } from "./SearchAsDraft.js"
+import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
 
 export function SearchChartHitMedium({
     hit,
@@ -107,30 +107,12 @@ export function SearchChartHitMedium({
         >
             <div className="search-chart-hit-medium__container">
                 <div className="search-chart-hit-medium__content">
-                    <a
-                        href={chartUrl}
-                        className="search-chart-hit-medium__title-link"
+                    <SearchChartHitHeader
+                        hit={hit}
+                        url={chartUrl}
                         onClick={onClick}
-                        data-algolia-index={getIndexName(
-                            SearchIndexName.ExplorerViewsMdimViewsAndCharts
-                        )}
-                        data-algolia-object-id={hit.objectID}
-                        data-algolia-position={hit.__position}
-                    >
-                        <div className="search-chart-hit-medium__title-container">
-                            <Highlight
-                                attribute="title"
-                                highlightedTagName="strong"
-                                classNames={{
-                                    root: "search-chart-hit-medium__title",
-                                }}
-                                hit={hit}
-                            />{" "}
-                            <span className="search-chart-hit-medium__variant">
-                                {hit.variantName}
-                            </span>
-                        </div>
-                    </a>
+                    />
+
                     {entities.length > 0 && (
                         <ul className="search-chart-hit-medium__entities">
                             {entities.map((entity, i) => (
