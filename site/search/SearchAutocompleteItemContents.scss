@@ -21,11 +21,8 @@
     }
 }
 
-.search-autocomplete-item-contents__search-icon {
-    @include body-3-medium;
-    width: 16px;
-    height: 16px;
-    color: $blue-50;
+.search-autocomplete-item-contents__type-icon {
+    @include autocomplete-item-icon;
 }
 
 .search-autocomplete-item-contents__query {
