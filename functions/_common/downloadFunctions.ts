@@ -42,12 +42,11 @@ export async function fetchMetadataForGrapher(
         env
     )
 
-    const inputTable = await fetchInputTableForConfig(
-        grapher.grapherState.dimensions,
-        grapher.grapherState.selectedEntityColors,
-        getDataApiUrl(env),
-        undefined
-    )
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: grapher.grapherState.dimensions,
+        selectedEntityColors: grapher.grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
     grapher.grapherState.inputTable = inputTable
 
     const fullMetadata = assembleMetadata(
@@ -71,12 +70,11 @@ export async function fetchZipForGrapher(
         searchParams ?? new URLSearchParams(""),
         env
     )
-    const inputTable = await fetchInputTableForConfig(
-        grapher.grapherState.dimensions,
-        grapher.grapherState.selectedEntityColors,
-        getDataApiUrl(env),
-        undefined
-    )
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: grapher.grapherState.dimensions,
+        selectedEntityColors: grapher.grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
     grapher.grapherState.inputTable = inputTable
     ensureDownloadOfDataAllowed(grapher.grapherState)
     const metadata = assembleMetadata(grapher.grapherState, searchParams)
@@ -125,12 +123,11 @@ export async function fetchCsvForGrapher(
         searchParams ?? new URLSearchParams(""),
         env
     )
-    const inputTable = await fetchInputTableForConfig(
-        grapher.grapherState.dimensions,
-        grapher.grapherState.selectedEntityColors,
-        getDataApiUrl(env),
-        undefined
-    )
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: grapher.grapherState.dimensions,
+        selectedEntityColors: grapher.grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
     grapher.grapherState.inputTable = inputTable
     console.log("checking if download is allowed")
     ensureDownloadOfDataAllowed(grapher.grapherState)
@@ -172,12 +169,11 @@ export async function fetchReadmeForGrapher(
         env
     )
 
-    const inputTable = await fetchInputTableForConfig(
-        grapher.grapherState.dimensions,
-        grapher.grapherState.selectedEntityColors,
-        getDataApiUrl(env),
-        undefined
-    )
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: grapher.grapherState.dimensions,
+        selectedEntityColors: grapher.grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
     grapher.grapherState.inputTable = inputTable
 
     const readme = assembleReadme(
@@ -235,12 +231,11 @@ export async function fetchDataValuesForGrapher(
         searchParams,
         env
     )
-    const inputTable = await fetchInputTableForConfig(
-        grapher.grapherState.dimensions,
-        grapher.grapherState.selectedEntityColors,
-        getDataApiUrl(env),
-        undefined
-    )
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: grapher.grapherState.dimensions,
+        selectedEntityColors: grapher.grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
     grapher.grapherState.inputTable = inputTable
 
     const { grapherState } = grapher
