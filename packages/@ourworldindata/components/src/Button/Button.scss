@@ -7,6 +7,24 @@
     display: block;
     cursor: pointer;
 
+    &:disabled {
+        cursor: default;
+
+        &.owid-btn--solid-blue,
+        &.owid-btn--solid-dark-blue,
+        &.owid-btn--solid-light-blue,
+        &.owid-btn--solid-vermillion {
+            color: $blue-50;
+            background-color: $blue-10;
+        }
+
+        &.owid-btn--outline-vermillion,
+        &.owid-btn--outline-white {
+            color: $blue-40;
+            border-color: $blue-40;
+        }
+    }
+
     svg {
         font-size: 0.75rem;
     }
@@ -54,6 +72,15 @@
 
     &:hover {
         background-color: #164377;
+    }
+}
+
+.owid-btn--solid-light-blue {
+    background-color: $blue-20;
+    color: $blue-90;
+
+    &:hover {
+        background-color: $blue-10;
     }
 }
 
