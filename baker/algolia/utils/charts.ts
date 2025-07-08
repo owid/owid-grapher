@@ -145,7 +145,7 @@ export const getChartsRecords = async (
             topicHierarchiesByChildName
         )
 
-        const record = {
+        const record: Omit<ChartRecord, "score"> = {
             objectID: c.id.toString(),
             id: `grapher/${c.slug}`,
             type: ChartRecordType.Chart,
@@ -167,7 +167,7 @@ export const getChartsRecords = async (
             numRelatedArticles: relatedArticles.length + linksFromGdocs.length,
             views_7d: pageviews[`/grapher/${c.slug}`]?.views_7d ?? 0,
             isIncomeGroupSpecificFM: false,
-        } as ChartRecord
+        }
         const score = computeChartScore(record)
         records.push({ ...record, score })
     }

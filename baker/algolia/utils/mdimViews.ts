@@ -4,6 +4,7 @@ import {
     DbEnrichedMultiDimDataPage,
     DbPlainMultiDimXChartConfig,
     DbRawChartConfig,
+    excludeUndefined,
     getUniqueNamesFromTopicHierarchies,
     MultiDimDataPageConfigPreProcessed,
     multiDimDimensionsToViewId,
@@ -48,6 +49,7 @@ async function getRecords(
     pageviews: Record<string, { views_7d: number }>
 ) {
     const { slug } = multiDim
+    if (!slug) throw new Error("MultiDim slug is null")
     console.log(
         `Creating ${multiDim.config.views.length} records for mdim ${slug}`
     )
@@ -102,9 +104,9 @@ async function getRecords(
             metadata.name ||
             ""
         const subtitle = metadata.descriptionShort || chartConfig.subtitle || ""
-        const availableEntities = metadata.dimensions.entities.values
-            .map((entity) => entity.name)
-            .filter(Boolean)
+        const availableEntities = excludeUndefined(
+            metadata.dimensions.entities.values.map((entity) => entity.name)
+        )
         const views_7d = pageviews[`/grapher/${slug}`]?.views_7d ?? 0
         const score = views_7d * 10 - title.length
         return {
@@ -117,7 +119,7 @@ async function getRecords(
             title,
             subtitle,
             source: grapherState.sourcesLine,
-            variantName: chartConfig.variantName,
+            variantName: grapherState.variantName,
             availableTabs: grapherState.availableTabs,
             keyChartForTags: [],
             tags,
@@ -130,7 +132,7 @@ async function getRecords(
             views_7d,
             score,
             isIncomeGroupSpecificFM: false,
-        } as ChartRecord
+        } satisfies ChartRecord
     })
 }
 

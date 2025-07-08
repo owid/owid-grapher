@@ -339,7 +339,11 @@ export const makeGrapherStateWithMetadata = (
     return grapherState
 }
 
-export const toPlainText = (markdown?: string): string | undefined => {
+export function toPlainText(markdown: undefined | null): undefined
+export function toPlainText(markdown: string): string
+export function toPlainText(
+    markdown: string | undefined | null
+): string | undefined {
     if (_.isNil(markdown)) return undefined
 
     return new MarkdownTextWrap({
