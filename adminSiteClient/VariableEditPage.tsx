@@ -752,13 +752,12 @@ class VariableEditor extends Component<{
                     noCache: true,
                 }),
         })
-        void fetchInputTableForConfig(
-            this.grapherConfig.dimensions ?? [],
-            this.grapherConfig.selectedEntityColors,
-            DATA_API_URL,
-            undefined,
-            true
-        ).then((inputTable) => {
+        void fetchInputTableForConfig({
+            dimensions: this.grapherConfig.dimensions,
+            selectedEntityColors: this.grapherConfig.selectedEntityColors,
+            dataApiUrl: DATA_API_URL,
+            noCache: true,
+        }).then((inputTable) => {
             if (inputTable) this.grapherState!.inputTable = inputTable
         })
 
