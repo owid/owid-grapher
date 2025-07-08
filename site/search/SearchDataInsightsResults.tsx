@@ -22,10 +22,9 @@ export function SearchDataInsightsResults() {
             className="grid span-cols-12 col-start-2"
         >
             <section className="search-data-insights-results span-cols-12">
-                <SearchResultHeader
-                    title="Data Insights"
-                    count={totalResults}
-                />
+                <SearchResultHeader count={totalResults}>
+                    Data Insights
+                </SearchResultHeader>
                 <div className="search-data-insights-results__hits grid">
                     {hits.map((hit: DataInsightHit) => (
                         <SearchDataInsightHit
@@ -36,12 +35,13 @@ export function SearchDataInsightsResults() {
                     ))}
                 </div>
             </section>
-            <SearchShowMore
-                hasNextPage={query.hasNextPage ?? false}
-                isFetchingNextPage={query.isFetchingNextPage}
-                fetchNextPage={query.fetchNextPage}
-                className="span-cols-12"
-            />
+            {query.hasNextPage && (
+                <SearchShowMore
+                    className="span-cols-12"
+                    isLoading={query.isFetchingNextPage}
+                    onClick={query.fetchNextPage}
+                />
+            )}
         </SearchAsDraft>
     )
 }

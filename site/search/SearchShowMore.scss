@@ -1,27 +1,20 @@
 .search-show-more {
     display: flex;
     justify-content: center;
+    position: relative;
 
-    .search-show-more__button {
-        background-color: $blue-60;
-        color: white;
-        padding: 12px 24px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 200ms ease;
-
-        &:hover:not(:disabled) {
-            background-color: $gray-70;
-        }
-
-        &:disabled {
-            background-color: $blue-30;
-            cursor: not-allowed;
-        }
-
-        &--loading {
-            opacity: 0.8;
-        }
+    &::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background-color: $blue-20;
+        z-index: -1;
     }
+}
+
+.search-show-more__button {
+    border: 2px solid $white;
 }

@@ -1,52 +1,51 @@
+import cx from "classnames"
+import { Snippet } from "react-instantsearch"
 import { getCanonicalPath } from "@ourworldindata/components"
 import { OwidGdocType } from "@ourworldindata/types"
-import { formatAuthors } from "@ourworldindata/utils"
-import { Snippet } from "react-instantsearch"
-import DataInsightDateline from "../gdocs/components/DataInsightDateline.js"
+import { formatAuthors, formatDate } from "@ourworldindata/utils"
 import { FlatArticleHit } from "./searchTypes.js"
-import { SearchAsDraft } from "./SearchAsDraft.js"
 
-export function SearchFlatArticleHit({ hit }: { hit: FlatArticleHit }) {
+export function SearchFlatArticleHit({
+    className,
+    hit,
+}: {
+    className?: string
+    hit: FlatArticleHit
+}) {
     const isArticle = hit.type === OwidGdocType.Article
     return (
-        <SearchAsDraft name="Article Hit">
-            <a
-                className="search-flat-article-hit"
-                href={getCanonicalPath(hit.slug, hit.type)}
-            >
-                <article className="search-flat-article-hit__content">
-                    {hit.thumbnailUrl && (
-                        <div className="search-flat-article-hit__image-container">
-                            <img
-                                src={hit.thumbnailUrl}
-                                role="presentation"
-                                className="search-flat-article-hit__image"
-                                alt=""
-                            />
-                        </div>
-                    )}
-                    <div className="search-flat-article-hit__text">
-                        <header className="search-flat-article-hit__header">
-                            {isArticle && hit.date && (
-                                <DataInsightDateline
-                                    className="search-flat-article-hit__dateline"
-                                    publishedAt={new Date(hit.date)}
-                                    formatOptions={{
-                                        year: "numeric",
-                                        month: "long",
-                                        day: "2-digit",
-                                    }}
-                                />
-                            )}
-                            <h3 className="search-flat-article-hit__title">
-                                {hit.title}
-                            </h3>
-                            {isArticle && (
-                                <span className="search-flat-article-hit__authors">
-                                    {formatAuthors(hit.authors)}
-                                </span>
-                            )}
-                        </header>
+        <a
+            className={cx("search-flat-article-hit", className)}
+            href={getCanonicalPath(hit.slug, hit.type)}
+        >
+            <article className="search-flat-article-hit__content">
+                {hit.thumbnailUrl && (
+                    <div className="search-flat-article-hit__image-container">
+                        <img
+                            src={hit.thumbnailUrl}
+                            role="presentation"
+                            className="search-flat-article-hit__image"
+                            alt=""
+                        />
+                    </div>
+                )}
+                <div className="search-flat-article-hit__text">
+                    <header>
+                        {isArticle && hit.date && (
+                            <div className="search-flat-article-hit__date">
+                                {formatDate(new Date(hit.date))}
+                            </div>
+                        )}
+                        <h3 className="search-flat-article-hit__title">
+                            {hit.title}
+                        </h3>
+                    </header>
+                    <div className="search-flat-article-hit__authors-and-excerpt">
+                        {isArticle && (
+                            <span className="search-flat-article-hit__authors">
+                                by {formatAuthors(hit.authors)} —{" "}
+                            </span>
+                        )}
                         <Snippet
                             className="search-flat-article-hit__excerpt"
                             attribute="content"
@@ -54,8 +53,8 @@ export function SearchFlatArticleHit({ hit }: { hit: FlatArticleHit }) {
                             hit={hit}
                         />
                     </div>
-                </article>
-            </a>
-        </SearchAsDraft>
+                </div>
+            </article>
+        </a>
     )
 }

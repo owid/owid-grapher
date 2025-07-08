@@ -1,33 +1,26 @@
 import cx from "classnames"
-import { SearchAsDraft } from "./SearchAsDraft.js"
+import { Button } from "@ourworldindata/components"
 
 export const SearchShowMore = ({
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
     className,
+    isLoading,
+    onClick,
 }: {
-    hasNextPage: boolean
-    isFetchingNextPage: boolean
-    fetchNextPage: () => void
     className?: string
+    isLoading: boolean
+    onClick: () => void
 }) => {
-    if (!hasNextPage) return null
-
     return (
-        <SearchAsDraft name="Show More" className={className}>
-            <div className="search-show-more">
-                <button
-                    className={cx("search-show-more__button", {
-                        "search-show-more__button--loading": isFetchingNextPage,
-                    })}
-                    onClick={fetchNextPage}
-                    disabled={isFetchingNextPage}
-                    aria-label="Load more results"
-                >
-                    {isFetchingNextPage ? "Loading..." : "Show more"}
-                </button>
-            </div>
-        </SearchAsDraft>
+        <div className={cx("search-show-more", className)}>
+            <Button
+                className="search-show-more__button"
+                theme="solid-light-blue"
+                icon={null}
+                text={isLoading ? "Loading..." : "Show more"}
+                onClick={onClick}
+                disabled={isLoading}
+                ariaLabel="Load more results"
+            />
+        </div>
     )
 }
