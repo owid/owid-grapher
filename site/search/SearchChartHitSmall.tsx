@@ -9,7 +9,7 @@ import {
     GrapherValuesJsonDataPoint,
     TimeBounds,
 } from "@ourworldindata/types"
-import { SearchChartHit, SearchIndexName } from "./searchTypes.js"
+import { SearchChartHit } from "./searchTypes.js"
 import {
     constructChartUrl,
     constructChartInfoUrl,
@@ -18,8 +18,6 @@ import {
     toGrapherQueryParams,
 } from "./searchUtils.js"
 import { HitAttributeHighlightResult } from "instantsearch.js"
-import { getIndexName } from "./searchClient.js"
-import { Highlight } from "react-instantsearch"
 import { GrapherTabIcon } from "@ourworldindata/components"
 import { useIntersectionObserver } from "usehooks-ts"
 import { chartHitQueryKeys } from "./queries.js"
@@ -34,6 +32,7 @@ import {
     SearchChartHitDataDisplayProps,
 } from "./SearchChartHitDataDisplay.js"
 import { match } from "ts-pattern"
+import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
 
 export function SearchChartHitSmall({
     hit,
@@ -110,37 +109,12 @@ export function SearchChartHitSmall({
     return (
         <article ref={ref} className="search-chart-hit-small">
             <div className="search-chart-hit-small__content">
-                <a
-                    href={chartUrl}
-                    className="search-chart-hit-small__title-link"
+                <SearchChartHitHeader
+                    hit={hit}
+                    url={chartUrl}
+                    source={chartInfo?.source}
                     onClick={onClick}
-                    data-algolia-index={getIndexName(
-                        SearchIndexName.ExplorerViewsMdimViewsAndCharts
-                    )}
-                    data-algolia-object-id={hit.objectID}
-                    data-algolia-position={hit.__position}
-                >
-                    <header className="search-chart-hit-small__header">
-                        <div className="search-chart-hit-small__title-container">
-                            <h3 className="search-chart-hit-small__title">
-                                {hit.title}
-                            </h3>
-                            {chartInfo?.source && (
-                                <span className="search-chart-hit-small__source">
-                                    {chartInfo.source}
-                                </span>
-                            )}
-                        </div>
-                        <Highlight
-                            hit={hit}
-                            attribute="subtitle"
-                            highlightedTagName="strong"
-                            classNames={{
-                                root: "search-chart-hit-small__subtitle",
-                            }}
-                        />
-                    </header>
-                </a>
+                />
                 <div className="search-chart-hit-small__tabs-container">
                     {hit.availableTabs.map((tab) => {
                         // Single-time line charts are rendered as bar charts
