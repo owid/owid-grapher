@@ -29,7 +29,9 @@ export const SearchDataResults = ({
     return (
         <SearchAsDraft name="Data Results" className="span-cols-12 col-start-2">
             <div className="search-data-results__hits">
-                <SearchResultHeader title="Data" count={totalResults} />
+                <SearchResultHeader count={totalResults}>
+                    Data
+                </SearchResultHeader>
                 <ul className="search-data-results__list">
                     {hits.map((hit, i) => {
                         const isFirstResult = i === 0
@@ -77,11 +79,12 @@ export const SearchDataResults = ({
                     })}
                 </ul>
             </div>
-            <SearchShowMore
-                hasNextPage={query.hasNextPage ?? false}
-                isFetchingNextPage={query.isFetchingNextPage}
-                fetchNextPage={query.fetchNextPage}
-            />
+            {query.hasNextPage && (
+                <SearchShowMore
+                    isLoading={query.isFetchingNextPage}
+                    onClick={query.fetchNextPage}
+                />
+            )}
         </SearchAsDraft>
     )
 }
