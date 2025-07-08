@@ -1,14 +1,17 @@
 .search-result-header {
-    &__content {
-        display: flex;
-        align-items: baseline;
-        gap: 1rem;
-        flex-wrap: wrap;
-    }
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 16px;
+    color: $blue-60;
+}
 
-    &__title {
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin: 0;
-    }
+.search-result-header__title {
+    @include h2-bold;
+    margin: 0;
+}
+
+.search-result-header__count {
+    @include note-13-medium;
+    font-style: italic;
 }
