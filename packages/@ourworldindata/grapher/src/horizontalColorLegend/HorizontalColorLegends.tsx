@@ -163,9 +163,8 @@ export abstract class HorizontalColorLegend extends React.Component<{
 export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    constructor() {
-        // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
-        super()
+    constructor(props: { manager: HorizontalColorLegendManager }) {
+        super(props)
 
         makeObservable(this)
     }
@@ -637,9 +636,8 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
     private rectPadding = 5
     private markPadding = 5
 
-    constructor() {
-        // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
-        super()
+    constructor(props: { manager: HorizontalColorLegendManager }) {
+        super(props)
 
         makeObservable(this)
     }

@@ -31,7 +31,7 @@ export class ChartEditorPage
     implements ChartEditorManager, ChartEditorViewManager<ChartEditor>
 {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable logs: Log[] = []
     @observable references: References | undefined = undefined

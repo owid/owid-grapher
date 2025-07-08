@@ -24,7 +24,7 @@ export class IndicatorChartEditorPage
         ChartEditorViewManager<IndicatorChartEditor>
 {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     references: References | undefined = undefined
 

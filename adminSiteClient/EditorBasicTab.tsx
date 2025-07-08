@@ -8,7 +8,7 @@ import {
     when,
     computed,
     makeObservable,
-} from "mobx";
+} from "mobx"
 import { observer } from "mobx-react"
 import {
     EntitySelectionMode,
@@ -73,16 +73,14 @@ class DimensionSlotView<
 
     @observable.ref isSelectingVariables: boolean = false
 
-    constructor(
-        props: {
-            slot: DimensionSlot
-            editor: Editor
-            database: EditorDatabase
-            errorMessagesForDimensions: ErrorMessagesForDimensions
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: {
+        slot: DimensionSlot
+        editor: Editor
+        database: EditorDatabase
+        errorMessagesForDimensions: ErrorMessagesForDimensions
+    }) {
+        super(props)
+        makeObservable(this)
     }
 
     private get editor() {
@@ -374,15 +372,13 @@ class VariablesSection<
     base: React.RefObject<HTMLDivElement> = React.createRef()
     @observable.ref isAddingVariable: boolean = false
 
-    constructor(
-        props: {
-            editor: Editor
-            database: EditorDatabase
-            errorMessagesForDimensions: ErrorMessagesForDimensions
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: {
+        editor: Editor
+        database: EditorDatabase
+        errorMessagesForDimensions: ErrorMessagesForDimensions
+    }) {
+        super(props)
+        makeObservable(this)
     }
 
     render() {
@@ -457,19 +453,17 @@ export class EditorBasicTab<
     errorMessagesForDimensions: ErrorMessagesForDimensions
 }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     private chartTypeOptionNone = "None"
 
-    constructor(
-        props: {
-            editor: Editor
-            database: EditorDatabase
-            errorMessagesForDimensions: ErrorMessagesForDimensions
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: {
+        editor: Editor
+        database: EditorDatabase
+        errorMessagesForDimensions: ErrorMessagesForDimensions
+    }) {
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound private updateParentConfig() {

@@ -8,7 +8,7 @@ import {
     reaction,
     IReactionDisposer,
     makeObservable,
-} from "mobx";
+} from "mobx"
 import * as lodash from "lodash-es"
 
 import { AdminLayout } from "./AdminLayout.js"
@@ -21,7 +21,7 @@ import urljoin from "url-join"
 @observer
 export class VariablesIndexPage extends Component {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable variables: VariableListItem[] = []
     @observable maxVisibleRows = 50
@@ -29,9 +29,9 @@ export class VariablesIndexPage extends Component {
     @observable searchInput?: string
     @observable highlightSearch?: string
 
-    constructor(props) {
-        super(props);
-        makeObservable(this);
+    constructor(props: Record<string, never>) {
+        super(props)
+        makeObservable(this)
     }
 
     @computed get variablesToShow(): VariableListItem[] {

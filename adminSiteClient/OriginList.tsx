@@ -9,7 +9,7 @@ export class OriginList extends Component<{
     origins: OwidOrigin[]
 }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     render() {
         const { origins } = this.props

@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as lodash from "lodash-es"
-import { observable, action, makeObservable } from "mobx";
+import { observable, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     KeyChartLevel,
@@ -29,26 +29,24 @@ export class EditableTags extends React.Component<{
     taggable?: TaggableItem
 }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable isEditing: boolean = false
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @observable tags: DbChartTagJoin[] = lodash.clone(this.props.tags)
 
-    constructor(
-        props: {
-            tags: DbChartTagJoin[]
-            suggestions: DbChartTagJoin[]
-            onSave: (tags: DbChartTagJoin[]) => void
-            disabled?: boolean
-            hasKeyChartSupport?: boolean
-            hasSuggestionsSupport?: boolean
-            taggable?: TaggableItem
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: {
+        tags: DbChartTagJoin[]
+        suggestions: DbChartTagJoin[]
+        onSave: (tags: DbChartTagJoin[]) => void
+        disabled?: boolean
+        hasKeyChartSupport?: boolean
+        hasSuggestionsSupport?: boolean
+        taggable?: TaggableItem
+    }) {
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound onAddTag(tag: DbChartTagJoin) {

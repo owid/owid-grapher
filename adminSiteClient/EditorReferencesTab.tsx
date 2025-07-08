@@ -8,7 +8,7 @@ import {
     getFullReferencesCount,
     isChartEditorInstance,
 } from "./ChartEditor.js"
-import { computed, action, observable, runInAction, makeObservable } from "mobx";
+import { computed, action, observable, runInAction, makeObservable } from "mobx"
 import {
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
@@ -59,13 +59,9 @@ export class EditorReferencesTab<
 export class EditorReferencesTabForChart extends Component<{
     editor: ChartEditor
 }> {
-    constructor(
-        props: {
-            editor: ChartEditor
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: { editor: ChartEditor }) {
+        super(props)
+        makeObservable(this)
     }
 
     @computed get isPersisted() {
@@ -194,13 +190,9 @@ export class EditorReferencesTabForChart extends Component<{
 export class EditorReferencesTabForNarrativeChart extends Component<{
     editor: NarrativeChartEditor
 }> {
-    constructor(
-        props: {
-            editor: NarrativeChartEditor
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: { editor: NarrativeChartEditor }) {
+        super(props)
+        makeObservable(this)
     }
 
     @computed get references() {
@@ -248,21 +240,19 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<{
     onSuccess: (redirect: ChartRedirect) => void
 }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable slug?: string = ""
 
     @observable isLoading: boolean = false
     @observable errorMessage?: string
 
-    constructor(
-        props: {
-            editor: Editor
-            onSuccess: (redirect: ChartRedirect) => void
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: {
+        editor: Editor
+        onSuccess: (redirect: ChartRedirect) => void
+    }) {
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound onChange(slug: string) {

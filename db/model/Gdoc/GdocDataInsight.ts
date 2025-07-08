@@ -19,7 +19,7 @@ export class GdocDataInsight
     extends GdocBase
     implements OwidGdocDataInsightInterface
 {
-    content!: OwidGdocDataInsightContent
+    declare content: OwidGdocDataInsightContent
     _omittableFields = ["grapher-url", "narrative-chart", "figma-url"]
 
     constructor(id?: string) {

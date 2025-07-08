@@ -1,6 +1,13 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-import { observable, action, runInAction, toJS, computed, makeObservable } from "mobx";
+import {
+    observable,
+    action,
+    runInAction,
+    toJS,
+    computed,
+    makeObservable,
+} from "mobx"
 import * as lodash from "lodash-es"
 import { AdminLayout } from "./AdminLayout.js"
 import {
@@ -93,16 +100,14 @@ class AddChildForm extends React.Component<{
     @observable isAddingTag: boolean = false
     @observable autocompleteValue: string = ""
 
-    constructor(
-        props: {
-            tags: MinimalTagWithIsTopic[]
-            label: string
-            setChild: (parentId: number, childId: number) => void
-            parentId: number
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: {
+        tags: MinimalTagWithIsTopic[]
+        label: string
+        setChild: (parentId: number, childId: number) => void
+        parentId: number
+    }) {
+        super(props)
+        makeObservable(this)
     }
 
     render() {
@@ -174,7 +179,7 @@ class TagGraphNodeContainer extends React.Component<{
 }> {
     constructor(props: any) {
         super(props)
-        makeObservable(this);
+        makeObservable(this)
         this.handleUpdateWeight = this.handleUpdateWeight.bind(this)
     }
 
@@ -315,11 +320,11 @@ function insertChildAndSort(
 @observer
 export class TagGraphPage extends React.Component {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     constructor(props: Readonly<unknown>) {
         super(props)
-        makeObservable(this);
+        makeObservable(this)
         this.handleDragEnd = this.handleDragEnd.bind(this)
         this.setWeight = this.setWeight.bind(this)
         this.setChild = this.setChild.bind(this)

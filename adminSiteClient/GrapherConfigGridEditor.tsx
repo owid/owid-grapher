@@ -36,7 +36,7 @@ import {
     autorun,
     reaction,
     makeObservable,
-} from "mobx";
+} from "mobx"
 import { match, P } from "ts-pattern"
 
 import { BaseEditorComponent, HotColumn, HotTable } from "@handsontable/react"
@@ -178,7 +178,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     @observable.ref columnSelection: ColumnInformation[] = []
     @observable.ref filterState: FilterPanelState | undefined = undefined
 
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
     /** This array contains a description for every column, information like which field
         to display, what editor control should be used, ... */
     @observable.ref fieldDescriptions: FieldDescription[] | undefined =
@@ -205,11 +205,11 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     @observable sortByColumn: string = "id"
     @observable sortByAscending: boolean = false
     readonly config: GrapherConfigGridEditorConfig
-    disposers: Disposer[] = []
+    disposers: Array<() => void> = []
 
     constructor(props: GrapherConfigGridEditorProps) {
         super(props)
-        makeObservable(this);
+        makeObservable(this)
         this.config = props.config
         this.currentColumnSet = this.config.columnSet[0]
     }

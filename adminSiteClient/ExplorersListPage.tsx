@@ -9,7 +9,7 @@ import {
     reaction,
     runInAction,
     makeObservable,
-} from "mobx";
+} from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
 import {
@@ -165,7 +165,7 @@ export class ExplorersIndexPage extends Component<{
     manager?: AdminManager
 }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable explorers: ExplorerProgram[] = []
     @observable maxVisibleRows = 50
@@ -173,13 +173,9 @@ export class ExplorersIndexPage extends Component<{
     @observable searchInput?: string
     @observable highlightSearch?: string
 
-    constructor(
-        props: {
-            manager?: AdminManager
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: { manager?: AdminManager }) {
+        super(props)
+        makeObservable(this)
     }
 
     @computed get explorersToShow(): ExplorerProgram[] {

@@ -7,7 +7,7 @@ import {
     autorun,
     IReactionDisposer,
     makeObservable,
-} from "mobx";
+} from "mobx"
 import YAML from "yaml"
 import * as _ from "lodash-es"
 import { Prompt, Redirect } from "react-router-dom"
@@ -118,7 +118,7 @@ class VariableEditable
     @observable source: OwidSource | undefined = undefined
 
     constructor(json: any) {
-        makeObservable(this);
+        makeObservable(this)
         for (const key in this) {
             if (key === "display") _.extend(this.display, json.display)
             else if (key === "presentation")
@@ -136,13 +136,9 @@ class VariableEditor extends Component<{
     @observable newVariable!: VariableEditable
     @observable isDeleted: boolean = false
 
-    constructor(
-        props: {
-            variable: VariablePageData
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: { variable: VariablePageData }) {
+        super(props)
+        makeObservable(this)
     }
 
     // Store the original dataset to determine when it is modified
@@ -155,7 +151,7 @@ class VariableEditor extends Component<{
     }
 
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable.ref grapherState?: GrapherState
 
@@ -760,13 +756,13 @@ class VariableEditor extends Component<{
 @observer
 export class VariableEditPage extends Component<{ variableId: number }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable variable?: VariablePageData
 
     constructor(props: { variableId: number }) {
-        super(props);
-        makeObservable(this);
+        super(props)
+        makeObservable(this)
     }
 
     render() {

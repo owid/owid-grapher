@@ -574,9 +574,8 @@ abstract class AbstractAxis {
 }
 
 export class HorizontalAxis extends AbstractAxis {
-    constructor() {
-        // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
-        super()
+    constructor(config: AxisConfig, axisManager?: AxisManager) {
+        super(config, axisManager)
 
         makeObservable(this)
     }
@@ -700,9 +699,8 @@ export class HorizontalAxis extends AbstractAxis {
 }
 
 export class VerticalAxis extends AbstractAxis {
-    constructor() {
-        // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
-        super()
+    constructor(config: AxisConfig, axisManager?: AxisManager) {
+        super(config, axisManager)
 
         makeObservable(this)
     }

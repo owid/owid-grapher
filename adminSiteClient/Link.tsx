@@ -10,7 +10,7 @@ interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
 
 export class Link extends React.Component<LinkProps> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     render() {
         const { native, to, ...rest } = this.props

@@ -17,7 +17,6 @@ import * as R from "remeda"
 
 export class MapSelectionArray extends SelectionArray {
     constructor() {
-        // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
         super()
 
         makeObservable(this)

@@ -32,7 +32,7 @@ import { Link } from "./Link.js"
 import { GdocsAdd } from "./GdocsAdd.js"
 import { observer } from "mobx-react"
 import { GdocsStoreContext } from "./GdocsStoreContext.js"
-import { computed, observable, makeObservable } from "mobx";
+import { computed, observable, makeObservable } from "mobx"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 
@@ -136,7 +136,7 @@ type GdocsSearchFilters = Record<OwidGdocType, boolean> & {
 @observer
 export class GdocsIndexPage extends React.Component<RouteComponentProps> {
     static contextType = GdocsStoreContext
-    context!: React.ContextType<typeof GdocsStoreContext>
+    declare context: React.ContextType<typeof GdocsStoreContext>
 
     @observable filters: GdocsSearchFilters = {
         [OwidGdocType.Fragment]: false,
@@ -153,8 +153,8 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
     @observable search = { value: "" }
 
     constructor(props: RouteComponentProps) {
-        super(props);
-        makeObservable(this);
+        super(props)
+        makeObservable(this)
     }
 
     @computed get searchWords(): SearchWord[] {

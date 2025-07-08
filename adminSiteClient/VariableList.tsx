@@ -26,7 +26,7 @@ class VariableRow extends React.Component<{
     searchHighlight?: (text: string) => string | React.ReactElement
 }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     render() {
         const { variable, fields, searchHighlight } = this.props
@@ -93,7 +93,7 @@ export class VariableList extends React.Component<{
     searchHighlight?: (text: string) => string | React.ReactElement
 }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     render() {
         const { props } = this

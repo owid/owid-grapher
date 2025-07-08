@@ -24,7 +24,7 @@ import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
 import { getLatestChartArchivedVersionsIfEnabled } from "../archival/archivalDb.js"
 
 export class GdocPost extends GdocBase implements OwidGdocPostInterface {
-    content!: OwidGdocPostContent
+    content: OwidGdocPostContent
 
     constructor(id?: string) {
         super(id)

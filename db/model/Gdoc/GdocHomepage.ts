@@ -18,7 +18,7 @@ export class GdocHomepage
     extends GdocBase
     implements OwidGdocHomepageInterface
 {
-    content!: OwidGdocHomepageContent
+    declare content: OwidGdocHomepageContent
 
     constructor(id?: string) {
         super(id)

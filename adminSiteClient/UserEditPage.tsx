@@ -1,6 +1,6 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
-import { observable, runInAction, makeObservable } from "mobx";
+import { observable, runInAction, makeObservable } from "mobx"
 import { BindString, Toggle } from "./Forms.js"
 import { Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout.js"
@@ -10,14 +10,14 @@ import { UserIndexMeta } from "./UserMeta.js"
 @observer
 export class UserEditPage extends Component<{ userId: number }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable user?: UserIndexMeta
     @observable isSaved: boolean = false
 
     constructor(props: { userId: number }) {
-        super(props);
-        makeObservable(this);
+        super(props)
+        makeObservable(this)
     }
 
     render() {

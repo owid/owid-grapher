@@ -1,5 +1,5 @@
 import * as React from "react"
-import { observable, action, makeObservable } from "mobx";
+import { observable, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import * as lodash from "lodash-es"
 import { bind } from "decko"
@@ -34,17 +34,15 @@ class DatasetRow extends React.Component<{
     searchHighlight?: (text: string) => string | React.ReactElement
 }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
-    constructor(
-        props: {
-            dataset: DatasetListItem
-            availableTags: DbChartTagJoin[]
-            searchHighlight?: (text: string) => string | React.ReactElement
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: {
+        dataset: DatasetListItem
+        availableTags: DbChartTagJoin[]
+        searchHighlight?: (text: string) => string | React.ReactElement
+    }) {
+        super(props)
+        makeObservable(this)
     }
 
     async saveTags(tags: DbChartTagJoin[]) {
@@ -114,18 +112,16 @@ export class DatasetList extends React.Component<{
     searchHighlight?: (text: string) => string | React.ReactElement
 }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable availableTags: DbChartTagJoin[] = []
 
-    constructor(
-        props: {
-            datasets: DatasetListItem[]
-            searchHighlight?: (text: string) => string | React.ReactElement
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: {
+        datasets: DatasetListItem[]
+        searchHighlight?: (text: string) => string | React.ReactElement
+    }) {
+        super(props)
+        makeObservable(this)
     }
 
     @bind async getTags() {

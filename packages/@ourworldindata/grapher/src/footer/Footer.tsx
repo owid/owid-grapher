@@ -647,9 +647,8 @@ interface StaticFooterProps extends FooterProps {
 export class StaticFooter extends AbstractFooter<StaticFooterProps> {
     verticalPadding = 4.5
 
-    constructor() {
-        // TODO: [mobx-undecorate] verify the constructor arguments and the arguments of this automatically generated super call
-        super()
+    constructor(props: StaticFooterProps) {
+        super(props)
 
         makeObservable(this)
     }
