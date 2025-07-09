@@ -13,9 +13,9 @@ export function SearchDataInsightsResults() {
         queryFn: queryDataInsights,
     })
 
-    const { hits, totalResults, isLoading } = query
+    const { hits, totalResults, isInitialLoading } = query
 
-    if (isLoading) return <SearchDataInsightsResultsSkeleton />
+    if (isInitialLoading) return <SearchDataInsightsResultsSkeleton />
     if (totalResults === 0) return null
 
     return (

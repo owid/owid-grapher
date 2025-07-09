@@ -17,7 +17,7 @@ export const SearchDataTopicsResults = () => {
             queryDataTopics(searchClient, state, topicTagGraph, selectedTopic),
     })
 
-    if (query.isLoading) return <SearchDataTopicsResultsSkeleton />
+    if (query.isInitialLoading) return <SearchDataTopicsResultsSkeleton />
     if (!query.data?.length) return null
 
     return (
