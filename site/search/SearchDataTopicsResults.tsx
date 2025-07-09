@@ -5,6 +5,7 @@ import { useSelectedTopic } from "./searchHooks.js"
 import { SearchAsDraft } from "./SearchAsDraft.js"
 import { SearchDataTopicsResponse } from "./searchTypes.js"
 import { SearchDataTopic } from "./SearchDataTopic.js"
+import { SearchDataTopicsResultsSkeleton } from "./SearchDataTopicsResultsSkeleton.js"
 
 export const SearchDataTopicsResults = () => {
     const { state, searchClient, topicTagGraph } = useSearchContext()
@@ -16,6 +17,7 @@ export const SearchDataTopicsResults = () => {
             queryDataTopics(searchClient, state, topicTagGraph, selectedTopic),
     })
 
+    if (query.isLoading) return <SearchDataTopicsResultsSkeleton />
     if (!query.data?.length) return null
 
     return (
