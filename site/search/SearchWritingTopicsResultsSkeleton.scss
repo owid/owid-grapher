@@ -1,0 +1,61 @@
+.search-writing-topic__header--skeleton {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.search-writing-topic__title--skeleton {
+    background-color: $blue-10;
+    height: 24px;
+    width: 200px;
+}
+
+.search-writing-topic__count--skeleton {
+    background-color: $blue-10;
+    height: 18px;
+    width: 150px;
+}
+
+.search-writing-topic__sub-title--skeleton {
+    background-color: $blue-10;
+    height: 18px;
+    width: 120px;
+    margin-bottom: 12px;
+}
+
+.search-writing-topic__featured-articles--skeleton {
+    flex: 1;
+}
+
+.search-stacked-article-hit-skeleton {
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.search-stacked-article-hit-skeleton__image {
+    background-color: $blue-20;
+    min-height: 128px;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.search-stacked-article-hit-skeleton__title {
+    background-color: $blue-10;
+    height: 18px;
+    width: 100%;
+    margin-bottom: 4px;
+}
+
+.search-stacked-article-hit-skeleton__excerpt {
+    background-color: $blue-10;
+    height: 80px;
+    width: 100%;
+}
+
+.search-writing-topic-link-skeleton {
+    list-style: none;
+    height: 21px;
+    width: 90%;
+    background-color: $blue-10;
+}
