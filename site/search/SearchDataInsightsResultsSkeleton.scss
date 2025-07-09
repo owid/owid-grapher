@@ -1,0 +1,23 @@
+.search-data-insight-hit-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.search-data-insight-hit-skeleton__image {
+    background-color: $gray-10;
+    width: 100%;
+    height: 300px;
+}
+
+.search-data-insight-hit-skeleton__title {
+    background-color: $blue-10;
+    height: 20px;
+    width: 100%;
+}
+
+.search-data-insight-hit-skeleton__date {
+    background-color: $gray-10;
+    height: 16px;
+    width: 90%;
+}
