@@ -23,9 +23,9 @@ export const SearchDataResults = ({
         queryFn: queryCharts,
     })
 
-    const { hits, totalResults, isLoading } = query
+    const { hits, totalResults, isInitialLoading } = query
 
-    if (isLoading) return <SearchDataResultsSkeleton />
+    if (isInitialLoading) return <SearchDataResultsSkeleton />
     if (totalResults === 0) return null
 
     return (
