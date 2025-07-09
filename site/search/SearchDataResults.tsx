@@ -7,6 +7,7 @@ import { useSelectedCountries, useInfiniteSearch } from "./searchHooks.js"
 import { SearchAsDraft } from "./SearchAsDraft.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 import { SearchChartsResponse, SearchChartHit } from "./searchTypes.js"
+import { SearchDataResultsSkeleton } from "./SearchDataResultsSkeleton.js"
 
 const analytics = new SiteAnalytics()
 
@@ -22,8 +23,9 @@ export const SearchDataResults = ({
         queryFn: queryCharts,
     })
 
-    const { hits, totalResults } = query
+    const { hits, totalResults, isLoading } = query
 
+    if (isLoading) return <SearchDataResultsSkeleton />
     if (totalResults === 0) return null
 
     return (
