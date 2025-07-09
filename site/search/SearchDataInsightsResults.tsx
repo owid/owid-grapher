@@ -5,6 +5,7 @@ import { SearchDataInsightHit } from "./SearchDataInsightHit.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 import { SearchShowMore } from "./SearchShowMore.js"
 import { useInfiniteSearch } from "./searchHooks.js"
+import { SearchDataInsightsResultsSkeleton } from "./SearchDataInsightsResultsSkeleton.js"
 
 export function SearchDataInsightsResults() {
     const query = useInfiniteSearch<SearchDataInsightResponse, DataInsightHit>({
@@ -12,8 +13,9 @@ export function SearchDataInsightsResults() {
         queryFn: queryDataInsights,
     })
 
-    const { hits, totalResults } = query
+    const { hits, totalResults, isLoading } = query
 
+    if (isLoading) return <SearchDataInsightsResultsSkeleton />
     if (totalResults === 0) return null
 
     return (
