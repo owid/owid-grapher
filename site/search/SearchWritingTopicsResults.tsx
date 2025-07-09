@@ -4,6 +4,7 @@ import { useSearchContext } from "./SearchContext.js"
 import { useSelectedTopic } from "./searchHooks.js"
 import { SearchWritingTopicsResponse } from "./searchTypes.js"
 import { SearchWritingTopic } from "./SearchWritingTopic.js"
+import { SearchWritingTopicsResultsSkeleton } from "./SearchWritingTopicsResultsSkeleton.js"
 
 export const SearchWritingTopicsResults = () => {
     const { state, searchClient, topicTagGraph } = useSearchContext()
@@ -15,6 +16,7 @@ export const SearchWritingTopicsResults = () => {
             queryWritingTopics(searchClient, topicTagGraph, selectedTopic),
     })
 
+    if (query.isLoading) return <SearchWritingTopicsResultsSkeleton />
     if (!query.data?.length) return null
 
     return (
