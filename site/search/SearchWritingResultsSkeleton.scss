@@ -1,0 +1,46 @@
+.search-writing-results-skeleton {
+    @extend .animate-pulse;
+    margin-bottom: 42px; // Space for show more button.
+}
+
+.search-flat-article-hit-skeleton {
+    display: flex;
+    gap: 1rem;
+}
+
+.search-flat-article-hit-skeleton__image {
+    background-color: $gray-10;
+    width: 84px;
+    height: 84px;
+}
+
+.search-flat-article-hit-skeleton__text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 8px;
+}
+
+.search-flat-article-hit-skeleton__title {
+    background-color: $blue-10;
+    height: 20px;
+    width: 100%;
+}
+
+.search-flat-article-hit-skeleton__date {
+    background-color: $gray-10;
+    height: 14px;
+    width: 80px;
+}
+
+.search-flat-article-hit-skeleton__authors-and-excerpt {
+    background-color: $gray-10;
+    height: 32px;
+    width: 90%;
+}
+
+.search-topic-page-hit-skeleton {
+    background-color: $blue-10;
+    height: 128px;
+    width: 100%;
+}
