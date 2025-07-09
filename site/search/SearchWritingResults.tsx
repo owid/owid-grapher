@@ -10,6 +10,7 @@ import { useInfiniteSearch } from "./searchHooks.js"
 import { SearchShowMore } from "./SearchShowMore.js"
 import { SearchFlatArticleHit } from "./SearchFlatArticleHit.js"
 import { SearchTopicPageHit } from "./SearchTopicPageHit.js"
+import { SearchWritingResultsSkeleton } from "./SearchWritingResultsSkeleton.js"
 
 export const SearchWritingResults = ({
     hasTopicPages = true,
@@ -39,6 +40,7 @@ export const SearchWritingResults = ({
     const hasNextPage = articlesQuery.hasNextPage || topicPagesQuery.hasNextPage
     const isFetchingNextPage =
         articlesQuery.isFetchingNextPage || topicPagesQuery.isFetchingNextPage
+    const isLoading = articlesQuery.isLoading || topicPagesQuery.isLoading
 
     const fetchNextPage = () =>
         Promise.all([
@@ -50,6 +52,7 @@ export const SearchWritingResults = ({
                 : undefined,
         ])
 
+    if (isLoading) return <SearchWritingResultsSkeleton />
     if (totalCount === 0) return null
 
     // Calculate interleaved layout: 4 topics for every 5 articles (ratio
