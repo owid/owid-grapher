@@ -1,0 +1,38 @@
+.search-chart-hit-skeleton {
+    display: flex;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid $gray-10;
+}
+
+.search-chart-hit-skeleton__thumbnail {
+    background-color: $gray-10;
+    width: 120px;
+    height: 90px;
+    flex-shrink: 0;
+}
+
+.search-chart-hit-skeleton__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.search-chart-hit-skeleton__title {
+    background-color: $blue-10;
+    height: 20px;
+    width: 100%;
+}
+
+.search-chart-hit-skeleton__subtitle {
+    background-color: $gray-10;
+    height: 16px;
+    width: 70%;
+}
+
+.search-chart-hit-skeleton__description {
+    background-color: $gray-10;
+    height: 16px;
+    width: 80%;
+}
