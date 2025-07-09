@@ -1,0 +1,18 @@
+.search-result-header-skeleton {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.search-result-header-skeleton__title {
+    background-color: $blue-10;
+    height: 24px;
+    width: 120px;
+}
+
+.search-result-header-skeleton__count {
+    background-color: $blue-10;
+    height: 16px;
+    width: 80px;
+}
