@@ -2,7 +2,6 @@ import { TagGraphRoot } from "@ourworldindata/types"
 import { SearchClient } from "algoliasearch"
 import { useReducer, useMemo } from "react"
 import { match } from "ts-pattern"
-import { useIsFetching } from "@tanstack/react-query"
 
 // Search state and types
 import { searchReducer, createActions } from "./searchState.js"
@@ -36,7 +35,6 @@ import { SearchTemplatesData } from "./SearchTemplatesData.js"
 import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
 import { SearchDebugNavigator } from "./SearchDebugNavigator.js"
 import { SearchDebugProvider } from "./SearchDebugProvider.js"
-import { SearchDataTopicsResultsSkeleton } from "./SearchDataTopicsResultsSkeleton.js"
 import { SearchNoResults } from "./SearchNoResults.js"
 
 export const Search = ({
@@ -60,9 +58,6 @@ export const Search = ({
 
     // Handle analytics tracking
     useSearchAnalytics(state, isInitialUrlStateLoaded)
-
-    // Loading state
-    const isFetching = useIsFetching()
 
     // Derived state for template configuration
     const topicType = getSelectedTopicType(state.filters, allAreas)
@@ -113,21 +108,17 @@ export const Search = ({
                     <SearchResultTypeToggle />
                 </SearchAsDraft>
                 <div className="search-template-results grid span-cols-14 grid grid-cols-12-full-width">
-                    {isInitialUrlStateLoaded && !isFetching ? (
-                        match(templateConfig.resultType)
-                            .with(SearchResultType.ALL, () => (
-                                <SearchTemplatesAll />
-                            ))
-                            .with(SearchResultType.DATA, () => (
-                                <SearchTemplatesData />
-                            ))
-                            .with(SearchResultType.WRITING, () => (
-                                <SearchTemplatesWriting />
-                            ))
-                            .exhaustive()
-                    ) : (
-                        <SearchDataTopicsResultsSkeleton />
-                    )}
+                    {match(templateConfig.resultType)
+                        .with(SearchResultType.ALL, () => (
+                            <SearchTemplatesAll />
+                        ))
+                        .with(SearchResultType.DATA, () => (
+                            <SearchTemplatesData />
+                        ))
+                        .with(SearchResultType.WRITING, () => (
+                            <SearchTemplatesWriting />
+                        ))
+                        .exhaustive()}
                     <SearchNoResults />
                 </div>
             </SearchContext.Provider>
