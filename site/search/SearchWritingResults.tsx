@@ -40,7 +40,8 @@ export const SearchWritingResults = ({
     const hasNextPage = articlesQuery.hasNextPage || topicPagesQuery.hasNextPage
     const isFetchingNextPage =
         articlesQuery.isFetchingNextPage || topicPagesQuery.isFetchingNextPage
-    const isLoading = articlesQuery.isLoading || topicPagesQuery.isLoading
+    const isInitialLoading =
+        articlesQuery.isInitialLoading || topicPagesQuery.isInitialLoading
 
     const fetchNextPage = () =>
         Promise.all([
@@ -52,7 +53,7 @@ export const SearchWritingResults = ({
                 : undefined,
         ])
 
-    if (isLoading) return <SearchWritingResultsSkeleton />
+    if (isInitialLoading) return <SearchWritingResultsSkeleton />
     if (totalCount === 0) return null
 
     // Calculate interleaved layout: 4 topics for every 5 articles (ratio
