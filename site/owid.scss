@@ -46,9 +46,15 @@
 @import "./SiteSearchNavigation.scss";
 @import "./search/Search.scss";
 @import "./search/SearchCountrySelector.scss";
+@import "./search/skeletons.scss";
+@import "./search/SearchResultHeaderSkeleton.scss";
+@import "./search/SearchDataResultsSkeleton.scss";
+@import "./search/SearchWritingResultsSkeleton.scss";
+@import "./search/SearchDataInsightsResultsSkeleton.scss";
+@import "./search/SearchDataTopicsResultsSkeleton.scss";
+@import "./search/SearchWritingTopicsResultsSkeleton.scss";
 @import "./search/SearchDataResults.scss";
 @import "./search/SearchDataTopic.scss";
-@import "./search/SearchDataTopicsResultsSkeleton.scss";
 @import "./search/Autocomplete.scss";
 @import "./search/SearchTopicsRefinementList.scss";
 @import "./search/_DEPRECATEDChartHit.scss";
