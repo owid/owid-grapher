@@ -44,6 +44,7 @@ export interface PageRecord {
     views_7d: number
     score: number
     excerpt?: string
+    excerptLong?: string[]
     authors?: string[]
     date?: string
     modifiedDate?: string
@@ -186,6 +187,7 @@ export type TopicPageHit = {
     type: OwidGdocType.TopicPage | OwidGdocType.LinearTopicPage
     slug: string
     excerpt: string
+    excerptLong?: string[]
     objectID: string
     __position: number
 }
