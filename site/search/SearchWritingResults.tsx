@@ -3,20 +3,25 @@ import {
     SearchFlatArticleResponse,
     SearchTopicPageResponse,
     TopicPageHit,
+    SearchTopicType,
 } from "./searchTypes.js"
 import { searchQueryKeys, queryArticles, queryTopicPages } from "./queries.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 import { useInfiniteSearch } from "./searchHooks.js"
 import { SearchShowMore } from "./SearchShowMore.js"
 import { SearchFlatArticleHit } from "./SearchFlatArticleHit.js"
+import { SearchLargeTopicPageHit } from "./SearchLargeTopicPageHit.js"
 import { SearchTopicPageHit } from "./SearchTopicPageHit.js"
 import { SearchWritingResultsSkeleton } from "./SearchWritingResultsSkeleton.js"
 
 export const SearchWritingResults = ({
     hasTopicPages = true,
+    topicType,
 }: {
     hasTopicPages?: boolean
+    topicType?: SearchTopicType
 }) => {
+    const hasLargeTopic = topicType === SearchTopicType.Topic
     const articlesQuery = useInfiniteSearch<
         SearchFlatArticleResponse,
         FlatArticleHit
@@ -80,16 +85,32 @@ export const SearchWritingResults = ({
                 )}
                 {interleavedTopics.length > 0 && (
                     <div className="search-writing-results__topics">
-                        {interleavedTopics.map((hit) => (
-                            <SearchTopicPageHit key={hit.objectID} hit={hit} />
-                        ))}
+                        {hasLargeTopic ? (
+                            <SearchLargeTopicPageHit
+                                hit={interleavedTopics[0]}
+                            />
+                        ) : (
+                            interleavedTopics.map((hit) => (
+                                <SearchTopicPageHit
+                                    key={hit.objectID}
+                                    hit={hit}
+                                />
+                            ))
+                        )}
                     </div>
                 )}
                 {remainingTopics.length > 0 && (
                     <div className="search-writing-results__overflow">
-                        {remainingTopics.map((hit) => (
-                            <SearchTopicPageHit key={hit.objectID} hit={hit} />
-                        ))}
+                        {hasLargeTopic ? (
+                            <SearchLargeTopicPageHit hit={remainingTopics[0]} />
+                        ) : (
+                            remainingTopics.map((hit) => (
+                                <SearchTopicPageHit
+                                    key={hit.objectID}
+                                    hit={hit}
+                                />
+                            ))
+                        )}
                     </div>
                 )}
             </div>
