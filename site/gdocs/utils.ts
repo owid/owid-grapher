@@ -188,6 +188,42 @@ export const getTopSubnavigationParentItem = (
 }
 
 /**
+ * Takes a gdoc, block type, and number n and returns up to n first consecutive
+ * blocks of the specified type e.g. takeConsecutiveBlocksOfType(gdoc, "text",
+ * 3) will return up to 3 consecutive text blocks from the gdoc.
+ *
+ * If there are 2 text blocks, 1 image block, and then another text block, it
+ * will return only the first 2 consecutive text blocks.
+ **/
+export function takeConsecutiveBlocksOfType<
+    T extends keyof OwidEnrichedGdocBlockTypeMap,
+>(
+    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface,
+    type: T,
+    n: number
+): OwidEnrichedGdocBlockTypeMap[T][] {
+    if (!gdoc.content.body || n <= 0) return []
+    const foundBlocks: OwidEnrichedGdocBlockTypeMap[T][] = []
+
+    let startedCollecting = false
+    for (const block of gdoc.content.body) {
+        if (foundBlocks.length >= n) break
+
+        if (block.type === type) {
+            foundBlocks.push(block as OwidEnrichedGdocBlockTypeMap[T])
+            startedCollecting = true
+        } else if (startedCollecting) {
+            // We've started collecting blocks of the desired type, but this block is not of that type
+            // So we stop collecting consecutive blocks
+            break
+        }
+        // If we haven't started collecting yet and this isn't the right type, continue looking
+    }
+
+    return foundBlocks
+}
+
+/**
  * Takes a gdoc and a block type and returns the first block of that type found in the gdoc
  * e.g. getFirstBlockOfType(gdoc, "image") will return the first image block in the gdoc
  * and it will be typed correctly as an EnrichedBlockImage

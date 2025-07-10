@@ -17,7 +17,7 @@ export const SearchTemplatesWriting = () => {
             // Writing + Topic + Country + Query
             .with([SearchTopicType.Topic, true, true], () => (
                 <>
-                    <SearchWritingResults />
+                    <SearchWritingResults topicType={SearchTopicType.Topic} />
                     <SearchDataInsightsResults />
                 </>
             ))
@@ -25,27 +25,27 @@ export const SearchTemplatesWriting = () => {
             .with([SearchTopicType.Topic, true, false], () => (
                 <>
                     <SearchDataInsightsResults />
-                    <SearchWritingResults />
+                    <SearchWritingResults topicType={SearchTopicType.Topic} />
                 </>
             ))
             // Writing + Topic + No Country + Query
             .with([SearchTopicType.Topic, false, true], () => (
                 <>
-                    <SearchWritingResults />
+                    <SearchWritingResults topicType={SearchTopicType.Topic} />
                     <SearchDataInsightsResults />
                 </>
             ))
             // Writing + Topic + No Country + No Query
             .with([SearchTopicType.Topic, false, false], () => (
                 <>
-                    <SearchWritingResults />
+                    <SearchWritingResults topicType={SearchTopicType.Topic} />
                     <SearchDataInsightsResults />
                 </>
             ))
             // Writing + Area + Country + Query
             .with([SearchTopicType.Area, true, true], () => (
                 <>
-                    <SearchWritingResults />
+                    <SearchWritingResults topicType={SearchTopicType.Area} />
                     <SearchDataInsightsResults />
                 </>
             ))
@@ -53,20 +53,20 @@ export const SearchTemplatesWriting = () => {
             .with([SearchTopicType.Area, true, false], () => (
                 <>
                     <SearchDataInsightsResults />
-                    <SearchWritingResults />
+                    <SearchWritingResults topicType={SearchTopicType.Area} />
                 </>
             ))
             // Writing + Area + No Country + Query
             .with([SearchTopicType.Area, false, true], () => (
                 <>
-                    <SearchWritingResults />
+                    <SearchWritingResults topicType={SearchTopicType.Area} />
                     <SearchDataInsightsResults />
                 </>
             ))
             // Writing + Area + No Country + No Query
             .with([SearchTopicType.Area, false, false], () => (
                 <>
-                    <SearchWritingResults />
+                    <SearchWritingResults topicType={SearchTopicType.Area} />
                     <SearchDataInsightsResults />
                 </>
             ))
