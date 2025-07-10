@@ -1,0 +1,174 @@
+import React from "react"
+import { observer } from "mobx-react"
+import { computed } from "mobx"
+import {
+    Bounds,
+    GRAPHER_CHART_TYPES,
+    GRAPHER_MAP_TYPE,
+    GrapherChartOrMapType,
+    makeIdForHumanConsumption,
+} from "@ourworldindata/utils"
+import { DataTable } from "../dataTable/DataTable"
+import { CaptionedChartManager } from "../captionedChart/CaptionedChart"
+import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
+import { FacetChart } from "../facetChart/FacetChart"
+import { ChartComponentClassMap, DefaultChartClass } from "./ChartTypeMap"
+import { getChartSvgProps, NoDataPattern } from "./ChartUtils"
+import { GRAPHER_CHART_AREA_CLASS } from "../core/GrapherConstants"
+
+interface ChartAreaContentProps {
+    manager: CaptionedChartManager
+    bounds: Bounds
+    padWidth?: number
+}
+
+@observer
+export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
+    @computed private get manager(): CaptionedChartManager {
+        return this.props.manager
+    }
+
+    @computed private get bounds(): Bounds {
+        return this.props.bounds.padWidth(this.props.padWidth ?? 0)
+    }
+
+    @computed private get containerElement(): HTMLDivElement | undefined {
+        return this.manager?.containerElement
+    }
+
+    @computed private get activeChartOrMapType():
+        | GrapherChartOrMapType
+        | undefined {
+        const { manager } = this
+        if (manager.isOnTableTab) return undefined
+        if (manager.isOnMapTab) return GRAPHER_MAP_TYPE
+        if (manager.isOnChartTab) {
+            return manager.isLineChartThatTurnedIntoDiscreteBarActive
+                ? GRAPHER_CHART_TYPES.DiscreteBar
+                : manager.activeChartType
+        }
+        return undefined
+    }
+
+    private renderNoDataPattern(): React.ReactElement {
+        return (
+            <defs>
+                <NoDataPattern />
+            </defs>
+        )
+    }
+
+    private renderLoadingIndicatorIntoSvg(): React.ReactElement {
+        return (
+            <foreignObject {...this.bounds.toProps()}>
+                <LoadingIndicator title={this.manager.whatAreWeWaitingFor} />
+            </foreignObject>
+        )
+    }
+
+    private renderReadyChartOrMap(): React.ReactElement | null {
+        const { bounds } = this
+        const { manager, activeChartOrMapType, containerElement } = this
+        const { isFaceted } = manager
+
+        if (!activeChartOrMapType) return null
+
+        // Todo: make FacetChart a chart type name?
+        const activeChartType =
+            activeChartOrMapType !== GRAPHER_MAP_TYPE
+                ? activeChartOrMapType
+                : undefined
+        if (isFaceted && activeChartType)
+            return (
+                <FacetChart
+                    bounds={bounds}
+                    chartTypeName={activeChartType}
+                    manager={manager}
+                />
+            )
+
+        const ChartClass =
+            ChartComponentClassMap.get(activeChartOrMapType) ??
+            DefaultChartClass
+
+        return (
+            <ChartClass
+                bounds={bounds}
+                manager={manager}
+                containerElement={containerElement}
+            />
+        )
+    }
+
+    private renderChartOrMap(): React.ReactElement {
+        const { width, height } = this.props.bounds
+
+        const containerStyle: React.CSSProperties = {
+            position: "relative",
+            clear: "both",
+            height,
+        }
+
+        return (
+            <div style={containerStyle}>
+                <svg
+                    {...getChartSvgProps(this.manager)}
+                    width={width}
+                    height={height}
+                    viewBox={`0 0 ${width} ${height}`}
+                >
+                    {this.renderNoDataPattern()}
+                    {this.manager.isReady
+                        ? this.renderReadyChartOrMap()
+                        : this.renderLoadingIndicatorIntoSvg()}
+                </svg>
+            </div>
+        )
+    }
+
+    private renderDataTable(): React.ReactElement {
+        const { bounds } = this
+        const containerStyle: React.CSSProperties = {
+            position: "relative",
+            ...bounds.toCSS(),
+        }
+        return (
+            <div className="DataTableContainer" style={containerStyle}>
+                {this.manager.isReady ? (
+                    <DataTable bounds={bounds} manager={this.manager} />
+                ) : (
+                    <LoadingIndicator
+                        title={this.manager.whatAreWeWaitingFor}
+                    />
+                )}
+            </div>
+        )
+    }
+
+    renderStatic(): React.ReactElement | null {
+        // We cannot render a table to svg, but would rather display nothing at all to avoid issues.
+        // See https://github.com/owid/owid-grapher/issues/3283
+        if (this.manager.isOnTableTab) return null
+
+        return (
+            <g
+                id={makeIdForHumanConsumption(GRAPHER_CHART_AREA_CLASS)}
+                style={{ pointerEvents: "none" }}
+            >
+                {this.renderReadyChartOrMap()}
+            </g>
+        )
+    }
+
+    renderInteractive(): React.ReactElement | null {
+        return this.manager.isOnTableTab
+            ? this.renderDataTable()
+            : this.renderChartOrMap()
+    }
+
+    render(): React.ReactElement | null {
+        return this.manager.isStatic
+            ? this.renderStatic()
+            : this.renderInteractive()
+    }
+}
