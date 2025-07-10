@@ -6,7 +6,12 @@ import {
     makeIdForHumanConsumption,
     excludeUndefined,
 } from "@ourworldindata/utils"
-import { TextWrap, Halo, MarkdownTextWrap, ObservedReactComponent  } from "@ourworldindata/components"
+import {
+    TextWrap,
+    Halo,
+    MarkdownTextWrap,
+    ObservedReactComponent,
+} from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { VerticalAxis } from "../axis/Axis"
@@ -74,15 +79,15 @@ class LineLabels extends ObservedReactComponent<{
     onMouseLeave?: (series: PlacedSeries) => void
 }> {
     @computed private get anchor(): "start" | "end" {
-        return this.props.anchor ?? "start"
+        return this.observedProps.anchor ?? "start"
     }
 
     @computed private get showTextOutline(): boolean {
-        return this.props.showTextOutline ?? false
+        return this.observedProps.showTextOutline ?? false
     }
 
     @computed private get textOutlineColor(): Color {
-        return this.props.textOutlineColor ?? GRAPHER_BACKGROUND_DEFAULT
+        return this.observedProps.textOutlineColor ?? GRAPHER_BACKGROUND_DEFAULT
     }
 
     private textOpacityForSeries(series: PlacedSeries): number {
@@ -94,7 +99,7 @@ class LineLabels extends ObservedReactComponent<{
         labelText: { x: number; y: number }
         connectorLine: { x1: number; x2: number }
     }[] {
-        return this.props.series.map((series) => {
+        return this.observedProps.series.map((series) => {
             const direction = this.anchor === "start" ? 1 : -1
             const markerMargin = direction * MARKER_MARGIN
             const connectorLineWidth = direction * DEFAULT_CONNECTOR_LINE_WIDTH
@@ -356,19 +361,19 @@ export class LineLegend extends ObservedReactComponent<LineLegendProps> {
     }
 
     @computed private get fontWeight(): number {
-        return this.props.fontWeight ?? DEFAULT_FONT_WEIGHT
+        return this.observedProps.fontWeight ?? DEFAULT_FONT_WEIGHT
     }
 
     @computed private get maxWidth(): number {
-        return this.props.maxWidth ?? 300
+        return this.observedProps.maxWidth ?? 300
     }
 
     @computed private get yAxis(): VerticalAxis {
-        return this.props.yAxis ?? new VerticalAxis(new AxisConfig())
+        return this.observedProps.yAxis ?? new VerticalAxis(new AxisConfig())
     }
 
     @computed private get verticalAlign(): VerticalAlign {
-        return this.props.verticalAlign ?? VerticalAlign.middle
+        return this.observedProps.verticalAlign ?? VerticalAlign.middle
     }
 
     @computed private get textMaxWidth(): number {
@@ -428,7 +433,7 @@ export class LineLegend extends ObservedReactComponent<LineLegendProps> {
 
     @computed.struct get sizedSeries(): SizedSeries[] {
         const { fontWeight: globalFontWeight } = this
-        return this.props.series.map((series) => {
+        return this.observedProps.series.map((series) => {
             // font weight priority:
             // series focus state > presense of value label > globally set font weight
             const activeFontWeight = series.focus?.active ? 700 : undefined
@@ -471,17 +476,17 @@ export class LineLegend extends ObservedReactComponent<LineLegendProps> {
     }
 
     @computed get onMouseOver(): any {
-        return this.props.onMouseOver ?? _.noop
+        return this.observedProps.onMouseOver ?? _.noop
     }
     @computed get onMouseLeave(): any {
-        return this.props.onMouseLeave ?? _.noop
+        return this.observedProps.onMouseLeave ?? _.noop
     }
     @computed get onClick(): any {
-        return this.props.onClick ?? _.noop
+        return this.observedProps.onClick ?? _.noop
     }
 
     @computed get legendX(): number {
-        return this.props.x ?? 0
+        return this.observedProps.x ?? 0
     }
 
     @computed get legendY(): [number, number] {

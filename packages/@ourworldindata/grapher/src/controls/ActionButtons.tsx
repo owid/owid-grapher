@@ -47,11 +47,11 @@ export class ActionButtons extends ObservedReactComponent<{
     maxWidth?: number
 }> {
     @computed private get manager(): ActionButtonsManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed protected get maxWidth(): number {
-        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
+        return this.observedProps.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
     @computed get height(): number {

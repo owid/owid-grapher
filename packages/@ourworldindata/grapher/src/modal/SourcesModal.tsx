@@ -21,7 +21,8 @@ import {
     DataCitation,
     OverlayHeader,
     CLOSE_BUTTON_WIDTH,
-    CloseButton, ObservedReactComponent 
+    CloseButton,
+    ObservedReactComponent,
 } from "@ourworldindata/components"
 import * as React from "react"
 import cx from "classnames"
@@ -80,7 +81,7 @@ export class SourcesModal extends ObservedReactComponent<
     }
 
     @computed private get manager(): SourcesModalManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get frameBounds(): Bounds {
@@ -348,7 +349,7 @@ export class Source extends ObservedReactComponent<{
     isEmbeddedInADataPage?: boolean
 }> {
     @computed get column(): CoreColumn {
-        return this.props.column
+        return this.observedProps.column
     }
 
     @computed get def(): OwidColumnDef & { source?: OwidSource } {

@@ -67,7 +67,7 @@ export class ChoroplethMap extends ObservedReactComponent<{
     private viewport = { x: 0.565, y: 0.5 } as const
 
     @computed private get manager(): ChoroplethMapManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed get mapConfig(): MapConfig {

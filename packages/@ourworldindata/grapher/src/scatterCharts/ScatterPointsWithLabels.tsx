@@ -16,7 +16,7 @@ import {
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { ObservedReactComponent, Halo  } from "@ourworldindata/components"
+import { ObservedReactComponent, Halo } from "@ourworldindata/components"
 import * as React from "react"
 import { MultiColorPolyline } from "./MultiColorPolyline"
 import {
@@ -52,7 +52,7 @@ export class ScatterPointsWithLabels extends ObservedReactComponent<ScatterPoint
     @observable private overSeries?: ScatterSeries
 
     @computed private get seriesArray(): ScatterSeries[] {
-        return this.props.seriesArray
+        return this.observedProps.seriesArray
     }
 
     @computed private get focusedSeriesNames(): string[] {
@@ -63,11 +63,11 @@ export class ScatterPointsWithLabels extends ObservedReactComponent<ScatterPoint
     }
 
     @computed private get hoveredSeriesNames(): string[] {
-        return this.props.hoveredSeriesNames
+        return this.observedProps.hoveredSeriesNames
     }
 
     @computed private get tooltipSeriesName(): string | undefined {
-        return this.props.tooltipSeriesName
+        return this.observedProps.tooltipSeriesName
     }
 
     // Layered mode occurs when any entity on the chart is hovered or focused
@@ -84,7 +84,7 @@ export class ScatterPointsWithLabels extends ObservedReactComponent<ScatterPoint
     }
 
     @computed private get bounds(): Bounds {
-        return this.props.dualAxis.innerBounds
+        return this.observedProps.dualAxis.innerBounds
     }
 
     // When focusing multiple entities, we hide some information to declutter
@@ -96,15 +96,15 @@ export class ScatterPointsWithLabels extends ObservedReactComponent<ScatterPoint
     }
 
     @computed private get colorScale(): ColorScale | undefined {
-        return this.props.colorScale
+        return this.observedProps.colorScale
     }
 
     @computed private get sizeScale(): ScaleLinear<number, number> {
-        return this.props.sizeScale
+        return this.observedProps.sizeScale
     }
 
     @computed private get fontScale(): ScaleLinear<number, number> {
-        return this.props.fontScale
+        return this.observedProps.fontScale
     }
 
     @computed private get hideScatterLabels(): boolean {
@@ -138,7 +138,7 @@ export class ScatterPointsWithLabels extends ObservedReactComponent<ScatterPoint
     }
 
     @computed private get hideConnectedScatterLines(): boolean {
-        return this.props.hideConnectedScatterLines
+        return this.observedProps.hideConnectedScatterLines
     }
 
     // Pre-transform data for rendering

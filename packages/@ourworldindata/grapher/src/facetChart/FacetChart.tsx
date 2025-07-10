@@ -135,11 +135,11 @@ export class FacetChart
     }
 
     @computed private get manager(): FacetChartManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get chartTypeName(): GrapherChartType {
-        return this.props.chartTypeName ?? GRAPHER_CHART_TYPES.LineChart
+        return this.observedProps.chartTypeName ?? GRAPHER_CHART_TYPES.LineChart
     }
 
     @computed get isStatic(): boolean {
@@ -151,7 +151,7 @@ export class FacetChart
     }
 
     @computed private get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.observedProps.bounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get legendPadding(): number {

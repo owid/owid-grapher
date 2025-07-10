@@ -35,7 +35,7 @@ export class TimelineComponent extends ObservedReactComponent<{
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed protected get maxWidth(): number {
-        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
+        return this.observedProps.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
     @computed private get dragTarget(): TimelineDragTarget | undefined {
@@ -47,11 +47,11 @@ export class TimelineComponent extends ObservedReactComponent<{
     }
 
     @computed private get manager(): TimelineManager {
-        return this.props.timelineController.manager
+        return this.observedProps.timelineController.manager
     }
 
     @computed private get controller(): TimelineController {
-        return this.props.timelineController
+        return this.observedProps.timelineController
     }
 
     private get sliderBounds(): Bounds {

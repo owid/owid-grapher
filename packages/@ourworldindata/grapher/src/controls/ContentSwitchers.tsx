@@ -34,7 +34,7 @@ export class ContentSwitchers extends ObservedReactComponent<{
     }
 
     @computed private get manager(): ContentSwitchersManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get availableTabs(): GrapherTabName[] {

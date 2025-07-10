@@ -25,7 +25,7 @@ export class DataTableSearchField extends ObservedReactComponent<{
     }
 
     @computed private get manager(): DataTableSearchFieldManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get config(): DataTableConfig {

@@ -159,7 +159,7 @@ export class ExplorerControlPanel extends ObservedReactComponent<{
     }
 
     @computed private get options() {
-        return this.props.choice.options ?? []
+        return this.observedProps.choice.options ?? []
     }
 
     private renderDropdown() {

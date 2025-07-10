@@ -212,7 +212,7 @@ export class StackedBarChart
 
     @computed get shouldRunLinearInterpolation(): boolean {
         // disabled by default
-        return this.props.enableLinearInterpolation ?? false
+        return this.observedProps.enableLinearInterpolation ?? false
     }
 
     // All currently hovered group keys, combining the legend and the main UI

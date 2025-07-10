@@ -114,7 +114,7 @@ export class ChartEditorView<
     @observable simulateVisionDeficiency?: VisionDeficiency
 
     @computed private get manager(): ChartEditorViewManager<Editor> {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @observable private _isDbSet = false

@@ -1082,7 +1082,7 @@ export class Explorer
     }
 
     @computed get canonicalUrl() {
-        return this.props.canonicalUrl ?? this.currentUrl.fullUrl
+        return this.observedProps.canonicalUrl ?? this.currentUrl.fullUrl
     }
 
     @computed get grapherTable() {

@@ -66,7 +66,7 @@ export class SlideInDrawer extends ObservedReactComponent<{
     }
 
     @computed private get active(): boolean {
-        return this.props.active
+        return this.observedProps.active
     }
 
     private animationFor(selector: string): { animation: string } {

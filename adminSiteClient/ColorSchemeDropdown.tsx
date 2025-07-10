@@ -35,11 +35,11 @@ export class ColorSchemeDropdown extends ObservedReactComponent<ColorSchemeDropd
     }
 
     @computed get additionalOptions() {
-        return this.props.additionalOptions
+        return this.observedProps.additionalOptions
     }
 
     @computed get gradientColorCount() {
-        return this.props.gradientColorCount
+        return this.observedProps.gradientColorCount
     }
 
     @computed get colorSchemeOptions() {

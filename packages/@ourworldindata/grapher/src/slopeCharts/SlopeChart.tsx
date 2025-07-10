@@ -193,7 +193,7 @@ export class SlopeChart
     }
 
     @computed private get manager(): SlopeChartManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed get inputTable(): OwidTable {
@@ -201,7 +201,7 @@ export class SlopeChart
     }
 
     @computed private get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.observedProps.bounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get innerBounds(): Bounds {

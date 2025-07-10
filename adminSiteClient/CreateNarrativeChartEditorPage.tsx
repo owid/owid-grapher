@@ -78,7 +78,7 @@ class CreateNarrativeChartEditorPageInternal
     }
 
     @computed get history(): History {
-        return this.props.history
+        return this.observedProps.history
     }
 
     @computed get editor(): NarrativeChartEditor {
@@ -86,7 +86,7 @@ class CreateNarrativeChartEditorPageInternal
     }
 
     @computed get parentChartConfigId(): string | undefined {
-        return this.props.chartConfigId
+        return this.observedProps.chartConfigId
     }
 
     @action.bound onNameChange(value: string) {

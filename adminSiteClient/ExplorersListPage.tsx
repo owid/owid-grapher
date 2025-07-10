@@ -255,7 +255,7 @@ export class ExplorersIndexPage extends ObservedReactComponent<{
     }
 
     @computed private get manager() {
-        return this.props.manager ?? {}
+        return this.observedProps.manager ?? {}
     }
 
     @action.bound private loadingModalOn() {

@@ -41,7 +41,7 @@ export class DataTableFilterDropdown extends ObservedReactComponent<{
     }
 
     @computed private get manager(): DataTableFilterDropdownManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get selectionArray(): SelectionArray {

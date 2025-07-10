@@ -1,7 +1,10 @@
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { ObservedReactComponent, LabeledSwitch  } from "@ourworldindata/components"
+import {
+    ObservedReactComponent,
+    LabeledSwitch,
+} from "@ourworldindata/components"
 
 export interface NoDataAreaToggleManager {
     showNoDataArea?: boolean
@@ -16,7 +19,7 @@ export class NoDataAreaToggle extends ObservedReactComponent<{
     }
 
     @computed get manager(): NoDataAreaToggleManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     render(): React.ReactElement {

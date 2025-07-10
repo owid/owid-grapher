@@ -331,7 +331,7 @@ export class MapChart
     }
 
     @computed get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.observedProps.bounds ?? DEFAULT_BOUNDS
     }
 
     @computed get choroplethData(): ChoroplethSeriesByName {
@@ -364,7 +364,7 @@ export class MapChart
     }
 
     @computed get manager(): MapChartManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed get globeController(): GlobeController {

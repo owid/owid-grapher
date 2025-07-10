@@ -1,10 +1,12 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { observer } from "mobx-react"
-import { ObservedReactComponent,
+import {
+    ObservedReactComponent,
     Checkbox,
     RadioButton,
-    OverlayHeader } from "@ourworldindata/components"
+    OverlayHeader,
+} from "@ourworldindata/components"
 import { computed, action, reaction, when, IReactionDisposer } from "mobx"
 import cx from "classnames"
 import a from "indefinite"
@@ -538,7 +540,7 @@ export class EntitySelector extends ObservedReactComponent<{
     }
 
     @computed private get manager(): EntitySelectorManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get endTime(): Time {

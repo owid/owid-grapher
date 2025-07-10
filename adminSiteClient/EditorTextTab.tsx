@@ -82,7 +82,7 @@ export class EditorTextTab<
     }
 
     @computed get errorMessages() {
-        return this.props.errorMessages
+        return this.observedProps.errorMessages
     }
 
     @computed get showChartSlug() {

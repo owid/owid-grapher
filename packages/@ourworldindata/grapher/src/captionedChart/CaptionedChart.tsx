@@ -2,7 +2,10 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { ObservedReactComponent, MarkdownTextWrap  } from "@ourworldindata/components"
+import {
+    ObservedReactComponent,
+    MarkdownTextWrap,
+} from "@ourworldindata/components"
 import {
     Bounds,
     DEFAULT_BOUNDS,
@@ -118,7 +121,7 @@ export class CaptionedChart extends ObservedReactComponent<CaptionedChartProps> 
     protected framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
 
     @computed protected get manager(): CaptionedChartManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get containerElement(): HTMLDivElement | undefined {
@@ -483,7 +486,11 @@ export class StaticCaptionedChart extends CaptionedChart {
     }
 
     @computed protected get bounds(): Bounds {
-        return this.props.bounds ?? this.manager.staticBounds ?? DEFAULT_BOUNDS
+        return (
+            this.observedProps.bounds ??
+            this.manager.staticBounds ??
+            DEFAULT_BOUNDS
+        )
     }
 
     @computed protected get staticFooter(): Footer {

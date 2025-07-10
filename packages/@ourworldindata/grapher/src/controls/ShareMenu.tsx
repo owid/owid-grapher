@@ -102,7 +102,7 @@ export class ShareMenu extends ObservedReactComponent<
     }
 
     @computed get manager(): ShareMenuManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed get title(): string {

@@ -482,7 +482,7 @@ export class MarimekkoChart
     }
 
     @computed private get manager(): MarimekkoChartManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get bounds(): Bounds {

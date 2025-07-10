@@ -1,7 +1,10 @@
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { ObservedReactComponent, LabeledSwitch  } from "@ourworldindata/components"
+import {
+    ObservedReactComponent,
+    LabeledSwitch,
+} from "@ourworldindata/components"
 import {
     GRAPHER_CHART_TYPES,
     GrapherChartType,
@@ -31,7 +34,7 @@ export class AbsRelToggle extends ObservedReactComponent<{
     }
 
     @computed get manager(): AbsRelToggleManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed get tooltip(): string {

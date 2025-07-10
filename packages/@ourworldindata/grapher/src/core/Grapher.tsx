@@ -65,7 +65,8 @@ import {
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
-    sumTextWrapHeights, ObservedReactComponent 
+    sumTextWrapHeights,
+    ObservedReactComponent,
 } from "@ourworldindata/components"
 import {
     GrapherChartType,
@@ -2610,7 +2611,7 @@ export class GrapherState {
     // }
 
     // private get commandPalette(): React.ReactElement | null {
-    //     return this.props.enableKeyboardShortcuts ? (
+    //     return this.observedProps.enableKeyboardShortcuts ? (
     //         <CommandPalette commands={this.keyboardShortcuts} display="none" />
     //     ) : null
     // }
@@ -3447,7 +3448,7 @@ export interface GrapherProps {
 @observer
 export class Grapher extends ObservedReactComponent<GrapherProps> {
     @computed get grapherState(): GrapherState {
-        return this.props.grapherState
+        return this.observedProps.grapherState
     }
 
     // #region Observable props not in any interface
@@ -3517,7 +3518,7 @@ export class Grapher extends ObservedReactComponent<GrapherProps> {
     }
 
     private get commandPalette(): React.ReactElement | null {
-        return this.props.grapherState.enableKeyboardShortcuts ? (
+        return this.observedProps.grapherState.enableKeyboardShortcuts ? (
             <CommandPalette commands={this.keyboardShortcuts} display="none" />
         ) : null
     }

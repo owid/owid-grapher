@@ -254,7 +254,7 @@ export class TooltipContainer extends ObservedReactComponent<{
     }
 
     @computed private get anchor(): GrapherTooltipAnchor {
-        return this.props.anchor ?? GrapherTooltipAnchor.mouse
+        return this.observedProps.anchor ?? GrapherTooltipAnchor.mouse
     }
 
     @computed private get rendered(): React.ReactElement | null {

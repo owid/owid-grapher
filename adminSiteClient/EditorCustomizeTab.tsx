@@ -68,7 +68,7 @@ class TimeField<
     }
 
     @computed get currentValue(): number | undefined {
-        return this.props.store[this.props.field]
+        return this.observedProps.store[this.props.field]
     }
 
     @action.bound onChange(value: number | undefined) {
@@ -90,7 +90,7 @@ class TimeField<
             disabled: this.currentValue === defaultValue,
         }
 
-        return this.props.allowLinking ? (
+        return this.observedProps.allowLinking ? (
             <BindAutoFloatExt
                 label={label}
                 readFn={(store) => store[field]}
@@ -208,7 +208,7 @@ class SortOrderSection<
     }
 
     @computed get grapherState() {
-        return this.props.editor.grapherState
+        return this.observedProps.editor.grapherState
     }
 
     @computed get sortOptions(): SortOrderDropdownOption[] {
@@ -310,7 +310,7 @@ class FacetSection<
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed get grapherState() {
-        return this.props.editor.grapherState
+        return this.observedProps.editor.grapherState
     }
 
     @computed get facetOptions(): Array<{
@@ -389,7 +389,7 @@ class TimelineSection<
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed get grapherState() {
-        return this.props.editor.grapherState
+        return this.observedProps.editor.grapherState
     }
 
     @action.bound onToggleHideTimeline(value: boolean) {
@@ -642,7 +642,7 @@ export class EditorCustomizeTab<
     errorMessages: ErrorMessages
 }> {
     @computed get errorMessages() {
-        return this.props.errorMessages
+        return this.observedProps.errorMessages
     }
 
     render() {

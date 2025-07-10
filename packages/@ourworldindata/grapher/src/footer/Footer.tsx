@@ -77,11 +77,11 @@ export class Footer<
     verticalPadding = 4
 
     @computed protected get manager(): FooterManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed protected get maxWidth(): number {
-        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
+        return this.observedProps.maxWidth ?? DEFAULT_BOUNDS.width
     }
 
     @computed protected get useBaseFontSize(): boolean {

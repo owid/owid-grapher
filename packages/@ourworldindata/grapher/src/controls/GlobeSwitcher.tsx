@@ -23,7 +23,7 @@ export class GlobeSwitcher extends ObservedReactComponent<{
     private availableTabs = ["2D", "3D"] as const
 
     @computed private get manager(): GlobeSwitcherManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get tabLabels(): TabLabel[] {

@@ -1,7 +1,7 @@
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { ObservedReactComponent, Halo  } from "@ourworldindata/components"
+import { ObservedReactComponent, Halo } from "@ourworldindata/components"
 import { line as d3_line, curveLinear } from "d3-shape"
 import {
     guid,
@@ -26,7 +26,7 @@ export class CustomComparisonLine extends ObservedReactComponent<
     private pathId = `path-${this.renderUid}`
 
     @computed private get fontSize(): number {
-        return this.props.dualAxis.comparisonLineLabelFontSize
+        return this.observedProps.dualAxis.comparisonLineLabelFontSize
     }
 
     @computed private get haloOutlineWidth(): number {

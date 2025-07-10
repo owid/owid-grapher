@@ -101,7 +101,7 @@ export class DataTable extends ObservedReactComponent<{
     }
 
     @computed get manager(): DataTableManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get selectionArray(): SelectionArray {
@@ -601,7 +601,7 @@ export class DataTable extends ObservedReactComponent<{
     }
 
     @computed get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.observedProps.bounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get tableCaption(): React.ReactElement | null {

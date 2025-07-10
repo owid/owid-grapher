@@ -187,7 +187,7 @@ export class EditorExportTab<
     }
 
     @computed private get grapherState(): GrapherState {
-        return this.props.editor.grapherState
+        return this.observedProps.editor.grapherState
     }
 
     @computed private get chartId(): number {
@@ -196,7 +196,7 @@ export class EditorExportTab<
     }
 
     @computed private get baseFilename(): string {
-        return this.props.editor.grapherState.displaySlug
+        return this.observedProps.editor.grapherState.displaySlug
     }
 
     @action.bound private onDownloadDesktopSVG() {

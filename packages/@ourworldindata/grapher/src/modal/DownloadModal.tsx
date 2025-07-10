@@ -3,11 +3,13 @@ import { useCallback, useMemo, useState } from "react"
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { ObservedReactComponent,
+import {
+    ObservedReactComponent,
     Checkbox,
     CodeSnippet,
     OverlayHeader,
-    RadioButton } from "@ourworldindata/components"
+    RadioButton,
+} from "@ourworldindata/components"
 import {
     Bounds,
     DEFAULT_BOUNDS,
@@ -203,7 +205,7 @@ export class DownloadModalVisTab extends ObservedReactComponent<DownloadModalPro
     }
 
     @computed private get manager(): DownloadModalManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @observable private svgBlob?: Blob

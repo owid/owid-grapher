@@ -150,7 +150,7 @@ class Areas extends ObservedReactComponent<AreasProps> {
     }
 
     @computed get isFocusModeActive(): boolean {
-        return this.props.focusedSeriesName !== undefined
+        return this.observedProps.focusedSeriesName !== undefined
     }
 
     @computed private get areas(): React.ReactElement[] {

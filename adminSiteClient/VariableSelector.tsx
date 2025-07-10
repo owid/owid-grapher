@@ -60,7 +60,7 @@ export class VariableSelector<
     @observable rowHeight: number = 32
 
     @computed get database(): EditorDatabase {
-        return this.props.database
+        return this.observedProps.database
     }
 
     @computed get searchWords(): SearchWord[] {

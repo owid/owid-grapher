@@ -185,7 +185,7 @@ class TagGraphNodeContainer extends ObservedReactComponent<{
     }
 
     get addableTags() {
-        return this.props.tags.filter((tag) => {
+        return this.observedProps.tags.filter((tag) => {
             const isDuplicate = tag.id === this.props.node.id
             const isParent = this.props.node.path.includes(tag.id)
             const isChild = this.props.node.children.find(

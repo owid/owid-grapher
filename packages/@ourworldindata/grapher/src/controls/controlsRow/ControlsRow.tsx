@@ -60,7 +60,7 @@ export class ControlsRow extends ObservedReactComponent<{
     }
 
     @computed private get manager(): ControlsRowManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get sidePanelWidth(): number {

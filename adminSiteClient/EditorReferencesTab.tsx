@@ -61,18 +61,18 @@ export class EditorReferencesTabForChart extends ObservedReactComponent<{
     editor: ChartEditor
 }> {
     @computed get isPersisted() {
-        return this.props.editor.grapherState.id
+        return this.observedProps.editor.grapherState.id
     }
 
     @computed get references() {
-        return this.props.editor.references
+        return this.observedProps.editor.references
     }
     @computed get redirects() {
-        return this.props.editor.redirects || []
+        return this.observedProps.editor.redirects || []
     }
 
     @computed get pageviews() {
-        return this.props.editor.pageviews
+        return this.observedProps.editor.pageviews
     }
 
     @action.bound appendRedirect(redirect: ChartRedirect) {

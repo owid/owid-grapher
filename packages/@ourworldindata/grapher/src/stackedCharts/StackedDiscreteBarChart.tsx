@@ -206,7 +206,7 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get manager(): StackedDiscreteBarChartManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get bounds(): Bounds {

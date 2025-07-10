@@ -19,15 +19,15 @@ export class Modal extends ObservedReactComponent<{
     contentRef: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed private get bounds(): Bounds {
-        return this.props.bounds
+        return this.observedProps.bounds
     }
 
     @computed private get isHeightFixed(): boolean {
-        return this.props.isHeightFixed ?? false
+        return this.observedProps.isHeightFixed ?? false
     }
 
     @computed private get alignVertical(): "top" | "center" | "bottom" {
-        return this.props.alignVertical ?? "center"
+        return this.observedProps.alignVertical ?? "center"
     }
 
     @action.bound onDocumentClick(e: MouseEvent): void {

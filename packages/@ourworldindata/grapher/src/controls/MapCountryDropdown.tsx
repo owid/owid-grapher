@@ -70,7 +70,7 @@ export class MapCountryDropdown extends ObservedReactComponent<{
     }
 
     @computed private get manager(): MapCountryDropdownManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get mapConfig(): MapConfig {

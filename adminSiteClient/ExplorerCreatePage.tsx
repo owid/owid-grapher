@@ -48,7 +48,7 @@ export class ExplorerCreatePage extends ObservedReactComponent<{
     @observable showPreview: boolean = true
 
     @computed private get manager() {
-        return this.props.manager ?? {}
+        return this.observedProps.manager ?? {}
     }
 
     @action.bound private loadingModalOff() {

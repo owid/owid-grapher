@@ -78,7 +78,7 @@ export class IndicatorChartEditorPage
     }
 
     @computed get variableId(): number {
-        return this.props.variableId
+        return this.observedProps.variableId
     }
 
     @computed get editor(): IndicatorChartEditor {

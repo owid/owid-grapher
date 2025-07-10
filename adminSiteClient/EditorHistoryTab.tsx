@@ -108,7 +108,7 @@ export class EditorHistoryTab extends ObservedReactComponent<{
     editor: ChartEditor
 }> {
     @computed get logs() {
-        return this.props.editor.logs || []
+        return this.observedProps.editor.logs || []
     }
 
     render() {

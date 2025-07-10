@@ -31,7 +31,7 @@ export class CloseGlobeViewButton extends ObservedReactComponent<{
     }
 
     @computed private get manager(): CloseGlobeViewButtonManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get mapConfig(): MapConfig {

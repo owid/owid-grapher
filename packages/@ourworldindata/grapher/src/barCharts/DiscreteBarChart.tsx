@@ -146,7 +146,7 @@ export class DiscreteBarChart
     }
 
     @computed private get manager(): DiscreteBarChartManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get targetTime(): Time | undefined {

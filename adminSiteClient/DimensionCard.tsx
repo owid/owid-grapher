@@ -40,7 +40,7 @@ export class DimensionCard<
     @observable.ref isExpanded: boolean = false
 
     @computed get table(): OwidTable {
-        return this.props.editor.grapherState.table
+        return this.observedProps.editor.grapherState.table
     }
 
     @action.bound onToggleExpand() {
@@ -63,7 +63,7 @@ export class DimensionCard<
     }
 
     @computed get color() {
-        return this.props.dimension.column.def.color
+        return this.observedProps.dimension.column.def.color
     }
 
     @computed get roundingMode(): OwidVariableRoundingMode {

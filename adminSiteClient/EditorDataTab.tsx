@@ -63,7 +63,7 @@ class EntityListItem extends ObservedReactComponent<EntityListItemProps> {
     @observable.ref isChoosingColor: boolean = false
 
     @computed get table() {
-        return this.props.grapherState.table
+        return this.observedProps.grapherState.table
     }
 
     @computed get color() {
@@ -164,7 +164,7 @@ export class EntitySelectionSection extends ObservedReactComponent<{
     @observable.ref dragKey?: EntityName
 
     @computed get editor() {
-        return this.props.editor
+        return this.observedProps.editor
     }
 
     @action.bound onAddKey(entityName: EntityName) {
@@ -307,7 +307,7 @@ export class FocusSection extends ObservedReactComponent<{
     editor: AbstractChartEditor
 }> {
     @computed get editor() {
-        return this.props.editor
+        return this.observedProps.editor
     }
 
     @action.bound addToFocusedSeries(seriesName: SeriesName) {
@@ -403,7 +403,7 @@ class MissingDataSection<
     Editor extends AbstractChartEditor,
 > extends ObservedReactComponent<{ editor: Editor }> {
     @computed get grapherState() {
-        return this.props.editor.grapherState
+        return this.observedProps.editor.grapherState
     }
 
     get missingDataStrategyOptions(): {
@@ -449,7 +449,7 @@ class EntityFilterSection<
     Editor extends AbstractChartEditor,
 > extends ObservedReactComponent<{ editor: Editor }> {
     @computed private get editor(): Editor {
-        return this.props.editor
+        return this.observedProps.editor
     }
 
     @computed private get grapherState(): GrapherState {

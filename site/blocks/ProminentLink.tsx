@@ -41,7 +41,9 @@ export class ProminentLink extends ObservedReactComponent<{
     }
 
     @computed private get entitiesInGlobalEntitySelection(): EntityName[] {
-        return this.props.globalEntitySelection?.selectedEntityNames ?? []
+        return (
+            this.observedProps.globalEntitySelection?.selectedEntityNames ?? []
+        )
     }
 
     @computed private get updatedUrl(): Url {
@@ -55,7 +57,7 @@ export class ProminentLink extends ObservedReactComponent<{
     }
 
     @computed private get style(): string {
-        return this.props.style || ProminentLinkStyles.default
+        return this.observedProps.style || ProminentLinkStyles.default
     }
 
     render() {
@@ -65,21 +67,21 @@ export class ProminentLink extends ObservedReactComponent<{
         ]
 
         const renderImage = () => {
-            return this.props.image ? (
+            return this.observedProps.image ? (
                 <figure
                     dangerouslySetInnerHTML={{
-                        __html: this.props.image,
+                        __html: this.observedProps.image,
                     }}
                 />
             ) : null
         }
 
         const renderContent = () => {
-            return this.props.content?.trim() ? (
+            return this.observedProps.content?.trim() ? (
                 <div
                     className="content"
                     dangerouslySetInnerHTML={{
-                        __html: this.props.content,
+                        __html: this.observedProps.content,
                     }}
                 />
             ) : null

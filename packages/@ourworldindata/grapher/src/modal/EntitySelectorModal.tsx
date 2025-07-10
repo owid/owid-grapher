@@ -19,7 +19,7 @@ export class EntitySelectorModal extends ObservedReactComponent<{
     manager: EntitySelectorModalManager
 }> {
     @computed private get manager(): EntitySelectorModalManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get frameBounds(): Bounds {

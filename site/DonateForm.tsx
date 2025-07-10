@@ -3,7 +3,7 @@ import * as Sentry from "@sentry/react"
 import cx from "classnames"
 import { observable, action, computed } from "mobx"
 import { observer } from "mobx-react"
-import { ObservedReactComponent, Checkbox  } from "@ourworldindata/components"
+import { ObservedReactComponent, Checkbox } from "@ourworldindata/components"
 import { bind } from "decko"
 import Recaptcha from "react-recaptcha"
 import {
@@ -192,7 +192,7 @@ export class DonateForm extends ObservedReactComponent<{
     }
 
     @computed get isUsa(): boolean {
-        return this.props.countryCode === "USA"
+        return this.observedProps.countryCode === "USA"
     }
 
     async submitDonation(): Promise<void> {

@@ -279,11 +279,11 @@ export class ScatterPlotChart
     }
 
     @computed private get manager(): ScatterPlotManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed.struct private get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.observedProps.bounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get innerBounds(): Bounds {

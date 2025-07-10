@@ -136,19 +136,19 @@ class Lines extends ObservedReactComponent<LinesProps> {
     }
 
     @computed private get markerRadius(): number {
-        return this.props.markerRadius ?? DEFAULT_MARKER_RADIUS
+        return this.observedProps.markerRadius ?? DEFAULT_MARKER_RADIUS
     }
 
     @computed private get strokeWidth(): number {
-        return this.props.lineStrokeWidth ?? DEFAULT_STROKE_WIDTH
+        return this.observedProps.lineStrokeWidth ?? DEFAULT_STROKE_WIDTH
     }
 
     @computed private get outlineWidth(): number {
-        return this.props.lineOutlineWidth ?? DEFAULT_LINE_OUTLINE_WIDTH
+        return this.observedProps.lineOutlineWidth ?? DEFAULT_LINE_OUTLINE_WIDTH
     }
 
     @computed private get outlineColor(): string {
-        return this.props.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
+        return this.observedProps.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
     }
 
     // Don't display point markers if there are very many of them for performance reasons
@@ -164,7 +164,9 @@ class Lines extends ObservedReactComponent<LinesProps> {
     }
 
     @computed private get hasMarkersOnlySeries(): boolean {
-        return this.props.series.some((series) => series.plotMarkersOnly)
+        return this.observedProps.series.some(
+            (series) => series.plotMarkersOnly
+        )
     }
 
     private seriesHasMarkers(series: RenderLineChartSeries): boolean {
@@ -335,7 +337,7 @@ class Lines extends ObservedReactComponent<LinesProps> {
     }
 
     render(): React.ReactElement {
-        return this.props.isStatic
+        return this.observedProps.isStatic
             ? this.renderStatic()
             : this.renderInteractive()
     }
@@ -511,11 +513,11 @@ export class LineChart
     }
 
     @computed private get manager(): LineChartManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.observedProps.bounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get boundsWithoutColorLegend(): Bounds {
@@ -818,7 +820,7 @@ export class LineChart
     }
 
     @computed private get hasEntityYearHighlight(): boolean {
-        return this.props.manager.entityYearHighlight !== undefined
+        return this.observedProps.manager.entityYearHighlight !== undefined
     }
 
     @action.bound onDocumentClick(e: MouseEvent): void {

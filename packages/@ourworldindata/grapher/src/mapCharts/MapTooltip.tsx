@@ -52,11 +52,11 @@ export class MapTooltip
     implements MapSparklineManager
 {
     @computed get mapColumnSlug(): ColumnSlug {
-        return this.props.mapColumnSlug
+        return this.observedProps.mapColumnSlug
     }
 
     @computed get mapColumnInfo(): MapColumnInfo {
-        return this.props.mapColumnInfo
+        return this.observedProps.mapColumnInfo
     }
 
     @computed private get mapColumn(): CoreColumn {
@@ -72,11 +72,11 @@ export class MapTooltip
     }
 
     @computed get entityName(): EntityName {
-        return this.props.entityName
+        return this.observedProps.entityName
     }
 
     @computed get targetTime(): Time | undefined {
-        return this.props.targetTime
+        return this.observedProps.targetTime
     }
 
     // Table pre-filtered by targetTime, excludes time series
@@ -87,7 +87,7 @@ export class MapTooltip
     }
 
     @computed get timeSeriesTable(): OwidTable {
-        return this.props.timeSeriesTable
+        return this.observedProps.timeSeriesTable
     }
 
     @computed get datum(): OwidVariableRow<number | string> | undefined {
@@ -108,7 +108,7 @@ export class MapTooltip
     }
 
     @computed get lineColorScale(): ColorScale {
-        return this.props.lineColorScale
+        return this.observedProps.lineColorScale
     }
 
     @computed private get showSparkline(): boolean {
@@ -116,7 +116,7 @@ export class MapTooltip
     }
 
     @computed get yAxisConfig(): AxisConfigInterface | undefined {
-        return this.props.manager.yAxisConfig
+        return this.observedProps.manager.yAxisConfig
     }
 
     render(): React.ReactElement {

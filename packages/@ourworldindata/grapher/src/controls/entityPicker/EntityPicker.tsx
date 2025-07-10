@@ -112,7 +112,7 @@ export class EntityPicker extends ObservedReactComponent<{
     }
 
     @computed private get manager(): EntityPickerManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get metric(): string | undefined {
@@ -250,7 +250,7 @@ export class EntityPicker extends ObservedReactComponent<{
     }
 
     @computed get selection(): SelectionArray {
-        return this.props.selection
+        return this.observedProps.selection
     }
 
     @computed get selectionSet(): Set<string> {

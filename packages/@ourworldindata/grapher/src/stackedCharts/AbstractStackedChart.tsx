@@ -128,7 +128,7 @@ export class AbstractStackedChart
 
     @computed get shouldRunLinearInterpolation(): boolean {
         // enabled by default
-        return this.props.enableLinearInterpolation ?? true
+        return this.observedProps.enableLinearInterpolation ?? true
     }
 
     @computed get inputTable(): OwidTable {
@@ -143,11 +143,11 @@ export class AbstractStackedChart
     }
 
     @computed get manager(): ChartManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.observedProps.bounds ?? DEFAULT_BOUNDS
     }
 
     @computed get isStatic(): boolean {

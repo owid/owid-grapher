@@ -76,7 +76,7 @@ export class HorizontalAxisGridLines extends ObservedReactComponent<{
     dashPattern?: string
 }> {
     @computed get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.observedProps.bounds ?? DEFAULT_BOUNDS
     }
 
     render(): React.ReactElement {

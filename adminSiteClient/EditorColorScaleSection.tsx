@@ -140,7 +140,7 @@ class ColorsSection extends ObservedReactComponent<{
     }
 
     @computed get scale() {
-        return this.props.scale
+        return this.observedProps.scale
     }
 
     @computed get config() {

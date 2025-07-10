@@ -22,7 +22,7 @@ export class VerticalComparisonLine extends ObservedReactComponent<
     ComparisonLineProps<VerticalComparisonLineConfig>
 > {
     @computed private get fontSize(): number {
-        return this.props.dualAxis.comparisonLineLabelFontSize
+        return this.observedProps.dualAxis.comparisonLineLabelFontSize
     }
 
     @computed private get labelHeight(): number {
@@ -31,12 +31,12 @@ export class VerticalComparisonLine extends ObservedReactComponent<
     }
 
     @computed private get lineConfig(): VerticalComparisonLineConfig {
-        return this.props.comparisonLine
+        return this.observedProps.comparisonLine
     }
 
     @computed
     private get otherVerticalComparisonLines(): VerticalComparisonLineConfig[] {
-        return this.props.dualAxis.comparisonLines.filter(
+        return this.observedProps.dualAxis.comparisonLines.filter(
             (lineConfig): lineConfig is VerticalComparisonLineConfig =>
                 isValidVerticalComparisonLineConfig(lineConfig) &&
                 lineConfig.xEquals !== this.props.comparisonLine.xEquals

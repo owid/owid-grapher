@@ -35,7 +35,7 @@ export class MapRegionDropdown extends ObservedReactComponent<{
     }
 
     @computed private get manager(): MapRegionDropdownManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get mapConfig(): MapConfig {

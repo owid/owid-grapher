@@ -27,11 +27,13 @@ export class FacetStrategySelector extends ObservedReactComponent<{
     }
 
     @computed get entityName(): string {
-        return this.props.manager.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE
+        return (
+            this.observedProps.manager.entityType ?? DEFAULT_GRAPHER_ENTITY_TYPE
+        )
     }
 
     @computed get metricName(): string {
-        return this.props.manager.facettingLabelByYVariables ?? "metric"
+        return this.observedProps.manager.facettingLabelByYVariables ?? "metric"
     }
 
     @computed get strategies(): FacetStrategy[] {
@@ -101,6 +103,6 @@ export class FacetStrategySelector extends ObservedReactComponent<{
     }
 
     @computed get facetStrategy(): FacetStrategy {
-        return this.props.manager.facetStrategy || FacetStrategy.none
+        return this.observedProps.manager.facetStrategy || FacetStrategy.none
     }
 }

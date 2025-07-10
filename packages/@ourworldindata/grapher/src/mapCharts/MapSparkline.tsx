@@ -49,7 +49,7 @@ export class MapSparkline extends ObservedReactComponent<{
     }
 
     @computed private get manager(): MapSparklineManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get mapColumnSlug(): ColumnSlug {
@@ -157,11 +157,11 @@ export class MapSparkline extends ObservedReactComponent<{
     }
 
     @computed private get sparklineWidth(): number {
-        return this.props.sparklineWidth ?? DEFAULT_SPARKLINE_WIDTH
+        return this.observedProps.sparklineWidth ?? DEFAULT_SPARKLINE_WIDTH
     }
 
     @computed private get sparklineHeight(): number {
-        return this.props.sparklineHeight ?? DEFAULT_SPARKLINE_HEIGHT
+        return this.observedProps.sparklineHeight ?? DEFAULT_SPARKLINE_HEIGHT
     }
 
     @computed private get sparklineBounds(): Bounds {

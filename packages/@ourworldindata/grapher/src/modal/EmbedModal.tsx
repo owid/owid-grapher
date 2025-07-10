@@ -32,7 +32,7 @@ interface EmbedOptions {
 @observer
 export class EmbedModal extends ObservedReactComponent<EmbedModalProps> {
     @computed get manager(): EmbedModalManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get frameBounds(): Bounds {

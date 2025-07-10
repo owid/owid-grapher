@@ -1,7 +1,10 @@
 import * as React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
-import { ObservedReactComponent, OverlayHeader  } from "@ourworldindata/components"
+import {
+    ObservedReactComponent,
+    OverlayHeader,
+} from "@ourworldindata/components"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons"
@@ -251,7 +254,7 @@ export class SettingsMenu extends ObservedReactComponent<{
     }
 
     @computed private get manager(): SettingsMenuManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get chartTypeLabel(): string {

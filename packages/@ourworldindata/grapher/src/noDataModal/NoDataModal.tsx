@@ -1,7 +1,7 @@
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { ObservedReactComponent, Halo  } from "@ourworldindata/components"
+import { ObservedReactComponent, Halo } from "@ourworldindata/components"
 import a from "indefinite"
 import {
     Bounds,
@@ -35,11 +35,11 @@ export class NoDataModal extends ObservedReactComponent<{
     manager: NoDataModalManager
 }> {
     @computed private get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.observedProps.bounds ?? DEFAULT_BOUNDS
     }
 
     @computed private get manager(): NoDataModalManager {
-        return this.props.manager
+        return this.observedProps.manager
     }
 
     @computed private get fontSize(): number {

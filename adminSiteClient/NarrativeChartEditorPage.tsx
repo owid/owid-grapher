@@ -58,11 +58,11 @@ export class NarrativeChartEditorPage
     }
 
     @computed get history(): History {
-        return this.props.history
+        return this.observedProps.history
     }
 
     @computed get narrativeChartId(): number {
-        return this.props.narrativeChartId
+        return this.observedProps.narrativeChartId
     }
 
     @computed get editor(): NarrativeChartEditor {

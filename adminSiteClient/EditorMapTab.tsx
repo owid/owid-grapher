@@ -186,7 +186,7 @@ class InheritanceSection<
     editor: Editor
 }> {
     @computed private get editor() {
-        return this.props.editor
+        return this.observedProps.editor
     }
 
     @action.bound resetToParent() {
@@ -232,7 +232,7 @@ export class EditorMapTab<
     Editor extends AbstractChartEditor,
 > extends ObservedReactComponent<{ editor: Editor }> {
     @computed get grapherState() {
-        return this.props.editor.grapherState
+        return this.observedProps.editor.grapherState
     }
 
     render() {
