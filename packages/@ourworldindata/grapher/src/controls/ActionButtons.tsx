@@ -18,8 +18,9 @@ import {
     shareUsingShareApi,
     shouldShareUsingShareApi,
 } from "./ShareMenu.js"
-import { DEFAULT_BOUNDS, Bounds } from "@ourworldindata/utils"
+import { Bounds } from "@ourworldindata/utils"
 import classNames from "classnames"
+import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants.js"
 
 export interface ActionButtonsManager extends ShareMenuManager {
     isShareMenuActive?: boolean
@@ -52,7 +53,7 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
     }
 
     @computed protected get maxWidth(): number {
-        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
+        return this.props.maxWidth ?? DEFAULT_GRAPHER_BOUNDS.width
     }
 
     @computed get height(): number {

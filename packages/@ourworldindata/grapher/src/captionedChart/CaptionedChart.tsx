@@ -4,7 +4,6 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import {
     Bounds,
-    DEFAULT_BOUNDS,
     exposeInstanceOnWindow,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
@@ -23,6 +22,7 @@ import {
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_CHART_AREA_CLASS,
     SVG_STYLE_PROPS,
+    DEFAULT_GRAPHER_BOUNDS,
 } from "../core/GrapherConstants"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
@@ -175,7 +175,7 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
         const bounds =
             this.props.bounds ??
             this.manager.captionedChartBounds ??
-            DEFAULT_BOUNDS
+            DEFAULT_GRAPHER_BOUNDS
         // the padding ensures grapher's frame is not cut off
         return bounds.padRight(2).padBottom(2)
     }
@@ -485,7 +485,11 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
     }
 
     @computed protected get bounds(): Bounds {
-        return this.props.bounds ?? this.manager.staticBounds ?? DEFAULT_BOUNDS
+        return (
+            this.props.bounds ??
+            this.manager.staticBounds ??
+            DEFAULT_GRAPHER_BOUNDS
+        )
     }
 
     @computed protected get staticFooter(): Footer {

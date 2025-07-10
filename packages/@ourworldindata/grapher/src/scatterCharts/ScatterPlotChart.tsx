@@ -28,13 +28,15 @@ import {
     exposeInstanceOnWindow,
     PointVector,
     Bounds,
-    DEFAULT_BOUNDS,
     isTouchDevice,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    DEFAULT_GRAPHER_BOUNDS,
+} from "../core/GrapherConstants"
 import {
     OwidTable,
     defaultIfErrorValue,
@@ -284,7 +286,7 @@ export class ScatterPlotChart
     }
 
     @computed.struct private get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS
     }
 
     @computed private get innerBounds(): Bounds {
