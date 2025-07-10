@@ -11,7 +11,6 @@ import {
     DEFAULT_STROKE_WIDTH,
     HOVER_STROKE_COLOR,
     HOVER_STROKE_WIDTH,
-    PATTERN_STROKE_WIDTH,
     SELECTED_STROKE_WIDTH,
     SVGMouseEvent,
     RenderFeature,
@@ -150,30 +149,6 @@ export function CountryWithNoData<Feature extends RenderFeature>({
             }
             onMouseLeave={onMouseLeave}
         />
-    )
-}
-
-export function NoDataPattern({
-    patternId,
-    scale = 1,
-}: {
-    patternId: string
-    scale?: number
-}): React.ReactElement {
-    return (
-        <pattern
-            id={patternId}
-            patternUnits="userSpaceOnUse"
-            width="4"
-            height="4"
-            patternTransform={`rotate(-45 2 2) scale(${scale})`}
-        >
-            <path
-                d="M -1,2 l 6,0"
-                stroke="#ccc"
-                strokeWidth={PATTERN_STROKE_WIDTH}
-            />
-        </pattern>
     )
 }
 

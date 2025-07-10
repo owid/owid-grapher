@@ -72,6 +72,7 @@ import {
     ClipPath,
     combineHistoricalAndProjectionColumns,
     makeClipPath,
+    NoDataPattern,
 } from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
@@ -816,6 +817,14 @@ export class MapChart
         )
     }
 
+    renderNoDataPattern(): React.ReactElement {
+        return (
+            <defs>
+                <NoDataPattern />
+            </defs>
+        )
+    }
+
     renderStatic(): React.ReactElement {
         // Clipping the chart area is only necessary when the map is
         // zoomed in or we're showing the globe. If that isn't the case,
@@ -826,6 +835,7 @@ export class MapChart
 
         return (
             <>
+                {this.renderNoDataPattern()}
                 {this.renderMapOrGlobe({ clipping })}
                 {this.renderMapLegend()}
             </>
@@ -856,6 +866,7 @@ export class MapChart
                 className={MAP_CHART_CLASSNAME}
                 onMouseMove={this.onMapMouseMove}
             >
+                {this.renderNoDataPattern()}
                 {this.renderMapOrGlobe()}
                 {this.renderMapLegend()}
                 {tooltipCountry && (
