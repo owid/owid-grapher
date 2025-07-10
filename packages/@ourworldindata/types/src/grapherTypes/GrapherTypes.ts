@@ -773,6 +773,11 @@ export const grapherKeysToSerialize = [
     "bakedGrapherURL",
 ]
 
+export enum GrapherRenderStyle {
+    Default = "default",
+    Thumbnail = "thumbnail", // Chart only, no text elements
+}
+
 export interface ChartRedirect {
     id: number
     slug: string

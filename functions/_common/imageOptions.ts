@@ -4,6 +4,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
 } from "@ourworldindata/grapher"
 import { Bounds } from "@ourworldindata/utils"
+import { GrapherRenderStyle } from "@ourworldindata/types"
 import {
     DEFAULT_ASPECT_RATIO,
     MIN_ASPECT_RATIO,
@@ -53,6 +54,19 @@ const SQUARE_OPTIONS: Readonly<ImageOptions> = {
         staticBounds: DEFAULT_GRAPHER_BOUNDS_SQUARE,
     },
 }
+const THUMBNAIL_OPTIONS: Readonly<ImageOptions> = {
+    pngWidth: 600,
+    pngHeight: 320,
+    svgWidth: 600,
+    svgHeight: 320,
+    details: false,
+    fontSize: undefined,
+    grapherProps: {
+        isSocialMediaExport: false,
+        staticBounds: new Bounds(0, 0, 600, 320),
+        renderStyle: GrapherRenderStyle.Thumbnail,
+    },
+}
 
 function cloneOptions(options: Readonly<ImageOptions>): ImageOptions {
     const clone = structuredClone(options)
@@ -87,6 +101,13 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
             squareOptions.pngHeight = size
         }
         return squareOptions
+    } else if (imType === "minimal") {
+        const thumbnailOptions = cloneOptions(THUMBNAIL_OPTIONS)
+        if (params.has("imWidth"))
+            thumbnailOptions.pngWidth = parseInt(params.get("imWidth")!)
+        if (params.has("imHeight"))
+            thumbnailOptions.pngHeight = parseInt(params.get("imHeight")!)
+        return thumbnailOptions
     }
 
     const options: Partial<ImageOptions> = {}

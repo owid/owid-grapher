@@ -12,6 +12,7 @@ import {
     EntityName,
     DetailsMarker,
     Color,
+    GrapherRenderStyle,
 } from "@ourworldindata/types"
 import { TooltipManager } from "../tooltip/TooltipProps"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
@@ -30,6 +31,8 @@ export interface ChartManager {
 
     table: OwidTable
     transformedTable?: OwidTable
+
+    renderStyle?: GrapherRenderStyle
 
     isExportingToSvgOrPng?: boolean
     isRelativeMode?: boolean

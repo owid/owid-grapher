@@ -112,6 +112,7 @@ import {
     OwidVariableRow,
     AdditionalGrapherDataFetchFn,
     ProjectionColumnInfo,
+    GrapherRenderStyle,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -255,6 +256,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     entityYearHighlight?: EntityYearHighlight
     baseFontSize?: number
     staticBounds?: Bounds
+    renderStyle?: GrapherRenderStyle
 
     hideTitle?: boolean
     hideSubtitle?: boolean
@@ -1067,6 +1069,8 @@ export class GrapherState {
     @observable.ref isExportingToSvgOrPng = false
     @observable.ref isSocialMediaExport = false
     @observable.ref isWikimediaExport = false
+
+    @observable.ref renderStyle = GrapherRenderStyle.Default
 
     @observable staticBounds: Bounds = DEFAULT_GRAPHER_BOUNDS_LANDSCAPE
 

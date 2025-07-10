@@ -136,6 +136,7 @@ export {
     type MapConfigInterface,
     type GlobeConfig,
     type ProjectionColumnInfo,
+    GrapherRenderStyle,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {
