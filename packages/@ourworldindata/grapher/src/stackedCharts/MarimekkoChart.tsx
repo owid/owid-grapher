@@ -37,6 +37,7 @@ import {
     autoDetectYColumnSlugs,
     getShortNameForEntity,
     makeSelectionArray,
+    NoDataPattern,
 } from "../chart/ChartUtils"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
@@ -1000,6 +1001,7 @@ export class MarimekkoChart
                     opacity={0}
                     fill="rgba(255,255,255,0)"
                 />
+                <NoDataPattern />
                 <DualAxisComponent
                     dualAxis={dualAxis}
                     showTickMarks={true}

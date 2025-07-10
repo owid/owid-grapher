@@ -30,7 +30,6 @@ export const HOVER_STROKE_COLOR = "#111"
 export const DEFAULT_STROKE_WIDTH = 0.3
 export const HOVER_STROKE_WIDTH = 1.5
 export const SELECTED_STROKE_WIDTH = 1
-export const PATTERN_STROKE_WIDTH = 0.7
 
 export const BLUR_FILL_OPACITY = 0.2
 export const BLUR_STROKE_OPACITY = 0.5
