@@ -1,5 +1,4 @@
 import * as React from "react"
-import { observer } from "mobx-react"
 
 type TriangleProps = Readonly<{
     cx: number
@@ -12,25 +11,22 @@ type TriangleProps = Readonly<{
 }> &
     React.SVGProps<SVGPolygonElement>
 
-@observer
-export class Triangle extends React.Component<TriangleProps> {
-    render(): React.ReactElement {
-        const { cx, cy, r } = this.props
-        const x = cx - r,
-            y = cy - r
-        const points = [
-            [x, y + r * 2],
-            [x + (r * 2) / 2, y],
-            [x + r * 2, y + r * 2],
-        ]
+export const Triangle = (props: TriangleProps): React.ReactElement => {
+    const { cx, cy, r } = props
+    const x = cx - r,
+        y = cy - r
+    const points = [
+        [x, y + r * 2],
+        [x + (r * 2) / 2, y],
+        [x + r * 2, y + r * 2],
+    ]
 
-        return (
-            <polygon
-                points={points
-                    .map((p) => `${p[0].toFixed(2)},${p[1].toFixed(2)}`)
-                    .join(" ")}
-                {...this.props}
-            />
-        )
-    }
+    return (
+        <polygon
+            points={points
+                .map((p) => `${p[0].toFixed(2)},${p[1].toFixed(2)}`)
+                .join(" ")}
+            {...props}
+        />
+    )
 }

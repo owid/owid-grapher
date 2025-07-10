@@ -1,5 +1,3 @@
-import React from "react"
-import { observer } from "mobx-react"
 import { DualAxis } from "../axis/Axis"
 import {
     Color,
@@ -16,16 +14,13 @@ export interface ComparisonLineProps<LineConfig extends ComparisonLineConfig> {
     backgroundColor?: Color
 }
 
-@observer
-export class ComparisonLine<
-    LineConfig extends ComparisonLineConfig,
-> extends React.Component<ComparisonLineProps<LineConfig>> {
-    render() {
-        if (isVerticalComparisonLineProps(this.props)) {
-            return <VerticalComparisonLine {...this.props} />
-        } else {
-            return <CustomComparisonLine {...this.props} />
-        }
+export const ComparisonLine = <LineConfig extends ComparisonLineConfig>(
+    props: ComparisonLineProps<LineConfig>
+) => {
+    if (isVerticalComparisonLineProps(props)) {
+        return <VerticalComparisonLine {...props} />
+    } else {
+        return <CustomComparisonLine {...props} />
     }
 }
 
