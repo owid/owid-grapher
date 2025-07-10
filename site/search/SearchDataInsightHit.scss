@@ -1,1 +1,42 @@
-// TODO
+.search-data-insight-hit {
+    &:hover {
+        .search-data-insight-hit__title {
+            text-decoration: underline;
+        }
+    }
+}
+
+.search-data-insight-hit__image-container {
+    // Trick to maintain aspect ratio of the container. We can use the
+    // aspect-ratio property in the future when more browsers support it.
+    // https://stackoverflow.com/a/10441480/9846837
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 100%;
+
+    border: 1px solid $blue-10;
+    margin-bottom: 16px;
+}
+
+.search-data-insight-hit__image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.search-data-insight-hit__date {
+    @include h6-black-caps;
+    color: $blue-60;
+    margin-bottom: 4px;
+}
+
+.search-data-insight-hit__title {
+    @include body-1-bold;
+    margin: 0;
+    color: $blue-90;
+    text-wrap: balance;
+}
