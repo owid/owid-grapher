@@ -281,15 +281,17 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     isConfigReady?: boolean
     canHideExternalControlsInEmbed?: boolean
 
-    narrativeChartInfo?: Pick<
-        NarrativeChartInfo,
-        "parentChartSlug" | "queryParamsForParentChart"
-    >
+    narrativeChartInfo?: MinimalNarrativeChartInfo
     archivedChartInfo?: ArchiveContext
 
     manager?: GrapherManager
     additionalDataLoaderFn?: AdditionalGrapherDataFetchFn
 }
+
+type MinimalNarrativeChartInfo = Pick<
+    NarrativeChartInfo,
+    "name" | "parentChartSlug" | "queryParamsForParentChart"
+>
 
 interface AnalyticsContext {
     mdimSlug?: string
@@ -460,11 +462,9 @@ export class GrapherState {
     @observable.ref hideExternalControlsInEmbedUrl: boolean =
         this.canHideExternalControlsInEmbed
 
-    narrativeChartInfo?: Pick<
-        NarrativeChartInfo,
-        "name" | "parentChartSlug" | "queryParamsForParentChart"
-    > = undefined
+    narrativeChartInfo?: MinimalNarrativeChartInfo = undefined
     archivedChartInfo?: ArchiveContext
+
     selection: SelectionArray = new SelectionArray()
     focusArray = new FocusArray()
     analytics: GrapherAnalytics
@@ -518,6 +518,7 @@ export class GrapherState {
         this.canHideExternalControlsInEmbed =
             options.canHideExternalControlsInEmbed ?? false
 
+        this.narrativeChartInfo = options.narrativeChartInfo
         this.archivedChartInfo = options.archivedChartInfo
 
         this.populateFromQueryParams(
