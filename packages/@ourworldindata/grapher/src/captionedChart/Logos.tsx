@@ -1,5 +1,4 @@
 import * as React from "react"
-import { computed } from "mobx"
 import {
     OWID_LOGO_SVG,
     CORE_LOGO_SVG,
@@ -61,29 +60,29 @@ export class Logo {
         this.props = props
     }
 
-    @computed private get logo(): LogoOption {
+    private get logo(): LogoOption {
         return this.props.logo ?? LogoOption.owid
     }
 
-    @computed private get spec(): LogoAttributes {
+    private get spec(): LogoAttributes {
         if (this.props.useSmallVersion && this.logo === LogoOption.owid) {
             return smallOwidLogo
         }
         return logos[this.logo]
     }
 
-    @computed private get targetHeight(): number {
+    private get targetHeight(): number {
         return (this.props.heightScale ?? 1) * this.spec.targetHeight
     }
 
-    @computed private get scale(): number {
+    private get scale(): number {
         return this.targetHeight / this.spec.height
     }
 
-    @computed get width(): number {
+    get width(): number {
         return this.spec.width * this.scale
     }
-    @computed get height(): number {
+    get height(): number {
         return this.spec.height * this.scale
     }
 

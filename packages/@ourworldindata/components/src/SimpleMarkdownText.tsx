@@ -1,5 +1,4 @@
 import * as React from "react"
-import { computed } from "mobx"
 import Markdown, {
     type Options as MarkdownOptions,
     type Components as MarkdownComponents,
@@ -44,15 +43,11 @@ const transformDodLinks: Plugin<[], Root> = () => {
 // This way we could reduce the bundle size by not including a markdown library
 // and improve performance.
 export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps> {
-    @computed get text(): string {
-        return this.props.text
-    }
-
-    @computed get useParagraphs(): boolean {
+    get useParagraphs(): boolean {
         return this.props.useParagraphs ?? true
     }
 
-    @computed get markdownCustomComponents(): MarkdownComponents | undefined {
+    get markdownCustomComponents(): MarkdownComponents | undefined {
         if (!this.useParagraphs) {
             // "unwrap" the text by rendering <p /> as a react fragment
             return {
@@ -71,7 +66,7 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
             remarkPlugins: [remarkPlainLinks],
             components: this.markdownCustomComponents,
         }
-        return <Markdown {...options}>{this.text}</Markdown>
+        return <Markdown {...options}>{this.props.text}</Markdown>
     }
 }
 
