@@ -25,7 +25,6 @@ import {
     QueryParams,
     MultipleOwidVariableDataDimensionsMap,
     Bounds,
-    DEFAULT_BOUNDS,
     minTimeBoundFromJSONOrNegativeInfinity,
     maxTimeBoundFromJSONOrPositiveInfinity,
     TimeBounds,
@@ -92,7 +91,6 @@ import {
     OwidColumnDef,
     ColorSchemeName,
     AxisConfigInterface,
-    GrapherStaticFormat,
     DetailsMarker,
     DetailDictionary,
     GrapherWindowType,
@@ -135,7 +133,8 @@ import {
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_FRAME_PADDING_VERTICAL,
     latestGrapherConfigSchema,
-    GRAPHER_SQUARE_SIZE,
+    DEFAULT_GRAPHER_BOUNDS,
+    DEFAULT_GRAPHER_BOUNDS_SQUARE,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import { ChartDimension } from "../chart/ChartDimension"
@@ -256,7 +255,6 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     entityYearHighlight?: EntityYearHighlight
     baseFontSize?: number
     staticBounds?: Bounds
-    staticFormat?: GrapherStaticFormat
 
     hideTitle?: boolean
     hideSubtitle?: boolean
@@ -510,7 +508,6 @@ export class GrapherState {
         this._additionalDataLoaderFn = options.additionalDataLoaderFn
         this.isEmbeddedInAnOwidPage = options.isEmbeddedInAnOwidPage ?? false
         this.isEmbeddedInADataPage = options.isEmbeddedInADataPage ?? false
-        if (options.staticFormat) this._staticFormat = options.staticFormat
 
         this._inputTable =
             options.table ?? BlankOwidTable(`initialGrapherTable`)
@@ -1070,6 +1067,8 @@ export class GrapherState {
     @observable.ref isExportingToSvgOrPng = false
     @observable.ref isSocialMediaExport = false
     @observable.ref isWikimediaExport = false
+
+    @observable staticBounds: Bounds = DEFAULT_GRAPHER_BOUNDS
 
     enableKeyboardShortcuts: boolean = false
     bindUrlToWindow: boolean = false
@@ -2257,33 +2256,7 @@ export class GrapherState {
     @computed get hasYDimension(): boolean {
         return this.dimensions.some((d) => d.property === DimensionProperty.y)
     }
-    @observable.ref _staticFormat = GrapherStaticFormat.landscape
-    @computed get staticFormat(): GrapherStaticFormat {
-        return this._staticFormat
-    }
-    set staticFormat(format: GrapherStaticFormat) {
-        this._staticFormat = format
-    }
-    getStaticBounds(format: GrapherStaticFormat): Bounds {
-        switch (format) {
-            case GrapherStaticFormat.landscape:
-                return this.defaultBounds
-            case GrapherStaticFormat.square:
-                return new Bounds(
-                    0,
-                    0,
-                    GRAPHER_SQUARE_SIZE,
-                    GRAPHER_SQUARE_SIZE
-                )
-            default:
-                return this.defaultBounds
-        }
-    }
-    @computed get staticBounds(): Bounds {
-        if (this.initialOptions.staticBounds)
-            return this.initialOptions.staticBounds
-        return this.getStaticBounds(this.staticFormat)
-    }
+
     generateStaticSvg(): string {
         const _isExportingToSvgOrPng = this.isExportingToSvgOrPng
         this.isExportingToSvgOrPng = true
@@ -2398,7 +2371,9 @@ export class GrapherState {
         be worth debouncing updates (e.g. when drag-resizing) */
     @computed get externalBounds(): Bounds {
         const { _externalBounds, initialOptions } = this
-        return _externalBounds ?? initialOptions.bounds ?? DEFAULT_BOUNDS
+        return (
+            _externalBounds ?? initialOptions.bounds ?? DEFAULT_GRAPHER_BOUNDS
+        )
     }
     set externalBounds(bounds: Bounds) {
         this._externalBounds = bounds
@@ -2822,7 +2797,7 @@ export class GrapherState {
         return this.initialOptions.baseFontSize !== undefined
     }
     private computeBaseFontSizeFromHeight(bounds: Bounds): number {
-        const squareBounds = this.getStaticBounds(GrapherStaticFormat.square)
+        const squareBounds = DEFAULT_GRAPHER_BOUNDS_SQUARE
         const factor = squareBounds.height / 21
         return Math.max(10, bounds.height / factor)
     }

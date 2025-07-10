@@ -2,14 +2,10 @@ import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import a from "indefinite"
-import {
-    Bounds,
-    DEFAULT_BOUNDS,
-    VerticalAlign,
-    dyFromAlign,
-} from "@ourworldindata/utils"
+import { Bounds, VerticalAlign, dyFromAlign } from "@ourworldindata/utils"
 import {
     BASE_FONT_SIZE,
+    DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
     GRAPHER_TEXT_OUTLINE_FACTOR,
@@ -35,7 +31,7 @@ export class NoDataModal extends React.Component<{
     manager: NoDataModalManager
 }> {
     @computed private get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS
     }
 
     @computed private get manager(): NoDataModalManager {

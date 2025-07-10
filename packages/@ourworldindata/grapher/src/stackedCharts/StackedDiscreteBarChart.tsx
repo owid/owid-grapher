@@ -3,7 +3,6 @@ import React from "react"
 import * as R from "remeda"
 import {
     Bounds,
-    DEFAULT_BOUNDS,
     excludeUndefined,
     numberMagnitude,
     Color,
@@ -30,6 +29,7 @@ import {
 } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
+    DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
@@ -211,7 +211,9 @@ export class StackedDiscreteBarChart
 
     @computed private get bounds(): Bounds {
         // bottom padding avoids axis labels to be cut off at some resolutions
-        return (this.props.bounds ?? DEFAULT_BOUNDS).padRight(10).padBottom(2)
+        return (this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS)
+            .padRight(10)
+            .padBottom(2)
     }
 
     @computed private get baseFontSize(): number {
