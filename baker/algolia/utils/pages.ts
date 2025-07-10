@@ -15,6 +15,9 @@ import {
     OwidGdocDataInsightInterface,
     OwidGdocAboutInterface,
     getUniqueNamesFromTagHierarchies,
+    spansToUnformattedPlainText,
+    EnrichedBlockText,
+    Span,
 } from "@ourworldindata/utils"
 import { getAlgoliaClient } from "../configureAlgolia.js"
 import {
@@ -33,7 +36,10 @@ import {
     CLOUDFLARE_IMAGES_URL,
 } from "../../../settings/clientSettings.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
-import { getFirstBlockOfType } from "../../../site/gdocs/utils.js"
+import {
+    getFirstBlockOfType,
+    takeConsecutiveBlocksOfType,
+} from "../../../site/gdocs/utils.js"
 import {
     getPrefixedGdocPath,
     MarkdownTextWrap,
@@ -110,6 +116,87 @@ function getExcerptFromGdoc(
     } else {
         return gdoc.content.excerpt ?? ""
     }
+}
+
+function filterSpansForExcerptLong(span: Span): Span | null {
+    // Remove span-subscript and span-superscript spans
+    if (
+        span.spanType === "span-subscript" ||
+        span.spanType === "span-superscript"
+    ) {
+        return null
+    }
+
+    // For spans with children, recursively filter the children
+    if ("children" in span && span.children) {
+        const filteredChildren = span.children
+            .map(filterSpansForExcerptLong)
+            .filter((child): child is Span => child !== null)
+
+        return {
+            ...span,
+            children: filteredChildren,
+        }
+    }
+
+    // For spans without children, return as-is
+    return span
+}
+
+function getExcerptLongFromGdoc(
+    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface
+): string[] | undefined {
+    if (
+        gdoc.content.type !== OwidGdocType.TopicPage &&
+        // Most (all?) linear topic pages currently don't have an intro block,
+        // but we try to get it just in case.
+        gdoc.content.type !== OwidGdocType.LinearTopicPage
+    ) {
+        return
+    }
+
+    let textBlocks: EnrichedBlockText[]
+    const topicPageIntroBlock = getFirstBlockOfType(gdoc, "topic-page-intro")
+    const maxParagraphs = 3
+    if (topicPageIntroBlock) {
+        textBlocks = topicPageIntroBlock.content.slice(0, maxParagraphs)
+    } else {
+        textBlocks = takeConsecutiveBlocksOfType(
+            gdoc,
+            "text",
+            maxParagraphs
+        ).filter((block) => {
+            if (
+                // Filter out blocks whose only child is a link or some other
+                // special span to prevent paragraphs such as "See all
+                // interactive charts on age structure ↓".
+                block.value.length === 1 &&
+                [
+                    "span-link",
+                    "span-bold",
+                    "span-italic",
+                    "span-underline",
+                    "span-subscript",
+                    "span-superscript",
+                ].includes(block.value[0].spanType)
+            ) {
+                return false
+            }
+            return true
+        })
+    }
+    return (
+        textBlocks
+            .map((block) => {
+                const filteredValue = block.value
+                    .map(filterSpansForExcerptLong)
+                    .filter((span) => span !== null)
+                return spansToUnformattedPlainText(filteredValue).trim()
+            })
+            // Filter out empty blocks and blocks that end with a colon, e.g.
+            // "... you can read the following essay:".
+            .filter((block) => block.length > 0 && !block.endsWith(":"))
+    )
 }
 
 function formatGdocMarkdown(content: string): string {
@@ -204,6 +291,7 @@ async function generateGdocRecords(
                 views_7d:
                     pageviews[getPrefixedGdocPath("", gdoc)]?.views_7d ?? 0,
                 excerpt: getExcerptFromGdoc(gdoc),
+                excerptLong: getExcerptLongFromGdoc(gdoc),
                 date: gdoc.publishedAt!.toISOString(),
                 modifiedDate: (
                     gdoc.updatedAt ?? gdoc.publishedAt!
