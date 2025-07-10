@@ -36,7 +36,6 @@ import {
 import {
     Bounds,
     ColumnSlug,
-    DEFAULT_BOUNDS,
     DimensionProperty,
     excludeUndefined,
     exposeInstanceOnWindow,
@@ -950,7 +949,6 @@ export class Explorer
     private grapherContainerRef: React.RefObject<HTMLDivElement> =
         React.createRef()
 
-    @observable.ref private grapherBounds = DEFAULT_BOUNDS
     @observable.ref
     private grapherRef: React.RefObject<Grapher> = React.createRef()
 

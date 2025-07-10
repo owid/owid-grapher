@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import React from "react"
 import {
     Bounds,
-    DEFAULT_BOUNDS,
     domainExtent,
     exposeInstanceOnWindow,
     PointVector,
@@ -18,6 +17,7 @@ import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     BASE_FONT_SIZE,
+    DEFAULT_GRAPHER_BOUNDS_LANDSCAPE,
     GRAPHER_FONT_SCALE_12,
     GRAPHER_OPACITY_MUTE,
     GRAPHER_TEXT_OUTLINE_FACTOR,
@@ -201,7 +201,7 @@ export class SlopeChart
     }
 
     @computed private get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS_LANDSCAPE
     }
 
     @computed private get innerBounds(): Bounds {

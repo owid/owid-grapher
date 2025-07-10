@@ -1,13 +1,14 @@
 import { observer } from "mobx-react"
 import * as React from "react"
 import { computed, action } from "mobx"
-import { Bounds, DEFAULT_BOUNDS, Url } from "@ourworldindata/utils"
+import { Bounds, Url } from "@ourworldindata/utils"
 import { Modal } from "./Modal"
 import {
     Checkbox,
     CodeSnippet,
     OverlayHeader,
 } from "@ourworldindata/components"
+import { DEFAULT_GRAPHER_BOUNDS_LANDSCAPE } from "../core/GrapherConstants"
 
 export interface EmbedModalManager {
     embedUrl?: string
@@ -36,7 +37,7 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
     }
 
     @computed private get frameBounds(): Bounds {
-        return this.manager.frameBounds ?? DEFAULT_BOUNDS
+        return this.manager.frameBounds ?? DEFAULT_GRAPHER_BOUNDS_LANDSCAPE
     }
 
     @computed private get modalBounds(): Bounds {

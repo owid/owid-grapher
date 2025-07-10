@@ -16,12 +16,13 @@ import {
     extractDetailsFromSyntax,
     getIndexableKeys,
 } from "@ourworldindata/utils"
+import { GrapherInterface, DimensionProperty } from "@ourworldindata/types"
 import {
-    GrapherInterface,
-    GrapherStaticFormat,
-    DimensionProperty,
-} from "@ourworldindata/types"
-import { Grapher, GrapherState } from "@ourworldindata/grapher"
+    DEFAULT_GRAPHER_BOUNDS_LANDSCAPE,
+    DEFAULT_GRAPHER_BOUNDS_SQUARE,
+    Grapher,
+    GrapherState,
+} from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
 import { getFullReferencesCount, isChartEditorInstance } from "./ChartEditor.js"
 import { EditorBasicTab } from "./EditorBasicTab.js"
@@ -187,11 +188,10 @@ export class ChartEditorView<
             ? new Bounds(0, 0, 380, 525)
             : this.grapherState.defaultBounds
     }
-
-    @computed private get staticFormat(): GrapherStaticFormat {
+    @computed private get staticBounds(): Bounds {
         return this.isMobilePreview
-            ? GrapherStaticFormat.square
-            : GrapherStaticFormat.landscape
+            ? DEFAULT_GRAPHER_BOUNDS_SQUARE
+            : DEFAULT_GRAPHER_BOUNDS_LANDSCAPE
     }
 
     // unvalidated terms extracted from the subtitle and note fields
@@ -318,7 +318,7 @@ export class ChartEditorView<
             reaction(
                 () => this.editor && this.editor.previewMode,
                 () => {
-                    this.grapherState.staticFormat = this.staticFormat
+                    this.grapherState.staticBounds = this.staticBounds
                     this.grapherState.externalBounds = this.bounds
                 }
             )

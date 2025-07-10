@@ -773,11 +773,6 @@ export const grapherKeysToSerialize = [
     "bakedGrapherURL",
 ]
 
-export enum GrapherStaticFormat {
-    landscape = "landscape",
-    square = "square",
-}
-
 export interface ChartRedirect {
     id: number
     slug: string

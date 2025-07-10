@@ -10,7 +10,6 @@ import {
     excludeUndefined,
     isMobile,
     Bounds,
-    DEFAULT_BOUNDS,
     PointVector,
     AxisAlign,
     Color,
@@ -47,7 +46,11 @@ import {
     VerticalAlign,
     InteractionState,
 } from "@ourworldindata/types"
-import { BASE_FONT_SIZE, GRAPHER_OPACITY_MUTE } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    DEFAULT_GRAPHER_BOUNDS_LANDSCAPE,
+    GRAPHER_OPACITY_MUTE,
+} from "../core/GrapherConstants"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
@@ -514,7 +517,7 @@ export class LineChart
     }
 
     @computed get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS_LANDSCAPE
     }
 
     @computed private get boundsWithoutColorLegend(): Bounds {

@@ -1,12 +1,13 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { computed, action } from "mobx"
-import { Bounds, DEFAULT_BOUNDS } from "@ourworldindata/utils"
+import { Bounds } from "@ourworldindata/utils"
 import { Modal } from "./Modal"
 import {
     EntitySelector,
     EntitySelectorManager,
 } from "../entitySelector/EntitySelector"
+import { DEFAULT_GRAPHER_BOUNDS_LANDSCAPE } from "../core/GrapherConstants"
 
 export interface EntitySelectorModalManager extends EntitySelectorManager {
     isEntitySelectorModalOrDrawerOpen?: boolean
@@ -22,7 +23,7 @@ export class EntitySelectorModal extends React.Component<{
     }
 
     @computed private get frameBounds(): Bounds {
-        return this.manager.frameBounds ?? DEFAULT_BOUNDS
+        return this.manager.frameBounds ?? DEFAULT_GRAPHER_BOUNDS_LANDSCAPE
     }
 
     @computed private get modalBounds(): Bounds {

@@ -5,7 +5,6 @@ import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import {
     Bounds,
-    DEFAULT_BOUNDS,
     getOriginAttributionFragments,
     getPhraseForProcessingLevel,
     triggerDownloadFromBlob,
@@ -24,12 +23,7 @@ import {
     faDownload,
     faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons"
-import {
-    OwidColumnDef,
-    GrapherStaticFormat,
-    OwidOrigin,
-    QueryParams,
-} from "@ourworldindata/types"
+import { OwidColumnDef, OwidOrigin, QueryParams } from "@ourworldindata/types"
 import {
     BlankOwidTable,
     OwidTable,
@@ -45,13 +39,17 @@ import {
 import { match } from "ts-pattern"
 import * as R from "remeda"
 import { GrapherImageDownloadEvent } from "../core/GrapherAnalytics"
+import {
+    DEFAULT_GRAPHER_BOUNDS_LANDSCAPE,
+    DEFAULT_GRAPHER_BOUNDS_SQUARE,
+} from "../core/GrapherConstants"
 
 export interface DownloadModalManager {
     displaySlug: string
     rasterize: (bounds?: Bounds) => Promise<GrapherExport>
     staticBounds?: Bounds
     staticBoundsWithDetails?: Bounds
-    staticFormat?: GrapherStaticFormat
+    // staticFormat?: GrapherStaticFormat
     baseUrl?: string
     queryStr?: string
     externalQueryParams?: QueryParams
@@ -85,7 +83,8 @@ interface DownloadModalProps {
 export const DownloadModal = (
     props: DownloadModalProps
 ): React.ReactElement => {
-    const frameBounds = props.manager.frameBounds ?? DEFAULT_BOUNDS
+    const frameBounds =
+        props.manager.frameBounds ?? DEFAULT_GRAPHER_BOUNDS_LANDSCAPE
 
     const modalBounds = useMemo(() => {
         const maxWidth = 640
@@ -168,15 +167,21 @@ export const DownloadModal = (
 @observer
 export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
     @computed private get staticBounds(): Bounds {
-        return this.manager.staticBounds ?? DEFAULT_BOUNDS
+        return this.manager.staticBounds ?? DEFAULT_GRAPHER_BOUNDS_LANDSCAPE
     }
 
     @computed private get captionedChartBounds(): Bounds {
-        return this.manager.captionedChartBounds ?? DEFAULT_BOUNDS
+        return (
+            this.manager.captionedChartBounds ??
+            DEFAULT_GRAPHER_BOUNDS_LANDSCAPE
+        )
     }
 
     @computed private get isExportingSquare(): boolean {
-        return this.manager.staticFormat === GrapherStaticFormat.square
+        return (
+            this.manager.staticBounds?.width ===
+            this.manager.staticBounds?.height
+        )
     }
 
     @computed private get isSocialMediaExport(): boolean {
@@ -266,9 +271,9 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
     }
 
     @action.bound private toggleExportFormat(): void {
-        this.manager.staticFormat = this.isExportingSquare
-            ? GrapherStaticFormat.landscape
-            : GrapherStaticFormat.square
+        this.manager.staticBounds = this.isExportingSquare
+            ? DEFAULT_GRAPHER_BOUNDS_LANDSCAPE
+            : DEFAULT_GRAPHER_BOUNDS_SQUARE
     }
 
     @action.bound private toggleExportForUseInSocialMedia(): void {
@@ -435,8 +440,8 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
 
                                             // set reasonable defaults for social media exports
                                             if (this.isSocialMediaExport) {
-                                                this.manager.staticFormat =
-                                                    GrapherStaticFormat.square
+                                                this.manager.staticBounds =
+                                                    DEFAULT_GRAPHER_BOUNDS_SQUARE
                                                 this.manager.shouldIncludeDetailsInStaticExport = false
                                             }
 

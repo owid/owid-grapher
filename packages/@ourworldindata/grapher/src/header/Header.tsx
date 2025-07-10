@@ -1,7 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import {
-    DEFAULT_BOUNDS,
     LogoOption,
     makeIdForHumanConsumption,
     Bounds,
@@ -14,6 +13,7 @@ import { Logo } from "../captionedChart/Logos"
 import { HeaderManager } from "./HeaderManager"
 import {
     BASE_FONT_SIZE,
+    DEFAULT_GRAPHER_BOUNDS_LANDSCAPE,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_FRAME_PADDING_VERTICAL,
     GRAPHER_HEADER_CLASS,
@@ -36,7 +36,7 @@ export class Header<
     }
 
     @computed protected get maxWidth(): number {
-        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
+        return this.props.maxWidth ?? DEFAULT_GRAPHER_BOUNDS_LANDSCAPE.width
     }
 
     @computed protected get useBaseFontSize(): boolean {
