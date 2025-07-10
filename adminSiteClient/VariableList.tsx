@@ -1,5 +1,6 @@
 import * as React from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 
 import { Link } from "./Link.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -20,7 +21,7 @@ export interface VariableListItem {
 }
 
 @observer
-class VariableRow extends React.Component<{
+class VariableRow extends ObservedReactComponent<{
     variable: VariableListItem
     fields: string[]
     searchHighlight?: (text: string) => string | React.ReactElement
@@ -87,7 +88,7 @@ class VariableRow extends React.Component<{
 }
 
 @observer
-export class VariableList extends React.Component<{
+export class VariableList extends ObservedReactComponent<{
     variables: VariableListItem[]
     fields: string[]
     searchHighlight?: (text: string) => string | React.ReactElement

@@ -2,6 +2,7 @@ import * as React from "react"
 import * as lodash from "lodash-es"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import {
     KeyChartLevel,
     TaggableType,
@@ -19,7 +20,7 @@ interface TaggableItem {
 }
 
 @observer
-export class EditableTags extends React.Component<{
+export class EditableTags extends ObservedReactComponent<{
     tags: DbChartTagJoin[]
     suggestions: DbChartTagJoin[]
     onSave: (tags: DbChartTagJoin[]) => void

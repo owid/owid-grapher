@@ -1,5 +1,6 @@
 import * as React from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { KeyChartLevel, DbChartTagJoin } from "@ourworldindata/utils"
 
 import { Link } from "./Link.js"
@@ -10,7 +11,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faClock } from "@fortawesome/free-solid-svg-icons"
 
 @observer
-export class TagBadge extends React.Component<{
+export class TagBadge extends ObservedReactComponent<{
     tag: DbChartTagJoin
     onToggleKey?: () => void
     onApprove?: () => void

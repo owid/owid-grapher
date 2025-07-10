@@ -1,5 +1,6 @@
 import * as React from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { action, runInAction } from "mobx"
 import * as lodash from "lodash-es"
 import { Link } from "./Link.js"
@@ -21,7 +22,7 @@ import {
 import { Dropdown } from "antd"
 
 @observer
-export class ChartRow extends React.Component<{
+export class ChartRow extends ObservedReactComponent<{
     chart: ChartListItem
     searchHighlight?: (text: string) => string | React.ReactElement
     availableTags: DbChartTagJoin[]

@@ -1,5 +1,6 @@
 import * as React from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { observable, action, runInAction, toJS, computed } from "mobx"
 import * as lodash from "lodash-es"
 import { AdminLayout } from "./AdminLayout.js"
@@ -84,7 +85,7 @@ function DraggableDroppable(props: {
 }
 
 @observer
-class AddChildForm extends React.Component<{
+class AddChildForm extends ObservedReactComponent<{
     tags: MinimalTagWithIsTopic[]
     label: string
     setChild: (parentId: number, childId: number) => void
@@ -150,7 +151,7 @@ class AddChildForm extends React.Component<{
 }
 
 @observer
-class TagGraphNodeContainer extends React.Component<{
+class TagGraphNodeContainer extends ObservedReactComponent<{
     node: TagGraphNode
     parentId: number
     setWeight: (parentId: number, childId: number, weight: number) => void
@@ -300,7 +301,7 @@ function insertChildAndSort(
 }
 
 @observer
-export class TagGraphPage extends React.Component {
+export class TagGraphPage extends ObservedReactComponent {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

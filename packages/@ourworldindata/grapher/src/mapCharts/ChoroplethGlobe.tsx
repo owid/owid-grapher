@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import {
     geoGraticule,
     geoOrthographic,
@@ -79,7 +80,7 @@ import { isDarkColor } from "../color/ColorUtils"
 const DEFAULT_SCALE = geoOrthographic().scale()
 
 @observer
-export class ChoroplethGlobe extends React.Component<{
+export class ChoroplethGlobe extends ObservedReactComponent<{
     manager: ChoroplethMapManager
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()

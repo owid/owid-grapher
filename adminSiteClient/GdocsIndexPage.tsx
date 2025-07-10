@@ -31,6 +31,7 @@ import { Route, RouteComponentProps } from "react-router-dom"
 import { Link } from "./Link.js"
 import { GdocsAdd } from "./GdocsAdd.js"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { GdocsStoreContext } from "./GdocsStoreContext.js"
 import { computed, observable } from "mobx"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
@@ -54,7 +55,7 @@ enum GdocPublishStatus {
 }
 
 @observer
-class GdocsIndexPageSearch extends React.Component<{
+class GdocsIndexPageSearch extends ObservedReactComponent<{
     filters: GdocsSearchFilters
     search: { value: string }
 }> {
@@ -134,7 +135,7 @@ type GdocsSearchFilters = Record<OwidGdocType, boolean> & {
 }
 
 @observer
-export class GdocsIndexPage extends React.Component<RouteComponentProps> {
+export class GdocsIndexPage extends ObservedReactComponent<RouteComponentProps> {
     static contextType = GdocsStoreContext
     context!: React.ContextType<typeof GdocsStoreContext>
 

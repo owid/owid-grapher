@@ -1,5 +1,5 @@
-import { Component } from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { observable, computed, runInAction } from "mobx"
 import { Prompt } from "react-router-dom"
 
@@ -43,7 +43,7 @@ class SourceEditable {
 }
 
 @observer
-class SourceEditor extends Component<{ source: SourcePageData }> {
+class SourceEditor extends ObservedReactComponent<{ source: SourcePageData }> {
     @observable newSource!: SourceEditable
     @observable isDeleted: boolean = false
 
@@ -162,7 +162,9 @@ class SourceEditor extends Component<{ source: SourcePageData }> {
 }
 
 @observer
-export class SourceEditPage extends Component<{ sourceId: number }> {
+export class SourceEditPage extends ObservedReactComponent<{
+    sourceId: number
+}> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

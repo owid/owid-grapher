@@ -1,6 +1,7 @@
 import * as React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent, OverlayHeader  } from "@ourworldindata/components"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faGear } from "@fortawesome/free-solid-svg-icons"
@@ -33,7 +34,6 @@ import {
     NoDataAreaToggle,
     NoDataAreaToggleManager,
 } from "./settings/NoDataAreaToggle"
-import { OverlayHeader } from "@ourworldindata/components"
 import { GRAPHER_SETTINGS_CLASS } from "../core/GrapherConstants"
 
 const {
@@ -84,7 +84,7 @@ export interface SettingsMenuManager
 }
 
 @observer
-export class SettingsMenu extends React.Component<{
+export class SettingsMenu extends ObservedReactComponent<{
     manager: SettingsMenuManager
     top: number
     bottom: number
@@ -423,7 +423,7 @@ export class SettingsMenu extends React.Component<{
 }
 
 @observer
-class SettingsGroup extends React.Component<{
+class SettingsGroup extends ObservedReactComponent<{
     title: string
     subtitle?: string
     active?: boolean

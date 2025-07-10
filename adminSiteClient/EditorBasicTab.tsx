@@ -9,6 +9,7 @@ import {
     computed,
 } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import {
     EntitySelectionMode,
     StackMode,
@@ -62,7 +63,7 @@ import * as R from "remeda"
 @observer
 class DimensionSlotView<
     Editor extends AbstractChartEditor,
-> extends React.Component<{
+> extends ObservedReactComponent<{
     slot: DimensionSlot
     editor: Editor
     database: EditorDatabase
@@ -353,7 +354,7 @@ class DimensionSlotView<
 @observer
 class VariablesSection<
     Editor extends AbstractChartEditor,
-> extends React.Component<{
+> extends ObservedReactComponent<{
     editor: Editor
     database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
@@ -427,7 +428,7 @@ const TagsSection = (props: {
 @observer
 export class EditorBasicTab<
     Editor extends AbstractChartEditor,
-> extends React.Component<{
+> extends ObservedReactComponent<{
     editor: Editor
     database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
@@ -652,7 +653,7 @@ function NarrativeChartInfo(props: { editor: NarrativeChartEditor }) {
 }
 
 @observer
-class NarrativeChartForm extends React.Component<{
+class NarrativeChartForm extends ObservedReactComponent<{
     editor: NarrativeChartEditor
 }> {
     render() {

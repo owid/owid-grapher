@@ -1,7 +1,8 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
-import { Component, Fragment } from "react"
+import { Fragment } from "react"
 import { action, computed, runInAction } from "mobx"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { observer } from "mobx-react"
 import Select from "react-select"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -41,7 +42,7 @@ interface EditorColorScaleSectionFeatures {
 }
 
 @observer
-export class EditorColorScaleSection extends Component<{
+export class EditorColorScaleSection extends ObservedReactComponent<{
     scale: ColorScale
     chartType: GrapherChartOrMapType
     features: EditorColorScaleSectionFeatures
@@ -68,7 +69,7 @@ export class EditorColorScaleSection extends Component<{
 }
 
 @observer
-class ColorLegendSection extends Component<{
+class ColorLegendSection extends ObservedReactComponent<{
     scale: ColorScale
     features: EditorColorScaleSectionFeatures
     onChange?: () => void
@@ -116,7 +117,7 @@ class ColorLegendSection extends Component<{
 }
 
 @observer
-class ColorsSection extends Component<{
+class ColorsSection extends ObservedReactComponent<{
     scale: ColorScale
     chartType: GrapherChartOrMapType
     showLineChartColors: boolean
@@ -255,7 +256,7 @@ class ColorsSection extends Component<{
 }
 
 @observer
-class ColorSchemeEditor extends Component<{
+class ColorSchemeEditor extends ObservedReactComponent<{
     scale: ColorScale
     showLineChartColors: boolean
     onChange?: () => void
@@ -299,7 +300,7 @@ class ColorSchemeEditor extends Component<{
 }
 
 @observer
-class BinLabelView extends Component<{
+class BinLabelView extends ObservedReactComponent<{
     scale: ColorScale
     bin: ColorScaleBin
     index: number
@@ -357,7 +358,7 @@ function populateManualBinValuesIfAutomatic(scale: ColorScale) {
 }
 
 @observer
-class NumericBinView extends Component<{
+class NumericBinView extends ObservedReactComponent<{
     scale: ColorScale
     bin: NumericBin
     index: number
@@ -484,7 +485,7 @@ class NumericBinView extends Component<{
 }
 
 @observer
-class CategoricalBinView extends Component<{
+class CategoricalBinView extends ObservedReactComponent<{
     scale: ColorScale
     bin: CategoricalBin
     showLineChartColors: boolean

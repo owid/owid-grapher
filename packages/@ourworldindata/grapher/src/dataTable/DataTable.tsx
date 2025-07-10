@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { computed, observable, action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
@@ -91,7 +92,7 @@ const inverseSortOrder = (order: SortOrder): SortOrder =>
     order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
 
 @observer
-export class DataTable extends React.Component<{
+export class DataTable extends ObservedReactComponent<{
     manager: DataTableManager
     bounds?: Bounds
 }> {

@@ -2,6 +2,7 @@ import { useState } from "react"
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faShareNodes,
@@ -41,7 +42,7 @@ const PADDING_X = 12
 const BUTTON_WIDTH_ICON_ONLY = BUTTON_HEIGHT
 
 @observer
-export class ActionButtons extends React.Component<{
+export class ActionButtons extends ObservedReactComponent<{
     manager: ActionButtonsManager
     maxWidth?: number
 }> {

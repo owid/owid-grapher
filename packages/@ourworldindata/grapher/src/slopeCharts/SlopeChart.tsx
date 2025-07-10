@@ -15,6 +15,7 @@ import {
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent, Halo } from "@ourworldindata/components"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     BASE_FONT_SIZE,
@@ -80,7 +81,6 @@ import {
     getSeriesName,
 } from "../lineCharts/LineChartHelpers"
 import { SelectionArray } from "../selection/SelectionArray"
-import { Halo } from "@ourworldindata/components"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import {
@@ -109,7 +109,7 @@ const LINE_LEGEND_PADDING = 4
 
 @observer
 export class SlopeChart
-    extends React.Component<{
+    extends ObservedReactComponent<{
         bounds?: Bounds
         manager: SlopeChartManager
     }>

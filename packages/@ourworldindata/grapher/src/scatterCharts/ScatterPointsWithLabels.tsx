@@ -16,8 +16,8 @@ import {
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent, Halo  } from "@ourworldindata/components"
 import * as React from "react"
-import { Halo } from "@ourworldindata/components"
 import { MultiColorPolyline } from "./MultiColorPolyline"
 import {
     ScatterPointsWithLabelsProps,
@@ -43,7 +43,7 @@ import { GRAPHER_TEXT_OUTLINE_FACTOR } from "../core/GrapherConstants"
 
 // This is the component that actually renders the points. The higher level ScatterPlot class renders points, legends, comparison lines, etc.
 @observer
-export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLabelsProps> {
+export class ScatterPointsWithLabels extends ObservedReactComponent<ScatterPointsWithLabelsProps> {
     base: React.RefObject<SVGGElement> = React.createRef()
 
     // closest point by quadtree search

@@ -10,6 +10,7 @@ import {
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons"
 import {
     TimelineController,
@@ -27,7 +28,7 @@ export const TIMELINE_HEIGHT = 32 // keep in sync with $timelineHeight in Timeli
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 
 @observer
-export class TimelineComponent extends React.Component<{
+export class TimelineComponent extends ObservedReactComponent<{
     timelineController: TimelineController
     maxWidth?: number
 }> {

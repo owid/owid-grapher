@@ -1,6 +1,7 @@
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import a from "indefinite"
 import { DataTableConfig } from "../dataTable/DataTableConstants"
 import { SearchField } from "./SearchField"
@@ -15,7 +16,7 @@ export interface DataTableSearchFieldManager {
 }
 
 @observer
-export class DataTableSearchField extends React.Component<{
+export class DataTableSearchField extends ObservedReactComponent<{
     manager: DataTableSearchFieldManager
 }> {
     static shouldShow(manager: DataTableSearchFieldManager): boolean {

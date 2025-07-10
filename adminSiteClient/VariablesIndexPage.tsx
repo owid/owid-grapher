@@ -1,5 +1,5 @@
-import { Component } from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import {
     observable,
     computed,
@@ -18,7 +18,7 @@ import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
 import urljoin from "url-join"
 
 @observer
-export class VariablesIndexPage extends Component {
+export class VariablesIndexPage extends ObservedReactComponent {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

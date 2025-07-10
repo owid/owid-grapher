@@ -10,7 +10,7 @@ import {
     runInAction,
 } from "mobx"
 import { observer } from "mobx-react"
-import { Component } from "react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import {
     DefaultNewExplorerSlug,
     ExplorersRouteResponse,
@@ -25,7 +25,7 @@ import { AdminManager } from "./AdminManager.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 @observer
-class ExplorerRow extends Component<{
+class ExplorerRow extends ObservedReactComponent<{
     explorer: ExplorerProgram
     indexPage: ExplorersIndexPage
     searchHighlight?: (text: string) => any
@@ -125,7 +125,7 @@ class ExplorerRow extends Component<{
 }
 
 @observer
-class ExplorerList extends Component<{
+class ExplorerList extends ObservedReactComponent<{
     explorers: ExplorerProgram[]
     searchHighlight?: (text: string) => any
     indexPage: ExplorersIndexPage
@@ -160,7 +160,7 @@ class ExplorerList extends Component<{
 }
 
 @observer
-export class ExplorersIndexPage extends Component<{
+export class ExplorersIndexPage extends ObservedReactComponent<{
     manager?: AdminManager
 }> {
     static contextType = AdminAppContext

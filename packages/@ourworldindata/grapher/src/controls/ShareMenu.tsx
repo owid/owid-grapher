@@ -1,4 +1,5 @@
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import * as React from "react"
 import { computed, action } from "mobx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -80,7 +81,10 @@ export const shareUsingShareApi = async (
 }
 
 @observer
-export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
+export class ShareMenu extends ObservedReactComponent<
+    ShareMenuProps,
+    ShareMenuState
+> {
     dismissable = true
 
     constructor(props: ShareMenuProps) {

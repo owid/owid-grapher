@@ -1,5 +1,6 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { action, computed } from "mobx"
 import Select, { components, SingleValueProps } from "react-select"
 import {
@@ -106,7 +107,7 @@ const ExplorerDropdown = (props: {
 }
 
 @observer
-export class ExplorerControlPanel extends Component<{
+export class ExplorerControlPanel extends ObservedReactComponent<{
     choice: ExplorerChoice
     explorerSlug?: string
     onChange?: (value: string) => void

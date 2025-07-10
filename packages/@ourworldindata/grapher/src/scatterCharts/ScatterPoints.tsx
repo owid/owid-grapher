@@ -1,6 +1,7 @@
 import * as R from "remeda"
 import { PointVector, makeIdForHumanConsumption } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import * as React from "react"
 import { MultiColorPolyline } from "./MultiColorPolyline"
 import {
@@ -12,7 +13,7 @@ import { Triangle } from "./Triangle"
 
 // When there's only a single point in a series (e.g. single year mode)
 @observer
-export class ScatterPoint extends React.Component<{
+export class ScatterPoint extends ObservedReactComponent<{
     series: ScatterRenderSeries
     isLayerMode?: boolean
     onMouseEnter?: (seriesName: string) => void
@@ -68,7 +69,7 @@ export class ScatterPoint extends React.Component<{
 }
 
 @observer
-export class ScatterLine extends React.Component<{
+export class ScatterLine extends ObservedReactComponent<{
     series: ScatterRenderSeries
     isLayerMode: boolean
     onMouseEnter?: (seriesName: string) => void

@@ -2,6 +2,7 @@ import * as React from "react"
 import classnames from "classnames"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -74,7 +75,7 @@ export class TooltipState<T> {
 }
 
 @observer
-class TooltipCard extends React.Component<
+class TooltipCard extends ObservedReactComponent<
     TooltipProps & {
         bounds?: Bounds
         containerWidth?: number
@@ -240,7 +241,7 @@ class TooltipCard extends React.Component<
 }
 
 @observer
-export class TooltipContainer extends React.Component<{
+export class TooltipContainer extends ObservedReactComponent<{
     tooltipProvider: TooltipManager
     anchor?: GrapherTooltipAnchor
     // if container dimensions are given, the tooltip will be positioned within its bounds
@@ -283,7 +284,7 @@ export class TooltipContainer extends React.Component<{
 }
 
 @observer
-export class Tooltip extends React.Component<TooltipProps> {
+export class Tooltip extends ObservedReactComponent<TooltipProps> {
     componentDidMount(): void {
         this.connectTooltipToContainer()
     }

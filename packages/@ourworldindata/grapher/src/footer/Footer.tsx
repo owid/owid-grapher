@@ -1,6 +1,12 @@
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
+import {
+    ObservedReactComponent,
+    DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
+    MarkdownTextWrap,
+    TextWrap,
+} from "@ourworldindata/components"
 import parseUrl from "url-parse"
 import {
     Bounds,
@@ -8,11 +14,6 @@ import {
     getRelativeMouse,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
-import {
-    DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
-    MarkdownTextWrap,
-    TextWrap,
-} from "@ourworldindata/components"
 import { Tooltip } from "../tooltip/Tooltip"
 import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"
@@ -72,7 +73,7 @@ interface FooterProps {
 @observer
 export class Footer<
     Props extends FooterProps = FooterProps,
-> extends React.Component<Props> {
+> extends ObservedReactComponent<Props> {
     verticalPadding = 4
 
     @computed protected get manager(): FooterManager {

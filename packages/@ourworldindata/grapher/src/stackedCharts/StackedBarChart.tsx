@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import {
     Bounds,
     Time,
@@ -80,7 +81,7 @@ const BAR_OPACITY = {
 }
 
 @observer
-class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
+class StackedBarSegment extends ObservedReactComponent<StackedBarSegmentProps> {
     base: React.RefObject<SVGRectElement> = React.createRef()
 
     @observable mouseOver: boolean = false

@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import { Component } from "react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { observer } from "mobx-react"
 import { Section, Toggle } from "./Forms.js"
 import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
@@ -26,7 +26,7 @@ import { stringify } from "safe-stable-stringify"
 @observer
 export class EditorDebugTab<
     Editor extends AbstractChartEditor,
-> extends Component<{
+> extends ObservedReactComponent<{
     editor: Editor
 }> {
     render() {
@@ -42,7 +42,7 @@ export class EditorDebugTab<
 }
 
 @observer
-class EditorDebugTabForChart extends Component<{
+class EditorDebugTabForChart extends ObservedReactComponent<{
     editor: ChartEditor
 }> {
     @action.bound copyYamlToClipboard() {
@@ -200,7 +200,7 @@ class EditorDebugTabForChart extends Component<{
 }
 
 @observer
-class EditorDebugTabForNarrativeChart extends Component<{
+class EditorDebugTabForNarrativeChart extends ObservedReactComponent<{
     editor: NarrativeChartEditor
 }> {
     @action.bound copyYamlToClipboard() {
@@ -339,7 +339,7 @@ class EditorDebugTabForNarrativeChart extends Component<{
 }
 
 @observer
-class EditorDebugTabForIndicatorChart extends Component<{
+class EditorDebugTabForIndicatorChart extends ObservedReactComponent<{
     editor: IndicatorChartEditor
 }> {
     render() {

@@ -10,6 +10,7 @@ import { useState } from "react"
 import { bind } from "decko"
 import { action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import cx from "classnames"
 import { useTimeout } from "usehooks-ts"
 
@@ -643,7 +644,7 @@ export class EditableListItem extends React.Component<EditableListItemProps> {
 }
 
 @observer
-export class ColorBox extends React.Component<{
+export class ColorBox extends ObservedReactComponent<{
     color: string | undefined
     onColor: (color: string | undefined) => void
     showLineChartColors: boolean
@@ -717,7 +718,7 @@ const ErrorMessage = ({ message }: { message: string }) => (
 )
 
 @observer
-class SoftCharacterLimit extends React.Component<{
+class SoftCharacterLimit extends ObservedReactComponent<{
     text: string
     limit: number
 }> {
@@ -745,7 +746,7 @@ class SoftCharacterLimit extends React.Component<{
 }
 
 @observer
-export class AutoTextField extends React.Component<AutoTextFieldProps> {
+export class AutoTextField extends ObservedReactComponent<AutoTextFieldProps> {
     render() {
         const props = this.props
         const { textarea } = props
@@ -778,7 +779,7 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
 }
 
 @observer
-export class BindString extends React.Component<{
+export class BindString extends ObservedReactComponent<{
     field: string
     store: Record<string, any>
     label?: React.ReactNode
@@ -833,7 +834,7 @@ export class BindString extends React.Component<{
 }
 
 @observer
-export class BindStringArray extends React.Component<{
+export class BindStringArray extends ObservedReactComponent<{
     field: string
     store: Record<string, any>
     label?: React.ReactNode
@@ -867,7 +868,7 @@ export class BindStringArray extends React.Component<{
 }
 
 @observer
-export class BindDropdown extends React.Component<{
+export class BindDropdown extends ObservedReactComponent<{
     field: string
     store: Record<string, any>
     label?: React.ReactNode
@@ -906,7 +907,7 @@ export class BindDropdown extends React.Component<{
 export class BindAutoString<
     T extends { [field: string]: any },
     K extends Extract<keyof T, string>,
-> extends React.Component<{
+> extends ObservedReactComponent<{
     field: K
     store: T
     auto: string
@@ -979,7 +980,7 @@ export class BindAutoString<
 @observer
 export class BindAutoStringExt<
     T extends Record<string, any>,
-> extends React.Component<
+> extends ObservedReactComponent<
     {
         readFn: (x: T) => string
         writeFn: (x: T, value: string | undefined) => void
@@ -1094,7 +1095,7 @@ class FloatField extends React.Component<FloatFieldProps> {
 export class BindFloat<
     T extends { [field: string]: any },
     K extends Extract<keyof T, string>,
-> extends React.Component<{
+> extends ObservedReactComponent<{
     field: K
     store: T
     label?: string
@@ -1125,7 +1126,7 @@ export class BindFloat<
 export class BindAutoFloat<
     T extends { [field: string]: any },
     K extends Extract<keyof T, string>,
-> extends React.Component<{
+> extends ObservedReactComponent<{
     field: K
     store: T
     auto: number
@@ -1164,7 +1165,7 @@ export class BindAutoFloat<
 @observer
 export class BindAutoFloatExt<
     T extends Record<string, any>,
-> extends React.Component<
+> extends ObservedReactComponent<
     {
         readFn: (x: T) => number
         writeFn: (x: T, value: number | undefined) => void
@@ -1200,7 +1201,7 @@ export class BindAutoFloatExt<
 }
 
 @observer
-export class Modal extends React.Component<{
+export class Modal extends ObservedReactComponent<{
     className?: string
     onClose: () => void
 }> {
@@ -1323,7 +1324,7 @@ export function LoadingBlocker() {
 }
 
 @observer
-export class Timeago extends React.Component<{
+export class Timeago extends ObservedReactComponent<{
     time: dayjs.ConfigType
     by?: string | React.ReactElement | null | undefined
 }> {
@@ -1338,7 +1339,7 @@ export class Timeago extends React.Component<{
 }
 
 @observer
-export class Button extends React.Component<{
+export class Button extends ObservedReactComponent<{
     children: any
     onClick: () => void
 }> {

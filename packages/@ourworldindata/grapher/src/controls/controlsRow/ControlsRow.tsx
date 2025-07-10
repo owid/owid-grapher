@@ -1,6 +1,6 @@
-import { Component } from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 
 import { Bounds } from "@ourworldindata/utils"
 
@@ -46,7 +46,7 @@ export interface ControlsRowManager
 }
 
 @observer
-export class ControlsRow extends Component<{
+export class ControlsRow extends ObservedReactComponent<{
     manager: ControlsRowManager
     maxWidth?: number
     settingsMenuTop?: number

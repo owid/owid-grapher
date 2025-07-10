@@ -20,6 +20,7 @@ import {
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent, TextWrap } from "@ourworldindata/components"
 import {
     ColorSchemeName,
     FacetStrategy,
@@ -75,7 +76,6 @@ import { HashMap, NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
 import { bind } from "decko"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
-import { TextWrap } from "@ourworldindata/components"
 
 // if an entity name exceeds this width, we use the short name instead (if available)
 const SOFT_MAX_LABEL_WIDTH = 90
@@ -124,7 +124,7 @@ interface StackedBarChartContext {
 
 @observer
 export class StackedDiscreteBarChart
-    extends React.Component<{
+    extends ObservedReactComponent<{
         bounds?: Bounds
         manager: StackedDiscreteBarChartManager
         containerElement?: HTMLDivElement

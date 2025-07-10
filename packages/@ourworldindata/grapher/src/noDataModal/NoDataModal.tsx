@@ -1,6 +1,7 @@
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent, Halo  } from "@ourworldindata/components"
 import a from "indefinite"
 import {
     Bounds,
@@ -14,7 +15,6 @@ import {
     DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL,
     GRAPHER_TEXT_OUTLINE_FACTOR,
 } from "../core/GrapherConstants"
-import { Halo } from "@ourworldindata/components"
 import { GRAPHER_DARK_TEXT, GRAPHER_LIGHT_TEXT } from "../color/ColorConstants"
 
 export interface NoDataModalManager {
@@ -27,7 +27,7 @@ export interface NoDataModalManager {
 }
 
 @observer
-export class NoDataModal extends React.Component<{
+export class NoDataModal extends ObservedReactComponent<{
     bounds?: Bounds
     message?: string
     helpText?: string

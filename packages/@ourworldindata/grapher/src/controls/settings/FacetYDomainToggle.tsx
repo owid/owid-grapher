@@ -1,9 +1,9 @@
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent, LabeledSwitch  } from "@ourworldindata/components"
 import { FacetAxisDomain, FacetStrategy } from "@ourworldindata/types"
 import { AxisConfig } from "../../axis/AxisConfig"
-import { LabeledSwitch } from "@ourworldindata/components"
 
 export interface FacetYDomainToggleManager {
     facetStrategy?: FacetStrategy
@@ -11,7 +11,7 @@ export interface FacetYDomainToggleManager {
 }
 
 @observer
-export class FacetYDomainToggle extends React.Component<{
+export class FacetYDomainToggle extends ObservedReactComponent<{
     manager: FacetYDomainToggleManager
 }> {
     @action.bound onToggle(): void {

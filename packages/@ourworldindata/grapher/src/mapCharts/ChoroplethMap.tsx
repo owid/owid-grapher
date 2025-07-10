@@ -9,6 +9,7 @@ import {
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { Quadtree, quadtree } from "d3-quadtree"
 import {
     MapRenderFeature,
@@ -51,7 +52,7 @@ import { isDarkColor } from "../color/ColorUtils"
 import { MapConfig } from "./MapConfig"
 
 @observer
-export class ChoroplethMap extends React.Component<{
+export class ChoroplethMap extends ObservedReactComponent<{
     manager: ChoroplethMapManager
 }> {
     base: React.RefObject<SVGGElement> = React.createRef()

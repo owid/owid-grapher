@@ -1,11 +1,12 @@
 import * as React from "react"
 import { action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { BodyDiv } from "../bodyDiv/BodyDiv"
 import { isTargetOutsideElement } from "../chart/ChartUtils"
 
 @observer
-export class FullScreen extends React.Component<{
+export class FullScreen extends ObservedReactComponent<{
     children: React.ReactNode
     onDismiss: () => void
     overlayColor?: string

@@ -13,7 +13,8 @@ import {
 import { ColumnSlug, ToleranceStrategy } from "@ourworldindata/utils"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
-import { Component, Fragment } from "react"
+import { ObservedReactComponent } from "@ourworldindata/components"
+import { Fragment } from "react"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { NumberField, Section, SelectField, Toggle } from "./Forms.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
@@ -21,7 +22,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLink } from "@fortawesome/free-solid-svg-icons"
 
 @observer
-class VariableSection extends Component<{
+class VariableSection extends ObservedReactComponent<{
     mapConfig: MapConfig
     filledDimensions: ChartDimension[]
     parentConfig?: GrapherInterface
@@ -77,7 +78,7 @@ class VariableSection extends Component<{
 }
 
 @observer
-class TimelineSection extends Component<{ mapConfig: MapConfig }> {
+class TimelineSection extends ObservedReactComponent<{ mapConfig: MapConfig }> {
     @action.bound onToggleHideTimeline(value: boolean) {
         this.props.mapConfig.hideTimeline = value || undefined
     }
@@ -155,7 +156,7 @@ class TimelineSection extends Component<{ mapConfig: MapConfig }> {
 }
 
 @observer
-class TooltipSection extends Component<{ mapConfig: MapConfig }> {
+class TooltipSection extends ObservedReactComponent<{ mapConfig: MapConfig }> {
     @action.bound onTooltipUseCustomLabels(tooltipUseCustomLabels: boolean) {
         this.props.mapConfig.tooltipUseCustomLabels = tooltipUseCustomLabels
             ? true
@@ -179,7 +180,9 @@ class TooltipSection extends Component<{ mapConfig: MapConfig }> {
 }
 
 @observer
-class InheritanceSection<Editor extends AbstractChartEditor> extends Component<{
+class InheritanceSection<
+    Editor extends AbstractChartEditor,
+> extends ObservedReactComponent<{
     editor: Editor
 }> {
     @computed private get editor() {
@@ -227,7 +230,7 @@ class InheritanceSection<Editor extends AbstractChartEditor> extends Component<{
 @observer
 export class EditorMapTab<
     Editor extends AbstractChartEditor,
-> extends Component<{ editor: Editor }> {
+> extends ObservedReactComponent<{ editor: Editor }> {
     @computed get grapherState() {
         return this.props.editor.grapherState
     }

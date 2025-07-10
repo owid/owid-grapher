@@ -1,5 +1,5 @@
-import { Component } from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import {
     observable,
     computed,
@@ -128,7 +128,7 @@ class VariableEditable
 
 // XXX refactor with DatasetEditPage
 @observer
-class VariableEditor extends Component<{
+class VariableEditor extends ObservedReactComponent<{
     variable: VariablePageData
 }> {
     @observable newVariable!: VariableEditable
@@ -747,7 +747,9 @@ class VariableEditor extends Component<{
 }
 
 @observer
-export class VariableEditPage extends Component<{ variableId: number }> {
+export class VariableEditPage extends ObservedReactComponent<{
+    variableId: number
+}> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

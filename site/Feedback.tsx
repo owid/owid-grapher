@@ -1,6 +1,7 @@
 import * as React from "react"
 import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faCommentAlt,
@@ -117,7 +118,7 @@ const topicNotices = new Map<SpecialFeedbackTopic, React.ReactElement>([
 ])
 
 @observer
-export class FeedbackForm extends React.Component<{
+export class FeedbackForm extends ObservedReactComponent<{
     onClose?: () => void
     autofocus?: boolean
 }> {
@@ -306,7 +307,7 @@ export class FeedbackForm extends React.Component<{
 }
 
 @observer
-export class FeedbackPrompt extends React.Component {
+export class FeedbackPrompt extends ObservedReactComponent {
     @observable isOpen: boolean = false
 
     @action.bound toggleOpen() {

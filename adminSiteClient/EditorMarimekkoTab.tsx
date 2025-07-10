@@ -2,11 +2,11 @@ import { GrapherState } from "@ourworldindata/grapher"
 import * as lodash from "lodash-es"
 import { action, IReactionDisposer, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
-import { Component } from "react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { NumberField, Section, Toggle } from "./Forms.js"
 
 @observer
-export class EditorMarimekkoTab extends Component<{
+export class EditorMarimekkoTab extends ObservedReactComponent<{
     grapherState: GrapherState
 }> {
     @observable xOverrideTimeInputField: number | undefined

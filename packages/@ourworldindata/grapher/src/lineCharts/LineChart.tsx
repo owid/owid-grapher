@@ -20,6 +20,7 @@ import {
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { DualAxisComponent } from "../axis/AxisViews"
@@ -125,7 +126,7 @@ const VARIABLE_COLOR_LINE_OUTLINE_WIDTH = 1.0
 const LEGEND_PADDING = 25
 
 @observer
-class Lines extends React.Component<LinesProps> {
+class Lines extends ObservedReactComponent<LinesProps> {
     @computed get bounds(): Bounds {
         const { horizontalAxis, verticalAxis } = this.props.dualAxis
         return Bounds.fromCorners(
@@ -361,7 +362,7 @@ function LinePath(props: LinePathProps): React.ReactElement {
 
 @observer
 export class LineChart
-    extends React.Component<{
+    extends ObservedReactComponent<{
         bounds?: Bounds
         manager: LineChartManager
     }>

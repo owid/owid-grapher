@@ -3,6 +3,10 @@ import React from "react"
 import * as R from "remeda"
 import { observer } from "mobx-react"
 import {
+    ObservedReactComponent,
+    shortenForTargetWidth,
+} from "@ourworldindata/components"
+import {
     Bounds,
     DEFAULT_BOUNDS,
     excludeUndefined,
@@ -15,7 +19,6 @@ import {
     Color,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
-import { shortenForTargetWidth } from "@ourworldindata/components"
 import { action, computed, observable } from "mobx"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import {
@@ -113,7 +116,7 @@ interface AxesInfo {
 
 @observer
 export class FacetChart
-    extends React.Component<FacetChartProps>
+    extends ObservedReactComponent<FacetChartProps>
     implements ChartInterface, HorizontalColorLegendManager
 {
     transformTable(table: OwidTable): OwidTable {

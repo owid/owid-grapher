@@ -21,7 +21,7 @@ import {
     DataCitation,
     OverlayHeader,
     CLOSE_BUTTON_WIDTH,
-    CloseButton,
+    CloseButton, ObservedReactComponent 
 } from "@ourworldindata/components"
 import * as React from "react"
 import cx from "classnames"
@@ -68,7 +68,7 @@ interface SourcesModalState {
 }
 
 @observer
-export class SourcesModal extends React.Component<
+export class SourcesModal extends ObservedReactComponent<
     SourcesModalProps,
     SourcesModalState
 > {
@@ -342,7 +342,7 @@ export class SourcesModal extends React.Component<
 }
 
 @observer
-export class Source extends React.Component<{
+export class Source extends ObservedReactComponent<{
     column: CoreColumn
     editBaseUrl?: string
     isEmbeddedInADataPage?: boolean

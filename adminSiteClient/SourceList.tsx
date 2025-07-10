@@ -1,5 +1,5 @@
-import { Component } from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { OwidSource } from "@ourworldindata/utils"
 import { BindString } from "./Forms.js"
@@ -7,7 +7,7 @@ import { BindString } from "./Forms.js"
 const MAX_SOURCES = 10
 
 @observer
-export class SourceList extends Component<{
+export class SourceList extends ObservedReactComponent<{
     sources: OwidSource[]
 }> {
     static contextType = AdminAppContext

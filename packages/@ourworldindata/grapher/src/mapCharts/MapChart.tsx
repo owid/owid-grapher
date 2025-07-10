@@ -15,6 +15,7 @@ import {
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
@@ -75,7 +76,7 @@ import {
 } from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
-import { Component, createRef } from "react"
+import { createRef } from "react"
 import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
@@ -93,7 +94,7 @@ interface MapChartProps {
 
 @observer
 export class MapChart
-    extends Component<MapChartProps>
+    extends ObservedReactComponent<MapChartProps>
     implements
         ChartInterface,
         HorizontalColorLegendManager,

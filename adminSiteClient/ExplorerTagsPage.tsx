@@ -1,5 +1,5 @@
-import { Component } from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { action, computed, observable, runInAction } from "mobx"
 
 import { AdminLayout } from "./AdminLayout.js"
@@ -19,7 +19,7 @@ type ExplorerWithTags = {
 }
 
 @observer
-export class ExplorerTagsPage extends Component {
+export class ExplorerTagsPage extends ObservedReactComponent {
     static contextType = AdminAppContext
     context!: AdminAppContextType
     @observable explorersWithTags: ExplorerWithTags[] = []

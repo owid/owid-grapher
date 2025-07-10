@@ -1,5 +1,6 @@
 import * as React from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { action, computed } from "mobx"
 import { Bounds } from "@ourworldindata/utils"
 import {
@@ -8,7 +9,7 @@ import {
 } from "../chart/ChartUtils"
 
 @observer
-export class Modal extends React.Component<{
+export class Modal extends ObservedReactComponent<{
     bounds: Bounds
     onDismiss: () => void
     children?: React.ReactNode

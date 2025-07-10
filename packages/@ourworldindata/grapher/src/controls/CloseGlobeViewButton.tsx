@@ -1,6 +1,7 @@
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { MapRegionName } from "@ourworldindata/utils"
 import { GlobeController } from "../mapCharts/GlobeController"
@@ -16,7 +17,7 @@ export interface CloseGlobeViewButtonManager {
 }
 
 @observer
-export class CloseGlobeViewButton extends React.Component<{
+export class CloseGlobeViewButton extends ObservedReactComponent<{
     manager: CloseGlobeViewButtonManager
 }> {
     static shouldShow(manager: CloseGlobeViewButtonManager): boolean {

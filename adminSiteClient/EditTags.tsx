@@ -1,6 +1,7 @@
-import { createRef, Component } from "react"
+import { createRef } from "react"
 import { action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { DbChartTagJoin } from "@ourworldindata/utils"
 import {
     ReactTags,
@@ -9,7 +10,7 @@ import {
 } from "react-tag-autocomplete"
 
 @observer
-export class EditTags extends Component<{
+export class EditTags extends ObservedReactComponent<{
     tags: DbChartTagJoin[]
     suggestions: DbChartTagJoin[]
     onDelete: (index: number) => void

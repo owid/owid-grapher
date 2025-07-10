@@ -3,6 +3,7 @@ import * as React from "react"
 import * as R from "remeda"
 import { action, computed, observable, runInAction, reaction } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { Flipper, Flipped } from "react-flip-toolkit"
 import { bind } from "decko"
 import classnames from "classnames"
@@ -54,7 +55,7 @@ interface EntityOptionWithMetricValue {
 const mod = (n: number, m: number): number => ((n % m) + m) % m
 
 @observer
-export class EntityPicker extends React.Component<{
+export class EntityPicker extends ObservedReactComponent<{
     manager: EntityPickerManager
     selection: SelectionArray
     isDropdownMenu?: boolean

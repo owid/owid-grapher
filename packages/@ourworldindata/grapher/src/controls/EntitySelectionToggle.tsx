@@ -1,6 +1,7 @@
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faEye, faRightLeft, faPen } from "@fortawesome/free-solid-svg-icons"
 import classnames from "classnames"
@@ -27,7 +28,7 @@ interface EntitySelectionLabel {
 }
 
 @observer
-export class EntitySelectionToggle extends React.Component<{
+export class EntitySelectionToggle extends ObservedReactComponent<{
     manager: EntitySelectionManager
 }> {
     static shouldShow(manager: EntitySelectionManager): boolean {

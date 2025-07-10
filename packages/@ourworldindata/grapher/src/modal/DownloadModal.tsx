@@ -3,6 +3,11 @@ import { useCallback, useMemo, useState } from "react"
 import * as React from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent,
+    Checkbox,
+    CodeSnippet,
+    OverlayHeader,
+    RadioButton } from "@ourworldindata/components"
 import {
     Bounds,
     DEFAULT_BOUNDS,
@@ -11,12 +16,6 @@ import {
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
 } from "@ourworldindata/utils"
-import {
-    Checkbox,
-    CodeSnippet,
-    OverlayHeader,
-    RadioButton,
-} from "@ourworldindata/components"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
@@ -166,7 +165,7 @@ export const DownloadModal = (
 }
 
 @observer
-export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
+export class DownloadModalVisTab extends ObservedReactComponent<DownloadModalProps> {
     @computed private get staticBounds(): Bounds {
         return this.manager.staticBounds ?? DEFAULT_BOUNDS
     }

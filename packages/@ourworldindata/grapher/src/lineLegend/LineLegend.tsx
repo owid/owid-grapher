@@ -6,7 +6,7 @@ import {
     makeIdForHumanConsumption,
     excludeUndefined,
 } from "@ourworldindata/utils"
-import { TextWrap, Halo, MarkdownTextWrap } from "@ourworldindata/components"
+import { TextWrap, Halo, MarkdownTextWrap, ObservedReactComponent  } from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { VerticalAxis } from "../axis/Axis"
@@ -61,7 +61,7 @@ function stackGroupVertically(
 }
 
 @observer
-class LineLabels extends React.Component<{
+class LineLabels extends ObservedReactComponent<{
     series: PlacedSeries[]
     needsConnectorLines: boolean
     showTextOutline?: boolean
@@ -316,7 +316,7 @@ export interface LineLegendProps {
 }
 
 @observer
-export class LineLegend extends React.Component<LineLegendProps> {
+export class LineLegend extends ObservedReactComponent<LineLegendProps> {
     /**
      * Larger than the actual width since the width of the connector lines
      * is always added, even if they're not rendered.

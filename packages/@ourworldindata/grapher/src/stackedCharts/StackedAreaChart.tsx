@@ -19,6 +19,7 @@ import {
     GRAPHER_AREA_OPACITY_FOCUS,
 } from "../core/GrapherConstants"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis } from "../axis/Axis"
 import { LineLegend } from "../lineLegend/LineLegend"
@@ -79,7 +80,7 @@ const BORDER_WIDTH = {
 } as const
 
 @observer
-class Areas extends React.Component<AreasProps> {
+class Areas extends ObservedReactComponent<AreasProps> {
     @bind placePoint(point: StackedPoint<number>): StackedPlacedPoint {
         const { dualAxis } = this.props
         const { horizontalAxis, verticalAxis } = dualAxis

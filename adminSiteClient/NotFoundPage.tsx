@@ -1,9 +1,9 @@
-import { Component } from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { AdminLayout } from "./AdminLayout.js"
 
 @observer
-export class NotFoundPage extends Component {
+export class NotFoundPage extends ObservedReactComponent {
     render() {
         return (
             <AdminLayout>

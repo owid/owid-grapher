@@ -1,5 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { observable, computed, runInAction, action } from "mobx"
 import {
     getParentVariableIdFromChartConfig,
@@ -24,7 +25,7 @@ import { References } from "./AbstractChartEditor.js"
 
 @observer
 export class ChartEditorPage
-    extends React.Component<{
+    extends ObservedReactComponent<{
         grapherId?: number
         grapherConfig?: GrapherInterface
     }>

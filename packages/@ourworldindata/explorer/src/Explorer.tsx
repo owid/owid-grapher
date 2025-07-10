@@ -52,7 +52,10 @@ import {
     Tippy,
     Url,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap } from "@ourworldindata/components"
+import {
+    MarkdownTextWrap,
+    ObservedReactComponent,
+} from "@ourworldindata/components"
 import classNames from "classnames"
 import { action, computed, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
@@ -186,7 +189,7 @@ const isNarrow = () =>
 
 @observer
 export class Explorer
-    extends React.Component<ExplorerProps>
+    extends ObservedReactComponent<ExplorerProps>
     implements
         SlideShowManager<ExplorerChoiceParams>,
         EntityPickerManager,

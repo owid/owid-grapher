@@ -1,5 +1,5 @@
-import { Component } from "react"
 import { computed, action } from "mobx"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import Select from "react-select"
 import { GrapherChartOrMapType } from "@ourworldindata/types"
 import {
@@ -27,7 +27,7 @@ interface ColorSchemeDropdownProps {
 }
 
 @observer
-export class ColorSchemeDropdown extends Component<ColorSchemeDropdownProps> {
+export class ColorSchemeDropdown extends ObservedReactComponent<ColorSchemeDropdownProps> {
     static defaultProps = {
         additionalOptions: [],
         gradientColorCount: 6,

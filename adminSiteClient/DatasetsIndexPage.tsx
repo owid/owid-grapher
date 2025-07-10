@@ -1,5 +1,5 @@
-import { Component } from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { observable, computed, action, runInAction } from "mobx"
 import * as lodash from "lodash-es"
 
@@ -15,7 +15,7 @@ import {
 } from "../adminShared/search.js"
 
 @observer
-export class DatasetsIndexPage extends Component {
+export class DatasetsIndexPage extends ObservedReactComponent {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

@@ -3,11 +3,11 @@ import { ScatterPointLabelStrategy } from "@ourworldindata/types"
 import { GrapherState } from "@ourworldindata/grapher"
 import { action } from "mobx"
 import { observer } from "mobx-react"
-import { Component } from "react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { NumberField, Section, SelectField, Toggle } from "./Forms.js"
 
 @observer
-export class EditorScatterTab extends Component<{
+export class EditorScatterTab extends ObservedReactComponent<{
     grapherState: GrapherState
 }> {
     constructor(props: { grapherState: GrapherState }) {

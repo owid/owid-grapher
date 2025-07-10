@@ -1,5 +1,5 @@
-import { Component } from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { observable, computed, runInAction, action } from "mobx"
 import * as lodash from "lodash-es"
 import { Prompt } from "react-router-dom"
@@ -80,7 +80,7 @@ class DatasetEditable {
 }
 
 @observer
-class DatasetTagEditor extends Component<{
+class DatasetTagEditor extends ObservedReactComponent<{
     newDataset: DatasetEditable
     availableTags: { id: number; name: string; parentName: string }[]
 }> {
@@ -105,7 +105,9 @@ class DatasetTagEditor extends Component<{
 }
 
 @observer
-class DatasetEditor extends Component<{ dataset: DatasetPageData }> {
+class DatasetEditor extends ObservedReactComponent<{
+    dataset: DatasetPageData
+}> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
     @observable newDataset!: DatasetEditable
@@ -397,7 +399,9 @@ class DatasetEditor extends Component<{ dataset: DatasetPageData }> {
 }
 
 @observer
-export class DatasetEditPage extends Component<{ datasetId: number }> {
+export class DatasetEditPage extends ObservedReactComponent<{
+    datasetId: number
+}> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
     @observable dataset?: DatasetPageData

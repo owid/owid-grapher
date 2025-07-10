@@ -1,12 +1,12 @@
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent, LabeledSwitch  } from "@ourworldindata/components"
 import {
     GRAPHER_CHART_TYPES,
     GrapherChartType,
     StackMode,
 } from "@ourworldindata/types"
-import { LabeledSwitch } from "@ourworldindata/components"
 
 const { LineChart, ScatterPlot, SlopeChart } = GRAPHER_CHART_TYPES
 
@@ -17,7 +17,7 @@ export interface AbsRelToggleManager {
 }
 
 @observer
-export class AbsRelToggle extends React.Component<{
+export class AbsRelToggle extends ObservedReactComponent<{
     manager: AbsRelToggleManager
 }> {
     @action.bound onToggle(): void {

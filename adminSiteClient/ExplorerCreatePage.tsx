@@ -11,6 +11,7 @@ import Handsontable from "handsontable"
 import { registerAllModules } from "handsontable/registry"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { Component, createRef } from "react"
 import { Prompt } from "react-router-dom"
 import {
@@ -36,7 +37,7 @@ const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don
 registerAllModules()
 
 @observer
-export class ExplorerCreatePage extends Component<{
+export class ExplorerCreatePage extends ObservedReactComponent<{
     slug: string
     manager?: AdminManager
 }> {

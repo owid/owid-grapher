@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
-import * as React from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { runInAction, observable, computed, action } from "mobx"
 import { bind } from "decko"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -61,7 +61,7 @@ export type SortConfig = {
 } | null
 
 @observer
-export class ChartList extends React.Component<{
+export class ChartList extends ObservedReactComponent<{
     charts: ChartListItem[]
     autofocusSearchInput?: boolean
     onDelete?: (chart: ChartListItem) => void

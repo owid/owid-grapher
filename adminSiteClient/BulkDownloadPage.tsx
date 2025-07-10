@@ -1,10 +1,11 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 @observer
-export class BulkDownloadPage extends Component {
+export class BulkDownloadPage extends ObservedReactComponent {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

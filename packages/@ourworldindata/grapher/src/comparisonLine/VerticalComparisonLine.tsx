@@ -1,6 +1,7 @@
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import * as _ from "lodash-es"
 import {
     Bounds,
@@ -17,7 +18,7 @@ import { VerticalComparisonLineConfig } from "@ourworldindata/types"
 import { isValidVerticalComparisonLineConfig } from "./ComparisonLineHelpers"
 
 @observer
-export class VerticalComparisonLine extends React.Component<
+export class VerticalComparisonLine extends ObservedReactComponent<
     ComparisonLineProps<VerticalComparisonLineConfig>
 > {
     @computed private get fontSize(): number {

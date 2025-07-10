@@ -1,5 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import {
     Bounds,
     stringifyUnknownError,
@@ -155,7 +156,7 @@ class HotColorScaleEditor extends BaseEditorComponent<any> {
 }
 
 @observer
-export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEditorProps> {
+export class GrapherConfigGridEditor extends ObservedReactComponent<GrapherConfigGridEditorProps> {
     static contextType = AdminAppContext
 
     @observable.ref grapherState = new GrapherState({

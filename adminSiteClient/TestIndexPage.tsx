@@ -1,12 +1,12 @@
-import { Component } from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 @observer
-export class TestIndexPage extends Component {
+export class TestIndexPage extends ObservedReactComponent {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

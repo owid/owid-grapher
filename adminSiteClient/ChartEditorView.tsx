@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import {
     observable,
     computed,
@@ -101,7 +102,7 @@ export interface ChartEditorViewManager<Editor> {
 @observer
 export class ChartEditorView<
     Editor extends AbstractChartEditor,
-> extends React.Component<{
+> extends ObservedReactComponent<{
     manager: ChartEditorViewManager<Editor>
 }> {
     @observable.ref database = new EditorDatabase({})

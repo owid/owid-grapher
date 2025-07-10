@@ -2,6 +2,7 @@ import * as React from "react"
 import * as R from "remeda"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 
 interface MultiColorPolylinePoint {
     x: number
@@ -91,7 +92,7 @@ type MultiColorPolylineProps = Omit<
 //   accurate output, but is most complex & slow.
 //
 @observer
-export class MultiColorPolyline extends React.Component<MultiColorPolylineProps> {
+export class MultiColorPolyline extends ObservedReactComponent<MultiColorPolylineProps> {
     @computed get segments(): Segment[] {
         return getSegmentsFromPoints(this.props.points)
     }

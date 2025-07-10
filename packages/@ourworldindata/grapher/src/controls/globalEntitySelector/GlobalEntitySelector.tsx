@@ -3,6 +3,7 @@ import * as React from "react"
 import ReactDOM from "react-dom"
 import { action, observable, IReactionDisposer, reaction, computed } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import Select, {
     components,
     CSSObjectWithLabel,
@@ -145,7 +146,7 @@ function SelectedItems(props: {
 }
 
 @observer
-export class GlobalEntitySelector extends React.Component<{
+export class GlobalEntitySelector extends ObservedReactComponent<{
     selection: SelectionArray
     graphersAndExplorersToUpdate?: Set<SelectionArray>
     environment?: string

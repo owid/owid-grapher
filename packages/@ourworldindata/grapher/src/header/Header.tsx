@@ -6,7 +6,11 @@ import {
     makeIdForHumanConsumption,
     Bounds,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap, TextWrap } from "@ourworldindata/components"
+import {
+    MarkdownTextWrap,
+    TextWrap,
+    ObservedReactComponent,
+} from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import { Logo } from "../captionedChart/Logos"
@@ -28,7 +32,7 @@ interface HeaderProps {
 @observer
 export class Header<
     Props extends HeaderProps = HeaderProps,
-> extends React.Component<Props> {
+> extends ObservedReactComponent<Props> {
     protected verticalPadding = 4
 
     @computed protected get manager(): HeaderManager {

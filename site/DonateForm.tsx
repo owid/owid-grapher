@@ -3,6 +3,7 @@ import * as Sentry from "@sentry/react"
 import cx from "classnames"
 import { observable, action, computed } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent, Checkbox  } from "@ourworldindata/components"
 import { bind } from "decko"
 import Recaptcha from "react-recaptcha"
 import {
@@ -23,7 +24,6 @@ import {
     DonateSessionResponse,
     PLEASE_TRY_AGAIN,
 } from "@ourworldindata/utils"
-import { Checkbox } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { SiteAnalytics } from "./SiteAnalytics.js"
@@ -111,7 +111,9 @@ function EveryOrgSection({
 }
 
 @observer
-export class DonateForm extends React.Component<{ countryCode?: string }> {
+export class DonateForm extends ObservedReactComponent<{
+    countryCode?: string
+}> {
     @observable interval: DonationInterval = "once"
     @observable presetAmount?: number =
         amountsByInterval.once[DEFAULT_AMOUNT_INDEX]

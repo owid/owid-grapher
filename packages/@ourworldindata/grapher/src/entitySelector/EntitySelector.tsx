@@ -1,6 +1,10 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent,
+    Checkbox,
+    RadioButton,
+    OverlayHeader } from "@ourworldindata/components"
 import { computed, action, reaction, when, IReactionDisposer } from "mobx"
 import cx from "classnames"
 import a from "indefinite"
@@ -23,11 +27,6 @@ import {
     getRegionByName,
     makeSafeForCSS,
 } from "@ourworldindata/utils"
-import {
-    Checkbox,
-    RadioButton,
-    OverlayHeader,
-} from "@ourworldindata/components"
 import {
     faLocationArrow,
     faArrowRightArrowLeft,
@@ -216,7 +215,7 @@ type ExternalSortIndicatorKey = ExternalSortIndicatorDefinition["key"]
 const regionNamesSet = new Set(regions.map((region) => region.name))
 
 @observer
-export class EntitySelector extends React.Component<{
+export class EntitySelector extends ObservedReactComponent<{
     manager: EntitySelectorManager
     selection?: SelectionArray
     autoFocus?: boolean

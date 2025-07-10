@@ -1,5 +1,5 @@
-import { Component } from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { action, observable, runInAction } from "mobx"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -16,7 +16,7 @@ const statusLabel: Record<DeployStatus, string> = {
 }
 
 @observer
-export class DeployStatusPage extends Component {
+export class DeployStatusPage extends ObservedReactComponent {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

@@ -1,5 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { computed, action, runInAction, observable } from "mobx"
 import type { History } from "history"
 import { GrapherInterface } from "@ourworldindata/types"
@@ -14,7 +15,7 @@ import { References } from "./AbstractChartEditor.js"
 
 @observer
 export class NarrativeChartEditorPage
-    extends React.Component<{
+    extends ObservedReactComponent<{
         narrativeChartId: number
         history: History
     }>

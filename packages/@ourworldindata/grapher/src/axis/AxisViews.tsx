@@ -1,6 +1,7 @@
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import {
     Bounds,
     DEFAULT_BOUNDS,
@@ -22,7 +23,7 @@ const FAINT_TICK_COLOR = "#eee"
 const SOLID_TICK_COLOR = "#999"
 
 @observer
-export class VerticalAxisGridLines extends React.Component<{
+export class VerticalAxisGridLines extends ObservedReactComponent<{
     verticalAxis: VerticalAxis
     bounds: Bounds
     strokeWidth?: number
@@ -68,7 +69,7 @@ export class VerticalAxisGridLines extends React.Component<{
 }
 
 @observer
-export class HorizontalAxisGridLines extends React.Component<{
+export class HorizontalAxisGridLines extends ObservedReactComponent<{
     horizontalAxis: HorizontalAxis
     bounds?: Bounds
     strokeWidth?: number
@@ -119,7 +120,7 @@ export class HorizontalAxisGridLines extends React.Component<{
 }
 
 @observer
-export class HorizontalAxisZeroLine extends React.Component<{
+export class HorizontalAxisZeroLine extends ObservedReactComponent<{
     horizontalAxis: HorizontalAxis
     bounds: Bounds
     strokeWidth?: number
@@ -172,7 +173,7 @@ interface DualAxisViewProps {
 }
 
 @observer
-export class DualAxisComponent extends React.Component<DualAxisViewProps> {
+export class DualAxisComponent extends ObservedReactComponent<DualAxisViewProps> {
     render(): React.ReactElement {
         const {
             dualAxis,
@@ -249,7 +250,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
 }
 
 @observer
-export class VerticalAxisComponent extends React.Component<{
+export class VerticalAxisComponent extends ObservedReactComponent<{
     bounds: Bounds
     verticalAxis: VerticalAxis
     showTickMarks?: boolean

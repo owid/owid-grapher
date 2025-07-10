@@ -1,5 +1,5 @@
 import { observer } from "mobx-react"
-import { Component } from "react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { observable, runInAction } from "mobx"
@@ -9,7 +9,7 @@ import { Link } from "react-router-dom"
 import { Button, Modal } from "antd"
 
 @observer
-export class TagsIndexPage extends Component {
+export class TagsIndexPage extends ObservedReactComponent {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

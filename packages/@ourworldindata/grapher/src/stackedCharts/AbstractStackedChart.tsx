@@ -23,6 +23,7 @@ import {
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import React from "react"
 import {
     StackedPoint,
@@ -63,7 +64,7 @@ export interface AbstractStackedChartProps {
 
 @observer
 export class AbstractStackedChart
-    extends React.Component<AbstractStackedChartProps>
+    extends ObservedReactComponent<AbstractStackedChartProps>
     implements ChartInterface, AxisManager
 {
     transformTable(table: OwidTable): OwidTable {

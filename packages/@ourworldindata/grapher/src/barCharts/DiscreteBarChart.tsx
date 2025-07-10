@@ -17,6 +17,7 @@ import {
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent, TextWrap } from "@ourworldindata/components"
 import {
     ScaleType,
     SeriesStrategy,
@@ -69,7 +70,6 @@ import {
     HorizontalNumericColorLegend,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { BaseType, Selection } from "d3"
-import { TextWrap } from "@ourworldindata/components"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
@@ -99,7 +99,7 @@ interface DiscreteBarItem {
 
 @observer
 export class DiscreteBarChart
-    extends React.Component<{
+    extends ObservedReactComponent<{
         bounds?: Bounds
         manager: DiscreteBarChartManager
     }>

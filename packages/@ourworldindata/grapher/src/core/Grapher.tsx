@@ -65,7 +65,7 @@ import {
 } from "@ourworldindata/utils"
 import {
     MarkdownTextWrap,
-    sumTextWrapHeights,
+    sumTextWrapHeights, ObservedReactComponent 
 } from "@ourworldindata/components"
 import {
     GrapherChartType,
@@ -3445,7 +3445,7 @@ export interface GrapherProps {
 }
 
 @observer
-export class Grapher extends React.Component<GrapherProps> {
+export class Grapher extends ObservedReactComponent<GrapherProps> {
     @computed get grapherState(): GrapherState {
         return this.props.grapherState
     }

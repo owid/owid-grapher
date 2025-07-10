@@ -2,6 +2,7 @@ import * as React from "react"
 import cx from "classnames"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { isTargetOutsideElement } from "../chart/ChartUtils"
 
 export const DrawerContext = React.createContext<{
@@ -9,7 +10,7 @@ export const DrawerContext = React.createContext<{
 }>({})
 
 @observer
-export class SlideInDrawer extends React.Component<{
+export class SlideInDrawer extends ObservedReactComponent<{
     active: boolean
     toggle: () => void
     children: React.ReactNode

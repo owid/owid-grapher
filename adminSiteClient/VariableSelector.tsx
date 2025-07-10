@@ -9,6 +9,7 @@ import {
 } from "../adminShared/search.js"
 import { computed, action, observable, IReactionDisposer } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import Select, { MultiValue } from "react-select"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -45,7 +46,7 @@ interface Variable {
 @observer
 export class VariableSelector<
     Editor extends AbstractChartEditor,
-> extends React.Component<VariableSelectorProps<Editor>> {
+> extends ObservedReactComponent<VariableSelectorProps<Editor>> {
     @observable.ref chosenNamespaces: Namespace[] = []
     @observable.ref searchInput?: string
     @observable.ref isProjection?: boolean

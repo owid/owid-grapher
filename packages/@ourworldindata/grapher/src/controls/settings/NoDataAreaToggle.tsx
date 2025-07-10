@@ -1,14 +1,14 @@
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
-import { LabeledSwitch } from "@ourworldindata/components"
+import { ObservedReactComponent, LabeledSwitch  } from "@ourworldindata/components"
 
 export interface NoDataAreaToggleManager {
     showNoDataArea?: boolean
 }
 
 @observer
-export class NoDataAreaToggle extends React.Component<{
+export class NoDataAreaToggle extends ObservedReactComponent<{
     manager: NoDataAreaToggleManager
 }> {
     @action.bound onToggle(): void {

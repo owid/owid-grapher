@@ -3,6 +3,7 @@ import * as _ from "lodash-es"
 
 import { Component, createContext, Fragment, useState } from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import {
     ChartEditor,
     getFullReferencesCount,
@@ -40,7 +41,7 @@ const BASE_URL = BAKED_GRAPHER_URL.replace(/^https?:\/\//, "")
 @observer
 export class EditorReferencesTab<
     Editor extends AbstractChartEditor,
-> extends Component<{
+> extends ObservedReactComponent<{
     editor: Editor
 }> {
     render() {
@@ -56,7 +57,7 @@ export class EditorReferencesTab<
 }
 
 @observer
-export class EditorReferencesTabForChart extends Component<{
+export class EditorReferencesTabForChart extends ObservedReactComponent<{
     editor: ChartEditor
 }> {
     @computed get isPersisted() {
@@ -225,7 +226,9 @@ export class EditorReferencesTabForNarrativeChart extends Component<{
 }
 
 @observer
-class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<{
+class AddRedirectForm<
+    Editor extends AbstractChartEditor,
+> extends ObservedReactComponent<{
     editor: Editor
     onSuccess: (redirect: ChartRedirect) => void
 }> {
@@ -310,7 +313,7 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<{
 }
 
 @observer
-export class EditorReferencesTabForIndicator extends Component<{
+export class EditorReferencesTabForIndicator extends ObservedReactComponent<{
     editor: IndicatorChartEditor
 }> {
     render() {

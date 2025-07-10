@@ -1,8 +1,8 @@
 import * as _ from "lodash-es"
-import { Component } from "react"
 import Select, { GroupBase, components, OptionProps } from "react-select"
 import classNames from "classnames"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { computed, action } from "mobx"
 import { getStylesForTargetHeight } from "@ourworldindata/utils"
 
@@ -120,7 +120,7 @@ const VisionDeficiencyOption = (
 )
 
 @observer
-export class VisionDeficiencyDropdown extends Component<VisionDeficiencyDropdownProps> {
+export class VisionDeficiencyDropdown extends ObservedReactComponent<VisionDeficiencyDropdownProps> {
     noDeficiencyOption = {
         label: "No deficiencies",
         value: "none",

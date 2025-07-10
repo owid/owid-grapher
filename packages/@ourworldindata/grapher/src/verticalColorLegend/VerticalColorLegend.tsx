@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { makeIdForHumanConsumption } from "@ourworldindata/utils"
-import { TextWrap } from "@ourworldindata/components"
+import { TextWrap, ObservedReactComponent  } from "@ourworldindata/components"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
 import {
@@ -41,7 +41,7 @@ interface SizedLegendSeries {
 }
 
 @observer
-export class VerticalColorLegend extends React.Component<{
+export class VerticalColorLegend extends ObservedReactComponent<{
     manager: VerticalColorLegendManager
 }> {
     @computed get manager(): VerticalColorLegendManager {

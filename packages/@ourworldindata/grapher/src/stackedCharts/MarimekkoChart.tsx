@@ -18,6 +18,7 @@ import {
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import {
     BASE_FONT_SIZE,
     GRAPHER_FONT_SCALE_12,
@@ -247,7 +248,7 @@ function MarimekkoBarsForOneEntity(
 
 @observer
 export class MarimekkoChart
-    extends React.Component<{
+    extends ObservedReactComponent<{
         bounds?: Bounds
         manager: MarimekkoChartManager
         containerElement?: HTMLDivElement

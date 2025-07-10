@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import {
     AxisConfigInterface,
     ColumnSlug,
@@ -37,7 +38,7 @@ export interface MapSparklineManager {
 }
 
 @observer
-export class MapSparkline extends React.Component<{
+export class MapSparkline extends ObservedReactComponent<{
     manager: MapSparklineManager
     sparklineWidth?: number
     sparklineHeight?: number

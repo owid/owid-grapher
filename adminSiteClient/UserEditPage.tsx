@@ -1,5 +1,5 @@
-import { Component } from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { observable, runInAction } from "mobx"
 import { BindString, Toggle } from "./Forms.js"
 import { Redirect } from "react-router-dom"
@@ -8,7 +8,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { UserIndexMeta } from "./UserMeta.js"
 
 @observer
-export class UserEditPage extends Component<{ userId: number }> {
+export class UserEditPage extends ObservedReactComponent<{ userId: number }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

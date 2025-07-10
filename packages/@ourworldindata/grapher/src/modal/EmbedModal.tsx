@@ -1,13 +1,13 @@
 import { observer } from "mobx-react"
-import * as React from "react"
-import { computed, action } from "mobx"
-import { Bounds, DEFAULT_BOUNDS, Url } from "@ourworldindata/utils"
-import { Modal } from "./Modal"
 import {
+    ObservedReactComponent,
     Checkbox,
     CodeSnippet,
     OverlayHeader,
 } from "@ourworldindata/components"
+import { computed, action } from "mobx"
+import { Bounds, DEFAULT_BOUNDS, Url } from "@ourworldindata/utils"
+import { Modal } from "./Modal"
 
 export interface EmbedModalManager {
     embedUrl?: string
@@ -30,7 +30,7 @@ interface EmbedOptions {
 }
 
 @observer
-export class EmbedModal extends React.Component<EmbedModalProps> {
+export class EmbedModal extends ObservedReactComponent<EmbedModalProps> {
     @computed get manager(): EmbedModalManager {
         return this.props.manager
     }

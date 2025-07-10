@@ -33,6 +33,7 @@ import {
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import {
@@ -104,7 +105,7 @@ function computeSizeDomain(table: OwidTable, slug: ColumnSlug): ValueRange {
 
 @observer
 export class ScatterPlotChart
-    extends React.Component<{
+    extends ObservedReactComponent<{
         bounds?: Bounds
         manager: ScatterPlotManager
     }>

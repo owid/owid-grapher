@@ -1,14 +1,14 @@
 import * as React from "react"
 import { action } from "mobx"
 import { observer } from "mobx-react"
-import { LabeledSwitch } from "@ourworldindata/components"
+import { ObservedReactComponent, LabeledSwitch  } from "@ourworldindata/components"
 
 export interface ZoomToggleManager {
     zoomToSelection?: boolean
 }
 
 @observer
-export class ZoomToggle extends React.Component<{
+export class ZoomToggle extends ObservedReactComponent<{
     manager: ZoomToggleManager
 }> {
     @action.bound onToggle(): void {

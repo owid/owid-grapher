@@ -1,5 +1,5 @@
-import { Component } from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { observable, action, runInAction } from "mobx"
 
 import { AdminLayout } from "./AdminLayout.js"
@@ -7,7 +7,7 @@ import { ChartList, ChartListItem } from "./ChartList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 @observer
-export class ChartIndexPage extends Component {
+export class ChartIndexPage extends ObservedReactComponent {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

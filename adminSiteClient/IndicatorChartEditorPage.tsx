@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import React from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { computed, action } from "mobx"
 import { GrapherInterface, DimensionProperty } from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
@@ -16,7 +17,7 @@ import { References } from "./AbstractChartEditor.js"
 
 @observer
 export class IndicatorChartEditorPage
-    extends React.Component<{
+    extends ObservedReactComponent<{
         variableId: number
     }>
     implements

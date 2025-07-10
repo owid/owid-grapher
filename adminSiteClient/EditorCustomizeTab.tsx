@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import {
     ComparisonLineConfig,
     ColorSchemeName,
@@ -53,7 +54,7 @@ const debounceOnLeadingEdge = (fn: (...args: any[]) => void) =>
 class TimeField<
     T extends { [field: string]: any },
     K extends Extract<keyof T, string>,
-> extends React.Component<{
+> extends ObservedReactComponent<{
     field: K
     store: T
     label: string
@@ -117,7 +118,7 @@ class TimeField<
 }
 
 @observer
-export class ColorSchemeSelector extends React.Component<{
+export class ColorSchemeSelector extends ObservedReactComponent<{
     grapherState: GrapherState
     defaultValue?: ColorSchemeName
 }> {
@@ -201,7 +202,7 @@ interface SortOrderDropdownOption {
 @observer
 class SortOrderSection<
     Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor }> {
+> extends ObservedReactComponent<{ editor: Editor }> {
     @computed get sortConfig(): SortConfig {
         return this.grapherState._sortConfig
     }
@@ -301,7 +302,9 @@ class SortOrderSection<
 }
 
 @observer
-class FacetSection<Editor extends AbstractChartEditor> extends React.Component<{
+class FacetSection<
+    Editor extends AbstractChartEditor,
+> extends ObservedReactComponent<{
     editor: Editor
 }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
@@ -382,7 +385,7 @@ class FacetSection<Editor extends AbstractChartEditor> extends React.Component<{
 @observer
 class TimelineSection<
     Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor }> {
+> extends ObservedReactComponent<{ editor: Editor }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed get grapherState() {
@@ -492,7 +495,7 @@ class TimelineSection<
 @observer
 class ComparisonLineSection<
     Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor }> {
+> extends ObservedReactComponent<{ editor: Editor }> {
     private getComparisonLineType(comparisonLine: ComparisonLineConfig) {
         return isValidVerticalComparisonLineConfig(comparisonLine)
             ? "xEquals"
@@ -634,7 +637,7 @@ class ComparisonLineSection<
 @observer
 export class EditorCustomizeTab<
     Editor extends AbstractChartEditor,
-> extends React.Component<{
+> extends ObservedReactComponent<{
     editor: Editor
     errorMessages: ErrorMessages
 }> {

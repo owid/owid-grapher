@@ -1,8 +1,8 @@
 import * as _ from "lodash-es"
-import { Component } from "react"
 import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { excludeUndefined, slugify } from "@ourworldindata/utils"
 import {
     IndicatorChartEditor,
@@ -21,7 +21,9 @@ import { NarrativeChartNameModal } from "./NarrativeChartNameModal.js"
 import { CreateDataInsightModal } from "./CreateDataInsightModal.js"
 
 @observer
-export class SaveButtons<Editor extends AbstractChartEditor> extends Component<{
+export class SaveButtons<
+    Editor extends AbstractChartEditor,
+> extends ObservedReactComponent<{
     editor: Editor
     errorMessages: ErrorMessages
     errorMessagesForDimensions: ErrorMessagesForDimensions
@@ -50,7 +52,7 @@ export class SaveButtons<Editor extends AbstractChartEditor> extends Component<{
 }
 
 @observer
-class SaveButtonsForChart extends Component<{
+class SaveButtonsForChart extends ObservedReactComponent<{
     editor: ChartEditor
     errorMessages: ErrorMessages
     errorMessagesForDimensions: ErrorMessagesForDimensions
@@ -173,7 +175,7 @@ class SaveButtonsForChart extends Component<{
 }
 
 @observer
-class SaveButtonsForIndicatorChart extends Component<{
+class SaveButtonsForIndicatorChart extends ObservedReactComponent<{
     editor: IndicatorChartEditor
     errorMessages: ErrorMessages
     errorMessagesForDimensions: ErrorMessagesForDimensions
@@ -223,7 +225,7 @@ class SaveButtonsForIndicatorChart extends Component<{
 }
 
 @observer
-class SaveButtonsForNarrativeChart extends Component<{
+class SaveButtonsForNarrativeChart extends ObservedReactComponent<{
     editor: NarrativeChartEditor
     errorMessages: ErrorMessages
     errorMessagesForDimensions: ErrorMessagesForDimensions

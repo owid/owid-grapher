@@ -25,6 +25,10 @@ import {
 import { action, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
+    ObservedReactComponent,
+    getCanonicalUrl,
+} from "@ourworldindata/components"
+import {
     IChartHit,
     SearchCategoryFilter,
     SearchIndexName,
@@ -47,7 +51,6 @@ import { SiteAnalytics } from "../SiteAnalytics.js"
 import { extractRegionNamesFromSearchQuery } from "./searchUtils.js"
 import { ChartHit } from "./ChartHit.js"
 import DataInsightDateline from "../gdocs/components/DataInsightDateline.js"
-import { getCanonicalUrl } from "@ourworldindata/components"
 
 const siteAnalytics = new SiteAnalytics()
 
@@ -462,7 +465,7 @@ const SearchResults = (props: SearchResultsProps) => {
 }
 
 @observer
-export class DEPRECATEDInstantSearchContainer extends React.Component {
+export class DEPRECATEDInstantSearchContainer extends ObservedReactComponent {
     searchClient: SearchClient
     categoryFilterContainerRef: React.RefObject<HTMLUListElement>
 

@@ -2,6 +2,7 @@ import * as React from "react"
 import { useHistory, useLocation } from "react-router-dom"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import type { History } from "history"
 
 import { GrapherInterface } from "@ourworldindata/utils"
@@ -44,7 +45,7 @@ interface CreateNarrativeChartEditorPageInternalProps {
 
 @observer
 class CreateNarrativeChartEditorPageInternal
-    extends React.Component<CreateNarrativeChartEditorPageInternalProps>
+    extends ObservedReactComponent<CreateNarrativeChartEditorPageInternalProps>
     implements
         NarrativeChartEditorManager,
         ChartEditorViewManager<NarrativeChartEditor>

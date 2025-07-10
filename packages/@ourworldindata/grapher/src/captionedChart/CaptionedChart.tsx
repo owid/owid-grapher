@@ -2,13 +2,13 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent, MarkdownTextWrap  } from "@ourworldindata/components"
 import {
     Bounds,
     DEFAULT_BOUNDS,
     exposeInstanceOnWindow,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap } from "@ourworldindata/components"
 import { Header, StaticHeader } from "../header/Header"
 import { Footer, StaticFooter } from "../footer/Footer"
 import {
@@ -113,7 +113,7 @@ interface CaptionedChartProps {
 const CONTROLS_ROW_HEIGHT = 32
 
 @observer
-export class CaptionedChart extends React.Component<CaptionedChartProps> {
+export class CaptionedChart extends ObservedReactComponent<CaptionedChartProps> {
     protected framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
     protected framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
 

@@ -1,5 +1,5 @@
-import { Component } from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { observable, computed, runInAction } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
 import { DbChartTagJoin } from "@ourworldindata/utils"
@@ -33,7 +33,7 @@ class TagEditable {
 }
 
 @observer
-class TagEditor extends Component<{ tag: TagPageData }> {
+class TagEditor extends ObservedReactComponent<{ tag: TagPageData }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
@@ -177,7 +177,7 @@ class TagEditor extends Component<{ tag: TagPageData }> {
 }
 
 @observer
-export class TagEditPage extends Component<{ tagId: number }> {
+export class TagEditPage extends ObservedReactComponent<{ tagId: number }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

@@ -1,12 +1,13 @@
 import * as React from "react"
 import { action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { ScaleType } from "@ourworldindata/types"
 import { AxisConfig } from "../../axis/AxisConfig"
 import classnames from "classnames"
 
 @observer
-export class AxisScaleToggle extends React.Component<{
+export class AxisScaleToggle extends ObservedReactComponent<{
     axis: AxisConfig
     subtitle?: string
     prefix?: string

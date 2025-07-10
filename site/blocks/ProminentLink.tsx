@@ -11,7 +11,7 @@ import {
 import { Url } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import { Component } from "react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import ReactDOM from "react-dom"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
@@ -24,7 +24,7 @@ export enum ProminentLinkStyles {
 export const WITH_IMAGE = "with-image"
 
 @observer
-export class ProminentLink extends Component<{
+export class ProminentLink extends ObservedReactComponent<{
     href: string
     style: string | null
     title: string | null

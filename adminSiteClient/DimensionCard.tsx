@@ -1,7 +1,8 @@
 import * as _ from "lodash-es"
-import { Component, Fragment } from "react"
+import { Fragment } from "react"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { ChartDimension } from "@ourworldindata/grapher"
 import { OwidColumnDef, OwidVariableRoundingMode } from "@ourworldindata/types"
 import {
@@ -27,7 +28,7 @@ import { AbstractChartEditor } from "./AbstractChartEditor.js"
 @observer
 export class DimensionCard<
     Editor extends AbstractChartEditor,
-> extends Component<{
+> extends ObservedReactComponent<{
     dimension: ChartDimension
     editor: Editor
     isDndEnabled?: boolean

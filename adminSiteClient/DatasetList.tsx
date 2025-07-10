@@ -1,6 +1,7 @@
 import * as React from "react"
 import { observable, action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import * as lodash from "lodash-es"
 import { bind } from "decko"
 
@@ -28,7 +29,7 @@ export interface DatasetListItem {
 }
 
 @observer
-class DatasetRow extends React.Component<{
+class DatasetRow extends ObservedReactComponent<{
     dataset: DatasetListItem
     availableTags: DbChartTagJoin[]
     searchHighlight?: (text: string) => string | React.ReactElement
@@ -98,7 +99,7 @@ class DatasetRow extends React.Component<{
 }
 
 @observer
-export class DatasetList extends React.Component<{
+export class DatasetList extends ObservedReactComponent<{
     datasets: DatasetListItem[]
     searchHighlight?: (text: string) => string | React.ReactElement
 }> {

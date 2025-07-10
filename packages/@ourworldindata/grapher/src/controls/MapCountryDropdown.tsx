@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { MapConfig } from "../mapCharts/MapConfig"
 import {
     EntityName,
@@ -47,7 +48,7 @@ interface GroupedDropdownOption {
 }
 
 @observer
-export class MapCountryDropdown extends React.Component<{
+export class MapCountryDropdown extends ObservedReactComponent<{
     manager: MapCountryDropdownManager
 }> {
     @observable private searchInput = ""

@@ -1,6 +1,7 @@
 import * as React from "react"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent, Halo  } from "@ourworldindata/components"
 import { line as d3_line, curveLinear } from "d3-shape"
 import {
     guid,
@@ -9,7 +10,6 @@ import {
 } from "@ourworldindata/utils"
 import { CustomComparisonLineConfig } from "@ourworldindata/types"
 import { generateComparisonLinePoints } from "./ComparisonLineGenerator"
-import { Halo } from "@ourworldindata/components"
 import { GRAPHER_TEXT_OUTLINE_FACTOR } from "../core/GrapherConstants"
 import { ClipPath, makeClipPath } from "../chart/ChartUtils"
 import {
@@ -19,7 +19,7 @@ import {
 import { ComparisonLineProps } from "./ComparisonLine"
 
 @observer
-export class CustomComparisonLine extends React.Component<
+export class CustomComparisonLine extends ObservedReactComponent<
     ComparisonLineProps<CustomComparisonLineConfig>
 > {
     private renderUid = guid()

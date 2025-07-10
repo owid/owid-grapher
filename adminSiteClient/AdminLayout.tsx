@@ -1,6 +1,7 @@
 import * as React from "react"
 import { observable, action, computed } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 
 import { Link } from "./Link.js"
 import { EditorFAQ } from "./EditorFAQ.js"
@@ -15,7 +16,7 @@ import {
 import classNames from "classnames"
 
 @observer
-export class AdminLayout extends React.Component<{
+export class AdminLayout extends ObservedReactComponent<{
     noSidebar?: boolean
     hasFixedNav?: boolean
     title?: string

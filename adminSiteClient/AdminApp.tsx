@@ -4,6 +4,7 @@ import { Admin } from "./Admin.js"
 import { ChartEditorPage } from "./ChartEditorPage.js"
 import { action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { ChartIndexPage } from "./ChartIndexPage.js"
 import { UsersIndexPage } from "./UsersIndexPage.js"
 import { DatasetsIndexPage } from "./DatasetsIndexPage.js"
@@ -62,7 +63,7 @@ const queryClient = new QueryClient({
 })
 
 @observer
-class AdminErrorMessage extends React.Component<{ admin: Admin }> {
+class AdminErrorMessage extends ObservedReactComponent<{ admin: Admin }> {
     render(): React.ReactElement | null {
         const { admin } = this.props
         const error = admin.errorMessage
@@ -106,7 +107,7 @@ class AdminErrorMessage extends React.Component<{ admin: Admin }> {
 }
 
 @observer
-class AdminLoader extends React.Component<{ admin: Admin }> {
+class AdminLoader extends ObservedReactComponent<{ admin: Admin }> {
     render(): React.ReactElement | null {
         const { admin } = this.props
         return admin.showLoadingIndicator ? <LoadingBlocker /> : null
@@ -114,7 +115,7 @@ class AdminLoader extends React.Component<{ admin: Admin }> {
 }
 
 @observer
-export class AdminApp extends React.Component<{
+export class AdminApp extends ObservedReactComponent<{
     admin: Admin
 }> {
     get childContext() {

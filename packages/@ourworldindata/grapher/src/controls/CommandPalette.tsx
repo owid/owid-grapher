@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import { BodyDiv } from "../bodyDiv/BodyDiv"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import * as React from "react"
 
 declare type keyboardCombo = string
@@ -15,7 +16,7 @@ export interface Command {
 const CommandPaletteClassName = "CommandPalette"
 
 @observer
-export class CommandPalette extends React.Component<{
+export class CommandPalette extends ObservedReactComponent<{
     commands: Command[]
     display: "none" | "block"
 }> {

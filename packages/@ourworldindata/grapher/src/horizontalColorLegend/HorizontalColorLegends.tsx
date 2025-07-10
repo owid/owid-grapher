@@ -3,6 +3,7 @@ import * as React from "react"
 import * as R from "remeda"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
+import { TextWrap } from "@ourworldindata/components"
 import {
     dyFromAlign,
     removeAllWhitespace,
@@ -12,7 +13,6 @@ import {
     VerticalAlign,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
-import { TextWrap } from "@ourworldindata/components"
 import {
     ColorScaleBin,
     NumericBin,

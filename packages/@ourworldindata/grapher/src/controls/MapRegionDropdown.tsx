@@ -1,6 +1,7 @@
 import * as React from "react"
 import { computed, action } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { MapRegionName, GlobeRegionName } from "@ourworldindata/types"
 import { Dropdown } from "./Dropdown"
@@ -25,7 +26,7 @@ interface MapRegionDropdownOption {
 }
 
 @observer
-export class MapRegionDropdown extends React.Component<{
+export class MapRegionDropdown extends ObservedReactComponent<{
     manager: MapRegionDropdownManager
 }> {
     static shouldShow(manager: MapRegionDropdownManager): boolean {

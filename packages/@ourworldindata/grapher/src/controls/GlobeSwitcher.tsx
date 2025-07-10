@@ -1,5 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { action, computed, observable } from "mobx"
 import { TabLabel, Tabs } from "../tabs/Tabs"
 import { MapConfig } from "../mapCharts/MapConfig"
@@ -14,7 +15,7 @@ export interface GlobeSwitcherManager {
 }
 
 @observer
-export class GlobeSwitcher extends React.Component<{
+export class GlobeSwitcher extends ObservedReactComponent<{
     manager: GlobeSwitcherManager
 }> {
     @observable private localCountryName?: EntityName

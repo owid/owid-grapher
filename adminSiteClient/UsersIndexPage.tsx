@@ -1,5 +1,6 @@
 import * as React from "react"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import { observable, action, runInAction } from "mobx"
 
 import { Modal, Timeago } from "./Forms.js"
@@ -13,7 +14,7 @@ interface UserIndexMetaWithLastSeen extends UserIndexMeta {
 }
 
 @observer
-class InviteModal extends React.Component<{ onClose: () => void }> {
+class InviteModal extends ObservedReactComponent<{ onClose: () => void }> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
@@ -92,7 +93,7 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
 }
 
 @observer
-export class UsersIndexPage extends React.Component {
+export class UsersIndexPage extends ObservedReactComponent {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

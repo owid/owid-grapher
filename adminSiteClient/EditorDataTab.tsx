@@ -3,6 +3,7 @@ import * as React from "react"
 import { differenceOfSets, moveArrayItemToIndex } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import cx from "classnames"
 import {
     EntitySelectionMode,
@@ -58,7 +59,7 @@ interface SeriesListItemProps extends React.HTMLProps<HTMLDivElement> {
 }
 
 @observer
-class EntityListItem extends React.Component<EntityListItemProps> {
+class EntityListItem extends ObservedReactComponent<EntityListItemProps> {
     @observable.ref isChoosingColor: boolean = false
 
     @computed get table() {
@@ -128,7 +129,7 @@ class EntityListItem extends React.Component<EntityListItemProps> {
 }
 
 @observer
-class SeriesListItem extends React.Component<SeriesListItemProps> {
+class SeriesListItem extends ObservedReactComponent<SeriesListItemProps> {
     @action.bound onRemove() {
         this.props.onRemove?.()
     }
@@ -157,7 +158,7 @@ class SeriesListItem extends React.Component<SeriesListItemProps> {
 }
 
 @observer
-export class EntitySelectionSection extends React.Component<{
+export class EntitySelectionSection extends ObservedReactComponent<{
     editor: AbstractChartEditor
 }> {
     @observable.ref dragKey?: EntityName
@@ -302,7 +303,7 @@ export class EntitySelectionSection extends React.Component<{
 }
 
 @observer
-export class FocusSection extends React.Component<{
+export class FocusSection extends ObservedReactComponent<{
     editor: AbstractChartEditor
 }> {
     @computed get editor() {
@@ -400,7 +401,7 @@ export class FocusSection extends React.Component<{
 @observer
 class MissingDataSection<
     Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor }> {
+> extends ObservedReactComponent<{ editor: Editor }> {
     @computed get grapherState() {
         return this.props.editor.grapherState
     }
@@ -446,7 +447,7 @@ class MissingDataSection<
 @observer
 class EntityFilterSection<
     Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor }> {
+> extends ObservedReactComponent<{ editor: Editor }> {
     @computed private get editor(): Editor {
         return this.props.editor
     }
@@ -622,7 +623,7 @@ class EntityFilterSection<
 @observer
 export class EditorDataTab<
     Editor extends AbstractChartEditor,
-> extends React.Component<{ editor: Editor }> {
+> extends ObservedReactComponent<{ editor: Editor }> {
     render() {
         const { editor } = this.props
         const { grapherState, features } = editor

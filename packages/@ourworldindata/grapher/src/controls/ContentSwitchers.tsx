@@ -1,6 +1,7 @@
 import * as React from "react"
 import { action, computed } from "mobx"
 import { observer } from "mobx-react"
+import { ObservedReactComponent } from "@ourworldindata/components"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faTable, faEarthAmericas } from "@fortawesome/free-solid-svg-icons"
@@ -24,7 +25,7 @@ export interface ContentSwitchersManager {
 }
 
 @observer
-export class ContentSwitchers extends React.Component<{
+export class ContentSwitchers extends ObservedReactComponent<{
     manager: ContentSwitchersManager
 }> {
     static shouldShow(manager: ContentSwitchersManager): boolean {
