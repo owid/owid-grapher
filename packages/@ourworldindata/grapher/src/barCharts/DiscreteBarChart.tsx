@@ -4,7 +4,6 @@ import { select } from "d3-selection"
 import {
     exposeInstanceOnWindow,
     Bounds,
-    DEFAULT_BOUNDS,
     Time,
     SortOrder,
     SortBy,
@@ -28,6 +27,7 @@ import {
 } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
+    DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
@@ -154,7 +154,7 @@ export class DiscreteBarChart
     }
 
     @computed private get bounds(): Bounds {
-        return (this.props.bounds ?? DEFAULT_BOUNDS).padRight(10)
+        return (this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS).padRight(10)
     }
 
     @computed private get boundsWithoutColorLegend(): Bounds {

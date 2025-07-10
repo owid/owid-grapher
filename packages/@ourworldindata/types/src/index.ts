@@ -127,7 +127,6 @@ export {
     type SeriesName,
     type LegacyGrapherQueryParams,
     GRAPHER_QUERY_PARAM_KEYS,
-    GrapherStaticFormat,
     type ChartRedirect,
     type DetailsMarker,
     GrapherWindowType,

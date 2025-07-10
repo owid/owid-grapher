@@ -27,7 +27,6 @@ import {
     exposeInstanceOnWindow,
     DataValue,
     Bounds,
-    DEFAULT_BOUNDS,
     TickFormattingOptions,
     Tippy,
     excludeUndefined,
@@ -36,6 +35,7 @@ import {
 } from "@ourworldindata/utils"
 import { SelectionArray } from "../selection/SelectionArray"
 import {
+    DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_ENTITY_TYPE,
     SVG_STYLE_PROPS,
 } from "../core/GrapherConstants"
@@ -600,7 +600,7 @@ export class DataTable extends React.Component<{
     }
 
     @computed get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS
     }
 
     @computed private get tableCaption(): React.ReactElement | null {

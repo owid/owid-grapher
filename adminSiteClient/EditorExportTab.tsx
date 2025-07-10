@@ -3,12 +3,13 @@ import { observer } from "mobx-react"
 import { Component } from "react"
 import { Section, Toggle } from "./Forms.js"
 import {
+    DEFAULT_GRAPHER_BOUNDS,
+    DEFAULT_GRAPHER_BOUNDS_SQUARE,
     GrapherState,
     loadVariableDataAndMetadata,
 } from "@ourworldindata/grapher"
 import {
     triggerDownloadFromBlob,
-    GrapherStaticFormat,
     OwidVariableDataMetadataDimensions,
     OwidVariableId,
 } from "@ourworldindata/utils"
@@ -203,31 +204,31 @@ export class EditorExportTab<
 
     @action.bound private onDownloadDesktopSVG() {
         void this.download(`${this.baseFilename}-desktop.svg`, {
-            format: GrapherStaticFormat.landscape,
+            format: "landscape",
         })
     }
 
     @action.bound private onDownloadDesktopPNG() {
         void this.download(`${this.baseFilename}-desktop.png`, {
-            format: GrapherStaticFormat.landscape,
+            format: "landscape",
         })
     }
 
     @action.bound private onDownloadMobileSVG() {
         void this.download(`${this.baseFilename}-mobile.svg`, {
-            format: GrapherStaticFormat.square,
+            format: "square",
         })
     }
 
     @action.bound private onDownloadMobilePNG() {
         void this.download(`${this.baseFilename}-mobile.png`, {
-            format: GrapherStaticFormat.square,
+            format: "square",
         })
     }
 
     @action.bound private onDownloadMobileSVGForSocialMedia() {
         void this.download(`${this.baseFilename}-instagram.svg`, {
-            format: GrapherStaticFormat.square,
+            format: "square",
             isSocialMediaExport: true,
         })
     }
@@ -238,19 +239,24 @@ export class EditorExportTab<
             format,
             isSocialMediaExport = false,
         }: {
-            format: GrapherStaticFormat
+            format: "landscape" | "square"
             isSocialMediaExport?: boolean
         }
     ) {
+        const requestedBounds =
+            format === "landscape"
+                ? DEFAULT_GRAPHER_BOUNDS
+                : DEFAULT_GRAPHER_BOUNDS_SQUARE
+
         try {
             let grapherState = this.grapherState
             if (
-                this.grapherState.staticFormat !== format ||
+                !this.grapherState.staticBounds.equals(requestedBounds) ||
                 this.grapherState.isSocialMediaExport !== isSocialMediaExport
             ) {
                 grapherState = new GrapherState({
                     ...this.grapherState.toObject(),
-                    staticFormat: format,
+                    staticBounds: requestedBounds,
                     selectedEntityNames: [
                         ...this.grapherState.selection.selectedEntityNames,
                     ],

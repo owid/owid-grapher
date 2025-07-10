@@ -9,11 +9,14 @@ import {
     MissingDataStrategy,
     SeriesStrategy,
 } from "@ourworldindata/types"
-import { BASE_FONT_SIZE, WORLD_ENTITY_NAME } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    DEFAULT_GRAPHER_BOUNDS,
+    WORLD_ENTITY_NAME,
+} from "../core/GrapherConstants"
 import {
     Bounds,
     checkHasMembers,
-    DEFAULT_BOUNDS,
     excludeUndefined,
     exposeInstanceOnWindow,
     getCountryNamesForRegion,
@@ -144,7 +147,7 @@ export abstract class AbstractStackedChart
     }
 
     @computed get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS
     }
 
     @computed get isStatic(): boolean {
