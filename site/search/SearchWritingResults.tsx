@@ -63,7 +63,7 @@ export const SearchWritingResults = ({
     const remainingTopics = topicPages.slice(interleavedTopicsCount)
 
     return (
-        <section className="search-writing-results col-start-2 span-cols-12">
+        <section className="col-start-2 span-cols-12">
             <SearchResultHeader count={totalCount}>
                 Research & Writing
             </SearchResultHeader>

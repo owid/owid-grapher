@@ -1,9 +1,10 @@
-.search-data-insights-results__header {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
+.search-data-insights-results__hits {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-bottom: 24px;
 
-    h3 {
-        margin: 0;
+    @include md-down {
+        grid-template-columns: repeat(2, 1fr);
     }
 }

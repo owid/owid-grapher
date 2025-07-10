@@ -1,10 +1,8 @@
-import { getCanonicalUrl } from "@ourworldindata/components"
-import DataInsightDateline from "../gdocs/components/DataInsightDateline.js"
-import { getIndexName } from "./searchClient.js"
-import { DataInsightHit, SearchIndexName } from "./searchTypes.js"
 import cx from "classnames"
-import { SearchAsDraft } from "./SearchAsDraft.js"
+import { getCanonicalUrl } from "@ourworldindata/components"
+import { formatDate } from "@ourworldindata/utils"
 import { OwidGdocType } from "@ourworldindata/types"
+import { DataInsightHit } from "./searchTypes.js"
 
 export const SearchDataInsightHit = ({
     hit,
@@ -15,37 +13,26 @@ export const SearchDataInsightHit = ({
 }) => {
     const href = getCanonicalUrl("", {
         slug: hit.slug,
-        content: {
-            type: OwidGdocType.DataInsight,
-        },
+        content: { type: OwidGdocType.DataInsight },
     })
 
     return (
-        <SearchAsDraft name="Data Insight" className={className}>
-            <a
-                href={href}
-                data-algolia-index={getIndexName(SearchIndexName.Pages)}
-                data-algolia-object-id={hit.objectID}
-                data-algolia-position={hit.__position}
-                className={cx("search-data-insight-hit")}
-            >
+        <a className={cx("search-data-insight-hit", className)} href={href}>
+            <article>
                 {hit.thumbnailUrl && (
-                    <img
-                        src={hit.thumbnailUrl}
-                        className="search-data-insight-hit__img"
-                    />
+                    <div className="search-data-insight-hit__image-container">
+                        <img
+                            className="search-data-insight-hit__image"
+                            src={hit.thumbnailUrl}
+                            alt=""
+                        />
+                    </div>
                 )}
-                <DataInsightDateline
-                    className="search-data-insight-hit-dateline"
-                    publishedAt={new Date(hit.date)}
-                    formatOptions={{
-                        year: "numeric",
-                        month: "long",
-                        day: "2-digit",
-                    }}
-                />
-                <h4 className="search-data-insight-hit__title">{hit.title}</h4>
-            </a>
-        </SearchAsDraft>
+                <div className="search-data-insight-hit__date">
+                    {formatDate(new Date(hit.date))}
+                </div>
+                <h3 className="search-data-insight-hit__title">{hit.title}</h3>
+            </article>
+        </a>
     )
 }
