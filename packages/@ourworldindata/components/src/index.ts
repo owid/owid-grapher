@@ -1,3 +1,5 @@
+export { ObservedReactComponent } from "./ObservedReact.js"
+
 export { TextWrap, shortenForTargetWidth } from "./TextWrap/TextWrap.js"
 
 export {
