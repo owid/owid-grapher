@@ -242,6 +242,14 @@ describe(linearInterpolation, () => {
             ErrorValueTypes.NoValueForInterpolation,
         ])
     })
+
+    it("interpolates with uneven time spacing", () => {
+        const values = [4, ErrorValueTypes.MissingValuePlaceholder, 1]
+        const timesAsc = [1900, 1919, 1920]
+        linearInterpolation(values, timesAsc, {})
+        // For 1919: should be 4 + (1-4) * (1919-1900)/(1920-1900) = 4 + (-3) * 19/20 = 4 - 2.85 = 1.15
+        expect(values).toEqual([4, 1.15, 1])
+    })
 })
 
 describe("immutable memoization", (): void => {
