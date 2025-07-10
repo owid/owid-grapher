@@ -29,6 +29,7 @@
     flex-direction: column;
     gap: 0.5rem;
     align-items: flex-start;
+    flex-wrap: wrap;
 }
 
 .search-debug-navigator__info {
@@ -230,7 +231,6 @@
         order: -1;
         align-items: center;
         flex-direction: row;
-        justify-content: center;
         gap: 1rem;
     }
 

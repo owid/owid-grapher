@@ -74,7 +74,7 @@ const getThumbnailUrl = (
         const firstImage = getFirstBlockOfType(gdoc, "image")
         const filename = firstImage?.smallFilename || firstImage?.filename
         return filename && cloudflareImages[filename]
-            ? `${CLOUDFLARE_IMAGES_URL}/${cloudflareImages[filename].cloudflareId}/w=512`
+            ? `${CLOUDFLARE_IMAGES_URL}/${cloudflareImages[filename].cloudflareId}/w=608`
             : `${BAKED_BASE_URL}/${DEFAULT_GDOC_FEATURED_IMAGE}`
     }
 

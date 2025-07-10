@@ -1,4 +1,3 @@
-import { SearchAsDraft } from "./SearchAsDraft.js"
 import { DataInsightHit, SearchDataInsightResponse } from "./searchTypes.js"
 import { queryDataInsights, searchQueryKeys } from "./queries.js"
 import { SearchDataInsightHit } from "./SearchDataInsightHit.js"
@@ -19,31 +18,21 @@ export function SearchDataInsightsResults() {
     if (totalResults === 0) return null
 
     return (
-        <SearchAsDraft
-            name="Data Insights"
-            className="grid span-cols-12 col-start-2"
-        >
-            <section className="search-data-insights-results span-cols-12">
-                <SearchResultHeader count={totalResults}>
-                    Data Insights
-                </SearchResultHeader>
-                <div className="search-data-insights-results__hits grid">
-                    {hits.map((hit: DataInsightHit) => (
-                        <SearchDataInsightHit
-                            className="span-cols-3"
-                            key={hit.objectID}
-                            hit={hit}
-                        />
-                    ))}
-                </div>
-            </section>
+        <section className="col-start-2 span-cols-12">
+            <SearchResultHeader count={totalResults}>
+                Data Insights
+            </SearchResultHeader>
+            <div className="search-data-insights-results__hits">
+                {hits.map((hit: DataInsightHit) => (
+                    <SearchDataInsightHit key={hit.objectID} hit={hit} />
+                ))}
+            </div>
             {query.hasNextPage && (
                 <SearchShowMore
-                    className="span-cols-12"
                     isLoading={query.isFetchingNextPage}
                     onClick={query.fetchNextPage}
                 />
             )}
-        </SearchAsDraft>
+        </section>
     )
 }
