@@ -4,7 +4,6 @@ import * as R from "remeda"
 import { observer } from "mobx-react"
 import {
     Bounds,
-    DEFAULT_BOUNDS,
     excludeUndefined,
     getIdealGridParams,
     IDEAL_PLOT_ASPECT_RATIO,
@@ -17,7 +16,10 @@ import {
 } from "@ourworldindata/utils"
 import { shortenForTargetWidth } from "@ourworldindata/components"
 import { action, computed, observable } from "mobx"
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    DEFAULT_GRAPHER_BOUNDS_LANDSCAPE,
+} from "../core/GrapherConstants"
 import {
     GRAPHER_CHART_TYPES,
     GrapherChartType,
@@ -148,7 +150,7 @@ export class FacetChart
     }
 
     @computed private get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS_LANDSCAPE
     }
 
     @computed private get legendPadding(): number {

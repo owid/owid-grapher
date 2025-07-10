@@ -1,7 +1,6 @@
 import * as R from "remeda"
 import {
     Bounds,
-    DEFAULT_BOUNDS,
     getRelativeMouse,
     guid,
     exposeInstanceOnWindow,
@@ -49,6 +48,7 @@ import {
 } from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
+    DEFAULT_GRAPHER_BOUNDS_LANDSCAPE,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_MAX_TOOLTIP_WIDTH,
     Patterns,
@@ -330,7 +330,7 @@ export class MapChart
     }
 
     @computed get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS_LANDSCAPE
     }
 
     @computed get choroplethData(): ChoroplethSeriesByName {

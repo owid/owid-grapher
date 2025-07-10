@@ -1,7 +1,9 @@
 import {
     GrapherProgrammaticInterface,
     GRAPHER_SQUARE_SIZE,
+    DEFAULT_GRAPHER_BOUNDS_SQUARE,
 } from "@ourworldindata/grapher"
+import { Bounds } from "@ourworldindata/utils"
 import {
     DEFAULT_ASPECT_RATIO,
     MIN_ASPECT_RATIO,
@@ -11,7 +13,6 @@ import {
     DEFAULT_WIDTH,
     DEFAULT_HEIGHT,
 } from "./grapherRenderer.js"
-import { GrapherStaticFormat } from "@ourworldindata/types"
 
 export interface ImageOptions {
     pngWidth: number
@@ -49,8 +50,25 @@ const SQUARE_OPTIONS: Readonly<ImageOptions> = {
     fontSize: undefined,
     grapherProps: {
         isSocialMediaExport: false,
-        staticFormat: GrapherStaticFormat.square,
+        staticBounds: DEFAULT_GRAPHER_BOUNDS_SQUARE,
     },
+}
+
+function cloneOptions(options: Readonly<ImageOptions>): ImageOptions {
+    const clone = structuredClone(options)
+
+    // staticBounds is a Bounds object, so we need to recreate it after cloning
+    const { staticBounds } = options.grapherProps || {}
+    if (staticBounds) {
+        clone.grapherProps.staticBounds = new Bounds(
+            staticBounds.x,
+            staticBounds.y,
+            staticBounds.width,
+            staticBounds.height
+        )
+    }
+
+    return clone
 }
 
 export const extractOptions = (params: URLSearchParams): ImageOptions => {
@@ -59,7 +77,7 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
     if (imType === "twitter") return TWITTER_OPTIONS
     else if (imType === "og") return OPEN_GRAPH_OPTIONS
     else if (imType === "square" || imType === "social-media-square") {
-        const squareOptions = structuredClone(SQUARE_OPTIONS) as ImageOptions
+        const squareOptions = cloneOptions(SQUARE_OPTIONS)
         if (imType === "social-media-square") {
             squareOptions.grapherProps.isSocialMediaExport = true
         }

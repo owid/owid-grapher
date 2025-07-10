@@ -3,7 +3,6 @@ import React from "react"
 import * as R from "remeda"
 import {
     Bounds,
-    DEFAULT_BOUNDS,
     excludeUndefined,
     HorizontalAlign,
     Position,
@@ -20,6 +19,7 @@ import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
     BASE_FONT_SIZE,
+    DEFAULT_GRAPHER_BOUNDS_LANDSCAPE,
     GRAPHER_FONT_SCALE_12,
     Patterns,
 } from "../core/GrapherConstants"
@@ -485,7 +485,9 @@ export class MarimekkoChart
     }
 
     @computed private get bounds(): Bounds {
-        return (this.props.bounds ?? DEFAULT_BOUNDS).padRight(10)
+        return (this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS_LANDSCAPE).padRight(
+            10
+        )
     }
 
     @computed private get innerBounds(): Bounds {

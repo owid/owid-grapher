@@ -35,6 +35,8 @@ export {
     CONTINENTS_INDICATOR_ID,
     POPULATION_INDICATOR_ID_USED_IN_ADMIN,
     latestGrapherConfigSchema,
+    DEFAULT_GRAPHER_BOUNDS_LANDSCAPE,
+    DEFAULT_GRAPHER_BOUNDS_SQUARE,
 } from "./core/GrapherConstants"
 export {
     getVariableDataRoute,

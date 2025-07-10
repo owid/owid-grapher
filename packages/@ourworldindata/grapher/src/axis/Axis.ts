@@ -5,7 +5,6 @@ import {
     rollingMap,
     numberMagnitude,
     Bounds,
-    DEFAULT_BOUNDS,
     AxisAlign,
     HorizontalAlign,
     Position,
@@ -21,6 +20,7 @@ import { AxisConfig, AxisManager } from "./AxisConfig"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { ColumnTypeMap, CoreColumn } from "@ourworldindata/core-table"
 import {
+    DEFAULT_GRAPHER_BOUNDS_LANDSCAPE,
     GRAPHER_FONT_SCALE_10_5,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants.js"
@@ -860,7 +860,7 @@ export class DualAxis {
     }
 
     @computed get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS_LANDSCAPE
     }
 
     @computed get comparisonLines(): ComparisonLineConfig[] {

@@ -1,7 +1,6 @@
 import * as _ from "lodash-es"
 import {
     Bounds,
-    DEFAULT_BOUNDS,
     getAttributionFragmentsFromVariable,
     getLastUpdatedFromVariable,
     getNextUpdateFromVariable,
@@ -37,7 +36,10 @@ import { SourcesDescriptions } from "./SourcesDescriptions"
 import { TabLabel, Tabs } from "../tabs/Tabs"
 import { ExpandableTabs } from "../tabs/ExpandableTabs"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
-import { isContinentsVariableId } from "../core/GrapherConstants"
+import {
+    DEFAULT_GRAPHER_BOUNDS_LANDSCAPE,
+    isContinentsVariableId,
+} from "../core/GrapherConstants"
 import * as R from "remeda"
 
 // keep in sync with variables in SourcesModal.scss
@@ -84,7 +86,7 @@ export class SourcesModal extends React.Component<
     }
 
     @computed private get frameBounds(): Bounds {
-        return this.manager.frameBounds ?? DEFAULT_BOUNDS
+        return this.manager.frameBounds ?? DEFAULT_GRAPHER_BOUNDS_LANDSCAPE
     }
 
     @computed private get modalBounds(): Bounds {
