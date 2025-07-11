@@ -61,7 +61,7 @@ import {
     NO_DATA_LABEL,
 } from "../color/ColorScale"
 import { AxisConfig } from "../axis/AxisConfig"
-import { ChartInterface } from "../chart/ChartInterface"
+import { ChartState } from "../chart/ChartInterface"
 import {
     ScatterPlotManager,
     ScatterSeries,
@@ -113,7 +113,7 @@ export class ScatterPlotChart
     implements
         ConnectedScatterLegendManager,
         ScatterSizeLegendManager,
-        ChartInterface,
+        ChartState,
         VerticalColorLegendManager,
         ColorScaleManager
 {
