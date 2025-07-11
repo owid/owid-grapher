@@ -26,7 +26,7 @@ export const SearchTopicsRefinementList = ({
     const [isExpanded, setIsExpanded] = useState(false)
 
     return selectableTopics.length > 0 && !query ? (
-        <div className="search-topics-refinement-list span-cols-9 col-start-2">
+        <div className="search-topics-refinement-list">
             <h3 className="search-topics-refinement-list__heading h5-black-caps">
                 Filter by{" "}
                 {topicType === SearchTopicType.Area
