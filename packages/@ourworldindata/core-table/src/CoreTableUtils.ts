@@ -245,8 +245,8 @@ export function linearInterpolation(
             isNotErrorValueOrEmptyCell(prevValue) &&
             isNotErrorValueOrEmptyCell(nextValue)
         ) {
-            const distLeft = index - prevNonBlankIndex
-            const distRight = nextNonBlankIndex - index
+            const distLeft = timesAsc[index] - timesAsc[prevNonBlankIndex]
+            const distRight = timesAsc[nextNonBlankIndex] - timesAsc[index]
             value =
                 (prevValue * distRight + nextValue * distLeft) /
                 (distLeft + distRight)
