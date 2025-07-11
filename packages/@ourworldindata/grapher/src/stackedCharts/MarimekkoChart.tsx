@@ -248,7 +248,6 @@ function MarimekkoBarsForOneEntity(
 interface MarimekkoChartProps {
     bounds?: Bounds
     manager: MarimekkoChartManager
-    containerElement?: HTMLDivElement
 }
 
 @observer

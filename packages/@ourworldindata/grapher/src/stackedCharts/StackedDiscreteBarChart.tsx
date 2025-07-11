@@ -125,7 +125,6 @@ interface StackedBarChartContext {
 interface StackedDiscreteBarChartProps {
     bounds?: Bounds
     manager: StackedDiscreteBarChartManager
-    containerElement?: HTMLDivElement
 }
 
 @observer
