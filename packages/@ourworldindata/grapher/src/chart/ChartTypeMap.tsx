@@ -11,12 +11,15 @@ import { Bounds } from "@ourworldindata/utils"
 
 import { LineChartState } from "../lineCharts/LineChartState.js"
 import { SlopeChartState } from "../slopeCharts/SlopeChartState"
+import { DiscreteBarChartState } from "../barCharts/DiscreteBarChartState.js"
 
 import { LineChart } from "../lineCharts/LineChart"
 import { SlopeChart } from "../slopeCharts/SlopeChart.js"
+import { DiscreteBarChart } from "../barCharts/DiscreteBarChart.js"
 
 import { LineChartThumbnail } from "../lineCharts/LineChartThumbnail"
 import { SlopeChartThumbnail } from "../slopeCharts/SlopeChartThumbnail"
+import { DiscreteBarChartThumbnail } from "../barCharts/DiscreteBarChartThumbnail.js"
 
 interface ChartComponentProps<TState extends ChartState = ChartState> {
     chartState: TState
@@ -40,7 +43,7 @@ const ChartComponentClassMap = new Map<
 >([
     [GRAPHER_CHART_TYPES.LineChart, LineChart],
     [GRAPHER_CHART_TYPES.SlopeChart, SlopeChart],
-    // [GRAPHER_CHART_TYPES.DiscreteBar, DiscreteBarChart],
+    [GRAPHER_CHART_TYPES.DiscreteBar, DiscreteBarChart],
     // [GRAPHER_CHART_TYPES.StackedArea, StackedAreaChart],
     // [GRAPHER_CHART_TYPES.StackedBar, StackedBarChart],
     // [GRAPHER_CHART_TYPES.StackedDiscreteBar, StackedDiscreteBarChart],
@@ -55,7 +58,7 @@ const ChartThumbnailClassMap = new Map<
 >([
     [GRAPHER_CHART_TYPES.LineChart, LineChartThumbnail],
     [GRAPHER_CHART_TYPES.SlopeChart, SlopeChartThumbnail],
-    // [GRAPHER_CHART_TYPES.DiscreteBar, DiscreteBarChart],
+    [GRAPHER_CHART_TYPES.DiscreteBar, DiscreteBarChartThumbnail],
     // [GRAPHER_CHART_TYPES.StackedArea, StackedAreaChart],
     // [GRAPHER_CHART_TYPES.StackedBar, StackedBarChart],
     // [GRAPHER_CHART_TYPES.StackedDiscreteBar, StackedDiscreteBarChart],
@@ -70,7 +73,7 @@ const ChartStateMap = new Map<
 >([
     [GRAPHER_CHART_TYPES.LineChart, LineChartState],
     [GRAPHER_CHART_TYPES.SlopeChart, SlopeChartState],
-    // [GRAPHER_CHART_TYPES.DiscreteBar, DiscreteBarChart],
+    [GRAPHER_CHART_TYPES.DiscreteBar, DiscreteBarChartState],
     // [GRAPHER_CHART_TYPES.StackedArea, StackedAreaChart],
     // [GRAPHER_CHART_TYPES.StackedBar, StackedBarChart],
     // [GRAPHER_CHART_TYPES.StackedDiscreteBar, StackedDiscreteBarChart],
