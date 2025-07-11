@@ -1,5 +1,5 @@
+import { RadioButton } from "@ourworldindata/components"
 import { SearchResultType } from "./searchTypes.js"
-import cx from "classnames"
 import { useSearchContext } from "./SearchContext.js"
 import { getEffectiveResultType, isBrowsing } from "./searchUtils.js"
 
@@ -33,20 +33,13 @@ export const SearchResultTypeToggle = () => {
             aria-label="Result type"
         >
             {optionsToShow.map((option) => (
-                <label key={option.value}>
-                    <input
-                        type="radio"
-                        name="search-result-type"
-                        className={cx("search-result-type-toggle__button", {
-                            "search-result-type-toggle__button--selected":
-                                effectiveResultType === option.value,
-                        })}
-                        value={option.value}
-                        checked={effectiveResultType === option.value}
-                        onChange={() => setResultType(option.value)}
-                    />
-                    <span>{option.label}</span>
-                </label>
+                <RadioButton
+                    key={option.value}
+                    checked={effectiveResultType === option.value}
+                    onChange={() => setResultType(option.value)}
+                    label={option.label}
+                    group="search-result-type"
+                />
             ))}
         </fieldset>
     )
