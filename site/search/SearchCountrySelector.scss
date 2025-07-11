@@ -122,12 +122,9 @@
 
 .search-country-selector-list-container {
     background-color: #fff;
-    position: absolute;
     padding: 16px;
     // wide enough for the toggle label text not to wrap
     width: 380px;
-    top: 48px;
-    right: 0;
     margin-top: 8px;
     box-shadow: 4px 0 30px 0 #00000020;
 
@@ -186,19 +183,41 @@
 }
 
 .search-country-selector-list__item {
+    @include body-3-medium;
     border-bottom: 1px solid $gray-10;
     position: relative;
     transition: 100ms background-color;
+    width: 100%;
+    display: block;
+    padding: 8px 0;
+    color: $blue-90;
+    display: flex;
+    align-items: center;
+
     &:last-child {
         border-bottom: none;
     }
+
     &:hover {
         background-color: $blue-10;
     }
+
+    // Override global focus styles.
+    &:focus-visible {
+        outline: none;
+    }
+
+    // React Aria ListBoxItem focus styles.
+    &[data-focused] {
+        background-color: $blue-10;
+        outline: none;
+    }
+
     img {
         margin: 0 8px;
         outline: 1px solid $blue-20;
     }
+
     input {
         @include owid-checkbox;
         position: absolute;
@@ -206,14 +225,6 @@
         top: 50%;
         transform: translateY(-50%);
         cursor: pointer;
-    }
-    label {
-        width: 100%;
-        display: block;
-        padding: 8px 0;
-        color: $blue-90;
-        display: flex;
-        align-items: center;
     }
 }
 
