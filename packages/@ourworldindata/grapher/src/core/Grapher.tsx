@@ -112,6 +112,7 @@ import {
     OwidVariableRow,
     AdditionalGrapherDataFetchFn,
     ProjectionColumnInfo,
+    GrapherRenderMode,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -169,10 +170,6 @@ import {
 } from "../mapCharts/MapHelpers"
 import { Command, CommandPalette } from "../controls/CommandPalette"
 import { EmbedModal } from "../modal/EmbedModal"
-import {
-    CaptionedChart,
-    StaticCaptionedChart,
-} from "../captionedChart/CaptionedChart"
 import {
     TimelineController,
     TimelineDragTarget,
@@ -234,6 +231,7 @@ import {
     groupEntityNamesByRegionType,
 } from "./EntitiesByRegionType"
 import * as R from "remeda"
+import { CaptionedOrThumbnailChart } from "../chart/CaptionedOrThumbnailChart.js"
 
 declare global {
     interface Window {
@@ -255,6 +253,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     entityYearHighlight?: EntityYearHighlight
     baseFontSize?: number
     staticBounds?: Bounds
+    renderMode?: GrapherRenderMode
 
     hideTitle?: boolean
     hideSubtitle?: boolean
@@ -1067,6 +1066,8 @@ export class GrapherState {
     @observable.ref isExportingToSvgOrPng = false
     @observable.ref isSocialMediaExport = false
     @observable.ref isWikimediaExport = false
+
+    @observable.ref renderMode = GrapherRenderMode.Captioned
 
     @observable staticBounds: Bounds = DEFAULT_GRAPHER_BOUNDS_LANDSCAPE
 
@@ -2261,7 +2262,7 @@ export class GrapherState {
         const _isExportingToSvgOrPng = this.isExportingToSvgOrPng
         this.isExportingToSvgOrPng = true
         const staticSvg = ReactDOMServer.renderToStaticMarkup(
-            <StaticCaptionedChart manager={this} />
+            <CaptionedOrThumbnailChart manager={this} />
         )
         this.isExportingToSvgOrPng = _isExportingToSvgOrPng
         return staticSvg
@@ -2504,11 +2505,15 @@ export class GrapherState {
             this.heightForDeviceOrientation * this.scaleToFitIdeal
         )
     }
+
+    /** Bounds of the entire Grapher frame including the chart area and entity selector panel */
     @computed get frameBounds(): Bounds {
         return this.useIdealBounds
             ? new Bounds(0, 0, this.idealWidth, this.idealHeight)
             : new Bounds(0, 0, this.availableWidth, this.availableHeight)
     }
+
+    /** Bounds of the CaptionedChart that renders the header, chart area and footer */
     @computed get captionedChartBounds(): Bounds {
         // if there's no panel, the chart takes up the whole frame
         if (!this.isEntitySelectorPanelActive) return this.frameBounds
@@ -2522,6 +2527,13 @@ export class GrapherState {
         )
     }
 
+    /** Bounds of the chart area if no CaptionedChart is rendered */
+    @computed get chartAreaBounds(): Bounds {
+        // 2px accounts for the border
+        return this.captionedChartBounds.pad(2)
+    }
+
+    /** Bounds of the entity selector if rendered into the side panel */
     @computed get sidePanelBounds(): Bounds | undefined {
         if (!this.isEntitySelectorPanelActive) return
 
@@ -2532,6 +2544,7 @@ export class GrapherState {
             this.captionedChartBounds.height
         )
     }
+
     base: React.RefObject<HTMLDivElement> = React.createRef()
     @computed get containerElement(): HTMLDivElement | undefined {
         return this.base.current || undefined
@@ -3335,6 +3348,8 @@ export class GrapherState {
     @computed get isEntitySelectorPanelActive(): boolean {
         if (this.hideEntityControls) return false
 
+        if (this.renderMode === GrapherRenderMode.Thumbnail) return false
+
         const shouldShowPanel =
             this.shouldShowEntitySelectorAs === GrapherWindowType.panel
 
@@ -3766,7 +3781,7 @@ export class Grapher extends React.Component<GrapherProps> {
     render(): React.ReactElement | undefined {
         // Used in the admin to render a static preview of the chart
         if (this.grapherState.isExportingToSvgOrPng)
-            return <StaticCaptionedChart manager={this.grapherState} />
+            return <CaptionedOrThumbnailChart manager={this.grapherState} />
 
         if (this.grapherState.isInFullScreenMode) {
             return (
@@ -3793,9 +3808,10 @@ export class Grapher extends React.Component<GrapherProps> {
 
         return (
             <>
-                {/* captioned chart and entity selector */}
+                {/* Chart and entity selector */}
                 <div className="CaptionedChartAndSidePanel">
-                    <CaptionedChart manager={this.grapherState} />
+                    <CaptionedOrThumbnailChart manager={this.grapherState} />
+
                     {this.grapherState.sidePanelBounds && (
                         <SidePanel bounds={this.grapherState.sidePanelBounds}>
                             <EntitySelector
@@ -3806,7 +3822,7 @@ export class Grapher extends React.Component<GrapherProps> {
                     )}
                 </div>
 
-                {/* modals */}
+                {/* Modals */}
                 {this.grapherState.isSourcesModalOpen && (
                     <SourcesModal manager={this.grapherState} />
                 )}
@@ -3820,7 +3836,7 @@ export class Grapher extends React.Component<GrapherProps> {
                     <EntitySelectorModal manager={this.grapherState} />
                 )}
 
-                {/* entity selector in a slide-in drawer */}
+                {/* Entity selector in a slide-in drawer */}
                 <SlideInDrawer
                     grapherRef={this.grapherState.base}
                     active={this.grapherState.isEntitySelectorDrawerOpen}
@@ -3836,7 +3852,7 @@ export class Grapher extends React.Component<GrapherProps> {
                     />
                 </SlideInDrawer>
 
-                {/* tooltip: either pin to the bottom or render into the chart area */}
+                {/* Tooltip: either pin to the bottom or render into the chart area */}
                 {this.grapherState.shouldPinTooltipToBottom ? (
                     <BodyDiv>
                         <TooltipContainer

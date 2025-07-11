@@ -251,7 +251,6 @@ export class MarimekkoChart
     extends React.Component<{
         bounds?: Bounds
         manager: MarimekkoChartManager
-        containerElement?: HTMLDivElement
     }>
     implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager
 {

@@ -20,7 +20,6 @@ import { MarimekkoChart } from "../stackedCharts/MarimekkoChart"
 interface ChartComponentProps {
     manager: ChartManager
     bounds?: Bounds
-    containerElement?: HTMLDivElement
 }
 
 interface ChartComponentClass extends ComponentClass<ChartComponentProps> {
