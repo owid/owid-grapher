@@ -137,6 +137,7 @@ export {
     type MapConfigInterface,
     type GlobeConfig,
     type ProjectionColumnInfo,
+    type ChartErrorInfo,
 } from "./grapherTypes/GrapherTypes.js"
 
 export {

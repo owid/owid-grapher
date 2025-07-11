@@ -67,6 +67,7 @@ import {
     MapRegionName,
     SeriesName,
     Time,
+    ChartErrorInfo,
 } from "@ourworldindata/types"
 import {
     ClipPath,
@@ -266,9 +267,9 @@ export class MapChart
         return this.mapConfig.selection
     }
 
-    @computed get failMessage(): string {
-        if (this.mapColumn.isMissing) return "Missing map column"
-        return ""
+    @computed get errorInfo(): ChartErrorInfo {
+        if (this.mapColumn.isMissing) return { reason: "Missing map column" }
+        return { reason: "" }
     }
 
     @computed private get mapColumnInfo(): MapColumnInfo {
@@ -883,12 +884,12 @@ export class MapChart
     }
 
     render(): React.ReactElement {
-        if (this.failMessage)
+        if (this.errorInfo.reason)
             return (
                 <NoDataModal
                     manager={this.manager}
                     bounds={this.props.bounds}
-                    message={this.failMessage}
+                    message={this.errorInfo.reason}
                 />
             )
 
