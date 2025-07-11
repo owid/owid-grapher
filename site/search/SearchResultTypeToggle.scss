@@ -1,8 +1,11 @@
 .search-result-type-toggle {
-    display: inline-flex;
-    gap: 8px;
-}
+    display: flex;
+    gap: 16px;
+    margin-bottom: 8px;
+    margin-left: auto;
 
-.search-result-type-toggle__button {
-    margin-right: 4px;
+    .radio .label {
+        @include note-1-regular;
+        color: $blue-50;
+    }
 }

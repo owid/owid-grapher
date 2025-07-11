@@ -85,6 +85,12 @@
     position: relative;
 }
 
+.search-filters {
+    display: flex;
+    gap: 24px;
+    justify-content: space-between;
+}
+
 .search-form {
     flex: 1;
     display: flex;
