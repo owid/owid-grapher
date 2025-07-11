@@ -89,7 +89,6 @@ import { makeProjectedDataPatternId } from "./MapComponents"
 interface MapChartProps {
     bounds?: Bounds
     manager: MapChartManager
-    containerElement?: HTMLDivElement
 }
 
 @observer
