@@ -27,7 +27,6 @@ import {
 // Components
 import { Searchbar } from "./Searchbar.js"
 import { SearchTopicsRefinementList } from "./SearchTopicsRefinementList.js"
-import { SearchAsDraft } from "./SearchAsDraft.js"
 import { SearchContext } from "./SearchContext.js"
 import { SearchResultTypeToggle } from "./SearchResultTypeToggle.js"
 import { SearchTemplatesAll } from "./SearchTemplatesAll.js"
@@ -100,13 +99,10 @@ export const Search = ({
                     availableAreas={allAreas}
                     availableTopics={allTopics}
                 />
-                <SearchTopicsRefinementList topicType={topicType} />
-                <SearchAsDraft
-                    className="col-start-11 span-cols-3 as-draft--align-self-start"
-                    name="Search result type"
-                >
+                <div className="search-filters span-cols-12 col-start-2">
+                    <SearchTopicsRefinementList topicType={topicType} />
                     <SearchResultTypeToggle />
-                </SearchAsDraft>
+                </div>
                 <div className="search-template-results grid span-cols-14 grid grid-cols-12-full-width">
                     {match(templateConfig.resultType)
                         .with(SearchResultType.ALL, () => (
