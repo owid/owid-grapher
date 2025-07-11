@@ -32,10 +32,6 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
         return this.props.bounds.padWidth(this.props.padWidth ?? 0)
     }
 
-    @computed private get containerElement(): HTMLDivElement | undefined {
-        return this.manager?.containerElement
-    }
-
     @computed private get activeChartOrMapType():
         | GrapherChartOrMapType
         | undefined {
@@ -68,7 +64,7 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
 
     private renderReadyChartOrMap(): React.ReactElement | null {
         const { bounds } = this
-        const { manager, activeChartOrMapType, containerElement } = this
+        const { manager, activeChartOrMapType } = this
         const { isFaceted } = manager
 
         if (!activeChartOrMapType) return null
@@ -91,13 +87,7 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
             ChartComponentClassMap.get(activeChartOrMapType) ??
             DefaultChartClass
 
-        return (
-            <ChartClass
-                bounds={bounds}
-                manager={manager}
-                containerElement={containerElement}
-            />
-        )
+        return <ChartClass bounds={bounds} manager={manager} />
     }
 
     private renderChartOrMap(): React.ReactElement {

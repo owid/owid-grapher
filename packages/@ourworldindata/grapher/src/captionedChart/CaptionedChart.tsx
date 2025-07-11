@@ -54,7 +54,6 @@ export interface CaptionedChartManager
         HeaderManager,
         DataTableManager,
         ControlsRowManager {
-    containerElement?: HTMLDivElement
     bakedGrapherURL?: string
     isReady?: boolean
     whatAreWeWaitingFor?: string

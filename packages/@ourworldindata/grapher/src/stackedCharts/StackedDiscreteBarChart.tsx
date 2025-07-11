@@ -127,7 +127,6 @@ export class StackedDiscreteBarChart
     extends React.Component<{
         bounds?: Bounds
         manager: StackedDiscreteBarChartManager
-        containerElement?: HTMLDivElement
     }>
     implements ChartInterface, HorizontalColorLegendManager
 {
