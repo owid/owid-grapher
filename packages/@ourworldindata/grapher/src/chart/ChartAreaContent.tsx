@@ -12,7 +12,7 @@ import { DataTable } from "../dataTable/DataTable"
 import { CaptionedChartManager } from "../captionedChart/CaptionedChart"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FacetChart } from "../facetChart/FacetChart"
-import { ChartComponentClassMap, DefaultChartClass } from "./ChartTypeMap"
+import { ChartComponent } from "./ChartTypeMap"
 import { getChartSvgProps } from "./ChartUtils"
 import { GRAPHER_CHART_AREA_CLASS } from "../core/GrapherConstants"
 
@@ -75,11 +75,14 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
                 />
             )
 
-        const ChartClass =
-            ChartComponentClassMap.get(activeChartOrMapType) ??
-            DefaultChartClass
-
-        return <ChartClass bounds={bounds} manager={manager} />
+        return (
+            <ChartComponent
+                manager={this.manager}
+                chartType={activeChartOrMapType}
+                renderMode={this.manager.renderMode}
+                bounds={bounds}
+            />
+        )
     }
 
     private renderChartOrMap(): React.ReactElement {

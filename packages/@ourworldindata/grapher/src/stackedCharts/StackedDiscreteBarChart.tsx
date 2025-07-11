@@ -40,7 +40,7 @@ import {
 } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig } from "../axis/AxisConfig"
-import { ChartInterface } from "../chart/ChartInterface"
+import { ChartState } from "../chart/ChartInterface"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import {
     autoDetectYColumnSlugs,
@@ -128,7 +128,7 @@ export class StackedDiscreteBarChart
         bounds?: Bounds
         manager: StackedDiscreteBarChartManager
     }>
-    implements ChartInterface, HorizontalColorLegendManager
+    implements ChartState, HorizontalColorLegendManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
 

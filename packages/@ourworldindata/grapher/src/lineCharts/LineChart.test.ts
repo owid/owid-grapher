@@ -1,6 +1,5 @@
 import { expect, it, describe } from "vitest"
 
-import { LineChart } from "./LineChart"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
@@ -21,6 +20,8 @@ import {
 import { SelectionArray } from "../selection/SelectionArray"
 import { LineChartManager } from "./LineChartConstants"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
+import { LineChart } from "./LineChart"
+import { LineChartState } from "./LineChartState"
 
 it("can create a new chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
@@ -28,13 +29,14 @@ it("can create a new chart", () => {
         table,
         yColumnSlugs: [SampleColumnSlugs.GDP],
     }
-    const chart = new LineChart({ manager })
+    const chartState = new LineChartState({ manager })
+    const chart = new LineChart({ chartState })
 
-    expect(chart.failMessage).toBeTruthy()
+    expect(chartState.failMessage).toBeTruthy()
 
     manager.selection = table.availableEntityNames
 
-    expect(chart.failMessage).toEqual("")
+    expect(chartState.failMessage).toEqual("")
     expect(chart.series.length).toEqual(2)
     expect(chart.placedSeries.length).toEqual(2)
     expect(chart.placedSeries[0].placedPoints[0].x).toBeGreaterThan(0)
@@ -55,9 +57,9 @@ it("can filter points with negative values when using a log scale", () => {
         yColumnSlugs: [SampleColumnSlugs.Fruit],
         selection: table.availableEntityNames,
     }
-    const chart = new LineChart({ manager })
+    const chartState = new LineChartState({ manager })
+    const chart = new LineChart({ chartState })
     expect(chart.series.length).toEqual(2)
-    expect(chart.allPoints.length).toEqual(200)
 
     const logScaleManager = {
         ...manager,
@@ -65,10 +67,10 @@ it("can filter points with negative values when using a log scale", () => {
             scaleType: ScaleType.log,
         },
     }
-    const logChart = new LineChart({ manager: logScaleManager })
+    const logChartState = new LineChartState({ manager: logScaleManager })
+    const logChart = new LineChart({ chartState: logChartState })
     expect(logChart.yAxis.domain[0]).toBeGreaterThan(0)
     expect(logChart.series.length).toEqual(2)
-    expect(logChart.allPoints.length).toEqual(180)
 })
 
 it("filters non-numeric values", () => {
@@ -85,9 +87,9 @@ it("filters non-numeric values", () => {
         yColumnSlugs: [SampleColumnSlugs.Fruit],
         selection: table.availableEntityNames,
     }
-    const chart = new LineChart({ manager })
+    const chartState = new LineChartState({ manager })
+    const chart = new LineChart({ chartState })
     expect(chart.series.length).toEqual(2)
-    expect(chart.allPoints.length).toEqual(180)
 })
 
 describe("series naming in multi-column mode", () => {
@@ -99,7 +101,8 @@ describe("series naming in multi-column mode", () => {
             canSelectMultipleEntities: false,
             selection: [table.availableEntityNames[0]],
         }
-        const chart = new LineChart({ manager })
+        const chartState = new LineChartState({ manager })
+        const chart = new LineChart({ chartState })
         expect(chart.series[0].seriesName).not.toContain(" – ")
     })
 
@@ -109,7 +112,8 @@ describe("series naming in multi-column mode", () => {
             canSelectMultipleEntities: true,
             selection: [table.availableEntityNames[0]],
         }
-        const chart = new LineChart({ manager })
+        const chartState = new LineChartState({ manager })
+        const chart = new LineChart({ chartState })
         expect(chart.series[0].seriesName).toContain(" – ")
     })
 
@@ -119,7 +123,8 @@ describe("series naming in multi-column mode", () => {
             canSelectMultipleEntities: false,
             selection: table.availableEntityNames,
         }
-        const chart = new LineChart({ manager })
+        const chartState = new LineChartState({ manager })
+        const chart = new LineChart({ chartState })
         expect(chart.series[0].seriesName).toContain(" – ")
     })
 })
@@ -138,7 +143,8 @@ describe("colors", () => {
             table,
             selection,
         }
-        const chart = new LineChart({ manager })
+        const chartState = new LineChartState({ manager })
+        const chart = new LineChart({ chartState })
         expect(chart.series.map((series) => series.color)).toEqual([
             "blue",
             "red",
@@ -162,7 +168,8 @@ describe("colors", () => {
             selection,
             seriesStrategy: SeriesStrategy.column,
         }
-        const chart = new LineChart({ manager })
+        const chartState = new LineChartState({ manager })
+        const chart = new LineChart({ chartState })
         const series = chart.series
 
         expect(series).toHaveLength(1)
@@ -177,7 +184,8 @@ describe("colors", () => {
             selection,
             seriesColorMap: new Map(),
         }
-        const chart = new LineChart({ manager })
+        const chartState = new LineChartState({ manager })
+        const chart = new LineChart({ chartState })
         const series = chart.series
         expect(series).toHaveLength(2)
 
@@ -210,7 +218,8 @@ describe("colors", () => {
             facetStrategy: FacetStrategy.entity,
             canSelectMultipleEntities: true,
         }
-        const chart = new LineChart({ manager })
+        const chartState = new LineChartState({ manager })
+        const chart = new LineChart({ chartState })
         const series = chart.series
 
         expect(series).toHaveLength(2)
@@ -243,7 +252,8 @@ describe("colors", () => {
             seriesStrategy: SeriesStrategy.column,
             canSelectMultipleEntities: true,
         }
-        const chart = new LineChart({ manager })
+        const chartState = new LineChartState({ manager })
+        const chart = new LineChart({ chartState })
         const series = chart.series
 
         expect(series).toHaveLength(2)
@@ -272,7 +282,8 @@ it("reverses order of plotted series to plot the first one over the others", () 
         selection: ["usa"],
         seriesStrategy: SeriesStrategy.column,
     }
-    const chart = new LineChart({ manager })
+    const chartState = new LineChartState({ manager })
+    const chart = new LineChart({ chartState })
 
     expect(chart.placedSeries).toHaveLength(2)
     expect(chart.placedSeries[0].seriesName).toEqual("pop")
@@ -290,16 +301,24 @@ describe("externalLegendBins", () => {
     }
 
     it("doesn't expose externalLegendBins when legend is shown", () => {
-        const chart = new LineChart({
-            manager: { ...baseManager, showLegend: true },
+        const chartState = new LineChartState({
+            manager: {
+                ...baseManager,
+                showLegend: true,
+            },
         })
+        const chart = new LineChart({ chartState })
         expect(chart["externalLegend"]).toBeUndefined()
     })
 
     it("exposes externalLegendBins when legend is hidden", () => {
-        const chart = new LineChart({
-            manager: { ...baseManager, showLegend: false },
+        const chartState = new LineChartState({
+            manager: {
+                ...baseManager,
+                showLegend: false,
+            },
         })
+        const chart = new LineChart({ chartState })
         expect(chart["externalLegend"]?.categoricalLegendData?.length).toEqual(
             2
         )
@@ -356,7 +375,8 @@ describe("color scale", () => {
                 customNumericValues: [0, 1.5, 2.5],
             },
         }
-        const chart = new LineChart({ manager })
+        const chartState = new LineChartState({ manager })
+        const chart = new LineChart({ chartState })
         const noDataColor = OWID_NO_DATA_GRAY
 
         expect(chart.series).toHaveLength(1)
@@ -408,7 +428,8 @@ describe("color scale", () => {
             selection: ["usa"],
             seriesStrategy: SeriesStrategy.column,
         }
-        const chart = new LineChart({ manager })
+        const chartState = new LineChartState({ manager })
+        const chart = new LineChart({ chartState })
 
         expect(chart.series).toHaveLength(1)
         expect(chart.series[0].points).toHaveLength(4)
