@@ -5,10 +5,6 @@ import {
     exposeInstanceOnWindow,
     Bounds,
     Time,
-    SortOrder,
-    SortBy,
-    SortConfig,
-    Color,
     HorizontalAlign,
     AxisAlign,
     makeIdForHumanConsumption,
@@ -16,15 +12,7 @@ import {
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
 import { observer } from "mobx-react"
-import {
-    ScaleType,
-    SeriesStrategy,
-    FacetStrategy,
-    ColorScaleConfigInterface,
-    CoreValueType,
-    ColorSchemeName,
-    VerticalAlign,
-} from "@ourworldindata/types"
+import { ScaleType, VerticalAlign } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -34,35 +22,16 @@ import {
 import { HorizontalAxisZeroLine } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
-import { ColorSchemes } from "../color/ColorSchemes"
-import { ChartState } from "../chart/ChartInterface"
+import { ChartInterface } from "../chart/ChartInterface"
 import {
     BACKGROUND_COLOR,
     DiscreteBarChartManager,
     DiscreteBarSeries,
     PlacedDiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
-import {
-    OwidTable,
-    CoreColumn,
-    isNotErrorValue,
-} from "@ourworldindata/core-table"
-import {
-    autoDetectSeriesStrategy,
-    autoDetectYColumnSlugs,
-    getShortNameForEntity,
-    makeSelectionArray,
-} from "../chart/ChartUtils"
+import { OwidTable } from "@ourworldindata/core-table"
 import { HorizontalAxis } from "../axis/Axis"
-import { SelectionArray } from "../selection/SelectionArray"
-import { ColorScheme } from "../color/ColorScheme"
-import { ColorScale, ColorScaleManager } from "../color/ColorScale"
-import { ColorScaleConfig } from "../color/ColorScaleConfig"
-import {
-    GRAPHER_DARK_TEXT,
-    OWID_ERROR_COLOR,
-    OWID_NO_DATA_GRAY,
-} from "../color/ColorConstants"
+import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import {
     HorizontalColorLegendManager,
@@ -70,6 +39,7 @@ import {
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { BaseType, Selection } from "d3"
 import { TextWrap } from "@ourworldindata/components"
+import { DiscreteBarChartState } from "./DiscreteBarChartState"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
@@ -88,65 +58,26 @@ export interface Label {
     width: number
 }
 
-interface DiscreteBarItem {
-    yColumn: CoreColumn
-    seriesName: string
-    value: number
-    time: number
-    colorValue?: CoreValueType
-    color?: Color
-}
-
 @observer
 export class DiscreteBarChart
     extends React.Component<{
         bounds?: Bounds
-        manager: DiscreteBarChartManager
+        chartState: DiscreteBarChartState
     }>
-    implements ChartState, AxisManager, ColorScaleManager
+    implements ChartInterface, AxisManager, HorizontalColorLegendManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    transformTable(table: OwidTable): OwidTable {
-        if (!this.yColumnSlugs.length) return table
-
-        table = table.filterByEntityNames(
-            this.selectionArray.selectedEntityNames
-        )
-
-        // TODO: remove this filter once we don't have mixed type columns in datasets
-        table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
-
-        table = table.dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
-
-        this.yColumnSlugs.forEach((slug) => {
-            table = table.interpolateColumnWithTolerance(slug)
-        })
-
-        if (this.colorColumnSlug) {
-            table = table
-                // TODO: remove this filter once we don't have mixed type columns in datasets
-                // Currently we set skipParsing=true on these columns to be backwards-compatible
-                .replaceNonNumericCellsWithErrorValues([this.colorColumnSlug])
-                .interpolateColumnWithTolerance(this.colorColumnSlug)
-        }
-
-        return table
-    }
-
-    @computed get inputTable(): OwidTable {
-        return this.manager.table
-    }
-
-    @computed get transformedTable(): OwidTable {
-        return (
-            this.manager.transformedTable ??
-            this.transformTable(this.inputTable)
-        )
+    @computed get chartState(): DiscreteBarChartState {
+        return this.props.chartState
     }
 
     @computed private get manager(): DiscreteBarChartManager {
-        return this.props.manager
+        return this.props.chartState.manager
+    }
+
+    @computed private get transformedTable(): OwidTable {
+        return this.chartState.transformedTable
     }
 
     @computed private get targetTime(): Time | undefined {
@@ -279,7 +210,7 @@ export class DiscreteBarChart
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
         axis.scaleType = ScaleType.linear
-        axis.formatColumn = this.yColumns[0] // todo: does this work for columns as series?
+        axis.formatColumn = this.chartState.yColumns[0] // todo: does this work for columns as series?
         axis.range = this.xRange
         axis.label = ""
         return axis
@@ -289,10 +220,6 @@ export class DiscreteBarChart
         return this.boundsWithoutColorLegend
             .padLeft(Math.max(this.seriesLegendWidth, this.leftValueLabelWidth))
             .padRight(this.rightValueLabelWidth)
-    }
-
-    @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager.selection)
     }
 
     @computed private get barCount(): number {
@@ -358,28 +285,6 @@ export class DiscreteBarChart
             .attr("width", (_, i) => this.barWidths[i])
     }
 
-    @computed get availableFacetStrategies(): FacetStrategy[] {
-        // if we have multi-dimension, multi-entity data (which is necessarily single-year),
-        // then *only* faceting makes sense. otherwise, faceting is not useful.
-        if (
-            this.yColumns.length > 1 &&
-            this.selectionArray.numSelectedEntities > 1
-        ) {
-            // if we have more than one unit, then faceting by entity is not allowed
-            // as comparing multiple units in a single chart isn't meaningful
-            const uniqueUnits = new Set(
-                this.yColumns.map((column) => column.shortUnit)
-            )
-            if (uniqueUnits.size > 1) {
-                return [FacetStrategy.metric]
-            }
-
-            return [FacetStrategy.entity, FacetStrategy.metric]
-        }
-
-        return [FacetStrategy.none]
-    }
-
     componentDidMount(): void {
         if (!this.manager.disableIntroAnimation) {
             this.d3Bars().attr("width", 0)
@@ -395,7 +300,7 @@ export class DiscreteBarChart
         if (!this.manager.disableIntroAnimation) this.animateBarWidth()
     }
 
-    renderEntityLabels(): React.ReactElement {
+    private renderEntityLabels(): React.ReactElement {
         const style = { fill: "#555", textAnchor: "end" }
         return (
             <g id={makeIdForHumanConsumption("entity-labels")}>
@@ -416,7 +321,7 @@ export class DiscreteBarChart
         )
     }
 
-    renderValueLabels(): React.ReactElement {
+    private renderValueLabels(): React.ReactElement {
         return (
             <g id={makeIdForHumanConsumption("value-labels")}>
                 {this.placedSeries.map((series) => {
@@ -443,7 +348,7 @@ export class DiscreteBarChart
         )
     }
 
-    renderBars(): React.ReactElement {
+    private renderBars(): React.ReactElement {
         return (
             <g id={makeIdForHumanConsumption("bars")}>
                 {this.placedSeries.map((series) => {
@@ -473,7 +378,7 @@ export class DiscreteBarChart
         )
     }
 
-    renderDefs(): React.ReactElement | void {
+    private renderDefs(): React.ReactElement | void {
         const projections = this.series.filter(
             (series) => series.yColumn.isProjection
         )
@@ -501,7 +406,7 @@ export class DiscreteBarChart
         )
     }
 
-    renderChartArea(): React.ReactElement {
+    private renderChartArea(): React.ReactElement {
         const { yAxis, innerBounds } = this
 
         return (
@@ -553,17 +458,8 @@ export class DiscreteBarChart
         )
     }
 
-    @computed get failMessage(): string {
-        const column = this.yColumns[0]
-
-        if (!column) return "No column to chart"
-
-        if (!this.selectionArray.hasSelection) return `No data selected`
-
-        // TODO is it better to use .series for this check?
-        return this.yColumns.every((col) => col.isEmpty)
-            ? "No matching data"
-            : ""
+    @computed private get failMessage(): string {
+        return this.chartState.failMessage
     }
 
     formatValue(series: DiscreteBarSeries): Label {
@@ -592,192 +488,13 @@ export class DiscreteBarChart
         }
     }
 
-    @computed private get yColumnSlugs(): string[] {
-        return autoDetectYColumnSlugs(this.manager)
-    }
-
-    @computed private get colorColumnSlug(): string | undefined {
-        return this.manager.colorColumnSlug
-    }
-
-    @computed private get colorColumn(): CoreColumn {
-        return this.transformedTable.get(this.colorColumnSlug)
-    }
-
-    @computed get seriesStrategy(): SeriesStrategy {
-        const autoStrategy = autoDetectSeriesStrategy(this.manager, true)
-        // TODO this is an inconsistency between LineChart and DiscreteBar.
-        // We should probably make it consistent at some point.
-        if (
-            autoStrategy === SeriesStrategy.column &&
-            this.selectionArray.numSelectedEntities > 1
-        ) {
-            return SeriesStrategy.entity
-        }
-        if (
-            autoStrategy === SeriesStrategy.entity &&
-            this.selectionArray.numSelectedEntities === 1 &&
-            this.yColumns.length > 1
-        ) {
-            return SeriesStrategy.column
-        }
-        return autoStrategy
-    }
-
-    @computed protected get yColumns(): CoreColumn[] {
-        return this.transformedTable.getColumns(this.yColumnSlugs)
-    }
-
-    @computed get hasProjectedData(): boolean {
-        return this.series.some((series) => series.yColumn.isProjection)
-    }
-
-    constructSeries(col: CoreColumn, indexes: number[]): DiscreteBarItem[] {
-        const { transformedTable, colorColumn, hasColorScale } = this
-        const values = col.valuesIncludingErrorValues
-        const originalTimes = col.originalTimeColumn.valuesIncludingErrorValues
-        const entityNames =
-            transformedTable.entityNameColumn.valuesIncludingErrorValues
-        const colorValues = colorColumn.valuesIncludingErrorValues
-        return indexes.map((index): DiscreteBarItem => {
-            const isColumnStrategy =
-                this.seriesStrategy === SeriesStrategy.column
-            const seriesName = isColumnStrategy
-                ? col.displayName
-                : (entityNames[index] as string)
-            const colorValue = isNotErrorValue(colorValues[index])
-                ? colorValues[index]
-                : undefined
-            const color = hasColorScale
-                ? this.colorScale.getColor(colorValue)
-                : isColumnStrategy
-                  ? col.def.color
-                  : transformedTable.getColorForEntityName(
-                        entityNames[index] as string
-                    )
-            return {
-                yColumn: col,
-                seriesName,
-                value: values[index] as number,
-                time: originalTimes[index] as number,
-                colorValue,
-                color,
-            }
-        })
-    }
-
-    @computed private get columnsAsSeries(): DiscreteBarItem[] {
-        return this.yColumns.flatMap((col) =>
-            this.constructSeries(col, col.validRowIndices.slice(0, 1))
-        )
-    }
-
-    @computed private get entitiesAsSeries(): DiscreteBarItem[] {
-        const col = this.yColumns[0]
-        return this.constructSeries(col, col.validRowIndices)
-    }
-
-    @computed get sortConfig(): SortConfig {
-        return this.manager.sortConfig ?? {}
-    }
-
-    @computed private get sortedRawSeries(): DiscreteBarItem[] {
-        const raw =
-            this.seriesStrategy === SeriesStrategy.entity
-                ? this.entitiesAsSeries
-                : this.columnsAsSeries
-
-        let sortByFunc: (item: DiscreteBarItem) => number | string | undefined
-        switch (this.sortConfig.sortBy) {
-            case SortBy.custom:
-                if (this.seriesStrategy === SeriesStrategy.entity) {
-                    sortByFunc = (item: DiscreteBarItem): number =>
-                        this.selectionArray.selectedEntityNames.indexOf(
-                            item.seriesName
-                        )
-                } else {
-                    sortByFunc = (): undefined => undefined
-                }
-                break
-            case SortBy.entityName:
-                sortByFunc = (item: DiscreteBarItem): string => item.seriesName
-                break
-            default:
-            case SortBy.total:
-            case SortBy.column: // we only have one yColumn, so total and column are the same
-                sortByFunc = (item: DiscreteBarItem): number => item.value
-                break
-        }
-        const sortedSeries = _.sortBy(raw, sortByFunc)
-        const sortOrder = this.sortConfig.sortOrder ?? SortOrder.desc
-        if (sortOrder === SortOrder.desc) return sortedSeries.toReversed()
-        else return sortedSeries
-    }
-
-    @computed private get colorScheme(): ColorScheme {
-        // We used to choose owid-distinct here as the default if this is a collapsed line chart but
-        // as part of the color revamp in Autumn 2022 we decided to make bar charts always default to
-        // an all-blue color scheme (singleColorDenim).
-        const defaultColorScheme = this.defaultBaseColorScheme
-        const colorScheme = this.manager.baseColorScheme ?? defaultColorScheme
-        return this.manager.isOnLineChartTab
-            ? ColorSchemes.get(defaultColorScheme)
-            : ColorSchemes.get(colorScheme)
-    }
-
-    @computed private get valuesToColorsMap(): Map<number, string> {
-        const { manager, colorScheme, sortedRawSeries } = this
-
-        return colorScheme.getUniqValueColorMap(
-            _.uniq(sortedRawSeries.map((series) => series.value)),
-            !manager.invertColorScheme // negate here to be consistent with how things worked before
-        )
-    }
-
-    @computed private get hasColorScale(): boolean {
-        return !this.colorColumn.isMissing
-    }
-
-    // Color scale props
-
-    @computed get colorScaleColumn(): CoreColumn {
-        return (
-            // For faceted charts, we have to get the values of inputTable before it's filtered by
-            // the faceting logic.
-            this.manager.colorScaleColumnOverride ?? // We need to use inputTable in order to get consistent coloring for a variable across
-            // charts, e.g. each continent being assigned to the same color.
-            // inputTable is unfiltered, so it contains every value that exists in the variable.
-            this.inputTable.get(this.colorColumnSlug)
-        )
-    }
-
-    @computed get colorScaleConfig(): ColorScaleConfigInterface | undefined {
-        return (
-            ColorScaleConfig.fromDSL(this.colorColumn.def) ??
-            this.manager.colorScale
-        )
-    }
-
-    @computed get hasNoDataBin(): boolean {
-        if (!this.hasColorScale) return false
-        return this.colorColumn.valuesIncludingErrorValues.some(
-            (value) => !isNotErrorValue(value)
-        )
-    }
-
-    defaultBaseColorScheme = ColorSchemeName.SingleColorDenim
-    defaultNoDataColor = OWID_NO_DATA_GRAY
-    colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
-
-    // End of color scale props
-
     // Color legend props
 
-    @computed get hasColorLegend(): boolean {
-        return this.hasColorScale || this.hasProjectedData
+    @computed private get hasColorLegend(): boolean {
+        return this.chartState.hasColorScale || this.chartState.hasProjectedData
     }
 
-    @computed get showColorLegend(): boolean {
+    @computed private get showColorLegend(): boolean {
         return this.hasColorLegend && !!this.manager.showLegend
     }
 
@@ -795,10 +512,10 @@ export class DiscreteBarChart
 
     // TODO just pass colorScale to legend and let it figure it out?
     @computed get numericLegendData(): ColorScaleBin[] {
-        const legendBins = this.colorScale.legendBins.slice()
+        const legendBins = this.chartState.colorScale.legendBins.slice()
 
         // Show a "Projected data" legend item with a striped pattern if appropriate
-        if (this.hasProjectedData) {
+        if (this.chartState.hasProjectedData) {
             legendBins.push(
                 new CategoricalBin({
                     color: this.projectedDataColorInLegend,
@@ -816,7 +533,7 @@ export class DiscreteBarChart
         return _.sortBy(legendBins, (bin) => bin instanceof CategoricalBin)
     }
 
-    @computed get projectedDataColorInLegend(): string {
+    @computed private get projectedDataColorInLegend(): string {
         // if a single color is in use, use that color in the legend
         if (_.uniqBy(this.series, "color").length === 1)
             return this.series[0].color
@@ -838,8 +555,10 @@ export class DiscreteBarChart
     legendTextColor = "#555"
     legendTickSize = 1
 
-    @computed get numericLegend(): HorizontalNumericColorLegend | undefined {
-        return this.hasColorScale && this.manager.showLegend
+    @computed private get numericLegend():
+        | HorizontalNumericColorLegend
+        | undefined {
+        return this.chartState.hasColorScale && this.manager.showLegend
             ? new HorizontalNumericColorLegend({ manager: this })
             : undefined
     }
@@ -849,8 +568,8 @@ export class DiscreteBarChart
     }
 
     @computed get legendTitle(): string | undefined {
-        return this.hasColorScale
-            ? this.colorScale.legendDescription
+        return this.chartState.hasColorScale
+            ? this.chartState.colorScale.legendDescription
             : undefined
     }
 
@@ -860,31 +579,11 @@ export class DiscreteBarChart
 
     // End of color legend props
 
-    @computed get series(): DiscreteBarSeries[] {
-        const series = this.sortedRawSeries.map((rawSeries) => {
-            const { value, time, colorValue, seriesName, color, yColumn } =
-                rawSeries
-            const series: DiscreteBarSeries = {
-                yColumn,
-                value,
-                time,
-                colorValue,
-                seriesName,
-                entityName: seriesName,
-                shortEntityName: getShortNameForEntity(seriesName),
-                // the error color should never be used but I prefer it here instead of throwing an exception if something goes wrong
-                color:
-                    color ??
-                    this.valuesToColorsMap.get(value) ??
-                    OWID_ERROR_COLOR,
-            }
-            return series
-        })
-
-        return series
+    @computed private get series(): DiscreteBarSeries[] {
+        return this.chartState.series
     }
 
-    @computed get sizedSeries(): DiscreteBarSeries[] {
+    @computed private get sizedSeries(): DiscreteBarSeries[] {
         // can't use `this.barHeight` due to a circular dependency
         const barHeight = this.approximateBarHeight
 
@@ -931,7 +630,7 @@ export class DiscreteBarChart
         })
     }
 
-    @computed get placedSeries(): PlacedDiscreteBarSeries[] {
+    @computed private get placedSeries(): PlacedDiscreteBarSeries[] {
         const yOffset =
             this.innerBounds.top + this.barHeight / 2 + this.barSpacing / 2
         return this.sizedSeries.map((series, index) => {
