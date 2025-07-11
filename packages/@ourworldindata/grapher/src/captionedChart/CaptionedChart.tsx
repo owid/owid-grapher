@@ -16,7 +16,6 @@ import {
 } from "../chart/ChartTypeMap"
 import {
     BASE_FONT_SIZE,
-    Patterns,
     STATIC_EXPORT_DETAIL_SPACING,
     GRAPHER_FRAME_PADDING_VERTICAL,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
@@ -153,23 +152,6 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
             manager: this.manager,
             maxWidth: this.maxWidth,
         })
-    }
-
-    protected get patterns(): React.ReactElement {
-        return (
-            <defs>
-                <pattern
-                    id={Patterns.noDataPattern}
-                    key={Patterns.noDataPattern}
-                    patternUnits="userSpaceOnUse"
-                    width="4"
-                    height="4"
-                    patternTransform="rotate(-45 2 2)"
-                >
-                    <path d="M -1,2 l 6,0" stroke="#ccc" strokeWidth="0.7" />
-                </pattern>
-            </defs>
-        )
     }
 
     @computed protected get bounds(): Bounds {
@@ -348,7 +330,6 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
                     height={chartHeight}
                     viewBox={`0 0 ${width} ${chartHeight}`}
                 >
-                    {this.patterns}
                     {this.manager.isReady
                         ? this.renderChart()
                         : this.renderLoadingIndicator()}
@@ -413,9 +394,7 @@ export class CaptionedChart extends React.Component<CaptionedChartProps> {
         return (
             <div
                 className="CaptionedChart"
-                style={{
-                    backgroundColor: this.backgroundColor,
-                }}
+                style={{ backgroundColor: this.backgroundColor }}
             >
                 {/* #1 Header */}
                 <Header manager={this.manager} maxWidth={this.maxWidth} />
@@ -598,7 +577,6 @@ export class StaticCaptionedChart extends CaptionedChart {
                 viewBox={`0 0 ${width} ${height}`}
             >
                 {includeFontsStyle && this.fonts}
-                {this.patterns}
                 {includeBackgroundRect && (
                     <rect
                         className="background-fill"

@@ -32,9 +32,9 @@ import {
     CountryWithNoData,
     ExternalValueAnnotation,
     InternalValueAnnotation,
-    NoDataPattern,
     ProjectedDataPattern,
 } from "./MapComponents"
+import { NoDataPattern } from "../chart/ChartUtils"
 import { Patterns } from "../core/GrapherConstants"
 import {
     detectNearbyFeature,

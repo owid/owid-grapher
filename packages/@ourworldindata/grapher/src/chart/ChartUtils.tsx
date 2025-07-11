@@ -37,6 +37,7 @@ import {
     GRAPHER_TIMELINE_CLASS,
     GRAPHER_SETTINGS_CLASS,
     validChartTypeCombinations,
+    Patterns,
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
 import {
@@ -500,4 +501,24 @@ export function combineHistoricalAndProjectionColumns(
         )
 
     return table
+}
+
+export function NoDataPattern({
+    patternId = Patterns.noDataPattern,
+    scale = 1,
+}: {
+    patternId?: string
+    scale?: number
+}): React.ReactElement {
+    return (
+        <pattern
+            id={patternId}
+            patternUnits="userSpaceOnUse"
+            width="4"
+            height="4"
+            patternTransform={`rotate(-45 2 2) scale(${scale})`}
+        >
+            <path d="M -1,2 l 6,0" stroke="#ccc" strokeWidth={0.7} />
+        </pattern>
+    )
 }
