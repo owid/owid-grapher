@@ -6,7 +6,10 @@ import {
 import { parseIntOrUndefined } from "@ourworldindata/utils"
 import { getGptTopicSuggestions } from "../../db/model/Chart.js"
 import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
-import { fetchGptGeneratedAltText } from "../imagesHelpers.js"
+import {
+    fetchGptGeneratedAltText,
+    fetchGptGeneratedTextFromImage,
+} from "../imagesHelpers.js"
 import * as db from "../../db/db.js"
 import e from "express"
 import { Request } from "../authentication.js"
@@ -89,4 +92,24 @@ export async function generateAltTextFromUrl(imageUrl: string): Promise<{
     }
 
     return { success: true, altText }
+}
+
+export async function extractTextFromImage(
+    req: Request,
+    _res: e.Response<any, Record<string, any>>
+): Promise<{
+    success: true
+    text: string
+}> {
+    const imageUrl = req.query.imageUrl
+    if (!imageUrl) throw new JsonError(`No image URL provided`, 400)
+    if (typeof imageUrl !== "string")
+        throw new JsonError(`Invalid image URL provided`, 400)
+    const text = await fetchGptGeneratedTextFromImage(imageUrl as string)
+    // If a user picks an image that has no text, we return an empty string
+    // instead of throwing an error, so the user can still save the image (though this seems very unlikely as a use case)
+    if (!text && text !== "") {
+        throw new JsonError(`Unable to extract text from image`, 404)
+    }
+    return { success: true, text }
 }
