@@ -152,3 +152,48 @@ If the image is a data visualization and there are data sources in the footer, d
     }
     return null
 }
+
+/**
+ * Currently unused, but will be useful for extracting text from images when we want to index more of
+ * them in the future.
+ */
+export async function fetchGptGeneratedTextFromImage(url: string) {
+    const openai = new OpenAI({
+        apiKey: OPENAI_API_KEY,
+    })
+
+    const completion = await openai.chat.completions.create({
+        messages: [
+            {
+                role: "user",
+                content: `Extract all text from this image, including any text in the footer.
+Do not use markdown in the text.
+If the image is a data visualization, do not include numbers or data points, just the text labels, footer text, titles, etc.
+If there is no text in the image, return an empty string.`,
+            },
+            {
+                role: "user",
+                content: [
+                    {
+                        type: "image_url",
+                        image_url: {
+                            url,
+                        },
+                    },
+                ],
+            },
+        ],
+        model: "gpt-4o-mini",
+    })
+
+    const content = completion.choices[0].message.content
+
+    console.log("content", content)
+
+    if (content) {
+        // Normalize whitespace to a single space
+        return content.replaceAll(/\s/g, " ")
+    }
+
+    return null
+}

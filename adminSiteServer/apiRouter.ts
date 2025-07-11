@@ -71,6 +71,7 @@ import {
     suggestGptTopics,
     suggestGptAltTextForCloudflareImage,
     suggestGptAltText,
+    extractTextFromImage,
 } from "./apiRoutes/suggest.js"
 import {
     handleGetFlatTagGraph,
@@ -454,6 +455,11 @@ getRouteWithROTransaction(
     suggestGptAltTextForCloudflareImage
 )
 getRouteWithROTransaction(apiRouter, `/gpt/suggest-alt-text`, suggestGptAltText)
+getRouteWithROTransaction(
+    apiRouter,
+    `/gpt/extract-text-from-image`,
+    extractTextFromImage
+)
 
 // Tag graph routes
 getRouteWithROTransaction(
