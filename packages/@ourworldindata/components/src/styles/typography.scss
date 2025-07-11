@@ -486,12 +486,21 @@ body {
     @include label-2-bold;
 }
 
-@mixin note-1-medium {
+@mixin note-1-regular {
     font-family: $sans-serif-font-stack;
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
     line-height: calc(4 / 3);
+}
+
+.note-1-regular {
+    @include note-1-regular;
+}
+
+@mixin note-1-medium {
+    @include note-1-regular;
+    font-weight: 500;
 }
 
 .note-1-medium {
