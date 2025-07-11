@@ -6,16 +6,24 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { LabeledSwitch } from "@ourworldindata/components"
-import { countriesByName, Country } from "@ourworldindata/utils"
+import { countriesByName } from "@ourworldindata/utils"
 import { useState, useRef, useMemo } from "react"
-import { useMediaQuery } from "usehooks-ts"
 import {
-    useFocusTrap,
-    useTriggerOnEscape,
-    useTriggerWhenClickOutside,
-} from "../hooks.js"
+    Button,
+    Popover,
+    ListBox,
+    ListBoxItem,
+    DialogTrigger,
+} from "react-aria-components"
+import { useMediaQuery } from "usehooks-ts"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import cx from "classnames"
+
+const alphabetizedCountriesByName = Object.values(countriesByName()).sort(
+    (a, b) => {
+        return a.name.localeCompare(b.name)
+    }
+)
 
 export const SearchCountrySelector = ({
     selectedCountryNames,
@@ -33,13 +41,8 @@ export const SearchCountrySelector = ({
     const [isOpen, setIsOpen] = useState(false)
     const [countrySearchQuery, setCountrySearchQuery] = useState("")
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
-    const countrySelectorRef = useRef<HTMLDivElement>(null)
     const listContainerRef = useRef<HTMLDivElement>(null)
-    useFocusTrap(listContainerRef, isOpen)
-    useTriggerOnEscape(() => setIsOpen(false))
-    useTriggerWhenClickOutside(countrySelectorRef, isOpen, () =>
-        setIsOpen(false)
-    )
+
     const toggleCountry = (country: string) => {
         if (selectedCountryNames.has(country)) {
             removeCountry(country)
@@ -47,16 +50,11 @@ export const SearchCountrySelector = ({
             addCountry(country)
         }
     }
-    const alphabetizedCountriesByName = useMemo(() => {
-        return Object.values(countriesByName()).sort((a, b) => {
-            return a.name.localeCompare(b.name)
-        })
-    }, [])
 
-    const toggleOpen = () => {
-        setIsOpen((isOpen) => !isOpen)
+    const handleOpenChange = (isOpen: boolean) => {
+        setIsOpen(isOpen)
         // if opening on mobile, scroll down a little
-        if (isSmallScreen && !isOpen) {
+        if (isSmallScreen && isOpen) {
             setTimeout(() => {
                 const listContainer = listContainerRef.current
                 if (listContainer) {
@@ -78,41 +76,47 @@ export const SearchCountrySelector = ({
                     .toLowerCase()
                     .includes(countrySearchQuery.toLowerCase())
         )
-    }, [countrySearchQuery, selectedCountryNames, alphabetizedCountriesByName])
+    }, [countrySearchQuery, selectedCountryNames])
 
     return (
-        <div className="search-country-selector" ref={countrySelectorRef}>
-            <button
-                className={cx("search-country-selector-button body-3-medium", {
-                    "search-country-selector-button--is-open": isOpen,
-                })}
-                aria-expanded={isOpen}
-                aria-label={
-                    isOpen ? "Close country selector" : "Open country selector"
-                }
-                onClick={toggleOpen}
-            >
-                <FontAwesomeIcon icon={faMapMarkerAlt} />
-                <span className="search-country-selector-button__text">
-                    Country selector
-                </span>
-            </button>
-            {isOpen ? (
-                <div
+        <div className="search-country-selector">
+            <DialogTrigger isOpen={isOpen} onOpenChange={handleOpenChange}>
+                <Button
+                    className={cx(
+                        "search-country-selector-button body-3-medium",
+                        {
+                            "search-country-selector-button--is-open": isOpen,
+                        }
+                    )}
+                    aria-expanded={isOpen}
+                    aria-label={
+                        isOpen
+                            ? "Close country selector"
+                            : "Open country selector"
+                    }
+                >
+                    <FontAwesomeIcon icon={faMapMarkerAlt} />
+                    <span className="search-country-selector-button__text">
+                        Country selector
+                    </span>
+                </Button>
+                <Popover
                     className="search-country-selector-list-container"
                     ref={listContainerRef}
+                    placement="bottom end"
+                    crossOffset={8}
                 >
                     <div className="search-country-selector-header">
                         <h5 className="h5-black-caps search-country-selector__heading">
                             Select or search for a country
                         </h5>
-                        <button
+                        <Button
                             aria-label="Close country selector"
                             className="search-country-selector-close-button"
-                            onClick={() => setIsOpen(false)}
+                            onPress={() => setIsOpen(false)}
                         >
                             <FontAwesomeIcon icon={faClose} />
-                        </button>
+                        </Button>
                     </div>
                     <LabeledSwitch
                         className="search-country-selector-switch"
@@ -136,60 +140,53 @@ export const SearchCountrySelector = ({
                             }
                         />
                         {countrySearchQuery && (
-                            <button
-                                onClick={() => setCountrySearchQuery("")}
-                                data-label="Clear country search"
+                            <Button
+                                onPress={() => setCountrySearchQuery("")}
+                                aria-label="Clear country search"
                                 className="search-country-selector__clear-button"
                             >
                                 <FontAwesomeIcon icon={faTimesCircle} />
-                            </button>
+                            </Button>
                         )}
                     </div>
-                    <ol className="search-country-selector-list">
-                        {Object.values(filteredCountriesByName).map(
-                            (country: Country) => (
-                                <li
-                                    value={country.name}
-                                    key={country.name}
-                                    className={cx(
-                                        "search-country-selector-list__item",
-                                        {
-                                            "search-country-selector-list__item--selected":
-                                                selectedCountryNames.has(
-                                                    country.name
-                                                ),
-                                        }
+                    <ListBox className="search-country-selector-list">
+                        {filteredCountriesByName.map((country) => (
+                            <ListBoxItem
+                                key={country.name}
+                                id={country.name}
+                                className={cx(
+                                    "search-country-selector-list__item",
+                                    {
+                                        "search-country-selector-list__item--selected":
+                                            selectedCountryNames.has(
+                                                country.name
+                                            ),
+                                    }
+                                )}
+                                textValue={country.name}
+                                onAction={() => toggleCountry(country.name)}
+                            >
+                                <img
+                                    className="flag"
+                                    role="presentation"
+                                    alt=""
+                                    height={16}
+                                    width={20}
+                                    src={`/images/flags/${country.code}.svg`}
+                                />
+                                {country.name}
+                                <input
+                                    type="checkbox"
+                                    checked={selectedCountryNames.has(
+                                        country.name
                                     )}
-                                >
-                                    <label
-                                        className="body-3-medium"
-                                        htmlFor={`country-${country.name}`}
-                                    >
-                                        <img
-                                            className="flag"
-                                            aria-hidden={true}
-                                            height={16}
-                                            width={20}
-                                            src={`/images/flags/${country.code}.svg`}
-                                        />
-                                        {country.name}
-                                    </label>
-                                    <input
-                                        type="checkbox"
-                                        id={`country-${country.name}`}
-                                        checked={selectedCountryNames.has(
-                                            country.name
-                                        )}
-                                        onChange={() => {
-                                            toggleCountry(country.name)
-                                        }}
-                                    />
-                                </li>
-                            )
-                        )}
-                    </ol>
-                </div>
-            ) : null}
+                                    readOnly
+                                />
+                            </ListBoxItem>
+                        ))}
+                    </ListBox>
+                </Popover>
+            </DialogTrigger>
         </div>
     )
 }
