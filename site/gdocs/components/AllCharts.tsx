@@ -47,6 +47,8 @@ function sortRelatedCharts(
 export function AllCharts(props: AllChartsProps) {
     const { heading, top, className } = props
     const { relatedCharts, tags } = useContext(AttachmentsContext)
+    if (relatedCharts.length === 0) return null
+
     const topSlugs = top.map((item) => Url.fromURL(item.url).slug as string)
 
     const firstTag = tags[0]
