@@ -5,8 +5,15 @@ import {
     findGreatestCommonDivisorOfArray,
     rollingMap,
     omitUndefinedValues,
+    checkHasMembers,
+    getCountryNamesForRegion,
+    Region,
+    EntityName,
+    excludeUndefined,
+    getRegionByName,
 } from "@ourworldindata/utils"
 import { StackedPointPositionType, StackedSeries } from "./StackedConstants"
+import { WORLD_ENTITY_NAME } from "../core/GrapherConstants.js"
 
 // This method shift up the Y Values of a Series with Points in place.
 export const stackSeries = <PositionType extends StackedPointPositionType>(
@@ -97,4 +104,57 @@ export const withMissingValuesAsZeroes = <
             }),
         }
     })
+}
+
+/**
+ * Checks if the given entities can be sensibly stacked on top of each other.
+ *
+ * For example, stacking countries on top of their continent or stacking
+ * countries on top of the world doesn't make sense.
+ */
+export function checkIsStackingEntitiesSensible(
+    entityNames: EntityName[]
+): boolean {
+    if (entityNames.length < 2) return true
+
+    // Stacking entities on top of World typically doesn't make sense
+    if (entityNames.includes(WORLD_ENTITY_NAME)) return false
+
+    // Grab region info where available
+    const regions = excludeUndefined(
+        entityNames.map((name) => getRegionByName(name))
+    )
+    if (regions.length < 2) return true
+
+    // If none of the regions have members, we don't need to check further
+    const someRegionHasMembers = regions.some((region) =>
+        checkHasMembers(region)
+    )
+    if (!someRegionHasMembers) return true
+
+    // Keep track of the stacked countries and check if the same country is
+    // stacked twice, e.g. by stacking Spain on top of Europe (Europe contains
+    // Spain) or by stacking Europe on top of World (both contain Spain)
+    const stackedCountryNames = new Set(getCountryNames(regions[0]))
+    for (const region of regions.slice(1)) {
+        const newCountryNames = getCountryNames(region)
+
+        // check if any new country is already part of the current stack
+        const someCountryIsAlreadyStacked = newCountryNames.some(
+            (countryName) => stackedCountryNames.has(countryName)
+        )
+        if (someCountryIsAlreadyStacked) return false
+
+        // add all new countries to the stack
+        newCountryNames.forEach((countryName) =>
+            stackedCountryNames.add(countryName)
+        )
+    }
+    return true
+}
+
+function getCountryNames(region: Region): string[] {
+    return checkHasMembers(region)
+        ? getCountryNamesForRegion(region)
+        : [region.name]
 }
