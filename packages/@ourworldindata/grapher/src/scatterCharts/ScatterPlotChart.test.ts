@@ -2,6 +2,7 @@ import { expect, it, describe } from "vitest"
 
 import * as _ from "lodash-es"
 import { ScatterPlotChart } from "../scatterCharts/ScatterPlotChart"
+import { ScatterPlotChartState } from "../scatterCharts/ScatterPlotChartState"
 import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
@@ -34,11 +35,12 @@ it("can create a new chart", () => {
         table: SynthesizeGDPTable(),
     }
 
-    const chart = new ScatterPlotChart({ manager })
-    expect(chart.failMessage).toBeFalsy()
+    const chartState = new ScatterPlotChartState({ manager })
+    const chart = new ScatterPlotChart({ chartState })
+    expect(chartState.failMessage).toBeFalsy()
     expect(chart.seriesNamesToHighlight.size).toEqual(0)
-    expect(chart.series.length).toEqual(2)
-    expect(chart.allPoints.length).toBeGreaterThan(0)
+    expect(chartState.series.length).toEqual(2)
+    expect(chartState.allPoints.length).toBeGreaterThan(0)
 })
 
 it("shows error when X or Y columns are missing", () => {
@@ -48,8 +50,8 @@ it("shows error when X or Y columns are missing", () => {
             [1, "World", undefined, 2020],
         ]),
     }
-    const chart = new ScatterPlotChart({ manager })
-    expect(chart.failMessage).toBeTruthy()
+    const chartState = new ScatterPlotChartState({ manager })
+    expect(chartState.failMessage).toBeTruthy()
 })
 
 it("doesn't show 'No data' bin when there is no color column", () => {
@@ -57,9 +59,9 @@ it("doesn't show 'No data' bin when there is no color column", () => {
         table: SynthesizeGDPTable(),
         colorColumnSlug: undefined,
     }
-    const chart = new ScatterPlotChart({ manager })
-    expect(chart.failMessage).toBeFalsy()
-    expect(chart.hasNoDataBin).toBeFalsy()
+    const chartState = new ScatterPlotChartState({ manager })
+    expect(chartState.failMessage).toBeFalsy()
+    expect(chartState.hasNoDataBin).toBeFalsy()
 })
 
 it("can remove points outside domain", () => {
@@ -68,11 +70,11 @@ it("can remove points outside domain", () => {
         yColumnSlug: SampleColumnSlugs.Fruit,
         xColumnSlug: SampleColumnSlugs.Vegetables,
     }
-    const chart = new ScatterPlotChart({ manager })
-    const initialCount = chart.allPoints.length
+    const chartState = new ScatterPlotChartState({ manager })
+    const initialCount = chartState.allPoints.length
     manager.xAxisConfig = { removePointsOutsideDomain: true, max: 1100 }
-    expect(chart.allPoints.length).toBeGreaterThan(0)
-    expect(chart.allPoints.length).toBeLessThan(initialCount)
+    expect(chartState.allPoints.length).toBeGreaterThan(0)
+    expect(chartState.allPoints.length).toBeLessThan(initialCount)
 })
 
 it("can filter points with negative values when using a log scale", () => {
@@ -94,9 +96,9 @@ it("can filter points with negative values when using a log scale", () => {
         xAxisConfig: {},
     }
 
-    const chart = new ScatterPlotChart({ manager })
-    expect(chart.series.length).toEqual(2)
-    expect(chart.allPoints.length).toEqual(200)
+    const chartState = new ScatterPlotChartState({ manager })
+    expect(chartState.series.length).toEqual(2)
+    expect(chartState.allPoints.length).toEqual(200)
 
     const logScaleManager = {
         ...manager,
@@ -107,11 +109,14 @@ it("can filter points with negative values when using a log scale", () => {
             scaleType: ScaleType.log,
         },
     }
-    const logChart = new ScatterPlotChart({ manager: logScaleManager })
+    const logChartState = new ScatterPlotChartState({
+        manager: logScaleManager,
+    })
+    const logChart = new ScatterPlotChart({ chartState: logChartState })
     expect(logChart.dualAxis.horizontalAxis.domain[0]).toBeGreaterThan(0)
     expect(logChart.dualAxis.verticalAxis.domain[0]).toBeGreaterThan(0)
-    expect(logChart.series.length).toEqual(2)
-    expect(logChart.allPoints.length).toEqual(180)
+    expect(logChartState.series.length).toEqual(2)
+    expect(logChartState.allPoints.length).toEqual(180)
 })
 
 describe("interpolation defaults", () => {
@@ -150,17 +155,17 @@ describe("interpolation defaults", () => {
         colorSlug: "color",
         sizeSlug: "size",
     })
-    const chart = grapher.chartState as ScatterPlotChart
+    const chartState = grapher.chartState as ScatterPlotChartState
 
     it("color defaults to infinity tolerance if none specified", () => {
         expect(
-            chart.transformedTable.get("color").valuesIncludingErrorValues
+            chartState.transformedTable.get("color").valuesIncludingErrorValues
         ).toEqual(["Europe", "Europe", "Europe"])
     })
 
     it("size defaults to infinity tolerance if none specified", () => {
         expect(
-            chart.transformedTable.get("size").valuesIncludingErrorValues
+            chartState.transformedTable.get("size").valuesIncludingErrorValues
         ).toEqual([100, 100, 100])
     })
 })
@@ -207,15 +212,17 @@ describe("basic scatterplot", () => {
         sizeSlug: "size",
         table,
     })
-    const chart = grapher.chartState as ScatterPlotChart
+    const chartState = grapher.chartState as ScatterPlotChartState
 
     it("removes error values from X and Y", () => {
-        expect(chart.transformedTable.numRows).toEqual(2)
-        expect(chart.transformedTable.timeColumn.uniqValues).toEqual([2000])
+        expect(chartState.transformedTable.numRows).toEqual(2)
+        expect(chartState.transformedTable.timeColumn.uniqValues).toEqual([
+            2000,
+        ])
     })
 
     it("interpolates color & size columns before removing rows", () => {
-        const ukTable = chart.transformedTable.where({ entityName: "UK" })
+        const ukTable = chartState.transformedTable.where({ entityName: "UK" })
         expect(ukTable.get("color").valuesIncludingErrorValues).toEqual([
             "Europe",
         ])
@@ -223,7 +230,7 @@ describe("basic scatterplot", () => {
     })
 
     it("color & size interpolation doesn't leak", () => {
-        const usTable = chart.transformedTable.where({ entityName: "USA" })
+        const usTable = chartState.transformedTable.where({ entityName: "USA" })
         expect(usTable.get("color").valuesIncludingErrorValues).toEqual([
             ErrorValueTypes.NoValueWithinTolerance,
         ])
@@ -233,11 +240,11 @@ describe("basic scatterplot", () => {
     })
 
     it("shows 'No data' bin", () => {
-        expect(chart.hasNoDataBin).toEqual(true)
+        expect(chartState.hasNoDataBin).toEqual(true)
     })
 
     it("plots correct series", () => {
-        expect(chart.series).toEqual([
+        expect(chartState.series).toEqual([
             {
                 color: ContinentColors.Africa, // First "continents" color
                 isScaleColor: true,
@@ -260,7 +267,7 @@ describe("basic scatterplot", () => {
                 seriesName: "UK",
             },
             {
-                color: chart.defaultNoDataColor,
+                color: chartState.defaultNoDataColor,
                 isScaleColor: true,
                 label: "USA",
                 points: [
@@ -322,33 +329,33 @@ describe("label point strategies", () => {
     }
 
     it("year", () => {
-        const chart = new ScatterPlotChart({
+        const chartState = new ScatterPlotChartState({
             manager: {
                 ...manager,
                 scatterPointLabelStrategy: ScatterPointLabelStrategy.year,
             },
         })
-        expect(chart.allPoints[0].label).toEqual("2000")
+        expect(chartState.allPoints[0].label).toEqual("2000")
     })
 
     it("y", () => {
-        const chart = new ScatterPlotChart({
+        const chartState = new ScatterPlotChartState({
             manager: {
                 ...manager,
                 scatterPointLabelStrategy: ScatterPointLabelStrategy.y,
             },
         })
-        expect(chart.allPoints[0].label).toEqual("2")
+        expect(chartState.allPoints[0].label).toEqual("2")
     })
 
     it("x", () => {
-        const chart = new ScatterPlotChart({
+        const chartState = new ScatterPlotChartState({
             manager: {
                 ...manager,
                 scatterPointLabelStrategy: ScatterPointLabelStrategy.x,
             },
         })
-        expect(chart.allPoints[0].label).toEqual("1")
+        expect(chartState.allPoints[0].label).toEqual("1")
     })
 })
 
@@ -390,9 +397,9 @@ it("assigns entity colors to series, overriding colorScale color", () => {
         table,
     }
 
-    const chart = new ScatterPlotChart({ manager })
+    const chartState = new ScatterPlotChartState({ manager })
 
-    expect(chart.series[0].color).toEqual("#ccc")
+    expect(chartState.series[0].color).toEqual("#ccc")
 })
 
 describe("entity exclusion", () => {
@@ -438,15 +445,15 @@ describe("entity exclusion", () => {
         matchingEntitiesOnly: true,
         table,
     })
-    const chart = grapher.chartState as ScatterPlotChart
+    const chartState = grapher.chartState as ScatterPlotChartState
 
     it("excludes entities without color when matchingEntitiesOnly is enabled", () => {
-        expect(chart.allPoints.length).toEqual(1)
-        expect(chart.allPoints[0].entityName).toEqual("UK")
+        expect(chartState.allPoints.length).toEqual(1)
+        expect(chartState.allPoints[0].entityName).toEqual("UK")
     })
 
     it("doesn't show No data bin", () => {
-        expect(chart.hasNoDataBin).toEqual(false)
+        expect(chartState.hasNoDataBin).toEqual(false)
     })
 })
 
@@ -500,11 +507,12 @@ describe("colors & legend", () => {
         tableAfterAuthorTimelineAndActiveChartTransform: tableWithoutChina,
     }
 
-    const chart = new ScatterPlotChart({ manager })
+    const chartState = new ScatterPlotChartState({ manager })
+    const chart = new ScatterPlotChart({ chartState })
 
     it("assigns correct continent colors", () => {
         // Every series color is the same as the point color
-        chart.series.forEach((series) => {
+        chartState.series.forEach((series) => {
             const seriesNameToContinent: { [key: string]: string } = {
                 Germany: "Europe",
                 Canada: "North America",
@@ -523,7 +531,7 @@ describe("colors & legend", () => {
             for (const seriesName in seriesNameToContinent) {
                 const continentName = seriesNameToContinent[seriesName]
                 const continentColor = continentColors[continentName]
-                expect(chart.colorScale.getColor(continentName)).toEqual(
+                expect(chartState.colorScale.getColor(continentName)).toEqual(
                     continentColor
                 )
             }
@@ -601,34 +609,37 @@ describe("series transformations", () => {
         sizeColumnSlug: "size",
         table,
     }
-    const chart = new ScatterPlotChart({ manager })
+    const chartState = new ScatterPlotChartState({ manager })
 
     it("sorts points by time", () => {
-        const ukSeries = chart.series.find((s) => s.seriesName === "UK")!
+        const ukSeries = chartState.series.find((s) => s.seriesName === "UK")!
         expect(ukSeries.points.map((p) => p.timeValue)).toEqual([
             2001, 2003, 2004,
         ])
     })
 
     it("endpointsOnly drops trailing and in-between points", () => {
-        const chart = new ScatterPlotChart({
+        const chartState = new ScatterPlotChartState({
             manager: { ...manager, compareEndPointsOnly: true },
         })
-        const ukSeries = chart.series.find((s) => s.seriesName === "UK")!
+        const ukSeries = chartState.series.find((s) => s.seriesName === "UK")!
         expect(ukSeries.points.map((p) => p.timeValue)).toEqual([2001, 2004])
     })
 
     it("calculates average annual change", () => {
-        const chart = new ScatterPlotChart({
+        const chartState = new ScatterPlotChartState({
             manager: {
                 ...manager,
                 isRelativeMode: true,
             },
         })
-        const uk = chart.series.find((s) => s.seriesName === "UK")!.points[0]
-        const usa = chart.series.find((s) => s.seriesName === "USA")!.points[0]
-        const germany = chart.series.find((s) => s.seriesName === "Germany")!
+        const uk = chartState.series.find((s) => s.seriesName === "UK")!
             .points[0]
+        const usa = chartState.series.find((s) => s.seriesName === "USA")!
+            .points[0]
+        const germany = chartState.series.find(
+            (s) => s.seriesName === "Germany"
+        )!.points[0]
 
         expect(uk.x.toFixed(1)).toEqual("26.0")
         expect(uk.y.toFixed(1)).toEqual("0.0")
@@ -688,14 +699,15 @@ describe("average annual change", () => {
         compareEndPointsOnly: true,
         table,
     }
-    const chart = new ScatterPlotChart({ manager })
+    const chartState = new ScatterPlotChartState({ manager })
+    const chart = new ScatterPlotChart({ chartState })
 
     it("drops series with a single point", () => {
-        expect(chart.series.length).toEqual(1)
+        expect(chartState.series.length).toEqual(1)
     })
 
     it("calculates average annual change based on originalTime", () => {
-        const point = chart.series[0].points[0]
+        const point = chartState.series[0].points[0]
         expect(point.x).toEqual(100)
         expect(Math.abs(point.y)).toEqual(0)
     })
@@ -758,12 +770,16 @@ describe("scatter plot with xOverrideTime", () => {
         sizeColumnSlug: "size",
         table,
     }
-    const chart = new ScatterPlotChart({ manager })
+    const chartState = new ScatterPlotChartState({ manager })
 
     it("all points have correct times", () => {
-        expect(_.uniq(chart.allPoints.map((p) => p.timeValue))).toEqual([2001])
-        expect(_.uniq(chart.allPoints.map((p) => p.time.y))).toEqual([2001])
-        expect(chart.allPoints.map((p) => p.time.x)).toEqual(
+        expect(_.uniq(chartState.allPoints.map((p) => p.timeValue))).toEqual([
+            2001,
+        ])
+        expect(_.uniq(chartState.allPoints.map((p) => p.time.y))).toEqual([
+            2001,
+        ])
+        expect(chartState.allPoints.map((p) => p.time.x)).toEqual(
             expect.arrayContaining([2000, 2001, 2003])
         )
     })
@@ -827,9 +843,9 @@ describe("x/y tolerance", () => {
         sizeSlug: "size",
         table,
     })
-    const chart = grapher.chartState as ScatterPlotChart
+    const chartState = grapher.chartState as ScatterPlotChartState
 
-    const transformedTable = chart.transformedTable
+    const transformedTable = chartState.transformedTable
 
     it("removes rows without X or Y value", () => {
         expect(transformedTable.get("year").values).toEqual([
@@ -934,9 +950,8 @@ describe("correct bubble sizes", () => {
             table,
         }
 
-        const chart = new ScatterPlotChart({
-            manager,
-        })
+        const chartState = new ScatterPlotChartState({ manager })
+        const chart = new ScatterPlotChart({ chartState })
 
         const scatterPoints = new ScatterPointsWithLabels({
             noDataModalManager: manager,
@@ -1000,9 +1015,8 @@ describe("correct bubble sizes", () => {
             table,
         }
 
-        const chart = new ScatterPlotChart({
-            manager,
-        })
+        const chartState = new ScatterPlotChartState({ manager })
+        const chart = new ScatterPlotChart({ chartState })
 
         const scatterPoints = new ScatterPointsWithLabels({
             noDataModalManager: manager,
@@ -1073,9 +1087,11 @@ it("applies color tolerance before applying the author timeline filter", () => {
         sizeSlug: "size",
         timelineMaxTime: 2020,
     })
-    const chart = grapher.chartState as ScatterPlotChart
+    const chartState = grapher.chartState as ScatterPlotChartState
 
     expect(
-        _.uniq(chart.transformedTable.get("color").valuesIncludingErrorValues)
+        _.uniq(
+            chartState.transformedTable.get("color").valuesIncludingErrorValues
+        )
     ).toEqual(["Europe"])
 })
