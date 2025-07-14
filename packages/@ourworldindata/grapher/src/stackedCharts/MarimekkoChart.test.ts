@@ -17,6 +17,7 @@ import {
     MarimekkoChartManager,
     PlacedItem,
 } from "./MarimekkoChartConstants"
+import { MarimekkoChartState } from "./MarimekkoChartState"
 
 it("can create a chart", () => {
     const table = SynthesizeGDPTable({
@@ -30,13 +31,14 @@ it("can create a chart", () => {
         showNoDataArea: false,
     }
 
-    const chart = new MarimekkoChart({ manager })
+    const chartState = new MarimekkoChartState({ manager })
+    const chart = new MarimekkoChart({ chartState })
     //expect(chart.failMessage).toBeTruthy()
 
     // selection.addToSelection(table.sampleEntityName(5))
-    expect(chart.failMessage).toEqual("")
-    expect(chart.series.length).toEqual(1)
-    expect(chart.series[0].points.length).toEqual(5)
+    expect(chartState.failMessage).toEqual("")
+    expect(chartState.series.length).toEqual(1)
+    expect(chartState.series[0].points.length).toEqual(5)
     expect(chart.xSeries!.points.length).toEqual(5)
     expect(chart.placedItems.length).toEqual(5)
     //expect(chart.placedItems)
@@ -61,15 +63,16 @@ it("can display a Marimekko chart correctly", () => {
         endTime: 2001,
         showNoDataArea: false,
     }
+    const chartState = new MarimekkoChartState({ manager })
     const chart = new MarimekkoChart({
-        manager,
+        chartState,
         bounds: new Bounds(0, 0, 1000, 1000),
     })
     const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
 
-    expect(chart.failMessage).toEqual("")
-    expect(chart.series.length).toEqual(1)
-    expect(chart.series[0].points.length).toEqual(3)
+    expect(chartState.failMessage).toEqual("")
+    expect(chartState.series.length).toEqual(1)
+    expect(chartState.series[0].points.length).toEqual(3)
     // Y series points should be one series in order of the data
     const expectedYPoints = [
         {
@@ -97,7 +100,7 @@ it("can display a Marimekko chart correctly", () => {
         { value: 5000, entity: "big", time: 2001 },
         { value: 1000, entity: "small", time: 2001 },
     ]
-    expect(chart.series[0].points).toEqual(expectedYPoints)
+    expect(chartState.series[0].points).toEqual(expectedYPoints)
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
     // placedItems should be in default sort order
     expect(chart.placedItems.map(roundXPosition)).toEqual([
@@ -173,16 +176,17 @@ it("can display two time series stacked correctly", () => {
         endTime: 2001,
         showNoDataArea: false,
     }
+    const chartState = new MarimekkoChartState({ manager })
     const chart = new MarimekkoChart({
-        manager,
+        chartState,
         bounds: new Bounds(0, 0, 1000, 1000),
     })
     const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
 
-    expect(chart.failMessage).toEqual("")
-    expect(chart.series.length).toEqual(2)
-    expect(chart.series[0].points.length).toEqual(3)
-    expect(chart.series[1].points.length).toEqual(3)
+    expect(chartState.failMessage).toEqual("")
+    expect(chartState.series.length).toEqual(2)
+    expect(chartState.series[0].points.length).toEqual(3)
+    expect(chartState.series[1].points.length).toEqual(3)
     // Y series points should be one series in order of the data
     const expectedYPointsFirstSeries = [
         {
@@ -230,8 +234,8 @@ it("can display two time series stacked correctly", () => {
         { value: 5000, entity: "big", time: 2001 },
         { value: 1000, entity: "small", time: 2001 },
     ]
-    expect(chart.series[0].points).toEqual(expectedYPointsFirstSeries)
-    expect(chart.series[1].points).toEqual(expectedYPointsSecondSeries)
+    expect(chartState.series[0].points).toEqual(expectedYPointsFirstSeries)
+    expect(chartState.series[1].points).toEqual(expectedYPointsSecondSeries)
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
     // placedItems should be in default sort order
     expect(chart.placedItems.map(roundXPosition)).toEqual([
@@ -317,7 +321,7 @@ it("can do sorting", () => {
         endTime: 2001,
         showNoDataArea: false,
     }
-    let chart = new MarimekkoChart({
+    let chartState = new MarimekkoChartState({
         manager: {
             ...manager,
             sortConfig: {
@@ -325,13 +329,15 @@ it("can do sorting", () => {
                 sortOrder: SortOrder.asc,
             },
         },
-
+    })
+    let chart = new MarimekkoChart({
+        chartState,
         bounds: new Bounds(0, 0, 1000, 1000),
     })
 
-    expect(chart.failMessage).toEqual("")
-    expect(chart.series.length).toEqual(1)
-    expect(chart.series[0].points.length).toEqual(3)
+    expect(chartState.failMessage).toEqual("")
+    expect(chartState.series.length).toEqual(1)
+    expect(chartState.series[0].points.length).toEqual(3)
     // Y series points should be one series in order of the data
     const expectedYPoints = [
         {
@@ -359,7 +365,7 @@ it("can do sorting", () => {
         { value: 5000, entity: "BB", time: 2001 },
         { value: 1000, entity: "CC", time: 2001 },
     ]
-    expect(chart.series[0].points).toEqual(expectedYPoints)
+    expect(chartState.series[0].points).toEqual(expectedYPoints)
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
     // placedItems should be in default sort order
     const items = new Map<string, Item>([
@@ -418,7 +424,7 @@ it("can do sorting", () => {
         items.get("big"),
     ])
 
-    chart = new MarimekkoChart({
+    chartState = new MarimekkoChartState({
         manager: {
             ...manager,
             sortConfig: {
@@ -427,7 +433,9 @@ it("can do sorting", () => {
                 sortOrder: SortOrder.asc,
             },
         },
-
+    })
+    chart = new MarimekkoChart({
+        chartState,
         bounds: new Bounds(0, 0, 1000, 1000),
     })
     expect(chart["sortedItems"]).toEqual([
@@ -436,7 +444,7 @@ it("can do sorting", () => {
         items.get("big"),
     ])
 
-    chart = new MarimekkoChart({
+    chartState = new MarimekkoChartState({
         manager: {
             ...manager,
             sortConfig: {
@@ -444,7 +452,9 @@ it("can do sorting", () => {
                 sortOrder: SortOrder.asc,
             },
         },
-
+    })
+    chart = new MarimekkoChart({
+        chartState,
         bounds: new Bounds(0, 0, 1000, 1000),
     })
     expect(chart["sortedItems"]).toEqual([
@@ -478,16 +488,17 @@ it("can filter years correctly", () => {
         endTime: 2001,
     }
     const grapher = new GrapherState(manager)
+    const chartState = new MarimekkoChartState({ manager: grapher })
     const chart = new MarimekkoChart({
-        manager: grapher,
+        chartState,
         bounds: new Bounds(0, 0, 1000, 1000),
     })
     const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
     //grapher.startHandleTimeBound = 2000
 
-    expect(chart.failMessage).toEqual("")
-    expect(chart.series.length).toEqual(1)
-    expect(chart.series[0].points.length).toEqual(3)
+    expect(chartState.failMessage).toEqual("")
+    expect(chartState.series.length).toEqual(1)
+    expect(chartState.series[0].points.length).toEqual(3)
     // Y series points should be one series in order of the data
     const expectedYPoints = [
         {
@@ -515,7 +526,7 @@ it("can filter years correctly", () => {
         { value: 5000, entity: "big", time: 2001 },
         { value: 1000, entity: "small", time: 2001 },
     ]
-    expect(chart.series[0].points).toEqual(expectedYPoints)
+    expect(chartState.series[0].points).toEqual(expectedYPoints)
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
     // placedItems should be in default sort order
     expect(chart.placedItems.map(roundXPosition)).toEqual([
@@ -588,15 +599,16 @@ it("shows no data points at the end", () => {
         endTime: 2001,
     }
     const grapher = new GrapherState(manager)
+    const chartState = new MarimekkoChartState({ manager: grapher })
     const chart = new MarimekkoChart({
-        manager: grapher,
+        chartState,
         bounds: new Bounds(0, 0, 1001, 1000),
     })
     const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
 
-    expect(chart.failMessage).toEqual("")
-    expect(chart.series.length).toEqual(1)
-    expect(chart.series[0].points.length).toEqual(2)
+    expect(chartState.failMessage).toEqual("")
+    expect(chartState.series.length).toEqual(1)
+    expect(chartState.series[0].points.length).toEqual(2)
     // Y series points should be one series in order of the data. Medium should be missing here
     const expectedYPoints = [
         {
@@ -618,7 +630,7 @@ it("shows no data points at the end", () => {
         { value: 5000, entity: "big", time: 2001 },
         { value: 1000, entity: "small", time: 2001 },
     ]
-    expect(chart.series[0].points).toEqual(expectedYPoints)
+    expect(chartState.series[0].points).toEqual(expectedYPoints)
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
     // placedItems should be in default sort order
     expect(chart.placedItems.map(roundXPosition)).toEqual([
@@ -688,15 +700,16 @@ test("interpolation works as expected", () => {
         endTime: 2001,
     }
     const grapher = new GrapherState(manager)
+    const chartState = new MarimekkoChartState({ manager: grapher })
     const chart = new MarimekkoChart({
-        manager: grapher,
+        chartState,
         bounds: new Bounds(0, 0, 1000, 1000),
     })
     const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
 
-    expect(chart.failMessage).toEqual("")
-    expect(chart.series.length).toEqual(1)
-    expect(chart.series[0].points.length).toEqual(3)
+    expect(chartState.failMessage).toEqual("")
+    expect(chartState.series.length).toEqual(1)
+    expect(chartState.series[0].points.length).toEqual(3)
     // Y series points should be one series in order of the data
     const expectedYPoints = [
         {
@@ -725,7 +738,7 @@ test("interpolation works as expected", () => {
         { value: 4000, entity: "medium", time: 2001 },
         { value: 1000, entity: "small", time: 2001 },
     ]
-    expect(chart.series[0].points).toEqual(expectedYPoints)
+    expect(chartState.series[0].points).toEqual(expectedYPoints)
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
     // placedItems should be in default sort order
     expect(chart.placedItems.map(roundXPosition)).toEqual([
@@ -799,17 +812,18 @@ it("can deal with y columns with missing values", () => {
         endTime: 2001,
     }
     const grapher = new GrapherState(manager)
+    const chartState = new MarimekkoChartState({ manager: grapher })
     const chart = new MarimekkoChart({
-        manager: grapher,
+        chartState,
         bounds: new Bounds(0, 0, 1000, 1000),
     })
     const xAxisRange = chart["dualAxis"].horizontalAxis.rangeSize
     //grapher.startHandleTimeBound = 2000
 
-    expect(chart.failMessage).toEqual("")
-    expect(chart.series.length).toEqual(2)
-    expect(chart.series[0].points.length).toEqual(3)
-    expect(chart.series[1].points.length).toEqual(2)
+    expect(chartState.failMessage).toEqual("")
+    expect(chartState.series.length).toEqual(2)
+    expect(chartState.series[0].points.length).toEqual(3)
+    expect(chartState.series[1].points.length).toEqual(2)
     // Y series points should be one series in order of the data
     const expectedYPoints1 = [
         {
@@ -852,8 +866,8 @@ it("can deal with y columns with missing values", () => {
         { value: 5000, entity: "big", time: 2001 },
         { value: 1000, entity: "small", time: 2001 },
     ]
-    expect(chart.series[0].points).toEqual(expectedYPoints1)
-    expect(chart.series[1].points).toEqual(expectedYPoints2)
+    expect(chartState.series[0].points).toEqual(expectedYPoints1)
+    expect(chartState.series[1].points).toEqual(expectedYPoints2)
     expect(chart.xSeries!.points).toEqual(expectedXPoints)
 
     const placedItemsWithoutXPosition = chart.placedItems.map((placedItem) =>
