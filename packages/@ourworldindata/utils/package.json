@@ -25,7 +25,7 @@
     "mobx": "^5.15.7",
     "mobx-react": "5",
     "react": "^17.0.2",
-    "react-select": "^5.8.0",
+    "react-select": "^5.10.2",
     "remeda": "^2.23.3",
     "string-pixel-width": "^1.10.0",
     "striptags": "^3.2.0",
