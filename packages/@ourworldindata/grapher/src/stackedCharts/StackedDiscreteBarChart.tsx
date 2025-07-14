@@ -19,14 +19,7 @@ import {
 } from "@ourworldindata/utils"
 import { action, computed, observable } from "mobx"
 import { observer } from "mobx-react"
-import {
-    ColorSchemeName,
-    FacetStrategy,
-    MissingDataStrategy,
-    ScaleType,
-    SeriesName,
-    VerticalAlign,
-} from "@ourworldindata/types"
+import { ScaleType, SeriesName, VerticalAlign } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -40,17 +33,9 @@ import {
 } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig } from "../axis/AxisConfig"
-import { ChartState } from "../chart/ChartInterface"
+import { ChartInterface } from "../chart/ChartInterface"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
-import {
-    autoDetectYColumnSlugs,
-    getShortNameForEntity,
-    makeSelectionArray,
-} from "../chart/ChartUtils"
-import {
-    stackSeriesInBothDirections,
-    withMissingValuesAsZeroes,
-} from "../stackedCharts/StackedUtils"
+import { getShortNameForEntity } from "../chart/ChartUtils"
 import { ChartManager } from "../chart/ChartManager"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
@@ -61,7 +46,6 @@ import {
     makeTooltipToleranceNotice,
 } from "../tooltip/Tooltip"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
-import { ColorSchemes } from "../color/ColorSchemes"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
@@ -70,12 +54,11 @@ import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { isDarkColor } from "../color/ColorUtils"
 import { HorizontalAxis } from "../axis/Axis"
 import { SelectionArray } from "../selection/SelectionArray"
-import { ColorScheme } from "../color/ColorScheme"
 import { HashMap, NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
 import { bind } from "decko"
-import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner.js"
 import { TextWrap } from "@ourworldindata/components"
+import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
 
 // if an entity name exceeds this width, we use the short name instead (if available)
 const SOFT_MAX_LABEL_WIDTH = 90
@@ -126,86 +109,24 @@ interface StackedBarChartContext {
 export class StackedDiscreteBarChart
     extends React.Component<{
         bounds?: Bounds
-        manager: StackedDiscreteBarChartManager
+        chartState: StackedDiscreteBarChartState
     }>
-    implements ChartState, HorizontalColorLegendManager
+    implements ChartInterface, HorizontalColorLegendManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    private applyMissingDataStrategy(table: OwidTable): OwidTable {
-        if (this.missingDataStrategy === MissingDataStrategy.hide) {
-            // If MissingDataStrategy is explicitly set to hide, drop rows (= times) where one of
-            // the y columns has no data
-            return table.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
-        }
-
-        // Otherwise, don't apply any special treatment
-        return table
-    }
-
-    transformTable(table: OwidTable): OwidTable {
-        if (!this.yColumnSlugs.length) return table
-
-        table = table.filterByEntityNames(
-            this.selectionArray.selectedEntityNames
-        )
-
-        // TODO: remove this filter once we don't have mixed type columns in datasets
-        table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
-
-        table = table.dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
-
-        this.yColumnSlugs.forEach((slug) => {
-            table = table.interpolateColumnWithTolerance(slug)
-        })
-
-        table = this.applyMissingDataStrategy(table)
-
-        if (this.manager.isRelativeMode) {
-            table = table
-                .replaceNegativeCellsWithErrorValues(this.yColumnSlugs)
-                .toPercentageFromEachColumnForEachEntityAndTime(
-                    this.yColumnSlugs
-                )
-        }
-
-        return table
-    }
-
-    transformTableForSelection(table: OwidTable): OwidTable {
-        table = table
-            .replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
-            .replaceNegativeCellsWithErrorValues(this.yColumnSlugs)
-            .dropRowsWithErrorValuesForAllColumns(this.yColumnSlugs)
-
-        table = this.applyMissingDataStrategy(table)
-
-        return table
-    }
-
-    @computed private get missingDataStrategy(): MissingDataStrategy {
-        return this.manager.missingDataStrategy || MissingDataStrategy.auto
-    }
-
-    @computed get sortConfig(): SortConfig {
-        return this.manager.sortConfig ?? {}
+    @computed private get sortConfig(): SortConfig {
+        return this.chartState.sortConfig
     }
 
     @observable focusSeriesName?: SeriesName
 
-    @computed get inputTable(): OwidTable {
-        return this.manager.table
-    }
-
-    @computed get transformedTable(): OwidTable {
-        return (
-            this.manager.transformedTable ??
-            this.transformTable(this.inputTable)
-        )
+    @computed get chartState(): StackedDiscreteBarChartState {
+        return this.props.chartState
     }
 
     @computed private get manager(): StackedDiscreteBarChartManager {
-        return this.props.manager
+        return this.props.chartState.manager
     }
 
     @computed private get bounds(): Bounds {
@@ -266,11 +187,11 @@ export class StackedDiscreteBarChart
         return _.max(this.sizedItems.map((d) => d.label.width)) ?? 0
     }
 
-    @computed get showTotalValueLabel(): boolean {
+    @computed private get showTotalValueLabel(): boolean {
         return !this.manager.isRelativeMode && !this.manager.hideTotalValueLabel
     }
 
-    @computed get showHorizontalAxis(): boolean {
+    @computed private get showHorizontalAxis(): boolean {
         return !this.showTotalValueLabel
     }
 
@@ -340,7 +261,7 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager.selection)
+        return this.chartState.selectionArray
     }
 
     @computed private get items(): readonly Omit<Item, "label">[] {
@@ -376,7 +297,7 @@ export class StackedDiscreteBarChart
         return items
     }
 
-    @computed get sizedItems(): readonly Item[] {
+    @computed private get sizedItems(): readonly Item[] {
         // can't use `this.barHeight` due to a circular dependency
         const barHeight = this.approximateBarHeight
 
@@ -489,7 +410,7 @@ export class StackedDiscreteBarChart
 
     // legend props
 
-    @computed get legendPaddingTop(): number {
+    @computed private get legendPaddingTop(): number {
         return 0.5 * this.baseFontSize
     }
 
@@ -557,14 +478,6 @@ export class StackedDiscreteBarChart
         return this.yColumns[0]
     }
 
-    @computed get availableFacetStrategies(): FacetStrategy[] {
-        const strategies = [FacetStrategy.none]
-
-        if (this.yColumns.length > 1) strategies.push(FacetStrategy.metric)
-
-        return strategies
-    }
-
     @bind private formatValueForLabel(value: number): string {
         // Compute how many decimal places we should show.
         // Basically, this makes us show 2 significant digits, or no decimal places if the number
@@ -599,12 +512,12 @@ export class StackedDiscreteBarChart
     }
 
     render(): React.ReactElement {
-        if (this.failMessage)
+        if (this.chartState.failMessage)
             return (
                 <NoDataModal
                     manager={this.manager}
                     bounds={this.bounds}
-                    message={this.failMessage}
+                    message={this.chartState.failMessage}
                 />
             )
 
@@ -613,7 +526,11 @@ export class StackedDiscreteBarChart
             : this.renderInteractive()
     }
 
-    @computed get chartContext(): StackedBarChartContext {
+    @computed private get inputTable(): OwidTable {
+        return this.chartState.inputTable
+    }
+
+    @computed private get chartContext(): StackedBarChartContext {
         return {
             yAxis: this.yAxis,
             targetTime: this.manager.endTime,
@@ -952,83 +869,16 @@ export class StackedDiscreteBarChart
         )
     }
 
-    @computed get failMessage(): string {
-        const column = this.yColumns[0]
-
-        if (!column) return "No column to chart"
-
-        if (!this.selectionArray.hasSelection) return `No data selected`
-
-        // TODO is it better to use .series for this check?
-        return this.yColumns.every((col) => col.isEmpty)
-            ? "No matching data"
-            : ""
-    }
-
-    @computed protected get yColumnSlugs(): string[] {
-        return this.manager.yColumnSlugs ?? autoDetectYColumnSlugs(this.manager)
-    }
-
-    @computed protected get yColumns(): CoreColumn[] {
-        return this.transformedTable.getColumns(this.yColumnSlugs)
-    }
-
-    @computed private get sortColumnSlug(): string | undefined {
-        return this.sortConfig.sortColumnSlug
+    @computed private get yColumns(): CoreColumn[] {
+        return this.chartState.yColumns
     }
 
     @computed private get sortColumn(): CoreColumn | undefined {
-        return this.sortColumnSlug
-            ? this.transformedTable.getColumns([this.sortColumnSlug])[0]
-            : undefined
+        return this.chartState.sortColumn
     }
 
-    @computed private get colorScheme(): ColorScheme {
-        return (
-            (this.manager.baseColorScheme
-                ? ColorSchemes.get(this.manager.baseColorScheme)
-                : null) ?? ColorSchemes.get(ColorSchemeName["owid-distinct"])
-        )
-    }
-
-    @computed private get categoricalColorAssigner(): CategoricalColorAssigner {
-        const seriesCount = this.yColumns.length
-        return new CategoricalColorAssigner({
-            colorScheme: this.colorScheme,
-            invertColorScheme: this.manager.invertColorScheme,
-            colorMap: this.inputTable.columnDisplayNameToColorMap,
-            autoColorMapCache: this.manager.seriesColorMap,
-            numColorsInUse: seriesCount,
-        })
-    }
-
-    @computed private get unstackedSeries(): StackedSeries<EntityName>[] {
-        return (
-            this.yColumns
-                .map((col) => {
-                    return {
-                        seriesName: col.displayName,
-                        columnSlug: col.slug,
-                        color: this.categoricalColorAssigner.assign(
-                            col.displayName
-                        ),
-                        points: col.owidRows.map((row) => ({
-                            time: row.originalTime,
-                            position: row.entityName,
-                            value: row.value,
-                            valueOffset: 0,
-                        })),
-                    }
-                })
-                // Do not plot columns without data
-                .filter((series) => series.points.length > 0)
-        )
-    }
-
-    @computed get series(): readonly StackedSeries<EntityName>[] {
-        return stackSeriesInBothDirections(
-            withMissingValuesAsZeroes(this.unstackedSeries)
-        )
+    @computed private get series(): readonly StackedSeries<EntityName>[] {
+        return this.chartState.series
     }
 
     componentDidMount(): void {
