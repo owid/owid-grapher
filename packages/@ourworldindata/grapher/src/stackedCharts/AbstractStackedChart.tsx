@@ -22,7 +22,6 @@ import {
     Region,
 } from "@ourworldindata/utils"
 import { computed } from "mobx"
-import { observer } from "mobx-react"
 import React from "react"
 import {
     StackedPoint,
@@ -61,8 +60,7 @@ export interface AbstractStackedChartProps {
     enableLinearInterpolation?: boolean // defaults to true
 }
 
-@observer
-export class AbstractStackedChart
+export abstract class AbstractStackedChart
     extends React.Component<AbstractStackedChartProps>
     implements ChartInterface, AxisManager
 {
