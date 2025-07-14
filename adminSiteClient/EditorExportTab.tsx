@@ -1,7 +1,7 @@
-import { IReactionDisposer, action, computed, observable, reaction } from "mobx"
+import { action, computed } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
-import { Section, Toggle } from "./Forms.js"
+import { Section } from "./Forms.js"
 import {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
@@ -20,48 +20,8 @@ import { Button } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import urljoin from "url-join"
 
-type ExportSettings = Required<
-    Pick<
-        GrapherState,
-        | "hideTitle"
-        | "forceHideAnnotationFieldsInTitle"
-        | "hideSubtitle"
-        | "hideNote"
-        | "hideOriginUrl"
-        | "shouldIncludeDetailsInStaticExport"
-    >
->
-
-type OriginalGrapher = Pick<
-    GrapherState,
-    | "currentTitle"
-    | "shouldAddEntitySuffixToTitle"
-    | "shouldAddTimeSuffixToTitle"
-    | "currentSubtitle"
-    | "note"
-    | "originUrl"
-    | "shouldIncludeDetailsInStaticExport"
-    | "detailsOrderedByReference"
->
-
-type ExportSettingsByChartId = Record<number, ExportSettings>
-
 type Extension = "png" | "svg"
 type ExportFilename = `${string}.${Extension}`
-
-const STORAGE_KEY = "chart-export-settings"
-
-const DEFAULT_SETTINGS: ExportSettings = {
-    hideTitle: false,
-    forceHideAnnotationFieldsInTitle: {
-        entity: false,
-        time: false,
-    },
-    hideSubtitle: false,
-    hideNote: false,
-    hideOriginUrl: false,
-    shouldIncludeDetailsInStaticExport: false,
-}
 
 interface EditorExportTabProps<Editor> {
     editor: Editor
@@ -71,131 +31,17 @@ interface EditorExportTabProps<Editor> {
 export class EditorExportTab<
     Editor extends AbstractChartEditor,
 > extends Component<EditorExportTabProps<Editor>> {
-    @observable private settings = DEFAULT_SETTINGS
-    private originalSettings: Partial<ExportSettings> = DEFAULT_SETTINGS
-    private originalGrapher: OriginalGrapher
-    private disposers: IReactionDisposer[] = []
-
-    constructor(props: EditorExportTabProps<Editor>) {
-        super(props)
-        this.originalGrapher = this.grabRelevantPropertiesFromGrapher()
-    }
-
     componentDidMount(): void {
-        this.saveOriginalSettings()
-
         // Show a static chart preview on the export tab
         this.grapherState.isExportingToSvgOrPng = true
-
-        // Use autorun with the computed property to track settings changes
-        const dispose = reaction(
-            () => this.currentSettings,
-            () => {
-                // store min and max time because these are not part of currentSettings
-                // but undefined will reset to -infinity and +infinity
-                action(() => {
-                    const minTime = this.grapherState.minTime
-                    const maxTime = this.grapherState.maxTime
-                    this.grapherState.updateFromObject(this.currentSettings)
-                    this.grapherState.minTime = minTime
-                    this.grapherState.maxTime = maxTime
-                })()
-            }
-        )
-
-        if (sessionStorage) {
-            this.loadSettingsFromSessionStorage()
-        }
-
-        this.disposers.push(dispose)
     }
 
     componentWillUnmount(): void {
-        this.resetGrapher()
         this.grapherState.isExportingToSvgOrPng = false
-
-        if (sessionStorage) {
-            this.saveSettingsToSessionStorage()
-        }
-
-        this.disposers.forEach((dispose) => dispose())
-    }
-
-    private loadSettingsFromSessionStorage() {
-        const settingsByChartId = (loadJSONFromSessionStorage(STORAGE_KEY) ??
-            {}) as ExportSettingsByChartId
-        const settings = settingsByChartId[this.chartId]
-        if (settings) {
-            this.settings = settings
-        }
-    }
-
-    private saveSettingsToSessionStorage() {
-        const settingsByChartId = (loadJSONFromSessionStorage(STORAGE_KEY) ??
-            {}) as ExportSettingsByChartId
-        settingsByChartId[this.chartId] = this.settings
-        saveJSONToSessionStorage(STORAGE_KEY, settingsByChartId)
-    }
-
-    private saveOriginalSettings() {
-        this.originalSettings = {
-            hideTitle: this.grapherState.hideTitle,
-            forceHideAnnotationFieldsInTitle:
-                this.grapherState.forceHideAnnotationFieldsInTitle,
-            hideSubtitle: this.grapherState.hideSubtitle,
-            hideNote: this.grapherState.hideNote,
-            hideOriginUrl: this.grapherState.hideOriginUrl,
-            shouldIncludeDetailsInStaticExport:
-                this.grapherState.shouldIncludeDetailsInStaticExport,
-        }
-    }
-
-    // a deep clone of Grapher would be simpler and cleaner, but takes too long
-    private grabRelevantPropertiesFromGrapher(): OriginalGrapher {
-        return {
-            currentTitle: this.grapherState.currentTitle,
-            shouldAddEntitySuffixToTitle:
-                this.grapherState.shouldAddEntitySuffixToTitle,
-            shouldAddTimeSuffixToTitle:
-                this.grapherState.shouldAddTimeSuffixToTitle,
-            currentSubtitle: this.grapherState.currentSubtitle,
-            note: this.grapherState.note,
-            originUrl: this.grapherState.originUrl,
-            shouldIncludeDetailsInStaticExport:
-                this.grapherState.shouldIncludeDetailsInStaticExport,
-            detailsOrderedByReference:
-                this.grapherState.detailsOrderedByReference,
-        }
-    }
-
-    @action private resetGrapher() {
-        const minTime = this.grapherState.minTime
-        const maxTime = this.grapherState.maxTime
-        this.grapherState.updateFromObject(this.originalSettings)
-        this.grapherState.minTime = minTime
-        this.grapherState.maxTime = maxTime
-    }
-
-    @computed private get currentSettings(): ExportSettings {
-        return {
-            hideTitle: this.settings.hideTitle,
-            forceHideAnnotationFieldsInTitle:
-                this.settings.forceHideAnnotationFieldsInTitle,
-            hideSubtitle: this.settings.hideSubtitle,
-            hideNote: this.settings.hideNote,
-            hideOriginUrl: this.settings.hideOriginUrl,
-            shouldIncludeDetailsInStaticExport:
-                this.settings.shouldIncludeDetailsInStaticExport,
-        }
     }
 
     @computed private get grapherState(): GrapherState {
         return this.props.editor.grapherState
-    }
-
-    @computed private get chartId(): number {
-        // the id is undefined for unsaved charts
-        return this.grapherState.id ?? 0
     }
 
     @computed private get baseFilename(): string {
@@ -301,92 +147,6 @@ export class EditorExportTab<
 
         return (
             <div className="EditorExportTab">
-                <Section name="Displayed elements">
-                    {this.originalGrapher.currentTitle && (
-                        <Toggle
-                            label="Title"
-                            value={!this.settings.hideTitle}
-                            onValue={action((value) => {
-                                this.settings.hideTitle = !value
-                            })}
-                        />
-                    )}
-                    {this.originalGrapher.currentTitle &&
-                        this.originalGrapher.shouldAddEntitySuffixToTitle && (
-                            <Toggle
-                                label="Title suffix: automatic entity"
-                                value={
-                                    !this.settings
-                                        .forceHideAnnotationFieldsInTitle
-                                        ?.entity
-                                }
-                                onValue={action(
-                                    (value) =>
-                                        (this.settings.forceHideAnnotationFieldsInTitle.entity =
-                                            !value)
-                                )}
-                            />
-                        )}
-                    {this.originalGrapher.currentTitle &&
-                        this.originalGrapher.shouldAddTimeSuffixToTitle && (
-                            <Toggle
-                                label="Title suffix: automatic time"
-                                value={
-                                    !this.settings
-                                        .forceHideAnnotationFieldsInTitle?.time
-                                }
-                                onValue={action(
-                                    (value) =>
-                                        (this.settings.forceHideAnnotationFieldsInTitle.time =
-                                            !value)
-                                )}
-                            />
-                        )}
-                    {this.originalGrapher.currentSubtitle && (
-                        <Toggle
-                            label="Subtitle"
-                            value={!this.settings.hideSubtitle}
-                            onValue={action(
-                                (value) => (this.settings.hideSubtitle = !value)
-                            )}
-                        />
-                    )}
-                    {this.originalGrapher.note && (
-                        <Toggle
-                            label="Note"
-                            value={!this.settings.hideNote}
-                            onValue={action(
-                                (value) => (this.settings.hideNote = !value)
-                            )}
-                        />
-                    )}
-                    {this.originalGrapher.originUrl &&
-                        !this.grapherState.isStaticAndSmall && (
-                            <Toggle
-                                label="Origin URL"
-                                value={!this.settings.hideOriginUrl}
-                                onValue={action(
-                                    (value) =>
-                                        (this.settings.hideOriginUrl = !value)
-                                )}
-                            />
-                        )}
-                    {this.originalGrapher.detailsOrderedByReference.length >
-                        0 && (
-                        <Toggle
-                            label="Details on demand"
-                            value={
-                                this.settings.shouldIncludeDetailsInStaticExport
-                            }
-                            onValue={action(
-                                (value) =>
-                                    (this.settings.shouldIncludeDetailsInStaticExport =
-                                        value)
-                            )}
-                        />
-                    )}
-                </Section>
-
                 <Section name="Export static chart">
                     <div className="DownloadButtons">
                         <button
@@ -448,19 +208,4 @@ export class EditorExportTab<
             </div>
         )
     }
-}
-
-function loadJSONFromSessionStorage(key: string): unknown | undefined {
-    const rawJSON = sessionStorage.getItem(key)
-    if (!rawJSON) return undefined
-    try {
-        return JSON.parse(rawJSON)
-    } catch (err) {
-        console.error(err)
-        return undefined
-    }
-}
-
-function saveJSONToSessionStorage(key: string, value: any) {
-    sessionStorage.setItem(key, JSON.stringify(value))
 }

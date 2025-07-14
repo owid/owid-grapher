@@ -20,8 +20,6 @@ export interface HeaderManager {
     isInIFrame?: boolean
     useBaseFontSize?: boolean
     fontSize?: number
-    hideTitle?: boolean
-    hideSubtitle?: boolean
     isStaticAndSmall?: boolean
     isSocialMediaExport?: boolean
     detailsMarkerInSvg?: DetailsMarker

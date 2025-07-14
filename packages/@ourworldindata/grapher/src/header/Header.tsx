@@ -48,11 +48,11 @@ export class Header<
     }
 
     @computed protected get showTitle(): boolean {
-        return !this.manager.hideTitle && !!this.titleText
+        return !!this.titleText
     }
 
     @computed protected get showSubtitle(): boolean {
-        return !this.manager.hideSubtitle && !!this.subtitleText
+        return !!this.subtitleText
     }
 
     @computed protected get titleText(): string {

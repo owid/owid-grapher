@@ -256,11 +256,6 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     baseFontSize?: number
     staticBounds?: Bounds
 
-    hideTitle?: boolean
-    hideSubtitle?: boolean
-    hideNote?: boolean
-    hideOriginUrl?: boolean
-
     hideEntityControls?: boolean
     hideZoomToggle?: boolean
     hideNoDataAreaToggle?: boolean
@@ -1619,12 +1614,8 @@ export class GrapherState {
         if (typeof window === "undefined") return []
 
         // extract details from supporting text
-        const subtitleDetails = !this.hideSubtitle
-            ? extractDetailsFromSyntax(this.currentSubtitle)
-            : []
-        const noteDetails = !this.hideNote
-            ? extractDetailsFromSyntax(this.note ?? "")
-            : []
+        const subtitleDetails = extractDetailsFromSyntax(this.currentSubtitle)
+        const noteDetails = extractDetailsFromSyntax(this.note ?? "")
 
         // extract details from axis labels
         const yAxisDetails = extractDetailsFromSyntax(
@@ -3380,11 +3371,6 @@ export class GrapherState {
     @computed private get numSelectableEntityNames(): number {
         return this.availableEntityNames.length
     }
-
-    @observable hideTitle = false
-    @observable hideSubtitle = false
-    @observable hideNote = false
-    @observable hideOriginUrl = false
 
     // For now I am only exposing this programmatically for the dashboard builder. Setting this to true
     // allows you to still use add country "modes" without showing the buttons in order to prioritize

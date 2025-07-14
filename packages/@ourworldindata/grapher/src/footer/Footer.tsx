@@ -91,10 +91,6 @@ export class Footer<
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
-    @computed protected get hideOriginUrl(): boolean {
-        return !!this.manager.hideOriginUrl
-    }
-
     @computed protected get sourcesLine(): string {
         return this.manager.sourcesLine?.replace(/\r\n|\n|\r/g, "") ?? ""
     }
@@ -162,8 +158,6 @@ export class Footer<
             actionButtons,
         } = this
 
-        if (this.hideOriginUrl) return undefined
-
         if (!correctedUrlText) return undefined
 
         const licenseAndOriginUrlText = Footer.constructLicenseAndOriginUrlText(
@@ -212,7 +206,7 @@ export class Footer<
     }
 
     @computed protected get showNote(): boolean {
-        return !this.manager.hideNote && !!this.noteText
+        return !!this.noteText
     }
 
     @computed private get actionButtonsWidthWithIconsOnly(): number {
@@ -645,7 +639,7 @@ export class StaticFooter extends Footer<StaticFooterProps> {
     componentWillUnmount(): void {}
 
     @computed protected get hideOriginUrl(): boolean {
-        return !!this.manager.hideOriginUrl || !!this.manager.isStaticAndSmall
+        return !!this.manager.isStaticAndSmall
     }
 
     @computed private get textColor(): string {
