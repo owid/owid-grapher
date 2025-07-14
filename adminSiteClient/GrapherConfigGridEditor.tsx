@@ -27,7 +27,7 @@ import {
     Draggable,
     DropResult,
 } from "react-beautiful-dnd"
-import { Disposer, observer } from "mobx-react"
+import { observer } from "mobx-react"
 import {
     observable,
     computed,
@@ -107,6 +107,8 @@ import jsonpointer from "json8-pointer"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { Operation } from "../adminShared/SqlFilterSExpression.js"
 import { DATA_API_URL } from "../settings/clientSettings.js"
+
+type Disposer = () => void
 
 // The rule doesn't support class components in the same file.
 // eslint-disable-next-line react-refresh/only-export-components
