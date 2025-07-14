@@ -22,8 +22,8 @@ import {
     ALGOLIA_ID,
     ALGOLIA_SEARCH_KEY,
 } from "../../settings/clientSettings.js"
-import { action, observable, makeObservable } from "mobx";
-import { observer } from "mobx-react"
+import { action, observable, makeObservable } from "mobx"
+import { Observer, observer } from "mobx-react"
 import {
     IChartHit,
     SearchCategoryFilter,
@@ -468,7 +468,8 @@ export class DEPRECATEDInstantSearchContainer extends React.Component {
 
     constructor(props: Record<string, never>) {
         super(props)
-        makeObservable(this);
+        makeObservable(this)
+
         this.searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
         this.categoryFilterContainerRef = React.createRef<HTMLUListElement>()
         this.handleCategoryFilterClick =
@@ -519,64 +520,71 @@ export class DEPRECATEDInstantSearchContainer extends React.Component {
 
     render() {
         return (
-            <InstantSearch
-                routing={{
-                    // This controls algolia's automatic mapping of the search query to search params
-                    // we're customizing it here to remove any filter / facet information so that it's just ?q=some+query
-                    stateMapping: {
-                        stateToRoute(uiState) {
-                            const query =
-                                uiState[getIndexName(SearchIndexName.Pages)]
-                                    .query
-                            return {
-                                q: query,
-                            }
-                        },
-                        routeToState(routeState) {
-                            const query = routeState.q
-                            return {
-                                [getIndexName(SearchIndexName.Pages)]: {
-                                    query: query,
+            // I don't exactly know why we need to use Observer here, but without it the search results don't show up
+            // when you go to search?q=some+query
+            <Observer>
+                {() => (
+                    <InstantSearch
+                        routing={{
+                            // This controls algolia's automatic mapping of the search query to search params
+                            // we're customizing it here to remove any filter / facet information so that it's just ?q=some+query
+                            stateMapping: {
+                                stateToRoute(uiState) {
+                                    const query =
+                                        uiState[
+                                            getIndexName(SearchIndexName.Pages)
+                                        ].query
+                                    return {
+                                        q: query,
+                                    }
                                 },
-                            }
-                        },
-                    },
-                }}
-                searchClient={this.searchClient}
-                indexName={getIndexName(SearchIndexName.Pages)}
-            >
-                <div className="search-panel">
-                    <SearchBox
-                        autoFocus
-                        placeholder={DEFAULT_SEARCH_PLACEHOLDER}
-                        className="searchbox"
-                        classNames={{
-                            input: "search-panel-input",
-                            reset: "search-panel-reset-button",
+                                routeToState(routeState) {
+                                    const query = routeState.q
+                                    return {
+                                        [getIndexName(SearchIndexName.Pages)]: {
+                                            query: query,
+                                        },
+                                    }
+                                },
+                            },
                         }}
-                        queryHook={this.handleQuery}
-                    />
-                    <Filters
-                        isHidden={!this.inputValue}
-                        categoryFilterContainerRef={
-                            this.categoryFilterContainerRef
-                        }
-                        activeCategoryFilter={this.activeCategoryFilter}
-                        handleCategoryFilterClick={
-                            this.handleCategoryFilterClick
-                        }
-                    />
-                    <SearchResults
-                        isHidden={!this.inputValue}
-                        activeCategoryFilter={this.activeCategoryFilter}
-                        query={this.inputValue}
-                        handleCategoryFilterClick={
-                            this.handleCategoryFilterClick
-                        }
-                    />
-                    <PoweredBy />
-                </div>
-            </InstantSearch>
+                        searchClient={this.searchClient}
+                        indexName={getIndexName(SearchIndexName.Pages)}
+                    >
+                        <div className="search-panel">
+                            <SearchBox
+                                autoFocus
+                                placeholder={DEFAULT_SEARCH_PLACEHOLDER}
+                                className="searchbox"
+                                classNames={{
+                                    input: "search-panel-input",
+                                    reset: "search-panel-reset-button",
+                                }}
+                                queryHook={this.handleQuery}
+                            />
+                            <Filters
+                                isHidden={!this.inputValue}
+                                categoryFilterContainerRef={
+                                    this.categoryFilterContainerRef
+                                }
+                                activeCategoryFilter={this.activeCategoryFilter}
+                                handleCategoryFilterClick={
+                                    this.handleCategoryFilterClick
+                                }
+                            />
+                            <SearchResults
+                                isHidden={!this.inputValue}
+                                activeCategoryFilter={this.activeCategoryFilter}
+                                query={this.inputValue}
+                                handleCategoryFilterClick={
+                                    this.handleCategoryFilterClick
+                                }
+                            />
+                            <PoweredBy />
+                        </div>
+                    </InstantSearch>
+                )}
+            </Observer>
         )
     }
 }
