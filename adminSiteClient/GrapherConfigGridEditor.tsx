@@ -205,7 +205,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     @observable sortByColumn: string = "id"
     @observable sortByAscending: boolean = false
     readonly config: GrapherConfigGridEditorConfig
-    disposers: Array<() => void> = []
+    disposers: Disposer[] = []
 
     constructor(props: GrapherConfigGridEditorProps) {
         super(props)

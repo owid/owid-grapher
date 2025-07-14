@@ -18,7 +18,7 @@ import {
     dyFromAlign,
     exposeInstanceOnWindow,
 } from "@ourworldindata/utils"
-import { action, computed, observable } from "mobx"
+import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
     ColorSchemeName,
@@ -122,16 +122,23 @@ interface StackedBarChartContext {
     baseFontSize: number
 }
 
+interface StackedDiscreteBarChartProps {
+    bounds?: Bounds
+    manager: StackedDiscreteBarChartManager
+    containerElement?: HTMLDivElement
+}
+
 @observer
 export class StackedDiscreteBarChart
-    extends React.Component<{
-        bounds?: Bounds
-        manager: StackedDiscreteBarChartManager
-        containerElement?: HTMLDivElement
-    }>
+    extends React.Component<StackedDiscreteBarChartProps>
     implements ChartInterface, HorizontalColorLegendManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
+
+    constructor(props: StackedDiscreteBarChartProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     private applyMissingDataStrategy(table: OwidTable): OwidTable {
         if (this.missingDataStrategy === MissingDataStrategy.hide) {

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed, action } from "mobx"
+import { computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Dropdown } from "./Dropdown"
 import { EntityName } from "@ourworldindata/utils"
@@ -30,10 +30,17 @@ interface DropdownOption {
     trackNote: "data_table_filter_by"
 }
 
-@observer
-export class DataTableFilterDropdown extends React.Component<{
+interface DataTableFilterDropdownProps {
     manager: DataTableFilterDropdownManager
-}> {
+}
+
+@observer
+export class DataTableFilterDropdown extends React.Component<DataTableFilterDropdownProps> {
+    constructor(props: DataTableFilterDropdownProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     static shouldShow(manager: DataTableFilterDropdownManager): boolean {
         const menu = new DataTableFilterDropdown({ manager })
         return menu.shouldShow

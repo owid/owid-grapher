@@ -300,6 +300,11 @@ export class Header extends AbstractHeader<HeaderProps> {}
 
 @observer
 export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
+    constructor(props: StaticHeaderProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     protected verticalPadding = 6
 
     @override get titleLineHeight(): number {

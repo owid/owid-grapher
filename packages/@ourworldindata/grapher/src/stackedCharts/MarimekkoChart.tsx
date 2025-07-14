@@ -16,7 +16,7 @@ import {
     makeIdForHumanConsumption,
     dyFromAlign,
 } from "@ourworldindata/utils"
-import { action, computed, observable } from "mobx"
+import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
     BASE_FONT_SIZE,
@@ -245,16 +245,23 @@ function MarimekkoBarsForOneEntity(
     )
 }
 
+interface MarimekkoChartProps {
+    bounds?: Bounds
+    manager: MarimekkoChartManager
+    containerElement?: HTMLDivElement
+}
+
 @observer
 export class MarimekkoChart
-    extends React.Component<{
-        bounds?: Bounds
-        manager: MarimekkoChartManager
-        containerElement?: HTMLDivElement
-    }>
+    extends React.Component<MarimekkoChartProps>
     implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
+
+    constructor(props: MarimekkoChartProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     defaultBaseColorScheme = ColorSchemeName.continents
     defaultNoDataColor = OWID_NO_DATA_GRAY

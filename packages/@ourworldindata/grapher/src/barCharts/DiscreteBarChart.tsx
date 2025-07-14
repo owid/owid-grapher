@@ -15,7 +15,7 @@ import {
     makeIdForHumanConsumption,
     dyFromAlign,
 } from "@ourworldindata/utils"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     ScaleType,
@@ -97,14 +97,20 @@ interface DiscreteBarItem {
     color?: Color
 }
 
+interface DiscreteBarChartProps {
+    bounds?: Bounds
+    manager: DiscreteBarChartManager
+}
+
 @observer
 export class DiscreteBarChart
-    extends React.Component<{
-        bounds?: Bounds
-        manager: DiscreteBarChartManager
-    }>
+    extends React.Component<DiscreteBarChartProps>
     implements ChartInterface, AxisManager, ColorScaleManager
 {
+    constructor(props: DiscreteBarChartProps) {
+        super(props)
+        makeObservable(this)
+    }
     base: React.RefObject<SVGGElement> = React.createRef()
 
     transformTable(table: OwidTable): OwidTable {

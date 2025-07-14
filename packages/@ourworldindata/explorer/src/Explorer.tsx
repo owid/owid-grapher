@@ -54,7 +54,7 @@ import {
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import classNames from "classnames"
-import { action, computed, observable, reaction } from "mobx"
+import { action, computed, makeObservable, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
 import React, { useCallback, useEffect, useState } from "react"
 import ReactDOM from "react-dom"
@@ -198,6 +198,8 @@ export class Explorer
 
     constructor(props: ExplorerProps) {
         super(props)
+        makeObservable(this)
+
         this.explorerProgram = ExplorerProgram.fromJson(
             props
         ).initDecisionMatrix(this.initialQueryParams)

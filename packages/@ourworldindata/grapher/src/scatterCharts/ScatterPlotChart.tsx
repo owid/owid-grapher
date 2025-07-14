@@ -13,7 +13,7 @@ import {
     ColumnSlug,
     AxisAlign,
 } from "@ourworldindata/types"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx"
 import { ScaleLinear, scaleSqrt } from "d3-scale"
 import { Quadtree, quadtree } from "d3-quadtree"
 import { quantize, interpolate } from "d3-interpolate"
@@ -102,12 +102,14 @@ function computeSizeDomain(table: OwidTable, slug: ColumnSlug): ValueRange {
     return [0, _.max(sizeValues) ?? 1]
 }
 
+interface ScatterPlotProps {
+    bounds?: Bounds
+    manager: ScatterPlotManager
+}
+
 @observer
 export class ScatterPlotChart
-    extends React.Component<{
-        bounds?: Bounds
-        manager: ScatterPlotManager
-    }>
+    extends React.Component<ScatterPlotProps>
     implements
         ConnectedScatterLegendManager,
         ScatterSizeLegendManager,
@@ -115,6 +117,10 @@ export class ScatterPlotChart
         VerticalColorLegendManager,
         ColorScaleManager
 {
+    constructor(props: ScatterPlotProps) {
+        super(props)
+        makeObservable(this)
+    }
     // currently hovered legend color
     @observable private hoverColor?: Color
     // current hovered individual series + tooltip position

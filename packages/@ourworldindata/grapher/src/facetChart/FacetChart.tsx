@@ -16,7 +16,7 @@ import {
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { shortenForTargetWidth } from "@ourworldindata/components"
-import { action, computed, observable } from "mobx"
+import { action, computed, makeObservable, observable } from "mobx"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
 import {
     GRAPHER_CHART_TYPES,
@@ -116,6 +116,11 @@ export class FacetChart
     extends React.Component<FacetChartProps>
     implements ChartInterface, HorizontalColorLegendManager
 {
+    constructor(props: FacetChartProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     transformTable(table: OwidTable): OwidTable {
         return table
     }

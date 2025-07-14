@@ -117,6 +117,7 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
 
     constructor(obj?: Partial<MapConfigInterface>) {
         super()
+        // eslint-disable-next-line mobx/exhaustive-make-observable
         makeObservable(this)
         if (obj) this.updateFromObject(obj)
     }

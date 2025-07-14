@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import React from "react"
 import { observer } from "mobx-react"
-import { computed, action } from "mobx"
+import { computed, action, makeObservable } from "mobx"
 import { GrapherInterface, DimensionProperty } from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -14,15 +14,21 @@ import {
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import { References } from "./AbstractChartEditor.js"
 
+interface IndicatorChartEditorPageProps {
+    variableId: number
+}
+
 @observer
 export class IndicatorChartEditorPage
-    extends React.Component<{
-        variableId: number
-    }>
+    extends React.Component<IndicatorChartEditorPageProps>
     implements
         IndicatorChartEditorManager,
         ChartEditorViewManager<IndicatorChartEditor>
 {
+    constructor(props: IndicatorChartEditorPageProps) {
+        super(props)
+        makeObservable(this)
+    }
     static contextType = AdminAppContext
     declare context: AdminAppContextType
 

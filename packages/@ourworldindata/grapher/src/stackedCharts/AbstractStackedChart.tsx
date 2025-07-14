@@ -21,7 +21,7 @@ import {
     guid,
     Region,
 } from "@ourworldindata/utils"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import React from "react"
 import {
     StackedPoint,
@@ -64,6 +64,11 @@ export abstract class AbstractStackedChart
     extends React.Component<AbstractStackedChartProps>
     implements ChartInterface, AxisManager
 {
+    constructor(props: AbstractStackedChartProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     transformTable(table: OwidTable): OwidTable {
         table = table.filterByEntityNames(
             this.selectionArray.selectedEntityNames

@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useHistory, useLocation } from "react-router-dom"
-import { action, computed, observable } from "mobx"
+import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import type { History } from "history"
 
@@ -51,6 +51,11 @@ class CreateNarrativeChartEditorPageInternal
 {
     static contextType = AdminAppContext
     declare context: AdminAppContextType
+
+    constructor(props: CreateNarrativeChartEditorPageInternalProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     id?: number
     @observable name?: string
