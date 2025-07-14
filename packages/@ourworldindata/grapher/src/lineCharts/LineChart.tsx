@@ -18,7 +18,7 @@ import {
     makeIdForHumanConsumption,
     isTouchDevice,
 } from "@ourworldindata/utils"
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
@@ -126,6 +126,11 @@ const LEGEND_PADDING = 25
 
 @observer
 class Lines extends React.Component<LinesProps> {
+    constructor(props: LinesProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed get bounds(): Bounds {
         const { horizontalAxis, verticalAxis } = this.props.dualAxis
         return Bounds.fromCorners(
@@ -372,6 +377,11 @@ export class LineChart
         HorizontalColorLegendManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
+
+    constructor(props: { bounds?: Bounds; manager: LineChartManager }) {
+        super(props)
+        makeObservable(this)
+    }
 
     transformTable(table: OwidTable): OwidTable {
         table = table.filterByEntityNames(

@@ -13,7 +13,7 @@ import {
     regions,
     checkHasMembers,
 } from "@ourworldindata/utils"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     HorizontalCategoricalColorLegend,
@@ -110,6 +110,11 @@ export class MapChart
     @observable hoverBracket?: MapBracket
 
     @observable tooltipState = new TooltipState<{ featureId: string }>()
+
+    constructor(props: MapChartProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     transformTable(table: OwidTable): OwidTable {
         // Drop non-mappable entities from the table
