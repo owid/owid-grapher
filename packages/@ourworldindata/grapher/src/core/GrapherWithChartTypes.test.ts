@@ -71,5 +71,5 @@ test("grapher and discrete bar charts", () => {
         chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
         ...basicGrapherConfig,
     })
-    expect(grapher.chartInstance.series.length).toBeGreaterThan(0)
+    expect(grapher.chartState.series.length).toBeGreaterThan(0)
 })

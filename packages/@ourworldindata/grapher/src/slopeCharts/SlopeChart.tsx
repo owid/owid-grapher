@@ -36,7 +36,7 @@ import {
     InteractionState,
     HorizontalAlign,
 } from "@ourworldindata/types"
-import { ChartInterface } from "../chart/ChartInterface"
+import { ChartState } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import { select } from "d3-selection"
@@ -113,7 +113,7 @@ export class SlopeChart
         bounds?: Bounds
         manager: SlopeChartManager
     }>
-    implements ChartInterface
+    implements ChartState
 {
     private slopeAreaRef: React.RefObject<SVGGElement> = React.createRef()
     private defaultBaseColorScheme = ColorSchemeName.OwidDistinctLines

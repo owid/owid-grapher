@@ -501,9 +501,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         />
                     ) : undefined
                 } else {
-                    if (grapherState.chartInstanceExceptMap.colorScale) {
+                    if (grapherState.chartStateExceptMap.colorScale) {
                         const colorScale =
-                            grapherState.chartInstanceExceptMap.colorScale
+                            grapherState.chartStateExceptMap.colorScale
                         // TODO: instead of using onChange below that has to be maintained when
                         // the color scale changes I tried to use a reaction here after Daniel G's suggestion
                         // but I couldn't get this to work. Worth trying again later.

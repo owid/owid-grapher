@@ -53,7 +53,7 @@ import {
     GRAPHER_MAX_TOOLTIP_WIDTH,
     Patterns,
 } from "../core/GrapherConstants"
-import { ChartInterface } from "../chart/ChartInterface"
+import { ChartState } from "../chart/ChartInterface"
 import {
     CategoricalBin,
     ColorScaleBin,
@@ -93,10 +93,7 @@ interface MapChartProps {
 @observer
 export class MapChart
     extends Component<MapChartProps>
-    implements
-        ChartInterface,
-        HorizontalColorLegendManager,
-        ChoroplethMapManager
+    implements ChartState, HorizontalColorLegendManager, ChoroplethMapManager
 {
     /** The id of the currently hovered feature/country */
     @observable hoverFeatureId?: string

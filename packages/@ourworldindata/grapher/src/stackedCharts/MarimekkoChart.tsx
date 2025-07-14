@@ -26,7 +26,7 @@ import {
 import { DualAxisComponent } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig } from "../axis/AxisConfig"
-import { ChartInterface } from "../chart/ChartInterface"
+import { ChartState } from "../chart/ChartInterface"
 import {
     EntityName,
     OwidVariableRow,
@@ -251,7 +251,7 @@ export class MarimekkoChart
         bounds?: Bounds
         manager: MarimekkoChartManager
     }>
-    implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager
+    implements ChartState, HorizontalColorLegendManager, ColorScaleManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
 

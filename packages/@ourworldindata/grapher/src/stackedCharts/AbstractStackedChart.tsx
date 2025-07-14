@@ -1,6 +1,6 @@
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
-import { ChartInterface } from "../chart/ChartInterface"
+import { ChartState } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import {
     ColorSchemeName,
@@ -65,7 +65,7 @@ export interface AbstractStackedChartProps {
 
 export abstract class AbstractStackedChart
     extends React.Component<AbstractStackedChartProps>
-    implements ChartInterface, AxisManager
+    implements ChartState, AxisManager
 {
     transformTable(table: OwidTable): OwidTable {
         table = table.filterByEntityNames(

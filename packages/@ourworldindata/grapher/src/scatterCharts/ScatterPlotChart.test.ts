@@ -150,7 +150,7 @@ describe("interpolation defaults", () => {
         colorSlug: "color",
         sizeSlug: "size",
     })
-    const chart = grapher.chartInstance as ScatterPlotChart
+    const chart = grapher.chartState as ScatterPlotChart
 
     it("color defaults to infinity tolerance if none specified", () => {
         expect(
@@ -207,7 +207,7 @@ describe("basic scatterplot", () => {
         sizeSlug: "size",
         table,
     })
-    const chart = grapher.chartInstance as ScatterPlotChart
+    const chart = grapher.chartState as ScatterPlotChart
 
     it("removes error values from X and Y", () => {
         expect(chart.transformedTable.numRows).toEqual(2)
@@ -438,7 +438,7 @@ describe("entity exclusion", () => {
         matchingEntitiesOnly: true,
         table,
     })
-    const chart = grapher.chartInstance as ScatterPlotChart
+    const chart = grapher.chartState as ScatterPlotChart
 
     it("excludes entities without color when matchingEntitiesOnly is enabled", () => {
         expect(chart.allPoints.length).toEqual(1)
@@ -827,7 +827,7 @@ describe("x/y tolerance", () => {
         sizeSlug: "size",
         table,
     })
-    const chart = grapher.chartInstance as ScatterPlotChart
+    const chart = grapher.chartState as ScatterPlotChart
 
     const transformedTable = chart.transformedTable
 
@@ -1073,7 +1073,7 @@ it("applies color tolerance before applying the author timeline filter", () => {
         sizeSlug: "size",
         timelineMaxTime: 2020,
     })
-    const chart = grapher.chartInstance as ScatterPlotChart
+    const chart = grapher.chartState as ScatterPlotChart
 
     expect(
         _.uniq(chart.transformedTable.get("color").valuesIncludingErrorValues)

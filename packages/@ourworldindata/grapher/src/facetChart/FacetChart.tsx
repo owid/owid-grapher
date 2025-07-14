@@ -29,12 +29,9 @@ import {
     SeriesStrategy,
     AxisConfigInterface,
 } from "@ourworldindata/types"
-import {
-    ChartComponentClassMap,
-    DefaultChartClass,
-} from "../chart/ChartTypeMap"
+import { ChartComponent, makeChartInstance } from "../chart/ChartTypeMap"
 import { ChartManager } from "../chart/ChartManager"
-import { ChartInterface } from "../chart/ChartInterface"
+import { ChartInterface, ChartState } from "../chart/ChartInterface"
 import {
     getChartPadding,
     getFontSize,
@@ -101,7 +98,7 @@ const shouldHideFacetAxis = (
 interface AxisInfo {
     config: AxisConfigInterface
     axisAccessor: (
-        instance: ChartInterface
+        chartInstance: ChartInterface
     ) => HorizontalAxis | VerticalAxis | undefined
     uniform: boolean
     /** only considered when `uniform` is `true`, otherwise ignored */
@@ -116,7 +113,7 @@ interface AxesInfo {
 @observer
 export class FacetChart
     extends React.Component<FacetChartProps>
-    implements ChartInterface, HorizontalColorLegendManager
+    implements ChartState, HorizontalColorLegendManager
 {
     transformTable(table: OwidTable): OwidTable {
         return table
@@ -352,10 +349,12 @@ export class FacetChart
 
     @computed get intermediateChartInstances(): ChartInterface[] {
         return this.intermediatePlacedSeries.map(({ bounds, manager }) => {
-            const ChartClass =
-                ChartComponentClassMap.get(this.chartTypeName) ??
-                DefaultChartClass
-            return new ChartClass({ bounds, manager })
+            return makeChartInstance({
+                manager,
+                bounds,
+                chartType: this.chartTypeName,
+                renderMode: this.manager.renderMode,
+            })
         })
     }
 
@@ -738,7 +737,7 @@ export class FacetChart
         // find colours of all currently focused series
         const activeColors = _.uniq(
             this.intermediateChartInstances.flatMap((chartInstance) =>
-                chartInstance.series
+                chartInstance.chartState.series
                     .filter((series) => focusArray.has(series.seriesName))
                     .map((series) => series.color)
             )
@@ -803,7 +802,7 @@ export class FacetChart
         // find all series (of all facets) that are contained in the bin
         const seriesNames = _.uniq(
             this.intermediateChartInstances.flatMap((chartInstance) =>
-                chartInstance.series
+                chartInstance.chartState.series
                     .filter((series) => bin.contains(series.seriesName))
                     .map((series) => series.seriesName)
             )
@@ -871,9 +870,6 @@ export class FacetChart
             <React.Fragment>
                 {showLegend && <LegendClass manager={this} />}
                 {this.placedSeries.map((facetChart, index: number) => {
-                    const ChartClass =
-                        ChartComponentClassMap.get(this.chartTypeName) ??
-                        DefaultChartClass
                     const { bounds, contentBounds, seriesName } = facetChart
                     const labelPadding = getLabelPadding(facetFontSize)
 
@@ -897,9 +893,11 @@ export class FacetChart
                                 <title>{seriesName}</title>
                             </text>
                             <g id={makeIdForHumanConsumption(seriesName)}>
-                                <ChartClass
-                                    bounds={bounds}
+                                <ChartComponent
                                     manager={facetChart.manager}
+                                    chartType={this.chartTypeName}
+                                    renderMode={this.manager.renderMode}
+                                    bounds={bounds}
                                 />
                             </g>
                         </React.Fragment>

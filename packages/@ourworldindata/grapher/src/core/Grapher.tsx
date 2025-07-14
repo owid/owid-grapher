@@ -176,10 +176,7 @@ import {
 } from "../timeline/TimelineController"
 import Mousetrap from "mousetrap"
 import { SlideShowController } from "../slideshowController/SlideShowController"
-import {
-    ChartComponentClassMap,
-    DefaultChartClass,
-} from "../chart/ChartTypeMap"
+import { makeChartState } from "../chart/ChartTypeMap"
 import { SelectionArray } from "../selection/SelectionArray"
 import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable"
 import {
@@ -202,7 +199,7 @@ import {
     GrapherImageDownloadEvent,
 } from "./GrapherAnalytics"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations"
-import { ChartInterface } from "../chart/ChartInterface"
+import { ChartState } from "../chart/ChartInterface"
 import {
     StaticChartRasterizer,
     type GrapherExport,
@@ -810,7 +807,7 @@ export class GrapherState {
         // if the legend only ever shows a single entity
         if (this.isOnStackedBarTab) {
             const seriesStrategy =
-                this.chartInstance.seriesStrategy ||
+                this.chartState.seriesStrategy ||
                 autoDetectSeriesStrategy(this, true)
             const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
             const hasSingleEntity = this.selection.numSelectedEntities === 1
@@ -879,8 +876,8 @@ export class GrapherState {
 
         if (!this.isReady || !this.isOnTableTab) return table
 
-        if (this.chartInstance.transformTableForDisplay) {
-            table = this.chartInstance.transformTableForDisplay(table)
+        if (this.chartState.transformTableForDisplay) {
+            table = this.chartState.transformTableForDisplay(table)
         }
 
         if (this.shouldShowSelectionOnlyInDataTable) {
@@ -907,8 +904,8 @@ export class GrapherState {
         // Some chart types (e.g. stacked area charts) choose not to show an entity
         // with incomplete data. Such chart types define a custom transform function
         // to ensure that the entity selector only offers entities that are actually plotted.
-        if (this.chartInstance.transformTableForSelection) {
-            table = this.chartInstance.transformTableForSelection(table)
+        if (this.chartState.transformTableForSelection) {
+            table = this.chartState.transformTableForSelection(table)
         }
 
         return table
@@ -981,7 +978,7 @@ export class GrapherState {
 
         const startMark = performance.now()
 
-        const transformedTable = this.chartInstance.transformTable(table)
+        const transformedTable = this.chartState.transformTable(table)
 
         this.createPerformanceMeasurement(
             "chartInstance.transformTable",
@@ -990,23 +987,23 @@ export class GrapherState {
         return transformedTable
     }
 
-    @computed get chartInstance(): ChartInterface {
+    @computed get chartState(): ChartState {
         // Note: when timeline handles on a LineChart are collapsed into a single handle, the
         // LineChart turns into a DiscreteBar.
 
         return this.isOnMapTab
             ? new MapChart({ manager: this })
-            : this.chartInstanceExceptMap
+            : this.chartStateExceptMap
     }
+
     // When Map becomes a first-class chart instance, we should drop this
-    @computed get chartInstanceExceptMap(): ChartInterface {
-        const chartTypeName =
+    @computed get chartStateExceptMap(): ChartState {
+        const chartType =
             this.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
 
-        const ChartClass =
-            ChartComponentClassMap.get(chartTypeName) ?? DefaultChartClass
-        return new ChartClass({ manager: this })
+        return makeChartState(chartType, this)
     }
+
     @computed get chartSeriesNames(): SeriesName[] {
         if (!this.isReady) return []
 
@@ -1016,12 +1013,14 @@ export class GrapherState {
             return _.uniq(
                 facetChartInstance.intermediateChartInstances.flatMap(
                     (chartInstance) =>
-                        chartInstance.series.map((series) => series.seriesName)
+                        chartInstance.chartState.series.map(
+                            (series) => series.seriesName
+                        )
                 )
             )
         }
 
-        return this.chartInstance.series.map((series) => series.seriesName)
+        return this.chartState.series.map((series) => series.seriesName)
     }
 
     @computed get table(): OwidTable {
@@ -1791,7 +1790,7 @@ export class GrapherState {
         const showEntityAnnotation = !this.hideAnnotationFieldsInTitle?.entity
 
         const seriesStrategy =
-            this.chartInstance.seriesStrategy ||
+            this.chartState.seriesStrategy ||
             autoDetectSeriesStrategy(this, true)
 
         return !!(
@@ -2708,8 +2707,8 @@ export class GrapherState {
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
-        return this.chartInstance.availableFacetStrategies?.length
-            ? this.chartInstance.availableFacetStrategies
+        return this.chartState.availableFacetStrategies?.length
+            ? this.chartState.availableFacetStrategies
             : [FacetStrategy.none]
     }
     // the actual facet setting used by a chart, potentially overriding selectedFacetStrategy

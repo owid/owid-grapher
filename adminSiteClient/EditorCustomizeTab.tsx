@@ -827,9 +827,9 @@ export class EditorCustomizeTab<
                 {features.canSpecifySortOrder && (
                     <SortOrderSection editor={this.props.editor} />
                 )}
-                {grapherState.chartInstanceExceptMap.colorScale && (
+                {grapherState.chartStateExceptMap.colorScale && (
                     <EditorColorScaleSection
-                        scale={grapherState.chartInstanceExceptMap.colorScale}
+                        scale={grapherState.chartStateExceptMap.colorScale}
                         chartType={
                             grapherState.chartType ??
                             GRAPHER_CHART_TYPES.LineChart
