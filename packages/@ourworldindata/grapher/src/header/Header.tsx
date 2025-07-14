@@ -25,8 +25,7 @@ interface HeaderProps {
     maxWidth?: number
 }
 
-@observer
-export class Header<
+abstract class AbstractHeader<
     Props extends HeaderProps = HeaderProps,
 > extends React.Component<Props> {
     protected verticalPadding = 4
@@ -292,7 +291,10 @@ interface StaticHeaderProps extends HeaderProps {
 }
 
 @observer
-export class StaticHeader extends Header<StaticHeaderProps> {
+export class Header extends AbstractHeader<HeaderProps> {}
+
+@observer
+export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
     protected verticalPadding = 6
 
     @computed get titleLineHeight(): number {

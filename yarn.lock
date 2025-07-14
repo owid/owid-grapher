@@ -3328,7 +3328,7 @@ __metadata:
     mdast-util-find-and-replace: "npm:^2.2.2"
     mdast-util-from-markdown: "npm:^1.3.1"
     mobx: "npm:^5.15.7"
-    mobx-react: "npm:5"
+    mobx-react: "npm:^6.3.1"
     react: "npm:^17.0.2"
     react-dom: "npm:^17.0.2"
     react-markdown: "npm:^8.0.7"
@@ -3396,7 +3396,7 @@ __metadata:
     eslint-plugin-react-hooks: "npm:^5.2.0"
     js-cookie: "npm:^3.0.1"
     mobx: "npm:^5.15.7"
-    mobx-react: "npm:5"
+    mobx-react: "npm:^6.3.1"
     mousetrap: "npm:^1.6.5"
     react: "npm:^17.0.2"
     react-dom: "npm:^17.0.2"
@@ -3457,7 +3457,7 @@ __metadata:
     indefinite: "npm:^2.5.1"
     js-cookie: "npm:^3.0.1"
     mobx: "npm:^5.15.7"
-    mobx-react: "npm:5"
+    mobx-react: "npm:^6.3.1"
     mousetrap: "npm:^1.6.5"
     react: "npm:^17.0.2"
     react-dom: "npm:^17.0.2"
@@ -3509,7 +3509,7 @@ __metadata:
     fuzzysort: "npm:^3.1.0"
     lodash-es: "npm:^4.17.21"
     mobx: "npm:^5.15.7"
-    mobx-react: "npm:5"
+    mobx-react: "npm:^6.3.1"
     react: "npm:^17.0.2"
     react-select: "npm:^5.10.2"
     remeda: "npm:^2.23.3"
@@ -13072,7 +13072,7 @@ __metadata:
     mdast-util-from-markdown: "npm:^1.3.1"
     minimist: "npm:^1.2.6"
     mobx: "npm:^5.15.7"
-    mobx-react: "npm:5"
+    mobx-react: "npm:^6.3.1"
     mousetrap: "npm:^1.6.5"
     mysql2: "npm:^3.14.1"
     nodejs-polars: "npm:^0.7.2"
@@ -13328,7 +13328,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hoist-non-react-statics@npm:^3.0.0, hoist-non-react-statics@npm:^3.1.0, hoist-non-react-statics@npm:^3.3.0, hoist-non-react-statics@npm:^3.3.1, hoist-non-react-statics@npm:^3.3.2":
+"hoist-non-react-statics@npm:^3.1.0, hoist-non-react-statics@npm:^3.3.0, hoist-non-react-statics@npm:^3.3.1, hoist-non-react-statics@npm:^3.3.2":
   version: 3.3.2
   resolution: "hoist-non-react-statics@npm:3.3.2"
   dependencies:
@@ -16027,16 +16027,30 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mobx-react@npm:5":
-  version: 5.4.4
-  resolution: "mobx-react@npm:5.4.4"
-  dependencies:
-    hoist-non-react-statics: "npm:^3.0.0"
-    react-lifecycles-compat: "npm:^3.0.2"
+"mobx-react-lite@npm:^2.2.0":
+  version: 2.2.2
+  resolution: "mobx-react-lite@npm:2.2.2"
   peerDependencies:
     mobx: ^4.0.0 || ^5.0.0
-    react: ^0.13.0 || ^0.14.0 || ^15.0.0 || ^16.0.0
-  checksum: 10/a5bb553d312f23cf9837e0d1f4388a6434b7b314b8cd66ae578ded8878acd5a842febe8b6028a6c61a9bed75c849419ae811a4814f0961c525dabd6f68bc298e
+    react: ^16.8.0
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+    react-native:
+      optional: true
+  checksum: 10/e687213a7a897b74fcb466ccbd27c61edb9b25643242d312a09d2fa95dcddb4e9e294109d60f6413f62c5a6c7a13bad39ae1ebfef90216d9147ad414b6b44243
+  languageName: node
+  linkType: hard
+
+"mobx-react@npm:^6.3.1":
+  version: 6.3.1
+  resolution: "mobx-react@npm:6.3.1"
+  dependencies:
+    mobx-react-lite: "npm:^2.2.0"
+  peerDependencies:
+    mobx: ^5.15.4 || ^4.15.4
+    react: ^16.8.0 || 16.9.0-alpha.0
+  checksum: 10/de50dc7b4c5886f1b516a8be75d085c4821a8c742e8d9debe7c4ff35697a1358a1c7b4c5d778bae8d897b5c67e750993b6c39e05175accd7ad369cb6d9f3be59
   languageName: node
   linkType: hard
 
@@ -18606,13 +18620,6 @@ __metadata:
   version: 17.0.2
   resolution: "react-is@npm:17.0.2"
   checksum: 10/73b36281e58eeb27c9cc6031301b6ae19ecdc9f18ae2d518bdb39b0ac564e65c5779405d623f1df9abf378a13858b79442480244bd579968afc1faf9a2ce5e05
-  languageName: node
-  linkType: hard
-
-"react-lifecycles-compat@npm:^3.0.2":
-  version: 3.0.4
-  resolution: "react-lifecycles-compat@npm:3.0.4"
-  checksum: 10/c66b9c98c15cd6b0d0a4402df5f665e8cc7562fb7033c34508865bea51fd7b623f7139b5b7e708515d3cd665f264a6a9403e1fa7e6d61a05759066f5e9f07783
   languageName: node
   linkType: hard
 

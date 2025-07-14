@@ -69,8 +69,7 @@ interface FooterProps {
     maxWidth?: number
 }
 
-@observer
-export class Footer<
+abstract class AbstractFooter<
     Props extends FooterProps = FooterProps,
 > extends React.Component<Props> {
     verticalPadding = 4
@@ -166,10 +165,11 @@ export class Footer<
 
         if (!correctedUrlText) return undefined
 
-        const licenseAndOriginUrlText = Footer.constructLicenseAndOriginUrlText(
-            correctedUrlText,
-            licenseText
-        )
+        const licenseAndOriginUrlText =
+            AbstractFooter.constructLicenseAndOriginUrlText(
+                correctedUrlText,
+                licenseText
+            )
         const licenseAndOriginUrlWidth = Bounds.forText(
             licenseAndOriginUrlText,
             { fontSize }
@@ -187,7 +187,7 @@ export class Footer<
 
     @computed protected get licenseAndOriginUrlText(): string {
         const { finalUrlText, licenseText } = this
-        return Footer.constructLicenseAndOriginUrlText(
+        return AbstractFooter.constructLicenseAndOriginUrlText(
             finalUrlText,
             licenseText
         )
@@ -344,7 +344,7 @@ export class Footer<
                 : sourcesWidth
             : 0
         const licenseAndOriginUrlWidth = Bounds.forText(
-            Footer.constructLicenseAndOriginUrlText(
+            AbstractFooter.constructLicenseAndOriginUrlText(
                 correctedUrlText,
                 licenseText
             ),
@@ -630,13 +630,16 @@ export class Footer<
     }
 }
 
+@observer
+export class Footer extends AbstractFooter<FooterProps> {}
+
 interface StaticFooterProps extends FooterProps {
     targetX: number
     targetY: number
 }
 
 @observer
-export class StaticFooter extends Footer<StaticFooterProps> {
+export class StaticFooter extends AbstractFooter<StaticFooterProps> {
     verticalPadding = 4.5
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
