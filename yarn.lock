@@ -11629,6 +11629,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eslint-plugin-mobx@npm:^0.0.13":
+  version: 0.0.13
+  resolution: "eslint-plugin-mobx@npm:0.0.13"
+  peerDependencies:
+    eslint: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0 || ^9.0.0
+  checksum: 10/a28215adf4b7fa091f76cae07b4c19ff039d93adf59b54006b28a6db01ec8b104f68d79997709db4a32f58dcce92723a38e5b0ab25ea2d2fafe61fa40ff333cb
+  languageName: node
+  linkType: hard
+
 "eslint-plugin-react-hooks@npm:^5.2.0":
   version: 5.2.0
   resolution: "eslint-plugin-react-hooks@npm:5.2.0"
@@ -12915,6 +12924,7 @@ __metadata:
     eslint-config-prettier: "npm:^10.1.1"
     eslint-import-resolver-typescript: "npm:^4.2.5"
     eslint-plugin-import-x: "npm:^4.9.3"
+    eslint-plugin-mobx: "npm:^0.0.13"
     eslint-plugin-react: "npm:^7.37.4"
     eslint-plugin-react-hooks: "npm:^5.2.0"
     eslint-plugin-react-refresh: "npm:^0.4.19"
