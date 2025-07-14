@@ -1,16 +1,11 @@
-import * as R from "remeda"
 import {
     Bounds,
     getRelativeMouse,
     guid,
     exposeInstanceOnWindow,
-    isPresent,
     Color,
     HorizontalAlign,
     PrimitiveType,
-    mappableCountries,
-    regions,
-    checkHasMembers,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -23,11 +18,7 @@ import { select } from "d3-selection"
 import { easeCubic } from "d3-ease"
 import { MapTooltip } from "./MapTooltip"
 import { TooltipState } from "../tooltip/Tooltip.js"
-import {
-    OwidTable,
-    CoreColumn,
-    ErrorValueTypes,
-} from "@ourworldindata/core-table"
+import { CoreColumn } from "@ourworldindata/core-table"
 import {
     GeoFeature,
     MapBracket,
@@ -53,47 +44,42 @@ import {
     GRAPHER_MAX_TOOLTIP_WIDTH,
     Patterns,
 } from "../core/GrapherConstants"
-import { ChartState } from "../chart/ChartInterface"
+import { ChartInterface } from "../chart/ChartInterface"
 import {
     CategoricalBin,
     ColorScaleBin,
     NumericBin,
 } from "../color/ColorScaleBin"
 import {
-    ColorSchemeName,
     ColumnSlug,
-    EntityName,
     InteractionState,
     MapRegionName,
     SeriesName,
-    Time,
 } from "@ourworldindata/types"
-import {
-    ClipPath,
-    combineHistoricalAndProjectionColumns,
-    makeClipPath,
-} from "../chart/ChartUtils"
+import { ClipPath, makeClipPath } from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { Component, createRef } from "react"
 import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
 import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
-import { isOnTheMap } from "./MapHelpers.js"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
-import { match, P } from "ts-pattern"
+import { match } from "ts-pattern"
 import { makeProjectedDataPatternId } from "./MapComponents"
+import { MapChartState } from "./MapChartState"
 
 interface MapChartProps {
     bounds?: Bounds
-    manager: MapChartManager
+    chartState: MapChartState
 }
 
 @observer
 export class MapChart
     extends Component<MapChartProps>
-    implements ChartState, HorizontalColorLegendManager, ChoroplethMapManager
+    implements
+        ChartInterface,
+        HorizontalColorLegendManager,
+        ChoroplethMapManager
 {
     /** The id of the currently hovered feature/country */
     @observable hoverFeatureId?: string
@@ -107,225 +93,35 @@ export class MapChart
 
     @observable tooltipState = new TooltipState<{ featureId: string }>()
 
-    transformTable(table: OwidTable): OwidTable {
-        // Drop non-mappable entities from the table
-        table = this.dropNonMapEntities(table)
-
-        return match(this.mapColumnInfo)
-            .with({ type: P.union("historical", "projected") }, (info) =>
-                this.transformTableForSingleMapColumn(table, info)
-            )
-            .with({ type: "historical+projected" }, (info) =>
-                this.transformTableForCombinedMapColumn(table, info)
-            )
-            .exhaustive()
-    }
-
-    private transformTableForSingleMapColumn(
-        table: OwidTable,
-        mapColumnInfo: Extract<
-            MapColumnInfo,
-            { type: "historical" | "projected" }
-        >
-    ): OwidTable {
-        return table
-            .dropRowsWithErrorValuesForColumn(mapColumnInfo.slug)
-            .interpolateColumnWithTolerance(
-                mapColumnInfo.slug,
-                this.mapConfig.timeTolerance,
-                this.mapConfig.toleranceStrategy
-            )
-    }
-
-    private transformTableForCombinedMapColumn(
-        table: OwidTable,
-        mapColumnInfo: Extract<MapColumnInfo, { type: "historical+projected" }>
-    ): OwidTable {
-        const { historicalSlug, projectedSlug, combinedSlug } = mapColumnInfo
-
-        // Interpolate both columns separately
-        table = table
-            .interpolateColumnWithTolerance(
-                projectedSlug,
-                this.mapConfig.timeTolerance,
-                this.mapConfig.toleranceStrategy
-            )
-            .interpolateColumnWithTolerance(
-                historicalSlug,
-                this.mapConfig.timeTolerance,
-                this.mapConfig.toleranceStrategy
-            )
-
-        // Combine the projection column with its historical stem into one column
-        table = combineHistoricalAndProjectionColumns(table, mapColumnInfo, {
-            shouldAddIsProjectionColumn: true,
-        })
-
-        // Drop rows with error values for the combined column
-        table = table.dropRowsWithErrorValuesForColumn(combinedSlug)
-
-        return table
-    }
-
-    transformTableForSelection(table: OwidTable): OwidTable {
-        table = this.addMissingMapEntities(table)
-        table = this.dropNonMapEntitiesForSelection(table)
-        table = this.dropAntarctica(table)
-        return table
-    }
-
-    private dropAntarctica(table: OwidTable): OwidTable {
-        // We prefer to not offer Antarctica in the entity selector on the map
-        // tab to avoid confusion since it's shown on the globe, but not on the map.
-        return table.filterByEntityNamesUsingIncludeExcludePattern({
-            excluded: ["Antarctica"],
-        })
-    }
-
-    private dropNonMapEntities(table: OwidTable): OwidTable {
-        const entityNamesToSelect =
-            table.availableEntityNames.filter(isOnTheMap)
-        return table.filterByEntityNames(entityNamesToSelect)
-    }
-
-    private dropNonMapEntitiesForSelection(table: OwidTable): OwidTable {
-        const { selectionArray } = this
-
-        const allMappableCountryNames = mappableCountries.map((c) => c.name)
-        const allRegionNames = regions
-            .filter((r) => checkHasMembers(r) && r.code !== "OWID_WRL")
-            .map((r) => r.name)
-
-        // if no regions are currently selected, keep all mappable countries and regions
-        if (!selectionArray.hasRegions) {
-            return table.filterByEntityNames([
-                ...allRegionNames,
-                ...allMappableCountryNames,
-            ])
-        }
-
-        return table.filterByEntityNames(
-            R.unique([
-                // keep all regions
-                ...allRegionNames,
-                // only keep those countries that are within the selected regions
-                ...selectionArray.countryNamesForSelectedRegions,
-                // keep the user's selection
-                ...selectionArray.selectedEntityNames,
-            ])
-        )
-    }
-
-    private addMissingMapEntities(table: OwidTable): OwidTable {
-        // the given table might not have data for all mappable countries, but
-        // on the map tab, we do want every country to be selectable, even if
-        // it doesn't have data for any of the years. that's why we add a
-        // missing-data row for every mappable country that isn't in the table
-
-        const missingMappableCountries = mappableCountries.filter(
-            (country) => !table.availableEntityNameSet.has(country.name)
-        )
-
-        const rows = missingMappableCountries.map((country) => ({
-            entityName: country.name,
-            time: table.maxTime!, // arbitrary time
-            value: ErrorValueTypes.MissingValuePlaceholder,
-        }))
-        table = table.appendRows(
-            rows,
-            `Append rows for mappable countries without data: ${rows.map((row) => row.entityName).join(", ")}`
-        )
-
-        return table
-    }
-
-    @computed get inputTable(): OwidTable {
-        const { mapColumnInfo } = this
-        const { table } = this.manager
-
-        // For historical+projected data, we need to create the combined column
-        // on the input table. This ensures the color scale has access to the
-        // complete range of data across both columns
-        return mapColumnInfo.type === "historical+projected"
-            ? combineHistoricalAndProjectionColumns(table, mapColumnInfo)
-            : table
-    }
-
-    @computed get transformedTable(): OwidTable {
-        return (
-            this.manager.transformedTable ??
-            this.transformTable(this.inputTable)
-        )
+    @computed get chartState(): MapChartState {
+        return this.props.chartState
     }
 
     @computed get selectionArray(): MapSelectionArray {
-        return this.mapConfig.selection
-    }
-
-    @computed get failMessage(): string {
-        if (this.mapColumn.isMissing) return "Missing map column"
-        return ""
-    }
-
-    @computed private get mapColumnInfo(): MapColumnInfo {
-        const mapColumnSlug = this.manager.mapColumnSlug!
-
-        // If projection info is available, then we can stitch together the
-        // historical and projected columns
-        const projectionInfo =
-            this.manager.projectionColumnInfoBySlug?.get(mapColumnSlug)
-        if (projectionInfo) {
-            return {
-                type: "historical+projected",
-                slug: projectionInfo.combinedSlug,
-                ...projectionInfo,
-            }
-        }
-
-        const type = this.manager.table.get(mapColumnSlug).isProjection
-            ? "projected"
-            : "historical"
-
-        return { type, slug: mapColumnSlug }
-    }
-
-    @computed get mapColumnSlug(): ColumnSlug {
-        return this.mapColumnInfo.slug
-    }
-
-    @computed get columnIsProjection(): CoreColumn | undefined {
-        const slugForIsProjectionColumn =
-            this.mapColumnInfo?.type === "historical+projected"
-                ? this.mapColumnInfo.slugForIsProjectionColumn
-                : undefined
-
-        return slugForIsProjectionColumn
-            ? this.transformedTable.get(slugForIsProjectionColumn)
-            : undefined
+        return this.chartState.selectionArray
     }
 
     @computed get mapColumn(): CoreColumn {
-        return this.transformedTable.get(this.mapColumnSlug)
+        return this.chartState.mapColumn
+    }
+
+    @computed private get mapColumnSlug(): ColumnSlug {
+        return this.chartState.mapColumnSlug
+    }
+
+    @computed private get mapColumnInfo(): MapColumnInfo {
+        return this.chartState.mapColumnInfo
     }
 
     @computed get hasProjectedData(): boolean {
         return this.mapColumnInfo.type !== "historical"
     }
 
-    @computed get hasProjectedDataBin(): boolean {
-        return this.hasProjectedData
-    }
-
-    // The map column without tolerance and timeline filtering applied
-    @computed private get mapColumnUntransformed(): CoreColumn {
-        return this.dropNonMapEntities(this.inputTable).get(this.mapColumnSlug)
-    }
-
     @computed private get targetTime(): number | undefined {
-        return this.manager.endTime
+        return this.chartState.targetTime
     }
 
-    @computed get bounds(): Bounds {
+    @computed private get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS
     }
 
@@ -358,8 +154,8 @@ export class MapChart
         this.tooltipState.target = null
     }
 
-    @computed get manager(): MapChartManager {
-        return this.props.manager
+    @computed private get manager(): MapChartManager {
+        return this.chartState.manager
     }
 
     @computed get globeController(): GlobeController {
@@ -400,7 +196,7 @@ export class MapChart
     }
 
     @computed get mapConfig(): MapConfig {
-        return this.manager.mapConfig || new MapConfig()
+        return this.chartState.mapConfig
     }
 
     @action.bound onRegionChange(value: MapRegionName): void {
@@ -422,44 +218,8 @@ export class MapChart
         }
     }
 
-    private checkIsProjection(
-        entityName: EntityName,
-        originalTime: Time
-    ): boolean {
-        return match(this.mapColumnInfo.type)
-            .with("historical", () => false)
-            .with("projected", () => true)
-            .with("historical+projected", () =>
-                this.columnIsProjection?.valueByEntityNameAndOriginalTime
-                    .get(entityName)
-                    ?.get(originalTime)
-            )
-            .exhaustive()
-    }
-
-    @computed get series(): ChoroplethSeries[] {
-        const { mapColumn, targetTime } = this
-        if (mapColumn.isMissing) return []
-        if (targetTime === undefined) return []
-
-        return mapColumn.owidRows
-            .map((row) => {
-                const { entityName, value, originalTime } = row
-                const color =
-                    this.colorScale.getColor(value) || this.noDataColor
-                const isProjection = this.checkIsProjection(
-                    entityName,
-                    originalTime
-                )
-                return {
-                    seriesName: entityName,
-                    time: originalTime,
-                    value,
-                    color,
-                    isProjection,
-                } satisfies ChoroplethSeries
-            })
-            .filter(isPresent)
+    @computed private get series(): ChoroplethSeries[] {
+        return this.chartState.series
     }
 
     @computed private get seriesMap(): ChoroplethSeriesByName {
@@ -470,23 +230,9 @@ export class MapChart
         return map
     }
 
-    @computed get colorScaleColumn(): CoreColumn {
-        // Use the table before any transforms to collect all possible values over time.
-        // Otherwise the legend changes as you slide the timeline handle.
-        return this.mapColumnUntransformed
+    @computed private get colorScale(): ColorScale {
+        return this.chartState.colorScale
     }
-
-    colorScale = new ColorScale(this)
-
-    @computed get colorScaleConfig(): ColorScaleConfig {
-        return (
-            ColorScaleConfig.fromDSL(this.mapColumn.def) ??
-            this.mapConfig.colorScale
-        )
-    }
-
-    defaultBaseColorScheme = ColorSchemeName.BuGn
-    hasNoDataBin = true
 
     @action.bound onDocumentKeyDown(e: KeyboardEvent): void {
         // hide the globe on hitting the Escape key
@@ -532,7 +278,7 @@ export class MapChart
     }
 
     /** The value of the currently hovered feature/country */
-    @computed get hoverValue(): string | number | undefined {
+    @computed private get hoverValue(): string | number | undefined {
         if (!this.hoverFeatureId) return undefined
 
         const series = this.choroplethData.get(this.hoverFeatureId)
@@ -575,15 +321,11 @@ export class MapChart
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
-    @computed get noDataColor(): Color {
-        return this.colorScale.noDataColor
-    }
-
     @computed get choroplethMapBounds(): Bounds {
         return this.bounds.padBottom(this.legendHeight + 4)
     }
 
-    @computed get region(): MapRegionName {
+    @computed private get region(): MapRegionName {
         return this.mapConfig.region
     }
 
@@ -595,7 +337,7 @@ export class MapChart
                 // Only add a pattern to the legend bins if _all_ values are projections.
                 // If there is even a single non-projected (historical) value, the legend
                 // should use solid colors.
-                this.transformedTable
+                this.chartState.transformedTable
                     .get(info.slugForIsProjectionColumn)
                     .values.every((value) => value === true)
             )
@@ -646,17 +388,13 @@ export class MapChart
         return [bins[bins.length - 1], ...bins.slice(0, -1)]
     }
 
-    @computed get hasNumeric(): boolean {
-        return this.numericLegendData.length > 1
-    }
-
     @computed get categoricalLegendData(): CategoricalBin[] {
         return this.legendData
             .filter((bin) => isCategoricalBin(bin))
             .map((bin) => this.maybeAddPatternRefToBin(bin))
     }
 
-    @computed get hasCategoricalLegendData(): boolean {
+    @computed private get hasCategoricalLegendData(): boolean {
         return this.categoricalLegendData.length > 1
     }
 
@@ -664,7 +402,7 @@ export class MapChart
         return this.legendData.map((bin) => bin.color)
     }
 
-    @computed get numericHoverBracket(): ColorScaleBin | undefined {
+    @computed private get numericHoverBracket(): ColorScaleBin | undefined {
         const { hoverBracket, hoverValue } = this
         const { numericLegendData } = this
 
@@ -676,7 +414,9 @@ export class MapChart
         return undefined
     }
 
-    @computed get categoricalHoverBracket(): CategoricalBin | undefined {
+    @computed private get categoricalHoverBracket():
+        | CategoricalBin
+        | undefined {
         const { hoverBracket, hoverValue } = this
         const { categoricalLegendData } = this
 
@@ -717,15 +457,15 @@ export class MapChart
         return this.categoryLegendHeight + this.numericLegendHeight + 10
     }
 
-    @computed get numericLegendHeight(): number {
+    @computed private get numericLegendHeight(): number {
         return this.numericLegend ? this.numericLegend.height : 0
     }
 
-    @computed get categoryLegendHeight(): number {
+    @computed private get categoryLegendHeight(): number {
         return this.categoryLegend ? this.categoryLegend.height + 5 : 0
     }
 
-    @computed get categoryLegend():
+    @computed private get categoryLegend():
         | HorizontalCategoricalColorLegend
         | undefined {
         return this.categoricalLegendData.length > 1
@@ -733,7 +473,9 @@ export class MapChart
             : undefined
     }
 
-    @computed get numericLegend(): HorizontalNumericColorLegend | undefined {
+    @computed private get numericLegend():
+        | HorizontalNumericColorLegend
+        | undefined {
         return this.numericLegendData.length > 1
             ? new HorizontalNumericColorLegend({ manager: this })
             : undefined
@@ -769,11 +511,11 @@ export class MapChart
         return this.manager.isStatic ?? false
     }
 
-    @computed get renderUid(): number {
+    @computed private get renderUid(): number {
         return guid()
     }
 
-    @computed get clipPath(): ClipPath {
+    @computed private get clipPath(): ClipPath {
         return makeClipPath({
             renderUid: this.renderUid,
             box: this.choroplethMapBounds,
@@ -861,7 +603,7 @@ export class MapChart
                         entityName={tooltipCountry}
                         position={tooltipState.position}
                         fading={tooltipState.fading}
-                        timeSeriesTable={this.inputTable}
+                        timeSeriesTable={this.chartState.inputTable}
                         formatValueIfCustom={this.formatTooltipValueIfCustom}
                         manager={this.manager}
                         lineColorScale={this.colorScale}
@@ -879,12 +621,12 @@ export class MapChart
     }
 
     render(): React.ReactElement {
-        if (this.failMessage)
+        if (this.chartState.failMessage)
             return (
                 <NoDataModal
                     manager={this.manager}
                     bounds={this.props.bounds}
-                    message={this.failMessage}
+                    message={this.chartState.failMessage}
                 />
             )
 

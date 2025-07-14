@@ -1,6 +1,7 @@
 import { match } from "ts-pattern"
 import {
     GRAPHER_CHART_TYPES,
+    GRAPHER_MAP_TYPE,
     GrapherChartOrMapType,
     GrapherRenderMode,
 } from "@ourworldindata/types"
@@ -17,6 +18,7 @@ import { StackedBarChartState } from "../stackedCharts/StackedBarChartState.js"
 import { StackedDiscreteBarChartState } from "../stackedCharts/StackedDiscreteBarChartState"
 import { ScatterPlotChartState } from "../scatterCharts/ScatterPlotChartState"
 import { MarimekkoChartState } from "../stackedCharts/MarimekkoChartState"
+import { MapChartState } from "../mapCharts/MapChartState"
 
 import { LineChart } from "../lineCharts/LineChart"
 import { SlopeChart } from "../slopeCharts/SlopeChart.js"
@@ -26,6 +28,7 @@ import { StackedBarChart } from "../stackedCharts/StackedBarChart"
 import { StackedDiscreteBarChart } from "../stackedCharts/StackedDiscreteBarChart"
 import { ScatterPlotChart } from "../scatterCharts/ScatterPlotChart"
 import { MarimekkoChart } from "../stackedCharts/MarimekkoChart"
+import { MapChart } from "../mapCharts/MapChart"
 
 import { LineChartThumbnail } from "../lineCharts/LineChartThumbnail"
 import { SlopeChartThumbnail } from "../slopeCharts/SlopeChartThumbnail"
@@ -65,7 +68,7 @@ const ChartComponentClassMap = new Map<
     [GRAPHER_CHART_TYPES.StackedDiscreteBar, StackedDiscreteBarChart],
     [GRAPHER_CHART_TYPES.ScatterPlot, ScatterPlotChart],
     [GRAPHER_CHART_TYPES.Marimekko, MarimekkoChart],
-    // [GRAPHER_MAP_TYPE, MapChart],
+    [GRAPHER_MAP_TYPE, MapChart],
 ])
 
 const ChartThumbnailClassMap = new Map<
@@ -80,7 +83,7 @@ const ChartThumbnailClassMap = new Map<
     [GRAPHER_CHART_TYPES.StackedDiscreteBar, StackedDiscreteBarChartThumbnail],
     [GRAPHER_CHART_TYPES.ScatterPlot, ScatterPlotChartThumbnail],
     [GRAPHER_CHART_TYPES.Marimekko, MarimekkoChartThumbnail],
-    // [GRAPHER_MAP_TYPE, MapChart],
+    [GRAPHER_MAP_TYPE, MapChart],
 ])
 
 const ChartStateMap = new Map<
@@ -95,7 +98,7 @@ const ChartStateMap = new Map<
     [GRAPHER_CHART_TYPES.StackedDiscreteBar, StackedDiscreteBarChartState],
     [GRAPHER_CHART_TYPES.ScatterPlot, ScatterPlotChartState],
     [GRAPHER_CHART_TYPES.Marimekko, MarimekkoChartState],
-    // [GRAPHER_MAP_TYPE, MapChart],
+    [GRAPHER_MAP_TYPE, MapChartState],
 ])
 
 export function makeChartState(

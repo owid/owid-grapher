@@ -6,13 +6,13 @@ import {
     SampleColumnSlugs,
 } from "@ourworldindata/core-table"
 import { GrapherProgrammaticInterface, GrapherState } from "../core/Grapher"
-import { MapChart } from "../mapCharts/MapChart"
 import {
     legacyMapGrapher,
     legacyMapGrapherData,
 } from "../mapCharts/MapChart.sample"
 import { GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable.js"
+import { MapChartState } from "../mapCharts/MapChartState"
 
 describe("grapher and map charts", () => {
     describe("map time tolerance plus query string works with a map chart", () => {
@@ -45,11 +45,11 @@ describe("grapher and map charts", () => {
             legacyMapGrapher.dimensions!,
             legacyMapGrapher.selectedEntityColors
         )
-        const chart = new MapChart({ manager })
+        const chartState = new MapChartState({ manager })
 
-        expect(Object.keys(chart.series).length).toEqual(1)
+        expect(Object.keys(chartState.series).length).toEqual(1)
         manager.endHandleTimeBound = 2010
-        expect(Object.keys(chart.series).length).toEqual(2)
+        expect(Object.keys(chartState.series).length).toEqual(2)
     })
 })
 

@@ -113,6 +113,7 @@ import {
     AdditionalGrapherDataFetchFn,
     ProjectionColumnInfo,
     GrapherRenderMode,
+    GRAPHER_MAP_TYPE,
 } from "@ourworldindata/types"
 import {
     BlankOwidTable,
@@ -162,7 +163,6 @@ import { SourcesModal } from "../modal/SourcesModal"
 import { isValidDataTableFilter } from "../dataTable/DataTable"
 import { DataTableConfig } from "../dataTable/DataTableConstants"
 import { MAP_REGION_NAMES } from "../mapCharts/MapChartConstants"
-import { MapChart } from "../mapCharts/MapChart"
 import {
     isValidGlobeRegionName,
     isValidMapRegionName,
@@ -992,7 +992,7 @@ export class GrapherState {
         // LineChart turns into a DiscreteBar.
 
         return this.isOnMapTab
-            ? new MapChart({ manager: this })
+            ? makeChartState(GRAPHER_MAP_TYPE, this)
             : this.chartStateExceptMap
     }
 
