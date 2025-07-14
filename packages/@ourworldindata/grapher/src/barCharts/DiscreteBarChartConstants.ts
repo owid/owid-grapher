@@ -1,7 +1,7 @@
 import { ChartManager } from "../chart/ChartManager"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { ChartSeries } from "../chart/ChartInterface"
-import { CoreValueType, Time } from "@ourworldindata/types"
+import { Color, CoreValueType, Time } from "@ourworldindata/types"
 import { TextWrap } from "@ourworldindata/components"
 
 export interface DiscreteBarSeries extends ChartSeries {
@@ -29,6 +29,15 @@ export interface DiscreteBarChartManager extends ChartManager {
     showYearLabels?: boolean
     endTime?: Time
     isOnLineChartTab?: boolean
+}
+
+export interface DiscreteBarItem {
+    yColumn: CoreColumn
+    seriesName: string
+    value: number
+    time: number
+    colorValue?: CoreValueType
+    color?: Color
 }
 
 export const BACKGROUND_COLOR = "#fff"

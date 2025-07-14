@@ -1,8 +1,8 @@
 import * as _ from "lodash-es"
+import * as R from "remeda"
 import React from "react"
 import {
     Bounds,
-    domainExtent,
     exposeInstanceOnWindow,
     PointVector,
     makeIdForHumanConsumption,
@@ -11,6 +11,7 @@ import {
     getRelativeMouse,
     dyFromAlign,
     isTouchDevice,
+    domainExtent,
 } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
@@ -23,21 +24,16 @@ import {
     GRAPHER_TEXT_OUTLINE_FACTOR,
 } from "../core/GrapherConstants"
 import {
-    ScaleType,
     SeriesName,
-    ColorSchemeName,
-    ColumnSlug,
     MissingDataStrategy,
     Time,
     SeriesStrategy,
-    EntityName,
     VerticalAlign,
-    FacetStrategy,
     InteractionState,
     HorizontalAlign,
+    ScaleType,
 } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
-import { ChartManager } from "../chart/ChartManager"
 import { scaleLinear, ScaleLinear } from "d3-scale"
 import { select } from "d3-selection"
 import {
@@ -45,24 +41,17 @@ import {
     RawSlopeChartSeries,
     RenderSlopeChartSeries,
     SlopeChartSeries,
+    SlopeChartManager,
 } from "./SlopeChartConstants"
-import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
+import { CoreColumn } from "@ourworldindata/core-table"
 import {
-    autoDetectSeriesStrategy,
-    autoDetectYColumnSlugs,
     byHoverThenFocusState,
-    getDefaultFailMessage,
     getHoverStateForSeries,
-    getShortNameForEntity,
-    makeSelectionArray,
 } from "../chart/ChartUtils"
-import { AxisConfig } from "../axis/AxisConfig"
 import { VerticalAxis } from "../axis/Axis"
 import { VerticalAxisComponent } from "../axis/AxisViews"
 import { NoDataSection } from "../scatterCharts/NoDataSection"
-import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
-import { ColorScheme } from "../color/ColorScheme"
-import { ColorSchemes } from "../color/ColorSchemes"
+
 import { LineLegend, LineLegendProps } from "../lineLegend/LineLegend"
 import {
     makeTooltipRoundingNotice,
@@ -72,14 +61,7 @@ import {
     TooltipValueRange,
 } from "../tooltip/Tooltip"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps"
-import {
-    AnnotationsMap,
-    getAnnotationsForSeries,
-    getAnnotationsMap,
-    getColorKey,
-    getSeriesName,
-} from "../lineCharts/LineChartHelpers"
-import { SelectionArray } from "../selection/SelectionArray"
+
 import { Halo } from "@ourworldindata/components"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
@@ -90,17 +72,12 @@ import {
 } from "../color/ColorConstants"
 import { FocusArray } from "../focus/FocusArray"
 import { LineLabelSeries } from "../lineLegend/LineLegendTypes"
-import * as R from "remeda"
+import { SlopeChartState } from "./SlopeChartState"
+import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
     | React.TouchEvent<SVGGElement>
-
-export interface SlopeChartManager extends ChartManager {
-    canSelectMultipleEntities?: boolean // used to pick an appropriate series name
-    hasTimeline?: boolean // used to filter the table for the entity selector
-    hideNoDataSection?: boolean
-}
 
 const NON_FOCUSED_LINE_COLOR = OWID_NON_FOCUSED_GRAY
 
@@ -109,97 +86,29 @@ const LINE_LEGEND_PADDING = 4
 
 interface SlopeChartProps {
     bounds?: Bounds
-    manager: SlopeChartManager
+    chartState: SlopeChartState
 }
 
 @observer
 export class SlopeChart
     extends React.Component<SlopeChartProps>
-    implements ChartInterface
+    implements ChartInterface, AxisManager
 {
     private slopeAreaRef: React.RefObject<SVGGElement> = React.createRef()
-    private defaultBaseColorScheme = ColorSchemeName.OwidDistinctLines
 
     private sidebarMargin = 10
 
-    @observable hoveredSeriesName?: string
-    @observable tooltipState = new TooltipState<{
+    @observable private hoveredSeriesName?: string
+    @observable private tooltipState = new TooltipState<{
         series: SlopeChartSeries
     }>({ fade: "immediate" })
 
-    transformTable(table: OwidTable) {
-        table = table.filterByEntityNames(
-            this.selectionArray.selectedEntityNames
-        )
-
-        // TODO: remove this filter once we don't have mixed type columns in datasets
-        table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
-
-        if (this.isLogScale)
-            table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
-
-        this.yColumnSlugs.forEach((slug) => {
-            table = table.interpolateColumnWithTolerance(slug)
-        })
-
-        return table
-    }
-
-    transformTableForSelection(table: OwidTable): OwidTable {
-        table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
-
-        this.yColumnSlugs.forEach((slug) => {
-            table = table.interpolateColumnWithTolerance(slug)
-        })
-
-        // if time selection is disabled, then filter all entities that
-        // don't have data for the current time period
-        if (!this.manager.hasTimeline && this.startTime !== this.endTime) {
-            table = table
-                .filterByTargetTimes([this.startTime, this.endTime])
-                .dropEntitiesThatHaveSomeMissingOrErrorValueInAllColumns(
-                    this.yColumnSlugs
-                )
-        }
-
-        // if entities with partial data are not plotted,
-        // make sure they don't show up in the entity selector
-        if (this.missingDataStrategy === MissingDataStrategy.hide) {
-            table = table.dropEntitiesThatHaveNoDataInSomeColumn(
-                this.yColumnSlugs
-            )
-        }
-
-        return table
-    }
-
-    @computed get transformedTableFromGrapher(): OwidTable {
-        return (
-            this.manager.transformedTable ??
-            this.transformTable(this.inputTable)
-        )
-    }
-
-    @computed get transformedTable(): OwidTable {
-        let table = this.transformedTableFromGrapher
-        // The % growth transform cannot be applied in transformTable() because it will filter out
-        // any rows before startTime and change the timeline bounds.
-        const { isRelativeMode, startTime } = this.manager
-        if (isRelativeMode && startTime !== undefined) {
-            table = table.toTotalGrowthForEachColumnComparedToStartTime(
-                startTime,
-                this.yColumnSlugs ?? []
-            )
-        }
-        return table
+    @computed get chartState(): SlopeChartState {
+        return this.props.chartState
     }
 
     @computed private get manager(): SlopeChartManager {
-        return this.props.manager
-    }
-
-    @computed get inputTable(): OwidTable {
-        return this.manager.table
+        return this.chartState.manager
     }
 
     @computed private get bounds(): Bounds {
@@ -217,24 +126,16 @@ export class SlopeChart
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
-    @computed private get isLogScale(): boolean {
-        return this.yScaleType === ScaleType.log
-    }
-
     @computed private get missingDataStrategy(): MissingDataStrategy {
-        return this.manager.missingDataStrategy || MissingDataStrategy.auto
+        return this.chartState.missingDataStrategy
     }
 
-    @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager.selection)
-    }
-
-    @computed get focusArray(): FocusArray {
-        return this.manager.focusArray ?? new FocusArray()
+    @computed private get focusArray(): FocusArray {
+        return this.chartState.focusArray
     }
 
     @computed private get formatColumn(): CoreColumn {
-        return this.yColumns[0]
+        return this.chartState.formatColumn
     }
 
     @computed private get lineStrokeWidth(): number {
@@ -255,36 +156,20 @@ export class SlopeChart
         )
     }
 
-    @computed get isFocusModeActive(): boolean {
+    @computed private get isFocusModeActive(): boolean {
         return !this.focusArray.isEmpty
     }
 
-    @computed get canToggleFocusMode(): boolean {
+    @computed private get canToggleFocusMode(): boolean {
         return !isTouchDevice() && this.series.length > 1
     }
 
-    @computed private get yColumns(): CoreColumn[] {
-        return this.yColumnSlugs.map((slug) => this.transformedTable.get(slug))
-    }
-
-    @computed protected get yColumnSlugs(): ColumnSlug[] {
-        return autoDetectYColumnSlugs(this.manager)
-    }
-
-    @computed private get colorScheme(): ColorScheme {
-        return (
-            (this.manager.baseColorScheme
-                ? ColorSchemes.get(this.manager.baseColorScheme)
-                : null) ?? ColorSchemes.get(this.defaultBaseColorScheme)
-        )
-    }
-
     @computed private get startTime(): Time {
-        return this.transformedTable.minTime ?? 0
+        return this.chartState.startTime
     }
 
     @computed private get endTime(): Time {
-        return this.transformedTable.maxTime ?? 0
+        return this.chartState.endTime
     }
 
     @computed private get startX(): number {
@@ -295,164 +180,12 @@ export class SlopeChart
         return this.xScale(this.endTime)
     }
 
-    @computed get seriesStrategy(): SeriesStrategy {
-        return autoDetectSeriesStrategy(this.manager, true)
-    }
-
-    @computed get availableFacetStrategies(): FacetStrategy[] {
-        const strategies: FacetStrategy[] = [FacetStrategy.none]
-
-        if (this.selectionArray.numSelectedEntities > 1)
-            strategies.push(FacetStrategy.entity)
-
-        if (this.yColumns.length > 1) strategies.push(FacetStrategy.metric)
-
-        return strategies
-    }
-
-    @computed private get categoricalColorAssigner(): CategoricalColorAssigner {
-        return new CategoricalColorAssigner({
-            colorScheme: this.colorScheme,
-            invertColorScheme: this.manager.invertColorScheme,
-            colorMap:
-                this.seriesStrategy === SeriesStrategy.entity
-                    ? this.inputTable.entityNameColorIndex
-                    : this.inputTable.columnDisplayNameToColorMap,
-            autoColorMapCache: this.manager.seriesColorMap,
-        })
-    }
-
-    @computed private get annotationsMap(): AnnotationsMap | undefined {
-        return getAnnotationsMap(this.inputTable, this.yColumnSlugs[0])
-    }
-
-    private constructSingleSeries(
-        entityName: EntityName,
-        column: CoreColumn
-    ): RawSlopeChartSeries {
-        const { startTime, endTime, seriesStrategy } = this
-        const { canSelectMultipleEntities = false } = this.manager
-
-        const { availableEntityNames } = this.transformedTable
-        const columnName = column.nonEmptyDisplayName
-        const props = {
-            entityName,
-            columnName,
-            seriesStrategy,
-            availableEntityNames,
-            canSelectMultipleEntities,
-        }
-        const seriesName = getSeriesName(props)
-        const displayName = getSeriesName({
-            ...props,
-            entityName: getShortNameForEntity(entityName) ?? entityName,
-        })
-
-        const owidRowByTime = column.owidRowByEntityNameAndTime.get(entityName)
-        const start = owidRowByTime?.get(startTime)
-        const end = owidRowByTime?.get(endTime)
-
-        const colorKey = getColorKey(props)
-        const color = this.categoricalColorAssigner.assign(colorKey)
-
-        const annotation = getAnnotationsForSeries(
-            this.annotationsMap,
-            seriesName
-        )
-
-        return {
-            column,
-            seriesName,
-            entityName,
-            displayName,
-            color,
-            start,
-            end,
-            annotation,
-        }
-    }
-
-    private isSeriesValid(
-        series: RawSlopeChartSeries
-    ): series is SlopeChartSeries {
-        const {
-            start,
-            end,
-            column: { tolerance },
-        } = series
-
-        // if the start or end value is missing, we can't draw the slope
-        if (start?.value === undefined || end?.value === undefined) return false
-
-        // sanity check (might happen if tolerance is enabled)
-        if (start.originalTime >= end.originalTime) return false
-
-        const isToleranceAppliedToStartValue =
-            start.originalTime !== this.startTime
-        const isToleranceAppliedToEndValue = end.originalTime !== this.endTime
-
-        // if tolerance has been applied to one of the values, then we require
-        // a minimal distance between the original times
-        if (isToleranceAppliedToStartValue || isToleranceAppliedToEndValue) {
-            return end.originalTime - start.originalTime >= tolerance
-        }
-
-        return true
-    }
-
-    // Usually we drop rows with missing data in the transformTable function.
-    // But if we did that for slope charts, we wouldn't know whether a slope
-    // has been dropped because it actually had no data or a sibling slope had
-    // no data. But we need that information for the "No data" section. That's
-    // why the filtering happens here, so that the noDataSeries can be populated
-    // correctly.
-    private shouldSeriesBePlotted(
-        series: RawSlopeChartSeries
-    ): series is SlopeChartSeries {
-        if (!this.isSeriesValid(series)) return false
-
-        // when the missing data strategy is set to "hide", we might
-        // choose not to plot a valid series
-        if (
-            this.seriesStrategy === SeriesStrategy.column &&
-            this.missingDataStrategy === MissingDataStrategy.hide
-        ) {
-            const allSeriesForEntity = this.rawSeriesByEntityName.get(
-                series.entityName
-            )
-            return !!allSeriesForEntity?.every((series) =>
-                this.isSeriesValid(series)
-            )
-        }
-
-        return true
-    }
-
-    @computed private get rawSeries(): RawSlopeChartSeries[] {
-        return this.yColumns.flatMap((column) =>
-            this.selectionArray.selectedEntityNames.map((entityName) =>
-                this.constructSingleSeries(entityName, column)
-            )
-        )
-    }
-
-    @computed private get rawSeriesByEntityName(): Map<
-        SeriesName,
-        RawSlopeChartSeries[]
-    > {
-        const map = new Map<SeriesName, RawSlopeChartSeries[]>()
-        this.rawSeries.forEach((series) => {
-            const { entityName } = series
-            if (!map.has(entityName)) map.set(entityName, [])
-            map.get(entityName)!.push(series)
-        })
-        return map
+    @computed private get seriesStrategy(): SeriesStrategy {
+        return this.chartState.seriesStrategy
     }
 
     @computed get series(): SlopeChartSeries[] {
-        return this.rawSeries.filter((series) =>
-            this.shouldSeriesBePlotted(series)
-        )
+        return this.chartState.series
     }
 
     @computed private get placedSeries(): PlacedSlopeChartSeries[] {
@@ -500,9 +233,10 @@ export class SlopeChart
         return series
     }
 
-    @computed
-    private get noDataSeries(): RawSlopeChartSeries[] {
-        return this.rawSeries.filter((series) => !this.isSeriesValid(series))
+    @computed get noDataSeries(): RawSlopeChartSeries[] {
+        return this.chartState.rawSeries.filter(
+            (series) => !this.chartState.isSeriesValid(series)
+        )
     }
 
     @computed private get showNoDataSection(): boolean {
@@ -525,14 +259,26 @@ export class SlopeChart
         )
     }
 
-    @computed private get yAxisConfig(): AxisConfig {
+    @computed private get bottomPadding(): number {
+        return 1.5 * GRAPHER_FONT_SCALE_12 * this.fontSize
+    }
+
+    @computed private get xLabelPadding(): number {
+        return this.useCompactLayout ? 4 : 8
+    }
+
+    @computed get yAxisConfig(): AxisConfig {
         return new AxisConfig(
             {
-                nice: this.manager.yAxisConfig?.scaleType !== ScaleType.log,
+                nice: !this.chartState.isLogScale,
                 ...this.manager.yAxisConfig,
             },
             this
         )
+    }
+
+    @computed get yScaleType(): ScaleType {
+        return this.yAxisConfig.scaleType ?? ScaleType.linear
     }
 
     @computed get allYValues(): number[] {
@@ -542,30 +288,18 @@ export class SlopeChart
         ])
     }
 
-    @computed private get yScaleType(): ScaleType {
-        return this.yAxisConfig.scaleType ?? ScaleType.linear
-    }
-
-    @computed private get yDomainDefault(): [number, number] {
+    @computed get yDomainDefault(): [number, number] {
         const defaultDomain: [number, number] = [Infinity, -Infinity]
         return domainExtent(this.allYValues, this.yScaleType) ?? defaultDomain
     }
 
-    @computed private get yDomain(): [number, number] {
+    @computed get yDomain(): [number, number] {
         const domain = this.yAxisConfig.domain || [Infinity, -Infinity]
         const domainDefault = this.yDomainDefault
         return [
             Math.min(domain[0], domainDefault[0]),
             Math.max(domain[1], domainDefault[1]),
         ]
-    }
-
-    @computed private get bottomPadding(): number {
-        return 1.5 * GRAPHER_FONT_SCALE_12 * this.fontSize
-    }
-
-    @computed private get xLabelPadding(): number {
-        return this.useCompactLayout ? 4 : 8
     }
 
     @computed private get yRange(): [number, number] {
@@ -576,7 +310,7 @@ export class SlopeChart
         const axis = this.yAxisConfig.toVerticalAxis()
         axis.domain = this.yDomain
         axis.range = this.yRange
-        axis.formatColumn = this.yColumns[0]
+        axis.formatColumn = this.chartState.yColumns[0]
         axis.label = ""
         return axis
     }
@@ -590,7 +324,7 @@ export class SlopeChart
         return scaleLinear().domain(xDomain).range(xRange)
     }
 
-    @computed private get xDomain(): [number, number] {
+    @computed get xDomain(): [number, number] {
         return [this.startTime, this.endTime]
     }
 
@@ -616,15 +350,15 @@ export class SlopeChart
         return undefined
     }
 
-    @computed get maxLineLegendWidth(): number {
+    @computed private get maxLineLegendWidth(): number {
         return 0.25 * this.innerBounds.width
     }
 
-    @computed get lineLegendFontSize(): number {
+    @computed private get lineLegendFontSize(): number {
         return LineLegend.fontSize({ fontSize: this.fontSize })
     }
 
-    @computed get lineLegendYRange(): [number, number] {
+    @computed private get lineLegendYRange(): [number, number] {
         const top = this.bounds.top
 
         const bottom =
@@ -671,7 +405,7 @@ export class SlopeChart
         return this.formatColumn.formatValueShortWithAbbreviations(value)
     }
 
-    @computed get lineLegendMaxLevelLeft(): number {
+    @computed private get lineLegendMaxLevelLeft(): number {
         if (!this.manager.showLegend) return 0
 
         // can't use `lineLegendSeriesLeft` due to a circular dependency
@@ -692,7 +426,7 @@ export class SlopeChart
         })
     }
 
-    @computed get lineLegendWidthLeft(): number {
+    @computed private get lineLegendWidthLeft(): number {
         const props: LineLegendProps = {
             series: this.lineLegendSeriesLeft,
             ...this.lineLegendPropsCommon,
@@ -711,7 +445,7 @@ export class SlopeChart
             : LineLegend.stableWidth(props)
     }
 
-    @computed get lineLegendRight(): LineLegend {
+    @computed private get lineLegendRight(): LineLegend {
         return new LineLegend({
             series: this.lineLegendSeriesRight,
             ...this.lineLegendPropsCommon,
@@ -719,7 +453,7 @@ export class SlopeChart
         })
     }
 
-    @computed get lineLegendWidthRight(): number {
+    @computed private get lineLegendWidthRight(): number {
         // We usually use the "stable" width of the line legend, which might be
         // a bit too wide because the connector line width is always added, even
         // it no connector lines are drawn. Using the stable width prevents
@@ -732,11 +466,12 @@ export class SlopeChart
             : this.lineLegendRight.stableWidth
     }
 
-    @computed get visibleLineLegendLabelsRight(): Set<SeriesName> {
+    @computed private get visibleLineLegendLabelsRight(): Set<SeriesName> {
         return new Set(this.lineLegendRight?.visibleSeriesNames ?? [])
     }
 
-    @computed get seriesSortedByImportanceForLineLegendLeft(): SeriesName[] {
+    @computed
+    private get seriesSortedByImportanceForLineLegendLeft(): SeriesName[] {
         return this.series
             .map((s) => s.seriesName)
             .sort((s1: SeriesName, s2: SeriesName): number => {
@@ -754,7 +489,7 @@ export class SlopeChart
             })
     }
 
-    @computed get xRange(): [number, number] {
+    @computed private get xRange(): [number, number] {
         const lineLegendWidthLeft =
             this.lineLegendWidthLeft + LINE_LEGEND_PADDING
         const lineLegendWidthRight =
@@ -803,11 +538,11 @@ export class SlopeChart
         return this.bounds.width < 320
     }
 
-    @computed get useCompactLayout(): boolean {
+    @computed private get useCompactLayout(): boolean {
         return !!this.manager.isSemiNarrow || this.isNarrow
     }
 
-    @computed get hoveredSeriesNames(): SeriesName[] {
+    @computed private get hoveredSeriesNames(): SeriesName[] {
         const hoveredSeriesNames: SeriesName[] = []
 
         // hovered series name (either by hovering over a slope or a line legend label)
@@ -855,7 +590,7 @@ export class SlopeChart
         }
     }
 
-    @computed get lineLegendSeriesLeft(): LineLabelSeries[] {
+    @computed private get lineLegendSeriesLeft(): LineLabelSeries[] {
         const { showSeriesNamesInLineLegendLeft: showSeriesName } = this
         return this.series.map((series) =>
             this.constructSingleLineLegendSeries(
@@ -866,7 +601,7 @@ export class SlopeChart
         )
     }
 
-    @computed get lineLegendSeriesRight(): LineLabelSeries[] {
+    @computed private get lineLegendSeriesRight(): LineLabelSeries[] {
         return this.series.map((series) =>
             this.constructSingleLineLegendSeries(
                 series,
@@ -994,18 +729,15 @@ export class SlopeChart
         this.onSlopeMouseLeave()
     }
 
-    @computed get failMessage(): string {
-        const message = getDefaultFailMessage(this.manager)
-        if (message) return message
-        else if (this.series.length === 0) return "No matching data"
-        return ""
+    @computed private get failMessage(): string {
+        return this.chartState.failMessage
     }
 
-    @computed get renderUid(): number {
+    @computed private get renderUid(): number {
         return guid()
     }
 
-    @computed get tooltip(): React.ReactElement | undefined {
+    @computed private get tooltip(): React.ReactElement | undefined {
         const {
             manager: { isRelativeMode },
             tooltipState: { target, position, fading },
@@ -1069,7 +801,7 @@ export class SlopeChart
         return (
             <Tooltip
                 id={this.renderUid}
-                tooltipManager={this.props.manager}
+                tooltipManager={this.props.chartState.manager}
                 x={position.x}
                 y={position.y}
                 offsetX={20}

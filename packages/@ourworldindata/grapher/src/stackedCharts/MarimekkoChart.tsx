@@ -10,7 +10,6 @@ import {
     SortConfig,
     SortOrder,
     getRelativeMouse,
-    ColorSchemeName,
     EntitySelectionMode,
     makeIdForHumanConsumption,
     dyFromAlign,
@@ -25,7 +24,7 @@ import {
 } from "../core/GrapherConstants"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-import { AxisConfig } from "../axis/AxisConfig"
+import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
     EntityName,
@@ -33,13 +32,8 @@ import {
     VerticalAlign,
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
-import {
-    autoDetectYColumnSlugs,
-    getShortNameForEntity,
-    makeSelectionArray,
-} from "../chart/ChartUtils"
+import { getShortNameForEntity, makeSelectionArray } from "../chart/ChartUtils"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
-import { ColorSchemes } from "../color/ColorSchemes"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
     Tooltip,
@@ -54,15 +48,10 @@ import {
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
-import { ColorScale, ColorScaleManager } from "../color/ColorScale"
-import {
-    ColorScaleConfig,
-    ColorScaleConfigDefaults,
-} from "../color/ColorScaleConfig"
-import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
+import { ColorScale } from "../color/ColorScale"
+import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig"
 import { color } from "d3-color"
 import { SelectionArray } from "../selection/SelectionArray"
-import { ColorScheme } from "../color/ColorScheme"
 import {
     MarimekkoChartManager,
     EntityColorData,
@@ -78,6 +67,7 @@ import {
     LabelCandidateWithElement,
     MarimekkoBarProps,
 } from "./MarimekkoChartConstants"
+import { MarimekkoChartState } from "./MarimekkoChartState"
 
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25
@@ -247,18 +237,16 @@ function MarimekkoBarsForOneEntity(
 
 interface MarimekkoChartProps {
     bounds?: Bounds
-    manager: MarimekkoChartManager
+    chartState: MarimekkoChartState
 }
 
 @observer
 export class MarimekkoChart
     extends React.Component<MarimekkoChartProps>
-    implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager
+    implements ChartInterface, HorizontalColorLegendManager, AxisManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
 
-    defaultBaseColorScheme = ColorSchemeName.continents
-    defaultNoDataColor = OWID_NO_DATA_GRAY
     labelAngleInDegrees = -45 // 0 is horizontal, -90 is vertical from bottom to top, ...
 
     // currently hovered legend color
@@ -269,92 +257,22 @@ export class MarimekkoChart
         entityName: string
     }>()
 
-    transformTable(table: OwidTable): OwidTable {
-        const { yColumnSlugs, manager, colorColumnSlug, xColumnSlug } = this
-        if (!this.yColumnSlugs.length) return table
-
-        // TODO: remove this filter once we don't have mixed type columns in datasets
-        table = table.replaceNonNumericCellsWithErrorValues(yColumnSlugs)
-
-        yColumnSlugs.forEach((slug) => {
-            table = table.interpolateColumnWithTolerance(slug)
-        })
-
-        if (xColumnSlug)
-            table = table.interpolateColumnWithTolerance(xColumnSlug)
-
-        if (colorColumnSlug && manager.matchingEntitiesOnly)
-            table = table.dropRowsWithErrorValuesForColumn(colorColumnSlug)
-
-        if (!manager.showNoDataArea)
-            table = table.dropRowsWithErrorValuesForAllColumns(yColumnSlugs)
-
-        if (xColumnSlug)
-            table = table.dropRowsWithErrorValuesForColumn(xColumnSlug)
-        if (manager.isRelativeMode) {
-            // TODO: this should not be necessary but we sometimes get NoMatchingValuesAfterJoin if both relative and showNoDataArea are set
-            table = table.dropRowsWithErrorValuesForColumn(
-                table.timeColumn.slug
-            )
-            if (xColumnSlug) {
-                table = table.toPercentageFromEachEntityForEachTime(xColumnSlug)
-
-                // relativized columns ditch their units, making "Population %" hard to parse. Add a sensible replacement
-                Object.assign(table.get(xColumnSlug)?.def, {
-                    unit: "share of total",
-                })
-            }
-        }
-
-        return table
+    @computed get chartState(): MarimekkoChartState {
+        return this.props.chartState
     }
 
-    @computed get inputTable(): OwidTable {
-        return this.manager.table
+    @computed private get manager(): MarimekkoChartManager {
+        return this.chartState.manager
     }
 
-    @computed get transformedTable(): OwidTable {
-        const { inputTable } = this
-        return this.manager.transformedTable ?? this.transformTable(inputTable)
-    }
-
-    @computed private get unstackedSeries(): StackedSeries<EntityName>[] {
-        const { colorScheme, yColumns } = this
-        return (
-            yColumns
-                .map((col, i) => {
-                    return {
-                        seriesName: col.displayName,
-                        columnSlug: col.slug,
-                        color:
-                            col.def.color ??
-                            colorScheme.getColors(yColumns.length)[i],
-                        points: col.owidRows.map((row) => ({
-                            time: row.originalTime,
-                            position: row.entityName,
-                            value: row.value,
-                            valueOffset: 0,
-                        })),
-                    }
-                })
-                // Do not plot columns without data
-                .filter((series) => series.points.length > 0)
-        )
+    @computed private get inputTable(): OwidTable {
+        return this.chartState.inputTable
     }
 
     //@computed private get rows(): readonly
 
-    @computed get series(): readonly StackedSeries<EntityName>[] {
-        const valueOffsets = new Map<string, number>()
-        return this.unstackedSeries.map((series) => ({
-            ...series,
-            points: series.points.map((point) => {
-                const offset = valueOffsets.get(point.position) ?? 0
-                const newPoint = { ...point, valueOffset: offset }
-                valueOffsets.set(point.position, offset + point.value)
-                return newPoint
-            }),
-        }))
+    @computed private get series(): readonly StackedSeries<EntityName>[] {
+        return this.chartState.series
     }
 
     @computed get xSeries(): SimpleChartSeries | undefined {
@@ -379,18 +297,16 @@ export class MarimekkoChart
         }
     }
 
-    @computed protected get yColumnSlugs(): string[] {
-        return this.manager.yColumnSlugs ?? autoDetectYColumnSlugs(this.manager)
+    @computed private get yColumnSlugs(): string[] {
+        return this.chartState.yColumnSlugs
     }
 
-    @computed protected get xColumnSlug(): string | undefined {
-        return this.manager.xColumnSlug
+    @computed private get xColumnSlug(): string | undefined {
+        return this.chartState.xColumnSlug
     }
 
-    @computed protected get xColumn(): CoreColumn | undefined {
-        if (this.xColumnSlug === undefined) return undefined
-        const columnSlugs = this.xColumnSlug ? [this.xColumnSlug] : []
-        return this.transformedTable.getColumns(columnSlugs)[0]
+    @computed private get xColumn(): CoreColumn | undefined {
+        return this.chartState.xColumn
     }
 
     @computed private get latestTime(): number | undefined {
@@ -411,7 +327,7 @@ export class MarimekkoChart
             )
         else return undefined
     }
-    @computed protected get xColumnAtLastTimePoint(): CoreColumn | undefined {
+    @computed private get xColumnAtLastTimePoint(): CoreColumn | undefined {
         if (this.xColumnSlug === undefined) return undefined
         const columnSlug = [this.xColumnSlug]
         if (this.tableAtLatestTimelineTimepoint)
@@ -419,70 +335,37 @@ export class MarimekkoChart
         else return undefined
     }
 
-    @computed protected get yColumnsAtLastTimePoint(): CoreColumn[] {
+    @computed private get yColumnsAtLastTimePoint(): CoreColumn[] {
         const columnSlugs = this.yColumnSlugs
         return (
             this.tableAtLatestTimelineTimepoint?.getColumns(columnSlugs) ?? []
         )
     }
 
-    @computed protected get yColumns(): CoreColumn[] {
-        return this.transformedTable.getColumns(this.yColumnSlugs)
-    }
-
-    @computed private get colorScheme(): ColorScheme {
-        return (
-            (this.manager.baseColorScheme
-                ? ColorSchemes.get(this.manager.baseColorScheme)
-                : undefined) ??
-            ColorSchemes.get(ColorSchemeName["owid-distinct"])
-        )
+    @computed private get yColumns(): CoreColumn[] {
+        return this.chartState.yColumns
     }
 
     @computed private get colorColumnSlug(): string | undefined {
-        return this.manager.colorColumnSlug
+        return this.chartState.colorColumnSlug
     }
 
     @computed private get colorColumn(): CoreColumn {
-        return this.transformedTable.get(this.colorColumnSlug)
+        return this.chartState.colorColumn
     }
 
-    colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
-
-    @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
-        return (
-            ColorScaleConfig.fromDSL(this.colorColumn.def) ??
-            this.manager.colorScale
-        )
+    @computed private get colorScale(): ColorScale {
+        return this.chartState.colorScale
     }
 
-    @computed get colorScaleColumn(): CoreColumn {
-        const { manager, inputTable } = this
-        return (
-            // For faceted charts, we have to get the values of inputTable before it's filtered by
-            // the faceting logic.
-            manager.colorScaleColumnOverride ??
-            // We need to use filteredTable in order to get consistent coloring for a variable across
-            // charts, e.g. each continent being assigned to the same color.
-            // inputTable is unfiltered, so it contains every value that exists in the variable.
-
-            // 2022-05-25: I considered using the filtered table below to get rid of Antarctica automatically
-            // but the way things are currently done this leads to a shift in the colors assigned to continents
-            // (i.e. they are no longer consistent cross the site). I think this downside is heavier than the
-            // upside so I comment this out for now. Reconsider when we do colors differently.
-
-            // manager.tableAfterAuthorTimelineAndActiveChartTransform?.get(
-            //     this.colorColumnSlug
-            // ) ??
-            inputTable.get(this.colorColumnSlug)
-        )
+    @computed private get colorScaleConfig():
+        | ColorScaleConfigDefaults
+        | undefined {
+        return this.chartState.colorScaleConfig
     }
+
     @computed private get sortConfig(): SortConfig {
         return this.manager.sortConfig ?? {}
-    }
-
-    @computed private get manager(): MarimekkoChartManager {
-        return this.props.manager
     }
 
     @computed private get bounds(): Bounds {
@@ -568,13 +451,13 @@ export class MarimekkoChart
         )
     }
 
-    @computed get defaultYAxisLabel(): string | undefined {
+    @computed private get defaultYAxisLabel(): string | undefined {
         return this.yColumns.length > 0
             ? this.yColumns[0].displayName
             : undefined
     }
 
-    @computed get currentVerticalAxisLabel(): string {
+    @computed private get currentVerticalAxisLabel(): string {
         const config = this.yAxisConfig
         const fallbackLabel = this.defaultYAxisLabel ?? ""
         return this.isNarrow ? "" : config.label || fallbackLabel
@@ -602,11 +485,11 @@ export class MarimekkoChart
         return xDimName ?? "" // This sets the axis label to emtpy if we don't have an x column - not entirely sure this is what we want
     }
 
-    @computed get defaultXAxisLabel(): string | undefined {
+    @computed private get defaultXAxisLabel(): string | undefined {
         return this.xColumn?.displayName
     }
 
-    @computed get currentHorizontalAxisLabel(): string {
+    @computed private get currentHorizontalAxisLabel(): string {
         const { xAxisLabelBase } = this
         const config = this.xAxisConfig
         return config.label || xAxisLabelBase
@@ -788,13 +671,13 @@ export class MarimekkoChart
         return placedItems
     }
 
-    @computed get placedItemsMap(): Map<string, PlacedItem> {
+    @computed private get placedItemsMap(): Map<string, PlacedItem> {
         return new Map(this.placedItems.map((item) => [item.entityName, item]))
     }
 
     // legend props
 
-    @computed get legendPaddingTop(): number {
+    @computed private get legendPaddingTop(): number {
         return this.legend.height > 0 ? this.baseFontSize : 0
     }
 
@@ -901,12 +784,12 @@ export class MarimekkoChart
     }
 
     render(): React.ReactElement {
-        if (this.failMessage)
+        if (this.chartState.failMessage)
             return (
                 <NoDataModal
                     manager={this.manager}
                     bounds={this.bounds}
-                    message={this.failMessage}
+                    message={this.chartState.failMessage}
                 />
             )
 
@@ -1711,14 +1594,5 @@ export class MarimekkoChart
                 ),
             }
         })
-    }
-
-    @computed get failMessage(): string {
-        const column = this.yColumns[0]
-        const { yColumns } = this
-
-        if (!column) return "No Y column to chart"
-
-        return yColumns.every((col) => col.isEmpty) ? "No matching data" : ""
     }
 }

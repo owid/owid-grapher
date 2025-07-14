@@ -9,11 +9,17 @@ import {
     SynthesizeGDPTable,
     OwidTable,
 } from "@ourworldindata/core-table"
-import { ChartManager } from "../chart/ChartManager"
+
 import { observable } from "mobx"
 import { AxisConfig } from "../axis/AxisConfig"
 import { SelectionArray } from "../selection/SelectionArray"
-import { ColumnTypeNames, FacetStrategy } from "@ourworldindata/utils"
+import {
+    ColumnTypeNames,
+    FacetStrategy,
+    GRAPHER_CHART_TYPES,
+} from "@ourworldindata/utils"
+import { StackedAreaChartState } from "./StackedAreaChartState.js"
+import { ChartManager } from "../chart/ChartManager"
 
 class MockManager implements ChartManager {
     table = SynthesizeGDPTable({
@@ -23,14 +29,15 @@ class MockManager implements ChartManager {
     yAxisConfig = new AxisConfig({ min: 0, max: 200 })
     @observable isRelativeMode = false
     selection = new SelectionArray()
+    activeChartType = GRAPHER_CHART_TYPES.StackedArea
 }
 
 it("can create a basic chart", () => {
     const manager = new MockManager()
-    const chart = new StackedAreaChart({ manager })
-    expect(chart.failMessage).toBeTruthy()
+    const chartState = new StackedAreaChartState({ manager })
+    expect(chartState.failMessage).toBeTruthy()
     manager.selection.addToSelection(manager.table.availableEntityNames)
-    expect(chart.failMessage).toEqual("")
+    expect(chartState.failMessage).toEqual("")
 })
 
 describe("column charts", () => {
@@ -48,8 +55,8 @@ describe("column charts", () => {
                 SampleColumnSlugs.Vegetables,
             ],
         }
-        const chart = new StackedAreaChart({ manager: columnsChart })
-        expect(chart.series.map((series) => series.color)).toEqual([
+        const chartState = new StackedAreaChartState({ manager: columnsChart })
+        expect(chartState.series.map((series) => series.color)).toEqual([
             SampleColumnSlugs.Vegetables,
             SampleColumnSlugs.Fruit,
         ])
@@ -65,8 +72,8 @@ describe("column charts", () => {
                 SampleColumnSlugs.Vegetables,
             ],
         }
-        const chart = new StackedAreaChart({ manager: columnsChart })
-        const assignedColors = chart.series.map((series) => series.color)
+        const chartState = new StackedAreaChartState({ manager: columnsChart })
+        const assignedColors = chartState.series.map((series) => series.color)
         expect(assignedColors).toHaveLength(2)
         for (const color of assignedColors)
             expect(color).toMatch(
@@ -77,17 +84,18 @@ describe("column charts", () => {
 
 it("use author axis settings unless relative mode", () => {
     const manager = new MockManager()
-    const chart = new StackedAreaChart({ manager })
+    const chartState = new StackedAreaChartState({ manager })
+    const chart = new StackedAreaChart({ chartState })
     expect(chart.yAxis.domain[1]).toBeGreaterThan(100)
     manager.isRelativeMode = true
     expect(chart.yAxis.domain).toEqual([0, 100])
 })
 
 it("shows a failure message if there are columns but no series", () => {
-    const chart = new StackedAreaChart({
+    const chartState = new StackedAreaChartState({
         manager: { table: SynthesizeFruitTable() },
     })
-    expect(chart.failMessage).toBeTruthy()
+    expect(chartState.failMessage).toBeTruthy()
 })
 
 it("can filter a series when there are no points", () => {
@@ -95,14 +103,14 @@ it("can filter a series when there are no points", () => {
         entityCount: 2,
         timeRange: [2000, 2003],
     }).replaceRandomCells(6, [SampleColumnSlugs.Fruit])
-    const chart = new StackedAreaChart({
+    const chartState = new StackedAreaChartState({
         manager: {
             selection: table.sampleEntityName(1),
             table,
         },
     })
 
-    expect(chart.series.length).toEqual(0)
+    expect(chartState.series.length).toEqual(0)
 })
 
 it("filters non-numeric values", () => {
@@ -119,10 +127,10 @@ it("filters non-numeric values", () => {
         yColumnSlugs: [SampleColumnSlugs.Fruit],
         selection: table.availableEntityNames,
     }
-    const chart = new StackedAreaChart({ manager })
-    expect(chart.series.length).toEqual(2)
+    const chartState = new StackedAreaChartState({ manager })
+    expect(chartState.series.length).toEqual(2)
     expect(
-        chart.series.every((series) =>
+        chartState.series.every((series) =>
             series.points.every(
                 (point) => _.isNumber(point.position) && _.isNumber(point.value)
             )
@@ -153,10 +161,10 @@ it("should drop missing values at start or end", () => {
         yColumnSlugs: ["gdp"],
         selection: table.availableEntityNames,
     }
-    const chart = new StackedAreaChart({ manager })
-    expect(chart.series.length).toEqual(2)
-    expect(chart.series[0].points.length).toEqual(3)
-    expect(chart.series[1].points.length).toEqual(3)
+    const chartState = new StackedAreaChartState({ manager })
+    expect(chartState.series.length).toEqual(2)
+    expect(chartState.series[0].points.length).toEqual(3)
+    expect(chartState.series[1].points.length).toEqual(3)
 })
 
 it("should mark interpolated values as fake", () => {
@@ -180,11 +188,11 @@ it("should mark interpolated values as fake", () => {
         selection: table.availableEntityNames,
     }
 
-    const chart = new StackedAreaChart({ manager })
+    const chartState = new StackedAreaChartState({ manager })
 
     // indices are reversed because stacked charts reverse the stacking order
-    const pointsFrance = chart.series[1].points
-    const pointsUK = chart.series[0].points
+    const pointsFrance = chartState.series[1].points
+    const pointsUK = chartState.series[0].points
 
     // year 2000
     expect(pointsFrance[0].interpolated).toBeFalsy()
@@ -223,19 +231,19 @@ describe("externalLegendBins", () => {
     }
 
     it("doesn't expose externalLegendBins when legend is shown", () => {
-        const chart = new StackedAreaChart({
+        const chartState = new StackedAreaChartState({
             manager: { ...baseManager, showLegend: true },
         })
-        expect(chart["externalLegend"]).toBeUndefined()
+        const chart = new StackedAreaChart({ chartState })
+        expect(chart.externalLegend).toBeUndefined()
     })
 
     it("exposes externalLegendBins when legend is hidden", () => {
-        const chart = new StackedAreaChart({
+        const chartState = new StackedAreaChartState({
             manager: { ...baseManager, showLegend: false },
         })
-        expect(chart["externalLegend"]?.categoricalLegendData?.length).toEqual(
-            2
-        )
+        const chart = new StackedAreaChart({ chartState })
+        expect(chart.externalLegend?.categoricalLegendData?.length).toEqual(2)
     })
 })
 
@@ -260,57 +268,69 @@ describe("availableFacetStrategies (multi entity, single column)", () => {
     }
 
     it("allows stacking countries", () => {
-        const chart = new StackedAreaChart({
+        const chartState = new StackedAreaChartState({
             manager: {
                 ...manager,
                 selection: ["France", "Spain", "Sudan", "China"],
             },
         })
-        expect(chart.availableFacetStrategies).toContain(FacetStrategy.none)
+        expect(chartState.availableFacetStrategies).toContain(
+            FacetStrategy.none
+        )
     })
 
     it("allows stacking continents", () => {
-        const chart = new StackedAreaChart({
+        const chartState = new StackedAreaChartState({
             manager: {
                 ...manager,
                 selection: ["Europe", "Africa", "Asia"],
             },
         })
-        expect(chart.availableFacetStrategies).toContain(FacetStrategy.none)
+        expect(chartState.availableFacetStrategies).toContain(
+            FacetStrategy.none
+        )
     })
 
     it("allows stacking countries on top of unrelated continents", () => {
-        const chart = new StackedAreaChart({
+        const chartState = new StackedAreaChartState({
             manager: {
                 ...manager,
                 selection: ["France", "Spain", "China", "Africa"],
             },
         })
-        expect(chart.availableFacetStrategies).toContain(FacetStrategy.none)
+        expect(chartState.availableFacetStrategies).toContain(
+            FacetStrategy.none
+        )
     })
 
     it("doesn't allow stacking countries on top of their continent", () => {
-        const chart = new StackedAreaChart({
+        const chartState = new StackedAreaChartState({
             manager: {
                 ...manager,
                 selection: ["France", "Spain", "China", "Europe"],
             },
         })
-        expect(chart.availableFacetStrategies).not.toContain(FacetStrategy.none)
+        expect(chartState.availableFacetStrategies).not.toContain(
+            FacetStrategy.none
+        )
     })
 
     it("doesn't allow stacking World on top of countries", () => {
-        const chart = new StackedAreaChart({
+        const chartState = new StackedAreaChartState({
             manager: { ...manager, selection: ["Germany", "World"] },
         })
-        expect(chart.availableFacetStrategies).not.toContain(FacetStrategy.none)
+        expect(chartState.availableFacetStrategies).not.toContain(
+            FacetStrategy.none
+        )
     })
 
     it("doesn't allow stacking World on top of continents", () => {
-        const chart = new StackedAreaChart({
+        const chartState = new StackedAreaChartState({
             manager: { ...manager, selection: ["World", "Europe"] },
         })
-        expect(chart.availableFacetStrategies).not.toContain(FacetStrategy.none)
+        expect(chartState.availableFacetStrategies).not.toContain(
+            FacetStrategy.none
+        )
     })
 })
 
@@ -335,61 +355,67 @@ describe("availableFacetStrategies (multi entity, multi column)", () => {
     }
 
     it("allows stacking countries", () => {
-        const chart = new StackedAreaChart({
+        const chartState = new StackedAreaChartState({
             manager: {
                 ...manager,
                 selection: ["France", "Spain", "Sudan", "China"],
             },
         })
-        expect(chart.availableFacetStrategies).toContain(FacetStrategy.metric)
+        expect(chartState.availableFacetStrategies).toContain(
+            FacetStrategy.metric
+        )
     })
 
     it("allows stacking continents", () => {
-        const chart = new StackedAreaChart({
+        const chartState = new StackedAreaChartState({
             manager: {
                 ...manager,
                 selection: ["Europe", "Africa", "Asia"],
             },
         })
-        expect(chart.availableFacetStrategies).toContain(FacetStrategy.metric)
+        expect(chartState.availableFacetStrategies).toContain(
+            FacetStrategy.metric
+        )
     })
 
     it("allows stacking countries on top of unrelated continents", () => {
-        const chart = new StackedAreaChart({
+        const chartState = new StackedAreaChartState({
             manager: {
                 ...manager,
                 selection: ["France", "Spain", "China", "Africa"],
             },
         })
-        expect(chart.availableFacetStrategies).toContain(FacetStrategy.metric)
+        expect(chartState.availableFacetStrategies).toContain(
+            FacetStrategy.metric
+        )
     })
 
     it("doesn't allow stacking countries on top of their continent", () => {
-        const chart = new StackedAreaChart({
+        const chartState = new StackedAreaChartState({
             manager: {
                 ...manager,
                 selection: ["France", "Spain", "China", "Europe"],
             },
         })
-        expect(chart.availableFacetStrategies).not.toContain(
+        expect(chartState.availableFacetStrategies).not.toContain(
             FacetStrategy.metric
         )
     })
 
     it("doesn't allow stacking World on top of countries", () => {
-        const chart = new StackedAreaChart({
+        const chartState = new StackedAreaChartState({
             manager: { ...manager, selection: ["Germany", "World"] },
         })
-        expect(chart.availableFacetStrategies).not.toContain(
+        expect(chartState.availableFacetStrategies).not.toContain(
             FacetStrategy.metric
         )
     })
 
     it("doesn't allow stacking World on top of continents", () => {
-        const chart = new StackedAreaChart({
+        const chartState = new StackedAreaChartState({
             manager: { ...manager, selection: ["World", "Europe"] },
         })
-        expect(chart.availableFacetStrategies).not.toContain(
+        expect(chartState.availableFacetStrategies).not.toContain(
             FacetStrategy.metric
         )
     })
