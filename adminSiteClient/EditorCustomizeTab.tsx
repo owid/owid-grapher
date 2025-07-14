@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { computed, action, makeObservable } from "mobx";
+import { computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     ComparisonLineConfig,
@@ -62,19 +62,17 @@ class TimeField<
     isInherited: boolean
     allowLinking: boolean
 }> {
-    constructor(
-        props: {
-            field: K
-            store: T
-            label: string
-            defaultValue: number
-            parentValue: number
-            isInherited: boolean
-            allowLinking: boolean
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: {
+        field: K
+        store: T
+        label: string
+        defaultValue: number
+        parentValue: number
+        isInherited: boolean
+        allowLinking: boolean
+    }) {
+        super(props)
+        makeObservable(this)
     }
 
     private setValue(value: number) {
@@ -136,14 +134,12 @@ export class ColorSchemeSelector extends React.Component<{
     grapherState: GrapherState
     defaultValue?: ColorSchemeName
 }> {
-    constructor(
-        props: {
-            grapherState: GrapherState
-            defaultValue?: ColorSchemeName
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: {
+        grapherState: GrapherState
+        defaultValue?: ColorSchemeName
+    }) {
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound onChange(selected: ColorSchemeOption) {
@@ -228,8 +224,8 @@ class SortOrderSection<
     Editor extends AbstractChartEditor,
 > extends React.Component<{ editor: Editor }> {
     constructor(props: { editor: Editor }) {
-        super(props);
-        makeObservable(this);
+        super(props)
+        makeObservable(this)
     }
 
     @computed get sortConfig(): SortConfig {
@@ -336,13 +332,9 @@ class FacetSection<Editor extends AbstractChartEditor> extends React.Component<{
 }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
-    constructor(
-        props: {
-            editor: Editor
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: { editor: Editor }) {
+        super(props)
+        makeObservable(this)
     }
 
     @computed get grapherState() {
@@ -425,8 +417,8 @@ class TimelineSection<
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     constructor(props: { editor: Editor }) {
-        super(props);
-        makeObservable(this);
+        super(props)
+        makeObservable(this)
     }
 
     @computed get grapherState() {
@@ -538,8 +530,8 @@ class ComparisonLineSection<
     Editor extends AbstractChartEditor,
 > extends React.Component<{ editor: Editor }> {
     constructor(props: { editor: Editor }) {
-        super(props);
-        makeObservable(this);
+        super(props)
+        makeObservable(this)
     }
 
     private getComparisonLineType(comparisonLine: ComparisonLineConfig) {
@@ -687,14 +679,9 @@ export class EditorCustomizeTab<
     editor: Editor
     errorMessages: ErrorMessages
 }> {
-    constructor(
-        props: {
-            editor: Editor
-            errorMessages: ErrorMessages
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: { editor: Editor; errorMessages: ErrorMessages }) {
+        super(props)
+        makeObservable(this)
     }
 
     @computed get errorMessages() {

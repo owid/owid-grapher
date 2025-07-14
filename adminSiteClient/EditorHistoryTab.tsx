@@ -2,7 +2,7 @@ import { Component } from "react"
 import { observer } from "mobx-react"
 import { ChartEditor, Log } from "./ChartEditor.js"
 import { Timeago } from "./Forms.js"
-import { computed, observable, makeObservable } from "mobx";
+import { computed, observable, makeObservable } from "mobx"
 import { Modal } from "antd"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
 
@@ -59,14 +59,9 @@ class LogRenderer extends Component<{
 }> {
     @observable isCompareModalOpen = false
 
-    constructor(
-        props: {
-            log: Log
-            previousLog: Log | undefined
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: { log: Log; previousLog: Log | undefined }) {
+        super(props)
+        makeObservable(this)
     }
 
     @computed get title() {
@@ -116,8 +111,8 @@ class LogRenderer extends Component<{
 @observer
 export class EditorHistoryTab extends Component<{ editor: ChartEditor }> {
     constructor(props: { editor: ChartEditor }) {
-        super(props);
-        makeObservable(this);
+        super(props)
+        makeObservable(this)
     }
 
     @computed get logs() {

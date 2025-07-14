@@ -8,7 +8,7 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { useState } from "react"
 import { bind } from "decko"
-import { action, makeObservable } from "mobx";
+import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import cx from "classnames"
 import { useTimeout } from "usehooks-ts"
@@ -575,8 +575,8 @@ interface ToggleProps {
 
 export class Toggle extends React.Component<ToggleProps> {
     constructor(props: ToggleProps) {
-        super(props);
-        makeObservable(this);
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound onChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -799,26 +799,24 @@ export class BindString extends React.Component<{
     onButtonClick?: () => void
     onBlur?: () => void
 }> {
-    constructor(
-        props: {
-            field: string
-            store: Record<string, any>
-            label?: React.ReactNode
-            secondaryLabel?: string
-            placeholder?: string
-            helpText?: string
-            textarea?: boolean
-            softCharacterLimit?: number
-            disabled?: boolean
-            rows?: number
-            errorMessage?: string
-            buttonContent?: React.ReactChild
-            onButtonClick?: () => void
-            onBlur?: () => void
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: {
+        field: string
+        store: Record<string, any>
+        label?: React.ReactNode
+        secondaryLabel?: string
+        placeholder?: string
+        helpText?: string
+        textarea?: boolean
+        softCharacterLimit?: number
+        disabled?: boolean
+        rows?: number
+        errorMessage?: string
+        buttonContent?: React.ReactChild
+        onButtonClick?: () => void
+        onBlur?: () => void
+    }) {
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound onValue(value: string = "") {
@@ -874,24 +872,22 @@ export class BindStringArray extends React.Component<{
     buttonContent?: React.ReactChild
     onButtonClick?: () => void
 }> {
-    constructor(
-        props: {
-            field: string
-            store: Record<string, any>
-            label?: React.ReactNode
-            secondaryLabel?: string
-            placeholder?: string
-            helpText?: string
-            softCharacterLimit?: number
-            disabled?: boolean
-            rows?: number
-            errorMessage?: string
-            buttonContent?: React.ReactChild
-            onButtonClick?: () => void
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: {
+        field: string
+        store: Record<string, any>
+        label?: React.ReactNode
+        secondaryLabel?: string
+        placeholder?: string
+        helpText?: string
+        softCharacterLimit?: number
+        disabled?: boolean
+        rows?: number
+        errorMessage?: string
+        buttonContent?: React.ReactChild
+        onButtonClick?: () => void
+    }) {
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound onValue(value: string = "") {
@@ -921,17 +917,15 @@ export class BindDropdown extends React.Component<{
     options: Array<{ value: string; label: string }>
     disabled?: boolean
 }> {
-    constructor(
-        props: {
-            field: string
-            store: Record<string, any>
-            label?: React.ReactNode
-            options: Array<{ value: string; label: string }>
-            disabled?: boolean
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: {
+        field: string
+        store: Record<string, any>
+        label?: React.ReactNode
+        options: Array<{ value: string; label: string }>
+        disabled?: boolean
+    }) {
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound onChange(event: React.ChangeEvent<HTMLSelectElement>) {
@@ -978,22 +972,20 @@ export class BindAutoString<
     placeholder?: string
     textarea?: boolean
 }> {
-    constructor(
-        props: {
-            field: K
-            store: T
-            auto: string
-            label?: string
-            helpText?: string
-            errorMessage?: string
-            softCharacterLimit?: number
-            onBlur?: () => void
-            placeholder?: string
-            textarea?: boolean
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: {
+        field: K
+        store: T
+        auto: string
+        label?: string
+        helpText?: string
+        errorMessage?: string
+        softCharacterLimit?: number
+        onBlur?: () => void
+        placeholder?: string
+        textarea?: boolean
+    }) {
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound onValue(value: string) {
@@ -1079,8 +1071,8 @@ export class BindAutoStringExt<
             "onValue" | "onToggleAuto" | "value" | "isBlur"
         >
     ) {
-        super(props);
-        makeObservable(this);
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound onValue(value: string | undefined = "") {
@@ -1194,17 +1186,15 @@ export class BindFloat<
     helpText?: string
     disabled?: boolean
 }> {
-    constructor(
-        props: {
-            field: K
-            store: T
-            label?: string
-            helpText?: string
-            disabled?: boolean
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: {
+        field: K
+        store: T
+        label?: string
+        helpText?: string
+        disabled?: boolean
+    }) {
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound onValue(value: number | undefined) {
@@ -1239,18 +1229,16 @@ export class BindAutoFloat<
     helpText?: string
     onBlur?: () => void
 }> {
-    constructor(
-        props: {
-            field: K
-            store: T
-            auto: number
-            label?: string
-            helpText?: string
-            onBlur?: () => void
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: {
+        field: K
+        store: T
+        auto: number
+        label?: string
+        helpText?: string
+        onBlur?: () => void
+    }) {
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound onValue(value: number | undefined) {
@@ -1300,8 +1288,8 @@ export class BindAutoFloatExt<
             auto?: number
         } & Omit<AutoFloatFieldProps, "onValue" | "onToggleAuto" | "value">
     ) {
-        super(props);
-        makeObservable(this);
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound onValue(value: number | undefined) {
@@ -1339,14 +1327,9 @@ export class Modal extends React.Component<{
     base: React.RefObject<HTMLDivElement> = React.createRef()
     dismissable: boolean = true
 
-    constructor(
-        props: {
-            className?: string
-            onClose: () => void
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: { className?: string; onClose: () => void }) {
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound onClickOutside() {

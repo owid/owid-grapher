@@ -1,4 +1,4 @@
-import { computed, makeObservable } from "mobx";
+import { computed, makeObservable } from "mobx"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
 // Responsible for determining what parts of the editor should be shown, based on the
@@ -6,7 +6,7 @@ import { AbstractChartEditor } from "./AbstractChartEditor.js"
 export class EditorFeatures {
     editor: AbstractChartEditor
     constructor(editor: AbstractChartEditor) {
-        makeObservable(this);
+        makeObservable(this)
         this.editor = editor
     }
 

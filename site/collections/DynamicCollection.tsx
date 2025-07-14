@@ -10,7 +10,7 @@ import {
     observable,
     reaction,
     makeObservable,
-} from "mobx";
+} from "mobx"
 import { observer } from "mobx-react"
 import { WindowGraphers } from "./DynamicCollectionPage.js"
 import { Grapher } from "@ourworldindata/grapher"
@@ -60,8 +60,8 @@ export class DynamicCollection extends React.Component<DynamicCollectionProps> {
     disposers: IReactionDisposer[] = []
 
     constructor(props: DynamicCollectionProps) {
-        super(props);
-        makeObservable(this);
+        super(props)
+        makeObservable(this)
     }
 
     @computed get allGrapherSlugsAndQueryStrings() {

@@ -3,7 +3,7 @@ import { Component } from "react"
 import { observer } from "mobx-react"
 import { Section, Toggle } from "./Forms.js"
 import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
-import { action, computed, observable, makeObservable } from "mobx";
+import { action, computed, observable, makeObservable } from "mobx"
 import {
     NARRATIVE_CHART_PROPS_TO_OMIT,
     copyToClipboard,
@@ -45,13 +45,9 @@ export class EditorDebugTab<
 class EditorDebugTabForChart extends Component<{
     editor: ChartEditor
 }> {
-    constructor(
-        props: {
-            editor: ChartEditor
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: { editor: ChartEditor }) {
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound copyYamlToClipboard() {
@@ -212,13 +208,9 @@ class EditorDebugTabForChart extends Component<{
 class EditorDebugTabForNarrativeChart extends Component<{
     editor: NarrativeChartEditor
 }> {
-    constructor(
-        props: {
-            editor: NarrativeChartEditor
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: { editor: NarrativeChartEditor }) {
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound copyYamlToClipboard() {

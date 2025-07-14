@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import { FuzzySearch, FuzzySearchResult } from "@ourworldindata/utils"
-import { action, autorun, computed, observable, makeObservable } from "mobx";
+import { action, autorun, computed, observable, makeObservable } from "mobx"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 interface ChartItem {
     title: string
@@ -9,11 +9,11 @@ interface ChartItem {
 }
 
 function encodeHashSafe(s: string) {
-    return encodeURIComponent(s.replace(/ /g, "-"));
+    return encodeURIComponent(s.replace(/ /g, "-"))
 }
 
 function decodeHashSafe(s: string) {
-    return decodeURIComponent(s).replace(/-/g, " ");
+    return decodeURIComponent(s).replace(/-/g, " ")
 }
 
 class ChartFilter {
@@ -40,7 +40,7 @@ class ChartFilter {
     }
 
     constructor() {
-        makeObservable(this);
+        makeObservable(this)
         this.searchInput = document.querySelector(
             ".chartsSearchInput"
         ) as HTMLInputElement

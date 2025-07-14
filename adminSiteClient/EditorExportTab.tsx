@@ -1,4 +1,11 @@
-import { IReactionDisposer, action, computed, observable, reaction, makeObservable } from "mobx";
+import {
+    IReactionDisposer,
+    action,
+    computed,
+    observable,
+    reaction,
+    makeObservable,
+} from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
 import { Section, Toggle } from "./Forms.js"
@@ -77,7 +84,7 @@ export class EditorExportTab<
 
     constructor(props: EditorExportTabProps<Editor>) {
         super(props)
-        makeObservable(this);
+        makeObservable(this)
         this.originalGrapher = this.grabRelevantPropertiesFromGrapher()
     }
 

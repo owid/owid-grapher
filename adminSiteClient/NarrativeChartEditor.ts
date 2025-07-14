@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import type { History } from "history"
-import { computed, runInAction, override, makeObservable } from "mobx";
+import { computed, runInAction, override, makeObservable } from "mobx"
 import {
     AbstractChartEditor,
     AbstractChartEditorManager,
@@ -37,7 +37,7 @@ export interface NarrativeChartEditorManager
 export class NarrativeChartEditor extends AbstractChartEditor<NarrativeChartEditorManager> {
     constructor(props: { manager: NarrativeChartEditorManager }) {
         super(props)
-        makeObservable(this);
+        makeObservable(this)
     }
 
     @computed

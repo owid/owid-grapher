@@ -1,5 +1,5 @@
 import { Component } from "react"
-import { computed, action, makeObservable } from "mobx";
+import { computed, action, makeObservable } from "mobx"
 import Select from "react-select"
 import { GrapherChartOrMapType } from "@ourworldindata/types"
 import {
@@ -35,8 +35,8 @@ export class ColorSchemeDropdown extends Component<ColorSchemeDropdownProps> {
     }
 
     constructor(props: ColorSchemeDropdownProps) {
-        super(props);
-        makeObservable(this);
+        super(props)
+        makeObservable(this)
     }
 
     @computed get additionalOptions() {

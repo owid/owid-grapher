@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { LogoOption, RelatedQuestionsConfig } from "@ourworldindata/types"
 import { getErrorMessageRelatedQuestionUrl } from "@ourworldindata/grapher"
 import { copyToClipboard, slugify } from "@ourworldindata/utils"
-import { action, computed, makeObservable } from "mobx";
+import { action, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
 import { isChartEditorInstance } from "./ChartEditor.js"
@@ -31,8 +31,8 @@ export class EditorTextTab<
     Editor extends AbstractChartEditor,
 > extends Component<{ editor: Editor; errorMessages: ErrorMessages }> {
     constructor(props: { editor: Editor; errorMessages: ErrorMessages }) {
-        super(props);
-        makeObservable(this);
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound onSlug(slug: string) {

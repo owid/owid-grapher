@@ -11,7 +11,7 @@ import {
     MAP_REGION_LABELS,
 } from "@ourworldindata/grapher"
 import { ColumnSlug, ToleranceStrategy } from "@ourworldindata/utils"
-import { action, computed, makeObservable } from "mobx";
+import { action, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Component, Fragment } from "react"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
@@ -26,15 +26,13 @@ class VariableSection extends Component<{
     filledDimensions: ChartDimension[]
     parentConfig?: GrapherInterface
 }> {
-    constructor(
-        props: {
-            mapConfig: MapConfig
-            filledDimensions: ChartDimension[]
-            parentConfig?: GrapherInterface
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: {
+        mapConfig: MapConfig
+        filledDimensions: ChartDimension[]
+        parentConfig?: GrapherInterface
+    }) {
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound onColumnSlug(columnSlug: ColumnSlug) {
@@ -90,8 +88,8 @@ class VariableSection extends Component<{
 @observer
 class TimelineSection extends Component<{ mapConfig: MapConfig }> {
     constructor(props: { mapConfig: MapConfig }) {
-        super(props);
-        makeObservable(this);
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound onToggleHideTimeline(value: boolean) {
@@ -173,8 +171,8 @@ class TimelineSection extends Component<{ mapConfig: MapConfig }> {
 @observer
 class TooltipSection extends Component<{ mapConfig: MapConfig }> {
     constructor(props: { mapConfig: MapConfig }) {
-        super(props);
-        makeObservable(this);
+        super(props)
+        makeObservable(this)
     }
 
     @action.bound onTooltipUseCustomLabels(tooltipUseCustomLabels: boolean) {
@@ -203,13 +201,9 @@ class TooltipSection extends Component<{ mapConfig: MapConfig }> {
 class InheritanceSection<Editor extends AbstractChartEditor> extends Component<{
     editor: Editor
 }> {
-    constructor(
-        props: {
-            editor: Editor
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: { editor: Editor }) {
+        super(props)
+        makeObservable(this)
     }
 
     @computed private get editor() {
@@ -259,8 +253,8 @@ export class EditorMapTab<
     Editor extends AbstractChartEditor,
 > extends Component<{ editor: Editor }> {
     constructor(props: { editor: Editor }) {
-        super(props);
-        makeObservable(this);
+        super(props)
+        makeObservable(this)
     }
 
     @computed get grapherState() {

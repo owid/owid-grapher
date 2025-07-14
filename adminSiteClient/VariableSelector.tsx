@@ -7,7 +7,13 @@ import {
     highlightFunctionForSearchWords,
     SearchWord,
 } from "../adminShared/search.js"
-import { computed, action, observable, IReactionDisposer, makeObservable } from "mobx";
+import {
+    computed,
+    action,
+    observable,
+    IReactionDisposer,
+    makeObservable,
+} from "mobx"
 import { observer } from "mobx-react"
 import Select, { MultiValue } from "react-select"
 
@@ -59,8 +65,8 @@ export class VariableSelector<
     @observable rowHeight: number = 32
 
     constructor(props: VariableSelectorProps<Editor>) {
-        super(props);
-        makeObservable(this);
+        super(props)
+        makeObservable(this)
     }
 
     @computed get database(): EditorDatabase {

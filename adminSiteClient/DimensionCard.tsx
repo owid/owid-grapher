@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import { Component, Fragment } from "react"
-import { observable, computed, action, makeObservable } from "mobx";
+import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartDimension } from "@ourworldindata/grapher"
 import { OwidColumnDef, OwidVariableRoundingMode } from "@ourworldindata/types"
@@ -38,19 +38,17 @@ export class DimensionCard<
 }> {
     @observable.ref isExpanded: boolean = false
 
-    constructor(
-        props: {
-            dimension: ChartDimension
-            editor: Editor
-            isDndEnabled?: boolean
-            onChange: (dimension: ChartDimension) => void
-            onEdit?: () => void
-            onRemove?: () => void
-            errorMessage?: string
-        }
-    ) {
-        super(props);
-        makeObservable(this);
+    constructor(props: {
+        dimension: ChartDimension
+        editor: Editor
+        isDndEnabled?: boolean
+        onChange: (dimension: ChartDimension) => void
+        onEdit?: () => void
+        onRemove?: () => void
+        errorMessage?: string
+    }) {
+        super(props)
+        makeObservable(this)
     }
 
     @computed get table(): OwidTable {
