@@ -1,13 +1,11 @@
 import * as React from "react"
-import { observer } from "mobx-react"
-import { action, computed } from "mobx"
 import { Bounds } from "@ourworldindata/utils"
 import {
     isElementInteractive,
     isTargetOutsideElement,
 } from "../chart/ChartUtils"
+import { bind } from "decko"
 
-@observer
 export class Modal extends React.Component<{
     bounds: Bounds
     onDismiss: () => void
@@ -17,19 +15,19 @@ export class Modal extends React.Component<{
 }> {
     contentRef: React.RefObject<HTMLDivElement> = React.createRef()
 
-    @computed private get bounds(): Bounds {
+    private get bounds(): Bounds {
         return this.props.bounds
     }
 
-    @computed private get isHeightFixed(): boolean {
+    private get isHeightFixed(): boolean {
         return this.props.isHeightFixed ?? false
     }
 
-    @computed private get alignVertical(): "top" | "center" | "bottom" {
+    private get alignVertical(): "top" | "center" | "bottom" {
         return this.props.alignVertical ?? "center"
     }
 
-    @action.bound onDocumentClick(e: MouseEvent): void {
+    @bind onDocumentClick(e: MouseEvent): void {
         if (
             this.contentRef?.current &&
             isTargetOutsideElement(e.target!, this.contentRef.current) &&
@@ -40,7 +38,7 @@ export class Modal extends React.Component<{
             this.props.onDismiss()
     }
 
-    @action.bound onDocumentKeyDown(e: KeyboardEvent): void {
+    @bind onDocumentKeyDown(e: KeyboardEvent): void {
         if (e.key === "Escape") this.props.onDismiss()
     }
 

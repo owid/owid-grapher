@@ -1,6 +1,5 @@
 import { Component } from "react"
-import { observer } from "mobx-react"
-import { action, computed } from "mobx"
+import { bind } from "decko"
 import Select, { components, SingleValueProps } from "react-select"
 import {
     ExplorerControlType,
@@ -105,7 +104,6 @@ const ExplorerDropdown = (props: {
     )
 }
 
-@observer
 export class ExplorerControlPanel extends Component<{
     choice: ExplorerChoice
     explorerSlug?: string
@@ -157,7 +155,7 @@ export class ExplorerControlPanel extends Component<{
         )
     }
 
-    @computed private get options() {
+    private get options() {
         return this.props.choice.options ?? []
     }
 
@@ -184,8 +182,8 @@ export class ExplorerControlPanel extends Component<{
         )
     }
 
-    @action.bound private customOnChange(value: string) {
-        if (this.props.onChange) this.props.onChange(value)
+    @bind private customOnChange(value: string) {
+        this.props.onChange?.(value)
     }
 
     private renderColumn(
