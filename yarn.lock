@@ -3327,8 +3327,8 @@ __metadata:
     eslint-plugin-react-hooks: "npm:^5.2.0"
     mdast-util-find-and-replace: "npm:^2.2.2"
     mdast-util-from-markdown: "npm:^1.3.1"
-    mobx: "npm:^5.15.7"
-    mobx-react: "npm:^6.3.1"
+    mobx: "npm:^6.13.7"
+    mobx-react: "npm:^7.6.0"
     react: "npm:^17.0.2"
     react-dom: "npm:^17.0.2"
     react-markdown: "npm:^8.0.7"
@@ -3394,8 +3394,8 @@ __metadata:
     eslint: "npm:^9.23.0"
     eslint-plugin-react-hooks: "npm:^5.2.0"
     js-cookie: "npm:^3.0.1"
-    mobx: "npm:^5.15.7"
-    mobx-react: "npm:^6.3.1"
+    mobx: "npm:^6.13.7"
+    mobx-react: "npm:^7.6.0"
     mousetrap: "npm:^1.6.5"
     react: "npm:^17.0.2"
     react-dom: "npm:^17.0.2"
@@ -3454,8 +3454,8 @@ __metadata:
     fparser: "npm:^3.1.0"
     indefinite: "npm:^2.5.1"
     js-cookie: "npm:^3.0.1"
-    mobx: "npm:^5.15.7"
-    mobx-react: "npm:^6.3.1"
+    mobx: "npm:^6.13.7"
+    mobx-react: "npm:^7.6.0"
     mousetrap: "npm:^1.6.5"
     react: "npm:^17.0.2"
     react-dom: "npm:^17.0.2"
@@ -3482,7 +3482,7 @@ __metadata:
     "@sinclair/typebox": "npm:^0.28.5"
     eslint: "npm:^9.23.0"
     eslint-plugin-react-hooks: "npm:^5.2.0"
-    mobx: "npm:^5.15.7"
+    mobx: "npm:^6.13.7"
     typescript: "npm:~5.8.2"
   languageName: unknown
   linkType: soft
@@ -3506,8 +3506,8 @@ __metadata:
     eslint-plugin-react-hooks: "npm:^5.2.0"
     fuzzysort: "npm:^3.1.0"
     lodash-es: "npm:^4.17.21"
-    mobx: "npm:^5.15.7"
-    mobx-react: "npm:^6.3.1"
+    mobx: "npm:^6.13.7"
+    mobx-react: "npm:^7.6.0"
     react: "npm:^17.0.2"
     react-select: "npm:^5.10.2"
     remeda: "npm:^2.23.3"
@@ -12946,8 +12946,8 @@ __metadata:
     mdast-util-find-and-replace: "npm:^2.2.2"
     mdast-util-from-markdown: "npm:^1.3.1"
     minimist: "npm:^1.2.6"
-    mobx: "npm:^5.15.7"
-    mobx-react: "npm:^6.3.1"
+    mobx: "npm:^6.13.7"
+    mobx-react: "npm:^7.6.0"
     mousetrap: "npm:^1.6.5"
     mysql2: "npm:^3.14.1"
     nodejs-polars: "npm:^0.7.2"
@@ -15857,37 +15857,42 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mobx-react-lite@npm:^2.2.0":
-  version: 2.2.2
-  resolution: "mobx-react-lite@npm:2.2.2"
+"mobx-react-lite@npm:^3.4.0":
+  version: 3.4.3
+  resolution: "mobx-react-lite@npm:3.4.3"
   peerDependencies:
-    mobx: ^4.0.0 || ^5.0.0
-    react: ^16.8.0
+    mobx: ^6.1.0
+    react: ^16.8.0 || ^17 || ^18
   peerDependenciesMeta:
     react-dom:
       optional: true
     react-native:
       optional: true
-  checksum: 10/e687213a7a897b74fcb466ccbd27c61edb9b25643242d312a09d2fa95dcddb4e9e294109d60f6413f62c5a6c7a13bad39ae1ebfef90216d9147ad414b6b44243
+  checksum: 10/768ada82ab181330cf57562552c591065c57e59378cafe1a9d100660b1acf5d73fe9f5eeea8ea7b2adc5a87dd322bc1e119d853474c51e032021deef967b07e4
   languageName: node
   linkType: hard
 
-"mobx-react@npm:^6.3.1":
-  version: 6.3.1
-  resolution: "mobx-react@npm:6.3.1"
+"mobx-react@npm:^7.6.0":
+  version: 7.6.0
+  resolution: "mobx-react@npm:7.6.0"
   dependencies:
-    mobx-react-lite: "npm:^2.2.0"
+    mobx-react-lite: "npm:^3.4.0"
   peerDependencies:
-    mobx: ^5.15.4 || ^4.15.4
-    react: ^16.8.0 || 16.9.0-alpha.0
-  checksum: 10/de50dc7b4c5886f1b516a8be75d085c4821a8c742e8d9debe7c4ff35697a1358a1c7b4c5d778bae8d897b5c67e750993b6c39e05175accd7ad369cb6d9f3be59
+    mobx: ^6.1.0
+    react: ^16.8.0 || ^17 || ^18
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+    react-native:
+      optional: true
+  checksum: 10/33cdc54d44714c87a2fd50fa20ac84114d1032b20a4f1e5a1147c37aaca25147e43a4b970f7aded42ddd8f55c6b3d09d157be6019c8527381a7da161e5c9a45d
   languageName: node
   linkType: hard
 
-"mobx@npm:^5.15.7":
-  version: 5.15.7
-  resolution: "mobx@npm:5.15.7"
-  checksum: 10/623ca4812ad2f368bd1470a1d2ca4368f7dfb4dfcc6058a656e6d61230e0c449eddfc1e8adc0fda310cedbbc89809071c3a4e475a7ebe4f9bed4fe08f1a5764d
+"mobx@npm:^6.13.7":
+  version: 6.13.7
+  resolution: "mobx@npm:6.13.7"
+  checksum: 10/5e27d8934e7ce820f436cf189a11ce94dc8c76a7b33b68ce476f46b88258be2c3f37830b13f2817a0f273666aea0fd7d530ff1676467862516ba22343040a192
   languageName: node
   linkType: hard
 

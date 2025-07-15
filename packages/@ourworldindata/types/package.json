@@ -22,6 +22,6 @@
   "license": "MIT",
   "dependencies": {
     "@sinclair/typebox": "^0.28.5",
-    "mobx": "^5.15.7"
+    "mobx": "^6.13.7"
   }
 }
