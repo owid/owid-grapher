@@ -1,0 +1,12 @@
+metadata:
+  description: "Cached latest data values for countries by variable for performance optimization. This table stores the most recent data point for each country-variable combination, enabling fast lookup of current values without scanning the entire data history. Used for quick country comparisons and current status displays."
+
+fields:
+  country_code:
+    description: "Country code identifier (part of unique key with variable_id)"
+  variable_id:
+    description: "Foreign key to variables table. The variable for which this is the latest data point."
+  year:
+    description: "Year of the latest data point for this country-variable combination"
+  value:
+    description: "Latest data value for this country-variable combination"

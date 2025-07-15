@@ -1,0 +1,12 @@
+metadata:
+  description: "Housekeeper provides suggestions for content maintenance and quality assurance. This table tracks suggested reviews for various objects (charts, datasets, etc.) that may require maintenance, updates, or quality checks. Part of the automated housekeeping system for content management."
+
+fields:
+  id:
+    description: "Unique identifier for the review suggestion"
+  suggestedAt:
+    description: "Timestamp when the review was suggested (defaults to current timestamp)"
+  objectType:
+    description: "Type of the object to review (e.g., 'chart', 'dataset', 'variable')"
+  objectId:
+    description: "ID of the specific object that needs review"
