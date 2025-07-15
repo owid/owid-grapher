@@ -130,6 +130,13 @@ export const CLOUDFLARE_IMAGES_ACCOUNT_ID: string =
 export const CLOUDFLARE_IMAGES_API_KEY: string =
     serverSettings.CLOUDFLARE_IMAGES_API_KEY || ""
 
+export const OWID_ASSETS_R2_ACCESS_KEY: string =
+    serverSettings.OWID_ASSETS_R2_ACCESS_KEY || ""
+export const OWID_ASSETS_R2_SECRET_KEY: string =
+    serverSettings.OWID_ASSETS_R2_SECRET_KEY || ""
+export const OWID_ASSETS_R2_BUCKET: string | undefined =
+    serverSettings.OWID_ASSETS_R2_BUCKET
+
 export const GRAPHER_CONFIG_R2_BUCKET: string | undefined =
     serverSettings.GRAPHER_CONFIG_R2_BUCKET
 export const GRAPHER_CONFIG_R2_BUCKET_PATH: string | undefined =
