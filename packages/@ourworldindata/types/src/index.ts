@@ -593,6 +593,11 @@ export {
     ExplorerVariablesTableName,
 } from "./dbTypes/ExplorerVariables.js"
 export {
+    type DbInsertFile,
+    type DbPlainFile,
+    FilesTableName,
+} from "./dbTypes/Files.js"
+export {
     type DbRawImage,
     type DbEnrichedImage,
     type DbEnrichedImageWithUserId,
