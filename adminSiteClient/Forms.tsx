@@ -642,12 +642,14 @@ export class EditableListItem extends React.Component<EditableListItemProps> {
     }
 }
 
-@observer
-export class ColorBox extends React.Component<{
+interface ColorBoxProps {
     color: string | undefined
     onColor: (color: string | undefined) => void
     showLineChartColors: boolean
-}> {
+}
+
+@observer
+export class ColorBox extends React.Component<ColorBoxProps> {
     render() {
         const { color } = this.props
 
@@ -716,11 +718,13 @@ const ErrorMessage = ({ message }: { message: string }) => (
     <div style={{ color: "red" }}>{message}</div>
 )
 
-@observer
-class SoftCharacterLimit extends React.Component<{
+interface SoftCharacterLimitProps {
     text: string
     limit: number
-}> {
+}
+
+@observer
+class SoftCharacterLimit extends React.Component<SoftCharacterLimitProps> {
     render() {
         const { text, limit } = this.props
         return (
@@ -777,8 +781,7 @@ export class AutoTextField extends React.Component<AutoTextFieldProps> {
     }
 }
 
-@observer
-export class BindString extends React.Component<{
+interface BindStringProps {
     field: string
     store: Record<string, any>
     label?: React.ReactNode
@@ -793,7 +796,10 @@ export class BindString extends React.Component<{
     buttonContent?: React.ReactChild
     onButtonClick?: () => void
     onBlur?: () => void
-}> {
+}
+
+@observer
+export class BindString extends React.Component<BindStringProps> {
     @action.bound onValue(value: string = "") {
         this.props.store[this.props.field] = value
     }
@@ -832,8 +838,7 @@ export class BindString extends React.Component<{
     }
 }
 
-@observer
-export class BindStringArray extends React.Component<{
+interface BindStringArrayProps {
     field: string
     store: Record<string, any>
     label?: React.ReactNode
@@ -846,7 +851,10 @@ export class BindStringArray extends React.Component<{
     errorMessage?: string
     buttonContent?: React.ReactChild
     onButtonClick?: () => void
-}> {
+}
+
+@observer
+export class BindStringArray extends React.Component<BindStringArrayProps> {
     @action.bound onValue(value: string = "") {
         this.props.store[this.props.field] = parseBulletList(value)
     }
@@ -866,14 +874,19 @@ export class BindStringArray extends React.Component<{
     }
 }
 
-@observer
-export class BindDropdown extends React.Component<{
+interface BindDropdownProps {
     field: string
     store: Record<string, any>
     label?: React.ReactNode
-    options: Array<{ value: string; label: string }>
+    options: Array<{
+        value: string
+        label: string
+    }>
     disabled?: boolean
-}> {
+}
+
+@observer
+export class BindDropdown extends React.Component<BindDropdownProps> {
     @action.bound onChange(event: React.ChangeEvent<HTMLSelectElement>) {
         const value = event.target.value
         this.props.store[this.props.field] = value
@@ -902,11 +915,7 @@ export class BindDropdown extends React.Component<{
     }
 }
 
-@observer
-export class BindAutoString<
-    T extends { [field: string]: any },
-    K extends Extract<keyof T, string>,
-> extends React.Component<{
+interface BindAutoStringProps<K, T> {
     field: K
     store: T
     auto: string
@@ -917,7 +926,13 @@ export class BindAutoString<
     onBlur?: () => void
     placeholder?: string
     textarea?: boolean
-}> {
+}
+
+@observer
+export class BindAutoString<
+    T extends { [field: string]: any },
+    K extends Extract<keyof T, string>,
+> extends React.Component<BindAutoStringProps<K, T>> {
     @action.bound onValue(value: string) {
         this.props.store[this.props.field] = value as any
     }
@@ -976,20 +991,18 @@ export class BindAutoString<
     />
     ```
  */
+
+type BindAutoStringExtProps<T> = {
+    readFn: (x: T) => string
+    writeFn: (x: T, value: string | undefined) => void
+    store: T
+    auto?: string
+} & Omit<AutoTextFieldProps, "onValue" | "onToggleAuto" | "value" | "isBlur">
+
 @observer
 export class BindAutoStringExt<
     T extends Record<string, any>,
-> extends React.Component<
-    {
-        readFn: (x: T) => string
-        writeFn: (x: T, value: string | undefined) => void
-        store: T
-        auto?: string
-    } & Omit<
-        AutoTextFieldProps,
-        "onValue" | "onToggleAuto" | "value" | "isBlur"
-    >
-> {
+> extends React.Component<BindAutoStringExtProps<T>> {
     @action.bound onValue(value: string | undefined = "") {
         this.props.writeFn(this.props.store, value)
     }
@@ -1199,11 +1212,14 @@ export class BindAutoFloatExt<
     }
 }
 
-@observer
-export class Modal extends React.Component<{
+interface ModalProps {
+    children: React.ReactNode
     className?: string
     onClose: () => void
-}> {
+}
+
+@observer
+export class Modal extends React.Component<ModalProps> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
     dismissable: boolean = true
 
@@ -1322,11 +1338,13 @@ export function LoadingBlocker() {
     )
 }
 
-@observer
-export class Timeago extends React.Component<{
+interface TimeagoProps {
     time: dayjs.ConfigType
     by?: string | React.ReactElement | null | undefined
-}> {
+}
+
+@observer
+export class Timeago extends React.Component<TimeagoProps> {
     render() {
         return (
             <>
@@ -1337,11 +1355,13 @@ export class Timeago extends React.Component<{
     }
 }
 
-@observer
-export class Button extends React.Component<{
-    children: any
+interface ButtonProps {
+    children: React.ReactNode
     onClick: () => void
-}> {
+}
+
+@observer
+export class Button extends React.Component<ButtonProps> {
     render() {
         return (
             <button className="btn btn-link" onClick={this.props.onClick}>

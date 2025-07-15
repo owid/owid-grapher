@@ -12,12 +12,14 @@ import {
 } from "./NarrativeChartEditor.js"
 import { References } from "./AbstractChartEditor.js"
 
+interface NarrativeChartEditorPageProps {
+    narrativeChartId: number
+    history: History
+}
+
 @observer
 export class NarrativeChartEditorPage
-    extends React.Component<{
-        narrativeChartId: number
-        history: History
-    }>
+    extends React.Component<NarrativeChartEditorPageProps>
     implements
         NarrativeChartEditorManager,
         ChartEditorViewManager<NarrativeChartEditor>

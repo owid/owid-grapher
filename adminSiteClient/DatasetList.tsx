@@ -27,12 +27,14 @@ export interface DatasetListItem {
     numCharts: number
 }
 
-@observer
-class DatasetRow extends React.Component<{
+interface DatasetRowProps {
     dataset: DatasetListItem
     availableTags: DbChartTagJoin[]
     searchHighlight?: (text: string) => string | React.ReactElement
-}> {
+}
+
+@observer
+class DatasetRow extends React.Component<DatasetRowProps> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
@@ -97,11 +99,13 @@ class DatasetRow extends React.Component<{
     }
 }
 
-@observer
-export class DatasetList extends React.Component<{
+interface DatasetListProps {
     datasets: DatasetListItem[]
     searchHighlight?: (text: string) => string | React.ReactElement
-}> {
+}
+
+@observer
+export class DatasetList extends React.Component<DatasetListProps> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

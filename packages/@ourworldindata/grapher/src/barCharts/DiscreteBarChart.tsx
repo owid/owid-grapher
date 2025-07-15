@@ -97,12 +97,14 @@ interface DiscreteBarItem {
     color?: Color
 }
 
+interface DiscreteBarChartProps {
+    bounds?: Bounds
+    manager: DiscreteBarChartManager
+}
+
 @observer
 export class DiscreteBarChart
-    extends React.Component<{
-        bounds?: Bounds
-        manager: DiscreteBarChartManager
-    }>
+    extends React.Component<DiscreteBarChartProps>
     implements ChartInterface, AxisManager, ColorScaleManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()

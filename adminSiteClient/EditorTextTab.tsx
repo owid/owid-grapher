@@ -26,10 +26,15 @@ import {
     ADMIN_BASE_URL,
 } from "../settings/clientSettings.js"
 
+interface EditorTextTabProps<Editor> {
+    editor: Editor
+    errorMessages: ErrorMessages
+}
+
 @observer
 export class EditorTextTab<
     Editor extends AbstractChartEditor,
-> extends Component<{ editor: Editor; errorMessages: ErrorMessages }> {
+> extends Component<EditorTextTabProps<Editor>> {
     @action.bound onSlug(slug: string) {
         this.props.editor.grapherState.slug = slugify(slug)
     }

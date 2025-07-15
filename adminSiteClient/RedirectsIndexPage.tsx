@@ -13,11 +13,13 @@ interface RedirectListItem {
     chartSlug: string
 }
 
-@observer
-class RedirectRow extends Component<{
+interface RedirectRowProps {
     redirect: RedirectListItem
     onDelete: (redirect: RedirectListItem) => void
-}> {
+}
+
+@observer
+class RedirectRow extends Component<RedirectRowProps> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

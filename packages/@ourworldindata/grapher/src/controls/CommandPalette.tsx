@@ -14,11 +14,13 @@ export interface Command {
 
 const CommandPaletteClassName = "CommandPalette"
 
-@observer
-export class CommandPalette extends React.Component<{
+interface CommandPaletteProps {
     commands: Command[]
     display: "none" | "block"
-}> {
+}
+
+@observer
+export class CommandPalette extends React.Component<CommandPaletteProps> {
     static togglePalette(): void {
         const element = document.getElementsByClassName(
             CommandPaletteClassName

@@ -36,12 +36,14 @@ export interface MapSparklineManager {
     yAxisConfig?: AxisConfigInterface
 }
 
-@observer
-export class MapSparkline extends React.Component<{
+interface MapSparklineProps {
     manager: MapSparklineManager
     sparklineWidth?: number
     sparklineHeight?: number
-}> {
+}
+
+@observer
+export class MapSparkline extends React.Component<MapSparklineProps> {
     static shouldShow(manager: MapSparklineManager): boolean {
         const test = new MapSparkline({ manager })
         return test.showSparkline

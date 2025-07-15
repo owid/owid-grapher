@@ -45,12 +45,14 @@ export interface ControlsRowManager
     isSmall?: boolean
 }
 
-@observer
-export class ControlsRow extends Component<{
+interface ControlsRowProps {
     manager: ControlsRowManager
     maxWidth?: number
     settingsMenuTop?: number
-}> {
+}
+
+@observer
+export class ControlsRow extends Component<ControlsRowProps> {
     private framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
     private framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
 

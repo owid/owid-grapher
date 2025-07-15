@@ -53,11 +53,15 @@ enum GdocPublishStatus {
     Unpublished = "unpublished",
 }
 
-@observer
-class GdocsIndexPageSearch extends React.Component<{
+interface GdocsIndexPageSearchProps {
     filters: GdocsSearchFilters
-    search: { value: string }
-}> {
+    search: {
+        value: string
+    }
+}
+
+@observer
+class GdocsIndexPageSearch extends React.Component<GdocsIndexPageSearchProps> {
     toggleGdocTypeFilter = (type: OwidGdocType) => {
         this.props.filters[type] = !this.props.filters[type]
     }

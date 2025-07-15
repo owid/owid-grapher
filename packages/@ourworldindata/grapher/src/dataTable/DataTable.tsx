@@ -90,11 +90,13 @@ const columnNameByType: Record<DataTableColumnKey, string> = {
 const inverseSortOrder = (order: SortOrder): SortOrder =>
     order === SortOrder.asc ? SortOrder.desc : SortOrder.asc
 
-@observer
-export class DataTable extends React.Component<{
+interface DataTableProps {
     manager: DataTableManager
     bounds?: Bounds
-}> {
+}
+
+@observer
+export class DataTable extends React.Component<DataTableProps> {
     @observable private storedState: DataTableState = {
         sort: DEFAULT_SORT_STATE,
     }

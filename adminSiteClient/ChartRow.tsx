@@ -20,14 +20,16 @@ import {
 } from "@ourworldindata/utils"
 import { Dropdown } from "antd"
 
-@observer
-export class ChartRow extends React.Component<{
+interface ChartRowProps {
     chart: ChartListItem
     searchHighlight?: (text: string) => string | React.ReactElement
     availableTags: DbChartTagJoin[]
     onDelete: (chart: ChartListItem) => void
     showInheritanceColumn?: boolean
-}> {
+}
+
+@observer
+export class ChartRow extends React.Component<ChartRowProps> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

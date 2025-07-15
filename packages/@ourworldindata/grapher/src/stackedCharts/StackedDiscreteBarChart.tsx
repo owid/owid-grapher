@@ -122,13 +122,15 @@ interface StackedBarChartContext {
     baseFontSize: number
 }
 
+interface StackedDiscreteBarChartProps {
+    bounds?: Bounds
+    manager: StackedDiscreteBarChartManager
+    containerElement?: HTMLDivElement
+}
+
 @observer
 export class StackedDiscreteBarChart
-    extends React.Component<{
-        bounds?: Bounds
-        manager: StackedDiscreteBarChartManager
-        containerElement?: HTMLDivElement
-    }>
+    extends React.Component<StackedDiscreteBarChartProps>
     implements ChartInterface, HorizontalColorLegendManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()

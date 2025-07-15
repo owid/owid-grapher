@@ -40,11 +40,13 @@ const PADDING_X = 12
 
 const BUTTON_WIDTH_ICON_ONLY = BUTTON_HEIGHT
 
-@observer
-export class ActionButtons extends React.Component<{
+interface ActionButtonsProps {
     manager: ActionButtonsManager
     maxWidth?: number
-}> {
+}
+
+@observer
+export class ActionButtons extends React.Component<ActionButtonsProps> {
     @computed private get manager(): ActionButtonsManager {
         return this.props.manager
     }

@@ -116,11 +116,13 @@ class TimeField<
     }
 }
 
-@observer
-export class ColorSchemeSelector extends React.Component<{
+interface ColorSchemeSelectorProps {
     grapherState: GrapherState
     defaultValue?: ColorSchemeName
-}> {
+}
+
+@observer
+export class ColorSchemeSelector extends React.Component<ColorSchemeSelectorProps> {
     @action.bound onChange(selected: ColorSchemeOption) {
         // The onChange method can return an array of values (when multiple
         // items can be selected) or a single value. Since we are certain that
@@ -631,13 +633,15 @@ class ComparisonLineSection<
     }
 }
 
+interface EditorCustomizeTabProps<Editor> {
+    editor: Editor
+    errorMessages: ErrorMessages
+}
+
 @observer
 export class EditorCustomizeTab<
     Editor extends AbstractChartEditor,
-> extends React.Component<{
-    editor: Editor
-    errorMessages: ErrorMessages
-}> {
+> extends React.Component<EditorCustomizeTabProps<Editor>> {
     @computed get errorMessages() {
         return this.props.errorMessages
     }

@@ -359,12 +359,14 @@ function LinePath(props: LinePathProps): React.ReactElement {
     )
 }
 
+interface LineChartProps {
+    bounds?: Bounds
+    manager: LineChartManager
+}
+
 @observer
 export class LineChart
-    extends React.Component<{
-        bounds?: Bounds
-        manager: LineChartManager
-    }>
+    extends React.Component<LineChartProps>
     implements
         ChartInterface,
         AxisManager,

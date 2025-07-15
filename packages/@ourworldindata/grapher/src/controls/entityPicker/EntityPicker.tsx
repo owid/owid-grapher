@@ -53,15 +53,17 @@ interface EntityOptionWithMetricValue {
 /** Modulo that wraps negative numbers too */
 const mod = (n: number, m: number): number => ((n % m) + m) % m
 
-@observer
-export class EntityPicker extends React.Component<{
+interface EntityPickerProps {
     manager: EntityPickerManager
     selection: SelectionArray
     isDropdownMenu?: boolean
     onSelectEntity?: (entityName: EntityName) => void
     onDeselectEntity?: (entityName: EntityName) => void
     onClearEntities?: () => void
-}> {
+}
+
+@observer
+export class EntityPicker extends React.Component<EntityPickerProps> {
     @observable private searchInput?: string
     @observable
     private searchInputRef: React.RefObject<HTMLInputElement> =

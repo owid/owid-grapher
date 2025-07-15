@@ -26,14 +26,16 @@ export interface NoDataModalManager {
     isStatic?: boolean
 }
 
-@observer
-export class NoDataModal extends React.Component<{
+interface NoDataModalProps {
     bounds?: Bounds
     message?: string
     helpText?: string
     hideTextOutline?: boolean
     manager: NoDataModalManager
-}> {
+}
+
+@observer
+export class NoDataModal extends React.Component<NoDataModalProps> {
     @computed private get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }

@@ -60,8 +60,7 @@ function stackGroupVertically(
     return group
 }
 
-@observer
-class LineLabels extends React.Component<{
+interface LineLabelsProps {
     series: PlacedSeries[]
     needsConnectorLines: boolean
     showTextOutline?: boolean
@@ -72,7 +71,10 @@ class LineLabels extends React.Component<{
     onClick?: (series: PlacedSeries) => void
     onMouseOver?: (series: PlacedSeries) => void
     onMouseLeave?: (series: PlacedSeries) => void
-}> {
+}
+
+@observer
+class LineLabels extends React.Component<LineLabelsProps> {
     @computed private get anchor(): "start" | "end" {
         return this.props.anchor ?? "start"
     }

@@ -24,12 +24,14 @@ import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { AdminManager } from "./AdminManager.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
-@observer
-class ExplorerRow extends Component<{
+interface ExplorerRowProps {
     explorer: ExplorerProgram
     indexPage: ExplorersIndexPage
     searchHighlight?: (text: string) => any
-}> {
+}
+
+@observer
+class ExplorerRow extends Component<ExplorerRowProps> {
     render() {
         const { explorer, searchHighlight, indexPage } = this.props
         const {
@@ -124,12 +126,14 @@ class ExplorerRow extends Component<{
     }
 }
 
-@observer
-class ExplorerList extends Component<{
+interface ExplorerListProps {
     explorers: ExplorerProgram[]
     searchHighlight?: (text: string) => any
     indexPage: ExplorersIndexPage
-}> {
+}
+
+@observer
+class ExplorerList extends Component<ExplorerListProps> {
     render() {
         const { props } = this
         return (

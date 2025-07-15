@@ -23,15 +23,17 @@ export enum ProminentLinkStyles {
 
 export const WITH_IMAGE = "with-image"
 
-@observer
-export class ProminentLink extends Component<{
+interface ProminentLinkProps {
     href: string
     style: string | null
     title: string | null
     content?: string | null
     image?: string | null
     globalEntitySelection?: SelectionArray
-}> {
+}
+
+@observer
+export class ProminentLink extends Component<ProminentLinkProps> {
     @computed get originalUrl(): Url {
         return migrateSelectedEntityNamesParam(Url.fromURL(this.props.href))
     }

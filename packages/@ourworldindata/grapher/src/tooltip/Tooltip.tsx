@@ -239,14 +239,16 @@ class TooltipCard extends React.Component<
     }
 }
 
-@observer
-export class TooltipContainer extends React.Component<{
+interface TooltipContainerProps {
     tooltipProvider: TooltipManager
     anchor?: GrapherTooltipAnchor
     // if container dimensions are given, the tooltip will be positioned within its bounds
     containerWidth?: number
     containerHeight?: number
-}> {
+}
+
+@observer
+export class TooltipContainer extends React.Component<TooltipContainerProps> {
     @computed private get tooltip(): TooltipProps | undefined {
         const { tooltip } = this.props.tooltipProvider
         return tooltip?.get()

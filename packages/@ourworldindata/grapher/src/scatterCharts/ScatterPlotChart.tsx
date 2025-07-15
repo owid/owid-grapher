@@ -102,12 +102,14 @@ function computeSizeDomain(table: OwidTable, slug: ColumnSlug): ValueRange {
     return [0, _.max(sizeValues) ?? 1]
 }
 
+interface ScatterPlotChartProps {
+    bounds?: Bounds
+    manager: ScatterPlotManager
+}
+
 @observer
 export class ScatterPlotChart
-    extends React.Component<{
-        bounds?: Bounds
-        manager: ScatterPlotManager
-    }>
+    extends React.Component<ScatterPlotChartProps>
     implements
         ConnectedScatterLegendManager,
         ScatterSizeLegendManager,

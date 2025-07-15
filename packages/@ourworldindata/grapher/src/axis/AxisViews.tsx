@@ -21,13 +21,15 @@ const TICK_COLOR = "#ddd"
 const FAINT_TICK_COLOR = "#eee"
 const SOLID_TICK_COLOR = "#999"
 
-@observer
-export class VerticalAxisGridLines extends React.Component<{
+interface VerticalAxisGridLinesProps {
     verticalAxis: VerticalAxis
     bounds: Bounds
     strokeWidth?: number
     dashPattern?: string
-}> {
+}
+
+@observer
+export class VerticalAxisGridLines extends React.Component<VerticalAxisGridLinesProps> {
     render(): React.ReactElement {
         const { bounds, verticalAxis, strokeWidth } = this.props
         const axis = verticalAxis.clone()
@@ -67,13 +69,15 @@ export class VerticalAxisGridLines extends React.Component<{
     }
 }
 
-@observer
-export class HorizontalAxisGridLines extends React.Component<{
+interface HorizontalAxisGridLinesProps {
     horizontalAxis: HorizontalAxis
     bounds?: Bounds
     strokeWidth?: number
     dashPattern?: string
-}> {
+}
+
+@observer
+export class HorizontalAxisGridLines extends React.Component<HorizontalAxisGridLinesProps> {
     @computed get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_BOUNDS
     }
@@ -118,13 +122,15 @@ export class HorizontalAxisGridLines extends React.Component<{
     }
 }
 
-@observer
-export class HorizontalAxisZeroLine extends React.Component<{
+interface HorizontalAxisZeroLineProps {
     horizontalAxis: HorizontalAxis
     bounds: Bounds
     strokeWidth?: number
     align?: HorizontalAlign
-}> {
+}
+
+@observer
+export class HorizontalAxisZeroLine extends React.Component<HorizontalAxisZeroLineProps> {
     render(): React.ReactElement {
         const {
             bounds,
@@ -248,15 +254,17 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
     }
 }
 
-@observer
-export class VerticalAxisComponent extends React.Component<{
+interface VerticalAxisComponentProps {
     bounds: Bounds
     verticalAxis: VerticalAxis
     showTickMarks?: boolean
     labelColor?: string
     tickColor?: string
     detailsMarker?: DetailsMarker
-}> {
+}
+
+@observer
+export class VerticalAxisComponent extends React.Component<VerticalAxisComponentProps> {
     render(): React.ReactElement {
         const {
             bounds,

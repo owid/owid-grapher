@@ -107,12 +107,14 @@ const NON_FOCUSED_LINE_COLOR = OWID_NON_FOCUSED_GRAY
 const TOP_PADDING = 6 // leave room for overflowing dots
 const LINE_LEGEND_PADDING = 4
 
+interface SlopeChartProps {
+    bounds?: Bounds
+    manager: SlopeChartManager
+}
+
 @observer
 export class SlopeChart
-    extends React.Component<{
-        bounds?: Bounds
-        manager: SlopeChartManager
-    }>
+    extends React.Component<SlopeChartProps>
     implements ChartInterface
 {
     private slopeAreaRef: React.RefObject<SVGGElement> = React.createRef()

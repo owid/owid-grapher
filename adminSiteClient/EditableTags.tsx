@@ -18,8 +18,7 @@ interface TaggableItem {
     type: TaggableType
 }
 
-@observer
-export class EditableTags extends React.Component<{
+interface EditableTagsProps {
     tags: DbChartTagJoin[]
     suggestions: DbChartTagJoin[]
     onSave: (tags: DbChartTagJoin[]) => void
@@ -27,7 +26,10 @@ export class EditableTags extends React.Component<{
     hasKeyChartSupport?: boolean
     hasSuggestionsSupport?: boolean
     taggable?: TaggableItem
-}> {
+}
+
+@observer
+export class EditableTags extends React.Component<EditableTagsProps> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

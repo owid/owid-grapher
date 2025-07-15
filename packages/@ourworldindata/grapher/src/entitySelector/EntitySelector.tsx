@@ -215,13 +215,15 @@ type ExternalSortIndicatorKey = ExternalSortIndicatorDefinition["key"]
 
 const regionNamesSet = new Set(regions.map((region) => region.name))
 
-@observer
-export class EntitySelector extends React.Component<{
+interface EntitySelectorProps {
     manager: EntitySelectorManager
     selection?: SelectionArray
     autoFocus?: boolean
     onDismiss?: () => void
-}> {
+}
+
+@observer
+export class EntitySelector extends React.Component<EntitySelectorProps> {
     static contextType = DrawerContext
 
     scrollableContainer: React.RefObject<HTMLDivElement> = React.createRef()
