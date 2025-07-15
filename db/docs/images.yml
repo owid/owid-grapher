@@ -1,27 +1,27 @@
 metadata:
-  description: "Image asset management system for OWID content. Handles image storage, optimization, and delivery through Cloudflare. Images can be sourced from Google Drive and are automatically optimized for web delivery. Supports versioning and replacement tracking."
+    description: "Image asset management system for OWID content. Handles image storage, optimization, and delivery through Cloudflare. Images can be sourced from Google Drive and are automatically optimized for web delivery. Supports versioning and replacement tracking."
 fields:
-  id:
-    description: "Unique identifier for the image"
-  googleId:
-    description: "Google Drive ID for the original image source"
-  filename:
-    description: "Image filename as stored in the system"
-  defaultAlt:
-    description: "Default alt text for accessibility"
-  originalWidth:
-    description: "Original width of the image in pixels"
-  updatedAt:
-    description: "Timestamp when the image was last updated"
-  originalHeight:
-    description: "Original height of the image in pixels"
-  cloudflareId:
-    description: "Cloudflare Images ID for optimized delivery"
-  hash:
-    description: "Content hash for duplicate detection and caching"
-  userId:
-    description: "Foreign key to users table. User who uploaded the image."
-  replacedBy:
-    description: "Foreign key to images table. ID of the image that replaced this one (for version tracking)."
-  version:
-    description: "Version number of the image for tracking updates"
+    id:
+        description: "Unique identifier for the image"
+    googleId:
+        description: "Google Drive ID for the original image source"
+    filename:
+        description: "Image filename as stored in the system"
+    defaultAlt:
+        description: "Default alt text for accessibility"
+    originalWidth:
+        description: "Original width of the image in pixels"
+    updatedAt:
+        description: "Timestamp when the image was last updated"
+    originalHeight:
+        description: "Original height of the image in pixels"
+    cloudflareId:
+        description: "Cloudflare Images ID for optimized delivery"
+    hash:
+        description: "Content hash for duplicate detection and caching"
+    userId:
+        description: "Foreign key to users table. User who uploaded the image."
+    replacedBy:
+        description: "Foreign key to images table. ID of the image that replaced this one (for version tracking)."
+    version:
+        description: "Version number of the image for tracking updates"

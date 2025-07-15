@@ -1,25 +1,25 @@
 metadata:
-  description: "Tombstone records for deleted or archived Google Docs posts that maintain URL integrity and provide user-friendly redirect pages. When content is removed, tombstones ensure old links don't break and can redirect users to related content or archive pages."
+    description: "Tombstone records for deleted or archived Google Docs posts that maintain URL integrity and provide user-friendly redirect pages. When content is removed, tombstones ensure old links don't break and can redirect users to related content or archive pages."
 fields:
-  id:
-    description: "Unique identifier for the tombstone"
-  gdocId:
-    description: "Google Docs post ID that was deleted (matches posts_gdocs.id)"
-  slug:
-    description: "Slug of the deleted post for URL matching"
-  reason:
-    description: "Reason for deletion or archival"
-  includeArchiveLink:
-    description: "Whether to include a link to archived version"
-  relatedLinkUrl:
-    description: "URL of related content to redirect users to"
-  relatedLinkTitle:
-    description: "Title of related content"
-  relatedLinkDescription:
-    description: "Description of related content"
-  relatedLinkThumbnail:
-    description: "Thumbnail image for related content"
-  createdAt:
-    description: "Timestamp when the tombstone was created"
-  updatedAt:
-    description: "Timestamp when the tombstone was last updated"
+    id:
+        description: "Unique identifier for the tombstone"
+    gdocId:
+        description: "Google Docs post ID that was deleted (matches posts_gdocs.id)"
+    slug:
+        description: "Slug of the deleted post for URL matching"
+    reason:
+        description: "Reason for deletion or archival"
+    includeArchiveLink:
+        description: "Whether to include a link to archived version"
+    relatedLinkUrl:
+        description: "URL of related content to redirect users to"
+    relatedLinkTitle:
+        description: "Title of related content"
+    relatedLinkDescription:
+        description: "Description of related content"
+    relatedLinkThumbnail:
+        description: "Thumbnail image for related content"
+    createdAt:
+        description: "Timestamp when the tombstone was created"
+    updatedAt:
+        description: "Timestamp when the tombstone was last updated"

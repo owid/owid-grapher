@@ -1,19 +1,19 @@
 metadata:
-  description: "Link tracking system for Google Docs posts that enables internal analytics and link health monitoring. Extracts and categorizes all links from Google Docs content to track internal references, external citations, and embedded charts/explorers."
+    description: "Link tracking system for Google Docs posts that enables internal analytics and link health monitoring. Extracts and categorizes all links from Google Docs content to track internal references, external citations, and embedded charts/explorers."
 fields:
-  id:
-    description: "Unique identifier for the link"
-  sourceId:
-    description: "Foreign key to posts_gdocs table"
-  target:
-    description: "Target URL of the link"
-  linkType:
-    description: "Type of link ('gdoc', 'url', 'grapher', 'explorer', 'chart-view', 'dod')"
-  componentType:
-    description: "Type of component containing the link (e.g., 'markdown', 'chart', 'iframe')"
-  text:
-    description: "Link text as it appears in the content"
-  queryString:
-    description: "Query string parameters in the link"
-  hash:
-    description: "Hash fragment in the link"
+    id:
+        description: "Unique identifier for the link"
+    sourceId:
+        description: "Foreign key to posts_gdocs table"
+    target:
+        description: "Target URL of the link"
+    linkType:
+        description: "Type of link ('gdoc', 'url', 'grapher', 'explorer', 'chart-view', 'dod')"
+    componentType:
+        description: "Type of component containing the link (e.g., 'markdown', 'chart', 'iframe')"
+    text:
+        description: "Link text as it appears in the content"
+    queryString:
+        description: "Query string parameters in the link"
+    hash:
+        description: "Hash fragment in the link"

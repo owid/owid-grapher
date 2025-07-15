@@ -1,18 +1,18 @@
 metadata:
-  description: "Donor information management for funding transparency and acknowledgment. This table stores information about OWID's donors and funders, allowing for proper attribution and transparency in funding sources. Includes controls for publication visibility and editorial comments."
+    description: "Donor information management for funding transparency and acknowledgment. This table stores information about OWID's donors and funders, allowing for proper attribution and transparency in funding sources. Includes controls for publication visibility and editorial comments."
 
 fields:
-  id:
-    description: "Unique identifier for the donor"
-  name:
-    description: "Display name of the donor as it should appear publicly"
-  originalName:
-    description: "Original name of the donor as provided (unique constraint)"
-  shouldPublish:
-    description: "Whether this donor should be published/displayed publicly (defaults to false)"
-  comment:
-    description: "Editorial comments or notes about this donor"
-  createdAt:
-    description: "Timestamp when the donor record was created"
-  updatedAt:
-    description: "Timestamp when the donor record was last updated"
+    id:
+        description: "Unique identifier for the donor"
+    name:
+        description: "Display name of the donor as it should appear publicly"
+    originalName:
+        description: "Original name of the donor as provided (unique constraint)"
+    shouldPublish:
+        description: "Whether this donor should be published/displayed publicly (defaults to false)"
+    comment:
+        description: "Editorial comments or notes about this donor"
+    createdAt:
+        description: "Timestamp when the donor record was created"
+    updatedAt:
+        description: "Timestamp when the donor record was last updated"
