@@ -53,7 +53,7 @@ import {
     deleteGrapherConfigFromR2,
     deleteGrapherConfigFromR2ByUUID,
     saveGrapherConfigToR2ByUUID,
-} from "../chartConfigR2Helpers.js"
+} from "../R2/chartConfigR2Helpers.js"
 import { triggerStaticBuild } from "./routeUtils.js"
 import * as db from "../../db/db.js"
 import { getLogsByChartId } from "../getLogsByChartId.js"
