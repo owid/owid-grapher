@@ -46,6 +46,7 @@ import { CreateNarrativeChartEditorPage } from "./CreateNarrativeChartEditorPage
 import { NarrativeChartEditorPage } from "./NarrativeChartEditorPage.js"
 import { NarrativeChartIndexPage } from "./NarrativeChartIndexPage.js"
 import { ImageIndexPage } from "./ImagesIndexPage.js"
+import { FilesIndexPage } from "./FilesIndexPage.js"
 import { DataInsightIndexPage } from "./DataInsightIndexPage.js"
 import { MultiDimIndexPage } from "./MultiDimIndexPage.js"
 import { FeaturedMetricsPage } from "./FeaturedMetricsPage.js"
@@ -217,6 +218,10 @@ export class AdminApp extends React.Component<{
                                 <Route
                                     path="/images"
                                     component={ImageIndexPage}
+                                />
+                                <Route
+                                    path="/files"
+                                    component={FilesIndexPage}
                                 />
                                 <Route
                                     exact
