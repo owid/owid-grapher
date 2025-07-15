@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { action, computed, observable } from "mobx"
+import { action, computed, observable, makeObservable } from "mobx"
 import { TabLabel, Tabs } from "../tabs/Tabs"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { GlobeController } from "../mapCharts/GlobeController"
@@ -20,6 +20,11 @@ export class GlobeSwitcher extends React.Component<{
     @observable private localCountryName?: EntityName
 
     private availableTabs = ["2D", "3D"] as const
+
+    constructor(props: { manager: GlobeSwitcherManager }) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed private get manager(): GlobeSwitcherManager {
         return this.props.manager

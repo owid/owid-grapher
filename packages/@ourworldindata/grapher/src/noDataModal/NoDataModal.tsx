@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import a from "indefinite"
 import { Bounds, VerticalAlign, dyFromAlign } from "@ourworldindata/utils"
@@ -32,6 +32,11 @@ interface NoDataModalProps {
 
 @observer
 export class NoDataModal extends React.Component<NoDataModalProps> {
+    constructor(props: NoDataModalProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed private get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS
     }

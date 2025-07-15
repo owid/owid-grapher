@@ -6,7 +6,7 @@ import {
     Bounds,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap, TextWrap } from "@ourworldindata/components"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Logo } from "../captionedChart/Logos"
 
@@ -29,6 +29,11 @@ abstract class AbstractHeader<
     Props extends HeaderProps = HeaderProps,
 > extends React.Component<Props> {
     protected verticalPadding = 4
+
+    constructor(props: Props) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed protected get manager(): HeaderManager {
         return this.props.manager
@@ -296,6 +301,12 @@ export class Header extends AbstractHeader<HeaderProps> {}
 @observer
 export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
     protected verticalPadding = 6
+
+    constructor(props: StaticHeaderProps) {
+        super(props)
+
+        makeObservable(this)
+    }
 
     @computed get titleLineHeight(): number {
         return this.manager.isStaticAndSmall ? 1.1 : 1.2

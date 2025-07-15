@@ -1,6 +1,6 @@
 import * as React from "react"
 import classnames from "classnames"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
@@ -38,6 +38,7 @@ export class TooltipState<T> {
     _fade: TooltipFadeMode
 
     constructor({ fade }: { fade?: TooltipFadeMode } = {}) {
+        makeObservable(this)
         // "delayed" mode is good for charts with gaps between targetable areas
         // "immediate" is better if the tooltip is displayed for all points in the chart's bounds
         // "none" disables the fade transition altogether
@@ -86,6 +87,18 @@ class TooltipCard extends React.Component<
     private base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @observable.struct private bounds?: Bounds
+
+    constructor(
+        props: TooltipProps & {
+            bounds?: Bounds
+            containerWidth?: number
+            containerHeight?: number
+        }
+    ) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound private updateBounds(): void {
         if (this.base.current)
             this.bounds = Bounds.fromElement(this.base.current)
@@ -250,6 +263,11 @@ interface TooltipContainerProps {
 
 @observer
 export class TooltipContainer extends React.Component<TooltipContainerProps> {
+    constructor(props: TooltipContainerProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed private get tooltip(): TooltipProps | undefined {
         const { tooltip } = this.props.tooltipProvider
         return tooltip?.get()
@@ -287,6 +305,11 @@ export class TooltipContainer extends React.Component<TooltipContainerProps> {
 
 @observer
 export class Tooltip extends React.Component<TooltipProps> {
+    constructor(props: TooltipProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     componentDidMount(): void {
         this.connectTooltipToContainer()
     }

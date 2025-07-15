@@ -1,6 +1,6 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
-import { observable, computed, runInAction } from "mobx"
+import { observable, computed, runInAction, makeObservable } from "mobx"
 import { Prompt, Redirect } from "react-router-dom"
 import { DbChartTagJoin } from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
@@ -26,6 +26,7 @@ class TagEditable {
     @observable slug: string | null = null
 
     constructor(json: TagPageData) {
+        makeObservable(this)
         for (const key in this) {
             this[key] = (json as any)[key]
         }
@@ -39,6 +40,11 @@ class TagEditor extends Component<{ tag: TagPageData }> {
 
     @observable newtag!: TagEditable
     @observable isDeleted: boolean = false
+
+    constructor(props: { tag: TagPageData }) {
+        super(props)
+        makeObservable(this)
+    }
 
     // Store the original tag to determine when it is modified
     UNSAFE_componentWillMount() {
@@ -182,6 +188,11 @@ export class TagEditPage extends Component<{ tagId: number }> {
     declare context: AdminAppContextType
 
     @observable tag?: TagPageData
+
+    constructor(props: { tagId: number }) {
+        super(props)
+        makeObservable(this)
+    }
 
     render() {
         return (

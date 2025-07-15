@@ -1,6 +1,6 @@
 import { observer } from "mobx-react"
 import * as React from "react"
-import { computed, action } from "mobx"
+import { computed, action, makeObservable } from "mobx"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
     faCode,
@@ -85,6 +85,8 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
 
     constructor(props: ShareMenuProps) {
         super(props)
+
+        makeObservable(this)
 
         this.state = {
             canWriteToClipboard: false,

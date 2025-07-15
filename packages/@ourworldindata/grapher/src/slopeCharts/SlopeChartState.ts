@@ -1,4 +1,4 @@
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { ChartState } from "../chart/ChartInterface"
 import {
     SlopeChartManager,
@@ -43,6 +43,7 @@ export class SlopeChartState implements ChartState {
 
     constructor({ manager }: { manager: SlopeChartManager }) {
         this.manager = manager
+        makeObservable(this)
     }
 
     @computed get inputTable(): OwidTable {

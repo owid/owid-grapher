@@ -1,5 +1,5 @@
 import { Component, Fragment } from "react"
-import { action } from "mobx"
+import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { SketchPicker } from "react-color"
 
@@ -17,6 +17,11 @@ interface ColorpickerProps {
 
 @observer
 export class Colorpicker extends Component<ColorpickerProps> {
+    constructor(props: ColorpickerProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onColor(color: string) {
         if (color === "") {
             this.props.onColor(undefined)

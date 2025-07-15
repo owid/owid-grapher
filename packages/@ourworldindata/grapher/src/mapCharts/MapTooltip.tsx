@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { TooltipFadeMode, TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
@@ -50,6 +50,11 @@ export class MapTooltip
     extends React.Component<MapTooltipProps>
     implements MapSparklineManager
 {
+    constructor(props: MapTooltipProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed get mapColumnSlug(): ColumnSlug {
         return this.props.mapColumnSlug
     }

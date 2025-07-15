@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { MapConfig } from "../mapCharts/MapConfig"
 import {
@@ -52,6 +52,11 @@ export class MapCountryDropdown extends React.Component<{
 }> {
     @observable private searchInput = ""
     @observable private localEntityNames?: EntityName[]
+
+    constructor(props: { manager: MapCountryDropdownManager }) {
+        super(props)
+        makeObservable(this)
+    }
 
     static shouldShow(manager: MapCountryDropdownManager): boolean {
         const menu = new MapCountryDropdown({ manager })

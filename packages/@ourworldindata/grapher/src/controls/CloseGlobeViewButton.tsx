@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed, action } from "mobx"
+import { computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { MapRegionName } from "@ourworldindata/utils"
@@ -19,6 +19,11 @@ export interface CloseGlobeViewButtonManager {
 export class CloseGlobeViewButton extends React.Component<{
     manager: CloseGlobeViewButtonManager
 }> {
+    constructor(props: { manager: CloseGlobeViewButtonManager }) {
+        super(props)
+        makeObservable(this)
+    }
+
     static shouldShow(manager: CloseGlobeViewButtonManager): boolean {
         const menu = new CloseGlobeViewButton({ manager })
         return menu.showMenu

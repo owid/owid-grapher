@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { computed, action } from "mobx"
+import { computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     ComparisonLineConfig,
@@ -62,6 +62,19 @@ class TimeField<
     isInherited: boolean
     allowLinking: boolean
 }> {
+    constructor(props: {
+        field: K
+        store: T
+        label: string
+        defaultValue: number
+        parentValue: number
+        isInherited: boolean
+        allowLinking: boolean
+    }) {
+        super(props)
+        makeObservable(this)
+    }
+
     private setValue(value: number) {
         this.props.store[this.props.field] = value as any
     }
@@ -123,6 +136,11 @@ interface ColorSchemeSelectorProps {
 
 @observer
 export class ColorSchemeSelector extends React.Component<ColorSchemeSelectorProps> {
+    constructor(props: ColorSchemeSelectorProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onChange(selected: ColorSchemeOption) {
         // The onChange method can return an array of values (when multiple
         // items can be selected) or a single value. Since we are certain that
@@ -204,6 +222,11 @@ interface SortOrderDropdownOption {
 class SortOrderSection<
     Editor extends AbstractChartEditor,
 > extends React.Component<{ editor: Editor }> {
+    constructor(props: { editor: Editor }) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed get sortConfig(): SortConfig {
         return this.grapherState._sortConfig
     }
@@ -308,6 +331,11 @@ class FacetSection<Editor extends AbstractChartEditor> extends React.Component<{
 }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
+    constructor(props: { editor: Editor }) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed get grapherState() {
         return this.props.editor.grapherState
     }
@@ -386,6 +414,11 @@ class TimelineSection<
     Editor extends AbstractChartEditor,
 > extends React.Component<{ editor: Editor }> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
+
+    constructor(props: { editor: Editor }) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed get grapherState() {
         return this.props.editor.grapherState
@@ -495,6 +528,11 @@ class TimelineSection<
 class ComparisonLineSection<
     Editor extends AbstractChartEditor,
 > extends React.Component<{ editor: Editor }> {
+    constructor(props: { editor: Editor }) {
+        super(props)
+        makeObservable(this)
+    }
+
     private getComparisonLineType(comparisonLine: ComparisonLineConfig) {
         return isValidVerticalComparisonLineConfig(comparisonLine)
             ? "xEquals"
@@ -642,6 +680,11 @@ interface EditorCustomizeTabProps<Editor> {
 export class EditorCustomizeTab<
     Editor extends AbstractChartEditor,
 > extends React.Component<EditorCustomizeTabProps<Editor>> {
+    constructor(props: EditorCustomizeTabProps<Editor>) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed get errorMessages() {
         return this.props.errorMessages
     }

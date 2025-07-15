@@ -32,7 +32,7 @@ import { Link } from "./Link.js"
 import { GdocsAdd } from "./GdocsAdd.js"
 import { observer } from "mobx-react"
 import { GdocsStoreContext } from "./GdocsStoreContext.js"
-import { computed, observable } from "mobx"
+import { computed, observable, makeObservable } from "mobx"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 
@@ -155,6 +155,11 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
     }
 
     @observable search = { value: "" }
+
+    constructor(props: RouteComponentProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed get searchWords(): SearchWord[] {
         const { search } = this

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import a from "indefinite"
 import { DataTableConfig } from "../dataTable/DataTableConstants"
@@ -18,6 +18,11 @@ export interface DataTableSearchFieldManager {
 export class DataTableSearchField extends React.Component<{
     manager: DataTableSearchFieldManager
 }> {
+    constructor(props: { manager: DataTableSearchFieldManager }) {
+        super(props)
+        makeObservable(this)
+    }
+
     static shouldShow(manager: DataTableSearchFieldManager): boolean {
         const menu = new DataTableSearchField({ manager })
         return menu.shouldShow

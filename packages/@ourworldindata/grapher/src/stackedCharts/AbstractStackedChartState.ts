@@ -6,7 +6,7 @@ import {
     MissingDataStrategy,
     SeriesStrategy,
 } from "@ourworldindata/types"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import {
     StackedPoint,
     StackedRawSeries,
@@ -45,6 +45,7 @@ export abstract class AbstractStackedChartState implements ChartState {
 
     constructor({ manager }: { manager: ChartManager }) {
         this.manager = manager
+        makeObservable(this)
     }
 
     @computed get inputTable(): OwidTable {

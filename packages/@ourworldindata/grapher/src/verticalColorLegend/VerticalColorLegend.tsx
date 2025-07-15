@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { makeIdForHumanConsumption } from "@ourworldindata/utils"
 import { TextWrap } from "@ourworldindata/components"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     GRAPHER_FONT_SCALE_11_2,
@@ -44,6 +44,11 @@ interface SizedLegendSeries {
 export class VerticalColorLegend extends React.Component<{
     manager: VerticalColorLegendManager
 }> {
+    constructor(props: { manager: VerticalColorLegendManager }) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed get manager(): VerticalColorLegendManager {
         return this.props.manager
     }

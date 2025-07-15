@@ -35,6 +35,7 @@ import {
     runInAction,
     autorun,
     reaction,
+    makeObservable,
 } from "mobx"
 import { match, P } from "ts-pattern"
 
@@ -208,6 +209,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     constructor(props: GrapherConfigGridEditorProps) {
         super(props)
+        makeObservable(this)
         this.config = props.config
         this.currentColumnSet = this.config.columnSet[0]
     }

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import * as React from "react"
-import { computed, action } from "mobx"
+import { computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import {
@@ -48,6 +48,11 @@ interface ActionButtonsProps {
 
 @observer
 export class ActionButtons extends React.Component<ActionButtonsProps> {
+    constructor(props: ActionButtonsProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed private get manager(): ActionButtonsManager {
         return this.props.manager
     }

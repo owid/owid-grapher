@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import { observable } from "mobx"
+import { observable, makeObservable } from "mobx"
 import {
     Color,
     ColumnColorScale,
@@ -76,6 +76,10 @@ export class ColorScaleConfigDefaults {
 
     /** A custom legend description. Only used in ScatterPlot legend titles for now. */
     @observable legendDescription?: string = undefined
+
+    constructor() {
+        makeObservable(this)
+    }
 }
 
 export class ColorScaleConfig

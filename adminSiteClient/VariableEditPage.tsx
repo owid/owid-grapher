@@ -6,6 +6,7 @@ import {
     runInAction,
     autorun,
     IReactionDisposer,
+    makeObservable,
 } from "mobx"
 import YAML from "yaml"
 import * as _ from "lodash-es"
@@ -117,6 +118,7 @@ class VariableEditable
     @observable source: OwidSource | undefined = undefined
 
     constructor(json: any) {
+        makeObservable(this)
         for (const key in this) {
             if (key === "display") _.extend(this.display, json.display)
             else if (key === "presentation")
@@ -133,6 +135,11 @@ class VariableEditor extends Component<{
 }> {
     @observable newVariable!: VariableEditable
     @observable isDeleted: boolean = false
+
+    constructor(props: { variable: VariablePageData }) {
+        super(props)
+        makeObservable(this)
+    }
 
     // Store the original dataset to determine when it is modified
     UNSAFE_componentWillMount() {
@@ -752,6 +759,11 @@ export class VariableEditPage extends Component<{ variableId: number }> {
     declare context: AdminAppContextType
 
     @observable variable?: VariablePageData
+
+    constructor(props: { variableId: number }) {
+        super(props)
+        makeObservable(this)
+    }
 
     render() {
         return (

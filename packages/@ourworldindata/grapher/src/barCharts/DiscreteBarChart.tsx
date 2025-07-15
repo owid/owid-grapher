@@ -10,7 +10,7 @@ import {
     makeIdForHumanConsumption,
     dyFromAlign,
 } from "@ourworldindata/utils"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ScaleType, VerticalAlign } from "@ourworldindata/types"
 import {
@@ -40,6 +40,7 @@ import {
 import { BaseType, Selection } from "d3"
 import { TextWrap } from "@ourworldindata/components"
 import { DiscreteBarChartState } from "./DiscreteBarChartState"
+import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
@@ -58,10 +59,7 @@ export interface Label {
     width: number
 }
 
-interface DiscreteBarChartProps {
-    bounds?: Bounds
-    chartState: DiscreteBarChartState
-}
+export type DiscreteBarChartProps = ChartComponentProps<DiscreteBarChartState>
 
 @observer
 export class DiscreteBarChart
@@ -69,6 +67,11 @@ export class DiscreteBarChart
     implements ChartInterface, AxisManager, HorizontalColorLegendManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
+
+    constructor(props: DiscreteBarChartProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed get chartState(): DiscreteBarChartState {
         return this.props.chartState

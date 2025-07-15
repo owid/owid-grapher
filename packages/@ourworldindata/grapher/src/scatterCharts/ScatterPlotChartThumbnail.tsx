@@ -1,18 +1,19 @@
 import React from "react"
-import { Bounds } from "@ourworldindata/utils"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ScatterPlotChartState } from "./ScatterPlotChartState"
+import type { ScatterPlotChartProps } from "./ScatterPlotChart.js"
 
 @observer
 export class ScatterPlotChartThumbnail
-    extends React.Component<{
-        bounds?: Bounds
-        chartState: ScatterPlotChartState
-    }>
+    extends React.Component<ScatterPlotChartProps>
     implements ChartInterface
 {
+    constructor(props: ScatterPlotChartProps) {
+        super(props)
+        makeObservable(this)
+    }
     @computed get chartState(): ScatterPlotChartState {
         return this.props.chartState
     }

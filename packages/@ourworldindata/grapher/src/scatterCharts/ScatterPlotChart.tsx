@@ -10,7 +10,7 @@ import {
     ColumnSlug,
     AxisAlign,
 } from "@ourworldindata/types"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx"
 import { ScaleLinear, scaleSqrt } from "d3-scale"
 import { Quadtree, quadtree } from "d3-quadtree"
 import { quantize, interpolate } from "d3-interpolate"
@@ -86,16 +86,14 @@ import {
 } from "../tooltip/Tooltip"
 import { NoDataSection } from "./NoDataSection"
 import { ScatterPlotChartState } from "./ScatterPlotChartState"
+import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 
 function computeSizeDomain(table: OwidTable, slug: ColumnSlug): ValueRange {
     const sizeValues = table.get(slug).values.filter(_.isNumber)
     return [0, _.max(sizeValues) ?? 1]
 }
 
-interface ScatterPlotChartProps {
-    bounds?: Bounds
-    chartState: ScatterPlotChartState
-}
+export type ScatterPlotChartProps = ChartComponentProps<ScatterPlotChartState>
 
 @observer
 export class ScatterPlotChart
@@ -107,6 +105,11 @@ export class ScatterPlotChart
         VerticalColorLegendManager,
         AxisManager
 {
+    constructor(props: ScatterPlotChartProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     // currently hovered legend color
     @observable private hoverColor?: Color
     // current hovered individual series + tooltip position

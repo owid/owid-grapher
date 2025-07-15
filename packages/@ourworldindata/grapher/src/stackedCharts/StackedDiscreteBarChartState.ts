@@ -1,4 +1,4 @@
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { ChartState } from "../chart/ChartInterface"
 import { StackedDiscreteBarChartManager } from "./StackedDiscreteBarChart"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
@@ -25,6 +25,7 @@ export class StackedDiscreteBarChartState implements ChartState {
 
     constructor({ manager }: { manager: StackedDiscreteBarChartManager }) {
         this.manager = manager
+        makeObservable(this)
     }
 
     @computed get inputTable(): OwidTable {

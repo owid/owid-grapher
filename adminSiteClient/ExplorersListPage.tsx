@@ -8,6 +8,7 @@ import {
     observable,
     reaction,
     runInAction,
+    makeObservable,
 } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
@@ -175,6 +176,11 @@ export class ExplorersIndexPage extends Component<{
     @observable numTotalRows?: number
     @observable searchInput?: string
     @observable highlightSearch?: string
+
+    constructor(props: { manager?: AdminManager }) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed get explorersToShow(): ExplorerProgram[] {
         return _.orderBy(

@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { DEFAULT_GRAPHER_ENTITY_TYPE } from "../../core/GrapherConstants"
 import { FacetStrategy } from "@ourworldindata/utils"
@@ -17,6 +17,11 @@ export interface FacetStrategySelectionManager {
 export class FacetStrategySelector extends React.Component<{
     manager: FacetStrategySelectionManager
 }> {
+    constructor(props: { manager: FacetStrategySelectionManager }) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed get facetStrategyLabels(): { [key in FacetStrategy]: string } {
         return {
             [FacetStrategy.none]: "All together",

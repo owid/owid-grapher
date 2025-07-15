@@ -7,7 +7,7 @@ import {
     lastOfNonEmptyArray,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { SeriesName } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import { DualAxis } from "../axis/Axis"
@@ -33,6 +33,11 @@ interface AreasProps extends React.SVGAttributes<SVGGElement> {
 
 @observer
 export class StackedAreas extends React.Component<AreasProps> {
+    constructor(props: AreasProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @bind placePoint(point: StackedPoint<number>): StackedPlacedPoint {
         const { dualAxis } = this.props
         const { horizontalAxis, verticalAxis } = dualAxis

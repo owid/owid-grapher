@@ -13,7 +13,7 @@ import {
     HorizontalAlign,
     isTouchDevice,
 } from "@ourworldindata/utils"
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { select } from "d3-selection"
 import { easeLinear } from "d3-ease"
@@ -87,11 +87,9 @@ import { LineLabelSeries } from "../lineLegend/LineLegendTypes"
 import { Lines } from "./Lines"
 import { LineChartState } from "./LineChartState.js"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
+import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 
-interface LineChartProps {
-    bounds?: Bounds
-    chartState: LineChartState
-}
+export type LineChartProps = ChartComponentProps<LineChartState>
 
 @observer
 export class LineChart
@@ -99,6 +97,11 @@ export class LineChart
     implements ChartInterface, HorizontalColorLegendManager, AxisManager
 {
     private base: React.RefObject<SVGGElement> = React.createRef()
+
+    constructor(props: LineChartProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed get chartState(): LineChartState {
         return this.props.chartState

@@ -1,7 +1,14 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import ReactDOM from "react-dom"
-import { action, observable, IReactionDisposer, reaction, computed } from "mobx"
+import {
+    action,
+    observable,
+    IReactionDisposer,
+    reaction,
+    computed,
+    makeObservable,
+} from "mobx"
 import { observer } from "mobx-react"
 import Select, {
     components,
@@ -164,6 +171,11 @@ export class GlobalEntitySelector extends React.Component<GlobalEntitySelectorPr
     selection = this.props.selection
 
     @observable.ref private optionGroups: GroupBase<DropdownEntity>[] = []
+
+    constructor(props: GlobalEntitySelectorProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     componentDidMount(): void {
         this.onResize()

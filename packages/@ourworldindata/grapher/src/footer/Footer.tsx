@@ -1,5 +1,5 @@
 import * as React from "react"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import parseUrl from "url-parse"
 import {
@@ -73,6 +73,11 @@ abstract class AbstractFooter<
     Props extends FooterProps = FooterProps,
 > extends React.Component<Props> {
     verticalPadding = 4
+
+    constructor(props: Props) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed protected get manager(): FooterManager {
         return this.props.manager
@@ -641,6 +646,12 @@ interface StaticFooterProps extends FooterProps {
 @observer
 export class StaticFooter extends AbstractFooter<StaticFooterProps> {
     verticalPadding = 4.5
+
+    constructor(props: StaticFooterProps) {
+        super(props)
+
+        makeObservable(this)
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     componentDidMount(): void {}

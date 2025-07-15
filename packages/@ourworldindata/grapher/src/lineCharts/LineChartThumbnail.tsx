@@ -1,18 +1,20 @@
 import React from "react"
-import { Bounds } from "@ourworldindata/utils"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { LineChartState } from "./LineChartState"
+import { LineChartProps } from "./LineChart.js"
 
 @observer
 export class LineChartThumbnail
-    extends React.Component<{
-        bounds?: Bounds
-        chartState: LineChartState
-    }>
+    extends React.Component<LineChartProps>
     implements ChartInterface
 {
+    constructor(props: LineChartProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed get chartState(): LineChartState {
         return this.props.chartState
     }

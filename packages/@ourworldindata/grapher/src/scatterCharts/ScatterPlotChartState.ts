@@ -13,7 +13,7 @@ import {
     ScatterSeries,
     SeriesPoint,
 } from "./ScatterPlotChartConstants"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { autoDetectYColumnSlugs } from "../chart/ChartUtils"
 import {
     ColorSchemeName,
@@ -40,6 +40,7 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
     constructor({ manager }: { manager: ScatterPlotManager }) {
         this.manager = manager
         this.colorScale = manager.colorScaleOverride ?? new ColorScale(this)
+        makeObservable(this)
     }
 
     @computed get inputTable(): OwidTable {

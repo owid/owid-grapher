@@ -1,7 +1,7 @@
 // Todo: remove this.
 // Any display changes really can be computed columns. And then charts just need xColumnSlug, sizeColumnSlug, yColumnSlug (or yColumnSlugs) et cetera
 
-import { observable, computed } from "mobx"
+import { observable, computed, makeObservable } from "mobx"
 import {
     trimObject,
     ColumnSlug,
@@ -29,6 +29,10 @@ class ChartDimensionDefaults implements OwidChartDimensionInterface {
 
     // XXX move this somewhere else, it's only used for scatter x override and Marimekko override
     @observable targetYear?: Time = undefined
+
+    constructor() {
+        makeObservable(this)
+    }
 }
 
 // todo: remove when we remove dimensions
@@ -55,6 +59,7 @@ export class ChartDimension
         manager: LegacyDimensionsManager
     ) {
         super()
+        makeObservable(this)
         this.manager = manager
         if (obj) this.updateFromObject(obj)
     }

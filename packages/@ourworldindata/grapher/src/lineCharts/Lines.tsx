@@ -6,7 +6,7 @@ import {
     makeIdForHumanConsumption,
     pointsToPath,
 } from "@ourworldindata/utils"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { GRAPHER_OPACITY_MUTE } from "../core/GrapherConstants"
 import {
@@ -25,6 +25,11 @@ import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
 
 @observer
 export class Lines extends React.Component<LinesProps> {
+    constructor(props: LinesProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed get bounds(): Bounds {
         const { horizontalAxis, verticalAxis } = this.props.dualAxis
         return Bounds.fromCorners(

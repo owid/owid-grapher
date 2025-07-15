@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import { Component, Fragment } from "react"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartDimension } from "@ourworldindata/grapher"
 import { OwidColumnDef, OwidVariableRoundingMode } from "@ourworldindata/types"
@@ -39,6 +39,11 @@ export class DimensionCard<
     Editor extends AbstractChartEditor,
 > extends Component<DimensionCardProps<Editor>> {
     @observable.ref isExpanded: boolean = false
+
+    constructor(props: DimensionCardProps<Editor>) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed get table(): OwidTable {
         return this.props.editor.grapherState.table

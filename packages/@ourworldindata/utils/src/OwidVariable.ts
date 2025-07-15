@@ -1,6 +1,6 @@
 // todo: remove file
 
-import { observable } from "mobx"
+import { observable, makeObservable } from "mobx"
 import {
     Persistable,
     updatePersistables,
@@ -30,6 +30,10 @@ class OwidVariableDisplayConfigDefaults {
     @observable tableDisplay?: OwidVariableDataTableConfigInterface
     @observable color?: string = undefined
     @observable plotMarkersOnlyInLineChart?: boolean = undefined
+
+    constructor() {
+        makeObservable(this)
+    }
 }
 
 export class OwidVariableDisplayConfig

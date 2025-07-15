@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import * as _ from "lodash-es"
 import {
@@ -20,6 +20,11 @@ import { isValidVerticalComparisonLineConfig } from "./ComparisonLineHelpers"
 export class VerticalComparisonLine extends React.Component<
     ComparisonLineProps<VerticalComparisonLineConfig>
 > {
+    constructor(props: ComparisonLineProps<VerticalComparisonLineConfig>) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed private get fontSize(): number {
         return this.props.dualAxis.comparisonLineLabelFontSize
     }

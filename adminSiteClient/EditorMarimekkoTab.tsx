@@ -1,6 +1,12 @@
 import { GrapherState } from "@ourworldindata/grapher"
 import * as lodash from "lodash-es"
-import { action, IReactionDisposer, observable, reaction } from "mobx"
+import {
+    action,
+    IReactionDisposer,
+    observable,
+    reaction,
+    makeObservable,
+} from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
 import { NumberField, Section, Toggle } from "./Forms.js"
@@ -12,6 +18,7 @@ export class EditorMarimekkoTab extends Component<{
     @observable xOverrideTimeInputField: number | undefined
     constructor(props: { grapherState: GrapherState }) {
         super(props)
+        makeObservable(this)
         this.xOverrideTimeInputField = props.grapherState.xOverrideTime
     }
 

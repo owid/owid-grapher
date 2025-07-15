@@ -1,6 +1,6 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
-import { observable, computed, action, runInAction } from "mobx"
+import { observable, computed, action, runInAction, makeObservable } from "mobx"
 import * as lodash from "lodash-es"
 
 import { AdminLayout } from "./AdminLayout.js"
@@ -22,6 +22,11 @@ export class DatasetsIndexPage extends Component {
     @observable datasets: DatasetListItem[] = []
     @observable maxVisibleRows = 50
     @observable searchInput?: string
+
+    constructor(props: Record<string, never>) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed get searchWords(): SearchWord[] {
         const { searchInput } = this

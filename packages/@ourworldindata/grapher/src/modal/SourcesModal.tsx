@@ -24,7 +24,7 @@ import {
 } from "@ourworldindata/components"
 import * as React from "react"
 import cx from "classnames"
-import { action, computed } from "mobx"
+import { action, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -76,6 +76,7 @@ export class SourcesModal extends React.Component<
 > {
     constructor(props: SourcesModalProps) {
         super(props)
+        makeObservable(this)
         this.state = {
             activeTabIndex: 0,
         }
@@ -351,6 +352,11 @@ interface SourceProps {
 
 @observer
 export class Source extends React.Component<SourceProps> {
+    constructor(props: SourceProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed get column(): CoreColumn {
         return this.props.column
     }

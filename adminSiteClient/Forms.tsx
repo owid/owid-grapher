@@ -8,7 +8,7 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { useState } from "react"
 import { bind } from "decko"
-import { action } from "mobx"
+import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import cx from "classnames"
 import { useTimeout } from "usehooks-ts"
@@ -574,6 +574,11 @@ interface ToggleProps {
 }
 
 export class Toggle extends React.Component<ToggleProps> {
+    constructor(props: ToggleProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onChange(e: React.ChangeEvent<HTMLInputElement>) {
         this.props.onValue(!!e.currentTarget.checked)
     }
@@ -800,6 +805,11 @@ interface BindStringProps {
 
 @observer
 export class BindString extends React.Component<BindStringProps> {
+    constructor(props: BindStringProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onValue(value: string = "") {
         this.props.store[this.props.field] = value
     }
@@ -855,6 +865,11 @@ interface BindStringArrayProps {
 
 @observer
 export class BindStringArray extends React.Component<BindStringArrayProps> {
+    constructor(props: BindStringArrayProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onValue(value: string = "") {
         this.props.store[this.props.field] = parseBulletList(value)
     }
@@ -887,6 +902,11 @@ interface BindDropdownProps {
 
 @observer
 export class BindDropdown extends React.Component<BindDropdownProps> {
+    constructor(props: BindDropdownProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onChange(event: React.ChangeEvent<HTMLSelectElement>) {
         const value = event.target.value
         this.props.store[this.props.field] = value
@@ -933,6 +953,11 @@ export class BindAutoString<
     T extends { [field: string]: any },
     K extends Extract<keyof T, string>,
 > extends React.Component<BindAutoStringProps<K, T>> {
+    constructor(props: BindAutoStringProps<K, T>) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onValue(value: string) {
         this.props.store[this.props.field] = value as any
     }
@@ -1003,6 +1028,11 @@ type BindAutoStringExtProps<T> = {
 export class BindAutoStringExt<
     T extends Record<string, any>,
 > extends React.Component<BindAutoStringExtProps<T>> {
+    constructor(props: BindAutoStringExtProps<T>) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onValue(value: string | undefined = "") {
         this.props.writeFn(this.props.store, value)
     }
@@ -1114,6 +1144,17 @@ export class BindFloat<
     helpText?: string
     disabled?: boolean
 }> {
+    constructor(props: {
+        field: K
+        store: T
+        label?: string
+        helpText?: string
+        disabled?: boolean
+    }) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onValue(value: number | undefined) {
         this.props.store[this.props.field] = value as any
     }
@@ -1146,6 +1187,18 @@ export class BindAutoFloat<
     helpText?: string
     onBlur?: () => void
 }> {
+    constructor(props: {
+        field: K
+        store: T
+        auto: number
+        label?: string
+        helpText?: string
+        onBlur?: () => void
+    }) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onValue(value: number | undefined) {
         this.props.store[this.props.field] = value as any
     }
@@ -1185,6 +1238,18 @@ export class BindAutoFloatExt<
         auto?: number
     } & Omit<AutoFloatFieldProps, "onValue" | "onToggleAuto" | "value">
 > {
+    constructor(
+        props: {
+            readFn: (x: T) => number
+            writeFn: (x: T, value: number | undefined) => void
+            store: T
+            auto?: number
+        } & Omit<AutoFloatFieldProps, "onValue" | "onToggleAuto" | "value">
+    ) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onValue(value: number | undefined) {
         this.props.writeFn(this.props.store, value)
     }
@@ -1222,6 +1287,11 @@ interface ModalProps {
 export class Modal extends React.Component<ModalProps> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
     dismissable: boolean = true
+
+    constructor(props: ModalProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     @action.bound onClickOutside() {
         if (this.dismissable) this.props.onClose()

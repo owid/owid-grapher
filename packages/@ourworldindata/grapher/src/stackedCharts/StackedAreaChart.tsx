@@ -9,7 +9,7 @@ import {
     guid,
     exposeInstanceOnWindow,
 } from "@ourworldindata/utils"
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, makeObservable } from "mobx"
 import { InteractionState, SeriesName } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
@@ -43,17 +43,22 @@ import { ChartManager } from "../chart/ChartManager"
 import { StackedAreas } from "./StackedAreas"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
+import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 
 const STACKED_AREA_CHART_CLASS_NAME = "StackedArea"
 
+export type StackedAreaChartProps = ChartComponentProps<StackedAreaChartState>
+
 @observer
 export class StackedAreaChart
-    extends React.Component<{
-        chartState: StackedAreaChartState
-        bounds?: Bounds
-    }>
+    extends React.Component<StackedAreaChartProps>
     implements ChartInterface, AxisManager
 {
+    constructor(props: StackedAreaChartProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed get chartState(): StackedAreaChartState {
         return this.props.chartState
     }

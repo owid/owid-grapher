@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import { ScatterPointLabelStrategy } from "@ourworldindata/types"
 import { GrapherState } from "@ourworldindata/grapher"
-import { action } from "mobx"
+import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
 import { NumberField, Section, SelectField, Toggle } from "./Forms.js"
@@ -12,6 +12,7 @@ export class EditorScatterTab extends Component<{
 }> {
     constructor(props: { grapherState: GrapherState }) {
         super(props)
+        makeObservable(this)
     }
 
     @action.bound onToggleHideTimeline(value: boolean) {

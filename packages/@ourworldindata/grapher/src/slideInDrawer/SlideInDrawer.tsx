@@ -1,6 +1,6 @@
 import * as React from "react"
 import cx from "classnames"
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { isTargetOutsideElement } from "../chart/ChartUtils"
 
@@ -19,6 +19,11 @@ interface SlideInDrawerProps {
 export class SlideInDrawer extends React.Component<SlideInDrawerProps> {
     @observable.ref visible: boolean = this.props.active // true while the drawer is active and during enter/exit transitions
     drawerRef: React.RefObject<HTMLDivElement> = React.createRef()
+
+    constructor(props: SlideInDrawerProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     componentDidMount(): void {
         document.addEventListener("keydown", this.onDocumentKeyDown)

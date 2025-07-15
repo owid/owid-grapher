@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import React from "react"
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     geoGraticule,
@@ -88,6 +88,11 @@ export class ChoroplethGlobe extends React.Component<{
     @observable private hoverNearbyFeature?: GlobeRenderFeature
 
     private isPanningOrZooming = false
+
+    constructor(props: { manager: ChoroplethMapManager }) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed private get isTouchDevice(): boolean {
         return isTouchDevice()

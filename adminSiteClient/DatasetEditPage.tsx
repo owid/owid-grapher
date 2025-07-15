@@ -1,6 +1,6 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
-import { observable, computed, runInAction, action } from "mobx"
+import { observable, computed, runInAction, action, makeObservable } from "mobx"
 import * as lodash from "lodash-es"
 import { Prompt } from "react-router-dom"
 
@@ -70,6 +70,7 @@ class DatasetEditable {
     @observable tags: DbChartTagJoin[] = []
 
     constructor(json: DatasetPageData) {
+        makeObservable(this)
         for (const key in this) {
             if (key in json) {
                 if (key === "tags") this.tags = lodash.clone(json.tags)
@@ -90,6 +91,11 @@ interface DatasetTagEditorProps {
 
 @observer
 class DatasetTagEditor extends Component<DatasetTagEditorProps> {
+    constructor(props: DatasetTagEditorProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onSaveTags(tags: DbChartTagJoin[]) {
         this.props.newDataset.tags = tags
     }
@@ -122,6 +128,11 @@ class DatasetEditor extends Component<DatasetEditorProps> {
 
     // HACK (Mispy): Force variable refresh when dataset metadata is updated
     @observable timesUpdated: number = 0
+
+    constructor(props: DatasetEditorProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     // Store the original dataset to determine when it is modified
     UNSAFE_componentWillMount() {
@@ -415,6 +426,11 @@ export class DatasetEditPage extends Component<DatasetEditPageProps> {
     static contextType = AdminAppContext
     declare context: AdminAppContextType
     @observable dataset?: DatasetPageData
+
+    constructor(props: DatasetEditPageProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     render() {
         return (

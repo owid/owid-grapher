@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import { FuzzySearch, FuzzySearchResult } from "@ourworldindata/utils"
-import { action, autorun, computed, observable } from "mobx"
+import { action, autorun, computed, observable, makeObservable } from "mobx"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 interface ChartItem {
     title: string
@@ -40,6 +40,7 @@ class ChartFilter {
     }
 
     constructor() {
+        makeObservable(this)
         this.searchInput = document.querySelector(
             ".chartsSearchInput"
         ) as HTMLInputElement

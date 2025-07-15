@@ -1,5 +1,5 @@
 import React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { match } from "ts-pattern"
 import { GrapherRenderMode } from "@ourworldindata/utils"
@@ -15,6 +15,11 @@ import { StaticChartWrapper } from "./StaticChartWrapper.js"
 export class CaptionedOrThumbnailChart extends React.Component<{
     manager: GrapherState
 }> {
+    constructor(props: { manager: GrapherState }) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed private get manager(): GrapherState {
         return this.props.manager
     }

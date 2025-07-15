@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { observable, computed, runInAction, action } from "mobx"
+import { observable, computed, runInAction, action, makeObservable } from "mobx"
 import {
     getParentVariableIdFromChartConfig,
     RawPageview,
@@ -34,6 +34,11 @@ export class ChartEditorPage
 {
     static contextType = AdminAppContext
     declare context: AdminAppContextType
+
+    constructor(props: ChartEditorPageProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     @observable logs: Log[] = []
     @observable references: References | undefined = undefined

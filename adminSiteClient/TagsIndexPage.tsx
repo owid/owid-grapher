@@ -2,7 +2,7 @@ import { observer } from "mobx-react"
 import { Component } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { observable, runInAction } from "mobx"
+import { observable, runInAction, makeObservable } from "mobx"
 import { DbPlainTag } from "@ourworldindata/types"
 import { TagBadge } from "./TagBadge.js"
 import { Link } from "react-router-dom"
@@ -17,6 +17,11 @@ export class TagsIndexPage extends Component {
     @observable newTagName = ""
     @observable newTagSlug = ""
     @observable isAddingTag = false
+
+    constructor(props: Record<string, never>) {
+        super(props)
+        makeObservable(this)
+    }
 
     componentDidMount(): void {
         void this.getData()

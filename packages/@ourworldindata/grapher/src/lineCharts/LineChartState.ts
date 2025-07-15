@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
 import { Color } from "@ourworldindata/utils"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import {
     ScaleType,
     EntityName,
@@ -49,6 +49,7 @@ export class LineChartState implements ChartState, ColorScaleManager {
     constructor({ manager }: { manager: LineChartManager }) {
         this.manager = manager
         this.colorScale = manager.colorScaleOverride ?? new ColorScale(this)
+        makeObservable(this)
     }
 
     @computed get inputTable(): OwidTable {

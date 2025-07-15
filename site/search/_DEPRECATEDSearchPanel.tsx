@@ -22,7 +22,7 @@ import {
     ALGOLIA_ID,
     ALGOLIA_SEARCH_KEY,
 } from "../../settings/clientSettings.js"
-import { action, observable } from "mobx"
+import { action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     IChartHit,
@@ -468,6 +468,7 @@ export class DEPRECATEDInstantSearchContainer extends React.Component {
 
     constructor(props: Record<string, never>) {
         super(props)
+        makeObservable(this)
         this.searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
         this.categoryFilterContainerRef = React.createRef<HTMLUListElement>()
         this.handleCategoryFilterClick =

@@ -1,4 +1,4 @@
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { AbstractStackedChartState } from "./AbstractStackedChartState.js"
 import { ChartState } from "../chart/ChartInterface.js"
 import { StackedSeries } from "./StackedConstants.js"
@@ -10,11 +10,17 @@ import {
 import { ColorScaleManager } from "../color/ColorScale.js"
 import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig.js"
 import { ColorSchemeName } from "@ourworldindata/types"
+import { ChartManager } from "../chart/ChartManager.js"
 
 export class StackedBarChartState
     extends AbstractStackedChartState
     implements ChartState, ColorScaleManager
 {
+    constructor(props: { manager: ChartManager }) {
+        super(props)
+        makeObservable(this)
+    }
+
     shouldRunLinearInterpolation = false
 
     defaultBaseColorScheme = ColorSchemeName.stackedAreaDefault

@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Time } from "@ourworldindata/utils"
 import { BAR_OPACITY, StackedPoint, StackedSeries } from "./StackedConstants"
@@ -25,6 +25,11 @@ interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
 @observer
 export class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
     base: React.RefObject<SVGRectElement> = React.createRef()
+
+    constructor(props: StackedBarSegmentProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     @observable mouseOver: boolean = false
 

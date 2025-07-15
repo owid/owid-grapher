@@ -1,4 +1,4 @@
-import { action, observable } from "mobx"
+import { action, observable, makeObservable } from "mobx"
 import {
     getOwidGdocFromJSON,
     OwidGdocJSON,
@@ -26,6 +26,7 @@ export class GdocsStore {
     admin: Admin
 
     constructor(admin: Admin) {
+        makeObservable(this)
         this.admin = admin
     }
 

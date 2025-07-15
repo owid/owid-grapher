@@ -7,6 +7,7 @@ import {
     runInAction,
     reaction,
     IReactionDisposer,
+    makeObservable,
 } from "mobx"
 import * as lodash from "lodash-es"
 
@@ -27,6 +28,11 @@ export class VariablesIndexPage extends Component {
     @observable numTotalRows?: number
     @observable searchInput?: string
     @observable highlightSearch?: string
+
+    constructor(props: Record<string, never>) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed get variablesToShow(): VariableListItem[] {
         return this.variables
