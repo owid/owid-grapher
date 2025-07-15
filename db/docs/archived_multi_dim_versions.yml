@@ -1,16 +1,16 @@
 metadata:
-  description: "Archived versions of multi-dimensional data page configurations for versioning and rollback purposes. This table stores historical snapshots of multi-dimensional data pages, enabling version control and the ability to revert to previous page states. Archives are kept permanently even if the original page is deleted."
+    description: "Archived versions of multi-dimensional data page configurations for versioning and rollback purposes. This table stores historical snapshots of multi-dimensional data pages, enabling version control and the ability to revert to previous page states. Archives are kept permanently even if the original page is deleted."
 
 fields:
-  id:
-    description: "Unique identifier for the archived multi-dimensional page version"
-  archivalTimestamp:
-    description: "Timestamp when this multi-dimensional page version was archived"
-  multiDimId:
-    description: "ID of the multi-dimensional page that was archived (not a foreign key as archives are kept even after deletion)"
-  multiDimSlug:
-    description: "Slug of the multi-dimensional page at the time of archival"
-  hashOfInputs:
-    description: "Hash of the inputs used to generate this page version, used for deduplication and change detection"
-  manifest:
-    description: "JSON manifest containing the full page configuration and metadata at the time of archival"
+    id:
+        description: "Unique identifier for the archived multi-dimensional page version"
+    archivalTimestamp:
+        description: "Timestamp when this multi-dimensional page version was archived"
+    multiDimId:
+        description: "ID of the multi-dimensional page that was archived (not a foreign key as archives are kept even after deletion)"
+    multiDimSlug:
+        description: "Slug of the multi-dimensional page at the time of archival"
+    hashOfInputs:
+        description: "Hash of the inputs used to generate this page version, used for deduplication and change detection"
+    manifest:
+        description: "JSON manifest containing the full page configuration and metadata at the time of archival"

@@ -1,31 +1,31 @@
 metadata:
-  description: "Google Docs integration for OWID's content management system. This table stores articles, data insights, and other content authored in Google Docs, enabling collaborative editing workflows. Content is automatically synchronized from Google Docs and converted to structured format for web publishing."
+    description: "Google Docs integration for OWID's content management system. This table stores articles, data insights, and other content authored in Google Docs, enabling collaborative editing workflows. Content is automatically synchronized from Google Docs and converted to structured format for web publishing."
 fields:
-  id:
-    description: "Unique identifier for the Google Docs post (matches Google Docs document ID)"
-  slug:
-    description: "URL-friendly identifier used in website URLs"
-  type:
-    description: "Post type (e.g., 'article', 'data-insight', 'about-page')"
-  content:
-    description: "Structured JSON content parsed from Google Docs"
-  authors:
-    description: "JSON array of post authors"
-  published:
-    description: "Whether the post is published and publicly accessible"
-  createdAt:
-    description: "Timestamp when the post was first imported from Google Docs"
-  publishedAt:
-    description: "Timestamp when the post was published"
-  updatedAt:
-    description: "Timestamp when the post was last updated from Google Docs"
-  publicationContext:
-    description: "Publication context ('listed' or 'unlisted')"
-  revisionId:
-    description: "Google Docs revision ID for tracking document versions"
-  manualBreadcrumbs:
-    description: "Custom breadcrumb navigation overrides"
-  markdown:
-    description: "Post content converted to Markdown format"
-  title:
-    description: "Post title extracted from Google Docs"
+    id:
+        description: "Unique identifier for the Google Docs post (matches Google Docs document ID)"
+    slug:
+        description: "URL-friendly identifier used in website URLs"
+    type:
+        description: "Post type (e.g., 'article', 'data-insight', 'about-page')"
+    content:
+        description: "Structured JSON content parsed from Google Docs"
+    authors:
+        description: "JSON array of post authors"
+    published:
+        description: "Whether the post is published and publicly accessible"
+    createdAt:
+        description: "Timestamp when the post was first imported from Google Docs"
+    publishedAt:
+        description: "Timestamp when the post was published"
+    updatedAt:
+        description: "Timestamp when the post was last updated from Google Docs"
+    publicationContext:
+        description: "Publication context ('listed' or 'unlisted')"
+    revisionId:
+        description: "Google Docs revision ID for tracking document versions"
+    manualBreadcrumbs:
+        description: "Custom breadcrumb navigation overrides"
+    markdown:
+        description: "Post content converted to Markdown format"
+    title:
+        description: "Post title extracted from Google Docs"

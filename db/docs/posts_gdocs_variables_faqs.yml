@@ -1,11 +1,11 @@
 metadata:
-  description: "Junction table linking variables to FAQ content within Google Docs posts. This enables the FAQ system where variables can have associated frequently asked questions embedded within articles, providing contextual help and explanations for data indicators."
+    description: "Junction table linking variables to FAQ content within Google Docs posts. This enables the FAQ system where variables can have associated frequently asked questions embedded within articles, providing contextual help and explanations for data indicators."
 fields:
-  gdocId:
-    description: "Foreign key to posts_gdocs table"
-  variableId:
-    description: "Foreign key to variables table"
-  fragmentId:
-    description: "Fragment ID within the document for the FAQ section"
-  displayOrder:
-    description: "Display order of the FAQ for the variable"
+    gdocId:
+        description: "Foreign key to posts_gdocs table"
+    variableId:
+        description: "Foreign key to variables table"
+    fragmentId:
+        description: "Fragment ID within the document for the FAQ section"
+    displayOrder:
+        description: "Display order of the FAQ for the variable"

@@ -1,9 +1,9 @@
 metadata:
-  description: "Junction table linking Google Docs posts to images used within them. This enables tracking of image usage across articles, supporting media management, and ensuring proper image attribution and optimization for web delivery."
+    description: "Junction table linking Google Docs posts to images used within them. This enables tracking of image usage across articles, supporting media management, and ensuring proper image attribution and optimization for web delivery."
 fields:
-  id:
-    description: "Unique identifier for the association"
-  gdocId:
-    description: "Foreign key to posts_gdocs table"
-  imageId:
-    description: "Foreign key to images table"
+    id:
+        description: "Unique identifier for the association"
+    gdocId:
+        description: "Foreign key to posts_gdocs table"
+    imageId:
+        description: "Foreign key to images table"

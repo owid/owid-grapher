@@ -1,9 +1,9 @@
 metadata:
-  description: "Junction table linking explorers to variables that can be explored within them. This enables explorers to provide access to multiple data indicators, allowing users to switch between different variables while maintaining consistent filtering and visualization options."
+    description: "Junction table linking explorers to variables that can be explored within them. This enables explorers to provide access to multiple data indicators, allowing users to switch between different variables while maintaining consistent filtering and visualization options."
 fields:
-  id:
-    description: "Unique identifier for the association"
-  explorerSlug:
-    description: "Foreign key to explorers table (slug field)"
-  variableId:
-    description: "Foreign key to variables table. Variable that can be explored in the explorer."
+    id:
+        description: "Unique identifier for the association"
+    explorerSlug:
+        description: "Foreign key to explorers table (slug field)"
+    variableId:
+        description: "Foreign key to variables table. Variable that can be explored in the explorer."

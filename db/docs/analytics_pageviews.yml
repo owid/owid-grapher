@@ -1,21 +1,21 @@
 metadata:
-  description: "Pre-aggregated pageview analytics data imported from external analytics system. This table stores daily pageview metrics with rolling window calculations for performance optimization. Data is refreshed separately from main database updates using `make refresh.pageviews` and serves as a bridge between the external analytics infrastructure and OWID application for fast pageview lookups."
+    description: "Pre-aggregated pageview analytics data imported from external analytics system. This table stores daily pageview metrics with rolling window calculations for performance optimization. Data is refreshed separately from main database updates using `make refresh.pageviews` and serves as a bridge between the external analytics infrastructure and OWID application for fast pageview lookups."
 fields:
-  day:
-    description: "Date of the pageview data (part of primary key with url)"
-  url:
-    description: "Full URL of the page viewed (part of primary key with day)"
-  views_7d:
-    description: "Number of views in the last 7 days (rolling window)"
-  views_14d:
-    description: "Number of views in the last 14 days (rolling window)"
-  views_365d:
-    description: "Number of views in the last 365 days (rolling window)"
-  url_domain:
-    description: "Domain portion of the URL (derived field)"
-  url_path:
-    description: "Path portion of the URL (derived field)"
-  url_query:
-    description: "Query string portion of the URL (derived field)"
-  url_fragment:
-    description: "Fragment portion of the URL (derived field)"
+    day:
+        description: "Date of the pageview data (part of primary key with url)"
+    url:
+        description: "Full URL of the page viewed (part of primary key with day)"
+    views_7d:
+        description: "Number of views in the last 7 days (rolling window)"
+    views_14d:
+        description: "Number of views in the last 14 days (rolling window)"
+    views_365d:
+        description: "Number of views in the last 365 days (rolling window)"
+    url_domain:
+        description: "Domain portion of the URL (derived field)"
+    url_path:
+        description: "Path portion of the URL (derived field)"
+    url_query:
+        description: "Query string portion of the URL (derived field)"
+    url_fragment:
+        description: "Fragment portion of the URL (derived field)"

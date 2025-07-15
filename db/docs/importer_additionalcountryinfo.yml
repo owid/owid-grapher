@@ -1,24 +1,24 @@
 metadata:
-  description: "Additional country information for data import processes. This table stores supplementary country metadata from external sources, including World Bank regional classifications, income groups, and census information. Used to enrich country data during import workflows."
+    description: "Additional country information for data import processes. This table stores supplementary country metadata from external sources, including World Bank regional classifications, income groups, and census information. Used to enrich country data during import workflows."
 
 fields:
-  id:
-    description: "Unique identifier for the country information record"
-  country_code:
-    description: "Country code identifier"
-  country_name:
-    description: "Full country name"
-  country_wb_region:
-    description: "World Bank regional classification for the country"
-  country_wb_income_group:
-    description: "World Bank income group classification for the country"
-  country_special_notes:
-    description: "Special notes or additional information about the country"
-  country_latest_census:
-    description: "Information about the country's latest census"
-  country_latest_survey:
-    description: "Information about the country's latest survey"
-  country_recent_income_source:
-    description: "Source of recent income data for the country"
-  dataset:
-    description: "Dataset identifier this country information is associated with"
+    id:
+        description: "Unique identifier for the country information record"
+    country_code:
+        description: "Country code identifier"
+    country_name:
+        description: "Full country name"
+    country_wb_region:
+        description: "World Bank regional classification for the country"
+    country_wb_income_group:
+        description: "World Bank income group classification for the country"
+    country_special_notes:
+        description: "Special notes or additional information about the country"
+    country_latest_census:
+        description: "Information about the country's latest census"
+    country_latest_survey:
+        description: "Information about the country's latest survey"
+    country_recent_income_source:
+        description: "Source of recent income data for the country"
+    dataset:
+        description: "Dataset identifier this country information is associated with"

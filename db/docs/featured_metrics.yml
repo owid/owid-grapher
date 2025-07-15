@@ -1,14 +1,14 @@
 metadata:
-  description: "Featured metrics for topic pages with ranking and income group classifications. This table manages which metrics are highlighted on topic pages and allows for different featured metrics based on income group classifications. Essential for topic page curation and content organization."
+    description: "Featured metrics for topic pages with ranking and income group classifications. This table manages which metrics are highlighted on topic pages and allows for different featured metrics based on income group classifications. Essential for topic page curation and content organization."
 
 fields:
-  id:
-    description: "Unique identifier for the featured metric"
-  url:
-    description: "URL of the featured metric (up to 512 characters)"
-  parentTagId:
-    description: "Foreign key to tags table. The parent tag/topic this metric is featured under."
-  ranking:
-    description: "Display order ranking for this featured metric within its topic and income group"
-  incomeGroup:
-    description: "Income group classification for targeted metric display ('low', 'lower-middle', 'upper-middle', 'high', 'default')"
+    id:
+        description: "Unique identifier for the featured metric"
+    url:
+        description: "URL of the featured metric (up to 512 characters)"
+    parentTagId:
+        description: "Foreign key to tags table. The parent tag/topic this metric is featured under."
+    ranking:
+        description: "Display order ranking for this featured metric within its topic and income group"
+    incomeGroup:
+        description: "Income group classification for targeted metric display ('low', 'lower-middle', 'upper-middle', 'high', 'default')"

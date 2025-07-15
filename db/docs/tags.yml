@@ -1,17 +1,17 @@
 metadata:
-  description: "Hierarchical categorization system for organizing charts, datasets, and posts. Tags can have parent-child relationships and special types. They're used for navigation, filtering, and determining chart indexability."
+    description: "Hierarchical categorization system for organizing charts, datasets, and posts. Tags can have parent-child relationships and special types. They're used for navigation, filtering, and determining chart indexability."
 fields:
-  id:
-    description: "Unique identifier for the tag"
-  name:
-    description: "Tag name as it appears in the interface"
-  createdAt:
-    description: "Timestamp when the tag was created"
-  updatedAt:
-    description: "Timestamp when the tag was last updated"
-  parentId:
-    description: "Foreign key to tags table for parent tag (self-referential for hierarchy)"
-  specialType:
-    description: "Special type designation for the tag (e.g., 'unlisted' for hidden content)"
-  slug:
-    description: "URL-friendly identifier used in topic page URLs"
+    id:
+        description: "Unique identifier for the tag"
+    name:
+        description: "Tag name as it appears in the interface"
+    createdAt:
+        description: "Timestamp when the tag was created"
+    updatedAt:
+        description: "Timestamp when the tag was last updated"
+    parentId:
+        description: "Foreign key to tags table for parent tag (self-referential for hierarchy)"
+    specialType:
+        description: "Special type designation for the tag (e.g., 'unlisted' for hidden content)"
+    slug:
+        description: "URL-friendly identifier used in topic page URLs"

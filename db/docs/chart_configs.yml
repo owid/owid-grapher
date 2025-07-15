@@ -1,19 +1,19 @@
 metadata:
-  description: "Chart configuration storage table that separates configuration data from chart metadata. This table stores the actual JSON configuration that determines how charts appear and behave. It supports both patch-based updates and full configurations, and enables the inheritance system where charts can inherit configurations from variables."
+    description: "Chart configuration storage table that separates configuration data from chart metadata. This table stores the actual JSON configuration that determines how charts appear and behave. It supports both patch-based updates and full configurations, and enables the inheritance system where charts can inherit configurations from variables."
 fields:
-  id:
-    description: "Unique identifier for the chart configuration"
-  patch:
-    description: "Incremental configuration JSON that contains only the changes from the inherited or base configuration"
-  full:
-    description: "Complete merged configuration JSON that combines inherited configuration with local patches. This is the final configuration used for rendering."
-  slug:
-    description: "URL-friendly identifier for the chart, used in URLs like /grapher/[slug]"
-  chartType:
-    description: "Type of chart visualization (e.g., LineChart, BarChart, ScatterPlot, WorldMap)"
-  createdAt:
-    description: "Timestamp when the configuration was created"
-  updatedAt:
-    description: "Timestamp when the configuration was last updated"
-  fullMd5:
-    description: "MD5 hash of the full configuration JSON used for change detection and caching"
+    id:
+        description: "Unique identifier for the chart configuration"
+    patch:
+        description: "Incremental configuration JSON that contains only the changes from the inherited or base configuration"
+    full:
+        description: "Complete merged configuration JSON that combines inherited configuration with local patches. This is the final configuration used for rendering."
+    slug:
+        description: "URL-friendly identifier for the chart, used in URLs like /grapher/[slug]"
+    chartType:
+        description: "Type of chart visualization (e.g., LineChart, BarChart, ScatterPlot, WorldMap)"
+    createdAt:
+        description: "Timestamp when the configuration was created"
+    updatedAt:
+        description: "Timestamp when the configuration was last updated"
+    fullMd5:
+        description: "MD5 hash of the full configuration JSON used for change detection and caching"

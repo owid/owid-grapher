@@ -1,19 +1,19 @@
 metadata:
-  description: "Link tracking system for Details on Demand (DOD) content that enables monitoring of link health and usage analytics. Extracts and categorizes all links from DOD content to track references to other DODs, external sources, and embedded visualizations. This is crucial for maintaining DOD content integrity."
+    description: "Link tracking system for Details on Demand (DOD) content that enables monitoring of link health and usage analytics. Extracts and categorizes all links from DOD content to track references to other DODs, external sources, and embedded visualizations. This is crucial for maintaining DOD content integrity."
 fields:
-  id:
-    description: "Unique identifier for the link"
-  sourceId:
-    description: "Foreign key to dods table. The DOD where the link appears."
-  target:
-    description: "Target URL of the link"
-  componentType:
-    description: "Type of component containing the link (defaults to 'dod')"
-  linkType:
-    description: "Type of link ('gdoc', 'url', 'grapher', 'explorer', 'chart-view', 'dod')"
-  text:
-    description: "Link text as it appears in the DOD content"
-  queryString:
-    description: "Query string parameters in the link"
-  hash:
-    description: "Hash fragment in the link"
+    id:
+        description: "Unique identifier for the link"
+    sourceId:
+        description: "Foreign key to dods table. The DOD where the link appears."
+    target:
+        description: "Target URL of the link"
+    componentType:
+        description: "Type of component containing the link (defaults to 'dod')"
+    linkType:
+        description: "Type of link ('gdoc', 'url', 'grapher', 'explorer', 'chart-view', 'dod')"
+    text:
+        description: "Link text as it appears in the DOD content"
+    queryString:
+        description: "Query string parameters in the link"
+    hash:
+        description: "Hash fragment in the link"
