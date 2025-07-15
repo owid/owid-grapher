@@ -1,19 +1,19 @@
 metadata:
-  description: "Multi-dimensional data pages that allow exploration of datasets across multiple dimensions and variables. These pages provide interactive interfaces for exploring complex datasets with multiple indicators, enabling users to switch between different views and comparisons of the same underlying data."
+    description: "Multi-dimensional data pages that allow exploration of datasets across multiple dimensions and variables. These pages provide interactive interfaces for exploring complex datasets with multiple indicators, enabling users to switch between different views and comparisons of the same underlying data."
 fields:
-  id:
-      description: "Unique identifier for the data page"
-  catalogPath:
-      description: "Path in the ETL data catalog system linking to the source dataset"
-  slug:
-      description: "URL-friendly identifier used in URLs like /data/[slug]"
-  config:
-      description: "JSON configuration defining the data page structure and behavior"
-  configMd5:
-      description: "MD5 hash of the configuration for change detection and caching"
-  published:
-      description: "Whether the data page is published and publicly accessible"
-  createdAt:
-      description: "Timestamp when the data page was created"
-  updatedAt:
-      description: "Timestamp when the data page was last updated"
+    id:
+        description: "Unique identifier for the data page"
+    catalogPath:
+        description: "Path in the ETL data catalog system linking to the source dataset"
+    slug:
+        description: "URL-friendly identifier used in URLs like /data/[slug]"
+    config:
+        description: "JSON configuration defining the data page structure and behavior"
+    configMd5:
+        description: "MD5 hash of the configuration for change detection and caching"
+    published:
+        description: "Whether the data page is published and publicly accessible"
+    createdAt:
+        description: "Timestamp when the data page was created"
+    updatedAt:
+        description: "Timestamp when the data page was last updated"
