@@ -10,14 +10,16 @@ import {
 } from "./ScatterPlotChartConstants"
 import { Triangle } from "./Triangle"
 
-// When there's only a single point in a series (e.g. single year mode)
-@observer
-export class ScatterPoint extends React.Component<{
+interface ScatterPointProps {
     series: ScatterRenderSeries
     isLayerMode?: boolean
     onMouseEnter?: (seriesName: string) => void
     onMouseLeave?: () => void
-}> {
+}
+
+// When there's only a single point in a series (e.g. single year mode)
+@observer
+export class ScatterPoint extends React.Component<ScatterPointProps> {
     render(): React.ReactElement | null {
         const { series, isLayerMode, onMouseEnter, onMouseLeave } = this.props
         const value = R.first(series.points)
@@ -67,13 +69,15 @@ export class ScatterPoint extends React.Component<{
     }
 }
 
-@observer
-export class ScatterLine extends React.Component<{
+interface ScatterLineProps {
     series: ScatterRenderSeries
     isLayerMode: boolean
     onMouseEnter?: (seriesName: string) => void
     onMouseLeave?: () => void
-}> {
+}
+
+@observer
+export class ScatterLine extends React.Component<ScatterLineProps> {
     render(): React.ReactElement | null {
         const { series, isLayerMode, onMouseEnter, onMouseLeave } = this.props
 

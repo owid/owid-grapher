@@ -245,13 +245,15 @@ function MarimekkoBarsForOneEntity(
     )
 }
 
+interface MarimekkoChartProps {
+    bounds?: Bounds
+    manager: MarimekkoChartManager
+    containerElement?: HTMLDivElement
+}
+
 @observer
 export class MarimekkoChart
-    extends React.Component<{
-        bounds?: Bounds
-        manager: MarimekkoChartManager
-        containerElement?: HTMLDivElement
-    }>
+    extends React.Component<MarimekkoChartProps>
     implements ChartInterface, HorizontalColorLegendManager, ColorScaleManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()

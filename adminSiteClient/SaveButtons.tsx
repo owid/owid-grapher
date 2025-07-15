@@ -20,12 +20,16 @@ import {
 import { NarrativeChartNameModal } from "./NarrativeChartNameModal.js"
 import { CreateDataInsightModal } from "./CreateDataInsightModal.js"
 
-@observer
-export class SaveButtons<Editor extends AbstractChartEditor> extends Component<{
+interface SaveButtonsProps<Editor extends AbstractChartEditor> {
     editor: Editor
     errorMessages: ErrorMessages
     errorMessagesForDimensions: ErrorMessagesForDimensions
-}> {
+}
+
+@observer
+export class SaveButtons<Editor extends AbstractChartEditor> extends Component<
+    SaveButtonsProps<Editor>
+> {
     render() {
         const { editor } = this.props
         const passthroughProps = _.omit(this.props, "editor")
@@ -50,11 +54,7 @@ export class SaveButtons<Editor extends AbstractChartEditor> extends Component<{
 }
 
 @observer
-class SaveButtonsForChart extends Component<{
-    editor: ChartEditor
-    errorMessages: ErrorMessages
-    errorMessagesForDimensions: ErrorMessagesForDimensions
-}> {
+class SaveButtonsForChart extends Component<SaveButtonsProps<ChartEditor>> {
     @action.bound onSaveChart() {
         void this.props.editor.saveGrapher()
     }
@@ -173,11 +173,9 @@ class SaveButtonsForChart extends Component<{
 }
 
 @observer
-class SaveButtonsForIndicatorChart extends Component<{
-    editor: IndicatorChartEditor
-    errorMessages: ErrorMessages
-    errorMessagesForDimensions: ErrorMessagesForDimensions
-}> {
+class SaveButtonsForIndicatorChart extends Component<
+    SaveButtonsProps<IndicatorChartEditor>
+> {
     @action.bound onSaveChart() {
         void this.props.editor.saveGrapher()
     }
@@ -223,11 +221,9 @@ class SaveButtonsForIndicatorChart extends Component<{
 }
 
 @observer
-class SaveButtonsForNarrativeChart extends Component<{
-    editor: NarrativeChartEditor
-    errorMessages: ErrorMessages
-    errorMessagesForDimensions: ErrorMessagesForDimensions
-}> {
+class SaveButtonsForNarrativeChart extends Component<
+    SaveButtonsProps<NarrativeChartEditor>
+> {
     @observable isCreateDataInsightModalOpen = false
 
     @action.bound onSaveChart() {

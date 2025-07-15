@@ -26,11 +26,13 @@ export const TIMELINE_HEIGHT = 32 // keep in sync with $timelineHeight in Timeli
 
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
 
-@observer
-export class TimelineComponent extends React.Component<{
+interface TimelineComponentProps {
     timelineController: TimelineController
     maxWidth?: number
-}> {
+}
+
+@observer
+export class TimelineComponent extends React.Component<TimelineComponentProps> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed protected get maxWidth(): number {

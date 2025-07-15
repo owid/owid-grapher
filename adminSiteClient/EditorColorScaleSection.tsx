@@ -40,14 +40,16 @@ interface EditorColorScaleSectionFeatures {
     legendDescription: boolean
 }
 
-@observer
-export class EditorColorScaleSection extends Component<{
+interface EditorColorScaleSectionProps {
     scale: ColorScale
     chartType: GrapherChartOrMapType
     features: EditorColorScaleSectionFeatures
     showLineChartColors: boolean
     onChange?: () => void
-}> {
+}
+
+@observer
+export class EditorColorScaleSection extends Component<EditorColorScaleSectionProps> {
     render() {
         return (
             <Fragment>
@@ -67,12 +69,14 @@ export class EditorColorScaleSection extends Component<{
     }
 }
 
-@observer
-class ColorLegendSection extends Component<{
+interface ColorLegendSectionProps {
     scale: ColorScale
     features: EditorColorScaleSectionFeatures
     onChange?: () => void
-}> {
+}
+
+@observer
+class ColorLegendSection extends Component<ColorLegendSectionProps> {
     @action.bound onManualBins() {
         populateManualBinValuesIfAutomatic(this.props.scale)
         this.props.onChange?.()
@@ -115,13 +119,15 @@ class ColorLegendSection extends Component<{
     }
 }
 
-@observer
-class ColorsSection extends Component<{
+interface ColorsSectionProps {
     scale: ColorScale
     chartType: GrapherChartOrMapType
     showLineChartColors: boolean
     onChange?: () => void
-}> {
+}
+
+@observer
+class ColorsSection extends Component<ColorsSectionProps> {
     @action.bound onColorScheme(selected: ColorSchemeOption) {
         const { config } = this
 
@@ -254,12 +260,14 @@ class ColorsSection extends Component<{
     }
 }
 
-@observer
-class ColorSchemeEditor extends Component<{
+interface ColorSchemeEditorProps {
     scale: ColorScale
     showLineChartColors: boolean
     onChange?: () => void
-}> {
+}
+
+@observer
+class ColorSchemeEditor extends Component<ColorSchemeEditorProps> {
     render() {
         const { scale } = this.props
         return (
@@ -298,13 +306,15 @@ class ColorSchemeEditor extends Component<{
     }
 }
 
-@observer
-class BinLabelView extends Component<{
+interface BinLabelViewProps {
     scale: ColorScale
     bin: ColorScaleBin
     index: number
     onChange?: () => void
-}> {
+}
+
+@observer
+class BinLabelView extends Component<BinLabelViewProps> {
     @action.bound onLabel(value: string) {
         if (this.props.bin instanceof NumericBin) {
             const { scale, index } = this.props
@@ -356,14 +366,16 @@ function populateManualBinValuesIfAutomatic(scale: ColorScale) {
     })
 }
 
-@observer
-class NumericBinView extends Component<{
+interface NumericBinViewProps {
     scale: ColorScale
     bin: NumericBin
     index: number
     showLineChartColors: boolean
     onChange?: () => void
-}> {
+}
+
+@observer
+class NumericBinView extends Component<NumericBinViewProps> {
     @action.bound onColor(color: Color | undefined) {
         const { scale, index } = this.props
 
@@ -483,13 +495,15 @@ class NumericBinView extends Component<{
     }
 }
 
-@observer
-class CategoricalBinView extends Component<{
+interface CategoricalBinViewProps {
     scale: ColorScale
     bin: CategoricalBin
     showLineChartColors: boolean
     onChange?: () => void
-}> {
+}
+
+@observer
+class CategoricalBinView extends Component<CategoricalBinViewProps> {
     @action.bound onColor(color: Color | undefined) {
         const { scale, bin } = this.props
         if (!scale.customNumericColorsActive) {

@@ -8,14 +8,16 @@ import {
     Tag as TagAutocomplete,
 } from "react-tag-autocomplete"
 
-@observer
-export class EditTags extends Component<{
+interface EditTagsProps {
     tags: DbChartTagJoin[]
     suggestions: DbChartTagJoin[]
     onDelete: (index: number) => void
     onAdd: (tag: DbChartTagJoin) => void
     onSave: () => void
-}> {
+}
+
+@observer
+export class EditTags extends Component<EditTagsProps> {
     dismissable: boolean = true
     reactTagsApi = createRef<ReactTagsAPI>()
 

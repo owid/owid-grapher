@@ -24,10 +24,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { OwidTable } from "@ourworldindata/core-table"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
-@observer
-export class DimensionCard<
-    Editor extends AbstractChartEditor,
-> extends Component<{
+interface DimensionCardProps<Editor> {
     dimension: ChartDimension
     editor: Editor
     isDndEnabled?: boolean
@@ -35,7 +32,12 @@ export class DimensionCard<
     onEdit?: () => void
     onRemove?: () => void
     errorMessage?: string
-}> {
+}
+
+@observer
+export class DimensionCard<
+    Editor extends AbstractChartEditor,
+> extends Component<DimensionCardProps<Editor>> {
     @observable.ref isExpanded: boolean = false
 
     @computed get table(): OwidTable {

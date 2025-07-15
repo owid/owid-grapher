@@ -341,12 +341,14 @@ export class SourcesModal extends React.Component<
     }
 }
 
-@observer
-export class Source extends React.Component<{
+interface SourceProps {
     column: CoreColumn
     editBaseUrl?: string
     isEmbeddedInADataPage?: boolean
-}> {
+}
+
+@observer
+export class Source extends React.Component<SourceProps> {
     @computed get column(): CoreColumn {
         return this.props.column
     }

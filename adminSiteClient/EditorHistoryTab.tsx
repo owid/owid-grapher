@@ -52,11 +52,13 @@ function LogCompareModal({
     )
 }
 
-@observer
-class LogRenderer extends Component<{
+interface LogRendererProps {
     log: Log
     previousLog: Log | undefined
-}> {
+}
+
+@observer
+class LogRenderer extends Component<LogRendererProps> {
     @observable isCompareModalOpen = false
 
     @computed get title() {

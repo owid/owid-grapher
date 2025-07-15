@@ -20,12 +20,14 @@ import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLink } from "@fortawesome/free-solid-svg-icons"
 
-@observer
-class VariableSection extends Component<{
+interface VariableSectionProps {
     mapConfig: MapConfig
     filledDimensions: ChartDimension[]
     parentConfig?: GrapherInterface
-}> {
+}
+
+@observer
+class VariableSection extends Component<VariableSectionProps> {
     @action.bound onColumnSlug(columnSlug: ColumnSlug) {
         this.props.mapConfig.columnSlug = columnSlug
     }

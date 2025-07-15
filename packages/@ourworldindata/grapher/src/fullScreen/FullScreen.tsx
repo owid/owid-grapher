@@ -4,12 +4,14 @@ import { observer } from "mobx-react"
 import { BodyDiv } from "../bodyDiv/BodyDiv"
 import { isTargetOutsideElement } from "../chart/ChartUtils"
 
-@observer
-export class FullScreen extends React.Component<{
+interface FullScreenProps {
     children: React.ReactNode
     onDismiss: () => void
     overlayColor?: string
-}> {
+}
+
+@observer
+export class FullScreen extends React.Component<FullScreenProps> {
     content: React.RefObject<HTMLDivElement> = React.createRef()
 
     @action.bound onDocumentClick(e: React.MouseEvent): void {

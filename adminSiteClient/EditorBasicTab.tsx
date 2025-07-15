@@ -59,15 +59,17 @@ import { faCopy } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "antd"
 import * as R from "remeda"
 
-@observer
-class DimensionSlotView<
-    Editor extends AbstractChartEditor,
-> extends React.Component<{
+interface DimensionSlotViewProps<Editor> {
     slot: DimensionSlot
     editor: Editor
     database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
-}> {
+}
+
+@observer
+class DimensionSlotView<
+    Editor extends AbstractChartEditor,
+> extends React.Component<DimensionSlotViewProps<Editor>> {
     disposers: IReactionDisposer[] = []
 
     @observable.ref isSelectingVariables: boolean = false
@@ -350,14 +352,16 @@ class DimensionSlotView<
     }
 }
 
-@observer
-class VariablesSection<
-    Editor extends AbstractChartEditor,
-> extends React.Component<{
+interface VariablesSectionProps<Editor> {
     editor: Editor
     database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
-}> {
+}
+
+@observer
+class VariablesSection<
+    Editor extends AbstractChartEditor,
+> extends React.Component<VariablesSectionProps<Editor>> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
     @observable.ref isAddingVariable: boolean = false
 
@@ -424,14 +428,16 @@ const TagsSection = (props: {
     )
 }
 
-@observer
-export class EditorBasicTab<
-    Editor extends AbstractChartEditor,
-> extends React.Component<{
+interface EditorBasicTabProps<Editor> {
     editor: Editor
     database: EditorDatabase
     errorMessagesForDimensions: ErrorMessagesForDimensions
-}> {
+}
+
+@observer
+export class EditorBasicTab<
+    Editor extends AbstractChartEditor,
+> extends React.Component<EditorBasicTabProps<Editor>> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

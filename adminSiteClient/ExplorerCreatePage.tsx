@@ -35,11 +35,13 @@ const RESERVED_NAMES = [DefaultNewExplorerSlug, "index", "new", "create"] // don
 // Register all Handsontable modules
 registerAllModules()
 
-@observer
-export class ExplorerCreatePage extends Component<{
+interface ExplorerCreatePageProps {
     slug: string
     manager?: AdminManager
-}> {
+}
+
+@observer
+export class ExplorerCreatePage extends Component<ExplorerCreatePageProps> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
     disposers: Array<() => void> = []

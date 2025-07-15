@@ -83,13 +83,15 @@ export interface SettingsMenuManager
     compareEndPointsOnly?: boolean
 }
 
-@observer
-export class SettingsMenu extends React.Component<{
+interface SettingsMenuProps {
     manager: SettingsMenuManager
     top: number
     bottom: number
     right: number
-}> {
+}
+
+@observer
+export class SettingsMenu extends React.Component<SettingsMenuProps> {
     @observable.ref active: boolean = false
     contentRef: React.RefObject<HTMLDivElement> = React.createRef() // the menu contents & backdrop
 
@@ -422,13 +424,15 @@ export class SettingsMenu extends React.Component<{
     }
 }
 
-@observer
-class SettingsGroup extends React.Component<{
+interface SettingsGroupProps {
     title: string
     subtitle?: string
     active?: boolean
     children?: React.ReactNode
-}> {
+}
+
+@observer
+class SettingsGroup extends React.Component<SettingsGroupProps> {
     render(): React.ReactElement | null {
         const { active, title, subtitle, children } = this.props
         if (!active) return null

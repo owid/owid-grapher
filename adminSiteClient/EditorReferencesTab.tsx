@@ -224,11 +224,15 @@ export class EditorReferencesTabForNarrativeChart extends Component<{
     }
 }
 
-@observer
-class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<{
+interface AddRedirectFormProps<Editor> {
     editor: Editor
     onSuccess: (redirect: ChartRedirect) => void
-}> {
+}
+
+@observer
+class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
+    AddRedirectFormProps<Editor>
+> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

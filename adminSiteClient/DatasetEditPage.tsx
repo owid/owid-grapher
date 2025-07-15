@@ -79,11 +79,17 @@ class DatasetEditable {
     }
 }
 
-@observer
-class DatasetTagEditor extends Component<{
+interface DatasetTagEditorProps {
     newDataset: DatasetEditable
-    availableTags: { id: number; name: string; parentName: string }[]
-}> {
+    availableTags: {
+        id: number
+        name: string
+        parentName: string
+    }[]
+}
+
+@observer
+class DatasetTagEditor extends Component<DatasetTagEditorProps> {
     @action.bound onSaveTags(tags: DbChartTagJoin[]) {
         this.props.newDataset.tags = tags
     }
@@ -104,8 +110,12 @@ class DatasetTagEditor extends Component<{
     }
 }
 
+interface DatasetEditorProps {
+    dataset: DatasetPageData
+}
+
 @observer
-class DatasetEditor extends Component<{ dataset: DatasetPageData }> {
+class DatasetEditor extends Component<DatasetEditorProps> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
     @observable newDataset!: DatasetEditable
@@ -396,8 +406,12 @@ class DatasetEditor extends Component<{ dataset: DatasetPageData }> {
     }
 }
 
+interface DatasetEditPageProps {
+    datasetId: number
+}
+
 @observer
-export class DatasetEditPage extends Component<{ datasetId: number }> {
+export class DatasetEditPage extends Component<DatasetEditPageProps> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
     @observable dataset?: DatasetPageData

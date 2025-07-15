@@ -5,12 +5,14 @@ import { ScaleType } from "@ourworldindata/types"
 import { AxisConfig } from "../../axis/AxisConfig"
 import classnames from "classnames"
 
-@observer
-export class AxisScaleToggle extends React.Component<{
+interface AxisScaleToggleProps {
     axis: AxisConfig
     subtitle?: string
     prefix?: string
-}> {
+}
+
+@observer
+export class AxisScaleToggle extends React.Component<AxisScaleToggleProps> {
     @action.bound private setAxisScale(scale: ScaleType): void {
         this.props.axis.scaleType = scale
     }

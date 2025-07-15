@@ -19,12 +19,14 @@ export interface VariableListItem {
     nonRedistributable?: boolean
 }
 
-@observer
-class VariableRow extends React.Component<{
+interface VariableRowProps {
     variable: VariableListItem
     fields: string[]
     searchHighlight?: (text: string) => string | React.ReactElement
-}> {
+}
+
+@observer
+class VariableRow extends React.Component<VariableRowProps> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
@@ -86,12 +88,14 @@ class VariableRow extends React.Component<{
     }
 }
 
-@observer
-export class VariableList extends React.Component<{
+interface VariableListProps {
     variables: VariableListItem[]
     fields: string[]
     searchHighlight?: (text: string) => string | React.ReactElement
-}> {
+}
+
+@observer
+export class VariableList extends React.Component<VariableListProps> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 

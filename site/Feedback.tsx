@@ -116,11 +116,13 @@ const topicNotices = new Map<SpecialFeedbackTopic, React.ReactElement>([
     [SpecialFeedbackTopic.Translation, translateNotice],
 ])
 
-@observer
-export class FeedbackForm extends React.Component<{
+interface FeedbackFormProps {
     onClose?: () => void
     autofocus?: boolean
-}> {
+}
+
+@observer
+export class FeedbackForm extends React.Component<FeedbackFormProps> {
     feedback: Feedback = new Feedback()
     @observable loading: boolean = false
     @observable done: boolean = false

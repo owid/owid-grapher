@@ -144,12 +144,14 @@ function SelectedItems(props: {
     )
 }
 
-@observer
-export class GlobalEntitySelector extends React.Component<{
+interface GlobalEntitySelectorProps {
     selection: SelectionArray
     graphersAndExplorersToUpdate?: Set<SelectionArray>
     environment?: string
-}> {
+}
+
+@observer
+export class GlobalEntitySelector extends React.Component<GlobalEntitySelectorProps> {
     refContainer: React.RefObject<HTMLDivElement> = React.createRef()
     disposers: IReactionDisposer[] = []
 

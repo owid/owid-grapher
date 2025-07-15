@@ -8,13 +8,15 @@ export const DrawerContext = React.createContext<{
     toggleDrawerVisibility?: () => void
 }>({})
 
-@observer
-export class SlideInDrawer extends React.Component<{
+interface SlideInDrawerProps {
     active: boolean
     toggle: () => void
     children: React.ReactNode
     grapherRef?: React.RefObject<HTMLDivElement>
-}> {
+}
+
+@observer
+export class SlideInDrawer extends React.Component<SlideInDrawerProps> {
     @observable.ref visible: boolean = this.props.active // true while the drawer is active and during enter/exit transitions
     drawerRef: React.RefObject<HTMLDivElement> = React.createRef()
 

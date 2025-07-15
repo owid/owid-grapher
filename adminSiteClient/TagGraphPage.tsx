@@ -83,13 +83,15 @@ function DraggableDroppable(props: {
     )
 }
 
-@observer
-class AddChildForm extends React.Component<{
+interface AddChildFormProps {
     tags: MinimalTagWithIsTopic[]
     label: string
     setChild: (parentId: number, childId: number) => void
     parentId: number
-}> {
+}
+
+@observer
+class AddChildForm extends React.Component<AddChildFormProps> {
     @observable isAddingTag: boolean = false
     @observable autocompleteValue: string = ""
 
@@ -149,8 +151,7 @@ class AddChildForm extends React.Component<{
     }
 }
 
-@observer
-class TagGraphNodeContainer extends React.Component<{
+interface TagGraphNodeContainerProps {
     node: TagGraphNode
     parentId: number
     setWeight: (parentId: number, childId: number, weight: number) => void
@@ -159,7 +160,10 @@ class TagGraphNodeContainer extends React.Component<{
     tags: MinimalTagWithIsTopic[]
     parentsById: Record<string, MinimalTagWithIsTopic[]>
     disableDroppable?: boolean
-}> {
+}
+
+@observer
+class TagGraphNodeContainer extends React.Component<TagGraphNodeContainerProps> {
     constructor(props: any) {
         super(props)
         this.handleUpdateWeight = this.handleUpdateWeight.bind(this)

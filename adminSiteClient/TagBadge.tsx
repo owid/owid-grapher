@@ -9,13 +9,15 @@ import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faClock } from "@fortawesome/free-solid-svg-icons"
 
-@observer
-export class TagBadge extends React.Component<{
+interface TagBadgeProps {
     tag: DbChartTagJoin
     onToggleKey?: () => void
     onApprove?: () => void
     searchHighlight?: (text: string) => string | React.ReactElement
-}> {
+}
+
+@observer
+export class TagBadge extends React.Component<TagBadgeProps> {
     levelToDesc(level?: KeyChartLevel) {
         switch (level) {
             case KeyChartLevel.Bottom:

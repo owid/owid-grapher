@@ -14,13 +14,15 @@ import {
 } from "@ourworldindata/explorer"
 import classNames from "classnames"
 
-@observer
-export class AdminLayout extends React.Component<{
+interface AdminLayoutProps {
     noSidebar?: boolean
     hasFixedNav?: boolean
     title?: string
     children: React.ReactNode
-}> {
+}
+
+@observer
+export class AdminLayout extends React.Component<AdminLayoutProps> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
     static defaultProps = { fixedNav: true }

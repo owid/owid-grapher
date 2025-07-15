@@ -98,12 +98,14 @@ export interface ChartEditorViewManager<Editor> {
     editor: Editor
 }
 
+interface ChartEditorViewProps<Editor> {
+    manager: ChartEditorViewManager<Editor>
+}
+
 @observer
 export class ChartEditorView<
     Editor extends AbstractChartEditor,
-> extends React.Component<{
-    manager: ChartEditorViewManager<Editor>
-}> {
+> extends React.Component<ChartEditorViewProps<Editor>> {
     @observable.ref database = new EditorDatabase({})
     @observable details: DetailDictionary = {}
     @computed get grapherState(): GrapherState {

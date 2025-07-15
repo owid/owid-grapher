@@ -60,12 +60,14 @@ export type SortConfig = {
     direction: "asc" | "desc"
 } | null
 
-@observer
-export class ChartList extends React.Component<{
+interface ChartListProps {
     charts: ChartListItem[]
     autofocusSearchInput?: boolean
     onDelete?: (chart: ChartListItem) => void
-}> {
+}
+
+@observer
+export class ChartList extends React.Component<ChartListProps> {
     static contextType = AdminAppContext
     context!: AdminAppContextType
 
