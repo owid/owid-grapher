@@ -1,7 +1,7 @@
 import * as db from "./db.js"
 import * as _ from "lodash-es"
 import * as cheerio from "cheerio"
-import type { AnyNode } from "cheerio"
+import type { AnyNode } from "domhandler"
 
 // const argv = parseArgs(process.argv.slice(2))
 

@@ -33,7 +33,7 @@ import {
 import { match, P } from "ts-pattern"
 import * as cheerio from "cheerio"
 import { spansToSimpleString } from "./gdocUtils.js"
-import { AnyNode } from "cheerio"
+import type { AnyNode } from "domhandler"
 
 //#region Spans
 function spanFallback(element: AnyNode): SpanFallback {

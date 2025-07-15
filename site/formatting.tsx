@@ -14,7 +14,7 @@ import { PROMINENT_LINK_CLASSNAME } from "./blocks/ProminentLink.js"
 import { Byline } from "./Byline.js"
 import { SectionHeading } from "./SectionHeading.js"
 import { FormattingOptions, GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
-import type { AnyNode } from "cheerio"
+import type { AnyNode } from "domhandler"
 
 export const RESEARCH_AND_WRITING_CLASSNAME = "wp-block-research-and-writing"
 

@@ -14,7 +14,7 @@ import { type docs_v1, docs as googleDocs } from "@googleapis/docs"
 import { type drive_v3, drive as googleDrive } from "@googleapis/drive"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 import * as cheerio from "cheerio"
-import type { AnyNode } from "cheerio"
+import type { AnyNode } from "domhandler"
 
 function* yieldMultiBlockPropertyIfDefined(
     property: keyof OwidGdocPostContent,

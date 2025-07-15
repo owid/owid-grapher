@@ -1,5 +1,5 @@
 import * as cheerio from "cheerio"
-import type { Element } from "cheerio"
+import type { AnyNode } from "domhandler"
 import urlSlug from "url-slug"
 import ReactDOMServer from "react-dom/server.js"
 import { FormattingOptions, GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
@@ -183,7 +183,7 @@ export const formatWordpressPost = async (
     // Due to CSS Grid, we need to nest a container _inside_ the sticky column
     // then put the children of that column inside the container
     function nestStickyContainer(
-        $columns: cheerio.Cheerio<Element>,
+        $columns: cheerio.Cheerio<AnyNode>,
         side: "left" | "right" = "right"
     ) {
         const parent =
