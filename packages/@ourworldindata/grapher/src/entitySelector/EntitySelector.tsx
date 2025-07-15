@@ -1143,7 +1143,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         }
     }
 
-    private timeoutId?: NodeJS.Timeout
+    private timeoutId?: number
     @action.bound onChange(entityName: EntityName): void {
         if (this.isMultiMode) {
             this.selectionArray.toggleSelection(entityName)
@@ -1168,7 +1168,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
 
             // close the modal or drawer automatically after selection
             if (this.manager.isEntitySelectorModalOrDrawerOpen) {
-                this.timeoutId = setTimeout(() => this.close(), 200)
+                this.timeoutId = window.setTimeout(() => this.close(), 200)
             }
         }
 

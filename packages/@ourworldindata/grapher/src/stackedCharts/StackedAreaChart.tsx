@@ -352,7 +352,7 @@ export class StackedAreaChart extends AbstractStackedChart {
     }
 
     @observable lineLegendHoveredSeriesName?: SeriesName
-    @observable private hoverTimer?: NodeJS.Timeout
+    @observable private hoverTimer?: number
 
     @computed protected get paddingForLegendRight(): number {
         return this.lineLegendWidth
@@ -406,7 +406,7 @@ export class StackedAreaChart extends AbstractStackedChart {
 
     @action.bound onLineLegendMouseLeave(): void {
         clearTimeout(this.hoverTimer)
-        this.hoverTimer = setTimeout(() => {
+        this.hoverTimer = window.setTimeout(() => {
             // wait before clearing selection in case the mouse is moving quickly over neighboring labels
             this.lineLegendHoveredSeriesName = undefined
         }, 200)

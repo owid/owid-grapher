@@ -66,14 +66,14 @@ class ChartFilter {
         this.analytics.logCountryPageSearchQuery(this.query)
     }
 
-    timeout?: NodeJS.Timeout
+    timeout?: number
     @action.bound onSearchInput() {
         this.query = this.searchInput.value
 
         if (this.timeout !== undefined) {
             clearTimeout(this.timeout)
         }
-        this.timeout = setTimeout(this.logSearchQuery, 500)
+        this.timeout = window.setTimeout(this.logSearchQuery, 500)
     }
 
     /*@action.bound onKeydown(ev: KeyboardEvent) {

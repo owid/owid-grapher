@@ -761,7 +761,7 @@ export class LineChart
     defaultRightPadding = 1
 
     @observable lineLegendHoveredSeriesName?: SeriesName
-    @observable private hoverTimer?: NodeJS.Timeout
+    @observable private hoverTimer?: number
 
     @action.bound onLineLegendMouseOver(seriesName: SeriesName): void {
         clearTimeout(this.hoverTimer)
@@ -770,7 +770,7 @@ export class LineChart
 
     @action.bound clearHighlightedSeries(): void {
         clearTimeout(this.hoverTimer)
-        this.hoverTimer = setTimeout(() => {
+        this.hoverTimer = window.setTimeout(() => {
             // wait before clearing selection in case the mouse is moving quickly over neighboring labels
             this.lineLegendHoveredSeriesName = undefined
         }, 200)

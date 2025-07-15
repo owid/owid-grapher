@@ -34,7 +34,7 @@ const TOOLTIP_ICON: Record<TooltipFooterIcon, React.ReactElement | null> = {
 export class TooltipState<T> {
     @observable position = new PointVector(0, 0)
     @observable _target?: T
-    @observable _timer?: NodeJS.Timeout
+    @observable _timer?: number
     _fade: TooltipFadeMode
 
     constructor({ fade }: { fade?: TooltipFadeMode } = {}) {
@@ -56,7 +56,7 @@ export class TooltipState<T> {
         clearTimeout(this._timer)
         if (newTarget === null) {
             const speed = { delayed: 1, immediate: 0.5, none: 0 }[this._fade]
-            this._timer = setTimeout(() => {
+            this._timer = window.setTimeout(() => {
                 this._target = undefined
                 this._timer = undefined
             }, speed * TOOLTIP_FADE_DURATION)
