@@ -31,7 +31,7 @@ interface EditableTagsProps {
 @observer
 export class EditableTags extends React.Component<EditableTagsProps> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable isEditing: boolean = false
     base: React.RefObject<HTMLDivElement> = React.createRef()

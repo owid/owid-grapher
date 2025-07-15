@@ -31,7 +31,7 @@ interface ChartRowProps {
 @observer
 export class ChartRow extends React.Component<ChartRowProps> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     async saveTags(tags: DbChartTagJoin[]) {
         const { chart } = this.props

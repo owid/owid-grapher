@@ -19,7 +19,7 @@ import * as db from "../../../db/db.js"
 import { loadPublishedGdocAuthors } from "./GdocFactory.js"
 
 export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
-    content!: OwidGdocAuthorContent
+    declare content: OwidGdocAuthorContent
     latestWorkLinks?: DbEnrichedLatestWork[]
 
     constructor(id?: string) {

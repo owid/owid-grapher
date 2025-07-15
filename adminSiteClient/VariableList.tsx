@@ -28,7 +28,7 @@ interface VariableRowProps {
 @observer
 class VariableRow extends React.Component<VariableRowProps> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     render() {
         const { variable, fields, searchHighlight } = this.props
@@ -97,7 +97,7 @@ interface VariableListProps {
 @observer
 export class VariableList extends React.Component<VariableListProps> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     render() {
         const { props } = this

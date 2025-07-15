@@ -10,7 +10,7 @@ import { UserIndexMeta } from "./UserMeta.js"
 @observer
 export class UserEditPage extends Component<{ userId: number }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable user?: UserIndexMeta
     @observable isSaved: boolean = false

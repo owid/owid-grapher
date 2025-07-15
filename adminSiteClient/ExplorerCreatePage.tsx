@@ -43,7 +43,7 @@ interface ExplorerCreatePageProps {
 @observer
 export class ExplorerCreatePage extends Component<ExplorerCreatePageProps> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
     disposers: Array<() => void> = []
 
     @observable showPreview: boolean = true

@@ -17,7 +17,7 @@ import {
 @observer
 export class DatasetsIndexPage extends Component {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable datasets: DatasetListItem[] = []
     @observable maxVisibleRows = 50

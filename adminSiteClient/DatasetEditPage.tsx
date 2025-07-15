@@ -117,7 +117,7 @@ interface DatasetEditorProps {
 @observer
 class DatasetEditor extends Component<DatasetEditorProps> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
     @observable newDataset!: DatasetEditable
 
     // HACK (Mispy): Force variable refresh when dataset metadata is updated
@@ -413,7 +413,7 @@ interface DatasetEditPageProps {
 @observer
 export class DatasetEditPage extends Component<DatasetEditPageProps> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
     @observable dataset?: DatasetPageData
 
     render() {

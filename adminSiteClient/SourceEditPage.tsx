@@ -164,7 +164,7 @@ class SourceEditor extends Component<{ source: SourcePageData }> {
 @observer
 export class SourceEditPage extends Component<{ sourceId: number }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable source?: SourcePageData
 

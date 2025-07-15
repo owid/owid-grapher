@@ -114,7 +114,7 @@ export async function getLinkedIndicatorsForCharts(
 export class GdocBase implements OwidGdocBaseInterface {
     id!: string
     slug: string = ""
-    content!: OwidGdocContent
+    declare content: OwidGdocContent
     published: boolean = false
     createdAt: Date = new Date()
     publishedAt: Date | null = null

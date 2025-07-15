@@ -168,7 +168,7 @@ export class ExplorersIndexPage extends Component<{
     manager?: AdminManager
 }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable explorers: ExplorerProgram[] = []
     @observable maxVisibleRows = 50

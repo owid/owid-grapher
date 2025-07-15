@@ -11,7 +11,7 @@ import { Button, Modal } from "antd"
 @observer
 export class TagsIndexPage extends Component {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable tags: DbPlainTag[] = []
     @observable newTagName = ""

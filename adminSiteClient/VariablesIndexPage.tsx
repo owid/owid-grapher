@@ -20,7 +20,7 @@ import urljoin from "url-join"
 @observer
 export class VariablesIndexPage extends Component {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable variables: VariableListItem[] = []
     @observable maxVisibleRows = 50

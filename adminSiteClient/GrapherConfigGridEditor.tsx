@@ -177,7 +177,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     @observable.ref columnSelection: ColumnInformation[] = []
     @observable.ref filterState: FilterPanelState | undefined = undefined
 
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
     /** This array contains a description for every column, information like which field
         to display, what editor control should be used, ... */
     @observable.ref fieldDescriptions: FieldDescription[] | undefined =

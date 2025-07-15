@@ -21,7 +21,7 @@ interface RedirectRowProps {
 @observer
 class RedirectRow extends Component<RedirectRowProps> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     render() {
         const { redirect } = this.props
@@ -50,7 +50,7 @@ class RedirectRow extends Component<RedirectRowProps> {
 @observer
 export class RedirectsIndexPage extends Component {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable redirects: RedirectListItem[] = []
 

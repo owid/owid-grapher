@@ -25,7 +25,7 @@ export class NarrativeChartEditorPage
         ChartEditorViewManager<NarrativeChartEditor>
 {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     id?: number
     name?: string

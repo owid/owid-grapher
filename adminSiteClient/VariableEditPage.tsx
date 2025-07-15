@@ -144,7 +144,7 @@ class VariableEditor extends Component<{
     }
 
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable.ref grapherState?: GrapherState
 
@@ -749,7 +749,7 @@ class VariableEditor extends Component<{
 @observer
 export class VariableEditPage extends Component<{ variableId: number }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable variable?: VariablePageData
 

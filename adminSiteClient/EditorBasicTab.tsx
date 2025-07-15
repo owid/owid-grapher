@@ -439,7 +439,7 @@ export class EditorBasicTab<
     Editor extends AbstractChartEditor,
 > extends React.Component<EditorBasicTabProps<Editor>> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     private chartTypeOptionNone = "None"
 

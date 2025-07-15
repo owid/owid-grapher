@@ -306,7 +306,7 @@ function insertChildAndSort(
 @observer
 export class TagGraphPage extends React.Component {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     constructor(props: Readonly<unknown>) {
         super(props)

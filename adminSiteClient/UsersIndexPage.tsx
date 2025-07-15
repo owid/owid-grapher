@@ -15,7 +15,7 @@ interface UserIndexMetaWithLastSeen extends UserIndexMeta {
 @observer
 class InviteModal extends React.Component<{ onClose: () => void }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable email: string = ""
     @observable fullName: string = ""
@@ -94,7 +94,7 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
 @observer
 export class UsersIndexPage extends React.Component {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable users: UserIndexMetaWithLastSeen[] = []
     @observable isInviteModal: boolean = false

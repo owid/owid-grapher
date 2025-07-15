@@ -9,7 +9,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 @observer
 export class ChartIndexPage extends Component {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable charts: ChartListItem[] = []
 

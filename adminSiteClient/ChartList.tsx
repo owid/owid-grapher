@@ -69,7 +69,7 @@ interface ChartListProps {
 @observer
 export class ChartList extends React.Component<ChartListProps> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable searchInput?: string
     @observable maxVisibleCharts = 50

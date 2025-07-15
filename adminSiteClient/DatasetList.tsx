@@ -36,7 +36,7 @@ interface DatasetRowProps {
 @observer
 class DatasetRow extends React.Component<DatasetRowProps> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     async saveTags(tags: DbChartTagJoin[]) {
         const { dataset } = this.props
@@ -107,7 +107,7 @@ interface DatasetListProps {
 @observer
 export class DatasetList extends React.Component<DatasetListProps> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable availableTags: DbChartTagJoin[] = []
 

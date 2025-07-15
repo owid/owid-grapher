@@ -21,7 +21,7 @@ type ExplorerWithTags = {
 @observer
 export class ExplorerTagsPage extends Component {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
     @observable explorersWithTags: ExplorerWithTags[] = []
     @observable explorers: ExplorerProgram[] = []
     @observable tags: DbChartTagJoin[] = []

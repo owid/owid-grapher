@@ -50,7 +50,7 @@ class CreateNarrativeChartEditorPageInternal
         ChartEditorViewManager<NarrativeChartEditor>
 {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     id?: number
     @observable name?: string

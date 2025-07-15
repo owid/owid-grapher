@@ -234,7 +234,7 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
     AddRedirectFormProps<Editor>
 > {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable slug?: string = ""
 

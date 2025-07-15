@@ -35,7 +35,7 @@ class TagEditable {
 @observer
 class TagEditor extends Component<{ tag: TagPageData }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable newtag!: TagEditable
     @observable isDeleted: boolean = false
@@ -179,7 +179,7 @@ class TagEditor extends Component<{ tag: TagPageData }> {
 @observer
 export class TagEditPage extends Component<{ tagId: number }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable tag?: TagPageData
 

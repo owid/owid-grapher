@@ -140,7 +140,7 @@ type GdocsSearchFilters = Record<OwidGdocType, boolean> & {
 @observer
 export class GdocsIndexPage extends React.Component<RouteComponentProps> {
     static contextType = GdocsStoreContext
-    context!: React.ContextType<typeof GdocsStoreContext>
+    declare context: React.ContextType<typeof GdocsStoreContext>
 
     @observable filters: GdocsSearchFilters = {
         [OwidGdocType.Fragment]: false,

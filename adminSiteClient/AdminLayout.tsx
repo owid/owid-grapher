@@ -24,7 +24,7 @@ interface AdminLayoutProps {
 @observer
 export class AdminLayout extends React.Component<AdminLayoutProps> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
     static defaultProps = { fixedNav: true }
 
     @observable private showFAQ: boolean = false

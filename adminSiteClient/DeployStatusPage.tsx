@@ -18,7 +18,7 @@ const statusLabel: Record<DeployStatus, string> = {
 @observer
 export class DeployStatusPage extends Component {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable deploys: Deploy[] = []
     @observable canManuallyDeploy = true
