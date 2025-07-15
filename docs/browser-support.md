@@ -1,21 +1,21 @@
 ## Supported browsers
 
-As of **2024-11-26**, we support the following browsers:
+As of **2025-07-15**, we support the following browsers:
 
-- Safari 13.1+ [March 2020] (earlier versions are missing support for [the nullish coalescing operator (`??`)](https://caniuse.com/mdn-javascript_operators_nullish_coalescing))
-- iOS Safari 13.4+ [March 2020] (earlier versions are missing support for [the nullish coalescing operator (`??`)](https://caniuse.com/mdn-javascript_operators_nullish_coalescing))
-- Chrome/Edge 80+ [February 2020] (earlier versions are missing support for [the nullish coalescing operator (`??`)](https://caniuse.com/mdn-javascript_operators_nullish_coalescing))
-- Opera 67+ [February 2020] (since Opera 67 is based on Chromium 80)
-- Firefox 78+ [June 2020] (earlier versions are missing support for [Unicode character class escapes in regular expressions](https://caniuse.com/mdn-javascript_regular_expressions_unicode_character_class_escape))
+- Safari 14.1+ [April 2021] (earlier versions are missing support for [the nullish coalescing assignment operator (`??=`)](https://caniuse.com/mdn-javascript_operators_nullish_coalescing_assignment) and [the CSS `gap` property for flexbox](https://caniuse.com/flexbox-gap))
+- iOS Safari 14.1+ [April 2021]
+- Chrome/Edge 91+ [May 2021]
+- Opera 77+ [June 2021] (since Opera 77 is based on Chromium 91)
+- Firefox 91+ [August 2021] (91 is a ESR version)
 
-**Overall, [this caniuse link shows which browsers are supported](https://caniuse.com/mdn-javascript_operators_nullish_coalescing,template-literals,mdn-css_properties_gap_grid_context,es6-module,mdn-javascript_regular_expressions_unicode_character_class_escape)** (scroll down to "Feature summary").
+**Overall, [this caniuse link shows which browsers are supported](https://caniuse.com/mdn-javascript_operators_nullish_coalescing,mdn-css_properties_gap_grid_context,mdn-javascript_regular_expressions_unicode_character_class_escape,flexbox-gap,mdn-javascript_operators_nullish_coalescing_assignment)** (scroll down to "Feature summary").
 
 ### "Most breaking" features
 
 "Most breaking" features we use are:
 
-- [Nullish coalescing operator (`??`)](https://caniuse.com/mdn-javascript_operators_nullish_coalescing), allowing for expressions like `const foo = null ?? 'default string'`.
-- [ES6 modules](https://caniuse.com/es6-module), where we use `<script type="module">` (in HTML) and `import ... from "..."` (in JS)
+- [Nullish coalescing assignment operator (`??=`)](https://caniuse.com/mdn-javascript_operators_nullish_coalescing_assignment), allowing for expressions like `foo ??= true`.
+- [The CSS `gap` property for flexbox](https://caniuse.com/flexbox-gap).
 - [The CSS `gap` property](https://caniuse.com/mdn-css_properties_gap_grid_context), together with `row-gap` and `column-gap`, which was previously prefixed by `grid-` in most browsers. Without support for these properties Google Docs-based pages are borderline unusable; however our interactive charts themselves work pretty much fine on their standalone pages.
 - [Unicode character class escapes in regular expressions](https://caniuse.com/mdn-javascript_regular_expressions_unicode_character_class_escape), which lets you do something like `\p{Letter}` to match any unicode letters in a RegExp.
 
@@ -25,7 +25,7 @@ We use https://cdnjs.cloudflare.com/polyfill (see `site/SiteConstants.ts`), so u
 
 ### Setting the Vite `target`
 
-We have to be careful in increasing the `vite.config.ts` field `build.target`.
+We have to be careful in increasing the `vite.config-common.ts` field `build.target`.
 
 Dropping support for older browsers is fine, but it should be a conscious decision.
 

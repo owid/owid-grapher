@@ -48,7 +48,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
             emptyOutDir: true,
             outDir: `dist/${entrypointInfo.outDir}`,
             sourcemap: true,
-            target: ["chrome80", "firefox78", "safari13.1"], // see docs/browser-support.md
+            target: ["chrome91", "firefox91", "safari14.1"], // see docs/browser-support.md
             commonjsOptions: {
                 strictRequires: "auto",
             },

@@ -12,11 +12,8 @@ import { SubNavId } from "@ourworldindata/types"
 
 // See https://cdnjs.cloudflare.com/polyfill/ for a list of all supported features
 const polyfillFeatures = [
-    "es2021", // String.replaceAll, Promise.any, ...
     "es2022", // Array.at, String.at, ...
     "es2023", // Array.findLast, Array.toReversed, Array.toSorted, Array.with, ...
-    "IntersectionObserver",
-    "IntersectionObserverEntry",
 ]
 const POLYFILL_VERSION = "4.8.0"
 export const POLYFILL_URL: string = `https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?version=${POLYFILL_VERSION}&features=${polyfillFeatures.join(
