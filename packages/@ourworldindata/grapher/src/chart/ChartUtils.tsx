@@ -1,6 +1,5 @@
 import * as React from "react"
 import {
-    areSetsEqual,
     Box,
     getCountryByName,
     getTimeDomainFromQueryString,
@@ -240,16 +239,26 @@ export function mapChartTypeNameToTabOption(
     }
 }
 
+function findPotentialChartTypeSiblings(
+    chartTypes: GrapherChartType[]
+): GrapherChartType[] | undefined {
+    for (const validCombination of validChartTypeCombinations) {
+        const validSet: Set<GrapherChartType> = new Set(validCombination)
+        const hasIntersection = chartTypes.some((chartType) =>
+            validSet.has(chartType)
+        )
+        if (hasIntersection) return validCombination
+    }
+    return undefined
+}
+
 export function findValidChartTypeCombination(
     chartTypes: GrapherChartType[]
 ): GrapherChartType[] | undefined {
-    const chartTypeSet = new Set(chartTypes)
-    for (const validCombination of validChartTypeCombinations) {
-        const validCombinationSet = new Set(validCombination)
-        if (areSetsEqual(chartTypeSet, validCombinationSet))
-            return validCombination
-    }
-    return undefined
+    const validCombination = findPotentialChartTypeSiblings(chartTypes)
+    return validCombination?.filter((chartType) =>
+        chartTypes.includes(chartType)
+    )
 }
 
 export function getHoverStateForSeries(
