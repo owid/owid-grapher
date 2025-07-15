@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio"
+import type { Element } from "cheerio"
 import urlSlug from "url-slug"
 import ReactDOMServer from "react-dom/server.js"
 import { FormattingOptions, GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
@@ -118,7 +119,7 @@ export const formatWordpressPost = async (
                           data-no-lightbox />
                     </div>
                 </figure>`
-        if (el.parent.tagName === "p") {
+        if (el.parent?.type === "tag" && el.parent.name === "p") {
             // We are about to replace <iframe> with <figure>. However, there cannot be <figure> within <p>,
             // so we are lifting the <figure> out.
             // Where does this markup  come from? Historically, wpautop wrapped <iframe> in <p>. Some non-Gutengerg
@@ -130,7 +131,7 @@ export const formatWordpressPost = async (
             const $p = $el.parent()
             $p.after(output)
             $el.remove()
-        } else if (el.parent.tagName === "figure") {
+        } else if (el.parent?.type === "tag" && el.parent.name === "figure") {
             // Support for <iframe> wrapped in <figure>
             // <figure> automatically added by Gutenberg on copy / paste <iframe>
             // Lifting up <iframe> out of <figure>, before it becomes a <figure> itself.
@@ -182,7 +183,7 @@ export const formatWordpressPost = async (
     // Due to CSS Grid, we need to nest a container _inside_ the sticky column
     // then put the children of that column inside the container
     function nestStickyContainer(
-        $columns: Cheerio,
+        $columns: cheerio.Cheerio<Element>,
         side: "left" | "right" = "right"
     ) {
         const parent =
@@ -199,6 +200,7 @@ export const formatWordpressPost = async (
         cheerioEl(`.wp-block-columns.is-style-sticky-${side}`).each(
             (_, columns) => {
                 // don't nest the columns when inside related-charts
+                if (columns.parent?.type !== "tag") return
                 const parentClassName = columns.parent.attribs.class
                 if (parentClassName === RELATED_CHARTS_CLASS_NAME) {
                     return

@@ -1,9 +1,10 @@
 import ReactDOMServer from "react-dom/server.js"
 import { Help } from "./Help.js"
+import { CheerioAPI } from "cheerio"
 
-export const renderHelp = (cheerioEl: CheerioStatic) =>
-    cheerioEl("block[type='help']").each(function (this: CheerioElement) {
-        const $block = cheerioEl(this)
+export const renderHelp = (cheerioEl: CheerioAPI) =>
+    cheerioEl("block[type='help']").each((_i, el) => {
+        const $block = cheerioEl(el)
         const title = $block.find("h4").remove().text() || null
         const content = $block.find("content").html() // the title has been removed so the rest of the block is content.
 

@@ -14,6 +14,7 @@ import { type docs_v1, docs as googleDocs } from "@googleapis/docs"
 import { type drive_v3, drive as googleDrive } from "@googleapis/drive"
 import { OwidGoogleAuth } from "../../OwidGoogleAuth.js"
 import * as cheerio from "cheerio"
+import type { AnyNode } from "cheerio"
 
 function* yieldMultiBlockPropertyIfDefined(
     property: keyof OwidGdocPostContent,
@@ -103,7 +104,7 @@ function mergeStyleStack(
 }
 
 function* convertCheerioNodesToTextFragments(
-    nodes: Iterable<CheerioElement>,
+    nodes: Iterable<AnyNode>,
     parentStyleStack: docs_v1.Schema$TextStyle[]
 ): Generator<TextFragment, void, undefined> {
     for (const node of nodes) {
@@ -188,18 +189,13 @@ function articleToBatchUpdates(
         // since this is meant to be literal html that we want to output as-is.
         if (line.startsWith("html:")) isInsideHtmlBlock = true
         else if (line === ":end") isInsideHtmlBlock = false
-        // Cheerio.load has 3 params. Cheerio 1.0.0-rc.10 which we are using is
-        // written in typescript, so the below should work without the ugly
-        // any cast. But enzyme also uses cheerio and pulls in 1.0.0-rc.3 which
-        // was not yet in typescript and thus also pulls in @types/cheerio which
-        // does not have the correct signature for load with the third param and
-        // which seems to win the battle in the TS load order. Thus the any cast
+
         let fragments: TextFragment[]
         if (!isInsideHtmlBlock) {
-            const $ = (cheerio as any).load(line, null, false)
+            const $ = cheerio.load(line, null, false)
             fragments = [
                 ...convertCheerioNodesToTextFragments(
-                    $.root().contents() as Iterable<CheerioElement>,
+                    $.root().contents(),
                     styleStack
                 ),
             ]
