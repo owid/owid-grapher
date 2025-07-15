@@ -19,6 +19,8 @@
             "ESNext" // For new Set methods like Set.prototype.intersection().
         ],
 
+        "types": ["@testing-library/jest-dom"],
+
         "alwaysStrict": true,
         "noImplicitReturns": true,
         "allowJs": false,
