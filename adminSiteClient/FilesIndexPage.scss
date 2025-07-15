@@ -1,0 +1,25 @@
+.file-viewer__file,
+.file-viewer__folder {
+    padding: 12px;
+    border-bottom: 1px solid #e5e5e5;
+    background-color: transparent;
+    display: block;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+}
+
+.file-viewer__folder {
+    cursor: pointer;
+
+    &:hover {
+        background-color: #f5f5f5;
+    }
+}
+
+.file-viewer__copy-button {
+    background-color: transparent;
+    border: none;
+    color: #5b6576;
+}
