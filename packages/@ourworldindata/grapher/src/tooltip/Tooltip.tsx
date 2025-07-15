@@ -1,6 +1,6 @@
 import * as React from "react"
 import classnames from "classnames"
-import { observable, computed, action, makeObservable } from "mobx"
+import { observable, computed, action, makeObservable, runInAction } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
@@ -50,21 +50,30 @@ export class TooltipState<T> {
         return this._target
     }
 
+    @action.bound resetTarget(): void {
+        this._target = undefined
+        this._timer = undefined
+    }
+
     set target(newTarget: T | null) {
         // delay clearing the target (and hiding the tooltip) for a bit to prevent
         // flicker when frobbing between neighboring elements and allow an opacity
         // transition to smoothly fade the tooltip out
         clearTimeout(this._timer)
-        if (newTarget === null) {
-            const speed = { delayed: 1, immediate: 0.5, none: 0 }[this._fade]
-            this._timer = window.setTimeout(() => {
-                this._target = undefined
+        runInAction(() => {
+            if (newTarget === null) {
+                const speed = { delayed: 1, immediate: 0.5, none: 0 }[
+                    this._fade
+                ]
+                this._timer = window.setTimeout(
+                    this.resetTarget,
+                    speed * TOOLTIP_FADE_DURATION
+                )
+            } else {
+                this._target = newTarget
                 this._timer = undefined
-            }, speed * TOOLTIP_FADE_DURATION)
-        } else {
-            this._target = newTarget
-            this._timer = undefined
-        }
+            }
+        })
     }
 
     @computed
