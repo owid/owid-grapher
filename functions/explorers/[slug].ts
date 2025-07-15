@@ -7,6 +7,7 @@ import { IRequestStrict, Router, error, cors, png } from "itty-router"
 import { Bounds, Url } from "@ourworldindata/utils"
 import {
     getSelectedEntityNamesParam,
+    GrapherState,
     migrateSelectedEntityNamesParam,
     SelectionArray,
 } from "@ourworldindata/grapher"
@@ -54,33 +55,15 @@ async function handleThumbnailRequest(
     extension: "png" | "svg"
 ) {
     const options = extractOptions(searchParams)
-    const url = env.url
-    url.href = url.href.replace(`.${extension}`, "")
-    const explorerPage = await env.ASSETS.fetch(url, {
-        redirect: "manual",
-    })
 
     try {
-        const html = await explorerPage.text()
-        const queryStr = url.searchParams.toString()
-        // The env URL class isn't compatible with the Url class from @ourworldindata/utils
-        const urlObj = Url.fromURL(url.toString())
-        const [windowEntityNames] = [urlObj]
-            .map(migrateSelectedEntityNamesParam)
-            .map(getSelectedEntityNamesParam)
-
-        const selection = new SelectionArray(windowEntityNames)
-        const bounds = new Bounds(0, 0, options.svgWidth, options.svgHeight)
-        const explorerProps = await buildExplorerProps(
-            html,
-            queryStr,
-            selection,
-            bounds
+        const grapherState = await createGrapherStateForExplorerView(
+            searchParams,
+            env,
+            extension
         )
-        const explorer = new Explorer(explorerProps)
-        await explorer.updateGrapherFromExplorer()
-        explorer.grapherState.populateFromQueryParams(urlObj.queryParams)
-        const svg = explorer.grapherState.generateStaticSvg(
+
+        const svg = grapherState.generateStaticSvg(
             ReactDOMServer.renderToStaticMarkup
         )
         if (extension === "svg") {
@@ -148,4 +131,38 @@ export const onRequest: PagesFunction<Env> = async (context) => {
             console.log("Handling 404 for", url.pathname)
             return error(500, e)
         })
+}
+
+async function createGrapherStateForExplorerView(
+    searchParams: URLSearchParams,
+    env: Env,
+    extension: "png" | "svg"
+): Promise<GrapherState> {
+    const options = extractOptions(searchParams)
+    const url = env.url
+    url.href = url.href.replace(`.${extension}`, "")
+    const explorerPage = await env.ASSETS.fetch(url, { redirect: "manual" })
+
+    const html = await explorerPage.text()
+    const queryStr = url.searchParams.toString()
+    // The env URL class isn't compatible with the Url class from @ourworldindata/utils
+    const urlObj = Url.fromURL(url.toString())
+    const [windowEntityNames] = [urlObj]
+        .map(migrateSelectedEntityNamesParam)
+        .map(getSelectedEntityNamesParam)
+
+    const selection = new SelectionArray(windowEntityNames)
+    const bounds = new Bounds(0, 0, options.svgWidth, options.svgHeight)
+    const explorerProps = await buildExplorerProps(
+        html,
+        queryStr,
+        selection,
+        bounds
+    )
+
+    const explorer = new Explorer(explorerProps)
+    await explorer.updateGrapherFromExplorer()
+    explorer.grapherState.populateFromQueryParams(urlObj.queryParams)
+
+    return explorer.grapherState
 }
