@@ -61,11 +61,10 @@ export function deleteRuntimeAndUnchangedProps<T>(
     changedObj: T,
     defaultObject: T
 ): T {
-    const obj = changedObj as any
-    const defaultObj = defaultObject as any
+    const obj = toJS(changedObj) as Record<string, unknown>
+    const defaultObj = defaultObject as Record<string, unknown>
     const defaultKeys = new Set(Object.keys(defaultObj))
-    Object.keys(obj).forEach((prop) => {
-        const key = prop as any
+    Object.keys(obj).forEach((key) => {
         if (!defaultKeys.has(key)) {
             // Don't persist any runtime props not in the persistable instance
             delete obj[key]
@@ -79,5 +78,5 @@ export function deleteRuntimeAndUnchangedProps<T>(
             delete obj[key]
         }
     })
-    return obj
+    return obj as T
 }
