@@ -1,0 +1,7 @@
+metadata:
+  description: "Junction table linking charts to entities to track which geographic or organizational entities are featured in each chart. This enables analysis of chart coverage and helps identify which entities are most frequently visualized across the OWID platform."
+fields:
+  chartId:
+    description: "Foreign key to charts table"
+  entityId:
+    description: "Foreign key to entities table"

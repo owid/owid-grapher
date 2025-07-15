@@ -1,0 +1,15 @@
+metadata:
+  description: "Geographic and organizational entities that data points are associated with. Entities represent the units of observation in the data (e.g., countries like 'United States', regions like 'Europe', or organizations like 'World Bank'). All data values are linked to specific entities."
+fields:
+  id:
+    description: "Unique identifier for the entity"
+  code:
+    description: "Entity code used for identification (e.g., 'USA' for United States, 'EUR' for Europe). Can be NULL for entities without standard codes."
+  name:
+    description: "Entity name as it appears in the system (e.g., 'United States', 'European Union')"
+  validated:
+    description: "Whether the entity has been validated and approved for use in the system"
+  createdAt:
+    description: "Timestamp when the entity was created"
+  updatedAt:
+    description: "Timestamp when the entity was last updated"

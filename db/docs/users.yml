@@ -1,0 +1,27 @@
+metadata:
+  description: "User accounts for the OWID admin system. Users can create, edit, and manage datasets, variables, charts, and other content. The system supports different privilege levels including superuser access."
+fields:
+  id:
+    description: "Unique identifier for the user"
+  password:
+    description: "BCrypt encrypted password hash"
+  lastLogin:
+    description: "Timestamp of last successful login"
+  isSuperuser:
+    description: "Whether the user has superuser privileges with full system access"
+  email:
+    description: "User email address (unique constraint)"
+  createdAt:
+    description: "Timestamp when the user account was created"
+  updatedAt:
+    description: "Timestamp when the user account was last updated"
+  isActive:
+    description: "Whether the user account is active and can log in"
+  fullName:
+    description: "User's full name as it appears in the system"
+  lastSeen:
+    description: "Timestamp when the user was last seen/active in the system"
+  githubUsername:
+    description: "GitHub username for integration with GitHub workflows"
+  dataInsightFolderId:
+    description: "Folder ID for organizing data insights content"

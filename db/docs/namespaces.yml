@@ -1,0 +1,15 @@
+metadata:
+  description: "Data namespaces for organizing datasets by source or organizational structure. Namespaces provide a logical grouping mechanism for datasets, enabling separation between OWID-managed datasets and external data sources (e.g., 'owid', 'worldbank', 'un'). This supports the ETL pipeline's data organization."
+fields:
+  id:
+    description: "Unique identifier for the namespace"
+  name:
+    description: "Namespace name (e.g., 'owid', 'worldbank', 'un')"
+  description:
+    description: "Namespace description explaining its purpose and scope"
+  isArchived:
+    description: "Whether the namespace is archived and no longer accepting new datasets"
+  createdAt:
+    description: "Timestamp when the namespace was created"
+  updatedAt:
+    description: "Timestamp when the namespace was last updated"

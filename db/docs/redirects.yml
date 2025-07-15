@@ -1,0 +1,17 @@
+metadata:
+  description: "Global URL redirect management system for maintaining site navigation and SEO. Handles redirects from old URLs to new ones when content is moved, renamed, or restructured. Supports pattern matching and different HTTP status codes for various redirect scenarios."
+fields:
+  id:
+    description: "Unique identifier for the redirect"
+  source:
+    description: "Source URL pattern that should be redirected (supports wildcards)"
+  target:
+    description: "Target URL where the redirect should point"
+  code:
+    description: "HTTP status code for the redirect (301 for permanent, 302 for temporary)"
+  createdAt:
+    description: "Timestamp when the redirect was created"
+  updatedAt:
+    description: "Timestamp when the redirect was last updated"
+  ttl:
+    description: "Time-to-live for caching the redirect response"

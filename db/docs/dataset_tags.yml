@@ -1,0 +1,11 @@
+metadata:
+  description: "Junction table linking datasets to tags for categorization and organization. This enables datasets to be associated with topics, improving discoverability and enabling topic-based navigation. It's part of the core tagging system that organizes OWID's data infrastructure."
+fields:
+  datasetId:
+    description: "Foreign key to datasets table"
+  tagId:
+    description: "Foreign key to tags table"
+  createdAt:
+    description: "Timestamp when the tag was assigned"
+  updatedAt:
+    description: "Timestamp when the assignment was last updated"

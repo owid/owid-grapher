@@ -1,0 +1,9 @@
+metadata:
+  description: "Junction table linking variables to their data origins for proper attribution and provenance tracking. This many-to-many relationship allows variables to be associated with multiple origins (e.g., when data comes from multiple sources or has been processed through multiple stages) and enables proper citation display."
+fields:
+  originId:
+    description: "Foreign key to origins table"
+  variableId:
+    description: "Foreign key to variables table"
+  displayOrder:
+    description: "Display order for showing multiple origins for a single variable"

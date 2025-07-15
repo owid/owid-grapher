@@ -1,0 +1,43 @@
+metadata:
+  description: "Collections of related variables (data indicators). Datasets represent logical groupings of variables that share common characteristics, sources, or themes (e.g., 'World Bank Development Indicators', 'UN Population Data'). Datasets are organized by namespace and can contain multiple variables."
+fields:
+  id:
+    description: "Unique identifier for the dataset"
+  name:
+    description: "Dataset name as it appears in the admin interface and exports"
+  description:
+    description: "Dataset description explaining its contents and purpose. Defaults to empty string for backward compatibility."
+  createdAt:
+    description: "Timestamp when the dataset was created"
+  updatedAt:
+    description: "Timestamp when the dataset was last updated"
+  namespace:
+    description: "Dataset namespace for organization (e.g., 'owid', 'worldbank'). Defaults to 'owid' for OWID-managed datasets."
+  isPrivate:
+    description: "Whether the dataset is private and restricted from public access"
+  createdByUserId:
+    description: "Foreign key to users table. Tracks who created the dataset."
+  metadataEditedAt:
+    description: "Timestamp when dataset metadata was last edited"
+  metadataEditedByUserId:
+    description: "Foreign key to users table. Tracks who last edited the dataset metadata."
+  dataEditedAt:
+    description: "Timestamp when dataset data was last edited"
+  dataEditedByUserId:
+    description: "Foreign key to users table. Tracks who last edited the dataset data."
+  nonRedistributable:
+    description: "Whether the dataset cannot be redistributed due to licensing restrictions"
+  isArchived:
+    description: "Whether the dataset is archived and no longer actively maintained"
+  sourceChecksum:
+    description: "Checksum of the source data for change detection"
+  shortName:
+    description: "Short name for the dataset used in ETL and catalog systems"
+  version:
+    description: "Dataset version string"
+  updatePeriodDays:
+    description: "How often the dataset is updated (in days)"
+  catalogPath:
+    description: "Path in the ETL data catalog system"
+  tables:
+    description: "Tables within the dataset (for multi-table datasets)"

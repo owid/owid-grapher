@@ -1,0 +1,9 @@
+metadata:
+  description: "Metadata about topic pages and linear pages in the OWID website structure. Topic pages are organized around specific subjects (e.g., 'Climate Change', 'Health'), while linear pages are sequential narrative content. This table tracks the structure and organization of OWID's content architecture."
+fields:
+  source:
+    description: "Source of the page ('posts' for WordPress, 'posts_gdocs' for Google Docs)"
+  type:
+    description: "Page type ('topic' for topic pages, 'linear' for sequential content)"
+  slug:
+    description: "URL slug identifying the page"

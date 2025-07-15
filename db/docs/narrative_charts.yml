@@ -1,0 +1,21 @@
+metadata:
+  description: "Named chart views with specific configurations for use in narrative content. These are chart variations that have been customized for specific storytelling contexts, often with particular country selections, time ranges, or visual settings that support the narrative flow of articles."
+fields:
+  id:
+    description: "Unique identifier for the narrative chart"
+  name:
+    description: "Descriptive name of the narrative chart for editorial reference"
+  chartConfigId:
+    description: "Foreign key to chart_configs table for the narrative-specific configuration"
+  parentChartId:
+    description: "Foreign key to charts table for the base chart this narrative view is derived from"
+  parentMultiDimXChartConfigId:
+    description: "Foreign key to multi_dim_x_chart_configs table for multi-dimensional chart relationships"
+  queryParamsForParentChart:
+    description: "JSON query parameters that customize the parent chart for this narrative view"
+  createdAt:
+    description: "Timestamp when the narrative chart was created"
+  updatedAt:
+    description: "Timestamp when the narrative chart was last updated"
+  lastEditedByUserId:
+    description: "Foreign key to users table. User who last edited the narrative chart."

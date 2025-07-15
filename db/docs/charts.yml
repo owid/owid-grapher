@@ -1,0 +1,39 @@
+metadata:
+  description: "Core visualization entities in the OWID Grapher system. Charts represent data visualizations that can be embedded in articles, shared publicly, or used in explorers. Charts use a sophisticated inheritance system where they can inherit configuration from parent variables."
+fields:
+  id:
+    description: "Unique identifier for the chart"
+  configId:
+    description: "Foreign key to chart_configs table. Charts store their configuration separately to enable inheritance and efficient updates."
+  isInheritanceEnabled:
+    description: "When true, chart inherits configuration from parent variable's grapherConfigIdAdmin or grapherConfigIdETL. This allows variables to define default chart settings that are automatically applied to all inheriting charts."
+  createdAt:
+    description: "Timestamp when the chart was created"
+  updatedAt:
+    description: "Timestamp when the chart was last updated"
+  lastEditedAt:
+    description: "Timestamp when the chart was last edited by a user (not system updates)"
+  publishedAt:
+    description: "Timestamp when the chart was published. NULL if never published. Published charts are publicly accessible."
+  lastEditedByUserId:
+    description: "Foreign key to users table. Tracks who last made substantive edits to the chart."
+  publishedByUserId:
+    description: "Foreign key to users table. Tracks who published the chart."
+  isIndexable:
+    description: "Whether the chart should be indexed by search engines and appear in search results. Charts are indexable if not tagged 'Unlisted' and have at least one public parent tag."
+  config:
+    description: "Full chart configuration JSON merged from inheritance and local patches. This is the computed configuration used for rendering."
+  slug:
+    description: "URL-friendly identifier for the chart. Used in URLs like /grapher/[slug]. Redirects are supported via chart_slug_redirects table."
+  type:
+    description: "Chart type (e.g., LineChart, BarChart, ScatterPlot, WorldMap)"
+  title:
+    description: "Chart title displayed to users"
+  subtitle:
+    description: "Chart subtitle displayed to users"
+  note:
+    description: "Additional notes about the chart displayed to users"
+  title_plus_variant:
+    description: "Computed field combining title with variant information for uniqueness checks"
+  isPublished:
+    description: "Whether the chart is published and publicly accessible"

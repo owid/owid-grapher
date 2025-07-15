@@ -1,0 +1,13 @@
+metadata:
+  description: "URL redirects for chart slugs to maintain backward compatibility when chart URLs change. When charts are renamed or their slugs are updated, this table ensures that old URLs continue to work by automatically redirecting users to the correct chart. This is critical for maintaining external links and bookmarks."
+fields:
+  id:
+    description: "Unique identifier for the redirect"
+  slug:
+    description: "Old slug that should redirect to the new chart location (unique constraint)"
+  chart_id:
+    description: "Foreign key to charts table. Target chart ID for the redirect."
+  createdAt:
+    description: "Timestamp when the redirect was created"
+  updatedAt:
+    description: "Timestamp when the redirect was last updated"

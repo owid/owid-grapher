@@ -1,0 +1,9 @@
+metadata:
+  description: "Junction table linking variables to topic tags for enhanced discoverability and organization. This enables variables to be associated with specific topics, improving the findability of data indicators through topic-based navigation and search."
+fields:
+  tagId:
+    description: "Foreign key to tags table"
+  variableId:
+    description: "Foreign key to variables table"
+  displayOrder:
+    description: "Display order of the tag for the variable in topic page listings"
