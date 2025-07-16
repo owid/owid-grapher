@@ -4,7 +4,7 @@ import {
     GLOBAL_ENTITY_SELECTOR_ELEMENT,
     SelectionArray,
 } from "@ourworldindata/grapher"
-import ReactDOMServer from "react-dom/server.js"
+import ReactDOMServer from "react-dom/server"
 import { ENV } from "../settings/serverSettings.js"
 import { CheerioAPI } from "cheerio"
 

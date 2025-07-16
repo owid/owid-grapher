@@ -1,4 +1,4 @@
-import ReactDOMServer from "react-dom/server.js"
+import ReactDOMServer from "react-dom/server"
 import { JsonError } from "@ourworldindata/utils"
 import { Base64String, HexString } from "@ourworldindata/types"
 import * as R from "remeda"
