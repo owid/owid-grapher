@@ -6,20 +6,18 @@ import type { AnyNode } from "domhandler"
 // const argv = parseArgs(process.argv.slice(2))
 
 export function traverseNode(
-    node: cheerio.Cheerio<AnyNode>,
-    $: cheerio.CheerioAPI,
+    node: AnyNode,
     depth: number,
     isFilterActive: boolean,
     decideFilter: (elem: AnyNode) => boolean,
     handler: (elem: AnyNode, depth: number, isFilterActive: boolean) => void
 ): void {
-    const elem = node.get(0)
-    if (!elem) return
+    handler(node, depth, isFilterActive)
+    const filterActive = isFilterActive || decideFilter(node)
 
-    handler(elem, depth, isFilterActive)
-    const filterActive = isFilterActive || decideFilter(elem)
-    node.children().each((_, elem) =>
-        traverseNode($(elem), $, depth + 1, filterActive, decideFilter, handler)
+    if (!("children" in node)) return
+    node.children.forEach((elem) =>
+        traverseNode(elem, depth + 1, filterActive, decideFilter, handler)
     )
 }
 
@@ -41,8 +39,7 @@ const analyze = async (): Promise<void> => {
             const $: cheerio.CheerioAPI = cheerio.load(post.content)
             $("body").each((i, node) => {
                 traverseNode(
-                    $(node),
-                    $,
+                    node,
                     1,
                     false,
                     decideFilter,
