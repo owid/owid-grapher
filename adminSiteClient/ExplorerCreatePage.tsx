@@ -69,7 +69,7 @@ export class ExplorerCreatePage extends Component<ExplorerCreatePageProps> {
         this.manager.loadingIndicatorSetting = "default"
     }
 
-    @action componentDidMount() {
+    componentDidMount() {
         this.loadingModalOff()
         exposeInstanceOnWindow(this, "explorerEditor")
 
@@ -92,7 +92,7 @@ export class ExplorerCreatePage extends Component<ExplorerCreatePageProps> {
 
     @observable isReady = false
 
-    @action componentWillUnmount() {
+    componentWillUnmount() {
         this.resetLoadingModal()
         this.disposers.forEach((disposer) => disposer())
     }
