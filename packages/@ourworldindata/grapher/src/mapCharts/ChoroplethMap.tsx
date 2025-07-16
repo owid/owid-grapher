@@ -355,7 +355,7 @@ export class ChoroplethMap extends React.Component<{
         }
     }
 
-    private renderInternalAnnotations(): React.ReactElement | void {
+    private renderInternalAnnotations(): React.ReactElement | undefined {
         if (this.internalAnnotations.length === 0) return
 
         return (
@@ -374,7 +374,7 @@ export class ChoroplethMap extends React.Component<{
         )
     }
 
-    private renderExternalAnnotations(): React.ReactElement | void {
+    private renderExternalAnnotations(): React.ReactElement | undefined {
         if (this.externalAnnotations.length === 0) return
 
         return (
@@ -401,7 +401,7 @@ export class ChoroplethMap extends React.Component<{
         )
     }
 
-    renderFeaturesInBackground(): React.ReactElement | void {
+    renderFeaturesInBackground(): React.ReactElement | undefined {
         if (this.backgroundFeatures.length === 0) return
 
         return (
@@ -413,7 +413,7 @@ export class ChoroplethMap extends React.Component<{
         )
     }
 
-    renderFeaturesWithoutData(): React.ReactElement | void {
+    renderFeaturesWithoutData(): React.ReactElement | undefined {
         if (this.featuresWithNoData.length === 0) return
         const patternId = Patterns.noDataPatternForMap
 
@@ -453,7 +453,7 @@ export class ChoroplethMap extends React.Component<{
         )
     }
 
-    renderFeaturesWithData(): React.ReactElement | void {
+    renderFeaturesWithData(): React.ReactElement | undefined {
         if (this.sortedFeaturesWithData.length === 0) return
 
         return (

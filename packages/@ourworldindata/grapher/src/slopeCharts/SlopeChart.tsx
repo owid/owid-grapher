@@ -852,7 +852,7 @@ export class SlopeChart
         return displayName
     }
 
-    private renderNoDataSection(): React.ReactElement | void {
+    private renderNoDataSection(): React.ReactElement | undefined {
         if (!this.showNoDataSection) return
 
         const bounds = new Bounds(
@@ -1007,7 +1007,7 @@ export class SlopeChart
         )
     }
 
-    private renderLineLegends(): React.ReactElement | void {
+    private renderLineLegends(): React.ReactElement | undefined {
         return (
             <>
                 {this.renderLineLegendLeft()}

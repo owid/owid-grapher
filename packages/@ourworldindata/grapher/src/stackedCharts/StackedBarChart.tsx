@@ -490,7 +490,7 @@ export class StackedBarChart
         this.tooltipState.target = null
     }
 
-    renderLegend(): React.ReactElement | void {
+    renderLegend(): React.ReactElement | undefined {
         const {
             manager: { showLegend },
             showHorizontalLegend,
