@@ -68,6 +68,7 @@ export {
 export {
     timeColumnSlugFromColumnDef,
     makeOriginalTimeSlugFromColumnSlug,
+    makeOriginalValueSlugFromColumnSlug,
     getOriginalTimeColumnSlug,
     toPercentageColumnDef,
 } from "./OwidTableUtil.js"
