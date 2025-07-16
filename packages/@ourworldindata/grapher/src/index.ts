@@ -75,7 +75,7 @@ export {
 } from "./core/LegacyToOwidTable"
 export { getErrorMessageRelatedQuestionUrl } from "./core/relatedQuestion"
 export { LoadingIndicator } from "./loadingIndicator/LoadingIndicator"
-export { MapChart } from "./mapCharts/MapChart"
+export { MapChartState } from "./mapCharts/MapChartState"
 export { MapConfig } from "./mapCharts/MapConfig"
 export {
     MAP_REGION_LABELS,

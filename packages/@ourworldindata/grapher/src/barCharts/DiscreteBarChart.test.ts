@@ -14,6 +14,7 @@ import { ColorSchemeName, SeriesStrategy } from "@ourworldindata/types"
 import { SelectionArray } from "../selection/SelectionArray"
 import { SortBy, SortOrder } from "@ourworldindata/utils"
 import { OwidDistinctColorScheme } from "../color/CustomSchemes"
+import { DiscreteBarChartState } from "./DiscreteBarChartState"
 
 it("can create a new bar chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2001] })
@@ -24,13 +25,13 @@ it("can create a new bar chart", () => {
         yColumnSlug: SampleColumnSlugs.Population,
         endTime: 2000,
     }
-    const chart = new DiscreteBarChart({ manager })
+    const chartState = new DiscreteBarChartState({ manager })
 
-    expect(chart.failMessage).toBeTruthy()
+    expect(chartState.failMessage).toBeTruthy()
     selection.setSelectedEntities(table.availableEntityNames)
-    expect(chart.failMessage).toEqual("")
+    expect(chartState.failMessage).toEqual("")
 
-    const series = chart.series
+    const series = chartState.series
     expect(series.length).toEqual(2)
     expect(series[0].time).toBeTruthy()
 })
@@ -42,14 +43,14 @@ describe("barcharts with columns as the series", () => {
         yColumnSlugs: [SampleColumnSlugs.Population, SampleColumnSlugs.GDP],
         selection: table.sampleEntityName(1),
     }
-    const chart = new DiscreteBarChart({ manager })
+    const chartState = new DiscreteBarChartState({ manager })
 
-    expect(chart.series.length).toEqual(2)
+    expect(chartState.series.length).toEqual(2)
 
     it("can add colors to columns as series", () => {
         manager.baseColorScheme = ColorSchemeName.Reds
-        const chart = new DiscreteBarChart({ manager })
-        expect(chart.series[0].color).not.toEqual(
+        const chartState = new DiscreteBarChartState({ manager })
+        expect(chartState.series[0].color).not.toEqual(
             OwidDistinctColorScheme.colorSets[0][0]
         )
     })
@@ -59,19 +60,18 @@ describe("barcharts with columns as the series", () => {
             entityCount: 1,
             timeRange: [2000, 2001],
         }).replaceRandomCells(1, [SampleColumnSlugs.Fruit])
-        const chart = new DiscreteBarChart({
-            manager: {
-                seriesStrategy: SeriesStrategy.column,
-                yColumnSlugs: [
-                    SampleColumnSlugs.Fruit,
-                    SampleColumnSlugs.Vegetables,
-                ],
-                selection: table.sampleEntityName(1),
-                table,
-            },
-        })
+        const manager = {
+            seriesStrategy: SeriesStrategy.column,
+            yColumnSlugs: [
+                SampleColumnSlugs.Fruit,
+                SampleColumnSlugs.Vegetables,
+            ],
+            selection: table.sampleEntityName(1),
+            table,
+        }
+        const chartState = new DiscreteBarChartState({ manager })
 
-        expect(chart.series.length).toEqual(1)
+        expect(chartState.series.length).toEqual(1)
     })
 
     it("can filter a series when there are no points (entity strategy)", () => {
@@ -79,16 +79,15 @@ describe("barcharts with columns as the series", () => {
             entityCount: 2,
             timeRange: [2000, 2001],
         }).replaceRandomCells(1, [SampleColumnSlugs.Fruit])
-        const chart = new DiscreteBarChart({
-            manager: {
-                seriesStrategy: SeriesStrategy.entity,
-                yColumnSlugs: [SampleColumnSlugs.Fruit],
-                selection: table.sampleEntityName(2),
-                table,
-            },
-        })
+        const manager = {
+            seriesStrategy: SeriesStrategy.entity,
+            yColumnSlugs: [SampleColumnSlugs.Fruit],
+            selection: table.sampleEntityName(2),
+            table,
+        }
+        const chartState = new DiscreteBarChartState({ manager })
 
-        expect(chart.series.length).toEqual(1)
+        expect(chartState.series.length).toEqual(1)
     })
 
     it("displays interpolated date when value is not from current year", () => {
@@ -100,20 +99,20 @@ describe("barcharts with columns as the series", () => {
         const table = new OwidTable(csv)
             .interpolateColumnWithTolerance("gdp", 1)
             .filterByTargetTimes([2020])
-        const chart = new DiscreteBarChart({
-            manager: {
-                table,
-                transformedTable: table,
-                seriesStrategy: SeriesStrategy.entity,
-                yColumnSlugs: ["gdp"],
-                endTime: 2020,
-            },
-        })
-        expect(chart.formatValue(chart.series[0])).toMatchObject({
+        const manager = {
+            table,
+            transformedTable: table,
+            seriesStrategy: SeriesStrategy.entity,
+            yColumnSlugs: ["gdp"],
+            endTime: 2020,
+        }
+        const chartState = new DiscreteBarChartState({ manager })
+        const chart = new DiscreteBarChart({ chartState })
+        expect(chart.formatValue(chartState.series[0])).toMatchObject({
             valueString: "1,002",
             timeString: "",
         })
-        expect(chart.formatValue(chart.series[1])).toMatchObject({
+        expect(chart.formatValue(chartState.series[1])).toMatchObject({
             valueString: "1,000",
             timeString: " in 2019",
         })
@@ -134,10 +133,10 @@ it("filters non-numeric values", () => {
         yColumnSlugs: [SampleColumnSlugs.Fruit],
         selection: table.availableEntityNames,
     }
-    const chart = new DiscreteBarChart({ manager })
-    expect(chart.series.length).toEqual(1)
+    const chartState = new DiscreteBarChartState({ manager })
+    expect(chartState.series.length).toEqual(1)
     expect(
-        chart.series.every((series) => _.isNumber(series.value))
+        chartState.series.every((series) => _.isNumber(series.value))
     ).toBeTruthy()
 })
 
@@ -156,8 +155,8 @@ describe("sorting", () => {
     }
 
     it("defaults to sorting by value descending", () => {
-        const chart = new DiscreteBarChart({ manager })
-        expect(chart.series.map((item) => item.seriesName)).toEqual([
+        const chartState = new DiscreteBarChartState({ manager })
+        expect(chartState.series.map((item) => item.seriesName)).toEqual([
             "United States",
             "Sweden",
             "Zambia",
@@ -165,7 +164,7 @@ describe("sorting", () => {
     })
 
     it("can sort by value ascending", () => {
-        const chart = new DiscreteBarChart({
+        const chartState = new DiscreteBarChartState({
             manager: {
                 ...manager,
                 sortConfig: {
@@ -174,7 +173,7 @@ describe("sorting", () => {
                 },
             },
         })
-        expect(chart.series.map((item) => item.seriesName)).toEqual([
+        expect(chartState.series.map((item) => item.seriesName)).toEqual([
             "Zambia",
             "Sweden",
             "United States",
@@ -182,7 +181,7 @@ describe("sorting", () => {
     })
 
     it("can sort by entity name descending", () => {
-        const chart = new DiscreteBarChart({
+        const chartState = new DiscreteBarChartState({
             manager: {
                 ...manager,
                 sortConfig: {
@@ -191,7 +190,7 @@ describe("sorting", () => {
                 },
             },
         })
-        expect(chart.series.map((item) => item.seriesName)).toEqual([
+        expect(chartState.series.map((item) => item.seriesName)).toEqual([
             "Zambia",
             "United States",
             "Sweden",

@@ -1,7 +1,8 @@
 import * as _ from "lodash-es"
 import { expect, it, describe } from "vitest"
 
-import { SlopeChart, SlopeChartManager } from "./SlopeChart"
+import { SlopeChart } from "./SlopeChart"
+import { SlopeChartManager } from "./SlopeChartConstants"
 import {
     ErrorValueTypes,
     OwidTable,
@@ -18,16 +19,18 @@ import {
     SeriesStrategy,
 } from "@ourworldindata/utils"
 import { SelectionArray } from "../selection/SelectionArray"
+import { SlopeChartState } from "./SlopeChartState"
 
 const table = SynthesizeGDPTable({ timeRange: [2000, 2010] })
-const manager: ChartManager = {
+const manager: SlopeChartManager = {
     table,
     yColumnSlug: SampleColumnSlugs.Population,
     selection: table.availableEntityNames,
 }
 
 it("can create a new slope chart", () => {
-    const chart = new SlopeChart({ manager })
+    const chartState = new SlopeChartState({ manager })
+    const chart = new SlopeChart({ chartState })
     expect(chart.series.length).toEqual(2)
 })
 
@@ -45,7 +48,8 @@ it("filters non-numeric values", () => {
         yColumnSlugs: [SampleColumnSlugs.Fruit],
         selection: table.availableEntityNames,
     }
-    const chart = new SlopeChart({ manager })
+    const chartState = new SlopeChartState({ manager })
+    const chart = new SlopeChart({ chartState })
     expect(chart.series.length).toEqual(1)
     expect(
         chart.series.every(
@@ -70,8 +74,8 @@ it("can filter points with negative values when using a log scale", () => {
         yColumnSlugs: [SampleColumnSlugs.Fruit],
         selection: table.availableEntityNames,
     }
-    const chart = new SlopeChart({ manager })
-    // expect(chart.series.length).toEqual(2)
+    const chartState = new SlopeChartState({ manager })
+    const chart = new SlopeChart({ chartState })
     expect(chart.allYValues.length).toEqual(4)
 
     const logScaleManager = {
@@ -80,9 +84,9 @@ it("can filter points with negative values when using a log scale", () => {
             scaleType: ScaleType.log,
         },
     }
-    const logChart = new SlopeChart({ manager: logScaleManager })
+    const logChartState = new SlopeChartState({ manager: logScaleManager })
+    const logChart = new SlopeChart({ chartState: logChartState })
     expect(logChart.yAxis.domain[0]).toBeGreaterThan(0)
-    // expect(logChart.series.length).toEqual(2)
     expect(logChart.allYValues.length).toEqual(2)
 })
 
@@ -95,7 +99,8 @@ describe("series naming in multi-column mode", () => {
             canSelectMultipleEntities: false,
             selection: [table.availableEntityNames[0]],
         }
-        const chart = new SlopeChart({ manager })
+        const chartState = new SlopeChartState({ manager })
+        const chart = new SlopeChart({ chartState })
         expect(chart.series[0].seriesName).not.toContain(" – ")
     })
 
@@ -105,7 +110,8 @@ describe("series naming in multi-column mode", () => {
             canSelectMultipleEntities: true,
             selection: [table.availableEntityNames[0]],
         }
-        const chart = new SlopeChart({ manager })
+        const chartState = new SlopeChartState({ manager })
+        const chart = new SlopeChart({ chartState })
         expect(chart.series[0].seriesName).toContain(" – ")
     })
 
@@ -116,7 +122,8 @@ describe("series naming in multi-column mode", () => {
             canSelectMultipleEntities: false,
             selection,
         }
-        const chart = new SlopeChart({ manager })
+        const chartState = new SlopeChartState({ manager })
+        const chart = new SlopeChart({ chartState })
         expect(chart.series[0].seriesName).toContain(" – ")
     })
 })
@@ -135,7 +142,8 @@ describe("colors", () => {
             table,
             selection,
         }
-        const chart = new SlopeChart({ manager })
+        const chartState = new SlopeChartState({ manager })
+        const chart = new SlopeChart({ chartState })
         expect(chart.series.map((series) => series.color)).toEqual([
             "blue",
             "red",
@@ -159,7 +167,8 @@ describe("colors", () => {
             selection,
             seriesStrategy: SeriesStrategy.column,
         }
-        const chart = new SlopeChart({ manager })
+        const chartState = new SlopeChartState({ manager })
+        const chart = new SlopeChart({ chartState })
         const series = chart.series
 
         expect(series).toHaveLength(1)
@@ -174,7 +183,8 @@ describe("colors", () => {
             selection,
             seriesColorMap: new Map(),
         }
-        const chart = new SlopeChart({ manager })
+        const chartState = new SlopeChartState({ manager })
+        const chart = new SlopeChart({ chartState })
         const series = chart.series
         expect(series).toHaveLength(2)
 
@@ -207,7 +217,8 @@ describe("colors", () => {
             facetStrategy: FacetStrategy.entity,
             canSelectMultipleEntities: true,
         }
-        const chart = new SlopeChart({ manager })
+        const chartState = new SlopeChartState({ manager })
+        const chart = new SlopeChart({ chartState })
         const series = chart.series
 
         expect(series).toHaveLength(2)
@@ -247,7 +258,8 @@ describe("colors", () => {
             seriesStrategy: SeriesStrategy.column,
             canSelectMultipleEntities: true,
         }
-        const chart = new SlopeChart({ manager })
+        const chartState = new SlopeChartState({ manager })
+        const chart = new SlopeChart({ chartState })
         const series = chart.series
 
         expect(series).toHaveLength(2)

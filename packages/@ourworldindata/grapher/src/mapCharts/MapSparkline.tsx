@@ -12,6 +12,7 @@ import {
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import { LineChart } from "../lineCharts/LineChart"
+import { LineChartState } from "../lineCharts/LineChartState"
 import { Bounds, checkIsVeryShortUnit } from "@ourworldindata/utils"
 import { LineChartManager } from "../lineCharts/LineChartConstants"
 import { ColorScale } from "../color/ColorScale.js"
@@ -176,10 +177,14 @@ export class MapSparkline extends React.Component<MapSparklineProps> {
         })
     }
 
+    @computed private get sparklineChartState(): LineChartState {
+        return new LineChartState({ manager: this.sparklineManager })
+    }
+
     @computed private get sparklineChart(): LineChart {
         return new LineChart({
-            manager: this.sparklineManager,
             bounds: this.sparklineBounds,
+            chartState: this.sparklineChartState,
         })
     }
 
@@ -232,8 +237,8 @@ export class MapSparkline extends React.Component<MapSparklineProps> {
                         y2={axisBounds.y}
                     />
                     <LineChart
-                        manager={this.sparklineManager}
                         bounds={this.sparklineBounds}
+                        chartState={this.sparklineChartState}
                     />
                     {maxLabel !== minLabel && (
                         <g className="max axis-label">

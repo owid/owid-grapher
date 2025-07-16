@@ -6,7 +6,7 @@ import {
     SynthesizeProjectedPopulationTable,
 } from "@ourworldindata/core-table"
 import { MapChartManager } from "./MapChartConstants"
-import { MapChart } from "./MapChart"
+import { MapChartState } from "./MapChartState"
 
 const table = SynthesizeGDPTable({
     timeRange: [2000, 2001],
@@ -19,16 +19,16 @@ const manager: MapChartManager = {
 }
 
 it("can create a new Map chart", () => {
-    const chart = new MapChart({ manager })
-    expect(Object.keys(chart.series).length).toEqual(2)
+    const chartState = new MapChartState({ manager })
+    expect(Object.keys(chartState.series).length).toEqual(2)
 
-    const legends = chart.colorScale.legendBins
+    const legends = chartState.colorScale.legendBins
     expect(Object.keys(legends).length).toBeGreaterThan(1)
 })
 
 it("filters out non-map entities from colorScaleColumn", () => {
-    const chart = new MapChart({ manager })
-    expect(chart.colorScaleColumn.uniqEntityNames).toEqual(
+    const chartState = new MapChartState({ manager })
+    expect(chartState.colorScaleColumn.uniqEntityNames).toEqual(
         expect.arrayContaining(["France", "Germany"])
     )
 })
@@ -58,6 +58,6 @@ it("combines projected data with its historical counterpart", () => {
         ),
     }
 
-    const chart = new MapChart({ manager })
-    expect(chart.mapColumnSlug).toEqual(combinedSlug)
+    const chartState = new MapChartState({ manager })
+    expect(chartState.mapColumnSlug).toEqual(combinedSlug)
 })

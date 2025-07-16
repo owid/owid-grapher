@@ -49,7 +49,7 @@ import {
     GrapherProgrammaticInterface,
     GrapherState,
     loadVariableDataAndMetadata,
-    MapChart,
+    MapChartState,
 } from "@ourworldindata/grapher"
 import { BindString, SelectField, Toggle } from "./Forms.js"
 import { Observable } from "rxjs"
@@ -376,7 +376,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     @action.bound
     private onRichTextEditorChange(
-        editor: codemirror.Editor,
+        _editor: codemirror.Editor,
         data: codemirror.EditorChange,
         value: string
     ) {
@@ -477,10 +477,10 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             .with(EditorOption.colorEditor, () => {
                 if (currentColumnFieldDescription?.pointer.startsWith("/map")) {
                     // TODO: remove this hack once map is more similar to other charts
-                    const mapChart = new MapChart({
+                    const mapChartState = new MapChartState({
                         manager: this.grapherState,
                     })
-                    const colorScale = mapChart.colorScale
+                    const colorScale = mapChartState.colorScale
                     // TODO: instead of using onChange below that has to be maintained when
                     // the color scale changes I tried to use a reaction here after Daniel G's suggestion
                     // but I couldn't get this to work. Worth trying again later.
@@ -501,9 +501,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         />
                     ) : undefined
                 } else {
-                    if (grapherState.chartInstanceExceptMap.colorScale) {
+                    if (grapherState.chartStateExceptMap.colorScale) {
                         const colorScale =
-                            grapherState.chartInstanceExceptMap.colorScale
+                            grapherState.chartStateExceptMap.colorScale
                         // TODO: instead of using onChange below that has to be maintained when
                         // the color scale changes I tried to use a reaction here after Daniel G's suggestion
                         // but I couldn't get this to work. Worth trying again later.

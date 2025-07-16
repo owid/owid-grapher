@@ -6,7 +6,7 @@ import {
 } from "@ourworldindata/types"
 import {
     ChartDimension,
-    MapChart,
+    MapChartState,
     MapConfig,
     MAP_REGION_LABELS,
 } from "@ourworldindata/grapher"
@@ -238,8 +238,8 @@ export class EditorMapTab<
         const { grapherState } = this
         const mapConfig = grapherState.map
         const { mapColumnSlug } = grapherState
-        const mapChart = new MapChart({ manager: this.grapherState })
-        const colorScale = mapChart.colorScale
+        const mapChartState = new MapChartState({ manager: this.grapherState })
+        const colorScale = mapChartState.colorScale
 
         const isReady = !!mapColumnSlug && grapherState.table.has(mapColumnSlug)
 

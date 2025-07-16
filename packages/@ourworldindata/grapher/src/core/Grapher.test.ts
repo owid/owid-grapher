@@ -431,7 +431,7 @@ describe("authors can use maxTime", () => {
             maxTime: 2005,
             ySlugs: "GDP",
         })
-        const chart = grapher.chartInstance
+        const chart = grapher.chartState
         expect(chart.failMessage).toBeFalsy()
     })
 })
@@ -450,7 +450,7 @@ describe("line chart to bar chart and bar chart race", () => {
 
     describe("switches from a line chart to a bar chart when there is only 1 year selected", () => {
         const grapher = new GrapherState(TestGrapherConfig())
-        const lineSeries = grapher.chartInstance.series
+        const lineSeries = grapher.chartState.series
 
         expect(
             grapher.typeExceptWhenLineChartAndSingleTimeThenWillBeBarChart
@@ -467,7 +467,7 @@ describe("line chart to bar chart and bar chart race", () => {
         })
 
         it("color goes to monochrome when the chart switches from line chart to bar chart", () => {
-            const barSeries = grapher.chartInstance.series
+            const barSeries = grapher.chartState.series
             const barColors = _.orderBy(barSeries, "seriesName").map(
                 (series) => series.color
             )

@@ -2,25 +2,22 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import * as R from "remeda"
 import {
-    pointsToPath,
     getRelativeMouse,
-    makeSafeForCSS,
     excludeUndefined,
     isMobile,
-    Time,
-    lastOfNonEmptyArray,
-    makeIdForHumanConsumption,
+    Bounds,
+    guid,
+    exposeInstanceOnWindow,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
 import { InteractionState, SeriesName } from "@ourworldindata/types"
 import {
-    GRAPHER_AREA_OPACITY_DEFAULT,
-    GRAPHER_AREA_OPACITY_MUTE,
-    GRAPHER_AREA_OPACITY_FOCUS,
+    BASE_FONT_SIZE,
+    DEFAULT_GRAPHER_BOUNDS,
 } from "../core/GrapherConstants"
 import { observer } from "mobx-react"
 import { DualAxisComponent } from "../axis/AxisViews"
-import { DualAxis } from "../axis/Axis"
+import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { LineLegend } from "../lineLegend/LineLegend"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
@@ -30,245 +27,129 @@ import {
     TooltipTable,
     makeTooltipRoundingNotice,
 } from "../tooltip/Tooltip"
-import { rgb } from "d3-color"
-import {
-    AbstractStackedChart,
-    AbstractStackedChartProps,
-} from "../stackedCharts/AbstractStackedChart"
-import {
-    StackedPlacedPoint,
-    StackedPlacedSeries,
-    StackedPoint,
-    StackedSeries,
-} from "./StackedConstants"
-import { stackSeries, withMissingValuesAsZeroes } from "./StackedUtils"
+import { StackedAreaChartState } from "./StackedAreaChartState.js"
+import { AREA_OPACITY, StackedSeries } from "./StackedConstants"
 import {
     makeClipPath,
     isTargetOutsideElement,
     getHoverStateForSeries,
 } from "../chart/ChartUtils"
-import { bind } from "decko"
-import { AxisConfig } from "../axis/AxisConfig.js"
+import { AxisConfig, AxisManager } from "../axis/AxisConfig.js"
 import { LineLabelSeries } from "../lineLegend/LineLegendTypes"
-
-interface AreasProps extends React.SVGAttributes<SVGGElement> {
-    dualAxis: DualAxis
-    seriesArr: readonly StackedSeries<Time>[]
-    focusedSeriesName?: SeriesName
-    onAreaMouseEnter?: (seriesName: SeriesName) => void
-    onAreaMouseLeave?: () => void
-}
+import { easeLinear } from "d3-ease"
+import { select } from "d3-selection"
+import { ChartInterface } from "../chart/ChartInterface"
+import { ChartManager } from "../chart/ChartManager"
+import { StackedAreas } from "./StackedAreas"
+import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
+import { CategoricalBin } from "../color/ColorScaleBin"
 
 const STACKED_AREA_CHART_CLASS_NAME = "StackedArea"
 
-const AREA_OPACITY = {
-    default: GRAPHER_AREA_OPACITY_DEFAULT,
-    focus: GRAPHER_AREA_OPACITY_FOCUS,
-    mute: GRAPHER_AREA_OPACITY_MUTE,
-} as const
-
-const BORDER_OPACITY = {
-    default: 0.7,
-    focus: 1,
-    mute: 0.3,
-} as const
-
-const BORDER_WIDTH = {
-    default: 0.5,
-    focus: 1.5,
-} as const
-
 @observer
-class Areas extends React.Component<AreasProps> {
-    @bind placePoint(point: StackedPoint<number>): StackedPlacedPoint {
-        const { dualAxis } = this.props
-        const { horizontalAxis, verticalAxis } = dualAxis
-        return [
-            horizontalAxis.place(point.position),
-            verticalAxis.place(point.value + point.valueOffset),
-        ]
+export class StackedAreaChart
+    extends React.Component<{
+        chartState: StackedAreaChartState
+        bounds?: Bounds
+    }>
+    implements ChartInterface, AxisManager
+{
+    @computed get chartState(): StackedAreaChartState {
+        return this.props.chartState
     }
 
-    // This places a whole series, but the points only represent the top of the area.
-    // Later steps are necessary to display them as a filled area.
-    @bind placeSeries(
-        series: StackedSeries<number>
-    ): Array<StackedPlacedPoint> {
-        const { dualAxis } = this.props
-        const { horizontalAxis, verticalAxis } = dualAxis
-
-        if (series.points.length > 1) {
-            return series.points.map(this.placePoint)
-        } else if (series.points.length === 1) {
-            // We only have one point, so make it so it stretches out over the whole x axis range
-            // There are two cases here that we need to consider:
-            // (1) In unfaceted charts, the x domain will be a single year, so we need to ensure that the area stretches
-            //     out over the full range of the x axis.
-            // (2) In faceted charts, the x domain may span multiple years, so we need to ensure that the area stretches
-            //     out only over year - 0.5 to year + 0.5, additionally making sure we don't put points outside the x range.
-            //
-            // -@marcelgerber, 2023-04-24
-            const point = series.points[0]
-            const y = verticalAxis.place(point.value + point.valueOffset)
-            const singleValueXDomain =
-                horizontalAxis.domain[0] === horizontalAxis.domain[1]
-
-            if (singleValueXDomain) {
-                // Case (1)
-                return [
-                    [horizontalAxis.range[0], y],
-                    [horizontalAxis.range[1], y],
-                ]
-            } else {
-                // Case (2)
-                const leftX = Math.max(
-                    horizontalAxis.place(point.position - 0.5),
-                    horizontalAxis.range[0]
-                )
-                const rightX = Math.min(
-                    horizontalAxis.place(point.position + 0.5),
-                    horizontalAxis.range[1]
-                )
-
-                return [
-                    [leftX, y],
-                    [rightX, y],
-                ]
-            }
-        } else return []
+    @computed private get manager(): ChartManager {
+        return this.chartState.manager
     }
 
-    @computed get placedSeriesArr(): StackedPlacedSeries<number>[] {
-        const { seriesArr } = this.props
-        return seriesArr
-            .filter((series) => !series.isAllZeros)
-            .map((series) => ({
-                ...series,
-                placedPoints: this.placeSeries(series),
-            }))
+    @computed private get bounds(): Bounds {
+        return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS
     }
 
-    @computed get isFocusModeActive(): boolean {
-        return this.props.focusedSeriesName !== undefined
+    @computed private get isStatic(): boolean {
+        return this.manager.isStatic ?? false
     }
 
-    @computed private get areas(): React.ReactElement[] {
-        const { placedSeriesArr } = this
-        const { dualAxis, focusedSeriesName } = this.props
-        const { verticalAxis } = dualAxis
-
-        return placedSeriesArr.map((series, index) => {
-            const { placedPoints } = series
-            let prevPoints: Array<StackedPlacedPoint>
-            if (index > 0) {
-                prevPoints = placedSeriesArr[index - 1].placedPoints
-            } else {
-                prevPoints = [
-                    [
-                        placedPoints[0][0], // placed x coord of first (= leftmost) point in chart
-                        verticalAxis.range[0],
-                    ],
-                    [
-                        lastOfNonEmptyArray(placedPoints)[0], // placed x coord of last (= rightmost) point in chart
-                        verticalAxis.range[0],
-                    ],
-                ]
-            }
-            const points = [...placedPoints, ...prevPoints.toReversed()]
-            const opacity = !this.isFocusModeActive
-                ? AREA_OPACITY.default // normal opacity
-                : focusedSeriesName === series.seriesName
-                  ? AREA_OPACITY.focus // hovered
-                  : AREA_OPACITY.mute // non-hovered
-
-            return (
-                <path
-                    id={makeIdForHumanConsumption(series.seriesName)}
-                    className={makeSafeForCSS(series.seriesName) + "-area"}
-                    key={series.seriesName + "-area"}
-                    strokeLinecap="round"
-                    d={pointsToPath(points)}
-                    fill={series.color}
-                    fillOpacity={opacity}
-                    clipPath={this.props.clipPath}
-                    onMouseEnter={(): void => {
-                        this.props.onAreaMouseEnter?.(series.seriesName)
-                    }}
-                    onMouseLeave={(): void => {
-                        this.props.onAreaMouseLeave?.()
-                    }}
-                />
-            )
-        })
+    @computed private get renderUid(): number {
+        return guid()
     }
 
-    @computed private get borders(): React.ReactElement[] {
-        const { placedSeriesArr } = this
-        const { focusedSeriesName } = this.props
-
-        return placedSeriesArr.map((placedSeries) => {
-            const opacity = !this.isFocusModeActive
-                ? BORDER_OPACITY.default // normal opacity
-                : focusedSeriesName === placedSeries.seriesName
-                  ? BORDER_OPACITY.focus // hovered
-                  : BORDER_OPACITY.mute // non-hovered
-            const strokeWidth =
-                focusedSeriesName === placedSeries.seriesName
-                    ? BORDER_WIDTH.focus
-                    : BORDER_WIDTH.default
-
-            return (
-                <path
-                    id={makeIdForHumanConsumption(placedSeries.seriesName)}
-                    className={
-                        makeSafeForCSS(placedSeries.seriesName) + "-border"
-                    }
-                    key={placedSeries.seriesName + "-border"}
-                    strokeLinecap="round"
-                    d={pointsToPath(placedSeries.placedPoints)}
-                    stroke={rgb(placedSeries.color).darker(0.5).toString()}
-                    strokeOpacity={opacity}
-                    strokeWidth={strokeWidth}
-                    fill="none"
-                    clipPath={this.props.clipPath}
-                    onMouseEnter={(): void => {
-                        this.props.onAreaMouseEnter?.(placedSeries.seriesName)
-                    }}
-                    onMouseLeave={(): void => {
-                        this.props.onAreaMouseLeave?.()
-                    }}
-                />
-            )
-        })
+    @computed get fontSize(): number {
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
-    render(): React.ReactElement {
+    @computed get detailsOrderedByReference(): string[] {
+        return this.manager.detailsOrderedByReference ?? []
+    }
+
+    @computed private get innerBounds(): Bounds {
         return (
-            <g
-                className="Areas"
-                id={makeIdForHumanConsumption("stacked-areas")}
-            >
-                <g id={makeIdForHumanConsumption("areas")}>{this.areas}</g>
-                <g id={makeIdForHumanConsumption("borders")}>{this.borders}</g>
-            </g>
+            this.bounds
+                .padRight(this.paddingForLegendRight)
+                // top padding leaves room for tick labels
+                .padTop(6)
+                // bottom padding avoids axis labels to be cut off at some resolutions
+                .padBottom(2)
         )
     }
-}
 
-@observer
-export class StackedAreaChart extends AbstractStackedChart {
-    constructor(props: AbstractStackedChartProps) {
-        super(props)
+    @computed private get dualAxis(): DualAxis {
+        const { horizontalAxisPart, verticalAxisPart } = this
+        return new DualAxis({
+            bounds: this.innerBounds,
+            horizontalAxis: horizontalAxisPart,
+            verticalAxis: verticalAxisPart,
+            comparisonLines: this.manager.comparisonLines,
+        })
     }
 
-    @computed protected get yAxisDomain(): [number, number] {
-        const yValues = this.allStackedPoints.map(
+    @computed get yAxis(): VerticalAxis {
+        return this.dualAxis.verticalAxis
+    }
+
+    @computed get xAxis(): HorizontalAxis {
+        return this.dualAxis.horizontalAxis
+    }
+
+    @computed private get horizontalAxisPart(): HorizontalAxis {
+        const axis = this.xAxisConfig.toHorizontalAxis()
+        axis.updateDomainPreservingUserSettings(
+            this.chartState.transformedTable.timeDomainFor(
+                this.chartState.yColumnSlugs
+            )
+        )
+        axis.formatColumn = this.chartState.inputTable.timeColumn
+        axis.hideFractionalTicks = true
+        return axis
+    }
+
+    @computed private get yAxisConfig(): AxisConfig {
+        return new AxisConfig(
+            {
+                nice: true,
+                ...this.manager.yAxisConfig,
+            },
+            this
+        )
+    }
+
+    @computed private get verticalAxisPart(): VerticalAxis {
+        const axis = this.yAxisConfig.toVerticalAxis()
+        // Use user settings for axis, unless relative mode
+        if (this.manager.isRelativeMode) axis.domain = [0, 100]
+        else axis.updateDomainPreservingUserSettings(this.yAxisDomain)
+        axis.formatColumn = this.chartState.yColumns[0]
+        return axis
+    }
+
+    @computed private get yAxisDomain(): [number, number] {
+        const yValues = this.chartState.allStackedPoints.map(
             (point) => point.value + point.valueOffset
         )
         return [0, _.max(yValues) ?? 0]
     }
 
-    @computed protected get xAxisConfig(): AxisConfig {
+    @computed private get xAxisConfig(): AxisConfig {
         return new AxisConfig(
             {
                 hideGridlines: true,
@@ -278,9 +159,9 @@ export class StackedAreaChart extends AbstractStackedChart {
         )
     }
 
-    @computed get midpoints(): number[] {
+    @computed private get midpoints(): number[] {
         let prevY = 0
-        return this.series.map((series) => {
+        return this.stackedSeries.map((series) => {
             const lastValue = R.last(series.points)
             if (!lastValue) return 0
 
@@ -300,9 +181,9 @@ export class StackedAreaChart extends AbstractStackedChart {
         })
     }
 
-    @computed get lineLegendSeries(): LineLabelSeries[] {
+    @computed private get lineLegendSeries(): LineLabelSeries[] {
         const { midpoints } = this
-        return this.series
+        return this.stackedSeries
             .map((series, index) => ({
                 color: series.color,
                 seriesName: series.seriesName,
@@ -315,11 +196,11 @@ export class StackedAreaChart extends AbstractStackedChart {
             .toReversed()
     }
 
-    @computed get maxLineLegendWidth(): number {
+    @computed private get maxLineLegendWidth(): number {
         return Math.min(150, this.bounds.width / 3)
     }
 
-    @computed get lineLegendWidth(): number {
+    @computed private get lineLegendWidth(): number {
         if (!this.manager.showLegend) return 0
 
         // only pass props that are required to calculate
@@ -354,12 +235,30 @@ export class StackedAreaChart extends AbstractStackedChart {
     @observable lineLegendHoveredSeriesName?: SeriesName
     @observable private hoverTimer?: number
 
-    @computed protected get paddingForLegendRight(): number {
+    @computed private get paddingForLegendRight(): number {
         return this.lineLegendWidth
     }
 
-    @computed get seriesSortedByImportance(): string[] {
-        return this.series
+    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+        if (!this.manager.showLegend) {
+            const categoricalLegendData = this.chartState.unstackedSeries
+                .map(
+                    (series, index) =>
+                        new CategoricalBin({
+                            index,
+                            value: series.seriesName,
+                            label: series.seriesName,
+                            color: series.color,
+                        })
+                )
+                .toReversed()
+            return { categoricalLegendData }
+        }
+        return undefined
+    }
+
+    @computed private get seriesSortedByImportance(): string[] {
+        return this.stackedSeries
             .toSorted(
                 (
                     s1: StackedSeries<number>,
@@ -412,18 +311,20 @@ export class StackedAreaChart extends AbstractStackedChart {
         }, 200)
     }
 
-    @computed get facetLegendHoveredSeriesName(): SeriesName | undefined {
+    @computed private get facetLegendHoveredSeriesName():
+        | SeriesName
+        | undefined {
         const { externalLegendHoverBin } = this.manager
         if (!externalLegendHoverBin) return undefined
         // stacked area charts can't plot the same entity or column multiple times,
         // so we just find the first series that matches the hovered legend item
-        const hoveredSeries = this.rawSeries.find((series) =>
+        const hoveredSeries = this.chartState.rawSeries.find((series) =>
             externalLegendHoverBin.contains(series.seriesName)
         )
         return hoveredSeries?.seriesName
     }
 
-    @computed get hoveredSeriesName(): SeriesName | undefined {
+    @computed private get hoveredSeriesName(): SeriesName | undefined {
         return (
             // if the chart area is hovered
             this.tooltipState.target?.series ??
@@ -433,7 +334,7 @@ export class StackedAreaChart extends AbstractStackedChart {
         )
     }
 
-    @computed get isHoverModeActive(): boolean {
+    @computed private get isHoverModeActive(): boolean {
         return (
             !!this.hoveredSeriesName ||
             // if the external legend is hovered, we want to mute
@@ -443,7 +344,7 @@ export class StackedAreaChart extends AbstractStackedChart {
         )
     }
 
-    @computed get hoveredSeriesNames(): string[] {
+    @computed private get hoveredSeriesNames(): string[] {
         return this.hoveredSeriesName ? [this.hoveredSeriesName] : []
     }
 
@@ -460,7 +361,7 @@ export class StackedAreaChart extends AbstractStackedChart {
 
         if (!ref) return undefined
 
-        const { series } = this
+        const { stackedSeries: series } = this
         const mouse = getRelativeMouse(ref, ev.nativeEvent)
         const boxPadding = isMobile() ? 44 : 25
 
@@ -504,7 +405,7 @@ export class StackedAreaChart extends AbstractStackedChart {
     @computed private get activeXVerticalLine():
         | React.ReactElement
         | undefined {
-        const { dualAxis, series } = this
+        const { dualAxis, stackedSeries: series } = this
         const { horizontalAxis, verticalAxis } = dualAxis
         const hoveredPointIndex = this.tooltipState.target?.index
         if (hoveredPointIndex === undefined) return undefined
@@ -554,12 +455,12 @@ export class StackedAreaChart extends AbstractStackedChart {
         if (!target) return undefined
 
         // Grab the first value to get the year from
-        const { series } = this
+        const { stackedSeries: series } = this
         const hoveredPointIndex = target.index
         const bottomSeriesPoint = series[0].points[hoveredPointIndex]
         if (!bottomSeriesPoint) return undefined
 
-        const formatColumn = this.yColumns[0], // Assumes same type for all columns.
+        const formatColumn = this.chartState.yColumns[0], // Assumes same type for all columns.
             formattedTime = formatColumn.formatTime(bottomSeriesPoint.position),
             { unit, shortUnit } = formatColumn
 
@@ -583,7 +484,7 @@ export class StackedAreaChart extends AbstractStackedChart {
         return (
             <Tooltip
                 id={this.tooltipId}
-                tooltipManager={this.props.manager}
+                tooltipManager={this.manager}
                 x={position.x}
                 y={position.y}
                 offsetY={-16}
@@ -628,27 +529,52 @@ export class StackedAreaChart extends AbstractStackedChart {
         // and outside of the chart areas of neighbouring facets
         const chartContainer = this.manager.base?.current
         if (!chartContainer) return
-        const chartAreas = chartContainer.getElementsByClassName(
-            STACKED_AREA_CHART_CLASS_NAME
+        const chartAreas: Element[] = Array.from(
+            chartContainer.getElementsByClassName(STACKED_AREA_CHART_CLASS_NAME)
         )
-        const isTargetOutsideChartAreas = Array.from(chartAreas).every(
-            (chartArea) => isTargetOutsideElement(e.target!, chartArea)
+        const isTargetOutsideChartAreas = chartAreas.every((chartArea) =>
+            isTargetOutsideElement(e.target!, chartArea)
         )
         if (isTargetOutsideChartAreas) {
             this.dismissTooltip()
         }
     }
 
+    animSelection?: d3.Selection<
+        d3.BaseType,
+        unknown,
+        SVGGElement | null,
+        unknown
+    >
+
+    base: React.RefObject<SVGGElement> = React.createRef()
     componentDidMount(): void {
         document.addEventListener("click", this.onDocumentClick, {
             capture: true,
         })
+
+        if (!this.manager.disableIntroAnimation) {
+            // Fancy intro animation
+            this.animSelection = select(this.base.current)
+                .selectAll("clipPath > rect")
+                .attr("width", 0)
+
+            this.animSelection
+                .transition()
+                .duration(800)
+                .ease(easeLinear)
+                .attr("width", this.bounds.width)
+                .on("end", () => this.forceUpdate()) // Important in case bounds changes during transition
+        }
+        exposeInstanceOnWindow(this)
     }
 
     componentWillUnmount(): void {
         document.removeEventListener("click", this.onDocumentClick, {
             capture: true,
         })
+
+        if (this.animSelection) this.animSelection.interrupt()
     }
 
     renderAxis(): React.ReactElement {
@@ -686,9 +612,9 @@ export class StackedAreaChart extends AbstractStackedChart {
             <>
                 {this.renderAxis()}
                 {this.renderLegend()}
-                <Areas
+                <StackedAreas
                     dualAxis={this.dualAxis}
-                    seriesArr={this.series}
+                    seriesArr={this.stackedSeries}
                     focusedSeriesName={this.hoveredSeriesName}
                 />
             </>
@@ -696,7 +622,7 @@ export class StackedAreaChart extends AbstractStackedChart {
     }
 
     renderInteractive(): React.ReactElement {
-        const { bounds, dualAxis, renderUid, series } = this
+        const { bounds, dualAxis, renderUid, stackedSeries: series } = this
 
         const clipPath = makeClipPath({
             renderUid,
@@ -727,7 +653,7 @@ export class StackedAreaChart extends AbstractStackedChart {
                 {this.renderAxis()}
                 <g clipPath={clipPath.id}>
                     {this.renderLegend()}
-                    <Areas
+                    <StackedAreas
                         dualAxis={dualAxis}
                         seriesArr={series}
                         focusedSeriesName={this.hoveredSeriesName}
@@ -742,14 +668,14 @@ export class StackedAreaChart extends AbstractStackedChart {
     }
 
     render(): React.ReactElement {
-        if (this.failMessage)
+        if (this.chartState.failMessage)
             return (
                 <g>
                     {this.renderAxis()}
                     <NoDataModal
                         manager={this.manager}
                         bounds={this.dualAxis.bounds}
-                        message={this.failMessage}
+                        message={this.chartState.failMessage}
                     />
                 </g>
             )
@@ -759,17 +685,17 @@ export class StackedAreaChart extends AbstractStackedChart {
             : this.renderInteractive()
     }
 
-    @computed get lineLegendX(): number {
+    @computed private get lineLegendX(): number {
         return this.manager.showLegend
             ? this.bounds.right - this.lineLegendWidth
             : 0
     }
 
-    @computed get lineLegendY(): [number, number] {
+    @computed private get lineLegendY(): [number, number] {
         return [this.bounds.top, this.bounds.bottom]
     }
 
-    @computed get series(): readonly StackedSeries<number>[] {
-        return stackSeries(withMissingValuesAsZeroes(this.unstackedSeries))
+    @computed private get stackedSeries(): readonly StackedSeries<number>[] {
+        return this.chartState.series
     }
 }

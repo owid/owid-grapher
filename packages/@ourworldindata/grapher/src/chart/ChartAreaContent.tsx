@@ -12,9 +12,10 @@ import { DataTable } from "../dataTable/DataTable"
 import { CaptionedChartManager } from "../captionedChart/CaptionedChart"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FacetChart } from "../facetChart/FacetChart"
-import { ChartComponentClassMap, DefaultChartClass } from "./ChartTypeMap"
 import { getChartSvgProps, NoDataPattern } from "./ChartUtils"
+import { ChartComponent, makeChartState } from "./ChartTypeMap"
 import { GRAPHER_CHART_AREA_CLASS } from "../core/GrapherConstants"
+import { ChartState } from "./ChartInterface"
 
 interface ChartAreaContentProps {
     manager: CaptionedChartManager
@@ -54,6 +55,11 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
         )
     }
 
+    @computed private get chartState(): ChartState | undefined {
+        if (!this.activeChartOrMapType) return undefined
+        return makeChartState(this.activeChartOrMapType, this.manager)
+    }
+
     private renderLoadingIndicatorIntoSvg(): React.ReactElement {
         return (
             <foreignObject {...this.bounds.toProps()}>
@@ -63,9 +69,7 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
     }
 
     private renderReadyChartOrMap(): React.ReactElement | null {
-        const { bounds } = this
-        const { manager, activeChartOrMapType } = this
-        const { isFaceted } = manager
+        const { bounds, manager, activeChartOrMapType, chartState } = this
 
         if (!activeChartOrMapType) return null
 
@@ -74,7 +78,7 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
             activeChartOrMapType !== GRAPHER_MAP_TYPE
                 ? activeChartOrMapType
                 : undefined
-        if (isFaceted && activeChartType)
+        if (manager.isFaceted && activeChartType)
             return (
                 <FacetChart
                     bounds={bounds}
@@ -83,11 +87,17 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
                 />
             )
 
-        const ChartClass =
-            ChartComponentClassMap.get(activeChartOrMapType) ??
-            DefaultChartClass
+        if (!chartState) return null
 
-        return <ChartClass bounds={bounds} manager={manager} />
+        return (
+            <ChartComponent
+                manager={manager}
+                chartType={activeChartOrMapType}
+                chartState={chartState}
+                renderMode={manager.renderMode}
+                bounds={bounds}
+            />
+        )
     }
 
     private renderChartOrMap(): React.ReactElement {

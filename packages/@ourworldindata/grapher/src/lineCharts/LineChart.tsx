@@ -5,16 +5,12 @@ import {
     guid,
     excludeNullish,
     getRelativeMouse,
-    pointsToPath,
     exposeInstanceOnWindow,
     excludeUndefined,
     isMobile,
     Bounds,
-    PointVector,
-    AxisAlign,
     Color,
     HorizontalAlign,
-    makeIdForHumanConsumption,
     isTouchDevice,
 } from "@ourworldindata/utils"
 import { computed, action, observable } from "mobx"
@@ -35,64 +31,47 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 import { extent } from "d3-array"
 import {
     SeriesName,
-    ScaleType,
-    EntityName,
-    SeriesStrategy,
-    FacetStrategy,
-    CoreValueType,
-    MissingDataStrategy,
-    ColorScaleConfigInterface,
-    ColorSchemeName,
     VerticalAlign,
     InteractionState,
+    AxisAlign,
+    ScaleType,
 } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_OPACITY_MUTE,
 } from "../core/GrapherConstants"
-import { ColorSchemes } from "../color/ColorSchemes"
-import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
-    LinesProps,
     LineChartSeries,
     LineChartManager,
     LinePoint,
     PlacedLineChartSeries,
     PlacedPoint,
     RenderLineChartSeries,
+    LEGEND_PADDING,
+    VARIABLE_COLOR_STROKE_WIDTH,
+    DEFAULT_STROKE_WIDTH,
+    VARIABLE_COLOR_LINE_OUTLINE_WIDTH,
+    DEFAULT_LINE_OUTLINE_WIDTH,
+    DISCONNECTED_DOTS_MARKER_RADIUS,
+    VARIABLE_COLOR_MARKER_RADIUS,
+    STATIC_SMALL_MARKER_RADIUS,
+    DEFAULT_MARKER_RADIUS,
+    NON_FOCUSED_LINE_COLOR,
+    LINE_CHART_CLASS_NAME,
 } from "./LineChartConstants"
+import { CoreColumn } from "@ourworldindata/core-table"
 import {
-    OwidTable,
-    CoreColumn,
-    isNotErrorValue,
-} from "@ourworldindata/core-table"
-import {
-    autoDetectSeriesStrategy,
-    autoDetectYColumnSlugs,
     byHoverThenFocusState,
     ClipPath,
-    getDefaultFailMessage,
     getHoverStateForSeries,
     getSeriesKey,
     isTargetOutsideElement,
     makeClipPath,
-    makeSelectionArray,
 } from "../chart/ChartUtils"
-import { ColorScheme } from "../color/ColorScheme"
-import { SelectionArray } from "../selection/SelectionArray"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
-import { ColorScale, ColorScaleManager } from "../color/ColorScale"
-import { ColorScaleConfig } from "../color/ColorScaleConfig"
-import {
-    GRAPHER_BACKGROUND_DEFAULT,
-    OWID_NO_DATA_GRAY,
-    GRAY_50,
-    OWID_NON_FOCUSED_GRAY,
-} from "../color/ColorConstants"
-import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
-import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
+import { ColorScale } from "../color/ColorScale"
+import { GRAPHER_BACKGROUND_DEFAULT, GRAY_50 } from "../color/ColorConstants"
 import { darkenColorForLine } from "../color/ColorUtils"
 import {
     HorizontalColorLegendManager,
@@ -102,357 +81,42 @@ import {
     AnnotationsMap,
     getAnnotationsForSeries,
     getAnnotationsMap,
-    getColorKey,
-    getSeriesName,
 } from "./LineChartHelpers"
 import { FocusArray } from "../focus/FocusArray.js"
 import { LineLabelSeries } from "../lineLegend/LineLegendTypes"
-
-const LINE_CHART_CLASS_NAME = "LineChart"
-
-// line color
-const NON_FOCUSED_LINE_COLOR = OWID_NON_FOCUSED_GRAY
-const DEFAULT_LINE_COLOR = "#000"
-// stroke width
-const DEFAULT_STROKE_WIDTH = 1.5
-const VARIABLE_COLOR_STROKE_WIDTH = 2.5
-// marker radius
-const DEFAULT_MARKER_RADIUS = 1.8
-const VARIABLE_COLOR_MARKER_RADIUS = 2.2
-const DISCONNECTED_DOTS_MARKER_RADIUS = 2.6
-const STATIC_SMALL_MARKER_RADIUS = 3
-// line outline
-const DEFAULT_LINE_OUTLINE_WIDTH = 0.5
-const VARIABLE_COLOR_LINE_OUTLINE_WIDTH = 1.0
-// legend
-const LEGEND_PADDING = 25
-
-@observer
-class Lines extends React.Component<LinesProps> {
-    @computed get bounds(): Bounds {
-        const { horizontalAxis, verticalAxis } = this.props.dualAxis
-        return Bounds.fromCorners(
-            new PointVector(horizontalAxis.range[0], verticalAxis.range[0]),
-            new PointVector(horizontalAxis.range[1], verticalAxis.range[1])
-        )
-    }
-
-    @computed private get markerRadius(): number {
-        return this.props.markerRadius ?? DEFAULT_MARKER_RADIUS
-    }
-
-    @computed private get strokeWidth(): number {
-        return this.props.lineStrokeWidth ?? DEFAULT_STROKE_WIDTH
-    }
-
-    @computed private get outlineWidth(): number {
-        return this.props.lineOutlineWidth ?? DEFAULT_LINE_OUTLINE_WIDTH
-    }
-
-    @computed private get outlineColor(): string {
-        return this.props.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
-    }
-
-    // Don't display point markers if there are very many of them for performance reasons
-    // Note that we're using circle elements instead of marker-mid because marker performance in Safari 10 is very poor for some reason
-    @computed private get hasMarkers(): boolean {
-        if (this.props.hidePoints) return false
-        const totalPoints = _.sum(
-            this.props.series
-                .filter((series) => this.seriesHasMarkers(series))
-                .map((series) => series.placedPoints.length)
-        )
-        return totalPoints < 500
-    }
-
-    @computed private get hasMarkersOnlySeries(): boolean {
-        return this.props.series.some((series) => series.plotMarkersOnly)
-    }
-
-    private seriesHasMarkers(series: RenderLineChartSeries): boolean {
-        if (
-            series.hover.background ||
-            series.isProjection ||
-            // if the series has a line, but there is another one that hasn't, then
-            // don't show markers since the plotted line is likely a smoothed version
-            (this.hasMarkersOnlySeries && !series.plotMarkersOnly)
-        )
-            return false
-        return !series.focus.background || series.hover.active
-    }
-
-    private renderLine(
-        series: RenderLineChartSeries
-    ): React.ReactElement | void {
-        const { hover, focus } = series
-
-        if (series.plotMarkersOnly) return
-
-        const seriesColor = series.placedPoints[0]?.color ?? DEFAULT_LINE_COLOR
-        const color =
-            !focus.background || hover.active
-                ? seriesColor
-                : NON_FOCUSED_LINE_COLOR
-
-        const strokeDasharray = series.isProjection ? "2,3" : undefined
-        const strokeWidth =
-            hover.background || focus.background
-                ? 0.66 * this.strokeWidth
-                : this.strokeWidth
-        const strokeOpacity =
-            hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
-
-        const showOutline = !focus.background || hover.active
-        const outlineColor = this.outlineColor
-        const outlineWidth = strokeWidth + this.outlineWidth * 2
-
-        const outline = (
-            <LinePath
-                id={makeIdForHumanConsumption("outline", series.seriesName)}
-                placedPoints={series.placedPoints}
-                stroke={outlineColor}
-                strokeWidth={outlineWidth.toFixed(1)}
-            />
-        )
-
-        const line =
-            this.props.multiColor && !focus.background ? (
-                <MultiColorPolyline
-                    id={makeIdForHumanConsumption("line", series.seriesName)}
-                    points={series.placedPoints}
-                    strokeLinejoin="round"
-                    strokeWidth={strokeWidth.toFixed(1)}
-                    strokeDasharray={strokeDasharray}
-                    strokeOpacity={strokeOpacity}
-                />
-            ) : (
-                <LinePath
-                    id={makeIdForHumanConsumption("line", series.seriesName)}
-                    placedPoints={series.placedPoints}
-                    stroke={color}
-                    strokeWidth={strokeWidth.toFixed(1)}
-                    strokeOpacity={strokeOpacity}
-                    strokeDasharray={strokeDasharray}
-                />
-            )
-
-        return (
-            <>
-                {showOutline && outline}
-                {line}
-            </>
-        )
-    }
-
-    private renderLineMarkers(
-        series: RenderLineChartSeries
-    ): React.ReactElement | void {
-        const { horizontalAxis } = this.props.dualAxis
-        const { hover, focus } = series
-
-        const forceMarkers =
-            // If the series only contains one point, then we will always want to
-            // show a marker/circle because we can't draw a line.
-            series.placedPoints.length === 1 ||
-            // If no line is plotted, we'll always want to show markers
-            series.plotMarkersOnly
-
-        // check if we should hide markers on the chart and series level
-        const hideMarkers = !this.hasMarkers || !this.seriesHasMarkers(series)
-
-        if (hideMarkers && !forceMarkers) return
-
-        const opacity =
-            hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
-
-        const outlineColor = series.plotMarkersOnly
-            ? this.outlineColor
-            : undefined
-        const outlineWidth = series.plotMarkersOnly
-            ? this.outlineWidth
-            : undefined
-
-        return (
-            <g id={makeIdForHumanConsumption("datapoints", series.seriesName)}>
-                {series.placedPoints.map((value, index) => {
-                    const valueColor = value.color
-                    const color =
-                        !focus.background || hover.active
-                            ? valueColor
-                            : NON_FOCUSED_LINE_COLOR
-                    return (
-                        <circle
-                            id={makeIdForHumanConsumption(
-                                horizontalAxis.formatTick(value.time)
-                            )}
-                            key={index}
-                            cx={value.x}
-                            cy={value.y}
-                            r={this.markerRadius}
-                            fill={color}
-                            stroke={outlineColor}
-                            strokeWidth={outlineWidth}
-                            opacity={opacity}
-                        />
-                    )
-                })}
-            </g>
-        )
-    }
-
-    private renderLines(): React.ReactElement {
-        return (
-            <>
-                {this.props.series.map((series, index) => (
-                    <React.Fragment key={getSeriesKey(series, index)}>
-                        {this.renderLine(series)}
-                        {this.renderLineMarkers(series)}
-                    </React.Fragment>
-                ))}
-            </>
-        )
-    }
-
-    private renderStatic(): React.ReactElement {
-        return (
-            <g id={makeIdForHumanConsumption("lines")}>{this.renderLines()}</g>
-        )
-    }
-
-    private renderInteractive(): React.ReactElement {
-        const { bounds } = this
-        return (
-            <g className="Lines">
-                <rect
-                    x={Math.round(bounds.x)}
-                    y={Math.round(bounds.y)}
-                    width={Math.round(bounds.width)}
-                    height={Math.round(bounds.height)}
-                    fill="rgba(255,255,255,0)"
-                    opacity={0}
-                />
-                {this.renderLines()}
-            </g>
-        )
-    }
-
-    render(): React.ReactElement {
-        return this.props.isStatic
-            ? this.renderStatic()
-            : this.renderInteractive()
-    }
-}
-
-interface LinePathProps extends React.SVGProps<SVGPathElement> {
-    placedPoints: PlacedLineChartSeries["placedPoints"]
-}
-
-function LinePath(props: LinePathProps): React.ReactElement {
-    const { placedPoints, ...pathProps } = props
-    const coords = placedPoints.map(({ x, y }) => [x, y] as [number, number])
-    return (
-        <path
-            fill="none"
-            strokeLinecap="butt"
-            strokeLinejoin="round"
-            stroke={DEFAULT_LINE_COLOR}
-            {...pathProps}
-            d={pointsToPath(coords)}
-        />
-    )
-}
+import { Lines } from "./Lines"
+import { LineChartState } from "./LineChartState.js"
+import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 
 interface LineChartProps {
     bounds?: Bounds
-    manager: LineChartManager
+    chartState: LineChartState
 }
 
 @observer
 export class LineChart
     extends React.Component<LineChartProps>
-    implements
-        ChartInterface,
-        AxisManager,
-        ColorScaleManager,
-        HorizontalColorLegendManager
+    implements ChartInterface, HorizontalColorLegendManager, AxisManager
 {
-    base: React.RefObject<SVGGElement> = React.createRef()
+    private base: React.RefObject<SVGGElement> = React.createRef()
 
-    transformTable(table: OwidTable): OwidTable {
-        table = table.filterByEntityNames(
-            this.selectionArray.selectedEntityNames
-        )
-
-        // TODO: remove this filter once we don't have mixed type columns in datasets
-        // Currently we set skipParsing=true on these columns to be backwards-compatible
-        table = table.replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
-
-        if (this.isLogScale)
-            table = table.replaceNonPositiveCellsForLogScale(this.yColumnSlugs)
-
-        if (this.colorColumnSlug) {
-            table = table
-                // TODO: remove this filter once we don't have mixed type columns in datasets
-                // Currently we set skipParsing=true on these columns to be backwards-compatible
-                .replaceNonNumericCellsWithErrorValues([this.colorColumnSlug])
-                .interpolateColumnWithTolerance(this.colorColumnSlug)
-        }
-
-        // drop all data when the author chose to hide entities with missing data and
-        // at least one of the variables has no data for the current entity
-        if (
-            this.missingDataStrategy === MissingDataStrategy.hide &&
-            table.hasAnyColumnNoValidValue(this.yColumnSlugs)
-        ) {
-            table = table.dropAllRows()
-        }
-
-        return table
-    }
-
-    transformTableForSelection(table: OwidTable): OwidTable {
-        // if entities with partial data are not plotted,
-        // make sure they don't show up in the entity selector
-        if (this.missingDataStrategy === MissingDataStrategy.hide) {
-            table = table
-                .replaceNonNumericCellsWithErrorValues(this.yColumnSlugs)
-                .dropEntitiesThatHaveNoDataInSomeColumn(this.yColumnSlugs)
-        }
-
-        return table
-    }
-
-    @computed private get missingDataStrategy(): MissingDataStrategy {
-        return this.manager.missingDataStrategy || MissingDataStrategy.auto
-    }
-
-    @computed get inputTable(): OwidTable {
-        return this.manager.table
+    @computed get chartState(): LineChartState {
+        return this.props.chartState
     }
 
     @computed get isStatic(): boolean {
         return this.manager.isStatic ?? false
     }
 
-    @computed private get transformedTableFromGrapher(): OwidTable {
-        return (
-            this.manager.transformedTable ??
-            this.transformTable(this.inputTable)
-        )
+    @computed get detailsOrderedByReference(): string[] {
+        return this.manager.detailsOrderedByReference ?? []
     }
 
-    @computed get transformedTable(): OwidTable {
-        let table = this.transformedTableFromGrapher
-        // The % growth transform cannot be applied in transformTable() because it will filter out
-        // any rows before startHandleTimeBound and change the timeline bounds.
-        const { isRelativeMode, startTime } = this.manager
-        if (isRelativeMode && startTime !== undefined) {
-            table = table.toTotalGrowthForEachColumnComparedToStartTime(
-                startTime,
-                this.manager.yColumnSlugs ?? []
-            )
-        }
-        return table
+    @computed get annotationsMap(): AnnotationsMap | undefined {
+        return getAnnotationsMap(
+            this.chartState.inputTable,
+            this.yColumnSlugs[0]
+        )
     }
 
     @action.bound private dismissTooltip(): void {
@@ -470,7 +134,7 @@ export class LineChart
         return this.placedSeries.flatMap((series) => series.points)
     }
 
-    @observable tooltipState = new TooltipState<{
+    @observable private tooltipState = new TooltipState<{
         x: number
     }>({ fade: "immediate" })
 
@@ -515,10 +179,10 @@ export class LineChart
     }
 
     @computed private get manager(): LineChartManager {
-        return this.props.manager
+        return this.chartState.manager
     }
 
-    @computed get bounds(): Bounds {
+    @computed private get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS
     }
 
@@ -528,7 +192,7 @@ export class LineChart
         )
     }
 
-    @computed get maxLineLegendWidth(): number {
+    @computed private get maxLineLegendWidth(): number {
         return this.bounds.width / 3
     }
 
@@ -553,22 +217,20 @@ export class LineChart
         return DEFAULT_MARKER_RADIUS
     }
 
-    @computed get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager.selection)
-    }
-
-    @computed get focusArray(): FocusArray {
+    @computed private get focusArray(): FocusArray {
         return this.manager.focusArray ?? new FocusArray()
     }
 
-    @computed get activeX(): number | undefined {
+    @computed private get activeX(): number | undefined {
         return (
             this.tooltipState.target?.x ??
-            this.props.manager.entityYearHighlight?.year
+            this.manager.entityYearHighlight?.year
         )
     }
 
-    @computed get activeXVerticalLine(): React.ReactElement | undefined {
+    @computed private get activeXVerticalLine():
+        | React.ReactElement
+        | undefined {
         const { activeX, dualAxis } = this
         const { horizontalAxis, verticalAxis } = dualAxis
 
@@ -591,7 +253,9 @@ export class LineChart
 
                     const valueColor = this.hasColorScale
                         ? darkenColorForLine(
-                              this.getColorScaleColor(value.colorValue)
+                              this.chartState.getColorScaleColor(
+                                  value.colorValue
+                              )
                           )
                         : series.color
                     const color =
@@ -737,7 +401,9 @@ export class LineChart
                             ? NON_FOCUSED_LINE_COLOR
                             : this.hasColorScale
                               ? darkenColorForLine(
-                                    this.getColorScaleColor(point?.colorValue)
+                                    this.chartState.getColorScaleColor(
+                                        point?.colorValue
+                                    )
                                 )
                               : series.color
                         const swatch = { color }
@@ -761,17 +427,17 @@ export class LineChart
         )
     }
 
-    defaultRightPadding = 1
+    private defaultRightPadding = 1
 
-    @observable lineLegendHoveredSeriesName?: SeriesName
+    @observable private lineLegendHoveredSeriesName?: SeriesName
     @observable private hoverTimer?: number
 
-    @action.bound onLineLegendMouseOver(seriesName: SeriesName): void {
+    @action.bound private onLineLegendMouseOver(seriesName: SeriesName): void {
         clearTimeout(this.hoverTimer)
         this.lineLegendHoveredSeriesName = seriesName
     }
 
-    @action.bound clearHighlightedSeries(): void {
+    @action.bound private clearHighlightedSeries(): void {
         clearTimeout(this.hoverTimer)
         this.hoverTimer = window.setTimeout(() => {
             // wait before clearing selection in case the mouse is moving quickly over neighboring labels
@@ -779,18 +445,18 @@ export class LineChart
         }, 200)
     }
 
-    @action.bound onLineLegendMouseLeave(): void {
+    @action.bound private onLineLegendMouseLeave(): void {
         this.clearHighlightedSeries()
     }
 
-    @action.bound onLineLegendClick(seriesName: SeriesName): void {
+    @action.bound private onLineLegendClick(seriesName: SeriesName): void {
         this.focusArray.toggle(seriesName)
     }
 
-    @computed get hoveredSeriesNames(): string[] {
+    @computed private get hoveredSeriesNames(): string[] {
         const { externalLegendHoverBin } = this.manager
         const hoveredSeriesNames = excludeUndefined([
-            this.props.manager.entityYearHighlight?.entityName,
+            this.manager.entityYearHighlight?.entityName,
             this.lineLegendHoveredSeriesName,
         ])
         if (externalLegendHoverBin) {
@@ -803,7 +469,7 @@ export class LineChart
         return hoveredSeriesNames
     }
 
-    @computed get isHoverModeActive(): boolean {
+    @computed private get isHoverModeActive(): boolean {
         return (
             this.hoveredSeriesNames.length > 0 ||
             // if the external legend is hovered, we want to mute
@@ -813,19 +479,19 @@ export class LineChart
         )
     }
 
-    @computed get isFocusModeActive(): boolean {
+    @computed private get isFocusModeActive(): boolean {
         return !this.focusArray.isEmpty
     }
 
-    @computed get canToggleFocusMode(): boolean {
+    @computed private get canToggleFocusMode(): boolean {
         return !isTouchDevice() && this.series.length > 1
     }
 
     @computed private get hasEntityYearHighlight(): boolean {
-        return this.props.manager.entityYearHighlight !== undefined
+        return this.manager.entityYearHighlight !== undefined
     }
 
-    @action.bound onDocumentClick(e: MouseEvent): void {
+    @action.bound private onDocumentClick(e: MouseEvent): void {
         // only dismiss the tooltip if the click is outside of the chart area
         // and outside of the chart areas of neighbouring facets
         const chartContainer = this.manager.base?.current
@@ -841,7 +507,7 @@ export class LineChart
         }
     }
 
-    animSelection?: d3.Selection<
+    private animSelection?: d3.Selection<
         d3.BaseType,
         unknown,
         SVGGElement | null,
@@ -864,45 +530,41 @@ export class LineChart
         })
     }
 
-    @computed get renderUid(): number {
+    @computed private get renderUid(): number {
         return guid()
-    }
-
-    @computed get detailsOrderedByReference(): string[] {
-        return this.manager.detailsOrderedByReference ?? []
     }
 
     @computed get fontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
-    @computed get fontWeight(): number {
+    @computed private get fontWeight(): number {
         return this.hasColorScale ? 700 : 400
     }
 
-    @computed get hidePoints(): boolean {
+    @computed private get hidePoints(): boolean {
         return !!this.manager.hidePoints
     }
 
-    @computed get lineLegendX(): number {
+    @computed private get lineLegendX(): number {
         return this.bounds.right - this.lineLegendWidth
     }
 
-    @computed get lineLegendY(): [number, number] {
+    @computed private get lineLegendY(): [number, number] {
         return [
             this.boundsWithoutColorLegend.top,
             this.boundsWithoutColorLegend.bottom,
         ]
     }
 
-    @computed get clipPathBounds(): Bounds {
+    @computed private get clipPathBounds(): Bounds {
         const { dualAxis, boundsWithoutColorLegend } = this
         return boundsWithoutColorLegend
             .set({ x: dualAxis.innerBounds.x })
             .expand(10)
     }
 
-    @computed get clipPath(): ClipPath {
+    @computed private get clipPath(): ClipPath {
         return makeClipPath({
             renderUid: this.renderUid,
             box: this.clipPathBounds,
@@ -935,21 +597,7 @@ export class LineChart
         })
     }
 
-    @computed get availableFacetStrategies(): FacetStrategy[] {
-        const strategies: FacetStrategy[] = [FacetStrategy.none]
-
-        if (this.selectionArray.numSelectedEntities > 1)
-            strategies.push(FacetStrategy.entity)
-
-        const numNonProjectionColumns = this.yColumns.filter(
-            (c) => !c.display?.isProjection
-        ).length
-        if (numNonProjectionColumns > 1) strategies.push(FacetStrategy.metric)
-
-        return strategies
-    }
-
-    renderDualAxis(): React.ReactElement {
+    private renderDualAxis(): React.ReactElement {
         const { manager, dualAxis } = this
 
         return (
@@ -962,15 +610,15 @@ export class LineChart
         )
     }
 
-    renderColorLegend(): React.ReactElement | void {
-        if (this.hasColorLegend)
-            return <HorizontalNumericColorLegend manager={this} />
+    private renderColorLegend(): React.ReactElement | null {
+        if (!this.hasColorLegend) return null
+        return <HorizontalNumericColorLegend manager={this} />
     }
 
     /**
      * Render the lines themselves and their labels
      */
-    renderChartElements(): React.ReactElement {
+    private renderChartElements(): React.ReactElement {
         const { manager } = this
         return (
             <>
@@ -1009,7 +657,7 @@ export class LineChart
         )
     }
 
-    renderStatic(): React.ReactElement {
+    private renderStatic(): React.ReactElement {
         return (
             <>
                 {this.renderColorLegend()}
@@ -1019,7 +667,7 @@ export class LineChart
         )
     }
 
-    renderInteractive(): React.ReactElement {
+    private renderInteractive(): React.ReactElement {
         return (
             <g
                 ref={this.base}
@@ -1055,14 +703,14 @@ export class LineChart
     render(): React.ReactElement {
         const { manager, dualAxis } = this
 
-        if (this.failMessage)
+        if (this.chartState.failMessage)
             return (
                 <g>
                     {this.renderDualAxis()}
                     <NoDataModal
                         manager={manager}
                         bounds={dualAxis.innerBounds}
-                        message={this.failMessage}
+                        message={this.chartState.failMessage}
                     />
                 </g>
             )
@@ -1070,75 +718,21 @@ export class LineChart
         return manager.isStatic ? this.renderStatic() : this.renderInteractive()
     }
 
-    @computed get failMessage(): string {
-        const message = getDefaultFailMessage(this.manager)
-        if (message) return message
-        if (!this.series.length) return "No matching data"
-        return ""
-    }
-
-    @computed private get yColumns(): CoreColumn[] {
-        return this.yColumnSlugs.map((slug) => this.transformedTable.get(slug))
-    }
-
     @computed protected get yColumnSlugs(): string[] {
-        return autoDetectYColumnSlugs(this.manager)
-    }
-
-    @computed private get colorColumnSlug(): string | undefined {
-        return this.manager.colorColumnSlug
+        return this.chartState.yColumnSlugs
     }
 
     @computed private get colorColumn(): CoreColumn {
-        return this.transformedTable.get(this.colorColumnSlug)
+        return this.chartState.colorColumn
     }
 
     @computed private get formatColumn(): CoreColumn {
-        return this.yColumns[0]
+        return this.chartState.yColumns[0]
     }
 
     @computed private get hasColorScale(): boolean {
-        return !this.colorColumn.isMissing
+        return this.chartState.hasColorScale
     }
-
-    // Color scale props
-
-    @computed get colorScaleColumn(): CoreColumn {
-        return (
-            // For faceted charts, we have to get the values of inputTable before it's filtered by
-            // the faceting logic.
-            this.manager.colorScaleColumnOverride ?? // We need to use inputTable in order to get consistent coloring for a variable across
-            // charts, e.g. each continent being assigned to the same color.
-            // inputTable is unfiltered, so it contains every value that exists in the variable.
-            this.inputTable.get(this.colorColumnSlug)
-        )
-    }
-
-    @computed get colorScaleConfig(): ColorScaleConfigInterface | undefined {
-        return (
-            ColorScaleConfig.fromDSL(this.colorColumn.def) ??
-            this.manager.colorScale
-        )
-    }
-
-    @computed get hasNoDataBin(): boolean {
-        if (!this.hasColorScale) return false
-        return this.colorColumn.valuesIncludingErrorValues.some(
-            (value) => !isNotErrorValue(value)
-        )
-    }
-
-    defaultBaseColorScheme = ColorSchemeName.OwidDistinctLines
-    defaultNoDataColor = OWID_NO_DATA_GRAY
-    colorScale = this.props.manager.colorScaleOverride ?? new ColorScale(this)
-
-    private getColorScaleColor(value: CoreValueType | undefined): Color {
-        return this.colorScale.getColor(value) ?? DEFAULT_LINE_COLOR
-    }
-
-    // End of color scale props
-
-    // Color legend props
 
     @computed private get hasColorLegend(): boolean {
         return this.hasColorScale && !!this.manager.showLegend
@@ -1154,6 +748,10 @@ export class LineChart
 
     @computed get legendAlign(): HorizontalAlign {
         return HorizontalAlign.center
+    }
+
+    @computed private get colorScale(): ColorScale {
+        return this.chartState.colorScale
     }
 
     // TODO just pass colorScale to legend and let it figure it out?
@@ -1174,7 +772,9 @@ export class LineChart
         return this.manager.backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT
     }
 
-    @computed get numericLegend(): HorizontalNumericColorLegend | undefined {
+    @computed private get numericLegend():
+        | HorizontalNumericColorLegend
+        | undefined {
         return this.hasColorScale && this.manager.showLegend
             ? new HorizontalNumericColorLegend({ manager: this })
             : undefined
@@ -1196,126 +796,12 @@ export class LineChart
 
     // End of color legend props
 
-    @computed private get annotationsMap(): AnnotationsMap | undefined {
-        return getAnnotationsMap(this.inputTable, this.yColumnSlugs[0])
-    }
-
-    @computed private get colorScheme(): ColorScheme {
-        return (
-            (this.manager.baseColorScheme
-                ? ColorSchemes.get(this.manager.baseColorScheme)
-                : null) ?? ColorSchemes.get(this.defaultBaseColorScheme)
-        )
-    }
-
-    @computed get seriesStrategy(): SeriesStrategy {
-        return autoDetectSeriesStrategy(this.manager, true)
-    }
-
-    @computed get isLogScale(): boolean {
-        return this.yAxisConfig.scaleType === ScaleType.log
-    }
-
-    @computed private get categoricalColorAssigner(): CategoricalColorAssigner {
-        return new CategoricalColorAssigner({
-            colorScheme: this.colorScheme,
-            invertColorScheme: this.manager.invertColorScheme,
-            colorMap:
-                this.seriesStrategy === SeriesStrategy.entity
-                    ? this.inputTable.entityNameColorIndex
-                    : this.inputTable.columnDisplayNameToColorMap,
-            autoColorMapCache: this.manager.seriesColorMap,
-        })
-    }
-
-    private constructSingleSeries(
-        entityName: EntityName,
-        column: CoreColumn
-    ): LineChartSeries {
-        const {
-            manager: { canSelectMultipleEntities = false },
-            transformedTable: { availableEntityNames },
-            seriesStrategy,
-            hasColorScale,
-            colorColumn,
-        } = this
-
-        // Construct the points
-        const timeValues = column.originalTimeColumn.valuesIncludingErrorValues
-        const values = column.valuesIncludingErrorValues
-        const colorValues = colorColumn.valuesIncludingErrorValues
-        // If Y and Color are the same column, we need to get rid of any duplicate rows.
-        // Duplicates occur because Y doesn't have tolerance applied, but Color does.
-        const rowIndexes = _.sortedUniqBy(
-            this.transformedTable.rowIndicesByEntityName
-                .get(entityName)!
-                .filter((index) => _.isNumber(values[index])),
-            (index) => timeValues[index]
-        )
-        const points = rowIndexes.map((index) => {
-            const point: LinePoint = {
-                x: timeValues[index] as number,
-                y: values[index] as number,
-            }
-            if (hasColorScale) {
-                const colorValue = colorValues[index]
-                point.colorValue = isNotErrorValue(colorValue)
-                    ? colorValue
-                    : undefined
-            }
-            return point
-        })
-
-        // Construct series properties
-        const columnName = column.nonEmptyDisplayName
-        const seriesName = getSeriesName({
-            entityName,
-            columnName,
-            seriesStrategy,
-            availableEntityNames,
-            canSelectMultipleEntities,
-        })
-
-        let seriesColor: Color
-        if (hasColorScale) {
-            const colorValue = R.last(points)?.colorValue
-            seriesColor = this.getColorScaleColor(colorValue)
-        } else {
-            seriesColor = this.categoricalColorAssigner.assign(
-                getColorKey({
-                    entityName,
-                    columnName,
-                    seriesStrategy,
-                    availableEntityNames,
-                })
-            )
-        }
-
-        return {
-            points,
-            seriesName,
-            isProjection: column.isProjection,
-            plotMarkersOnly: column.display?.plotMarkersOnlyInLineChart,
-            color: seriesColor,
-        }
-    }
-
     @computed get series(): readonly LineChartSeries[] {
-        return this.yColumns.flatMap((col) =>
-            col.uniqEntityNames.map(
-                (entityName): LineChartSeries =>
-                    this.constructSingleSeries(entityName, col)
-            )
-        )
+        return this.chartState.series
     }
 
     @computed private get hasMarkersOnlySeries(): boolean {
         return this.series.some((series) => series.plotMarkersOnly)
-    }
-
-    // TODO: remove, seems unused
-    @computed get allPoints(): LinePoint[] {
-        return this.series.flatMap((series) => series.points)
     }
 
     @computed get placedSeries(): PlacedLineChartSeries[] {
@@ -1332,7 +818,9 @@ export class LineChart
                         y: _.round(verticalAxis.place(point.y), 1),
                         color: this.hasColorScale
                             ? darkenColorForLine(
-                                  this.getColorScaleColor(point.colorValue)
+                                  this.chartState.getColorScaleColor(
+                                      point.colorValue
+                                  )
                               )
                             : series.color,
                     })
@@ -1352,7 +840,7 @@ export class LineChart
         return this.focusArray.state(series.seriesName)
     }
 
-    @computed get renderSeries(): RenderLineChartSeries[] {
+    @computed private get renderSeries(): RenderLineChartSeries[] {
         let series: RenderLineChartSeries[] = this.placedSeries.map(
             (series) => {
                 return {
@@ -1377,7 +865,7 @@ export class LineChart
 
     // Order of the legend items on a line chart should visually correspond
     // to the order of the lines as the approach the legend
-    @computed get lineLegendSeries(): LineLabelSeries[] {
+    @computed private get lineLegendSeries(): LineLabelSeries[] {
         // If there are any projections, ignore non-projection legends (bit of a hack)
         let series = this.series
         if (series.some((series) => !!series.isProjection))
@@ -1411,28 +899,7 @@ export class LineChart
         })
     }
 
-    @computed private get xAxisConfig(): AxisConfig {
-        return new AxisConfig(
-            {
-                hideGridlines: true,
-                ...this.manager.xAxisConfig,
-            },
-            this
-        )
-    }
-
-    @computed private get horizontalAxisPart(): HorizontalAxis {
-        const axis = this.xAxisConfig.toHorizontalAxis()
-        axis.updateDomainPreservingUserSettings(
-            this.transformedTable.timeDomainFor(this.yColumnSlugs)
-        )
-        axis.scaleType = ScaleType.linear
-        axis.formatColumn = this.inputTable.timeColumn
-        axis.hideFractionalTicks = true
-        return axis
-    }
-
-    @computed private get yAxisConfig(): AxisConfig {
+    @computed get yAxisConfig(): AxisConfig {
         return new AxisConfig(
             {
                 nice: this.manager.yAxisConfig?.scaleType !== ScaleType.log,
@@ -1448,16 +915,39 @@ export class LineChart
         )
     }
 
+    @computed private get xAxisConfig(): AxisConfig {
+        return new AxisConfig(
+            {
+                hideGridlines: true,
+                ...this.manager.xAxisConfig,
+            },
+            this
+        )
+    }
+
+    @computed private get horizontalAxisPart(): HorizontalAxis {
+        const axis = this.xAxisConfig.toHorizontalAxis()
+        axis.updateDomainPreservingUserSettings(
+            this.chartState.transformedTable.timeDomainFor(this.yColumnSlugs)
+        )
+        axis.scaleType = ScaleType.linear
+        axis.formatColumn = this.chartState.inputTable.timeColumn
+        axis.hideFractionalTicks = true
+        return axis
+    }
+
     @computed private get verticalAxisPart(): VerticalAxis {
         const axisConfig = this.yAxisConfig
-        const yDomain = this.transformedTable.domainFor(this.yColumnSlugs)
+        const yDomain = this.chartState.transformedTable.domainFor(
+            this.yColumnSlugs
+        )
         const domain = axisConfig.domain
         const axis = axisConfig.toVerticalAxis()
         axis.updateDomainPreservingUserSettings([
             Math.min(domain[0], yDomain[0]),
             Math.max(domain[1], yDomain[1]),
         ])
-        axis.hideFractionalTicks = this.yColumns.every(
+        axis.hideFractionalTicks = this.chartState.yColumns.every(
             (yColumn) => yColumn.isAllIntegers
         ) // all y axis points are integral, don't show fractional ticks in that case
         axis.label = ""
