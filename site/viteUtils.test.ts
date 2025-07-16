@@ -1,7 +1,7 @@
 import { expect, it, describe } from "vitest"
 
 import { createTagsForManifestEntry } from "./viteUtils.js"
-import ReactDOMServer from "react-dom/server.js"
+import ReactDOMServer from "react-dom/server"
 
 // This is our actual manifest.json file as of 2023-03-14
 const manifest = {

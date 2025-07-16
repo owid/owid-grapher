@@ -1,7 +1,7 @@
 import { tippy } from "@tippyjs/react"
 import type { Instance } from "tippy.js"
 import { ADMIN_BASE_URL, BAKED_BASE_URL } from "../settings/clientSettings.js"
-import { renderToStaticMarkup } from "react-dom/server.js"
+import { renderToStaticMarkup } from "react-dom/server"
 import {
     ArchiveMetaInformation,
     DetailDictionary,
