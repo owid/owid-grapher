@@ -1067,7 +1067,6 @@ export class GrapherState {
     @computed get transformedTable(): OwidTable {
         return this.tableAfterAllTransformsAndFilters
     }
-    @observable.ref renderToStatic = false
     @observable.ref isExportingToSvgOrPng = false
     @observable.ref isSocialMediaExport = false
     @observable.ref isWikimediaExport = false
@@ -1088,9 +1087,11 @@ export class GrapherState {
     @observable.ref isSourcesModalOpen = false
     @observable.ref isDownloadModalOpen = false
     @observable.ref isEmbedModalOpen = false
+
     @computed get isStatic(): boolean {
-        return this.renderToStatic || this.isExportingToSvgOrPng
+        return this.isExportingToSvgOrPng
     }
+
     private get isStaging(): boolean {
         if (typeof location === "undefined") return false
         return location.host.includes("staging")
@@ -2453,7 +2454,7 @@ export class GrapherState {
 
         // In the editor, we usually want ideal bounds, except when we're rendering a static preview;
         // in that case, we want to use the given static bounds
-        if (isEditor) return !this.renderToStatic
+        if (isEditor) return !this.isExportingToSvgOrPng
 
         // If the available space is very small, we use all of the space given to us
         if (
@@ -3756,7 +3757,7 @@ export class Grapher extends React.Component<GrapherProps> {
             GrapherComponentMedium: this.grapherState.isMedium,
         })
 
-        const activeBounds = this.grapherState.renderToStatic
+        const activeBounds = this.grapherState.isExportingToSvgOrPng
             ? this.grapherState.staticBounds
             : this.grapherState.frameBounds
 
@@ -3786,10 +3787,9 @@ export class Grapher extends React.Component<GrapherProps> {
     }
 
     render(): React.ReactElement | undefined {
-        // TODO how to handle errors in exports?
-        // TODO remove this? should have a simple toStaticSVG for exporting
+        // Used in the admin to render a static preview of the chart
         if (this.grapherState.isExportingToSvgOrPng)
-            return <CaptionedChart manager={this.grapherState} />
+            return <StaticCaptionedChart manager={this.grapherState} />
 
         if (this.grapherState.isInFullScreenMode) {
             return (
@@ -3809,10 +3809,6 @@ export class Grapher extends React.Component<GrapherProps> {
 
     private renderReady(): React.ReactElement | null {
         if (!this.hasBeenVisible) return null
-
-        if (this.grapherState.renderToStatic) {
-            return <StaticCaptionedChart manager={this.grapherState} />
-        }
 
         const entitySelectorArray = this.grapherState.isOnMapTab
             ? this.grapherState.mapConfig.selection
