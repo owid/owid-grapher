@@ -11,7 +11,7 @@ import { ExplorerIndexPage } from "../site/ExplorerIndexPage.js"
 import { ThankYouPage } from "../site/ThankYouPage.js"
 import TombstonePage from "../site/TombstonePage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
-import ReactDOMServer from "react-dom/server.js"
+import ReactDOMServer from "react-dom/server"
 import { formatCountryProfile, isCanonicalInternalUrl } from "./formatting.js"
 import * as cheerio from "cheerio"
 import {

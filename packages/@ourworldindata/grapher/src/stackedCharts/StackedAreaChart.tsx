@@ -594,7 +594,7 @@ export class StackedAreaChart
         )
     }
 
-    renderLegend(): React.ReactElement | void {
+    renderLegend(): React.ReactElement | undefined {
         if (!this.manager.showLegend) return
         return (
             <LineLegend

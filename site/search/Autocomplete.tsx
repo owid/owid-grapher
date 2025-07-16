@@ -148,7 +148,7 @@ const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
         item: ({ item }) => {
             return (
                 <div>
-                    <span>{item.title}</span>
+                    <span>{item.title as string}</span>
                 </div>
             )
         },
@@ -252,7 +252,9 @@ const AllResultsSource: AutocompleteSource<BaseItem> = {
                         <div className="aa-ItemIcon">
                             <FontAwesomeIcon icon={faSearch} />
                         </div>
-                        <div className="aa-ItemContentBody">{item.title}</div>
+                        <div className="aa-ItemContentBody">
+                            {item.title as string}
+                        </div>
                     </div>
                 </div>
             )

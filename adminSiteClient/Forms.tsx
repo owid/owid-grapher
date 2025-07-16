@@ -614,7 +614,10 @@ export class Toggle extends React.Component<ToggleProps> {
     }
 }
 
-export class EditableList extends React.Component<{ className?: string }> {
+export class EditableList extends React.Component<{
+    className?: string
+    children?: React.ReactNode
+}> {
     render() {
         return this.props.children ? (
             <ul
@@ -701,7 +704,10 @@ export class ColorBox extends React.Component<ColorBoxProps> {
     }
 }
 
-export class Section extends React.Component<{ name: string }> {
+export class Section extends React.Component<{
+    name: string
+    children: React.ReactNode
+}> {
     render() {
         return (
             <section>

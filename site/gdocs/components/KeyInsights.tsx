@@ -75,16 +75,19 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
     // running on page load only, runs after the ref has been attached (and not
     // on first render, which would be before)
     // https://reactjs.org/docs/hooks-faq.html#how-can-i-measure-a-dom-node
-    const thumbsRef = useCallback((node) => {
+    const thumbsRef: React.RefCallback<HTMLDivElement> = useCallback((node) => {
         if (node !== null) {
             const keyInsightsNode = node.parentElement?.parentElement
 
             const tempSlides = keyInsightsNode?.querySelector(
                 `.${KEY_INSIGHTS_SLIDES_CLASS_NAME}`
-            )
+            ) as HTMLDivElement | null
             setSlides(tempSlides)
             // get slug from previous <h3>
-            setSlug(keyInsightsNode?.previousElementSibling?.getAttribute("id"))
+            setSlug(
+                keyInsightsNode?.previousElementSibling?.getAttribute("id") ??
+                    ""
+            )
         }
     }, [])
 

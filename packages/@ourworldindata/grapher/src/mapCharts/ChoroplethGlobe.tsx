@@ -716,7 +716,7 @@ export class ChoroplethGlobe extends React.Component<{
         )
     }
 
-    renderFeaturesInBackground(): React.ReactElement | void {
+    renderFeaturesInBackground(): React.ReactElement | undefined {
         if (this.backgroundFeatures.length === 0) return
 
         return (
@@ -732,7 +732,7 @@ export class ChoroplethGlobe extends React.Component<{
         )
     }
 
-    renderFeaturesWithNoData(): React.ReactElement | void {
+    renderFeaturesWithNoData(): React.ReactElement | undefined {
         if (this.featuresWithNoData.length === 0) return
 
         const patternId = Patterns.noDataPatternForGlobe
@@ -770,7 +770,7 @@ export class ChoroplethGlobe extends React.Component<{
         )
     }
 
-    renderFeaturesWithData(): React.ReactElement | void {
+    renderFeaturesWithData(): React.ReactElement | undefined {
         if (this.sortedFeaturesWithData.length === 0) return
 
         return (
@@ -832,7 +832,7 @@ export class ChoroplethGlobe extends React.Component<{
         )
     }
 
-    renderInternalAnnotations(): React.ReactElement | void {
+    renderInternalAnnotations(): React.ReactElement | undefined {
         if (this.internalAnnotations.length === 0) return
 
         return (
@@ -850,7 +850,7 @@ export class ChoroplethGlobe extends React.Component<{
         )
     }
 
-    renderExternalAnnotations(): React.ReactElement | void {
+    renderExternalAnnotations(): React.ReactElement | undefined {
         if (this.externalAnnotations.length === 0) return
 
         return (

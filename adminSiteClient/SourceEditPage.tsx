@@ -45,6 +45,9 @@ class SourceEditable {
 
 @observer
 class SourceEditor extends Component<{ source: SourcePageData }> {
+    static contextType = AdminAppContext
+    declare context: AdminAppContextType
+
     @observable newSource!: SourceEditable
     @observable isDeleted: boolean = false
 
