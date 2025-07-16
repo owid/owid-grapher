@@ -11,23 +11,14 @@ import { MarkdownTextWrap } from "@ourworldindata/components"
 import { Header, StaticHeader } from "../header/Header"
 import { Footer, StaticFooter } from "../footer/Footer"
 import {
-    ChartComponentClassMap,
-    DefaultChartClass,
-} from "../chart/ChartTypeMap"
-import {
-    BASE_FONT_SIZE,
-    Patterns,
     STATIC_EXPORT_DETAIL_SPACING,
     GRAPHER_FRAME_PADDING_VERTICAL,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
-    GRAPHER_CHART_AREA_CLASS,
-    SVG_STYLE_PROPS,
     DEFAULT_GRAPHER_BOUNDS,
 } from "../core/GrapherConstants"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
 import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
-import { FacetChart } from "../facetChart/FacetChart"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { FooterManager } from "../footer/FooterManager"
@@ -35,15 +26,11 @@ import { HeaderManager } from "../header/HeaderManager"
 import { SelectionArray } from "../selection/SelectionArray"
 import {
     EntityName,
-    GRAPHER_CHART_TYPES,
     RelatedQuestionsConfig,
     Color,
     GrapherTabName,
-    GRAPHER_MAP_TYPE,
-    GrapherChartOrMapType,
     GrapherChartType,
 } from "@ourworldindata/types"
-import { DataTable } from "../dataTable/DataTable"
 import { DataTableManager } from "../dataTable/DataTableConstants"
 import {
     TimelineComponent,
@@ -54,7 +41,10 @@ import {
     ControlsRow,
     ControlsRowManager,
 } from "../controls/controlsRow/ControlsRow"
-import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
+import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants.js"
+import { ChartAreaContent } from "../chart/ChartAreaContent"
+import { getChartSvgProps } from "../chart/ChartUtils"
+import { StaticChartWrapper } from "../chart/StaticChartWrapper"
 
 export interface CaptionedChartManager
     extends ChartManager,
@@ -63,7 +53,6 @@ export interface CaptionedChartManager
         HeaderManager,
         DataTableManager,
         ControlsRowManager {
-    containerElement?: HTMLDivElement
     bakedGrapherURL?: string
     isReady?: boolean
     whatAreWeWaitingFor?: string
@@ -120,10 +109,6 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
         return this.props.manager
     }
 
-    @computed private get containerElement(): HTMLDivElement | undefined {
-        return this.manager?.containerElement
-    }
-
     @computed protected get maxWidth(): number {
         return (
             this.props.maxWidth ??
@@ -154,23 +139,6 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
         })
     }
 
-    protected get patterns(): React.ReactElement {
-        return (
-            <defs>
-                <pattern
-                    id={Patterns.noDataPattern}
-                    key={Patterns.noDataPattern}
-                    patternUnits="userSpaceOnUse"
-                    width="4"
-                    height="4"
-                    patternTransform="rotate(-45 2 2)"
-                >
-                    <path d="M -1,2 l 6,0" stroke="#ccc" strokeWidth="0.7" />
-                </pattern>
-            </defs>
-        )
-    }
-
     @computed protected get bounds(): Bounds {
         const bounds =
             this.props.bounds ??
@@ -182,59 +150,7 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
 
     @computed protected get boundsForChartArea(): Bounds {
         const { bounds, chartHeight } = this
-        return new Bounds(0, 0, bounds.width, chartHeight).padWidth(
-            this.framePaddingHorizontal
-        )
-    }
-
-    @computed get activeChartOrMapType(): GrapherChartOrMapType | undefined {
-        const { manager } = this
-        if (manager.isOnTableTab) return undefined
-        if (manager.isOnMapTab) return GRAPHER_MAP_TYPE
-        if (manager.isOnChartTab) {
-            return manager.isLineChartThatTurnedIntoDiscreteBarActive
-                ? GRAPHER_CHART_TYPES.DiscreteBar
-                : manager.activeChartType
-        }
-        return undefined
-    }
-
-    renderChart(): React.ReactElement | void {
-        const {
-            manager,
-            boundsForChartArea: bounds,
-            activeChartOrMapType,
-            containerElement,
-        } = this
-        const { isFaceted } = manager
-
-        if (!activeChartOrMapType) return
-
-        // Todo: make FacetChart a chart type name?
-        const activeChartType =
-            activeChartOrMapType !== GRAPHER_MAP_TYPE
-                ? activeChartOrMapType
-                : undefined
-        if (isFaceted && activeChartType)
-            return (
-                <FacetChart
-                    bounds={bounds}
-                    chartTypeName={activeChartType}
-                    manager={manager}
-                />
-            )
-
-        const ChartClass =
-            ChartComponentClassMap.get(activeChartOrMapType) ??
-            DefaultChartClass
-
-        return (
-            <ChartClass
-                bounds={bounds}
-                manager={manager}
-                containerElement={containerElement}
-            />
-        )
+        return new Bounds(0, 0, bounds.width, chartHeight)
     }
 
     componentDidMount(): void {
@@ -299,60 +215,11 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
         )
     }
 
-    private renderLoadingIndicator(): React.ReactElement {
+    private renderLoadingIndicatorIntoSvg(): React.ReactElement {
         return (
             <foreignObject {...this.boundsForChartArea.toProps()}>
                 <LoadingIndicator title={this.manager.whatAreWeWaitingFor} />
             </foreignObject>
-        )
-    }
-
-    private renderDataTable(): React.ReactElement {
-        const { boundsForChartArea } = this
-        const containerStyle: React.CSSProperties = {
-            position: "relative",
-            ...this.boundsForChartArea.toCSS(),
-        }
-        return (
-            <div className="DataTableContainer" style={containerStyle}>
-                {this.manager.isReady ? (
-                    <DataTable
-                        bounds={boundsForChartArea}
-                        manager={this.manager}
-                    />
-                ) : (
-                    <LoadingIndicator
-                        title={this.manager.whatAreWeWaitingFor}
-                    />
-                )}
-            </div>
-        )
-    }
-
-    private renderChartOrMap(): React.ReactElement {
-        const { bounds, chartHeight } = this
-        const { width } = bounds
-
-        const containerStyle: React.CSSProperties = {
-            position: "relative",
-            clear: "both",
-            height: chartHeight,
-        }
-
-        return (
-            <div style={containerStyle}>
-                <svg
-                    {...this.svgProps}
-                    width={width}
-                    height={chartHeight}
-                    viewBox={`0 0 ${width} ${chartHeight}`}
-                >
-                    {this.patterns}
-                    {this.manager.isReady
-                        ? this.renderChart()
-                        : this.renderLoadingIndicator()}
-                </svg>
-            </div>
         )
     }
 
@@ -429,9 +296,11 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
                         )}
 
                         {/* #3 Chart/Map/Table */}
-                        {this.manager.isOnTableTab
-                            ? this.renderDataTable()
-                            : this.renderChartOrMap()}
+                        <ChartAreaContent
+                            manager={this.manager}
+                            bounds={this.boundsForChartArea}
+                            padWidth={GRAPHER_FRAME_PADDING_HORIZONTAL}
+                        />
 
                         {/* #4 [Timeline] */}
                         {this.manager.hasTimeline && (
@@ -451,7 +320,7 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
                             this.renderRelatedQuestion()}
                     </>
                 ) : (
-                    this.renderLoadingIndicator()
+                    this.renderLoadingIndicatorIntoSvg()
                 )}
             </div>
         )
@@ -462,16 +331,7 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
     }
 
     @computed protected get svgProps(): React.SVGProps<SVGSVGElement> {
-        return {
-            xmlns: "http://www.w3.org/2000/svg",
-            version: "1.1",
-            style: {
-                ...SVG_STYLE_PROPS,
-                fontSize: this.manager.fontSize ?? BASE_FONT_SIZE,
-                // needs to be set here or else pngs will have a black background
-                backgroundColor: this.backgroundColor,
-            },
-        }
+        return getChartSvgProps(this.manager)
     }
 }
 
@@ -484,6 +344,28 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
         super(props)
     }
 
+    // Bounds diagram
+    //
+    // +---------------------------+   |  |
+    // |  Padding                  |   |  |
+    // |  +--------------------+   |   |  |  |
+    // |  | Header             |   |   |  |  |
+    // |  |                    |   |   |  |  |
+    // |  | Chart area         |   |   |  |  |
+    // |  |                    |   |   |  |  |
+    // |  | Footer             |   |   |  |  | innerBounds
+    // |  +--------------------+   |   |  |
+    // |  Padding                  |   |  |
+    // +---------------------------+   |  | bounds
+    // | Details                   |   |
+    // +---------------------------+   | svgBounds
+
+    /** Bounds of the SVG element including details */
+    @computed private get svgBounds(): Bounds {
+        return this.manager.staticBoundsWithDetails ?? this.bounds
+    }
+
+    /** Bounds without details */
     @computed protected get bounds(): Bounds {
         return (
             this.props.bounds ??
@@ -492,37 +374,37 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
         )
     }
 
-    @computed protected get staticFooter(): Footer {
-        const { paddedBounds } = this
-        return new StaticFooter({
-            manager: this.manager,
-            maxWidth: this.maxWidth,
-            targetX: paddedBounds.x,
-            targetY: paddedBounds.bottom - this.footer.height,
-        })
-    }
-
-    @computed protected get staticHeader(): Header {
-        const { paddedBounds } = this
-        return new StaticHeader({
-            manager: this.manager,
-            maxWidth: this.maxWidth,
-            targetX: paddedBounds.x,
-            targetY: paddedBounds.y,
-        })
-    }
-
-    @computed private get paddedBounds(): Bounds {
+    /** Padded bounds of the actual chart area (without whitespace around it) */
+    @computed private get innerBounds(): Bounds {
         return this.bounds
             .padWidth(this.framePaddingHorizontal)
             .padHeight(this.framePaddingVertical)
     }
 
+    /** Bounds of the chart area (without header and footer) */
     @computed protected get boundsForChartArea(): Bounds {
-        return this.paddedBounds
+        return this.innerBounds
             .padTop(this.staticHeader.height)
             .padBottom(this.staticFooter.height + this.verticalPadding)
             .padTop(this.manager.isOnMapTab ? 0 : this.verticalPadding)
+    }
+
+    @computed protected get staticFooter(): Footer {
+        return new StaticFooter({
+            manager: this.manager,
+            maxWidth: this.maxWidth,
+            targetX: this.innerBounds.x,
+            targetY: this.innerBounds.bottom - this.footer.height,
+        })
+    }
+
+    @computed protected get staticHeader(): Header {
+        return new StaticHeader({
+            manager: this.manager,
+            maxWidth: this.maxWidth,
+            targetX: this.innerBounds.x,
+            targetY: this.innerBounds.y,
+        })
     }
 
     renderSVGDetails(): React.ReactElement {
@@ -562,77 +444,33 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
         )
     }
 
-    @computed private get fonts(): React.ReactElement {
-        let origin = ""
-        try {
-            if (this.manager.bakedGrapherURL)
-                origin = new URL(this.manager.bakedGrapherURL).origin
-        } catch {
-            // ignore
-        }
-        const css = `@import url(${origin}/fonts.css)`
-        return (
-            <defs>
-                <style>{css}</style>
-            </defs>
-        )
-    }
-
     render(): React.ReactElement {
-        const { paddedBounds, manager, maxWidth } = this
-
-        const bounds = this.manager.staticBoundsWithDetails ?? this.bounds
-        const width = bounds.width
-        const height = bounds.height
+        const { innerBounds, manager, maxWidth } = this
 
         const includeDetailsInStaticExport =
             manager.shouldIncludeDetailsInStaticExport &&
             !_.isEmpty(this.manager.detailRenderers)
 
-        const includeFontsStyle = !manager.isExportingForWikimedia
-        const includeBackgroundRect = !!manager.isExportingForWikimedia
-
         return (
-            <svg
-                {...this.svgProps}
-                width={width}
-                height={height}
-                viewBox={`0 0 ${width} ${height}`}
-            >
-                {includeFontsStyle && this.fonts}
-                {this.patterns}
-                {includeBackgroundRect && (
-                    <rect
-                        className="background-fill"
-                        fill={this.backgroundColor}
-                        width={width}
-                        height={height}
-                    />
-                )}
+            <StaticChartWrapper manager={this.manager} bounds={this.svgBounds}>
                 <StaticHeader
                     manager={manager}
                     maxWidth={maxWidth}
-                    targetX={paddedBounds.x}
-                    targetY={paddedBounds.y}
+                    targetX={innerBounds.x}
+                    targetY={innerBounds.y}
                 />
-                <g
-                    id={makeIdForHumanConsumption(GRAPHER_CHART_AREA_CLASS)}
-                    style={{ pointerEvents: "none" }}
-                >
-                    {/*
-                     We cannot render a table to svg, but would rather display nothing at all to avoid issues.
-                     See https://github.com/owid/owid-grapher/issues/3283
-                    */}
-                    {this.manager.isOnTableTab ? undefined : this.renderChart()}
-                </g>
+                <ChartAreaContent
+                    manager={this.manager}
+                    bounds={this.boundsForChartArea}
+                />
                 <StaticFooter
                     manager={manager}
                     maxWidth={maxWidth}
-                    targetX={paddedBounds.x}
-                    targetY={paddedBounds.bottom - this.staticFooter.height}
+                    targetX={innerBounds.x}
+                    targetY={innerBounds.bottom - this.staticFooter.height}
                 />
                 {includeDetailsInStaticExport && this.renderSVGDetails()}
-            </svg>
+            </StaticChartWrapper>
         )
     }
 }

@@ -2,6 +2,7 @@ import * as React from "react"
 import {
     areSetsEqual,
     Box,
+    excludeUndefined,
     getCountryByName,
     getTimeDomainFromQueryString,
     Url,
@@ -37,6 +38,9 @@ import {
     GRAPHER_TIMELINE_CLASS,
     GRAPHER_SETTINGS_CLASS,
     validChartTypeCombinations,
+    Patterns,
+    SVG_STYLE_PROPS,
+    BASE_FONT_SIZE,
 } from "../core/GrapherConstants"
 import { ChartSeries } from "./ChartInterface"
 import {
@@ -44,6 +48,7 @@ import {
     isNotErrorValueOrEmptyCell,
     OwidTable,
 } from "@ourworldindata/core-table"
+import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants.js"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
     if (manager.yColumnSlugs && manager.yColumnSlugs.length)
@@ -500,4 +505,47 @@ export function combineHistoricalAndProjectionColumns(
         )
 
     return table
+}
+
+export function NoDataPattern({
+    patternId = Patterns.noDataPattern,
+    scale = 1,
+}: {
+    patternId?: string
+    scale?: number
+}): React.ReactElement {
+    const patternTransforms = excludeUndefined([
+        `rotate(-45 2 2)`,
+        scale !== 1 ? `scale(${scale})` : undefined,
+    ])
+    return (
+        <pattern
+            id={patternId}
+            patternUnits="userSpaceOnUse"
+            width="4"
+            height="4"
+            patternTransform={patternTransforms.join(" ")}
+        >
+            <path d="M -1,2 l 6,0" stroke="#ccc" strokeWidth={0.7} />
+        </pattern>
+    )
+}
+
+export function getChartSvgProps({
+    fontSize,
+    backgroundColor,
+}: {
+    fontSize?: number
+    backgroundColor?: string
+}): React.SVGProps<SVGSVGElement> {
+    return {
+        xmlns: "http://www.w3.org/2000/svg",
+        version: "1.1",
+        style: {
+            ...SVG_STYLE_PROPS,
+            fontSize: fontSize ?? BASE_FONT_SIZE,
+            // Needs to be set here or else pngs will have a black background
+            backgroundColor: backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT,
+        },
+    }
 }

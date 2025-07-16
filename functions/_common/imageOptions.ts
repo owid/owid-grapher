@@ -4,6 +4,8 @@ import {
     GRAPHER_SQUARE_SIZE,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
 } from "@ourworldindata/grapher"
+import { Bounds } from "@ourworldindata/utils"
+import { GrapherRenderMode } from "@ourworldindata/types"
 import {
     DEFAULT_ASPECT_RATIO,
     MIN_ASPECT_RATIO,
@@ -53,12 +55,26 @@ const SQUARE_OPTIONS: Readonly<ImageOptions> = {
         staticBounds: DEFAULT_GRAPHER_BOUNDS_SQUARE,
     },
 }
+const THUMBNAIL_OPTIONS: Readonly<ImageOptions> = {
+    pngWidth: 900,
+    pngHeight: 480,
+    svgWidth: 900,
+    svgHeight: 480,
+    details: false,
+    fontSize: undefined,
+    grapherProps: {
+        isSocialMediaExport: false,
+        staticBounds: new Bounds(0, 0, 900, 480),
+        renderMode: GrapherRenderMode.Thumbnail,
+    },
+}
 
 export const extractOptions = (params: URLSearchParams): ImageOptions => {
     const imType = params.get("imType")
     // We have some special images types specified via the `imType` query param:
     if (imType === "twitter") return TWITTER_OPTIONS
     else if (imType === "og") return OPEN_GRAPH_OPTIONS
+    else if (imType === "thumbnail") return THUMBNAIL_OPTIONS
     else if (imType === "square" || imType === "social-media-square") {
         const squareOptions = _.cloneDeep(SQUARE_OPTIONS) as ImageOptions
         if (imType === "social-media-square") {
