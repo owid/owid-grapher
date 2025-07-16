@@ -57,7 +57,7 @@
     "versor": "^0.2.0"
   },
   "devDependencies": {
-    "@testing-library/react": "^12.1.5",
+    "@testing-library/react": "^16.3.0",
     "@types/colorbrewer": "^1.0.29",
     "@types/d3": "^6",
     "@types/d3-format": "^2",
