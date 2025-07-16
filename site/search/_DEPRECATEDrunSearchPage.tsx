@@ -1,6 +1,10 @@
-import { render } from "react-dom"
+import { createRoot } from "react-dom/client"
 import { DEPRECATEDInstantSearchContainer } from "./_DEPRECATEDSearchPanel.js"
 
 export function DEPRECATEDrunSearchPage() {
-    render(<DEPRECATEDInstantSearchContainer />, document.querySelector("main"))
+    const container = document.querySelector("main")
+    if (!container) return
+
+    const root = createRoot(container)
+    root.render(<DEPRECATEDInstantSearchContainer />)
 }

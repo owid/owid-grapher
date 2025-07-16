@@ -648,7 +648,7 @@ export class StackedDiscreteBarChart
         )
     }
 
-    renderLegend(): React.ReactElement | void {
+    renderLegend(): React.ReactElement | undefined {
         if (!this.showLegend) return
         return <HorizontalCategoricalColorLegend manager={this} />
     }

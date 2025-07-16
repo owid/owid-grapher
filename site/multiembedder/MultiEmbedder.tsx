@@ -25,7 +25,6 @@ import {
     MultiDimDataPageConfig,
 } from "@ourworldindata/utils"
 import { action, makeObservable } from "mobx"
-import ReactDOM from "react-dom"
 import {
     Explorer,
     ExplorerProps,
@@ -47,6 +46,7 @@ import {
 // import { embedDynamicCollectionGrapher } from "../collections/DynamicCollection.js"
 import { match } from "ts-pattern"
 import MultiDim from "../multiDim/MultiDim.js"
+import { createRoot } from "react-dom/client"
 
 type EmbedType = "grapher" | "explorer" | "multiDim" | "narrativeChart"
 
@@ -155,7 +155,9 @@ class MultiEmbedder {
         )
         if (props.selection)
             this.graphersAndExplorersToUpdate.add(props.selection)
-        ReactDOM.render(<Explorer {...props} />, figure)
+
+        const root = createRoot(figure)
+        root.render(<Explorer {...props} />)
     }
 
     private async _renderGrapherComponentIntoFigure(
@@ -265,15 +267,15 @@ class MultiEmbedder {
                 localGrapherConfig.manager.selection
             )
         }
-        ReactDOM.render(
+        const root = createRoot(figure)
+        root.render(
             <MultiDim
                 slug={slug}
                 config={MultiDimDataPageConfig.fromObject(multiDimConfig)}
                 localGrapherConfig={localGrapherConfig}
                 queryStr={queryStr}
                 isPreviewing={this.isPreviewing}
-            />,
-            figure
+            />
         )
     }
 

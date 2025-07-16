@@ -1,5 +1,5 @@
 import * as cheerio from "cheerio"
-import ReactDOMServer from "react-dom/server.js"
+import ReactDOMServer from "react-dom/server"
 import {
     FormattedPost,
     TocHeading,

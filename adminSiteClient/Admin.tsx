@@ -1,5 +1,4 @@
 import * as Sentry from "@sentry/react"
-import ReactDOM from "react-dom"
 import * as lodash from "lodash-es"
 import { observable, computed, action, makeObservable } from "mobx"
 import urljoin from "url-join"
@@ -11,6 +10,7 @@ import {
     stringifyUnknownError,
     queryParamsToStr,
 } from "@ourworldindata/utils"
+import { createRoot } from "react-dom/client"
 
 type HTTPMethod = "GET" | "PUT" | "POST" | "DELETE" | "PATCH"
 
@@ -66,7 +66,8 @@ export class Admin {
         "default"
 
     start(containerNode: HTMLElement): void {
-        ReactDOM.render(<AdminApp admin={this} />, containerNode)
+        const root = createRoot(containerNode)
+        root.render(<AdminApp admin={this} />)
     }
 
     url(path: string): string {

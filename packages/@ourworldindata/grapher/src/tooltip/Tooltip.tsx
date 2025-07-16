@@ -92,6 +92,7 @@ class TooltipCard extends React.Component<
     }
 > {
     static contextType = TooltipContext
+    declare context: React.ContextType<typeof TooltipContext>
 
     private base: React.RefObject<HTMLDivElement> = React.createRef()
 

@@ -21,6 +21,7 @@ export class ExplorerControlBar extends Component<{
     isMobile?: boolean
     showControls?: boolean
     closeControls?: () => void
+    children: React.ReactNode
 }> {
     render() {
         const { isMobile, showControls, closeControls } = this.props

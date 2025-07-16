@@ -1,5 +1,4 @@
 import * as React from "react"
-import ReactDOM from "react-dom"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -11,6 +10,7 @@ import { observable, action, toJS, computed, makeObservable } from "mobx"
 import classnames from "classnames"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { stringifyUnknownError } from "@ourworldindata/utils"
+import { createRoot } from "react-dom/client"
 
 const sendFeedback = async (feedback: Feedback) => {
     const json = {
@@ -376,10 +376,13 @@ export class FeedbackPrompt extends React.Component {
 }
 
 export function runFeedbackPage() {
-    ReactDOM.render(
+    const elem = document.querySelector(".FeedbackPage main")
+    if (!elem) throw new Error("FeedbackPage main element not found in DOM")
+
+    const root = createRoot(elem)
+    root.render(
         <div className="box">
             <FeedbackForm />
-        </div>,
-        document.querySelector(".FeedbackPage main")
+        </div>
     )
 }

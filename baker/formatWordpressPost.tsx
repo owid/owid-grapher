@@ -1,7 +1,7 @@
 import * as cheerio from "cheerio"
 import type { AnyNode } from "domhandler"
 import urlSlug from "url-slug"
-import ReactDOMServer from "react-dom/server.js"
+import ReactDOMServer from "react-dom/server"
 import { FormattingOptions, GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import { FormattedPost, FullPost, TocHeading, Url } from "@ourworldindata/utils"
 import { Footnote } from "../site/Footnote.js"

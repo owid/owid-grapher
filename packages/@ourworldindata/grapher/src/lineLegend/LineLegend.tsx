@@ -171,7 +171,7 @@ class LineLabels extends React.Component<LineLabelsProps> {
         )
     }
 
-    @computed private get textAnnotations(): React.ReactElement | void {
+    @computed private get textAnnotations(): React.ReactElement | undefined {
         const markersWithAnnotations = this.markers.filter(
             ({ series }) => series.annotationTextWrap !== undefined
         )
@@ -213,7 +213,7 @@ class LineLabels extends React.Component<LineLabelsProps> {
         )
     }
 
-    @computed private get connectorLines(): React.ReactElement | void {
+    @computed private get connectorLines(): React.ReactElement | undefined {
         if (!this.props.needsConnectorLines) return
         return (
             <g id={makeIdForHumanConsumption("connectors")}>
@@ -250,7 +250,7 @@ class LineLabels extends React.Component<LineLabelsProps> {
         )
     }
 
-    @computed private get interactions(): React.ReactElement | void {
+    @computed private get interactions(): React.ReactElement | undefined {
         return (
             <g>
                 {this.props.series.map((series, index) => {

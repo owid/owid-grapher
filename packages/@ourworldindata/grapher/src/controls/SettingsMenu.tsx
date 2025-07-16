@@ -361,10 +361,9 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
         )
     }
 
-    @computed private get menu(): JSX.Element | void {
-        if (this.active) {
-            return this.menuContents
-        }
+    @computed private get menu(): JSX.Element | undefined {
+        if (this.active) return this.menuContents
+        else return undefined
     }
 
     @computed private get menuContents(): JSX.Element {

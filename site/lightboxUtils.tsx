@@ -1,6 +1,6 @@
-import ReactDOM from "react-dom"
 import { LightboxImage } from "./LightboxImage.js"
 import { Lightbox } from "./Lightbox.js"
+import { createRoot } from "react-dom/client"
 
 export const LIGHTBOX_IMAGE_CLASS = "lightbox-image"
 
@@ -81,7 +81,8 @@ export const runLightbox = () => {
 
             const imgAlt = img.alt
             if (imgSrc) {
-                ReactDOM.render(
+                const root = createRoot(lightboxContainer)
+                root.render(
                     <Lightbox
                         imgSrc={imgSrc}
                         imgFilename={imgFilename}
@@ -97,8 +98,7 @@ export const runLightbox = () => {
                                 setIsLoaded={setIsLoaded}
                             />
                         )}
-                    </Lightbox>,
-                    lightboxContainer
+                    </Lightbox>
                 )
             }
         })
