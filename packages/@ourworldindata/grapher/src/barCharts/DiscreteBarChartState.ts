@@ -115,7 +115,7 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
 
         // Don't reuse the line chart's color scheme (typically owid-distinct)
         // and use the default color scheme instead (single color)
-        return this.manager.hasLineChart
+        return this.manager.hasLineChart || this.manager.hasSlopeChart
             ? ColorSchemes.get(defaultColorScheme)
             : ColorSchemes.get(colorScheme)
     }
