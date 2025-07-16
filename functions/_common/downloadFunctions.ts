@@ -1,7 +1,6 @@
 import * as _ from "lodash-es"
 import {
     fetchInputTableForConfig,
-    Grapher,
     GrapherState,
     WORLD_ENTITY_NAME,
     getEntityNamesParam,
@@ -15,6 +14,7 @@ import { assembleMetadata, getColumnsForMetadata } from "./metadataTools.js"
 import { Env } from "./env.js"
 import {
     getDataApiUrl,
+    getGrapherTableWithRelevantColumns,
     GrapherIdentifier,
     initGrapher,
 } from "./grapherTools.js"
@@ -70,7 +70,7 @@ export async function fetchZipForGrapher(
     grapher.grapherState.inputTable = inputTable
     ensureDownloadOfDataAllowed(grapher.grapherState)
     const metadata = assembleMetadata(grapher.grapherState, searchParams)
-    const readme = assembleReadme(grapher, searchParams)
+    const readme = assembleReadme(grapher.grapherState, searchParams)
     const csv = assembleCsv(grapher.grapherState, searchParams)
     console.log("Fetched the parts, creating zip file")
 
@@ -90,18 +90,20 @@ export async function fetchZipForGrapher(
         },
     })
 }
-function assembleCsv(
+
+export function assembleCsv(
     grapherState: GrapherState,
     searchParams: URLSearchParams
 ): string {
-    const useShortNames = searchParams.get("useColumnShortNames") === "true"
-    const fullTable = grapherState.inputTable
-    const filteredTable = grapherState.isOnTableTab
-        ? grapherState.tableForDisplay
-        : grapherState.transformedTable
-    const table =
-        searchParams.get("csvType") === "filtered" ? filteredTable : fullTable
-    return table.toPrettyCsv(useShortNames)
+    const shouldUseShortNames =
+        searchParams.get("useColumnShortNames") === "true"
+    const shouldUseFilteredTable = searchParams.get("csvType") === "filtered"
+
+    const table = getGrapherTableWithRelevantColumns(grapherState, {
+        shouldUseFilteredTable,
+    })
+
+    return table.toPrettyCsv(shouldUseShortNames)
 }
 
 export async function fetchCsvForGrapher(
@@ -135,7 +137,7 @@ export async function fetchCsvForGrapher(
     })
 }
 
-function ensureDownloadOfDataAllowed(grapherState: GrapherState) {
+export function ensureDownloadOfDataAllowed(grapherState: GrapherState) {
     if (
         grapherState.inputTable.columnsAsArray.some(
             (col) => (col.def as OwidColumnDef).nonRedistributable
@@ -169,7 +171,7 @@ export async function fetchReadmeForGrapher(
     grapher.grapherState.inputTable = inputTable
 
     const readme = assembleReadme(
-        grapher,
+        grapher.grapherState,
         searchParams,
         multiDimAvailableDimensions
     )
@@ -180,14 +182,14 @@ export async function fetchReadmeForGrapher(
     })
 }
 
-function assembleReadme(
-    grapher: Grapher,
+export function assembleReadme(
+    grapherState: GrapherState,
     searchParams: URLSearchParams,
     multiDimAvailableDimensions?: string[]
 ): string {
-    const metadataCols = getColumnsForMetadata(grapher.grapherState)
+    const metadataCols = getColumnsForMetadata(grapherState)
     return constructReadme(
-        grapher.grapherState,
+        grapherState,
         metadataCols,
         searchParams,
         multiDimAvailableDimensions
