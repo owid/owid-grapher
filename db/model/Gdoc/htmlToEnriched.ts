@@ -33,12 +33,14 @@ import {
 import { match, P } from "ts-pattern"
 import * as cheerio from "cheerio"
 import { spansToSimpleString } from "./gdocUtils.js"
+import type { AnyNode } from "domhandler"
 
 //#region Spans
-function spanFallback(element: CheerioElement): SpanFallback {
+function spanFallback(element: AnyNode): SpanFallback {
+    const children = "children" in element ? element.children : []
     return {
         spanType: "span-fallback",
-        children: _.compact(element.children?.map(cheerioToSpan)) ?? [],
+        children: _.compact(children.map(cheerioToSpan)) ?? [],
     }
 }
 
@@ -132,7 +134,7 @@ export function htmlToSpans(html: string): Span[] {
     return _.compact(elements.map(cheerioToSpan)) ?? []
 }
 
-function cheerioToSpan(element: CheerioElement): Span | undefined {
+function cheerioToSpan(element: AnyNode): Span | undefined {
     if (element.type === "text")
         // The regex replace takes care of the ArchieML escaping of :
         return {
@@ -277,7 +279,7 @@ interface WpComponent {
 type ArchieBlockOrWpComponent = OwidEnrichedGdocBlock | WpComponent
 
 interface ParseContext {
-    $: CheerioStatic
+    $: cheerio.CheerioAPI
     htmlTagCounts: Record<string, number>
 }
 
@@ -286,10 +288,11 @@ interface ParseContext {
     this "removes" an html element like a div that we don't care about on its
     own, and where instead we just want to handle the children. */
 function unwrapElement(
-    element: CheerioElement,
+    element: AnyNode,
     context: ParseContext
 ): BlockParseResult<ArchieBlockOrWpComponent> {
-    const result = cheerioElementsToArchieML(element.children, context)
+    const children = "children" in element ? element.children : []
+    const result = cheerioElementsToArchieML(children, context)
     return result
 }
 
@@ -339,13 +342,13 @@ function isEnrichedTextBlock(
 }
 
 function cheerioToArchieML(
-    element: CheerioElement,
+    element: AnyNode,
     context: ParseContext
 ): BlockParseResult<ArchieBlockOrWpComponent> {
     if (element.type === "comment") return { errors: [], content: [] }
 
     const unwrapElementWithContext = (
-        element: CheerioElement
+        element: AnyNode
     ): BlockParseResult<ArchieBlockOrWpComponent> =>
         unwrapElement(element, context)
 
@@ -440,7 +443,7 @@ function cheerioToArchieML(
                     const errors: BlockParseError[] = []
                     const [figcaptionChildren, otherChildren] = _.partition(
                         element.children,
-                        (n) => n.tagName === "figcaption"
+                        (n) => n.type === "tag" && n.tagName === "figcaption"
                     )
                     let figcaptionElement: EnrichedBlockText | undefined =
                         undefined
@@ -502,7 +505,10 @@ function cheerioToArchieML(
                         "iframe"
                     )
                     if (!image) {
-                        if (otherChildren[0].tagName === "table") {
+                        if (
+                            otherChildren[0].type === "tag" &&
+                            otherChildren[0].tagName === "table"
+                        ) {
                             const childResult = cheerioToArchieML(
                                 otherChildren[0],
                                 context
@@ -539,6 +545,9 @@ function cheerioToArchieML(
                         }
                     }
 
+                    const imageAttribs =
+                        image && "attribs" in image ? image.attribs : {}
+
                     return {
                         errors,
                         content: [
@@ -546,13 +555,13 @@ function cheerioToArchieML(
                                 type: "image",
                                 // src is the entire path. we only want the filename
                                 filename: path
-                                    .basename(image?.attribs["src"] ?? "")
+                                    .basename(imageAttribs["src"] ?? "")
                                     .replace(
                                         // removing size suffixes e.g. some_file-1280x840.png -> some_file.png
                                         /-\d+x\d+\.(png|jpg|jpeg|gif|svg)$/,
                                         ".$1"
                                     ),
-                                alt: image?.attribs["alt"] ?? "",
+                                alt: imageAttribs["alt"] ?? "",
                                 parseErrors: [],
                                 originalWidth: undefined,
                                 hasOutline: false,
@@ -681,7 +690,7 @@ function cheerioToArchieML(
                 { tagName: "ul" },
                 (): BlockParseResult<EnrichedBlockList> => {
                     const children = element.children?.flatMap((child) => {
-                        if (!child.children) return []
+                        if (!("children" in child) || !child.children) return []
                         const grandChildren = cheerioElementsToArchieML(
                             child.children,
                             context
@@ -747,6 +756,7 @@ function cheerioToArchieML(
                 { tagName: "ol" },
                 (): BlockParseResult<EnrichedBlockNumberedList> => {
                     const children = element.children?.flatMap((child) => {
+                        if (!("children" in child) || !child.children) return []
                         const grandChildren = cheerioElementsToArchieML(
                             child.children,
                             context
@@ -863,7 +873,7 @@ function cheerioToArchieML(
 }
 
 function cheerioElementsToArchieML(
-    elements: CheerioElement[],
+    elements: AnyNode[],
     context: ParseContext
 ): BlockParseResult<ArchieBlockOrWpComponent> {
     if (!elements || !elements.length)
@@ -871,7 +881,7 @@ function cheerioElementsToArchieML(
             errors: [],
             content: [],
         }
-    let remainingElements: CheerioElement[] = elements
+    let remainingElements: AnyNode[] = elements
     const parsedContent: BlockParseResult<ArchieBlockOrWpComponent>[] = []
     while (remainingElements.length > 0) {
         const element = remainingElements[0]
@@ -924,12 +934,15 @@ function joinBlockParseResults<T>(
 }
 
 function findCheerioElementRecursive(
-    elements: CheerioElement[],
+    elements: AnyNode[],
     tagName: string
-): CheerioElement | undefined {
+): AnyNode | undefined {
     for (const element of elements) {
-        if (element.tagName === tagName) return element
-        else {
+        if ("tagName" in element && element.tagName === tagName) {
+            return element
+        } else {
+            if (!("children" in element)) continue
+
             const result = findCheerioElementRecursive(
                 element.children ?? [],
                 tagName
@@ -941,11 +954,12 @@ function findCheerioElementRecursive(
 }
 
 function getSpansFromChildren(
-    element: CheerioElement,
+    element: AnyNode,
     context: ParseContext
 ): BlockParseResult<Span> {
+    const children = "children" in element ? element.children : []
     const childElements = joinBlockParseResults(
-        element.children.map((child) => cheerioToArchieML(child, context))
+        children.map((child) => cheerioToArchieML(child, context))
     )
     return getSpansFromBlockParseResult(childElements)
 }

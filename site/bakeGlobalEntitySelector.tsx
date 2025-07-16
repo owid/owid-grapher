@@ -6,8 +6,9 @@ import {
 } from "@ourworldindata/grapher"
 import ReactDOMServer from "react-dom/server.js"
 import { ENV } from "../settings/serverSettings.js"
+import { CheerioAPI } from "cheerio"
 
-export const bakeGlobalEntitySelector = (cheerioEl: CheerioStatic) => {
+export const bakeGlobalEntitySelector = (cheerioEl: CheerioAPI) => {
     // The data attr used to be `data-entity-select`, but later changed for consistency in the code.
     // But we should still support the old attribute.
     cheerioEl(`*[data-entity-select], ${GLOBAL_ENTITY_SELECTOR_ELEMENT}`).each(

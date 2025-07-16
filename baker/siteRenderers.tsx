@@ -535,7 +535,7 @@ const renderPostThumbnailBySlug = async (
 }
 
 export const renderProminentLinks = async (
-    $: CheerioStatic,
+    $: cheerio.CheerioAPI,
     containerPostId: number,
     knex: KnexReadonlyTransaction
 ) => {
@@ -609,7 +609,7 @@ export const renderProminentLinks = async (
                 <div className="block-wrapper">
                     <ProminentLink
                         href={resolvedUrlString}
-                        style={style}
+                        style={style ?? null}
                         title={title}
                         content={content}
                         image={image}

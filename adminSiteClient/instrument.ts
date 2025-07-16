@@ -1,3 +1,7 @@
+// This is a weird thing, but we need to import the node types here to get
+// the types for `process.env` to work correctly.
+/// <reference types="node" />
+
 import * as Sentry from "@sentry/react"
 import {
     COMMIT_SHA,

@@ -116,18 +116,16 @@ export const SampleExplorerOfGraphers = (props?: Partial<ExplorerProps>) => {
             title: "Switched to Something Else",
         },
     ]
-    return (
-        <Explorer
-            slug="test-slug"
-            program={SampleExplorerOfGraphersProgram}
-            grapherConfigs={grapherConfigs}
-            adminBaseUrl=""
-            bakedBaseUrl=""
-            bakedGrapherUrl=""
-            dataApiUrl=""
-            {...props}
-        />
-    )
+    return new Explorer({
+        slug: "test-slug",
+        program: SampleExplorerOfGraphersProgram,
+        grapherConfigs,
+        adminBaseUrl: "",
+        bakedBaseUrl: "",
+        bakedGrapherUrl: "",
+        dataApiUrl: "",
+        ...props,
+    })
 }
 
 const SampleInlineDataExplorerProgram = `explorerTitle	Sample Explorer
@@ -152,15 +150,13 @@ table
 	Argentina	2021	1	1	1	1`
 
 export const SampleInlineDataExplorer = (props?: Partial<ExplorerProps>) => {
-    return (
-        <Explorer
-            slug="test-slug-inline-data"
-            program={SampleInlineDataExplorerProgram}
-            adminBaseUrl=""
-            bakedBaseUrl=""
-            bakedGrapherUrl=""
-            dataApiUrl=""
-            {...props}
-        />
-    )
+    return new Explorer({
+        slug: "test-slug-inline-data",
+        program: SampleInlineDataExplorerProgram,
+        adminBaseUrl: "",
+        bakedBaseUrl: "",
+        bakedGrapherUrl: "",
+        dataApiUrl: "",
+        ...props,
+    })
 }

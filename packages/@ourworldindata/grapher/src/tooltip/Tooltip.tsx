@@ -183,6 +183,7 @@ class TooltipCard extends React.Component<
             <div
                 ref={this.base}
                 id={id?.toString()}
+                role="tooltip"
                 className={classnames("Tooltip", {
                     plain,
                     dissolve,

@@ -2,14 +2,11 @@
  * @vitest-environment jsdom
  */
 
-import { expect, test } from "vitest"
+import { assert, expect, test } from "vitest"
+import { render, fireEvent, screen } from "@testing-library/react"
 import { Grapher, GrapherState } from "../core/Grapher.js"
 import { legacyMapGrapher, legacyMapGrapherData } from "./MapChart.sample.js"
-
-import Enzyme from "enzyme"
-import Adapter from "@wojtekmaj/enzyme-adapter-react-17"
 import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "../core/LegacyToOwidTable.js"
-Enzyme.configure({ adapter: new Adapter() })
 
 const state = new GrapherState({ ...legacyMapGrapher })
 state.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
@@ -17,25 +14,25 @@ state.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
     legacyMapGrapher.dimensions!,
     legacyMapGrapher.selectedEntityColors
 )
-const grapherWrapper = Enzyme.mount(<Grapher grapherState={state} />)
 
 test("map tooltip renders iff mouseenter", () => {
-    expect(grapherWrapper.find(".Tooltip")).toHaveLength(0)
+    const { container } = render(<Grapher grapherState={state} />)
 
-    const grapherWrapperWithHover = grapherWrapper
-        .find("path")
-        .findWhere((node) => node.prop("data-feature-id") === "Iceland")
-        .simulate("mouseenter", {
-            clientX: 50,
-            clientY: 50,
-        })
-        .update()
+    expect(screen.queryByRole("tooltip")).toBeFalsy()
 
-    expect(grapherWrapperWithHover.find(".Tooltip")).toHaveLength(1)
-
-    const tooltipWrapper = grapherWrapperWithHover.find(".Tooltip")
-    expect(tooltipWrapper.find(".variable .definition").text()).toContain(
-        "% of children under 5"
+    const icelandPath = container.querySelector(
+        'path[data-feature-id="Iceland"]'
     )
-    expect(tooltipWrapper.find(".variable .values").text()).toEqual("4%")
+    assert(icelandPath, "Iceland path should exist")
+    fireEvent.mouseEnter(icelandPath, {
+        clientX: 50,
+        clientY: 50,
+    })
+
+    const tooltip = screen.getByRole("tooltip")
+
+    expect(
+        tooltip.querySelector(".variable .definition")?.textContent
+    ).toContain("% of children under 5")
+    expect(tooltip.querySelector(".variable .values")).toHaveTextContent("4%")
 })

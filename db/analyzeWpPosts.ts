@@ -1,23 +1,22 @@
 import * as db from "./db.js"
 import * as _ from "lodash-es"
 import * as cheerio from "cheerio"
+import type { AnyNode } from "domhandler"
 
 // const argv = parseArgs(process.argv.slice(2))
 
 export function traverseNode(
-    node: CheerioElement,
+    node: AnyNode,
     depth: number,
     isFilterActive: boolean,
-    decideFilter: (elem: CheerioElement) => boolean,
-    handler: (
-        elem: CheerioElement,
-        depth: number,
-        isFilterActive: boolean
-    ) => void
+    decideFilter: (elem: AnyNode) => boolean,
+    handler: (elem: AnyNode, depth: number, isFilterActive: boolean) => void
 ): void {
     handler(node, depth, isFilterActive)
     const filterActive = isFilterActive || decideFilter(node)
-    node.children?.forEach((elem) =>
+
+    if (!("children" in node)) return
+    node.children.forEach((elem) =>
         traverseNode(elem, depth + 1, filterActive, decideFilter, handler)
     )
 }
@@ -32,12 +31,12 @@ const analyze = async (): Promise<void> => {
         )
 
         const tagCounts = new Map<string, number>()
-        const decideFilter = (node: CheerioElement): boolean =>
+        const decideFilter = (node: AnyNode): boolean =>
             node.type === "tag" && node.tagName === "iframe"
 
         for (const post of posts) {
             // temp workaround for load with 3 params not showing up in TS type
-            const $: CheerioStatic = cheerio.load(post.content)
+            const $: cheerio.CheerioAPI = cheerio.load(post.content)
             $("body").each((i, node) => {
                 traverseNode(
                     node,

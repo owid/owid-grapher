@@ -3,12 +3,9 @@
  */
 
 import { expect, it, describe } from "vitest"
+import { render, screen } from "@testing-library/react"
 import { ExplorerControlType } from "./ExplorerConstants.js"
 import { ExplorerControlPanel } from "./ExplorerControls.js"
-
-import Enzyme from "enzyme"
-import Adapter from "@wojtekmaj/enzyme-adapter-react-17"
-Enzyme.configure({ adapter: new Adapter() })
 
 describe(ExplorerControlPanel, () => {
     const options = [
@@ -24,7 +21,7 @@ describe(ExplorerControlPanel, () => {
         },
     ]
 
-    const element = Enzyme.mount(
+    const { container } = render(
         <ExplorerControlPanel
             choice={{
                 title: "Some decision",
@@ -38,6 +35,7 @@ describe(ExplorerControlPanel, () => {
     )
 
     it("renders options", () => {
-        expect(element.find(`.AvailableOption`).length).toEqual(2)
+        expect(screen.getAllByRole("radio")).toHaveLength(2)
+        expect(container.querySelectorAll(`.AvailableOption`).length).toEqual(2)
     })
 })

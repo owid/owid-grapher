@@ -57,10 +57,10 @@
     "versor": "^0.2.0"
   },
   "devDependencies": {
+    "@testing-library/react": "^12.1.5",
     "@types/colorbrewer": "^1.0.29",
     "@types/d3": "^6",
     "@types/d3-format": "^2",
-    "@types/enzyme": "^3.10.18",
     "@types/geojson": "^7946.0.10",
     "@types/indefinite": "^2.3.4",
     "@types/js-cookie": "^3.0.2",
@@ -70,7 +70,6 @@
     "@types/react-dom": "^17.0.22",
     "@types/topojson-client": "^3.1.1",
     "@types/url-parse": "^1.4.8",
-    "@wojtekmaj/enzyme-adapter-react-17": "^0.8.0",
     "esbuild": "^0.25.0",
     "esbuild-sass-plugin": "^3.3.1",
     "eslint": "^9.23.0",

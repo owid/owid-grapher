@@ -3,18 +3,16 @@
  */
 
 import { expect, describe, test } from "vitest"
-import Enzyme from "enzyme"
-import Adapter from "@wojtekmaj/enzyme-adapter-react-17"
+import { render } from "@testing-library/react"
 import { GlobalEntitySelector } from "./GlobalEntitySelector"
 import { SelectionArray } from "../../selection/SelectionArray"
-Enzyme.configure({ adapter: new Adapter() })
 
 describe("when you render a GlobalEntitySelector", () => {
     test("something renders", () => {
-        const view = Enzyme.shallow(
+        const { container } = render(
             <GlobalEntitySelector selection={new SelectionArray()} />
         )
-        expect(view.find(".global-entity-control")).not.toHaveLength(0)
+        expect(container.querySelector(".global-entity-control")).toBeTruthy()
     })
 
     test("graphers/explorers are properly updated", () => {
