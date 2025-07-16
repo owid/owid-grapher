@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { GrapherState } from "@ourworldindata/grapher"
 import {
     OwidTableSlugs,
@@ -12,6 +13,7 @@ import {
     getCitationLong,
 } from "@ourworldindata/utils"
 import { getGrapherFilters } from "./urlTools.js"
+import { getGrapherTableWithRelevantColumns } from "./grapherTools.js"
 
 type MetadataColumn = {
     titleShort: string
@@ -35,6 +37,8 @@ type MetadataColumn = {
 }
 
 export const getColumnsForMetadata = (grapherState: GrapherState) => {
+    const table = getGrapherTableWithRelevantColumns(grapherState)
+
     const columnsToIgnore = new Set(
         [
             OwidTableSlugs.entityId,
@@ -47,12 +51,13 @@ export const getColumnsForMetadata = (grapherState: GrapherState) => {
         ].map((slug) => slug.toString())
     )
 
-    const colsToGet = grapherState.inputTable.columnSlugs.filter(
+    const columnsToGet = table.columnSlugs.filter(
         (col) => !columnsToIgnore.has(col)
     )
 
-    return grapherState.inputTable.getColumns(colsToGet)
+    return table.getColumns(columnsToGet)
 }
+
 export function assembleMetadata(
     grapherState: GrapherState,
     searchParams: URLSearchParams,
