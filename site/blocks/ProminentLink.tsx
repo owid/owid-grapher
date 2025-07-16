@@ -12,7 +12,7 @@ import { Url } from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
-import ReactDOM from "react-dom"
+import { createRoot } from "react-dom/client"
 
 export const PROMINENT_LINK_CLASSNAME = "wp-block-owid-prominent-link"
 
@@ -180,6 +180,11 @@ export const hydrateProminentLink = (
             // this should be a hydrate() call, but it does not work on page
             // load for some reason (works fine when interacting with the global
             // entity selector afterwards). Maybe a race condition with Mobx?
-            ReactDOM.render(rendered, block.parentElement)
+            if (!block.parentElement)
+                throw new Error(
+                    "ProminentLink block must be inside a parent element"
+                )
+            const root = createRoot(block.parentElement)
+            root.render(rendered)
         })
 }

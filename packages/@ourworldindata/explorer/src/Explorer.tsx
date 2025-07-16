@@ -56,7 +56,7 @@ import classNames from "classnames"
 import { action, computed, makeObservable, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
 import React, { useCallback, useEffect, useState } from "react"
-import ReactDOM from "react-dom"
+import { createRoot } from "react-dom/client"
 import { ExplorerControlBar, ExplorerControlPanel } from "./ExplorerControls.js"
 import { ExplorerProgram } from "./ExplorerProgram.js"
 import {
@@ -171,10 +171,10 @@ const LivePreviewComponent = (props: ExplorerProps) => {
 }
 
 const renderLivePreviewVersion = (props: ExplorerProps) => {
-    ReactDOM.render(
-        <LivePreviewComponent {...props} />,
-        document.getElementById(ExplorerContainerId)
-    )
+    const elem = document.getElementById(ExplorerContainerId)
+    if (!elem) throw new Error("ExplorerContainerId not found in DOM")
+    const root = createRoot(elem)
+    root.render(<LivePreviewComponent {...props} />)
 }
 
 const isNarrow = () =>
@@ -265,10 +265,11 @@ export class Explorer
         // Update the window URL
         setWindowUrl(url)
 
-        ReactDOM.render(
-            <Explorer {...props} queryStr={url.queryStr} />,
-            document.getElementById(ExplorerContainerId)
-        )
+        const elem = document.getElementById(ExplorerContainerId)
+        if (!elem) throw new Error("ExplorerContainerId not found in DOM")
+
+        const root = createRoot(elem)
+        root.render(<Explorer {...props} queryStr={url.queryStr} />)
     }
 
     private initialQueryParams = Url.fromQueryStr(this.props.queryStr ?? "")

@@ -234,6 +234,8 @@ export function DataPageContent({
                         // grapherChangedParams values, which make the URL update
                         // multiple times while flashing.
                         // https://stackoverflow.com/a/48610973/9846837
+
+                        // TODO we may not need to this anymore in React 18.
                         unstable_batchedUpdates(() => {
                             grapherState.setAuthoredVersion(config)
                             grapherState.reset()

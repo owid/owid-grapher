@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from "react"
 import * as React from "react"
-import { render } from "react-dom"
+import { createRoot, Root } from "react-dom/client"
 import urljoin from "url-join"
 import {
     AutocompleteApi,
     AutocompleteSource,
-    Render,
     autocomplete,
     getAlgoliaResults,
 } from "@algolia/autocomplete-js"
@@ -282,6 +281,8 @@ export function Autocomplete({
     panelClassName?: string
 }) {
     const containerRef = useRef<HTMLDivElement>(null)
+    const panelRootRef = useRef<Root | null>(null)
+    const rootRef = useRef<HTMLElement | null>(null)
 
     const [search, setSearch] = useState<AutocompleteApi<BaseItem> | null>(null)
 
@@ -313,7 +314,19 @@ export function Autocomplete({
             renderer: {
                 createElement: React.createElement,
                 Fragment: React.Fragment,
-                render: render as Render,
+                render: () => {
+                    // empty method, see https://www.algolia.com/doc/ui-libraries/autocomplete/integrations/using-react/#with-react-18
+                },
+            },
+            render({ children }, root) {
+                if (!panelRootRef.current || rootRef.current !== root) {
+                    rootRef.current = root
+
+                    panelRootRef.current?.unmount()
+                    panelRootRef.current = createRoot(root)
+                }
+
+                panelRootRef.current.render(children)
             },
             getSources({ query }) {
                 const sources: AutocompleteSource<BaseItem>[] = []

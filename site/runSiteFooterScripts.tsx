@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import { StrictMode } from "react"
-import { hydrate, render } from "react-dom"
+import { createRoot, hydrateRoot } from "react-dom/client"
 import {
     ArchiveMetaInformation,
     DataPageV2ContentFields,
@@ -47,10 +47,10 @@ import { REDUCED_TRACKING } from "../settings/clientSettings.js"
 import { SiteHeaderNavigation } from "./SiteHeader.js"
 
 function hydrateSearchPage() {
-    const root = document.getElementById("search-page-root")
+    const elem = document.getElementById("search-page-root")
     const tagGraph = window._OWID_TAG_GRAPH as TagGraphRoot
-    if (root) {
-        hydrate(<SearchInstantSearchWrapper tagGraph={tagGraph} />, root)
+    if (elem) {
+        hydrateRoot(elem, <SearchInstantSearchWrapper tagGraph={tagGraph} />)
     }
 }
 
@@ -61,11 +61,11 @@ function hydrateDataInsightsIndexPage() {
     )
 
     if (container && props) {
-        hydrate(
+        hydrateRoot(
+            container,
             <DebugProvider>
                 <DataInsightsIndexPageContent {...props} />
-            </DebugProvider>,
-            container
+            </DebugProvider>
         )
     }
 }
@@ -77,15 +77,16 @@ function hydrateDataPageV2Content({
     const props: DataPageV2ContentFields = window._OWID_DATAPAGEV2_PROPS
     const grapherConfig = window._OWID_GRAPHER_CONFIG
 
-    hydrate(
+    if (!wrapper) return
+    hydrateRoot(
+        wrapper,
         <DebugProvider debug={isPreviewing}>
             <DataPageV2Content
                 {...props}
                 grapherConfig={grapherConfig}
                 isPreviewing={isPreviewing}
             />
-        </DebugProvider>,
-        wrapper
+        </DebugProvider>
     )
 }
 
@@ -95,10 +96,9 @@ function hydrateExplorerIndex() {
     ]
 
     if (!explorerIndexPageProps) return
-    hydrate(
-        <ExplorerIndex {...explorerIndexPageProps} />,
-        document.querySelector(".explorer-index-page")
-    )
+    const container = document.querySelector(".explorer-index-page")
+    if (!container) return
+    hydrateRoot(container, <ExplorerIndex {...explorerIndexPageProps} />)
 }
 
 function runCookiePreferencesManager() {
@@ -107,7 +107,8 @@ function runCookiePreferencesManager() {
     const div = document.createElement("div")
     document.body.appendChild(div)
 
-    render(<CookiePreferencesManager initialState={getInitialState()} />, div)
+    const root = createRoot(div)
+    root.render(<CookiePreferencesManager initialState={getInitialState()} />)
 }
 
 interface FootnoteContent {
@@ -135,13 +136,13 @@ function runFootnotes() {
         const footnoteContent = getFootnoteContent(f)
         if (_.isNil(footnoteContent)) return
 
-        hydrate(
+        hydrateRoot(
+            f,
             <Footnote
                 index={footnoteContent.index}
                 htmlContent={footnoteContent.htmlContent}
                 triggerTarget={f}
-            />,
-            f
+            />
         )
     })
 }
@@ -160,7 +161,8 @@ function runSiteNavigation(hideDonationFlag?: boolean) {
             archiveInfo = window._OWID_ARCHIVE_INFO
         }
 
-        render(
+        const root = createRoot(siteNavigationElem)
+        root.render(
             <SiteHeaderNavigation
                 hideDonationFlag={hideDonationFlag}
                 isOnHomepage={isOnHomepage}
@@ -169,24 +171,27 @@ function runSiteNavigation(hideDonationFlag?: boolean) {
                         ? archiveInfo
                         : undefined
                 }
-            />,
-            siteNavigationElem
+            />
         )
     }
 }
 
 function runSiteTools() {
-    render(<SiteTools />, document.querySelector(`.${SITE_TOOLS_CLASS}`))
+    const siteToolsElem = document.querySelector(`.${SITE_TOOLS_CLASS}`)
+    if (siteToolsElem) {
+        const root = createRoot(siteToolsElem)
+        root.render(<SiteTools />)
+    }
 
     const newsletterSubscriptionFormRootHomepage = document.querySelector(
         ".homepage-social-ribbon #newsletter-subscription-root"
     )
     if (newsletterSubscriptionFormRootHomepage) {
-        hydrate(
+        hydrateRoot(
+            newsletterSubscriptionFormRootHomepage,
             <NewsletterSubscriptionForm
                 context={NewsletterSubscriptionContext.Homepage}
-            />,
-            newsletterSubscriptionFormRootHomepage
+            />
         )
     }
 }
@@ -194,13 +199,14 @@ function runSiteTools() {
 const hydrateOwidGdoc = (debug?: boolean, isPreviewing?: boolean) => {
     const wrapper = document.querySelector("#owid-document-root")
     const props = deserializeOwidGdocPageData(window._OWID_GDOC_PROPS)
-    hydrate(
+    if (!wrapper) return
+    hydrateRoot(
+        wrapper,
         <StrictMode>
             <DebugProvider debug={debug}>
                 <OwidGdoc {...props} isPreviewing={isPreviewing} />
             </DebugProvider>
-        </StrictMode>,
-        wrapper
+        </StrictMode>
     )
 }
 
@@ -209,7 +215,9 @@ const hydrateMultiDimDataPageContent = (isPreviewing?: boolean) => {
     const { configObj, ...props }: MultiDimDataPageData =
         window._OWID_MULTI_DIM_PROPS!
 
-    hydrate(
+    if (!wrapper) return
+    hydrateRoot(
+        wrapper,
         <DebugProvider debug={isPreviewing}>
             <BrowserRouter>
                 <MultiDimDataPageContent
@@ -218,8 +226,7 @@ const hydrateMultiDimDataPageContent = (isPreviewing?: boolean) => {
                     isPreviewing={isPreviewing}
                 />
             </BrowserRouter>
-        </DebugProvider>,
-        wrapper
+        </DebugProvider>
     )
 }
 
