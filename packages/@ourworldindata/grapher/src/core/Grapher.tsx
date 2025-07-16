@@ -166,7 +166,6 @@ import {
 } from "../mapCharts/MapChartConstants"
 import { isValidDataTableFilter } from "../dataTable/DataTable"
 import {
-    isValidGlobeRegionName,
     isValidMapRegionName,
     isOnTheMap,
     getCountriesByRegion,

@@ -60,7 +60,7 @@ export class MapRegionDropdown extends React.Component<{
 
     @action.bound onChange(
         selected: MapRegionDropdownOption | null,
-        mode: { action: unknown }
+        _mode: { action: unknown }
     ): void {
         const value = selected?.value
         if (!value) return
