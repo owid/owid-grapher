@@ -1,5 +1,5 @@
 metadata:
-    description: "Chart diff approval tracking for editorial workflow management. This table manages the approval process for chart changes, tracking the approval status of modifications and maintaining timestamps for source and target versions. Part of the editorial review system for chart updates. This table is temporal and used during staging/review processes."
+    description: "Chart diff approval tracking for editorial workflow management. This table manages the approval process for chart changes during ETL updates, tracking the approval status of modifications and maintaining timestamps for source and target versions. Part of the editorial review system for chart updates. This table is temporal and used during staging/review processes."
 
 fields:
     id:

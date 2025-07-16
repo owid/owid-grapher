@@ -1,5 +1,5 @@
 metadata:
-    description: "Image asset management system for OWID content. Handles image storage, optimization, and delivery through Cloudflare. Images can be sourced from Google Drive and are automatically optimized for web delivery. Supports versioning and replacement tracking."
+    description: "Image asset management system for OWID content. Images are stored in CloudFlare images. Historically they were uploaded into GDrive, but this is no longer the case."
 fields:
     id:
         description: "Unique identifier for the image"

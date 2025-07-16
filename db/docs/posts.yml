@@ -1,5 +1,5 @@
 metadata:
-    description: "LEGACY TABLE - WordPress posts and articles representing OWID's legacy content management system (use posts_gdocs instead for new content). This table stores articles, blog posts, and other content originally authored in WordPress before the transition to Google Docs. Content is synchronized from WordPress and converted to structured formats for web publishing."
+    description: "LEGACY TABLE - WordPress posts and articles representing OWID's legacy content management system (use posts_gdocs instead for new content). This table stores articles, blog posts, and other content originally authored in WordPress before the transition to Google Docs. Content was synchronized from WordPress and converted to structured formats for web publishing."
 fields:
     id:
         description: "Unique identifier for the post"

@@ -1,5 +1,5 @@
 metadata:
-    description: "Junction table linking explorers to tags for categorization and discoverability. This enables explorers to be associated with topics, improving their findability and enabling topic-based navigation of data exploration tools."
+    description: "Many-to-many table linking explorers to tags for categorization and discoverability. This enables explorers to be associated with topics, improving their findability and enabling topic-based navigation of data exploration tools."
 fields:
     id:
         description: "Unique identifier for the association"

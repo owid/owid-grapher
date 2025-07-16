@@ -1,10 +1,10 @@
 metadata:
-    description: "Geographic and organizational entities that data points are associated with. Entities represent the units of observation in the data (e.g., countries like 'United States', regions like 'Europe', or organizations like 'World Bank'). All data values are linked to specific entities."
+    description: "Geographic and organizational entities that data points are associated with. Entities represent the units of observation in the data (e.g., countries like 'United States', regions like 'Europe', but can also be other entities, e.g. fish species like 'Tuna')."
 fields:
     id:
         description: "Unique identifier for the entity"
     code:
-        description: "Entity code used for identification (e.g., 'USA' for United States, 'EUR' for Europe). Can be NULL for entities without standard codes."
+        description: "Entity code used for identification (e.g., 'USA' for United States, 'EUR' for Europe). Can be NULL for entities without standard codes. Entity codes for countries use ISO Alpha 3 codes except for unusual entities like World (OWID_WRL) or historical countries"
     name:
         description: "Entity name as it appears in the system (e.g., 'United States', 'European Union')"
     validated:

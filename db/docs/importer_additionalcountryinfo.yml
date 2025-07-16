@@ -1,5 +1,5 @@
 metadata:
-    description: "Additional country information for data import processes. This table stores supplementary country metadata from external sources, including World Bank regional classifications, income groups, and census information. Used to enrich country data during import workflows."
+    description: "Deprecated. Additional country information for data import processes. This table stores supplementary country metadata from external sources, including World Bank regional classifications, income groups, and census information. Used to enrich country data during pre-ETL import workflows."
 
 fields:
     id:

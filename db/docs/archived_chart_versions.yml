@@ -1,5 +1,6 @@
 metadata:
-    description: "Archived versions of chart configurations for versioning and rollback purposes. This table stores historical snapshots of chart configurations, enabling version control and the ability to revert to previous chart states. Archives are kept permanently even if the original chart is deleted."
+    description: |
+        "Table for keeping track of archived versions of our grapher charts at https://archive.ourworldindata.org. On every content publish we create a new archival version of all published charts (as given in the charts table) that were updated since the last content publish."
 
 fields:
     id:

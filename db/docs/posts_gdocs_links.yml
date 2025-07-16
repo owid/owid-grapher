@@ -1,5 +1,5 @@
 metadata:
-    description: "Link tracking system for Google Docs posts that enables internal analytics and link health monitoring. Extracts and categorizes all links from Google Docs content to track internal references, external citations, and embedded charts/explorers."
+    description: "Link tracking system for Google Docs posts. All outgoing links and references are tracked here. The target can be a things like grapher charts, explorers etc which can be joined via slug (be careful to take redirects into account when doing that!)"
 fields:
     id:
         description: "Unique identifier for the link"

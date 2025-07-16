@@ -1,6 +1,13 @@
 metadata:
-    description: "Featured metrics for topic pages with ranking and income group classifications. This table manages which metrics are highlighted on topic pages and allows for different featured metrics based on income group classifications. Essential for topic page curation and content organization."
+    description: |
+        "Featured metrics is a table that maintains the most important charts per topic. This ranked list is used in search results to curate the top charts that are returned for each topic tag.
 
+        Urls can point to:
+        - published standalone charts (enumerated in the charts table)
+        - explorer views (implicitly stored in the explorers table)
+        - multidim views (enumerated in the multi_dim_x_chart_configs table)
+
+        IncomeGroup is set to 'default' by default but can be set to one of the WB income groups to specify overrides for countries in this group. This is useful so that a search result for 'poverty' can show 'Share of population in extreme poverty' for most countries at the top, but for high income countries, 'Share of population living on less than 30i$ per day' can be shown instead."
 fields:
     id:
         description: "Unique identifier for the featured metric"

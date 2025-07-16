@@ -1,5 +1,6 @@
 metadata:
-    description: "Archived versions of multi-dimensional data page configurations for versioning and rollback purposes. This table stores historical snapshots of multi-dimensional data pages, enabling version control and the ability to revert to previous page states. Archives are kept permanently even if the original page is deleted."
+    description: |
+        "Table for keeping track of archived versions of our multi-dimensional charts at https://archive.ourworldindata.org. On every content publish we create a new archival version of all published multi-dims (as given in the multi_dim_data_pages table) that were updated since the last content publish."
 
 fields:
     id:

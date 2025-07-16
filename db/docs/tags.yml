@@ -1,5 +1,5 @@
 metadata:
-    description: "Hierarchical categorization system for organizing charts, datasets, and posts. Tags can have parent-child relationships and special types. They're used for navigation, filtering, and determining chart indexability."
+    description: "Hierarchical categorization system for organizing charts, datasets, and posts. Tags can have parent-child relationships and special types. They're used for navigation, filtering, and determining chart indexability, as well as to create the main navigation structure on our homepage."
 fields:
     id:
         description: "Unique identifier for the tag"

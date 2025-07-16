@@ -1,5 +1,5 @@
 metadata:
-    description: "Cached latest data values for countries by variable for performance optimization. This table stores the most recent data point for each country-variable combination, enabling fast lookup of current values without scanning the entire data history. Used for quick country comparisons and current status displays."
+    description: "Deprecated. Cached latest data values for countries by variable for performance optimization. This table stores the most recent data point for each country-variable combination, enabling fast lookup of current values without scanning the entire data history. Used for quick country comparisons and current status displays. This table will be deleted soon."
 
 fields:
     country_code:

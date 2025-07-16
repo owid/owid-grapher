@@ -1,5 +1,5 @@
 metadata:
-    description: "Housekeeper provides suggestions for content maintenance and quality assurance. This table tracks suggested reviews for various objects (charts, datasets, etc.) that may require maintenance, updates, or quality checks. Part of the automated housekeeping system for content management."
+    description: "Housekeeper provides suggestions for content maintenance and quality assurance. This table tracks suggested reviews for various objects (charts, datasets, etc.) that may require maintenance, updates, or quality checks. Part of the automated housekeeping system for content management during ETL updates."
 
 fields:
     id:

@@ -1,5 +1,5 @@
 metadata:
-    description: "Junction table linking multi-dimensional data pages to their chart configurations. This enables data pages to have multiple chart views for different variables and dimensions, allowing users to explore the same dataset through different visualization approaches."
+    description: "Many-to-many table linking multi-dimensional charts/data pages to their chart configurations. The viewId is the identifier of a specific view that is basically the combination of all drop-down values the user selected to identify the view they are interested in."
 fields:
     id:
         description: "Unique identifier for the configuration"

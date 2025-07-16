@@ -1,5 +1,5 @@
 metadata:
-    description: "Multi-dimensional data pages that allow exploration of datasets across multiple dimensions and variables. These pages provide interactive interfaces for exploring complex datasets with multiple indicators, enabling users to switch between different views and comparisons of the same underlying data."
+    description: "Multi-dimensional charts/data pages that allow exploration of datasets across multiple dimensions and variables. These pages provide interactive interfaces for exploring complex datasets with multiple indicators, enabling users to switch between different views and comparisons of the same underlying data. The individual views of a multi-dim are enumerated in the multi_dim_x_chart_configs table which references the chart config used for a given view."
 fields:
     id:
         description: "Unique identifier for the data page"
@@ -8,7 +8,7 @@ fields:
     slug:
         description: "URL-friendly identifier used in URLs like /data/[slug]"
     config:
-        description: "JSON configuration defining the data page structure and behavior"
+        description: "JSON configuration defining the data page structure, drop-down values and behavior"
     configMd5:
         description: "MD5 hash of the configuration for change detection and caching"
     published:

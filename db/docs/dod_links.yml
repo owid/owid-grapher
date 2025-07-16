@@ -1,5 +1,5 @@
 metadata:
-    description: "Link tracking system for Details on Demand (DOD) content that enables monitoring of link health and usage analytics. Extracts and categorizes all links from DOD content to track references to other DODs, external sources, and embedded visualizations. This is crucial for maintaining DOD content integrity."
+    description: "Link tracking system for Details on Demand (DOD) content that enables monitoring of link health and usage analytics. Extracts and categorizes all links from DOD content to track references to other DODs, pages in posts_gdocs, and embedded visualizations. This is crucial for maintaining DOD content integrity."
 fields:
     id:
         description: "Unique identifier for the link"
