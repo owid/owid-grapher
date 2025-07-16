@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     generateGrapherImageSrcSet,
     Grapher,
@@ -7,12 +8,19 @@ import {
     GrapherInterface,
     MultiDimDataPageConfigEnriched,
     R2GrapherConfigDirectory,
+    OwidTableSlugs,
 } from "@ourworldindata/types"
 import {
     excludeUndefined,
     Bounds,
     searchParamsToMultiDimView,
+    makeAnnotationsSlug,
 } from "@ourworldindata/utils"
+import {
+    OwidTable,
+    makeOriginalTimeSlugFromColumnSlug,
+    makeOriginalValueSlugFromColumnSlug,
+} from "@ourworldindata/core-table"
 import { StatusError } from "itty-router"
 import { Env } from "./env.js"
 import { fetchFromR2, grapherBaseUrl } from "./grapherRenderer.js"
@@ -320,4 +328,54 @@ export function addClassNamesToBody(page: Response, classNames: string[]) {
     })
 
     return rewriter.transform(page)
+}
+
+export function getGrapherTableWithRelevantColumns(
+    grapherState: GrapherState,
+    options?: { shouldUseFilteredTable: boolean }
+): OwidTable {
+    // Extract table from Grapher
+    const fullTable = grapherState.inputTable
+    const filteredTable = grapherState.isOnTableTab
+        ? grapherState.tableForDisplay
+        : grapherState.transformedTable
+    const table = options?.shouldUseFilteredTable ? filteredTable : fullTable
+
+    // Trim table to only include columns that are relevant to the current
+    // grapher view. This filtering is necessary for CSV-based data explorers
+    // because the full table contains columns for all possible views.
+    const entityNameSlugs = [
+        OwidTableSlugs.entityName,
+        OwidTableSlugs.entityCode,
+        OwidTableSlugs.entityId,
+        table.entityNameColumn.slug,
+    ]
+    const timeSlugs = [
+        OwidTableSlugs.time,
+        OwidTableSlugs.year,
+        OwidTableSlugs.date,
+        OwidTableSlugs.day,
+        table.timeColumn.slug,
+    ]
+    const valueSlugs = [
+        ...grapherState.yColumnSlugs,
+        grapherState.xColumnSlug,
+        grapherState.colorColumnSlug,
+        grapherState.sizeColumnSlug,
+    ]
+    const extraSlugs = valueSlugs.flatMap((slug) => [
+        makeAnnotationsSlug(slug),
+        makeOriginalTimeSlugFromColumnSlug(slug),
+        makeOriginalValueSlugFromColumnSlug(slug),
+    ])
+    const slugs = [
+        ...entityNameSlugs,
+        ...timeSlugs,
+        ...valueSlugs,
+        ...extraSlugs,
+    ].filter((slug) => slug && table.has(slug))
+
+    const uniqueSlugs = _.uniq(slugs)
+
+    return table.select(uniqueSlugs)
 }
