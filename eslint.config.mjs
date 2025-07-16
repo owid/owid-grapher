@@ -7,6 +7,7 @@ import react from "eslint-plugin-react"
 import reactHooks from "eslint-plugin-react-hooks"
 import reactRefresh from "eslint-plugin-react-refresh"
 import tseslint from "typescript-eslint"
+import mobx from "eslint-plugin-mobx"
 
 export default tseslint.config(
     eslint.configs.recommended,
@@ -16,6 +17,9 @@ export default tseslint.config(
     react.configs.flat.recommended,
     react.configs.flat["jsx-runtime"],
     reactHooks.configs["recommended-latest"],
+
+    //@ts-expect-error
+    mobx.flatConfigs.recommended,
     {
         files: [
             // TODO: Apply to all React files when we move off class components,
@@ -138,6 +142,7 @@ export default tseslint.config(
             "react/prop-types": "warn",
             "@typescript-eslint/no-floating-promises": "error",
             "no-constant-binary-expression": "error",
+            "mobx/missing-observer": "off",
         },
     },
     {

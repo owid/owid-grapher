@@ -1,5 +1,5 @@
 import * as React from "react"
-import { action } from "mobx"
+import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { LabeledSwitch } from "@ourworldindata/components"
 
@@ -11,6 +11,11 @@ export interface ZoomToggleManager {
 export class ZoomToggle extends React.Component<{
     manager: ZoomToggleManager
 }> {
+    constructor(props: { manager: ZoomToggleManager }) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onToggle(): void {
         this.props.manager.zoomToSelection = this.props.manager.zoomToSelection
             ? undefined

@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { observer } from "mobx-react"
-import { runInAction, observable, computed, action } from "mobx"
+import { runInAction, observable, computed, action, makeObservable } from "mobx"
 import { bind } from "decko"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
@@ -69,12 +69,17 @@ interface ChartListProps {
 @observer
 export class ChartList extends React.Component<ChartListProps> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable searchInput?: string
     @observable maxVisibleCharts = 50
     @observable sortConfig?: SortConfig
     @observable availableTags: DbChartTagJoin[] = []
+
+    constructor(props: ChartListProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     async fetchRefs(grapherId: number | undefined): Promise<References> {
         const { admin } = this.context

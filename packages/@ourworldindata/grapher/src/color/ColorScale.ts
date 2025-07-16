@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import { computed, toJS } from "mobx"
+import { computed, toJS, makeObservable } from "mobx"
 import { mean, deviation } from "d3-array"
 import { ColorScaleConfig, ColorScaleConfigDefaults } from "./ColorScaleConfig"
 import {
@@ -39,6 +39,7 @@ export interface ColorScaleManager {
 export class ColorScale {
     private manager: Readonly<ColorScaleManager>
     constructor(manager: ColorScaleManager = {}) {
+        makeObservable(this)
         this.manager = manager
     }
 

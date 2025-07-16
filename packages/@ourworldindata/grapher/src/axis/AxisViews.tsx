@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     Bounds,
@@ -78,6 +78,11 @@ interface HorizontalAxisGridLinesProps {
 
 @observer
 export class HorizontalAxisGridLines extends React.Component<HorizontalAxisGridLinesProps> {
+    constructor(props: HorizontalAxisGridLinesProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS
     }
@@ -366,6 +371,20 @@ export class HorizontalAxisComponent extends React.Component<{
     tickMarkWidth?: number
     detailsMarker?: DetailsMarker
 }> {
+    constructor(props: {
+        bounds: Bounds
+        axis: HorizontalAxis
+        showTickMarks?: boolean
+        preferredAxisPosition?: number
+        labelColor?: string
+        tickColor?: string
+        tickMarkWidth?: number
+        detailsMarker?: DetailsMarker
+    }) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed get scaleType(): ScaleType {
         return this.props.axis.scaleType
     }

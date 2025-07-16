@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { computed, action, runInAction, observable } from "mobx"
+import { computed, action, runInAction, observable, makeObservable } from "mobx"
 import type { History } from "history"
 import { GrapherInterface } from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
@@ -25,7 +25,12 @@ export class NarrativeChartEditorPage
         ChartEditorViewManager<NarrativeChartEditor>
 {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
+
+    constructor(props: NarrativeChartEditorPageProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     id?: number
     name?: string

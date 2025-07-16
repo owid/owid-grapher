@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { ChartState } from "../chart/ChartInterface"
 import {
     DiscreteBarChartManager,
@@ -43,6 +43,7 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
     constructor({ manager }: { manager: DiscreteBarChartManager }) {
         this.manager = manager
         this.colorScale = manager.colorScaleOverride ?? new ColorScale(this)
+        makeObservable(this)
     }
 
     @computed get inputTable(): OwidTable {

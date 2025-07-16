@@ -1,18 +1,20 @@
 import React from "react"
-import { Bounds } from "@ourworldindata/utils"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { MarimekkoChartState } from "./MarimekkoChartState"
+import type { MarimekkoChartProps } from "./MarimekkoChart.js"
 
 @observer
 export class MarimekkoChartThumbnail
-    extends React.Component<{
-        bounds?: Bounds
-        chartState: MarimekkoChartState
-    }>
+    extends React.Component<MarimekkoChartProps>
     implements ChartInterface
 {
+    constructor(props: MarimekkoChartProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed get chartState(): MarimekkoChartState {
         return this.props.chartState
     }

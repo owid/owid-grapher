@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { computed } from "mobx"
+import { computed, override, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     Bounds,
@@ -104,6 +104,11 @@ const CONTROLS_ROW_HEIGHT = 32
 abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProps> {
     protected framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
     protected framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
+
+    constructor(props: CaptionedChartProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed protected get manager(): CaptionedChartManager {
         return this.props.manager
@@ -342,6 +347,7 @@ export class CaptionedChart extends AbstractCaptionedChart {}
 export class StaticCaptionedChart extends AbstractCaptionedChart {
     constructor(props: CaptionedChartProps) {
         super(props)
+        makeObservable(this)
     }
 
     // Bounds diagram
@@ -366,7 +372,7 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
     }
 
     /** Bounds without details */
-    @computed protected get bounds(): Bounds {
+    @override protected get bounds(): Bounds {
         return (
             this.props.bounds ??
             this.manager.staticBounds ??
@@ -382,7 +388,7 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
     }
 
     /** Bounds of the chart area (without header and footer) */
-    @computed protected get boundsForChartArea(): Bounds {
+    @override protected get boundsForChartArea(): Bounds {
         return this.innerBounds
             .padTop(this.staticHeader.height)
             .padBottom(this.staticFooter.height + this.verticalPadding)

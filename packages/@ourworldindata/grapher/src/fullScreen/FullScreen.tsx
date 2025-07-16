@@ -1,5 +1,5 @@
 import * as React from "react"
-import { action } from "mobx"
+import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { BodyDiv } from "../bodyDiv/BodyDiv"
 import { isTargetOutsideElement } from "../chart/ChartUtils"
@@ -13,6 +13,11 @@ interface FullScreenProps {
 @observer
 export class FullScreen extends React.Component<FullScreenProps> {
     content: React.RefObject<HTMLDivElement> = React.createRef()
+
+    constructor(props: FullScreenProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     @action.bound onDocumentClick(e: React.MouseEvent): void {
         if (

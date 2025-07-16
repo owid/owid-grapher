@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed, action } from "mobx"
+import { computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Dropdown } from "./Dropdown"
 import { EntityName } from "@ourworldindata/utils"
@@ -34,6 +34,11 @@ interface DropdownOption {
 export class DataTableFilterDropdown extends React.Component<{
     manager: DataTableFilterDropdownManager
 }> {
+    constructor(props: { manager: DataTableFilterDropdownManager }) {
+        super(props)
+        makeObservable(this)
+    }
+
     static shouldShow(manager: DataTableFilterDropdownManager): boolean {
         const menu = new DataTableFilterDropdown({ manager })
         return menu.shouldShow

@@ -1,6 +1,6 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
-import { observable, action, runInAction } from "mobx"
+import { observable, action, runInAction, makeObservable } from "mobx"
 import { AdminLayout } from "./AdminLayout.js"
 import { FieldsRow } from "./Forms.js"
 import { Link } from "./Link.js"
@@ -21,7 +21,7 @@ interface RedirectRowProps {
 @observer
 class RedirectRow extends Component<RedirectRowProps> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     render() {
         const { redirect } = this.props
@@ -50,9 +50,14 @@ class RedirectRow extends Component<RedirectRowProps> {
 @observer
 export class RedirectsIndexPage extends Component {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable redirects: RedirectListItem[] = []
+
+    constructor(props: Record<string, never>) {
+        super(props)
+        makeObservable(this)
+    }
 
     @action.bound async onDelete(redirect: RedirectListItem) {
         if (

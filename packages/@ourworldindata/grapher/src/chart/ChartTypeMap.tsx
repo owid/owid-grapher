@@ -39,7 +39,7 @@ import { StackedDiscreteBarChartThumbnail } from "../stackedCharts/StackedDiscre
 import { ScatterPlotChartThumbnail } from "../scatterCharts/ScatterPlotChartThumbnail"
 import { MarimekkoChartThumbnail } from "../stackedCharts/MarimekkoChartThumbnail"
 
-interface ChartComponentProps<TState extends ChartState = ChartState> {
+export interface ChartComponentProps<TState extends ChartState = ChartState> {
     chartState: TState
     bounds?: Bounds
 }

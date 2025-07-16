@@ -7,7 +7,7 @@ import {
     HorizontalAlign,
     PrimitiveType,
 } from "@ourworldindata/utils"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     HorizontalCategoricalColorLegend,
@@ -67,11 +67,9 @@ import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 import { match } from "ts-pattern"
 import { makeProjectedDataPatternId } from "./MapComponents"
 import { MapChartState } from "./MapChartState"
+import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 
-interface MapChartProps {
-    bounds?: Bounds
-    chartState: MapChartState
-}
+export type MapChartProps = ChartComponentProps<MapChartState>
 
 @observer
 export class MapChart
@@ -81,6 +79,11 @@ export class MapChart
         HorizontalColorLegendManager,
         ChoroplethMapManager
 {
+    constructor(props: MapChartProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     /** The id of the currently hovered feature/country */
     @observable hoverFeatureId?: string
 

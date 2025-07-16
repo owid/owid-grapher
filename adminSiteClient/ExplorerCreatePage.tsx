@@ -9,7 +9,7 @@ import {
 import classNames from "classnames"
 import Handsontable from "handsontable"
 import { registerAllModules } from "handsontable/registry"
-import { action, computed, observable } from "mobx"
+import { action, computed, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Component, createRef } from "react"
 import { Prompt } from "react-router-dom"
@@ -43,10 +43,15 @@ interface ExplorerCreatePageProps {
 @observer
 export class ExplorerCreatePage extends Component<ExplorerCreatePageProps> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
     disposers: Array<() => void> = []
 
     @observable showPreview: boolean = true
+
+    constructor(props: ExplorerCreatePageProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed private get manager() {
         return this.props.manager ?? {}
@@ -333,6 +338,15 @@ class HotEditor extends Component<{
     programOnDisk: ExplorerProgram
 }> {
     private hotTableComponent = createRef<HotTableClass>()
+
+    constructor(props: {
+        onChange: (code: string) => void
+        program: ExplorerProgram
+        programOnDisk: ExplorerProgram
+    }) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed private get program() {
         return this.props.program

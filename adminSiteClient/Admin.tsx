@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/react"
 import ReactDOM from "react-dom"
 import * as lodash from "lodash-es"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx"
 import urljoin from "url-join"
 
 import { AdminApp } from "./AdminApp.js"
@@ -41,6 +41,7 @@ export class Admin {
         isSuperuser: boolean
         settings: ClientSettings
     }) {
+        makeObservable(this)
         this.basePath = "/admin"
         this.username = props.username
         this.email = props.email

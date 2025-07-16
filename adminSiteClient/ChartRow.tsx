@@ -1,6 +1,6 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-import { action, runInAction } from "mobx"
+import { action, runInAction, makeObservable } from "mobx"
 import * as lodash from "lodash-es"
 import { Link } from "./Link.js"
 import { Timeago } from "./Forms.js"
@@ -31,7 +31,12 @@ interface ChartRowProps {
 @observer
 export class ChartRow extends React.Component<ChartRowProps> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
+
+    constructor(props: ChartRowProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     async saveTags(tags: DbChartTagJoin[]) {
         const { chart } = this.props

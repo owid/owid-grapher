@@ -1,5 +1,5 @@
 import React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Bounds } from "@ourworldindata/utils"
 import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants.js"
@@ -7,11 +7,19 @@ import { CaptionedChartManager } from "../captionedChart/CaptionedChart.js"
 import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants.js"
 import { getChartSvgProps, NoDataPattern } from "./ChartUtils.js"
 
-@observer
-export class StaticChartWrapper extends React.Component<{
+interface StaticChartWrapperProps {
     manager: CaptionedChartManager
     bounds?: Bounds
-}> {
+    children: React.ReactNode
+}
+
+@observer
+export class StaticChartWrapper extends React.Component<StaticChartWrapperProps> {
+    constructor(props: StaticChartWrapperProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed private get manager(): CaptionedChartManager {
         return this.props.manager
     }

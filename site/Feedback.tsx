@@ -7,7 +7,7 @@ import {
     faTimes,
     faPaperPlane,
 } from "@fortawesome/free-solid-svg-icons"
-import { observable, action, toJS, computed } from "mobx"
+import { observable, action, toJS, computed, makeObservable } from "mobx"
 import classnames from "classnames"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { stringifyUnknownError } from "@ourworldindata/utils"
@@ -35,6 +35,10 @@ class Feedback {
     @observable email: string = ""
     @observable message: string = ""
     environment: string = ""
+
+    constructor() {
+        makeObservable(this)
+    }
 
     @action.bound clear() {
         this.name = ""
@@ -127,6 +131,11 @@ export class FeedbackForm extends React.Component<FeedbackFormProps> {
     @observable loading: boolean = false
     @observable done: boolean = false
     @observable error: string | undefined
+
+    constructor(props: FeedbackFormProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     async submit() {
         try {
@@ -310,6 +319,11 @@ export class FeedbackForm extends React.Component<FeedbackFormProps> {
 @observer
 export class FeedbackPrompt extends React.Component {
     @observable isOpen: boolean = false
+
+    constructor(props: Record<string, never>) {
+        super(props)
+        makeObservable(this)
+    }
 
     @action.bound toggleOpen() {
         this.isOpen = !this.isOpen

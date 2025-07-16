@@ -9,7 +9,7 @@ import { getPublicDonorNames } from "../Donor.js"
 import { GdocBase } from "./GdocBase.js"
 
 export class GdocAbout extends GdocBase implements OwidGdocAboutInterface {
-    content!: OwidGdocAboutContent
+    declare content: OwidGdocAboutContent
 
     static create(obj: OwidGdocBaseInterface): GdocAbout {
         const gdoc = new GdocAbout(undefined)

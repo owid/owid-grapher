@@ -1,5 +1,5 @@
 import * as React from "react"
-import { observable, action, computed } from "mobx"
+import { observable, action, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 
 import { Link } from "./Link.js"
@@ -24,11 +24,16 @@ interface AdminLayoutProps {
 @observer
 export class AdminLayout extends React.Component<AdminLayoutProps> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
     static defaultProps = { fixedNav: true }
 
     @observable private showFAQ: boolean = false
     @observable private showSidebar: boolean = false
+
+    constructor(props: AdminLayoutProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     @action.bound onToggleFAQ(): void {
         this.showFAQ = !this.showFAQ

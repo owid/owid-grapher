@@ -1,6 +1,6 @@
 import * as React from "react"
 import { observer } from "mobx-react"
-import { observable, action, runInAction } from "mobx"
+import { observable, action, runInAction, makeObservable } from "mobx"
 
 import { Modal, Timeago } from "./Forms.js"
 import { Link } from "./Link.js"
@@ -15,11 +15,16 @@ interface UserIndexMetaWithLastSeen extends UserIndexMeta {
 @observer
 class InviteModal extends React.Component<{ onClose: () => void }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable email: string = ""
     @observable fullName: string = ""
     @observable responseSuccess: boolean = false
+
+    constructor(props: { onClose: () => void }) {
+        super(props)
+        makeObservable(this)
+    }
 
     async submit() {
         runInAction(() => (this.responseSuccess = false))
@@ -94,10 +99,15 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
 @observer
 export class UsersIndexPage extends React.Component {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable users: UserIndexMetaWithLastSeen[] = []
     @observable isInviteModal: boolean = false
+
+    constructor(props: Record<string, never>) {
+        super(props)
+        makeObservable(this)
+    }
 
     @action.bound async onDelete(user: UserIndexMetaWithLastSeen) {
         if (

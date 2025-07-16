@@ -1,7 +1,14 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { observer } from "mobx-react"
-import { computed, action, reaction, when, IReactionDisposer } from "mobx"
+import {
+    computed,
+    action,
+    reaction,
+    when,
+    IReactionDisposer,
+    makeObservable,
+} from "mobx"
 import cx from "classnames"
 import a from "indefinite"
 import {
@@ -236,6 +243,12 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     }
 
     private disposers: IReactionDisposer[] = []
+
+    constructor(props: EntitySelectorProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     componentDidMount(): void {
         void this.populateLocalEntities()
 

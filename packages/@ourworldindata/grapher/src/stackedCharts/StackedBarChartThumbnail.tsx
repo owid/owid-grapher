@@ -1,18 +1,20 @@
 import React from "react"
-import { Bounds } from "@ourworldindata/utils"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { StackedBarChartState } from "./StackedBarChartState.js"
+import type { StackedBarChartProps } from "./StackedBarChart.js"
 
 @observer
 export class StackedBarChartThumbnail
-    extends React.Component<{
-        bounds?: Bounds
-        chartState: StackedBarChartState
-    }>
+    extends React.Component<StackedBarChartProps>
     implements ChartInterface
 {
+    constructor(props: StackedBarChartProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed get chartState(): StackedBarChartState {
         return this.props.chartState
     }

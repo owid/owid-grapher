@@ -11,7 +11,7 @@ export class SourceList extends Component<{
     sources: OwidSource[]
 }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     render() {
         const { sources } = this.props

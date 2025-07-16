@@ -1,5 +1,5 @@
 import * as R from "remeda"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { ChartState } from "../chart/ChartInterface"
 import {
     ChoroplethSeries,
@@ -42,6 +42,7 @@ export class MapChartState implements ChartState, ColorScaleManager {
     constructor({ manager }: { manager: MapChartManager }) {
         this.manager = manager
         this.colorScale = new ColorScale(this)
+        makeObservable(this)
     }
 
     transformTable(table: OwidTable): OwidTable {

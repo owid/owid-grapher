@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
 import { Component, Fragment } from "react"
-import { action, computed, runInAction } from "mobx"
+import { action, computed, runInAction, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import Select from "react-select"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -77,6 +77,11 @@ interface ColorLegendSectionProps {
 
 @observer
 class ColorLegendSection extends Component<ColorLegendSectionProps> {
+    constructor(props: ColorLegendSectionProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onManualBins() {
         populateManualBinValuesIfAutomatic(this.props.scale)
         this.props.onChange?.()
@@ -128,6 +133,11 @@ interface ColorsSectionProps {
 
 @observer
 class ColorsSection extends Component<ColorsSectionProps> {
+    constructor(props: ColorsSectionProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onColorScheme(selected: ColorSchemeOption) {
         const { config } = this
 
@@ -315,6 +325,11 @@ interface BinLabelViewProps {
 
 @observer
 class BinLabelView extends Component<BinLabelViewProps> {
+    constructor(props: BinLabelViewProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onLabel(value: string) {
         if (this.props.bin instanceof NumericBin) {
             const { scale, index } = this.props
@@ -376,6 +391,11 @@ interface NumericBinViewProps {
 
 @observer
 class NumericBinView extends Component<NumericBinViewProps> {
+    constructor(props: NumericBinViewProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onColor(color: Color | undefined) {
         const { scale, index } = this.props
 
@@ -504,6 +524,11 @@ interface CategoricalBinViewProps {
 
 @observer
 class CategoricalBinView extends Component<CategoricalBinViewProps> {
+    constructor(props: CategoricalBinViewProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onColor(color: Color | undefined) {
         const { scale, bin } = this.props
         if (!scale.customNumericColorsActive) {

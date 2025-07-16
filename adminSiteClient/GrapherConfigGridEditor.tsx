@@ -35,6 +35,7 @@ import {
     runInAction,
     autorun,
     reaction,
+    makeObservable,
 } from "mobx"
 import { match, P } from "ts-pattern"
 
@@ -177,7 +178,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     @observable.ref columnSelection: ColumnInformation[] = []
     @observable.ref filterState: FilterPanelState | undefined = undefined
 
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
     /** This array contains a description for every column, information like which field
         to display, what editor control should be used, ... */
     @observable.ref fieldDescriptions: FieldDescription[] | undefined =
@@ -208,6 +209,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
 
     constructor(props: GrapherConfigGridEditorProps) {
         super(props)
+        makeObservable(this)
         this.config = props.config
         this.currentColumnSet = this.config.columnSet[0]
     }

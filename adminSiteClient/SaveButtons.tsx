@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import { Component } from "react"
 import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
-import { action, computed, observable } from "mobx"
+import { action, computed, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { excludeUndefined, slugify } from "@ourworldindata/utils"
 import {
@@ -55,6 +55,11 @@ export class SaveButtons<Editor extends AbstractChartEditor> extends Component<
 
 @observer
 class SaveButtonsForChart extends Component<SaveButtonsProps<ChartEditor>> {
+    constructor(props: SaveButtonsProps<ChartEditor>) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onSaveChart() {
         void this.props.editor.saveGrapher()
     }
@@ -176,6 +181,11 @@ class SaveButtonsForChart extends Component<SaveButtonsProps<ChartEditor>> {
 class SaveButtonsForIndicatorChart extends Component<
     SaveButtonsProps<IndicatorChartEditor>
 > {
+    constructor(props: SaveButtonsProps<IndicatorChartEditor>) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound onSaveChart() {
         void this.props.editor.saveGrapher()
     }
@@ -225,6 +235,11 @@ class SaveButtonsForNarrativeChart extends Component<
     SaveButtonsProps<NarrativeChartEditor>
 > {
     @observable isCreateDataInsightModalOpen = false
+
+    constructor(props: SaveButtonsProps<NarrativeChartEditor>) {
+        super(props)
+        makeObservable(this)
+    }
 
     @action.bound onSaveChart() {
         void this.props.editor.saveGrapher()

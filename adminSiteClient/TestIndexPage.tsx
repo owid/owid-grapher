@@ -8,7 +8,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 @observer
 export class TestIndexPage extends Component {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     render() {
         return (

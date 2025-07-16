@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as R from "remeda"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 
 interface MultiColorPolylinePoint {
@@ -92,6 +92,11 @@ type MultiColorPolylineProps = Omit<
 //
 @observer
 export class MultiColorPolyline extends React.Component<MultiColorPolylineProps> {
+    constructor(props: MultiColorPolylineProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed get segments(): Segment[] {
         return getSegmentsFromPoints(this.props.points)
     }

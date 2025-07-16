@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import { CSSProperties } from "react"
 import * as React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import {
     excludeUndefined,
     imemo,
@@ -516,6 +516,11 @@ type MarkdownTextWrapProps = { text: string } & MarkdownTextWrapOptions
 type TextFragment = { text: string; bold?: boolean }
 
 export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
+    constructor(props: MarkdownTextWrapProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     static fromFragments({
         main,
         secondary,

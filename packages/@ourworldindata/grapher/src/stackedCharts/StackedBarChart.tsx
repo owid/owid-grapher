@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     Bounds,
@@ -47,6 +47,7 @@ import { select } from "d3-selection"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { StackedBarSegment } from "./StackedBarSegment"
+import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 
 interface TickmarkPlacement {
     time: number
@@ -55,12 +56,11 @@ interface TickmarkPlacement {
     isHidden: boolean
 }
 
+export type StackedBarChartProps = ChartComponentProps<StackedBarChartState>
+
 @observer
 export class StackedBarChart
-    extends React.Component<{
-        chartState: StackedBarChartState
-        bounds?: Bounds
-    }>
+    extends React.Component<StackedBarChartProps>
     implements
         ChartInterface,
         AxisManager,
@@ -68,6 +68,11 @@ export class StackedBarChart
         HorizontalColorLegendManager
 {
     readonly minBarSpacing = 4
+
+    constructor(props: StackedBarChartProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     // currently hovered legend color
     @observable hoverColor?: string

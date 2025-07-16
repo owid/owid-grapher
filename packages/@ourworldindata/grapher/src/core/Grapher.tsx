@@ -9,6 +9,7 @@ import {
     autorun,
     runInAction,
     reaction,
+    makeObservable,
 } from "mobx"
 import { bind } from "decko"
 import {
@@ -492,6 +493,7 @@ export class GrapherState {
         }
     }
     constructor(options: GrapherProgrammaticInterface) {
+        makeObservable(this)
         // prefer the manager's selection over the config's selectedEntityNames
         // if both are passed in and the manager's selection is not empty.
         // this is necessary for the global entity selector to work correctly.
@@ -3452,6 +3454,7 @@ export class Grapher extends React.Component<GrapherProps> {
 
     constructor(props: { grapherState: GrapherState }) {
         super(props)
+        makeObservable(this)
     }
 
     // Convenience method for debugging

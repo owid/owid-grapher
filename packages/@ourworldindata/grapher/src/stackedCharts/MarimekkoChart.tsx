@@ -14,7 +14,7 @@ import {
     makeIdForHumanConsumption,
     dyFromAlign,
 } from "@ourworldindata/utils"
-import { action, computed, observable } from "mobx"
+import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
 import {
     BASE_FONT_SIZE,
@@ -68,6 +68,7 @@ import {
     MarimekkoBarProps,
 } from "./MarimekkoChartConstants"
 import { MarimekkoChartState } from "./MarimekkoChartState"
+import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25
@@ -235,10 +236,7 @@ function MarimekkoBarsForOneEntity(
     )
 }
 
-interface MarimekkoChartProps {
-    bounds?: Bounds
-    chartState: MarimekkoChartState
-}
+export type MarimekkoChartProps = ChartComponentProps<MarimekkoChartState>
 
 @observer
 export class MarimekkoChart
@@ -246,6 +244,11 @@ export class MarimekkoChart
     implements ChartInterface, HorizontalColorLegendManager, AxisManager
 {
     base: React.RefObject<SVGGElement> = React.createRef()
+
+    constructor(props: MarimekkoChartProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     labelAngleInDegrees = -45 // 0 is horizontal, -90 is vertical from bottom to top, ...
 

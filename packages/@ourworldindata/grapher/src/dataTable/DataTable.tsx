@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { computed, observable, action } from "mobx"
+import { computed, observable, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
@@ -99,6 +99,11 @@ interface DataTableProps {
 export class DataTable extends React.Component<DataTableProps> {
     @observable private storedState: DataTableState = {
         sort: DEFAULT_SORT_STATE,
+    }
+
+    constructor(props: DataTableProps) {
+        super(props)
+        makeObservable(this)
     }
 
     @computed get manager(): DataTableManager {

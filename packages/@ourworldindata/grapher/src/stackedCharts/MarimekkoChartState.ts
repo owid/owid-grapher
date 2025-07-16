@@ -1,4 +1,4 @@
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { ChartState } from "../chart/ChartInterface"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { MarimekkoChartManager } from "./MarimekkoChartConstants"
@@ -24,6 +24,7 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
     constructor({ manager }: { manager: MarimekkoChartManager }) {
         this.manager = manager
         this.colorScale = manager.colorScaleOverride ?? new ColorScale(this)
+        makeObservable(this)
     }
 
     @computed get inputTable(): OwidTable {

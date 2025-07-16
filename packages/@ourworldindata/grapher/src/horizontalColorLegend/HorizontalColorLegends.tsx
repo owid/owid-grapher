@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import * as R from "remeda"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     dyFromAlign,
@@ -109,6 +109,11 @@ const MINIMUM_LABEL_DISTANCE = 5
 export abstract class HorizontalColorLegend extends React.Component<{
     manager: HorizontalColorLegendManager
 }> {
+    constructor(props: { manager: HorizontalColorLegendManager }) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed protected get manager(): HorizontalColorLegendManager {
         return this.props.manager
     }
@@ -157,6 +162,12 @@ export abstract class HorizontalColorLegend extends React.Component<{
 @observer
 export class HorizontalNumericColorLegend extends HorizontalColorLegend {
     base: React.RefObject<SVGGElement> = React.createRef()
+
+    constructor(props: { manager: HorizontalColorLegendManager }) {
+        super(props)
+
+        makeObservable(this)
+    }
 
     @computed private get numericLegendData(): ColorScaleBin[] {
         return this.manager.numericLegendData ?? []
@@ -624,6 +635,12 @@ const NumericBinRect = (props: NumericBinRectProps) => {
 export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
     private rectPadding = 5
     private markPadding = 5
+
+    constructor(props: { manager: HorizontalColorLegendManager }) {
+        super(props)
+
+        makeObservable(this)
+    }
 
     @computed get width(): number {
         return this.manager.legendWidth ?? this.manager.legendMaxWidth ?? 200

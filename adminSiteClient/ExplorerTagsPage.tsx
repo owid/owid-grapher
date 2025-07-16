@@ -1,6 +1,6 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
-import { action, computed, observable, runInAction } from "mobx"
+import { action, computed, observable, runInAction, makeObservable } from "mobx"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -21,12 +21,17 @@ type ExplorerWithTags = {
 @observer
 export class ExplorerTagsPage extends Component {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
     @observable explorersWithTags: ExplorerWithTags[] = []
     @observable explorers: ExplorerProgram[] = []
     @observable tags: DbChartTagJoin[] = []
     @observable newExplorerSlug = ""
     @observable newExplorerTags: DbChartTagJoin[] = []
+
+    constructor(props: Record<string, never>) {
+        super(props)
+        makeObservable(this)
+    }
 
     componentDidMount() {
         void this.getData()

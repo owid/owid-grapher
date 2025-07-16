@@ -14,7 +14,7 @@ import {
     guid,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
-import { computed, action, observable } from "mobx"
+import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import * as React from "react"
 import { Halo } from "@ourworldindata/components"
@@ -50,6 +50,11 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
     @observable private nearSeries?: ScatterSeries
     // currently hovered-over point via mouseenter/leave
     @observable private overSeries?: ScatterSeries
+
+    constructor(props: ScatterPointsWithLabelsProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed private get seriesArray(): ScatterSeries[] {
         return this.props.seriesArray

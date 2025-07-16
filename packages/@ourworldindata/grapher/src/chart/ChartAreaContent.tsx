@@ -1,6 +1,6 @@
 import React from "react"
 import { observer } from "mobx-react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import {
     Bounds,
     GRAPHER_CHART_TYPES,
@@ -25,6 +25,11 @@ interface ChartAreaContentProps {
 
 @observer
 export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
+    constructor(props: ChartAreaContentProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed private get manager(): CaptionedChartManager {
         return this.props.manager
     }

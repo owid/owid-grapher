@@ -1,5 +1,5 @@
 import * as React from "react"
-import { action } from "mobx"
+import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ScaleType } from "@ourworldindata/types"
 import { AxisConfig } from "../../axis/AxisConfig"
@@ -13,6 +13,11 @@ interface AxisScaleToggleProps {
 
 @observer
 export class AxisScaleToggle extends React.Component<AxisScaleToggleProps> {
+    constructor(props: AxisScaleToggleProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @action.bound private setAxisScale(scale: ScaleType): void {
         this.props.axis.scaleType = scale
     }

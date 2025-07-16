@@ -10,7 +10,7 @@ import {
     OwidTable,
 } from "@ourworldindata/core-table"
 
-import { observable } from "mobx"
+import { makeObservable, observable } from "mobx"
 import { AxisConfig } from "../axis/AxisConfig"
 import { SelectionArray } from "../selection/SelectionArray"
 import {
@@ -22,6 +22,10 @@ import { StackedAreaChartState } from "./StackedAreaChartState.js"
 import { ChartManager } from "../chart/ChartManager"
 
 class MockManager implements ChartManager {
+    constructor() {
+        makeObservable(this)
+    }
+
     table = SynthesizeGDPTable({
         timeRange: [1950, 2010],
     })

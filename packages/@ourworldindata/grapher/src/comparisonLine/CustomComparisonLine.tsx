@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { line as d3_line, curveLinear } from "d3-shape"
 import {
@@ -24,6 +24,11 @@ export class CustomComparisonLine extends React.Component<
 > {
     private renderUid = guid()
     private pathId = `path-${this.renderUid}`
+
+    constructor(props: ComparisonLineProps<CustomComparisonLineConfig>) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed private get fontSize(): number {
         return this.props.dualAxis.comparisonLineLabelFontSize

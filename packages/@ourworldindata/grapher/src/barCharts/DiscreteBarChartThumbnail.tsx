@@ -1,18 +1,20 @@
 import React from "react"
-import { Bounds } from "@ourworldindata/utils"
-import { computed } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { DiscreteBarChartState } from "./DiscreteBarChartState"
+import type { DiscreteBarChartProps } from "./DiscreteBarChart.js"
 
 @observer
 export class DiscreteBarChartThumbnail
-    extends React.Component<{
-        bounds?: Bounds
-        chartState: DiscreteBarChartState
-    }>
+    extends React.Component<DiscreteBarChartProps>
     implements ChartInterface
 {
+    constructor(props: DiscreteBarChartProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     @computed get chartState(): DiscreteBarChartState {
         return this.props.chartState
     }

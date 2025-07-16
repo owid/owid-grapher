@@ -9,6 +9,7 @@ import {
     computed,
     observable,
     reaction,
+    makeObservable,
 } from "mobx"
 import { observer } from "mobx-react"
 import { WindowGraphers } from "./DynamicCollectionPage.js"
@@ -57,6 +58,11 @@ export class DynamicCollection extends React.Component<DynamicCollectionProps> {
     @observable graphers: undefined | WindowGraphers = undefined
     pollInterval: null | ReturnType<typeof setInterval> = null
     disposers: IReactionDisposer[] = []
+
+    constructor(props: DynamicCollectionProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed get allGrapherSlugsAndQueryStrings() {
         if (!this.graphers) return []

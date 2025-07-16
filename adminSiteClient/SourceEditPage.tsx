@@ -1,6 +1,6 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
-import { observable, computed, runInAction } from "mobx"
+import { observable, computed, runInAction, makeObservable } from "mobx"
 import { Prompt } from "react-router-dom"
 
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -34,6 +34,7 @@ class SourceEditable {
     }
 
     constructor(json: SourcePageData) {
+        makeObservable(this)
         for (const key in this) {
             if (key === "description")
                 Object.assign(this.description, json.description)
@@ -46,6 +47,11 @@ class SourceEditable {
 class SourceEditor extends Component<{ source: SourcePageData }> {
     @observable newSource!: SourceEditable
     @observable isDeleted: boolean = false
+
+    constructor(props: { source: SourcePageData }) {
+        super(props)
+        makeObservable(this)
+    }
 
     // Store the original source to determine when it is modified
     UNSAFE_componentWillMount() {
@@ -164,9 +170,14 @@ class SourceEditor extends Component<{ source: SourcePageData }> {
 @observer
 export class SourceEditPage extends Component<{ sourceId: number }> {
     static contextType = AdminAppContext
-    context!: AdminAppContextType
+    declare context: AdminAppContextType
 
     @observable source?: SourcePageData
+
+    constructor(props: { sourceId: number }) {
+        super(props)
+        makeObservable(this)
+    }
 
     render() {
         return (

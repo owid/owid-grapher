@@ -3,7 +3,7 @@ import * as React from "react"
 import { select } from "d3-selection"
 import cx from "classnames"
 import { getRelativeMouse, isMobile, Bounds } from "@ourworldindata/utils"
-import { observable, computed, action } from "mobx"
+import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -30,6 +30,11 @@ interface TimelineComponentProps {
 @observer
 export class TimelineComponent extends React.Component<TimelineComponentProps> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
+
+    constructor(props: TimelineComponentProps) {
+        super(props)
+        makeObservable(this)
+    }
 
     @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_GRAPHER_BOUNDS.width
