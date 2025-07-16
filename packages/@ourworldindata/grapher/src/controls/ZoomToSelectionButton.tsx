@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed, action } from "mobx"
+import { computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { GlobeController } from "../mapCharts/GlobeController"
@@ -13,10 +13,17 @@ export interface ZoomToSelectionButtonManager {
     shouldShowMapZoomToSelectionButton?: boolean
 }
 
-@observer
-export class ZoomToSelectionButton extends React.Component<{
+interface ZoomToSelectionButtonProps {
     manager: ZoomToSelectionButtonManager
-}> {
+}
+
+@observer
+export class ZoomToSelectionButton extends React.Component<ZoomToSelectionButtonProps> {
+    constructor(props: ZoomToSelectionButtonProps) {
+        super(props)
+        makeObservable(this)
+    }
+
     static shouldShow(manager: ZoomToSelectionButtonManager): boolean {
         const menu = new ZoomToSelectionButton({ manager })
         return menu.showMenu
