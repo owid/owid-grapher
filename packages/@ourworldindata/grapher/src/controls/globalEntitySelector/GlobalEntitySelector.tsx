@@ -194,7 +194,7 @@ export class GlobalEntitySelector extends React.Component<GlobalEntitySelectorPr
         this.disposers.forEach((dispose): void => dispose())
     }
 
-    private onResizeThrottled = _.throttle(this.onResize, 200)
+    @action.bound private onResizeThrottled = _.throttle(this.onResize, 200)
     @action.bound private onResize(): void {
         const container = this.refContainer.current
         if (container) this.isNarrow = container.offsetWidth <= 640
