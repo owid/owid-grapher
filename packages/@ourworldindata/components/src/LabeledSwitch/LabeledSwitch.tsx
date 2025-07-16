@@ -1,5 +1,5 @@
 import * as React from "react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import cx from "classnames"
 import { Tippy } from "@ourworldindata/utils"

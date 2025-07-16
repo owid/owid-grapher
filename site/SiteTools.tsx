@@ -1,7 +1,7 @@
 import cx from "classnames"
 import { FeedbackPrompt } from "./Feedback.js"
 import { ScrollDirection, useScrollDirection } from "./hooks.js"
-// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 // import { faHeart } from "@fortawesome/free-solid-svg-icons"
 // import { faHandshake } from "@fortawesome/free-solid-svg-icons"
 import { NewsletterSubscriptionContext } from "./newsletter.js"

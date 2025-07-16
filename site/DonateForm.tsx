@@ -24,7 +24,7 @@ import {
     PLEASE_TRY_AGAIN,
 } from "@ourworldindata/utils"
 import { Checkbox } from "@ourworldindata/components"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 

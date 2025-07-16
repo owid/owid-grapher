@@ -26,7 +26,7 @@ import {
     BAKED_GRAPHER_URL,
 } from "../../settings/clientSettings.js"
 import { faSearch } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     DEFAULT_SEARCH_PLACEHOLDER,
     getIndexName,

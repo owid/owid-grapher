@@ -4,7 +4,7 @@ import { Component, Fragment } from "react"
 import { action, computed, runInAction, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import Select from "react-select"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
 import {
     ColorSchemeName,

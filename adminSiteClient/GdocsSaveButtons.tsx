@@ -1,5 +1,5 @@
 import { Badge, Button, Modal, Space } from "antd"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faExclamationTriangle,
     faBolt,

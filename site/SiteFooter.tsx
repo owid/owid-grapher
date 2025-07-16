@@ -1,4 +1,4 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faRss } from "@fortawesome/free-solid-svg-icons"
 import {
     ArchiveMetaInformation,

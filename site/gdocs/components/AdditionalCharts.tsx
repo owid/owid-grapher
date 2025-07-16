@@ -1,7 +1,7 @@
 import { Span } from "@ourworldindata/utils"
 import SpanElements from "./SpanElements.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 // A little wrapper to nest the SVG inside the <a> tag.
 // We do this so that :visited styles apply,

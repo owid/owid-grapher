@@ -53,7 +53,7 @@ import {
     loadVariableDataAndMetadata,
 } from "@ourworldindata/grapher"
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { DATA_API_URL, ETL_API_URL } from "../settings/clientSettings.js"
 import urljoin from "url-join"
 

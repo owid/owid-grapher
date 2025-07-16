@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { EntityName } from "@ourworldindata/types"
 import {
     getSelectedEntityNamesParam,

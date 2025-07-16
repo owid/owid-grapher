@@ -3,7 +3,7 @@ import * as React from "react"
 import classnames from "classnames"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { NO_DATA_LABEL } from "../color/ColorScale.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle, faS } from "@fortawesome/free-solid-svg-icons"
 import { formatInlineList, GrapherTooltipAnchor } from "@ourworldindata/utils"
 import {

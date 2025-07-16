@@ -2,7 +2,7 @@ import * as React from "react"
 import { action, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTable, faEarthAmericas } from "@fortawesome/free-solid-svg-icons"
 import {
     GRAPHER_CHART_TYPES,

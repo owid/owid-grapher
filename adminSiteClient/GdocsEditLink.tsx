@@ -1,6 +1,6 @@
 import * as React from "react"
 import { faEdit } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 export const GdocsEditLink = ({
     gdocId,

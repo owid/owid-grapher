@@ -18,7 +18,7 @@ import Select, {
     Props,
 } from "react-select"
 import classnames from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faTimes } from "@fortawesome/free-solid-svg-icons"
 import {
     countries,

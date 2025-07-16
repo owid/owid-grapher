@@ -10,7 +10,7 @@ import {
 import { TagBadge } from "./TagBadge.js"
 import { EditTags } from "./EditTags.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEdit, faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons"
 
 interface TaggableItem {

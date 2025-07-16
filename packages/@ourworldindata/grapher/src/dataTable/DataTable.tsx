@@ -3,7 +3,7 @@ import * as React from "react"
 import { computed, observable, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import classnames from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowDownLong,
     faArrowUpLong,

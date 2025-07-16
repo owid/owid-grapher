@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCopy } from "@fortawesome/free-solid-svg-icons"
 import { canWriteToClipboard } from "@ourworldindata/utils"
 import cx from "classnames"

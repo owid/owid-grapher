@@ -1,7 +1,7 @@
 import { observer } from "mobx-react"
 import * as React from "react"
 import { computed, action, makeObservable } from "mobx"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faCode,
     faShareAlt,

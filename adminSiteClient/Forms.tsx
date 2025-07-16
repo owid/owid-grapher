@@ -24,7 +24,7 @@ import {
     faCircleInfo,
     faCopy,
 } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 export class FieldsRow extends React.Component<{ children: React.ReactNode }> {
     render() {

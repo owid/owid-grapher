@@ -16,7 +16,7 @@ import {
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../../settings/clientSettings.js"
 import { getIndexName } from "./searchClient.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faHeartBroken,
     faMapMarkerAlt,

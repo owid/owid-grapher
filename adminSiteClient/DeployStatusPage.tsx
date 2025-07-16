@@ -2,7 +2,7 @@ import { Component } from "react"
 import { observer } from "mobx-react"
 import { action, observable, runInAction, makeObservable } from "mobx"
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons"
 
 import { AdminLayout } from "./AdminLayout.js"

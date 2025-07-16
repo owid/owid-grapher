@@ -7,7 +7,7 @@ import { EditorFAQ } from "./EditorFAQ.js"
 import { AdminSidebar } from "./AdminSidebar.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { faPlus } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     DefaultNewExplorerSlug,
     EXPLORERS_ROUTE_FOLDER,

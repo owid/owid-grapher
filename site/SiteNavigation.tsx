@@ -7,7 +7,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { SiteNavigationTopics } from "./SiteNavigationTopics.js"
 import { SiteLogos } from "./SiteLogos.js"
 import { SiteAbout } from "./SiteAbout.js"

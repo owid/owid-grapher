@@ -2,7 +2,7 @@ import { Fragment } from "react"
 import { BreadcrumbItem } from "@ourworldindata/utils"
 import { SubNavId } from "@ourworldindata/types"
 import { subnavs } from "../SiteConstants.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faAngleRight } from "@fortawesome/free-solid-svg-icons"
 import { getBreadcrumbItems } from "./breadcrumbUtils.js"
 

@@ -6,7 +6,7 @@ import { Link } from "./Link.js"
 import Tippy from "@tippyjs/react"
 import { TagBucketSortingIcon } from "./TagBucketSortingIcon.js"
 import cx from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faClock } from "@fortawesome/free-solid-svg-icons"
 
 interface TagBadgeProps {

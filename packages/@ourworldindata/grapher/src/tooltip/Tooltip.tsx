@@ -2,7 +2,7 @@ import * as React from "react"
 import classnames from "classnames"
 import { observable, computed, action, makeObservable, runInAction } from "mobx"
 import { observer } from "mobx-react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
 import {
     Bounds,

@@ -1,5 +1,5 @@
 import cx from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { IconDefinition, faArrowRight } from "@fortawesome/free-solid-svg-icons"
 
 type ButtonCommonProps = {

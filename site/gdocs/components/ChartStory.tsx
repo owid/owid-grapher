@@ -3,7 +3,7 @@ import {
     faCircleArrowRight,
     faCircleArrowLeft,
 } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 import { EnrichedBlockChartStory } from "@ourworldindata/utils"
 import SpanElements from "./SpanElements.js"

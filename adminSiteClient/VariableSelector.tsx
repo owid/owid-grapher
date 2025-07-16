@@ -17,7 +17,7 @@ import {
 import { observer } from "mobx-react"
 import Select, { MultiValue } from "react-select"
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArchive } from "@fortawesome/free-solid-svg-icons"
 
 import {

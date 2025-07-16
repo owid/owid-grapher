@@ -1,6 +1,6 @@
 import { memo, useState, useCallback, useEffect, useMemo } from "react"
 import { useMediaQuery } from "usehooks-ts"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faArrowRight,
     faChevronRight,

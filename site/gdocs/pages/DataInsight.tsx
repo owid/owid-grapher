@@ -13,7 +13,7 @@ import {
     faCheck,
     faChain,
 } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import LinkedAuthor from "../components/LinkedAuthor.js"
 import DataInsightDateline from "../components/DataInsightDateline.js"

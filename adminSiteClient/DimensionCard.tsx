@@ -20,7 +20,7 @@ import {
     faTimes,
     faArrowsAltV,
 } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { OwidTable } from "@ourworldindata/core-table"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 

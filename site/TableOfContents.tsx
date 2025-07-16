@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons"
 import { useTriggerWhenClickOutside } from "./hooks.js"
 import { TocHeading } from "@ourworldindata/utils"

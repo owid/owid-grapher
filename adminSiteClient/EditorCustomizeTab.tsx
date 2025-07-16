@@ -35,7 +35,7 @@ import {
     maxTimeBoundFromJSONOrPositiveInfinity,
 } from "@ourworldindata/utils"
 import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     ColorSchemeDropdown,
     ColorSchemeOption,

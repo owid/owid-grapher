@@ -40,7 +40,7 @@ import {
     faArrowRightArrowLeft,
     faFilter,
 } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { SelectionArray } from "../selection/SelectionArray"
 import { Flipper, Flipped } from "react-flip-toolkit"
 import {

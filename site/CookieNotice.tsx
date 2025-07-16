@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import classnames from "classnames"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheck } from "@fortawesome/free-solid-svg-icons"
 import { Action, getTodayDate } from "./cookiePreferences.js"
 

@@ -24,7 +24,7 @@ import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { DATA_API_URL, ETL_WIZARD_URL } from "../settings/clientSettings.js"
 import { faHatWizard, faDownload } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "antd"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import urljoin from "url-join"
 
 type ExportSettings = Required<

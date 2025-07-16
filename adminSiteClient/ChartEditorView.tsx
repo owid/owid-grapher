@@ -38,7 +38,7 @@ import { EditorDebugTab } from "./EditorDebugTab.js"
 import { SaveButtons } from "./SaveButtons.js"
 import { LoadingBlocker } from "./Forms.js"
 import { AdminLayout } from "./AdminLayout.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faMobile, faDesktop } from "@fortawesome/free-solid-svg-icons"
 import {
     VisionDeficiency,
