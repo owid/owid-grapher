@@ -1,4 +1,4 @@
-import { hydrate } from "react-dom"
+import { hydrateRoot } from "react-dom/client"
 import { wrapInDiv } from "@ourworldindata/utils"
 import {
     TableOfContents,
@@ -13,5 +13,5 @@ export const runTableOfContents = (tocData: TableOfContentsData) => {
     if (!tocWrapperEl) return
 
     const sidebarRootEl = wrapInDiv(tocWrapperEl, ["sidebar-root"])
-    hydrate(<TableOfContents {...tocData} />, sidebarRootEl)
+    hydrateRoot(sidebarRootEl, <TableOfContents {...tocData} />)
 }

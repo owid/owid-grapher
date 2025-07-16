@@ -31,6 +31,7 @@ export const Lightbox = ({
 
     const close = useCallback(() => {
         if (containerNode) {
+            // TODO This is deprecated in React 18, get rid of it
             unmountComponentAtNode(containerNode)
         }
     }, [containerNode])

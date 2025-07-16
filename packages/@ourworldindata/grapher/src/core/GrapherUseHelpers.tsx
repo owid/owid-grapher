@@ -1,6 +1,5 @@
 import { Bounds } from "@ourworldindata/utils"
 import { debounce } from "lodash-es"
-import ReactDOM from "react-dom"
 import { GrapherProgrammaticInterface } from "../index.js"
 import * as Sentry from "@sentry/react"
 import { FetchingGrapher } from "./FetchingGrapher.js"
@@ -10,6 +9,7 @@ import {
     OwidVariableId,
 } from "@ourworldindata/types"
 import { loadVariableDataAndMetadata } from "./loadVariable.js"
+import { createRoot } from "react-dom/client"
 
 export function renderGrapherIntoContainer(
     config: GrapherProgrammaticInterface,
@@ -41,7 +41,8 @@ export function renderGrapherIntoContainer(
                 loadVariableDataAndMetadata(varId, dataApiUrl, { noCache }),
         }
 
-        ReactDOM.render(
+        const root = createRoot(containerNode)
+        root.render(
             <Sentry.ErrorBoundary>
                 <FetchingGrapher
                     config={grapherConfigWithBounds}
@@ -51,8 +52,7 @@ export function renderGrapherIntoContainer(
                     queryStr={grapherConfigWithBounds.queryStr}
                     noCache={noCache}
                 />
-            </Sentry.ErrorBoundary>,
-            containerNode
+            </Sentry.ErrorBoundary>
         )
     }
 
