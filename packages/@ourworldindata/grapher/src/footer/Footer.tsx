@@ -4,7 +4,6 @@ import { observer } from "mobx-react"
 import parseUrl from "url-parse"
 import {
     Bounds,
-    DEFAULT_BOUNDS,
     getRelativeMouse,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
@@ -18,6 +17,7 @@ import { FooterManager } from "./FooterManager"
 import { ActionButtons } from "../controls/ActionButtons"
 import {
     BASE_FONT_SIZE,
+    DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_FOOTER_CLASS,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
 } from "../core/GrapherConstants"
@@ -79,7 +79,7 @@ abstract class AbstractFooter<
     }
 
     @computed protected get maxWidth(): number {
-        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
+        return this.props.maxWidth ?? DEFAULT_GRAPHER_BOUNDS.width
     }
 
     @computed protected get useBaseFontSize(): boolean {

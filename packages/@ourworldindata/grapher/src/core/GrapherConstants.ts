@@ -1,4 +1,5 @@
 import { EntityName, GRAPHER_CHART_TYPES } from "@ourworldindata/types"
+import { Bounds } from "@ourworldindata/utils"
 import { defaultGrapherConfig } from "../schema/defaultGrapherConfig.js"
 import type { GrapherProgrammaticInterface } from "./Grapher"
 
@@ -30,6 +31,20 @@ export const DEFAULT_GRAPHER_WIDTH = 850
 export const DEFAULT_GRAPHER_HEIGHT = 600
 
 export const GRAPHER_SQUARE_SIZE = 540
+
+export const DEFAULT_GRAPHER_BOUNDS = new Bounds(
+    0,
+    0,
+    DEFAULT_GRAPHER_WIDTH,
+    DEFAULT_GRAPHER_HEIGHT
+)
+
+export const DEFAULT_GRAPHER_BOUNDS_SQUARE = new Bounds(
+    0,
+    0,
+    GRAPHER_SQUARE_SIZE,
+    GRAPHER_SQUARE_SIZE
+)
 
 export const GRAPHER_FRAME_PADDING_VERTICAL = 16
 export const GRAPHER_FRAME_PADDING_HORIZONTAL = 16

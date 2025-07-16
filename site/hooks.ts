@@ -2,11 +2,8 @@ import * as _ from "lodash-es"
 import { useEffect, RefObject, useState, useCallback, useMemo } from "react"
 import { useSyncExternalStore } from "use-sync-external-store/shim"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
-import {
-    Bounds,
-    DEFAULT_BOUNDS,
-    getWindowQueryStr,
-} from "@ourworldindata/utils"
+import { Bounds, getWindowQueryStr } from "@ourworldindata/utils"
+import { DEFAULT_GRAPHER_BOUNDS } from "@ourworldindata/grapher"
 import { useResizeObserver } from "usehooks-ts"
 import { reaction } from "mobx"
 
@@ -97,7 +94,7 @@ export const useTriggerOnEscape = (trigger: VoidFunction) => {
 // Optionally throttles the bounds updates
 export const useElementBounds = (
     ref: RefObject<HTMLElement>,
-    initialValue: Bounds = DEFAULT_BOUNDS,
+    initialValue: Bounds = DEFAULT_GRAPHER_BOUNDS,
     throttleTime: number | undefined = 100
 ) => {
     const [bounds, setBounds] = useState<Bounds>(initialValue)

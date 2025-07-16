@@ -3,7 +3,6 @@ import { computed } from "mobx"
 import { observer } from "mobx-react"
 import {
     Bounds,
-    DEFAULT_BOUNDS,
     HorizontalAlign,
     Position,
     VerticalAlign,
@@ -16,6 +15,7 @@ import classNames from "classnames"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { ScaleType, DetailsMarker, AxisAlign } from "@ourworldindata/types"
 import { ComparisonLine } from "../comparisonLine/ComparisonLine"
+import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants"
 
 const TICK_COLOR = "#ddd"
 const FAINT_TICK_COLOR = "#eee"
@@ -79,7 +79,7 @@ interface HorizontalAxisGridLinesProps {
 @observer
 export class HorizontalAxisGridLines extends React.Component<HorizontalAxisGridLinesProps> {
     @computed get bounds(): Bounds {
-        return this.props.bounds ?? DEFAULT_BOUNDS
+        return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS
     }
 
     render(): React.ReactElement {

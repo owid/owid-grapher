@@ -2,12 +2,7 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { select } from "d3-selection"
 import cx from "classnames"
-import {
-    getRelativeMouse,
-    isMobile,
-    Bounds,
-    DEFAULT_BOUNDS,
-} from "@ourworldindata/utils"
+import { getRelativeMouse, isMobile, Bounds } from "@ourworldindata/utils"
 import { observable, computed, action } from "mobx"
 import { observer } from "mobx-react"
 import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons"
@@ -18,6 +13,7 @@ import {
 } from "./TimelineController"
 import { ActionButton } from "../controls/ActionButtons"
 import {
+    DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_TIMELINE_CLASS,
 } from "../core/GrapherConstants.js"
@@ -36,7 +32,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     base: React.RefObject<HTMLDivElement> = React.createRef()
 
     @computed protected get maxWidth(): number {
-        return this.props.maxWidth ?? DEFAULT_BOUNDS.width
+        return this.props.maxWidth ?? DEFAULT_GRAPHER_BOUNDS.width
     }
 
     @computed private get dragTarget(): TimelineDragTarget | undefined {
