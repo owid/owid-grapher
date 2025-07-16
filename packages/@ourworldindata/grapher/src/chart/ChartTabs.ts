@@ -9,7 +9,6 @@ import {
     GrapherTabConfigOption,
     GrapherTabQueryParam,
 } from "@ourworldindata/types"
-import { isSubsetOf } from "@ourworldindata/utils"
 import * as R from "remeda"
 
 /**
