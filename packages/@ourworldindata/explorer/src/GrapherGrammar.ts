@@ -67,6 +67,9 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
         terminalOptions: toTerminalOptions([
             ...ALL_GRAPHER_CHART_TYPES,
             `${GRAPHER_CHART_TYPES.LineChart} ${GRAPHER_CHART_TYPES.SlopeChart}`,
+            `${GRAPHER_CHART_TYPES.LineChart} ${GRAPHER_CHART_TYPES.DiscreteBar}`,
+            `${GRAPHER_CHART_TYPES.SlopeChart} ${GRAPHER_CHART_TYPES.DiscreteBar}`,
+            `${GRAPHER_CHART_TYPES.LineChart} ${GRAPHER_CHART_TYPES.SlopeChart} ${GRAPHER_CHART_TYPES.DiscreteBar}`,
             "None",
         ]),
         toGrapherObject: (parsedValue) => ({
