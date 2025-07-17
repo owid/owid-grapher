@@ -1,10 +1,9 @@
 metadata:
-    description: "TypeORM migration tracking table that records which database migrations have been executed. This is essential for database schema version control and ensures migrations are applied in the correct order and only once."
-
+    description: TypeORM migration tracking table that records which database migrations have been executed. This is essential for database schema version control and ensures migrations are applied in the correct order and only once.
 fields:
     id:
-        description: "Unique identifier for the migration record"
+        description: Unique identifier for the migration record
     timestamp:
-        description: "Timestamp when the migration was created (used for ordering)"
+        description: Timestamp when the migration was created (used for ordering)
     name:
-        description: "Migration name/filename that identifies the specific migration that was executed"
+        description: Migration name/filename that identifies the specific migration that was executed

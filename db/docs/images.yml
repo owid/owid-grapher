@@ -1,27 +1,32 @@
 metadata:
-    description: "Image asset management system for OWID content. Images are stored in CloudFlare images. Historically they were uploaded into GDrive, but this is no longer the case."
+    description: Image asset management system for OWID content. Images are stored in CloudFlare images. Historically they were uploaded into GDrive, but this is no longer the case.
+    incoming_foreign_keys:
+        - table: images
+          column: replacedBy
+        - table: posts_gdocs_x_images
+          column: imageId
 fields:
     id:
-        description: "Unique identifier for the image"
+        description: Unique identifier for the image
     googleId:
-        description: "Google Drive ID for the original image source"
+        description: Google Drive ID for the original image source
     filename:
-        description: "Image filename as stored in the system"
+        description: Image filename as stored in the system
     defaultAlt:
-        description: "Default alt text for accessibility"
+        description: Default alt text for accessibility
     originalWidth:
-        description: "Original width of the image in pixels"
+        description: Original width of the image in pixels
     updatedAt:
-        description: "Timestamp when the image was last updated"
+        description: Timestamp when the image was last updated
     originalHeight:
-        description: "Original height of the image in pixels"
+        description: Original height of the image in pixels
     cloudflareId:
-        description: "Cloudflare Images ID for optimized delivery"
+        description: Cloudflare Images ID for optimized delivery
     hash:
-        description: "Content hash for duplicate detection and caching"
+        description: Content hash for duplicate detection and caching
     userId:
-        description: "Foreign key to users table. User who uploaded the image."
+        description: Foreign key to users table. User who uploaded the image.
     replacedBy:
-        description: "Foreign key to images table. ID of the image that replaced this one (for version tracking)."
+        description: Foreign key to images table. ID of the image that replaced this one (for version tracking).
     version:
-        description: "Version number of the image for tracking updates"
+        description: Version number of the image for tracking updates

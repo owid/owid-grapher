@@ -1,17 +1,16 @@
 metadata:
     description: |
         "Table for keeping track of archived versions of our multi-dimensional charts at https://archive.ourworldindata.org. On every content publish we create a new archival version of all published multi-dims (as given in the multi_dim_data_pages table) that were updated since the last content publish."
-
 fields:
     id:
-        description: "Unique identifier for the archived multi-dimensional page version"
+        description: Unique identifier for the archived multi-dimensional page version
     archivalTimestamp:
-        description: "Timestamp when this multi-dimensional page version was archived"
+        description: Timestamp when this multi-dimensional page version was archived
     multiDimId:
-        description: "ID of the multi-dimensional page that was archived (not a foreign key as archives are kept even after deletion)"
+        description: ID of the multi-dimensional page that was archived (not a foreign key as archives are kept even after deletion)
     multiDimSlug:
-        description: "Slug of the multi-dimensional page at the time of archival"
+        description: Slug of the multi-dimensional page at the time of archival
     hashOfInputs:
-        description: "Hash of the inputs used to generate this page version, used for deduplication and change detection"
+        description: Hash of the inputs used to generate this page version, used for deduplication and change detection
     manifest:
-        description: "JSON manifest containing the full page configuration and metadata at the time of archival"
+        description: JSON manifest containing the full page configuration and metadata at the time of archival

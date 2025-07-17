@@ -1,13 +1,12 @@
 metadata:
-    description: "Historical chart revision tracking for version control purposes. This table stores snapshots of chart configurations over time, enabling rollback functionality and change history tracking. Each revision captures the full chart configuration at a specific point in time. Only used for standalone charts."
-
+    description: Historical chart revision tracking for version control purposes. This table stores snapshots of chart configurations over time, enabling rollback functionality and change history tracking. Each revision captures the full chart configuration at a specific point in time. Only used for standalone charts.
 fields:
     id:
-        description: "Unique identifier for the chart revision"
+        description: Unique identifier for the chart revision
     chartId:
-        description: "Foreign key to charts table. The chart this revision belongs to."
+        description: Foreign key to charts table. The chart this revision belongs to.
     userId:
-        description: "Foreign key to users table. The user who created this revision."
+        description: Foreign key to users table. The user who created this revision.
     config:
         description: |
             "JSON configuration of the chart at the time of this revision
@@ -19,6 +18,6 @@ fields:
                 - hasMapTab: Whether the map tab is enabled
                 - isPublished: whether the chart is published, if it is a standalone chart (i.e. a chart referenced from the charts table)"
     createdAt:
-        description: "Timestamp when the revision was created"
+        description: Timestamp when the revision was created
     updatedAt:
-        description: "Timestamp when the revision was last updated"
+        description: Timestamp when the revision was last updated

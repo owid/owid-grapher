@@ -10,12 +10,12 @@ metadata:
         IncomeGroup is set to 'default' by default but can be set to one of the WB income groups to specify overrides for countries in this group. This is useful so that a search result for 'poverty' can show 'Share of population in extreme poverty' for most countries at the top, but for high income countries, 'Share of population living on less than 30i$ per day' can be shown instead."
 fields:
     id:
-        description: "Unique identifier for the featured metric"
+        description: Unique identifier for the featured metric
     url:
-        description: "URL of the featured metric (up to 512 characters)"
+        description: URL of the featured metric (up to 512 characters)
     parentTagId:
-        description: "Foreign key to tags table. The parent tag/topic this metric is featured under."
+        description: Foreign key to tags table. The parent tag/topic this metric is featured under.
     ranking:
-        description: "Display order ranking for this featured metric within its topic and income group"
+        description: Display order ranking for this featured metric within its topic and income group
     incomeGroup:
-        description: "Income group classification for targeted metric display ('low', 'lower-middle', 'upper-middle', 'high', 'default')"
+        description: Income group classification for targeted metric display ('low', 'lower-middle', 'upper-middle', 'high', 'default')

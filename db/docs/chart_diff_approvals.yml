@@ -1,16 +1,15 @@
 metadata:
-    description: "Chart diff approval tracking for editorial workflow management. This table manages the approval process for chart changes during ETL updates, tracking the approval status of modifications and maintaining timestamps for source and target versions. Part of the editorial review system for chart updates. This table is temporal and used during staging/review processes."
-
+    description: Chart diff approval tracking for editorial workflow management. This table manages the approval process for chart changes during ETL updates, tracking the approval status of modifications and maintaining timestamps for source and target versions. Part of the editorial review system for chart updates. This table is temporal and used during staging/review processes.
 fields:
     id:
-        description: "Unique identifier for the chart diff approval"
+        description: Unique identifier for the chart diff approval
     chartId:
-        description: "Foreign key to charts table. The chart for which approval is being tracked."
+        description: Foreign key to charts table. The chart for which approval is being tracked.
     sourceUpdatedAt:
-        description: "Timestamp of the source version being compared"
+        description: Timestamp of the source version being compared
     targetUpdatedAt:
-        description: "Timestamp of the target version being compared (can be null)"
+        description: Timestamp of the target version being compared (can be null)
     updatedAt:
-        description: "Timestamp when the approval record was last updated"
+        description: Timestamp when the approval record was last updated
     status:
-        description: "Approval status of the chart diff (e.g., 'pending', 'approved', 'rejected')"
+        description: Approval status of the chart diff (e.g., 'pending', 'approved', 'rejected')

@@ -5,12 +5,12 @@ metadata:
         This table needs to be taken into consideration whenever entries in the charts table are matched or joined on slug. This table defines additional aliases that point to charts by numeric id."
 fields:
     id:
-        description: "Unique identifier for the redirect"
+        description: Unique identifier for the redirect
     slug:
-        description: "Old slug that should redirect to the new chart location (unique constraint)"
+        description: Old slug that should redirect to the new chart location (unique constraint)
     chart_id:
-        description: "Foreign key to charts table. Target chart ID for the redirect."
+        description: Foreign key to charts table. Target chart ID for the redirect.
     createdAt:
-        description: "Timestamp when the redirect was created"
+        description: Timestamp when the redirect was created
     updatedAt:
-        description: "Timestamp when the redirect was last updated"
+        description: Timestamp when the redirect was last updated

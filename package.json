@@ -44,7 +44,8 @@
         "syncGraphersToR2": "tsx --tsconfig tsconfig.tsx.json devTools/syncGraphersToR2/syncGraphersToR2.ts",
         "syncCloudflareImages": "tsx --tsconfig tsconfig.tsx.json devTools/cloudflareImagesSync/cloudflareImagesSync.ts",
         "reconstructPostsGdocsComponents": "tsx --tsconfig tsconfig.tsx.json devTools/reconstructPostsGdocsComponents/reconstructPostsGdocsComponents.ts",
-        "query": "tsx --tsconfig tsconfig.tsx.json devTools/query.ts"
+        "query": "tsx --tsconfig tsconfig.tsx.json devTools/query.ts",
+        "addIncomingForeignKeys": "tsx --tsconfig tsconfig.tsx.json devTools/addIncomingForeignKeys.ts"
     },
     "dependencies": {
         "@algolia/autocomplete-js": "^1.17.2",

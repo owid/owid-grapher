@@ -1,37 +1,42 @@
 metadata:
-    description: "LEGACY TABLE - WordPress posts and articles representing OWID's legacy content management system (use posts_gdocs instead for new content). This table stores articles, blog posts, and other content originally authored in WordPress before the transition to Google Docs. Content was synchronized from WordPress and converted to structured formats for web publishing."
+    description: LEGACY TABLE - WordPress posts and articles representing OWID's legacy content management system (use posts_gdocs instead for new content). This table stores articles, blog posts, and other content originally authored in WordPress before the transition to Google Docs. Content was synchronized from WordPress and converted to structured formats for web publishing.
+    incoming_foreign_keys:
+        - table: post_tags
+          column: post_id
+        - table: posts_links
+          column: sourceId
 fields:
     id:
-        description: "Unique identifier for the post"
+        description: Unique identifier for the post
     title:
-        description: "Post title as it appears on the website"
+        description: Post title as it appears on the website
     slug:
-        description: "URL-friendly identifier used in website URLs"
+        description: URL-friendly identifier used in website URLs
     type:
-        description: "Post type ('post', 'page', 'wp_block', etc.)"
+        description: Post type ('post', 'page', 'wp_block', etc.)
     status:
-        description: "Publication status ('publish', 'draft', 'private', etc.)"
+        description: Publication status ('publish', 'draft', 'private', etc.)
     content:
-        description: "Post content in HTML format from WordPress"
+        description: Post content in HTML format from WordPress
     archieml:
-        description: "ArchieML structured content parsed from WordPress"
+        description: ArchieML structured content parsed from WordPress
     published_at:
-        description: "Timestamp when the post was published"
+        description: Timestamp when the post was published
     updated_at:
-        description: "Timestamp when the post was last updated"
+        description: Timestamp when the post was last updated
     authors:
-        description: "JSON array of post authors"
+        description: JSON array of post authors
     excerpt:
-        description: "Post excerpt/summary"
+        description: Post excerpt/summary
     created_at_in_wordpress:
-        description: "Original creation timestamp in WordPress"
+        description: Original creation timestamp in WordPress
     updated_at_in_wordpress:
-        description: "Last update timestamp in WordPress"
+        description: Last update timestamp in WordPress
     featured_image:
-        description: "Featured image URL"
+        description: Featured image URL
     formattingOptions:
-        description: "JSON formatting options for the post"
+        description: JSON formatting options for the post
     markdown:
-        description: "Post content converted to Markdown format"
+        description: Post content converted to Markdown format
     wpApiSnapshot:
-        description: "Snapshot of WordPress API data for historical tracking"
+        description: Snapshot of WordPress API data for historical tracking

@@ -1,17 +1,16 @@
 metadata:
     description: |
         "Table for keeping track of archived versions of our grapher charts at https://archive.ourworldindata.org. On every content publish we create a new archival version of all published charts (as given in the charts table) that were updated since the last content publish."
-
 fields:
     id:
-        description: "Unique identifier for the archived chart version"
+        description: Unique identifier for the archived chart version
     archivalTimestamp:
-        description: "Timestamp when this chart version was archived"
+        description: Timestamp when this chart version was archived
     grapherId:
-        description: "ID of the chart that was archived (theoretically foreign key to charts.id, but charts may be deleted while archives are kept forever)"
+        description: ID of the chart that was archived (theoretically foreign key to charts.id, but charts may be deleted while archives are kept forever)
     grapherSlug:
-        description: "Slug of the chart at the time of archival"
+        description: Slug of the chart at the time of archival
     hashOfInputs:
-        description: "Hash of the inputs used to generate this chart version, used for deduplication and change detection"
+        description: Hash of the inputs used to generate this chart version, used for deduplication and change detection
     manifest:
-        description: "JSON manifest containing the full chart configuration and metadata at the time of archival"
+        description: JSON manifest containing the full chart configuration and metadata at the time of archival

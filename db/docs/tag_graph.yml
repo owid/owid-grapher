@@ -1,11 +1,11 @@
 metadata:
-    description: "Hierarchical relationships between tags that extends beyond simple parent-child relationships. This table enables complex tag relationships and weighting for advanced topic navigation and content organization. It supports the sophisticated tag hierarchy system used in OWID's topic pages and to power our main site nav."
+    description: Hierarchical relationships between tags that extends beyond simple parent-child relationships. This table enables complex tag relationships and weighting for advanced topic navigation and content organization. It supports the sophisticated tag hierarchy system used in OWID's topic pages and to power our main site nav.
 fields:
     parentId:
-        description: "Foreign key to tags table for parent tag"
+        description: Foreign key to tags table for parent tag
     childId:
-        description: "Foreign key to tags table for child tag"
+        description: Foreign key to tags table for child tag
     weight:
-        description: "Weight of the relationship for ordering and importance"
+        description: Weight of the relationship for ordering and importance
     updatedAt:
-        description: "Timestamp when the relationship was last updated"
+        description: Timestamp when the relationship was last updated

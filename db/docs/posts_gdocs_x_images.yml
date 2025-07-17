@@ -1,9 +1,9 @@
 metadata:
-    description: "Many-to-many table linking Google Docs posts to images used within them. This enables tracking of image usage across articles, supporting media management, and ensuring proper image attribution and optimization for web delivery."
+    description: Many-to-many table linking Google Docs posts to images used within them. This enables tracking of image usage across articles, supporting media management, and ensuring proper image attribution and optimization for web delivery.
 fields:
     id:
-        description: "Unique identifier for the association"
+        description: Unique identifier for the association
     gdocId:
-        description: "Foreign key to posts_gdocs table"
+        description: Foreign key to posts_gdocs table
     imageId:
-        description: "Foreign key to images table"
+        description: Foreign key to images table

@@ -5,9 +5,20 @@ metadata:
         This inheritance is reflected in this table in the patch and full columns. The patch column stores only the configuration changes that currently it performs. The full one is the merged configuration from all the upstream dependencies plus the current patch. When querying details of chart configs, prefer to use the full column.
 
         The actual chart config is a complex JSON object. See the column description for patch and full below for the schema url and the most important fields.
+    incoming_foreign_keys:
+        - table: charts
+          column: configId
+        - table: multi_dim_x_chart_configs
+          column: chartConfigId
+        - table: narrative_charts
+          column: chartConfigId
+        - table: variables
+          column: grapherConfigIdAdmin
+        - table: variables
+          column: grapherConfigIdETL
 fields:
     id:
-        description: "Unique identifier for the chart configuration"
+        description: Unique identifier for the chart configuration
     patch:
         description: |
             "Incremental configuration JSON that contains only the changes from the inherited or base configuration. Stored as a JSON column, so can be queried with the ->> operator.
@@ -29,12 +40,12 @@ fields:
                 - hasMapTab: Whether the map tab is enabled
                 - isPublished: whether the chart is published, if it is a standalone chart (i.e. a chart referenced from the charts table)"
     slug:
-        description: "URL-friendly identifier for the chart, used in URLs like /grapher/[slug]"
+        description: URL-friendly identifier for the chart, used in URLs like /grapher/[slug]
     chartType:
-        description: "Type of chart visualization (e.g., LineChart, BarChart, ScatterPlot, WorldMap). This only indicates the main chart - prefer to query the chartTypes field and the hasMapTab field in the full config instead."
+        description: Type of chart visualization (e.g., LineChart, BarChart, ScatterPlot, WorldMap). This only indicates the main chart - prefer to query the chartTypes field and the hasMapTab field in the full config instead.
     createdAt:
-        description: "Timestamp when the configuration was created"
+        description: Timestamp when the configuration was created
     updatedAt:
-        description: "Timestamp when the configuration was last updated"
+        description: Timestamp when the configuration was last updated
     fullMd5:
-        description: "MD5 hash of the full configuration JSON used for change detection and caching"
+        description: MD5 hash of the full configuration JSON used for change detection and caching
