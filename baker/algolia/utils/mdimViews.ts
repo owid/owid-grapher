@@ -22,6 +22,7 @@ import {
     getRelevantVariableIds,
     getRelevantVariableMetadata,
 } from "../../MultiDimBaker.js"
+import { GrapherState } from "@ourworldindata/grapher"
 
 async function getChartConfigsByIds(
     knex: db.KnexReadonlyTransaction,
@@ -75,6 +76,7 @@ async function getRecords(
                     `viewId=${viewId} chartConfigId=${view.fullConfigId}`
             )
         }
+        const grapherState = new GrapherState(chartConfig)
         const queryStr = queryParamsToStr(view.dimensions)
         const variableId = view.indicators.y[0].id
         const metadata = _.merge(
@@ -104,6 +106,7 @@ async function getRecords(
             title,
             subtitle,
             variantName: chartConfig.variantName,
+            availableTabs: grapherState.availableTabs,
             keyChartForTags: [],
             tags,
             availableEntities,

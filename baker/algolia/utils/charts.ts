@@ -1,6 +1,10 @@
 import * as _ from "lodash-es"
 import { MarkdownTextWrap } from "@ourworldindata/components"
-import { KeyChartLevel, ContentGraphLinkType } from "@ourworldindata/types"
+import {
+    KeyChartLevel,
+    ContentGraphLinkType,
+    parseChartConfig,
+} from "@ourworldindata/types"
 import * as db from "../../../db/db.js"
 import {
     ChartRecord,
@@ -16,6 +20,7 @@ import {
     getUniqueNamesFromTagHierarchies,
 } from "@ourworldindata/utils"
 import { processAvailableEntities } from "./shared.js"
+import { GrapherState } from "@ourworldindata/grapher"
 
 const computeChartScore = (record: Omit<ChartRecord, "score">): number => {
     const { numRelatedArticles, views_7d } = record
@@ -46,8 +51,11 @@ const parseAndProcessChartRecords = (
         rawRecord.keyChartForTags as string
     ).filter((t: string | null) => t)
 
+    const config = parseChartConfig(rawRecord.config)
+
     return {
         ...rawRecord,
+        config,
         entityNames,
         tags,
         keyChartForTags,
@@ -64,9 +72,7 @@ export const getChartsRecords = async (
         WITH indexable_charts_with_entity_names AS (
             SELECT c.id,
                    cc.slug,
-                   cc.full ->> "$.title"                   AS title,
-                   cc.full ->> "$.variantName"             AS variantName,
-                   cc.full ->> "$.subtitle"                AS subtitle,
+                   cc.full                                 AS config,
                    JSON_LENGTH(cc.full ->> "$.dimensions") AS numDimensions,
                    c.publishedAt,
                    c.updatedAt,
@@ -81,9 +87,7 @@ export const getChartsRecords = async (
         )
         SELECT c.id,
                c.slug,
-               c.title,
-               c.variantName,
-               c.subtitle,
+               c.config,
                c.numDimensions,
                c.publishedAt,
                c.updatedAt,
@@ -107,6 +111,8 @@ export const getChartsRecords = async (
 
     const records: ChartRecord[] = []
     for (const c of parsedRows) {
+        const grapherState = new GrapherState(c.config)
+
         // Our search currently cannot render explorers, so don't index them because
         // otherwise they will fail when rendered in the search results
         if (isPathRedirectedToExplorer(`/grapher/${c.slug}`)) continue
@@ -118,10 +124,10 @@ export const getChartsRecords = async (
             ContentGraphLinkType.Grapher
         )
 
-        const plaintextSubtitle = _.isNil(c.subtitle)
+        const plaintextSubtitle = _.isNil(c.config.subtitle)
             ? undefined
             : new MarkdownTextWrap({
-                  text: c.subtitle,
+                  text: c.config.subtitle,
                   fontSize: 10, // doesn't matter, but is a mandatory field
               }).plaintext
 
@@ -136,16 +142,17 @@ export const getChartsRecords = async (
             type: ChartRecordType.Chart,
             chartId: c.id,
             slug: c.slug,
-            title: c.title,
-            variantName: c.variantName,
+            title: c.config.title,
+            variantName: c.config.variantName,
             subtitle: plaintextSubtitle,
             availableEntities: c.entityNames,
             numDimensions: parseInt(c.numDimensions),
+            availableTabs: grapherState.availableTabs,
             publishedAt: c.publishedAt,
             updatedAt: c.updatedAt,
             tags: topicTags,
             keyChartForTags: c.keyChartForTags as string[],
-            titleLength: c.title.length,
+            titleLength: c.config.title?.length ?? 0,
             // Number of references to this chart in all our posts and pages
             numRelatedArticles: relatedArticles.length + linksFromGdocs.length,
             views_7d: pageviews[`/grapher/${c.slug}`]?.views_7d ?? 0,
