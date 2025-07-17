@@ -1,4 +1,4 @@
-import { OwidGdocType } from "@ourworldindata/types"
+import { GrapherTabName, OwidGdocType } from "@ourworldindata/types"
 import { SearchResponse } from "instantsearch.js"
 import {
     BaseHit,
@@ -74,6 +74,7 @@ export interface ChartRecord {
     title: string
     subtitle: string | undefined
     variantName: string
+    availableTabs: GrapherTabName[]
     keyChartForTags: string[]
     tags: string[]
     availableEntities: string[]
