@@ -5,12 +5,13 @@ import {
     GridBoolean,
     DecisionMatrix,
     TableDef,
+    ExplorerProgram,
 } from "@ourworldindata/explorer"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import { obtainAvailableEntitiesForGraphers } from "../../updateChartEntities.js"
 import { fetchS3MetadataByPath } from "../../../db/model/Variable.js"
-import { getVariableMetadataRoute } from "@ourworldindata/grapher"
+import { getVariableMetadataRoute, GrapherState } from "@ourworldindata/grapher"
 import pMap from "p-map"
 import { ExplorerAdminServer } from "../../../explorerAdminServer/ExplorerAdminServer.js"
 import { parseDelimited } from "@ourworldindata/core-table"
@@ -344,11 +345,16 @@ const getNonDefaultSettings = (
 
 const createBaseRecord = (
     choice: ExplorerChoiceParams,
-    matrix: DecisionMatrix,
+    program: ExplorerProgram,
     index: number,
     explorerInfo: MinimalExplorerInfo
 ): ExplorerViewBaseRecord => {
+    const matrix = program.decisionMatrix
     matrix.setValuesFromChoiceParams(choice)
+
+    const grapherConfig = program.grapherConfig
+    const grapherState = new GrapherState(grapherConfig)
+
     const nonDefaultSettings = getNonDefaultSettings(choice, matrix)
     const yVariableIds = parseYVariableIds(matrix.selectedRow)
 
@@ -356,6 +362,7 @@ const createBaseRecord = (
         availableEntities: [],
         viewTitle: matrix.selectedRow.title,
         viewSubtitle: matrix.selectedRow.subtitle,
+        viewAvailableTabs: grapherState.availableTabs,
         viewSettings: explorerChoiceToViewSettings(choice, matrix),
         viewGrapherId: matrix.selectedRow.grapherId,
         yVariableIds,
@@ -371,12 +378,12 @@ const createBaseRecord = (
 
 const createBaseRecords = (
     explorerInfo: MinimalExplorerInfo,
-    matrix: DecisionMatrix
+    explorerProgram: ExplorerProgram
 ): ExplorerViewBaseRecord[] => {
-    return matrix
+    return explorerProgram.decisionMatrix
         .allDecisionsAsQueryParams()
         .map((choice: ExplorerChoiceParams, index: number) =>
-            createBaseRecord(choice, matrix, index, explorerInfo)
+            createBaseRecord(choice, explorerProgram, index, explorerInfo)
         )
 }
 
@@ -625,6 +632,7 @@ async function finalizeRecords(
                 subtitle: record.viewSubtitle!,
                 slug: explorerInfo.slug,
                 queryParams: record.viewQueryParams,
+                availableTabs: record.viewAvailableTabs,
                 tags: explorerInfo.tags,
                 objectID: `${explorerInfo.slug}-${i}`,
                 id: `explorer/${explorerInfo.slug}${record.viewQueryParams}`,
@@ -676,10 +684,7 @@ export const getExplorerViewRecordsForExplorer = async (
         explorerProgram.columnDefsWithoutTableSlug
     )
 
-    const baseRecords = createBaseRecords(
-        explorerInfo,
-        explorerProgram.decisionMatrix
-    )
+    const baseRecords = createBaseRecords(explorerInfo, explorerProgram)
 
     const baseRecordsWithDuplicatedYVariableIdsAdded = addDuplicateYVariableIds(
         baseRecords,
