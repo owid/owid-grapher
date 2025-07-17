@@ -35,6 +35,17 @@ export default function SpanElement({
                 </span>
             )
         )
+        .with({ spanType: "span-guided-chart-link" }, (span) =>
+            shouldRenderLinks ? (
+                <a className="guided-chart-link" href={span.url}>
+                    <SpanElements spans={span.children} />
+                </a>
+            ) : (
+                <span className="guided-chart-link">
+                    <SpanElements spans={span.children} />
+                </span>
+            )
+        )
         .with({ spanType: "span-dod" }, (span) => (
             <span className="dod-span" data-id={`${span.id}`} tabIndex={0}>
                 <SpanElements spans={span.children} />

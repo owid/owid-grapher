@@ -345,6 +345,7 @@ export function enumerateGdocComponentsWithoutChildren(
                         "missing-data",
                         "prominent-link",
                         "pull-quote",
+                        "guided-chart",
                         "recirc",
                         "resource-panel",
                         "research-and-writing",

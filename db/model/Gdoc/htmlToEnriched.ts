@@ -29,6 +29,8 @@ import {
     EnrichedBlockCallout,
     EnrichedBlockBlockquote,
     traverseEnrichedSpan,
+    guidedChartRegex,
+    SpanGuidedChartLink,
 } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import * as cheerio from "cheerio"
@@ -143,20 +145,31 @@ function cheerioToSpan(element: AnyNode): Span | undefined {
         }
     else if (element.type === "tag") {
         return match(element.tagName)
-            .with("a", (): SpanLink | SpanRef | SpanDod => {
-                const url: string | undefined = element.attribs.href
-                const className = element.attribs.class
-                const children =
-                    _.compact(element.children?.map(cheerioToSpan)) ?? []
-                if (className === "ref") {
-                    return { spanType: "span-ref", children, url }
+            .with(
+                "a",
+                (): SpanLink | SpanRef | SpanDod | SpanGuidedChartLink => {
+                    const url: string | undefined = element.attribs.href
+                    const className = element.attribs.class
+                    const children =
+                        _.compact(element.children?.map(cheerioToSpan)) ?? []
+                    if (className === "ref") {
+                        return { spanType: "span-ref", children, url }
+                    }
+                    const dod = url?.match(detailOnDemandRegex)
+                    if (dod) {
+                        return { spanType: "span-dod", children, id: dod[1] }
+                    }
+                    const guide = url?.match(guidedChartRegex)
+                    if (guide) {
+                        return {
+                            spanType: "span-guided-chart-link",
+                            children,
+                            url: guide[1],
+                        }
+                    }
+                    return { spanType: "span-link", children, url }
                 }
-                const dod = url?.match(detailOnDemandRegex)
-                if (dod) {
-                    return { spanType: "span-dod", children, id: dod[1] }
-                }
-                return { spanType: "span-link", children, url }
-            })
+            )
             .with("b", (): SpanBold => {
                 const children =
                     _.compact(element.children?.map(cheerioToSpan)) ?? []

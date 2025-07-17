@@ -135,6 +135,7 @@ export {
     sleep,
     lowercaseObjectKeys,
     detailOnDemandRegex,
+    guidedChartRegex,
     extractDetailsFromSyntax,
     parseFloatOrUndefined,
     bind,

@@ -9,6 +9,7 @@ import {
     Span,
     Url,
     detailOnDemandRegex,
+    guidedChartRegex,
 } from "@ourworldindata/utils"
 import urlSlug from "url-slug"
 import { P, match } from "ts-pattern"
@@ -26,6 +27,9 @@ export function getLinkType(urlString: string): ContentGraphLinkType {
     }
     if (url.isDod) {
         return ContentGraphLinkType.Dod
+    }
+    if (url.isGuidedChart) {
+        return ContentGraphLinkType.GuidedChart
     }
     return ContentGraphLinkType.Url
 }
@@ -48,6 +52,13 @@ export function getUrlTarget(urlString: string): string {
         if (dodMatch) {
             const [_, dodId] = dodMatch
             return dodId
+        }
+    }
+    if (url.isGuidedChart) {
+        const guidedChartMatch = urlString.match(guidedChartRegex)
+        if (guidedChartMatch) {
+            const [_, guidedChartId] = guidedChartMatch
+            return guidedChartId
         }
     }
     if ((url.isGrapher || url.isExplorer) && url.slug) {
