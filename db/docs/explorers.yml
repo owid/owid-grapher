@@ -1,6 +1,6 @@
 metadata:
     description: |
-        "Data explorers are interactive tools that allow users to explore multiple charts with configurable dropdowns and filters and that live at https://ourworldindata.org/explorers/SLUG. They provide a way to navigate through multiple variables and charts within a specific domain (e.g., 'COVID-19 Data Explorer', 'Energy Data Explorer'). Explorers are historically configured using TSV (Tab-Separated Values) format but the same information is now also available in the config column as JSON which is usually easier to query."
+        Data explorers are interactive tools that allow users to explore multiple charts with configurable dropdowns and filters and that live at https://ourworldindata.org/explorers/SLUG. They provide a way to navigate through multiple variables and charts within a specific domain (e.g., 'COVID-19 Data Explorer', 'Energy Data Explorer'). Explorers are historically configured using TSV (Tab-Separated Values) format but the same information is now also available in the config column as JSON which is usually easier to query.
     incoming_foreign_keys:
         - table: explorer_charts
           column: explorerSlug

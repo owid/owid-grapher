@@ -1,5 +1,5 @@
 metadata:
-    description: LEGACY TABLE - Link tracking system for WordPress posts that enables internal analytics and content relationship mapping (use posts_gdocs_links instead for new content). Extracts and categorizes all links from WordPress content to track internal references, external citations, and embedded visualizations for site health monitoring and content optimization.
+    description: Deprecated. Link tracking system for WordPress posts that enables internal analytics and content relationship mapping (use posts_gdocs_links instead for new content). Extracts and categorizes all links from WordPress content to track internal references, external citations, and embedded visualizations for site health monitoring and content optimization.
 fields:
     id:
         description: Unique identifier for the link

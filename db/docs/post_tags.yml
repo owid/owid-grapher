@@ -1,5 +1,5 @@
 metadata:
-    description: LEGACY TABLE - Junction table linking WordPress posts to tags for categorization and topic page organization (use posts_gdocs_x_tags instead for new content). This enables articles from the legacy WordPress system to be properly categorized and appear on relevant topic pages alongside Google Docs content.
+    description: Deprecated. Many-to-many table linking WordPress posts to tags for categorization and topic page organization (use posts_gdocs_x_tags instead for new content). This enables articles from the legacy WordPress system to be properly categorized and appear on relevant topic pages alongside Google Docs content.
 fields:
     post_id:
         description: Foreign key to posts table

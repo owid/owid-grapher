@@ -1,8 +1,8 @@
 metadata:
     description: |
-        "Global URL redirect management system for maintaining site navigation and SEO. Handles redirects from old URLs to new ones when content is moved, renamed, or restructured. Supports pattern matching and different HTTP status codes for various redirect scenarios.
+        Global URL redirect management system for maintaining site navigation and SEO. Handles redirects from old URLs to new ones when content is moved, renamed, or restructured. Supports pattern matching and different HTTP status codes for various redirect scenarios.
 
-        When matching content by slug (e.g. when joining posts_gdocs_links with explorers) it is important to take this redirects table into account when full accuracy is important."
+        When matching content by slug (e.g. when joining posts_gdocs_links with explorers) it is important to take this redirects table into account when full accuracy is important.
 fields:
     id:
         description: Unique identifier for the redirect

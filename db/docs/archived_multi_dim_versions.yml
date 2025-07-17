@@ -1,6 +1,6 @@
 metadata:
     description: |
-        "Table for keeping track of archived versions of our multi-dimensional charts at https://archive.ourworldindata.org. On every content publish we create a new archival version of all published multi-dims (as given in the multi_dim_data_pages table) that were updated since the last content publish."
+        Table for keeping track of archived versions of our multi-dimensional charts at https://archive.ourworldindata.org. On every content publish we create a new archival version of all published multi-dims (as given in the multi_dim_data_pages table) that were updated since the last content publish.
 fields:
     id:
         description: Unique identifier for the archived multi-dimensional page version

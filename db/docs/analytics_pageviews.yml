@@ -1,6 +1,6 @@
 metadata:
     description: |
-        "Pre-aggregated pageview analytics data imported from external analytics system.
+        Pre-aggregated pageview analytics data imported from external analytics system.
         This table stores daily pageview metrics with rolling windows for different time periods.
 
         Availability:
@@ -13,7 +13,7 @@ metadata:
 
         - Charts: prefix with `https://ourworldindata.org/grapher/`
         - Explorers: prefix with `https://ourworldindata.org/explorers/`
-        - Other pages (posts_gdocs): prefix with `https://ourworldindata.org/`"
+        - Other pages (posts_gdocs): prefix with `https://ourworldindata.org/`
 fields:
     day:
         description: Date of the pageview data

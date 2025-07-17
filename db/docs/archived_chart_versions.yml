@@ -1,6 +1,6 @@
 metadata:
     description: |
-        "Table for keeping track of archived versions of our grapher charts at https://archive.ourworldindata.org. On every content publish we create a new archival version of all published charts (as given in the charts table) that were updated since the last content publish."
+        Table for keeping track of archived versions of our grapher charts at https://archive.ourworldindata.org. On every content publish we create a new archival version of all published charts (as given in the charts table) that were updated since the last content publish.
 fields:
     id:
         description: Unique identifier for the archived chart version

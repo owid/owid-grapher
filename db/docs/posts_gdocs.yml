@@ -1,10 +1,10 @@
 metadata:
     description: |
-        "Content in OWID's Google Docs based content management system. This table stores articles, data insights, and other content authored in Google Docs, enabling collaborative editing workflows. Content is automatically synchronized from Google Docs and converted to structured format for web publishing.
+        Content in OWID's Google Docs based content management system. This table stores articles, data insights, and other content authored in Google Docs, enabling collaborative editing workflows. Content is automatically synchronized from Google Docs and converted to structured format for web publishing.
 
         The original content in Google Docs is written in ArchieML syntax. When it is ingested into our database, we convert it to the equivalent JSON representation that is stored in the content column. We also convert the content into markdown - this conversion is somewhat lossy (much of the layout information is lost, as are some of the more elaborate components), but for many purposes like querying for the main text or performing searches, the markdown column is easier to process.
 
-        Several related tables exists that make specific types of queries easier - e.g. posts_gdocs_components has a flat list of all archie components used in a document (as opposed to the tree structure they have in the content field); posts_gdocs_links has all the outgoing links, grapher references etc."
+        Several related tables exists that make specific types of queries easier - e.g. posts_gdocs_components has a flat list of all archie components used in a document (as opposed to the tree structure they have in the content field); posts_gdocs_links has all the outgoing links, grapher references etc.
     incoming_foreign_keys:
         - table: posts_gdocs_components
           column: gdocId

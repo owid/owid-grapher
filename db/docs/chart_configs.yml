@@ -1,6 +1,6 @@
 metadata:
     description: |
-        "This table stores all grapher chart configs, i.e. the actual json configuration that Grapher uses to create charts. Charts have an inheritance mechanism where, for example, standalone charts can inherit from the main variable that is used in that chart.
+        This table stores all grapher chart configs, i.e. the actual json configuration that Grapher uses to create charts. Charts have an inheritance mechanism where, for example, standalone charts can inherit from the main variable that is used in that chart.
 
         This inheritance is reflected in this table in the patch and full columns. The patch column stores only the configuration changes that currently it performs. The full one is the merged configuration from all the upstream dependencies plus the current patch. When querying details of chart configs, prefer to use the full column.
 
