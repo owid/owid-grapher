@@ -90,6 +90,7 @@ export {
     migrateSelectedEntityNamesParam,
     getSelectedEntityNamesParam,
     generateSelectedEntityNamesParam,
+    getEntityNamesParam,
 } from "./core/EntityUrlBuilder"
 export { grapherConfigToQueryParams } from "./core/GrapherUrl.js"
 export {
@@ -112,3 +113,4 @@ export {
 } from "./core/GrapherUseHelpers.js"
 export { GeoFeatures } from "./mapCharts/GeoFeatures"
 export { isValidVerticalComparisonLineConfig } from "./comparisonLine/ComparisonLineHelpers"
+export { makeChartState } from "./chart/ChartTypeMap"
