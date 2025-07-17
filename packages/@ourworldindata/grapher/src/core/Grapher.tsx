@@ -518,6 +518,9 @@ export class GrapherState {
         this.canHideExternalControlsInEmbed =
             options.canHideExternalControlsInEmbed ?? false
 
+        // make sure the static bounds are set
+        this.staticBounds = options.staticBounds ?? DEFAULT_GRAPHER_BOUNDS
+
         this.archivedChartInfo = options.archivedChartInfo
 
         this.populateFromQueryParams(
