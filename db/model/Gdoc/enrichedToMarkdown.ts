@@ -35,6 +35,10 @@ export function spanToMarkdown(s: Span): string {
             (span) => `[${spansToMarkdown(span.children)}](#dod:${span.id})`
         )
         .with(
+            { spanType: "span-guided-chart-link" },
+            (span) => `[${spansToMarkdown(span.children)}](#guide:${span.url})`
+        )
+        .with(
             {
                 spanType: P.union(
                     "span-ref",
@@ -247,10 +251,16 @@ ${items}
             { type: P.union("recirc", "resource-panel") },
             (b): string | undefined => {
                 const items = b.links.map((i) => `* ${i.url}`).join("\n")
-                return `### ${b.title}
-${items}`
+                return `### ${b.title}\n${items}`
             }
         )
+        .with({ type: "guided-chart" }, (b): string | undefined => {
+            return b.content
+                .map((block) =>
+                    enrichedBlockToMarkdown(block, exportComponents)
+                )
+                .join("\n")
+        })
         .with({ type: "html" }, (b): string | undefined =>
             exportComponents ? b.value : undefined
         )

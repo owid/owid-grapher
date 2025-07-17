@@ -6,6 +6,7 @@ import Scroller from "./Scroller.js"
 import Chart from "./Chart.js"
 import Donors from "./Donors.js"
 import PullQuote from "./PullQuote.js"
+import GuidedChart from "./GuidedChart.js"
 import Recirc from "./Recirc.js"
 import List from "./List.js"
 import NumberedList from "./NumberedList.js"
@@ -224,6 +225,13 @@ function ArticleBlockInternal({
                     `pull-quote--${block.align}`,
                     containerType
                 )}
+                d={block}
+            />
+        ))
+        .with({ type: "guided-chart" }, (block) => (
+            <GuidedChart
+                containerType={containerType}
+                className={getLayout("guided-chart", containerType)}
                 d={block}
             />
         ))
