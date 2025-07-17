@@ -5,8 +5,6 @@ import {
     exposeInstanceOnWindow,
     Color,
     HorizontalAlign,
-    PrimitiveType,
-    anyToString,
 } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -56,7 +54,6 @@ import {
     InteractionState,
     MapRegionName,
     SeriesName,
-    TickFormattingOptions,
 } from "@ourworldindata/types"
 import { ClipPath, makeClipPath } from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -72,14 +69,6 @@ import { MapChartState } from "./MapChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 
 export type MapChartProps = ChartComponentProps<MapChartState>
-
-export type MapFormatValueForTooltip = (
-    d: PrimitiveType,
-    options?: TickFormattingOptions
-) => {
-    formattedValue: string
-    isRounded: boolean
-}
 
 @observer
 export class MapChart
@@ -221,27 +210,6 @@ export class MapChart
 
     @action.bound onRegionChange(value: MapRegionName): void {
         this.mapConfig.region = value
-    }
-
-    @computed private get formatValueForTooltip(): MapFormatValueForTooltip {
-        const { mapConfig, colorScale } = this
-
-        return (d: PrimitiveType, options?: TickFormattingOptions) => {
-            if (mapConfig.tooltipUseCustomLabels) {
-                // Find the bin (and its label) that this value belongs to
-                const bin = colorScale.getBinForValue(d)
-                const label = bin?.label
-                if (label !== undefined && label !== "")
-                    return { formattedValue: label, isRounded: false }
-            }
-
-            if (typeof d === "number")
-                return {
-                    formattedValue: this.mapColumn.formatValueShort(d, options),
-                    isRounded: true,
-                }
-            else return { formattedValue: anyToString(d), isRounded: false }
-        }
     }
 
     @computed private get series(): ChoroplethSeries[] {
@@ -630,7 +598,9 @@ export class MapChart
                         position={tooltipState.position}
                         fading={tooltipState.fading}
                         timeSeriesTable={this.chartState.inputTable}
-                        formatValueForTooltip={this.formatValueForTooltip}
+                        formatValueForTooltip={
+                            this.chartState.formatValueForTooltip
+                        }
                         manager={this.manager}
                         lineColorScale={this.colorScale}
                         targetTime={this.targetTime}
