@@ -2,8 +2,22 @@ import {
     fetchInputTableForConfig,
     Grapher,
     GrapherState,
+    WORLD_ENTITY_NAME,
+    getEntityNamesParam,
+    generateSelectedEntityNamesParam,
+    makeChartState,
+    MapChartState,
 } from "@ourworldindata/grapher"
-import { OwidColumnDef } from "@ourworldindata/types"
+import {
+    maxTimeBoundFromJSONOrPositiveInfinity,
+    omitUndefinedValues,
+    findClosestTime,
+} from "@ourworldindata/utils"
+import {
+    OwidColumnDef,
+    GRAPHER_MAP_TYPE,
+    GRAPHER_TAB_QUERY_PARAMS,
+} from "@ourworldindata/types"
 import { StatusError } from "itty-router"
 import { createZip, File } from "littlezipper"
 import { assembleMetadata, getColumnsForMetadata } from "./metadataTools.js"
@@ -132,6 +146,7 @@ export async function fetchCsvForGrapher(
         },
     })
 }
+
 function ensureDownloadOfDataAllowed(grapherState: GrapherState) {
     if (
         grapherState.inputTable.columnsAsArray.some(
@@ -190,4 +205,135 @@ function assembleReadme(
         searchParams,
         multiDimAvailableDimensions
     )
+}
+
+export async function fetchDataValuesForGrapher(
+    identifier: GrapherIdentifier,
+    env: Env,
+    searchParams: URLSearchParams
+) {
+    // This endpoint returns data for a single entity/country. If the 'country'
+    // query param is provided, the first entity is used. It defaults to 'World'
+    // when no entity is provided.
+    const entityNames = getEntityNamesParam(
+        searchParams.get("country") ?? undefined
+    )
+    const entityName = entityNames?.[0] ?? WORLD_ENTITY_NAME
+
+    // We update the search params to ensure the entity is selected, which is
+    // necessary for it to be included in the chart's `transformedTable` that is
+    // later used to retrieve the data.
+    searchParams.set("country", generateSelectedEntityNamesParam([entityName]))
+
+    // If no tab param is specified, default to the chart tab
+    const tab = searchParams.get("tab") ?? GRAPHER_TAB_QUERY_PARAMS.chart
+    searchParams.set("tab", tab)
+
+    // The 'time' query param determines the time point for which data is returned.
+    const parsedTimePoint = searchParams.get("time")
+        ? maxTimeBoundFromJSONOrPositiveInfinity(searchParams.get("time"))
+        : undefined
+
+    // We delete the 'time' query param before initializing the Grapher to render
+    // Grapher without time constraints. If we kept it, we'd end up with single-year
+    // charts (e.g. line or slope charts with only one data point). We later manually
+    // set the time bounds to retrieve the correct data.
+    searchParams.delete("time")
+
+    // Initialize Grapher and download its data
+    const { grapher } = await initGrapher(
+        identifier,
+        TWITTER_OPTIONS,
+        searchParams,
+        env
+    )
+    const inputTable = await fetchInputTableForConfig(
+        grapher.grapherState.dimensions,
+        grapher.grapherState.selectedEntityColors,
+        getDataApiUrl(env),
+        undefined
+    )
+    grapher.grapherState.inputTable = inputTable
+
+    const { grapherState } = grapher
+
+    if (parsedTimePoint !== undefined) {
+        // Set the provided time point as start and end points
+        grapherState.startHandleTimeBound = parsedTimePoint
+        grapherState.endHandleTimeBound = parsedTimePoint
+
+        // And make sure Grapher renders with a sensible time range
+        if (grapherState.startAndEndTimeSelectionPreferred) {
+            grapherState.ensureHandlesAreOnDifferentTimes()
+        }
+    }
+
+    // Default to the end time if no time point is provided
+    const time = parsedTimePoint
+        ? findClosestTime(grapherState.times, parsedTimePoint)
+        : grapherState.endTime
+
+    // If either the entity or time is invalid, we can't return any data,
+    // so we return the source only
+    if (
+        !grapherState.availableEntityNames.includes(entityName) ||
+        time === undefined
+    )
+        return Response.json({ source: grapherState.sourcesLine })
+
+    // Create a map chart state to access custom label formatting.
+    // When `map.tooltipUseCustomLabels` is enabled, this allows us to display
+    // custom color scheme labels (e.g. "Low", "Medium", "High") in tooltips
+    // instead of showing the numeric values.
+    const mapChartState = makeChartState(
+        GRAPHER_MAP_TYPE,
+        grapherState
+    ) as MapChartState
+
+    const makeDimensionValueForDownload = (slug?: string) => {
+        if (slug === undefined) return undefined
+
+        const column = grapherState.chartState.transformedTable.get(slug)
+        const columnInfo = omitUndefinedValues({
+            columnName: column.titlePublicOrDisplayName.title,
+            unit: column.unit,
+            shortUnit: column.shortUnit,
+            isProjection: column.isProjection ? true : undefined,
+        })
+
+        const owidRow = column.owidRowByEntityNameAndTime
+            .get(entityName)
+            ?.get(time)
+
+        const value = owidRow?.value
+        if (value === undefined) return columnInfo
+
+        return omitUndefinedValues({
+            ...columnInfo,
+
+            value,
+            formattedValue: column.formatValue(value),
+            formattedValueShort: column.formatValueShort(value),
+            formattedValueShortWithAbbreviations:
+                column.formatValueShortWithAbbreviations(value),
+
+            valueLabel: mapChartState.formatTooltipValueIfCustom(value),
+
+            time: owidRow.originalTime,
+            formattedTime: column.formatTime(owidRow.originalTime),
+        })
+    }
+
+    const result = {
+        entityName,
+        dimensions: omitUndefinedValues({
+            y: grapherState.yColumnSlugs.map((slug) =>
+                makeDimensionValueForDownload(slug)
+            ),
+            x: makeDimensionValueForDownload(grapherState.xColumnSlug),
+        }),
+        source: grapherState.sourcesLine,
+    }
+
+    return Response.json(result)
 }
