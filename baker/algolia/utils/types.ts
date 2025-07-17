@@ -1,6 +1,8 @@
 import {
     DbEnrichedVariable,
     FeaturedMetricIncomeGroup,
+    GrapherInterface,
+    GrapherTabName,
 } from "@ourworldindata/types"
 import { ChartRecord } from "../../../site/search/searchTypes.js"
 import { OwidIncomeGroupName } from "@ourworldindata/utils"
@@ -9,9 +11,7 @@ import { OwidIncomeGroupName } from "@ourworldindata/utils"
 export interface RawChartRecordRow {
     id: number
     slug: string
-    title: string
-    variantName: string
-    subtitle: string
+    config: string
     numDimensions: string
     publishedAt: string
     updatedAt: string
@@ -23,9 +23,7 @@ export interface RawChartRecordRow {
 export interface ParsedChartRecordRow {
     id: number
     slug: string
-    title: string
-    variantName: string
-    subtitle: string
+    config: GrapherInterface
     numDimensions: string
     publishedAt: string
     updatedAt: string
@@ -74,6 +72,7 @@ export interface ExplorerViewBaseRecord {
     viewSettings: Array<string | null>
     viewSubtitle?: string
     viewTitle?: string
+    viewAvailableTabs?: GrapherTabName[]
     ySlugs: Array<string>
     yVariableIds: Array<number | string>
     explorerSlug: string
