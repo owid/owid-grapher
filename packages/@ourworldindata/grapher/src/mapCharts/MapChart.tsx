@@ -5,7 +5,6 @@ import {
     exposeInstanceOnWindow,
     Color,
     HorizontalAlign,
-    PrimitiveType,
 } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -211,21 +210,6 @@ export class MapChart
 
     @action.bound onRegionChange(value: MapRegionName): void {
         this.mapConfig.region = value
-    }
-
-    @computed private get formatTooltipValueIfCustom(): (
-        d: PrimitiveType
-    ) => string | undefined {
-        const { mapConfig, colorScale } = this
-
-        return (d: PrimitiveType): string | undefined => {
-            if (!mapConfig.tooltipUseCustomLabels) return undefined
-            // Find the bin (and its label) that this value belongs to
-            const bin = colorScale.getBinForValue(d)
-            const label = bin?.label
-            if (label !== undefined && label !== "") return label
-            else return undefined
-        }
     }
 
     @computed private get series(): ChoroplethSeries[] {
@@ -614,7 +598,9 @@ export class MapChart
                         position={tooltipState.position}
                         fading={tooltipState.fading}
                         timeSeriesTable={this.chartState.inputTable}
-                        formatValueIfCustom={this.formatTooltipValueIfCustom}
+                        formatValueIfCustom={
+                            this.chartState.formatTooltipValueIfCustom
+                        }
                         manager={this.manager}
                         lineColorScale={this.colorScale}
                         targetTime={this.targetTime}
