@@ -13,7 +13,14 @@ fields:
     type:
         description: "Post type. One of: about-page, article, author, data-insight, fragment, homepage, linear-topic-page, topic-page"
     content:
-        description: "Structured JSON content parsed from Google Docs. This is the JSON representation of text written in the ArchieML in the Google Doc. There exists no JSON schema ATM for this - the best guide to understand this is to follow the type OwidGdocContent defined in /packages/@ourworldindata/types/src/gdocTypes/Gdoc.ts or to query the DB and look at example rows. The content is always a JSON object containing a body field that contains the main document text object tree, and various properties like the title and other front matter."
+        description: |
+            "Structured JSON content parsed from Google Docs. This is the JSON representation of text written in the ArchieML in the Google Doc. There exists no JSON schema ATM for this - the best guide to understand this is to follow the type OwidGdocContent defined in /packages/@ourworldindata/types/src/gdocTypes/Gdoc.ts or to query the DB and look at example rows.
+
+            The content is always a JSON object containing a body field that contains the main document text object tree, and various properties like the title and other front matter. Common (though not mandatory), important top level frontmatter fields are:
+            - title
+            - excerpt
+            - subtitle
+            - dateline"
     authors:
         description: "JSON array of post authors"
     published:
@@ -32,5 +39,3 @@ fields:
         description: "Custom breadcrumb navigation overrides"
     markdown:
         description: "Post content converted to Markdown format"
-    title:
-        description: "Post title extracted from Google Docs"

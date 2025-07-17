@@ -1,7 +1,8 @@
-In this folder, each table of our MySQL 8 database is documented.
+In this folder, each table of our MySQL 8 database is documented with it's own yml file.
 
 The most important tables are:
 
+- analytics_pageviews: Pageviews for all our pages. In some environments this table might be empty, but in general this is a useful table to join content with so that you can sort by pageviews descending and show the most viewed content first.
 - charts: stores standalone charts that are published at https://ourworldindata.org/grapher/SLUG. Charts are rendered as data pages on our website.
 - chart_configs: stores the actual JSON configuration for all charts that we have anywhere in our system.
 - chart_slug_redirects: redirects for charts - this table needs to be taken into account when looking up charts by slug as several slugs can point to one standalone chart
