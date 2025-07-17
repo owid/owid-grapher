@@ -87,6 +87,7 @@ export {
     migrateSelectedEntityNamesParam,
     getSelectedEntityNamesParam,
     generateSelectedEntityNamesParam,
+    getEntityNamesParam,
 } from "./core/EntityUrlBuilder"
 export { grapherConfigToQueryParams } from "./core/GrapherUrl.js"
 export {
@@ -116,3 +117,4 @@ export {
 export { GeoFeatures } from "./mapCharts/GeoFeatures"
 export { isValidVerticalComparisonLineConfig } from "./comparisonLine/ComparisonLineHelpers"
 export { hasValidConfigForBinningStrategy } from "./color/BinningStrategies"
+export { makeChartState } from "./chart/ChartTypeMap"
