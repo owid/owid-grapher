@@ -37,5 +37,6 @@ export const extensions = {
     metadata: ".metadata.json",
     readme: ".readme.md",
     zip: ".zip",
+    values: ".values.json",
 }
 export type Etag = string
