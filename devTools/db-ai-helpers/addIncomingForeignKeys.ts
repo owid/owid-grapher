@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 // This is a simple script to add incoming foreign keys to database documentation files.
 
-import { dataSource } from "../db/dataSource.js"
+import { dataSource } from "../../db/dataSource.js"
 import * as fs from "fs"
 import * as path from "path"
 import * as yaml from "yaml"

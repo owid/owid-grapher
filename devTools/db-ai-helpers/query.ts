@@ -1,20 +1,27 @@
 #!/usr/bin/env tsx
 
-import { dataSource } from "../db/dataSource.js"
+import { dataSource } from "../../db/dataSource.js"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 
 async function main() {
     const argv = yargs(hideBin(process.argv))
-        .command("$0 <sql>", "Execute SQL query against the database", (yargs) => {
-            yargs.positional("sql", {
-                describe: "SQL query to execute",
-                type: "string",
-                demandOption: true,
-            })
-        })
+        .command(
+            "$0 <sql>",
+            "Execute SQL query against the database",
+            (yargs) => {
+                yargs.positional("sql", {
+                    describe: "SQL query to execute",
+                    type: "string",
+                    demandOption: true,
+                })
+            }
+        )
         .example("$0 'SELECT * FROM users LIMIT 10'", "Basic query")
-        .example("$0 \"SELECT content->>'$.title' FROM posts_gdocs LIMIT 1\"", "JSON path query")
+        .example(
+            "$0 \"SELECT content->>'$.title' FROM posts_gdocs LIMIT 1\"",
+            "JSON path query"
+        )
         .help()
         .alias("h", "help")
         .parseSync()
@@ -29,20 +36,19 @@ async function main() {
     try {
         // Initialize the database connection
         await dataSource.initialize()
-        
+
         console.log(`Executing query: ${sql}`)
         console.log("---")
-        
+
         // Execute the raw SQL query
         const result = await dataSource.query(sql)
-        
+
         if (Array.isArray(result) && result.length > 0) {
             // If we have results, display them in a table format
             console.table(result)
         } else {
             console.log("Query executed successfully. No results returned.")
         }
-        
     } catch (error) {
         console.error("Error executing query:", error)
         process.exit(1)
