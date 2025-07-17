@@ -3,6 +3,7 @@ import { gdocUrlRegex, QueryParams } from "@ourworldindata/types"
 
 import {
     detailOnDemandRegex,
+    guidedChartRegex,
     excludeUndefined,
     omitUndefinedValues,
 } from "../Util.js"
@@ -140,6 +141,9 @@ export class Url {
 
     get isDod(): boolean {
         return !!(this.fullUrl && detailOnDemandRegex.test(this.fullUrl))
+    }
+    get isGuidedChart(): boolean {
+        return !!(this.fullUrl && guidedChartRegex.test(this.fullUrl))
     }
 
     get isUpload(): boolean {

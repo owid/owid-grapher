@@ -383,6 +383,16 @@ export type EnrichedBlockPullQuote = {
     quote: string
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockGuidedChart = {
+    type: "guided-chart"
+    value: OwidRawGdocBlock[]
+}
+
+export type EnrichedBlockGuidedChart = {
+    type: "guided-chart"
+    content: OwidEnrichedGdocBlock[]
+} & EnrichedBlockWithParseErrors
+
 export type RawBlockHorizontalRule = {
     type: "horizontal-rule"
     value?: Record<string, never> // dummy value to unify block shapes
@@ -1078,6 +1088,7 @@ export type OwidRawGdocBlock =
     | RawBlockPeopleRows
     | RawBlockPerson
     | RawBlockPullQuote
+    | RawBlockGuidedChart
     | RawBlockRecirc
     | RawBlockResearchAndWriting
     | RawBlockText
@@ -1133,6 +1144,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockPeopleRows
     | EnrichedBlockPerson
     | EnrichedBlockPullQuote
+    | EnrichedBlockGuidedChart
     | EnrichedBlockRecirc
     | EnrichedBlockResearchAndWriting
     | EnrichedBlockHeading
