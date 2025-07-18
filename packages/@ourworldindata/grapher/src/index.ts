@@ -110,6 +110,8 @@ export {
 export {
     isValidTabQueryParam,
     findPotentialChartTypeSiblings,
+    mapGrapherTabNameToQueryParam,
+    makeLabelForGrapherTab,
 } from "./chart/ChartTabs"
 export {
     renderGrapherIntoContainer,
