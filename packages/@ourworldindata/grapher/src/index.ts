@@ -106,6 +106,8 @@ export { generateGrapherImageSrcSet } from "./chart/ChartUtils"
 export {
     isValidTabQueryParam,
     findPotentialChartTypeSiblings,
+    mapGrapherTabNameToQueryParam,
+    makeLabelForGrapherTab,
 } from "./chart/ChartTabs"
 export {
     renderGrapherIntoContainer,
