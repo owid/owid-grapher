@@ -1,0 +1,36 @@
+.search-chart-hit-data-display {
+    @include note-1-regular;
+
+    color: $blue-90;
+    text-align: right;
+
+    .search-chart-hit-data-display__location {
+        font-weight: 700;
+    }
+
+    .search-chart-hit-data-display__icon {
+        margin-right: 4px;
+        color: $blue-50;
+    }
+
+    .search-chart-hit-data-display__value {
+        @include subtitle-1;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .search-chart-hit-data-display__unit {
+        max-width: 220px;
+        display: inline-block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: bottom;
+    }
+
+    .GrapherTrendArrow {
+        height: 16px;
+        padding-right: 0.25em;
+        padding-left: 0.15em;
+    }
+}
