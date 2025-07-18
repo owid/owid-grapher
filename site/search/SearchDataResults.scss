@@ -4,5 +4,8 @@
 
 .search-data-results__list {
     list-style: none;
-    grid-gap: var(--grid-gap);
+}
+
+.search-data-results__hit {
+    margin: 16px 0;
 }
