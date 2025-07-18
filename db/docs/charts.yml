@@ -1,0 +1,40 @@
+metadata:
+    description: This table contains our 'standalone' grapher charts, i.e. the charts that are shown on our website at https://ourworldindata.org/grapher/SLUG. Charts represent data visualizations that can be embedded in articles, shared publicly, or used in explorers. Charts use an inheritance system where they can inherit configuration from parent variables.
+    incoming_foreign_keys:
+        - table: chart_diff_approvals
+          column: chartId
+        - table: chart_diff_conflicts
+          column: chartId
+        - table: chart_dimensions
+          column: chartId
+        - table: chart_slug_redirects
+          column: chart_id
+        - table: chart_tags
+          column: chartId
+        - table: charts_x_entities
+          column: chartId
+        - table: explorer_charts
+          column: chartId
+        - table: narrative_charts
+          column: parentChartId
+fields:
+    id:
+        description: Unique identifier for the chart
+    configId:
+        description: Foreign key to chart_configs table. Charts store their configuration separately to enable inheritance and efficient updates. The chart_configs table contains the actual config, the slug of the chart etc., so in many queries, these two tables have to be joined.
+    isInheritanceEnabled:
+        description: When true, chart inherits configuration from parent variable's grapherConfigIdAdmin or grapherConfigIdETL. This allows variables to define default chart settings that are automatically applied to all inheriting charts.
+    createdAt:
+        description: Timestamp when the chart was created
+    updatedAt:
+        description: Timestamp when the chart was last updated
+    lastEditedAt:
+        description: Timestamp when the chart was last edited by a user (not system updates)
+    publishedAt:
+        description: Timestamp when the chart was published. NULL if never published. Published charts are publicly accessible.
+    lastEditedByUserId:
+        description: Foreign key to users table. Tracks who last made substantive edits to the chart.
+    publishedByUserId:
+        description: Foreign key to users table. Tracks who published the chart.
+    isIndexable:
+        description: Whether the chart should be indexed by search engines and appear in search results. Charts are indexable if not tagged 'Unlisted' and have at least one public parent tag.

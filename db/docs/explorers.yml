@@ -1,0 +1,27 @@
+metadata:
+    description: |
+        Data explorers are interactive tools that allow users to explore multiple charts with configurable dropdowns and filters and that live at https://ourworldindata.org/explorers/SLUG. They provide a way to navigate through multiple variables and charts within a specific domain (e.g., 'COVID-19 Data Explorer', 'Energy Data Explorer'). Explorers are historically configured using TSV (Tab-Separated Values) format but the same information is now also available in the config column as JSON which is usually easier to query.
+    incoming_foreign_keys:
+        - table: explorer_charts
+          column: explorerSlug
+        - table: explorer_variables
+          column: explorerSlug
+fields:
+    slug:
+        description: URL-friendly identifier for the explorer used in URLs like /explorers/[slug]
+    config:
+        description: Explorer configuration JSON parsed from the TSV configuration
+    createdAt:
+        description: Timestamp when the explorer was created
+    updatedAt:
+        description: Timestamp when the explorer was last updated
+    tsv:
+        description: Tab-separated values configuration that defines the explorer's structure, variables, and behavior
+    lastEditedByUserId:
+        description: Foreign key to users table. Tracks who last edited the explorer.
+    lastEditedAt:
+        description: Timestamp when the explorer was last edited
+    commitMessage:
+        description: Git-style commit message describing the last change made to the explorer
+    isPublished:
+        description: Whether the explorer is published and publicly accessible. New explorers default to unpublished.

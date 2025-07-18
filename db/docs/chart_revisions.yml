@@ -1,0 +1,28 @@
+metadata:
+    description: |
+        Historical chart revision tracking for version control purposes of standalone charts (those published at https://ourworldindata.org/grapher/SLUG).
+
+        This table stores snapshots of chart configurations over time when editing them in the admin, enabling rollback functionality and change history tracking. Each revision captures the full chart configuration at a specific point in time.
+
+        This table is only used in the admin UI to got back to previous versions.
+fields:
+    id:
+        description: Unique identifier for the chart revision
+    chartId:
+        description: Foreign key to charts table. The chart this revision belongs to.
+    userId:
+        description: Foreign key to users table. The user who created this revision.
+    config:
+        description: |
+            "JSON configuration of the chart at the time of this revision
+
+            The full schema is available at 'https://files.ourworldindata.org/schemas/grapher-schema.latest.json'. For querying chart contents, the most important fields are:
+                - title
+                - subtitle
+                - chartTypes: array of string enums with valid values: ScatterPlot, StackedArea, DiscreteBar, StackedDiscreteBar, SlopeChart, StackedBar, Marimekko. Indicates which of these chart tabs are enabled for the chart.
+                - hasMapTab: Whether the map tab is enabled
+                - isPublished: whether the chart is published, if it is a standalone chart (i.e. a chart referenced from the charts table)"
+    createdAt:
+        description: Timestamp when the revision was created
+    updatedAt:
+        description: Timestamp when the revision was last updated

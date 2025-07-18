@@ -1,0 +1,13 @@
+metadata:
+    description: Chart diff conflict tracking for editorial workflow management. This table records conflicts that arise during chart comparison and approval processes during ETL updates, helping editors identify and resolve issues when chart versions have conflicting changes. This table is temporal and used during staging/review processes.
+fields:
+    id:
+        description: Unique identifier for the chart diff conflict
+    chartId:
+        description: Foreign key to charts table. The chart for which conflicts are being tracked.
+    targetUpdatedAt:
+        description: Timestamp of the target version in the conflict (can be null)
+    updatedAt:
+        description: Timestamp when the conflict record was last updated
+    conflict:
+        description: Description of the conflict that occurred during chart comparison

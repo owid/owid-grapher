@@ -1,0 +1,13 @@
+metadata:
+    description: ArchieML components within Google Docs posts that track the hierarchical organization of content elements. This enables queries for types of components without having to traverse the archieml content tree in the database.
+fields:
+    id:
+        description: Unique identifier for the component
+    gdocId:
+        description: Foreign key to posts_gdocs table
+    config:
+        description: JSON configuration for the component
+    parent:
+        description: Parent component ID for hierarchical organization
+    path:
+        description: Path within the document structure

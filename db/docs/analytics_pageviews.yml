@@ -1,0 +1,27 @@
+metadata:
+    description: |
+        Pre-aggregated pageview analytics data imported from external analytics system.
+        This table stores daily pageview metrics with rolling windows for different time periods.
+
+        Availability:
+        - Production and staging databases: populated with live data
+        - Local development: empty by default, populated via `make refresh.pageviews`
+
+        Usage for popularity sorting:
+        This table is commonly used for joining to sort content by popularity based on the `url` column.
+        Since the `url` column stores full URLs, you must prefix slugs appropriately when joining:
+
+        - Charts: prefix with `https://ourworldindata.org/grapher/`
+        - Explorers: prefix with `https://ourworldindata.org/explorers/`
+        - Other pages (posts_gdocs): prefix with `https://ourworldindata.org/`
+fields:
+    day:
+        description: Date of the pageview data
+    url:
+        description: Full URL of the page viewed
+    views_7d:
+        description: Number of views in the last 7 days (rolling window)
+    views_14d:
+        description: Number of views in the last 14 days (rolling window)
+    views_365d:
+        description: Number of views in the last 365 days (rolling window)

@@ -1,0 +1,11 @@
+metadata:
+    description: "Many-to-many table linking variables to FAQ content within Google Docs posts. This enables the FAQ system where the data pages for grapher charts can have associated frequently asked questions embedded within special Gdoc posts, providing contextual help and explanations for data indicators. The full chain used to link a chart to an FAQ entry is usually performed in code when rendering data pages, but it roughly goes through these tables: charts -> chart_dimensions -> variables -> posts_gdocs_variables_faqs -> posts_gdocs"
+fields:
+    gdocId:
+        description: Foreign key to posts_gdocs table
+    variableId:
+        description: Foreign key to variables table
+    fragmentId:
+        description: Fragment ID within the document for the FAQ section
+    displayOrder:
+        description: Display order of the FAQ for the variable

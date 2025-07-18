@@ -1,0 +1,9 @@
+metadata:
+    description: Many-to-many table linking explorers to variables (aka indicators). Explorers that use this method of showing charts are called indicator-based explorers. The chart config used for these is the one referenced in the variables table.
+fields:
+    id:
+        description: Unique identifier for the association
+    explorerSlug:
+        description: Foreign key to explorers table (slug field)
+    variableId:
+        description: Foreign key to variables table. Variable that can be explored in the explorer.
