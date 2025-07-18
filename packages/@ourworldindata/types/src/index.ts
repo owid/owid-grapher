@@ -851,3 +851,9 @@ export {
     type ResolvedBinningStrategy,
     type MidpointMode,
 } from "./grapherTypes/BinningStrategyTypes.js"
+
+export {
+    type GrapherValuesJson,
+    type GrapherValuesJsonDataPoints,
+    type GrapherValuesJsonDataPoint,
+} from "./functionTypes/GrapherEndpoints.js"
