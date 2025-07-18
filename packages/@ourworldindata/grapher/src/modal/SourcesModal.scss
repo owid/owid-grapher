@@ -61,7 +61,7 @@
         font-weight: 500;
     }
 
-    .Tabs__tab {
+    .Tabs__Tab {
         font-size: $tab-font-size;
         padding: 8px $tab-padding;
         margin-right: $tab-gap;
@@ -71,7 +71,7 @@
             margin-left: $tab-title-spacing;
         }
 
-        &[aria-selected="true"] .attribution {
+        &[data-selected] .attribution {
             color: $blue-50;
         }
     }
