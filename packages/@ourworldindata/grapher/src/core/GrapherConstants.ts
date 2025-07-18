@@ -1,4 +1,4 @@
-import { EntityName, GRAPHER_CHART_TYPES } from "@ourworldindata/types"
+import { EntityName } from "@ourworldindata/types"
 import { Bounds } from "@ourworldindata/utils"
 import { defaultGrapherConfig } from "../schema/defaultGrapherConfig.js"
 import type { GrapherProgrammaticInterface } from "./Grapher"
@@ -162,19 +162,6 @@ export const grapherInterfaceWithHiddenTabs: GrapherProgrammaticInterface = {
     hasTableTab: false,
     hideChartTabs: true,
 }
-
-/**
- * Chart type combinations that are currently supported.
- *
- * This also determines the order of chart types in the UI.
- */
-export const validChartTypeCombinations = [
-    [
-        GRAPHER_CHART_TYPES.LineChart,
-        GRAPHER_CHART_TYPES.SlopeChart,
-        GRAPHER_CHART_TYPES.DiscreteBar,
-    ],
-]
 
 export const SVG_STYLE_PROPS: React.CSSProperties = {
     fontFamily:

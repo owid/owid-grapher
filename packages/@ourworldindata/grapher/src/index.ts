@@ -102,13 +102,11 @@ export {
     migrateGrapherConfigToLatestVersion,
     migrateGrapherConfigToLatestVersionAndFailOnError,
 } from "./schema/migrations/migrate"
+export { generateGrapherImageSrcSet } from "./chart/ChartUtils"
 export {
-    generateGrapherImageSrcSet,
-    getChartTypeFromConfig,
-    getChartTypeFromConfigAndQueryParams,
-    isGrapherTabOption,
+    isValidTabQueryParam,
     findPotentialChartTypeSiblings,
-} from "./chart/ChartUtils.js"
+} from "./chart/ChartTabs"
 export {
     renderGrapherIntoContainer,
     renderSingleGrapherOnGrapherPage,
