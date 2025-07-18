@@ -1,4 +1,4 @@
-This folder contains the database access code for the OWID admin. The database used is MySQL 8. The docs subfolder a README.md file describing the most important tables and overall notes, and then one TABLE-NAME.md file per table describing the table in more detail. Use these docs before creating new migrations or writing queries.
+This folder contains the database access code for the OWID admin. The database used is MySQL 8. The docs subfolder contains a README.md file describing the most important tables and overall notes, and then one TABLE-NAME.yml file per table describing the table in more detail. Use these docs before creating new migrations or writing queries.
 
 The migration subfolder contains the pre-migrations-schema.sql file that describes the original Mysql database schema ca 2018. Building on this state, the various \*.ts files describe the migrations since then (the filenames are prefixed by unix timestamp so can be listed alphabetically to see the correct order). To create new migrations, run the `yarn createDbMigration` which will create a new migration file.
 

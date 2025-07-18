@@ -1,5 +1,10 @@
 metadata:
-    description: Historical chart revision tracking for version control purposes. This table stores snapshots of chart configurations over time, enabling rollback functionality and change history tracking. Each revision captures the full chart configuration at a specific point in time. Only used for standalone charts.
+    description: |
+        Historical chart revision tracking for version control purposes of standalone charts (those published at https://ourworldindata.org/grapher/SLUG).
+
+        This table stores snapshots of chart configurations over time when editing them in the admin, enabling rollback functionality and change history tracking. Each revision captures the full chart configuration at a specific point in time.
+
+        This table is only used in the admin UI to got back to previous versions.
 fields:
     id:
         description: Unique identifier for the chart revision

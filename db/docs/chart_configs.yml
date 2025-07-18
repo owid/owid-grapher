@@ -1,6 +1,14 @@
 metadata:
     description: |
-        This table stores all grapher chart configs, i.e. the actual json configuration that Grapher uses to create charts. Charts have an inheritance mechanism where, for example, standalone charts can inherit from the main variable that is used in that chart.
+        This table stores all grapher chart configs, i.e. the actual json configuration that Grapher uses to create charts. It is the only place in our database where actual grapher config JSON blobs are stored.
+
+        Here are some kinds of entities in our DB that reference rows in this table:
+        - Standalone charts, shown on our website at https://ourworldindata.org/grapher/SLUG, stored in the charts table
+        - Multi-dim charts, shown also at https://ourworldindata.org/grapher/SLUG, stored in the multi_dim_x_chart_configs table
+        - Narrative charts, shown only as embedded views in articles and that are based on parent standalone charts, stored in the narrative_charts table
+        - Indicator level charts, used in the inheritance mechanism in standalone charts and multi-dim charts, stored in the variables table
+
+        Charts have an inheritance mechanism where, for example, standalone charts can inherit from the main variable that is used in that chart.
 
         This inheritance is reflected in this table in the patch and full columns. The patch column stores only the configuration changes that currently it performs. The full one is the merged configuration from all the upstream dependencies plus the current patch. When querying details of chart configs, prefer to use the full column.
 
