@@ -1,0 +1,23 @@
+.guided-chart-link {
+    color: $blue-60;
+    text-decoration: none;
+    background: #eee;
+    padding: 2px;
+    border-radius: 4px;
+    box-decoration-break: clone;
+    &:visited {
+        color: $blue-60;
+    }
+    &:hover {
+        background: #ddd;
+    }
+}
+
+// Style/handle them as regular links when JS is disabled
+.js-disabled .guided-chart-link {
+    @include owid-link-60;
+    background: none;
+    &:hover {
+        background: none;
+    }
+}

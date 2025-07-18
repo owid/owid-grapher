@@ -5,8 +5,8 @@ import {
     Grapher,
     GrapherAnalytics,
     GrapherProgrammaticInterface,
-    GrapherState,
     loadVariableDataAndMetadata,
+    useOptionallyGlobalGrapherStateRef,
 } from "@ourworldindata/grapher"
 import {
     extractMultiDimChoicesFromSearchParams,
@@ -24,6 +24,15 @@ import { DATA_API_URL } from "../../settings/clientSettings.js"
 
 const analytics = new GrapherAnalytics()
 
+interface MultiDimProps {
+    config: MultiDimDataPageConfig
+    localGrapherConfig?: GrapherProgrammaticInterface
+    slug: string | null
+    queryStr: string
+    archivedChartInfo?: ArchiveContext
+    isPreviewing?: boolean
+}
+
 export default function MultiDim({
     config,
     localGrapherConfig,
@@ -31,26 +40,18 @@ export default function MultiDim({
     queryStr,
     archivedChartInfo,
     isPreviewing,
-}: {
-    config: MultiDimDataPageConfig
-    localGrapherConfig?: GrapherProgrammaticInterface
-    slug: string | null
-    queryStr: string
-    archivedChartInfo?: ArchiveContext
-    isPreviewing?: boolean
-}) {
+}: MultiDimProps) {
     const manager = useRef(localGrapherConfig?.manager ?? {})
-    const grapherRef = useRef<GrapherState>(
-        new GrapherState({
-            manager: manager.current,
-            queryStr,
-            additionalDataLoaderFn: (varId: number) =>
-                loadVariableDataAndMetadata(varId, DATA_API_URL, {
-                    noCache: isPreviewing,
-                }),
-            isConfigReady: false,
-        })
-    )
+    const grapherRef = useOptionallyGlobalGrapherStateRef({
+        manager: manager.current,
+        queryStr,
+        additionalDataLoaderFn: (varId: number) =>
+            loadVariableDataAndMetadata(varId, DATA_API_URL, {
+                noCache: isPreviewing,
+            }),
+        isConfigReady: false,
+    })
+
     const grapherDataLoader = useRef(
         getCachingInputTableFetcher(DATA_API_URL, undefined, isPreviewing)
     )
@@ -192,6 +193,7 @@ export default function MultiDim({
         archivedChartInfo,
         baseGrapherConfig,
         manager,
+        grapherRef,
     ])
 
     // use a useEffects on the bounds to update the grapherState.externalBounds
@@ -200,7 +202,7 @@ export default function MultiDim({
         if (grapherRef.current) {
             grapherRef.current.externalBounds = bounds
         }
-    }, [bounds])
+    }, [bounds, grapherRef])
 
     return (
         <div className="multi-dim-container">

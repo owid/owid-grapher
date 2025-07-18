@@ -3,6 +3,7 @@ import * as React from "react"
 import { match } from "ts-pattern"
 import LinkedA from "./LinkedA.js"
 import SpanElements from "./SpanElements.js"
+import { useGuidedChartLinkHandler } from "@ourworldindata/grapher"
 
 export default function SpanElement({
     span,
@@ -11,6 +12,8 @@ export default function SpanElement({
     span: Span
     shouldRenderLinks?: boolean
 }): React.ReactElement {
+    const handleGuidedChartLinkClick = useGuidedChartLinkHandler()
+    
     return match(span)
         .with({ spanType: "span-simple-text" }, (span) => (
             <span>{span.text}</span>
@@ -35,17 +38,32 @@ export default function SpanElement({
                 </span>
             )
         )
-        .with({ spanType: "span-guided-chart-link" }, (span) =>
-            shouldRenderLinks ? (
-                <a className="guided-chart-link" href={span.url}>
+        .with({ spanType: "span-guided-chart-link" }, (span) => {
+            if (!shouldRenderLinks) {
+                return (
+                    <span className="guided-chart-link">
+                        <SpanElements spans={span.children} />
+                    </span>
+                )
+            }
+            
+            const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+                e.preventDefault()
+                if (handleGuidedChartLinkClick) {
+                    handleGuidedChartLinkClick(span.url)
+                }
+            }
+            
+            return (
+                <a 
+                    className="guided-chart-link"
+                    href={span.url}
+                    onClick={handleClick}
+                >
                     <SpanElements spans={span.children} />
                 </a>
-            ) : (
-                <span className="guided-chart-link">
-                    <SpanElements spans={span.children} />
-                </span>
             )
-        )
+        })
         .with({ spanType: "span-dod" }, (span) => (
             <span className="dod-span" data-id={`${span.id}`} tabIndex={0}>
                 <SpanElements spans={span.children} />
