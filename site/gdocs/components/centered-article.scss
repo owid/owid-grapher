@@ -464,15 +464,19 @@ h3.article-block__heading {
 
 .article-block__video {
     margin: 32px 0;
-    @include body-3-medium-italic;
-    color: $blue-60;
-    text-align: center;
     a {
         @include owid-link-90;
     }
     video {
         max-width: 100%;
         max-height: 60vh;
+    }
+    figcaption {
+        @include body-3-medium-italic;
+        color: $blue-60;
+        text-align: center;
+        text-wrap: balance;
+        margin-top: 9px; // to match the image caption when side-by-side
     }
 }
 
