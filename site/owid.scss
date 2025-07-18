@@ -31,7 +31,8 @@
 @import "../packages/@ourworldindata/components/src/IndicatorSources/IndicatorSources.scss";
 @import "../packages/@ourworldindata/components/src/IndicatorProcessing/IndicatorProcessing.scss";
 @import "../packages/@ourworldindata/components/src/Button/Button.scss";
-@import "../packages/@ourworldindata/components/src/TextInput";
+@import "../packages/@ourworldindata/components/src/TextInput.scss";
+@import "../packages/@ourworldindata/components/src/GrapherTrendArrow.scss";
 
 @import "../packages/@ourworldindata/explorer/src/Explorer.scss";
 @import "../packages/@ourworldindata/explorer/src/ExplorerControls.scss";
@@ -59,6 +60,8 @@
 @import "./search/SearchTopicsRefinementList.scss";
 @import "./search/_DEPRECATEDChartHit.scss";
 @import "./search/SearchChartHitMedium.scss";
+@import "./search/SearchChartHitSmall.scss";
+@import "./search/SearchChartHitDataDisplay.scss";
 @import "./search/SearchActiveFilters.scss";
 @import "./search/SearchFilterPill.scss";
 @import "./search/SearchAutocompleteItemContents.scss";
