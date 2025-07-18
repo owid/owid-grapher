@@ -229,11 +229,7 @@ function ArticleBlockInternal({
             />
         ))
         .with({ type: "guided-chart" }, (block) => (
-            <GuidedChart
-                containerType={containerType}
-                className={getLayout("guided-chart", containerType)}
-                d={block}
-            />
+            <GuidedChart containerType={containerType} d={block} />
         ))
         .with({ type: "recirc" }, (block) => (
             <Recirc

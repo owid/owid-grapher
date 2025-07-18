@@ -1,0 +1,19 @@
+.guided-chart-link {
+    @include owid-link-60;
+    display: inline-block;
+    &:visited {
+        color: $blue-60;
+    }
+    &::after {
+        position: relative;
+        margin-left: 2px;
+        margin-right: 2px;
+        top: 2px;
+        content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' %3E%3Ccircle cx='8' cy='8' r='6' stroke='%23577291' stroke-width='2' fill='%23fff'/%3E%3C/svg%3E");
+    }
+    &.active {
+        &::after {
+            content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' %3E%3Ccircle cx='8' cy='8' r='6' stroke='%23577291' stroke-width='2' fill='%23577291'/%3E%3C/svg%3E");
+        }
+    }
+}
