@@ -13,6 +13,7 @@ import {
     EntitySelectionMode,
     makeIdForHumanConsumption,
     dyFromAlign,
+    exposeInstanceOnWindow,
 } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -50,7 +51,6 @@ import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { ColorScale } from "../color/ColorScale"
 import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig"
-import { color } from "d3-color"
 import { SelectionArray } from "../selection/SelectionArray"
 import {
     MarimekkoChartManager,
@@ -93,16 +93,9 @@ function MarimekkoBar({
         entityColor ?? (bar.kind === BarShape.Bar ? bar.color : "#555")
 
     const barColor =
-        bar.kind === BarShape.BarPlaceholder
-            ? "#555"
-            : isHovered
-              ? (color(barBaseColor)?.brighter(0.9).toString() ?? barBaseColor)
-              : isSelected
-                ? (color(barBaseColor)?.brighter(0.6).toString() ??
-                  barBaseColor)
-                : barBaseColor
+        bar.kind === BarShape.BarPlaceholder ? "#555" : barBaseColor
     const strokeColor = barColor
-    const strokeWidth = isHovered || isSelected ? "1px" : "0.5px"
+    const strokeWidth = isHovered || isSelected ? 1 : 0.5
     const strokeOpacity = isPlaceholder ? 0.8 : isFaint ? 0.2 : 1.0
     const fillOpacity = isHovered
         ? 0.7
@@ -142,9 +135,7 @@ function MarimekkoBar({
                 strokeWidth={strokeWidth}
                 strokeOpacity={strokeOpacity}
                 opacity={overalOpacity}
-                style={{
-                    transition: "translate 200ms ease",
-                }}
+                style={{ transition: "translate 200ms ease" }}
             />
         </g>
     )
@@ -392,7 +383,9 @@ export class MarimekkoChart
         return this.bounds
             .padBottom(this.longestLabelHeight + 2)
             .padBottom(labelLinesHeight)
-            .padTop(this.legend.height + this.legendPaddingTop)
+            .padTop(
+                this.showLegend ? this.legend.height + this.legendPaddingTop : 0
+            )
             .padLeft(marginToEnsureWidestEntityLabelFitsEvenIfAtX0)
     }
 
@@ -454,31 +447,15 @@ export class MarimekkoChart
         )
     }
 
-    @computed private get defaultYAxisLabel(): string | undefined {
-        return this.yColumns.length > 0
-            ? this.yColumns[0].displayName
-            : undefined
-    }
-
-    @computed private get currentVerticalAxisLabel(): string {
-        const config = this.yAxisConfig
-        const fallbackLabel = this.defaultYAxisLabel ?? ""
-        return this.isNarrow ? "" : config.label || fallbackLabel
-    }
-
     @computed private get verticalAxisPart(): VerticalAxis {
         const config = this.yAxisConfig
         const axis = config.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(this.yDomainDefault)
 
         axis.formatColumn = this.yColumns[0]
-        axis.label = this.currentVerticalAxisLabel
+        axis.label = ""
 
         return axis
-    }
-    @computed private get isNarrow(): boolean {
-        // TODO: this should probably come from grapher?
-        return this.bounds.width < 650 // innerBounds would lead to dependency cycle
     }
 
     @computed private get xAxisLabelBase(): string {
@@ -605,6 +582,7 @@ export class MarimekkoChart
                                 yPoint: point,
                                 color: series.color,
                                 seriesName: series.seriesName,
+                                columnSlug: series.columnSlug,
                             }
                         })
                     ),
@@ -732,6 +710,28 @@ export class MarimekkoChart
         return []
     }
 
+    @computed get hoverColors(): string[] {
+        if (this.focusColorBin) return [this.focusColorBin.color]
+        if (this.tooltipItem?.entityColor)
+            return [this.tooltipItem.entityColor.color]
+        if (this.selectionArray.hasSelection) {
+            const selectedItems = this.items.filter((item) =>
+                this.selectionArray.selectedSet.has(item.entityName)
+            )
+            const uniqueSelectedColors = new Set(
+                selectedItems.map((item) => item.entityColor?.color)
+            )
+            return this.categoricalLegendData
+                .filter((bin) => uniqueSelectedColors.has(bin.color as any))
+                .map((bin) => bin.color)
+        }
+        return []
+    }
+
+    @computed private get showLegend(): boolean {
+        return !!this.colorColumnSlug || this.categoricalLegendData.length > 1
+    }
+
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
         this.focusColorBin = bin
     }
@@ -742,10 +742,6 @@ export class MarimekkoChart
 
     @computed private get legend(): HorizontalCategoricalColorLegend {
         return new HorizontalCategoricalColorLegend({ manager: this })
-    }
-
-    @computed private get formatColumn(): CoreColumn {
-        return this.yColumns[0]
     }
 
     @action.bound private onEntityMouseOver(entityName: string): void {
@@ -786,6 +782,10 @@ export class MarimekkoChart
         )
     }
 
+    componentDidMount(): void {
+        exposeInstanceOnWindow(this)
+    }
+
     render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
@@ -802,7 +802,7 @@ export class MarimekkoChart
             dualAxis,
             tooltipItem,
             xColumn,
-            formatColumn: yColumn,
+            yColumns,
             manager: { endTime, xOverrideTime },
             inputTable: { timeColumn },
             tooltipState: { target, position, fading },
@@ -819,6 +819,9 @@ export class MarimekkoChart
                 return {
                     name: bar.seriesName,
                     value: bar.yPoint.value,
+                    column: this.chartState.transformedTable.get(
+                        bar.columnSlug
+                    ),
                     notice: shouldShowYTimeNotice ? bar.yPoint.time : undefined,
                 }
             }) ?? []
@@ -841,7 +844,7 @@ export class MarimekkoChart
               }
             : undefined
 
-        const columns = excludeUndefined([xColumn, yColumn])
+        const columns = excludeUndefined([xColumn, ...yColumns])
         const allRoundedToSigFigs = columns.every(
             (column) => column.roundsToSignificantFigures
         )
@@ -891,7 +894,9 @@ export class MarimekkoChart
                     detailsMarker={manager.detailsMarkerInSvg}
                     backgroundColor={manager.backgroundColor}
                 />
-                <HorizontalCategoricalColorLegend manager={this} />
+                {this.showLegend && (
+                    <HorizontalCategoricalColorLegend manager={this} />
+                )}
                 {this.renderBars()}
                 {target && (
                     <Tooltip
@@ -908,10 +913,10 @@ export class MarimekkoChart
                         dissolve={fading}
                         dismiss={() => (this.tooltipState.target = null)}
                     >
-                        {yValues.map(({ name, value, notice }) => (
+                        {yValues.map(({ name, value, column, notice }) => (
                             <TooltipValue
                                 key={name}
-                                column={yColumn}
+                                column={column}
                                 value={value}
                                 notice={notice}
                                 showSignificanceSuperscript={superscript}
@@ -947,7 +952,7 @@ export class MarimekkoChart
         } = this
         const selectionSet = this.selectionArray.selectedSet
         const labelYOffset = 0
-        const hasSelection = selectionSet.size > 0
+        const hasSelection = this.selectedItems.length > 0
         let noDataAreaElement = undefined
         let noDataLabel = undefined
         const noDataHeight = Bounds.forText("no data").height + 10 //  dualAxis.verticalAxis.rangeSize
@@ -1030,7 +1035,10 @@ export class MarimekkoChart
             const isFaint =
                 (focusColorBin !== undefined &&
                     !focusColorBin.contains(entityColor?.colorDomainValue)) ||
-                (hasSelection && !isSelected)
+                (hasSelection && !isSelected) ||
+                (!isHovered &&
+                    tooltipState.target !== undefined &&
+                    !tooltipState.fading)
 
             // figure out what the minimum height in domain space has to be so
             // that a bar is at least one pixel high in screen space.

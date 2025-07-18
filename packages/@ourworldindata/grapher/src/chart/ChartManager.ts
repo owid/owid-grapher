@@ -67,6 +67,10 @@ export interface ChartManager {
     sizeColumnSlug?: ColumnSlug
     colorColumnSlug?: ColumnSlug
 
+    // if colorColumnSlug is given, either one of these is set
+    categoricalColorColumnSlug?: ColumnSlug
+    numericColorColumnSlug?: ColumnSlug
+
     selection?: SelectionArray | EntityName[]
     entityType?: string
 

@@ -8,7 +8,6 @@ import {
     Color,
     ValueRange,
     ColumnSlug,
-    AxisAlign,
 } from "@ourworldindata/types"
 import { observable, computed, action, makeObservable } from "mobx"
 import { ScaleLinear, scaleSqrt } from "d3-scale"
@@ -860,7 +859,6 @@ export class ScatterPlotChart
         const { yAxisConfig = {} } = this.manager
         const config = {
             ...yAxisConfig,
-            labelPosition: AxisAlign.end,
             labelPadding: this.manager.isNarrow ? 10 : 14,
         }
         return new AxisConfig(config, this)

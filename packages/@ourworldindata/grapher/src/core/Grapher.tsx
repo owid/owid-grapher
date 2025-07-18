@@ -865,8 +865,8 @@ export class GrapherState {
         return !this.hideLegend
     }
 
-    @computed private get showsAllEntitiesInChart(): boolean {
-        return this.isScatter || this.isMarimekko
+    @computed private get hasChartThatShowsAllEntities(): boolean {
+        return this.hasScatter || this.hasMarimekko
     }
 
     @computed get isOnArchivalPage(): boolean {
@@ -900,7 +900,7 @@ export class GrapherState {
             this.selection.hasSelection &&
             !this.canChangeAddOrHighlightEntities &&
             this.hasChartTab &&
-            !this.showsAllEntitiesInChart &&
+            !this.hasChartThatShowsAllEntities &&
             !this.hasMapTab
         )
     }
@@ -941,7 +941,7 @@ export class GrapherState {
         // different; e.g. for scatterplots, the entity needs to (1) not be excluded and
         // (2) needs to have data for the x and y dimension.
         let table =
-            this.isScatter || this.isMarimekko
+            this.isOnScatterTab || this.isOnMarimekkoTab
                 ? this.tableAfterAuthorTimelineAndActiveChartTransform
                 : this.table
 
@@ -973,7 +973,7 @@ export class GrapherState {
     @computed get tableAfterColorAndSizeToleranceApplication(): OwidTable {
         let table = this.inputTable
 
-        if (this.isScatter && this.sizeColumnSlug) {
+        if (this.hasScatter && this.sizeColumnSlug) {
             const tolerance =
                 table.get(this.sizeColumnSlug)?.display?.tolerance ?? Infinity
             table = table.interpolateColumnWithTolerance(
@@ -982,11 +982,15 @@ export class GrapherState {
             )
         }
 
-        if ((this.isScatter || this.isMarimekko) && this.colorColumnSlug) {
+        if (
+            (this.hasScatter || this.hasMarimekko) &&
+            this.categoricalColorColumnSlug
+        ) {
             const tolerance =
-                table.get(this.colorColumnSlug)?.display?.tolerance ?? Infinity
+                table.get(this.categoricalColorColumnSlug)?.display
+                    ?.tolerance ?? Infinity
             table = table.interpolateColumnWithTolerance(
-                this.colorColumnSlug,
+                this.categoricalColorColumnSlug,
                 tolerance
             )
         }
@@ -1638,9 +1642,9 @@ export class GrapherState {
         const color = new DimensionSlot(this, DimensionProperty.color)
         const size = new DimensionSlot(this, DimensionProperty.size)
 
-        if (this.isLineChart || this.isDiscreteBar) return [yAxis, color]
-        else if (this.isScatter) return [yAxis, xAxis, size, color]
-        else if (this.isMarimekko) return [yAxis, xAxis, color]
+        if (this.hasScatter) return [yAxis, xAxis, size, color]
+        if (this.hasMarimekko) return [yAxis, xAxis, color]
+        if (this.hasLineChart || this.hasDiscreteBar) return [yAxis, color]
         return [yAxis]
     }
 
@@ -2008,6 +2012,22 @@ export class GrapherState {
             this.colorSlug ?? this.getSlugForProperty(DimensionProperty.color)
         )
     }
+
+    @computed get numericColorColumnSlug(): string | undefined {
+        if (!this.colorColumnSlug) return undefined
+
+        const colorColumn = this.inputTable.get(this.colorColumnSlug)
+        if (!colorColumn.isMissing && colorColumn.hasNumberFormatting)
+            return this.colorColumnSlug
+
+        return undefined
+    }
+
+    @computed get categoricalColorColumnSlug(): string | undefined {
+        if (!this.colorColumnSlug) return undefined
+        return this.numericColorColumnSlug ? undefined : this.colorColumnSlug
+    }
+
     @computed get yScaleType(): ScaleType | undefined {
         return this.yAxis.scaleType
     }
@@ -2073,7 +2093,7 @@ export class GrapherState {
     }
 
     getColumnSlugsForCondensedSources(): string[] {
-        const { xColumnSlug, sizeColumnSlug, colorColumnSlug, isMarimekko } =
+        const { xColumnSlug, sizeColumnSlug, colorColumnSlug, hasMarimekko } =
             this
         const columnSlugs: string[] = []
 
@@ -2089,7 +2109,7 @@ export class GrapherState {
                 .def as OwidColumnDef
             // exclude population variable if it's used as the x dimension in a marimekko
             if (
-                !isMarimekko ||
+                !hasMarimekko ||
                 !isPopulationVariableETLPath(xColumn?.catalogPath ?? "")
             )
                 columnSlugs.push(xColumnSlug)
@@ -2257,6 +2277,12 @@ export class GrapherState {
     }
     @computed get hasDiscreteBar(): boolean {
         return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.DiscreteBar)
+    }
+    @computed get hasMarimekko(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.Marimekko)
+    }
+    @computed get hasScatter(): boolean {
+        return this.validChartTypeSet.has(GRAPHER_CHART_TYPES.ScatterPlot)
     }
     @computed get supportsMultipleYColumns(): boolean {
         return !this.isScatter
@@ -2664,7 +2690,7 @@ export class GrapherState {
         // we sort by entity name instead.
         // Marimekko charts are special and there we don't do this forcing of sort order
         if (
-            !this.isMarimekko &&
+            !this.isOnMarimekkoTab &&
             this.isRelativeMode &&
             sortConfig.sortBy === SortBy.total
         ) {
