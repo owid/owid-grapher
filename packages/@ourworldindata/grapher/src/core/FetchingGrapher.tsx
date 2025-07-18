@@ -5,17 +5,14 @@ import {
     OwidVariableId,
 } from "@ourworldindata/types"
 import React from "react"
-import {
-    Grapher,
-    GrapherProgrammaticInterface,
-    GrapherState,
-} from "./Grapher.js"
+import { Grapher, GrapherProgrammaticInterface } from "./Grapher.js"
 import { loadVariableDataAndMetadata } from "./loadVariable.js"
 import { fetchInputTableForConfig } from "./loadGrapherTableHelpers.js"
 import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 import { unstable_batchedUpdates } from "react-dom"
 import { Bounds } from "@ourworldindata/utils"
 import { migrateGrapherConfigToLatestVersion } from "../schema/migrations/migrate.js"
+import { useOptionallyGlobalGrapherStateRef } from "../chart/ChartUtils.js"
 
 export interface FetchingGrapherProps {
     config?: GrapherProgrammaticInterface
@@ -36,32 +33,30 @@ export function FetchingGrapher(
         GrapherInterface | undefined
     >(undefined)
 
-    const grapherState = React.useRef<GrapherState>(
-        new GrapherState({
-            ...props.config,
-            additionalDataLoaderFn: (
-                varId: OwidVariableId
-            ): Promise<OwidVariableDataMetadataDimensions> =>
-                loadVariableDataAndMetadata(varId, props.dataApiUrl, {
-                    noCache: props.noCache,
-                }),
-            queryStr: props.queryStr,
-            bounds: props.externalBounds,
-            isConfigReady: !props.configUrl,
-        })
-    )
+    const grapherState = useOptionallyGlobalGrapherStateRef({
+        ...props.config,
+        additionalDataLoaderFn: (
+            varId: OwidVariableId
+        ): Promise<OwidVariableDataMetadataDimensions> =>
+            loadVariableDataAndMetadata(varId, props.dataApiUrl, {
+                noCache: props.noCache,
+            }),
+        queryStr: props.queryStr,
+        bounds: props.externalBounds,
+        isConfigReady: !props.configUrl,
+    })
 
     React.useEffect(() => {
         if (props.externalBounds) {
             grapherState.current.externalBounds = props.externalBounds
         }
-    }, [props.externalBounds])
+    }, [props.externalBounds, grapherState])
 
     // update grapherState when the config from props changes
     React.useEffect(() => {
         if (props.config?.bounds)
             grapherState.current.externalBounds = props.config.bounds
-    }, [props.config?.bounds])
+    }, [props.config?.bounds, grapherState])
 
     React.useEffect(() => {
         const abortController = new AbortController()
@@ -116,7 +111,7 @@ export function FetchingGrapher(
         return (): void => {
             abortController.abort()
         }
-    }, [props.config, props.configUrl])
+    }, [props.config, props.configUrl, grapherState])
 
     React.useEffect(() => {
         let isCancelled = false
@@ -148,6 +143,7 @@ export function FetchingGrapher(
         props.config?.selectedEntityColors,
         props.archivedChartInfo,
         props.noCache,
+        grapherState,
     ])
 
     return <Grapher grapherState={grapherState.current} />
