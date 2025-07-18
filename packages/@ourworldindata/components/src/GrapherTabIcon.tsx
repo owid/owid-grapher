@@ -2,26 +2,67 @@ import * as React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faChartBar,
-    faChartLine,
     faChartColumn,
+    faChartLine,
+    faEarthAmericas,
+    faTable,
 } from "@fortawesome/free-solid-svg-icons"
-import { GRAPHER_CHART_TYPES, GrapherChartType } from "@ourworldindata/types"
+import {
+    GRAPHER_CHART_TYPES,
+    GRAPHER_TAB_NAMES,
+    GrapherChartType,
+    GrapherTabName,
+} from "@ourworldindata/types"
 
-export const chartIcons: Record<GrapherChartType, React.ReactElement> = {
+export function GrapherTabIcon({
+    tab,
+    isLineChartThatTurnedIntoDiscreteBar,
+}: {
+    tab: GrapherTabName
+    isLineChartThatTurnedIntoDiscreteBar?: boolean
+}): React.ReactElement {
+    switch (tab) {
+        case GRAPHER_TAB_NAMES.Table:
+            return <FontAwesomeIcon className="GrapherTabIcon" icon={faTable} />
+        case GRAPHER_TAB_NAMES.WorldMap:
+            return (
+                <FontAwesomeIcon
+                    className="GrapherTabIcon"
+                    icon={faEarthAmericas}
+                />
+            )
+        default: {
+            const chartIcon =
+                tab === GRAPHER_TAB_NAMES.LineChart &&
+                isLineChartThatTurnedIntoDiscreteBar
+                    ? chartIcons[GRAPHER_CHART_TYPES.DiscreteBar]
+                    : chartIcons[tab]
+            return chartIcon
+        }
+    }
+}
+
+const chartIcons: Record<GrapherChartType, React.ReactElement> = {
     // line chart
-    [GRAPHER_CHART_TYPES.LineChart]: <FontAwesomeIcon icon={faChartLine} />,
+    [GRAPHER_CHART_TYPES.LineChart]: (
+        <FontAwesomeIcon className="GrapherTabIcon" icon={faChartLine} />
+    ),
 
     // bar charts
-    [GRAPHER_CHART_TYPES.DiscreteBar]: <FontAwesomeIcon icon={faChartColumn} />,
-    [GRAPHER_CHART_TYPES.StackedBar]: <FontAwesomeIcon icon={faChartColumn} />,
+    [GRAPHER_CHART_TYPES.DiscreteBar]: (
+        <FontAwesomeIcon className="GrapherTabIcon" icon={faChartColumn} />
+    ),
+    [GRAPHER_CHART_TYPES.StackedBar]: (
+        <FontAwesomeIcon className="GrapherTabIcon" icon={faChartColumn} />
+    ),
     [GRAPHER_CHART_TYPES.StackedDiscreteBar]: (
-        <FontAwesomeIcon icon={faChartBar} />
+        <FontAwesomeIcon className="GrapherTabIcon" icon={faChartBar} />
     ),
 
     // scatter
     [GRAPHER_CHART_TYPES.ScatterPlot]: (
         <svg
-            className="custom-icon scatter"
+            className="GrapherTabIcon custom-icon scatter"
             width="16"
             height="16"
             viewBox="0 0 16 16"
@@ -46,7 +87,7 @@ export const chartIcons: Record<GrapherChartType, React.ReactElement> = {
     // marimekko
     [GRAPHER_CHART_TYPES.Marimekko]: (
         <svg
-            className="custom-icon marimekko"
+            className="GrapherTabIcon custom-icon marimekko"
             width="16"
             height="16"
             viewBox="0 0 16 16"
@@ -71,7 +112,7 @@ export const chartIcons: Record<GrapherChartType, React.ReactElement> = {
     // stacked area
     [GRAPHER_CHART_TYPES.StackedArea]: (
         <svg
-            className="custom-icon stacked-area"
+            className="GrapherTabIcon custom-icon stacked-area"
             width="14"
             height="14"
             viewBox="0 0 14 14"
@@ -92,7 +133,7 @@ export const chartIcons: Record<GrapherChartType, React.ReactElement> = {
     // slope chart
     [GRAPHER_CHART_TYPES.SlopeChart]: (
         <svg
-            className="custom-icon slope"
+            className="GrapherTabIcon custom-icon slope"
             width="16"
             height="16"
             viewBox="0 0 16 16"

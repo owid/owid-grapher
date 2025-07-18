@@ -1,5 +1,4 @@
 .search-data-topic {
-    background-color: $blue-5;
     padding: 24px;
     margin-bottom: 24px;
 
@@ -108,5 +107,8 @@
 .search-data-topic-list,
 .search-data-topic-hit {
     list-style: none;
-    grid-gap: var(--grid-gap);
+}
+
+.search-data-topic-hit {
+    margin: 16px 0;
 }
