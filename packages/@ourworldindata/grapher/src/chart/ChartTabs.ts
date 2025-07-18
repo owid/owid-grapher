@@ -10,6 +10,7 @@ import {
     GrapherTabQueryParam,
 } from "@ourworldindata/types"
 import * as R from "remeda"
+import { match } from "ts-pattern"
 
 /**
  * Chart type combinations that are currently supported. Every subset of these
@@ -87,6 +88,26 @@ export function mapChartTypeNameToQueryParam(
     chartType: GrapherChartType
 ): ChartTabConfigOption {
     return MAP_CHART_TYPE_NAME_TO_CHART_TAB_CONFIG_OPTION[chartType]
+}
+
+export function mapGrapherTabNameToQueryParam(
+    tabName: GrapherTabName
+): GrapherTabQueryParam {
+    return match(tabName)
+        .with(GRAPHER_TAB_NAMES.Table, () => GRAPHER_TAB_CONFIG_OPTIONS.table)
+        .with(GRAPHER_TAB_NAMES.WorldMap, () => GRAPHER_TAB_CONFIG_OPTIONS.map)
+        .otherwise((tabName) => mapChartTypeNameToQueryParam(tabName))
+}
+
+export function makeLabelForGrapherTab(
+    tab: GrapherTabName,
+    options?: { hasMultipleChartTypes?: boolean }
+): string {
+    if (tab === GRAPHER_TAB_NAMES.Table) return "Table"
+    if (tab === GRAPHER_TAB_NAMES.WorldMap)
+        return format === "short" ? "Map" : "World map"
+    if (!options?.hasMultipleChartTypes) return "Chart"
+    return CHART_TYPE_LABEL[tab]
 }
 
 export function findPotentialChartTypeSiblings(
