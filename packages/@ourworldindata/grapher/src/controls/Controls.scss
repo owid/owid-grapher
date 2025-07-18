@@ -126,7 +126,7 @@ nav.controlsRow .controls {
 
 @container grapher (max-width:500px) {
     // hide labels on smaller screens
-    .ContentSwitchers .label {
+    .ContentSwitchers .Tabs__Tab .label {
         display: none;
     }
 }

@@ -98,7 +98,7 @@ interface CaptionedChartProps {
 }
 
 // keep in sync with sass variables in CaptionedChart.scss
-const CONTROLS_ROW_HEIGHT = 32
+export const CONTROLS_ROW_HEIGHT = 32
 
 abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProps> {
     protected framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL

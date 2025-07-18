@@ -1,10 +1,43 @@
-.Tabs.ContentSwitchers {
-    $icon-width: 13px;
-    $icon-padding: 6px;
+$active-icon: $blue-50;
 
-    $active-icon: $blue-50;
+@at-root {
+    .ContentSwitchers__OverflowMenu {
+        border-radius: 4px;
+        background-color: #fff;
+        box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.06);
+    }
 
-    .Tabs__Tab {
+    .ContentSwitchers__OverflowMenuItem {
+        @include grapher_label-2-medium;
+
+        margin: 4px 0;
+        padding: 0 16px;
+        height: $controlRowHeight;
+        display: flex;
+        align-items: center;
+        color: $light-text;
+        cursor: pointer;
+        width: 100%;
+
+        &:hover {
+            background-color: $gray-10;
+        }
+
+        &:focus-visible {
+            color: $active-text;
+            background-color: $active-fill;
+
+            svg {
+                color: $active-icon;
+            }
+        }
+    }
+
+    .Tabs.ContentSwitchers .Tabs__Tab,
+    .ContentSwitchers__OverflowMenuItem {
+        $icon-width: 13px;
+        $icon-padding: 6px;
+
         .label {
             margin-left: $icon-padding;
         }
@@ -32,6 +65,28 @@
             svg {
                 color: $active-icon;
             }
+        }
+    }
+}
+
+.Tabs.ContentSwitchers {
+    .Tabs__Tab.ContentSwitchers__OverflowMenuButton {
+        // Make the +X tab a bit narrower
+        padding: 0 8px;
+
+        // Don't show as 'active' when clicked
+        &[data-selected] {
+            background: #fff;
+            color: $light-text;
+        }
+    }
+
+    .Tabs__Tab.active {
+        color: $active-text;
+        background-color: $active-fill;
+
+        svg {
+            color: $active-icon;
         }
     }
 }
