@@ -47,6 +47,15 @@ export const searchQueryKeys = {
         [...searchQueryKeys.writing, "topics", state] as const,
 } as const
 
+export const chartHitQueryKeys = {
+    // Base key for all chart hit queries
+    chartHit: ["chart-hit"] as const,
+
+    // Specific keys for chart hit queries
+    chartInfo: (slug: string, entities: string[]) =>
+        [...chartHitQueryKeys.chartHit, "chart-info", slug, entities] as const,
+} as const
+
 export async function queryDataTopics(
     searchClient: SearchClient,
     state: SearchState,

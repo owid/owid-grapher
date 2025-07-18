@@ -2,14 +2,12 @@ import * as React from "react"
 import { action, computed, observable, makeObservable } from "mobx"
 import cx from "classnames"
 import { observer } from "mobx-react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faTable, faEarthAmericas } from "@fortawesome/free-solid-svg-icons"
-import { GrapherTabName, GRAPHER_TAB_NAMES } from "@ourworldindata/types"
-import { chartIcons } from "./ChartIcons"
+import { GrapherTabName } from "@ourworldindata/types"
 import { TabItem, Tabs } from "../tabs/Tabs.js"
-import { CHART_TYPE_LABEL } from "../chart/ChartTabs"
+import { makeLabelForGrapherTab } from "../chart/ChartTabs"
 import { Popover } from "../popover/Popover"
 import { CONTROLS_ROW_HEIGHT } from "../captionedChart/CaptionedChart"
+import { GrapherTabIcon } from "@ourworldindata/components"
 
 export interface ContentSwitchersManager {
     availableTabs?: GrapherTabName[]
@@ -114,7 +112,7 @@ export class ContentSwitchers extends React.Component<{
                 buttonProps: {
                     className: cx({ active: tab === this.activeTab }),
                     "data-track-note": "chart_click_" + tab,
-                    "aria-label": getTabDisplayText(tab, {
+                    "aria-label": makeLabelForGrapherTab(tab, {
                         hasMultipleChartTypes,
                     }),
                 },
@@ -222,32 +220,11 @@ function TabContent({
     hasMultipleChartTypes?: boolean
 }): React.ReactElement {
     return (
-        <>
-            <TabIcon tab={tab} />
+        <span>
+            <GrapherTabIcon tab={tab} />
             <span className="label">
-                {getTabDisplayText(tab, { hasMultipleChartTypes })}
+                {makeLabelForGrapherTab(tab, { hasMultipleChartTypes })}
             </span>
-        </>
+        </span>
     )
-}
-
-function TabIcon({ tab }: { tab: GrapherTabName }): React.ReactElement {
-    switch (tab) {
-        case GRAPHER_TAB_NAMES.Table:
-            return <FontAwesomeIcon icon={faTable} />
-        case GRAPHER_TAB_NAMES.WorldMap:
-            return <FontAwesomeIcon icon={faEarthAmericas} />
-        default:
-            return chartIcons[tab]
-    }
-}
-
-function getTabDisplayText(
-    tab: GrapherTabName,
-    options: { hasMultipleChartTypes?: boolean }
-): string {
-    if (tab === GRAPHER_TAB_NAMES.Table) return "Table"
-    if (tab === GRAPHER_TAB_NAMES.WorldMap) return "Map"
-    if (!options.hasMultipleChartTypes) return "Chart"
-    return CHART_TYPE_LABEL[tab]
 }
