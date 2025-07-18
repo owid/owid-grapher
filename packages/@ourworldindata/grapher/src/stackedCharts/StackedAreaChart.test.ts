@@ -39,9 +39,9 @@ class MockManager implements ChartManager {
 it("can create a basic chart", () => {
     const manager = new MockManager()
     const chartState = new StackedAreaChartState({ manager })
-    expect(chartState.failMessage).toBeTruthy()
+    expect(chartState.errorInfo.reason).toBeTruthy()
     manager.selection.addToSelection(manager.table.availableEntityNames)
-    expect(chartState.failMessage).toEqual("")
+    expect(chartState.errorInfo.reason).toEqual("")
 })
 
 describe("column charts", () => {
@@ -99,7 +99,7 @@ it("shows a failure message if there are columns but no series", () => {
     const chartState = new StackedAreaChartState({
         manager: { table: SynthesizeFruitTable() },
     })
-    expect(chartState.failMessage).toBeTruthy()
+    expect(chartState.errorInfo.reason).toBeTruthy()
 })
 
 it("can filter a series when there are no points", () => {

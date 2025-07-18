@@ -629,7 +629,7 @@ export class StackedBarChart
     render(): React.ReactElement {
         const { dualAxis, bounds } = this
 
-        if (this.chartState.failMessage)
+        if (this.chartState.errorInfo.reason)
             return (
                 <g
                     className="StackedBarChart"
@@ -640,7 +640,7 @@ export class StackedBarChart
                     <NoDataModal
                         manager={this.manager}
                         bounds={dualAxis.innerBounds}
-                        message={this.chartState.failMessage}
+                        message={this.chartState.errorInfo.reason}
                     />
                 </g>
             )

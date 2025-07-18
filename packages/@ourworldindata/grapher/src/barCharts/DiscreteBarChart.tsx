@@ -441,12 +441,12 @@ export class DiscreteBarChart
     }
 
     render(): React.ReactElement {
-        if (this.failMessage)
+        if (this.chartState.errorInfo.reason)
             return (
                 <NoDataModal
                     manager={this.manager}
                     bounds={this.bounds}
-                    message={this.failMessage}
+                    message={this.chartState.errorInfo.reason}
                 />
             )
 
@@ -461,10 +461,6 @@ export class DiscreteBarChart
                 {this.renderChartArea()}
             </g>
         )
-    }
-
-    @computed private get failMessage(): string {
-        return this.chartState.failMessage
     }
 
     formatValue(series: DiscreteBarSeries): Label {

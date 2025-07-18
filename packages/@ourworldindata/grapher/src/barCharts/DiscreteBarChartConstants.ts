@@ -28,7 +28,8 @@ export interface PlacedDiscreteBarSeries extends DiscreteBarSeries {
 export interface DiscreteBarChartManager extends ChartManager {
     showYearLabels?: boolean
     endTime?: Time
-    isOnLineChartTab?: boolean
+    hasLineChart?: boolean // used to pick color scheme
+    hasSlopeChart?: boolean // used to pick color scheme
 }
 
 export interface DiscreteBarItem {

@@ -732,10 +732,6 @@ export class SlopeChart
         this.onSlopeMouseLeave()
     }
 
-    @computed private get failMessage(): string {
-        return this.chartState.failMessage
-    }
-
     @computed private get renderUid(): number {
         return guid()
     }
@@ -1045,14 +1041,14 @@ export class SlopeChart
     }
 
     render() {
-        if (this.failMessage)
+        if (this.chartState.errorInfo.reason)
             return (
                 <>
                     {this.renderYAxis()}
                     <NoDataModal
                         manager={this.manager}
                         bounds={this.props.bounds}
-                        message={this.failMessage}
+                        message={this.chartState.errorInfo.reason}
                     />
                 </>
             )

@@ -23,10 +23,10 @@ it("can create a chart", () => {
     }
 
     const chartState = new StackedBarChartState({ manager })
-    expect(chartState.failMessage).toBeTruthy()
+    expect(chartState.errorInfo.reason).toBeTruthy()
 
     selection.addToSelection(table.sampleEntityName(1))
-    expect(chartState.failMessage).toEqual("")
+    expect(chartState.errorInfo.reason).toEqual("")
     const chart = new StackedBarChart({ chartState })
     expect(chart.stackedSeries[0].points.length).toEqual(10)
 })

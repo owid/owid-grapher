@@ -169,7 +169,11 @@ export const grapherInterfaceWithHiddenTabs: GrapherProgrammaticInterface = {
  * This also determines the order of chart types in the UI.
  */
 export const validChartTypeCombinations = [
-    [GRAPHER_CHART_TYPES.LineChart, GRAPHER_CHART_TYPES.SlopeChart],
+    [
+        GRAPHER_CHART_TYPES.LineChart,
+        GRAPHER_CHART_TYPES.SlopeChart,
+        GRAPHER_CHART_TYPES.DiscreteBar,
+    ],
 ]
 
 export const SVG_STYLE_PROPS: React.CSSProperties = {

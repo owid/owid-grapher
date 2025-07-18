@@ -16,6 +16,7 @@ import {
 import { computed, makeObservable } from "mobx"
 import { autoDetectYColumnSlugs } from "../chart/ChartUtils"
 import {
+    ChartErrorInfo,
     ColorSchemeName,
     EntityName,
     ScaleType,
@@ -368,10 +369,10 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
         return this.series.flatMap((series) => series.points)
     }
 
-    @computed get failMessage(): string {
-        if (this.yColumn.isMissing) return "Missing Y axis variable"
+    @computed get errorInfo(): ChartErrorInfo {
+        if (this.yColumn.isMissing) return { reason: "Missing Y axis variable" }
 
-        if (this.xColumn.isMissing) return "Missing X axis variable"
+        if (this.xColumn.isMissing) return { reason: "Missing X axis variable" }
 
         if (_.isEmpty(this.allEntityNamesWithXAndY)) {
             if (
@@ -379,13 +380,15 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
                 this.manager.hasTimeline &&
                 this.manager.startTime === this.manager.endTime
             ) {
-                return "Please select a start and end point on the timeline below"
+                return {
+                    reason: "Please select a start and end point on the timeline below",
+                }
             }
-            return "No entities with data for both X and Y"
+            return { reason: "No entities with data for both X and Y" }
         }
 
-        if (_.isEmpty(this.series)) return "No matching data"
+        if (_.isEmpty(this.series)) return { reason: "No matching data" }
 
-        return ""
+        return { reason: "" }
     }
 }

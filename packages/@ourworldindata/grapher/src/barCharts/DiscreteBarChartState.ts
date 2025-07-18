@@ -20,6 +20,7 @@ import {
     makeSelectionArray,
 } from "../chart/ChartUtils"
 import {
+    ChartErrorInfo,
     ColorScaleConfigInterface,
     ColorSchemeName,
     FacetStrategy,
@@ -108,13 +109,13 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
         return this.series.some((series) => series.yColumn.isProjection)
     }
 
-    @computed get colorScheme(): ColorScheme {
-        // We used to choose owid-distinct here as the default if this is a collapsed line chart but
-        // as part of the color revamp in Autumn 2022 we decided to make bar charts always default to
-        // an all-blue color scheme (singleColorDenim).
+    @computed private get colorScheme(): ColorScheme {
         const defaultColorScheme = this.defaultBaseColorScheme
         const colorScheme = this.manager.baseColorScheme ?? defaultColorScheme
-        return this.manager.isOnLineChartTab
+
+        // Don't reuse the line chart's color scheme (typically owid-distinct)
+        // and use the default color scheme instead (single color)
+        return this.manager.hasLineChart || this.manager.hasSlopeChart
             ? ColorSchemes.get(defaultColorScheme)
             : ColorSchemes.get(colorScheme)
     }
@@ -308,16 +309,17 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
         return [FacetStrategy.none]
     }
 
-    @computed get failMessage(): string {
+    @computed get errorInfo(): ChartErrorInfo {
         const column = this.yColumns[0]
 
-        if (!column) return "No column to chart"
+        if (!column) return { reason: "No column to chart" }
 
-        if (!this.selectionArray.hasSelection) return `No data selected`
+        if (!this.selectionArray.hasSelection)
+            return { reason: "No data selected" }
 
         // TODO is it better to use .series for this check?
         return this.yColumns.every((col) => col.isEmpty)
-            ? "No matching data"
-            : ""
+            ? { reason: "No matching data" }
+            : { reason: "" }
     }
 }
