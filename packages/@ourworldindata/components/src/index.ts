@@ -64,3 +64,6 @@ export { Halo } from "./Halo/Halo.js"
 export { BodyDiv } from "./bodyDiv/BodyDiv.js"
 
 export { LoadingIndicator } from "./loadingIndicator/LoadingIndicator.js"
+
+export { GrapherTabIcon } from "./GrapherTabIcon.js"
+export { GrapherTrendArrow } from "./GrapherTrendArrow.js"
