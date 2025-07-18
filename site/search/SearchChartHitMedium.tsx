@@ -64,7 +64,7 @@ export function SearchChartHitMedium({
         searchQueryRegionsMatches,
     ])
     const entityQueryStr = useMemo(
-        () => getEntityQueryStr(entities),
+        () => getEntityQueryStr({ entities }),
         [entities]
     )
 
