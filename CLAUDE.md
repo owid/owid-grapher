@@ -26,3 +26,9 @@ Some key directories, going roughly along the dependency chain from the most sta
 - ./adminSiteClient - client UI of the admin
 - ./devTools - various utilities
 - ./functions - CloudFlare Functions. Most of our website is static but all our charts under https://ourworldindata.org/grapher/* are behind CF functions. These handle dynamic thumbnail generation, data downloads for end users etc.
+
+# Database documentation
+
+Our main datastore is a mysql 8 database. The documentation for this lives in db/docs - there is README.md file which is a good overview and starting point, then there is a yml file for each table. ALWAYS list the directory db/docs/ to understand which tables are available and read the relevant table description files before constructing a query.
+
+You can run (read only) queries against the database with `yarn query "QUERY TEXT"` - e.g. if you need to understand the contents of a table of the cardinality of various tables.

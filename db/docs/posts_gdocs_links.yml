@@ -1,19 +1,22 @@
 metadata:
-    description: "Link tracking system for Google Docs posts that enables internal analytics and link health monitoring. Extracts and categorizes all links from Google Docs content to track internal references, external citations, and embedded charts/explorers."
+    description: |
+        Link tracking system for Google Docs posts. All outgoing links and references are tracked here. The target can be things like grapher charts, explorers etc which can be joined via slug.
+
+        Be aware that when joining the charts table on slugs, you need to take chart_slug_redirects into account to get the full picture as a chart with a certain id may have several aliases defined in chart_slug_redirects and this table could link out to any one of these aliases.
 fields:
     id:
-        description: "Unique identifier for the link"
+        description: Unique identifier for the link
     sourceId:
-        description: "Foreign key to posts_gdocs table"
+        description: Foreign key to posts_gdocs table
     target:
-        description: "Target URL of the link"
+        description: Target URL of the link
     linkType:
-        description: "Type of link ('gdoc', 'url', 'grapher', 'explorer', 'chart-view', 'dod')"
+        description: Type of link ('gdoc', 'url', 'grapher', 'explorer', 'chart-view', 'dod')
     componentType:
-        description: "Type of component containing the link (e.g., 'markdown', 'chart', 'iframe')"
+        description: Type of component containing the link (e.g., 'markdown', 'chart', 'iframe')
     text:
-        description: "Link text as it appears in the content"
+        description: Link text as it appears in the content
     queryString:
-        description: "Query string parameters in the link"
+        description: Query string parameters in the link
     hash:
-        description: "Hash fragment in the link"
+        description: Hash fragment in the link

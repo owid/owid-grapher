@@ -1,7 +1,7 @@
 metadata:
-    description: "Junction table linking Google Docs posts to tags for categorization and topic page organization. This enables articles authored in Google Docs to be properly categorized and appear on relevant topic pages."
+    description: Many-to-many table linking Google Docs posts to tags for categorization and topic page organization. This enables articles authored in Google Docs to be properly categorized and appear on relevant topic pages.
 fields:
     gdocId:
-        description: "Foreign key to posts_gdocs table"
+        description: Foreign key to posts_gdocs table
     tagId:
-        description: "Foreign key to tags table"
+        description: Foreign key to tags table

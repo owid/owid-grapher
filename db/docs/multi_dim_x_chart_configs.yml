@@ -1,17 +1,20 @@
 metadata:
-    description: "Junction table linking multi-dimensional data pages to their chart configurations. This enables data pages to have multiple chart views for different variables and dimensions, allowing users to explore the same dataset through different visualization approaches."
+    description: Many-to-many table linking multi-dimensional charts/data pages to their chart configurations. The viewId is the identifier of a specific view that is basically the combination of all drop-down values the user selected to identify the view they are interested in.
+    incoming_foreign_keys:
+        - table: narrative_charts
+          column: parentMultiDimXChartConfigId
 fields:
     id:
-        description: "Unique identifier for the configuration"
+        description: Unique identifier for the configuration
     multiDimId:
-        description: "Foreign key to multi_dim_data_pages table"
+        description: Foreign key to multi_dim_data_pages table
     viewId:
-        description: "View identifier within the multi-dimensional page"
+        description: View identifier within the multi-dimensional page
     variableId:
-        description: "Foreign key to variables table for the variable being visualized"
+        description: Foreign key to variables table for the variable being visualized
     chartConfigId:
-        description: "Foreign key to chart_configs table for the chart configuration"
+        description: Foreign key to chart_configs table for the chart configuration
     createdAt:
-        description: "Timestamp when the configuration was created"
+        description: Timestamp when the configuration was created
     updatedAt:
-        description: "Timestamp when the configuration was last updated"
+        description: Timestamp when the configuration was last updated

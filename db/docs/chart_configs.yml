@@ -1,19 +1,59 @@
 metadata:
-    description: "Chart configuration storage table that separates configuration data from chart metadata. This table stores the actual JSON configuration that determines how charts appear and behave. It supports both patch-based updates and full configurations, and enables the inheritance system where charts can inherit configurations from variables."
+    description: |
+        This table stores all grapher chart configs, i.e. the actual json configuration that Grapher uses to create charts. It is the only place in our database where actual grapher config JSON blobs are stored.
+
+        Here are some kinds of entities in our DB that reference rows in this table:
+        - Standalone charts, shown on our website at https://ourworldindata.org/grapher/SLUG, stored in the charts table
+        - Multi-dim charts, shown also at https://ourworldindata.org/grapher/SLUG, stored in the multi_dim_x_chart_configs table
+        - Narrative charts, shown only as embedded views in articles and that are based on parent standalone charts, stored in the narrative_charts table
+        - Indicator level charts, used in the inheritance mechanism in standalone charts and multi-dim charts, stored in the variables table
+
+        Charts have an inheritance mechanism where, for example, standalone charts can inherit from the main variable that is used in that chart.
+
+        This inheritance is reflected in this table in the patch and full columns. The patch column stores only the configuration changes that currently it performs. The full one is the merged configuration from all the upstream dependencies plus the current patch. When querying details of chart configs, prefer to use the full column.
+
+        The actual chart config is a complex JSON object. See the column description for patch and full below for the schema url and the most important fields.
+    incoming_foreign_keys:
+        - table: charts
+          column: configId
+        - table: multi_dim_x_chart_configs
+          column: chartConfigId
+        - table: narrative_charts
+          column: chartConfigId
+        - table: variables
+          column: grapherConfigIdAdmin
+        - table: variables
+          column: grapherConfigIdETL
 fields:
     id:
-        description: "Unique identifier for the chart configuration"
+        description: Unique identifier for the chart configuration
     patch:
-        description: "Incremental configuration JSON that contains only the changes from the inherited or base configuration"
+        description: |
+            "Incremental configuration JSON that contains only the changes from the inherited or base configuration. Stored as a JSON column, so can be queried with the ->> operator.
+
+            The full schema is available at 'https://files.ourworldindata.org/schemas/grapher-schema.latest.json'. For querying chart contents, the most important fields are:
+                - title
+                - subtitle
+                - chartTypes: array of string enums with valid values: ScatterPlot, StackedArea, DiscreteBar, StackedDiscreteBar, SlopeChart, StackedBar, Marimekko. Indicates which of these chart tabs are enabled for the chart.
+                - hasMapTab: Whether the map tab is enabled
+                - isPublished: whether the chart is published, if it is a standalone chart (i.e. a chart referenced from the charts table)"
     full:
-        description: "Complete merged configuration JSON that combines inherited configuration with local patches. This is the final configuration used for rendering."
+        description: |
+            "Complete merged configuration JSON that combines inherited configuration with local patches. This is the final configuration used for rendering. Stored as a JSON column, so can be queried with the ->> operator.
+
+            The full schema is available at 'https://files.ourworldindata.org/schemas/grapher-schema.latest.json'. For querying chart contents, the most important fields are:
+                - title
+                - subtitle
+                - chartTypes: array of string enums with valid values: ScatterPlot, StackedArea, DiscreteBar, StackedDiscreteBar, SlopeChart, StackedBar, Marimekko. Indicates which of these chart tabs are enabled for the chart.
+                - hasMapTab: Whether the map tab is enabled
+                - isPublished: whether the chart is published, if it is a standalone chart (i.e. a chart referenced from the charts table)"
     slug:
-        description: "URL-friendly identifier for the chart, used in URLs like /grapher/[slug]"
+        description: URL-friendly identifier for the chart, used in URLs like /grapher/[slug]
     chartType:
-        description: "Type of chart visualization (e.g., LineChart, BarChart, ScatterPlot, WorldMap)"
+        description: Type of chart visualization (e.g., LineChart, BarChart, ScatterPlot, WorldMap). This only indicates the main chart - prefer to query the chartTypes field and the hasMapTab field in the full config instead.
     createdAt:
-        description: "Timestamp when the configuration was created"
+        description: Timestamp when the configuration was created
     updatedAt:
-        description: "Timestamp when the configuration was last updated"
+        description: Timestamp when the configuration was last updated
     fullMd5:
-        description: "MD5 hash of the full configuration JSON used for change detection and caching"
+        description: MD5 hash of the full configuration JSON used for change detection and caching

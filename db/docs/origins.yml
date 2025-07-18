@@ -1,33 +1,36 @@
 metadata:
-    description: "Data provenance and attribution system that tracks the complete lineage of data sources. Origins provide detailed metadata about where data comes from, how to cite it, and licensing information. This is essential for OWID's commitment to data transparency and proper attribution. Variables can be linked to multiple origins through the origins_variables table."
+    description: Data provenance and attribution system that tracks the complete lineage of data sources. Origins provide detailed metadata about where data comes from, how to cite it, and licensing information. This is essential for OWID's commitment to data transparency and proper attribution. Variables can be linked to multiple origins through the origins_variables table.
+    incoming_foreign_keys:
+        - table: origins_variables
+          column: originId
 fields:
     id:
-        description: "Unique identifier for the origin"
+        description: Unique identifier for the origin
     titleSnapshot:
-        description: "Snapshot of the title at time of creation (for historical tracking)"
+        description: Snapshot of the title at time of creation (for historical tracking)
     title:
-        description: "Current title of the origin as it should appear in citations"
+        description: Current title of the origin as it should appear in citations
     descriptionSnapshot:
-        description: "Snapshot of the description at time of creation (for historical tracking)"
+        description: Snapshot of the description at time of creation (for historical tracking)
     description:
-        description: "Current description of the origin and its methodology"
+        description: Current description of the origin and its methodology
     producer:
-        description: "Data producer/organization name (e.g., 'World Bank', 'UN')"
+        description: Data producer/organization name (e.g., 'World Bank', 'UN')
     citationFull:
-        description: "Full academic citation for the data source"
+        description: Full academic citation for the data source
     attribution:
-        description: "Attribution text to be displayed with data"
+        description: Attribution text to be displayed with data
     attributionShort:
-        description: "Short attribution text for compact displays"
+        description: Short attribution text for compact displays
     versionProducer:
-        description: "Version identifier from the original producer"
+        description: Version identifier from the original producer
     urlMain:
-        description: "Main URL for the data source homepage"
+        description: Main URL for the data source homepage
     urlDownload:
-        description: "Direct download URL for the data"
+        description: Direct download URL for the data
     dateAccessed:
-        description: "Date when OWID accessed/downloaded the data"
+        description: Date when OWID accessed/downloaded the data
     datePublished:
-        description: "Date when the data was originally published by the producer"
+        description: Date when the data was originally published by the producer
     license:
-        description: "License information and usage restrictions"
+        description: License information and usage restrictions

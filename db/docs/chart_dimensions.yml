@@ -1,17 +1,17 @@
 metadata:
-    description: "Mapping table that links variables to chart visualization dimensions. This table defines which variables are used for which aspects of a chart (e.g., x-axis, y-axis, color, size). It's the primary way that data variables are connected to chart visualizations."
+    description: Mapping table that links chart_configs and variables, i.e. enumerates the variables (aka indicators) that are used to power a chart. This table defines which variables are used for which aspects of a chart (e.g., x axis, y axis, color, size).
 fields:
     id:
-        description: "Unique identifier for the chart dimension"
+        description: Unique identifier for the chart dimension
     order:
-        description: "Display order of the dimension in the chart interface and legend"
+        description: Display order of the dimension in the chart interface and legend
     property:
-        description: "Chart property that this variable maps to (e.g., 'x', 'y', 'color', 'size')"
+        description: Chart property that this variable maps to ('x', 'y', 'color' or 'size')
     chartId:
-        description: "Foreign key to charts table. Links the dimension to a specific chart."
+        description: Foreign key to charts table. Links the dimension to a specific chart.
     variableId:
-        description: "Foreign key to variables table. Links the dimension to a specific data variable."
+        description: Foreign key to variables table. Links the dimension to a specific data variable.
     createdAt:
-        description: "Timestamp when the dimension was created"
+        description: Timestamp when the dimension was created
     updatedAt:
-        description: "Timestamp when the dimension was last updated"
+        description: Timestamp when the dimension was last updated

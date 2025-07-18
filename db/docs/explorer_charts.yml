@@ -1,9 +1,9 @@
 metadata:
-    description: "Junction table linking explorers to charts that can be displayed within them. This enables explorers to provide multiple visualization options for users to explore data through different chart types and configurations while maintaining a cohesive data exploration experience."
+    description: Many-to-many table linking explorers to standalone charts that can be displayed within them. Explorers that use this way of showing charts are called grapher-based explorers.
 fields:
     id:
-        description: "Unique identifier for the association"
+        description: Unique identifier for the association
     explorerSlug:
-        description: "Foreign key to explorers table (slug field)"
+        description: Foreign key to explorers table (slug field)
     chartId:
-        description: "Foreign key to charts table. Chart that can be displayed in the explorer."
+        description: Foreign key to charts table. Chart that can be displayed in the explorer.

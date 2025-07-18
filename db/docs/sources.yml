@@ -1,21 +1,24 @@
 metadata:
-    description: "Data sources represent the origin of data within datasets. Each variable is linked to a source that contains metadata about where the data came from, who published it, and how to cite it. Sources are intermediate between datasets and variables in the data hierarchy."
+    description: Data sources represent the origin of data within datasets. Sources are the old legacy way of tracking publishers, before we used Origins from ca late 2023. For old variables, each variable is linked to a source that contains metadata about where the data came from, who published it, and how to cite it.
+    incoming_foreign_keys:
+        - table: variables
+          column: sourceId
 fields:
     id:
-        description: "Unique identifier for the source"
+        description: Unique identifier for the source
     name:
-        description: "Source name as it appears in citations and references"
+        description: Source name as it appears in citations and references
     description:
-        description: "JSON description with structured metadata about the source"
+        description: JSON description with structured metadata about the source
     createdAt:
-        description: "Timestamp when the source was created"
+        description: Timestamp when the source was created
     updatedAt:
-        description: "Timestamp when the source was last updated"
+        description: Timestamp when the source was last updated
     datasetId:
-        description: "Foreign key to datasets table. Sources belong to datasets."
+        description: Foreign key to datasets table. Sources belong to datasets.
     additionalInfo:
-        description: "Additional information about the source"
+        description: Additional information about the source
     link:
-        description: "URL link to the original source"
+        description: URL link to the original source
     dataPublishedBy:
-        description: "Organization or entity that published the data"
+        description: Organization or entity that published the data

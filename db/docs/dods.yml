@@ -1,15 +1,18 @@
 metadata:
-    description: "Details on Demand (DOD) content items. DODs are reusable content snippets that can be referenced across the OWID system using the syntax [text](#dod:dod-name) in markdown. They appear as expandable sections in charts, indicators, and other content to provide additional context without cluttering the main interface."
+    description: Details on Demand (DoD) content items. DoDs are reusable content snippets that can be referenced across the OWID system using the syntax [text](#dod:dod-name) in markdown. They appear as expandable sections on mouse-hover in charts, indicators, and other content to provide additional context without cluttering the main interface.
+    incoming_foreign_keys:
+        - table: dod_links
+          column: sourceId
 fields:
     id:
-        description: "Unique identifier for the DOD item"
+        description: Unique identifier for the DOD item
     name:
-        description: "Unique name/slug for the DOD item used in references (e.g., 'gdp-definition')"
+        description: Unique name/slug for the DOD item used in references (e.g., 'gdp-definition')
     content:
-        description: "Markdown content of the DOD item that will be displayed to users when they expand the DOD"
+        description: Markdown content of the DOD item that will be displayed to users when they expand the DOD
     createdAt:
-        description: "Timestamp when the DOD item was created"
+        description: Timestamp when the DOD item was created
     updatedAt:
-        description: "Timestamp when the DOD item was last updated"
+        description: Timestamp when the DOD item was last updated
     lastUpdatedUserId:
-        description: "Foreign key to users table. Tracks who last updated the DOD item."
+        description: Foreign key to users table. Tracks who last updated the DOD item.

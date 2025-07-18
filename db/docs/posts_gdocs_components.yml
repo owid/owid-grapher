@@ -1,13 +1,13 @@
 metadata:
-    description: "Structured components within Google Docs posts that track the hierarchical organization of content elements. This enables advanced content management features like component-level editing, nested content structures, and sophisticated content parsing from Google Docs."
+    description: ArchieML components within Google Docs posts that track the hierarchical organization of content elements. This enables queries for types of components without having to traverse the archieml content tree in the database.
 fields:
     id:
-        description: "Unique identifier for the component"
+        description: Unique identifier for the component
     gdocId:
-        description: "Foreign key to posts_gdocs table"
+        description: Foreign key to posts_gdocs table
     config:
-        description: "JSON configuration for the component"
+        description: JSON configuration for the component
     parent:
-        description: "Parent component ID for hierarchical organization"
+        description: Parent component ID for hierarchical organization
     path:
-        description: "Path within the document structure"
+        description: Path within the document structure

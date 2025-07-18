@@ -1,7 +1,7 @@
 metadata:
-    description: "Database view that represents parent-child relationships between charts via variables in the inheritance system. This view links charts to their parent variables, enabling the configuration inheritance where charts can inherit settings from variable configurations. This is a computed view, not a physical table."
+    description: Database view that represents parent-child relationships between standalone charts via variables in the inheritance system. This view links charts to their parent variables, enabling the configuration inheritance where charts can inherit settings from variable configurations. This is a computed view, not a physical table.
 fields:
     variableId:
-        description: "Foreign key to variables table. The parent variable that provides inherited configuration."
+        description: Foreign key to variables table. The parent variable that provides inherited configuration.
     chartId:
-        description: "Foreign key to charts table. The child chart that inherits configuration."
+        description: Foreign key to charts table. The child chart that inherits configuration.

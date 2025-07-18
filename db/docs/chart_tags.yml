@@ -1,15 +1,15 @@
 metadata:
-    description: "Many-to-many relationship between charts and tags that determines chart categorization and indexability. This table is crucial for organizing charts by topic, determining which charts appear in search results, and managing the OWID topic page structure. Charts must have at least one public parent tag to be indexable."
+    description: Many-to-many relationship between charts and tags that determines chart categorization and indexability. This table is crucial for organizing charts by topic, determining which charts appear in search results, and managing the OWID topic page structure. Charts must have at least one public parent tag to be indexable.
 fields:
     chartId:
-        description: "Foreign key to charts table"
+        description: Foreign key to charts table
     tagId:
-        description: "Foreign key to tags table"
+        description: Foreign key to tags table
     keyChartLevel:
-        description: "Level indicating importance of the chart for this tag (used for featured chart ordering on topic pages)"
+        description: Level indicating importance of the chart for this tag (used for featured chart ordering on topic pages)
     createdAt:
-        description: "Timestamp when the tag was assigned"
+        description: Timestamp when the tag was assigned
     updatedAt:
-        description: "Timestamp when the assignment was last updated"
+        description: Timestamp when the assignment was last updated
     isApproved:
-        description: "Whether the tag assignment has been approved by editors"
+        description: Whether the tag assignment has been approved by editors

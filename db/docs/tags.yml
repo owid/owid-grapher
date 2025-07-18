@@ -1,17 +1,38 @@
 metadata:
-    description: "Hierarchical categorization system for organizing charts, datasets, and posts. Tags can have parent-child relationships and special types. They're used for navigation, filtering, and determining chart indexability."
+    description: Hierarchical categorization system for organizing charts, datasets, and posts. Tags can have parent-child relationships and special types. They're used for navigation, filtering, and determining chart indexability, as well as to create the main navigation structure on our homepage.
+    incoming_foreign_keys:
+        - table: chart_tags
+          column: tagId
+        - table: dataset_tags
+          column: tagId
+        - table: explorer_tags
+          column: tagId
+        - table: featured_metrics
+          column: parentTagId
+        - table: post_tags
+          column: tag_id
+        - table: posts_gdocs_x_tags
+          column: tagId
+        - table: tag_graph
+          column: childId
+        - table: tag_graph
+          column: parentId
+        - table: tags
+          column: parentId
+        - table: tags_variables_topic_tags
+          column: tagId
 fields:
     id:
-        description: "Unique identifier for the tag"
+        description: Unique identifier for the tag
     name:
-        description: "Tag name as it appears in the interface"
+        description: Tag name as it appears in the interface
     createdAt:
-        description: "Timestamp when the tag was created"
+        description: Timestamp when the tag was created
     updatedAt:
-        description: "Timestamp when the tag was last updated"
+        description: Timestamp when the tag was last updated
     parentId:
-        description: "Foreign key to tags table for parent tag (self-referential for hierarchy)"
+        description: Foreign key to tags table for parent tag (self-referential for hierarchy)
     specialType:
-        description: "Special type designation for the tag (e.g., 'unlisted' for hidden content)"
+        description: Special type designation for the tag (e.g., 'unlisted' for hidden content)
     slug:
-        description: "URL-friendly identifier used in topic page URLs"
+        description: URL-friendly identifier used in topic page URLs

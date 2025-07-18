@@ -1,31 +1,52 @@
 metadata:
-    description: "Google Docs integration for OWID's content management system. This table stores articles, data insights, and other content authored in Google Docs, enabling collaborative editing workflows. Content is automatically synchronized from Google Docs and converted to structured format for web publishing."
+    description: |
+        Content in OWID's Google Docs based content management system. This table stores articles, data insights, and other content authored in Google Docs, enabling collaborative editing workflows. Content is automatically synchronized from Google Docs and converted to structured format for web publishing.
+
+        The original content in Google Docs is written in ArchieML syntax. When it is ingested into our database, we convert it to the equivalent JSON representation that is stored in the content column. We also convert the content into markdown - this conversion is somewhat lossy (much of the layout information is lost, as are some of the more elaborate components), but for many purposes like querying for the main text or performing searches, the markdown column is easier to process.
+
+        Several related tables exists that make specific types of queries easier - e.g. posts_gdocs_components has a flat list of all archie components used in a document (as opposed to the tree structure they have in the content field); posts_gdocs_links has all the outgoing links, grapher references etc.
+    incoming_foreign_keys:
+        - table: posts_gdocs_components
+          column: gdocId
+        - table: posts_gdocs_links
+          column: sourceId
+        - table: posts_gdocs_variables_faqs
+          column: gdocId
+        - table: posts_gdocs_x_images
+          column: gdocId
+        - table: posts_gdocs_x_tags
+          column: gdocId
 fields:
     id:
-        description: "Unique identifier for the Google Docs post (matches Google Docs document ID)"
+        description: Unique identifier for the Google Docs post (matches Google Docs document ID)
     slug:
-        description: "URL-friendly identifier used in website URLs"
+        description: URL-friendly identifier. The final url is https://ourworldindata.org/SLUG
     type:
-        description: "Post type (e.g., 'article', 'data-insight', 'about-page')"
+        description: "Post type. One of: about-page, article, author, data-insight, fragment, homepage, linear-topic-page, topic-page"
     content:
-        description: "Structured JSON content parsed from Google Docs"
+        description: |
+            "Structured JSON content parsed from Google Docs. This is the JSON representation of text written in the ArchieML in the Google Doc. There exists no JSON schema ATM for this - the best guide to understand this is to follow the type OwidGdocContent defined in /packages/@ourworldindata/types/src/gdocTypes/Gdoc.ts or to query the DB and look at example rows.
+
+            The content is always a JSON object containing a body field that contains the main document text object tree, and various properties like the title and other front matter. Common (though not mandatory), important top level frontmatter fields are:
+            - title
+            - excerpt
+            - subtitle
+            - dateline"
     authors:
-        description: "JSON array of post authors"
+        description: JSON array of post authors
     published:
-        description: "Whether the post is published and publicly accessible"
+        description: Whether the post is published and publicly accessible
     createdAt:
-        description: "Timestamp when the post was first imported from Google Docs"
+        description: Timestamp when the post was first imported from Google Docs
     publishedAt:
-        description: "Timestamp when the post was published"
+        description: Timestamp when the post was published
     updatedAt:
-        description: "Timestamp when the post was last updated from Google Docs"
+        description: Timestamp when the post was last updated from Google Docs
     publicationContext:
-        description: "Publication context ('listed' or 'unlisted')"
+        description: Publication context ('listed' or 'unlisted')
     revisionId:
-        description: "Google Docs revision ID for tracking document versions"
+        description: Google Docs revision ID for tracking document versions
     manualBreadcrumbs:
-        description: "Custom breadcrumb navigation overrides"
+        description: Custom breadcrumb navigation overrides
     markdown:
-        description: "Post content converted to Markdown format"
-    title:
-        description: "Post title extracted from Google Docs"
+        description: Post content converted to Markdown format

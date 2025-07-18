@@ -1,9 +1,9 @@
 metadata:
-    description: "Junction table linking variables to topic tags for enhanced discoverability and organization. This enables variables to be associated with specific topics, improving the findability of data indicators through topic-based navigation and search."
+    description: Many-to-many table linking variables to topic tags for enhanced discoverability and organization. This enables variables to be associated with specific topics, improving the findability of data indicators through topic-based navigation and search. The all-charts block on modular topic pages uses this table to show charts for a topic with different priority levels.
 fields:
     tagId:
-        description: "Foreign key to tags table"
+        description: Foreign key to tags table
     variableId:
-        description: "Foreign key to variables table"
+        description: Foreign key to variables table
     displayOrder:
-        description: "Display order of the tag for the variable in topic page listings"
+        description: Display order of the tag for the variable in topic page listings

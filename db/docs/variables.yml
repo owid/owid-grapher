@@ -1,77 +1,93 @@
 metadata:
-    description: "Data variables represent individual indicators or metrics (e.g., 'GDP per capita', 'Life expectancy'). Variables are the fundamental data units that get visualized in charts. They support a dual configuration system where both ETL (Extract, Transform, Load) processes and admin users can define default chart configurations that charts can inherit."
+    description: |
+        Variables represent individual indicators or metrics (e.g., 'GDP per capita', 'Life expectancy'). Variables are the fundamental data units that get visualized in charts. They support a dual configuration system where both the ETL python codebase and the typescript admin client UI can define default chart configurations that charts can inherit. The ETL controls grapherConfigIdETL for this purpose, the grapher admin controls grapherConfigIdAdmin.
+    incoming_foreign_keys:
+        - table: chart_dimensions
+          column: variableId
+        - table: country_latest_data
+          column: variable_id
+        - table: explorer_variables
+          column: variableId
+        - table: multi_dim_x_chart_configs
+          column: variableId
+        - table: origins_variables
+          column: variableId
+        - table: posts_gdocs_variables_faqs
+          column: variableId
+        - table: tags_variables_topic_tags
+          column: variableId
 fields:
     id:
-        description: "Unique identifier for the variable"
+        description: Unique identifier for the variable
     name:
-        description: "Variable name as it appears in the database and admin interface"
+        description: Variable name as it appears in the database and admin interface
     unit:
-        description: "Unit of measurement for the variable data"
+        description: Unit of measurement for the variable data
     description:
-        description: "Internal description of the variable (not shown to public)"
+        description: Internal description of the variable (not shown to public)
     createdAt:
-        description: "Timestamp when the variable was created"
+        description: Timestamp when the variable was created
     updatedAt:
-        description: "Timestamp when the variable was last updated"
+        description: Timestamp when the variable was last updated
     code:
-        description: "Variable code used for identification, often matches the source system identifier"
+        description: Variable code used for identification, often matches the source system identifier
     coverage:
-        description: "Textual description of geographic and temporal coverage"
+        description: Textual description of geographic and temporal coverage
     timespan:
-        description: "Time span of the data (e.g., '1990-2020')"
+        description: Time span of the data (e.g., '1990-2020')
     datasetId:
-        description: "Foreign key to datasets table. Variables belong to datasets."
+        description: Foreign key to datasets table. Variables belong to datasets.
     sourceId:
-        description: "Foreign key to sources table. Links to data source metadata."
+        description: Foreign key to sources table. Links to data source metadata.
     shortUnit:
-        description: "Abbreviated unit notation used in chart displays"
+        description: Abbreviated unit notation used in chart displays
     display:
-        description: "JSON configuration for how the variable should be displayed"
+        description: JSON configuration for how the variable should be displayed
     columnOrder:
-        description: "Display order when multiple variables are shown together"
+        description: Display order when multiple variables are shown together
     originalMetadata:
-        description: "Original metadata from the source system, preserved for reference"
+        description: Original metadata from the source system, preserved for reference
     shortName:
-        description: "Short identifier for the variable, used in ETL and catalog systems"
+        description: Short identifier for the variable, used in ETL and catalog systems
     catalogPath:
-        description: "Unique path in the ETL data catalog system, used for linking ETL processes to variables"
+        description: Unique path in the ETL data catalog system, used for linking ETL processes to variables
     dimensions:
-        description: "JSON describing the variable's dimensions and structure"
+        description: JSON describing the variable's dimensions and structure
     schemaVersion:
-        description: "Metadata schema version. Variables with schemaVersion >= 2 can have datapages if they have sufficient metadata."
+        description: Metadata schema version. Variables with schemaVersion >= 2 can have datapages if they have sufficient metadata.
     processingLevel:
-        description: "Level of data processing applied (e.g., 'minor', 'major')"
+        description: Level of data processing applied (e.g., 'minor', 'major')
     processingLog:
-        description: "Log of processing steps applied to the data"
+        description: Log of processing steps applied to the data
     titlePublic:
-        description: "Public-facing title shown to users in charts and datapages"
+        description: Public-facing title shown to users in charts and datapages
     titleVariant:
-        description: "Title variant used when multiple versions of similar variables exist"
+        description: Title variant used when multiple versions of similar variables exist
     attributionShort:
-        description: "Short attribution text for the data source"
+        description: Short attribution text for the data source
     attribution:
-        description: "Full attribution text for the data source"
+        description: Full attribution text for the data source
     descriptionShort:
-        description: "Short description shown to users, supports markdown and DOD (Details on Demand) references"
+        description: Short description shown to users, supports markdown and DOD (Details on Demand) references
     descriptionFromProducer:
-        description: "Description provided by the original data producer"
+        description: Description provided by the original data producer
     descriptionKey:
-        description: "Key points about the variable that users should know"
+        description: Key points about the variable that users should know
     descriptionProcessing:
-        description: "Description of any processing steps applied to the data"
+        description: Description of any processing steps applied to the data
     licenses:
-        description: "License information for the variable data"
+        description: License information for the variable data
     license:
-        description: "Primary license under which the data is available"
+        description: Primary license under which the data is available
     type:
-        description: "Variable type (e.g., 'ordinal', 'continuous')"
+        description: Variable type (e.g., 'ordinal', 'continuous')
     sort:
-        description: "JSON configuration for how the variable should be sorted"
+        description: JSON configuration for how the variable should be sorted
     grapherConfigIdAdmin:
-        description: "Foreign key to chart_configs table. Admin-authored default chart configuration that charts can inherit from."
+        description: Foreign key to chart_configs table. Admin-authored default chart configuration that charts can inherit from.
     grapherConfigIdETL:
-        description: "Foreign key to chart_configs table. ETL-authored default chart configuration that charts can inherit from."
+        description: Foreign key to chart_configs table. ETL-authored default chart configuration that charts can inherit from.
     dataChecksum:
-        description: "Checksum of the variable's data values, used for change detection"
+        description: Checksum of the variable's data values, used for change detection
     metadataChecksum:
-        description: "Checksum of the variable's metadata, used for change detection"
+        description: Checksum of the variable's metadata, used for change detection
