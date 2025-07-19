@@ -553,6 +553,15 @@ describe("urls", () => {
         expect(grapher.selection.selectedEntityNames).toEqual(["usa", "canada"])
     })
 
+    it("respects empty country selection", () => {
+        const grapher = new GrapherState({
+            selectedEntityNames: ["usa", "canada"],
+            queryStr: "country=",
+        })
+        grapher.inputTable = new OwidTable() // setting the table affects the selection
+        expect(grapher.selection.selectedEntityNames).toEqual([])
+    })
+
     it("parses tab=table correctly", () => {
         const grapher = new GrapherState({})
         grapher.populateFromQueryParams({ tab: "table" })

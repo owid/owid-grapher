@@ -430,7 +430,7 @@ export class GrapherState {
 
         if (this.manager?.selection?.hasSelection) {
             // Selection is managed externally, do nothing.
-        } else if (this.selection.hasSelection) {
+        } else if (this.areSelectedEntitiesDifferentThanAuthors) {
             // User has changed the selection, use theris
         } else this.applyOriginalSelectionAsAuthored()
     }
