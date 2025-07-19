@@ -7,6 +7,7 @@
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
         "@sentry/cloudflare": "^9.31.0",
+        "@sentry/react": "^9.31.0",
         "@sinclair/typebox": "^0.28.5",
         "itty-router": "^5.0.17",
         "littlezipper": "^0.1.4",
