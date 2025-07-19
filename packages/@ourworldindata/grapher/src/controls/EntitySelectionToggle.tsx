@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEye, faRightLeft, faPen } from "@fortawesome/free-solid-svg-icons"
 import classnames from "classnames"
 import { GrapherWindowType } from "@ourworldindata/types"
+import { MapConfig } from "../mapCharts/MapConfig"
 
 export interface EntitySelectionManager {
     canHighlightEntities?: boolean
@@ -18,6 +19,8 @@ export interface EntitySelectionManager {
     isOnMapTab?: boolean
     hideEntityControls?: boolean
     shouldShowEntitySelectorAs?: GrapherWindowType
+    isMapSelectionEnabled?: boolean
+    mapConfig?: MapConfig
 }
 
 interface EntitySelectionLabel {
@@ -47,23 +50,28 @@ export class EntitySelectionToggle extends React.Component<{
             hideEntityControls,
             shouldShowEntitySelectorAs,
             canChangeAddOrHighlightEntities,
+            isMapSelectionEnabled,
+            mapConfig,
         } = this.props.manager
 
         if (hideEntityControls) return false
 
-        const shouldShowDrawer =
-            shouldShowEntitySelectorAs === GrapherWindowType.drawer
-        const shouldShowModal =
-            shouldShowEntitySelectorAs === GrapherWindowType.modal
+        // Don't show toggle if the entity selector is always visible
+        if (shouldShowEntitySelectorAs === GrapherWindowType.panel) return false
 
-        if (isOnMapTab) return shouldShowDrawer
+        // Sanity check: Don't show toggle if there's no label to display
+        if (!this.label) return false
 
-        return !!(
-            isOnChartTab &&
-            canChangeAddOrHighlightEntities &&
-            (shouldShowModal || shouldShowDrawer) &&
-            this.label
-        )
+        // On the map tab, show the toggle if map selection is enabled and
+        // the globe is not active. If the globe is active, we only show a
+        // single control, the 'Back to map' button
+        if (isOnMapTab)
+            return !!(isMapSelectionEnabled && !mapConfig?.globe.isActive)
+
+        // On the chart tab, show the toggle if entity selection is enabled
+        if (isOnChartTab) return !!canChangeAddOrHighlightEntities
+
+        return false
     }
 
     @computed get label(): EntitySelectionLabel | null {

@@ -17,24 +17,30 @@ export const getFontSize = (
 export const getLabelPadding = (baseFontSize: number): number =>
     0.5 * baseFontSize
 
-export const getChartPadding = ({
+export const getFacetGridPadding = ({
     baseFontSize,
-    isSharedXAxis,
+    shouldAddRowPadding = true,
+    shouldAddColumnPadding = true,
 }: {
     baseFontSize: number
-    isSharedXAxis: boolean
+    shouldAddRowPadding?: boolean
+    shouldAddColumnPadding?: boolean
 }): { rowPadding: number; columnPadding: number; outerPadding: number } => {
     const labelHeight = baseFontSize
     const labelPadding = getLabelPadding(baseFontSize)
 
-    const rowPadding = isSharedXAxis ? 0 : 1
-    const columnPadding = 1
+    const rowPadding = shouldAddRowPadding ? baseFontSize : 0
+    const columnPadding = shouldAddColumnPadding ? baseFontSize : 0
 
     return {
-        rowPadding: Math.round(
-            labelHeight + labelPadding + rowPadding * baseFontSize
-        ),
-        columnPadding: Math.round(columnPadding * baseFontSize),
+        rowPadding: Math.round(labelHeight + labelPadding + rowPadding),
+        columnPadding: Math.round(columnPadding),
         outerPadding: 0,
     }
+}
+
+export const calculateAspectRatio = (width: number, height: number): number => {
+    const aspectRatio = width / height // can be NaN if height is 0, which can happen when the chart is temporarily hidden
+    if (isNaN(aspectRatio)) return 1
+    return aspectRatio
 }
