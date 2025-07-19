@@ -484,7 +484,20 @@ export class StackedAreaChart
                   ]),
               }
             : undefined
-        const footer = excludeUndefined([roundingNotice])
+
+        const hasInterpolatedValues = series.some((s) => {
+            const point = s.points[hoveredPointIndex]
+            return point?.interpolated && point?.value !== undefined
+        })
+
+        const interpolationNotice = hasInterpolatedValues
+            ? {
+                  icon: TooltipFooterIcon.stripes,
+                  text: "Striped values are interpolated",
+              }
+            : undefined
+
+        const footer = excludeUndefined([roundingNotice, interpolationNotice])
 
         return (
             <Tooltip
@@ -511,7 +524,12 @@ export class StackedAreaChart
                         const { seriesName: name, color, points } = series
                         const point = points[hoveredPointIndex]
                         const focused = name === target.series
-                        const values = [point?.fake ? undefined : point?.value]
+                        const isInterpolated = point?.interpolated ?? false
+                        const values = [
+                            point?.fake && !point?.interpolated
+                                ? undefined
+                                : point?.value,
+                        ]
                         const opacity = focused
                             ? AREA_OPACITY.focus
                             : AREA_OPACITY.default
@@ -522,6 +540,7 @@ export class StackedAreaChart
                             swatch,
                             focused,
                             values,
+                            striped: isInterpolated,
                         }
                     })}
                 />
