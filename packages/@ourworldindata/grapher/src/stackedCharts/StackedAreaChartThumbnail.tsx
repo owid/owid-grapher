@@ -3,7 +3,10 @@ import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { StackedAreaChartState } from "./StackedAreaChartState.js"
-import type { StackedAreaChartProps } from "./StackedAreaChart.js"
+import {
+    StackedAreaChart,
+    type StackedAreaChartProps,
+} from "./StackedAreaChart.js"
 
 @observer
 export class StackedAreaChartThumbnail
@@ -20,10 +23,6 @@ export class StackedAreaChartThumbnail
     }
 
     render(): React.ReactElement {
-        return (
-            <text x={15} y={30}>
-                Stacked area chart thumbnail
-            </text>
-        )
+        return <StackedAreaChart {...this.props} />
     }
 }

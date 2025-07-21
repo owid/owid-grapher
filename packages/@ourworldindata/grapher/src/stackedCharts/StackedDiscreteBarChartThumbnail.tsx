@@ -4,6 +4,7 @@ import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
+import { StackedDiscreteBarChart } from "./StackedDiscreteBarChart"
 
 @observer
 export class StackedDiscreteBarChartThumbnail
@@ -21,10 +22,6 @@ export class StackedDiscreteBarChartThumbnail
     }
 
     render(): React.ReactElement {
-        return (
-            <text x={15} y={30}>
-                Stacked discrete bar chart thumbnail
-            </text>
-        )
+        return <StackedDiscreteBarChart {...this.props} />
     }
 }

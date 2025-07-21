@@ -38,6 +38,7 @@ import { StackedBarChartThumbnail } from "../stackedCharts/StackedBarChartThumbn
 import { StackedDiscreteBarChartThumbnail } from "../stackedCharts/StackedDiscreteBarChartThumbnail"
 import { ScatterPlotChartThumbnail } from "../scatterCharts/ScatterPlotChartThumbnail"
 import { MarimekkoChartThumbnail } from "../stackedCharts/MarimekkoChartThumbnail"
+import { MapChartThumbnail } from "../mapCharts/MapChartThumbnail"
 
 export interface ChartComponentProps<TState extends ChartState = ChartState> {
     chartState: TState
@@ -83,7 +84,7 @@ const ChartThumbnailClassMap = new Map<
     [GRAPHER_CHART_TYPES.StackedDiscreteBar, StackedDiscreteBarChartThumbnail],
     [GRAPHER_CHART_TYPES.ScatterPlot, ScatterPlotChartThumbnail],
     [GRAPHER_CHART_TYPES.Marimekko, MarimekkoChartThumbnail],
-    [GRAPHER_MAP_TYPE, MapChart],
+    [GRAPHER_MAP_TYPE, MapChartThumbnail],
 ])
 
 const ChartStateMap = new Map<

@@ -2,24 +2,24 @@ import React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
-import { LineChartState } from "./LineChartState"
-import { LineChart, LineChartProps } from "./LineChart.js"
+import { MapChartState } from "./MapChartState"
+import { MapChart, MapChartProps } from "./MapChart"
 
 @observer
-export class LineChartThumbnail
-    extends React.Component<LineChartProps>
+export class MapChartThumbnail
+    extends React.Component<MapChartProps>
     implements ChartInterface
 {
-    constructor(props: LineChartProps) {
+    constructor(props: MapChartProps) {
         super(props)
         makeObservable(this)
     }
 
-    @computed get chartState(): LineChartState {
+    @computed get chartState(): MapChartState {
         return this.props.chartState
     }
 
     render(): React.ReactElement {
-        return <LineChart {...this.props} />
+        return <MapChart {...this.props} />
     }
 }
