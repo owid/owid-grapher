@@ -1,6 +1,5 @@
 .search-data-topic {
-    padding: 24px;
-    margin-bottom: 24px;
+    margin-bottom: 32px;
 
     @include sm-only {
         background: transparent;
@@ -16,7 +15,6 @@
         scrollbar-width: thin;
         margin-bottom: 12px;
         .search-data-topic-hit {
-            width: var(--thumbnail-width-sm);
             .chart-hit-img-container img {
                 margin-top: 16px;
             }
@@ -96,6 +94,7 @@
     }
     @include sm-only {
         display: flex;
+        width: 100%;
     }
     svg {
         height: 10px;
@@ -109,6 +108,6 @@
     list-style: none;
 }
 
-.search-data-topic-hit {
-    margin: 16px 0;
+.search-data-topic-hit + .search-data-topic-hit {
+    margin: 8px 0;
 }
