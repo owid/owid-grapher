@@ -1,4 +1,4 @@
-import { useCallback, useContext } from "react"
+import { useCallback, useContext, useState } from "react"
 import {
     generateSourceProps,
     ImageMetadata,
@@ -15,6 +15,7 @@ import { useMediaQuery } from "usehooks-ts"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { Container } from "./layout.js"
+import { Lightbox } from "../../Lightbox.js"
 
 // generates rules that tell the browser:
 // below the medium breakpoint, the image will be 95vw wide
@@ -92,6 +93,13 @@ export default function Image(props: {
     const smallImage = useImage(smallFilename)
     const activeImage =
         (isSmall || preferSmallFilename) && smallImage ? smallImage : image
+    const [isLightboxOpen, setIsLightboxOpen] = useState(false)
+
+    const openLightbox = useCallback(() => {
+        if (shouldLightbox) {
+            setIsLightboxOpen(true)
+        }
+    }, [shouldLightbox])
 
     const renderImageError = (name: string) => (
         <BlockErrorFallback
@@ -142,7 +150,7 @@ export default function Image(props: {
 
     return (
         <div className={className}>
-            <picture>
+            <picture onClick={openLightbox}>
                 {sourceProps.map((props, i) => (
                     <source
                         key={i}
@@ -159,7 +167,6 @@ export default function Image(props: {
                     alt={alt}
                     className={maybeLightboxClassName}
                     loading="lazy"
-                    data-filename={activeImage.filename}
                     // There's no way of knowing in advance whether we'll be showing the image or smallImage - we just have to choose one
                     // I went with image, as we currently only use smallImage for data insights
                     width={activeImage.originalWidth ?? undefined}
@@ -187,6 +194,16 @@ export default function Image(props: {
                         </div>
                     </button>
                 </div>
+            )}
+            {isLightboxOpen && (
+                <Lightbox
+                    imgSrc={imageSrc}
+                    onClose={() => setIsLightboxOpen(false)}
+                    imgFilename={activeImage.filename}
+                    width={activeImage.originalWidth}
+                    height={activeImage.originalHeight}
+                    alt={alt}
+                />
             )}
         </div>
     )
