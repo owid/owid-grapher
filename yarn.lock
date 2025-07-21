@@ -11147,40 +11147,40 @@ __metadata:
   languageName: node
   linkType: hard
 
-"embla-carousel-class-names@npm:^8.1.7":
-  version: 8.1.7
-  resolution: "embla-carousel-class-names@npm:8.1.7"
+"embla-carousel-class-names@npm:^8.6.0":
+  version: 8.6.0
+  resolution: "embla-carousel-class-names@npm:8.6.0"
   peerDependencies:
-    embla-carousel: 8.1.7
-  checksum: 10/b37657831e0a4a455fce056ab959e8e1f1fe151db3e817fb0ead0be520ea34de6ca8de62ddace5ec1bcf2f6d067ac4407cd934d52db7282cdca962b00bbb5354
+    embla-carousel: 8.6.0
+  checksum: 10/5f52fb9f7c84adbeb5039edbd90f84eb00663318a1e2d1fc24eb05a676ac426b5f22509a7658cc739f98bf87a5fba201c1980af653d9412a967325ed482c58da
   languageName: node
   linkType: hard
 
-"embla-carousel-react@npm:^8.1.7":
-  version: 8.1.7
-  resolution: "embla-carousel-react@npm:8.1.7"
+"embla-carousel-react@npm:^8.6.0":
+  version: 8.6.0
+  resolution: "embla-carousel-react@npm:8.6.0"
   dependencies:
-    embla-carousel: "npm:8.1.7"
-    embla-carousel-reactive-utils: "npm:8.1.7"
+    embla-carousel: "npm:8.6.0"
+    embla-carousel-reactive-utils: "npm:8.6.0"
   peerDependencies:
-    react: ^16.8.0 || ^17.0.1 || ^18.0.0
-  checksum: 10/623a903e04d4707dabb8e7ce18b326be610b0394eb9237a78c738477c945f32fee4b5a3681289227080ace467a037ea5fabdae2f36cc8c02a9e5afc0e421308a
+    react: ^16.8.0 || ^17.0.1 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+  checksum: 10/8a6338f28844f07e29df03fb09bf7e157e0aecb423b0ca7d9b9a65e4537acce4a140c94f177957518e44d5483993c1c40273b913cde7e543d0b68955efda8ffc
   languageName: node
   linkType: hard
 
-"embla-carousel-reactive-utils@npm:8.1.7":
-  version: 8.1.7
-  resolution: "embla-carousel-reactive-utils@npm:8.1.7"
+"embla-carousel-reactive-utils@npm:8.6.0":
+  version: 8.6.0
+  resolution: "embla-carousel-reactive-utils@npm:8.6.0"
   peerDependencies:
-    embla-carousel: 8.1.7
-  checksum: 10/ad6b24dca37e7918dae32cc490e2fdcfa2ccbbc9f3059c7c76fd3b0ce8e5e2d6e9aa5fcd5338a20cf6908ae7dffeeec7547c798acda8bb7011ddfbb148a6f965
+    embla-carousel: 8.6.0
+  checksum: 10/48b31931572b32b49705e6125d4f10c240fca0ee8a078867fc91f7c889f6adee95f7fd0b0fdf5dfef6d83d497115759f3f3ca2e8320e331efa0de1c9e6fb4638
   languageName: node
   linkType: hard
 
-"embla-carousel@npm:8.1.7":
-  version: 8.1.7
-  resolution: "embla-carousel@npm:8.1.7"
-  checksum: 10/9721d494c35a576254eb69d3d6cc6dea320a335ffd45dd1c71be54af29e5d2db616777d3808affad209cc4c5a1e488a0f2fc641ef8df83ea0f28c9720bf2c464
+"embla-carousel@npm:8.6.0":
+  version: 8.6.0
+  resolution: "embla-carousel@npm:8.6.0"
+  checksum: 10/6c1c4268160ce2a150c80f0c84edd4c42b47567f8ef25f56fb21819a4094cfa885614cb0837d180e8da8159ff79a077e0a2e1e679ed2c500ff52697d3ec94b78
   languageName: node
   linkType: hard
 
@@ -12963,8 +12963,8 @@ __metadata:
     dayjs: "npm:^1.11.11"
     decko: "npm:^1.2.0"
     dotenv: "npm:^16.0.1"
-    embla-carousel-class-names: "npm:^8.1.7"
-    embla-carousel-react: "npm:^8.1.7"
+    embla-carousel-class-names: "npm:^8.6.0"
+    embla-carousel-react: "npm:^8.6.0"
     entities: "npm:^6.0.1"
     eslint: "npm:^9.23.0"
     eslint-config-prettier: "npm:^10.1.1"
