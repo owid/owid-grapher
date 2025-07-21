@@ -66,7 +66,7 @@
         "@ourworldindata/grapher": "workspace:^",
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
-        "@react-awesome-query-builder/antd": "^6.6.0",
+        "@react-awesome-query-builder/antd": "^6.6.15",
         "@sentry/node": "^9.31.0",
         "@sentry/profiling-node": "^9.31.0",
         "@sentry/react": "^9.31.0",
