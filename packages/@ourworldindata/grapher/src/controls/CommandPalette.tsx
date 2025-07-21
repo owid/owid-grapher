@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import { BodyDiv } from "../bodyDiv/BodyDiv"
+import { BodyDiv } from "@ourworldindata/components"
 import { observer } from "mobx-react"
 import * as React from "react"
 

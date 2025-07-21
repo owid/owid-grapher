@@ -3,7 +3,7 @@ import ReactDOM from "react-dom"
 
 interface BodyDivProps {
     children: React.ReactNode
-    [k: string]: unknown
+    divClassname?: string
 }
 
 // Render a component on the Body instead of inside the current Tree.
@@ -22,6 +22,9 @@ export class BodyDiv extends React.Component<BodyDivProps> {
     componentDidMount(): void {
         if (typeof document !== "undefined") {
             this.el = document.createElement("div")
+            if (this.props.divClassname)
+                this.el.className = this.props.divClassname
+
             document.body.appendChild(this.el)
             // Force a re-render now that `this.el` is available for the portal
             this.forceUpdate()

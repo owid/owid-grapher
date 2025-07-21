@@ -66,6 +66,7 @@ import {
 import {
     MarkdownTextWrap,
     sumTextWrapHeights,
+    BodyDiv,
 } from "@ourworldindata/components"
 import {
     GrapherChartType,
@@ -211,7 +212,6 @@ import {
     type EntitySelectorState,
 } from "../entitySelector/EntitySelector"
 import { SlideInDrawer } from "../slideInDrawer/SlideInDrawer"
-import { BodyDiv } from "../bodyDiv/BodyDiv"
 import { grapherObjectToQueryParams, parseGlobeRotation } from "./GrapherUrl.js"
 import { FocusArray } from "../focus/FocusArray"
 import {

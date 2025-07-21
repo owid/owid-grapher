@@ -1,7 +1,7 @@
 import * as React from "react"
 import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { BodyDiv } from "../bodyDiv/BodyDiv"
+import { BodyDiv } from "@ourworldindata/components"
 import { isTargetOutsideElement } from "../chart/ChartUtils"
 
 interface FullScreenProps {
