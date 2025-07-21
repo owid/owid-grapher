@@ -8,16 +8,14 @@ import {
     makeChartState,
     MapChartState,
 } from "@ourworldindata/grapher"
-import {
-    maxTimeBoundFromJSONOrPositiveInfinity,
-    omitUndefinedValues,
-    findClosestTime,
-} from "@ourworldindata/utils"
+import { omitUndefinedValues, excludeUndefined } from "@ourworldindata/utils"
 import {
     OwidColumnDef,
     GRAPHER_MAP_TYPE,
     GRAPHER_TAB_QUERY_PARAMS,
+    Time,
 } from "@ourworldindata/types"
+import { CoreColumn } from "@ourworldindata/core-table"
 import { StatusError } from "itty-router"
 import { createZip, File } from "littlezipper"
 import { assembleMetadata, getColumnsForMetadata } from "./metadataTools.js"
@@ -229,17 +227,6 @@ export async function fetchDataValuesForGrapher(
     const tab = searchParams.get("tab") ?? GRAPHER_TAB_QUERY_PARAMS.chart
     searchParams.set("tab", tab)
 
-    // The 'time' query param determines the time point for which data is returned.
-    const parsedTimePoint = searchParams.get("time")
-        ? maxTimeBoundFromJSONOrPositiveInfinity(searchParams.get("time"))
-        : undefined
-
-    // We delete the 'time' query param before initializing the Grapher to render
-    // Grapher without time constraints. If we kept it, we'd end up with single-year
-    // charts (e.g. line or slope charts with only one data point). We later manually
-    // set the time bounds to retrieve the correct data.
-    searchParams.delete("time")
-
     // Initialize Grapher and download its data
     const { grapher } = await initGrapher(
         identifier,
@@ -257,59 +244,54 @@ export async function fetchDataValuesForGrapher(
 
     const { grapherState } = grapher
 
-    if (parsedTimePoint !== undefined) {
-        // Set the provided time point as start and end points
-        grapherState.startHandleTimeBound = parsedTimePoint
-        grapherState.endHandleTimeBound = parsedTimePoint
-
-        // And make sure Grapher renders with a sensible time range
-        if (grapherState.startAndEndTimeSelectionPreferred) {
-            grapherState.ensureHandlesAreOnDifferentTimes()
-        }
-    }
-
-    // Default to the end time if no time point is provided
-    const time = parsedTimePoint
-        ? findClosestTime(grapherState.times, parsedTimePoint)
-        : grapherState.endTime
-
-    // If either the entity or time is invalid, we can't return any data,
-    // so we return the source only
-    if (
-        !grapherState.availableEntityNames.includes(entityName) ||
-        time === undefined
-    )
+    // If the entity is invalid or not included in the chart, we can't return
+    // any data, so we return the source only
+    if (!grapherState.availableEntityNames.includes(entityName))
         return Response.json({ source: grapherState.sourcesLine })
+
+    // Find the relevant times
+    const endTime = grapherState.endTime
+    const startTime =
+        grapherState.startTime !== grapherState.endTime
+            ? grapherState.startTime
+            : undefined
 
     // Create a map chart state to access custom label formatting.
     // When `map.tooltipUseCustomLabels` is enabled, this allows us to display
-    // custom color scheme labels (e.g. "Low", "Medium", "High") in tooltips
-    // instead of showing the numeric values.
+    // custom color scheme labels (e.g. "Low", "Medium", "High") instead of
+    // the numeric values
     const mapChartState = makeChartState(
         GRAPHER_MAP_TYPE,
         grapherState
     ) as MapChartState
 
-    const makeDimensionValueForDownload = (slug?: string) => {
-        if (slug === undefined) return undefined
+    /**
+     * Returns the transformed column for the given slug.
+     *
+     * Note that the chart's transformed table is used, rather than
+     * grapherState.transformedTable, because in rare cases the
+     * chart's transformed table includes transformations that are not
+     * applied to grapherState.transformedTable (e.g. relative mode in
+     * line charts).
+     */
+    const getTransformedColumn = (grapherState: GrapherState, slug: string) =>
+        grapherState.chartState.transformedTable.get(slug)
 
-        const column = grapherState.chartState.transformedTable.get(slug)
-        const columnInfo = omitUndefinedValues({
-            columnName: column.titlePublicOrDisplayName.title,
-            unit: column.unit,
-            shortUnit: column.shortUnit,
-            isProjection: column.isProjection ? true : undefined,
-        })
+    const makeDimensionValueForColumnAndTime = (
+        column: CoreColumn,
+        time: Time
+    ) => {
+        if (column.isMissing) return undefined
 
         const owidRow = column.owidRowByEntityNameAndTime
             .get(entityName)
             ?.get(time)
 
         const value = owidRow?.value
-        if (value === undefined) return columnInfo
+        if (value === undefined) return { columnSlug: column.def.slug }
 
         return omitUndefinedValues({
-            ...columnInfo,
+            columnSlug: column.def.slug,
 
             value,
             formattedValue: column.formatValue(value),
@@ -324,16 +306,64 @@ export async function fetchDataValuesForGrapher(
         })
     }
 
-    const result = {
-        entityName,
-        dimensions: omitUndefinedValues({
-            y: grapherState.yColumnSlugs.map((slug) =>
-                makeDimensionValueForDownload(slug)
+    const makeDimensionValuesForTime = (
+        grapherState: GrapherState,
+        time?: Time
+    ) => {
+        if (time === undefined) return undefined
+
+        const ySlugs = grapherState.yColumnSlugs
+        const xSlug = grapherState.xColumnSlug
+
+        return omitUndefinedValues({
+            y: ySlugs.map((ySlug) =>
+                makeDimensionValueForColumnAndTime(
+                    getTransformedColumn(grapherState, ySlug),
+                    time
+                )
             ),
-            x: makeDimensionValueForDownload(grapherState.xColumnSlug),
-        }),
-        source: grapherState.sourcesLine,
+            x: makeDimensionValueForColumnAndTime(
+                getTransformedColumn(grapherState, xSlug),
+                time
+            ),
+        })
     }
+
+    const makeColumnInfo = (column: CoreColumn) => {
+        if (column.isMissing) return undefined
+
+        return omitUndefinedValues({
+            name: column.titlePublicOrDisplayName.title,
+            unit: column.unit,
+            shortUnit: column.shortUnit,
+            isProjection: column.isProjection ? true : undefined,
+        })
+    }
+
+    const makeColumnInfoForRelevantSlugs = (grapherState: GrapherState) => {
+        const targetSlugs = excludeUndefined([
+            ...grapherState.yColumnSlugs,
+            grapherState.xColumnSlug,
+        ])
+
+        const dimInfo = {}
+        for (const slug of targetSlugs) {
+            if (dimInfo[slug] !== undefined) continue
+            const column = getTransformedColumn(grapherState, slug)
+            const info = makeColumnInfo(column)
+            if (info !== undefined) dimInfo[slug] = info
+        }
+
+        return dimInfo
+    }
+
+    const result = omitUndefinedValues({
+        entityName,
+        columns: makeColumnInfoForRelevantSlugs(grapherState),
+        startTime: makeDimensionValuesForTime(grapherState, startTime),
+        endTime: makeDimensionValuesForTime(grapherState, endTime),
+        source: grapherState.sourcesLine,
+    })
 
     return Response.json(result)
 }
