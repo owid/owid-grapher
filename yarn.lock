@@ -13016,7 +13016,7 @@ __metadata:
     react-animate-height: "npm:^3.2.3"
     react-aria-components: "npm:^1.9.0"
     react-beautiful-dnd: "npm:^13.1.1"
-    react-codemirror2: "npm:^7.3.0"
+    react-codemirror2: "npm:^8.0.1"
     react-color: "npm:^2.18.1"
     react-diff-viewer-continued: "npm:^3.4.0"
     react-dom: "npm:^17.0.2"
@@ -18325,13 +18325,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-codemirror2@npm:^7.3.0":
-  version: 7.3.0
-  resolution: "react-codemirror2@npm:7.3.0"
+"react-codemirror2@npm:^8.0.1":
+  version: 8.0.1
+  resolution: "react-codemirror2@npm:8.0.1"
   peerDependencies:
     codemirror: 5.x
-    react: ">=15.5 <=17.x"
-  checksum: 10/52c5cf25b39d13403ea2b21d7412a345efe8840ac5fce846705f1aaacd7ad3edceb2da1c338e36e1b4758601daedb066ebe89335874873b740128de9fb229927
+    react: ">=15.5 <=18.x"
+  checksum: 10/59d3c5e40815e30473e958628b9204e37bfc481c4ba60bf22e27082f3d5968aa09fbf9fb8863b4290207eb30bbb50be2ddb912a58c8e3b1d45172eb65fd4a271
   languageName: node
   linkType: hard
 
