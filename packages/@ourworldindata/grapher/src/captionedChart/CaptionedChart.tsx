@@ -219,12 +219,8 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
         )
     }
 
-    private renderLoadingIndicatorIntoSvg(): React.ReactElement {
-        return (
-            <foreignObject {...this.boundsForChartArea.toProps()}>
-                <LoadingIndicator title={this.manager.whatAreWeWaitingFor} />
-            </foreignObject>
-        )
+    private renderLoadingIndicator(): React.ReactElement {
+        return <LoadingIndicator title={this.manager.whatAreWeWaitingFor} />
     }
 
     private renderTimeline(): React.ReactElement {
@@ -324,7 +320,7 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
                             this.renderRelatedQuestion()}
                     </>
                 ) : (
-                    this.renderLoadingIndicatorIntoSvg()
+                    this.renderLoadingIndicator()
                 )}
             </div>
         )
