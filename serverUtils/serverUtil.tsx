@@ -13,7 +13,7 @@ export const expectInt = (value: any): number => {
 
 // Generate a static html page string from a given JSX element
 export const renderToHtmlPage = (element: any) =>
-    `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
+    `<!doctype html>${ReactDOMServer.renderToString(element)}`
 
 // Determine if input is suitable for use as a url slug
 export const isValidSlug = (slug: any): slug is string =>

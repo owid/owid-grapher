@@ -98,7 +98,7 @@ import AtomArticleBlocks from "../site/gdocs/components/AtomArticleBlocks.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 
 export const renderToHtmlPage = (element: any) =>
-    `<!doctype html>${ReactDOMServer.renderToStaticMarkup(element)}`
+    `<!doctype html>${ReactDOMServer.renderToString(element)}`
 
 export const renderSearchPage = async (knex: KnexReadonlyTransaction) => {
     const { __rootId, ...flatTagGraph } = await getFlatTagGraph(knex)
@@ -772,7 +772,7 @@ export const renderExplorerPage = async (
 
     return (
         `<!doctype html>` +
-        ReactDOMServer.renderToStaticMarkup(
+        ReactDOMServer.renderToString(
             <ExplorerPage
                 grapherConfigs={grapherConfigs}
                 partialGrapherConfigs={partialGrapherConfigs}
