@@ -1,5 +1,4 @@
 #search-page-root {
-    --thumbnail-width-sm: 294px;
     min-height: calc(100vh - $header-height-md);
     @include sm-only {
         min-height: calc(100vh - $header-height-sm);
