@@ -102,7 +102,7 @@ export const SiteNavigation = ({
         }
     }, [query])
 
-    useTriggerOnEscape(closeOverlay)
+    useTriggerOnEscape(closeOverlay, { active: menu !== null })
 
     return (
         <>
