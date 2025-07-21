@@ -98,11 +98,7 @@ export function SearchChartHitMedium({
         setImgError(false)
     }, [previewUrl])
 
-    const chartTypes = [
-        { type: "map", label: "World map" },
-        { type: "line", label: "Line chart" },
-        { type: "slope", label: "Slope chart" },
-    ]
+    const chartTypes = [{ type: "map", label: "World map" }]
 
     return (
         <SearchAsDraft
