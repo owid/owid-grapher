@@ -13030,7 +13030,7 @@ __metadata:
     react-diff-viewer-continued: "npm:^3.4.0"
     react-dom: "npm:^17.0.2"
     react-flip-toolkit: "npm:^7.2.4"
-    react-hook-form: "npm:^7.51.3"
+    react-hook-form: "npm:^7.60.0"
     react-horizontal-scrolling-menu: "npm:^4.0.3"
     react-instantsearch: "npm:^7.12.2"
     react-markdown: "npm:^8.0.7"
@@ -18400,12 +18400,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-hook-form@npm:^7.51.3":
-  version: 7.51.3
-  resolution: "react-hook-form@npm:7.51.3"
+"react-hook-form@npm:^7.60.0":
+  version: 7.60.0
+  resolution: "react-hook-form@npm:7.60.0"
   peerDependencies:
-    react: ^16.8.0 || ^17 || ^18
-  checksum: 10/37f5d681b0f9d6a64b56e38c6ea98941c78d2634e175e7722e66a6bd72b4b22a73a5b912ada8cc010b5ec9e1019b8e2d4a6b0f38e87280600f8e921dee96aaca
+    react: ^16.8.0 || ^17 || ^18 || ^19
+  checksum: 10/cc86ef4029f7b06f82dff919c8933156683b70669a6306d2471706443192b8916afaa07bc64452b590ecb18ea94f3d156f3fb38d59ada3462f5b108e89e186c9
   languageName: node
   linkType: hard
 
