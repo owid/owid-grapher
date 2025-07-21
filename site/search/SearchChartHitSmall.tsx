@@ -1,4 +1,3 @@
-import * as R from "remeda"
 import { useMemo } from "react"
 import { Region } from "@ourworldindata/utils"
 import {
@@ -162,27 +161,15 @@ function findDatapoint(
         .exhaustive()
     if (!yDims) return undefined
 
-    const [projDims, histDims] = R.partition(
-        yDims,
-        (dim) => !!chartInfo.columns?.[dim.columnSlug]?.isProjection
+    // Make sure we're not showing a projected data point
+    const historicalDims = yDims.filter(
+        (dim) => !chartInfo.columns?.[dim.columnSlug]?.isProjection
     )
 
     // Don't show a data value for charts with multiple y-indicators
     if (historicalDims.length > 1) return undefined
 
-    // Don't show a data point if there's more than one dimension
-    if (histDims.length > 1) return undefined
-    const histDim = histDims[0]
-
-    // If there is a projection, then prefer the historical data point if it exists.
-    // Otherwise, return the projected data point but only if there's only one projected dimension.
-    if (projDims.length > 0) {
-        if (histDim.value !== undefined) return histDim
-        if (projDims.length > 1) return undefined
-        return projDims[0]
-    }
-
-    return histDim
+    return historicalDims[0]
 }
 
 function buildDataDisplayProps({
