@@ -14272,6 +14272,7 @@ __metadata:
   resolution: "owid-functions@workspace:functions"
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20250510.0"
+    "@ourworldindata/core-table": "workspace:^"
     "@ourworldindata/explorer": "workspace:^"
     "@ourworldindata/grapher": "workspace:^"
     "@ourworldindata/types": "workspace:^"
