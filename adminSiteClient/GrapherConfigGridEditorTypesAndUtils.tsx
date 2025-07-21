@@ -45,7 +45,7 @@ import {
     AntdConfig,
     BasicConfig,
     JsonTree,
-    SimpleField,
+    Field,
     Utils as QbUtils,
     JsonGroup,
     JsonItem,
@@ -495,7 +495,7 @@ export function filterTreeToSExpression(
 
 export function simpleColumnToFilterPanelFieldConfig(
     column: ReadOnlyColumn
-): [string, SimpleField] {
+): [string, Field] {
     const fieldType = match(column.type)
         .with("string", () => "text")
         .with("number", () => "number")
@@ -516,7 +516,7 @@ export function simpleColumnToFilterPanelFieldConfig(
 
 export function fieldDescriptionToFilterPanelFieldConfig(
     description: FieldDescription
-): [string, SimpleField] | undefined {
+): [string, Field] | undefined {
     const widget = match(description.editor)
         .with(EditorOption.checkbox, () => "boolean")
         .with(EditorOption.colorEditor, () => undefined)

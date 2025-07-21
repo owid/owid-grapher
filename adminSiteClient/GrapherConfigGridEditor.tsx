@@ -98,7 +98,7 @@ import {
     Query,
     Utils as QbUtils,
     Utils,
-    SimpleField,
+    Field,
     Config,
     ImmutableTree,
 } from "@react-awesome-query-builder/antd"
@@ -1710,7 +1710,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         return undefined
     }
 
-    @computed get filterPanelConfigFields(): [string, SimpleField][] {
+    @computed get filterPanelConfigFields(): [string, Field][] {
         const { columnSelection, fieldDescriptions } = this
         // The editors to use use are decided by two helper functions. For
         // the more interesting fieldDescription mapping we rely on the
