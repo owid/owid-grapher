@@ -45,7 +45,7 @@
     "mousetrap": "^1.6.5",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-flip-toolkit": "^7.0.9",
+    "react-flip-toolkit": "^7.2.4",
     "react-move": "^6.5.0",
     "react-select": "^5.10.2",
     "remeda": "^2.23.3",

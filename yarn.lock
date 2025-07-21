@@ -3390,7 +3390,7 @@ __metadata:
     mousetrap: "npm:^1.6.5"
     react: "npm:^17.0.2"
     react-dom: "npm:^17.0.2"
-    react-flip-toolkit: "npm:^7.0.9"
+    react-flip-toolkit: "npm:^7.2.4"
     react-move: "npm:^6.5.0"
     react-select: "npm:^5.10.2"
     remeda: "npm:^2.23.3"
@@ -3450,7 +3450,7 @@ __metadata:
     mousetrap: "npm:^1.6.5"
     react: "npm:^17.0.2"
     react-dom: "npm:^17.0.2"
-    react-flip-toolkit: "npm:^7.0.9"
+    react-flip-toolkit: "npm:^7.2.4"
     react-move: "npm:^6.5.0"
     react-select: "npm:^5.10.2"
     remeda: "npm:^2.23.3"
@@ -12302,6 +12302,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"flip-toolkit@npm:7.2.4":
+  version: 7.2.4
+  resolution: "flip-toolkit@npm:7.2.4"
+  dependencies:
+    rematrix: "npm:0.2.2"
+  checksum: 10/1fadae1fbfbeea16392ade6a23599717c654437150e4ef7c3c1a24edc710f9e1a616887f580d6cb43e91b958277ada6d02da71938821b299df9a906860e237be
+  languageName: node
+  linkType: hard
+
 "follow-redirects@npm:^1.0.0, follow-redirects@npm:^1.15.4, follow-redirects@npm:^1.15.6":
   version: 1.15.9
   resolution: "follow-redirects@npm:1.15.9"
@@ -13020,7 +13029,7 @@ __metadata:
     react-color: "npm:^2.18.1"
     react-diff-viewer-continued: "npm:^3.4.0"
     react-dom: "npm:^17.0.2"
-    react-flip-toolkit: "npm:^7.0.9"
+    react-flip-toolkit: "npm:^7.2.4"
     react-hook-form: "npm:^7.51.3"
     react-horizontal-scrolling-menu: "npm:^4.0.3"
     react-instantsearch: "npm:^7.12.2"
@@ -18378,16 +18387,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-flip-toolkit@npm:^7.0.9":
-  version: 7.0.9
-  resolution: "react-flip-toolkit@npm:7.0.9"
+"react-flip-toolkit@npm:^7.2.4":
+  version: 7.2.4
+  resolution: "react-flip-toolkit@npm:7.2.4"
   dependencies:
-    rematrix: "npm:0.2.2"
+    flip-toolkit: "npm:7.2.4"
+    prop-types: "npm:^15.8.1"
   peerDependencies:
-    prop-types: ^15.x.x
-    react: 16.x
+    react: ">= 16.x"
     react-dom: ">= 16.x"
-  checksum: 10/2229e48ad0e67839222489b28aa9413ff49d7affcba78bee5b328f9c2cbc3ba99b5669a029a2aba8b732ed5cac8a8b11ccef78b5809ca96a1b39b5aa6308ffb5
+  checksum: 10/7e6833f2e1330c9be048d549f3e67438dc1625417645d938b00bb8e2fc2d3c81799a54591f21de1c55e82efd0320d943539be9e15bafacb89b03b848bdaa86b6
   languageName: node
   linkType: hard
 
