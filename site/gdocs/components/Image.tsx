@@ -5,7 +5,6 @@ import {
     triggerDownloadFromBlob,
 } from "@ourworldindata/utils"
 import cx from "classnames"
-import { LIGHTBOX_IMAGE_CLASS } from "../../lightboxUtils.js"
 import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
 import { DocumentContext } from "../DocumentContext.js"
 import { useImage } from "../utils.js"
@@ -64,6 +63,8 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["span-8"]: gridSpan8,
 }
 
+export const LIGHTBOX_IMAGE_CLASS = "lightbox-image"
+
 export default function Image(props: {
     filename: string
     smallFilename?: string
@@ -87,6 +88,9 @@ export default function Image(props: {
         "image--has-outline": hasOutline,
     })
 
+    // Whether we should show the lightbox and a download button
+    const isInteractive = shouldLightbox && containerType !== "thumbnail"
+
     const { isPreviewing } = useContext(DocumentContext)
     const isSmall = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const image = useImage(filename)
@@ -96,10 +100,10 @@ export default function Image(props: {
     const [isLightboxOpen, setIsLightboxOpen] = useState(false)
 
     const openLightbox = useCallback(() => {
-        if (shouldLightbox) {
+        if (isInteractive) {
             setIsLightboxOpen(true)
         }
-    }, [shouldLightbox])
+    }, [isInteractive])
 
     const renderImageError = (name: string) => (
         <BlockErrorFallback
@@ -131,8 +135,6 @@ export default function Image(props: {
     }
 
     const alt = props.alt ?? activeImage.defaultAlt
-    const isInteractive = containerType !== "thumbnail" && shouldLightbox
-    const maybeLightboxClassName = isInteractive ? LIGHTBOX_IMAGE_CLASS : ""
 
     function makeSrc(image: ImageMetadata) {
         if (!image.cloudflareId) {
@@ -165,7 +167,7 @@ export default function Image(props: {
                 <img
                     src={imageSrc}
                     alt={alt}
-                    className={maybeLightboxClassName}
+                    className={isInteractive ? LIGHTBOX_IMAGE_CLASS : undefined}
                     loading="lazy"
                     // There's no way of knowing in advance whether we'll be showing the image or smallImage - we just have to choose one
                     // I went with image, as we currently only use smallImage for data insights
