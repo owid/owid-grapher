@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query"
 import { queryDataTopics, searchQueryKeys } from "./queries.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedTopic } from "./searchHooks.js"
-import { SearchAsDraft } from "./SearchAsDraft.js"
 import { SearchDataTopicsResponse } from "./searchTypes.js"
 import { SearchDataTopic } from "./SearchDataTopic.js"
 import { SearchDataTopicsResultsSkeleton } from "./SearchDataTopicsResultsSkeleton.js"
@@ -21,17 +20,12 @@ export const SearchDataTopicsResults = () => {
     if (!query.data?.length) return null
 
     return (
-        <SearchAsDraft
-            name="Data Topics Results"
-            className="span-cols-12 col-start-2"
-        >
-            <div className="search-data-topics-results">
-                <div>
-                    {query.data.map((result) => (
-                        <SearchDataTopic key={result.title} result={result} />
-                    ))}
-                </div>
+        <div className="search-data-topics-results span-cols-12 col-start-2">
+            <div>
+                {query.data.map((result) => (
+                    <SearchDataTopic key={result.title} result={result} />
+                ))}
             </div>
-        </SearchAsDraft>
+        </div>
     )
 }
