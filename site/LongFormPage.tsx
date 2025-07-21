@@ -19,8 +19,6 @@ import {
 import { FormattingOptions } from "@ourworldindata/types"
 import { BreadcrumbsFromSubnav } from "./Breadcrumb/Breadcrumb.js"
 import { Byline } from "./Byline.js"
-import { PageInfo } from "./PageInfo.js"
-import { BackToTopic } from "./BackToTopic.js"
 import StickyNav from "./blocks/StickyNav.js"
 import { CodeSnippet } from "@ourworldindata/components"
 import { Html } from "./Html.js"
@@ -44,8 +42,6 @@ export const LongFormPage = (props: {
     baseUrl: string
 }) => {
     const { withCitation, post, overrides, formattingOptions, baseUrl } = props
-
-    const isPost = post.type === "post"
 
     const pageTitle = overrides?.pageTitle ?? post.title
     const pageDesc = overrides?.pageDesc ?? post.pageDesc
@@ -131,18 +127,13 @@ export const LongFormPage = (props: {
                     <article
                         className={`page${
                             hasSidebar ? " with-sidebar" : " no-sidebar"
-                        }${isPost ? " thin-banner" : " large-banner"}`}
+                        } large-banner`}
                     >
                         <div className="offset-header">
                             <header className="article-header">
-                                {isPost && formattingOptions.subnavId && (
-                                    <BackToTopic
-                                        subnavId={formattingOptions.subnavId}
-                                    />
-                                )}
                                 <div className="article-titles">
                                     <h1 className="entry-title">{pageTitle}</h1>
-                                    {!isPost && formattingOptions.subnavId && (
+                                    {formattingOptions.subnavId && (
                                         <BreadcrumbsFromSubnav
                                             subnavId={
                                                 formattingOptions.subnavId
@@ -153,36 +144,31 @@ export const LongFormPage = (props: {
                                         />
                                     )}
                                 </div>
-                                {!isPost && (
-                                    <>
-                                        {!formattingOptions.hideAuthors && (
-                                            <Byline
-                                                authors={post.authors}
-                                                override={post.byline}
-                                            />
-                                        )}
-                                        {post.info && (
-                                            <PageInfo info={post.info} />
-                                        )}
+                                <>
+                                    {!formattingOptions.hideAuthors && (
+                                        <Byline
+                                            authors={post.authors}
+                                            override={post.byline}
+                                        />
+                                    )}
 
-                                        {withCitation && (
-                                            <div className="tools">
-                                                <a href="#licence">
-                                                    <FontAwesomeIcon
-                                                        icon={faCreativeCommons}
-                                                    />
-                                                    Reuse our work freely
-                                                </a>
-                                                <a href="#citation">
-                                                    <FontAwesomeIcon
-                                                        icon={faBook}
-                                                    />
-                                                    Cite this research
-                                                </a>
-                                            </div>
-                                        )}
-                                    </>
-                                )}
+                                    {withCitation && (
+                                        <div className="tools">
+                                            <a href="#licence">
+                                                <FontAwesomeIcon
+                                                    icon={faCreativeCommons}
+                                                />
+                                                Reuse our work freely
+                                            </a>
+                                            <a href="#citation">
+                                                <FontAwesomeIcon
+                                                    icon={faBook}
+                                                />
+                                                Cite this research
+                                            </a>
+                                        </div>
+                                    )}
+                                </>
                             </header>
                         </div>
                         {post.stickyNavLinks?.length ? (
@@ -190,7 +176,7 @@ export const LongFormPage = (props: {
                                 <StickyNav links={post.stickyNavLinks} />
                             </nav>
                         ) : null}
-                        {!isPost && formattingOptions.subnavId && (
+                        {formattingOptions.subnavId && (
                             <SiteSubnavigation
                                 subnavId={formattingOptions.subnavId}
                                 subnavCurrentId={
@@ -221,11 +207,6 @@ export const LongFormPage = (props: {
                                     <footer className="article-footer">
                                         <div className="wp-block-columns">
                                             <div className="wp-block-column">
-                                                {isPost && post.info && (
-                                                    <PageInfo
-                                                        info={post.info}
-                                                    />
-                                                )}
                                                 {post.footnotes.length ? (
                                                     <Fragment>
                                                         <h3
@@ -301,7 +282,7 @@ export const LongFormPage = (props: {
                                                         />
                                                     </>
                                                 )}
-                                                {(isPost || withCitation) && (
+                                                {withCitation && (
                                                     <>
                                                         <h3
                                                             id="licence"
