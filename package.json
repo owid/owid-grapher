@@ -139,7 +139,7 @@
         "react-dom": "^17.0.2",
         "react-flip-toolkit": "^7.2.4",
         "react-hook-form": "^7.60.0",
-        "react-horizontal-scrolling-menu": "^4.0.3",
+        "react-horizontal-scrolling-menu": "^8.2.0",
         "react-instantsearch": "^7.12.2",
         "react-markdown": "^8.0.7",
         "react-move": "^6.5.0",

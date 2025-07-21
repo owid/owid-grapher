@@ -141,7 +141,12 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
                     slide.setAttribute("data-active", "true")
                     const windowUrl = getWindowUrl()
                     const anchor = slide.querySelector("h4")?.getAttribute("id")
-                    if (!anchor) return
+                    if (
+                        !anchor ||
+                        windowUrl.queryParams[KEY_INSIGHTS_INSIGHT_PARAM] ===
+                            anchor
+                    )
+                        return
                     setWindowUrl(
                         windowUrl
                             .updateQueryParams({
@@ -179,7 +184,6 @@ export const KeyInsightsThumbs = ({ titles }: { titles: string[] }) => {
             <ScrollMenu
                 LeftArrow={LeftArrow}
                 RightArrow={RightArrow}
-                transitionDuration={200}
                 apiRef={apiRef}
             >
                 {titles.map((title, i) => {
@@ -230,58 +234,41 @@ const Arrow = ({
 }
 
 const LeftArrow = () => {
-    const {
-        isFirstItemVisible,
-        scrollPrev,
-        visibleItemsWithoutSeparators,
-        initComplete,
-    } = useContext(VisibilityContext)
+    const { useLeftArrowVisible, scrollPrev } = useContext(VisibilityContext)
 
-    const [disabled, setDisabled] = useState(
-        !initComplete || (initComplete && isFirstItemVisible)
+    const disabled = useLeftArrowVisible()
+
+    return (
+        !disabled && (
+            <Arrow
+                disabled={false}
+                onClick={() => scrollPrev()}
+                className="left"
+                direction={ArrowDirection.prev}
+            >
+                <FontAwesomeIcon icon={faAngleRight} flip="horizontal" />
+            </Arrow>
+        )
     )
-    useEffect(() => {
-        // NOTE: detect if whole component visible
-        if (visibleItemsWithoutSeparators.length) {
-            setDisabled(isFirstItemVisible)
-        }
-    }, [isFirstItemVisible, visibleItemsWithoutSeparators])
-
-    return !disabled ? (
-        <Arrow
-            disabled={false}
-            onClick={() => scrollPrev()}
-            className="left"
-            direction={ArrowDirection.prev}
-        >
-            <FontAwesomeIcon icon={faAngleRight} flip="horizontal" />
-        </Arrow>
-    ) : null
 }
 
 const RightArrow = () => {
-    const { isLastItemVisible, scrollNext, visibleItemsWithoutSeparators } =
-        useContext(VisibilityContext)
+    const { useRightArrowVisible, scrollNext } = useContext(VisibilityContext)
 
-    const [disabled, setDisabled] = useState(
-        !visibleItemsWithoutSeparators.length && isLastItemVisible
+    const disabled = useRightArrowVisible()
+
+    return (
+        !disabled && (
+            <Arrow
+                disabled={false}
+                onClick={() => scrollNext()}
+                className="right"
+                direction={ArrowDirection.next}
+            >
+                <FontAwesomeIcon icon={faAngleRight} />
+            </Arrow>
+        )
     )
-    useEffect(() => {
-        if (visibleItemsWithoutSeparators.length) {
-            setDisabled(isLastItemVisible)
-        }
-    }, [isLastItemVisible, visibleItemsWithoutSeparators])
-
-    return !disabled ? (
-        <Arrow
-            disabled={false}
-            onClick={() => scrollNext()}
-            className="right"
-            direction={ArrowDirection.next}
-        >
-            <FontAwesomeIcon icon={faAngleRight} />
-        </Arrow>
-    ) : null
 }
 
 type KeyInsightsProps = {
