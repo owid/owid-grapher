@@ -6,8 +6,8 @@ export interface DbInsertImage {
     defaultAlt: string
     filename: string
     id?: number
-    originalWidth?: number | null
-    originalHeight?: number | null
+    originalWidth: number
+    originalHeight: number
     updatedAt?: string | null // MySQL Date objects round to the nearest second, whereas Google includes milliseconds so we store as an epoch of type bigint to avoid any conversion issues
     cloudflareId?: string | null
     hash?: string | null
