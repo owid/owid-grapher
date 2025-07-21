@@ -3,7 +3,7 @@ import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { MapChartState } from "./MapChartState"
-import { MapChartProps } from "./MapChart"
+import { MapChart, MapChartProps } from "./MapChart"
 
 @observer
 export class MapChartThumbnail
@@ -20,10 +20,6 @@ export class MapChartThumbnail
     }
 
     render(): React.ReactElement {
-        return (
-            <text x={15} y={30}>
-                Map chart thumbnail
-            </text>
-        )
+        return <MapChart {...this.props} />
     }
 }

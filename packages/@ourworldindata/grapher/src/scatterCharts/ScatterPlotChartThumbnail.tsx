@@ -3,7 +3,10 @@ import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ScatterPlotChartState } from "./ScatterPlotChartState"
-import type { ScatterPlotChartProps } from "./ScatterPlotChart.js"
+import {
+    ScatterPlotChart,
+    type ScatterPlotChartProps,
+} from "./ScatterPlotChart.js"
 
 @observer
 export class ScatterPlotChartThumbnail
@@ -19,10 +22,6 @@ export class ScatterPlotChartThumbnail
     }
 
     render(): React.ReactElement {
-        return (
-            <text x={15} y={30}>
-                Scatter plot thumbnail
-            </text>
-        )
+        return <ScatterPlotChart {...this.props} />
     }
 }

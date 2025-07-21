@@ -3,7 +3,7 @@ import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { MarimekkoChartState } from "./MarimekkoChartState"
-import type { MarimekkoChartProps } from "./MarimekkoChart.js"
+import { MarimekkoChart, type MarimekkoChartProps } from "./MarimekkoChart.js"
 
 @observer
 export class MarimekkoChartThumbnail
@@ -20,10 +20,6 @@ export class MarimekkoChartThumbnail
     }
 
     render(): React.ReactElement {
-        return (
-            <text x={15} y={30}>
-                Marimekko chart thumbnail
-            </text>
-        )
+        return <MarimekkoChart {...this.props} />
     }
 }

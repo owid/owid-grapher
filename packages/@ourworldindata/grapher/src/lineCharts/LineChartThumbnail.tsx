@@ -3,7 +3,7 @@ import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { LineChartState } from "./LineChartState"
-import { LineChartProps } from "./LineChart.js"
+import { LineChart, LineChartProps } from "./LineChart.js"
 
 @observer
 export class LineChartThumbnail
@@ -20,10 +20,6 @@ export class LineChartThumbnail
     }
 
     render(): React.ReactElement {
-        return (
-            <text x={15} y={30}>
-                Line chart thumbnail
-            </text>
-        )
+        return <LineChart {...this.props} />
     }
 }
