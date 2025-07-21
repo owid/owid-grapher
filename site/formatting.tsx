@@ -5,13 +5,10 @@ import {
     TocHeading,
     WP_BlockClass,
     WP_ColumnStyle,
-    WP_PostType,
-    formatDate,
 } from "@ourworldindata/utils"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
 import { bakeGlobalEntitySelector } from "./bakeGlobalEntitySelector.js"
 import { PROMINENT_LINK_CLASSNAME } from "./blocks/ProminentLink.js"
-import { Byline } from "./Byline.js"
 import { SectionHeading } from "./SectionHeading.js"
 import { FormattingOptions, GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import type { AnyNode } from "domhandler"
@@ -324,31 +321,6 @@ const addTocToSections = (
         })
 }
 
-const addPostHeader = (cheerioEl: cheerio.CheerioAPI, post: FormattedPost) => {
-    const publishedDate = formatDate(post.date)
-    // const modifiedDate = formatDate(post.modifiedDate)
-
-    cheerioEl("body").prepend(
-        ReactDOMServer.renderToStaticMarkup(
-            <div className="article-meta">
-                {post.excerpt && <div className="excerpt">{post.excerpt}</div>}
-                <Byline authors={post.authors} override={post.byline} />
-
-                <div className="published-updated">
-                    <time>{publishedDate}</time>
-                    {/* See https://www.notion.so/owid/Revert-last-updated-mention-in-articles-a917e8cf6ad846138bd650bfc1b7395b */}
-                    {/* {modifiedDate !== publishedDate && (
-                        <>
-                            <span> - Last updated on </span>
-                            <time>{modifiedDate}</time>
-                        </>
-                    )} */}
-                </div>
-            </div>
-        )
-    )
-}
-
 export const addContentFeatures = ({
     post,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -359,7 +331,6 @@ export const addContentFeatures = ({
 }): string => {
     const cheerioEl = cheerio.load(post.html)
 
-    if (post.type === WP_PostType.Post) addPostHeader(cheerioEl, post)
     splitContentIntoSectionsAndColumns(cheerioEl)
     bakeGlobalEntitySelector(cheerioEl)
     addTocToSections(cheerioEl, post.tocHeadings)

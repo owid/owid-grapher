@@ -161,22 +161,8 @@
             font-size: clamp(2rem, 5vw, 3rem);
         }
 
-        .article-meta {
-            color: $secondary-text-color;
-            margin-bottom: 2 * $vertical-spacing;
-        }
-
-        .excerpt {
-            font-size: clamp(1.2rem, 2vw, 1.5rem);
-            line-height: normal;
-            margin-bottom: 2 * $vertical-spacing;
-        }
-
         .authors-byline {
             font-weight: bold;
-        }
-        .published-updated {
-            font-size: 0.875rem;
         }
 
         .blog-info {
