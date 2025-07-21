@@ -30,14 +30,13 @@
         @include h3-bold;
         display: inline-block;
         color: $blue-90;
-        margin: 0;
+        margin: 0 8px 0 0;
         line-height: 1.2222;
     }
 
     .search-chart-hit-small__source {
         @include note-12-medium;
         color: $blue-90;
-        margin-left: 8px;
     }
 
     .search-chart-hit-small__subtitle {
@@ -63,6 +62,12 @@
         svg {
             width: 14px;
             height: 14px;
+        }
+    }
+
+    @include sm-only {
+        .search-chart-hit-data-display {
+            display: none;
         }
     }
 }
