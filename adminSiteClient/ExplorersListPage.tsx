@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import { LoadingIndicator } from "@ourworldindata/grapher"
+import { LoadingIndicator } from "@ourworldindata/components"
 import { dayjs, SerializedGridProgram } from "@ourworldindata/utils"
 import {
     action,

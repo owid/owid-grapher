@@ -74,7 +74,6 @@ export {
     legacyToOwidTableAndDimensionsWithMandatorySlug,
 } from "./core/LegacyToOwidTable"
 export { getErrorMessageRelatedQuestionUrl } from "./core/relatedQuestion"
-export { LoadingIndicator } from "./loadingIndicator/LoadingIndicator"
 export { MapChartState } from "./mapCharts/MapChartState"
 export { MapConfig } from "./mapCharts/MapConfig"
 export {

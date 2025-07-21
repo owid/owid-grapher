@@ -15,8 +15,8 @@ import {
     CodeSnippet,
     OverlayHeader,
     RadioButton,
+    LoadingIndicator,
 } from "@ourworldindata/components"
-import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faCircleExclamation,

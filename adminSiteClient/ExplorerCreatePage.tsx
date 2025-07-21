@@ -1,6 +1,6 @@
 import { HotTable, HotTableClass } from "@handsontable/react"
 import { CoreMatrix } from "@ourworldindata/types"
-import { LoadingIndicator } from "@ourworldindata/grapher"
+import { LoadingIndicator } from "@ourworldindata/components"
 import {
     exposeInstanceOnWindow,
     slugify,

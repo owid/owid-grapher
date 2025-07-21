@@ -8,7 +8,7 @@ import {
     faPlus,
 } from "@fortawesome/free-solid-svg-icons"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
-import { LoadingIndicator } from "@ourworldindata/grapher"
+import { LoadingIndicator } from "@ourworldindata/components"
 import { triggerDownloadFromBlob } from "@ourworldindata/utils"
 import { unmountComponentAtNode } from "react-dom"
 import { useTriggerOnEscape } from "./hooks.js"

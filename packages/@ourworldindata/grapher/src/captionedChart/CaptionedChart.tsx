@@ -7,7 +7,7 @@ import {
     exposeInstanceOnWindow,
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap } from "@ourworldindata/components"
+import { MarkdownTextWrap, LoadingIndicator } from "@ourworldindata/components"
 import { Header, StaticHeader } from "../header/Header"
 import { Footer, StaticFooter } from "../footer/Footer"
 import {
@@ -18,7 +18,6 @@ import {
 } from "../core/GrapherConstants"
 import { MapChartManager } from "../mapCharts/MapChartConstants"
 import { ChartManager } from "../chart/ChartManager"
-import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { FooterManager } from "../footer/FooterManager"

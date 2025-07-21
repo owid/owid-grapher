@@ -21,6 +21,7 @@ import {
     OverlayHeader,
     CLOSE_BUTTON_WIDTH,
     CloseButton,
+    LoadingIndicator,
 } from "@ourworldindata/components"
 import * as React from "react"
 import cx from "classnames"
@@ -35,7 +36,6 @@ import { SourcesKeyDataTable } from "./SourcesKeyDataTable"
 import { SourcesDescriptions } from "./SourcesDescriptions"
 import { TabItem, Tabs } from "../tabs/Tabs"
 import { ExpandableTabs } from "../tabs/ExpandableTabs"
-import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
 import {
     DEFAULT_GRAPHER_BOUNDS,
     isContinentsVariableId,

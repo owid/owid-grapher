@@ -1,7 +1,5 @@
-import {
-    GRAPHER_PAGE_BODY_CLASS,
-    LoadingIndicator,
-} from "@ourworldindata/grapher"
+import { GRAPHER_PAGE_BODY_CLASS } from "@ourworldindata/grapher"
+import { LoadingIndicator } from "@ourworldindata/components"
 import {
     serializeJSONForHTML,
     SiteFooterContext,
