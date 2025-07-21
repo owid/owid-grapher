@@ -29,24 +29,24 @@ fields:
         description: Unique identifier for the chart configuration
     patch:
         description: |
-            "Incremental configuration JSON that contains only the changes from the inherited or base configuration. Stored as a JSON column, so can be queried with the ->> operator.
+            Incremental configuration JSON that contains only the changes from the inherited or base configuration. Stored as a JSON column, so can be queried with the ->> operator.
 
             The full schema is available at 'https://files.ourworldindata.org/schemas/grapher-schema.latest.json'. For querying chart contents, the most important fields are:
                 - title
                 - subtitle
                 - chartTypes: array of string enums with valid values: ScatterPlot, StackedArea, DiscreteBar, StackedDiscreteBar, SlopeChart, StackedBar, Marimekko. Indicates which of these chart tabs are enabled for the chart.
                 - hasMapTab: Whether the map tab is enabled
-                - isPublished: whether the chart is published, if it is a standalone chart (i.e. a chart referenced from the charts table)"
+                - isPublished: whether the chart is published, if it is a standalone chart (i.e. a chart referenced from the charts table)
     full:
         description: |
-            "Complete merged configuration JSON that combines inherited configuration with local patches. This is the final configuration used for rendering. Stored as a JSON column, so can be queried with the ->> operator.
+            Complete merged configuration JSON that combines inherited configuration with local patches. This is the final configuration used for rendering. Stored as a JSON column, so can be queried with the ->> operator.
 
             The full schema is available at 'https://files.ourworldindata.org/schemas/grapher-schema.latest.json'. For querying chart contents, the most important fields are:
                 - title
                 - subtitle
                 - chartTypes: array of string enums with valid values: ScatterPlot, StackedArea, DiscreteBar, StackedDiscreteBar, SlopeChart, StackedBar, Marimekko. Indicates which of these chart tabs are enabled for the chart.
                 - hasMapTab: Whether the map tab is enabled
-                - isPublished: whether the chart is published, if it is a standalone chart (i.e. a chart referenced from the charts table)"
+                - isPublished: whether the chart is published, if it is a standalone chart (i.e. a chart referenced from the charts table)
     slug:
         description: URL-friendly identifier for the chart, used in URLs like /grapher/[slug]
     chartType:
