@@ -2,7 +2,6 @@ import { SearchShowMore } from "./SearchShowMore.js"
 import { queryCharts, searchQueryKeys } from "./queries.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { useSelectedCountries, useInfiniteSearch } from "./searchHooks.js"
-import { SearchAsDraft } from "./SearchAsDraft.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 import { SearchChartsResponse, SearchChartHit } from "./searchTypes.js"
 import { SearchDataResultsSkeleton } from "./SearchDataResultsSkeleton.js"
@@ -24,14 +23,14 @@ export const SearchDataResults = () => {
     if (totalResults === 0) return null
 
     return (
-        <SearchAsDraft name="Data Results" className="span-cols-12 col-start-2">
+        <div className="span-cols-12 col-start-2">
             <div className="search-data-results__hits">
                 <SearchResultHeader count={totalResults}>
                     Data
                 </SearchResultHeader>
                 <ul className="search-data-results__list">
                     {hits.map((hit, i) => {
-                        const isMediumHit = i < 5
+                        const isMediumHit = i < 4
                         const mode = isMediumHit ? "medium" : "small"
 
                         const onClick = () => {
@@ -66,6 +65,6 @@ export const SearchDataResults = () => {
                     onClick={query.fetchNextPage}
                 />
             )}
-        </SearchAsDraft>
+        </div>
     )
 }
