@@ -49,7 +49,7 @@ export const Lightbox = ({
             {!isLoaded && (
                 <LoadingIndicator backgroundColor="#000" color="#ccc" />
             )}
-            <TransformWrapper doubleClick={{ mode: "reset" }}>
+            <TransformWrapper doubleClick={{ mode: "reset" }} smooth={false}>
                 {({ zoomIn, zoomOut, resetTransform }) => (
                     <>
                         <div
