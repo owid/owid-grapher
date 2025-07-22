@@ -1125,16 +1125,6 @@ function convertMarkdownNodeToIRTokens(
                 return [new IRText(item.value, fontParams)]
             }
         )
-        .with(
-            {
-                type: "footnote",
-            },
-            (item) => {
-                return item.children.flatMap((child) =>
-                    convertMarkdownNodeToIRTokens(child, fontParams)
-                )
-            }
-        )
         .exhaustive()
     return converted
 }
