@@ -44,6 +44,10 @@ export const onRequestPost: PagesFunction<Env> = async ({
         // Parse the body of the request as JSON
         const donation = await request.json()
 
+        // Load Zod locale so we can use it for error messages.
+        // See https://zod.dev/packages/mini?id=no-default-locale
+        z.config(z.locales.en())
+
         // Check that the received donation object has the right type. Given that we
         // use the same types in the client and the server, this should never fail
         // when the request is coming from the client. However, it could happen if a
