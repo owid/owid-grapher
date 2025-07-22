@@ -6,7 +6,7 @@
         "@ourworldindata/grapher": "workspace:^",
         "@ourworldindata/types": "workspace:^",
         "@ourworldindata/utils": "workspace:^",
-        "@sentry/cloudflare": "^9.31.0",
+        "@sentry/cloudflare": "^9.40.0",
         "@sinclair/typebox": "^0.28.5",
         "itty-router": "^5.0.17",
         "littlezipper": "^0.1.4",
