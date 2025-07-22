@@ -129,7 +129,7 @@ export function ChartHit({
                 <Highlight
                     attribute="title"
                     highlightedTagName="strong"
-                    className="chart-hit-highlight"
+                    classNames={{ root: "chart-hit-highlight" }}
                     hit={hit}
                 />{" "}
                 <span className="chart-hit-variant">{hit.variantName}</span>

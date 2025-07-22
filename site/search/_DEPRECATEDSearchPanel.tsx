@@ -103,7 +103,9 @@ function PagesHit({ hit }: { hit: IPageHit }) {
                     </span>
                 </header>
                 <Snippet
-                    className="body-3-medium search-results__page-hit-snippet"
+                    classNames={{
+                        root: "body-3-medium search-results__page-hit-snippet",
+                    }}
                     attribute="content"
                     highlightedTagName="strong"
                     hit={hit}
