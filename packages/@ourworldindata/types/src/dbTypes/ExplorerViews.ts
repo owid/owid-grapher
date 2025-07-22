@@ -5,10 +5,16 @@ export interface DbInsertExplorerView {
     id?: number
     explorerSlug: string
     explorerView: JsonString
-    chartConfigId: string // char(36) in database - UUID
+    chartConfigId?: string // char(36) in database - UUID, nullable when error occurs
+    error?: string // error message when configuration extraction fails
 }
 
-export type DbRawExplorerView = Required<DbInsertExplorerView>
+export type DbRawExplorerView = Required<
+    Omit<DbInsertExplorerView, "chartConfigId" | "error">
+> & {
+    chartConfigId: string | null
+    error: string | null
+}
 
 export type DbEnrichedExplorerView = Omit<DbRawExplorerView, "explorerView"> & {
     explorerView: Record<string, string>

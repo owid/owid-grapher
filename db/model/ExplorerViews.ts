@@ -48,33 +48,55 @@ export async function refreshExplorerViewsForSlug(
     // iterate over all grapher rows in the explorer and construct a
     // grapher config for every row
     const grapherRows = explorerProgram.decisionMatrix.table.rows
+    let successCount = 0
+    let errorCount = 0
+
     for (const grapherRow of grapherRows) {
         const view =
             explorerProgram.decisionMatrix.getChoiceParamsForRow(grapherRow)
 
-        const config = await constructGrapherConfig(
-            knex,
-            explorerProgram,
-            grapherRow
-        )
+        try {
+            const config = await constructGrapherConfig(
+                knex,
+                explorerProgram,
+                grapherRow
+            )
 
-        // Insert the grapher config into chart_configs table first
-        const chartConfigId = uuidv7()
+            // Insert the grapher config into chart_configs table first
+            const chartConfigId = uuidv7()
 
-        const chartConfig: DbInsertChartConfig = {
-            id: chartConfigId,
-            patch: serializeChartConfig(config), // store full config in patch for conceptual clarity
-            full: serializeChartConfig(config),
-            // Don't set auto-generated fields: slug, chartType, createdAt, updatedAt
+            const chartConfig: DbInsertChartConfig = {
+                id: chartConfigId,
+                patch: serializeChartConfig(config), // store full config in patch for conceptual clarity
+                full: serializeChartConfig(config),
+                // Don't set auto-generated fields: slug, chartType, createdAt, updatedAt
+            }
+
+            await insertChartConfig(knex, chartConfig)
+
+            explorerViews.push({
+                explorerSlug: slug,
+                explorerView: JSON.stringify(view),
+                chartConfigId: chartConfigId,
+            })
+            successCount++
+        } catch (error) {
+            // Handle configuration failure gracefully
+            const errorMessage =
+                error instanceof Error ? error.message : String(error)
+            console.warn(
+                `Failed to create config for view in ${slug}:`,
+                errorMessage,
+                view
+            )
+
+            explorerViews.push({
+                explorerSlug: slug,
+                explorerView: JSON.stringify(view),
+                error: errorMessage.slice(0, 500), // Limit error message length
+            })
+            errorCount++
         }
-
-        await insertChartConfig(knex, chartConfig)
-
-        explorerViews.push({
-            explorerSlug: slug,
-            explorerView: JSON.stringify(view),
-            chartConfigId: chartConfigId,
-        })
     }
 
     // Delete existing views for this explorer - chart configs will be deleted automatically
@@ -87,6 +109,6 @@ export async function refreshExplorerViewsForSlug(
     }
 
     console.info(
-        `Refreshed ${explorerViews.length} views for explorer: ${slug}`
+        `Refreshed ${explorerViews.length} views for explorer: ${slug} (${successCount} successful, ${errorCount} failed)`
     )
 }
