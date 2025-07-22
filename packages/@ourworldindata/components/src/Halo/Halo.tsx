@@ -3,7 +3,7 @@ import { Color } from "@ourworldindata/types"
 
 interface HaloProps {
     id: string
-    children: React.ReactElement
+    children: React.ReactElement<React.HTMLAttributes<HTMLElement>>
     show?: boolean
     outlineWidth: number
     outlineColor?: Color

@@ -23,7 +23,7 @@ export const SiteNavigationToggle = ({
     dropdown?: React.ReactNode
     className?: string
     shouldScrollIntoView?: boolean
-    menuRef?: React.RefObject<HTMLDivElement>
+    menuRef?: React.RefObject<HTMLDivElement | null>
 }) => {
     useEffect(() => {
         if (shouldScrollIntoView && isActive && menuRef?.current) {

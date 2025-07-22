@@ -692,7 +692,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
         }
     }
 
-    renderHTML(): React.ReactElement | null {
+    renderHTML() {
         const { htmlLines } = this
         if (htmlLines.length === 0) return null
         return (
@@ -724,7 +724,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
             detailsMarker?: DetailsMarker
             id?: string
         } = {}
-    ): React.ReactElement {
+    ) {
         const { fontSize, lineHeight } = this
         const lines =
             detailsMarker === "superscript"

@@ -29,7 +29,7 @@ interface DynamicCollectionProps {
  * This is what allows us to use a reaction in the DynamicCollection component to update the URL whenever a Grapher is updated.
  */
 export function embedDynamicCollectionGrapher(
-    grapherRef: React.RefObject<Grapher>,
+    grapherRef: React.RefObject<Grapher | null>,
     figure: Element
 ) {
     const interval = setInterval(() => {

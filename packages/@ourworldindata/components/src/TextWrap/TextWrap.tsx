@@ -279,11 +279,7 @@ export class TextWrap {
         )
     }
 
-    renderSVG(
-        x: number,
-        y: number,
-        options: SVGRenderProps = {}
-    ): React.ReactElement {
+    renderSVG(x: number, y: number, options: SVGRenderProps = {}) {
         const { props, lines, fontSize, fontWeight, lineHeight } = this
 
         if (lines.length === 0) return <></>
