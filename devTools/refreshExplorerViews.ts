@@ -3,7 +3,7 @@ import {
     ExplorerProgram,
     ExplorerGrapherInterface,
 } from "@ourworldindata/explorer"
-import * as db from "./db.js"
+import * as db from "../db/db.js"
 import {
     CoreRow,
     DbPlainExplorer,
@@ -24,8 +24,8 @@ import {
 } from "@ourworldindata/utils"
 import { defaultGrapherConfig } from "@ourworldindata/grapher"
 import { transformExplorerProgramToResolveCatalogPaths } from "../baker/ExplorerBaker.js"
-import { getChartConfigById } from "./model/Chart.js"
-import { getMergedGrapherConfigForVariable } from "./model/Variable.js"
+import { getChartConfigById } from "../db/model/Chart.js"
+import { getMergedGrapherConfigForVariable } from "../db/model/Variable.js"
 import * as R from "remeda"
 
 // This scrips constructs Grapher configs for every view in an explorer.
