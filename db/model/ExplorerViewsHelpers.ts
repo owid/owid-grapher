@@ -1,18 +1,15 @@
+import * as db from "../db.js"
 import {
     ExplorerChartCreationMode,
     ExplorerProgram,
     ExplorerGrapherInterface,
 } from "@ourworldindata/explorer"
-import * as db from "../db/db.js"
 import {
     CoreRow,
-    DbPlainExplorer,
     DimensionProperty,
     GrapherInterface,
     OwidChartDimensionInterface,
     OwidColumnDef,
-    DbInsertExplorerView,
-    serializeChartConfig,
 } from "@ourworldindata/types"
 import {
     excludeUndefined,
@@ -23,23 +20,9 @@ import {
     RequiredBy,
 } from "@ourworldindata/utils"
 import { defaultGrapherConfig } from "@ourworldindata/grapher"
-import { transformExplorerProgramToResolveCatalogPaths } from "../db/model/ExplorerCatalogResolver.js"
-import { getChartConfigById } from "../db/model/Chart.js"
-import { getMergedGrapherConfigForVariable } from "../db/model/Variable.js"
+import { getChartConfigById } from "./Chart.js"
+import { getMergedGrapherConfigForVariable } from "./Variable.js"
 import * as R from "remeda"
-
-interface ExplorerProcessingStats {
-    slug: string
-    viewCount: number
-    duration: number
-}
-
-// This scrips constructs Grapher configs for every view in an explorer.
-// The constructed Grapher configs are an approximation of the actual Grapher
-// configs; they are not guaranteed to be complete or correct. In particular,
-// - column transforms, including the `duplicate` transform, are not taken into account
-// - the dimension's `display` field doesn't necessarily doesn't adhere to the schema;
-// (e.g. it simply contains all specified fields in the columns section)
 
 function columnDefToDimensionObject(
     colDef?: OwidColumnDef
@@ -192,7 +175,7 @@ function constructDimensionsForMode(
     }
 }
 
-async function constructGrapherConfig(
+export async function constructGrapherConfig(
     knex: db.KnexReadonlyTransaction,
     explorerProgram: ExplorerProgram,
     grapherRow: CoreRow
@@ -241,195 +224,3 @@ async function constructGrapherConfig(
         { $schema: defaultGrapherConfig.$schema, dimensions }
     )
 }
-
-async function fetchPublishedExplorers(
-    knex: db.KnexReadonlyTransaction
-): Promise<Pick<DbPlainExplorer, "slug" | "tsv">[]> {
-    return db.knexRaw(
-        knex,
-        `-- sql
-            SELECT slug, tsv
-            FROM explorers
-            WHERE isPublished IS TRUE
-        `
-    )
-}
-
-export async function refreshExplorerViewsForSlug(
-    knex: db.KnexReadWriteTransaction,
-    slug: string
-): Promise<void> {
-    const explorer = await knex
-        .select("slug", "tsv", "isPublished")
-        .from("explorers")
-        .where({ slug })
-        .first()
-
-    if (!explorer) {
-        console.warn(`Explorer not found: ${slug}`)
-        return
-    }
-
-    if (!explorer.isPublished) {
-        console.info(`Skipping unpublished explorer: ${slug}`)
-        return
-    }
-
-    console.info("Processing explorer views for... " + slug)
-
-    const explorerViews: DbInsertExplorerView[] = []
-
-    // init explorer program
-    const rawExplorerProgram = new ExplorerProgram(slug, explorer.tsv)
-
-    // map catalog paths to indicator ids if necessary
-    const explorerProgram = (
-        await transformExplorerProgramToResolveCatalogPaths(
-            rawExplorerProgram,
-            knex
-        )
-    ).program
-
-    // iterate over all grapher rows in the explorer and construct a
-    // grapher config for every row
-    const grapherRows = explorerProgram.decisionMatrix.table.rows
-    for (const grapherRow of grapherRows) {
-        const view =
-            explorerProgram.decisionMatrix.getChoiceParamsForRow(grapherRow)
-
-        const config = await constructGrapherConfig(
-            knex,
-            explorerProgram,
-            grapherRow
-        )
-
-        explorerViews.push({
-            explorerSlug: slug,
-            explorerView: JSON.stringify(view),
-            grapherConfig: serializeChartConfig(config),
-        })
-    }
-
-    // Delete existing views for this explorer and insert new ones
-    await knex("explorer_views").where({ explorerSlug: slug }).delete()
-    if (explorerViews.length > 0) {
-        await knex.batchInsert("explorer_views", explorerViews)
-    }
-
-    console.info(`Refreshed ${explorerViews.length} views for explorer: ${slug}`)
-}
-
-async function prepareGrapherConfigsForExplorerViews(
-    knex: db.KnexReadWriteTransaction
-): Promise<ExplorerProcessingStats[]> {
-    const explorers = await fetchPublishedExplorers(knex)
-    const stats: ExplorerProcessingStats[] = []
-
-    for (const explorer of explorers) {
-        const startTime = performance.now()
-        console.info("Processing... " + explorer.slug)
-
-        const explorerViews: DbInsertExplorerView[] = []
-
-        // init explorer program
-        const rawExplorerProgram = new ExplorerProgram(
-            explorer.slug,
-            explorer.tsv
-        )
-
-        // map catalog paths to indicator ids if necessary
-        const explorerProgram = (
-            await transformExplorerProgramToResolveCatalogPaths(
-                rawExplorerProgram,
-                knex
-            )
-        ).program
-
-        // iterate over all grapher rows in the explorer and construct a
-        // grapher config for every row
-        const grapherRows = explorerProgram.decisionMatrix.table.rows
-        for (const grapherRow of grapherRows) {
-            const view =
-                explorerProgram.decisionMatrix.getChoiceParamsForRow(grapherRow)
-
-            const config = await constructGrapherConfig(
-                knex,
-                explorerProgram,
-                grapherRow
-            )
-
-            explorerViews.push({
-                explorerSlug: explorer.slug,
-                explorerView: JSON.stringify(view),
-                grapherConfig: serializeChartConfig(config),
-            })
-        }
-
-        await knex.batchInsert("explorer_views", explorerViews)
-
-        const endTime = performance.now()
-        const duration = Math.round(endTime - startTime)
-        
-        stats.push({
-            slug: explorer.slug,
-            viewCount: explorerViews.length,
-            duration
-        })
-    }
-
-    return stats
-}
-
-function printStatsTable(stats: ExplorerProcessingStats[]): void {
-    console.log('\n' + '='.repeat(70))
-    console.log('Explorer Processing Statistics')
-    console.log('='.repeat(70))
-    console.log('Explorer'.padEnd(30) + 'Views'.padStart(8) + 'Duration (ms)'.padStart(15))
-    console.log('-'.repeat(70))
-    
-    for (const stat of stats) {
-        console.log(
-            stat.slug.padEnd(30) + 
-            stat.viewCount.toString().padStart(8) + 
-            stat.duration.toString().padStart(15)
-        )
-    }
-    
-    const totalViews = stats.reduce((sum, stat) => sum + stat.viewCount, 0)
-    const totalDuration = stats.reduce((sum, stat) => sum + stat.duration, 0)
-    
-    console.log('-'.repeat(70))
-    console.log(
-        'TOTAL'.padEnd(30) + 
-        totalViews.toString().padStart(8) + 
-        totalDuration.toString().padStart(15)
-    )
-    console.log('='.repeat(70))
-}
-
-const main = async (): Promise<void> => {
-    const showStats = process.argv.includes('--stats')
-    
-    try {
-        // Execute TRUNCATE outside of transaction to avoid DDL/transaction mixing
-        await db.knexReadWriteTransaction(
-            async (trx) => {
-                await db.knexRaw(trx, "TRUNCATE TABLE explorer_views")
-            },
-            db.TransactionCloseMode.Close
-        )
-
-        const stats = await db.knexReadWriteTransaction(
-            (trx) => prepareGrapherConfigsForExplorerViews(trx),
-            db.TransactionCloseMode.Close
-        )
-
-        if (showStats) {
-            printStatsTable(stats)
-        }
-    } catch (e) {
-        console.error(e)
-    }
-}
-
-void main()
