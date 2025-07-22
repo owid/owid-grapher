@@ -6,6 +6,14 @@
 - yarn testPrettierChanged: run prettier on changed files
 - yarn fixPrettierChanged: attempt to fix prettier issues on changed files
 
+When you have completed implementing a set of changes, ALWAYS run `yarn typecheckLerna` and fix any errors you have. NEVER add any to make type errors go away - if you fail to resolve type errors after 3 attempts, ask the user for help.
+
+Before you make a commit, run `typecheckLerna`, `testLint` and `fixPrettierAll`.
+
+## Code style
+
+- We use double quotes for string literals instead of single quotes
+
 # Codebase overview
 
 This is a sort of monorepo for the Our World In Data website, including our custom data viz react component, Grapher. The codebase is in typescript, uses React 17 and Node 22.

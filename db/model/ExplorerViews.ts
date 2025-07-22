@@ -68,5 +68,7 @@ export async function refreshExplorerViewsForSlug(
         await knex.batchInsert("explorer_views", explorerViews)
     }
 
-    console.info(`Refreshed ${explorerViews.length} views for explorer: ${slug}`)
+    console.info(
+        `Refreshed ${explorerViews.length} views for explorer: ${slug}`
+    )
 }
