@@ -42,7 +42,7 @@ export const logSiteSearchClickToAlgoliaInsights = (
     event: InsightsSearchClickEvent
 ) => {
     const client = getInsightsClient()
-    client("clickedObjectIDsAfterSearch", {
+    void client("clickedObjectIDsAfterSearch", {
         ...event,
     })
 }
