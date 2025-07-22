@@ -60,16 +60,12 @@ export async function refreshExplorerViewsForSlug(
 
         // Insert the grapher config into chart_configs table first
         const chartConfigId = uuidv7()
-        const now = new Date()
 
         const chartConfig: DbInsertChartConfig = {
             id: chartConfigId,
-            patch: JSON.stringify({}), // empty patch since this is a complete config
+            patch: serializeChartConfig(config), // store full config in patch for conceptual clarity
             full: serializeChartConfig(config),
-            slug: null,
-            chartType: null,
-            createdAt: now,
-            updatedAt: now,
+            // Don't set auto-generated fields: slug, chartType, createdAt, updatedAt
         }
 
         await insertChartConfig(knex, chartConfig)
@@ -81,23 +77,9 @@ export async function refreshExplorerViewsForSlug(
         })
     }
 
-    // Delete existing views for this explorer and their chart configs, then insert new ones
-    // First get the chart config IDs to delete
-    const existingViews = await knex("explorer_views")
-        .where({ explorerSlug: slug })
-        .select("chartConfigId")
-
-    const chartConfigIdsToDelete = existingViews.map((row) => row.chartConfigId)
-
-    // Delete the explorer views (this will also delete via foreign key constraint)
+    // Delete existing views for this explorer - chart configs will be deleted automatically
+    // via ON DELETE CASCADE foreign key constraint
     await knex("explorer_views").where({ explorerSlug: slug }).delete()
-
-    // Clean up the orphaned chart configs
-    if (chartConfigIdsToDelete.length > 0) {
-        await knex("chart_configs")
-            .whereIn("id", chartConfigIdsToDelete)
-            .delete()
-    }
 
     // Insert new views
     if (explorerViews.length > 0) {

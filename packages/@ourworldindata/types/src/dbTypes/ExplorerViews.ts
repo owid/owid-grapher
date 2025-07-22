@@ -5,7 +5,7 @@ export interface DbInsertExplorerView {
     id?: number
     explorerSlug: string
     explorerView: JsonString
-    chartConfigId: string
+    chartConfigId: string // char(36) in database - UUID
 }
 
 export type DbRawExplorerView = Required<DbInsertExplorerView>

@@ -109,22 +109,9 @@ export async function handleDeleteExplorer(
         throw new JsonError("Explorer not found", 404)
     }
 
-    // Clean up associated explorer views and their chart configs first
-    const existingViews = await trx("explorer_views")
-        .where({ explorerSlug: slug })
-        .select("chartConfigId")
-
-    const chartConfigIdsToDelete = existingViews.map((row) => row.chartConfigId)
-
-    // Delete explorer views (foreign key constraint will handle this, but explicit is better)
+    // Delete explorer views first - chart configs will be deleted automatically
+    // via ON DELETE CASCADE foreign key constraint
     await trx("explorer_views").where({ explorerSlug: slug }).delete()
-
-    // Clean up the orphaned chart configs
-    if (chartConfigIdsToDelete.length > 0) {
-        await trx("chart_configs")
-            .whereIn("id", chartConfigIdsToDelete)
-            .delete()
-    }
 
     await trx(ExplorersTableName).where({ slug }).delete()
 

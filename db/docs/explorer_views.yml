@@ -1,9 +1,9 @@
 metadata:
     description: |
         This table stores precomputed views for explorers, allowing for efficient retrieval of specific grapher configurations corresponding to different parameter combinations in an explorer.
-        
+
         Each row represents a unique combination of parameter choices within an explorer (e.g., specific variable, country, chart type selections) and references the corresponding grapher chart configuration stored in the chart_configs table.
-        
+
         This table is populated automatically when explorer TSV files are refreshed and enables fast loading of explorer charts without recomputing configurations at runtime.
 
 fields:
