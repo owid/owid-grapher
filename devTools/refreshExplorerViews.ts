@@ -252,8 +252,6 @@ async function fetchPublishedExplorers(
 async function prepareGrapherConfigsForExplorerViews(
     knex: db.KnexReadWriteTransaction
 ): Promise<void> {
-    await db.knexRaw(knex, "TRUNCATE TABLE explorer_views")
-
     const explorers = await fetchPublishedExplorers(knex)
 
     for (const explorer of explorers) {
@@ -303,6 +301,14 @@ async function prepareGrapherConfigsForExplorerViews(
 
 const main = async (): Promise<void> => {
     try {
+        // Execute TRUNCATE outside of transaction to avoid DDL/transaction mixing
+        await db.knexReadWriteTransaction(
+            async (trx) => {
+                await db.knexRaw(trx, "TRUNCATE TABLE explorer_views")
+            },
+            db.TransactionCloseMode.Close
+        )
+
         await db.knexReadWriteTransaction(
             (trx) => prepareGrapherConfigsForExplorerViews(trx),
             db.TransactionCloseMode.Close
