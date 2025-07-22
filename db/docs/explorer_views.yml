@@ -5,7 +5,6 @@ metadata:
         Each row represents a unique combination of parameter choices within an explorer (e.g., specific variable, country, chart type selections). Successfully processed views reference a corresponding grapher chart configuration stored in the chart_configs table, while failed views store error information for debugging.
 
         This table is populated automatically when explorer TSV files are refreshed and enables fast loading of explorer charts without recomputing configurations at runtime. The system gracefully handles configuration failures, allowing explorers to remain functional even when some parameter combinations cannot be processed.
-
 fields:
     id:
         description: Unique identifier for the explorer view
