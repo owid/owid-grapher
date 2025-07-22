@@ -129,7 +129,10 @@ export const useElementBounds = (
         [throttleTime, updateBoundsImmediately]
     )
 
-    useResizeObserver({ ref, onResize: updateBoundsThrottled })
+    useResizeObserver({
+        ref: ref as React.RefObject<HTMLDivElement>,
+        onResize: updateBoundsThrottled,
+    })
 
     return bounds
 }

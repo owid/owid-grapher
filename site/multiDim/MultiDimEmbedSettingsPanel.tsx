@@ -98,7 +98,7 @@ export default function MultiDimEmbedSettingsPanel({
     }, [dimensionsArray.length, isSmallScreen])
 
     useResizeObserver({
-        ref: containerRef,
+        ref: containerRef as React.RefObject<HTMLDivElement>,
         onResize: calculateCollapsedCount,
     })
 
