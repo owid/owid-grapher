@@ -84,11 +84,11 @@ export async function refreshExplorerViewsForSlug(
             // Handle configuration failure gracefully
             const errorMessage =
                 error instanceof Error ? error.message : String(error)
-            console.warn(
-                `Failed to create config for view in ${slug}:`,
+            console.warn("Failed to create config for view in explorer:", {
+                slug,
                 errorMessage,
-                view
-            )
+                view,
+            })
 
             explorerViews.push({
                 explorerSlug: slug,
