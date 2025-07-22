@@ -23,10 +23,6 @@ export function SearchChartHitDataDisplay({
     return (
         <div className="search-chart-hit-data-display">
             <div className="search-chart-hit-data-display__location">
-                <FontAwesomeIcon
-                    className="search-chart-hit-data-display__icon"
-                    icon={faMapMarkerAlt}
-                />
                 {entityName}
             </div>
             <div className="search-chart-hit-data-display__value">
