@@ -211,9 +211,9 @@ class MultiEmbedder {
             localConfig,
             {
                 manager: {
-                    selection: new SelectionArray(
-                        this.selection.selectedEntityNames
-                    ),
+                    selection: this.selection.hasSelection
+                        ? new SelectionArray(this.selection.selectedEntityNames)
+                        : undefined,
                 },
             }
         )
