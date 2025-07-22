@@ -638,7 +638,7 @@ export const createFocusInputOnClickHandler = (
  */
 export function isCurrentRef(
     inputRef: ForwardedRef<HTMLInputElement>
-): inputRef is React.MutableRefObject<HTMLInputElement | null> {
+): inputRef is React.RefObject<HTMLInputElement> {
     return (
         inputRef !== null &&
         typeof inputRef === "object" &&
