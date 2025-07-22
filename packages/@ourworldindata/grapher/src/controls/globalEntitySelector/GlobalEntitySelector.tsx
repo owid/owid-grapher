@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import ReactDOM from "react-dom"
+import ReactDOM from "react-dom/client"
 import {
     action,
     observable,
@@ -433,12 +433,12 @@ export const hydrateGlobalEntitySelectorIfAny = (
     const element = document.querySelector(GLOBAL_ENTITY_SELECTOR_ELEMENT)
     if (!element) return
 
-    ReactDOM.hydrate(
+    ReactDOM.hydrateRoot(
+        element,
         <GlobalEntitySelector
             selection={selection}
             graphersAndExplorersToUpdate={graphersAndExplorersToUpdate}
-        />,
-        element
+        />
     )
 }
 

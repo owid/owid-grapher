@@ -1,4 +1,4 @@
-import { hydrate } from "react-dom"
+import { hydrateRoot } from "react-dom/client"
 import { CodeSnippet } from "./CodeSnippet.js"
 
 export function hydrateCodeSnippets() {
@@ -6,6 +6,8 @@ export function hydrateCodeSnippets() {
     codeSnippets.forEach((snippet) => {
         const code =
             snippet.querySelector(".wp-block-code code")?.textContent || ""
-        hydrate(<CodeSnippet code={code} />, snippet.parentElement)
+
+        if (!snippet.parentElement) return
+        hydrateRoot(snippet.parentElement, <CodeSnippet code={code} />)
     })
 }

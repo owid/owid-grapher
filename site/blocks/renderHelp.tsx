@@ -1,4 +1,4 @@
-import ReactDOMServer from "react-dom/server.js"
+import ReactDOMServer from "react-dom/server"
 import { Help } from "./Help.js"
 import { CheerioAPI } from "cheerio"
 

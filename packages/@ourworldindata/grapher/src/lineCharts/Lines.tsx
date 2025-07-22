@@ -84,7 +84,7 @@ export class Lines extends React.Component<LinesProps> {
 
     private renderLine(
         series: RenderLineChartSeries
-    ): React.ReactElement | void {
+    ): React.ReactElement | undefined {
         const { hover, focus } = series
 
         if (series.plotMarkersOnly) return
@@ -147,7 +147,7 @@ export class Lines extends React.Component<LinesProps> {
 
     private renderLineMarkers(
         series: RenderLineChartSeries
-    ): React.ReactElement | void {
+    ): React.ReactElement | undefined {
         const { horizontalAxis } = this.props.dualAxis
         const { hover, focus } = series
 
