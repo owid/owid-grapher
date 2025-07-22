@@ -6,7 +6,6 @@ import { TocHeading } from "./Toc.js"
 export interface FormattedPost extends FullPost {
     stickyNavLinks?: { text: string; target: string }[]
     byline?: string
-    info?: string
     html: string
     footnotes: string[]
     tocHeadings: TocHeading[]

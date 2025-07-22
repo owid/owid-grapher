@@ -80,14 +80,6 @@ export const formatWordpressPost = async (
     renderHelp(cheerioEl)
     await renderProminentLinks(cheerioEl, post.id, knex)
 
-    // Extract blog info content
-    let info
-    const $info = cheerioEl(".blog-info")
-    if ($info.length) {
-        info = $info.html() ?? undefined
-        $info.remove()
-    }
-
     // Extract page byline
     let byline
     const $byline = cheerioEl(".wp-block-owid-byline")
@@ -281,7 +273,6 @@ export const formatWordpressPost = async (
     return {
         ...post,
         byline,
-        info,
         footnotes: footnotes,
         tocHeadings: tocHeadings,
         pageDesc: post.excerpt || cheerioEl("p").first().text(),

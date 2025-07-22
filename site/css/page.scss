@@ -130,58 +130,6 @@
         .authors-byline {
             font-size: 1.125rem;
         }
-
-        .blog-info {
-            @include info;
-            font-style: italic;
-            color: $secondary-text-color;
-            p {
-                margin-bottom: 0.5rem;
-            }
-        }
-    }
-
-    &.thin-banner {
-        .back-to-topic {
-            font-size: 0.875rem;
-            &:hover {
-                text-decoration: underline;
-            }
-            svg {
-                margin-right: 0.5rem;
-            }
-        }
-        .article-header {
-            padding-top: 2 * $vertical-spacing;
-            @include md-up {
-                padding-bottom: $vertical-spacing;
-            }
-        }
-        h1 {
-            font-size: clamp(2rem, 5vw, 3rem);
-        }
-
-        .article-meta {
-            color: $secondary-text-color;
-            margin-bottom: 2 * $vertical-spacing;
-        }
-
-        .excerpt {
-            font-size: clamp(1.2rem, 2vw, 1.5rem);
-            line-height: normal;
-            margin-bottom: 2 * $vertical-spacing;
-        }
-
-        .authors-byline {
-            font-weight: bold;
-        }
-        .published-updated {
-            font-size: 0.875rem;
-        }
-
-        .blog-info {
-            margin-top: $vertical-spacing;
-        }
     }
 }
 
