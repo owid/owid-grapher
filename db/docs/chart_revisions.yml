@@ -14,14 +14,14 @@ fields:
         description: Foreign key to users table. The user who created this revision.
     config:
         description: |
-            "JSON configuration of the chart at the time of this revision
+            JSON configuration of the chart at the time of this revision
 
             The full schema is available at 'https://files.ourworldindata.org/schemas/grapher-schema.latest.json'. For querying chart contents, the most important fields are:
                 - title
                 - subtitle
                 - chartTypes: array of string enums with valid values: ScatterPlot, StackedArea, DiscreteBar, StackedDiscreteBar, SlopeChart, StackedBar, Marimekko. Indicates which of these chart tabs are enabled for the chart.
                 - hasMapTab: Whether the map tab is enabled
-                - isPublished: whether the chart is published, if it is a standalone chart (i.e. a chart referenced from the charts table)"
+                - isPublished: whether the chart is published, if it is a standalone chart (i.e. a chart referenced from the charts table)
     createdAt:
         description: Timestamp when the revision was created
     updatedAt:
