@@ -1,6 +1,6 @@
 import cx from "classnames"
 import * as React from "react"
-import ReactDOM from "react-dom"
+import ReactDOM from "react-dom/client"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { DYNAMIC_COLLECTION_PAGE_CONTAINER_ID } from "@ourworldindata/utils"
 import {
@@ -167,6 +167,13 @@ export function hydrateDynamicCollectionPage() {
     const container = document.querySelector(
         `#${DYNAMIC_COLLECTION_PAGE_CONTAINER_ID}`
     )
+    if (!container) {
+        console.error(
+            `Could not find container with id ${DYNAMIC_COLLECTION_PAGE_CONTAINER_ID}`
+        )
+        return
+    }
+
     const urlParams = new URLSearchParams(window.location.search)
     const initialDynamicCollection = urlParams.get("charts") || ""
     window.graphers = new ObservableMap()
@@ -183,11 +190,11 @@ export function hydrateDynamicCollectionPage() {
             })
         )
     }
-    ReactDOM.hydrate(
+    ReactDOM.hydrateRoot(
+        container,
         <DynamicCollection
             baseUrl={BAKED_BASE_URL}
             initialDynamicCollection={initialDynamicCollection}
-        />,
-        container
+        />
     )
 }
