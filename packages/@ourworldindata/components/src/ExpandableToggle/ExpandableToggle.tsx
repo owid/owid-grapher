@@ -1,7 +1,6 @@
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { useState } from "react"
-import * as React from "react"
+import type { ReactNode } from "react"
 import cx from "classnames"
 
 export const ExpandableToggle = ({
@@ -13,42 +12,48 @@ export const ExpandableToggle = ({
     hasTeaser = false,
 }: {
     label: string
-    content?: React.ReactNode
-    alwaysVisibleDescription?: React.ReactNode
+    content?: ReactNode
+    alwaysVisibleDescription?: ReactNode
     isExpandedDefault?: boolean
     isStacked?: boolean
     hasTeaser?: boolean
 }) => {
-    const [isOpen, setOpen] = useState(isExpandedDefault)
-
-    const toggle = () => {
-        setOpen(!isOpen)
-    }
+    const contentElem = (
+        <div className="ExpandableToggle__content">{content}</div>
+    )
 
     return (
-        <div
+        <details
             className={cx("ExpandableToggle", {
                 "ExpandableToggle--stacked": isStacked,
-                "ExpandableToggle--open": isOpen,
                 "ExpandableToggle--teaser": hasTeaser,
             })}
+            open={isExpandedDefault}
         >
-            <button className="ExpandableToggle__button" onClick={toggle}>
-                <div>
-                    <h4 className="ExpandableToggle__title">{label}</h4>
-                    {alwaysVisibleDescription && (
-                        <div className="ExpandableToggle__description">
-                            {alwaysVisibleDescription}
-                        </div>
-                    )}
+            <summary className="ExpandableToggle__container">
+                <div className="ExpandableToggle__button">
+                    <div>
+                        <h4 className="ExpandableToggle__title">{label}</h4>
+                        {alwaysVisibleDescription && (
+                            <div className="ExpandableToggle__description">
+                                {alwaysVisibleDescription}
+                            </div>
+                        )}
+                    </div>
+                    <FontAwesomeIcon
+                        className="ExpandableToggle__icon ExpandableToggle__icon--expand"
+                        icon={faPlus}
+                    />
+                    <FontAwesomeIcon
+                        className="ExpandableToggle__icon ExpandableToggle__icon--collapse"
+                        icon={faMinus}
+                    />
                 </div>
-                <FontAwesomeIcon
-                    className="ExpandableToggle__icon"
-                    icon={!isOpen ? faPlus : faMinus}
-                />
-            </button>
 
-            <div className="ExpandableToggle__content">{content}</div>
-        </div>
+                {/* If there is a teaser, we need to place the content element inside the summary so we can show it even when the details element is closed */}
+                {hasTeaser && contentElem}
+            </summary>
+            {!hasTeaser && contentElem}
+        </details>
     )
 }
