@@ -6,10 +6,10 @@ import {
     OwidProcessingLevel,
 } from "../OwidVariable.js"
 import { RelatedChart } from "../grapherTypes/GrapherTypes.js"
-import { Static, Type } from "@sinclair/typebox"
 import { OwidEnrichedGdocBlock } from "./ArchieMlComponents.js"
 import { ImageMetadata } from "./Image.js"
 import { ArchiveContext } from "../domainTypes/Archive.js"
+import { z } from "zod/mini"
 
 export interface FaqLink {
     gdocId: string
@@ -58,67 +58,62 @@ export interface DataPageRelatedResearch {
 // This gives us a typed object we can use to validate datapage JSON files at runtime (see
 // Value.Check() and Value.Errors() below), as well as a type that we can use
 // for typechecking at compile time (see "type DataPageJson" below).
-export const DataPageJsonTypeObject = Type.Object(
-    {
-        showDataPageOnChartIds: Type.Array(Type.Number()),
-        status: Type.Union([Type.Literal("published"), Type.Literal("draft")]),
-        title: Type.String(),
-        googleDocEditLink: Type.Optional(Type.RegEx(gdocUrlRegex)),
-        topicTagsLinks: Type.Array(
-            Type.Object({ title: Type.String(), url: Type.String() })
-        ),
-        variantSource: Type.Optional(Type.String()),
-        variantMethods: Type.Optional(Type.String()),
-        nameOfSource: Type.String(),
-        owidProcessingLevel: Type.String(),
-        dateRange: Type.String(),
-        lastUpdated: Type.String(),
-        nextUpdate: Type.String(),
-        subtitle: Type.Optional(Type.String()),
-        descriptionFromSource: Type.Optional(
-            Type.Object({
-                title: Type.String(),
-            })
-        ),
-        relatedResearch: Type.Optional(
-            Type.Array(
-                Type.Object({
-                    title: Type.String(),
-                    url: Type.String(),
-                    authors: Type.Array(Type.String()),
-                    imageUrl: Type.String(),
-                })
-            )
-        ),
-        allCharts: Type.Optional(
-            Type.Array(
-                Type.Object({
-                    title: Type.String(),
-                    slug: Type.String(),
-                })
-            )
-        ),
-        sources: Type.Array(
-            Type.Object({
-                sourceName: Type.String(),
-                sourceRetrievedOn: Type.Optional(Type.String()),
-                sourceRetrievedFromUrl: Type.Optional(Type.String()),
-                sourceCitation: Type.Optional(Type.String()),
-            })
-        ),
-        citationDataInline: Type.Optional(Type.String()),
-        citationDataFull: Type.Optional(Type.String()),
-        citationDatapage: Type.Optional(Type.String()),
-    },
-    // We are not allowing to have any additional properties in the JSON file,
-    // in part because the JSON is added as-is to the page source for hydration,
-    // and we don't want to risk exposing unwanted draft or internal content.
 
-    // Todo: this doesn't to work for nested objects, even when adding
-    // "additionalProperties" keys to each individual ones.
-    { additionalProperties: false }
-)
-export type DataPageJson = Static<typeof DataPageJsonTypeObject>
+// We are using `strictObject` to enforce that we are not allowing any additional properties in
+// the JSON file, in part because the JSON is added as-is to the page source for hydration,
+// and we don't want to risk exposing unwanted draft or internal content.
+export const DataPageJsonTypeObject = z.strictObject({
+    showDataPageOnChartIds: z.array(z.number()),
+    status: z.union([z.literal("published"), z.literal("draft")]),
+    title: z.string(),
+    googleDocEditLink: z.optional(z.string().check(z.regex(gdocUrlRegex))),
+    topicTagsLinks: z.array(
+        z.strictObject({ title: z.string(), url: z.string() })
+    ),
+    variantSource: z.optional(z.string()),
+    variantMethods: z.optional(z.string()),
+    nameOfSource: z.string(),
+    owidProcessingLevel: z.string(),
+    dateRange: z.string(),
+    lastUpdated: z.string(),
+    nextUpdate: z.string(),
+    subtitle: z.optional(z.string()),
+    descriptionFromSource: z.optional(
+        z.strictObject({
+            title: z.string(),
+        })
+    ),
+    relatedResearch: z.optional(
+        z.array(
+            z.strictObject({
+                title: z.string(),
+                url: z.string(),
+                authors: z.array(z.string()),
+                imageUrl: z.string(),
+            })
+        )
+    ),
+    allCharts: z.optional(
+        z.array(
+            z.strictObject({
+                title: z.string(),
+                slug: z.string(),
+            })
+        )
+    ),
+    sources: z.array(
+        z.strictObject({
+            sourceName: z.string(),
+            sourceRetrievedOn: z.optional(z.string()),
+            sourceRetrievedFromUrl: z.optional(z.string()),
+            sourceCitation: z.optional(z.string()),
+        })
+    ),
+    citationDataInline: z.optional(z.string()),
+    citationDataFull: z.optional(z.string()),
+    citationDatapage: z.optional(z.string()),
+})
+export type DataPageJson = z.infer<typeof DataPageJsonTypeObject>
 
 export type DataPageParseError = { message: string; path?: string }
 
