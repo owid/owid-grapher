@@ -6,6 +6,8 @@ metadata:
           column: explorerSlug
         - table: explorer_variables
           column: explorerSlug
+        - table: explorer_views
+          column: explorerSlug
 fields:
     slug:
         description: URL-friendly identifier for the explorer used in URLs like /explorers/[slug]
