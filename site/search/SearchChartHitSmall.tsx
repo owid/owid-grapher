@@ -135,7 +135,9 @@ export function SearchChartHitSmall({
                             key={tab}
                             href={constructChartUrl({ hit, entities, tab })}
                             onClick={onClick}
-                            aria-label={makeLabelForGrapherTab(tab)}
+                            aria-label={makeLabelForGrapherTab(tab, {
+                                format: "long",
+                            })}
                         >
                             <GrapherTabIcon tab={tab} />
                         </a>
