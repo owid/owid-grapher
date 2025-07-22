@@ -110,6 +110,9 @@ export async function handleDeleteExplorer(
     }
 
     await trx(ExplorersTableName).where({ slug }).delete()
+    
+    // Clean up associated explorer views
+    await trx("explorer_views").where({ explorerSlug: slug }).delete()
 
     if (explorer.isPublished) {
         await triggerStaticBuild(user, `Unpublishing explorer ${slug}`)
