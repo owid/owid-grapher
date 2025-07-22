@@ -1,5 +1,4 @@
 import * as _ from "lodash-es"
-import { StrictMode } from "react"
 import { createRoot, hydrateRoot } from "react-dom/client"
 import {
     ArchiveMetaInformation,
@@ -202,11 +201,9 @@ const hydrateOwidGdoc = (debug?: boolean, isPreviewing?: boolean) => {
     if (!wrapper) return
     hydrateRoot(
         wrapper,
-        <StrictMode>
-            <DebugProvider debug={debug}>
-                <OwidGdoc {...props} isPreviewing={isPreviewing} />
-            </DebugProvider>
-        </StrictMode>
+        <DebugProvider debug={debug}>
+            <OwidGdoc {...props} isPreviewing={isPreviewing} />
+        </DebugProvider>
     )
 }
 
