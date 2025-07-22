@@ -321,13 +321,9 @@ export class TagGraphPage extends React.Component {
     static contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    constructor(props: Readonly<unknown>) {
+    constructor(props: Record<string, never>) {
         super(props)
         makeObservable(this)
-        this.handleDragEnd = this.handleDragEnd.bind(this)
-        this.setWeight = this.setWeight.bind(this)
-        this.setChild = this.setChild.bind(this)
-        this.removeNode = this.removeNode.bind(this)
     }
 
     @observable flatTagGraph: FlatTagGraph = {}
