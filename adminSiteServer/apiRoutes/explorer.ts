@@ -109,11 +109,10 @@ export async function handleDeleteExplorer(
         throw new JsonError("Explorer not found", 404)
     }
 
-    // Delete explorer views first - chart configs will be deleted automatically
-    // via ON DELETE CASCADE foreign key constraint
-    await trx("explorer_views").where({ explorerSlug: slug }).delete()
-
     await trx(ExplorersTableName).where({ slug }).delete()
+
+    // Note: explorer_views are automatically cleaned up via ON DELETE CASCADE
+    // foreign key constraint from explorerSlug to explorers.slug
 
     if (explorer.isPublished) {
         await triggerStaticBuild(user, `Unpublishing explorer ${slug}`)
