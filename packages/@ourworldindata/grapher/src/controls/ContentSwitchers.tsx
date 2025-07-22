@@ -110,7 +110,7 @@ export class ContentSwitchers extends React.Component<{
                     className: cx({ active: tab === this.activeTab }),
                     "data-track-note": "chart_click_" + tab,
                     "aria-label": makeLabelForGrapherTab(tab, {
-                        hasMultipleChartTypes,
+                        useGenericChartLabel: !hasMultipleChartTypes,
                     }),
                 },
             })
@@ -220,7 +220,9 @@ function TabContent({
         <span>
             <GrapherTabIcon tab={tab} />
             <span className="label">
-                {makeLabelForGrapherTab(tab, { hasMultipleChartTypes })}
+                {makeLabelForGrapherTab(tab, {
+                    useGenericChartLabel: !hasMultipleChartTypes,
+                })}
             </span>
         </span>
     )
