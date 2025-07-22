@@ -5,7 +5,7 @@ import {
     faSearchMinus,
     faCompress,
     faDownload,
-    faPlus,
+    faXmark,
 } from "@fortawesome/free-solid-svg-icons"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 import { LoadingIndicator, BodyDiv } from "@ourworldindata/components"
@@ -144,12 +144,8 @@ export const Lightbox = ({
                                         </button>
                                     </>
                                 )}
-                                <button
-                                    aria-label="Close"
-                                    onClick={onClose}
-                                    className="close"
-                                >
-                                    <FontAwesomeIcon icon={faPlus} />
+                                <button aria-label="Close" onClick={onClose}>
+                                    <FontAwesomeIcon icon={faXmark} />
                                 </button>
                             </div>
                         </>

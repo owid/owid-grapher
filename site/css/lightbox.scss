@@ -50,9 +50,6 @@
         a {
             padding: 0 1rem;
             font-size: 1.2rem;
-            font-weight: bold;
-            border: none;
-            outline: none;
             color: $white;
             cursor: pointer;
             background: none;
@@ -60,9 +57,6 @@
             &:hover {
                 color: lightgrey;
             }
-        }
-        .close {
-            transform: rotate(45deg);
         }
     }
 }
