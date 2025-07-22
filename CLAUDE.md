@@ -1,11 +1,10 @@
 # Bash commands
 
-- yarn buildLerna: Build the packages (types and utils, core table, the grapher data viz component and the data explorer)
 - yarn typecheckLerna: runs the typescript typechecker across all files (both frontend code in lerna managed packages and the rest of the site)
-- yarn testLint: run eslint
+- yarn testLintChanged: run eslint on changed files
 - yarn test: run vitest
-- yarn testPrettierAll: run prettier
-- yarn fixPrettierAll: attempt to fix prettier issues
+- yarn testPrettierChanged: run prettier on changed files
+- yarn fixPrettierChanged: attempt to fix prettier issues on changed files
 
 # Codebase overview
 
