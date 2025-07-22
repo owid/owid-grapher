@@ -28,6 +28,12 @@ import { getChartConfigById } from "../db/model/Chart.js"
 import { getMergedGrapherConfigForVariable } from "../db/model/Variable.js"
 import * as R from "remeda"
 
+interface ExplorerProcessingStats {
+    slug: string
+    viewCount: number
+    duration: number
+}
+
 // This scrips constructs Grapher configs for every view in an explorer.
 // The constructed Grapher configs are an approximation of the actual Grapher
 // configs; they are not guaranteed to be complete or correct. In particular,
@@ -251,10 +257,12 @@ async function fetchPublishedExplorers(
 
 async function prepareGrapherConfigsForExplorerViews(
     knex: db.KnexReadWriteTransaction
-): Promise<void> {
+): Promise<ExplorerProcessingStats[]> {
     const explorers = await fetchPublishedExplorers(knex)
+    const stats: ExplorerProcessingStats[] = []
 
     for (const explorer of explorers) {
+        const startTime = performance.now()
         console.info("Processing... " + explorer.slug)
 
         const explorerViews: DbInsertExplorerView[] = []
@@ -296,10 +304,50 @@ async function prepareGrapherConfigsForExplorerViews(
         await knex.transaction(async (trx) => {
             await trx.batchInsert("explorer_views", explorerViews)
         })
+
+        const endTime = performance.now()
+        const duration = Math.round(endTime - startTime)
+        
+        stats.push({
+            slug: explorer.slug,
+            viewCount: explorerViews.length,
+            duration
+        })
     }
+
+    return stats
+}
+
+function printStatsTable(stats: ExplorerProcessingStats[]): void {
+    console.log('\n' + '='.repeat(70))
+    console.log('Explorer Processing Statistics')
+    console.log('='.repeat(70))
+    console.log('Explorer'.padEnd(30) + 'Views'.padStart(8) + 'Duration (ms)'.padStart(15))
+    console.log('-'.repeat(70))
+    
+    for (const stat of stats) {
+        console.log(
+            stat.slug.padEnd(30) + 
+            stat.viewCount.toString().padStart(8) + 
+            stat.duration.toString().padStart(15)
+        )
+    }
+    
+    const totalViews = stats.reduce((sum, stat) => sum + stat.viewCount, 0)
+    const totalDuration = stats.reduce((sum, stat) => sum + stat.duration, 0)
+    
+    console.log('-'.repeat(70))
+    console.log(
+        'TOTAL'.padEnd(30) + 
+        totalViews.toString().padStart(8) + 
+        totalDuration.toString().padStart(15)
+    )
+    console.log('='.repeat(70))
 }
 
 const main = async (): Promise<void> => {
+    const showStats = process.argv.includes('--stats')
+    
     try {
         // Execute TRUNCATE outside of transaction to avoid DDL/transaction mixing
         await db.knexReadWriteTransaction(
@@ -309,10 +357,14 @@ const main = async (): Promise<void> => {
             db.TransactionCloseMode.Close
         )
 
-        await db.knexReadWriteTransaction(
+        const stats = await db.knexReadWriteTransaction(
             (trx) => prepareGrapherConfigsForExplorerViews(trx),
             db.TransactionCloseMode.Close
         )
+
+        if (showStats) {
+            printStatsTable(stats)
+        }
     } catch (e) {
         console.error(e)
     }
