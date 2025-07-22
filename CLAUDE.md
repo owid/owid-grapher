@@ -13,6 +13,8 @@ Before you make a commit, run `typecheckLerna`, `testLint` and `fixPrettierAll`.
 ## Code style
 
 - We use double quotes for string literals instead of single quotes
+- Use type definitions for function params and return values. Reuse existing shared type definitions where possible.
+- Avoid the use of the `any` type. Only use it if you have to and ask for permission.
 
 # Codebase overview
 
