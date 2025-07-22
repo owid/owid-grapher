@@ -1,4 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
+// cSpell:ignore uuidv7
+import { uuidv7 } from "uuidv7"
 
 export class MigrateExplorerViewsToUseChartConfigs1753194645809
     implements MigrationInterface
@@ -18,7 +20,7 @@ export class MigrateExplorerViewsToUseChartConfigs1753194645809
         // Step 2: Add the new chartConfigId column
         await queryRunner.query(`-- sql
             ALTER TABLE explorer_views 
-            ADD COLUMN chartConfigId varchar(255) NULL
+            ADD COLUMN chartConfigId char(36) NULL
         `)
 
         // Step 3: For each row, insert the grapherConfig into chart_configs and get the ID
@@ -27,21 +29,22 @@ export class MigrateExplorerViewsToUseChartConfigs1753194645809
         `)
 
         for (const view of existingViews) {
-            // Generate a unique ID for the chart config
-            const chartConfigId = `explorer_view_${view.id}_${Date.now()}`
+            // Generate a unique ID for the chart config using uuidv7
+            // cSpell:ignore uuidv7
+            const chartConfigId = uuidv7()
 
-            // Parse the JSON to ensure it's valid
-            const _grapherConfig = JSON.parse(view.grapherConfig)
+            // Parse the JSON to ensure it's valid (we don't use it but validate it)
+            JSON.parse(view.grapherConfig)
 
-            // Insert into chart_configs table
+            // Insert into chart_configs table (only id, patch, full - other fields are auto-generated)
             await queryRunner.query(
                 `-- sql
-                INSERT INTO chart_configs (id, patch, \`full\`, slug, chartType, createdAt, updatedAt)
-                VALUES (?, ?, ?, NULL, NULL, NOW(), NOW())
+                INSERT INTO chart_configs (id, patch, \`full\`)
+                VALUES (?, ?, ?)
             `,
                 [
                     chartConfigId,
-                    JSON.stringify({}), // empty patch since this is a complete config
+                    view.grapherConfig, // store full config in patch for conceptual clarity
                     view.grapherConfig, // use the original config as full config
                 ]
             )
@@ -60,7 +63,7 @@ export class MigrateExplorerViewsToUseChartConfigs1753194645809
         // Step 4: Make chartConfigId non-null and add foreign key constraint
         await queryRunner.query(`-- sql
             ALTER TABLE explorer_views 
-            MODIFY COLUMN chartConfigId varchar(255) NOT NULL
+            MODIFY COLUMN chartConfigId char(36) NOT NULL
         `)
 
         await queryRunner.query(`-- sql
@@ -83,10 +86,10 @@ export class MigrateExplorerViewsToUseChartConfigs1753194645809
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        // Step 1: Add back the grapherConfig column
+        // Step 1: Add back the grapherConfig column (initially nullable)
         await queryRunner.query(`-- sql
             ALTER TABLE explorer_views 
-            ADD COLUMN grapherConfig json NOT NULL
+            ADD COLUMN grapherConfig json NULL
         `)
 
         // Step 2: Populate the grapherConfig column from chart_configs
@@ -96,7 +99,20 @@ export class MigrateExplorerViewsToUseChartConfigs1753194645809
             SET ev.grapherConfig = cc.\`full\`
         `)
 
-        // Step 3: Drop foreign key constraint and chartConfigId column
+        // Step 3: Make grapherConfig NOT NULL now that it's populated
+        await queryRunner.query(`-- sql
+            ALTER TABLE explorer_views 
+            MODIFY COLUMN grapherConfig json NOT NULL
+        `)
+
+        // Step 4: Clean up chart_configs entries that were created for explorer views
+        // Do this before dropping the chartConfigId column
+        await queryRunner.query(`-- sql
+            DELETE cc FROM chart_configs cc
+            JOIN explorer_views ev ON ev.chartConfigId = cc.id
+        `)
+
+        // Step 5: Drop foreign key constraint and chartConfigId column
         await queryRunner.query(`-- sql
             ALTER TABLE explorer_views 
             DROP FOREIGN KEY fk_explorer_views_chart_config_id
@@ -105,12 +121,6 @@ export class MigrateExplorerViewsToUseChartConfigs1753194645809
         await queryRunner.query(`-- sql
             ALTER TABLE explorer_views 
             DROP COLUMN chartConfigId
-        `)
-
-        // Step 4: Clean up chart_configs entries that were created for explorer views
-        await queryRunner.query(`-- sql
-            DELETE FROM chart_configs 
-            WHERE id LIKE 'explorer_view_%'
         `)
     }
 }
