@@ -298,7 +298,7 @@ export async function upsertExplorer(
     try {
         await refreshExplorerViewsForSlug(knex, slug)
     } catch (error) {
-        console.error(`Failed to refresh explorer views for ${slug}:`, error)
+        console.error(`Failed to refresh explorer views for:`, { slug, error })
         // Don't throw - this shouldn't break the main explorer upsert operation
     }
 
