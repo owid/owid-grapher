@@ -139,7 +139,6 @@ export class ProminentLink extends Component<ProminentLinkProps> {
         return (
             <div
                 className={classes.join(" ")}
-                data-no-lightbox
                 data-style={this.style}
                 data-title={this.props.title}
             >

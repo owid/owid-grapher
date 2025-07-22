@@ -83,7 +83,6 @@ export default function NarrativeChart({
                         width={DEFAULT_GRAPHER_WIDTH}
                         height={DEFAULT_GRAPHER_HEIGHT}
                         loading="lazy"
-                        data-no-lightbox
                     />
                 </a>
             </figure>

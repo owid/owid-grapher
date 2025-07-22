@@ -76,8 +76,13 @@ export const useEmbedChart = (
     }, [activeChartIdx, refChartContainer, isPreviewing])
 }
 
-export const useTriggerOnEscape = (trigger: VoidFunction) => {
+export const useTriggerOnEscape = (
+    trigger: VoidFunction,
+    { active = true }: { active?: boolean } = {}
+) => {
     useEffect(() => {
+        if (!active) return
+
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
                 trigger()
@@ -87,7 +92,7 @@ export const useTriggerOnEscape = (trigger: VoidFunction) => {
         return () => {
             document.removeEventListener("keydown", handleEscape)
         }
-    }, [trigger])
+    }, [trigger, active])
 }
 
 // Auto-updating Bounds object based on ResizeObserver

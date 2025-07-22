@@ -9,7 +9,7 @@ import {
 } from "@ourworldindata/utils"
 import { DataTable } from "../dataTable/DataTable"
 import { CaptionedChartManager } from "../captionedChart/CaptionedChart"
-import { LoadingIndicator } from "../loadingIndicator/LoadingIndicator"
+import { LoadingIndicator } from "@ourworldindata/components"
 import { FacetChart } from "../facetChart/FacetChart"
 import { getChartSvgProps, NoDataPattern } from "./ChartUtils"
 import { ChartComponent, makeChartState } from "./ChartTypeMap"

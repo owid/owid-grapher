@@ -70,7 +70,6 @@ $zindex-controls-drawer: 150;
     @import "../modal/SourcesModal.scss";
     @import "../tooltip/Tooltip.scss";
     @import "../mapCharts/MapTooltip.scss";
-    @import "../loadingIndicator/LoadingIndicator.scss";
     @import "../footer/Footer.scss";
     @import "../header/Header.scss";
     @import "../modal/SourcesKeyDataTable.scss";
@@ -97,6 +96,7 @@ $zindex-controls-drawer: 150;
 @import "../fullScreen/FullScreen.scss";
 @import "../../../components/src/Checkbox.scss";
 @import "../../../components/src/RadioButton.scss";
+@import "../../../components/src/loadingIndicator/LoadingIndicator.scss";
 
 @import "../../../components/src/closeButton/CloseButton.scss";
 @import "../../../components/src/OverlayHeader.scss";

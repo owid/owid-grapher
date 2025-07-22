@@ -21,11 +21,6 @@
     @include image-shadow;
 }
 
-.article-content img.lightbox-enabled:hover {
-    @include image-hover;
-    cursor: zoom-in;
-}
-
 .article-content figure {
     @include figure-margin;
 }

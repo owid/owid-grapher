@@ -62,7 +62,6 @@ export default function GrapherImage(props: {
                 width={DEFAULT_GRAPHER_WIDTH}
                 height={DEFAULT_GRAPHER_HEIGHT}
                 loading="lazy"
-                data-no-lightbox
                 data-no-img-formatting={props.noFormatting}
             />
         </picture>

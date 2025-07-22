@@ -18,7 +18,6 @@ import {
 } from "./DataPageV2Content.js"
 import { Footnote } from "./Footnote.js"
 import { OwidGdoc } from "./gdocs/OwidGdoc.js"
-import { runLightbox } from "./lightboxUtils.js"
 import { MultiEmbedderSingleton } from "./multiembedder/MultiEmbedder.js"
 import SiteTools, { SITE_TOOLS_CLASS } from "./SiteTools.js"
 import { runDetailsOnDemand } from "./detailsOnDemand.js"
@@ -239,7 +238,6 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
         case SiteFooterContext.dataPageV2:
             hydrateDataPageV2Content({ isPreviewing })
             // runAllGraphersLoadedListener()
-            runLightbox()
             runSiteNavigation()
             // runSiteTools()
             // runCookiePreferencesManager()
@@ -248,7 +246,6 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
         case SiteFooterContext.multiDimDataPage:
             hydrateMultiDimDataPageContent(isPreviewing)
             // runAllGraphersLoadedListener()
-            runLightbox()
             runSiteNavigation()
             // runSiteTools()
             // runCookiePreferencesManager()
@@ -281,7 +278,6 @@ export const runSiteFooterScripts = (
         case SiteFooterContext.dataPageV2:
             hydrateDataPageV2Content({ isPreviewing })
             runAllGraphersLoadedListener()
-            runLightbox()
             runSiteNavigation(hideDonationFlag)
             runSiteTools()
             runCookiePreferencesManager()
@@ -290,7 +286,6 @@ export const runSiteFooterScripts = (
         case SiteFooterContext.multiDimDataPage:
             hydrateMultiDimDataPageContent(isPreviewing)
             runAllGraphersLoadedListener()
-            runLightbox()
             runSiteNavigation(hideDonationFlag)
             runSiteTools()
             runCookiePreferencesManager()
@@ -316,7 +311,6 @@ export const runSiteFooterScripts = (
             runSiteNavigation(hideDonationFlag)
             runFootnotes()
             void runDetailsOnDemand()
-            runLightbox()
             runSiteTools()
             runCookiePreferencesManager()
             break
@@ -341,7 +335,6 @@ export const runSiteFooterScripts = (
             MultiEmbedderSingleton.setUpGlobalEntitySelectorForEmbeds()
             MultiEmbedderSingleton.embedAll(isPreviewing)
             runAllGraphersLoadedListener()
-            runLightbox()
             hydrateProminentLink(MultiEmbedderSingleton.selection)
             runFootnotes()
             runSiteTools()

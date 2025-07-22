@@ -1,11 +1,10 @@
-import { useCallback, useContext } from "react"
+import { useCallback, useContext, useState } from "react"
 import {
     generateSourceProps,
     ImageMetadata,
     triggerDownloadFromBlob,
 } from "@ourworldindata/utils"
 import cx from "classnames"
-import { LIGHTBOX_IMAGE_CLASS } from "../../lightboxUtils.js"
 import { CLOUDFLARE_IMAGES_URL } from "../../../settings/clientSettings.js"
 import { DocumentContext } from "../DocumentContext.js"
 import { useImage } from "../utils.js"
@@ -15,6 +14,7 @@ import { useMediaQuery } from "usehooks-ts"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { Container } from "./layout.js"
+import { Lightbox } from "../../Lightbox.js"
 
 // generates rules that tell the browser:
 // below the medium breakpoint, the image will be 95vw wide
@@ -63,6 +63,8 @@ const containerSizes: Record<ImageParentContainer, string> = {
     ["span-8"]: gridSpan8,
 }
 
+export const LIGHTBOX_IMAGE_CLASS = "lightbox-image"
+
 export default function Image(props: {
     filename: string
     smallFilename?: string
@@ -86,12 +88,22 @@ export default function Image(props: {
         "image--has-outline": hasOutline,
     })
 
+    // Whether we should show the lightbox and a download button
+    const isInteractive = shouldLightbox && containerType !== "thumbnail"
+
     const { isPreviewing } = useContext(DocumentContext)
     const isSmall = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const image = useImage(filename)
     const smallImage = useImage(smallFilename)
     const activeImage =
         (isSmall || preferSmallFilename) && smallImage ? smallImage : image
+    const [isLightboxOpen, setIsLightboxOpen] = useState(false)
+
+    const openLightbox = useCallback(() => {
+        if (isInteractive) {
+            setIsLightboxOpen(true)
+        }
+    }, [isInteractive])
 
     const renderImageError = (name: string) => (
         <BlockErrorFallback
@@ -123,8 +135,6 @@ export default function Image(props: {
     }
 
     const alt = props.alt ?? activeImage.defaultAlt
-    const isInteractive = containerType !== "thumbnail" && shouldLightbox
-    const maybeLightboxClassName = isInteractive ? LIGHTBOX_IMAGE_CLASS : ""
 
     function makeSrc(image: ImageMetadata) {
         if (!image.cloudflareId) {
@@ -142,7 +152,7 @@ export default function Image(props: {
 
     return (
         <div className={className}>
-            <picture>
+            <picture onClick={openLightbox}>
                 {sourceProps.map((props, i) => (
                     <source
                         key={i}
@@ -157,9 +167,8 @@ export default function Image(props: {
                 <img
                     src={imageSrc}
                     alt={alt}
-                    className={maybeLightboxClassName}
+                    className={isInteractive ? LIGHTBOX_IMAGE_CLASS : undefined}
                     loading="lazy"
-                    data-filename={activeImage.filename}
                     // There's no way of knowing in advance whether we'll be showing the image or smallImage - we just have to choose one
                     // I went with image, as we currently only use smallImage for data insights
                     width={activeImage.originalWidth ?? undefined}
@@ -187,6 +196,16 @@ export default function Image(props: {
                         </div>
                     </button>
                 </div>
+            )}
+            {isLightboxOpen && (
+                <Lightbox
+                    imgSrc={imageSrc}
+                    onClose={() => setIsLightboxOpen(false)}
+                    imgFilename={activeImage.filename}
+                    width={activeImage.originalWidth}
+                    height={activeImage.originalHeight}
+                    alt={alt}
+                />
             )}
         </div>
     )

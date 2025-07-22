@@ -3,7 +3,6 @@ import {
     getVariableDataRoute,
     getVariableMetadataRoute,
     GRAPHER_PAGE_BODY_CLASS,
-    LoadingIndicator,
 } from "@ourworldindata/grapher"
 import {
     PostReference,
@@ -13,7 +12,7 @@ import {
     SiteFooterContext,
     Url,
 } from "@ourworldindata/utils"
-import { MarkdownTextWrap } from "@ourworldindata/components"
+import { LoadingIndicator, MarkdownTextWrap } from "@ourworldindata/components"
 import {
     HIDE_IF_JS_DISABLED_CLASSNAME,
     HIDE_IF_JS_ENABLED_CLASSNAME,

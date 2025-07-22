@@ -107,8 +107,7 @@ export const formatWordpressPost = async (
                           src="${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${url.slug}.png${url.queryStr}"
                           width="850"
                           height="600"
-                          loading="lazy"
-                          data-no-lightbox />
+                          loading="lazy" />
                     </div>
                 </figure>`
         if (el.parent?.type === "tag" && el.parent.name === "p") {
