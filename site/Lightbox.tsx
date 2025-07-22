@@ -61,7 +61,7 @@ export const Lightbox = ({
     // so we need to pass it separately
 }) => {
     const [isLoaded, setIsLoaded] = useState(false)
-    const contentRef = useRef<HTMLImageElement>(null)
+    const contentRef = useRef<HTMLDivElement>(null)
 
     const handleDownload = useCallback(async () => {
         const response = await fetch(imgSrc)
