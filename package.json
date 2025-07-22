@@ -175,7 +175,7 @@
         "url-parse": "^1.5.10",
         "url-slug": "^3.0.2",
         "use-sync-external-store": "^1.5.0",
-        "usehooks-ts": "^3.1.0",
+        "usehooks-ts": "^3.1.1",
         "uuidv7": "^1.0.1",
         "versor": "^0.2.0",
         "workerpool": "^9.2.0",

@@ -13159,7 +13159,7 @@ __metadata:
     url-parse: "npm:^1.5.10"
     url-slug: "npm:^3.0.2"
     use-sync-external-store: "npm:^1.5.0"
-    usehooks-ts: "npm:^3.1.0"
+    usehooks-ts: "npm:^3.1.1"
     uuidv7: "npm:^1.0.1"
     versor: "npm:^0.2.0"
     vite: "npm:^7.0.0"
@@ -21689,14 +21689,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"usehooks-ts@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "usehooks-ts@npm:3.1.0"
+"usehooks-ts@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "usehooks-ts@npm:3.1.1"
   dependencies:
     lodash.debounce: "npm:^4.0.8"
   peerDependencies:
-    react: ^16.8.0  || ^17 || ^18
-  checksum: 10/6aef8affd3c053a3040b7421816dab85eb21601c5203496a705bafc32eb973fb519a2b0ddda527962e361d248f3a1c49df130620efe871c8f89e897451ed1cc7
+    react: ^16.8.0  || ^17 || ^18 || ^19 || ^19.0.0-rc
+  checksum: 10/4f5d6beab003d76f90c6a9b8b0cd5b61f24528fa3dbbf1a6d9c0a509cb80914074af911a92dab0bc07873f14f714771306f5271e1e8f09b94add1722da37debb
   languageName: node
   linkType: hard
 
