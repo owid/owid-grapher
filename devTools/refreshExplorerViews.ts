@@ -24,6 +24,16 @@ async function fetchPublishedExplorers(
 async function prepareGrapherConfigsForExplorerViews(
     knex: db.KnexReadWriteTransaction
 ): Promise<ExplorerProcessingStats[]> {
+    // Delete all existing explorer views and associated chart configs first
+    await db.knexRaw(
+        knex,
+        `
+        DELETE cc FROM chart_configs cc
+        INNER JOIN explorer_views ev ON cc.id = ev.chartConfigId
+    `
+    )
+    await db.knexRaw(knex, "DELETE FROM explorer_views")
+
     const explorers = await fetchPublishedExplorers(knex)
     const stats: ExplorerProcessingStats[] = []
 
@@ -86,11 +96,6 @@ const main = async (): Promise<void> => {
     const showStats = process.argv.includes("--stats")
 
     try {
-        // Execute TRUNCATE outside of transaction to avoid DDL/transaction mixing
-        await db.knexReadWriteTransaction(async (trx) => {
-            await db.knexRaw(trx, "TRUNCATE TABLE explorer_views")
-        }, db.TransactionCloseMode.Close)
-
         const stats = await db.knexReadWriteTransaction(
             (trx) => prepareGrapherConfigsForExplorerViews(trx),
             db.TransactionCloseMode.Close

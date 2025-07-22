@@ -53,8 +53,12 @@ async function getGrapherConfigByIdForExplorerRow(
     explorerRow: ExplorerGrapherInterface
 ): Promise<GrapherInterface | undefined> {
     const { grapherId } = explorerRow
-    if (!grapherId) return
-    return (await getChartConfigById(knex, grapherId))?.config
+    if (!grapherId) return undefined
+    const chartConfig = await getChartConfigById(knex, grapherId)
+    if (!chartConfig) {
+        return undefined
+    }
+    return chartConfig.config
 }
 
 async function getVariableGrapherConfigForExplorerRow(
@@ -62,7 +66,7 @@ async function getVariableGrapherConfigForExplorerRow(
     explorerRow: ExplorerGrapherInterface
 ): Promise<GrapherInterface | undefined> {
     const yVariableId = getPrimaryYVariableId(explorerRow)
-    if (!yVariableId) return
+    if (!yVariableId) return undefined
     return getMergedGrapherConfigForVariable(knex, yVariableId)
 }
 
@@ -91,12 +95,23 @@ function constructDimensionsForVariableIds(
         colDefs.map((colDef) => [colDef.owidVariableId, colDef])
     )
 
-    const yVariableIds: string[] = grapherRow.yVariableIds?.split(" ") ?? []
+    if (!grapherRow.yVariableIds) {
+        throw new Error(
+            "yVariableIds is required for variable-based explorer charts"
+        )
+    }
+    const yVariableIds: string[] = grapherRow.yVariableIds.split(" ")
     const variableIds: OwidChartDimensionInterface[] = [
-        ...yVariableIds.map((id) => ({
-            property: DimensionProperty.y,
-            variableId: parseIntOrUndefined(id),
-        })),
+        ...yVariableIds.map((id) => {
+            const variableId = parseIntOrUndefined(id)
+            if (!variableId) {
+                throw new Error(`Invalid variableId: ${id}`)
+            }
+            return {
+                property: DimensionProperty.y,
+                variableId,
+            }
+        }),
         {
             property: DimensionProperty.x,
             variableId: parseIntOrUndefined(grapherRow.xVariableId),
@@ -111,6 +126,10 @@ function constructDimensionsForVariableIds(
         },
     ].filter((obj): obj is OwidChartDimensionInterface => !!obj.variableId)
 
+    if (variableIds.length === 0) {
+        throw new Error("No valid variable IDs found for dimensions")
+    }
+
     const dimensions = variableIds.map(({ property, variableId }) => ({
         variableId,
         property,
@@ -124,14 +143,27 @@ function constructDimensionsForTableColumnSlugs(
     explorerProgram: ExplorerProgram,
     grapherRow: CoreRow
 ): PartialBy<OwidChartDimensionInterface, "variableId">[] | undefined {
+    if (!grapherRow.tableSlug) {
+        throw new Error("tableSlug is required for table-based explorer charts")
+    }
+
     const colDefsForTableSlug = explorerProgram.columnDefsByTableSlug.get(
         grapherRow.tableSlug
     )
+    if (!colDefsForTableSlug) {
+        throw new Error(
+            `No column definitions found for table slug: ${grapherRow.tableSlug}`
+        )
+    }
+
     const colDefBySlug = new Map(
-        colDefsForTableSlug?.map((colDef) => [colDef.slug, colDef]) ?? []
+        colDefsForTableSlug.map((colDef) => [colDef.slug, colDef])
     )
 
-    const ySlugs: string[] = grapherRow.ySlugs?.split(" ") ?? []
+    if (!grapherRow.ySlugs) {
+        throw new Error("ySlugs is required for table-based explorer charts")
+    }
+    const ySlugs: string[] = grapherRow.ySlugs.split(" ")
     const slugs: RequiredBy<
         PartialBy<OwidChartDimensionInterface, "variableId">,
         "slug"
@@ -141,6 +173,10 @@ function constructDimensionsForTableColumnSlugs(
         { property: DimensionProperty.color, slug: grapherRow.colorSlug },
         { property: DimensionProperty.size, slug: grapherRow.sizeSlug },
     ].filter((dim) => dim.slug)
+
+    if (slugs.length === 0) {
+        throw new Error("No valid slugs found for dimensions")
+    }
 
     const dimensions = slugs.map(({ property, slug }) => ({
         slug,
@@ -209,7 +245,7 @@ export async function constructGrapherConfig(
         grapherRow
     )
 
-    return mergeGrapherConfigs(
+    const mergedConfig = mergeGrapherConfigs(
         // variable-level config or config of the specified grapher id
         baseGrapherConfig ?? {},
         // grapher config specified in the explorer config
@@ -223,4 +259,10 @@ export async function constructGrapherConfig(
         // @ts-expect-error csv-based explorers don't use variable ids
         { $schema: defaultGrapherConfig.$schema, dimensions }
     )
+
+    if (!mergedConfig) {
+        throw new Error("Failed to merge grapher configs")
+    }
+
+    return mergedConfig
 }
