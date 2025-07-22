@@ -1,7 +1,15 @@
-import { ExplorerProgram, ExplorerGrammar, ColumnGrammar } from "@ourworldindata/explorer"
+import {
+    ExplorerProgram,
+    ExplorerGrammar,
+    ColumnGrammar,
+} from "@ourworldindata/explorer"
 import { KnexReadonlyTransaction } from "../db.js"
 import { getVariableIdsByCatalogPath } from "./Variable.js"
-import { CoreTable, ErrorValueTypes, isNotErrorValueOrEmptyCell } from "@ourworldindata/core-table"
+import {
+    CoreTable,
+    ErrorValueTypes,
+    isNotErrorValueOrEmptyCell,
+} from "@ourworldindata/core-table"
 import { ColumnTypeNames } from "@ourworldindata/types"
 
 export const transformExplorerProgramToResolveCatalogPaths = async (
