@@ -121,6 +121,7 @@ export function DataPageContent({
                     noCache: isPreviewing,
                 }),
             manager: managerRef.current,
+            archivedChartInfo,
             isConfigReady: false,
         })
     )
