@@ -102,8 +102,7 @@ import {
     Config,
     ImmutableTree,
 } from "@react-awesome-query-builder/antd"
-import codemirror from "codemirror"
-import { UnControlled as CodeMirror } from "react-codemirror2"
+import CodeMirror, { EditorView } from "@uiw/react-codemirror"
 import jsonpointer from "json8-pointer"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { Operation } from "../adminShared/SqlFilterSExpression.js"
@@ -377,25 +376,18 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     }
 
     @action.bound
-    private onRichTextEditorChange(
-        _editor: codemirror.Editor,
-        data: codemirror.EditorChange,
-        value: string
-    ) {
-        if (data.origin !== undefined) {
-            // origin seems to be +input when editing and undefined when we change the value programmatically
-            const { currentColumnFieldDescription, grapherState } = this
-            if (currentColumnFieldDescription === undefined) return
-            this.hasUncommitedRichEditorChanges = true
-            const pointer = jsonpointer.parse(
-                currentColumnFieldDescription.pointer
-            ) as string[]
-            // Here we are setting the target column field directly at the grapher so the
-            // preview is updated. When the user clicks the save button we'll then check
-            // the value on grapher vs the value on the richDataRow and perform a proper
-            // update using doAction like we do on the grid editor commits.
-            setValueRecursiveInplace(grapherState, pointer, value)
-        }
+    private onRichTextEditorChange(value: string) {
+        const { currentColumnFieldDescription, grapherState } = this
+        if (currentColumnFieldDescription === undefined) return
+        this.hasUncommitedRichEditorChanges = true
+        const pointer = jsonpointer.parse(
+            currentColumnFieldDescription.pointer
+        ) as string[]
+        // Here we are setting the target column field directly at the grapher so the
+        // preview is updated. When the user clicks the save button we'll then check
+        // the value on grapher vs the value on the richDataRow and perform a proper
+        // update using doAction like we do on the grid editor commits.
+        setValueRecursiveInplace(grapherState, pointer, value)
     }
     @action.bound
     commitRichEditorChanges() {
@@ -533,15 +525,14 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
             })
             .with(EditorOption.textfield, EditorOption.textarea, () => (
                 <CodeMirror
+                    height="300px"
                     value={currentColumnFieldDescription.getter(
                         grapherState as any as Record<string, unknown>
                     )}
-                    options={{
-                        //theme: "material",
+                    extensions={[EditorView.lineWrapping]}
+                    basicSetup={{
                         lineNumbers: true,
-                        lineWrapping: true,
                     }}
-                    autoCursor={false}
                     onChange={this.onRichTextEditorChange}
                 />
             ))
