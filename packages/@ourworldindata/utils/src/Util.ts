@@ -337,8 +337,10 @@ export const slugifySameCase = (
 // Unique number for this execution context
 // Useful for coordinating between embeds to avoid conflicts in their ids
 let _guid = 0
-export const guid = (): number => ++_guid
-export const TESTING_ONLY_reset_guid = (): number => (_guid = 0)
+let _guidsDisabledForTesting = false
+export const guid = (): number => (_guidsDisabledForTesting ? 1 : ++_guid)
+export const TESTING_ONLY_disable_guid = (): boolean =>
+    (_guidsDisabledForTesting = true)
 
 // Take an array of points and make it into an SVG path specification string
 export const pointsToPath = (points: Array<[number, number]>): string => {

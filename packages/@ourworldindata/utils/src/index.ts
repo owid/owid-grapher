@@ -29,7 +29,7 @@ export {
     slugify,
     slugifySameCase,
     guid,
-    TESTING_ONLY_reset_guid,
+    TESTING_ONLY_disable_guid,
     pointsToPath,
     sortedFindClosestIndex,
     sortedFindClosest,

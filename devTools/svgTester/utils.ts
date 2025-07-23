@@ -9,7 +9,7 @@ import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
-    TESTING_ONLY_reset_guid,
+    TESTING_ONLY_disable_guid,
 } from "@ourworldindata/utils"
 import fs, { stat } from "fs-extra"
 import path from "path"
@@ -401,7 +401,7 @@ export async function renderSvg(
     // Graphers sometimes need to generate ids (incrementing numbers). For this
     // they keep a stateful variable in clientutils. To minimize differences
     // between consecutive runs we reset this id here before every export
-    TESTING_ONLY_reset_guid()
+    TESTING_ONLY_disable_guid()
 
     const timeStart = Date.now()
 
