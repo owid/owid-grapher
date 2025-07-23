@@ -90,6 +90,7 @@ export default tseslint.config(
                         "@types/d3-color",
                         "@types/d3-ease",
                         "@types/d3-force",
+                        "@types/d3-format",
                         "@types/d3-geo",
                         "@types/d3-interpolate",
                         "@types/d3-quadtree",
