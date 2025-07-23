@@ -9,4 +9,7 @@ export default defineConfig({
     format: "esm",
     esbuildPlugins: [sassPlugin()],
     tsconfig: "./tsconfig.json",
+
+    // Needed for imports of `use-sync-external-store` (in our dependencies) to work correctly
+    noExternal: ["react"],
 })
