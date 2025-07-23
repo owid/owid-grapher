@@ -803,7 +803,7 @@ interface BindStringProps {
     disabled?: boolean
     rows?: number
     errorMessage?: string
-    buttonContent?: React.ReactChild
+    buttonContent?: React.ReactElement
     onButtonClick?: () => void
     onBlur?: () => void
 }
@@ -864,7 +864,7 @@ interface BindStringArrayProps {
     disabled?: boolean
     rows?: number
     errorMessage?: string
-    buttonContent?: React.ReactChild
+    buttonContent?: React.ReactElement
     onButtonClick?: () => void
 }
 
