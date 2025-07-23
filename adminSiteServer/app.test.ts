@@ -1598,13 +1598,53 @@ graphers
     })
 
     it("should handle foreign key relationships correctly", async () => {
+        // Create the charts that the explorer will reference
+        const chart1Response = await makeRequestAgainstAdminApi({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "test-chart-fk-4955",
+                title: "Test FK Chart 4955",
+                chartTypes: ["LineChart"],
+            }),
+        })
+        const chart2Response = await makeRequestAgainstAdminApi({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "test-chart-fk-4958",
+                title: "Test FK Chart 4958",
+                chartTypes: ["LineChart"],
+            }),
+        })
+
+        // Update the TSV to use the actual chart IDs that were created
+        const chartBasedTsv = testExplorerTsv
+            .replace("4955", chart1Response.chartId.toString())
+            .replace("4958", chart2Response.chartId.toString())
+
         // Create explorer via API
         await makeRequestAgainstAdminApi({
             method: "PUT",
             path: `/explorers/${testExplorerSlug}`,
             body: JSON.stringify({
-                tsv: testExplorerTsv,
+                tsv: chartBasedTsv,
                 commitMessage: "Test foreign key relationships",
+            }),
+        })
+
+        // New explorers are automatically unpublished, so update to publish it
+        const publishedTsv = chartBasedTsv.includes("isPublished\tfalse")
+            ? chartBasedTsv.replace("isPublished\tfalse", "isPublished\ttrue")
+            : chartBasedTsv // TSV already has isPublished\ttrue
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/explorers/${testExplorerSlug}`,
+            body: JSON.stringify({
+                tsv: publishedTsv,
+                commitMessage: "Publish explorer for FK test",
             }),
         })
 
@@ -1638,13 +1678,53 @@ graphers
     })
 
     it("should clean up explorer views when explorer is deleted via API", async () => {
+        // Create the charts that the explorer will reference
+        const chart1Response = await makeRequestAgainstAdminApi({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "test-chart-delete-4955",
+                title: "Test Delete Chart 4955",
+                chartTypes: ["LineChart"],
+            }),
+        })
+        const chart2Response = await makeRequestAgainstAdminApi({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "test-chart-delete-4958",
+                title: "Test Delete Chart 4958",
+                chartTypes: ["LineChart"],
+            }),
+        })
+
+        // Update the TSV to use the actual chart IDs that were created
+        const chartBasedTsv = testExplorerTsv
+            .replace("4955", chart1Response.chartId.toString())
+            .replace("4958", chart2Response.chartId.toString())
+
         // Create explorer first
         await makeRequestAgainstAdminApi({
             method: "PUT",
             path: `/explorers/${testExplorerSlug}`,
             body: JSON.stringify({
-                tsv: testExplorerTsv,
+                tsv: chartBasedTsv,
                 commitMessage: "Test deletion cleanup",
+            }),
+        })
+
+        // New explorers are automatically unpublished, so update to publish it
+        const publishedTsv = chartBasedTsv.includes("isPublished\tfalse")
+            ? chartBasedTsv.replace("isPublished\tfalse", "isPublished\ttrue")
+            : chartBasedTsv // TSV already has isPublished\ttrue
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/explorers/${testExplorerSlug}`,
+            body: JSON.stringify({
+                tsv: publishedTsv,
+                commitMessage: "Publish explorer for deletion test",
             }),
         })
 
@@ -1680,7 +1760,8 @@ graphers
         }
 
         const finalChartConfigsCount = await getChartConfigsCount()
-        expect(finalChartConfigsCount).toBe(0)
+        // Should only have the original 2 test charts left (explorer view configs are deleted)
+        expect(finalChartConfigsCount).toBe(2)
     })
 
     it("should handle error cases gracefully", async () => {
@@ -1704,6 +1785,20 @@ graphers
             body: JSON.stringify({
                 tsv: invalidTsv,
                 commitMessage: "Test error handling",
+            }),
+        })
+
+        // New explorers are automatically unpublished, so update to publish it
+        // This allows explorer views to be created even for invalid chart IDs (they'll have errors)
+        const publishedInvalidTsv = invalidTsv.includes("isPublished\tfalse")
+            ? invalidTsv.replace("isPublished\tfalse", "isPublished\ttrue")
+            : invalidTsv // TSV already has isPublished\ttrue
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: "/explorers/test-invalid",
+            body: JSON.stringify({
+                tsv: publishedInvalidTsv,
+                commitMessage: "Publish explorer for error test",
             }),
         })
 
@@ -1758,12 +1853,52 @@ graphers
     })
 
     it("should verify explorer view JSON structure and parameter accuracy", async () => {
+        // Create the charts that the explorer will reference
+        const chart1Response = await makeRequestAgainstAdminApi({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "test-chart-json-4955",
+                title: "Test JSON Chart 4955",
+                chartTypes: ["LineChart"],
+            }),
+        })
+        const chart2Response = await makeRequestAgainstAdminApi({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "test-chart-json-4958",
+                title: "Test JSON Chart 4958",
+                chartTypes: ["LineChart"],
+            }),
+        })
+
+        // Update the TSV to use the actual chart IDs that were created
+        const chartBasedTsv = testExplorerTsv
+            .replace("4955", chart1Response.chartId.toString())
+            .replace("4958", chart2Response.chartId.toString())
+
         await makeRequestAgainstAdminApi({
             method: "PUT",
             path: `/explorers/${testExplorerSlug}`,
             body: JSON.stringify({
-                tsv: testExplorerTsv,
+                tsv: chartBasedTsv,
                 commitMessage: "Test JSON structure",
+            }),
+        })
+
+        // New explorers are automatically unpublished, so update to publish it
+        const publishedTsv = chartBasedTsv.includes("isPublished\tfalse")
+            ? chartBasedTsv.replace("isPublished\tfalse", "isPublished\ttrue")
+            : chartBasedTsv // TSV already has isPublished\ttrue
+        await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/explorers/${testExplorerSlug}`,
+            body: JSON.stringify({
+                tsv: publishedTsv,
+                commitMessage: "Publish explorer for JSON test",
             }),
         })
 
