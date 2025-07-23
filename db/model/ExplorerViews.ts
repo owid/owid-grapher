@@ -14,6 +14,17 @@ import { insertChartConfig, updateExistingConfigPair } from "./ChartConfigs.js"
 import { uuidv7 } from "uuidv7"
 import { isEqual } from "lodash-es"
 
+// Deterministic JSON serialization that always sorts keys alphabetically
+function serializeExplorerView(view: Record<string, any>): string {
+    const sortedView: Record<string, any> = {}
+    Object.keys(view)
+        .sort()
+        .forEach((key) => {
+            sortedView[key] = view[key]
+        })
+    return JSON.stringify(sortedView)
+}
+
 export async function refreshExplorerViewsForSlug(
     knex: KnexReadWriteTransaction,
     slug: string
@@ -47,9 +58,18 @@ export async function refreshExplorerViewsForSlug(
         .where("ev.explorerSlug", slug)
 
     // Create a map for efficient lookup of existing views
+    // Normalize existing view JSON strings to handle legacy data with different key ordering
     const existingViewsMap = new Map<string, ExistingView>()
     for (const view of existingViews) {
-        existingViewsMap.set(view.explorerView, view)
+        try {
+            // Parse and re-serialize with sorted keys to normalize
+            const parsedView = JSON.parse(view.explorerView)
+            const normalizedKey = serializeExplorerView(parsedView)
+            existingViewsMap.set(normalizedKey, view)
+        } catch {
+            // If parsing fails, use original string as fallback
+            existingViewsMap.set(view.explorerView, view)
+        }
     }
 
     // init explorer program
@@ -74,7 +94,7 @@ export async function refreshExplorerViewsForSlug(
     for (const grapherRow of grapherRows) {
         const view =
             explorerProgram.decisionMatrix.getChoiceParamsForRow(grapherRow)
-        const explorerViewStr = JSON.stringify(view)
+        const explorerViewStr = serializeExplorerView(view)
 
         try {
             const config = await constructGrapherConfig(
