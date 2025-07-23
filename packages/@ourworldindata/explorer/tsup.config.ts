@@ -14,5 +14,4 @@ export default defineConfig({
     // This doesn't bundle any "import" calls, meaning the output files can't be used in a browser directly,
     // but need to be bundled again in another step. This is what we do anyway.
     skipNodeModulesBundle: true,
-    noExternal: [/@ourworldindata\/.*/],
 })
