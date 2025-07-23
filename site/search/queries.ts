@@ -64,6 +64,9 @@ export const searchQueryKeys = {
 export const chartHitQueryKeys = {
     chartInfo: (slug: string, entities: string[]) =>
         ["chart-info", slug, entities] as const,
+    chartConfig: (slug: string, queryParams?: string) =>
+        ["chart-config", slug, queryParams] as const,
+    chartData: (slug: string) => ["chart-data", slug] as const,
 } as const
 
 export async function queryDataTopics(
