@@ -23,7 +23,9 @@ export interface GrapherFigureViewProps {
     isPreviewing?: boolean
 }
 
-export function GrapherFigureView(props: GrapherFigureViewProps): JSX.Element {
+export function GrapherFigureView(
+    props: GrapherFigureViewProps
+): React.ReactElement {
     const slug = props.slug
 
     if (!slug && !props.configUrl) {

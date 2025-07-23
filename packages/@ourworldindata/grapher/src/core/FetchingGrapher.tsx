@@ -29,7 +29,7 @@ export interface FetchingGrapherProps {
 
 export function FetchingGrapher(
     props: FetchingGrapherProps
-): JSX.Element | null {
+): React.ReactElement | null {
     // if config is not provided, fetch it from configUrl
 
     const [downloadedConfig, setDownloadedConfig] = React.useState<

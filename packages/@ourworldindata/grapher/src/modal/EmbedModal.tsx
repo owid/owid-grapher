@@ -26,7 +26,7 @@ interface EmbedModalProps {
 
 interface EmbedOptions {
     title: string
-    description: JSX.Element
+    description: React.ReactElement
     url: string
 }
 

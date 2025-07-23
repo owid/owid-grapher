@@ -38,7 +38,7 @@ function ResourcePanelIcon({
 }) {
     if (!icon) return null
 
-    const iconMap: Record<TResourcePanelIcon, JSX.Element> = {
+    const iconMap: Record<TResourcePanelIcon, React.ReactElement> = {
         chart: (
             // Different from the FontAwesome linechart that we have
             <svg

@@ -21,7 +21,7 @@ export interface GrapherWithFallbackProps {
 
 export function GrapherWithFallback(
     props: GrapherWithFallbackProps
-): JSX.Element {
+): React.ReactElement {
     const { slug, className, id, config, queryStr, isPreviewing } = props
 
     if (!slug && !props.configUrl) {

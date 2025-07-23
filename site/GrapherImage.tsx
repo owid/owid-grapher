@@ -18,14 +18,14 @@ export default function GrapherImage(props: {
     alt?: string
     noFormatting?: boolean
     enablePopulatingUrlParams?: boolean
-}): JSX.Element
+}): React.ReactElement
 export default function GrapherImage(props: {
     slug: string
     queryString?: string
     alt?: string
     noFormatting?: boolean
     enablePopulatingUrlParams?: boolean
-}): JSX.Element
+}): React.ReactElement
 export default function GrapherImage(props: {
     url?: string
     slug?: string

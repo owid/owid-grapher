@@ -319,7 +319,7 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
         return `${chartTypeLabel} settings`
     }
 
-    private renderSettingsButtonAndPopup(): JSX.Element {
+    private renderSettingsButtonAndPopup(): React.ReactElement {
         const { active } = this
 
         return (
