@@ -33,7 +33,10 @@
 
 .chart-hit-img-container {
     margin-bottom: 8px;
-    aspect-ratio: calc($grapher-thumbnail-width / $grapher-thumbnail-height);
+    aspect-ratio: calc(
+        $grapher-thumbnail-width_deprecated /
+            $grapher-thumbnail-height_deprecated
+    );
     width: 100%;
     background-color: $gray-10;
 
