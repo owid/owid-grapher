@@ -10,7 +10,7 @@ import {
 import { Env } from "../_common/env.js"
 import { DEFAULT_HEADERS, CORS_HEADERS } from "./_utils/constants.js"
 import { logError } from "./_utils/error.js"
-import { z } from "zod/mini"
+import { z } from "zod"
 
 const filePath = "donation/donate.ts"
 
@@ -43,10 +43,6 @@ export const onRequestPost: PagesFunction<Env> = async ({
             )
         // Parse the body of the request as JSON
         const donation = await request.json()
-
-        // Load Zod locale so we can use it for error messages.
-        // See https://zod.dev/packages/mini?id=no-default-locale
-        z.config(z.locales.en())
 
         // Check that the received donation object has the right type. Given that we
         // use the same types in the client and the server, this should never fail

@@ -14,7 +14,7 @@ export const DonationRequestTypeObject = z.object({
     name: z.optional(z.string()),
     showOnList: z.boolean(),
     subscribeToDonorNewsletter: z.boolean(),
-    currency: z.union([z.literal("GBP"), z.literal("EUR"), z.literal("USD")]),
+    currency: z.enum(["GBP", "EUR", "USD"]),
     amount: z.optional(
         z.number({
             // We don't want to enforce a minimum or maximum donation amount at the
@@ -23,11 +23,7 @@ export const DonationRequestTypeObject = z.object({
             // by getErrorMessageDonation().
         })
     ),
-    interval: z.union([
-        z.literal("once"),
-        z.literal("monthly"),
-        z.literal("annual"),
-    ]),
+    interval: z.enum(["once", "monthly", "annual"]),
     successUrl: z.string(),
     cancelUrl: z.string(),
     captchaToken: z.string(),

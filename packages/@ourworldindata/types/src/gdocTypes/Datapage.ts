@@ -64,7 +64,7 @@ export interface DataPageRelatedResearch {
 // and we don't want to risk exposing unwanted draft or internal content.
 export const DataPageJsonTypeObject = z.strictObject({
     showDataPageOnChartIds: z.array(z.number()),
-    status: z.union([z.literal("published"), z.literal("draft")]),
+    status: z.enum(["published", "draft"]),
     title: z.string(),
     googleDocEditLink: z.optional(z.string().check(z.regex(gdocUrlRegex))),
     topicTagsLinks: z.array(
