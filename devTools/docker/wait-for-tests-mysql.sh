@@ -14,9 +14,6 @@ fi
 : "${GRAPHER_TEST_DB_HOST:?Need to set GRAPHER_TEST_DB_HOST non-empty}"
 : "${GRAPHER_TEST_DB_PORT:?Need to set GRAPHER_TEST_DB_PORT non-empty}"
 
-printf 'Waiting for MySQL to come up...'
 while ! mysql -u$GRAPHER_TEST_DB_USER -p$GRAPHER_TEST_DB_PASS -h $GRAPHER_TEST_DB_HOST --port=$GRAPHER_TEST_DB_PORT -e 'select 1 from _test_db_ready' $GRAPHER_TEST_DB_NAME &>/dev/null; do
-    printf '.'
     sleep 1
 done
-printf 'ok\n'

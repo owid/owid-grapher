@@ -18,24 +18,18 @@ _mysql() {
 }
 
 createTestDb() {
-    echo "Waiting for DB to be online"
-    mysqladmin ping -h$DB_ROOT_HOST -uroot --password=$DB_ROOT_PASS --wait=30
+    mysqladmin ping -h$DB_ROOT_HOST -uroot --password=$DB_ROOT_PASS --wait=30 >/dev/null 2>&1
 
-    _mysql --database="" -e "DROP DATABASE IF EXISTS $GRAPHER_TEST_DB_NAME;"
+    _mysql --database="" -e "DROP DATABASE IF EXISTS $GRAPHER_TEST_DB_NAME;" >/dev/null 2>&1
 
-    echo "executing: CREATE DATABASE $GRAPHER_TEST_DB_NAME;"
-    _mysql --database="" -e "CREATE DATABASE $GRAPHER_TEST_DB_NAME;"
+    _mysql --database="" -e "CREATE DATABASE $GRAPHER_TEST_DB_NAME;" >/dev/null 2>&1
 
-    echo "creating user if it doesn't exist"
-    _mysql --database="" -e "CREATE USER IF NOT EXISTS '$GRAPHER_TEST_DB_USER' IDENTIFIED BY '$GRAPHER_TEST_DB_PASS'; GRANT ALL PRIVILEGES ON * . * TO '$GRAPHER_TEST_DB_USER'; FLUSH PRIVILEGES;"
+    _mysql --database="" -e "CREATE USER IF NOT EXISTS '$GRAPHER_TEST_DB_USER' IDENTIFIED BY '$GRAPHER_TEST_DB_PASS'; GRANT ALL PRIVILEGES ON * . * TO '$GRAPHER_TEST_DB_USER'; FLUSH PRIVILEGES;" >/dev/null 2>&1
 
-    echo "Ingesting sql creation script"
-    cat /migration/pre-migrations-schema.sql | _mysql $GRAPHER_TEST_DB_NAME
+    cat /migration/pre-migrations-schema.sql | _mysql $GRAPHER_TEST_DB_NAME >/dev/null 2>&1
 
-    echo "Indicating we are done"
-    _mysql -e "CREATE TABLE _test_db_ready (id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY (id));" $GRAPHER_TEST_DB_NAME
+    _mysql -e "CREATE TABLE _test_db_ready (id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY (id));" $GRAPHER_TEST_DB_NAME >/dev/null 2>&1
 
-    echo "done"
     return 0
 }
 

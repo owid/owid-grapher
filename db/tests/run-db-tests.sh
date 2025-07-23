@@ -15,26 +15,26 @@ fi
 : "${GRAPHER_TEST_DB_PASS:?Need to set GRAPHER_TEST_DB_PASS non-empty}"
 : "${GRAPHER_TEST_DB_NAME:?Need to set GRAPHER_TEST_DB_NAME non-empty}"
 
-echo '==> Starting & initializing Mysql instance for testing'
+echo 'test database started'
 
-docker compose -f docker-compose.dbtests.yml up -d
+docker compose -f docker-compose.dbtests.yml up -d >/dev/null 2>&1
 
 ./devTools/docker/wait-for-tests-mysql.sh
 
-echo '==> Running migrations'
+echo 'applying migrations'
 
-yarn tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration:run -d db/tests/dataSource.dbtests.ts
+yarn tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration:run -d db/tests/dataSource.dbtests.ts >/dev/null 2>&1
 
-echo '==> Running tests'
+echo 'running tests'
 if ! yarn run vitest -c vitest.db.config.ts
 then
     echo '💀 Tests failed'
-    ./devTools/docker/mark-test-mysql-dirty.sh
-    docker compose -f docker-compose.dbtests.yml stop
+    ./devTools/docker/mark-test-mysql-dirty.sh >/dev/null 2>&1
+    docker compose -f docker-compose.dbtests.yml stop >/dev/null 2>&1
     exit 23
 else
     echo '✅ DB tests succeeded'
-    ./devTools/docker/mark-test-mysql-dirty.sh
-    docker compose -f docker-compose.dbtests.yml stop
+    ./devTools/docker/mark-test-mysql-dirty.sh >/dev/null 2>&1
+    docker compose -f docker-compose.dbtests.yml stop >/dev/null 2>&1
     exit 0
 fi
