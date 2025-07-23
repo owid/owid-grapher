@@ -233,7 +233,7 @@ function Filters({
 function NoResultsBoundary({
     children,
 }: {
-    children: React.ReactElement<any>
+    children: React.ReactElement<React.HTMLAttributes<HTMLElement>>
 }) {
     const { results } = useInstantSearch()
 
