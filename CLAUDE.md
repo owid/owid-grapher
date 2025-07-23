@@ -2,13 +2,15 @@
 
 - yarn typecheckLerna: runs the typescript typechecker across all files (both frontend code in lerna managed packages and the rest of the site)
 - yarn testLintChanged: run eslint on changed files
-- yarn test: run vitest
 - yarn testPrettierChanged: run prettier on changed files
 - yarn fixPrettierChanged: attempt to fix prettier issues on changed files
+- make migrate: apply migrations
+- make test: run unit tests. Uses vitest, can take test filenames to only run a subset
+- make dbtest: run database and api tests
 
-When you have completed implementing a set of changes, ALWAYS run `yarn typecheckLerna` and fix any errors you have. NEVER add any to make type errors go away - if you fail to resolve type errors after 3 attempts, ask the user for help.
+When you have completed implementing a set of changes, ALWAYS run `yarn typecheckLerna` and fix any errors you have.
 
-Before you make a commit, run `typecheckLerna`, `testLint` and `fixPrettierAll`.
+When you want to create a git commit, refer to docs/agent-guidelines/commit-messages.md for instructions.
 
 ## Code style
 
