@@ -54,6 +54,10 @@ export const chartHitQueryKeys = {
     // Specific keys for chart hit queries
     chartInfo: (slug: string, entities: string[]) =>
         [...chartHitQueryKeys.chartHit, "chart-info", slug, entities] as const,
+    chartConfig: (slug: string) =>
+        [...chartHitQueryKeys.chartHit, "chart-config", slug] as const,
+    chartData: (slug: string) =>
+        [...chartHitQueryKeys.chartHit, "chart-data", slug] as const,
 } as const
 
 export async function queryDataTopics(
