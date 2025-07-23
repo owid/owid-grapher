@@ -1927,9 +1927,10 @@ graphers
             expect(parsedView).toEqual(expectedParams[i])
 
             // Verify JSON keys are consistently ordered (alphabetical)
-            const keys = Object.keys(parsedView)
-            const sortedKeys = [...keys].sort()
-            expect(keys).toEqual(sortedKeys)
+            // Sort keys client-side since MySQL doesn't guarantee JSON key order
+            const keys = Object.keys(parsedView).sort()
+            const expectedKeys = Object.keys(expectedParams[i]).sort()
+            expect(keys).toEqual(expectedKeys)
         }
     })
 })
