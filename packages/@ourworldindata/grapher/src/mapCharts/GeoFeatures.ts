@@ -6,7 +6,6 @@ import {
     RenderFeatureType,
 } from "./MapChartConstants"
 import { Bounds, lazy, PointVector } from "@ourworldindata/utils"
-import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import { MapTopology } from "./MapTopology"
 import { geoBounds, geoCentroid, geoPath } from "d3-geo"
 import { geoRobinson } from "./d3-geo-projection"
@@ -23,20 +22,11 @@ export const GeoFeaturesById = new Map(
     GeoFeatures.map((feature) => [feature.id, feature])
 )
 
-const projection = geoPath().projection(geoRobinson())
+const projection = geoPath().digits(1).projection(geoRobinson())
 
 // Get the svg path specification string for every feature
 const geoPathsForWorldProjection = (): string[] => {
-    // Use this context to round the path coordinates to a set number of decimal places
-    const ctx = new GeoPathRoundingContext()
-    const projectionGeo = projection.context(ctx)
-    const strs = GeoFeatures.map((feature) => {
-        ctx.beginPath() // restart the path
-        projectionGeo(feature)
-        return ctx.result()
-    })
-
-    projectionGeo.context(null) // reset the context for future calls
+    const strs = GeoFeatures.map((feature) => projection(feature) ?? "")
 
     return strs
 }

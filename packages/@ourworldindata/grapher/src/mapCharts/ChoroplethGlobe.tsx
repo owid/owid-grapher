@@ -25,7 +25,6 @@ import {
     excludeUndefined,
     EntityName,
 } from "@ourworldindata/utils"
-import { GeoPathRoundingContext } from "./GeoPathRoundingContext"
 import {
     Annotation,
     ANNOTATION_COLOR_DARK,
@@ -244,15 +243,12 @@ export class ChoroplethGlobe extends React.Component<{
             .rotate(this.globeRotation)
     }
 
-    private pathContext = new GeoPathRoundingContext()
     @computed private get globePath(): GeoPath<any, GeoPermissibleObjects> {
-        return geoPath().projection(this.projection).context(this.pathContext)
+        return geoPath().digits(1).projection(this.projection)
     }
 
     private getPath(feature: GlobeRenderFeature): string {
-        this.pathContext.beginPath()
-        this.globePath(feature.geo)
-        return this.pathContext.result()
+        return this.globePath(feature.geo) ?? ""
     }
 
     private isFeatureCentroidVisibleOnGlobe(
@@ -268,16 +264,12 @@ export class ChoroplethGlobe extends React.Component<{
 
     @computed private get graticulePath(): string {
         const graticule = geoGraticule().step([10, 10])()
-        this.pathContext.beginPath()
-        this.globePath(graticule)
-        return this.pathContext.result()
+        return this.globePath(graticule) ?? ""
     }
 
     @computed private get equatorPath(): string {
         const equator = geoGraticule().step([0, 360])()
-        this.pathContext.beginPath()
-        this.globePath(equator)
-        return this.pathContext.result()
+        return this.globePath(equator) ?? ""
     }
 
     @computed private get visibleFeatures(): GlobeRenderFeature[] {
