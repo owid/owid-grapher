@@ -161,7 +161,7 @@ export abstract class HorizontalColorLegend extends React.Component<{
 
 @observer
 export class HorizontalNumericColorLegend extends HorizontalColorLegend {
-    base: React.RefObject<SVGGElement> = React.createRef()
+    base = React.createRef<SVGGElement>()
 
     constructor(props: { manager: HorizontalColorLegendManager }) {
         super(props)

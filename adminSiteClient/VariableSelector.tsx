@@ -503,7 +503,7 @@ export class VariableSelector<
     }
 
     dispose!: IReactionDisposer
-    base: React.RefObject<HTMLDivElement> = React.createRef()
+    base = React.createRef<HTMLDivElement>()
     componentDidMount() {
         this.initChosenVariablesAndNamespaces()
     }

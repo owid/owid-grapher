@@ -684,7 +684,7 @@ export class StackedBarChart
         unknown
     >
 
-    base: React.RefObject<SVGGElement> = React.createRef()
+    base = React.createRef<SVGGElement>()
     componentDidMount(): void {
         if (!this.manager.disableIntroAnimation) {
             // Fancy intro animation

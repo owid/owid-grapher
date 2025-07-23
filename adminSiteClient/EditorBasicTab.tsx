@@ -368,7 +368,7 @@ interface VariablesSectionProps<Editor> {
 class VariablesSection<
     Editor extends AbstractChartEditor,
 > extends React.Component<VariablesSectionProps<Editor>> {
-    base: React.RefObject<HTMLDivElement> = React.createRef()
+    base = React.createRef<HTMLDivElement>()
     @observable.ref isAddingVariable: boolean = false
 
     constructor(props: VariablesSectionProps<Editor>) {

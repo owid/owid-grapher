@@ -16,7 +16,7 @@ export interface PopoverProps {
 
 @observer
 export class Popover extends React.Component<PopoverProps> {
-    private contentRef: React.RefObject<HTMLDivElement> = React.createRef()
+    private contentRef = React.createRef<HTMLDivElement>()
 
     constructor(props: PopoverProps) {
         super(props)

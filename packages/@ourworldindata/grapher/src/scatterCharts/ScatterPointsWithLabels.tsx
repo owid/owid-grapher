@@ -44,7 +44,7 @@ import { GRAPHER_TEXT_OUTLINE_FACTOR } from "../core/GrapherConstants"
 // This is the component that actually renders the points. The higher level ScatterPlot class renders points, legends, comparison lines, etc.
 @observer
 export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLabelsProps> {
-    base: React.RefObject<SVGGElement> = React.createRef()
+    base = React.createRef<SVGGElement>()
 
     // closest point by quadtree search
     @observable private nearSeries?: ScatterSeries

@@ -97,7 +97,7 @@ export class SlopeChart
         makeObservable(this)
     }
 
-    private slopeAreaRef: React.RefObject<SVGGElement> = React.createRef()
+    private slopeAreaRef = React.createRef<SVGGElement>()
 
     private sidebarMargin = 10
 

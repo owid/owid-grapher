@@ -13,7 +13,7 @@ export class Modal extends React.Component<{
     isHeightFixed?: boolean // by default, the modal height is not fixed but fits to the content
     alignVertical?: "top" | "center" | "bottom"
 }> {
-    contentRef: React.RefObject<HTMLDivElement> = React.createRef()
+    contentRef = React.createRef<HTMLDivElement>()
 
     private get bounds(): Bounds {
         return this.props.bounds

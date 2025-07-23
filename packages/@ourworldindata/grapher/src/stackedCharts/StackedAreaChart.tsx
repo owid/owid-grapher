@@ -552,7 +552,7 @@ export class StackedAreaChart
         unknown
     >
 
-    base: React.RefObject<SVGGElement> = React.createRef()
+    base = React.createRef<SVGGElement>()
     componentDidMount(): void {
         document.addEventListener("click", this.onDocumentClick, {
             capture: true,

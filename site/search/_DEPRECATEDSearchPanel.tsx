@@ -466,13 +466,12 @@ const SearchResults = (props: SearchResultsProps) => {
 @observer
 export class DEPRECATEDInstantSearchContainer extends React.Component {
     searchClient: SearchClient
-    categoryFilterContainerRef: React.RefObject<HTMLUListElement>
+    categoryFilterContainerRef = React.createRef<HTMLUListElement>()
 
     constructor(props: Record<string, never>) {
         super(props)
         makeObservable(this)
         this.searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
-        this.categoryFilterContainerRef = React.createRef<HTMLUListElement>()
         this.handleCategoryFilterClick =
             this.handleCategoryFilterClick.bind(this)
     }

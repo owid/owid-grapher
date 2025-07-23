@@ -329,7 +329,7 @@ class SortOrderSection<
 class FacetSection<Editor extends AbstractChartEditor> extends React.Component<{
     editor: Editor
 }> {
-    base: React.RefObject<HTMLDivElement> = React.createRef()
+    base = React.createRef<HTMLDivElement>()
 
     constructor(props: { editor: Editor }) {
         super(props)
@@ -413,7 +413,7 @@ class FacetSection<Editor extends AbstractChartEditor> extends React.Component<{
 class TimelineSection<
     Editor extends AbstractChartEditor,
 > extends React.Component<{ editor: Editor }> {
-    base: React.RefObject<HTMLDivElement> = React.createRef()
+    base = React.createRef<HTMLDivElement>()
 
     constructor(props: { editor: Editor }) {
         super(props)

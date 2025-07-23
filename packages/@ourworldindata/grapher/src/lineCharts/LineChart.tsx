@@ -96,7 +96,7 @@ export class LineChart
     extends React.Component<LineChartProps>
     implements ChartInterface, HorizontalColorLegendManager, AxisManager
 {
-    private base: React.RefObject<SVGGElement> = React.createRef()
+    private base = React.createRef<SVGGElement>()
 
     constructor(props: LineChartProps) {
         super(props)

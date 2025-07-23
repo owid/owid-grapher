@@ -29,7 +29,7 @@ interface TimelineComponentProps {
 
 @observer
 export class TimelineComponent extends React.Component<TimelineComponentProps> {
-    base: React.RefObject<HTMLDivElement> = React.createRef()
+    base = React.createRef<HTMLDivElement>()
 
     constructor(props: TimelineComponentProps) {
         super(props)

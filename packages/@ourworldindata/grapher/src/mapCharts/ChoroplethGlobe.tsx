@@ -82,7 +82,7 @@ const DEFAULT_SCALE = geoOrthographic().scale()
 export class ChoroplethGlobe extends React.Component<{
     manager: ChoroplethMapManager
 }> {
-    base: React.RefObject<SVGGElement> = React.createRef()
+    base = React.createRef<SVGGElement>()
 
     @observable private hoverEnterFeature?: GlobeRenderFeature
     @observable private hoverNearbyFeature?: GlobeRenderFeature

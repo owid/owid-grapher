@@ -159,7 +159,7 @@ interface GlobalEntitySelectorProps {
 
 @observer
 export class GlobalEntitySelector extends React.Component<GlobalEntitySelectorProps> {
-    refContainer: React.RefObject<HTMLDivElement> = React.createRef()
+    refContainer = React.createRef<HTMLDivElement>()
     disposers: IReactionDisposer[] = []
 
     @observable mode = GlobalEntitySelectionModes.none

@@ -234,9 +234,9 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     static contextType = DrawerContext
     declare context: React.ContextType<typeof DrawerContext>
 
-    scrollableContainer: React.RefObject<HTMLDivElement> = React.createRef()
-    searchFieldRef: React.RefObject<HTMLInputElement> = React.createRef()
-    contentRef: React.RefObject<HTMLDivElement> = React.createRef()
+    scrollableContainer = React.createRef<HTMLDivElement>()
+    searchFieldRef = React.createRef<HTMLInputElement>()
+    contentRef = React.createRef<HTMLDivElement>()
 
     private sortConfigByName: SortConfig = {
         slug: this.table.entityNameSlug,

@@ -12,7 +12,7 @@ interface FullScreenProps {
 
 @observer
 export class FullScreen extends React.Component<FullScreenProps> {
-    content: React.RefObject<HTMLDivElement> = React.createRef()
+    content = React.createRef<HTMLDivElement>()
 
     constructor(props: FullScreenProps) {
         super(props)

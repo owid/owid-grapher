@@ -132,7 +132,7 @@ export class MapChart
         return this.seriesMap
     }
 
-    base: React.RefObject<SVGGElement> = createRef()
+    base = createRef<SVGGElement>()
     @action.bound onMapMouseOver(feature: GeoFeature): void {
         if (feature.id !== undefined) {
             const featureId = feature.id as string

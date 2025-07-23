@@ -55,10 +55,9 @@ interface TextFieldProps extends React.HTMLAttributes<HTMLInputElement> {
 }
 
 export class TextField extends React.Component<TextFieldProps> {
-    base: React.RefObject<HTMLDivElement>
+    base = React.createRef<HTMLDivElement>()
     constructor(props: TextFieldProps) {
         super(props)
-        this.base = React.createRef()
     }
 
     @bind onKeyDown(ev: React.KeyboardEvent<HTMLInputElement>) {
@@ -1291,7 +1290,7 @@ interface ModalProps {
 
 @observer
 export class Modal extends React.Component<ModalProps> {
-    base: React.RefObject<HTMLDivElement> = React.createRef()
+    base = React.createRef<HTMLDivElement>()
     dismissable: boolean = true
 
     constructor(props: ModalProps) {

@@ -24,7 +24,7 @@ interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
 
 @observer
 export class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
-    base: React.RefObject<SVGRectElement> = React.createRef()
+    base = React.createRef<SVGRectElement>()
 
     constructor(props: StackedBarSegmentProps) {
         super(props)

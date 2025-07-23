@@ -2596,7 +2596,7 @@ export class GrapherState {
         )
     }
 
-    base: React.RefObject<HTMLDivElement> = React.createRef()
+    base = React.createRef<HTMLDivElement>()
     @computed get containerElement(): HTMLDivElement | undefined {
         return this.base.current || undefined
     }

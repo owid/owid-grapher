@@ -948,12 +948,9 @@ export class Explorer
         return this.explorerProgram.downloadDataLink
     }
 
-    @observable
-    private grapherContainerRef: React.RefObject<HTMLDivElement> =
-        React.createRef()
+    @observable private grapherContainerRef = React.createRef<HTMLDivElement>()
 
-    @observable.ref
-    private grapherRef: React.RefObject<Grapher> = React.createRef()
+    @observable.ref private grapherRef = React.createRef<Grapher>()
 
     private renderControlBar() {
         return (

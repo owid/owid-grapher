@@ -66,7 +66,7 @@ export class DiscreteBarChart
     extends React.Component<DiscreteBarChartProps>
     implements ChartInterface, AxisManager, HorizontalColorLegendManager
 {
-    base: React.RefObject<SVGGElement> = React.createRef()
+    base = React.createRef<SVGGElement>()
 
     constructor(props: DiscreteBarChartProps) {
         super(props)

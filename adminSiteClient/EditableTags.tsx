@@ -34,7 +34,7 @@ export class EditableTags extends React.Component<EditableTagsProps> {
     declare context: AdminAppContextType
 
     @observable isEditing: boolean = false
-    base: React.RefObject<HTMLDivElement> = React.createRef()
+    base = React.createRef<HTMLDivElement>()
 
     @observable tags: DbChartTagJoin[] = lodash.clone(this.props.tags)
 

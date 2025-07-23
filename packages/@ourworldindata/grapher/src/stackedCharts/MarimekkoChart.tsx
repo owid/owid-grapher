@@ -234,7 +234,7 @@ export class MarimekkoChart
     extends React.Component<MarimekkoChartProps>
     implements ChartInterface, HorizontalColorLegendManager, AxisManager
 {
-    base: React.RefObject<SVGGElement> = React.createRef()
+    base = React.createRef<SVGGElement>()
 
     constructor(props: MarimekkoChartProps) {
         super(props)

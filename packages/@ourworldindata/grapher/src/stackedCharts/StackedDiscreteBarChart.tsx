@@ -114,7 +114,7 @@ export class StackedDiscreteBarChart
     extends React.Component<StackedDiscreteBarChartProps>
     implements ChartInterface, HorizontalColorLegendManager
 {
-    base: React.RefObject<SVGGElement> = React.createRef()
+    base = React.createRef<SVGGElement>()
 
     constructor(props: StackedDiscreteBarChartProps) {
         super(props)

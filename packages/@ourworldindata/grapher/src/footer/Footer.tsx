@@ -374,7 +374,7 @@ abstract class AbstractFooter<
         return this.topContentHeight + this.bottomContentHeight
     }
 
-    base: React.RefObject<HTMLDivElement> = React.createRef()
+    base = React.createRef<HTMLDivElement>()
     @observable.ref tooltipTarget?: { x: number; y: number }
 
     @action.bound private onMouseMove(e: MouseEvent): void {
