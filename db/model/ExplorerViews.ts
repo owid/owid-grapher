@@ -60,7 +60,7 @@ export async function refreshExplorerViewsForSlug(
     // Create a map for efficient lookup of existing views
     // Normalize existing view JSON strings to handle legacy data with different key ordering
     const existingViewsMap = new Map<string, ExistingView>()
-    
+
     for (const view of existingViews) {
         try {
             // Parse and re-serialize with sorted keys to normalize
