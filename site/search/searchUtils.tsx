@@ -2,10 +2,15 @@ import * as _ from "lodash-es"
 import { HitAttributeHighlightResult } from "instantsearch.js"
 import {
     EntityName,
+    GRAPHER_CHART_TYPES,
+    GRAPHER_TAB_NAMES,
     GRAPHER_TAB_QUERY_PARAMS,
+    GrapherChartType,
     GrapherQueryParams,
     GrapherTabName,
     GrapherTabQueryParam,
+    GrapherValuesJson,
+    GrapherValuesJsonDataPoint,
     TagGraphRoot,
     TimeBounds,
 } from "@ourworldindata/types"
@@ -26,6 +31,7 @@ import {
 import { partition } from "remeda"
 import {
     generateSelectedEntityNamesParam,
+    GrapherState,
     isValidTabQueryParam,
     mapGrapherTabNameToQueryParam,
 } from "@ourworldindata/grapher"
@@ -40,6 +46,7 @@ import {
     SearchFacetFilters,
     ChartRecordType,
     SearchChartHit,
+    IChartHit,
 } from "./searchTypes.js"
 import { faTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -48,9 +55,11 @@ import { ForwardedRef } from "react"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
+    EXPLORER_DYNAMIC_THUMBNAIL_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../../settings/clientSettings.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
+import { SearchChartHitDataDisplayProps } from "./SearchChartHitDataDisplay.js"
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -99,11 +108,18 @@ const removeHighlightTags = (text: string) =>
     text.replace(/<\/?(mark|strong)>/g, "")
 
 export function pickEntitiesForChartHit(
-    availableEntitiesHighlighted: HitAttributeHighlightResult[] | undefined,
-    availableEntities: EntityName[] | undefined,
+    hit: IChartHit | SearchChartHit,
     searchQueryRegionsMatches: Region[] | undefined
 ): EntityName[] {
+    const availableEntities =
+        hit.originalAvailableEntities ?? hit.availableEntities
     if (!availableEntities) return []
+
+    const availableEntitiesHighlighted = (hit._highlightResult
+        ?.originalAvailableEntities ||
+        hit._highlightResult?.availableEntities) as
+        | HitAttributeHighlightResult[]
+        | undefined
 
     const pickedEntities = new Set(
         searchQueryRegionsMatches?.map((r) => r.name)
@@ -119,6 +135,8 @@ export function pickEntitiesForChartHit(
         }
     }
 
+    // Add entities to the list of picked entities if they're typed in the search bar
+    // even if a user hasn't selected them from the autocomplete dropdown
     if (availableEntitiesHighlighted) {
         for (const highlightEntry of availableEntitiesHighlighted) {
             if (highlightEntry.matchLevel === "none") continue
@@ -283,6 +301,70 @@ export const constructChartInfoUrl = ({
     const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
 
     return `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}.values.json${queryStr}`
+}
+
+export const constructThumbnailUrl = ({
+    hit,
+    grapherParams,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+}): string => {
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+
+    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
+    const thumbnailQueryStr = "imType=thumbnail"
+    const fullQueryStr = queryStr
+        ? `${queryStr}&${thumbnailQueryStr}`
+        : `?${thumbnailQueryStr}`
+
+    const basePath = isExplorerView
+        ? EXPLORER_DYNAMIC_THUMBNAIL_URL
+        : GRAPHER_DYNAMIC_THUMBNAIL_URL
+
+    return `${basePath}/${hit.slug}.png${fullQueryStr}`
+}
+
+export const constructConfigUrl = ({
+    hit,
+}: {
+    hit: SearchChartHit
+}): string | undefined => {
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    if (isExplorerView) return undefined // Not yet supported
+
+    const queryStr = generateQueryStrForChartHit({ hit })
+
+    return `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}.config.json${queryStr}`
+}
+
+// Generates time bounds to force line charts to display properly in previews.
+// When start and end times are the same (single time point), line charts
+// automatically switch to discrete bar charts. To prevent that, we set the start
+// time to -Infinity, which refers to the earliest available data.
+export function getTimeBoundsForChartUrl(
+    chartInfo?: GrapherValuesJson | null
+): { timeBounds: TimeBounds; timeMode: "year" | "day" } | undefined {
+    if (!chartInfo) return undefined
+
+    const { startTime, endTime } = chartInfo
+
+    // When a chart has different start and end times, we don't need to adjust
+    // the time parameter because the chart will naturally display as a line chart.
+    // Note: `chartInfo` is fetched for the _default_ view. If startTime equals
+    // endTime here, it doesn't necessarily mean that the line chart is actually
+    // single-time, since we're looking at the default tab rather than the specific
+    // line chart tab. However, false positives are generally harmless because most
+    // charts don't customize their start time.
+    if (startTime && startTime !== endTime) return undefined
+
+    const columnSlug = chartInfo.endTimeValues?.y[0].columnSlug ?? ""
+    const columnInfo = chartInfo.columns?.[columnSlug]
+
+    return {
+        timeBounds: [-Infinity, endTime ?? Infinity],
+        timeMode: columnInfo?.yearIsDay ? "day" : "year",
+    }
 }
 
 export const CHARTS_INDEX = getIndexName(
@@ -704,4 +786,142 @@ export async function fetchJson<TResult>(url: string): Promise<TResult> {
         throw new Error(`Failed to fetch ${url}: ${response.statusText}`)
     }
     return response.json()
+}
+
+export function getSortedGrapherTabsForChartHit(
+    grapherState: GrapherState,
+    maxTabs = 5
+): GrapherTabName[] {
+    const { Table, LineChart, Marimekko, WorldMap } = GRAPHER_TAB_NAMES
+
+    const {
+        availableTabs,
+        validChartTypes: availableChartTypes,
+        validChartTypeSet: availableChartTypeSet,
+    } = grapherState
+
+    const sortedTabs: GrapherTabName[] = []
+
+    // First position
+    if (availableChartTypeSet.has(LineChart)) {
+        // If a line chart is available, it's always the first tab
+        sortedTabs.push(LineChart)
+    } else if (availableChartTypes.length > 0) {
+        // Otherwise, pick the first valid chart type
+        sortedTabs.push(availableChartTypes[0])
+    } else if (availableTabs.includes(WorldMap)) {
+        // Or a map
+        sortedTabs.push(WorldMap)
+    } else if (availableTabs.includes(Table)) {
+        // Or a table
+        sortedTabs.push(Table)
+    }
+
+    // Second position is always the table
+    // (unless the table is already in the first position)
+    if (sortedTabs[0] !== Table) sortedTabs.push(Table)
+
+    // In the third position, prioritize the Marimekko chart
+    if (sortedTabs[0] === LineChart && availableChartTypeSet.has(Marimekko)) {
+        sortedTabs.push(Marimekko)
+    }
+
+    // Fill up the remaining positions
+    sortedTabs.push(...availableTabs.filter((tab) => !sortedTabs.includes(tab)))
+
+    return sortedTabs.slice(0, maxTabs)
+}
+
+export function buildChartHitDataDisplayProps({
+    chartInfo,
+    chartType,
+    entity,
+    isEntityPickedByUser,
+}: {
+    chartInfo?: GrapherValuesJson | null
+    chartType?: GrapherChartType
+    entity: EntityName
+    isEntityPickedByUser?: boolean
+}): SearchChartHitDataDisplayProps | undefined {
+    if (!chartInfo) return undefined
+
+    // Showing a time range only makes sense for slope charts and connected scatter plots
+    const showTimeRange =
+        chartType === GRAPHER_CHART_TYPES.SlopeChart ||
+        chartType === GRAPHER_CHART_TYPES.ScatterPlot
+
+    const endDatapoint = findDatapoint(chartInfo, "end")
+    const startDatapoint = showTimeRange
+        ? findDatapoint(chartInfo, "start")
+        : undefined
+    const columnInfo = endDatapoint?.columnSlug
+        ? chartInfo?.columns?.[endDatapoint?.columnSlug]
+        : undefined
+
+    if (!endDatapoint?.formattedValueShort || !endDatapoint?.formattedTime)
+        return undefined
+
+    // For scatter plots, displaying a single data value is ambiguous since
+    // they have two dimensions. But we do show a data value if the x axis
+    // is GDP since then it's sufficiently clear
+    const xSlug = chartInfo?.endTimeValues?.x?.columnSlug
+    const xColumnInfo = chartInfo?.columns?.[xSlug ?? ""]
+    const hasDataDisplay =
+        chartType !== GRAPHER_CHART_TYPES.ScatterPlot ||
+        /GDP/.test(xColumnInfo?.name ?? "")
+
+    if (!hasDataDisplay) return undefined
+
+    const endValue = endDatapoint.valueLabel ?? endDatapoint.formattedValueShort
+    const startValue =
+        startDatapoint?.valueLabel ?? startDatapoint?.formattedValueShort
+    const unit =
+        columnInfo?.unit && columnInfo?.unit !== columnInfo?.shortUnit
+            ? columnInfo?.unit
+            : undefined
+    const time = startDatapoint?.formattedTime
+        ? `${startDatapoint?.formattedTime}–${endDatapoint.formattedTime}`
+        : endDatapoint.formattedTime
+    const trend =
+        startDatapoint?.value !== undefined && endDatapoint?.value !== undefined
+            ? endDatapoint.value > startDatapoint.value
+                ? "up"
+                : endDatapoint.value < startDatapoint.value
+                  ? "down"
+                  : "right"
+            : undefined
+    const showLocationIcon = isEntityPickedByUser
+
+    return {
+        entityName: entity,
+        endValue,
+        startValue,
+        time,
+        unit,
+        trend,
+        showLocationIcon,
+    }
+}
+
+function findDatapoint(
+    chartInfo: GrapherValuesJson | undefined,
+    time: "end" | "start" = "end"
+): GrapherValuesJsonDataPoint | undefined {
+    if (!chartInfo) return undefined
+
+    const yDims = match(time)
+        .with("end", () => chartInfo.endTimeValues?.y)
+        .with("start", () => chartInfo.startTimeValues?.y)
+        .exhaustive()
+    if (!yDims) return undefined
+
+    // Make sure we're not showing a projected data point
+    const historicalDims = yDims.filter(
+        (dim) => !chartInfo.columns?.[dim.columnSlug]?.isProjection
+    )
+
+    // Don't show a data value for charts with multiple y-indicators
+    if (historicalDims.length > 1) return undefined
+
+    return historicalDims[0]
 }
