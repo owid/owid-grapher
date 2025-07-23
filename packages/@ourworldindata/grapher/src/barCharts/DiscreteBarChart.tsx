@@ -37,7 +37,7 @@ import {
     HorizontalColorLegendManager,
     HorizontalNumericColorLegend,
 } from "../horizontalColorLegend/HorizontalColorLegends"
-import { BaseType, Selection } from "d3"
+import type { BaseType, Selection } from "d3-selection"
 import { TextWrap } from "@ourworldindata/components"
 import { DiscreteBarChartState } from "./DiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"

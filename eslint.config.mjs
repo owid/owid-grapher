@@ -88,6 +88,7 @@ export default tseslint.config(
                     whitelist: [
                         "@types/d3-array",
                         "@types/d3-color",
+                        "@types/d3-dsv",
                         "@types/d3-ease",
                         "@types/d3-force",
                         "@types/d3-format",

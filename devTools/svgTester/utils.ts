@@ -24,7 +24,7 @@ import * as _ from "lodash-es"
 import util from "util"
 import { getHeapStatistics } from "v8"
 import { queryStringsByChartType } from "./chart-configurations.js"
-import * as d3 from "d3"
+import * as d3 from "d3-dsv"
 import {
     legacyToOwidTableAndDimensions,
     migrateGrapherConfigToLatestVersion,
