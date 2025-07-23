@@ -3,7 +3,7 @@ import { useMediaQuery } from "usehooks-ts"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import {
     createFocusInputOnClickHandler,
-    isCurrentMutableRef,
+    isCurrentRef,
     useSearchAutocomplete,
     getSearchAutocompleteId,
     getSearchAutocompleteItemId,
@@ -39,7 +39,7 @@ export const SearchInput = forwardRef(
         } = useSearchAutocomplete()
 
         let placeholder = ""
-        if (isCurrentMutableRef(inputRef)) {
+        if (isCurrentRef(inputRef)) {
             // Only set the placeholder once the component has rendered so that useMediaQuery has a chance to initialize
             // Otherwise on mobile it will flash from the desktop version to the mobile placeholder
             placeholder = isSmallScreen
@@ -108,7 +108,7 @@ export const SearchInput = forwardRef(
                 onSubmit={(e) => {
                     e.preventDefault()
                     // unfocus input to hide autocomplete/hide mobile keyboard
-                    if (isCurrentMutableRef(inputRef)) {
+                    if (isCurrentRef(inputRef)) {
                         inputRef.current.blur()
                     }
                     setGlobalQuery(value)
@@ -145,10 +145,7 @@ export const SearchInput = forwardRef(
                             setActiveIndex(value ? 0 : -1)
 
                             // Scroll to position the input near the top of the viewport on mobile
-                            if (
-                                isSmallScreen &&
-                                isCurrentMutableRef(inputRef)
-                            ) {
+                            if (isSmallScreen && isCurrentRef(inputRef)) {
                                 const rect =
                                     inputRef.current.getBoundingClientRect()
                                 window.scrollBy({

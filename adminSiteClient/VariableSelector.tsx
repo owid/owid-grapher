@@ -57,8 +57,7 @@ export class VariableSelector<
     @observable.ref isProjection?: boolean
     @observable.ref tolerance?: number
     @observable.ref chosenVariables: Variable[] = []
-    searchField!: HTMLInputElement
-    scrollElement!: HTMLDivElement
+    scrollElement = React.createRef<HTMLDivElement>()
 
     @observable rowOffset: number = 0
     @observable numVisibleRows: number = 15
@@ -275,9 +274,7 @@ export class VariableSelector<
                                     overflowY: "scroll",
                                 }}
                                 onScroll={this.onScroll}
-                                ref={(e) =>
-                                    (this.scrollElement = e as HTMLDivElement)
-                                }
+                                ref={this.scrollElement}
                             >
                                 <div
                                     style={{
@@ -468,7 +465,8 @@ export class VariableSelector<
         if (this.searchInput !== input) {
             this.searchInput = input
             this.rowOffset = 0
-            this.scrollElement.scrollTop = 0
+            if (this.scrollElement.current)
+                this.scrollElement.current.scrollTop = 0
         }
     }
 

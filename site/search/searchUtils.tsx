@@ -624,7 +624,7 @@ export const createFocusInputOnClickHandler = (
     const handleClick = (e: React.MouseEvent) => {
         if (
             (!checkTargetEquality || e.target === e.currentTarget) &&
-            isCurrentMutableRef(inputRef)
+            isCurrentRef(inputRef)
         ) {
             inputRef.current.focus()
         }
@@ -634,9 +634,9 @@ export const createFocusInputOnClickHandler = (
 }
 
 /*
- * Type guard to check if a ref is a MutableRefObject with a non-null current property
+ * Type guard to check if a ref is a RefObject with a non-null current property
  */
-export function isCurrentMutableRef(
+export function isCurrentRef(
     inputRef: ForwardedRef<HTMLInputElement>
 ): inputRef is React.MutableRefObject<HTMLInputElement> {
     return (

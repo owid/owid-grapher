@@ -124,7 +124,7 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
     @observable isLoading: boolean = true
     @observable currencyCode: DonationCurrencyCode = "GBP"
 
-    captchaInstance?: Recaptcha | null
+    captchaInstance = React.createRef<Recaptcha>()
     @observable.ref captchaPromiseHandlers?: {
         resolve: (value: any) => void
         reject: (value: any) => void
@@ -254,13 +254,13 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
 
     @bind async getCaptchaToken(): Promise<string> {
         return new Promise((resolve, reject) => {
-            if (!this.captchaInstance)
+            if (!this.captchaInstance.current)
                 return reject(
                     new Error(`Could not load reCAPTCHA. ${PLEASE_TRY_AGAIN}`)
                 )
             this.captchaPromiseHandlers = { resolve, reject }
-            this.captchaInstance.reset()
-            this.captchaInstance.execute()
+            this.captchaInstance.current.reset()
+            this.captchaInstance.current.execute()
         })
     }
 
@@ -458,7 +458,7 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
                 )}
 
                 <Recaptcha
-                    ref={(inst) => (this.captchaInstance = inst)}
+                    ref={this.captchaInstance}
                     sitekey={RECAPTCHA_SITE_KEY}
                     size="invisible"
                     badge="bottomleft"
