@@ -6,17 +6,9 @@ import {
     WORLD_ENTITY_NAME,
     getEntityNamesParam,
     generateSelectedEntityNamesParam,
-    makeChartState,
-    MapChartState,
+    constructGrapherValuesJson,
 } from "@ourworldindata/grapher"
-import { omitUndefinedValues, excludeUndefined } from "@ourworldindata/utils"
-import {
-    OwidColumnDef,
-    GRAPHER_MAP_TYPE,
-    GRAPHER_TAB_QUERY_PARAMS,
-    Time,
-} from "@ourworldindata/types"
-import { CoreColumn } from "@ourworldindata/core-table"
+import { OwidColumnDef, GRAPHER_TAB_QUERY_PARAMS } from "@ourworldindata/types"
 import { StatusError } from "itty-router"
 import { createZip, File } from "littlezipper"
 import { assembleMetadata, getColumnsForMetadata } from "./metadataTools.js"
@@ -245,124 +237,7 @@ export async function fetchDataValuesForGrapher(
     if (!grapherState.availableEntityNames.includes(entityName))
         return Response.json({ source: grapherState.sourcesLine })
 
-    // Find the relevant times
-    const endTime = grapherState.endTime
-    const startTime =
-        grapherState.startTime !== grapherState.endTime
-            ? grapherState.startTime
-            : undefined
-
-    // Create a map chart state to access custom label formatting.
-    // When `map.tooltipUseCustomLabels` is enabled, this allows us to display
-    // custom color scheme labels (e.g. "Low", "Medium", "High") instead of
-    // the numeric values
-    const mapChartState = makeChartState(
-        GRAPHER_MAP_TYPE,
-        grapherState
-    ) as MapChartState
-
-    /**
-     * Returns the transformed column for the given slug.
-     *
-     * Note that the chart's transformed table is used, rather than
-     * grapherState.transformedTable, because in rare cases the
-     * chart's transformed table includes transformations that are not
-     * applied to grapherState.transformedTable (e.g. relative mode in
-     * line charts).
-     */
-    const getTransformedColumn = (grapherState: GrapherState, slug: string) =>
-        grapherState.chartState.transformedTable.get(slug)
-
-    const makeDimensionValueForColumnAndTime = (
-        column: CoreColumn,
-        time: Time
-    ) => {
-        if (column.isMissing) return undefined
-
-        const owidRow = column.owidRowByEntityNameAndTime
-            .get(entityName)
-            ?.get(time)
-
-        const value = owidRow?.value
-        if (value === undefined) return { columnSlug: column.def.slug }
-
-        return omitUndefinedValues({
-            columnSlug: column.def.slug,
-
-            value,
-            formattedValue: column.formatValue(value),
-            formattedValueShort: column.formatValueShort(value),
-            formattedValueShortWithAbbreviations:
-                column.formatValueShortWithAbbreviations(value),
-
-            valueLabel: mapChartState.formatTooltipValueIfCustom(value),
-
-            time: owidRow.originalTime,
-            formattedTime: column.formatTime(owidRow.originalTime),
-        })
-    }
-
-    const makeDimensionValuesForTime = (
-        grapherState: GrapherState,
-        time?: Time
-    ) => {
-        if (time === undefined) return undefined
-
-        const ySlugs = grapherState.yColumnSlugs
-        const xSlug = grapherState.xColumnSlug
-
-        return omitUndefinedValues({
-            y: ySlugs.map((ySlug) =>
-                makeDimensionValueForColumnAndTime(
-                    getTransformedColumn(grapherState, ySlug),
-                    time
-                )
-            ),
-            x: makeDimensionValueForColumnAndTime(
-                getTransformedColumn(grapherState, xSlug),
-                time
-            ),
-        })
-    }
-
-    const makeColumnInfo = (column: CoreColumn) => {
-        if (column.isMissing) return undefined
-
-        return omitUndefinedValues({
-            name: column.titlePublicOrDisplayName.title,
-            unit: column.unit,
-            shortUnit: column.shortUnit,
-            isProjection: column.isProjection ? true : undefined,
-            yearIsDay: column.display.yearIsDay ? true : undefined,
-        })
-    }
-
-    const makeColumnInfoForRelevantSlugs = (grapherState: GrapherState) => {
-        const targetSlugs = excludeUndefined([
-            ...grapherState.yColumnSlugs,
-            grapherState.xColumnSlug,
-        ])
-
-        const dimInfo = {}
-        for (const slug of targetSlugs) {
-            if (dimInfo[slug] !== undefined) continue
-            const column = getTransformedColumn(grapherState, slug)
-            const info = makeColumnInfo(column)
-            if (info !== undefined) dimInfo[slug] = info
-        }
-
-        return dimInfo
-    }
-
-    const result = omitUndefinedValues({
-        entityName,
-        startTime: grapherState.startTime,
-        endTime: grapherState.endTime,
-        columns: makeColumnInfoForRelevantSlugs(grapherState),
-        startTimeValues: makeDimensionValuesForTime(grapherState, startTime),
-        endTimeValues: makeDimensionValuesForTime(grapherState, endTime),
-        source: grapherState.sourcesLine,
-    })
+    const result = constructGrapherValuesJson(grapherState, entityName)
 
     return Response.json(result)
 }
