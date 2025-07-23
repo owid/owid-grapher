@@ -18,7 +18,7 @@
     "@ourworldindata/types": "workspace:^",
     "@sentry/browser": "^9.40.0",
     "@tippyjs/react": "^4.2.6",
-    "d3": "^6.1.1",
+    "d3": "^7.9.0",
     "dayjs": "^1.11.11",
     "fuzzysort": "^3.1.0",
     "lodash-es": "^4.17.21",
@@ -35,8 +35,7 @@
     "uuidv7": "^1.0.1"
   },
   "devDependencies": {
-    "@types/d3": "^6",
-    "@types/d3-format": "^2",
+    "@types/d3": "^7.4.3",
     "@types/lodash-es": "^4",
     "@types/react": "^18.3.23",
     "@types/string-pixel-width": "^1.7.2",

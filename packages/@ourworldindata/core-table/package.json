@@ -17,13 +17,13 @@
   "dependencies": {
     "@ourworldindata/types": "workspace:^",
     "@ourworldindata/utils": "workspace:^",
-    "d3": "^6.1.1",
+    "d3": "^7.9.0",
     "dayjs": "^1.11.11",
     "papaparse": "^5.4.1",
     "remeda": "^2.23.3"
   },
   "devDependencies": {
-    "@types/d3": "^6",
+    "@types/d3": "^7.4.3",
     "@types/lodash-es": "^4",
     "@types/papaparse": "^5.3.15",
     "eslint": "^9.23.0",
