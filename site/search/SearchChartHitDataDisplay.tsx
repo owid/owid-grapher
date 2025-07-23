@@ -1,3 +1,4 @@
+import cx from "classnames"
 import { faLocationDot } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { GrapherTrendArrow } from "@ourworldindata/components"
@@ -10,6 +11,7 @@ export interface SearchChartHitDataDisplayProps {
     startValue?: string // if given, display as a range
     trend?: "down" | "right" | "up" // only relevant if startValue is given
     showLocationIcon?: boolean
+    className?: string
 }
 
 export function SearchChartHitDataDisplay({
@@ -20,12 +22,13 @@ export function SearchChartHitDataDisplay({
     startValue,
     trend,
     showLocationIcon,
+    className,
 }: SearchChartHitDataDisplayProps): React.ReactElement | null {
     // Remove parentheses from the beginning and end of the unit
     const strippedUnit = unit?.replace(/(^\(|\)$)/g, "")
 
     return (
-        <div className="search-chart-hit-data-display">
+        <div className={cx("search-chart-hit-data-display", className)}>
             <div className="search-chart-hit-data-display__location">
                 {showLocationIcon && (
                     <FontAwesomeIcon
