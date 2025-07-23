@@ -1,10 +1,12 @@
 {
     "compilerOptions": {
-        "target": "esnext",
-        "module": "NodeNext",
-        "moduleResolution": "NodeNext",
+        "target": "es2023",
+        "module": "commonjs",
+        // "moduleResolution": "node16",
         "lib": ["esnext"],
         "types": ["@cloudflare/workers-types"],
-        "esModuleInterop": true
+        "esModuleInterop": true,
+
+        "outDir": "./dist"
     }
 }

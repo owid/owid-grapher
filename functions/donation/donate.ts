@@ -7,10 +7,10 @@ import {
     PLEASE_TRY_AGAIN,
     stringifyUnknownError,
 } from "@ourworldindata/utils"
-import { Value } from "@sinclair/typebox/value"
 import { Env } from "../_common/env.js"
 import { DEFAULT_HEADERS, CORS_HEADERS } from "./_utils/constants.js"
 import { logError } from "./_utils/error.js"
+import { z } from "zod"
 
 const filePath = "donation/donate.ts"
 
@@ -49,28 +49,20 @@ export const onRequestPost: PagesFunction<Env> = async ({
         // when the request is coming from the client. However, it could happen if a
         // request is manually crafted. In this case, we select the first error and
         // send TypeBox's default error message.
-        if (!Value.Check(DonationRequestTypeObject, donation)) {
-            const { message, path } = Value.Errors(
-                DonationRequestTypeObject,
-                donation
-            ).First()
-            throw new JsonError(`${message} (${path})`)
+        const { data, error } = DonationRequestTypeObject.safeParse(donation)
+        if (!data) {
+            const message = z.prettifyError(error)
+            throw new JsonError(`Invalid donation request: ${message}`, 400)
         }
 
         if (
-            !(await isCaptchaValid(
-                donation.captchaToken,
-                env.RECAPTCHA_SECRET_KEY
-            ))
+            !(await isCaptchaValid(data.captchaToken, env.RECAPTCHA_SECRET_KEY))
         )
             throw new JsonError(
                 `The CAPTCHA challenge failed. ${PLEASE_TRY_AGAIN}`
             )
 
-        const session = await createCheckoutSession(
-            donation,
-            env.STRIPE_API_KEY
-        )
+        const session = await createCheckoutSession(data, env.STRIPE_API_KEY)
         const sessionResponse: DonateSessionResponse = { url: session.url }
 
         return new Response(JSON.stringify(sessionResponse), {
