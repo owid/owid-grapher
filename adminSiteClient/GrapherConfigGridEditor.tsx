@@ -45,6 +45,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import Handsontable from "handsontable"
 import { GRAPHER_CHART_TYPES, GRAPHER_MAP_TYPE } from "@ourworldindata/types"
 import {
+    DEFAULT_GRAPHER_BOUNDS,
     fetchInputTableForConfig,
     Grapher,
     GrapherProgrammaticInterface,
@@ -163,6 +164,10 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     @observable.ref grapherState = new GrapherState({
         additionalDataLoaderFn: (varId: number) =>
             loadVariableDataAndMetadata(varId, DATA_API_URL, { noCache: true }),
+        bounds: new Bounds(0, 0, 480, 500),
+
+        // workaround to enforce `useIdealBounds == false`
+        manager: {},
     }) // the grapher instance we keep around and update
     numTotalRows: number | undefined = undefined
     @observable selectedRow: number | undefined = undefined
@@ -308,7 +313,6 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         const newConfig: GrapherProgrammaticInterface = {
             ...json,
             isEmbeddedInAnOwidPage: true,
-            bounds: new Bounds(0, 0, 480, 500),
             dataApiUrlForAdmin:
                 this.context.admin.settings.DATA_API_FOR_ADMIN_UI, // passed this way because clientSettings are baked and need a recompile to be updated
         }
