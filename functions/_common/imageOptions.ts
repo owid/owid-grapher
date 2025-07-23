@@ -3,6 +3,8 @@ import {
     GrapherProgrammaticInterface,
     GRAPHER_SQUARE_SIZE,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
+    GRAPHER_THUMBNAIL_WIDTH,
+    GRAPHER_THUMBNAIL_HEIGHT,
 } from "@ourworldindata/grapher"
 import { Bounds } from "@ourworldindata/utils"
 import { GrapherRenderMode } from "@ourworldindata/types"
@@ -56,15 +58,20 @@ const SQUARE_OPTIONS: Readonly<ImageOptions> = {
     },
 }
 const THUMBNAIL_OPTIONS: Readonly<ImageOptions> = {
-    pngWidth: 900,
-    pngHeight: 480,
-    svgWidth: 900,
-    svgHeight: 480,
+    pngWidth: GRAPHER_THUMBNAIL_WIDTH,
+    pngHeight: GRAPHER_THUMBNAIL_HEIGHT,
+    svgWidth: GRAPHER_THUMBNAIL_WIDTH,
+    svgHeight: GRAPHER_THUMBNAIL_HEIGHT,
     details: false,
     fontSize: undefined,
     grapherProps: {
         isSocialMediaExport: false,
-        staticBounds: new Bounds(0, 0, 900, 480),
+        staticBounds: new Bounds(
+            0,
+            0,
+            GRAPHER_THUMBNAIL_WIDTH,
+            GRAPHER_THUMBNAIL_HEIGHT
+        ),
         renderMode: GrapherRenderMode.Thumbnail,
     },
 }
