@@ -101,14 +101,16 @@ export function mapChartTypeNameToQueryParam(
     return MAP_CHART_TYPE_NAME_TO_CHART_TAB_CONFIG_OPTION[chartType]
 }
 
-export function mapGrapherTabNameToQueryParam(
+export function mapGrapherTabNameToConfigOption(
     tabName: GrapherTabName
-): GrapherTabQueryParam {
+): GrapherTabConfigOption {
     return match(tabName)
         .with(GRAPHER_TAB_NAMES.Table, () => GRAPHER_TAB_CONFIG_OPTIONS.table)
         .with(GRAPHER_TAB_NAMES.WorldMap, () => GRAPHER_TAB_CONFIG_OPTIONS.map)
-        .otherwise((tabName) => mapChartTypeNameToQueryParam(tabName))
+        .otherwise((tabName) => mapChartTypeNameToTabConfigOption(tabName))
 }
+
+export const mapGrapherTabNameToQueryParam = mapGrapherTabNameToConfigOption
 
 export function makeLabelForGrapherTab(
     tab: GrapherTabName,
