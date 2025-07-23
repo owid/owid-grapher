@@ -19,6 +19,8 @@ export {
     GRAPHER_IS_IN_IFRAME_CLASS,
     DEFAULT_GRAPHER_WIDTH,
     DEFAULT_GRAPHER_HEIGHT,
+    GRAPHER_THUMBNAIL_WIDTH,
+    GRAPHER_THUMBNAIL_HEIGHT,
     GRAPHER_SQUARE_SIZE,
     STATIC_EXPORT_DETAIL_SPACING,
     DEFAULT_GRAPHER_ENTITY_TYPE,
@@ -111,6 +113,7 @@ export {
     isValidTabQueryParam,
     findPotentialChartTypeSiblings,
     mapGrapherTabNameToQueryParam,
+    mapGrapherTabNameToConfigOption,
     makeLabelForGrapherTab,
 } from "./chart/ChartTabs"
 export {
@@ -120,4 +123,18 @@ export {
 export { GeoFeatures } from "./mapCharts/GeoFeatures"
 export { isValidVerticalComparisonLineConfig } from "./comparisonLine/ComparisonLineHelpers"
 export { hasValidConfigForBinningStrategy } from "./color/BinningStrategies"
+
 export { makeChartState } from "./chart/ChartTypeMap"
+export type { ChartState } from "./chart/ChartInterface"
+
+export type { ChartSeries } from "./chart/ChartInterface"
+export type { LineChartState } from "./lineCharts/LineChartState.js"
+export type { SlopeChartState } from "./slopeCharts/SlopeChartState"
+export type { DiscreteBarChartState } from "./barCharts/DiscreteBarChartState.js"
+export type { StackedAreaChartState } from "./stackedCharts/StackedAreaChartState.js"
+export type { StackedBarChartState } from "./stackedCharts/StackedBarChartState.js"
+export type { StackedDiscreteBarChartState } from "./stackedCharts/StackedDiscreteBarChartState"
+export type { ScatterPlotChartState } from "./scatterCharts/ScatterPlotChartState"
+export type { MarimekkoChartState } from "./stackedCharts/MarimekkoChartState"
+
+export { constructGrapherValuesJson } from "./GrapherValuesJsonHelpers"
