@@ -1,0 +1,67 @@
+.search-chart-hit-table-content {
+    @include note-1-regular;
+    color: $gray-100;
+    height: 100%;
+
+    display: grid;
+    grid-template-rows: repeat(5, 1fr);
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-flow: column;
+    column-gap: 12px;
+}
+
+.search-chart-hit-table-header {
+    @include note-1-regular;
+    color: $gray-70;
+
+    .search-chart-hit-table-header__title {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.search-chart-hit-table-row {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+
+    &.col-span {
+        grid-column: 1 / -1;
+    }
+
+    .search-chart-hit-table-row__name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    // dashed line from name to value
+    .search-chart-hit-table-row__spacer {
+        flex: 1;
+        border-top: 1px dashed $gray-50;
+        align-self: center;
+        margin: 0 3px;
+        position: relative;
+        top: 4px;
+    }
+
+    .search-chart-hit-table-row__swatch {
+        width: 10px;
+        height: 10px;
+        display: inline-block;
+        margin-right: 4px;
+        flex-shrink: 0;
+    }
+
+    .search-chart-hit-table-row__value {
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .search-chart-hit-table-row__time {
+        color: $gray-70;
+        font-weight: 400;
+    }
+}
