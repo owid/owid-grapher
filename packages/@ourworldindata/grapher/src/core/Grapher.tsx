@@ -1610,15 +1610,21 @@ export class GrapherState {
         ].includes(tabName)
     }
 
+    @action.bound ensureTimeHandlesAreSensibleForTab(
+        tab: GrapherTabName
+    ): void {
+        if (this.checkOnlySingleTimeSelectionPossible(tab)) {
+            this.ensureHandlesAreOnSameTime()
+        } else if (this.checkStartAndEndTimeSelectionPreferred(tab)) {
+            this.ensureHandlesAreOnDifferentTimes()
+        }
+    }
+
     @action.bound onChartSwitching(
         _oldTab: GrapherTabName,
         newTab: GrapherTabName
     ): void {
-        if (this.checkOnlySingleTimeSelectionPossible(newTab)) {
-            this.ensureHandlesAreOnSameTime()
-        } else if (this.checkStartAndEndTimeSelectionPreferred(newTab)) {
-            this.ensureHandlesAreOnDifferentTimes()
-        }
+        this.ensureTimeHandlesAreSensibleForTab(newTab)
     }
 
     @action.bound syncEntitySelectionBetweenChartAndMap(
