@@ -6,5 +6,9 @@ export default defineConfig({
     test: {
         include: ["db/tests/**/*.test.js", "adminSiteServer/app.test.ts"],
         maxConcurrency: 1,
+        reporter: ["basic"],
+        outputFile: {
+            json: undefined,
+        },
     },
 })
