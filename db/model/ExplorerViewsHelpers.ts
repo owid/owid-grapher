@@ -239,9 +239,14 @@ export async function constructGrapherConfig(
     )
 
     // Throw error for invalid grapher IDs when using FromGrapherId mode
-    if (mode === ExplorerChartCreationMode.FromGrapherId && !baseGrapherConfig) {
+    if (
+        mode === ExplorerChartCreationMode.FromGrapherId &&
+        !baseGrapherConfig
+    ) {
         const grapherId = parsedGrapherRow.grapherId
-        throw new Error(`Invalid grapher ID: ${grapherId}. Chart with this ID does not exist.`)
+        throw new Error(
+            `Invalid grapher ID: ${grapherId}. Chart with this ID does not exist.`
+        )
     }
 
     // construct the config's dimensions array from the explorer's columns section

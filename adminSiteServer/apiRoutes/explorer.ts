@@ -114,14 +114,16 @@ export async function handleDeleteExplorer(
         .select("chartConfigId")
         .where({ explorerSlug: slug })
         .whereNotNull("chartConfigId")
-    
-    const chartConfigIds = explorerViewChartConfigs.map(row => row.chartConfigId)
+
+    const chartConfigIds = explorerViewChartConfigs.map(
+        (row) => row.chartConfigId
+    )
 
     await trx(ExplorersTableName).where({ slug }).delete()
 
     // Note: explorer_views are automatically cleaned up via ON DELETE CASCADE
     // foreign key constraint from explorerSlug to explorers.slug
-    
+
     // Explicitly clean up chart configs that were created for explorer views
     // (CASCADE constraint should handle this, but explicitly doing it to ensure cleanup)
     if (chartConfigIds.length > 0) {
