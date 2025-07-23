@@ -8,7 +8,6 @@ import {
     SearchIndexName,
 } from "./searchTypes.js"
 import { getEntityQueryStr, pickEntitiesForChartHit } from "./searchUtils.js"
-import { HitAttributeHighlightResult } from "instantsearch.js"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
@@ -45,24 +44,8 @@ export function DEPRECATEDChartHit({
     const isMultiDimView = hit.type === ChartRecordType.MultiDimView
 
     const entities = useMemo(() => {
-        const highlighted = (hit._highlightResult?.originalAvailableEntities ||
-            hit._highlightResult?.availableEntities) as
-            | HitAttributeHighlightResult[]
-            | undefined
-        const available = hit.originalAvailableEntities ?? hit.availableEntities
-
-        return pickEntitiesForChartHit(
-            highlighted,
-            available,
-            searchQueryRegionsMatches
-        )
-    }, [
-        hit._highlightResult?.availableEntities,
-        hit._highlightResult?.originalAvailableEntities,
-        hit.availableEntities,
-        hit.originalAvailableEntities,
-        searchQueryRegionsMatches,
-    ])
+        return pickEntitiesForChartHit(hit, searchQueryRegionsMatches)
+    }, [hit, searchQueryRegionsMatches])
     const entityQueryStr = useMemo(
         () => getEntityQueryStr(entities),
         [entities]
