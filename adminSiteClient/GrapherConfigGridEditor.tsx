@@ -45,7 +45,6 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import Handsontable from "handsontable"
 import { GRAPHER_CHART_TYPES, GRAPHER_MAP_TYPE } from "@ourworldindata/types"
 import {
-    DEFAULT_GRAPHER_BOUNDS,
     fetchInputTableForConfig,
     Grapher,
     GrapherProgrammaticInterface,
