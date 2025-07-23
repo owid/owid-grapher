@@ -24,8 +24,8 @@ import {
 } from "@ourworldindata/types"
 import { OpenAI } from "openai"
 import { OPENAI_API_KEY } from "../../settings/serverSettings.js"
-import zod from "zod"
-import { zodResponseFormat } from "openai/helpers/zod"
+import { z } from "zod"
+import { zodResponseFormat } from "../../serverUtils/openAiUtils.js"
 
 // XXX hardcoded filtering to public parent tags
 export const PUBLIC_TAG_PARENT_IDS = [
@@ -469,12 +469,12 @@ export async function getGptTopicSuggestions(
     if (!topics.length) throw new JsonError("No topics found", 404)
 
     // Define Zod schema for the response
-    const TopicSchema = zod.object({
-        id: zod.number(),
-        name: zod.string(),
+    const TopicSchema = z.object({
+        id: z.number(),
+        name: z.string(),
     })
-    const TopicsResponseSchema = zod.object({
-        topics: zod.array(TopicSchema),
+    const TopicsResponseSchema = z.object({
+        topics: z.array(TopicSchema),
     })
 
     const prompt = `
