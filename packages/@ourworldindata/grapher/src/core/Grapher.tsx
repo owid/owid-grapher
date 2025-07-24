@@ -137,6 +137,7 @@ import {
     latestGrapherConfigSchema,
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
+    CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import { ChartDimension } from "../chart/ChartDimension"
@@ -758,6 +759,7 @@ export class GrapherState {
             (time) => findClosestTime(this.times, time) ?? time
         ) as TimeBounds
     }
+
     @computed private get shouldShowDiscreteBarWhenSingleTime(): boolean {
         let { minTime, maxTime } = this
 
@@ -792,8 +794,9 @@ export class GrapherState {
         // Switch to the discrete bar chart tab if we're on the line or slope
         // chart tab and a single time is selected
         if (
-            (activeTab === GRAPHER_TAB_NAMES.LineChart ||
-                activeTab === GRAPHER_TAB_NAMES.SlopeChart) &&
+            CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME.includes(
+                activeTab as any
+            ) &&
             this.shouldShowDiscreteBarWhenSingleTime &&
             // Don't switch to a bar chart while the timeline animation is playing.
             // This is necessary because the time handles are at the same time
