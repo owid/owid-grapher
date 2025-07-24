@@ -106,7 +106,9 @@ export function SearchChartHitLarge({
                         <Highlight
                             attribute="title"
                             highlightedTagName="strong"
-                            className="search-chart-hit-large__title"
+                            classNames={{
+                                root: "search-chart-hit-large__title",
+                            }}
                             hit={hit}
                         />{" "}
                         <span className="search-chart-hit-large__variant">
