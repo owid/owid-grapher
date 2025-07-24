@@ -2,7 +2,12 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { observer } from "mobx-react"
 import { runInAction, observable, computed, action, makeObservable } from "mobx"
-import { bind } from "decko"
+import {
+    bind,
+    DbChartTagJoin,
+    sortNumeric,
+    queryParamsToStr,
+} from "@ourworldindata/utils"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
     GrapherChartType,
@@ -11,11 +16,6 @@ import {
     GRAPHER_TAB_CONFIG_OPTIONS,
     SortOrder,
 } from "@ourworldindata/types"
-import {
-    DbChartTagJoin,
-    sortNumeric,
-    queryParamsToStr,
-} from "@ourworldindata/utils"
 import { getFullReferencesCount } from "./ChartEditor.js"
 import { ChartRow } from "./ChartRow.js"
 import { References } from "./AbstractChartEditor.js"

@@ -1,10 +1,9 @@
 import * as React from "react"
-import { Bounds } from "@ourworldindata/utils"
+import { Bounds, bind } from "@ourworldindata/utils"
 import {
     isElementInteractive,
     isTargetOutsideElement,
 } from "../chart/ChartUtils"
-import { bind } from "decko"
 
 export class Modal extends React.Component<{
     bounds: Bounds
