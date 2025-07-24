@@ -12,7 +12,7 @@ interface SlideInDrawerProps {
     active: boolean
     toggle: () => void
     children: React.ReactNode
-    grapherRef?: React.RefObject<HTMLDivElement>
+    grapherRef?: React.RefObject<HTMLDivElement | null>
 }
 
 @observer

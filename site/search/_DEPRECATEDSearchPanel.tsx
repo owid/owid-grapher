@@ -230,7 +230,11 @@ function Filters({
 
 // The rule doesn't support class components in the same file.
 // eslint-disable-next-line react-refresh/only-export-components
-function NoResultsBoundary({ children }: { children: React.ReactElement }) {
+function NoResultsBoundary({
+    children,
+}: {
+    children: React.ReactElement<React.HTMLAttributes<HTMLElement>>
+}) {
     const { results } = useInstantSearch()
 
     // The `__isArtificial` flag makes sure not to display the No Results message when no hits have been returned.

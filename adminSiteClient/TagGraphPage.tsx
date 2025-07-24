@@ -75,7 +75,7 @@ function DraggableDroppable(props: {
                 if (React.isValidElement(child)) {
                     if (child.type === TagGraphNodeContainer) {
                         return React.cloneElement(child, {
-                            ...child.props,
+                            ...(child.props as any),
                             // If this node is being dragged, prevent all its children from being valid drop targets
                             disableDroppable: shouldDisableDroppable,
                         })

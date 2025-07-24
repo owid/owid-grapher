@@ -321,7 +321,9 @@ function KeyIndicatorLink({
 
 const useHeight = () => {
     const ref = useRef<HTMLDivElement>(null)
-    const { height } = useResizeObserver({ ref })
+    const { height } = useResizeObserver({
+        ref: ref as React.RefObject<HTMLDivElement>,
+    })
 
     return { ref, height }
 }

@@ -35,8 +35,8 @@ const polyfillPreload = (
 )
 
 interface Assets {
-    forHeader: React.ReactElement[]
-    forFooter: React.ReactElement[]
+    forHeader: React.ReactElement<React.HTMLProps<HTMLElement>>[]
+    forFooter: React.ReactElement<React.HTMLProps<HTMLElement>>[]
 }
 
 // in dev: we need to load several vite core scripts and plugins; other than that we only need to load the entry point, and vite will take care of the rest.
@@ -78,11 +78,13 @@ export const createTagsForManifestEntry = (
     assetBaseUrl: string,
     assetMap?: AssetMap
 ): Assets => {
-    const createTags = (entry: string): React.ReactElement[] => {
+    const createTags = (
+        entry: string
+    ): React.ReactElement<React.HTMLProps<HTMLElement>>[] => {
         const manifestEntry =
             Object.values(manifest).find((e) => e.file === entry) ??
             (manifest[entry] as ManifestChunk | undefined)
-        let assets = [] as React.ReactElement[]
+        let assets: React.ReactElement<React.HTMLProps<HTMLElement>>[] = []
 
         if (!manifestEntry && !entry.endsWith(".css"))
             throw new Error(`Could not find manifest entry for ${entry}`)

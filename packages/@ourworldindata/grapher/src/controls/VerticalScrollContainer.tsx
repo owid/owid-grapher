@@ -18,7 +18,7 @@ type ReactRef<T> =
     | React.MutableRefObject<T | null>
     | null
 
-function useCombinedRefs<T>(...refs: ReactRef<T>[]): React.RefObject<T> {
+function useCombinedRefs<T>(...refs: ReactRef<T>[]): React.RefObject<T | null> {
     const targetRef = React.useRef<T>(null)
 
     React.useEffect(() => {
@@ -155,7 +155,7 @@ const ScrollingShadow = (props: {
  * the height has likely changed.
  */
 function useScrollBounds<ElementType extends HTMLElement>(
-    ref: React.RefObject<ElementType>,
+    ref: React.RefObject<ElementType | null>,
     contentsId?: string
 ): [number | undefined, number | undefined] {
     const [scrollTop, onScrollTop] = useState<number | undefined>(undefined)
@@ -204,7 +204,7 @@ interface ScrollLockOptions {
  * @param ref the ReactRef of the scrolling container
  */
 function useScrollLock<ElementType extends HTMLElement>(
-    ref: React.RefObject<ElementType>,
+    ref: React.RefObject<ElementType | null>,
     opts?: Partial<ScrollLockOptions>
 ): void {
     useEffect(() => {

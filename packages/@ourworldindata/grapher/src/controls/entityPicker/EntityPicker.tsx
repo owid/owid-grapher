@@ -687,7 +687,7 @@ interface PickerOptionProps {
     highlight: (label: string) => React.ReactElement | string
     onChange: (name: string, checked: boolean) => void
     onHover?: () => void
-    innerRef?: React.RefObject<HTMLLabelElement>
+    innerRef?: React.RefObject<HTMLLabelElement | null>
     isFocused?: boolean
     isSelected?: boolean
     barScale?: ScaleLinear<number, number>

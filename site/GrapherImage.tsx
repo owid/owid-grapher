@@ -6,11 +6,24 @@ import {
 import { GRAPHER_DYNAMIC_THUMBNAIL_URL } from "../settings/clientSettings.js"
 import { Url } from "@ourworldindata/utils"
 
-function GrapherImageSource({ defaultSrc }: { defaultSrc: string }) {
+function GrapherImageSource({
+    defaultSrc,
+    suppressHydrationWarning,
+}: {
+    defaultSrc: string
+    suppressHydrationWarning: boolean | undefined
+}) {
     const srcSet = generateGrapherImageSrcSet(defaultSrc)
     const sizes = `(max-width: 850px) 100vw, 850px`
 
-    return <source id="grapher-preview-source" srcSet={srcSet} sizes={sizes} />
+    return (
+        <source
+            id="grapher-preview-source"
+            srcSet={srcSet}
+            sizes={sizes}
+            suppressHydrationWarning={suppressHydrationWarning}
+        />
+    )
 }
 
 export default function GrapherImage(props: {
@@ -54,7 +67,10 @@ export default function GrapherImage(props: {
             // Enabling this option only makes sense if this is the _main_ chart on a _standalone_ grapher/data page - it will pass on the URL params from the page to the thumbnail.
             data-owid-populate-url-params={props.enablePopulatingUrlParams}
         >
-            <GrapherImageSource defaultSrc={defaultSrc} />
+            <GrapherImageSource
+                defaultSrc={defaultSrc}
+                suppressHydrationWarning={props.enablePopulatingUrlParams}
+            />
             <img
                 className="GrapherImage"
                 src={defaultSrc}
@@ -63,6 +79,9 @@ export default function GrapherImage(props: {
                 height={DEFAULT_GRAPHER_HEIGHT}
                 loading="lazy"
                 data-no-img-formatting={props.noFormatting}
+                // Suppresses a (inevitable) hydration mismatch warning when the image is rendered on the server with a dynamic URL incl. query
+                // params, and the client then replaces it with "just" a normal URL.
+                suppressHydrationWarning={props.enablePopulatingUrlParams}
             />
         </picture>
     )

@@ -8,7 +8,7 @@ import { useResizeObserver } from "usehooks-ts"
 import { reaction } from "mobx"
 
 export const useTriggerWhenClickOutside = (
-    container: RefObject<HTMLElement>,
+    container: RefObject<HTMLElement | null>,
     active: boolean,
     trigger: () => void
 ) => {
@@ -62,7 +62,7 @@ export const useScrollDirection = () => {
 
 export const useEmbedChart = (
     activeChartIdx: number,
-    refChartContainer: React.RefObject<HTMLDivElement>,
+    refChartContainer: React.RefObject<HTMLDivElement | null>,
     isPreviewing: boolean
 ) => {
     useEffect(() => {
@@ -98,7 +98,7 @@ export const useTriggerOnEscape = (
 // Auto-updating Bounds object based on ResizeObserver
 // Optionally throttles the bounds updates
 export const useElementBounds = (
-    ref: RefObject<HTMLElement>,
+    ref: RefObject<HTMLElement | null>,
     initialValue: Bounds = DEFAULT_GRAPHER_BOUNDS,
     throttleTime: number | undefined = 100
 ) => {
@@ -129,7 +129,10 @@ export const useElementBounds = (
         [throttleTime, updateBoundsImmediately]
     )
 
-    useResizeObserver({ ref, onResize: updateBoundsThrottled })
+    useResizeObserver({
+        ref: ref as React.RefObject<HTMLDivElement>,
+        onResize: updateBoundsThrottled,
+    })
 
     return bounds
 }
@@ -158,7 +161,7 @@ export const useMobxStateToReactState = <T>(
 }
 
 export const useFocusTrap = (
-    ref: React.RefObject<HTMLElement>,
+    ref: React.RefObject<HTMLElement | null>,
     isActive: boolean
 ): void => {
     useEffect(() => {

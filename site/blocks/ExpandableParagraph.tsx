@@ -65,10 +65,9 @@ export const ExpandableParagraph = (
         <div className={cx("expandable-paragraph", className)}>
             <div
                 style={contentStyles}
-                // inert isn't supported in react@17
-                // prevents focus on elements that are not visible
+                // inert prevents focus on elements that are not visible
                 // ideally would only apply to elements below the fold but that's hard
-                {...{ inert: isClosed ? "true" : undefined }}
+                inert={isClosed}
                 ref={containerRef}
                 // Either pass children or dangerouslySetInnerHTML
                 {...propsWithoutStyles}

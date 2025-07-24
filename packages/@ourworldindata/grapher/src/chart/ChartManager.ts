@@ -26,7 +26,7 @@ import { FocusArray } from "../focus/FocusArray"
 // The possible options common across our chart types. Not all of these apply to every chart type, so there is room to create a better type hierarchy.
 
 export interface ChartManager {
-    base?: React.RefObject<SVGGElement | HTMLDivElement>
+    base?: React.RefObject<SVGGElement | HTMLDivElement | null>
     fontSize?: number
 
     table: OwidTable
