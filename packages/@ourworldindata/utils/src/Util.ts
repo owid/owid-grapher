@@ -1331,33 +1331,41 @@ export async function copyToClipboard(text: string): Promise<void> {
 }
 
 // Memoization for immutable getters. Run the function once for this instance and cache the result.
-export const imemo = <Type>(
-    _target: unknown,
-    propertyName: string,
-    descriptor: TypedPropertyDescriptor<Type>
-): void => {
-    const originalFn = descriptor.get!
-    descriptor.get = function (this: Record<string, Type>): Type {
-        const propName = `${propertyName}_memoized`
-        if (this[propName] === undefined) {
-            // Define the prop the long way so we don't enumerate over it
-            Object.defineProperty(this, propName, {
-                configurable: false,
-                enumerable: false,
-                writable: false,
-                value: originalFn.apply(this),
-            })
-        }
-        return this[propName]
+export const imemo = <Type, This extends Record<string, any>>(
+    accessor: ClassAccessorDecoratorTarget<This, Type>,
+    context: ClassAccessorDecoratorContext<This, Type>
+): ClassAccessorDecoratorResult<This, Type> => {
+    const { name } = context
+    const propName = `${String(name)}_memoized`
+
+    return {
+        get(this: This): Type {
+            if (this[propName] === undefined) {
+                // Define the prop the long way so we don't enumerate over it
+                Object.defineProperty(this, propName, {
+                    configurable: false,
+                    enumerable: false,
+                    writable: false,
+                    value: accessor.get.call(this),
+                })
+            }
+            return this[propName]
+        },
+        set: accessor.set,
     }
 }
 
 // A decorator to log the evaluation time of a class method or class getter.
-export const logPerf = (
-    _target: unknown,
-    propertyKey: string,
-    descriptor: PropertyDescriptor
-): PropertyDescriptor => {
+export function logPerf(
+    target: ((...args: any[]) => any) | ClassAccessorDecoratorTarget<any, any>,
+    context:
+        | ClassMethodDecoratorContext
+        | ClassAccessorDecoratorContext
+        | ClassGetterDecoratorContext
+): ((...args: any[]) => any) | ClassAccessorDecoratorResult<any, any> {
+    const { name, kind } = context
+    const propertyKey = String(name)
+
     const logPerfWrapper = (fn: () => unknown, ...log: unknown[]): unknown => {
         // eslint-disable-next-line no-console
         console.log("⏱︎▶️ logging", propertyKey, ...log)
@@ -1371,19 +1379,27 @@ export const logPerf = (
         return result
     }
 
-    if (descriptor.get) {
-        const originalGet = descriptor.get
-        descriptor.get = function (): unknown {
-            return logPerfWrapper(() => originalGet.call(this))
+    if (kind === "method") {
+        const methodTarget = target as (...args: any[]) => any
+        return function (this: any, ...args: unknown[]): unknown {
+            return logPerfWrapper(() => methodTarget.apply(this, args), args)
         }
-    } else if (descriptor.value) {
-        const originalFn = descriptor.value
-        descriptor.value = function (...args: unknown[]): unknown {
-            return logPerfWrapper(() => originalFn.apply(this, args), args)
+    } else if (kind === "getter") {
+        const getterTarget = target as () => any
+        return function (this: any): unknown {
+            return logPerfWrapper(() => getterTarget.call(this))
+        }
+    } else if (kind === "accessor") {
+        const accessorTarget = target as ClassAccessorDecoratorTarget<any, any>
+        return {
+            get(this: any): unknown {
+                return logPerfWrapper(() => accessorTarget.get.call(this))
+            },
+            set: accessorTarget.set,
         }
     }
 
-    return descriptor
+    return target
 }
 
 // These are all the types that we need to be able to iterate through to extract their URLs/filenames.
