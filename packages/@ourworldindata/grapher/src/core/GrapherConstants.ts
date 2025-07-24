@@ -1,4 +1,8 @@
-import { EntityName } from "@ourworldindata/types"
+import {
+    EntityName,
+    GRAPHER_CHART_TYPES,
+    GrapherChartType,
+} from "@ourworldindata/types"
 import { Bounds } from "@ourworldindata/utils"
 import { defaultGrapherConfig } from "../schema/defaultGrapherConfig.js"
 import type { GrapherProgrammaticInterface } from "./Grapher"
@@ -170,3 +174,6 @@ export const SVG_STYLE_PROPS: React.CSSProperties = {
     textRendering: "geometricPrecision",
     WebkitFontSmoothing: "antialiased",
 }
+
+export const CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME: GrapherChartType[] =
+    [GRAPHER_CHART_TYPES.LineChart, GRAPHER_CHART_TYPES.SlopeChart]
