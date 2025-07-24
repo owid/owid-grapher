@@ -106,6 +106,27 @@
             ],
         },
         {
+            "name": "Run tests (via fnm)",
+            "request": "launch",
+            "type": "node",
+            "runtimeExecutable": "fnm",
+            "runtimeArgs": [
+                "exec",
+                "--",
+                "yarn",
+                "test",
+                "run",
+                "--reporter=dot"
+            ],
+            // Files to exclude from debugger (e.g. call stack)
+            "skipFiles": [
+                // Node.js internal core modules
+                "<node_internals>/**",
+                // Ignore all dependencies (optional)
+                "${workspaceFolder}/node_modules/**",
+            ],
+        },
+        {
             "name": "Attach to node",
             "type": "node",
             "request": "attach",
