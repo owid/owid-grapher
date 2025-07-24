@@ -313,7 +313,7 @@ export class SourcesModal extends React.Component<
         this.manager.isSourcesModalOpen = false
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return (
             <Modal
                 bounds={this.modalBounds}
@@ -497,7 +497,7 @@ export class Source extends React.Component<SourceProps> {
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return (
             <div className="source">
                 {this.renderTitle()}

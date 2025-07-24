@@ -155,7 +155,7 @@ export class VisionDeficiencyDropdown extends Component<VisionDeficiencyDropdown
         if (selected) this.props.onChange(selected)
     }
 
-    render() {
+    override render() {
         return (
             <Select
                 options={this.options}

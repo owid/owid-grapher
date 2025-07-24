@@ -20,7 +20,7 @@ interface ScatterPointProps {
 // When there's only a single point in a series (e.g. single year mode)
 @observer
 export class ScatterPoint extends React.Component<ScatterPointProps> {
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         const { series, isLayerMode, onMouseEnter, onMouseLeave } = this.props
         const value = R.first(series.points)
         if (value === undefined) return null
@@ -78,7 +78,7 @@ interface ScatterLineProps {
 
 @observer
 export class ScatterLine extends React.Component<ScatterLineProps> {
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         const { series, isLayerMode, onMouseEnter, onMouseLeave } = this.props
 
         if (series.points.length === 1)

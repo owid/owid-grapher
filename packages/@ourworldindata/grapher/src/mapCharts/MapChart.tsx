@@ -177,7 +177,7 @@ export class MapChart
         this.manager.mapRegionDropdownValue = undefined
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         this.onMapMouseLeave()
         this.onLegendMouseLeave()
         document.removeEventListener("keydown", this.onDocumentKeyDown)
@@ -253,7 +253,7 @@ export class MapChart
         return !!this.manager.disableIntroAnimation
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         if (!this.disableIntroAnimation) {
             select(this.base.current)
                 .selectAll(`.${MAP_CHART_CLASSNAME} path`)
@@ -623,7 +623,7 @@ export class MapChart
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
                 <NoDataModal

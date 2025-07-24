@@ -7,10 +7,10 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 @observer
 export class TestIndexPage extends Component {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    render() {
+    override render() {
         return (
             <AdminLayout title="Test">
                 <main className="TestIndexPage">

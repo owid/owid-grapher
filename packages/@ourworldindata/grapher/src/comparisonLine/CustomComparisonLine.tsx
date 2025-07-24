@@ -135,7 +135,7 @@ export class CustomComparisonLine extends React.Component<
         )
     }
 
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         if (!this.linePath) return null
 
         return (

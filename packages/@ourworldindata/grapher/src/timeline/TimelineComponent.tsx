@@ -205,7 +205,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         return labelWidth < 0.1 * this.maxWidth
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         const current = this.base.current
 
         if (current) {
@@ -226,7 +226,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         })
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         document.documentElement.removeEventListener("mouseup", this.onMouseUp)
         document.documentElement.removeEventListener(
             "mouseleave",
@@ -316,7 +316,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         return time
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const { manager, controller } = this
         const {
             startTimeProgress,

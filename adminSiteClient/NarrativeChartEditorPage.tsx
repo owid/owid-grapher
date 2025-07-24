@@ -24,7 +24,7 @@ export class NarrativeChartEditorPage
         NarrativeChartEditorManager,
         ChartEditorViewManager<NarrativeChartEditor>
 {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     constructor(props: NarrativeChartEditorPageProps) {
@@ -96,11 +96,11 @@ export class NarrativeChartEditorPage
         void this.fetchRefs()
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         this.refresh()
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return <ChartEditorView manager={this} />
     }
 }

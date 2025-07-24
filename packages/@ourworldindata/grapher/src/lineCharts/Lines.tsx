@@ -237,7 +237,7 @@ export class Lines extends React.Component<LinesProps> {
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return this.props.isStatic
             ? this.renderStatic()
             : this.renderInteractive()

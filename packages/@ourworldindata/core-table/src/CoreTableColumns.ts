@@ -535,7 +535,7 @@ class StringColumn extends AbstractCoreColumn<string> {
         return anyToString(value)
     }
 
-    parse(val: unknown): any {
+    override parse(val: unknown): any {
         if (val === null) return ErrorValueTypes.NullButShouldBeString
         if (val === undefined) return ErrorValueTypes.UndefinedButShouldBeString
         return String(val) || ""
@@ -554,7 +554,7 @@ class BooleanColumn extends AbstractCoreColumn<boolean> {
         return value ? "true" : "false"
     }
 
-    parse(val: unknown): boolean {
+    override parse(val: unknown): boolean {
         return !!val
     }
 }
@@ -564,7 +564,7 @@ class OrdinalColumn extends CategoricalColumn {
         return this.def.sort
     }
 
-    @imemo get sortedUniqNonEmptyStringVals(): string[] {
+    @imemo override get sortedUniqNonEmptyStringVals(): string[] {
         return this.allowedValuesSorted
             ? this.allowedValuesSorted
             : super.sortedUniqNonEmptyStringVals
@@ -588,7 +588,7 @@ abstract class AbstractColumnWithNumberFormatting<
         return ""
     }
 
-    formatValueShortWithAbbreviations(
+    override formatValueShortWithAbbreviations(
         value: unknown,
         options?: TickFormattingOptions
     ): string {
@@ -606,7 +606,10 @@ abstract class AbstractColumnWithNumberFormatting<
         })
     }
 
-    formatValueShort(value: unknown, options?: TickFormattingOptions): string {
+    override formatValueShort(
+        value: unknown,
+        options?: TickFormattingOptions
+    ): string {
         return super.formatValueShort(value, {
             ...omitUndefinedValues({
                 unit: this.shortUnit,
@@ -615,7 +618,10 @@ abstract class AbstractColumnWithNumberFormatting<
         })
     }
 
-    formatValueLong(value: unknown, options?: TickFormattingOptions): string {
+    override formatValueLong(
+        value: unknown,
+        options?: TickFormattingOptions
+    ): string {
         return super.formatValueLong(value, {
             ...omitUndefinedValues({
                 unit: this.unit,
@@ -624,7 +630,7 @@ abstract class AbstractColumnWithNumberFormatting<
         })
     }
 
-    @imemo get isAllIntegers(): boolean {
+    @imemo override get isAllIntegers(): boolean {
         return this.values.every(
             (val) => typeof val === "number" && val % 1 === 0
         )
@@ -643,13 +649,16 @@ abstract class AbstractColumnWithNumberFormatting<
 class NumberOrStringColumn extends AbstractColumnWithNumberFormatting<
     number | string
 > {
-    formatValue(value: unknown, options?: TickFormattingOptions): string {
+    override formatValue(
+        value: unknown,
+        options?: TickFormattingOptions
+    ): string {
         if (_.isNumber(value)) {
             return super.formatValue(value, options)
         }
         return anyToString(value)
     }
-    parse(val: unknown): number | string | ErrorValue {
+    override parse(val: unknown): number | string | ErrorValue {
         if (val === null) return ErrorValueTypes.NullButShouldBeNumber
         if (val === undefined) return ErrorValueTypes.UndefinedButShouldBeNumber
         if (Number.isNaN(val)) return ErrorValueTypes.NaNButShouldBeNumber
@@ -663,7 +672,7 @@ class NumberOrStringColumn extends AbstractColumnWithNumberFormatting<
 }
 
 abstract class AbstractNumericColumn extends AbstractColumnWithNumberFormatting<number> {
-    parse(val: unknown): number | ErrorValue {
+    override parse(val: unknown): number | ErrorValue {
         if (val === null) return ErrorValueTypes.NullButShouldBeNumber
         if (val === undefined) return ErrorValueTypes.UndefinedButShouldBeNumber
         if (val === "") return ErrorValueTypes.BlankButShouldBeNumber
@@ -685,20 +694,26 @@ class NumericColumn extends AbstractNumericColumn {}
 class NumericCategoricalColumn extends AbstractNumericColumn {}
 
 class IntegerColumn extends NumericColumn {
-    formatValue(value: unknown, options?: TickFormattingOptions): string {
+    override formatValue(
+        value: unknown,
+        options?: TickFormattingOptions
+    ): string {
         return super.formatValue(value, {
             numDecimalPlaces: 0,
             ...options,
         })
     }
 
-    protected _parse(val: unknown): number {
+    protected override _parse(val: unknown): number {
         return parseInt(String(val))
     }
 }
 
 class CurrencyColumn extends NumericColumn {
-    formatValue(value: unknown, options?: TickFormattingOptions): string {
+    override formatValue(
+        value: unknown,
+        options?: TickFormattingOptions
+    ): string {
         return super.formatValue(value, {
             roundingMode: OwidVariableRoundingMode.decimalPlaces,
             numDecimalPlaces: 0,
@@ -707,21 +722,24 @@ class CurrencyColumn extends NumericColumn {
         })
     }
 
-    @imemo get shortUnit(): string {
+    @imemo override get shortUnit(): string {
         return "$"
     }
 }
 
 // Expects 50% to be 50
 class PercentageColumn extends NumericColumn {
-    formatValue(value: number, options?: TickFormattingOptions): string {
+    override formatValue(
+        value: number,
+        options?: TickFormattingOptions
+    ): string {
         return super.formatValue(value, {
             unit: this.shortUnit,
             ...options,
         })
     }
 
-    @imemo get shortUnit(): string {
+    @imemo override get shortUnit(): string {
         return "%"
     }
 }
@@ -731,7 +749,10 @@ class PercentageColumn extends NumericColumn {
 class RelativePercentageColumn extends PercentageColumn {}
 
 class PercentChangeOverTimeColumn extends PercentageColumn {
-    formatValue(value: number, options?: TickFormattingOptions): string {
+    override formatValue(
+        value: number,
+        options?: TickFormattingOptions
+    ): string {
         return super.formatValue(value, {
             showPlus: true,
             ...options,
@@ -753,15 +774,15 @@ export abstract class TimeColumn extends AbstractCoreColumn<number> {
 
     abstract preposition: string
 
-    @imemo get displayName(): string {
+    @imemo override get displayName(): string {
         return _.capitalize(this.name)
     }
 
-    formatTime(time: number): string {
+    override formatTime(time: number): string {
         return this.formatValue(time)
     }
 
-    parse(val: unknown): number | ErrorValue {
+    override parse(val: unknown): number | ErrorValue {
         return parseInt(String(val))
     }
 }
@@ -790,7 +811,7 @@ class DayColumn extends TimeColumn {
     }
 
     static formatValueForMobileCache = new Map<number, string>()
-    formatValueForMobile(value: number): string {
+    override formatValueForMobile(value: number): string {
         if (!DayColumn.formatValueForMobileCache.has(value)) {
             const formatted = formatDay(value, { format: "MMM D, 'YY" })
             DayColumn.formatValueForMobileCache.set(value, formatted)
@@ -800,7 +821,7 @@ class DayColumn extends TimeColumn {
     }
 
     static formatForCsvCache = new Map<number, string>()
-    formatForCsv(value: number): string {
+    override formatForCsv(value: number): string {
         if (!DayColumn.formatForCsvCache.has(value)) {
             const formatted = formatDay(value, { format: "YYYY-MM-DD" })
             DayColumn.formatForCsvCache.set(value, formatted)
@@ -812,7 +833,7 @@ class DayColumn extends TimeColumn {
 
 const dateToTimeCache = new Map<string, Time>() // Cache for performance
 class DateColumn extends DayColumn {
-    parse(val: unknown): number {
+    override parse(val: unknown): number {
         // skip parsing if a date is a number, it's already been parsed
         if (typeof val === "number") return val
         const valAsString = String(val)
@@ -833,7 +854,7 @@ class QuarterColumn extends TimeColumn {
 
     private static regEx = /^([+-]?\d+)-Q([1-4])$/
 
-    parse(val: unknown): number | ErrorValue {
+    override parse(val: unknown): number | ErrorValue {
         // skip parsing if a date is a number, it's already been parsed
         if (typeof val === "number") return val
         if (typeof val === "string") {
@@ -857,7 +878,7 @@ class QuarterColumn extends TimeColumn {
         return `Q${quarter}/${year}`
     }
 
-    formatForCsv(value: number): string {
+    override formatForCsv(value: number): string {
         const [year, quarter] = QuarterColumn.numToQuarter(value)
         return `${year}-Q${quarter}`
     }

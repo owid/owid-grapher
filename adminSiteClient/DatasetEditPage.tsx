@@ -100,7 +100,7 @@ class DatasetTagEditor extends Component<DatasetTagEditorProps> {
         this.props.newDataset.tags = tags
     }
 
-    render() {
+    override render() {
         const { newDataset, availableTags } = this.props
 
         return (
@@ -122,7 +122,7 @@ interface DatasetEditorProps {
 
 @observer
 class DatasetEditor extends Component<DatasetEditorProps> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
     @observable newDataset!: DatasetEditable
 
@@ -135,10 +135,10 @@ class DatasetEditor extends Component<DatasetEditorProps> {
     }
 
     // Store the original dataset to determine when it is modified
-    UNSAFE_componentWillMount() {
+    override UNSAFE_componentWillMount() {
         this.UNSAFE_componentWillReceiveProps()
     }
-    UNSAFE_componentWillReceiveProps() {
+    override UNSAFE_componentWillReceiveProps() {
         this.newDataset = new DatasetEditable(this.props.dataset)
     }
 
@@ -198,7 +198,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
         )
     }
 
-    render() {
+    override render() {
         const { dataset } = this.props
         const { newDataset } = this
         const _isBulkImport = dataset.namespace !== "owid"
@@ -423,7 +423,7 @@ interface DatasetEditPageProps {
 
 @observer
 export class DatasetEditPage extends Component<DatasetEditPageProps> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
     @observable dataset?: DatasetPageData
 
@@ -432,7 +432,7 @@ export class DatasetEditPage extends Component<DatasetEditPageProps> {
         makeObservable(this)
     }
 
-    render() {
+    override render() {
         return (
             <AdminLayout title={this.dataset && this.dataset.name}>
                 {this.dataset && <DatasetEditor dataset={this.dataset} />}
@@ -449,10 +449,10 @@ export class DatasetEditPage extends Component<DatasetEditPageProps> {
         })
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         this.UNSAFE_componentWillReceiveProps()
     }
-    UNSAFE_componentWillReceiveProps() {
+    override UNSAFE_componentWillReceiveProps() {
         void this.getData()
     }
 }

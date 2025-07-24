@@ -302,7 +302,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps> {
         )
     }
 
-    render() {
+    override render() {
         return (
             <form
                 className={classnames("FeedbackForm", {
@@ -337,7 +337,7 @@ export class FeedbackPrompt extends React.Component {
         this.onClose()
     }
 
-    render() {
+    override render() {
         return (
             <div
                 className={`feedbackPromptContainer${

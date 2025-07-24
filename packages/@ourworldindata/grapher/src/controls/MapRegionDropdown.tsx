@@ -115,7 +115,7 @@ export class MapRegionDropdown extends React.Component<{
         )
     }
 
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         if (!this.showMenu) return null
 
         return (

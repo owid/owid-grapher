@@ -14,7 +14,7 @@ interface UserIndexMetaWithLastSeen extends UserIndexMeta {
 
 @observer
 class InviteModal extends React.Component<{ onClose: () => void }> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable email: string = ""
@@ -46,7 +46,7 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
         void this.submit()
     }
 
-    render() {
+    override render() {
         return (
             <Modal onClose={this.props.onClose}>
                 <form onSubmit={this.onSubmit}>
@@ -98,7 +98,7 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
 
 @observer
 export class UsersIndexPage extends React.Component {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable users: UserIndexMetaWithLastSeen[] = []
@@ -128,7 +128,7 @@ export class UsersIndexPage extends React.Component {
         }
     }
 
-    render() {
+    override render() {
         const { users } = this
         const { isSuperuser } = this.context.admin
         return (
@@ -221,7 +221,7 @@ export class UsersIndexPage extends React.Component {
         })
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         void this.getData()
     }
 }

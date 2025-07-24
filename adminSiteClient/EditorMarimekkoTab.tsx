@@ -26,7 +26,7 @@ export class EditorMarimekkoTab extends Component<{
         this.xOverrideTimeInputField = value
     }
 
-    render() {
+    override render() {
         const { grapherState } = this.props
 
         return (
@@ -53,7 +53,7 @@ export class EditorMarimekkoTab extends Component<{
         )
     }
     dispose!: IReactionDisposer
-    componentDidMount() {
+    override componentDidMount() {
         this.dispose = reaction(
             () => this.xOverrideTimeInputField,
             lodash.debounce(
@@ -65,7 +65,7 @@ export class EditorMarimekkoTab extends Component<{
         )
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
         this.dispose()
     }
 }

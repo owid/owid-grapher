@@ -548,7 +548,7 @@ export class StackedAreaChart
     animSelection?: Selection<BaseType, unknown, SVGGElement | null, unknown>
 
     base = React.createRef<SVGGElement>()
-    componentDidMount(): void {
+    override componentDidMount(): void {
         document.addEventListener("click", this.onDocumentClick, {
             capture: true,
         })
@@ -569,7 +569,7 @@ export class StackedAreaChart
         exposeInstanceOnWindow(this)
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         document.removeEventListener("click", this.onDocumentClick, {
             capture: true,
         })
@@ -667,7 +667,7 @@ export class StackedAreaChart
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
                 <g>

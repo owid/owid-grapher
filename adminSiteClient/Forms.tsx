@@ -27,7 +27,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 export class FieldsRow extends React.Component<{ children: React.ReactNode }> {
-    render() {
+    override render() {
         return <div className="FieldsRow">{this.props.children}</div>
     }
 }
@@ -77,7 +77,7 @@ export class TextField extends React.Component<TextFieldProps> {
         this.props.onBlur?.(e)
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         if (this.props.autofocus) {
             const input = this.base.current!.querySelector("input")!
             input.focus()
@@ -112,7 +112,7 @@ export class TextField extends React.Component<TextFieldProps> {
         return button
     }
 
-    render() {
+    override render() {
         const { props } = this
         const passthroughProps = _.pick(props, [
             "placeholder",
@@ -214,7 +214,7 @@ export class TextAreaField extends React.Component<TextFieldProps> {
         return button
     }
 
-    render() {
+    override render() {
         const { props } = this
         const passthroughProps = _.pick(props, [
             "placeholder",
@@ -309,7 +309,7 @@ export class NumberField extends React.Component<
         }
     }
 
-    render() {
+    override render() {
         const { props, state } = this
 
         const textFieldProps = {
@@ -355,7 +355,7 @@ interface WithResetButtonProps {
 }
 
 class WithResetButton extends React.Component<WithResetButtonProps> {
-    render() {
+    override render() {
         const { props } = this
 
         return (
@@ -387,7 +387,7 @@ interface SelectFieldProps {
 }
 
 export class SelectField extends React.Component<SelectFieldProps> {
-    render() {
+    override render() {
         const { props } = this
 
         return (
@@ -443,7 +443,7 @@ interface SelectGroupsFieldProps {
 }
 
 export class SelectGroupsField extends React.Component<SelectGroupsFieldProps> {
-    render() {
+    override render() {
         const { props } = this
 
         return (
@@ -494,7 +494,7 @@ interface RadioGroupProps {
 }
 
 export class RadioGroup extends React.Component<RadioGroupProps> {
-    render() {
+    override render() {
         return (
             <div className="form-group">
                 {this.props.label && <label>{this.props.label}</label>}
@@ -543,7 +543,7 @@ interface NumericSelectFieldProps {
 }
 
 export class NumericSelectField extends React.Component<NumericSelectFieldProps> {
-    render() {
+    override render() {
         const props = {
             ...this.props,
             value:
@@ -582,7 +582,7 @@ export class Toggle extends React.Component<ToggleProps> {
         this.props.onValue(!!e.currentTarget.checked)
     }
 
-    render() {
+    override render() {
         const { props } = this
         const passthroughProps = _.pick(props, ["label", "disabled", "title"])
 
@@ -617,7 +617,7 @@ export class EditableList extends React.Component<{
     className?: string
     children?: React.ReactNode
 }> {
-    render() {
+    override render() {
         return this.props.children ? (
             <ul
                 {...this.props}
@@ -636,7 +636,7 @@ export interface EditableListItemProps
 }
 
 export class EditableListItem extends React.Component<EditableListItemProps> {
-    render() {
+    override render() {
         return (
             <li
                 {...this.props}
@@ -657,7 +657,7 @@ interface ColorBoxProps {
 
 @observer
 export class ColorBox extends React.Component<ColorBoxProps> {
-    render() {
+    override render() {
         const { color } = this.props
 
         const style =
@@ -707,7 +707,7 @@ export class Section extends React.Component<{
     name: string
     children: React.ReactNode
 }> {
-    render() {
+    override render() {
         return (
             <section>
                 <h5>{this.props.name}</h5>
@@ -735,7 +735,7 @@ interface SoftCharacterLimitProps {
 
 @observer
 class SoftCharacterLimit extends React.Component<SoftCharacterLimitProps> {
-    render() {
+    override render() {
         const { text, limit } = this.props
         return (
             <div
@@ -760,7 +760,7 @@ class SoftCharacterLimit extends React.Component<SoftCharacterLimitProps> {
 
 @observer
 export class AutoTextField extends React.Component<AutoTextFieldProps> {
-    render() {
+    override render() {
         const props = this.props
         const { textarea } = props
 
@@ -825,7 +825,7 @@ export class BindString extends React.Component<BindStringProps> {
         this.props.onBlur?.()
     }
 
-    render() {
+    override render() {
         const { field, store, label, textarea, ...rest } = this.props
         const value = store[field] as string | undefined
         if (textarea)
@@ -879,7 +879,7 @@ export class BindStringArray extends React.Component<BindStringArrayProps> {
         this.props.store[this.props.field] = parseBulletList(value)
     }
 
-    render() {
+    override render() {
         const { field, store, label, ...rest } = this.props
         const values = store[field] as string[] | []
         return (
@@ -917,7 +917,7 @@ export class BindDropdown extends React.Component<BindDropdownProps> {
         this.props.store[this.props.field] = value
     }
 
-    render() {
+    override render() {
         const { field, store, label, options, disabled } = this.props
         const value = store[field] || "" // Default to empty string if no value is set
 
@@ -979,7 +979,7 @@ export class BindAutoString<
         this.props.onBlur?.()
     }
 
-    render() {
+    override render() {
         const { field, store, label, auto, ...rest } = this.props
 
         const value = store[field] as string | undefined
@@ -1056,7 +1056,7 @@ export class BindAutoStringExt<
         )
     }
 
-    render() {
+    override render() {
         const { readFn, auto, store, ...rest } = this.props
         const currentReadValue = this.props.isAuto
             ? (auto ?? readFn(store))
@@ -1085,7 +1085,7 @@ interface AutoFloatFieldProps {
 }
 
 class AutoFloatField extends React.Component<AutoFloatFieldProps> {
-    render() {
+    override render() {
         const { props } = this
 
         return (
@@ -1131,7 +1131,7 @@ interface FloatFieldProps {
 }
 
 class FloatField extends React.Component<FloatFieldProps> {
-    render() {
+    override render() {
         const { props } = this
 
         return <NumberField {...props} allowDecimal allowNegative />
@@ -1164,7 +1164,7 @@ export class BindFloat<
         this.props.store[this.props.field] = value as any
     }
 
-    render() {
+    override render() {
         const { field, store, label, ...rest } = this.props
 
         const value = store[field] as number | undefined
@@ -1214,7 +1214,7 @@ export class BindAutoFloat<
         ) as any
     }
 
-    render() {
+    override render() {
         const { field, store, label, auto, ...rest } = this.props
 
         const value = store[field] as number | undefined
@@ -1266,7 +1266,7 @@ export class BindAutoFloatExt<
         )
     }
 
-    render() {
+    override render() {
         const { readFn, auto, store, ...rest } = this.props
         const currentReadValue = this.props.isAuto
             ? (auto ?? readFn(store))
@@ -1302,7 +1302,7 @@ export class Modal extends React.Component<ModalProps> {
         if (this.dismissable) this.props.onClose()
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         // HACK (Mispy): The normal ways of doing this (stopPropagation etc) don't seem to work here
         this.base.current!.addEventListener("click", () => {
             this.dismissable = false
@@ -1314,11 +1314,11 @@ export class Modal extends React.Component<ModalProps> {
         )
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
         document.body.removeEventListener("click", this.onClickOutside)
     }
 
-    render() {
+    override render() {
         const { props } = this
         return (
             <div
@@ -1420,7 +1420,7 @@ interface TimeagoProps {
 
 @observer
 export class Timeago extends React.Component<TimeagoProps> {
-    render() {
+    override render() {
         return (
             <>
                 {this.props.time && dayjs(this.props.time).fromNow()}
@@ -1437,7 +1437,7 @@ interface ButtonProps {
 
 @observer
 export class Button extends React.Component<ButtonProps> {
-    render() {
+    override render() {
         return (
             <button className="btn btn-link" onClick={this.props.onClick}>
                 {this.props.children}

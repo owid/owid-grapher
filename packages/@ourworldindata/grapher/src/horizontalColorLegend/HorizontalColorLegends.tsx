@@ -470,7 +470,7 @@ export class HorizontalNumericColorLegend extends HorizontalColorLegend {
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const {
             manager,
             numericLabels,
@@ -880,7 +880,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return (
             <g
                 id={makeIdForHumanConsumption("categorical-color-legend")}

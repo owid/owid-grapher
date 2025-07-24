@@ -65,7 +65,7 @@ export class ProminentLink extends Component<ProminentLinkProps> {
         return this.props.style || ProminentLinkStyles.default
     }
 
-    render() {
+    override render() {
         const classes = [
             PROMINENT_LINK_CLASSNAME,
             this.props.image ? WITH_IMAGE : null,

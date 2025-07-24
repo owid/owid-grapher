@@ -17,7 +17,7 @@ const statusLabel: Record<DeployStatus, string> = {
 
 @observer
 export class DeployStatusPage extends Component {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable deploys: Deploy[] = []
@@ -29,7 +29,7 @@ export class DeployStatusPage extends Component {
         makeObservable(this)
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         void this.getData()
         document.addEventListener(
             "visibilitychange",
@@ -37,14 +37,14 @@ export class DeployStatusPage extends Component {
         )
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
         document.removeEventListener(
             "visibilitychange",
             this.handleVisibilityChange
         )
     }
 
-    render() {
+    override render() {
         return (
             <AdminLayout title="Deploys">
                 <main className="DeploysPage">

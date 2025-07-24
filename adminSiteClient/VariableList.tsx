@@ -27,10 +27,10 @@ interface VariableRowProps {
 
 @observer
 class VariableRow extends React.Component<VariableRowProps> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    render() {
+    override render() {
         const { variable, fields, searchHighlight } = this.props
 
         return (
@@ -96,10 +96,10 @@ interface VariableListProps {
 
 @observer
 export class VariableList extends React.Component<VariableListProps> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    render() {
+    override render() {
         const { props } = this
         return (
             <table className="table table-bordered">

@@ -21,7 +21,7 @@ export class ScatterPlotChartThumbnail
         return this.props.chartState
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return <ScatterPlotChart {...this.props} />
     }
 }

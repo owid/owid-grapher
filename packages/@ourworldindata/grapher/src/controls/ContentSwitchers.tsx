@@ -195,7 +195,7 @@ export class ContentSwitchers extends React.Component<{
         )
     }
 
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         if (!this.shouldShow) return null
 
         return (

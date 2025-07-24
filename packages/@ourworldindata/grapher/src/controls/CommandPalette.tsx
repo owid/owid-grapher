@@ -30,7 +30,7 @@ export class CommandPalette extends React.Component<CommandPaletteProps> {
                 element.style.display === "none" ? "block" : "none"
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const style: any = {
             display: this.props.display,
         }

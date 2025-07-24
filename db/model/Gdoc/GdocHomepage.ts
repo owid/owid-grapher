@@ -30,10 +30,10 @@ export class GdocHomepage
         return gdoc
     }
 
-    linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
+    override linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     homepageMetadata: OwidGdocHomepageMetadata = {}
 
-    _validateSubclass = async (
+    override _validateSubclass = async (
         knex: db.KnexReadonlyTransaction
     ): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
@@ -58,7 +58,7 @@ export class GdocHomepage
         return errors
     }
 
-    _loadSubclassAttachments = async (
+    override _loadSubclassAttachments = async (
         knex: db.KnexReadWriteTransaction
     ): Promise<void> => {
         const [grapherCount, nonGrapherExplorerViewCount] = await Promise.all([

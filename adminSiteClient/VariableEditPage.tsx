@@ -142,15 +142,15 @@ class VariableEditor extends Component<{
     }
 
     // Store the original dataset to determine when it is modified
-    UNSAFE_componentWillMount() {
+    override UNSAFE_componentWillMount() {
         this.UNSAFE_componentWillReceiveProps()
     }
-    UNSAFE_componentWillReceiveProps() {
+    override UNSAFE_componentWillReceiveProps() {
         this.newVariable = new VariableEditable(this.props.variable)
         this.isDeleted = false
     }
 
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable.ref grapherState?: GrapherState
@@ -162,7 +162,7 @@ class VariableEditor extends Component<{
         )
     }
 
-    render() {
+    override render() {
         const { variable } = this.props
         const { newVariable, isV2MetadataVariable } = this
 
@@ -723,7 +723,7 @@ class VariableEditor extends Component<{
     }
 
     dispose!: IReactionDisposer
-    componentDidMount() {
+    override componentDidMount() {
         this.grapherState = new GrapherState({
             ...this.grapherConfig,
             additionalDataLoaderFn: (varId: number) =>
@@ -748,14 +748,14 @@ class VariableEditor extends Component<{
         })
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
         this.dispose()
     }
 }
 
 @observer
 export class VariableEditPage extends Component<{ variableId: number }> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable variable?: VariablePageData
@@ -765,7 +765,7 @@ export class VariableEditPage extends Component<{ variableId: number }> {
         makeObservable(this)
     }
 
-    render() {
+    override render() {
         return (
             <AdminLayout>
                 {this.variable && <VariableEditor variable={this.variable} />}
@@ -782,10 +782,10 @@ export class VariableEditPage extends Component<{ variableId: number }> {
         })
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         this.UNSAFE_componentWillReceiveProps()
     }
-    UNSAFE_componentWillReceiveProps() {
+    override UNSAFE_componentWillReceiveProps() {
         void this.getData()
     }
 }

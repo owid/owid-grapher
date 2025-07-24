@@ -30,7 +30,7 @@ interface SaveButtonsProps<Editor extends AbstractChartEditor> {
 export class SaveButtons<Editor extends AbstractChartEditor> extends Component<
     SaveButtonsProps<Editor>
 > {
-    render() {
+    override render() {
         const { editor } = this.props
         const passthroughProps = _.omit(this.props, "editor")
         if (isChartEditorInstance(editor))
@@ -100,7 +100,7 @@ class SaveButtonsForChart extends Component<SaveButtonsProps<ChartEditor>> {
         }
     }
 
-    render() {
+    override render() {
         const { editingErrors } = this
         const { editor } = this.props
         const { grapherState, isNewGrapher } = editor
@@ -198,7 +198,7 @@ class SaveButtonsForIndicatorChart extends Component<
         ])
     }
 
-    render() {
+    override render() {
         const { editingErrors } = this
         const { editor } = this.props
         const { grapherState } = editor
@@ -257,7 +257,7 @@ class SaveButtonsForNarrativeChart extends Component<
         ])
     }
 
-    render() {
+    override render() {
         const { editingErrors } = this
         const { editor } = this.props
         const { grapherState, isNewGrapher } = editor

@@ -60,7 +60,7 @@ export class StaticChartWrapper extends React.Component<StaticChartWrapperProps>
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const { manager } = this
 
         const bounds = this.manager.staticBoundsWithDetails ?? this.bounds

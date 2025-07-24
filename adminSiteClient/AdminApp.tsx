@@ -63,7 +63,7 @@ const queryClient = new QueryClient({
 
 @observer
 class AdminErrorMessage extends React.Component<{ admin: Admin }> {
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         const { admin } = this.props
         const error = admin.errorMessage
 
@@ -107,7 +107,7 @@ class AdminErrorMessage extends React.Component<{ admin: Admin }> {
 
 @observer
 class AdminLoader extends React.Component<{ admin: Admin }> {
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         const { admin } = this.props
         return admin.showLoadingIndicator ? <LoadingBlocker /> : null
     }
@@ -121,7 +121,7 @@ export class AdminApp extends React.Component<{
         return { admin: this.props.admin }
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const { admin } = this.props
 
         return (

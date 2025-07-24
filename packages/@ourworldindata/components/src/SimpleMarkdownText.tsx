@@ -60,7 +60,7 @@ export class SimpleMarkdownText extends React.Component<SimpleMarkdownTextProps>
         return undefined
     }
 
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         const options: Omit<MarkdownOptions, "children"> = {
             rehypePlugins: [transformDodLinks],
             remarkPlugins: [remarkPlainLinks],

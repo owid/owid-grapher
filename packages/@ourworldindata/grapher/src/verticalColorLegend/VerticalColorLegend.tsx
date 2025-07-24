@@ -253,7 +253,7 @@ export class VerticalColorLegend extends React.Component<{
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return (
             <g
                 id={makeIdForHumanConsumption("vertical-color-legend")}

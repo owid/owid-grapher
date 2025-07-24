@@ -346,7 +346,7 @@ export class Explorer
     }
 
     disposers: (() => void)[] = []
-    componentDidMount() {
+    override componentDidMount() {
         this.setGrapher(this.grapherRef!.current!)
         this.updateGrapherFromExplorer()
 
@@ -416,7 +416,7 @@ export class Explorer
         if (this.props.isInStandalonePage) this.bindToWindow()
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
         this.disposers.forEach((dispose) => dispose())
     }
 
@@ -1040,7 +1040,7 @@ export class Explorer
         )
     }
 
-    render() {
+    override render() {
         const { showExplorerControls, showHeaderElement } = this
 
         return (

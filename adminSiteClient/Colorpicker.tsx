@@ -30,7 +30,7 @@ export class Colorpicker extends Component<ColorpickerProps> {
         }
     }
 
-    render() {
+    override render() {
         const scheme = this.props.showLineChartColors
             ? ColorSchemes.get(ColorSchemeName.OwidDistinctLines)
             : ColorSchemes.get(ColorSchemeName["owid-distinct"])

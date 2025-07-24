@@ -37,7 +37,7 @@ export class EditorScatterTab extends Component<{
             value as ScatterPointLabelStrategy
     }
 
-    render() {
+    override render() {
         const { grapherState } = this.props
 
         return (

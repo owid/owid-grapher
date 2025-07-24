@@ -68,7 +68,7 @@ interface ChartListProps {
 
 @observer
 export class ChartList extends React.Component<ChartListProps> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable searchInput?: string
@@ -151,7 +151,7 @@ export class ChartList extends React.Component<ChartListProps> {
         window.history.replaceState({}, "", newUrl)
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         this.searchInput = this.getSearchInputFromUrl()
         void this.getTags()
     }
@@ -217,7 +217,7 @@ export class ChartList extends React.Component<ChartListProps> {
         this.maxVisibleCharts += 100
     }
 
-    render() {
+    override render() {
         const {
             sortConfig,
             onSort,

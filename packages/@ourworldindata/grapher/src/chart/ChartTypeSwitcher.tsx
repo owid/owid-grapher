@@ -8,7 +8,7 @@ import {
 export class ChartTypeSwitcher extends React.Component<{
     onChange: (chartType: GrapherChartType) => void
 }> {
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return (
             <select
                 onChange={(event): void =>

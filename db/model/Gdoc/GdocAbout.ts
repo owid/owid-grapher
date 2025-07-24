@@ -17,7 +17,7 @@ export class GdocAbout extends GdocBase implements OwidGdocAboutInterface {
         return gdoc
     }
 
-    async _loadSubclassAttachments(
+    override async _loadSubclassAttachments(
         knex: db.KnexReadonlyTransaction
     ): Promise<void> {
         let hasDonors = false

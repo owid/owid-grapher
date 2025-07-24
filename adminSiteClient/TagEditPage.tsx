@@ -35,7 +35,7 @@ class TagEditable {
 
 @observer
 class TagEditor extends Component<{ tag: TagPageData }> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable newtag!: TagEditable
@@ -47,10 +47,10 @@ class TagEditor extends Component<{ tag: TagPageData }> {
     }
 
     // Store the original tag to determine when it is modified
-    UNSAFE_componentWillMount() {
+    override UNSAFE_componentWillMount() {
         this.UNSAFE_componentWillReceiveProps(this.props)
     }
-    UNSAFE_componentWillReceiveProps(nextProps: any) {
+    override UNSAFE_componentWillReceiveProps(nextProps: any) {
         this.newtag = new TagEditable(nextProps.tag)
         this.isDeleted = false
     }
@@ -103,7 +103,7 @@ class TagEditor extends Component<{ tag: TagPageData }> {
         }
     }
 
-    render() {
+    override render() {
         const { tag } = this.props
         const { newtag } = this
 
@@ -184,7 +184,7 @@ class TagEditor extends Component<{ tag: TagPageData }> {
 
 @observer
 export class TagEditPage extends Component<{ tagId: number }> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable tag?: TagPageData
@@ -194,7 +194,7 @@ export class TagEditPage extends Component<{ tagId: number }> {
         makeObservable(this)
     }
 
-    render() {
+    override render() {
         return (
             <AdminLayout title={this.tag && this.tag.name}>
                 {this.tag && <TagEditor tag={this.tag} />}
@@ -209,10 +209,10 @@ export class TagEditPage extends Component<{ tagId: number }> {
         })
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         void this.getData(this.props.tagId)
     }
-    UNSAFE_componentWillReceiveProps(nextProps: any) {
+    override UNSAFE_componentWillReceiveProps(nextProps: any) {
         void this.getData(nextProps.tagId)
     }
 }

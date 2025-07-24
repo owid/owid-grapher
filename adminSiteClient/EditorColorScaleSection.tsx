@@ -50,7 +50,7 @@ interface EditorColorScaleSectionProps {
 
 @observer
 export class EditorColorScaleSection extends Component<EditorColorScaleSectionProps> {
-    render() {
+    override render() {
         return (
             <Fragment>
                 <ColorsSection
@@ -87,7 +87,7 @@ class ColorLegendSection extends Component<ColorLegendSectionProps> {
         this.props.onChange?.()
     }
 
-    render() {
+    override render() {
         const { scale, features } = this.props
         return (
             <Section name="Color legend">
@@ -204,7 +204,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
         )
     }
 
-    render() {
+    override render() {
         const { scale, config } = this
 
         return (
@@ -278,7 +278,7 @@ interface ColorSchemeEditorProps {
 
 @observer
 class ColorSchemeEditor extends Component<ColorSchemeEditorProps> {
-    render() {
+    override render() {
         const { scale } = this.props
         return (
             <div>
@@ -349,7 +349,7 @@ class BinLabelView extends Component<BinLabelViewProps> {
         this.props.onChange?.()
     }
 
-    render() {
+    override render() {
         const { bin } = this.props
 
         return (
@@ -463,7 +463,7 @@ class NumericBinView extends Component<NumericBinViewProps> {
         this.props.onChange?.()
     }
 
-    render() {
+    override render() {
         const { scale, bin } = this.props
 
         return (
@@ -565,7 +565,7 @@ class CategoricalBinView extends Component<CategoricalBinViewProps> {
         this.props.onChange?.()
     }
 
-    render() {
+    override render() {
         const { bin } = this.props
 
         return (
