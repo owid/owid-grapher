@@ -24,10 +24,10 @@ import {
     CONTINENTS_INDICATOR_ID,
     POPULATION_INDICATOR_ID_USED_IN_ADMIN,
     findPotentialChartTypeSiblings,
+    ChartDimension,
 } from "@ourworldindata/grapher"
 import {
     DimensionProperty,
-    moveArrayItemToIndex,
     OwidVariableId,
     OwidChartDimensionInterface,
     copyToClipboard,
@@ -35,12 +35,6 @@ import {
 import { FieldsRow, Section, SelectField, TextField, Toggle } from "./Forms.js"
 import { VariableSelector } from "./VariableSelector.js"
 import { DimensionCard } from "./DimensionCard.js"
-import {
-    DragDropContext,
-    Droppable,
-    Draggable,
-    DropResult,
-} from "react-beautiful-dnd"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { EditorDatabase } from "./ChartEditorView.js"
 import { isChartEditorInstance } from "./ChartEditor.js"
@@ -59,6 +53,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCopy } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "antd"
 import * as R from "remeda"
+import { SortableList } from "./SortableList.js"
 
 interface DimensionSlotViewProps<Editor> {
     slot: DimensionSlot
@@ -243,17 +238,10 @@ class DimensionSlotView<
         }
     }
 
-    @action.bound private async onDragEnd(result: DropResult) {
-        const { source, destination } = result
-        if (!destination) return
+    @action.bound private async onDragEnd(items: { dim: ChartDimension }[]) {
+        const newDimensions = items.map(({ dim }) => dim)
 
-        const dimensions = moveArrayItemToIndex(
-            this.props.slot.dimensions,
-            source.index,
-            destination.index
-        )
-
-        void this.updateDimensionsAndRebuildTable(dimensions)
+        void this.updateDimensionsAndRebuildTable(newDimensions)
         this.updateParentConfig()
     }
 
@@ -266,72 +254,52 @@ class DimensionSlotView<
     render() {
         const { isSelectingVariables } = this
         const { slot, editor } = this.props
-        const dimensions = slot.dimensions
+        const dimensions = slot.dimensions.map((dim, index) => ({
+            id: dim.variableId,
+            dim,
+            index,
+        }))
+        type SortableListItemType = (typeof dimensions)[0]
+
         const canAddMore = slot.allowMultiple || slot.dimensions.length === 0
 
         return (
             <div>
                 <h5>{slot.name}</h5>
-                <DragDropContext onDragEnd={this.onDragEnd}>
-                    <Droppable droppableId="droppable">
-                        {(provided) => (
-                            <div
-                                ref={provided.innerRef}
-                                {...provided.droppableProps}
-                            >
-                                {dimensions.map((dim, index) => (
-                                    <Draggable
-                                        key={dim.variableId}
-                                        index={index}
-                                        draggableId={`${dim.variableId}`}
-                                        isDragDisabled={!this.isDndEnabled}
-                                    >
-                                        {(provided) => (
-                                            <div
-                                                ref={provided.innerRef}
-                                                {...provided.draggableProps}
-                                                {...provided.dragHandleProps}
-                                            >
-                                                <DimensionCard
-                                                    dimension={dim}
-                                                    editor={editor}
-                                                    onChange={
-                                                        this.onChangeDimension
-                                                    }
-                                                    onEdit={
-                                                        slot.allowMultiple
-                                                            ? undefined
-                                                            : action(
-                                                                  () =>
-                                                                      (this.isSelectingVariables = true)
-                                                              )
-                                                    }
-                                                    onRemove={
-                                                        slot.isOptional
-                                                            ? () =>
-                                                                  this.onRemoveDimension(
-                                                                      dim.variableId
-                                                                  )
-                                                            : undefined
-                                                    }
-                                                    isDndEnabled={
-                                                        this.isDndEnabled
-                                                    }
-                                                    errorMessage={
-                                                        this.errorMessages[
-                                                            slot.property
-                                                        ][index]
-                                                    }
-                                                />
-                                            </div>
-                                        )}
-                                    </Draggable>
-                                ))}
-                                {provided.placeholder}
-                            </div>
-                        )}
-                    </Droppable>
-                </DragDropContext>
+                <SortableList<SortableListItemType>
+                    items={dimensions}
+                    onChange={this.onDragEnd}
+                    isDndEnabled={this.isDndEnabled}
+                    renderItem={(d) => (
+                        <SortableList.Item id={d.id}>
+                            <DimensionCard
+                                dimension={d.dim}
+                                editor={editor}
+                                onChange={this.onChangeDimension}
+                                onEdit={
+                                    slot.allowMultiple
+                                        ? undefined
+                                        : action(
+                                              () =>
+                                                  (this.isSelectingVariables = true)
+                                          )
+                                }
+                                onRemove={
+                                    slot.isOptional
+                                        ? () =>
+                                              this.onRemoveDimension(
+                                                  d.dim.variableId
+                                              )
+                                        : undefined
+                                }
+                                isDndEnabled={this.isDndEnabled}
+                                errorMessage={
+                                    this.errorMessages[slot.property][d.index]
+                                }
+                            />
+                        </SortableList.Item>
+                    )}
+                />
                 {canAddMore && (
                     <div
                         className="dimensionSlot"

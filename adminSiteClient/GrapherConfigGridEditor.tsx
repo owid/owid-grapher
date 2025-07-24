@@ -21,12 +21,6 @@ import {
     FieldType,
     EditorOption,
 } from "../adminShared/schemaProcessing.js"
-import {
-    DragDropContext,
-    Droppable,
-    Draggable,
-    DropResult,
-} from "react-beautiful-dnd"
 import { observer } from "mobx-react"
 import {
     observable,
@@ -74,7 +68,6 @@ import {
     FetchVariablesParameters,
     fetchVariablesParametersToQueryParametersString,
     IconToggleComponent,
-    getItemStyle,
     isConfigColumn,
     filterTreeToSExpression,
     FilterPanelState,
@@ -107,6 +100,7 @@ import jsonpointer from "json8-pointer"
 import { EditorColorScaleSection } from "./EditorColorScaleSection.js"
 import { Operation } from "../adminShared/SqlFilterSExpression.js"
 import { DATA_API_URL } from "../settings/clientSettings.js"
+import { SortableList } from "./SortableList.js"
 
 type Disposer = () => void
 
@@ -1425,14 +1419,9 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         )
     }
 
-    @action
-    onDragEnd(result: DropResult) {
-        if (!result.destination) return
-        const newColumnSelection = moveArrayItemToIndex(
-            this.columnSelection,
-            result.source.index,
-            result.destination.index
-        )
+    @action.bound
+    onDragEnd(items: { column: ColumnInformation }[]) {
+        const newColumnSelection = items.map((item) => item.column)
         this.columnSelection = newColumnSelection
     }
 
@@ -1538,6 +1527,12 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                   column.key.toLowerCase().includes(columnFilter.toLowerCase())
               )
             : columnSelection
+        const listItems = filteredColumnSelection.map((column) => ({
+            id: column.key,
+            column,
+        }))
+        type SortableListItemType = (typeof listItems)[0]
+
         return (
             <section className="column-section">
                 <div className="container">
@@ -1567,71 +1562,33 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
                         onButtonClick={this.clearColumnFilter}
                     />
 
-                    <DragDropContext
-                        onDragEnd={(result) => this.onDragEnd(result)}
-                    >
-                        <Droppable droppableId="droppable">
-                            {(provided /*, snapshot */) => (
-                                <div
-                                    {...provided.droppableProps}
-                                    ref={provided.innerRef}
-                                >
-                                    {filteredColumnSelection.map(
-                                        (item, index) => (
-                                            <Draggable
-                                                key={item.key}
-                                                draggableId={item.key}
-                                                index={index}
-                                            >
-                                                {(provided, snapshot) => (
-                                                    <div
-                                                        ref={provided.innerRef}
-                                                        {...provided.draggableProps}
-                                                        {...provided.dragHandleProps}
-                                                        style={getItemStyle(
-                                                            snapshot.isDragging,
-                                                            provided
-                                                                .draggableProps
-                                                                .style
-                                                        )}
-                                                        className="column-list-item"
-                                                    >
-                                                        <div
-                                                            title={
-                                                                item.description
-                                                            }
-                                                        >
-                                                            <IconToggleComponent
-                                                                isOn={
-                                                                    item.visible
-                                                                }
-                                                                onIcon={faEye}
-                                                                offIcon={
-                                                                    faEyeSlash
-                                                                }
-                                                                onClick={(
-                                                                    newState
-                                                                ) =>
-                                                                    this.columnListEyeIconClicked(
-                                                                        this
-                                                                            .columnSelection,
-                                                                        item.key,
-                                                                        newState
-                                                                    )
-                                                                }
-                                                            />
-                                                            {item.key}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </Draggable>
-                                        )
-                                    )}
-                                    {provided.placeholder}
+                    <SortableList<SortableListItemType>
+                        items={listItems}
+                        onChange={this.onDragEnd}
+                        renderItem={({ column }) => (
+                            <SortableList.Item
+                                id={column.key}
+                                className="column-list-item"
+                            >
+                                <div title={column.description}>
+                                    <SortableList.DragHandle />
+                                    <IconToggleComponent
+                                        isOn={column.visible}
+                                        onIcon={faEye}
+                                        offIcon={faEyeSlash}
+                                        onClick={(newState) =>
+                                            this.columnListEyeIconClicked(
+                                                this.columnSelection,
+                                                column.key,
+                                                newState
+                                            )
+                                        }
+                                    />
+                                    {column.key}
                                 </div>
-                            )}
-                        </Droppable>
-                    </DragDropContext>
+                            </SortableList.Item>
+                        )}
+                    />
                 </div>
             </section>
         )
