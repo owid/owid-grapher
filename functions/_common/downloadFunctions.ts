@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     fetchInputTableForConfig,
     Grapher,
@@ -337,6 +338,7 @@ export async function fetchDataValuesForGrapher(
             unit: column.unit,
             shortUnit: column.shortUnit,
             isProjection: column.isProjection ? true : undefined,
+            yearIsDay: column.display.yearIsDay ? true : undefined,
         })
     }
 
@@ -357,11 +359,17 @@ export async function fetchDataValuesForGrapher(
         return dimInfo
     }
 
-    const result = omitUndefinedValues({
-        entityName,
-        columns: makeColumnInfoForRelevantSlugs(grapherState),
+    const values = omitUndefinedValues({
         startTime: makeDimensionValuesForTime(grapherState, startTime),
         endTime: makeDimensionValuesForTime(grapherState, endTime),
+    })
+
+    const result = omitUndefinedValues({
+        entityName,
+        startTime: grapherState.startTime,
+        endTime: grapherState.endTime,
+        columns: makeColumnInfoForRelevantSlugs(grapherState),
+        values: _.isEmpty(values) ? undefined : values,
         source: grapherState.sourcesLine,
     })
 
