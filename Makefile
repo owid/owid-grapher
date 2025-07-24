@@ -221,13 +221,13 @@ tmp-downloads/owid_metadata.sql.gz:
 
 test: node_modules
 	@echo '==> Linting'
-	yarn run eslint
+	yarn run testLintChanged
 
 	@echo '==> Checking formatting'
-	yarn testPrettierAll
+	yarn fixPrettierChanged
 
 	@echo '==> Running tests'
-	yarn run test
+	yarn test run --reporter=dot
 
 dbtest: node_modules
 	@echo '==> Running db test script'
