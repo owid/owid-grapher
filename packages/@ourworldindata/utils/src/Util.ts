@@ -1402,6 +1402,30 @@ export function logPerf(
     return target
 }
 
+// A decorator to bind methods to the class instance, ensuring 'this' is always correct
+export function bind<This, Args extends any[], Return>(
+    target: (this: This, ...args: Args) => Return,
+    context: ClassMethodDecoratorContext<
+        This,
+        (this: This, ...args: Args) => Return
+    >
+): (this: This, ...args: Args) => Return {
+    const { name } = context
+
+    context.addInitializer(function (this: This) {
+        const boundMethod = target.bind(this)
+        // Store the bound method on the instance
+        Object.defineProperty(this, name as string | symbol, {
+            value: boundMethod,
+            writable: false,
+            enumerable: false,
+            configurable: true,
+        })
+    })
+
+    return target
+}
+
 // These are all the types that we need to be able to iterate through to extract their URLs/filenames.
 // It's more than just the EnrichedBlocks and Spans, because some EnrichedBlocks have nested children
 // that contain URLs/filenames
