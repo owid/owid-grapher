@@ -35,6 +35,7 @@ export {
     latestGrapherConfigSchema,
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
+    CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME,
 } from "./core/GrapherConstants"
 export {
     getVariableDataRoute,
