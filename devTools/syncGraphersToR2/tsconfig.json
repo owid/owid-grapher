@@ -5,14 +5,11 @@
         "rootDir": "."
     },
     "references": [
-        {
-            "path": "../../db"
-        },
-        {
-            "path": "../../adminSiteServer"
-        },
-        {
-            "path": "../../settings"
-        }
+        { "path": "../../packages/@ourworldindata/types" },
+        { "path": "../../packages/@ourworldindata/utils" },
+
+        { "path": "../../adminSiteServer" },
+        { "path": "../../db" },
+        { "path": "../../settings" }
     ]
 }
