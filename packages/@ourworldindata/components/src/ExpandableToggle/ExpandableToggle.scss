@@ -1,4 +1,4 @@
-div.ExpandableToggle {
+details.ExpandableToggle {
     --title: var(--expandable-toggle-title, currentColor);
     --border: var(--expandable-toggle-border, #d0dae3);
     --content: var(--expandable-toggle-content, #{$blue-60});
@@ -11,6 +11,15 @@ div.ExpandableToggle {
 
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
+
+    // Hide the default expand/collapse icons of the <summary> element
+    .ExpandableToggle__container {
+        list-style: none;
+        &::marker,
+        &::-webkit-details-marker {
+            display: none;
+        }
+    }
 
     .ExpandableToggle__button {
         display: flex;
@@ -45,7 +54,8 @@ div.ExpandableToggle {
         }
     }
 
-    .ExpandableToggle__content {
+    .ExpandableToggle__content,
+    .ExpandableToggle__teaser {
         height: 0;
         overflow: hidden;
         color: var(--content);
@@ -72,22 +82,42 @@ div.ExpandableToggle {
     }
 }
 
-div.ExpandableToggle--stacked {
+details.ExpandableToggle--stacked {
     border-bottom: none;
 }
 
-div.ExpandableToggle--teaser .ExpandableToggle__button,
-.ExpandableToggle--open .ExpandableToggle__button {
+details.ExpandableToggle--teaser .ExpandableToggle__button,
+.ExpandableToggle[open] .ExpandableToggle__button {
     padding-bottom: 8px;
 }
 
-div.ExpandableToggle--teaser .ExpandableToggle__content {
+details.ExpandableToggle--teaser .ExpandableToggle__teaser {
+    display: block;
     height: 96px;
     -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent);
 }
 
-div.ExpandableToggle--open .ExpandableToggle__content {
+details.ExpandableToggle[open] .ExpandableToggle__teaser {
+    display: none;
+}
+
+details.ExpandableToggle[open] .ExpandableToggle__content {
     padding-bottom: 16px;
     height: auto;
     -webkit-mask-image: none;
+}
+
+// Show the correct icon based on the state of the details element
+details.ExpandableToggle .ExpandableToggle__icon--expand {
+    display: block;
+}
+details.ExpandableToggle[open] .ExpandableToggle__icon--expand {
+    display: none;
+}
+
+details.ExpandableToggle .ExpandableToggle__icon--collapse {
+    display: none;
+}
+details.ExpandableToggle[open] .ExpandableToggle__icon--collapse {
+    display: block;
 }
