@@ -1,17 +1,15 @@
 import { EntityName } from "../domainTypes/CoreTableTypes"
-import { PrimitiveType, ColumnSlug } from "../grapherTypes/GrapherTypes"
+import { PrimitiveType, ColumnSlug, Time } from "../grapherTypes/GrapherTypes"
 
 /** Type definition for data retrieved from the `/grapher/slug.values.json` endpoint */
 export interface GrapherValuesJson {
     entityName?: EntityName
+    startTime?: Time
+    endTime?: Time
     columns?: Record<ColumnSlug, GrapherValuesJsonDimension>
-    endTime?: {
-        y: GrapherValuesJsonDataPoint[]
-        x?: GrapherValuesJsonDataPoint
-    }
-    startTime?: {
-        y: GrapherValuesJsonDataPoint[]
-        x?: GrapherValuesJsonDataPoint
+    values?: {
+        endTime?: GrapherValuesJsonDataPoints
+        startTime?: GrapherValuesJsonDataPoints
     }
     source: string
 }
@@ -21,6 +19,7 @@ interface GrapherValuesJsonDimension {
     unit?: string
     shortUnit?: string
     isProjection?: boolean
+    yearIsDay?: boolean
 }
 
 export interface GrapherValuesJsonDataPoints {
