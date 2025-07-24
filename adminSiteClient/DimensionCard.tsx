@@ -18,11 +18,11 @@ import {
     faChevronUp,
     faRightLeft,
     faTimes,
-    faArrowsAltV,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { OwidTable } from "@ourworldindata/core-table"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
+import { SortableList } from "./SortableList.js"
 
 interface DimensionCardProps<Editor> {
     dimension: ChartDimension
@@ -138,9 +138,7 @@ export class DimensionCard<
                                 }
                             />
                         </span>
-                        {isDndEnabled && (
-                            <FontAwesomeIcon icon={faArrowsAltV} />
-                        )}
+                        {isDndEnabled && <SortableList.DragHandle />}
                         <ColorBox
                             color={this.color}
                             onColor={this.onColor}

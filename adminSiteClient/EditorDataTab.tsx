@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { differenceOfSets, moveArrayItemToIndex } from "@ourworldindata/utils"
+import { differenceOfSets } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import cx from "classnames"
@@ -20,7 +20,6 @@ import {
     BindString,
 } from "./Forms.js"
 import {
-    faArrowsAltV,
     faLink,
     faMinus,
     faTimes,
@@ -28,19 +27,15 @@ import {
     faUnlink,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {
-    DragDropContext,
-    Draggable,
-    Droppable,
-    DropResult,
-} from "react-beautiful-dnd"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { OwidTable } from "@ourworldindata/core-table"
+import { SortableList } from "./SortableList.js"
 
 interface EntityListItemProps extends React.HTMLProps<HTMLDivElement> {
     grapherState: GrapherState
     entityName: EntityName
     onRemove?: () => void
+    isDndEnabled: boolean
     cachingGrapherDataLoader: (
         dimensions: OwidChartDimensionInterface[],
         selectedEntityColors:
@@ -114,9 +109,7 @@ class EntityListItem extends React.Component<EntityListItemProps> {
                 {...rest}
             >
                 <div>
-                    <div>
-                        <FontAwesomeIcon icon={faArrowsAltV} />
-                    </div>
+                    {props.isDndEnabled && <SortableList.DragHandle />}
                     <ColorBox
                         color={color}
                         onColor={this.onColor}
@@ -191,16 +184,10 @@ export class EntitySelectionSection extends React.Component<{
         this.editor.removeInvalidFocusedSeriesNames()
     }
 
-    @action.bound onDragEnd(result: DropResult) {
+    @action.bound onDragEnd(items: { entityName: EntityName }[]) {
         const { selection } = this.editor.grapherState
-        const { source, destination } = result
-        if (!destination) return
 
-        const newSelection = moveArrayItemToIndex(
-            selection.selectedEntityNames,
-            source.index,
-            destination.index
-        )
+        const newSelection = items.map((item) => item.entityName)
         selection.setSelectedEntities(newSelection)
     }
 
@@ -219,6 +206,14 @@ export class EntitySelectionSection extends React.Component<{
         const { grapherState } = editor
         const { selection } = grapherState
         const { selectedEntityNames } = selection
+
+        const listItems = selectedEntityNames.map((entityName) => ({
+            id: entityName,
+            entityName,
+        }))
+        type SortableListItemType = (typeof listItems)[number]
+
+        const isDndEnabled = listItems.length > 1
 
         const unselectedEntityNames = _.difference(
             grapherState.availableEntityNames,
@@ -258,51 +253,26 @@ export class EntitySelectionSection extends React.Component<{
                         </button>
                     )}
                 </FieldsRow>
-                <DragDropContext onDragEnd={this.onDragEnd}>
-                    <Droppable droppableId="droppable">
-                        {(provided) => (
-                            <div
-                                ref={provided.innerRef}
-                                {...provided.droppableProps}
-                            >
-                                {selectedEntityNames.map(
-                                    (entityName, index) => (
-                                        <Draggable
-                                            key={entityName}
-                                            index={index}
-                                            draggableId={entityName}
-                                        >
-                                            {(provided) => (
-                                                <div
-                                                    ref={provided.innerRef}
-                                                    {...provided.draggableProps}
-                                                    {...provided.dragHandleProps}
-                                                >
-                                                    <EntityListItem
-                                                        key={entityName}
-                                                        grapherState={
-                                                            grapherState
-                                                        }
-                                                        entityName={entityName}
-                                                        onRemove={() =>
-                                                            this.onRemoveKey(
-                                                                entityName
-                                                            )
-                                                        }
-                                                        cachingGrapherDataLoader={editor.cachingGrapherDataLoader.bind(
-                                                            editor
-                                                        )}
-                                                    />
-                                                </div>
-                                            )}
-                                        </Draggable>
-                                    )
+                <SortableList<SortableListItemType>
+                    items={listItems}
+                    onChange={this.onDragEnd}
+                    isDndEnabled={isDndEnabled}
+                    renderItem={(item) => (
+                        <SortableList.Item id={item.id}>
+                            <EntityListItem
+                                grapherState={grapherState}
+                                entityName={item.entityName}
+                                onRemove={() =>
+                                    this.onRemoveKey(item.entityName)
+                                }
+                                cachingGrapherDataLoader={editor.cachingGrapherDataLoader.bind(
+                                    editor
                                 )}
-                                {provided.placeholder}
-                            </div>
-                        )}
-                    </Droppable>
-                </DragDropContext>
+                                isDndEnabled={isDndEnabled}
+                            />
+                        </SortableList.Item>
+                    )}
+                />
                 {isEntitySelectionInherited && (
                     <p style={{ marginTop: "0.5em" }}>
                         <i>
