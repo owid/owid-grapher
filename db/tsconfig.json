@@ -5,8 +5,14 @@
         "rootDir": "."
     },
     "references": [
-        { "path": "../settings" },
+        { "path": "../packages/@ourworldindata/components" },
+        { "path": "../packages/@ourworldindata/explorer" },
+        { "path": "../packages/@ourworldindata/grapher" },
+        { "path": "../packages/@ourworldindata/types" },
+        { "path": "../packages/@ourworldindata/utils" },
+
         { "path": "../serverUtils" },
+        { "path": "../settings" },
         { "path": "../site" }
     ]
 }

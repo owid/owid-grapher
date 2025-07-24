@@ -1,6 +1,6 @@
 # Bash commands
 
-- yarn typecheckLerna: runs the typescript typechecker across all files (both frontend code in lerna managed packages and the rest of the site)
+- yarn typecheck: runs the typescript typechecker across all files
 - yarn testLintChanged: run eslint on changed files
 - yarn test: run vitest
 - yarn testPrettierChanged: run prettier on changed files

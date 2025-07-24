@@ -4,5 +4,11 @@
         "outDir": "../itsJustJavascript/explorerAdminServer",
         "rootDir": "."
     },
-    "references": [{ "path": "../site" }, { "path": "../db" }]
+    "references": [
+        { "path": "../packages/@ourworldindata/core-table" },
+        { "path": "../packages/@ourworldindata/explorer" },
+
+        { "path": "../db" },
+        { "path": "../site" }
+    ]
 }
