@@ -227,7 +227,13 @@ test: node_modules
 	yarn fixPrettierChanged
 
 	@echo '==> Running tests'
-	yarn test run --reporter=dot
+	yarn test run --reporter=dot $(filter-out test,$(MAKECMDGOALS))
+
+# When additional arguments are provided after 'test', treat them as non-targets
+ifneq ($(filter-out test,$(MAKECMDGOALS)),)
+$(filter-out test,$(MAKECMDGOALS)):
+	@:
+endif
 
 dbtest: node_modules
 	@echo '==> Running db test script'
