@@ -7,6 +7,7 @@ import {
     GrapherTabName,
     GrapherTabQueryParam,
     TagGraphRoot,
+    TimeBounds,
 } from "@ourworldindata/types"
 import {
     Region,
@@ -19,6 +20,8 @@ import {
     FuzzySearch,
     FuzzySearchResult,
     getAllChildrenOfArea,
+    timeBoundToTimeBoundString,
+    queryParamsToStr,
 } from "@ourworldindata/utils"
 import { partition } from "remeda"
 import {
@@ -152,7 +155,7 @@ export function pickEntitiesForChartHit(
     return sortedEntities ?? []
 }
 
-const getTabParamForEntityQueryStr = ({
+const generateGrapherTabQueryParam = ({
     tab,
     hasEntities,
 }: {
@@ -171,73 +174,115 @@ const getTabParamForEntityQueryStr = ({
     return undefined
 }
 
-export const getEntityQueryStr = ({
-    entities,
-    existingQueryStr = "",
-    tab,
+const generateGrapherTimeQueryParam = ({
+    timeBounds,
+    timeMode = "year",
 }: {
+    timeBounds: TimeBounds
+    timeMode?: "year" | "day"
+}) => {
+    return timeBounds
+        .map((time) => timeBoundToTimeBoundString(time, timeMode === "day"))
+        .join("..")
+}
+
+export const getEntityQueryStr = (
     entities: EntityName[] | null | undefined
-    existingQueryStr?: string
-    tab?: GrapherTabName | GrapherTabQueryParam
-}): string => {
+): string => {
     const hasEntities = !!entities?.length
 
-    const tabParam = getTabParamForEntityQueryStr({ tab, hasEntities })
     const countryParam = hasEntities
         ? generateSelectedEntityNamesParam(entities)
         : undefined
 
-    const queryParams = {
-        tab: tabParam,
-        country: countryParam,
-    } satisfies GrapherQueryParams
+    const queryParams = { country: countryParam } satisfies GrapherQueryParams
 
-    const url =
-        Url.fromQueryStr(existingQueryStr).updateQueryParams(queryParams)
+    const url = Url.fromQueryParams(queryParams)
 
     return url.queryStr
 }
 
-const getChartQueryStr = ({
-    hit,
-    entities,
+export const toGrapherQueryParams = ({
+    entities = [],
     tab,
+    timeBounds,
+    timeMode = "year",
+}: {
+    entities?: EntityName[]
+    tab?: GrapherTabName
+    timeBounds?: TimeBounds
+    timeMode?: "year" | "day"
+}): GrapherQueryParams => {
+    const hasEntities = entities.length > 0
+    return {
+        tab: generateGrapherTabQueryParam({ tab, hasEntities }),
+        country: hasEntities
+            ? generateSelectedEntityNamesParam(entities)
+            : undefined,
+        time: timeBounds
+            ? generateGrapherTimeQueryParam({ timeBounds, timeMode })
+            : undefined,
+    }
+}
+
+const generateQueryStrForChartHit = ({
+    hit,
+    grapherParams,
 }: {
     hit: SearchChartHit
-    entities?: EntityName[] | null
-    tab?: GrapherTabName | GrapherTabQueryParam
+    grapherParams?: GrapherQueryParams
 }): string => {
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
     const isMultiDimView = hit.type === ChartRecordType.MultiDimView
 
-    const entityQueryStr = getEntityQueryStr({ entities, tab })
+    const viewQueryStr =
+        isExplorerView || isMultiDimView ? hit.queryParams : undefined
+    const grapherQueryStr = grapherParams
+        ? queryParamsToStr(grapherParams)
+        : undefined
 
-    return isExplorerView || isMultiDimView
-        ? hit.queryParams + entityQueryStr.replace("?", "&")
-        : entityQueryStr
+    // Remove leading '?' from query strings
+    const queryStrList = [viewQueryStr, grapherQueryStr]
+        .map((queryStr) => queryStr?.replace(/^\?/, ""))
+        .filter((queryStr) => queryStr)
+
+    const queryStr = "?" + queryStrList.join("&")
+
+    return queryStr
 }
 
-export const constructChartUrl = (args: {
+export const constructChartUrl = ({
+    hit,
+    grapherParams,
+}: {
     hit: SearchChartHit
-    entities?: EntityName[] | null
-    tab?: GrapherTabName
+    grapherParams?: GrapherQueryParams
 }): string => {
-    const isExplorerView = args.hit.type === ChartRecordType.ExplorerView
-    const fullQueryParams = getChartQueryStr(args)
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+
+    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
+
     const basePath = isExplorerView
         ? `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}`
         : BAKED_GRAPHER_URL
-    return `${basePath}/${args.hit.slug}${fullQueryParams}`
+
+    return `${basePath}/${hit.slug}${queryStr}`
 }
 
-export const constructChartInfoUrl = (args: {
+export const constructChartInfoUrl = ({
+    hit,
+    grapherParams,
+}: {
     hit: SearchChartHit
-    entities?: EntityName[] | null
+    grapherParams?: GrapherQueryParams
 }): string | undefined => {
-    const isExplorerView = args.hit.type === ChartRecordType.ExplorerView
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+
     if (isExplorerView) return undefined // Not yet supported
-    const fullQueryParams = getChartQueryStr(args)
-    return `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${args.hit.slug}.values.json${fullQueryParams}`
+
+    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
+
+    return `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}.values.json${queryStr}`
 }
 
 export const CHARTS_INDEX = getIndexName(
