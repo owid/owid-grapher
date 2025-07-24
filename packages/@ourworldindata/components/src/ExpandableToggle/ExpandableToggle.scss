@@ -54,7 +54,8 @@ details.ExpandableToggle {
         }
     }
 
-    .ExpandableToggle__content {
+    .ExpandableToggle__content,
+    .ExpandableToggle__teaser {
         height: 0;
         overflow: hidden;
         color: var(--content);
@@ -90,10 +91,14 @@ details.ExpandableToggle--teaser .ExpandableToggle__button,
     padding-bottom: 8px;
 }
 
-details.ExpandableToggle--teaser .ExpandableToggle__content {
+details.ExpandableToggle--teaser .ExpandableToggle__teaser {
     display: block;
     height: 96px;
     -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent);
+}
+
+details.ExpandableToggle[open] .ExpandableToggle__teaser {
+    display: none;
 }
 
 details.ExpandableToggle[open] .ExpandableToggle__content {

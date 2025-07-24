@@ -17,43 +17,41 @@ export const ExpandableToggle = ({
     isExpandedDefault?: boolean
     isStacked?: boolean
     hasTeaser?: boolean
-}) => {
-    const contentElem = (
-        <div className="ExpandableToggle__content">{content}</div>
-    )
-
-    return (
-        <details
-            className={cx("ExpandableToggle", {
-                "ExpandableToggle--stacked": isStacked,
-                "ExpandableToggle--teaser": hasTeaser,
-            })}
-            open={isExpandedDefault}
-        >
-            <summary className="ExpandableToggle__container">
-                <div className="ExpandableToggle__button">
-                    <div>
-                        <h4 className="ExpandableToggle__title">{label}</h4>
-                        {alwaysVisibleDescription && (
-                            <div className="ExpandableToggle__description">
-                                {alwaysVisibleDescription}
-                            </div>
-                        )}
-                    </div>
-                    <FontAwesomeIcon
-                        className="ExpandableToggle__icon ExpandableToggle__icon--expand"
-                        icon={faPlus}
-                    />
-                    <FontAwesomeIcon
-                        className="ExpandableToggle__icon ExpandableToggle__icon--collapse"
-                        icon={faMinus}
-                    />
+}) => (
+    <details
+        className={cx("ExpandableToggle", {
+            "ExpandableToggle--stacked": isStacked,
+            "ExpandableToggle--teaser": hasTeaser,
+        })}
+        open={isExpandedDefault}
+    >
+        <summary className="ExpandableToggle__container">
+            <div className="ExpandableToggle__button">
+                <div>
+                    <h4 className="ExpandableToggle__title">{label}</h4>
+                    {alwaysVisibleDescription && (
+                        <div className="ExpandableToggle__description">
+                            {alwaysVisibleDescription}
+                        </div>
+                    )}
                 </div>
 
-                {/* If there is a teaser, we need to place the content element inside the summary so we can show it even when the details element is closed */}
-                {hasTeaser && contentElem}
-            </summary>
-            {!hasTeaser && contentElem}
-        </details>
-    )
-}
+                {/* We show both the opened and closed icons, and use CSS to hide/show them based on the state */}
+                <FontAwesomeIcon
+                    className="ExpandableToggle__icon ExpandableToggle__icon--expand"
+                    icon={faPlus}
+                />
+                <FontAwesomeIcon
+                    className="ExpandableToggle__icon ExpandableToggle__icon--collapse"
+                    icon={faMinus}
+                />
+            </div>
+
+            {/* If there is a teaser, we need to place the content element inside the summary so we can show it even when the details element is closed */}
+            {hasTeaser && (
+                <div className="ExpandableToggle__teaser">{content}</div>
+            )}
+        </summary>
+        <div className="ExpandableToggle__content">{content}</div>
+    </details>
+)
