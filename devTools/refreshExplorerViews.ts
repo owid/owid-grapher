@@ -29,10 +29,10 @@ async function prepareGrapherConfigsForExplorerViews(
 ): Promise<ExplorerProcessingStats[]> {
     // Fetch published explorers and existing explorer slugs
     const publishedExplorers = await fetchPublishedExplorers(knex)
-    const existingExplorerRows = await db.knexRaw<{ explorerSlug: string }[]>(
+    const existingExplorerRows = await db.knexRaw<{ explorerSlug: string }>(
         knex,
         `-- sql
-        SELECT DISTINCT explorerSlug 
+        SELECT DISTINCT explorerSlug
         FROM explorer_views
         `
     )
