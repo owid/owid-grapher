@@ -10,8 +10,8 @@ import {
     reaction,
     makeObservable,
 } from "mobx"
-import { bind } from "decko"
 import {
+    bind,
     slugify,
     lowerCaseFirstLetterUnlessAbbreviation,
     isMobile,

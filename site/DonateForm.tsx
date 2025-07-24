@@ -3,14 +3,8 @@ import * as Sentry from "@sentry/react"
 import cx from "classnames"
 import { observable, action, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { bind } from "decko"
-import Recaptcha from "react-recaptcha"
 import {
-    DONATE_API_URL,
-    BAKED_BASE_URL,
-    RECAPTCHA_SITE_KEY,
-} from "../settings/clientSettings.js"
-import {
+    bind,
     Tippy,
     stringifyUnknownError,
     titleCase,
@@ -23,6 +17,12 @@ import {
     DonateSessionResponse,
     PLEASE_TRY_AGAIN,
 } from "@ourworldindata/utils"
+import Recaptcha from "react-recaptcha"
+import {
+    DONATE_API_URL,
+    BAKED_BASE_URL,
+    RECAPTCHA_SITE_KEY,
+} from "../settings/clientSettings.js"
 import { Checkbox } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"

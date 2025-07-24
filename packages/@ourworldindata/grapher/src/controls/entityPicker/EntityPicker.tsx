@@ -11,13 +11,8 @@ import {
 } from "mobx"
 import { observer } from "mobx-react"
 import { Flipper, Flipped } from "react-flip-toolkit"
-import { bind } from "decko"
-import classnames from "classnames"
-import { scaleLinear, ScaleLinear } from "d3-scale"
-import Select from "react-select"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faSearch, faTimes } from "@fortawesome/free-solid-svg-icons"
 import {
+    bind,
     FuzzySearch,
     scrollIntoViewIfNeeded,
     sortByUndefinedLast,
@@ -30,6 +25,11 @@ import {
     CoreColumnDef,
     OwidTableSlugs,
 } from "@ourworldindata/utils"
+import classnames from "classnames"
+import { scaleLinear, ScaleLinear } from "d3-scale"
+import Select from "react-select"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faSearch, faTimes } from "@fortawesome/free-solid-svg-icons"
 import { VerticalScrollContainer } from "../../controls/VerticalScrollContainer"
 import { SortIcon } from "../../controls/SortIcon"
 import {

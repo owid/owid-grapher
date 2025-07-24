@@ -7,7 +7,7 @@ import {
     getColorSchemeForChartType,
 } from "@ourworldindata/grapher"
 import { observer } from "mobx-react"
-import { bind } from "decko"
+import { bind } from "@ourworldindata/utils"
 
 export interface ColorSchemeOption {
     colorScheme?: ColorScheme
