@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
-import { select } from "d3-selection"
+import { type BaseType, type Selection, select } from "d3-selection"
 import { ScaleLinear } from "d3-scale"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { SortOrder } from "@ourworldindata/types"
@@ -617,12 +617,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         )
     }
 
-    animSelection?: d3.Selection<
-        d3.BaseType,
-        unknown,
-        SVGGElement | null,
-        unknown
-    >
+    animSelection?: Selection<BaseType, unknown, SVGGElement | null, unknown>
 
     private runAnimation(): void {
         const radiuses: string[] = []

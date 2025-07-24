@@ -15,7 +15,7 @@ import {
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { select } from "d3-selection"
+import { select, type Selection, type BaseType } from "d3-selection"
 import { easeLinear } from "d3-ease"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
@@ -510,8 +510,8 @@ export class LineChart
         }
     }
 
-    private animSelection?: d3.Selection<
-        d3.BaseType,
+    private animSelection?: Selection<
+        BaseType,
         unknown,
         SVGGElement | null,
         unknown

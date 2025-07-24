@@ -35,7 +35,7 @@ import {
 } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { scaleLinear, ScaleLinear } from "d3-scale"
-import { select } from "d3-selection"
+import { select, type BaseType, type Selection } from "d3-selection"
 import {
     PlacedSlopeChartSeries,
     RawSlopeChartSeries,
@@ -617,8 +617,8 @@ export class SlopeChart
         )
     }
 
-    private animSelection?: d3.Selection<
-        d3.BaseType,
+    private animSelection?: Selection<
+        BaseType,
         unknown,
         SVGGElement | null,
         unknown
