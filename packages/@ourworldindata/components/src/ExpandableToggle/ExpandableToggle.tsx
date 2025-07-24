@@ -47,9 +47,12 @@ export const ExpandableToggle = ({
                 />
             </div>
 
-            {/* If there is a teaser, we need to place the content element inside the summary so we can show it even when the details element is closed */}
+            {/* If there is a teaser, we need to place the content element inside the summary so it is visible even when the details element is closed.
+            Also, make it inert so it isn't included in the browser Cmd-F search - instead, the browser will auto-expand it when searching for content that's currently collapsed */}
             {hasTeaser && (
-                <div className="ExpandableToggle__teaser">{content}</div>
+                <div className="ExpandableToggle__teaser" inert>
+                    {content}
+                </div>
             )}
         </summary>
         <div className="ExpandableToggle__content">{content}</div>
