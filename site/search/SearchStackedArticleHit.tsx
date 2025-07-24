@@ -21,7 +21,9 @@ export function SearchStackedArticleHit({ hit }: { hit: StackedArticleHit }) {
                     {hit.title}
                 </h3>
                 <Snippet
-                    className="search-stacked-article-hit__excerpt"
+                    classNames={{
+                        root: "search-stacked-article-hit__excerpt",
+                    }}
                     attribute="content"
                     highlightedTagName="strong"
                     hit={hit}
