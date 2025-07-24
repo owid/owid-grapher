@@ -66,7 +66,7 @@ class GdocsIndexPageSearch extends React.Component<GdocsIndexPageSearchProps> {
         this.props.filters[type] = !this.props.filters[type]
     }
 
-    render() {
+    override render() {
         const owidGdocTypes: OwidGdocType[] = [
             OwidGdocType.Fragment,
             OwidGdocType.Article,
@@ -139,7 +139,7 @@ type GdocsSearchFilters = Record<OwidGdocType, boolean> & {
 
 @observer
 export class GdocsIndexPage extends React.Component<RouteComponentProps> {
-    static contextType = GdocsStoreContext
+    static override contextType = GdocsStoreContext
     declare context: React.ContextType<typeof GdocsStoreContext>
 
     @observable filters: GdocsSearchFilters = {
@@ -166,7 +166,7 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
         return buildSearchWordsFromSearchString(search.value)
     }
 
-    async componentDidMount(): Promise<void> {
+    override async componentDidMount(): Promise<void> {
         await this.context?.fetchTags()
         await this.context?.fetchGdocs()
     }
@@ -246,7 +246,7 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
         }
     }
 
-    render() {
+    override render() {
         return (
             <AdminLayout title="Google Docs">
                 <main>

@@ -41,7 +41,7 @@ export class EntitySelectorModal extends React.Component<{
         this.manager.isEntitySelectorModalOrDrawerOpen = false
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return (
             <Modal
                 onDismiss={this.onDismiss}

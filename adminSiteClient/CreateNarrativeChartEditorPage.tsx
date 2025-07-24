@@ -49,7 +49,7 @@ class CreateNarrativeChartEditorPageInternal
         NarrativeChartEditorManager,
         ChartEditorViewManager<NarrativeChartEditor>
 {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     constructor(props: CreateNarrativeChartEditorPageInternalProps) {
@@ -104,11 +104,11 @@ class CreateNarrativeChartEditorPageInternal
         void this.fetchNarrativeChartData()
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         this.refresh()
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return <ChartEditorView manager={this} />
     }
 }

@@ -48,7 +48,7 @@ class VariableSection extends Component<VariableSectionProps> {
         this.props.mapConfig.region = region as MapRegionName
     }
 
-    render() {
+    override render() {
         const { mapConfig, filledDimensions } = this.props
 
         if (_.isEmpty(filledDimensions))
@@ -127,7 +127,7 @@ class TimelineSection extends Component<{ mapConfig: MapConfig }> {
         this.props.mapConfig.toleranceStrategy = value as ToleranceStrategy
     }
 
-    render() {
+    override render() {
         const { mapConfig } = this.props
         return (
             <Section name="Timeline">
@@ -179,7 +179,7 @@ class TooltipSection extends Component<{ mapConfig: MapConfig }> {
             : undefined
     }
 
-    render() {
+    override render() {
         const { mapConfig } = this.props
         return (
             <Section name="Tooltip">
@@ -216,7 +216,7 @@ class InheritanceSection<Editor extends AbstractChartEditor> extends Component<{
         grapherState.map.updateFromObject(activeParentConfig.map)
     }
 
-    render() {
+    override render() {
         const canMapSettingsBeInherited =
             this.editor.canPropertyBeInherited("map")
         const areMapSettingsInherited = this.editor.isPropertyInherited("map")
@@ -259,7 +259,7 @@ export class EditorMapTab<
         return this.props.editor.grapherState
     }
 
-    render() {
+    override render() {
         const { grapherState } = this
         const mapConfig = grapherState.map
         const { mapColumnSlug } = grapherState

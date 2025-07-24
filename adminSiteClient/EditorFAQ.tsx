@@ -4,7 +4,7 @@ import { faLink, faUnlink } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 export class EditorFAQ extends Component<{ onClose: () => void }> {
-    render() {
+    override render() {
         return (
             <Modal onClose={this.props.onClose} className="EditorFAQ">
                 <div className="modal-header">

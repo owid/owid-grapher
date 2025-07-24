@@ -204,7 +204,7 @@ export class VariableSelector<
             .every((v) => v)
     }
 
-    render() {
+    override render() {
         const { slot } = this.props
         const { database } = this.props
         const {
@@ -502,7 +502,7 @@ export class VariableSelector<
 
     dispose!: IReactionDisposer
     base = React.createRef<HTMLDivElement>()
-    componentDidMount() {
+    override componentDidMount() {
         this.initChosenVariablesAndNamespaces()
     }
 

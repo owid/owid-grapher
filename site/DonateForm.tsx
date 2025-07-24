@@ -308,7 +308,7 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
         }
     }
 
-    render() {
+    override render() {
         return (
             <form className="donate-form" onSubmit={this.onSubmit}>
                 {this.isUsa && (

@@ -45,7 +45,7 @@ class SourceEditable {
 
 @observer
 class SourceEditor extends Component<{ source: SourcePageData }> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable newSource!: SourceEditable
@@ -57,10 +57,10 @@ class SourceEditor extends Component<{ source: SourcePageData }> {
     }
 
     // Store the original source to determine when it is modified
-    UNSAFE_componentWillMount() {
+    override UNSAFE_componentWillMount() {
         this.UNSAFE_componentWillReceiveProps()
     }
-    UNSAFE_componentWillReceiveProps() {
+    override UNSAFE_componentWillReceiveProps() {
         this.newSource = new SourceEditable(this.props.source)
         this.isDeleted = false
     }
@@ -86,7 +86,7 @@ class SourceEditor extends Component<{ source: SourcePageData }> {
         }
     }
 
-    render() {
+    override render() {
         const { source } = this.props
         const { newSource } = this
         const isBulkImport = source.namespace !== "owid"
@@ -172,7 +172,7 @@ class SourceEditor extends Component<{ source: SourcePageData }> {
 
 @observer
 export class SourceEditPage extends Component<{ sourceId: number }> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable source?: SourcePageData
@@ -182,7 +182,7 @@ export class SourceEditPage extends Component<{ sourceId: number }> {
         makeObservable(this)
     }
 
-    render() {
+    override render() {
         return (
             <AdminLayout title={this.source && this.source.name}>
                 {this.source && <SourceEditor source={this.source} />}
@@ -199,10 +199,10 @@ export class SourceEditPage extends Component<{ sourceId: number }> {
         })
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         this.UNSAFE_componentWillReceiveProps()
     }
-    UNSAFE_componentWillReceiveProps() {
+    override UNSAFE_componentWillReceiveProps() {
         void this.getData()
     }
 }

@@ -131,7 +131,7 @@ const config: GrapherConfigGridEditorConfig = {
 }
 
 export class BulkGrapherConfigEditorPage extends Component {
-    render() {
+    override render() {
         return (
             <AdminLayout title="Bulk chart editor">
                 <main className="VariablesAnnotationPage">

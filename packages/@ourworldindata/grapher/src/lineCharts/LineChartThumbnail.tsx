@@ -19,7 +19,7 @@ export class LineChartThumbnail
         return this.props.chartState
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return <LineChart {...this.props} />
     }
 }

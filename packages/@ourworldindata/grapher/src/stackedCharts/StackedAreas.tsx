@@ -200,7 +200,7 @@ export class StackedAreas extends React.Component<AreasProps> {
         })
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return (
             <g
                 className="Areas"

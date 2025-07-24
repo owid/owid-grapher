@@ -35,7 +35,7 @@ interface DatasetRowProps {
 
 @observer
 class DatasetRow extends React.Component<DatasetRowProps> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     constructor(props: DatasetRowProps) {
@@ -59,7 +59,7 @@ class DatasetRow extends React.Component<DatasetRowProps> {
         void this.saveTags(tags)
     }
 
-    render() {
+    override render() {
         const { dataset, searchHighlight, availableTags } = this.props
 
         const highlight = searchHighlight || lodash.identity
@@ -111,7 +111,7 @@ interface DatasetListProps {
 
 @observer
 export class DatasetList extends React.Component<DatasetListProps> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable availableTags: DbChartTagJoin[] = []
@@ -126,11 +126,11 @@ export class DatasetList extends React.Component<DatasetListProps> {
         this.availableTags = json.tags
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         void this.getTags()
     }
 
-    render() {
+    override render() {
         const { props } = this
         return (
             <table className="table table-bordered">

@@ -93,7 +93,7 @@ class TimeField<
         }
     }
 
-    render() {
+    override render() {
         const { label, field, defaultValue } = this.props
 
         // the reset button resets the value to its default
@@ -170,7 +170,7 @@ export class ColorSchemeSelector extends React.Component<ColorSchemeSelectorProp
         this.props.grapherState.seriesColorMap?.clear()
     }
 
-    render() {
+    override render() {
         const { grapherState } = this.props
 
         return (
@@ -275,7 +275,7 @@ class SortOrderSection<
         this.grapherState.sortOrder = sortOrder as SortOrder
     }
 
-    render() {
+    override render() {
         return (
             <Section name="Sort Order">
                 <small className="form-text text-muted">
@@ -369,7 +369,7 @@ class FacetSection<Editor extends AbstractChartEditor> extends React.Component<{
         this.grapherState.selectedFacetStrategy = selected?.value
     }
 
-    render() {
+    override render() {
         const yAxisConfig = this.props.editor.grapherState.yAxis
 
         return (
@@ -432,7 +432,7 @@ class TimelineSection<
         this.grapherState.showYearLabels = value || undefined
     }
 
-    render() {
+    override render() {
         const { editor } = this.props
         const { features } = editor
         const { grapherState } = this
@@ -583,7 +583,7 @@ class ComparisonLineSection<
             .exhaustive()
     }
 
-    render() {
+    override render() {
         if (this.comparisonLineOptions.length === 0) return null
 
         const { comparisonLines = [] } = this.props.editor.grapherState
@@ -689,7 +689,7 @@ export class EditorCustomizeTab<
         return this.props.errorMessages
     }
 
-    render() {
+    override render() {
         const xAxisConfig = this.props.editor.grapherState.xAxis
         const yAxisConfig = this.props.editor.grapherState.yAxis
 

@@ -19,7 +19,7 @@ export class MapChartThumbnail
         return this.props.chartState
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return <MapChart {...this.props} />
     }
 }

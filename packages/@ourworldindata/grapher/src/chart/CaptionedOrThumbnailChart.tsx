@@ -61,7 +61,7 @@ export class CaptionedOrThumbnailChart extends React.Component<{
             .exhaustive()
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return this.manager.isStatic
             ? this.renderStatic()
             : this.renderInteractive()

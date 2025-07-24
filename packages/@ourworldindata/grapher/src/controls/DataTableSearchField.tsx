@@ -57,7 +57,7 @@ export class DataTableSearchField extends React.Component<{
             .exhaustive()
     }
 
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         if (!this.shouldShow) return null
 
         return (

@@ -58,7 +58,7 @@ export class OwidTable extends CoreTable<OwidRow, OwidColumnDef> {
         return this.entityNameColumn.uniqValuesAsSet
     }
 
-    @imemo get entityNameColumn(): CoreColumn {
+    @imemo override get entityNameColumn(): CoreColumn {
         return (
             this.getFirstColumnWithType(ColumnTypeNames.EntityName) ??
             this.get(OwidTableSlugs.entityName)

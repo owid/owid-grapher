@@ -116,7 +116,7 @@ export class DimensionCard<
         this.props.onChange(this.props.dimension)
     }
 
-    render() {
+    override render() {
         const { dimension, editor, isDndEnabled } = this.props
         const { grapherState } = editor
         const { column } = dimension

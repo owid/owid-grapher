@@ -149,7 +149,7 @@ const config: GrapherConfigGridEditorConfig = {
 }
 
 export class VariablesAnnotationPage extends Component {
-    render() {
+    override render() {
         return (
             <AdminLayout title="Indicators">
                 <main className="VariablesAnnotationPage">

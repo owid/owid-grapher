@@ -389,11 +389,11 @@ abstract class AbstractFooter<
         } else this.tooltipTarget = undefined
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         window.addEventListener("mousemove", this.onMouseMove)
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         window.removeEventListener("mousemove", this.onMouseMove)
     }
 
@@ -590,7 +590,7 @@ abstract class AbstractFooter<
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const { tooltipTarget } = this
 
         return (
@@ -645,7 +645,7 @@ interface StaticFooterProps extends FooterProps {
 
 @observer
 export class StaticFooter extends AbstractFooter<StaticFooterProps> {
-    verticalPadding = 4.5
+    override verticalPadding = 4.5
 
     constructor(props: StaticFooterProps) {
         super(props)
@@ -654,11 +654,11 @@ export class StaticFooter extends AbstractFooter<StaticFooterProps> {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    componentDidMount(): void {}
+    override componentDidMount(): void {}
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    componentWillUnmount(): void {}
+    override componentWillUnmount(): void {}
 
-    @override protected get hideOriginUrl(): boolean {
+    @override protected override get hideOriginUrl(): boolean {
         return !!this.manager.hideOriginUrl || !!this.manager.isStaticAndSmall
     }
 
@@ -666,14 +666,14 @@ export class StaticFooter extends AbstractFooter<StaticFooterProps> {
         return GRAPHER_LIGHT_TEXT
     }
 
-    @override protected get showLicenseNextToSources(): boolean {
+    @override protected override get showLicenseNextToSources(): boolean {
         return (
             this.maxWidth - this.sources.width - HORIZONTAL_PADDING >
             this.licenseAndOriginUrl.width
         )
     }
 
-    @override protected get finalUrlText(): string | undefined {
+    @override protected override get finalUrlText(): string | undefined {
         const { correctedUrlText, licenseText, fontSize, maxWidth } = this
 
         if (this.hideOriginUrl) return undefined
@@ -695,7 +695,7 @@ export class StaticFooter extends AbstractFooter<StaticFooterProps> {
         return correctedUrlText
     }
 
-    @override protected get licenseAndOriginUrlText(): string {
+    @override protected override get licenseAndOriginUrlText(): string {
         const { finalUrl, finalUrlText, licenseText, licenseUrl, textColor } =
             this
         const linkStyle = `fill: ${textColor};`
@@ -705,34 +705,34 @@ export class StaticFooter extends AbstractFooter<StaticFooterProps> {
         return [originUrlSvg, licenseSvg].join(" | ")
     }
 
-    @override protected get sourcesText(): string {
+    @override protected override get sourcesText(): string {
         return `**Data source:** ${this.sourcesLine}`
     }
 
-    @override protected get fontSize(): number {
+    @override protected override get fontSize(): number {
         if (this.manager.isStaticAndSmall) return 14
         return this.useBaseFontSize
             ? Math.round((13 / BASE_FONT_SIZE) * this.baseFontSize)
             : 13
     }
 
-    @override protected get sourcesFontSize(): number {
+    @override protected override get sourcesFontSize(): number {
         return this.fontSize
     }
 
-    @override protected get sourcesMaxWidth(): number {
+    @override protected override get sourcesMaxWidth(): number {
         return this.maxWidth
     }
 
-    @override protected get noteMaxWidth(): number {
+    @override protected override get noteMaxWidth(): number {
         return this.maxWidth
     }
 
-    @override protected get licenseAndOriginUrlMaxWidth(): number {
+    @override protected override get licenseAndOriginUrlMaxWidth(): number {
         return this.maxWidth
     }
 
-    @override get height(): number {
+    @override override get height(): number {
         return (
             this.sources.height +
             (this.showNote ? this.note.height + this.verticalPadding : 0) +
@@ -742,7 +742,7 @@ export class StaticFooter extends AbstractFooter<StaticFooterProps> {
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const {
             sources,
             note,

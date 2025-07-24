@@ -663,7 +663,7 @@ export class DataTable extends React.Component<DataTableProps> {
         )
     }
 
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         if (this.sortedDisplayRows.length === 0) return this.renderNoDataModal()
 
         return (
@@ -779,7 +779,7 @@ export class DataTable extends React.Component<DataTableProps> {
         return this.entityCount > 1
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         exposeInstanceOnWindow(this, "dataTable")
     }
 

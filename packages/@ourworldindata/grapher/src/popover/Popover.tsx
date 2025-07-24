@@ -27,14 +27,14 @@ export class Popover extends React.Component<PopoverProps> {
         return this.props.isOpen
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         document.addEventListener("keydown", this.onDocumentKeyDown)
         document.addEventListener("click", this.onDocumentClick, {
             capture: true,
         })
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         document.removeEventListener("keydown", this.onDocumentKeyDown)
         document.removeEventListener("click", this.onDocumentClick, {
             capture: true,
@@ -58,7 +58,7 @@ export class Popover extends React.Component<PopoverProps> {
         }
     }
 
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         if (!this.isOpen) return null
 
         const { title, children, className } = this.props

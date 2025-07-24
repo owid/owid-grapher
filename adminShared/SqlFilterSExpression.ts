@@ -114,7 +114,7 @@ export class StringAtom extends StringOperation {
     constructor(public value: string) {
         super()
     }
-    expressionType = ExpressionType.string
+    override expressionType = ExpressionType.string
     escapedValue(): string {
         return this.value
             .toString()

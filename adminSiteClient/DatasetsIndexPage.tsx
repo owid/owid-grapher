@@ -16,7 +16,7 @@ import {
 
 @observer
 export class DatasetsIndexPage extends Component {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable datasets: DatasetListItem[] = []
@@ -73,7 +73,7 @@ export class DatasetsIndexPage extends Component {
         this.maxVisibleRows += 100
     }
 
-    render() {
+    override render() {
         const { datasetsToShow, searchInput, numTotalRows } = this
 
         const highlight = highlightFunctionForSearchWords(this.searchWords)
@@ -118,7 +118,7 @@ export class DatasetsIndexPage extends Component {
         })
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         void this.getData()
     }
 }

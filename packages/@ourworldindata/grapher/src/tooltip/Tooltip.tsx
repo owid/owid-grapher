@@ -91,7 +91,7 @@ class TooltipCard extends React.Component<
         containerHeight?: number
     }
 > {
-    static contextType = TooltipContext
+    static override contextType = TooltipContext
     declare context: React.ContextType<typeof TooltipContext>
 
     private base = React.createRef<HTMLDivElement>()
@@ -114,15 +114,15 @@ class TooltipCard extends React.Component<
             this.bounds = Bounds.fromElement(this.base.current)
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         this.updateBounds()
     }
 
-    componentDidUpdate(): void {
+    override componentDidUpdate(): void {
         this.updateBounds()
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         let {
             id,
             title,
@@ -308,7 +308,7 @@ export class TooltipContainer extends React.Component<TooltipContainerProps> {
         )
     }
 
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         return this.rendered
     }
 }
@@ -320,7 +320,7 @@ export class Tooltip extends React.Component<TooltipProps> {
         makeObservable(this)
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         this.connectTooltipToContainer()
     }
 
@@ -332,15 +332,15 @@ export class Tooltip extends React.Component<TooltipProps> {
         this.props.tooltipManager.tooltip?.set(undefined)
     }
 
-    componentDidUpdate(): void {
+    override componentDidUpdate(): void {
         this.connectTooltipToContainer()
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         this.removeToolTipFromContainer()
     }
 
-    render(): null {
+    override render(): null {
         return null
     }
 }

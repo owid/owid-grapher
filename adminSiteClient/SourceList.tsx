@@ -10,10 +10,10 @@ const MAX_SOURCES = 10
 export class SourceList extends Component<{
     sources: OwidSource[]
 }> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    render() {
+    override render() {
         const { sources } = this.props
 
         // Use slice to create a new array with at most MAX_SOURCES items

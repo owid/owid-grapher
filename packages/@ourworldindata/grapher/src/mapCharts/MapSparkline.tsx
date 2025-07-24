@@ -193,7 +193,7 @@ export class MapSparkline extends React.Component<MapSparklineProps> {
         })
     }
 
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         if (!this.showSparkline) return null
 
         const { yAxisConfig } = this.sparklineManager,

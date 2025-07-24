@@ -5,10 +5,10 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 @observer
 export class BulkDownloadPage extends Component {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    render() {
+    override render() {
         return (
             <AdminLayout>
                 <main className="BulkDownloadPage">
@@ -21,7 +21,7 @@ export class BulkDownloadPage extends Component {
 }
 
 export class DownloadChartsSection extends Component {
-    render() {
+    override render() {
         return (
             <section>
                 <div>

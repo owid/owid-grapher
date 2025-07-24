@@ -30,7 +30,7 @@ interface ChartRowProps {
 
 @observer
 export class ChartRow extends React.Component<ChartRowProps> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     constructor(props: ChartRowProps) {
@@ -54,7 +54,7 @@ export class ChartRow extends React.Component<ChartRowProps> {
         void this.saveTags(tags)
     }
 
-    render() {
+    override render() {
         const { chart, searchHighlight, availableTags, showInheritanceColumn } =
             this.props
 

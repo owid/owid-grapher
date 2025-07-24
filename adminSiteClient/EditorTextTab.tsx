@@ -113,7 +113,7 @@ export class EditorTextTab<
         return !!this.props.editor.grapherState.isPublished
     }
 
-    render() {
+    override render() {
         const { editor } = this.props
         const { grapherState, features } = editor
         const { relatedQuestions = [] } = grapherState

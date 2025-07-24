@@ -29,7 +29,7 @@ export class EditorDebugTab<
 > extends Component<{
     editor: Editor
 }> {
-    render() {
+    override render() {
         const { editor } = this.props
         if (isChartEditorInstance(editor))
             return <EditorDebugTabForChart editor={editor} />
@@ -85,7 +85,7 @@ class EditorDebugTabForChart extends Component<{
         this.props.editor.isInheritanceEnabled = shouldBeEnabled
     }
 
-    render() {
+    override render() {
         const {
             patchConfig,
             parentConfig,
@@ -280,7 +280,7 @@ class EditorDebugTabForNarrativeChart extends Component<{
         )
     }
 
-    render() {
+    override render() {
         const { patchConfig, parentConfig, fullConfig, parentUrl } =
             this.props.editor
 
@@ -352,7 +352,7 @@ class EditorDebugTabForNarrativeChart extends Component<{
 class EditorDebugTabForIndicatorChart extends Component<{
     editor: IndicatorChartEditor
 }> {
-    render() {
+    override render() {
         const { patchConfig, parentConfig, fullConfig } = this.props.editor
 
         return (

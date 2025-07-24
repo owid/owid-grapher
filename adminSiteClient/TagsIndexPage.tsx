@@ -10,7 +10,7 @@ import { Button, Modal } from "antd"
 
 @observer
 export class TagsIndexPage extends Component {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable tags: DbPlainTag[] = []
@@ -23,7 +23,7 @@ export class TagsIndexPage extends Component {
         makeObservable(this)
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         void this.getData()
         this.addTag = this.addTag.bind(this)
     }
@@ -79,7 +79,7 @@ export class TagsIndexPage extends Component {
         )
     }
 
-    render() {
+    override render() {
         return (
             <AdminLayout title="Categories">
                 <main className="TagsIndexPage">

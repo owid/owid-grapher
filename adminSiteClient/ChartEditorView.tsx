@@ -314,7 +314,7 @@ export class ChartEditorView<
         void this.fetchData()
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         this.refresh()
         this.disposers.push(
             reaction(
@@ -336,11 +336,11 @@ export class ChartEditorView<
     }
 
     disposers: IReactionDisposer[] = []
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         this.disposers.forEach((dispose) => dispose())
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return (
             <AdminLayout noSidebar>
                 <main className="ChartEditorPage">

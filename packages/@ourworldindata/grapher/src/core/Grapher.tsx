@@ -3829,7 +3829,7 @@ export class Grapher extends React.Component<GrapherProps> {
         )
     }
 
-    render(): React.ReactElement | undefined {
+    override render(): React.ReactElement | undefined {
         // Used in the admin to render a static preview of the chart
         if (this.grapherState.isExportingToSvgOrPng)
             return <CaptionedOrThumbnailChart manager={this.grapherState} />
@@ -4023,7 +4023,7 @@ export class Grapher extends React.Component<GrapherProps> {
         }
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         this.setBaseFontSize()
         this.setUpIntersectionObserver()
         this.setUpWindowResizeEventHandler()
@@ -4077,16 +4077,16 @@ export class Grapher extends React.Component<GrapherProps> {
         this._shortcutsBound = false
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         this.unbindKeyboardShortcuts()
         this.dispose()
     }
 
-    componentDidUpdate(): void {
+    override componentDidUpdate(): void {
         this.setBaseFontSize()
     }
 
-    componentDidCatch(error: Error): void {
+    override componentDidCatch(error: Error): void {
         this.setError(error)
         this.grapherState.analytics.logGrapherViewError(error)
     }

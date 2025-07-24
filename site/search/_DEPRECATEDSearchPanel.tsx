@@ -480,7 +480,7 @@ export class DEPRECATEDInstantSearchContainer extends React.Component {
             this.handleCategoryFilterClick.bind(this)
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         const params = getWindowQueryParams()
         if (params.q) {
             // Algolia runs the search and fills the searchbox input regardless
@@ -522,7 +522,7 @@ export class DEPRECATEDInstantSearchContainer extends React.Component {
         this.setActiveCategoryFilter(key)
     }
 
-    render() {
+    override render() {
         return (
             <InstantSearch
                 routing={{

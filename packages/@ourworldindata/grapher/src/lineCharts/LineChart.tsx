@@ -516,7 +516,7 @@ export class LineChart
         SVGGElement | null,
         unknown
     >
-    componentDidMount(): void {
+    override componentDidMount(): void {
         if (!this.manager.disableIntroAnimation) {
             this.runFancyIntroAnimation()
         }
@@ -526,7 +526,7 @@ export class LineChart
         })
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         if (this.animSelection) this.animSelection.interrupt()
         document.removeEventListener("click", this.onDocumentClick, {
             capture: true,
@@ -703,7 +703,7 @@ export class LineChart
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const { manager, dualAxis } = this
 
         if (this.chartState.errorInfo.reason)

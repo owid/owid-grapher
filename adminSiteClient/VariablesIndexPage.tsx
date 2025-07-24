@@ -20,7 +20,7 @@ import urljoin from "url-join"
 
 @observer
 export class VariablesIndexPage extends Component {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable variables: VariableListItem[] = []
@@ -42,7 +42,7 @@ export class VariablesIndexPage extends Component {
         this.maxVisibleRows += 100
     }
 
-    render() {
+    override render() {
         const { variablesToShow, searchInput, numTotalRows } = this
 
         const highlight = (text: string) => {
@@ -139,7 +139,7 @@ export class VariablesIndexPage extends Component {
     }
 
     dispose!: IReactionDisposer
-    componentDidMount() {
+    override componentDidMount() {
         this.dispose = reaction(
             () => this.searchInput || this.maxVisibleRows,
             lodash.debounce(() => this.getData(), 200)
@@ -147,7 +147,7 @@ export class VariablesIndexPage extends Component {
         void this.getData()
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
         this.dispose()
     }
 }

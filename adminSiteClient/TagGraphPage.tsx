@@ -107,7 +107,7 @@ class AddChildForm extends React.Component<AddChildFormProps> {
         makeObservable(this)
     }
 
-    render() {
+    override render() {
         if (!this.isAddingTag) {
             return (
                 <Button
@@ -212,7 +212,7 @@ class TagGraphNodeContainer extends React.Component<TagGraphNodeContainerProps> 
         })
     }
 
-    render() {
+    override render() {
         const { id, name, path, children, weight, isTopic } = this.props.node
         const serializedPath = path.join("-")
         return (
@@ -318,7 +318,7 @@ function insertChildAndSort(
 
 @observer
 export class TagGraphPage extends React.Component {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     constructor(props: Record<string, never>) {
@@ -499,7 +499,7 @@ export class TagGraphPage extends React.Component {
         )
     }
 
-    render() {
+    override render() {
         return (
             <AdminLayout title="Tag Graph">
                 <main className="TagGraphPage">
@@ -569,7 +569,7 @@ export class TagGraphPage extends React.Component {
         })
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         void this.getData()
     }
 }

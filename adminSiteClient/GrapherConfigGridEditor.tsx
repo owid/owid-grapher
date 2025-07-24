@@ -120,11 +120,11 @@ class HotColorScaleEditor extends BaseEditorComponent<any> {
         super(props)
     }
 
-    getValue() {
+    override getValue() {
         return undefined
     }
 
-    prepare(
+    override prepare(
         row: any,
         col: any,
         prop: any,
@@ -145,14 +145,14 @@ class HotColorScaleEditor extends BaseEditorComponent<any> {
         // so it shows up in the correct position.
     }
 
-    render() {
+    override render() {
         return <div id="colorScaleEditorElement"></div>
     }
 }
 
 @observer
 export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEditorProps> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
 
     @observable.ref grapherState = new GrapherState({
         additionalDataLoaderFn: (varId: number) =>
@@ -239,7 +239,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
     /** Here is some of the most important code in this component - the
         setup that puts in place the fetch logic to retrieve variable annotations
         whenever any of the dataFetchParameters change */
-    async componentDidMount() {
+    override async componentDidMount() {
         // Here we convert a mobx property (dataFetchParameters) to an rxJS observable, and define a pipeline to
         // debounce the signal and then use switchMap to create new fetch requests and cancel outstanding ones to
         // finally subscribe to this observable and update the dependent properties on this class.
@@ -1240,7 +1240,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         this.columnSelection = reorderItems
     }
 
-    render() {
+    override render() {
         const { hotSettings, hotColumns, activeTab } = this
         if (hotSettings === undefined) return <div>Loading</div>
         else
@@ -1620,7 +1620,7 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         return baseUrl + filter
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
         for (const disposer of this.disposers) {
             disposer()
         }
