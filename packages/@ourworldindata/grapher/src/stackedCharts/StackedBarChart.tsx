@@ -43,7 +43,7 @@ import {
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig.js"
 import { easeLinear } from "d3-ease"
-import { select } from "d3-selection"
+import { select, type BaseType, type Selection } from "d3-selection"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { StackedBarSegment } from "./StackedBarSegment"
@@ -677,12 +677,7 @@ export class StackedBarChart
         )
     }
 
-    animSelection?: d3.Selection<
-        d3.BaseType,
-        unknown,
-        SVGGElement | null,
-        unknown
-    >
+    animSelection?: Selection<BaseType, unknown, SVGGElement | null, unknown>
 
     base = React.createRef<SVGGElement>()
     componentDidMount(): void {

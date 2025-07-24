@@ -37,7 +37,7 @@ import {
 import { AxisConfig, AxisManager } from "../axis/AxisConfig.js"
 import { LineLabelSeries } from "../lineLegend/LineLegendTypes"
 import { easeLinear } from "d3-ease"
-import { select } from "d3-selection"
+import { select, type BaseType, type Selection } from "d3-selection"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
 import { StackedAreas } from "./StackedAreas"
@@ -545,12 +545,7 @@ export class StackedAreaChart
         }
     }
 
-    animSelection?: d3.Selection<
-        d3.BaseType,
-        unknown,
-        SVGGElement | null,
-        unknown
-    >
+    animSelection?: Selection<BaseType, unknown, SVGGElement | null, unknown>
 
     base = React.createRef<SVGGElement>()
     componentDidMount(): void {
