@@ -6,6 +6,7 @@ import {
     GrapherChartType,
     GrapherValuesJson,
     GrapherValuesJsonDataPoint,
+    TimeBounds,
 } from "@ourworldindata/types"
 import { SearchChartHit, SearchIndexName } from "./searchTypes.js"
 import {
@@ -13,6 +14,7 @@ import {
     constructChartInfoUrl,
     fetchJson,
     pickEntitiesForChartHit,
+    toGrapherQueryParams,
 } from "./searchUtils.js"
 import { HitAttributeHighlightResult } from "instantsearch.js"
 import { getIndexName } from "./searchClient.js"
@@ -24,6 +26,7 @@ import { useQuery } from "@tanstack/react-query"
 import {
     makeLabelForGrapherTab,
     WORLD_ENTITY_NAME,
+    CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME,
 } from "@ourworldindata/grapher"
 import {
     SearchChartHitDataDisplay,
@@ -68,19 +71,23 @@ export function SearchChartHitSmall({
         searchQueryRegionsMatches,
     ])
 
+    const entityParam = toGrapherQueryParams({ entities })
+    const chartUrl = constructChartUrl({ hit, grapherParams: entityParam })
+
     // Fetch chart info and data values
     const { data: chartInfo } = useQuery({
         queryKey: chartHitQueryKeys.chartInfo(hit.slug, entities),
         queryFn: () => {
-            const url = constructChartInfoUrl({ hit, entities })
+            const url = constructChartInfoUrl({
+                hit,
+                grapherParams: entityParam,
+            })
             if (!url) return null
             return fetchJson<GrapherValuesJson>(url)
         },
         // Only fetch when the component is visible
         enabled: hasBeenVisible,
     })
-
-    const chartUrl = constructChartUrl({ hit, entities })
 
     // The first chart tab is the primary chart type
     const chartType: GrapherChartType | undefined = hit.availableTabs.find(
@@ -130,18 +137,37 @@ export function SearchChartHitSmall({
                     </header>
                 </a>
                 <div className="search-chart-hit-small__tabs-container">
-                    {hit.availableTabs.map((tab) => (
-                        <a
-                            key={tab}
-                            href={constructChartUrl({ hit, entities, tab })}
-                            onClick={onClick}
-                            aria-label={makeLabelForGrapherTab(tab, {
-                                format: "long",
-                            })}
-                        >
-                            <GrapherTabIcon tab={tab} />
-                        </a>
-                    ))}
+                    {hit.availableTabs.map((tab) => {
+                        // Single-time line charts automatically switch to a
+                        // discrete bar chart. For the line chart tab preview URL,
+                        // we need to set the time parameter that forces Grapher
+                        // to show an actual line chart instead of the bar chart.
+                        const timeParam =
+                            CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME.includes(
+                                tab as any
+                            )
+                                ? getTimeBoundsForChartUrl(chartInfo)
+                                : undefined
+
+                        const grapherParams = toGrapherQueryParams({
+                            entities,
+                            tab,
+                            ...timeParam,
+                        })
+
+                        return (
+                            <a
+                                key={tab}
+                                href={constructChartUrl({ hit, grapherParams })}
+                                onClick={onClick}
+                                aria-label={makeLabelForGrapherTab(tab, {
+                                    format: "long",
+                                })}
+                            >
+                                <GrapherTabIcon tab={tab} />
+                            </a>
+                        )
+                    })}
                 </div>
             </div>
             {dataDisplayProps && (
@@ -151,6 +177,35 @@ export function SearchChartHitSmall({
     )
 }
 
+// Generates time bounds to force line charts to display properly in previews.
+// When start and end times are the same (single time point), line charts
+// automatically switch to discrete bar charts. To prevent that, we set the start
+// time to -Infinity, which refers to the earliest available data.
+function getTimeBoundsForChartUrl(
+    chartInfo?: GrapherValuesJson | null
+): { timeBounds: TimeBounds; timeMode: "year" | "day" } | undefined {
+    if (!chartInfo) return undefined
+
+    const { startTime, endTime } = chartInfo
+
+    // When a chart has different start and end times, we don't need to adjust
+    // the time parameter because the chart will naturally display as a line chart.
+    // Note: `chartInfo` is fetched for the _default_ view. If startTime equals
+    // endTime here, it doesn't necessarily mean that the line chart is actually
+    // single-time, since we're looking at the default tab rather than the specific
+    // line chart tab. However, false positives are generally harmless because most
+    // charts don't customize their start time.
+    if (startTime && startTime !== endTime) return undefined
+
+    const columnSlug = chartInfo.values?.endTime?.y[0].columnSlug ?? ""
+    const columnInfo = chartInfo.columns?.[columnSlug]
+
+    return {
+        timeBounds: [-Infinity, endTime ?? Infinity],
+        timeMode: columnInfo?.yearIsDay ? "day" : "year",
+    }
+}
+
 function findDatapoint(
     chartInfo: GrapherValuesJson | undefined,
     time: "end" | "start" = "end"
@@ -158,8 +213,8 @@ function findDatapoint(
     if (!chartInfo) return undefined
 
     const yDims = match(time)
-        .with("end", () => chartInfo.endTime?.y)
-        .with("start", () => chartInfo.startTime?.y)
+        .with("end", () => chartInfo.values?.endTime?.y)
+        .with("start", () => chartInfo.values?.startTime?.y)
         .exhaustive()
     if (!yDims) return undefined
 
