@@ -2564,6 +2564,10 @@ export class GrapherState {
             : new Bounds(0, 0, this.availableWidth, this.availableHeight)
     }
 
+    @computed get activeBounds(): Bounds {
+        return this.isExportingToSvgOrPng ? this.staticBounds : this.frameBounds
+    }
+
     /** Bounds of the CaptionedChart that renders the header, chart area and footer */
     @computed get captionedChartBounds(): Bounds {
         // if there's no panel, the chart takes up the whole frame
@@ -2581,7 +2585,7 @@ export class GrapherState {
     /** Bounds of the chart area if no CaptionedChart is rendered */
     @computed get chartAreaBounds(): Bounds {
         // 2px accounts for the border
-        return this.captionedChartBounds.pad(2)
+        return this.activeBounds.pad(2)
     }
 
     /** Bounds of the entity selector if rendered into the side panel */
@@ -3800,13 +3804,9 @@ export class Grapher extends React.Component<GrapherProps> {
             GrapherComponentMedium: this.grapherState.isMedium,
         })
 
-        const activeBounds = this.grapherState.isExportingToSvgOrPng
-            ? this.grapherState.staticBounds
-            : this.grapherState.frameBounds
-
         const containerStyle = {
-            width: activeBounds.width,
-            height: activeBounds.height,
+            width: this.grapherState.activeBounds.width,
+            height: this.grapherState.activeBounds.height,
             fontSize: this.grapherState.isExportingToSvgOrPng
                 ? 18
                 : Math.min(16, this.grapherState.fontSize), // cap font size at 16px
