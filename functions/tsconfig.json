@@ -7,6 +7,8 @@
         "types": ["@cloudflare/workers-types"],
         "esModuleInterop": true,
 
-        "outDir": "./dist"
+        "outDir": "./dist",
+
+        "experimentalDecorators": true
     }
 }
