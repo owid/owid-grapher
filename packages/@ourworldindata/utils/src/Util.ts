@@ -1332,26 +1332,24 @@ export async function copyToClipboard(text: string): Promise<void> {
 
 // Memoization for immutable getters. Run the function once for this instance and cache the result.
 export const imemo = <Type, This extends Record<string, any>>(
-    accessor: ClassAccessorDecoratorTarget<This, Type>,
-    context: ClassAccessorDecoratorContext<This, Type>
-): ClassAccessorDecoratorResult<This, Type> => {
+    target: () => Type,
+    context: ClassGetterDecoratorContext<This, Type>
+) => {
     const { name } = context
     const propName = `${String(name)}_memoized`
 
-    return {
-        get(this: This): Type {
-            if (this[propName] === undefined) {
-                // Define the prop the long way so we don't enumerate over it
-                Object.defineProperty(this, propName, {
-                    configurable: false,
-                    enumerable: false,
-                    writable: false,
-                    value: accessor.get.call(this),
-                })
-            }
+    return function (this: This): Type {
+        if (this[propName] !== undefined) {
             return this[propName]
-        },
-        set: accessor.set,
+        }
+        const value = target.call(this)
+        Object.defineProperty(this, propName, {
+            configurable: false,
+            enumerable: false,
+            writable: false,
+            value,
+        })
+        return value
     }
 }
 
