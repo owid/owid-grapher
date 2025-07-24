@@ -47,7 +47,9 @@ export function SearchFlatArticleHit({
                             </span>
                         )}
                         <Snippet
-                            className="search-flat-article-hit__excerpt"
+                            classNames={{
+                                root: "search-flat-article-hit__excerpt",
+                            }}
                             attribute="content"
                             highlightedTagName="strong"
                             hit={hit}

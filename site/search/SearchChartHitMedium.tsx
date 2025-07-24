@@ -127,7 +127,9 @@ export function SearchChartHitMedium({
                             <Highlight
                                 attribute="title"
                                 highlightedTagName="strong"
-                                className="search-chart-hit-medium__title"
+                                classNames={{
+                                    root: "search-chart-hit-medium__title",
+                                }}
                                 hit={hit}
                             />{" "}
                             <span className="search-chart-hit-medium__variant">
