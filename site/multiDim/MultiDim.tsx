@@ -134,6 +134,8 @@ export default function MultiDim({
                 ? archivedChartInfo.assets.runtime
                 : undefined
 
+        const previousTab = grapher.activeTab
+
         cachedGetGrapherConfigByUuid(
             newView.fullConfigId,
             Boolean(isPreviewing),
@@ -164,6 +166,17 @@ export default function MultiDim({
                         }
                     })
                 grapher.populateFromQueryParams(newGrapherParams)
+
+                // When switching between mdim views, we usually preserve the tab.
+                // However, if the new chart doesn't support the previously selected tab,
+                // Grapher automatically switches to a supported one. In such cases,
+                // we call onChartSwitching to make adjustments that ensure the new view
+                // is sensible (e.g. updating the time selection when switching from a
+                // single-time chart like a discrete bar chart to a multi-time chart like
+                // a line chart).
+                const currentTab = grapher.activeTab
+                if (previousTab !== currentTab)
+                    grapher.onChartSwitching(previousTab, currentTab)
             })
             .catch(Sentry.captureException)
         return () => {
