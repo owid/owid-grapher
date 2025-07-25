@@ -341,6 +341,9 @@ export const configureAlgolia = async () => {
     await chartsIndex.saveSynonyms(algoliaSynonyms, {
         replaceExistingSynonyms: true,
     })
+    await explorerViewsAndChartsIndex.saveSynonyms(algoliaSynonyms, {
+        replaceExistingSynonyms: true,
+    })
 
     if (TOPICS_CONTENT_GRAPH) {
         const graphIndex = client.initIndex(CONTENT_GRAPH_ALGOLIA_INDEX)
