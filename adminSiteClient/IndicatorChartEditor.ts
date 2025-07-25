@@ -37,18 +37,6 @@ export class IndicatorChartEditor extends AbstractChartEditor<IndicatorChartEdit
         )
 
         this.grapherState.updateFromObject(this.manager.patchConfig)
-
-        void this.cachingGrapherDataLoader(
-            this.grapherState.dimensions,
-            this.grapherState.selectedEntityColors
-        ).then((inputTable) => {
-            if (inputTable) {
-                // Set the inputTable to the grapherState
-                runInAction(() => {
-                    this.grapherState.inputTable = inputTable
-                })
-            }
-        })
     }
 
     @computed
