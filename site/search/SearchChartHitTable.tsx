@@ -141,11 +141,23 @@ function LineChartTable({
 
     // Group series by name to handle cases where multiple series share the same name,
     // which can happen when projections are included alongside historical data
-    const rows = chartState.series
-        .map((series) => {
-            if (series.isProjection) return undefined
-            const point = R.last(series.points ?? [])
+    const groupedSeries = R.groupBy(
+        chartState.series,
+        (series) => series.seriesName
+    )
+
+    const rows = Object.values(groupedSeries)
+        .map((seriesList) => {
+            // Pick the series with the latest time
+            const series = R.firstBy(seriesList, [
+                (series) => R.last(series.points)?.x ?? 0,
+                "desc",
+            ])
+
+            // Pick the data point with the latest time
+            const point = R.firstBy(series.points, [(point) => point.x, "desc"])
             if (!point) return undefined
+
             return {
                 name: series.seriesName,
                 color: series.color,
@@ -155,6 +167,7 @@ function LineChartTable({
                 time: formatColumn.formatTime(point.x),
                 point,
                 muted: series.focus.background,
+                striped: series.isProjection,
             }
         })
         .filter((row) => row !== undefined)
