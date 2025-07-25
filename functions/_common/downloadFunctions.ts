@@ -7,7 +7,11 @@ import {
     generateSelectedEntityNamesParam,
     constructGrapherValuesJson,
 } from "@ourworldindata/grapher"
-import { OwidColumnDef, GRAPHER_TAB_QUERY_PARAMS } from "@ourworldindata/types"
+import {
+    OwidColumnDef,
+    GRAPHER_TAB_QUERY_PARAMS,
+    EntityName,
+} from "@ourworldindata/types"
 import { StatusError } from "itty-router"
 import { createZip, File } from "littlezipper"
 import { assembleMetadata, getColumnsForMetadata } from "./metadataTools.js"
@@ -201,22 +205,8 @@ export async function fetchDataValuesForGrapher(
     env: Env,
     searchParams: URLSearchParams
 ) {
-    // This endpoint returns data for a single entity/country. If the 'country'
-    // query param is provided, the first entity is used. It defaults to 'World'
-    // when no entity is provided.
-    const entityNames = getEntityNamesParam(
-        searchParams.get("country") ?? undefined
-    )
-    const entityName = entityNames?.[0] ?? WORLD_ENTITY_NAME
-
-    // We update the search params to ensure the entity is selected, which is
-    // necessary for it to be included in the chart's `transformedTable` that is
-    // later used to retrieve the data.
-    searchParams.set("country", generateSelectedEntityNamesParam([entityName]))
-
-    // If no tab param is specified, default to the chart tab
-    const tab = searchParams.get("tab") ?? GRAPHER_TAB_QUERY_PARAMS.chart
-    searchParams.set("tab", tab)
+    const entityName = findEntityForExtractingDataValues(searchParams)
+    prepareSearchParamsBeforeExtractingDataValues(searchParams, entityName)
 
     // Initialize Grapher and download its data
     const { grapher } = await initGrapher(
@@ -232,14 +222,46 @@ export async function fetchDataValuesForGrapher(
     })
     grapher.grapherState.inputTable = inputTable
 
-    const { grapherState } = grapher
+    const dataValues = assembleDataValues(grapher.grapherState, entityName)
 
+    return Response.json(dataValues)
+}
+
+export function assembleDataValues(
+    grapherState: GrapherState,
+    entityName: EntityName
+) {
     // If the entity is invalid or not included in the chart, we can't return
     // any data, so we return the source only
     if (!grapherState.availableEntityNames.includes(entityName))
-        return Response.json({ source: grapherState.sourcesLine })
+        return { source: grapherState.sourcesLine }
 
-    const result = constructGrapherValuesJson(grapherState, entityName)
+    return constructGrapherValuesJson(grapherState, entityName)
+}
 
-    return Response.json(result)
+export function findEntityForExtractingDataValues(
+    searchParams: URLSearchParams
+): string {
+    // This endpoint returns data for a single entity/country. If the 'country'
+    // query param is provided, the first entity is used. It defaults to 'World'
+    // when no entity is provided.
+    const entityNames = getEntityNamesParam(
+        searchParams.get("country") ?? undefined
+    )
+    const entityName = entityNames?.[0] ?? WORLD_ENTITY_NAME
+    return entityName
+}
+
+export function prepareSearchParamsBeforeExtractingDataValues(
+    searchParams: URLSearchParams,
+    entityName: EntityName
+): void {
+    // We update the search params to ensure the entity is selected, which is
+    // necessary for it to be included in the chart's `transformedTable` that is
+    // later used to retrieve the data.
+    searchParams.set("country", generateSelectedEntityNamesParam([entityName]))
+
+    // If no tab param is specified, default to the chart tab
+    const tab = searchParams.get("tab") ?? GRAPHER_TAB_QUERY_PARAMS.chart
+    searchParams.set("tab", tab)
 }
