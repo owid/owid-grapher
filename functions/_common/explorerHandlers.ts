@@ -18,8 +18,11 @@ import {
 } from "@ourworldindata/grapher"
 import {
     assembleCsv,
+    assembleDataValues,
     assembleReadme,
     ensureDownloadOfDataAllowed,
+    findEntityForExtractingDataValues,
+    prepareSearchParamsBeforeExtractingDataValues,
 } from "./downloadFunctions.js"
 import { assembleMetadata } from "./metadataTools.js"
 
@@ -209,6 +212,28 @@ export async function fetchZipForExplorerView(
                 "Content-Disposition": `attachment; filename="${identifier}.zip"`,
             },
         })
+    } catch (e) {
+        console.error(e)
+        return error(500, e)
+    }
+}
+
+export async function fetchDataValuesForExplorerView(
+    searchParams: URLSearchParams,
+    env: Env
+) {
+    const options = extractOptions(searchParams)
+
+    const url = env.url
+    url.href = url.href.replace(extensions.values, "")
+
+    const entityName = findEntityForExtractingDataValues(url.searchParams)
+    prepareSearchParamsBeforeExtractingDataValues(url.searchParams, entityName)
+
+    try {
+        const { grapherState } = await initGrapherForExplorerView(env, options)
+        const dataValues = assembleDataValues(grapherState, entityName)
+        return Response.json(dataValues)
     } catch (e) {
         console.error(e)
         return error(500, e)
