@@ -23,6 +23,7 @@ import classNames from "classnames"
 import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants.js"
 
 export interface ActionButtonsManager extends ShareMenuManager {
+    isAdmin?: boolean
     isShareMenuActive?: boolean
     hideShareButton?: boolean
     hideExploreTheDataButton?: boolean
