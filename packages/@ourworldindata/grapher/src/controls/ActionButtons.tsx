@@ -233,7 +233,7 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
     }
 
     @computed private get hasDonateButton(): boolean {
-        return !!this.manager.isInIFrame
+        return !!this.manager.isInIFrame && !this.manager.isAdmin
     }
 
     @computed private get hasShareButton(): boolean {
