@@ -405,7 +405,9 @@ export class SlopeChart
     }
 
     private formatValue(value: number): string {
-        return this.formatColumn.formatValueShortWithAbbreviations(value)
+        return this.formatColumn.formatValueShortWithAbbreviations(value, {
+            numberAbbreviation: "long",
+        })
     }
 
     @computed private get lineLegendMaxLevelLeft(): number {
