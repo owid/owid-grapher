@@ -5,7 +5,8 @@ interface TableRow {
     name: string
     value: string
     time?: string
-    muted: boolean
+    muted?: boolean
+    striped?: boolean
 }
 
 export function SearchChartHitTableContent({
@@ -63,7 +64,9 @@ function Row({
             })}
         >
             <span
-                className="search-chart-hit-table-row__swatch"
+                className={cx("search-chart-hit-table-row__swatch", {
+                    "search-chart-hit-table-row__swatch--striped": row.striped,
+                })}
                 style={{ backgroundColor: row.color }}
             />
             <span className="search-chart-hit-table-row__name">{row.name}</span>
