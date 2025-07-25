@@ -1482,7 +1482,7 @@ export class GrapherState {
         ].includes(tabName)
     }
 
-    @action.bound private onChartSwitching(
+    @action.bound onChartSwitching(
         _oldTab: GrapherTabName,
         newTab: GrapherTabName
     ): void {
