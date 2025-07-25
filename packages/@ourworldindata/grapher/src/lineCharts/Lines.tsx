@@ -14,7 +14,6 @@ import {
     DEFAULT_LINE_OUTLINE_WIDTH,
     DEFAULT_MARKER_RADIUS,
     DEFAULT_STROKE_WIDTH,
-    LinesProps,
     NON_FOCUSED_LINE_COLOR,
     PlacedLineChartSeries,
     RenderLineChartSeries,
@@ -22,6 +21,19 @@ import {
 import { getSeriesKey } from "../chart/ChartUtils"
 import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
 import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
+import { DualAxis } from "../axis/Axis"
+
+export interface LinesProps {
+    dualAxis: DualAxis
+    series: RenderLineChartSeries[]
+    hidePoints?: boolean
+    lineStrokeWidth?: number
+    lineOutlineWidth?: number
+    markerRadius?: number
+    isStatic?: boolean
+    multiColor?: boolean
+    backgroundColor?: string
+}
 
 @observer
 export class Lines extends React.Component<LinesProps> {

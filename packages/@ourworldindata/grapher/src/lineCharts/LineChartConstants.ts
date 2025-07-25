@@ -1,4 +1,3 @@
-import { DualAxis } from "../axis/Axis"
 import { ChartManager } from "../chart/ChartManager"
 import {
     CoreValueType,
@@ -58,18 +57,6 @@ export interface PlacedLineChartSeries extends LineChartSeries {
 export interface RenderLineChartSeries extends PlacedLineChartSeries {
     hover: InteractionState
     focus: InteractionState
-}
-
-export interface LinesProps {
-    dualAxis: DualAxis
-    series: RenderLineChartSeries[]
-    hidePoints?: boolean
-    lineStrokeWidth?: number
-    lineOutlineWidth?: number
-    markerRadius?: number
-    isStatic?: boolean
-    multiColor?: boolean
-    backgroundColor?: string
 }
 
 export interface LineChartManager extends ChartManager {

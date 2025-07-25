@@ -144,6 +144,10 @@ export class LineChartState implements ChartState, ColorScaleManager {
         return this.yColumnSlugs.map((slug) => this.transformedTable.get(slug))
     }
 
+    @computed get formatColumn(): CoreColumn {
+        return this.yColumns[0]
+    }
+
     @computed get colorColumn(): CoreColumn {
         return this.transformedTable.get(this.colorColumnSlug)
     }
