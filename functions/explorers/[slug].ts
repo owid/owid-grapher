@@ -4,6 +4,7 @@ import { IRequestStrict, Router, error, cors } from "itty-router"
 import { rewriteMetaTags } from "../_common/grapherTools.js"
 import {
     fetchCsvForExplorerView,
+    fetchDataValuesForExplorerView,
     fetchMetadataForExplorerView,
     fetchReadmeForExplorerView,
     fetchZipForExplorerView,
@@ -70,6 +71,13 @@ router
         async (_, { searchParams }, env) => {
             console.log("Handling explorer ZIP request")
             return fetchZipForExplorerView(searchParams, env)
+        }
+    )
+    .get(
+        `/explorers/:slug${extensions.values}`,
+        async (_, { searchParams }, env) => {
+            console.log("Handling explorer values request")
+            return fetchDataValuesForExplorerView(searchParams, env)
         }
     )
     .get(
