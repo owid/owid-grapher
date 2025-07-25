@@ -112,7 +112,10 @@ export function DataPageContent({
     // A non-empty manager is used in the size calculations
     // within grapher, so we have to initialize it early with
     // a truthy value
-    const managerRef = useRef<GrapherManager>({ adminEditPath: "" })
+    const managerRef = useRef<GrapherManager>({
+        adminEditPath: "",
+        canonicalUrl,
+    })
     const grapherStateRef = useRef<GrapherState>(
         new GrapherState({
             additionalDataLoaderFn: (varId: number) =>
@@ -217,9 +220,6 @@ export function DataPageContent({
                             ...grapherConfig.value,
                             ...baseGrapherConfig,
                         }
-                        if (config.manager)
-                            config.manager.adminEditPath = adminEditPath
-                        else config.manager = { adminEditPath }
                         void inputTableFetcher(
                             grapherConfig.value.dimensions!,
                             grapherConfig.value.selectedEntityColors
