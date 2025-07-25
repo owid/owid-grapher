@@ -31,6 +31,10 @@
         grid-column: 1 / -1;
     }
 
+    &.search-chart-hit-table-row--muted {
+        opacity: 0.5;
+    }
+
     .search-chart-hit-table-row__name {
         white-space: nowrap;
         overflow: hidden;
