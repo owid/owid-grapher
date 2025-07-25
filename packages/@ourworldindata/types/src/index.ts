@@ -878,4 +878,4 @@ export {
     type GrapherValuesJson,
     type GrapherValuesJsonDataPoints,
     type GrapherValuesJsonDataPoint,
-} from "./functionTypes/GrapherEndpoints.js"
+} from "./endpointTypes/GrapherEndpoints.js"
