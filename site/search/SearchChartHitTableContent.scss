@@ -57,6 +57,20 @@
         display: inline-block;
         margin-right: 4px;
         flex-shrink: 0;
+
+        @mixin diagonal-background($background, $color) {
+            background: repeating-linear-gradient(
+                -45deg,
+                $background,
+                $background 16%,
+                $color 16%,
+                $color 25%
+            );
+        }
+
+        &.search-chart-hit-table-row__swatch--striped {
+            @include diagonal-background(transparent, #fff);
+        }
     }
 
     .search-chart-hit-table-row__value {
