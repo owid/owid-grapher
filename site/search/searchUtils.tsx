@@ -2,8 +2,12 @@ import * as _ from "lodash-es"
 import { HitAttributeHighlightResult } from "instantsearch.js"
 import {
     EntityName,
+    GRAPHER_TAB_QUERY_PARAMS,
     GrapherQueryParams,
+    GrapherTabName,
+    GrapherTabQueryParam,
     TagGraphRoot,
+    TimeBounds,
 } from "@ourworldindata/types"
 import {
     Region,
@@ -16,9 +20,16 @@ import {
     FuzzySearch,
     FuzzySearchResult,
     getAllChildrenOfArea,
+    timeBoundToTimeBoundString,
+    queryParamsToStr,
+    excludeUndefined,
 } from "@ourworldindata/utils"
 import { partition } from "remeda"
-import { generateSelectedEntityNamesParam } from "@ourworldindata/grapher"
+import {
+    generateSelectedEntityNamesParam,
+    isValidTabQueryParam,
+    mapGrapherTabNameToQueryParam,
+} from "@ourworldindata/grapher"
 import { getIndexName } from "./searchClient.js"
 import {
     SearchIndexName,
@@ -28,11 +39,19 @@ import {
     SearchResultType,
     SearchTopicType,
     SearchFacetFilters,
+    ChartRecordType,
+    SearchChartHit,
 } from "./searchTypes.js"
 import { faTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { match, P } from "ts-pattern"
 import { ForwardedRef } from "react"
+import {
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_URL,
+    GRAPHER_DYNAMIC_THUMBNAIL_URL,
+} from "../../settings/clientSettings.js"
+import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -137,18 +156,133 @@ export function pickEntitiesForChartHit(
     return sortedEntities ?? []
 }
 
-export const getEntityQueryStr = (
-    entities: EntityName[] | null | undefined,
-    existingQueryStr: string = ""
-) => {
-    if (!entities?.length) return existingQueryStr
-    else {
-        return Url.fromQueryStr(existingQueryStr).updateQueryParams({
-            // If we have any entities pre-selected, we want to show the chart tab
-            tab: "chart",
-            country: generateSelectedEntityNamesParam(entities),
-        } satisfies GrapherQueryParams).queryStr
+const generateGrapherTabQueryParam = ({
+    tab,
+    hasEntities,
+}: {
+    tab?: GrapherTabName | GrapherTabQueryParam
+    hasEntities: boolean
+}) => {
+    if (tab) {
+        return isValidTabQueryParam(tab)
+            ? tab
+            : mapGrapherTabNameToQueryParam(tab)
     }
+
+    // If we have any entities pre-selected, we want to show the chart tab
+    if (hasEntities) return GRAPHER_TAB_QUERY_PARAMS.chart
+
+    return undefined
+}
+
+const generateGrapherTimeQueryParam = ({
+    timeBounds,
+    timeMode = "year",
+}: {
+    timeBounds: TimeBounds
+    timeMode?: "year" | "day"
+}) => {
+    return timeBounds
+        .map((time) => timeBoundToTimeBoundString(time, timeMode === "day"))
+        .join("..")
+}
+
+export const getEntityQueryStr = (
+    entities: EntityName[] | null | undefined
+): string => {
+    const hasEntities = !!entities?.length
+
+    const countryParam = hasEntities
+        ? generateSelectedEntityNamesParam(entities)
+        : undefined
+
+    const queryParams = { country: countryParam } satisfies GrapherQueryParams
+
+    const url = Url.fromQueryParams(queryParams)
+
+    return url.queryStr
+}
+
+export const toGrapherQueryParams = ({
+    entities = [],
+    tab,
+    timeBounds,
+    timeMode = "year",
+}: {
+    entities?: EntityName[]
+    tab?: GrapherTabName
+    timeBounds?: TimeBounds
+    timeMode?: "year" | "day"
+}): GrapherQueryParams => {
+    const hasEntities = entities.length > 0
+    return {
+        tab: generateGrapherTabQueryParam({ tab, hasEntities }),
+        country: hasEntities
+            ? generateSelectedEntityNamesParam(entities)
+            : undefined,
+        time: timeBounds
+            ? generateGrapherTimeQueryParam({ timeBounds, timeMode })
+            : undefined,
+    }
+}
+
+const generateQueryStrForChartHit = ({
+    hit,
+    grapherParams,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+}): string => {
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    const isMultiDimView = hit.type === ChartRecordType.MultiDimView
+
+    const viewQueryStr =
+        isExplorerView || isMultiDimView ? hit.queryParams : undefined
+    const grapherQueryStr = grapherParams
+        ? queryParamsToStr(grapherParams)
+        : undefined
+
+    const _viewQueryStr = viewQueryStr?.replace(/^\?/, "")
+    const _grapherQueryStr = grapherQueryStr?.replace(/^\?/, "")
+
+    const queryStr =
+        "?" + excludeUndefined([_viewQueryStr, _grapherQueryStr]).join("&")
+
+    return queryStr
+}
+
+export const constructChartUrl = ({
+    hit,
+    grapherParams,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+}): string => {
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+
+    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
+
+    const basePath = isExplorerView
+        ? `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}`
+        : BAKED_GRAPHER_URL
+
+    return `${basePath}/${hit.slug}${queryStr}`
+}
+
+export const constructChartInfoUrl = ({
+    hit,
+    grapherParams,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+}): string | undefined => {
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+
+    if (isExplorerView) return undefined // Not yet supported
+
+    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
+
+    return `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}.values.json${queryStr}`
 }
 
 export const CHARTS_INDEX = getIndexName(
@@ -163,6 +297,8 @@ export const DATA_CATALOG_ATTRIBUTES = [
     "type",
     "queryParams",
     "availableTabs",
+    "source",
+    "subtitle",
 ]
 
 export function setToFacetFilters(
@@ -560,4 +696,12 @@ export const getEffectiveResultType = (
         desiredResultType === SearchResultType.ALL
         ? SearchResultType.DATA
         : desiredResultType
+}
+
+export async function fetchJson<TResult>(url: string): Promise<TResult> {
+    const response = await fetch(url)
+    if (!response.ok) {
+        throw new Error(`Failed to fetch ${url}: ${response.statusText}`)
+    }
+    return response.json()
 }

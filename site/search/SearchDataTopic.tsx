@@ -6,8 +6,8 @@ import { SearchDataTopicsResponse } from "./searchTypes.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedCountries } from "./searchHooks.js"
-import { SearchChartHitMedium } from "./SearchChartHitMedium.js"
 import { SearchAsDraft } from "./SearchAsDraft.js"
+import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
 
 const analytics = new SiteAnalytics()
 
@@ -60,8 +60,9 @@ export const SearchDataTopic = ({
                                 className="search-data-topic-hit"
                                 key={hit.objectID}
                             >
-                                <SearchChartHitMedium
+                                <SearchChartHitComponent
                                     hit={hit}
+                                    mode={i === 0 ? "medium" : "small"}
                                     onClick={() => {
                                         analytics.logDataCatalogResultClick(
                                             hit,
@@ -73,7 +74,6 @@ export const SearchDataTopic = ({
                                     searchQueryRegionsMatches={
                                         selectedCountries
                                     }
-                                    showThumbnails={i === 0}
                                 />
                             </li>
                         ))}
