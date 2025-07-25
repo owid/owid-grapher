@@ -39,6 +39,7 @@ import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
 import { getColorKey, getSeriesName } from "./LineChartHelpers"
+import { FocusArray } from "../focus/FocusArray"
 
 export class LineChartState implements ChartState, ColorScaleManager {
     manager: LineChartManager
@@ -124,6 +125,10 @@ export class LineChartState implements ChartState, ColorScaleManager {
 
     @computed get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager.selection)
+    }
+
+    @computed get focusArray(): FocusArray {
+        return this.manager.focusArray ?? new FocusArray()
     }
 
     @computed get yColumnSlugs(): string[] {
@@ -300,6 +305,7 @@ export class LineChartState implements ChartState, ColorScaleManager {
             isProjection: column.isProjection,
             plotMarkersOnly: column.display?.plotMarkersOnlyInLineChart,
             color: seriesColor,
+            focus: this.focusArray.state(seriesName),
         }
     }
 

@@ -45,6 +45,7 @@ export interface LineChartSeries extends ChartSeries {
     isProjection?: boolean
     plotMarkersOnly?: boolean
     points: LinePoint[]
+    focus: InteractionState
 }
 
 export interface PlacedLineChartSeries extends LineChartSeries {
