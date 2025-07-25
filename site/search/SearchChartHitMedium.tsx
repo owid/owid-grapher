@@ -2,6 +2,7 @@ import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useIntersectionObserver } from "usehooks-ts"
 import cx from "classnames"
+import * as R from "remeda"
 import { Region } from "@ourworldindata/utils"
 import { ChartRecordType, SearchChartHit } from "./searchTypes.js"
 import {
@@ -36,6 +37,9 @@ import {
     GrapherTabName,
     GrapherChartType,
     GrapherValuesJson,
+    EntityName,
+    FacetStrategy,
+    SeriesStrategy,
 } from "@ourworldindata/types"
 import { chartHitQueryKeys } from "./queries.js"
 import { SearchChartHitThumbnail } from "./SearchChartHitThumbnail.js"
@@ -156,12 +160,40 @@ function SearchChartHitMediumRichData({
     const grapherState = new GrapherState(chartConfig)
     grapherState.inputTable = inputTable
 
-    // If the user hasn't selected any entities, use the first four entities
-    // of the chart selected by default
-    const entities =
-        pickedEntities.length > 0
-            ? pickedEntities
-            : grapherState.selection.selectedEntityNames.slice(0, 4)
+    // If the user hasn't picked any entities, use the default ones
+    const entities = pickEntitiesForDisplay({ grapherState, pickedEntities })
+
+    // Find Grapher tabs to display and bring them in the right order
+    const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
+
+    // Update the GrapherState before rendering the tab previews,
+    // so that the active tab matches the first tab we'll render
+    if (sortedTabs.length > 0)
+        grapherState.tab = mapGrapherTabNameToConfigOption(sortedTabs[0])
+
+    // When a line or slope chart has only a single time point selected by default,
+    // Grapher automatically switches to a discrete bar chart. This means the active
+    // tab type (DiscreteBar) wouldn't match what we want to render in the preview
+    // (LineChart). By ensuring the time handles are on different times, we force
+    // Grapher to display the actual line/slope chart instead of a bar chart.
+    grapherState.ensureTimeHandlesAreSensibleForTab(sortedTabs[0])
+
+    // Update the selected entities to match the ones we determined for this
+    // search result, and update the focused entities to match the ones the
+    // user picked
+    if (entities.length > 0)
+        grapherState.selection.setSelectedEntities(entities)
+    if (
+        pickedEntities.length > 0 &&
+        // focusing entities only makes sense when we're plotting entities
+        grapherState.chartState.seriesStrategy === SeriesStrategy.entity &&
+        grapherState.facetStrategy !== FacetStrategy.entity
+    ) {
+        const pickedAndSelectedEntities = pickedEntities.filter((entity) =>
+            grapherState.selection.selectedSet.has(entity)
+        )
+        grapherState.focusArray.clearAllAndAdd(...pickedAndSelectedEntities)
+    }
 
     // Prepare rendering the data display
     const defaultEntityForDisplay =
@@ -181,25 +213,6 @@ function SearchChartHitMediumRichData({
         entity: entityForDisplay,
         isEntityPickedByUser: pickedEntities.length > 0,
     })
-
-    // Find Grapher tabs to display and bring them in the right order
-    const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
-
-    // Update the GrapherState before rendering the tab previews:
-    // - Set the active tab to match the first tab we'll render
-    // - Update the selected entities to match the ones we determined for this search result
-    if (sortedTabs.length > 0)
-        grapherState.tab = mapGrapherTabNameToConfigOption(sortedTabs[0])
-    if (entities.length > 0)
-        grapherState.selection.setSelectedEntities(entities)
-
-    // It's possible that the first tab is a line or slope chart with a single
-    // time selected by default. In this case, the active tab (DiscreteBar)
-    // doesn't match the first tab we'll render (LineChart). To switch to the
-    // line chart, ensure that the handles are on different times.
-    if (sortedTabs[0] !== grapherState.activeTab) {
-        grapherState.ensureTimeHandlesAreSensibleForTab(sortedTabs[0])
-    }
 
     const entityParam = toGrapherQueryParams({ entities })
     const chartUrl = constructChartUrl({ hit, grapherParams: entityParam })
@@ -225,8 +238,8 @@ function SearchChartHitMediumRichData({
                             key={tab}
                             hit={hit}
                             tab={tab}
-                            grapherState={grapherState}
                             slot={slot}
+                            grapherState={grapherState}
                             onClick={onClick}
                         />
                     )
@@ -376,14 +389,14 @@ function SearchChartHitMediumFallback({
 function GrapherTabPreview({
     hit,
     tab,
-    grapherState,
     slot,
+    grapherState,
     onClick,
 }: {
     hit: SearchChartHit
     tab: GrapherTabName
-    grapherState: GrapherState
     slot: SearchChartHitMediumGridSlot
+    grapherState: GrapherState
     onClick?: () => void
 }): React.ReactElement {
     // Use Grapher's changedParams to construct chart and preview URLs.
@@ -394,7 +407,11 @@ function GrapherTabPreview({
         ...grapherState.changedParams,
         tab: mapGrapherTabNameToQueryParam(tab),
     }
-    const chartUrl = constructChartUrl({ hit, grapherParams })
+    const chartUrl = constructChartUrl({
+        hit,
+        // We don't want to link to a chart where entities are highlighted
+        grapherParams: R.omit(grapherParams, ["focus"]),
+    })
     const previewUrl = constructThumbnailUrl({ hit, grapherParams })
 
     // Construct caption
@@ -465,6 +482,27 @@ function GrapherThumbnailPlaceholder(): React.ReactElement {
             </div>
         </div>
     )
+}
+
+function pickEntitiesForDisplay({
+    grapherState,
+    pickedEntities,
+    maxNumEntities = 4,
+}: {
+    grapherState: GrapherState
+    pickedEntities: EntityName[] // picked by the user
+    maxNumEntities?: number
+}): EntityName[] {
+    // Make sure the default entities actually exist in the chart
+    const defaultEntities = grapherState.selection.selectedEntityNames.filter(
+        (entityName) => grapherState.availableEntityNames.includes(entityName)
+    )
+
+    const numPickedEntities = pickedEntities.length
+    if (numPickedEntities >= maxNumEntities) return pickedEntities.slice(0, 4)
+
+    const numFreeSlots = maxNumEntities - numPickedEntities
+    return [...pickedEntities, ...defaultEntities.slice(0, numFreeSlots)]
 }
 
 function findSlotForGrapherTab(
