@@ -18,6 +18,7 @@ import {
     RawBlockPosition,
     RawBlockProminentLink,
     RawBlockPullQuote,
+    RawBlockGuidedChart,
     RawBlockScroller,
     RawBlockSDGGrid,
     RawBlockSideBySideContainer,
@@ -321,6 +322,18 @@ function* rawBlockPullQuoteToArchieMLString(
     yield "[]"
 
     yield "{}"
+}
+
+function* rawBlockGuidedChartToArchieMLString(
+    block: RawBlockGuidedChart
+): Generator<string, void, undefined> {
+    yield "[.+guided-chart]"
+    if (block.value) {
+        for (const content of block.value) {
+            yield* OwidRawGdocBlockToArchieMLStringGenerator(content)
+        }
+    }
+    yield "[]"
 }
 
 function* rawBlockHorizontalRuleToArchieMLString(
@@ -937,6 +950,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "people-rows" }, rawBlockPeopleRowsToArchieMLString)
         .with({ type: "person" }, rawBlockPersonToArchieMLString)
         .with({ type: "pull-quote" }, rawBlockPullQuoteToArchieMLString)
+        .with({ type: "guided-chart" }, rawBlockGuidedChartToArchieMLString)
         .with(
             { type: "horizontal-rule" },
             rawBlockHorizontalRuleToArchieMLString

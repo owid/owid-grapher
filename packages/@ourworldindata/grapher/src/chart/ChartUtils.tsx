@@ -37,6 +37,7 @@ import {
     OwidTable,
 } from "@ourworldindata/core-table"
 import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
+import { GrapherProgrammaticInterface, GrapherState } from "../core/Grapher.js"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
     if (manager.yColumnSlugs && manager.yColumnSlugs.length)
@@ -361,4 +362,24 @@ export function getChartSvgProps({
             backgroundColor: backgroundColor ?? GRAPHER_BACKGROUND_DEFAULT,
         },
     }
+}
+
+export const ChartStateContext =
+    React.createContext<React.RefObject<GrapherState> | null>(null)
+
+export function useOptionallyGlobalGrapherStateRef(
+    config: GrapherProgrammaticInterface
+): React.RefObject<GrapherState> {
+    const contextRef = React.useContext(ChartStateContext)
+    const localRef = React.useRef<GrapherState | null>(null)
+
+    // If a context is provided, use it; otherwise, use the local ref
+    const refToUse = contextRef || localRef
+
+    // Only initialize if the ref is empty
+    if (!refToUse.current) {
+        refToUse.current = new GrapherState(config)
+    }
+
+    return refToUse as React.RefObject<GrapherState>
 }
