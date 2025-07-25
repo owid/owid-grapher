@@ -5,6 +5,7 @@ interface TableRow {
     name: string
     value: string
     time?: string
+    muted: boolean
 }
 
 export function SearchChartHitTableContent({
@@ -58,6 +59,7 @@ function Row({
         <div
             className={cx("search-chart-hit-table-row", {
                 "col-span": shouldSpanBothColumns,
+                "search-chart-hit-table-row--muted": row.muted,
             })}
         >
             <span
