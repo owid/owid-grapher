@@ -154,6 +154,7 @@ function LineChartTable({
                     formatColumn.formatValueShort(point.y),
                 time: formatColumn.formatTime(point.x),
                 point,
+                muted: series.focus.background,
             }
         })
         .filter((row) => row !== undefined)
