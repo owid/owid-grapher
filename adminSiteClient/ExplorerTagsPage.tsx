@@ -20,7 +20,7 @@ type ExplorerWithTags = {
 
 @observer
 export class ExplorerTagsPage extends Component {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
     @observable explorersWithTags: ExplorerWithTags[] = []
     @observable explorers: ExplorerProgram[] = []
@@ -33,7 +33,7 @@ export class ExplorerTagsPage extends Component {
         makeObservable(this)
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         void this.getData()
     }
 
@@ -44,7 +44,7 @@ export class ExplorerTagsPage extends Component {
         })
     }
 
-    render() {
+    override render() {
         return (
             <AdminLayout title="Explorer Tags">
                 <main className="ExplorerTags">

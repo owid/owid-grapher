@@ -43,7 +43,7 @@ export class EditorReferencesTab<
 > extends Component<{
     editor: Editor
 }> {
-    render() {
+    override render() {
         const { editor } = this.props
         if (isChartEditorInstance(editor))
             return <EditorReferencesTabForChart editor={editor} />
@@ -89,7 +89,7 @@ export class EditorReferencesTabForChart extends Component<{
             : "No data"
     }
 
-    render() {
+    override render() {
         return (
             <div className="EditorReferencesTab">
                 <section>
@@ -203,7 +203,7 @@ export class EditorReferencesTabForNarrativeChart extends Component<{
         return this.props.editor.manager.configId ?? ""
     }
 
-    render() {
+    override render() {
         return (
             <div className="EditorReferencesTab">
                 <section>
@@ -243,7 +243,7 @@ interface AddRedirectFormProps<Editor> {
 class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
     AddRedirectFormProps<Editor>
 > {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable slug?: string = ""
@@ -287,7 +287,7 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
         }
     }
 
-    render() {
+    override render() {
         return (
             <form
                 onSubmit={(e) => {
@@ -332,7 +332,7 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
 export class EditorReferencesTabForIndicator extends Component<{
     editor: IndicatorChartEditor
 }> {
-    render() {
+    override render() {
         const { references } = this.props.editor
 
         const publishedChildren = references?.childCharts ?? []

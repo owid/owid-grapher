@@ -76,7 +76,7 @@ class LogRenderer extends Component<LogRendererProps> {
         )
     }
 
-    render() {
+    override render() {
         const { log } = this.props
         const { title } = this
         const hasCompareButton = !!this.props.previousLog
@@ -121,7 +121,7 @@ export class EditorHistoryTab extends Component<{ editor: ChartEditor }> {
         return this.props.editor.logs || []
     }
 
-    render() {
+    override render() {
         return (
             <div>
                 {this.logs.map((log, i) => (

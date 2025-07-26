@@ -138,7 +138,7 @@ export class ControlsRow extends Component<ControlsRowProps> {
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return (
             <nav
                 className="controlsRow"

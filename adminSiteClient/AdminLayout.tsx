@@ -23,7 +23,7 @@ interface AdminLayoutProps {
 
 @observer
 export class AdminLayout extends React.Component<AdminLayoutProps> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
     static defaultProps = { fixedNav: true }
 
@@ -47,12 +47,12 @@ export class AdminLayout extends React.Component<AdminLayoutProps> {
         this.showSidebar = value
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         this.setInitialSidebarState(!this.props.noSidebar)
         this.componentDidUpdate()
     }
 
-    componentDidUpdate(): void {
+    override componentDidUpdate(): void {
         if (this.props.title)
             document.title = this.props.title + " - owid-admin"
     }
@@ -72,7 +72,7 @@ export class AdminLayout extends React.Component<AdminLayoutProps> {
         }
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const { admin } = this.context
         const { showFAQ: isFAQ, showSidebar, environmentSpan } = this
 

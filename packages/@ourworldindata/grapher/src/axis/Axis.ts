@@ -611,7 +611,7 @@ export class HorizontalAxis extends AbstractAxis {
         return this.height
     }
 
-    @override protected get baseTicks(): Tickmark[] {
+    @override protected override get baseTicks(): Tickmark[] {
         let ticks = this.getTickValues().filter(
             (tick): boolean => !tick.gridLineOnly
         )

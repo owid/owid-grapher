@@ -348,7 +348,7 @@ export class SettingsMenu extends React.Component<SettingsMenuProps> {
         )
     }
 
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         const {
             manager: { isOnChartTab },
             showSettingsMenuToggle,
@@ -369,7 +369,7 @@ interface SettingsGroupProps {
 
 @observer
 class SettingsGroup extends React.Component<SettingsGroupProps> {
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         const { active, title, subtitle, children } = this.props
         if (!active) return null
 

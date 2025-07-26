@@ -182,7 +182,7 @@ export class VerticalComparisonLine extends React.Component<
         )
     }
 
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         if (!this.lineCoordinates || !this.labelPosition) return null
 
         const { x, y1, y2 } = this.lineCoordinates

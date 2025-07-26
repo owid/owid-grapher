@@ -279,7 +279,7 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const { manager } = this
         const { isShareMenuActive } = manager
 

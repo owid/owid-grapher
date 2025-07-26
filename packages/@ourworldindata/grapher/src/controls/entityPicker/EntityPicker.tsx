@@ -454,7 +454,7 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
             .range([0, 1])
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         // Whenever the search term changes, shift focus to first option in the list
         reaction(
             () => this.searchInput,
@@ -464,7 +464,7 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
         void this.populateLocalEntity()
     }
 
-    componentDidUpdate(): void {
+    override componentDidUpdate(): void {
         if (
             this.focusIndex !== undefined &&
             this.scrollFocusedIntoViewOnUpdate &&
@@ -561,7 +561,7 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const { selection } = this
         const { entityType } = this.manager
         const entities = this.searchResults
@@ -705,7 +705,7 @@ class PickerOption extends React.Component<PickerOptionProps> {
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const {
             barScale,
             optionWithMetricValue,

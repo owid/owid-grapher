@@ -655,7 +655,7 @@ export class ChoroplethGlobe extends React.Component<{
         select(base).call(panAndZoom())
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         // rotate to the selected region
         if (isValidGlobeRegionName(this.mapConfig.region)) {
             this.globeController.jumpToOwidContinent(this.mapConfig.region)
@@ -669,7 +669,7 @@ export class ChoroplethGlobe extends React.Component<{
         this.setUpPanningAndZooming()
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         document.removeEventListener("touchstart", this.onDocumentClick, {
             capture: true,
         })
@@ -917,7 +917,7 @@ export class ChoroplethGlobe extends React.Component<{
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return this.manager.isStatic
             ? this.renderStatic()
             : this.renderInteractive()

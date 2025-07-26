@@ -798,7 +798,7 @@ export class MarkdownTextWrap extends React.Component<MarkdownTextWrapProps> {
     // An alias method that allows MarkdownTextWrap to be
     // instantiated via JSX for HTML rendering
     // <MarkdownTextWrap ... />
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         return this.renderHTML()
     }
 }

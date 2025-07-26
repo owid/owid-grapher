@@ -19,7 +19,7 @@ export class MarimekkoChartThumbnail
         return this.props.chartState
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return <MarimekkoChart {...this.props} />
     }
 }

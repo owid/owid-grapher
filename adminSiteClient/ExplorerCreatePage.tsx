@@ -42,7 +42,7 @@ interface ExplorerCreatePageProps {
 
 @observer
 export class ExplorerCreatePage extends Component<ExplorerCreatePageProps> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
     disposers: Array<() => void> = []
 
@@ -69,7 +69,7 @@ export class ExplorerCreatePage extends Component<ExplorerCreatePageProps> {
         this.manager.loadingIndicatorSetting = "default"
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         this.loadingModalOff()
         exposeInstanceOnWindow(this, "explorerEditor")
 
@@ -92,7 +92,7 @@ export class ExplorerCreatePage extends Component<ExplorerCreatePageProps> {
 
     @observable isReady = false
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
         this.resetLoadingModal()
         this.disposers.forEach((disposer) => disposer())
     }
@@ -229,7 +229,7 @@ export class ExplorerCreatePage extends Component<ExplorerCreatePageProps> {
         this.showPreview = !this.showPreview
     }
 
-    render() {
+    override render() {
         if (!this.isReady) return <LoadingIndicator />
 
         const { program, isModified, whyIsExplorerProgramInvalid } = this
@@ -472,7 +472,7 @@ class HotEditor extends Component<{
         return hotSettings
     }
 
-    render() {
+    override render() {
         return (
             <HotTable
                 settings={this.hotSettings}
@@ -486,7 +486,7 @@ class HotEditor extends Component<{
 class PictureInPicture extends Component<{
     previewLink: string
 }> {
-    render() {
+    override render() {
         return (
             <iframe
                 src={this.props.previewLink}

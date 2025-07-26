@@ -8,7 +8,7 @@ import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 
 @observer
 export class ChartIndexPage extends Component {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable charts: ChartListItem[] = []
@@ -18,7 +18,7 @@ export class ChartIndexPage extends Component {
         makeObservable(this)
     }
 
-    render() {
+    override render() {
         const { charts } = this
 
         return (
@@ -44,7 +44,7 @@ export class ChartIndexPage extends Component {
         })
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         void this.getData()
     }
 }

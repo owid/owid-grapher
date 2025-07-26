@@ -31,15 +31,15 @@ export class FullScreen extends React.Component<FullScreenProps> {
         if (e.key === "Escape") this.props.onDismiss()
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         document.addEventListener("keydown", this.onDocumentKeyDown)
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         document.removeEventListener("keydown", this.onDocumentKeyDown)
     }
 
-    render() {
+    override render() {
         return (
             <BodyDiv>
                 <div

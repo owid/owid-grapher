@@ -166,7 +166,7 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
             : this.renderChartOrMap()
     }
 
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         return this.manager.isStatic
             ? this.renderStatic()
             : this.renderInteractive()

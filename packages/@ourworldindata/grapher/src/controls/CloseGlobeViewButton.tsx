@@ -48,7 +48,7 @@ export class CloseGlobeViewButton extends React.Component<{
         this.manager.globeController?.hideGlobe()
     }
 
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         return this.showMenu ? (
             <button className="CloseGlobeViewButton" onClick={this.onClick}>
                 <FontAwesomeIcon icon={faArrowLeft} />

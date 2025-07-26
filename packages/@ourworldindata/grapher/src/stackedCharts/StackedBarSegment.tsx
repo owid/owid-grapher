@@ -62,7 +62,7 @@ export class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
         this.props.onBarMouseLeave()
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const { color, xOffset, barWidth } = this.props
         const { yPos, barHeight, trueOpacity } = this
 

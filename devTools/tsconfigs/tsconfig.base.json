@@ -32,6 +32,8 @@
         "useDefineForClassFields": true,
         "emitDecoratorMetadata": false,
 
-        "isolatedModules": true
+        "isolatedModules": true,
+
+        "noImplicitOverride": true
     }
 }

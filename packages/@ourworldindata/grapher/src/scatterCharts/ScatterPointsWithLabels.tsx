@@ -635,17 +635,17 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
             .on("end", () => this.forceUpdate())
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         if (!this.props.disableIntroAnimation) {
             this.runAnimation()
         }
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         if (this.animSelection) this.animSelection.interrupt()
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const { bounds, renderSeries, renderUid } = this
         const clipBounds = bounds.pad(-10)
 

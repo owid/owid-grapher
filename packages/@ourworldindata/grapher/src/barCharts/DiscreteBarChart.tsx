@@ -290,7 +290,7 @@ export class DiscreteBarChart
             .attr("width", (_, i) => this.barWidths[i])
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         if (!this.manager.disableIntroAnimation) {
             this.d3Bars().attr("width", 0)
             this.animateBarWidth()
@@ -298,9 +298,9 @@ export class DiscreteBarChart
         exposeInstanceOnWindow(this)
     }
 
-    componentDidUpdate(): void {
+    override componentDidUpdate(): void {
         // Animating the bar width after a render ensures there's no race condition, where the
-        // initial animation (in componentDidMount) did override the now-changed bar width in
+        // initial animation (in override componentDidMount) did override the now-changed bar width in
         // some cases. Updating the animation with the updated bar widths fixes that.
         if (!this.manager.disableIntroAnimation) this.animateBarWidth()
     }
@@ -440,7 +440,7 @@ export class DiscreteBarChart
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
                 <NoDataModal

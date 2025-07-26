@@ -42,17 +42,17 @@ export class Modal extends React.Component<{
         if (e.key === "Escape") this.props.onDismiss()
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         document.addEventListener("click", this.onDocumentClick)
         document.addEventListener("keydown", this.onDocumentKeyDown)
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         document.removeEventListener("click", this.onDocumentClick)
         document.removeEventListener("keydown", this.onDocumentKeyDown)
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const { bounds } = this
 
         const contentStyle: React.CSSProperties = {

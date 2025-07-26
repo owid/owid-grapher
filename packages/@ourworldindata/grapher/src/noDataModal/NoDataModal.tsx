@@ -50,7 +50,7 @@ export class NoDataModal extends React.Component<NoDataModalProps> {
         return Math.min(this.manager.fontSize ?? BASE_FONT_SIZE, BASE_FONT_SIZE)
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const { bounds } = this
         const { message } = this.props
         const {
