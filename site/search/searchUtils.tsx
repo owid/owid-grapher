@@ -277,10 +277,9 @@ export const constructChartUrl = ({
     hit: SearchChartHit
     grapherParams?: GrapherQueryParams
 }): string => {
-    const isExplorerView = hit.type === ChartRecordType.ExplorerView
-
     const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
 
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
     const basePath = isExplorerView
         ? `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}`
         : BAKED_GRAPHER_URL
@@ -295,13 +294,14 @@ export const constructChartInfoUrl = ({
     hit: SearchChartHit
     grapherParams?: GrapherQueryParams
 }): string | undefined => {
-    const isExplorerView = hit.type === ChartRecordType.ExplorerView
-
-    if (isExplorerView) return undefined // Not yet supported
-
     const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
 
-    return `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}.values.json${queryStr}`
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    const basePath = isExplorerView
+        ? EXPLORER_DYNAMIC_THUMBNAIL_URL
+        : GRAPHER_DYNAMIC_THUMBNAIL_URL
+
+    return `${basePath}/${hit.slug}.values.json${queryStr}`
 }
 
 export const constructThumbnailUrl = ({
