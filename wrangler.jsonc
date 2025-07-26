@@ -2,7 +2,7 @@
     "$schema": "node_modules/wrangler/config-schema.json",
 
     "name": "owid",
-    "compatibility_date": "2024-11-11",
+    "compatibility_date": "2025-05-05",
 
     // Sentry client needs the `nodejs_als` (AsyncLocalStorage) API.
     // https://docs.sentry.io/platforms/javascript/guides/cloudflare/#configure
@@ -40,7 +40,7 @@
         },
         "production": {
             // Overrides for CF production deployment
-            "compatibility_date": "2024-11-11",
+            "compatibility_date": "2025-05-05",
             "vars": {
                 "ENV": "production",
                 "MAILGUN_DOMAIN": "mg.ourworldindata.org",
