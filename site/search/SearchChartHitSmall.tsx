@@ -1,6 +1,7 @@
 import { useMemo } from "react"
 import { Region } from "@ourworldindata/utils"
 import {
+    EntityName,
     GRAPHER_CHART_TYPES,
     GRAPHER_TAB_NAMES,
     GrapherChartType,
@@ -71,17 +72,17 @@ export function SearchChartHitSmall({
         searchQueryRegionsMatches,
     ])
 
-    const entityParam = toGrapherQueryParams({ entities })
-    const chartUrl = constructChartUrl({ hit, grapherParams: entityParam })
+    const entityForDisplay = entities[0] ?? WORLD_ENTITY_NAME
+    const hasUserPickedEntities = entities.length > 0
 
     // Fetch chart info and data values
     const { data: chartInfo } = useQuery({
         queryKey: chartHitQueryKeys.chartInfo(hit.slug, entities),
         queryFn: () => {
-            const url = constructChartInfoUrl({
-                hit,
-                grapherParams: entityParam,
+            const grapherParams = toGrapherQueryParams({
+                entities: [entityForDisplay],
             })
+            const url = constructChartInfoUrl({ hit, grapherParams })
             if (!url) return null
             return fetchJson<GrapherValuesJson>(url)
         },
@@ -99,8 +100,12 @@ export function SearchChartHitSmall({
     const dataDisplayProps = buildDataDisplayProps({
         chartInfo,
         chartType,
-        entities,
+        entity: entityForDisplay,
+        isEntityPickedByUser: hasUserPickedEntities,
     })
+
+    const grapherParams = toGrapherQueryParams({ entities })
+    const chartUrl = constructChartUrl({ hit, grapherParams })
 
     return (
         <article ref={ref} className="search-chart-hit-small">
@@ -232,15 +237,15 @@ function findDatapoint(
 function buildDataDisplayProps({
     chartInfo,
     chartType,
-    entities,
+    entity,
+    isEntityPickedByUser,
 }: {
     chartInfo?: GrapherValuesJson | null
     chartType?: GrapherChartType
-    entities?: string[]
+    entity: EntityName
+    isEntityPickedByUser?: boolean
 }): SearchChartHitDataDisplayProps | undefined {
     if (!chartInfo) return undefined
-
-    const entityName = entities?.[0] ?? WORLD_ENTITY_NAME
 
     // Showing a time range only makes sense for slope charts and connected scatter plots
     const showTimeRange =
@@ -287,6 +292,15 @@ function buildDataDisplayProps({
                   ? "down"
                   : "right"
             : undefined
+    const showLocationIcon = isEntityPickedByUser
 
-    return { entityName, endValue, startValue, time, unit, trend }
+    return {
+        entityName: entity,
+        endValue,
+        startValue,
+        time,
+        unit,
+        trend,
+        showLocationIcon,
+    }
 }
