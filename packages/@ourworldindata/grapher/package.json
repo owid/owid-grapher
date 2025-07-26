@@ -39,7 +39,7 @@
     "fparser": "^3.1.0",
     "indefinite": "^2.5.1",
     "js-cookie": "^3.0.1",
-    "mobx": "^6.13.7",
+    "mobx": "patch:mobx@npm%3A6.13.7#~/.yarn/patches/mobx-npm-6.13.7-f32d167142.patch",
     "mobx-react": "^7.6.0",
     "mousetrap": "^1.6.5",
     "react": "^19.1.0",
