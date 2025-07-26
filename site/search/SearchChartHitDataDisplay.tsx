@@ -1,3 +1,5 @@
+import { faLocationDot } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { GrapherTrendArrow } from "@ourworldindata/components"
 
 export interface SearchChartHitDataDisplayProps {
@@ -7,6 +9,7 @@ export interface SearchChartHitDataDisplayProps {
     unit?: string
     startValue?: string // if given, display as a range
     trend?: "down" | "right" | "up" // only relevant if startValue is given
+    showLocationIcon?: boolean
 }
 
 export function SearchChartHitDataDisplay({
@@ -16,6 +19,7 @@ export function SearchChartHitDataDisplay({
     unit,
     startValue,
     trend,
+    showLocationIcon,
 }: SearchChartHitDataDisplayProps): React.ReactElement | null {
     // Remove parentheses from the beginning and end of the unit
     const strippedUnit = unit?.replace(/(^\(|\)$)/g, "")
@@ -23,6 +27,13 @@ export function SearchChartHitDataDisplay({
     return (
         <div className="search-chart-hit-data-display">
             <div className="search-chart-hit-data-display__location">
+                {showLocationIcon && (
+                    <FontAwesomeIcon
+                        className="search-chart-hit-data-display__icon"
+                        icon={faLocationDot}
+                        size="sm"
+                    />
+                )}
                 {entityName}
             </div>
             <div className="search-chart-hit-data-display__value">
