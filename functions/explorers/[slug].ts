@@ -11,6 +11,7 @@ import {
     SelectionArray,
 } from "@ourworldindata/grapher"
 import { rewriteMetaTags } from "../_common/grapherTools.js"
+import ReactDOMServer from "react-dom/server"
 
 const { preflight, corsify } = cors({
     allowMethods: ["GET", "OPTIONS", "HEAD"],
@@ -82,7 +83,9 @@ async function handleThumbnailRequest(
             await new Promise((resolve) => setTimeout(resolve, 100))
         }
         explorer.grapherState.populateFromQueryParams(urlObj.queryParams)
-        const svg = explorer.grapherState.generateStaticSvg()
+        const svg = explorer.grapherState.generateStaticSvg(
+            ReactDOMServer.renderToString
+        )
         if (extension === "svg") {
             return new Response(svg, {
                 headers: {

@@ -18,6 +18,7 @@ import {
     initGrapher,
 } from "./grapherTools.js"
 import { fetchInputTableForConfig } from "@ourworldindata/grapher"
+import ReactDOMServer from "react-dom/server"
 
 declare global {
     // eslint-disable-next-line no-var
@@ -104,7 +105,9 @@ async function fetchAndRenderGrapherToSvg(
     const inputTable = results[0]
     if (inputTable) grapher.grapherState.inputTable = inputTable
 
-    const svg = grapher.grapherState.generateStaticSvg()
+    const svg = grapher.grapherState.generateStaticSvg(
+        ReactDOMServer.renderToString
+    )
     grapherLogger.log("generateStaticSvg")
 
     return { svg, backgroundColor: grapher.grapherState.backgroundColor }

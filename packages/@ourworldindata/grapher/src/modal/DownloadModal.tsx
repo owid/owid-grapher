@@ -314,7 +314,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
     }
 
     componentDidMount(): void {
-        this.export()
+        queueMicrotask(() => this.export())
     }
 
     render(): React.ReactElement {
