@@ -2,7 +2,9 @@
 // https://github.com/unlimitDesign/timbercss/blob/master/src/scss/partials/components/_grid-css.scss
 // MIT License
 
-/* 
+@use "sass:map";
+
+/*
 Creates a large colleciton of CSS grid utility classes.
 
 For grid containers:
@@ -41,7 +43,7 @@ $grid-col-row-responsive: (lg, md, sm);
 $grid-responsive: (lg, md, sm);
 
 @mixin breakpoint-max($bpmax) {
-    $max: map-get($breakpoints, $bpmax);
+    $max: map.get($breakpoints, $bpmax);
     @if $max {
         @media only screen and (max-width: $max) {
             @content;
@@ -114,7 +116,7 @@ $grid-responsive: (lg, md, sm);
 }
 
 // Breakpoints
-@each $breakpoint in map-keys($breakpoints) {
+@each $breakpoint in map.keys($breakpoints) {
     @include breakpoint-max($breakpoint) {
         @each $grid-col-row-breakpoint in $grid-col-row-responsive {
             @if $grid-col-row-breakpoint == $breakpoint {

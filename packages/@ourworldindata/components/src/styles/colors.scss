@@ -2,6 +2,8 @@
  * Colors
  */
 
+@use "sass:color";
+
 // Brand colors
 $oxford-blue: #002147;
 $vermillion: #ce261e;
@@ -86,23 +88,23 @@ $light-shadow:
 
 /* SDG colors */
 $sdgColors: (
-    1: scale-color(#e5243b, $lightness: -15%),
+    1: color.scale(#e5243b, $lightness: -15%),
     2: #dda63a,
-    3: scale-color(#4c9f38, $lightness: -17%),
-    4: scale-color(#c5192d, $lightness: -15%),
-    5: scale-color(#ff3a21, $lightness: -19%),
+    3: color.scale(#4c9f38, $lightness: -17%),
+    4: color.scale(#c5192d, $lightness: -15%),
+    5: color.scale(#ff3a21, $lightness: -19%),
     6: #26bde2,
     7: #fcc30b,
-    8: scale-color(#a21942, $lightness: -15%),
+    8: color.scale(#a21942, $lightness: -15%),
     9: #fd6925,
-    10: scale-color(#dd1367, $lightness: -15%),
+    10: color.scale(#dd1367, $lightness: -15%),
     11: #fd9d24,
     12: #bf8b2e,
-    13: scale-color(#3f7e44, $lightness: -15%),
-    14: scale-color(#0a97d9, $lightness: -20%),
+    13: color.scale(#3f7e44, $lightness: -15%),
+    14: color.scale(#0a97d9, $lightness: -20%),
     15: #56c02b,
-    16: scale-color(#00689d, $lightness: -15%),
-    17: scale-color(#19486a, $lightness: -15%),
+    16: color.scale(#00689d, $lightness: -15%),
+    17: color.scale(#19486a, $lightness: -15%),
 );
 
 :root {

@@ -1,3 +1,5 @@
+@use "sass:color";
+
 @import "../../../components/src/styles/colors.scss";
 @import "../../../components/src/styles/variables.scss";
 @import "../../../components/src/styles/typography.scss";
@@ -226,7 +228,7 @@ $zindex-controls-drawer: 150;
         text-decoration: underline;
     }
     a:hover {
-        color: darken(#666, 10%);
+        color: color.adjust(#666, $lightness: -10%);
     }
 
     // needed so DoD border-bottom doesn't clip

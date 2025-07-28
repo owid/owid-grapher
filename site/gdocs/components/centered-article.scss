@@ -1,3 +1,5 @@
+@use "sass:color";
+
 #gdoc-admin-bar {
     display: none;
     position: absolute;
@@ -437,7 +439,7 @@ h3.article-block__heading {
     }
 
     .article-block__image-download-button-background-layer {
-        background-color: scale-color($gray-70, $alpha: -25%);
+        background-color: color.scale($gray-70, $alpha: -25%);
         display: flex;
         align-items: center;
         cursor: pointer;

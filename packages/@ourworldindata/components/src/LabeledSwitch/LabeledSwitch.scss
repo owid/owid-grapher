@@ -1,3 +1,5 @@
+@use "sass:color";
+
 $light-fill: $gray-30;
 $active-fill: $blue-20;
 
@@ -90,7 +92,7 @@ $lato: $sans-serif-font-stack;
         }
     }
     &:hover input:checked + .outer .inner {
-        background: darken($active-switch, 13%);
+        background: color.adjust($active-switch, $lightness: -13%);
     }
 
     &.labeled-switch--is-disabled {

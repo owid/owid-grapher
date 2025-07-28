@@ -1,3 +1,5 @@
+@use "sass:color";
+
 /* Layout */
 .article-block__homepage-intro {
     --homepage-intro-bottom-padding: 24px;
@@ -196,7 +198,7 @@
 
 .homepage-intro__new-tag {
     text-transform: uppercase;
-    background-color: scale-color($vermillion, $alpha: -80%);
+    background-color: color.scale($vermillion, $alpha: -80%);
     color: $vermillion;
     padding: 2px 4px;
     border-radius: 2px;
