@@ -90,6 +90,8 @@ jobs:
 
             - name: Build
               run: yarn buildViteSite
+              env:
+                  BUNDLEMON: true
 
             - name: BundleMon
               uses: lironer/bundlemon-action@v1

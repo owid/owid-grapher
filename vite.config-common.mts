@@ -11,6 +11,7 @@ import {
 // https://vitejs.dev/config/
 export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
     const entrypointInfo = VITE_ENTRYPOINT_INFO[entrypoint]
+    const isBundlemon = process.env.BUNDLEMON === "true"
 
     return defineConfig({
         publicDir: false, // don't copy public folder to dist
@@ -76,6 +77,15 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                     authToken: process.env.SENTRY_AUTH_TOKEN,
                     org: process.env.SENTRY_ORG,
                     project: entrypoint === "admin" ? "admin" : "website",
+
+                    // When running inside Bundlemon, we want the output file size to be totally deterministic, and
+                    // therefore don't want sentry to inject any release information.
+                    release: isBundlemon
+                        ? {
+                              create: false,
+                              inject: false,
+                          }
+                        : undefined,
                 }),
         ],
         server: {
