@@ -16,9 +16,10 @@ import { execWrapper } from "../db/execWrapper.js"
 
 export type Request = express.Request
 
-export interface Response extends express.Response {
-    locals: { user: DbPlainUser; session: Session }
-}
+export type Response = express.Response<
+    any,
+    { user: DbPlainUser; session: Session }
+>
 
 interface Session {
     id: string
@@ -311,6 +312,11 @@ export async function tailscaleAuthMiddleware(
     // Extract client's IP address
     const clientIp = getClientIp(req)
 
+    if (!clientIp) {
+        console.error("Could not determine client IP address.")
+        return next()
+    }
+
     // Get Tailscale IP-to-User mapping
     const ipToUserMap = await getTailscaleIpToUserMap()
 
@@ -356,7 +362,7 @@ export async function tailscaleAuthMiddleware(
     return next()
 }
 
-function getClientIp(req: express.Request): string {
+function getClientIp(req: express.Request): string | undefined {
     let ip =
         (req.headers["x-forwarded-for"] as string) ||
         req.socket.remoteAddress ||
