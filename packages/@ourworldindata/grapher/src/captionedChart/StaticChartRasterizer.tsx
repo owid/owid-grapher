@@ -1,3 +1,5 @@
+import { sleep } from "@ourworldindata/utils"
+
 export const EMBEDDED_FONTS_CSS = "/fonts/embedded.css"
 export const IMPORT_FONTS_REGEX = /@import url\([^)]*?fonts\.css\)/
 
@@ -61,7 +63,10 @@ export class StaticChartRasterizer {
         ]
 
         for (let retry = 0; retry < MAX_RETRIES; retry++) {
-            const ctx = canvas.getContext("2d", { alpha: false })!
+            const ctx = canvas.getContext("2d", {
+                alpha: false,
+                willReadFrequently: true, // optimizes frequent calls to `getImageData` below
+            })!
             const outcomes: boolean[] = []
 
             for (const { font, offset } of faces) {
@@ -94,9 +99,7 @@ export class StaticChartRasterizer {
                 "preloading fonts...",
                 faces.filter((_f, i) => !outcomes[i]).map((f) => f.font)
             )
-            await new Promise((res) =>
-                setTimeout(res, RETRY_DELAY_MS + (retry * RETRY_DELAY_MS) / 2)
-            )
+            await sleep(RETRY_DELAY_MS + (retry * RETRY_DELAY_MS) / 2)
         }
 
         // if the function didn't return from within the loop, the embedded fonts aren't usable

@@ -15,6 +15,7 @@ import * as db from "../db/db.js"
 import { grapherSlugToExportFileKey } from "./GrapherBakingUtils.js"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import { DATA_API_URL } from "../settings/serverSettings.js"
+import ReactDOMServer from "react-dom/server"
 
 interface SvgFilenameFragments {
     slug: string
@@ -134,5 +135,7 @@ export async function grapherToSVG(
         false
     )
     if (inputTable) grapher.grapherState.inputTable = inputTable
-    return grapher.staticSVG
+    return grapher.grapherState.generateStaticSvg(
+        ReactDOMServer.renderToStaticMarkup
+    )
 }

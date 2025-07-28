@@ -1,7 +1,6 @@
 import { tippy } from "@tippyjs/react"
 import type { Instance } from "tippy.js"
 import { ADMIN_BASE_URL, BAKED_BASE_URL } from "../settings/clientSettings.js"
-import { renderToStaticMarkup } from "react-dom/server"
 import {
     ArchiveMetaInformation,
     DetailDictionary,
@@ -9,7 +8,10 @@ import {
     readFromAssetMap,
 } from "@ourworldindata/utils"
 import { SiteAnalytics } from "./SiteAnalytics.js"
-import { MarkdownTextWrap } from "@ourworldindata/components"
+import {
+    MarkdownTextWrap,
+    reactRenderToStringClientOnly,
+} from "@ourworldindata/components"
 import urljoin from "url-join"
 
 type Tippyfied<E> = E & {
@@ -72,18 +74,19 @@ export async function runDetailsOnDemand(
         const dod = window.details?.[id]
         if (!dod) return
 
-        const content = renderToStaticMarkup(
-            <div className="dod-container">
-                <MarkdownTextWrap
-                    text={dod.text}
-                    fontSize={12}
-                    lineHeight={1.55}
-                />
-            </div>
-        )
         if (element._tippy) {
             element._tippy.show()
         } else {
+            const content = reactRenderToStringClientOnly(
+                <div className="dod-container">
+                    <MarkdownTextWrap
+                        text={dod.text}
+                        fontSize={12}
+                        lineHeight={1.55}
+                    />
+                </div>
+            )
+
             tippy(element, {
                 content,
                 allowHTML: true,

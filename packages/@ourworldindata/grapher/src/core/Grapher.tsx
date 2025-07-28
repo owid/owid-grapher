@@ -1,6 +1,5 @@
 import * as _ from "lodash-es"
 import React from "react"
-import ReactDOMServer from "react-dom/server"
 
 import {
     observable,
@@ -67,6 +66,7 @@ import {
     MarkdownTextWrap,
     sumTextWrapHeights,
     BodyDiv,
+    reactRenderToStringClientOnly,
 } from "@ourworldindata/components"
 import {
     GrapherChartType,
@@ -2313,14 +2313,18 @@ export class GrapherState {
         return this.dimensions.some((d) => d.property === DimensionProperty.y)
     }
 
-    generateStaticSvg(): string {
+    generateStaticSvg(
+        renderToHtmlString: (element: React.ReactElement) => string
+    ): string {
         const _isExportingToSvgOrPng = this.isExportingToSvgOrPng
         this.isExportingToSvgOrPng = true
-        const staticSvg = ReactDOMServer.renderToStaticMarkup(
+
+        const innerHTML = renderToHtmlString(
             <CaptionedOrThumbnailChart manager={this} />
         )
+
         this.isExportingToSvgOrPng = _isExportingToSvgOrPng
-        return staticSvg
+        return innerHTML
     }
     @computed get staticBoundsWithDetails(): Bounds {
         const includeDetails =
@@ -2342,7 +2346,9 @@ export class GrapherState {
 
     rasterize(): Promise<GrapherExport> {
         const { width, height } = this.staticBoundsWithDetails
-        const staticSVG = this.generateStaticSvg()
+
+        // We need to ensure `rasterize` is only called on the client-side, otherwise this will fail
+        const staticSVG = this.generateStaticSvg(reactRenderToStringClientOnly)
 
         return new StaticChartRasterizer(staticSVG, width, height).render()
     }
@@ -3552,10 +3558,6 @@ export class Grapher extends React.Component<GrapherProps> {
 
     @bind dispose(): void {
         this.grapherState.disposers.forEach((dispose) => dispose())
-    }
-
-    get staticSVG(): string {
-        return this.grapherState.generateStaticSvg()
     }
 
     @action.bound setError(err: Error): void {

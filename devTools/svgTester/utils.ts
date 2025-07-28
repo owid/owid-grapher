@@ -32,6 +32,7 @@ import {
 import prettier from "prettier"
 import { hashMd5 } from "../../serverUtils/hash.js"
 import * as R from "remeda"
+import ReactDOMServer from "react-dom/server"
 
 // the owid-grapher-svgs repo is usually cloned as a sibling to the owid-grapher repo
 export const DEFAULT_CONFIGS_DIR = "../owid-grapher-svgs/configs"
@@ -432,7 +433,9 @@ export async function renderSvg(
     )
     const durationReceiveData = Date.now() - timeStart
 
-    const svg = grapher.staticSVG
+    const svg = grapher.grapherState.generateStaticSvg(
+        ReactDOMServer.renderToStaticMarkup
+    )
     const durationTotal = Date.now() - timeStart
 
     const svgRecord = {
