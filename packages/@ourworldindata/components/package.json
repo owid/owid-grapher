@@ -32,7 +32,7 @@
         "remeda": "^2.23.3",
         "ts-pattern": "^5.0.5",
         "unist-util-visit": "^5.0.0",
-        "url-slug": "^3.0.2"
+        "url-slug": "^4.0.1"
     },
     "devDependencies": {
         "@types/lodash-es": "^4",
