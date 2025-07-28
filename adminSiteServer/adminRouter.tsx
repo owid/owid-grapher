@@ -40,9 +40,6 @@ import {
 } from "../db/model/MultiDimDataPage.js"
 import { renderMultiDimDataPageFromConfig } from "../baker/MultiDimBaker.js"
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-require("express-async-errors")
-
 const adminRouter = Router()
 
 // Parse incoming requests with JSON payloads http://expressjs.com/en/api.html

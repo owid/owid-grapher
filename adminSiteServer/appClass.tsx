@@ -1,7 +1,5 @@
 import express, { NextFunction } from "express"
 import * as Sentry from "@sentry/node"
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-require("express-async-errors") // todo: why the require?
 import cookieParser from "cookie-parser"
 import http from "http"
 import { BAKED_BASE_URL, ENV } from "../settings/serverSettings.js"

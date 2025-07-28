@@ -12169,15 +12169,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"express-async-errors@npm:^3.1.1":
-  version: 3.1.1
-  resolution: "express-async-errors@npm:3.1.1"
-  peerDependencies:
-    express: ^4.16.2
-  checksum: 10/dae2b88a6416daefd27a98b946a65b56492ab1d5002cb62cd9d07f03c8cd4dae098725bc590e7ad3b48d4d3be726850a5864a4c7b427660b02c43903b70463ca
-  languageName: node
-  linkType: hard
-
 "express@npm:^5.1.0":
   version: 5.1.0
   resolution: "express@npm:5.1.0"
@@ -13191,7 +13182,6 @@ __metadata:
     eslint-plugin-react-hooks: "npm:^5.2.0"
     eslint-plugin-react-refresh: "npm:^0.4.19"
     express: "npm:^5.1.0"
-    express-async-errors: "npm:^3.1.1"
     figma-api: "npm:^2.0.2-beta"
     filenamify: "npm:^6.0.0"
     flag-icons: "npm:^7.5.0"

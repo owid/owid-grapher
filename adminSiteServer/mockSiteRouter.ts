@@ -76,9 +76,6 @@ import { getMinimalGdocPostsByIds } from "../db/model/Gdoc/GdocBase.js"
 import { getMultiDimDataPageBySlug } from "../db/model/MultiDimDataPage.js"
 import { getParsedDodsDictionary } from "../db/model/Dod.js"
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-require("express-async-errors")
-
 // todo: switch to an object literal where the key is the path and the value is the request handler? easier to test, reflect on, and manipulate
 const mockSiteRouter = Router()
 

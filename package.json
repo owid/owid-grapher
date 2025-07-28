@@ -102,7 +102,6 @@
         "embla-carousel-react": "^8.6.0",
         "entities": "^6.0.1",
         "express": "^5.1.0",
-        "express-async-errors": "^3.1.1",
         "figma-api": "^2.0.2-beta",
         "filenamify": "^6.0.0",
         "fparser": "^3.1.0",
