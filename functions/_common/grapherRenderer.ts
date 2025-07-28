@@ -21,7 +21,6 @@ import { fetchInputTableForConfig } from "@ourworldindata/grapher"
 import ReactDOMServer from "react-dom/server"
 
 declare global {
-    // eslint-disable-next-line no-var
     var window: any
 }
 

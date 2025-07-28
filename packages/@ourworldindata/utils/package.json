@@ -40,7 +40,7 @@
     "@types/react": "^19.1.8",
     "@types/string-pixel-width": "^1.7.2",
     "@types/url-parse": "^1.4.8",
-    "eslint": "^9.23.0",
+    "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "typescript": "~5.8.2",
     "vitest": "^3.2.4"
