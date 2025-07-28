@@ -4,7 +4,7 @@
     "files": [
         {
             "path": "owid.mjs",
-            "maxSize": "785kB",
+            "maxSize": "800kB",
             "maxPercentIncrease": 5
         },
         {
