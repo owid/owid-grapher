@@ -2864,6 +2864,7 @@ export class GrapherState {
             this.isDownloadModalOpen
         )
     }
+
     // Whether a server-side download is available for the download modal
     @computed get isServerSideDownloadAvailable(): boolean {
         return (
@@ -2878,18 +2879,23 @@ export class GrapherState {
             !this.narrativeChartInfo
         )
     }
+
     @observable _baseFontSize = BASE_FONT_SIZE
     @computed get baseFontSize(): number {
+        if (this.isStatic && this.initialOptions.baseFontSize)
+            return this.initialOptions.baseFontSize
         if (this.isStaticAndSmall) {
             return this.computeBaseFontSizeFromHeight(this.staticBounds)
         }
         if (this.isStatic) return 18
         return this._baseFontSize
     }
+
     // the header and footer don't rely on the base font size unless explicitly specified
     @computed get useBaseFontSize(): boolean {
         return this.initialOptions.baseFontSize !== undefined
     }
+
     private computeBaseFontSizeFromHeight(bounds: Bounds): number {
         const squareBounds = DEFAULT_GRAPHER_BOUNDS_SQUARE
         const factor = squareBounds.height / 21
@@ -2930,6 +2936,7 @@ export class GrapherState {
         if (!this.isStatic) return false
         return this.areStaticBoundsSmall
     }
+
     @computed get areStaticBoundsSmall(): boolean {
         const { defaultBounds, staticBounds } = this
         const idealPixelCount = defaultBounds.width * defaultBounds.height
@@ -4001,6 +4008,7 @@ export class Grapher extends React.Component<GrapherProps> {
             this.hasBeenVisible = true
         }
     }
+
     @action.bound private setBaseFontSize(): void {
         this.grapherState.baseFontSize =
             this.grapherState.computeBaseFontSizeFromWidth(
