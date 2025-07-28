@@ -84,7 +84,7 @@ async function handleThumbnailRequest(
         }
         explorer.grapherState.populateFromQueryParams(urlObj.queryParams)
         const svg = explorer.grapherState.generateStaticSvg(
-            ReactDOMServer.renderToString
+            ReactDOMServer.renderToStaticMarkup
         )
         if (extension === "svg") {
             return new Response(svg, {

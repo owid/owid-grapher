@@ -434,7 +434,7 @@ export async function renderSvg(
     const durationReceiveData = Date.now() - timeStart
 
     const svg = grapher.grapherState.generateStaticSvg(
-        ReactDOMServer.renderToString
+        ReactDOMServer.renderToStaticMarkup
     )
     const durationTotal = Date.now() - timeStart
 

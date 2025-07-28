@@ -106,7 +106,7 @@ async function fetchAndRenderGrapherToSvg(
     if (inputTable) grapher.grapherState.inputTable = inputTable
 
     const svg = grapher.grapherState.generateStaticSvg(
-        ReactDOMServer.renderToString
+        ReactDOMServer.renderToStaticMarkup
     )
     grapherLogger.log("generateStaticSvg")
 

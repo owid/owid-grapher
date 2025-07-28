@@ -135,5 +135,7 @@ export async function grapherToSVG(
         false
     )
     if (inputTable) grapher.grapherState.inputTable = inputTable
-    return grapher.grapherState.generateStaticSvg(ReactDOMServer.renderToString)
+    return grapher.grapherState.generateStaticSvg(
+        ReactDOMServer.renderToStaticMarkup
+    )
 }
