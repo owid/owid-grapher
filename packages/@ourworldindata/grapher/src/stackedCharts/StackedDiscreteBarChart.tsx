@@ -517,7 +517,7 @@ export class StackedDiscreteBarChart
         this.tooltipState.target = null
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
                 <NoDataModal
@@ -887,7 +887,7 @@ export class StackedDiscreteBarChart
         return this.chartState.series
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         exposeInstanceOnWindow(this)
     }
 }

@@ -223,11 +223,11 @@ export class MapCountryDropdown extends React.Component<{
         }
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         void this.populateLocalCountryName()
     }
 
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         return this.showMenu ? (
             <div className="map-country-dropdown">
                 <SearchDropdown

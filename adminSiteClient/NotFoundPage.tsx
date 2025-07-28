@@ -4,7 +4,7 @@ import { AdminLayout } from "./AdminLayout.js"
 
 @observer
 export class NotFoundPage extends Component {
-    render() {
+    override render() {
         return (
             <AdminLayout>
                 <main className="NotFoundPage">

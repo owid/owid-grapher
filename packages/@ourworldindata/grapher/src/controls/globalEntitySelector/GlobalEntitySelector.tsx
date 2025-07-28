@@ -177,7 +177,7 @@ export class GlobalEntitySelector extends React.Component<GlobalEntitySelectorPr
         makeObservable(this)
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         this.onResize()
         window.addEventListener("resize", this.onResizeThrottled)
         this.disposers.push(
@@ -189,7 +189,7 @@ export class GlobalEntitySelector extends React.Component<GlobalEntitySelectorPr
         void this.populateLocalEntity()
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         window.removeEventListener("resize", this.onResizeThrottled)
         this.disposers.forEach((dispose): void => dispose())
     }
@@ -408,7 +408,7 @@ export class GlobalEntitySelector extends React.Component<GlobalEntitySelectorPr
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return (
             <div
                 className={classnames("global-entity-control", {

@@ -92,7 +92,7 @@ class EntityListItem extends React.Component<EntityListItemProps> {
         this.props.onRemove?.()
     }
 
-    render() {
+    override render() {
         const { props, color } = this
         const { entityName, grapherState } = props
         const rest = _.omit(props, [
@@ -136,7 +136,7 @@ class SeriesListItem extends React.Component<SeriesListItemProps> {
         this.props.onRemove?.()
     }
 
-    render() {
+    override render() {
         const { props } = this
         const { seriesName, isValid } = props
         const rest = _.omit(props, ["seriesName", "isValid", "onRemove"])
@@ -201,7 +201,7 @@ export class EntitySelectionSection extends React.Component<{
         this.editor.removeInvalidFocusedSeriesNames()
     }
 
-    render() {
+    override render() {
         const { editor } = this
         const { grapherState } = editor
         const { selection } = grapherState
@@ -317,7 +317,7 @@ export class FocusSection extends React.Component<{
         this.editor.removeInvalidFocusedSeriesNames()
     }
 
-    render() {
+    override render() {
         const { editor } = this
         const { grapherState } = editor
 
@@ -422,7 +422,7 @@ class MissingDataSection<
         this.grapherState.missingDataStrategy = value as MissingDataStrategy
     }
 
-    render() {
+    override render() {
         const { grapherState } = this
 
         return (
@@ -540,7 +540,7 @@ class EntityFilterSection<
         this.validateSelectionAndFocus()
     }
 
-    render() {
+    override render() {
         const { includedEntityChoices, excludedEntityChoices } = this
         return (
             <Section name="Manual entity selection">
@@ -623,7 +623,7 @@ class EntityFilterSection<
 export class EditorDataTab<
     Editor extends AbstractChartEditor,
 > extends React.Component<{ editor: Editor }> {
-    render() {
+    override render() {
         const { editor } = this.props
         const { grapherState, features } = editor
 

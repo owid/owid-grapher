@@ -9,7 +9,7 @@ import { UserIndexMeta } from "./UserMeta.js"
 
 @observer
 export class UserEditPage extends Component<{ userId: number }> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable user?: UserIndexMeta
@@ -20,7 +20,7 @@ export class UserEditPage extends Component<{ userId: number }> {
         makeObservable(this)
     }
 
-    render() {
+    override render() {
         const { user, isSaved } = this
         if (!user) return null
         else if (isSaved) return <Redirect to="/users" />
@@ -69,7 +69,7 @@ export class UserEditPage extends Component<{ userId: number }> {
         })
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         void this.getData()
     }
 }

@@ -19,7 +19,7 @@ export class SlopeChartThumbnail
         return this.props.chartState
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return <SlopeChart {...this.props} />
     }
 }

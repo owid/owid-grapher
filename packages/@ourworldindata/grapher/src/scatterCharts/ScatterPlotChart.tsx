@@ -588,7 +588,7 @@ export class ScatterPlotChart
         )
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         exposeInstanceOnWindow(this)
     }
 
@@ -706,7 +706,7 @@ export class ScatterPlotChart
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
                 <NoDataModal

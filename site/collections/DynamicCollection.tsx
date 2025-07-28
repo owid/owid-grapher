@@ -87,7 +87,7 @@ export class DynamicCollection extends React.Component<DynamicCollectionProps> {
         return slugsAndQueryStrings
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         this.pollInterval = setInterval(this.pollForGraphers, 1000)
     }
 
@@ -153,7 +153,7 @@ export class DynamicCollection extends React.Component<DynamicCollectionProps> {
         )
     }
 
-    render() {
+    override render() {
         return (
             <>
                 {/* TODO: Add Algolia search to add new charts? */}

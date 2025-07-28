@@ -32,7 +32,7 @@ export class ChartEditorPage
     extends React.Component<ChartEditorPageProps>
     implements ChartEditorManager, ChartEditorViewManager<ChartEditor>
 {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     constructor(props: ChartEditorPageProps) {
@@ -162,11 +162,11 @@ export class ChartEditorPage
         void this.fetchAvailableTags()
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         this.refresh()
     }
 
-    componentDidUpdate(
+    override componentDidUpdate(
         prevProps: Readonly<{
             grapherId?: number
             grapherConfig?: GrapherInterface
@@ -177,7 +177,7 @@ export class ChartEditorPage
         }
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return <ChartEditorView manager={this} />
     }
 }

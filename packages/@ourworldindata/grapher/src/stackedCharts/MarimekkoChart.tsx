@@ -782,11 +782,11 @@ export class MarimekkoChart
         )
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         exposeInstanceOnWindow(this)
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
                 <NoDataModal

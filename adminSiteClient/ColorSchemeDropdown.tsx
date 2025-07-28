@@ -116,7 +116,7 @@ export class ColorSchemeDropdown extends Component<ColorSchemeDropdownProps> {
         )
     }
 
-    render() {
+    override render() {
         return (
             <Select
                 options={this.allOptions}

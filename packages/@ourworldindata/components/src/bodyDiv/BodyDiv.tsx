@@ -19,7 +19,7 @@ export class BodyDiv extends React.Component<BodyDivProps> {
         // this.el = document.createElement("div") // Removed
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         if (typeof document !== "undefined") {
             this.el = document.createElement("div")
             if (this.props.divClassname)
@@ -31,7 +31,7 @@ export class BodyDiv extends React.Component<BodyDivProps> {
         }
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         // Remove the element from the body if it was added
         if (this.el && this.el.parentNode === document.body) {
             document.body.removeChild(this.el)
@@ -39,7 +39,7 @@ export class BodyDiv extends React.Component<BodyDivProps> {
         this.el = null // Clean up the reference
     }
 
-    render(): React.ReactPortal | null {
+    override render(): React.ReactPortal | null {
         if (!this.el) {
             return null
         }

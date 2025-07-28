@@ -127,7 +127,7 @@ export const splitContentIntoSectionsAndColumns = (
             )
         }
 
-        handle(el: AnyNode, context: ColumnsContext) {
+        override handle(el: AnyNode, context: ColumnsContext) {
             const $el = cheerioEl(el)
             if (FullWidthHandler.isElementFullWidth(el)) {
                 flushAndResetColumns(context)
@@ -143,7 +143,7 @@ export const splitContentIntoSectionsAndColumns = (
             return el.type === "tag" && el.name === "h4"
         }
 
-        handle(el: AnyNode, context: ColumnsContext) {
+        override handle(el: AnyNode, context: ColumnsContext) {
             const $el = cheerioEl(el)
             if (H4Handler.isElementH4(el)) {
                 flushAndResetColumns(context)
@@ -156,7 +156,7 @@ export const splitContentIntoSectionsAndColumns = (
     }
 
     class SideBySideHandler extends AbstractHandler {
-        handle(el: AnyNode, context: ColumnsContext) {
+        override handle(el: AnyNode, context: ColumnsContext) {
             const $el = cheerioEl(el)
 
             if (
@@ -188,7 +188,7 @@ export const splitContentIntoSectionsAndColumns = (
     }
 
     class StandaloneFigureHandler extends AbstractHandler {
-        handle(el: AnyNode, context: ColumnsContext) {
+        override handle(el: AnyNode, context: ColumnsContext) {
             const $el = cheerioEl(el)
             if (
                 FigureHandler.isFigure(el) &&
@@ -228,7 +228,7 @@ export const splitContentIntoSectionsAndColumns = (
             )
         }
 
-        handle(el: AnyNode, context: ColumnsContext) {
+        override handle(el: AnyNode, context: ColumnsContext) {
             const $el = cheerioEl(el)
             if (FigureHandler.isFigure(el)) {
                 context.columns.last.append($el)
@@ -239,7 +239,7 @@ export const splitContentIntoSectionsAndColumns = (
     }
 
     class DefaultHandler extends AbstractHandler {
-        handle(el: AnyNode, context: ColumnsContext) {
+        override handle(el: AnyNode, context: ColumnsContext) {
             const $el = cheerioEl(el)
             // Move non-heading, non-image content to the left column
             context.columns.first.append($el)

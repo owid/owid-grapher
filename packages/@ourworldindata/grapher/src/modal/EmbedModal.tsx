@@ -102,7 +102,7 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
         this.manager.isEmbedModalOpen = false
     }
 
-    render() {
+    override render() {
         const { embedOptions } = this
 
         if (!embedOptions.length) return null

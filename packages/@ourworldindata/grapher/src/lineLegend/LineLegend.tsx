@@ -283,7 +283,7 @@ class LineLabels extends React.Component<LineLabelsProps> {
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return (
             <>
                 {this.connectorLines}
@@ -688,7 +688,7 @@ export class LineLegend extends React.Component<LineLegendProps> {
         return _.max(this.placedSeries.map((series) => series.totalLevels)) ?? 0
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return (
             <g
                 id={makeIdForHumanConsumption("line-labels")}

@@ -25,21 +25,21 @@ export class SlideInDrawer extends React.Component<SlideInDrawerProps> {
         makeObservable(this)
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         document.addEventListener("keydown", this.onDocumentKeyDown)
         document.addEventListener("click", this.onDocumentClick, {
             capture: true,
         })
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         document.removeEventListener("keydown", this.onDocumentKeyDown)
         document.removeEventListener("click", this.onDocumentClick, {
             capture: true,
         })
     }
 
-    componentDidUpdate(): void {
+    override componentDidUpdate(): void {
         const grapherElement = this.props.grapherRef?.current
         if (grapherElement) {
             grapherElement.style.overflowX =
@@ -80,7 +80,7 @@ export class SlideInDrawer extends React.Component<SlideInDrawerProps> {
         return { animation: `${selector}-${phase} 333ms` }
     }
 
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         const { visible, active } = this
 
         if (active || visible) {

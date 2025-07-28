@@ -636,7 +636,7 @@ export class SlopeChart
             .attr("stroke-dashoffset", "0%")
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         exposeInstanceOnWindow(this)
 
         if (!this.manager.disableIntroAnimation) {
@@ -644,7 +644,7 @@ export class SlopeChart
         }
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         if (this.animSelection) this.animSelection.interrupt()
     }
 
@@ -1040,7 +1040,7 @@ export class SlopeChart
         )
     }
 
-    render() {
+    override render() {
         if (this.chartState.errorInfo.reason)
             return (
                 <>

@@ -20,7 +20,7 @@ export class GdocDataInsight
     implements OwidGdocDataInsightInterface
 {
     declare content: OwidGdocDataInsightContent
-    _omittableFields = ["grapher-url", "narrative-chart", "figma-url"]
+    override _omittableFields = ["grapher-url", "narrative-chart", "figma-url"]
 
     constructor(id?: string) {
         super(id)
@@ -32,15 +32,15 @@ export class GdocDataInsight
         return gdoc
     }
 
-    linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
-    latestDataInsights: LatestDataInsight[] = []
+    override linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
+    override latestDataInsights: LatestDataInsight[] = []
     // TODO: support query parameters in grapher urls so we can track country selections
 
-    protected typeSpecificUrls(): string[] {
+    protected override typeSpecificUrls(): string[] {
         return excludeNullish([this.content["grapher-url"]])
     }
 
-    _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
+    override _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
         if (!this.content["approved-by"]) {
             errors.push({
@@ -52,7 +52,7 @@ export class GdocDataInsight
         return errors
     }
 
-    _loadSubclassAttachments = async (
+    override _loadSubclassAttachments = async (
         knex: db.KnexReadWriteTransaction
     ): Promise<void> => {
         // TODO: refactor these classes to properly use knex - not going to start it now

@@ -531,14 +531,14 @@ export class ChoroplethMap extends React.Component<{
         )
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         document.addEventListener("touchstart", this.onDocumentClick, {
             capture: true,
             passive: true,
         })
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         document.removeEventListener("touchstart", this.onDocumentClick, {
             capture: true,
         })
@@ -593,7 +593,7 @@ export class ChoroplethMap extends React.Component<{
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return this.manager.isStatic
             ? this.renderStatic()
             : this.renderInteractive()

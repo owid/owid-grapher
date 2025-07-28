@@ -89,7 +89,7 @@ export class EditorExportTab<
         this.originalGrapher = this.grabRelevantPropertiesFromGrapher()
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         this.saveOriginalSettings()
 
         // Show a static chart preview on the export tab
@@ -118,7 +118,7 @@ export class EditorExportTab<
         this.disposers.push(dispose)
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         this.resetGrapher()
         this.grapherState.isExportingToSvgOrPng = false
 
@@ -292,7 +292,7 @@ export class EditorExportTab<
         }
     }
 
-    render() {
+    override render() {
         const chartAnimationUrl = new URL(
             urljoin(ETL_WIZARD_URL, "chart-animation")
         )

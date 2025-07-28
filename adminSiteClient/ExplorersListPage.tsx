@@ -33,7 +33,7 @@ interface ExplorerRowProps {
 
 @observer
 class ExplorerRow extends Component<ExplorerRowProps> {
-    render() {
+    override render() {
         const { explorer, searchHighlight, indexPage } = this.props
         const {
             slug,
@@ -135,7 +135,7 @@ interface ExplorerListProps {
 
 @observer
 class ExplorerList extends Component<ExplorerListProps> {
-    render() {
+    override render() {
         const { props } = this
         return (
             <table className="table table-bordered">
@@ -168,7 +168,7 @@ class ExplorerList extends Component<ExplorerListProps> {
 export class ExplorersIndexPage extends Component<{
     manager?: AdminManager
 }> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable explorers: ExplorerProgram[] = []
@@ -194,7 +194,7 @@ export class ExplorersIndexPage extends Component<{
         this.maxVisibleRows += 100
     }
 
-    render() {
+    override render() {
         if (!this.isReady)
             return <LoadingIndicator title="Loading explorer list" />
 
@@ -318,7 +318,7 @@ export class ExplorersIndexPage extends Component<{
     }
 
     dispose!: IReactionDisposer
-    componentDidMount() {
+    override componentDidMount() {
         this.dispose = reaction(
             () => this.searchInput || this.maxVisibleRows,
             _.debounce(() => this.fetchAllExplorers(), 200)
@@ -326,7 +326,7 @@ export class ExplorersIndexPage extends Component<{
         void this.fetchAllExplorers()
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
         this.dispose()
     }
 }

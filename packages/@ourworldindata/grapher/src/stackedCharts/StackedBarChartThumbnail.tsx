@@ -22,7 +22,7 @@ export class StackedBarChartThumbnail
         return this.props.chartState
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return <StackedBarChart {...this.props} />
     }
 }

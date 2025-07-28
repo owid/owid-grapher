@@ -45,18 +45,18 @@ export class EditTags extends Component<EditTagsProps> {
         this.props.onAdd(convertAutocompleteTotag(tag))
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         document.addEventListener("click", this.onClickSomewhere)
         document.addEventListener("keydown", this.onKeyDown)
         this.reactTagsApi.current?.input?.focus()
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
         document.removeEventListener("click", this.onClickSomewhere)
         document.removeEventListener("keydown", this.onKeyDown)
     }
 
-    render() {
+    override render() {
         const { tags, suggestions } = this.props
         return (
             <div className="EditTags" onClick={this.onClick}>

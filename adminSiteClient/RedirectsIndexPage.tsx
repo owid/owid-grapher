@@ -20,10 +20,10 @@ interface RedirectRowProps {
 
 @observer
 class RedirectRow extends Component<RedirectRowProps> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    render() {
+    override render() {
         const { redirect } = this.props
 
         return (
@@ -49,7 +49,7 @@ class RedirectRow extends Component<RedirectRowProps> {
 
 @observer
 export class RedirectsIndexPage extends Component {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable redirects: RedirectListItem[] = []
@@ -80,7 +80,7 @@ export class RedirectsIndexPage extends Component {
         }
     }
 
-    render() {
+    override render() {
         const { redirects } = this
 
         return (
@@ -121,7 +121,7 @@ export class RedirectsIndexPage extends Component {
         })
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         void this.getData()
     }
 }

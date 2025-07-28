@@ -31,7 +31,7 @@ export class TagBadge extends React.Component<TagBadgeProps> {
         }
     }
 
-    render() {
+    override render() {
         const { tag, searchHighlight, onToggleKey, onApprove } = this.props
         const isPending = !tag.isApproved && onApprove
         const keyChartLevelDesc =

@@ -23,7 +23,7 @@ export class ExplorerControlBar extends Component<{
     closeControls?: () => void
     children: React.ReactNode
 }> {
-    render() {
+    override render() {
         const { isMobile, showControls, closeControls } = this.props
         const mobileCloseButton = isMobile ? (
             <a
@@ -211,7 +211,7 @@ export class ExplorerControlPanel extends Component<{
         )
     }
 
-    render() {
+    override render() {
         const { choice } = this.props
         const { title, type } = choice
         const { options } = this

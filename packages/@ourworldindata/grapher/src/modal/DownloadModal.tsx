@@ -313,11 +313,11 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
         this.manager.isEmbedModalOpen = true
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         queueMicrotask(() => this.export())
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         if (!this.isReady) return <LoadingIndicator color="#000" />
 
         const {

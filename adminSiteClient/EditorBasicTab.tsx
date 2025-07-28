@@ -168,7 +168,7 @@ class DimensionSlotView<
         }
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         // We want to add the reaction only after the grapherState is loaded,
         // so we don't update the initial chart (as configured) by accident.
         when(
@@ -203,7 +203,7 @@ class DimensionSlotView<
                 })
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
         this.disposers.forEach((dispose) => dispose())
     }
 
@@ -251,7 +251,7 @@ class DimensionSlotView<
         return this.props.slot.dimensions.length > 1
     }
 
-    render() {
+    override render() {
         const { isSelectingVariables } = this
         const { slot, editor } = this.props
         const dimensions = slot.dimensions.map((dim, index) => ({
@@ -344,7 +344,7 @@ class VariablesSection<
         makeObservable(this)
     }
 
-    render() {
+    override render() {
         const { props } = this
         const { dimensionSlots } = props.editor.grapherState
 
@@ -417,7 +417,7 @@ interface EditorBasicTabProps<Editor> {
 export class EditorBasicTab<
     Editor extends AbstractChartEditor,
 > extends React.Component<EditorBasicTabProps<Editor>> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     private chartTypeOptionNone = "None"
@@ -536,7 +536,7 @@ export class EditorBasicTab<
         )
     }
 
-    render() {
+    override render() {
         const { editor } = this.props
         const { grapherState } = editor
         const isIndicatorChart = isIndicatorChartEditorInstance(editor)
@@ -657,7 +657,7 @@ function NarrativeChartInfo(props: { editor: NarrativeChartEditor }) {
 class NarrativeChartForm extends React.Component<{
     editor: NarrativeChartEditor
 }> {
-    render() {
+    override render() {
         const { name, nameError, onNameChange } = this.props.editor.manager
         return (
             <Section name="Narrative chart">

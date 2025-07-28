@@ -30,7 +30,7 @@ interface EditableTagsProps {
 
 @observer
 export class EditableTags extends React.Component<EditableTagsProps> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     @observable isEditing: boolean = false
@@ -121,15 +121,15 @@ export class EditableTags extends React.Component<EditableTagsProps> {
         this.props.onSave(this.tags.filter(filterUncategorizedTag))
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         this.componentDidUpdate()
     }
 
-    componentDidUpdate() {
+    override componentDidUpdate() {
         this.ensureUncategorized()
     }
 
-    render() {
+    override render() {
         const { disabled, hasKeyChartSupport, hasSuggestionsSupport } =
             this.props
         const { tags } = this

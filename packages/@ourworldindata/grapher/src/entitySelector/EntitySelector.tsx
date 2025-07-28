@@ -231,7 +231,7 @@ interface EntitySelectorProps {
 
 @observer
 export class EntitySelector extends React.Component<EntitySelectorProps> {
-    static contextType = DrawerContext
+    static override contextType = DrawerContext
     declare context: React.ContextType<typeof DrawerContext>
 
     scrollableContainer = React.createRef<HTMLDivElement>()
@@ -250,7 +250,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         makeObservable(this)
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         void this.populateLocalEntities()
 
         if (this.props.autoFocus && !isTouchDevice())
@@ -277,7 +277,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         )
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         if (this.timeoutId) clearTimeout(this.timeoutId)
         this.disposers.forEach((dispose) => dispose())
     }
@@ -1590,7 +1590,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return (
             <div className="entity-selector">
                 <OverlayHeader

@@ -626,7 +626,7 @@ export class StackedBarChart
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const { dualAxis, bounds } = this
 
         if (this.chartState.errorInfo.reason)
@@ -680,7 +680,7 @@ export class StackedBarChart
     animSelection?: Selection<BaseType, unknown, SVGGElement | null, unknown>
 
     base = React.createRef<SVGGElement>()
-    componentDidMount(): void {
+    override componentDidMount(): void {
         if (!this.manager.disableIntroAnimation) {
             // Fancy intro animation
             this.animSelection = select(this.base.current)
@@ -697,7 +697,7 @@ export class StackedBarChart
         exposeInstanceOnWindow(this)
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         if (this.animSelection) this.animSelection.interrupt()
     }
 }

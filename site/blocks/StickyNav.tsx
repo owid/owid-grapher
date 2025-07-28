@@ -47,7 +47,7 @@ class StickyNav extends Component<
     ulRef = createRef<HTMLUListElement>()
     resizeObserver: ResizeObserver | null = null
 
-    state = {
+    override state = {
         currentHeadingIndex: undefined,
         headingPositions: [] as HeadingPosition[],
         links: this.props.links,
@@ -146,7 +146,7 @@ class StickyNav extends Component<
         )
     }
 
-    componentDidMount() {
+    override componentDidMount() {
         this.filterValidLinks()
         window.addEventListener("scroll", this.handleScroll, { passive: true })
         // Web fonts and grapher hydration make the page height change
@@ -155,12 +155,12 @@ class StickyNav extends Component<
         this.resizeObserver.observe(document.body)
     }
 
-    componentWillUnmount() {
+    override componentWillUnmount() {
         window.removeEventListener("scroll", this.handleScroll)
         this.resizeObserver?.disconnect()
     }
 
-    render() {
+    override render() {
         if (!this.state.links) return null
         return (
             <>

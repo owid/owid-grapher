@@ -58,11 +58,13 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
         Object.assign(gdoc, obj)
         return gdoc
     }
-    protected typeSpecificFilenames(): string[] {
+    protected override typeSpecificFilenames(): string[] {
         return excludeNullish([this.content["featured-image"]])
     }
 
-    _getSubclassEnrichedBlocks = (gdoc: this): OwidEnrichedGdocBlock[] => {
+    override _getSubclassEnrichedBlocks = (
+        gdoc: this
+    ): OwidEnrichedGdocBlock[] => {
         const blocks: OwidEnrichedGdocBlock[] = []
 
         if (gdoc.content.socials) blocks.push(gdoc.content.socials)
@@ -71,7 +73,7 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
         return blocks
     }
 
-    _loadSubclassAttachments = (
+    override _loadSubclassAttachments = (
         knex: db.KnexReadonlyTransaction
     ): Promise<void> => {
         return this.loadLatestWorkImages(knex)
@@ -109,7 +111,7 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
         ])
     }
 
-    _enrichSubclassContent = (content: Record<string, any>): void => {
+    override _enrichSubclassContent = (content: Record<string, any>): void => {
         if (content.bio) {
             content.bio = content.bio.map((html: RawBlockText) =>
                 htmlToEnrichedTextBlock(html.value)
@@ -134,7 +136,7 @@ export class GdocAuthor extends GdocBase implements OwidGdocAuthorInterface {
         }
     }
 
-    _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
+    override _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
         if (!this.content.bio) {
             errors.push({

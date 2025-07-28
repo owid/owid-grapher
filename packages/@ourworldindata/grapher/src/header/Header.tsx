@@ -269,7 +269,7 @@ abstract class AbstractHeader<
         return <p style={style}>{this.subtitle.renderHTML()}</p>
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return (
             <div
                 className="HeaderHTML"
@@ -300,7 +300,7 @@ export class Header extends AbstractHeader<HeaderProps> {}
 
 @observer
 export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
-    protected verticalPadding = 6
+    protected override verticalPadding = 6
 
     constructor(props: StaticHeaderProps) {
         super(props)
@@ -308,15 +308,15 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
         makeObservable(this)
     }
 
-    @override get titleLineHeight(): number {
+    @override override get titleLineHeight(): number {
         return this.manager.isStaticAndSmall ? 1.1 : 1.2
     }
 
-    @override get subtitleLineHeight(): number {
+    @override override get subtitleLineHeight(): number {
         return 1.2
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const { targetX: x, targetY: y } = this.props
         const { title, logo, subtitle, manager, maxWidth } = this
         return (

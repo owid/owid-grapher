@@ -23,7 +23,7 @@ export class IndicatorChartEditorPage
         IndicatorChartEditorManager,
         ChartEditorViewManager<IndicatorChartEditor>
 {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
     constructor(props: { variableId: number }) {
@@ -95,11 +95,11 @@ export class IndicatorChartEditorPage
         void this.fetchCharts()
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         this.refresh()
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return <ChartEditorView manager={this} />
     }
 }

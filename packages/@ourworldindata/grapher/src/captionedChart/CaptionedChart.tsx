@@ -156,7 +156,7 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
         return new Bounds(0, 0, bounds.width, chartHeight)
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         exposeInstanceOnWindow(this, "captionedChart")
     }
 
@@ -260,7 +260,7 @@ abstract class AbstractCaptionedChart extends React.Component<CaptionedChartProp
     }
 
     // make sure to keep this.chartHeight in sync if you edit the render function
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         // CaptionedChart renders at the very least a header, a chart, and a footer.
         // Interactive charts also have controls above the chart area and a timeline below it.
         // Some charts have a related question below the footer.
@@ -366,7 +366,7 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
     }
 
     /** Bounds without details */
-    @override protected get bounds(): Bounds {
+    @override protected override get bounds(): Bounds {
         return (
             this.props.bounds ??
             this.manager.staticBounds ??
@@ -382,7 +382,7 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
     }
 
     /** Bounds of the chart area (without header and footer) */
-    @override protected get boundsForChartArea(): Bounds {
+    @override protected override get boundsForChartArea(): Bounds {
         return this.innerBounds
             .padTop(this.staticHeader.height)
             .padBottom(this.staticFooter.height + this.verticalPadding)
@@ -444,7 +444,7 @@ export class StaticCaptionedChart extends AbstractCaptionedChart {
         )
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const { innerBounds, manager, maxWidth } = this
 
         const includeDetailsInStaticExport =

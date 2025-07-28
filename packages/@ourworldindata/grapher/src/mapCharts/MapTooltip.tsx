@@ -123,7 +123,7 @@ export class MapTooltip
         return this.props.manager.yAxisConfig
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const {
             mapTable,
             mapColumn,

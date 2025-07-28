@@ -8,10 +8,10 @@ import { BindString, FieldsRow } from "./Forms.js"
 export class OriginList extends Component<{
     origins: OwidOrigin[]
 }> {
-    static contextType = AdminAppContext
+    static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    render() {
+    override render() {
         const { origins } = this.props
 
         return (

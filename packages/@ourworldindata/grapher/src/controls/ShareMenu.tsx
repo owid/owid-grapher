@@ -124,14 +124,14 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         else this.dismissable = true
     }
 
-    componentDidMount(): void {
+    override componentDidMount(): void {
         document.addEventListener("click", this.onClickSomewhere)
         void canWriteToClipboard().then((canWriteToClipboard) =>
             this.setState({ canWriteToClipboard })
         )
     }
 
-    componentWillUnmount(): void {
+    override componentWillUnmount(): void {
         document.removeEventListener("click", this.onClickSomewhere)
     }
 
@@ -165,7 +165,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         return canUseShareApi(this.manager)
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         const { canUseShareApi, manager } = this
         const { editUrl, createNarrativeChartUrl } = manager
 

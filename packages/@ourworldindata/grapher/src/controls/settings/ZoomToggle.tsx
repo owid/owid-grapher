@@ -22,7 +22,7 @@ export class ZoomToggle extends React.Component<{
             : true
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return (
             <LabeledSwitch
                 label="Zoom to selection"

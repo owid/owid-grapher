@@ -22,7 +22,7 @@ export class StackedAreaChartThumbnail
         return this.props.chartState
     }
 
-    render(): React.ReactElement {
+    override render(): React.ReactElement {
         return <StackedAreaChart {...this.props} />
     }
 }

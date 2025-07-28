@@ -37,17 +37,19 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         Object.assign(gdoc, obj)
         return gdoc
     }
-    linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
+    override linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     relatedCharts: RelatedChart[] = []
 
-    protected typeSpecificFilenames(): string[] {
+    protected override typeSpecificFilenames(): string[] {
         return excludeNullish([
             this.content["cover-image"],
             this.content["featured-image"],
         ])
     }
 
-    _getSubclassEnrichedBlocks = (gdoc: this): OwidEnrichedGdocBlock[] => {
+    override _getSubclassEnrichedBlocks = (
+        gdoc: this
+    ): OwidEnrichedGdocBlock[] => {
         const enrichedBlocks: OwidEnrichedGdocBlock[] = []
 
         // TODO: GdocFaq should be its own subclass, requires refactor of admin gdoc registration process
@@ -73,7 +75,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         return enrichedBlocks
     }
 
-    _enrichSubclassContent = (content: Record<string, any>): void => {
+    override _enrichSubclassContent = (content: Record<string, any>): void => {
         const isTocForSidebar = content["sidebar-toc"]
         content.toc = generateToc(content.body, isTocForSidebar)
 
@@ -93,7 +95,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         }
     }
 
-    _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
+    override _validateSubclass = async (): Promise<OwidGdocErrorMessage[]> => {
         const errors: OwidGdocErrorMessage[] = []
 
         if (!this.tags?.length) {
@@ -137,9 +139,10 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
         return errors
     }
 
-    _loadSubclassAttachments: (knex: KnexReadonlyTransaction) => Promise<void> =
-        (knex: KnexReadonlyTransaction): Promise<void> =>
-            this.loadRelatedCharts(knex)
+    override _loadSubclassAttachments: (
+        knex: KnexReadonlyTransaction
+    ) => Promise<void> = (knex: KnexReadonlyTransaction): Promise<void> =>
+        this.loadRelatedCharts(knex)
 
     async loadRelatedCharts(
         knex: KnexReadonlyTransaction,

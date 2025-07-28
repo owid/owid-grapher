@@ -6,7 +6,7 @@ import { FeedbackForm } from "../site/Feedback.js"
 import { Html } from "./Html.js"
 
 export class FeedbackPage extends Component<{ baseUrl: string }> {
-    render() {
+    override render() {
         const { baseUrl } = this.props
         return (
             <Html>

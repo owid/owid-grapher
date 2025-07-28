@@ -107,7 +107,7 @@ export class EntitySelectionToggle extends React.Component<{
         return null
     }
 
-    render(): React.ReactElement | null {
+    override render(): React.ReactElement | null {
         const { showToggle, label } = this
         const { isEntitySelectorModalOrDrawerOpen: active } = this.props.manager
 
