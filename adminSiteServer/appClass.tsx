@@ -76,7 +76,7 @@ export class OwidAdminApp {
         app.use("/admin", adminRouter)
 
         // Default route: single page admin app
-        app.get("/admin/*", async (req, res) => {
+        app.get("/admin/{*splat}", async (req, res) => {
             res.send(
                 renderToHtmlPage(
                     <IndexPage

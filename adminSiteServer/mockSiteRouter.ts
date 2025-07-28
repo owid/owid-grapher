@@ -178,7 +178,7 @@ getPlainRouteWithROTransaction(
 )
 getPlainRouteWithROTransaction(
     mockSiteRouter,
-    "/*",
+    "/{*splat}",
     async (req, res, trx, next) => {
         const explorerRedirect = getExplorerRedirectForPath(req.path)
         // If no explorer redirect exists, continue to next express handler
@@ -297,7 +297,7 @@ mockSiteRouter.get("/thank-you", async (req, res) =>
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
-    "/data-insights/:pageNumberOrSlug?",
+    "/data-insights/{:pageNumberOrSlug}",
     async (req, res, trx) => {
         const totalPageCount = calculateDataInsightIndexPageCount(
             await db.getPublishedDataInsightCount(trx)
@@ -345,7 +345,7 @@ getPlainRouteWithROTransaction(
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
-    "/data*",
+    "/data",
     async (req, res, trx) => {
         res.send(await renderSearchPage(trx))
     }
@@ -557,25 +557,29 @@ getPlainRouteWithROTransaction(
     }
 )
 
-getPlainRouteWithROTransaction(mockSiteRouter, "/*", async (req, res, trx) => {
-    // Remove leading and trailing slashes
-    const slug = req.path.replace(/^\/|\/$/g, "")
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/{*splat}",
+    async (req, res, trx) => {
+        // Remove leading and trailing slashes
+        const slug = req.path.replace(/^\/|\/$/g, "")
 
-    try {
-        const page = await renderGdocsPageBySlug(trx, slug, true)
-        res.send(page)
-        return
-    } catch (e) {
-        console.error(e)
-    }
+        try {
+            const page = await renderGdocsPageBySlug(trx, slug, true)
+            res.send(page)
+            return
+        } catch (e) {
+            console.error(e)
+        }
 
-    try {
-        const page = await renderPageBySlug(slug, trx)
-        res.send(page)
-    } catch (e) {
-        console.error(e)
-        res.status(404).send(renderNotFoundPage())
+        try {
+            const page = await renderPageBySlug(slug, trx)
+            res.send(page)
+        } catch (e) {
+            console.error(e)
+            res.status(404).send(renderNotFoundPage())
+        }
     }
-})
+)
 
 export { mockSiteRouter }
