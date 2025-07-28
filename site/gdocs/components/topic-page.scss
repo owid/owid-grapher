@@ -2,6 +2,8 @@
 * Topic Page
 **/
 
+@use "sass:color";
+
 // These styles are used both for topic page and linear topic page headers
 .topic-page-header {
     background-color: $blue-10;
@@ -38,7 +40,7 @@
     }
     .topic-page-header__byline a {
         @include owid-link-60;
-        color: scale-color($blue-60, $lightness: -5%);
+        color: color.scale($blue-60, $lightness: -5%);
         &:visited {
             color: inherit;
         }

@@ -1,3 +1,5 @@
+@use "sass:color";
+
 .site-footer {
     background-color: $oxford-blue;
     color: $blue-40;
@@ -52,7 +54,7 @@
 .footer-left {
     padding-bottom: 24px;
     @include sm-only {
-        border-bottom: 1px solid scale-color($blue-20, $alpha: -90%);
+        border-bottom: 1px solid color.scale($blue-20, $alpha: -90%);
     }
     p {
         margin-top: 0;
@@ -112,7 +114,7 @@
 }
 
 .footer-base {
-    border-top: 1px solid scale-color($blue-20, $alpha: -90%);
+    border-top: 1px solid color.scale($blue-20, $alpha: -90%);
     padding-top: 24px;
 }
 
@@ -124,7 +126,7 @@
 
     @include sm-only {
         padding-bottom: 24px;
-        border-bottom: 1px solid scale-color($blue-20, $alpha: -90%);
+        border-bottom: 1px solid color.scale($blue-20, $alpha: -90%);
         margin-bottom: 16px;
         flex-wrap: wrap;
         justify-content: space-between;
