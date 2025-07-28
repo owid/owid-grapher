@@ -63,7 +63,7 @@ const THUMBNAIL_OPTIONS: Readonly<ImageOptions> = {
     svgWidth: GRAPHER_THUMBNAIL_WIDTH,
     svgHeight: GRAPHER_THUMBNAIL_HEIGHT,
     details: false,
-    fontSize: undefined,
+    fontSize: 12,
     grapherProps: {
         isSocialMediaExport: false,
         staticBounds: new Bounds(
