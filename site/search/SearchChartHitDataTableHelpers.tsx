@@ -26,6 +26,7 @@ import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable"
 import {
     getColumnNameForDisplay,
     getColumnUnitForDisplay,
+    calculateTrendDirection,
 } from "./searchUtils.js"
 import { OwidTable } from "@ourworldindata/core-table"
 
@@ -202,11 +203,46 @@ function buildDataTablePropsForDiscreteBarChart({
 }
 
 function buildDataTablePropsForSlopeChart({
-    grapherState: _grapherState,
-    chartState: _chartState,
-    maxRows: _maxRows,
+    grapherState,
+    chartState,
+    maxRows,
 }: Args<SlopeChartState>): SearchChartHitDataTableProps {
-    return { rows: [], title: "" }
+    const formatColumn = chartState.formatColumn
+
+    let rows = chartState.series.map((series) => {
+        const { start, end } = series
+
+        const formattedStartTime = formatColumn.formatTime(start.originalTime)
+        const formattedEndTime = formatColumn.formatTime(end.originalTime)
+
+        const color =
+            getColorForSeriesIfFaceted(
+                grapherState,
+                series.entityName,
+                series.column.nonEmptyDisplayName
+            ) ?? series.color
+
+        return {
+            endValue: series.end.value,
+            name: series.seriesName,
+            color,
+            value: formatColumn.formatValueShort(end.value),
+            startValue: formatColumn.formatValueShort(start.value),
+            trend: calculateTrendDirection(start.value, end.value),
+            time: `${formattedStartTime}–${formattedEndTime}`,
+            timePreposition: "",
+            muted: series.focus.background,
+        }
+    })
+
+    // Sort by value in descending order
+    rows = R.sortBy(rows, [(row) => row.endValue, "desc"])
+
+    if (maxRows !== undefined) rows = rows.slice(0, maxRows)
+
+    const title = makeTableTitle(grapherState, chartState)
+
+    return { rows, title }
 }
 
 function buildDataTablePropsForStackedDiscreteBarChart({
