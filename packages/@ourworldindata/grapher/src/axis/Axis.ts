@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import { scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic } from "d3-scale"
-import { observable, computed, override, makeObservable } from "mobx"
+import { observable, computed, makeObservable } from "mobx"
 import {
     rollingMap,
     numberMagnitude,
@@ -611,7 +611,7 @@ export class HorizontalAxis extends AbstractAxis {
         return this.height
     }
 
-    @override protected override get baseTicks(): Tickmark[] {
+    protected override get baseTicks(): Tickmark[] {
         let ticks = this.getTickValues().filter(
             (tick): boolean => !tick.gridLineOnly
         )
