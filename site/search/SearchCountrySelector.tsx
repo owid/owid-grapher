@@ -149,7 +149,10 @@ export const SearchCountrySelector = ({
                             </Button>
                         )}
                     </div>
-                    <ListBox className="search-country-selector-list">
+                    <ListBox
+                        className="search-country-selector-list"
+                        aria-label="Countries"
+                    >
                         {filteredCountriesByName.map((country) => (
                             <ListBoxItem
                                 key={country.name}
