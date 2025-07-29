@@ -3,6 +3,7 @@ import {
     Box,
     excludeUndefined,
     getCountryByName,
+    MultiDimDataPageConfig,
     Url,
 } from "@ourworldindata/utils"
 import {
@@ -18,6 +19,7 @@ import {
     PrimitiveType,
     ColumnTypeNames,
     Time,
+    MultiDimDimensionChoices,
 } from "@ourworldindata/types"
 import { LineChartSeries } from "../lineCharts/LineChartConstants"
 import { SelectionArray } from "../selection/SelectionArray"
@@ -367,6 +369,11 @@ export function getChartSvgProps({
 export interface GuidedChartContextValue {
     grapherStateRef: React.RefObject<GrapherState>
     onGuidedChartLinkClick?: (href: string) => void
+    // MultiDim support
+    onMultiDimSettingsUpdate?: (registrationData: {
+        config: MultiDimDataPageConfig
+        updater: (newSettings: MultiDimDimensionChoices) => void
+    }) => void
 }
 
 export const GuidedChartContext =
@@ -389,7 +396,9 @@ export function useOptionallyGlobalGrapherStateRef(
     return refToUse as React.RefObject<GrapherState>
 }
 
-export function useGuidedChartLinkHandler(): ((href: string) => void) | undefined {
+export function useGuidedChartLinkHandler():
+    | ((href: string) => void)
+    | undefined {
     const context = React.useContext(GuidedChartContext)
     return context?.onGuidedChartLinkClick
 }

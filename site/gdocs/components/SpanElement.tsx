@@ -4,6 +4,8 @@ import { match } from "ts-pattern"
 import LinkedA from "./LinkedA.js"
 import SpanElements from "./SpanElements.js"
 import { useGuidedChartLinkHandler } from "@ourworldindata/grapher"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faEye } from "@fortawesome/free-solid-svg-icons"
 
 export default function SpanElement({
     span,
@@ -13,7 +15,7 @@ export default function SpanElement({
     shouldRenderLinks?: boolean
 }): React.ReactElement {
     const handleGuidedChartLinkClick = useGuidedChartLinkHandler()
-    
+
     return match(span)
         .with({ spanType: "span-simple-text" }, (span) => (
             <span>{span.text}</span>
@@ -46,20 +48,21 @@ export default function SpanElement({
                     </span>
                 )
             }
-            
+
             const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
                 e.preventDefault()
                 if (handleGuidedChartLinkClick) {
                     handleGuidedChartLinkClick(span.url)
                 }
             }
-            
+
             return (
-                <a 
+                <a
                     className="guided-chart-link"
                     href={span.url}
                     onClick={handleClick}
                 >
+                    <FontAwesomeIcon icon={faEye} />
                     <SpanElements spans={span.children} />
                 </a>
             )
