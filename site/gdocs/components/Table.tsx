@@ -25,29 +25,60 @@ export function Table(props: TableProps) {
     return (
         <div className={className}>
             <table>
-                {rows.map((row, rowIndex) => (
-                    <tr key={rowIndex}>
-                        {row.cells.map((cell, columnIndex) => {
-                            const scope =
-                                isFirstColumnHeader && columnIndex === 0
-                                    ? "row"
-                                    : isFirstRowHeader && rowIndex === 0
-                                      ? "col"
-                                      : undefined
-                            const tag = scope ? "th" : "td"
-
+                {isFirstRowHeader && (
+                    <thead>
+                        <tr>
+                            {rows[0]?.cells.map((cell, columnIndex) => {
+                                const scope =
+                                    isFirstColumnHeader && columnIndex === 0
+                                        ? "row"
+                                        : "col"
+                                return (
+                                    <TableCell
+                                        key={columnIndex}
+                                        scope={scope}
+                                        tag="th"
+                                    >
+                                        <ArticleBlocks blocks={cell.content} />
+                                    </TableCell>
+                                )
+                            })}
+                        </tr>
+                    </thead>
+                )}
+                <tbody>
+                    {rows
+                        .slice(isFirstRowHeader ? 1 : 0)
+                        .map((row, rowIndex) => {
+                            const actualRowIndex = isFirstRowHeader
+                                ? rowIndex + 1
+                                : rowIndex
                             return (
-                                <TableCell
-                                    key={columnIndex}
-                                    scope={scope}
-                                    tag={tag}
-                                >
-                                    <ArticleBlocks blocks={cell.content} />
-                                </TableCell>
+                                <tr key={actualRowIndex}>
+                                    {row.cells.map((cell, columnIndex) => {
+                                        const scope =
+                                            isFirstColumnHeader &&
+                                            columnIndex === 0
+                                                ? "row"
+                                                : undefined
+                                        const tag = scope ? "th" : "td"
+
+                                        return (
+                                            <TableCell
+                                                key={columnIndex}
+                                                scope={scope}
+                                                tag={tag}
+                                            >
+                                                <ArticleBlocks
+                                                    blocks={cell.content}
+                                                />
+                                            </TableCell>
+                                        )
+                                    })}
+                                </tr>
                             )
                         })}
-                    </tr>
-                ))}
+                </tbody>
             </table>
         </div>
     )
