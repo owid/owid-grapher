@@ -1,4 +1,8 @@
-import { OwidVariableRow, SeriesName } from "@ourworldindata/types"
+import {
+    InteractionState,
+    OwidVariableRow,
+    SeriesName,
+} from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import {
     GRAPHER_AREA_OPACITY_DEFAULT,
@@ -50,6 +54,7 @@ export interface StackedSeries<PositionType extends StackedPointPositionType>
     columnSlug?: string
     isProjection?: boolean
     isAllZeros?: boolean
+    focus?: InteractionState
 }
 
 export interface StackedPlacedSeries<
@@ -64,4 +69,5 @@ export interface StackedRawSeries<
     seriesName: SeriesName
     isProjection?: boolean
     rows: OwidVariableRow<PositionType>[]
+    focus: InteractionState
 }
