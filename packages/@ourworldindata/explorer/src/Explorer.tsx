@@ -195,7 +195,7 @@ export class Explorer
     grapherState: GrapherState
     inputTableTransformer = (table: OwidTable) => table
 
-    constructor(props: ExplorerProps) {
+    constructor(props: ExplorerProps, setupGrapher: boolean = true) {
         super(props)
         makeObservable(this)
 
@@ -216,7 +216,8 @@ export class Explorer
                 }),
         })
 
-        this.grapher = new Grapher({ grapherState: this.grapherState })
+        if (setupGrapher)
+            this.grapher = new Grapher({ grapherState: this.grapherState })
     }
     // caution: do a ctrl+f to find untyped usages
     static renderSingleExplorerOnExplorerPage(
@@ -421,10 +422,9 @@ export class Explorer
     }
 
     private initSlideshow() {
-        const grapher = this.grapher
-        if (!grapher || grapher.grapherState.slideShow) return
+        if (this.grapherState.slideShow) return
 
-        grapher.grapherState.slideShow = new SlideShowController(
+        this.grapherState.slideShow = new SlideShowController(
             this.explorerProgram.decisionMatrix.allDecisionsAsQueryParams(),
             0,
             this
@@ -438,8 +438,7 @@ export class Explorer
 
     // todo: break this method up and unit test more. this is pretty ugly right now.
     @action.bound private reactToUserChangingSelection(oldSelectedRow: number) {
-        if (!this.grapher || !this.explorerProgram.currentlySelectedGrapherRow)
-            return // todo: can we remove this?
+        if (!this.explorerProgram.currentlySelectedGrapherRow) return // todo: can we remove this?
         this.initSlideshow()
 
         const oldGrapherParams = this.grapherState.changedParams
@@ -839,8 +838,6 @@ export class Explorer
     }
 
     @computed get queryParams(): ExplorerFullQueryParams {
-        if (!this.grapher) return {}
-
         if (
             typeof window !== "undefined" &&
             window.location.href.includes(EXPLORERS_PREVIEW_ROUTE)
