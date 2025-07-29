@@ -1,4 +1,4 @@
-import { KnexReadWriteTransaction } from "../db.js"
+import { KnexReadWriteTransaction, knexRaw } from "../db.js"
 import {
     DbInsertExplorerView,
     DbRawExplorerView,
@@ -6,13 +6,200 @@ import {
     DbInsertChartConfig,
     parseChartConfig,
     GrapherInterface,
+    DbPlainChart,
+    DbRawChartConfig,
 } from "@ourworldindata/types"
-import { ExplorerProgram } from "@ourworldindata/explorer"
+import { ExplorerProgram, Explorer, ExplorerProps } from "@ourworldindata/explorer"
 import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerCatalogResolver.js"
 import { constructGrapherConfig } from "./ExplorerViewsHelpers.js"
 import { insertChartConfig, updateExistingConfigPair } from "./ChartConfigs.js"
 import { uuidv7 } from "uuidv7"
 import { isEqual } from "lodash-es"
+import { mergeGrapherConfigs } from "@ourworldindata/utils"
+import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
+import {
+    ADMIN_BASE_URL,
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_URL,
+    DATA_API_URL,
+} from "../../settings/clientSettings.js"
+
+interface ExplorerDataForViews {
+    transformedProgram: ExplorerProgram
+    grapherConfigs: GrapherInterface[]
+    partialGrapherConfigs: GrapherInterface[]
+}
+
+async function fetchExplorerDataForViews(
+    knex: KnexReadWriteTransaction,
+    explorerProgram: ExplorerProgram
+): Promise<ExplorerDataForViews> {
+    const transformResult = await transformExplorerProgramToResolveCatalogPaths(
+        explorerProgram,
+        knex
+    )
+    const { program: transformedProgram, unresolvedCatalogPaths } =
+        transformResult
+    if (unresolvedCatalogPaths?.size) {
+        void logErrorAndMaybeCaptureInSentry(
+            new Error(
+                `${unresolvedCatalogPaths.size} catalog paths cannot be found for explorer ${transformedProgram.slug}: ${[...unresolvedCatalogPaths].join(", ")}.`
+            )
+        )
+    }
+
+    // This needs to run after transformExplorerProgramToResolveCatalogPaths, so that the catalog paths
+    // have already been resolved and all the required grapher and variable IDs are available
+    const { requiredGrapherIds, requiredVariableIds } =
+        transformedProgram.decisionMatrix
+
+    type ChartRow = { id: number; config: string }
+    let grapherConfigRows: ChartRow[] = []
+    if (requiredGrapherIds.length)
+        grapherConfigRows = await knexRaw<
+            Pick<DbPlainChart, "id"> & { config: DbRawChartConfig["full"] }
+        >(
+            knex,
+            `-- sql
+                SELECT c.id, cc.full as config
+                FROM charts c
+                JOIN chart_configs cc ON c.configId=cc.id
+                WHERE c.id IN (?)
+            `,
+            [requiredGrapherIds]
+        )
+
+    let partialGrapherConfigRows: {
+        id: number
+        grapherConfigAdmin: string | null
+        grapherConfigETL: string | null
+    }[] = []
+    if (requiredVariableIds.length) {
+        partialGrapherConfigRows = await knexRaw(
+            knex,
+            `-- sql
+                SELECT
+                    v.id,
+                    cc_etl.patch AS grapherConfigETL,
+                    cc_admin.patch AS grapherConfigAdmin
+                FROM variables v
+                    LEFT JOIN chart_configs cc_admin ON cc_admin.id=v.grapherConfigIdAdmin
+                    LEFT JOIN chart_configs cc_etl ON cc_etl.id=v.grapherConfigIdETL
+                WHERE v.id IN (?)
+            `,
+            [requiredVariableIds]
+        )
+
+        // check if all required variable IDs exist in the database
+        const missingIds = requiredVariableIds.filter(
+            (id: number) => !partialGrapherConfigRows.find((row) => row.id === id)
+        )
+        if (missingIds.length > 0) {
+            void logErrorAndMaybeCaptureInSentry(
+                new Error(
+                    `Referenced variable IDs do not exist in the database for explorer ${transformedProgram.slug}: ${missingIds.join(", ")}.`
+                )
+            )
+        }
+    }
+
+    const parseGrapherConfigFromRow = (row: ChartRow): GrapherInterface => {
+        const config = JSON.parse(row.config)
+        config.id = row.id // Ensure each grapher has an id
+        config.adminBaseUrl = ADMIN_BASE_URL
+        config.bakedGrapherURL = BAKED_GRAPHER_URL
+        return config
+    }
+    const grapherConfigs = grapherConfigRows.map(parseGrapherConfigFromRow)
+    const partialGrapherConfigs = partialGrapherConfigRows
+        .filter((row) => row.grapherConfigAdmin || row.grapherConfigETL)
+        .map((row) => {
+            const adminConfig = row.grapherConfigAdmin
+                ? parseGrapherConfigFromRow({
+                      id: row.id,
+                      config: row.grapherConfigAdmin as string,
+                  })
+                : {}
+            const etlConfig = row.grapherConfigETL
+                ? parseGrapherConfigFromRow({
+                      id: row.id,
+                      config: row.grapherConfigETL as string,
+                  })
+                : {}
+            const mergedConfig = mergeGrapherConfigs(etlConfig, adminConfig)
+            // explorers set their own dimensions, so we don't need to include them here
+            const mergedConfigWithoutDimensions = {
+                ...mergedConfig,
+                dimensions: undefined,
+            }
+            return mergedConfigWithoutDimensions
+        })
+
+    return {
+        transformedProgram,
+        grapherConfigs,
+        partialGrapherConfigs,
+    }
+}
+
+function createExplorerForViews(data: ExplorerDataForViews): Explorer {
+    const { transformedProgram, grapherConfigs, partialGrapherConfigs } = data
+
+    const props: ExplorerProps = {
+        ...transformedProgram.toJson(),
+        grapherConfigs,
+        partialGrapherConfigs,
+        isEmbeddedInAnOwidPage: false,
+        isInStandalonePage: false,
+        adminBaseUrl: ADMIN_BASE_URL,
+        bakedBaseUrl: BAKED_BASE_URL,
+        bakedGrapherUrl: BAKED_GRAPHER_URL,
+        dataApiUrl: DATA_API_URL,
+    }
+
+    // Create Explorer with initializeGrapher: false to avoid setting up the actual grapher
+    return new Explorer(props, false)
+}
+
+async function iterateExplorerViews(
+    explorer: Explorer,
+    knex: KnexReadWriteTransaction
+): Promise<Array<DbInsertExplorerView & { config?: GrapherInterface }>> {
+    const explorerProgram = explorer.explorerProgram
+    const generatedViews: Array<DbInsertExplorerView & { config?: GrapherInterface }> = []
+    const grapherRows = explorerProgram.decisionMatrix.table.rows
+
+    for (const grapherRow of grapherRows) {
+        const view = explorerProgram.decisionMatrix.getChoiceParamsForRow(grapherRow)
+        const explorerViewStr = JSON.stringify(view)
+
+        try {
+            const config = await constructGrapherConfig(
+                knex,
+                explorerProgram,
+                grapherRow
+            )
+
+            generatedViews.push({
+                explorerSlug: explorerProgram.slug,
+                explorerView: explorerViewStr,
+                config: config,
+            })
+        } catch (error) {
+            // Handle configuration failure gracefully
+            const errorMessage =
+                error instanceof Error ? error.message : String(error)
+
+            generatedViews.push({
+                explorerSlug: explorerProgram.slug,
+                explorerView: explorerViewStr,
+                error: errorMessage.slice(0, 500), // Limit error message length
+            })
+        }
+    }
+
+    return generatedViews
+}
 
 export async function refreshExplorerViewsForSlug(
     knex: KnexReadWriteTransaction,
@@ -56,51 +243,19 @@ export async function refreshExplorerViewsForSlug(
     // init explorer program
     const rawExplorerProgram = new ExplorerProgram(slug, explorer.tsv)
 
-    // map catalog paths to indicator ids if necessary
-    const explorerProgram = (
-        await transformExplorerProgramToResolveCatalogPaths(
-            rawExplorerProgram,
-            knex
-        )
-    ).program
-
-    // Generate all new views with their configs (without inserting to DB yet)
+    // Create full Explorer instance and iterate over its views
+    const explorerData = await fetchExplorerDataForViews(knex, rawExplorerProgram)
+    const explorerInstance = createExplorerForViews(explorerData)
+    
+    // Generate all new views with their configs using the full Explorer instance
     type GeneratedView = DbInsertExplorerView & {
         config?: GrapherInterface // GrapherInterface - temporary field for comparison
     }
 
-    const generatedViews: GeneratedView[] = []
-    const grapherRows = explorerProgram.decisionMatrix.table.rows
-
-    for (const grapherRow of grapherRows) {
-        const view =
-            explorerProgram.decisionMatrix.getChoiceParamsForRow(grapherRow)
-        const explorerViewStr = JSON.stringify(view)
-
-        try {
-            const config = await constructGrapherConfig(
-                knex,
-                explorerProgram,
-                grapherRow
-            )
-
-            generatedViews.push({
-                explorerSlug: slug,
-                explorerView: explorerViewStr,
-                config: config,
-            })
-        } catch (error) {
-            // Handle configuration failure gracefully
-            const errorMessage =
-                error instanceof Error ? error.message : String(error)
-
-            generatedViews.push({
-                explorerSlug: slug,
-                explorerView: explorerViewStr,
-                error: errorMessage.slice(0, 500), // Limit error message length
-            })
-        }
-    }
+    const generatedViews: GeneratedView[] = await iterateExplorerViews(
+        explorerInstance,
+        knex
+    )
 
     // Compare generated views with existing views and categorize them
     const unchangedViews: string[] = []
