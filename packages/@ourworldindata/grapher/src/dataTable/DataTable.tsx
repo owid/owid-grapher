@@ -97,7 +97,7 @@ interface DataTableProps {
 
 @observer
 export class DataTable extends React.Component<DataTableProps> {
-    @observable private storedState: DataTableState = {
+    @observable private accessor storedState: DataTableState = {
         sort: DEFAULT_SORT_STATE,
     }
 

@@ -38,7 +38,7 @@ interface DimensionCardProps<Editor> {
 export class DimensionCard<
     Editor extends AbstractChartEditor,
 > extends Component<DimensionCardProps<Editor>> {
-    @observable.ref isExpanded: boolean = false
+    @observable.ref accessor isExpanded: boolean = false
 
     constructor(props: DimensionCardProps<Editor>) {
         super(props)

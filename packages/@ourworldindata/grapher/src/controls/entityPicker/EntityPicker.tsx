@@ -71,25 +71,26 @@ interface EntityPickerProps {
 
 @observer
 export class EntityPicker extends React.Component<EntityPickerProps> {
-    @observable private searchInput?: string
-    @observable
+    @observable private accessor searchInput?: string
+    @observable accessor
     private searchInputRef = React.createRef<HTMLInputElement>()
 
-    @observable private focusIndex?: number
-    @observable
+    @observable private accessor focusIndex?: number
+    @observable accessor
     private focusRef = React.createRef<HTMLLabelElement>()
-    @observable private scrollFocusedIntoViewOnUpdate = false
+    @observable private accessor scrollFocusedIntoViewOnUpdate = false
 
-    @observable private blockOptionHover = false
+    @observable private accessor blockOptionHover = false
 
-    @observable private mostRecentlySelectedEntityName: string | null = null
+    @observable private accessor mostRecentlySelectedEntityName: string | null =
+        null
 
-    @observable
+    @observable accessor
     private scrollContainerRef = React.createRef<HTMLDivElement>()
 
-    @observable private isOpen = false
+    @observable private accessor isOpen = false
 
-    @observable private localEntityNames?: string[]
+    @observable private accessor localEntityNames?: string[]
 
     constructor(props: EntityPickerProps) {
         super(props)

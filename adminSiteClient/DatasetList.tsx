@@ -113,7 +113,7 @@ export class DatasetList extends React.Component<DatasetListProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable availableTags: DbChartTagJoin[] = []
+    @observable accessor availableTags: DbChartTagJoin[] = []
 
     constructor(props: DatasetListProps) {
         super(props)

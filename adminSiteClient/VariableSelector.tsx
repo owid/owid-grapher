@@ -52,16 +52,16 @@ interface Variable {
 export class VariableSelector<
     Editor extends AbstractChartEditor,
 > extends React.Component<VariableSelectorProps<Editor>> {
-    @observable.ref chosenNamespaces: Namespace[] = []
-    @observable.ref searchInput?: string
-    @observable.ref isProjection?: boolean
-    @observable.ref tolerance?: number
-    @observable.ref chosenVariables: Variable[] = []
+    @observable.ref accessor chosenNamespaces: Namespace[] = []
+    @observable.ref accessor searchInput?: string
+    @observable.ref accessor isProjection?: boolean
+    @observable.ref accessor tolerance?: number
+    @observable.ref accessor chosenVariables: Variable[] = []
     scrollElement = React.createRef<HTMLDivElement>()
 
-    @observable rowOffset: number = 0
-    @observable numVisibleRows: number = 15
-    @observable rowHeight: number = 32
+    @observable accessor rowOffset: number = 0
+    @observable accessor numVisibleRows: number = 15
+    @observable accessor rowHeight: number = 32
 
     constructor(props: VariableSelectorProps<Editor>) {
         super(props)

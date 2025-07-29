@@ -52,7 +52,7 @@ export class RedirectsIndexPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable redirects: RedirectListItem[] = []
+    @observable accessor redirects: RedirectListItem[] = []
 
     constructor(props: Record<string, never>) {
         super(props)

@@ -23,11 +23,11 @@ export class VariablesIndexPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable variables: VariableListItem[] = []
-    @observable maxVisibleRows = 50
-    @observable numTotalRows?: number
-    @observable searchInput?: string
-    @observable highlightSearch?: string
+    @observable accessor variables: VariableListItem[] = []
+    @observable accessor maxVisibleRows = 50
+    @observable accessor numTotalRows?: number
+    @observable accessor searchInput?: string
+    @observable accessor highlightSearch?: string
 
     constructor(props: Record<string, never>) {
         super(props)

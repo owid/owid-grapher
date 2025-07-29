@@ -27,8 +27,8 @@ export class AdminLayout extends React.Component<AdminLayoutProps> {
     declare context: AdminAppContextType
     static defaultProps = { fixedNav: true }
 
-    @observable private showFAQ: boolean = false
-    @observable private showSidebar: boolean = false
+    @observable private accessor showFAQ: boolean = false
+    @observable private accessor showSidebar: boolean = false
 
     constructor(props: AdminLayoutProps) {
         super(props)

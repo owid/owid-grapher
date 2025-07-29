@@ -24,7 +24,7 @@ export interface IndicatorChartEditorManager
 }
 
 export class IndicatorChartEditor extends AbstractChartEditor<IndicatorChartEditorManager> {
-    @observable.ref _isNewGrapher: boolean | undefined = undefined
+    @observable.ref accessor _isNewGrapher: boolean | undefined = undefined
 
     constructor(props: { manager: IndicatorChartEditorManager }) {
         super(props)

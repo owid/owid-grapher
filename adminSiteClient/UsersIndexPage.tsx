@@ -17,9 +17,9 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable email: string = ""
-    @observable fullName: string = ""
-    @observable responseSuccess: boolean = false
+    @observable accessor email: string = ""
+    @observable accessor fullName: string = ""
+    @observable accessor responseSuccess: boolean = false
 
     constructor(props: { onClose: () => void }) {
         super(props)
@@ -101,8 +101,8 @@ export class UsersIndexPage extends React.Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable users: UserIndexMetaWithLastSeen[] = []
-    @observable isInviteModal: boolean = false
+    @observable accessor users: UserIndexMetaWithLastSeen[] = []
+    @observable accessor isInviteModal: boolean = false
 
     constructor(props: Record<string, never>) {
         super(props)

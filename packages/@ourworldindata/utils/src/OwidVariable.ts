@@ -14,22 +14,22 @@ import {
 } from "@ourworldindata/types"
 
 class OwidVariableDisplayConfigDefaults {
-    @observable name?: string = undefined
-    @observable unit?: string = undefined
-    @observable shortUnit?: string = undefined
-    @observable isProjection?: boolean = undefined
-    @observable conversionFactor?: number = undefined
-    @observable roundingMode?: OwidVariableRoundingMode = undefined
-    @observable numDecimalPlaces?: number = undefined
-    @observable numSignificantFigures?: number = undefined
-    @observable tolerance?: number = undefined
-    @observable yearIsDay?: boolean = undefined
-    @observable zeroDay?: string = undefined
-    @observable entityAnnotationsMap?: string = undefined
-    @observable includeInTable? = true
-    @observable tableDisplay?: OwidVariableDataTableConfigInterface
-    @observable color?: string = undefined
-    @observable plotMarkersOnlyInLineChart?: boolean = undefined
+    @observable accessor name?: string = undefined
+    @observable accessor unit?: string = undefined
+    @observable accessor shortUnit?: string = undefined
+    @observable accessor isProjection?: boolean = undefined
+    @observable accessor conversionFactor?: number = undefined
+    @observable accessor roundingMode?: OwidVariableRoundingMode = undefined
+    @observable accessor numDecimalPlaces?: number = undefined
+    @observable accessor numSignificantFigures?: number = undefined
+    @observable accessor tolerance?: number = undefined
+    @observable accessor yearIsDay?: boolean = undefined
+    @observable accessor zeroDay?: string = undefined
+    @observable accessor entityAnnotationsMap?: string = undefined
+    @observable accessor includeInTable? = true
+    @observable accessor tableDisplay?: OwidVariableDataTableConfigInterface
+    @observable accessor color?: string = undefined
+    @observable accessor plotMarkersOnlyInLineChart?: boolean = undefined
 
     constructor() {
         makeObservable(this)

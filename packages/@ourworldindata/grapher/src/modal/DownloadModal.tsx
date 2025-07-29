@@ -219,13 +219,13 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
         return this.props.manager
     }
 
-    @observable private svgBlob?: Blob
-    @observable private svgPreviewUrl?: string
+    @observable private accessor svgBlob?: Blob
+    @observable private accessor svgPreviewUrl?: string
 
-    @observable private pngBlob?: Blob
-    @observable private pngPreviewUrl?: string
+    @observable private accessor pngBlob?: Blob
+    @observable private accessor pngPreviewUrl?: string
 
-    @observable private isReady: boolean = false
+    @observable private accessor isReady: boolean = false
 
     @action.bound private export(): void {
         // render the graphic then cache data-urls for display & blobs for downloads

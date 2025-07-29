@@ -12,8 +12,8 @@ export class UserEditPage extends Component<{ userId: number }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable user?: UserIndexMeta
-    @observable isSaved: boolean = false
+    @observable accessor user?: UserIndexMeta
+    @observable accessor isSaved: boolean = false
 
     constructor(props: { userId: number }) {
         super(props)

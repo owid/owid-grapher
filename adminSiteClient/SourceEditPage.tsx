@@ -24,8 +24,8 @@ interface SourcePageData {
 }
 
 class SourceEditable {
-    @observable name: string = ""
-    @observable description = {
+    @observable accessor name: string = ""
+    @observable accessor description = {
         dataPublishedBy: undefined,
         dataPublisherSource: undefined,
         link: undefined,
@@ -48,8 +48,8 @@ class SourceEditor extends Component<{ source: SourcePageData }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable newSource!: SourceEditable
-    @observable isDeleted: boolean = false
+    @observable accessor newSource!: SourceEditable
+    @observable accessor isDeleted: boolean = false
 
     constructor(props: { source: SourcePageData }) {
         super(props)
@@ -175,7 +175,7 @@ export class SourceEditPage extends Component<{ sourceId: number }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable source?: SourcePageData
+    @observable accessor source?: SourcePageData
 
     constructor(props: { sourceId: number }) {
         super(props)

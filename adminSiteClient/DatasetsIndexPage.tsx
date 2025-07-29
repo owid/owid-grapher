@@ -19,9 +19,9 @@ export class DatasetsIndexPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable datasets: DatasetListItem[] = []
-    @observable maxVisibleRows = 50
-    @observable searchInput?: string
+    @observable accessor datasets: DatasetListItem[] = []
+    @observable accessor maxVisibleRows = 50
+    @observable accessor searchInput?: string
 
     constructor(props: Record<string, never>) {
         super(props)

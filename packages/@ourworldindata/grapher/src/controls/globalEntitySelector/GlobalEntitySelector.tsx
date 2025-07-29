@@ -162,15 +162,16 @@ export class GlobalEntitySelector extends React.Component<GlobalEntitySelectorPr
     refContainer = React.createRef<HTMLDivElement>()
     disposers: IReactionDisposer[] = []
 
-    @observable mode = GlobalEntitySelectionModes.none
+    @observable accessor mode = GlobalEntitySelectionModes.none
 
-    @observable private isNarrow = true
-    @observable private isOpen = false
-    @observable private localEntityName: EntityName | undefined
+    @observable private accessor isNarrow = true
+    @observable private accessor isOpen = false
+    @observable private accessor localEntityName: EntityName | undefined
 
     selection = this.props.selection
 
-    @observable.ref private optionGroups: GroupBase<DropdownEntity>[] = []
+    @observable.ref private accessor optionGroups: GroupBase<DropdownEntity>[] =
+        []
 
     constructor(props: GlobalEntitySelectorProps) {
         super(props)

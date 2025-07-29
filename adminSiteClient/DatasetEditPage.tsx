@@ -51,13 +51,13 @@ interface DatasetPageData {
 }
 
 class DatasetEditable {
-    @observable name: string = ""
-    @observable description: string = ""
-    @observable isPrivate: boolean = false
-    @observable nonRedistributable: boolean = false
-    @observable updatePeriodDays: number | undefined = undefined
+    @observable accessor name: string = ""
+    @observable accessor description: string = ""
+    @observable accessor isPrivate: boolean = false
+    @observable accessor nonRedistributable: boolean = false
+    @observable accessor updatePeriodDays: number | undefined = undefined
 
-    @observable source: OwidSource = {
+    @observable accessor source: OwidSource = {
         id: -1,
         name: "",
         dataPublishedBy: "",
@@ -67,7 +67,7 @@ class DatasetEditable {
         additionalInfo: "",
     }
 
-    @observable tags: DbChartTagJoin[] = []
+    @observable accessor tags: DbChartTagJoin[] = []
 
     constructor(json: DatasetPageData) {
         makeObservable(this)
@@ -124,10 +124,10 @@ interface DatasetEditorProps {
 class DatasetEditor extends Component<DatasetEditorProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
-    @observable newDataset!: DatasetEditable
+    @observable accessor newDataset!: DatasetEditable
 
     // HACK (Mispy): Force variable refresh when dataset metadata is updated
-    @observable timesUpdated: number = 0
+    @observable accessor timesUpdated: number = 0
 
     constructor(props: DatasetEditorProps) {
         super(props)
@@ -425,7 +425,7 @@ interface DatasetEditPageProps {
 export class DatasetEditPage extends Component<DatasetEditPageProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
-    @observable dataset?: DatasetPageData
+    @observable accessor dataset?: DatasetPageData
 
     constructor(props: DatasetEditPageProps) {
         super(props)

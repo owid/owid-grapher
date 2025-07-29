@@ -22,8 +22,8 @@ interface TagPageData {
 }
 
 class TagEditable {
-    @observable name: string = ""
-    @observable slug: string | null = null
+    @observable accessor name: string = ""
+    @observable accessor slug: string | null = null
 
     constructor(json: TagPageData) {
         makeObservable(this)
@@ -38,8 +38,8 @@ class TagEditor extends Component<{ tag: TagPageData }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable newtag!: TagEditable
-    @observable isDeleted: boolean = false
+    @observable accessor newtag!: TagEditable
+    @observable accessor isDeleted: boolean = false
 
     constructor(props: { tag: TagPageData }) {
         super(props)
@@ -187,7 +187,7 @@ export class TagEditPage extends Component<{ tagId: number }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable tag?: TagPageData
+    @observable accessor tag?: TagPageData
 
     constructor(props: { tagId: number }) {
         super(props)

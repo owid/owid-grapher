@@ -217,7 +217,7 @@ export class StackedAreaChart
         })
     }
 
-    @observable tooltipState = new TooltipState<{
+    @observable accessor tooltipState = new TooltipState<{
         index: number // time-index into points array
         series?: SeriesName
     }>({ fade: "immediate" })
@@ -237,8 +237,8 @@ export class StackedAreaChart
         _.extend(this.tooltipState.target, { series: undefined })
     }
 
-    @observable lineLegendHoveredSeriesName?: SeriesName
-    @observable private hoverTimer?: number
+    @observable accessor lineLegendHoveredSeriesName?: SeriesName
+    @observable private accessor hoverTimer?: number
 
     @computed private get paddingForLegendRight(): number {
         return this.lineLegendWidth

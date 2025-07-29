@@ -14,11 +14,11 @@ interface CharacterInterface {
 }
 
 class GameBoyGameDefaults {
-    @observable title?: string
-    @observable players?: number = 2
-    @observable relatedGames?: GameBoyGameDefaults[]
-    @observable characters?: CharacterInterface[]
-    @observable mainCharacter?: CharacterInterface
+    @observable accessor title?: string
+    @observable accessor players?: number = 2
+    @observable accessor relatedGames?: GameBoyGameDefaults[]
+    @observable accessor characters?: CharacterInterface[]
+    @observable accessor mainCharacter?: CharacterInterface
 
     constructor() {
         makeObservable(this)
@@ -50,12 +50,12 @@ class GameBoyGame extends GameBoyGameDefaults implements Persistable {
         return deleteRuntimeAndUnchangedProps(obj, new GameBoyGame())
     }
 
-    @observable someRuntimeProp = 5
+    @observable accessor someRuntimeProp = 5
 }
 
 class CharacterDefaults {
-    @observable name = ""
-    @observable country = ""
+    @observable accessor name = ""
+    @observable accessor country = ""
 
     constructor() {
         makeObservable(this)

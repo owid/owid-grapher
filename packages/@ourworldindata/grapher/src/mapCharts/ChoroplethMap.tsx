@@ -56,8 +56,8 @@ export class ChoroplethMap extends React.Component<{
 }> {
     base = React.createRef<SVGGElement>()
 
-    @observable private hoverEnterFeature?: MapRenderFeature
-    @observable private hoverNearbyFeature?: MapRenderFeature
+    @observable private accessor hoverEnterFeature?: MapRenderFeature
+    @observable private accessor hoverNearbyFeature?: MapRenderFeature
 
     constructor(props: { manager: ChoroplethMapManager }) {
         super(props)

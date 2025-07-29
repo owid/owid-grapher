@@ -43,7 +43,7 @@ export class NarrativeChartEditorPage
 
     isInheritanceEnabled: boolean | undefined = true
 
-    @observable references: References | undefined = undefined
+    @observable accessor references: References | undefined = undefined
 
     async fetchNarrativeChartData(): Promise<void> {
         const data = await this.context.admin.getJSON(
