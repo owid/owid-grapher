@@ -23,7 +23,10 @@ import {
     SeriesStrategy,
 } from "@ourworldindata/types"
 import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable"
-import { getColumnNameForDisplay } from "./searchUtils.js"
+import {
+    getColumnNameForDisplay,
+    calculateTrendDirection,
+} from "./searchUtils.js"
 import { OwidTable } from "@ourworldindata/core-table"
 
 interface BaseArgs {
@@ -192,11 +195,53 @@ function buildDataTablePropsForDiscreteBarChart({
 }
 
 function buildDataTablePropsForSlopeChart({
-    grapherState: _grapherState,
-    chartState: _chartState,
-    maxRows: _maxRows,
+    grapherState,
+    chartState,
+    maxRows,
 }: Args<SlopeChartState>): SearchChartHitDataTableProps {
-    return { rows: [], title: "" }
+    const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
+
+    const rows = Object.values(chartState.series)
+        .map((series) => {
+            const startValue = series.start.value
+            const endValue = series.end.value
+
+            const formattedStartTime = formatColumn.formatTime(
+                series.start.originalTime
+            )
+            const formattedEndTime = formatColumn.formatTime(
+                series.end.originalTime
+            )
+
+            const color =
+                getColorForSeriesIfFaceted(
+                    grapherState,
+                    series.entityName,
+                    series.column.nonEmptyDisplayName
+                ) ?? series.color
+
+            return {
+                endValue: series.end.value,
+                name: series.seriesName,
+                color,
+                value: formatColumn.formatValueShort(endValue),
+                startValue: formatColumn.formatValueShort(startValue),
+                trend: calculateTrendDirection(startValue, endValue),
+                time: `${formattedStartTime}–${formattedEndTime}`,
+                muted: series.focus.background,
+            }
+        })
+        .filter((row) => row !== undefined)
+
+    // Sort by value in descending order
+    const sortedRows = R.sortBy(rows, (row) => -row.endValue)
+
+    const displayRows =
+        maxRows !== undefined ? sortedRows.slice(0, maxRows) : sortedRows
+
+    const title = makeTableTitle(grapherState, chartState)
+
+    return { rows: displayRows, title }
 }
 
 function buildDataTablePropsForStackedDiscreteBarChart({
