@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import type { History } from "history"
-import { computed, runInAction, override, makeObservable } from "mobx"
+import { computed, runInAction, makeObservable } from "mobx"
 import {
     AbstractChartEditor,
     AbstractChartEditorManager,
@@ -56,7 +56,7 @@ export class NarrativeChartEditor extends AbstractChartEditor<NarrativeChartEdit
         return this.manager.references
     }
 
-    @override override get patchConfig(): GrapherInterface {
+    override get patchConfig(): GrapherInterface {
         const config = _.omit(
             this.liveConfigWithDefaults,
             NARRATIVE_CHART_PROPS_TO_OMIT
