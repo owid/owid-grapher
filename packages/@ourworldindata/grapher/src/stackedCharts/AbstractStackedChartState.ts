@@ -32,6 +32,7 @@ import {
 } from "../color/CategoricalColorAssigner.js"
 import { BinaryMapPaletteE } from "../color/CustomSchemes.js"
 import { checkIsStackingEntitiesSensible } from "./StackedUtils.js"
+import { FocusArray } from "../focus/FocusArray.js"
 
 // used in StackedBar charts to color negative and positive bars
 const POSITIVE_COLOR = BinaryMapPaletteE.colorSets[0][0] // orange
@@ -140,6 +141,7 @@ export abstract class AbstractStackedChartState implements ChartState {
                     isProjection: col.isProjection,
                     seriesName: col.displayName,
                     rows: col.owidRows,
+                    focus: this.focusArray.state(col.displayName),
                 }
             })
             .toReversed() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
@@ -156,6 +158,7 @@ export abstract class AbstractStackedChartState implements ChartState {
                     isProjection,
                     seriesName,
                     rows: owidRowsByEntityName.get(seriesName) || [],
+                    focus: this.focusArray.state(seriesName),
                 }
             })
             .toReversed() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
@@ -198,6 +201,10 @@ export abstract class AbstractStackedChartState implements ChartState {
 
     @computed get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager.selection)
+    }
+
+    @computed get focusArray(): FocusArray {
+        return this.manager.focusArray ?? new FocusArray()
     }
 
     @computed get isEntitySeries(): boolean {
@@ -286,8 +293,9 @@ export abstract class AbstractStackedChartState implements ChartState {
                     points,
                     isAllZeros: points.every((point) => point.value === 0),
                     color: this.categoricalColorAssigner.assign(seriesName),
+                    focus: series.focus,
                 }
-            }) as StackedSeries<number>[]
+            })
     }
 
     @computed get errorInfo(): ChartErrorInfo {
