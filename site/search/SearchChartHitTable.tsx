@@ -18,6 +18,7 @@ import {
     GRAPHER_MAP_TYPE,
     GRAPHER_TAB_NAMES,
     PrimitiveType,
+    SeriesName,
     SeriesStrategy,
 } from "@ourworldindata/types"
 import { SearchChartHitTableContent } from "./SearchChartHitTableContent"
@@ -158,9 +159,13 @@ function LineChartTable({
             const point = R.firstBy(series.points, [(point) => point.x, "desc"])
             if (!point) return undefined
 
+            const color =
+                getColorForSeriesIfFaceted(grapherState, series.seriesName) ??
+                series.color
+
             return {
                 name: series.seriesName,
-                color: series.color,
+                color,
                 value:
                     formatValueIfCustom(point.y) ??
                     formatColumn.formatValueShort(point.y),
@@ -285,4 +290,33 @@ function makeSeriesListTitle(
         : grapherState.selection.selectedEntityNames[0]
 
     return unit ? `${title} (${unit})` : title
+}
+
+function getColorForSeriesIfFaceted(
+    grapherState: GrapherState,
+    seriesName: SeriesName
+): string | undefined {
+    if (!grapherState.isFaceted || !grapherState.facetChartInstance)
+        return undefined
+
+    const { facetChartInstance } = grapherState
+
+    // Reset the persisted color map to make sure the data table
+    // uses the same colors as the thumbnails
+    facetChartInstance.seriesColorMap.clear()
+
+    // Find the chart instance that renders the given series
+    const facetSeriesIndex = facetChartInstance.series.findIndex(
+        (s) => s.seriesName === seriesName
+    )
+    if (facetSeriesIndex < 0) return undefined
+    const chartInstance =
+        facetChartInstance.intermediateChartInstances[facetSeriesIndex]
+
+    // Typically, there is only one series per facet. There might be two if
+    // the chart has projected data, but in that case, the historical and
+    // projected line typically share the same color.
+    const series = chartInstance?.chartState.series[0]
+
+    return series?.color
 }
