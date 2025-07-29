@@ -113,8 +113,8 @@ function EveryOrgSection({
 @observer
 export class DonateForm extends React.Component<{ countryCode?: string }> {
     @observable accessor interval: DonationInterval = "once"
-    @observable accessor presetAmount: number | undefined = (undefined =
-        amountsByInterval.once[DEFAULT_AMOUNT_INDEX])
+    @observable accessor presetAmount: number | undefined =
+        amountsByInterval.once[DEFAULT_AMOUNT_INDEX]
     @observable accessor customAmount: string = ""
     @observable accessor name: string = ""
     @observable accessor showOnList: boolean = true
@@ -125,10 +125,12 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
     @observable accessor currencyCode: DonationCurrencyCode = "GBP"
 
     captchaInstance = React.createRef<Recaptcha>()
-    @observable.ref accessor captchaPromiseHandlers?: {
-        resolve: (value: any) => void
-        reject: (value: any) => void
-    }
+    @observable.ref accessor captchaPromiseHandlers:
+        | {
+              resolve: (value: any) => void
+              reject: (value: any) => void
+          }
+        | undefined = undefined
 
     constructor(props: { countryCode?: string }) {
         super(props)

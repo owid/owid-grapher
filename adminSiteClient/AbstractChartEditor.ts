@@ -65,7 +65,9 @@ export abstract class AbstractChartEditor<
     )
     @observable.ref accessor currentRequest: Promise<any> | undefined // Whether the current chart state is saved or not
     @observable.ref accessor tab: EditorTab = "basic"
-    @observable.ref accessor errorMessage?: { title: string; content: string }
+    @observable.ref accessor errorMessage:
+        | { title: string; content: string }
+        | undefined = undefined
     @observable.ref accessor previewMode: "mobile" | "desktop"
     @observable.ref accessor showStaticPreview = false
     @observable.ref accessor savedPatchConfig: GrapherInterface = {}
