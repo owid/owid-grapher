@@ -4,6 +4,7 @@
     @include sm-only {
         min-height: calc(100vh - $header-height-sm);
     }
+    margin-bottom: 56px;
 }
 
 .search-header {
