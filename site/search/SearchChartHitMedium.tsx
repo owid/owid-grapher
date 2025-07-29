@@ -26,7 +26,6 @@ import {
     constructGrapherValuesJson,
     mapGrapherTabNameToConfigOption,
     makeLabelForGrapherTab,
-    ChartSeries,
     mapGrapherTabNameToQueryParam,
     CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME,
 } from "@ourworldindata/grapher"
@@ -45,7 +44,8 @@ import {
 import { chartHitQueryKeys } from "./queries.js"
 import { SearchChartHitThumbnail } from "./SearchChartHitThumbnail.js"
 import { SearchChartHitDataDisplay } from "./SearchChartHitDataDisplay.js"
-import { SearchChartHitTable } from "./SearchChartHitTable.js"
+import { buildChartHitDataTableProps } from "./SearchChartHitDataTableHelpers.js"
+import { SearchChartHitDataTable } from "./SearchChartHitDataTable.js"
 import { match } from "ts-pattern"
 
 interface SearchChartHitMediumProps {
@@ -216,18 +216,27 @@ function SearchChartHitMediumRichData({
         isEntityPickedByUser: pickedEntities.length > 0,
     })
 
-    const gridSlotsByGrapherTab = new Map(
+    // Figure out the layout by assigning each Grapher tab to grid slots.
+    // The table tab can optionally span two slots (instead of the usual one)
+    // if there's enough space in the grid and enough data to justify it.
+    // Since this decision depends on the number of table rows, we need to
+    // build the table props first to get the row count.
+    const dataTableProps = buildChartHitDataTableProps({ grapherState })
+    const gridSlotByGrapherTab = new Map(
         sortedTabs.map((tab, tabIndex) => [
             tab,
-            findSlotForGrapherTab(sortedTabs, tabIndex, {
+            findSlotForGrapherTab({
+                tab,
+                tabIndex,
+                numTabs: sortedTabs.length,
+                numTableRows: dataTableProps.rows.length,
                 hasDataDisplay: !!dataDisplayProps,
-                chartSeries: grapherState.chartState.series,
             }),
         ])
     )
 
     // Only select as many entities as we have space for in the table
-    const tableSlot = gridSlotsByGrapherTab.get(GRAPHER_TAB_NAMES.Table)
+    const tableSlot = gridSlotByGrapherTab.get(GRAPHER_TAB_NAMES.Table)
     if (tableSlot) {
         const maxNumEntities = tableSlot === GridSlot.DoubleSlot ? 8 : 4
         grapherState.selection.setSelectedEntities(
@@ -252,16 +261,27 @@ function SearchChartHitMediumRichData({
             />
 
             <div className="search-chart-hit-medium__content">
-                {sortedTabs.map((tab) => (
-                    <GrapherTabPreview
-                        key={tab}
-                        hit={hit}
-                        tab={tab}
-                        slot={gridSlotsByGrapherTab.get(tab)}
-                        grapherState={grapherState}
-                        onClick={onClick}
-                    />
-                ))}
+                {sortedTabs.map((tab) =>
+                    tab === GRAPHER_TAB_NAMES.Table ? (
+                        <CaptionedTable
+                            key={tab}
+                            hit={hit}
+                            tab={tab}
+                            slot={gridSlotByGrapherTab.get(tab)}
+                            grapherState={grapherState}
+                            onClick={onClick}
+                        />
+                    ) : (
+                        <CaptionedThumbnail
+                            key={tab}
+                            hit={hit}
+                            tab={tab}
+                            slot={gridSlotByGrapherTab.get(tab)}
+                            grapherState={grapherState}
+                            onClick={onClick}
+                        />
+                    )
+                )}
 
                 {dataDisplayProps && (
                     <SearchChartHitDataDisplay
@@ -404,7 +424,7 @@ function SearchChartHitMediumFallback({
     )
 }
 
-function GrapherTabPreview({
+function CaptionedTable({
     hit,
     tab,
     slot = GridSlot.SingleSlot,
@@ -417,39 +437,27 @@ function GrapherTabPreview({
     grapherState: GrapherState
     onClick?: () => void
 }): React.ReactElement {
-    // Use Grapher's changedParams to construct chart and preview URLs.
-    // We override the tab parameter because the GrapherState is currently set to
-    // the first tab of the chart, but we need to generate URLs for the specific
-    // tab being rendered in this preview.
-    const grapherParams = {
-        ...grapherState.changedParams,
-        tab: mapGrapherTabNameToQueryParam(tab),
-    }
-    const chartUrl = constructChartUrl({
+    const { chartUrl } = constructChartAndPreviewUrlsForTab({
         hit,
-        // We don't want to link to a chart where entities are highlighted
-        grapherParams: R.omit(grapherParams, ["focus"]),
+        grapherState,
+        tab,
     })
-    const previewUrl = constructThumbnailUrl({ hit, grapherParams })
 
     // Construct caption
     const numAvailableEntities =
         grapherState.addCountryMode === EntitySelectionMode.Disabled
             ? grapherState.transformedTable.availableEntityNames.length
             : grapherState.availableEntityNames.length
-    const tableCaption =
+    const caption =
         numAvailableEntities === 1
             ? `Data available for ${numAvailableEntities} ${grapherState.entityType}`
             : `Data available for ${numAvailableEntities} ${grapherState.entityTypePlural}`
-    const chartCaption = makeLabelForGrapherTab(tab, { format: "long" })
-    const isTableTab = tab === GRAPHER_TAB_NAMES.Table
-    const caption = isTableTab ? tableCaption : chartCaption
 
-    // When entities are plotted, this shouldn't be necessary because the grapherState
-    // has been prepared to have 4 or 8 entities selected at most. However, when columns
-    // are plotted, we need to limit the number of rows because the chart might contain
-    // more than 4 or 8 columns.
-    const maxRows = slot === GridSlot.SingleSlot ? 4 : 8
+    const maxRows = slot === GridSlot.DoubleSlot ? 8 : 4
+    const dataTableProps = buildChartHitDataTableProps({
+        grapherState,
+        maxRows,
+    })
 
     return (
         <CaptionedLink
@@ -458,14 +466,40 @@ function GrapherTabPreview({
             className={slot}
             onClick={onClick}
         >
-            {isTableTab ? (
-                <SearchChartHitTable
-                    grapherState={grapherState}
-                    maxRows={maxRows}
-                />
-            ) : (
-                <SearchChartHitThumbnail previewUrl={previewUrl} />
-            )}
+            <SearchChartHitDataTable {...dataTableProps} />
+        </CaptionedLink>
+    )
+}
+
+function CaptionedThumbnail({
+    hit,
+    tab,
+    grapherState,
+    slot = GridSlot.SingleSlot,
+    onClick,
+}: {
+    hit: SearchChartHit
+    tab: GrapherTabName
+    grapherState: GrapherState
+    slot?: GridSlot
+    onClick?: () => void
+}): React.ReactElement {
+    const { chartUrl, previewUrl } = constructChartAndPreviewUrlsForTab({
+        hit,
+        grapherState,
+        tab,
+    })
+
+    const caption = makeLabelForGrapherTab(tab, { format: "long" })
+
+    return (
+        <CaptionedLink
+            caption={caption}
+            url={chartUrl}
+            className={slot}
+            onClick={onClick}
+        >
+            <SearchChartHitThumbnail previewUrl={previewUrl} />
         </CaptionedLink>
     )
 }
@@ -552,31 +586,64 @@ function pickEntitiesForDisplay({
         .exhaustive()
 }
 
-function findSlotForGrapherTab(
-    grapherTabs: GrapherTabName[],
-    index: number,
-    {
-        hasDataDisplay,
-        chartSeries,
-    }: { hasDataDisplay: boolean; chartSeries: readonly ChartSeries[] }
-): GridSlot {
+function findSlotForGrapherTab({
+    tab,
+    tabIndex,
+    hasDataDisplay,
+    numTableRows,
+    numTabs,
+}: {
+    tab: GrapherTabName
+    tabIndex: number
+    hasDataDisplay: boolean
+    numTableRows: number
+    numTabs: number
+}): GridSlot {
     // Tabs at array indices 3 and 4 (positions 4 and 5) are placed in
     // smaller slots below the data display
-    if (index === 3) return GridSlot.SmallSlotLeft
-    if (index === 4) return GridSlot.SmallSlotRight
+    if (tabIndex === 3) return GridSlot.SmallSlotLeft
+    if (tabIndex === 4) return GridSlot.SmallSlotRight
 
-    // Check if the table tab can stretch two slots
-    const currentTab = grapherTabs[index]
-    const isTableTab = currentTab === GRAPHER_TAB_NAMES.Table
-    const grapherHasSufficientDataForWideTable = chartSeries.length > 4
+    // All thumbnails take up a single slot
+    const isTableTab = tab === GRAPHER_TAB_NAMES.Table
+    if (!isTableTab) return GridSlot.SingleSlot
+
+    // Check if there is enough space for the table to take two slots
     const gridHasSufficientSpaceForDoubleSlot =
-        grapherTabs.length <= 2 || (grapherTabs.length <= 3 && !hasDataDisplay)
-    if (
-        isTableTab &&
-        grapherHasSufficientDataForWideTable &&
-        gridHasSufficientSpaceForDoubleSlot
-    )
-        return GridSlot.DoubleSlot
+        numTabs <= 2 || (numTabs <= 3 && !hasDataDisplay)
+    if (!gridHasSufficientSpaceForDoubleSlot) return GridSlot.SingleSlot
+
+    // Check if there is enough data to fill two slots
+    if (numTableRows > 4) return GridSlot.DoubleSlot
 
     return GridSlot.SingleSlot
+}
+
+function constructChartAndPreviewUrlsForTab({
+    hit,
+    grapherState,
+    tab,
+}: {
+    hit: SearchChartHit
+    grapherState: GrapherState
+    tab: GrapherTabName
+}): { chartUrl: string; previewUrl: string } {
+    // Use Grapher's changedParams to construct chart and preview URLs.
+    // We override the tab parameter because the GrapherState is currently set to
+    // the first tab of the chart, but we need to generate URLs for the specific
+    // tab being rendered in this preview.
+    const grapherParams = {
+        ...grapherState.changedParams,
+        tab: mapGrapherTabNameToQueryParam(tab),
+    }
+
+    const previewUrl = constructThumbnailUrl({ hit, grapherParams })
+
+    const chartUrl = constructChartUrl({
+        hit,
+        // We don't want to link to a chart where entities are highlighted
+        grapherParams: R.omit(grapherParams, ["focus"]),
+    })
+
+    return { chartUrl, previewUrl }
 }
