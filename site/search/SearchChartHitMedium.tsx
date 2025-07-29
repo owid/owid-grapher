@@ -54,7 +54,7 @@ interface SearchChartHitMediumProps {
     onClick?: () => void
 }
 
-enum SearchChartHitMediumGridSlot {
+enum GridSlot {
     SingleSlot = "single-slot",
     DoubleSlot = "double-slot",
     SmallSlotLeft = "small-slot-left",
@@ -214,6 +214,29 @@ function SearchChartHitMediumRichData({
         isEntityPickedByUser: pickedEntities.length > 0,
     })
 
+    const gridSlotsByGrapherTab = new Map(
+        sortedTabs.map((tab, tabIndex) => [
+            tab,
+            findSlotForGrapherTab(sortedTabs, tabIndex, {
+                hasDataDisplay: !!dataDisplayProps,
+                chartSeries: grapherState.chartState.series,
+            }),
+        ])
+    )
+
+    // Only select as many entities as we have space for in the table
+    const tableSlot = gridSlotsByGrapherTab.get(GRAPHER_TAB_NAMES.Table)
+    if (tableSlot) {
+        const maxNumEntities = tableSlot === GridSlot.DoubleSlot ? 8 : 4
+        grapherState.selection.setSelectedEntities(
+            grapherState.selection.selectedEntityNames.slice(0, maxNumEntities)
+        )
+    }
+
+    // Reset the persisted color map to make sure the data table
+    // and thumbnails use the some colors for the same entities
+    grapherState.seriesColorMap?.clear()
+
     const entityParam = toGrapherQueryParams({ entities })
     const chartUrl = constructChartUrl({ hit, grapherParams: entityParam })
 
@@ -227,23 +250,16 @@ function SearchChartHitMediumRichData({
             />
 
             <div className="search-chart-hit-medium__content">
-                {sortedTabs.map((tab, index) => {
-                    const slot = findSlotForGrapherTab(sortedTabs, index, {
-                        hasDataDisplay: !!dataDisplayProps,
-                        chartSeries: grapherState.chartState.series,
-                    })
-
-                    return (
-                        <GrapherTabPreview
-                            key={tab}
-                            hit={hit}
-                            tab={tab}
-                            slot={slot}
-                            grapherState={grapherState}
-                            onClick={onClick}
-                        />
-                    )
-                })}
+                {sortedTabs.map((tab) => (
+                    <GrapherTabPreview
+                        key={tab}
+                        hit={hit}
+                        tab={tab}
+                        slot={gridSlotsByGrapherTab.get(tab)}
+                        grapherState={grapherState}
+                        onClick={onClick}
+                    />
+                ))}
 
                 {dataDisplayProps && (
                     <SearchChartHitDataDisplay
@@ -324,12 +340,12 @@ function SearchChartHitMediumFallback({
 
             <div className="search-chart-hit-medium__content">
                 {grapherTabs.map((tab, index) => {
-                    const slot: SearchChartHitMediumGridSlot =
+                    const slot: GridSlot =
                         index < 3
-                            ? SearchChartHitMediumGridSlot.SingleSlot
+                            ? GridSlot.SingleSlot
                             : index === 3
-                              ? SearchChartHitMediumGridSlot.SmallSlotLeft
-                              : SearchChartHitMediumGridSlot.SmallSlotRight
+                              ? GridSlot.SmallSlotLeft
+                              : GridSlot.SmallSlotRight
 
                     const caption = makeLabelForGrapherTab(tab, {
                         format: "long",
@@ -389,13 +405,13 @@ function SearchChartHitMediumFallback({
 function GrapherTabPreview({
     hit,
     tab,
-    slot,
+    slot = GridSlot.SingleSlot,
     grapherState,
     onClick,
 }: {
     hit: SearchChartHit
     tab: GrapherTabName
-    slot: SearchChartHitMediumGridSlot
+    slot?: GridSlot
     grapherState: GrapherState
     onClick?: () => void
 }): React.ReactElement {
@@ -424,8 +440,11 @@ function GrapherTabPreview({
     const isTableTab = tab === GRAPHER_TAB_NAMES.Table
     const caption = isTableTab ? tableCaption : chartCaption
 
-    // If two slots are available to us, we can show more rows
-    const maxRows = slot === "double-slot" ? 8 : 4
+    // When entities are plotted, this shouldn't be necessary because the grapherState
+    // has been prepared to have 4 or 8 entities selected at most. However, when columns
+    // are plotted, we need to limit the number of rows because the chart might contain
+    // more than 4 or 8 columns.
+    const maxRows = slot === GridSlot.SingleSlot ? 4 : 8
 
     return (
         <CaptionedLink
@@ -487,22 +506,25 @@ function GrapherThumbnailPlaceholder(): React.ReactElement {
 function pickEntitiesForDisplay({
     grapherState,
     pickedEntities,
-    maxNumEntities = 4,
+    minNumEntities = 4,
 }: {
     grapherState: GrapherState
     pickedEntities: EntityName[] // picked by the user
-    maxNumEntities?: number
+    minNumEntities?: number
 }): EntityName[] {
-    // Make sure the default entities actually exist in the chart
-    const defaultEntities = grapherState.selection.selectedEntityNames.filter(
-        (entityName) => grapherState.availableEntityNames.includes(entityName)
-    )
-
+    // Add default entities if the number of picked entities doesn't reach the minimum
     const numPickedEntities = pickedEntities.length
-    if (numPickedEntities >= maxNumEntities) return pickedEntities.slice(0, 4)
+    if (numPickedEntities < minNumEntities) {
+        // Make sure the default entities actually exist in the chart
+        const defaultEntities =
+            grapherState.selection.selectedEntityNames.filter((entityName) =>
+                grapherState.availableEntityNames.includes(entityName)
+            )
 
-    const numFreeSlots = maxNumEntities - numPickedEntities
-    return [...pickedEntities, ...defaultEntities.slice(0, numFreeSlots)]
+        return R.unique([...pickedEntities, ...defaultEntities])
+    }
+
+    return pickedEntities
 }
 
 function findSlotForGrapherTab(
@@ -512,11 +534,11 @@ function findSlotForGrapherTab(
         hasDataDisplay,
         chartSeries,
     }: { hasDataDisplay: boolean; chartSeries: readonly ChartSeries[] }
-): SearchChartHitMediumGridSlot {
+): GridSlot {
     // Tabs at array indices 3 and 4 (positions 4 and 5) are placed in
     // smaller slots below the data display
-    if (index === 3) return SearchChartHitMediumGridSlot.SmallSlotLeft
-    if (index === 4) return SearchChartHitMediumGridSlot.SmallSlotRight
+    if (index === 3) return GridSlot.SmallSlotLeft
+    if (index === 4) return GridSlot.SmallSlotRight
 
     // Check if the table tab can stretch two slots
     const currentTab = grapherTabs[index]
@@ -529,7 +551,7 @@ function findSlotForGrapherTab(
         grapherHasSufficientDataForWideTable &&
         gridHasSufficientSpaceForDoubleSlot
     )
-        return SearchChartHitMediumGridSlot.DoubleSlot
+        return GridSlot.DoubleSlot
 
-    return SearchChartHitMediumGridSlot.SingleSlot
+    return GridSlot.SingleSlot
 }
