@@ -216,18 +216,10 @@ export class SlopeChart
         })
     }
 
-    private focusStateForSeries(series: SlopeChartSeries): InteractionState {
-        return this.focusArray.state(series.seriesName)
-    }
-
     @computed private get renderSeries(): RenderSlopeChartSeries[] {
         const series: RenderSlopeChartSeries[] = this.placedSeries.map(
             (series) => {
-                return {
-                    ...series,
-                    hover: this.hoverStateForSeries(series),
-                    focus: this.focusStateForSeries(series),
-                }
+                return { ...series, hover: this.hoverStateForSeries(series) }
             }
         )
 
@@ -592,8 +584,8 @@ export class SlopeChart
             formattedValue: showSeriesName ? formattedValue : undefined,
             placeFormattedValueInNewLine: this.useCompactLayout,
             yValue: value,
+            focus: series.focus,
             hover: this.hoverStateForSeries(series),
-            focus: this.focusStateForSeries(series),
         }
     }
 

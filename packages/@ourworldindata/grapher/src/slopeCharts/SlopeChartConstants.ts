@@ -21,6 +21,7 @@ export interface SlopeChartSeries extends ChartSeries {
     start: Pick<OwidVariableRow<number>, "value" | "originalTime">
     end: Pick<OwidVariableRow<number>, "value" | "originalTime">
     annotation?: string
+    focus: InteractionState
 }
 
 export type RawSlopeChartSeries = PartialBy<SlopeChartSeries, "start" | "end">
