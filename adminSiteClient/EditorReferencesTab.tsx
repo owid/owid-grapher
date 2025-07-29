@@ -246,7 +246,7 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor slug: string | undefined = (undefined = "")
+    @observable accessor slug: string | undefined = ""
 
     @observable accessor isLoading: boolean = false
     @observable accessor errorMessage: string | undefined = undefined
