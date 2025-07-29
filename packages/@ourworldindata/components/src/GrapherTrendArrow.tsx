@@ -1,5 +1,7 @@
 import cx from "classnames"
 
+export type GrapherTrendArrowDirection = "up" | "right" | "down"
+
 const ARROW_PATHS = {
     up: "m14,0H5c-.552,0-1,.448-1,1s.448,1,1,1h6.586L.29303,13.29297l1.41394,1.414L13,3.41394v6.58606c0,.552.448,1,1,1s1-.448,1-1V1c0-.552-.448-1-1-1Z",
     down: "m14,4c-.552,0-1,.448-1,1v6.586L1.56049.14648.14655,1.56042l11.43958,11.43958h-6.58612c-.552,0-1,.448-1,1s.448,1,1,1h9c.552,0,1-.448,1-1V5c0-.552-.448-1-1-1Z",
@@ -8,12 +10,14 @@ const ARROW_PATHS = {
 
 export function GrapherTrendArrow({
     direction,
+    className,
 }: {
-    direction: "up" | "right" | "down"
+    direction: GrapherTrendArrowDirection
+    className?: string
 }): React.ReactElement {
     return (
         <svg
-            className={cx("GrapherTrendArrow", direction)}
+            className={cx("GrapherTrendArrow", direction, className)}
             xmlns="http://www.w3.org/2000/svg"
             viewBox={`0 0 ${direction === "right" ? 20 : 15} 15`}
         >
