@@ -9,9 +9,12 @@ import {
     DbPlainChart,
     DbRawChartConfig,
 } from "@ourworldindata/types"
-import { ExplorerProgram, Explorer, ExplorerProps } from "@ourworldindata/explorer"
+import {
+    ExplorerProgram,
+    Explorer,
+    ExplorerProps,
+} from "@ourworldindata/explorer"
 import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerCatalogResolver.js"
-import { constructGrapherConfig } from "./ExplorerViewsHelpers.js"
 import { insertChartConfig, updateExistingConfigPair } from "./ChartConfigs.js"
 import { uuidv7 } from "uuidv7"
 import { isEqual } from "lodash-es"
@@ -92,7 +95,8 @@ async function fetchExplorerDataForViews(
 
         // check if all required variable IDs exist in the database
         const missingIds = requiredVariableIds.filter(
-            (id: number) => !partialGrapherConfigRows.find((row) => row.id === id)
+            (id: number) =>
+                !partialGrapherConfigRows.find((row) => row.id === id)
         )
         if (missingIds.length > 0) {
             void logErrorAndMaybeCaptureInSentry(
@@ -157,28 +161,43 @@ function createExplorerForViews(data: ExplorerDataForViews): Explorer {
         dataApiUrl: DATA_API_URL,
     }
 
-    // Create Explorer with initializeGrapher: false to avoid setting up the actual grapher
+    // Create Explorer with setupGrapher: false to avoid setting up the actual grapher
     return new Explorer(props, false)
 }
 
 async function iterateExplorerViews(
     explorer: Explorer,
-    knex: KnexReadWriteTransaction
+    _knex: KnexReadWriteTransaction
 ): Promise<Array<DbInsertExplorerView & { config?: GrapherInterface }>> {
     const explorerProgram = explorer.explorerProgram
-    const generatedViews: Array<DbInsertExplorerView & { config?: GrapherInterface }> = []
+    const generatedViews: Array<
+        DbInsertExplorerView & { config?: GrapherInterface }
+    > = []
     const grapherRows = explorerProgram.decisionMatrix.table.rows
 
     for (const grapherRow of grapherRows) {
-        const view = explorerProgram.decisionMatrix.getChoiceParamsForRow(grapherRow)
+        const view =
+            explorerProgram.decisionMatrix.getChoiceParamsForRow(grapherRow)
         const explorerViewStr = JSON.stringify(view)
 
         try {
-            const config = await constructGrapherConfig(
-                knex,
-                explorerProgram,
-                grapherRow
-            )
+            // Set the slide to this specific view - this will update the explorer's state
+            explorer.setSlide(view)
+
+            // Trigger the grapher update from the explorer
+            explorer.updateGrapherFromExplorer()
+
+            // Wait for any async operations to complete
+            // await new Promise(resolve => setTimeout(resolve, 0))
+
+            // Extract the generated config from the explorer's grapher state
+            const config = explorer.grapherState.object
+
+            if (!config) {
+                throw new Error(
+                    "Failed to generate grapher config from Explorer"
+                )
+            }
 
             generatedViews.push({
                 explorerSlug: explorerProgram.slug,
@@ -244,9 +263,12 @@ export async function refreshExplorerViewsForSlug(
     const rawExplorerProgram = new ExplorerProgram(slug, explorer.tsv)
 
     // Create full Explorer instance and iterate over its views
-    const explorerData = await fetchExplorerDataForViews(knex, rawExplorerProgram)
+    const explorerData = await fetchExplorerDataForViews(
+        knex,
+        rawExplorerProgram
+    )
     const explorerInstance = createExplorerForViews(explorerData)
-    
+
     // Generate all new views with their configs using the full Explorer instance
     type GeneratedView = DbInsertExplorerView & {
         config?: GrapherInterface // GrapherInterface - temporary field for comparison
