@@ -17,8 +17,6 @@ export default tseslint.config(
     react.configs.flat.recommended,
     react.configs.flat["jsx-runtime"],
     reactHooks.configs["recommended-latest"],
-
-    //@ts-expect-error
     mobx.flatConfigs.recommended,
     {
         files: [
