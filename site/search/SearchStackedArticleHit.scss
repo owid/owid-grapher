@@ -15,11 +15,10 @@
 
 .search-stacked-article-hit__image {
     display: flex;
-    width: auto;
-    height: auto;
-    max-height: 152px;
+    width: 100%;
+    height: 152px;
     max-width: 100%;
-    object-fit: contain;
+    object-fit: cover;
     margin-bottom: 12px;
 }
 
@@ -30,7 +29,6 @@
     font-weight: 700;
     line-height: 1.25;
     color: $blue-90;
-    text-wrap: balance;
     margin: 0 0 4px 0;
 }
 
