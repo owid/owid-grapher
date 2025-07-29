@@ -5736,6 +5736,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@resvg/resvg-wasm@npm:^2.6.2":
+  version: 2.6.2
+  resolution: "@resvg/resvg-wasm@npm:2.6.2"
+  checksum: 10/11f9619e65de2248b1cd5e241cc71848fff7e3eb83f57c3fa36091956daa0146b804b5cf105d4804b77099062f89be09105271e57b67b390cd589f49f097aba4
+  languageName: node
+  linkType: hard
+
 "@rmp135/sql-ts@npm:^2.1.0":
   version: 2.1.0
   resolution: "@rmp135/sql-ts@npm:2.1.0"
@@ -17240,6 +17247,7 @@ __metadata:
     "@ourworldindata/grapher": "workspace:^"
     "@ourworldindata/types": "workspace:^"
     "@ourworldindata/utils": "workspace:^"
+    "@resvg/resvg-wasm": "npm:^2.6.2"
     "@sentry/cloudflare": "npm:^9.42.0"
     "@types/lodash-es": "npm:^4"
     "@types/react": "npm:^19.1.8"
@@ -17249,7 +17257,6 @@ __metadata:
     react: "npm:^19.1.0"
     react-dom: "npm:^19.1.0"
     stripe: "npm:^14.20.0"
-    svg2png-wasm: "npm:^1.4.1"
     uuidv7: "npm:^1.0.1"
     zod: "npm:^4.0.5"
   languageName: unknown
@@ -20783,13 +20790,6 @@ __metadata:
   version: 1.0.0
   resolution: "supports-preserve-symlinks-flag@npm:1.0.0"
   checksum: 10/a9dc19ae2220c952bd2231d08ddeecb1b0328b61e72071ff4000c8384e145cc07c1c0bdb3b5a1cb06e186a7b2790f1dee793418b332f6ddf320de25d9125be7e
-  languageName: node
-  linkType: hard
-
-"svg2png-wasm@npm:^1.4.1":
-  version: 1.4.1
-  resolution: "svg2png-wasm@npm:1.4.1"
-  checksum: 10/9c4249fd00207eee91052a2ad45683d16cefbd1c6f805159a8d4a7302df1d6486cf62e59c99f903fb7ed2ae282ceb09e9c1095b527a691d1e7b37360635e8878
   languageName: node
   linkType: hard
 
