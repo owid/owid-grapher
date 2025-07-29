@@ -1175,6 +1175,14 @@ export class GrapherState {
             : this.chartStateExceptMap
     }
 
+    @computed get facetChartInstance(): FacetChart | undefined {
+        if (!this.isFaceted) return undefined
+        return new FacetChart({
+            manager: this,
+            chartTypeName: this.activeChartType,
+        })
+    }
+
     // When Map becomes a first-class chart instance, we should drop this
     @computed get chartStateExceptMap(): ChartState {
         const chartType = this.activeChartType ?? GRAPHER_CHART_TYPES.LineChart
@@ -1187,14 +1195,13 @@ export class GrapherState {
 
         // collect series names from all chart instances when faceted
         if (this.isFaceted) {
-            const facetChartInstance = new FacetChart({ manager: this })
             return _.uniq(
-                facetChartInstance.intermediateChartInstances.flatMap(
+                this.facetChartInstance?.intermediateChartInstances.flatMap(
                     (chartInstance) =>
                         chartInstance.chartState.series.map(
                             (series) => series.seriesName
                         )
-                )
+                ) ?? []
             )
         }
 
