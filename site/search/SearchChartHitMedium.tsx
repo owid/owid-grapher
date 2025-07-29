@@ -40,11 +40,13 @@ import {
     EntityName,
     FacetStrategy,
     SeriesStrategy,
+    EntitySelectionMode,
 } from "@ourworldindata/types"
 import { chartHitQueryKeys } from "./queries.js"
 import { SearchChartHitThumbnail } from "./SearchChartHitThumbnail.js"
 import { SearchChartHitDataDisplay } from "./SearchChartHitDataDisplay.js"
 import { SearchChartHitTable } from "./SearchChartHitTable.js"
+import { match } from "ts-pattern"
 
 interface SearchChartHitMediumProps {
     hit: SearchChartHit
@@ -431,7 +433,10 @@ function GrapherTabPreview({
     const previewUrl = constructThumbnailUrl({ hit, grapherParams })
 
     // Construct caption
-    const numAvailableEntities = grapherState.availableEntityNames.length
+    const numAvailableEntities =
+        grapherState.addCountryMode === EntitySelectionMode.Disabled
+            ? grapherState.transformedTable.availableEntityNames.length
+            : grapherState.availableEntityNames.length
     const tableCaption =
         numAvailableEntities === 1
             ? `Data available for ${numAvailableEntities} ${grapherState.entityType}`
@@ -506,25 +511,45 @@ function GrapherThumbnailPlaceholder(): React.ReactElement {
 function pickEntitiesForDisplay({
     grapherState,
     pickedEntities,
-    minNumEntities = 4,
 }: {
     grapherState: GrapherState
     pickedEntities: EntityName[] // picked by the user
-    minNumEntities?: number
 }): EntityName[] {
-    // Add default entities if the number of picked entities doesn't reach the minimum
-    const numPickedEntities = pickedEntities.length
-    if (numPickedEntities < minNumEntities) {
-        // Make sure the default entities actually exist in the chart
-        const defaultEntities =
-            grapherState.selection.selectedEntityNames.filter((entityName) =>
-                grapherState.availableEntityNames.includes(entityName)
+    // Make sure the default entities actually exist in the chart
+    const defaultEntities = grapherState.selection.selectedEntityNames.filter(
+        (entityName) => grapherState.availableEntityNames.includes(entityName)
+    )
+
+    if (pickedEntities.length === 0) return defaultEntities
+
+    return match(grapherState.addCountryMode)
+        .with(EntitySelectionMode.Disabled, () => {
+            // Entity selection is disabled, so the default entities are the only valid choice
+            return defaultEntities
+        })
+        .with(EntitySelectionMode.SingleEntity, () => {
+            // Only a single entity can be selected at a time, so pick the first one,
+            // or rely on the default selection if none is picked
+            return pickedEntities.length > 0
+                ? [pickedEntities[0]]
+                : defaultEntities
+        })
+        .with(EntitySelectionMode.MultipleEntities, () => {
+            const { seriesStrategy = SeriesStrategy.entity } =
+                grapherState.chartState
+            const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
+
+            // Don't add entities if columns are plotted since Grapher would switch to faceting mode
+            if (!isEntityStrategy) return pickedEntities
+
+            const nonDefaultPickedEntities = pickedEntities.filter(
+                (entity) => !defaultEntities.includes(entity)
             )
 
-        return R.unique([...pickedEntities, ...defaultEntities])
-    }
-
-    return pickedEntities
+            // Fill up the remaining slots with the default ones
+            return [...nonDefaultPickedEntities, ...defaultEntities]
+        })
+        .exhaustive()
 }
 
 function findSlotForGrapherTab(
