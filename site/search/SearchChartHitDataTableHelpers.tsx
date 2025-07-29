@@ -21,112 +21,94 @@ import {
     SeriesName,
     SeriesStrategy,
 } from "@ourworldindata/types"
-import { SearchChartHitTableContent } from "./SearchChartHitTableContent"
+import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable"
 
-interface BaseSearchChartHitTableProps {
+interface BaseArgs {
     grapherState: GrapherState
-    maxRows: number
+    maxRows?: number
 }
 
-interface SearchChartHitTableProps<State extends ChartState = ChartState>
-    extends BaseSearchChartHitTableProps {
+interface Args<State extends ChartState = ChartState> extends BaseArgs {
     chartState: State
 }
 
-export function SearchChartHitTable(
-    props: BaseSearchChartHitTableProps
-): React.ReactElement | null {
-    return (
-        <div className="search-chart-hit-table">
-            {match(props.grapherState.activeTab)
-                .with(GRAPHER_TAB_NAMES.LineChart, () => (
-                    <LineChartTable
-                        {...props}
-                        chartState={
-                            props.grapherState.chartState as LineChartState
-                        }
-                    />
-                ))
-                .with(GRAPHER_TAB_NAMES.DiscreteBar, () => (
-                    <DiscreteBarChartTable
-                        {...props}
-                        chartState={
-                            props.grapherState
-                                .chartState as DiscreteBarChartState
-                        }
-                    />
-                ))
-                .with(GRAPHER_TAB_NAMES.ScatterPlot, () => (
-                    <ScatterPlotTable
-                        {...props}
-                        chartState={
-                            props.grapherState
-                                .chartState as ScatterPlotChartState
-                        }
-                    />
-                ))
-                .with(GRAPHER_TAB_NAMES.StackedArea, () => (
-                    <StackedAreaTable
-                        {...props}
-                        chartState={
-                            props.grapherState
-                                .chartState as StackedAreaChartState
-                        }
-                    />
-                ))
-                .with(GRAPHER_TAB_NAMES.StackedDiscreteBar, () => (
-                    <StackedDiscreteBarTable
-                        {...props}
-                        chartState={
-                            props.grapherState
-                                .chartState as StackedDiscreteBarChartState
-                        }
-                    />
-                ))
-                .with(GRAPHER_TAB_NAMES.SlopeChart, () => (
-                    <SlopeChartTable
-                        {...props}
-                        chartState={
-                            props.grapherState.chartState as SlopeChartState
-                        }
-                    />
-                ))
-                .with(GRAPHER_TAB_NAMES.StackedBar, () => (
-                    <StackedBarTable
-                        {...props}
-                        chartState={
-                            props.grapherState
-                                .chartState as StackedBarChartState
-                        }
-                    />
-                ))
-                .with(GRAPHER_TAB_NAMES.Marimekko, () => (
-                    <MarimekkoTable
-                        {...props}
-                        chartState={
-                            props.grapherState.chartState as MarimekkoChartState
-                        }
-                    />
-                ))
-                .with(GRAPHER_TAB_NAMES.WorldMap, () => (
-                    <MapTable
-                        {...props}
-                        chartState={
-                            props.grapherState.chartState as MapChartState
-                        }
-                    />
-                ))
-                .with(GRAPHER_TAB_NAMES.Table, () => null)
-                .exhaustive()}
-        </div>
-    )
+export function buildChartHitDataTableProps(
+    props: BaseArgs
+): SearchChartHitDataTableProps {
+    if (!chartState) return undefined
+
+    return match(props.grapherState.activeTab)
+        .with(GRAPHER_TAB_NAMES.LineChart, () =>
+            buildDataTablePropsForLineChart({
+                ...props,
+                chartState: props.grapherState.chartState as LineChartState,
+            })
+        )
+        .with(GRAPHER_TAB_NAMES.DiscreteBar, () =>
+            buildDataTablePropsForDiscreteBarChart({
+                ...props,
+                chartState: props.grapherState
+                    .chartState as DiscreteBarChartState,
+            })
+        )
+        .with(GRAPHER_TAB_NAMES.ScatterPlot, () =>
+            buildDataTablePropsForScatterPlot({
+                ...props,
+                chartState: props.grapherState
+                    .chartState as ScatterPlotChartState,
+            })
+        )
+        .with(GRAPHER_TAB_NAMES.StackedArea, () =>
+            buildDataTablePropsForStackedAreaChart({
+                ...props,
+                chartState: props.grapherState
+                    .chartState as StackedAreaChartState,
+            })
+        )
+        .with(GRAPHER_TAB_NAMES.StackedDiscreteBar, () =>
+            buildDataTablePropsForStackedDiscreteBarChart({
+                ...props,
+                chartState: props.grapherState
+                    .chartState as StackedDiscreteBarChartState,
+            })
+        )
+        .with(GRAPHER_TAB_NAMES.SlopeChart, () =>
+            buildDataTablePropsForSlopeChart({
+                ...props,
+                chartState: props.grapherState.chartState as SlopeChartState,
+            })
+        )
+        .with(GRAPHER_TAB_NAMES.StackedBar, () =>
+            buildDataTablePropsForStackedBarChart({
+                ...props,
+                chartState: props.grapherState
+                    .chartState as StackedBarChartState,
+            })
+        )
+        .with(GRAPHER_TAB_NAMES.Marimekko, () =>
+            buildDataTablePropsForMarimekkoChart({
+                ...props,
+                chartState: props.grapherState
+                    .chartState as MarimekkoChartState,
+            })
+        )
+        .with(GRAPHER_TAB_NAMES.WorldMap, () =>
+            buildDataTablePropsForWorldMap({
+                ...props,
+                chartState: props.grapherState.chartState as MapChartState,
+            })
+        )
+        .with(GRAPHER_TAB_NAMES.Table, () =>
+            buildDataTablePropsForTableTab(props)
+        )
+        .exhaustive()
 }
 
-function LineChartTable({
+function buildDataTablePropsForLineChart({
     grapherState,
     chartState,
-    maxRows = 4,
-}: SearchChartHitTableProps<LineChartState>): React.ReactElement | null {
+    maxRows,
+}: Args<LineChartState>): SearchChartHitDataTableProps {
     const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
 
     // Create a map chart state to access custom label formatting.
@@ -177,11 +159,11 @@ function LineChartTable({
         })
         .filter((row) => row !== undefined)
 
-    // Only happens when no entities are selected, which should never be the case
-    if (rows.length === 0) return null
-
     // Sort by value in descending order
-    const sortedRows = R.sortBy(rows, (row) => -row.point.y).slice(0, maxRows)
+    const sortedRows = R.sortBy(rows, (row) => -row.point.y)
+
+    const filteredRows =
+        maxRows !== undefined ? sortedRows.slice(0, maxRows) : sortedRows
 
     // Only show the time in the title if all items refer to the same time
     const shouldShowTimeInTitle =
@@ -191,82 +173,83 @@ function LineChartTable({
 
     // Hide the time in each row if it's shown in the title
     const displayRows = shouldShowTimeInTitle
-        ? sortedRows.map((item) => R.omit(item, ["time"]))
-        : sortedRows
+        ? filteredRows.map((item) => R.omit(item, ["time"]))
+        : filteredRows
 
     const title = makeSeriesListTitle(grapherState, chartState)
 
-    return (
-        <SearchChartHitTableContent
-            rows={displayRows}
-            title={title}
-            time={time}
-        />
-    )
+    return { rows: displayRows, title, time }
 }
 
-function DiscreteBarChartTable({
+function buildDataTablePropsForDiscreteBarChart({
     grapherState: _grapherState,
     chartState: _chartState,
-    maxRows: _maxRows = 4,
-}: SearchChartHitTableProps<DiscreteBarChartState>): React.ReactElement {
-    return <></>
+    maxRows: _maxRows,
+}: Args<DiscreteBarChartState>): SearchChartHitDataTableProps {
+    return { rows: [], title: "" }
 }
 
-function ScatterPlotTable({
+function buildDataTablePropsForSlopeChart({
     grapherState: _grapherState,
     chartState: _chartState,
-    maxRows: _maxRows = 4,
-}: SearchChartHitTableProps<ScatterPlotChartState>): React.ReactElement {
-    return <></>
+    maxRows: _maxRows,
+}: Args<SlopeChartState>): SearchChartHitDataTableProps {
+    return { rows: [], title: "" }
 }
 
-function StackedAreaTable({
+function buildDataTablePropsForStackedDiscreteBarChart({
     grapherState: _grapherState,
     chartState: _chartState,
-    maxRows: _maxRows = 4,
-}: SearchChartHitTableProps<StackedAreaChartState>): React.ReactElement {
-    return <></>
+    maxRows: _maxRows,
+}: Args<StackedDiscreteBarChartState>): SearchChartHitDataTableProps {
+    return { rows: [], title: "" }
 }
 
-function StackedDiscreteBarTable({
+function buildDataTablePropsForStackedBarChart({
     grapherState: _grapherState,
     chartState: _chartState,
-    maxRows: _maxRows = 4,
-}: SearchChartHitTableProps<StackedDiscreteBarChartState>): React.ReactElement {
-    return <></>
+    maxRows: _maxRows,
+}: Args<StackedBarChartState>): SearchChartHitDataTableProps {
+    return { rows: [], title: "" }
 }
 
-function SlopeChartTable({
+function buildDataTablePropsForStackedAreaChart({
     grapherState: _grapherState,
     chartState: _chartState,
-    maxRows: _maxRows = 4,
-}: SearchChartHitTableProps<SlopeChartState>): React.ReactElement {
-    return <></>
+    maxRows: _maxRows,
+}: Args<StackedAreaChartState>): SearchChartHitDataTableProps {
+    return { rows: [], title: "" }
 }
 
-function StackedBarTable({
+function buildDataTablePropsForMarimekkoChart({
     grapherState: _grapherState,
     chartState: _chartState,
-    maxRows: _maxRows = 4,
-}: SearchChartHitTableProps<StackedBarChartState>): React.ReactElement {
-    return <></>
+    maxRows: _maxRows,
+}: Args<MarimekkoChartState>): SearchChartHitDataTableProps {
+    return { rows: [], title: "" }
 }
 
-function MarimekkoTable({
+function buildDataTablePropsForScatterPlot({
     grapherState: _grapherState,
     chartState: _chartState,
-    maxRows: _maxRows = 4,
-}: SearchChartHitTableProps<MarimekkoChartState>): React.ReactElement {
-    return <></>
+    maxRows: _maxRows,
+}: Args<ScatterPlotChartState>): SearchChartHitDataTableProps {
+    return { rows: [], title: "" }
 }
 
-function MapTable({
+function buildDataTablePropsForWorldMap({
     grapherState: _grapherState,
     chartState: _chartState,
-    maxRows: _maxRows = 4,
-}: SearchChartHitTableProps<MapChartState>): React.ReactElement {
-    return <></>
+    maxRows: _maxRows,
+}: Args<MapChartState>): SearchChartHitDataTableProps {
+    return { rows: [], title: "" }
+}
+
+function buildDataTablePropsForTableTab({
+    grapherState: _grapherState,
+    maxRows: _maxRows,
+}: BaseArgs): SearchChartHitDataTableProps {
+    return { rows: [], title: "" }
 }
 
 function makeSeriesListTitle(
