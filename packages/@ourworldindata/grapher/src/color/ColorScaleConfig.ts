@@ -22,10 +22,11 @@ export class ColorScaleConfigDefaults {
     // ============
 
     /** Key for a colorbrewer scheme */
-    @observable accessor baseColorScheme?: ColorSchemeName
+    @observable accessor baseColorScheme: ColorSchemeName | undefined =
+        undefined
 
     /** Reverse the order of colors in the color scheme (defined by `baseColorScheme`) */
-    @observable accessor colorSchemeInvert?: boolean = undefined
+    @observable accessor colorSchemeInvert: boolean | undefined = undefined
 
     // Numeric bins
     // ============
@@ -34,7 +35,7 @@ export class ColorScaleConfigDefaults {
     @observable accessor binningStrategy: BinningStrategy =
         BinningStrategy.ckmeans
     /** The *suggested* number of bins for the automatic binning algorithm */
-    @observable accessor binningStrategyBinCount?: number
+    @observable accessor binningStrategyBinCount: number | undefined = undefined
 
     /** Custom maximum brackets for each numeric bin. Only applied when strategy is `manual`. */
     @observable accessor customNumericValues: number[] = []
@@ -47,7 +48,8 @@ export class ColorScaleConfigDefaults {
     @observable accessor customNumericLabels: (string | undefined | null)[] = []
 
     /** Whether `customNumericColors` are used to override the color scheme. */
-    @observable accessor customNumericColorsActive?: boolean = undefined
+    @observable accessor customNumericColorsActive: boolean | undefined =
+        undefined
     /**
      * Override some or all colors for the numerical color legend.
      * `undefined` or `null` falls back the color scheme color.
@@ -76,7 +78,7 @@ export class ColorScaleConfigDefaults {
     // =====
 
     /** A custom legend description. Only used in ScatterPlot legend titles for now. */
-    @observable accessor legendDescription?: string = undefined
+    @observable accessor legendDescription: string | undefined = undefined
 
     constructor() {
         makeObservable(this)

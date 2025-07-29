@@ -175,7 +175,7 @@ export class SourceEditPage extends Component<{ sourceId: number }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor source?: SourcePageData
+    @observable accessor source: SourcePageData | undefined = undefined
 
     constructor(props: { sourceId: number }) {
         super(props)

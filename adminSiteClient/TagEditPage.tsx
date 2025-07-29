@@ -187,7 +187,7 @@ export class TagEditPage extends Component<{ tagId: number }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor tag?: TagPageData
+    @observable accessor tag: TagPageData | undefined = undefined
 
     constructor(props: { tagId: number }) {
         super(props)

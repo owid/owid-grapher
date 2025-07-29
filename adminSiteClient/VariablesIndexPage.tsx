@@ -25,9 +25,9 @@ export class VariablesIndexPage extends Component {
 
     @observable accessor variables: VariableListItem[] = []
     @observable accessor maxVisibleRows = 50
-    @observable accessor numTotalRows?: number
-    @observable accessor searchInput?: string
-    @observable accessor highlightSearch?: string
+    @observable accessor numTotalRows: number | undefined = undefined
+    @observable accessor searchInput: string | undefined = undefined
+    @observable accessor highlightSearch: string | undefined = undefined
 
     constructor(props: Record<string, never>) {
         super(props)

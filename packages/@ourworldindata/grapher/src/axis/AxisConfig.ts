@@ -26,27 +26,31 @@ export interface AxisManager {
 }
 
 class AxisConfigDefaults implements AxisConfigInterface {
-    @observable.ref accessor orient?: Position = undefined
-    @observable.ref accessor min?: number = undefined
-    @observable.ref accessor max?: number = undefined
-    @observable.ref accessor canChangeScaleType?: boolean = undefined
-    @observable.ref accessor removePointsOutsideDomain?: boolean = undefined
-    @observable.ref accessor minSize?: number = undefined
-    @observable.ref accessor hideAxis?: boolean = undefined
-    @observable.ref accessor hideGridlines?: boolean = undefined
-    @observable.ref accessor hideTickLabels?: boolean = undefined
-    @observable.ref accessor labelPadding?: number = undefined
-    @observable.ref accessor tickPadding?: number = undefined
-    @observable.ref accessor nice?: boolean = undefined
-    @observable.ref accessor maxTicks?: number = undefined
-    @observable.ref accessor tickFormattingOptions?: TickFormattingOptions =
+    @observable.ref accessor orient: Position | undefined = undefined
+    @observable.ref accessor min: number | undefined = undefined
+    @observable.ref accessor max: number | undefined = undefined
+    @observable.ref accessor canChangeScaleType: boolean | undefined = undefined
+    @observable.ref accessor removePointsOutsideDomain: boolean | undefined =
         undefined
-    @observable.ref accessor scaleType?: ScaleType = ScaleType.linear
-    @observable.ref accessor facetDomain?: FacetAxisDomain = undefined
-    @observable.ref accessor ticks?: Tickmark[] = undefined
-    @observable.ref accessor singleValueAxisPointAlign?: AxisAlign = undefined
-    @observable.ref accessor label?: string = undefined
-    @observable.ref accessor domainValues?: number[] = undefined
+    @observable.ref accessor minSize: number | undefined = undefined
+    @observable.ref accessor hideAxis: boolean | undefined = undefined
+    @observable.ref accessor hideGridlines: boolean | undefined = undefined
+    @observable.ref accessor hideTickLabels: boolean | undefined = undefined
+    @observable.ref accessor labelPadding: number | undefined = undefined
+    @observable.ref accessor tickPadding: number | undefined = undefined
+    @observable.ref accessor nice: boolean | undefined = undefined
+    @observable.ref accessor maxTicks: number | undefined = undefined
+    @observable.ref accessor tickFormattingOptions:
+        | TickFormattingOptions
+        | undefined = undefined
+    @observable.ref accessor scaleType: ScaleType | undefined = ScaleType.linear
+    @observable.ref accessor facetDomain: FacetAxisDomain | undefined =
+        undefined
+    @observable.ref accessor ticks: Tickmark[] | undefined = undefined
+    @observable.ref accessor singleValueAxisPointAlign: AxisAlign | undefined =
+        undefined
+    @observable.ref accessor label: string | undefined = undefined
+    @observable.ref accessor domainValues: number[] | undefined = undefined
 
     constructor() {
         makeObservable(this)

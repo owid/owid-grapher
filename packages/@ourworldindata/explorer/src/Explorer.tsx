@@ -295,7 +295,7 @@ export class Explorer
     @observable accessor appendOnlyAvailableEntityNames: Set<EntityName> =
         new Set()
 
-    @observable.ref accessor grapher?: Grapher
+    @observable.ref accessor grapher: Grapher | undefined = undefined
 
     @action.bound setGrapher(grapher: Grapher) {
         this.grapher = grapher
@@ -1101,7 +1101,8 @@ export class Explorer
         this.initialQueryParams.pickerMetric
     @observable accessor entityPickerSort? = this.initialQueryParams.pickerSort
 
-    @observable.ref accessor entityPickerTable?: OwidTable
+    @observable.ref accessor entityPickerTable: OwidTable | undefined =
+        undefined
     @observable.ref accessor entityPickerTableIsLoading: boolean = false
 
     private futureEntityPickerTable = new PromiseSwitcher<OwidTable>({

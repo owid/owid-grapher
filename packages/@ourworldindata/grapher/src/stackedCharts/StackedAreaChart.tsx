@@ -237,8 +237,9 @@ export class StackedAreaChart
         _.extend(this.tooltipState.target, { series: undefined })
     }
 
-    @observable accessor lineLegendHoveredSeriesName?: SeriesName
-    @observable private accessor hoverTimer?: number
+    @observable accessor lineLegendHoveredSeriesName: SeriesName | undefined =
+        undefined
+    @observable private accessor hoverTimer: number | undefined = undefined
 
     @computed private get paddingForLegendRight(): number {
         return this.lineLegendWidth

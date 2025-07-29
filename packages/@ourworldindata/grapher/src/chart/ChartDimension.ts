@@ -28,7 +28,7 @@ class ChartDimensionDefaults implements OwidChartDimensionInterface {
     @observable accessor display = new OwidVariableDisplayConfig() // todo: make persistable
 
     // XXX move this somewhere else, it's only used for scatter x override and Marimekko override
-    @observable accessor targetYear?: Time = undefined
+    @observable accessor targetYear: Time | undefined = undefined
 
     constructor() {
         makeObservable(this)
@@ -92,7 +92,7 @@ export class ChartDimension
     }
 
     // Do not persist yet, until we migrate off VariableIds
-    @observable accessor _slug?: ColumnSlug | undefined
+    @observable accessor _slug: ColumnSlug | undefined = undefined
 
     @computed get slug(): ColumnSlug {
         if (this._slug) return this._slug

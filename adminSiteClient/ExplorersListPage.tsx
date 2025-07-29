@@ -173,9 +173,9 @@ export class ExplorersIndexPage extends Component<{
 
     @observable accessor explorers: ExplorerProgram[] = []
     @observable accessor maxVisibleRows = 50
-    @observable accessor numTotalRows?: number
-    @observable accessor searchInput?: string
-    @observable accessor highlightSearch?: string
+    @observable accessor numTotalRows: number | undefined = undefined
+    @observable accessor searchInput: string | undefined = undefined
+    @observable accessor highlightSearch: string | undefined = undefined
 
     constructor(props: { manager?: AdminManager }) {
         super(props)

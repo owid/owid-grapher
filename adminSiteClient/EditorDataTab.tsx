@@ -163,7 +163,7 @@ class SeriesListItem extends React.Component<SeriesListItemProps> {
 export class EntitySelectionSection extends React.Component<{
     editor: AbstractChartEditor
 }> {
-    @observable.ref accessor dragKey?: EntityName
+    @observable.ref accessor dragKey: EntityName | undefined = undefined
 
     constructor(props: { editor: AbstractChartEditor }) {
         super(props)

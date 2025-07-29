@@ -14,22 +14,26 @@ import {
 } from "@ourworldindata/types"
 
 class OwidVariableDisplayConfigDefaults {
-    @observable accessor name?: string = undefined
-    @observable accessor unit?: string = undefined
-    @observable accessor shortUnit?: string = undefined
-    @observable accessor isProjection?: boolean = undefined
-    @observable accessor conversionFactor?: number = undefined
-    @observable accessor roundingMode?: OwidVariableRoundingMode = undefined
-    @observable accessor numDecimalPlaces?: number = undefined
-    @observable accessor numSignificantFigures?: number = undefined
-    @observable accessor tolerance?: number = undefined
-    @observable accessor yearIsDay?: boolean = undefined
-    @observable accessor zeroDay?: string = undefined
-    @observable accessor entityAnnotationsMap?: string = undefined
-    @observable accessor includeInTable? = true
-    @observable accessor tableDisplay?: OwidVariableDataTableConfigInterface
-    @observable accessor color?: string = undefined
-    @observable accessor plotMarkersOnlyInLineChart?: boolean = undefined
+    @observable accessor name: string | undefined = undefined
+    @observable accessor unit: string | undefined = undefined
+    @observable accessor shortUnit: string | undefined = undefined
+    @observable accessor isProjection: boolean | undefined = undefined
+    @observable accessor conversionFactor: number | undefined = undefined
+    @observable accessor roundingMode: OwidVariableRoundingMode | undefined =
+        undefined
+    @observable accessor numDecimalPlaces: number | undefined = undefined
+    @observable accessor numSignificantFigures: number | undefined = undefined
+    @observable accessor tolerance: number | undefined = undefined
+    @observable accessor yearIsDay: boolean | undefined = undefined
+    @observable accessor zeroDay: string | undefined = undefined
+    @observable accessor entityAnnotationsMap: string | undefined = undefined
+    @observable accessor includeInTable: boolean | undefined = true
+    @observable accessor tableDisplay:
+        | OwidVariableDataTableConfigInterface
+        | undefined = undefined
+    @observable accessor color: string | undefined = undefined
+    @observable accessor plotMarkersOnlyInLineChart: boolean | undefined =
+        undefined
 
     constructor() {
         makeObservable(this)
