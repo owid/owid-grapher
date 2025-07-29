@@ -4,6 +4,31 @@ import { faArrowRightLong } from "@fortawesome/free-solid-svg-icons"
 import { getCanonicalPath } from "@ourworldindata/components"
 import { TopicPageHit } from "./searchTypes.js"
 
+function truncate(paragraphs: string[]) {
+    const maxWords = 95
+    let totalWords = 0
+    const result = []
+
+    for (const paragraph of paragraphs) {
+        const paragraphWords = paragraph.split(/\s+/)
+        if (totalWords + paragraphWords.length <= maxWords) {
+            // We can include this entire paragraph
+            result.push(paragraph)
+            totalWords += paragraphWords.length
+        } else {
+            // This paragraph would exceed the limit, so truncate it
+            const remainingWords = maxWords - totalWords
+            if (remainingWords > 0) {
+                const truncatedWords = paragraphWords.slice(0, remainingWords)
+                result.push(truncatedWords.join(" ") + "...")
+            }
+            break
+        }
+    }
+
+    return result
+}
+
 export const SearchLargeTopicPageHit = ({
     className,
     hit,
@@ -24,7 +49,7 @@ export const SearchLargeTopicPageHit = ({
         </h3>
         <div className="search-large-topic-page-hit__excerpt">
             {hit.excerptLong && hit.excerptLong.length > 0 ? (
-                hit.excerptLong.map((text, index) => (
+                truncate(hit.excerptLong).map((text, index) => (
                     <p
                         key={index}
                         className="search-large-topic-page-hit__excerpt-paragraph"

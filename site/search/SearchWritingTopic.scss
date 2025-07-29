@@ -16,7 +16,12 @@
     padding: 0;
 
     &:hover {
-        text-decoration: underline;
+        .search-writing-topic__title,
+        .search-writing-topic__count {
+            // Set is separately for each nested element to preserve the
+            // their respective underline color.
+            text-decoration: underline;
+        }
     }
 }
 
@@ -72,6 +77,7 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+    margin-bottom: 16px;
 }
 
 .search-writing-topic-link {
