@@ -11,7 +11,7 @@ export class ChartIndexPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable charts: ChartListItem[] = []
+    @observable accessor charts: ChartListItem[] = []
 
     constructor(props: Record<string, never>) {
         super(props)

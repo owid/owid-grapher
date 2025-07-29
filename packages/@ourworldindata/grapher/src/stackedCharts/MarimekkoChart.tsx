@@ -244,10 +244,10 @@ export class MarimekkoChart
     labelAngleInDegrees = -45 // 0 is horizontal, -90 is vertical from bottom to top, ...
 
     // currently hovered legend color
-    @observable focusColorBin?: ColorScaleBin
+    @observable accessor focusColorBin?: ColorScaleBin
 
     // current tooltip target & position
-    @observable tooltipState = new TooltipState<{
+    @observable accessor tooltipState = new TooltipState<{
         entityName: string
     }>()
 

@@ -112,20 +112,20 @@ function EveryOrgSection({
 
 @observer
 export class DonateForm extends React.Component<{ countryCode?: string }> {
-    @observable interval: DonationInterval = "once"
-    @observable presetAmount?: number =
+    @observable accessor interval: DonationInterval = "once"
+    @observable accessor presetAmount?: number =
         amountsByInterval.once[DEFAULT_AMOUNT_INDEX]
-    @observable customAmount: string = ""
-    @observable name: string = ""
-    @observable showOnList: boolean = true
-    @observable subscribeToDonorNewsletter: boolean = true
-    @observable errorMessage?: string
-    @observable isSubmitting: boolean = false
-    @observable isLoading: boolean = true
-    @observable currencyCode: DonationCurrencyCode = "GBP"
+    @observable accessor customAmount: string = ""
+    @observable accessor name: string = ""
+    @observable accessor showOnList: boolean = true
+    @observable accessor subscribeToDonorNewsletter: boolean = true
+    @observable accessor errorMessage?: string
+    @observable accessor isSubmitting: boolean = false
+    @observable accessor isLoading: boolean = true
+    @observable accessor currencyCode: DonationCurrencyCode = "GBP"
 
     captchaInstance = React.createRef<Recaptcha>()
-    @observable.ref captchaPromiseHandlers?: {
+    @observable.ref accessor captchaPromiseHandlers?: {
         resolve: (value: any) => void
         reject: (value: any) => void
     }

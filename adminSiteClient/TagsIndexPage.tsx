@@ -13,10 +13,10 @@ export class TagsIndexPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable tags: DbPlainTag[] = []
-    @observable newTagName = ""
-    @observable newTagSlug = ""
-    @observable isAddingTag = false
+    @observable accessor tags: DbPlainTag[] = []
+    @observable accessor newTagName = ""
+    @observable accessor newTagSlug = ""
+    @observable accessor isAddingTag = false
 
     constructor(props: Record<string, never>) {
         super(props)

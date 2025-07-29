@@ -7,7 +7,7 @@ export class SelectionArray {
         this.selectedEntityNames = selectedEntityNames.slice()
     }
 
-    @observable selectedEntityNames: EntityName[]
+    @observable accessor selectedEntityNames: EntityName[]
 
     @computed get hasSelection(): boolean {
         return this.selectedEntityNames.length > 0

@@ -142,7 +142,7 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
     static override contextType = GdocsStoreContext
     declare context: React.ContextType<typeof GdocsStoreContext>
 
-    @observable filters: GdocsSearchFilters = {
+    @observable accessor filters: GdocsSearchFilters = {
         [OwidGdocType.Fragment]: false,
         [OwidGdocType.Article]: false,
         [OwidGdocType.TopicPage]: false,
@@ -154,7 +154,7 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
         publishStatus: GdocPublishStatus.All,
     }
 
-    @observable search = { value: "" }
+    @observable accessor search = { value: "" }
 
     constructor(props: RouteComponentProps) {
         super(props)

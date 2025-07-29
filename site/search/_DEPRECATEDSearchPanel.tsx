@@ -489,7 +489,7 @@ export class DEPRECATEDInstantSearchContainer extends React.Component {
         }
     }
 
-    @observable inputValue: string = ""
+    @observable accessor inputValue: string = ""
 
     @action.bound handleQuery(query: string, search: (value: string) => void) {
         this.inputValue = query
@@ -497,7 +497,7 @@ export class DEPRECATEDInstantSearchContainer extends React.Component {
         search(query)
     }
 
-    @observable activeCategoryFilter: SearchCategoryFilter = "all"
+    @observable accessor activeCategoryFilter: SearchCategoryFilter = "all"
 
     @action.bound setActiveCategoryFilter(filter: SearchCategoryFilter) {
         this.activeCategoryFilter = filter

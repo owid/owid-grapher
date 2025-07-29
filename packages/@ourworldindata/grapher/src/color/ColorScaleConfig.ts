@@ -22,52 +22,53 @@ export class ColorScaleConfigDefaults {
     // ============
 
     /** Key for a colorbrewer scheme */
-    @observable baseColorScheme?: ColorSchemeName
+    @observable accessor baseColorScheme?: ColorSchemeName
 
     /** Reverse the order of colors in the color scheme (defined by `baseColorScheme`) */
-    @observable colorSchemeInvert?: boolean = undefined
+    @observable accessor colorSchemeInvert?: boolean = undefined
 
     // Numeric bins
     // ============
 
     /** The strategy for generating the bin boundaries */
-    @observable binningStrategy: BinningStrategy = BinningStrategy.ckmeans
+    @observable accessor binningStrategy: BinningStrategy =
+        BinningStrategy.ckmeans
     /** The *suggested* number of bins for the automatic binning algorithm */
-    @observable binningStrategyBinCount?: number
+    @observable accessor binningStrategyBinCount?: number
 
     /** Custom maximum brackets for each numeric bin. Only applied when strategy is `manual`. */
-    @observable customNumericValues: number[] = []
+    @observable accessor customNumericValues: number[] = []
     /**
      * Custom labels for each numeric bin. Only applied when strategy is `manual`.
      * `undefined` or `null` falls back to default label.
      * We need to handle `null` because JSON serializes `undefined` values
      * inside arrays into `null`.
      */
-    @observable customNumericLabels: (string | undefined | null)[] = []
+    @observable accessor customNumericLabels: (string | undefined | null)[] = []
 
     /** Whether `customNumericColors` are used to override the color scheme. */
-    @observable customNumericColorsActive?: boolean = undefined
+    @observable accessor customNumericColorsActive?: boolean = undefined
     /**
      * Override some or all colors for the numerical color legend.
      * `undefined` or `null` falls back the color scheme color.
      * We need to handle `null` because JSON serializes `undefined` values
      * inside arrays into `null`.
      */
-    @observable customNumericColors: (Color | undefined | null)[] = []
+    @observable accessor customNumericColors: (Color | undefined | null)[] = []
 
     // Categorical bins
     // ================
 
-    @observable.ref customCategoryColors: {
+    @observable.ref accessor customCategoryColors: {
         [key: string]: string | undefined
     } = {}
 
-    @observable.ref customCategoryLabels: {
+    @observable.ref accessor customCategoryLabels: {
         [key: string]: string | undefined
     } = {}
 
     // Allow hiding categories from the legend
-    @observable.ref customHiddenCategories: {
+    @observable.ref accessor customHiddenCategories: {
         [key: string]: true | undefined
     } = {}
 
@@ -75,7 +76,7 @@ export class ColorScaleConfigDefaults {
     // =====
 
     /** A custom legend description. Only used in ScatterPlot legend titles for now. */
-    @observable legendDescription?: string = undefined
+    @observable accessor legendDescription?: string = undefined
 
     constructor() {
         makeObservable(this)

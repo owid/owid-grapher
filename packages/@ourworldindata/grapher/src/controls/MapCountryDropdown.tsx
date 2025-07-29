@@ -50,8 +50,8 @@ interface GroupedDropdownOption {
 export class MapCountryDropdown extends React.Component<{
     manager: MapCountryDropdownManager
 }> {
-    @observable private searchInput = ""
-    @observable private localEntityNames?: EntityName[]
+    @observable private accessor searchInput = ""
+    @observable private accessor localEntityNames?: EntityName[]
 
     constructor(props: { manager: MapCountryDropdownManager }) {
         super(props)

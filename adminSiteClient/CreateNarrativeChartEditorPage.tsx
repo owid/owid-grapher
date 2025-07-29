@@ -58,8 +58,8 @@ class CreateNarrativeChartEditorPageInternal
     }
 
     id?: number
-    @observable name?: string
-    @observable nameError?: string
+    @observable accessor name?: string
+    @observable accessor nameError?: string
     configId?: string
     patchConfig: GrapherInterface = {}
     fullConfig: GrapherInterface = {}

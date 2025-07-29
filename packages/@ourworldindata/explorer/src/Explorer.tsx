@@ -292,9 +292,10 @@ export class Explorer
 
     // We want to ensure that unavailable entity are shown in the explorer entity
     // that's why we employ an append-only version of `grapher.availableEntityNames`
-    @observable appendOnlyAvailableEntityNames: Set<EntityName> = new Set()
+    @observable accessor appendOnlyAvailableEntityNames: Set<EntityName> =
+        new Set()
 
-    @observable.ref grapher?: Grapher
+    @observable.ref accessor grapher?: Grapher
 
     @action.bound setGrapher(grapher: Grapher) {
         this.grapher = grapher
@@ -940,7 +941,7 @@ export class Explorer
         )
     }
 
-    @observable private isNarrow = isNarrow()
+    @observable private accessor isNarrow = isNarrow()
 
     @computed private get isInIFrame() {
         return isInIFrame()
@@ -959,9 +960,10 @@ export class Explorer
         return this.explorerProgram.downloadDataLink
     }
 
-    @observable private grapherContainerRef = React.createRef<HTMLDivElement>()
+    @observable private accessor grapherContainerRef =
+        React.createRef<HTMLDivElement>()
 
-    @observable.ref private grapherRef = React.createRef<Grapher>()
+    @observable.ref private accessor grapherRef = React.createRef<Grapher>()
 
     private renderControlBar() {
         return (
@@ -1025,7 +1027,7 @@ export class Explorer
             )
     }
 
-    @observable private showMobileControlsPopup = false
+    @observable private accessor showMobileControlsPopup = false
     private get mobileCustomizeButton() {
         return (
             <a
@@ -1095,11 +1097,12 @@ export class Explorer
         return this.grapherState?.tableAfterAuthorTimelineAndEntityFilter
     }
 
-    @observable entityPickerMetric? = this.initialQueryParams.pickerMetric
-    @observable entityPickerSort? = this.initialQueryParams.pickerSort
+    @observable accessor entityPickerMetric? =
+        this.initialQueryParams.pickerMetric
+    @observable accessor entityPickerSort? = this.initialQueryParams.pickerSort
 
-    @observable.ref entityPickerTable?: OwidTable
-    @observable.ref entityPickerTableIsLoading: boolean = false
+    @observable.ref accessor entityPickerTable?: OwidTable
+    @observable.ref accessor entityPickerTableIsLoading: boolean = false
 
     private futureEntityPickerTable = new PromiseSwitcher<OwidTable>({
         onResolve: (table) => {

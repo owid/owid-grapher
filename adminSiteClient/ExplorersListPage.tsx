@@ -171,11 +171,11 @@ export class ExplorersIndexPage extends Component<{
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable explorers: ExplorerProgram[] = []
-    @observable maxVisibleRows = 50
-    @observable numTotalRows?: number
-    @observable searchInput?: string
-    @observable highlightSearch?: string
+    @observable accessor explorers: ExplorerProgram[] = []
+    @observable accessor maxVisibleRows = 50
+    @observable accessor numTotalRows?: number
+    @observable accessor searchInput?: string
+    @observable accessor highlightSearch?: string
 
     constructor(props: { manager?: AdminManager }) {
         super(props)
@@ -243,7 +243,7 @@ export class ExplorersIndexPage extends Component<{
         )
     }
 
-    @observable isReady = false
+    @observable accessor isReady = false
 
     private async fetchAllExplorers() {
         const { searchInput } = this

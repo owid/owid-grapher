@@ -68,7 +68,7 @@ class DimensionSlotView<
 > extends React.Component<DimensionSlotViewProps<Editor>> {
     disposers: IReactionDisposer[] = []
 
-    @observable.ref isSelectingVariables: boolean = false
+    @observable.ref accessor isSelectingVariables: boolean = false
 
     constructor(props: DimensionSlotViewProps<Editor>) {
         super(props)
@@ -337,7 +337,7 @@ class VariablesSection<
     Editor extends AbstractChartEditor,
 > extends React.Component<VariablesSectionProps<Editor>> {
     base = React.createRef<HTMLDivElement>()
-    @observable.ref isAddingVariable: boolean = false
+    @observable.ref accessor isAddingVariable: boolean = false
 
     constructor(props: VariablesSectionProps<Editor>) {
         super(props)

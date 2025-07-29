@@ -31,7 +31,7 @@ class MockManager implements ChartManager {
     })
     yColumnSlugs = [SampleColumnSlugs.GDP]
     yAxisConfig = new AxisConfig({ min: 0, max: 200 })
-    @observable isRelativeMode = false
+    @observable accessor isRelativeMode = false
     selection = new SelectionArray()
     activeChartType = GRAPHER_CHART_TYPES.StackedArea
 }

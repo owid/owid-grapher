@@ -69,12 +69,12 @@ abstract class AbstractAxis {
     config: AxisConfig
     axisManager?: AxisManager
 
-    @observable.ref domain: ValueRange
-    @observable formatColumn?: CoreColumn // Pass the column purely for formatting reasons. Might be a better way to do this.
-    @observable hideFractionalTicks = false
-    @observable.struct range: ValueRange = [0, 0]
-    @observable private _scaleType?: ScaleType
-    @observable private _label?: string
+    @observable.ref accessor domain: ValueRange
+    @observable accessor formatColumn?: CoreColumn // Pass the column purely for formatting reasons. Might be a better way to do this.
+    @observable accessor hideFractionalTicks = false
+    @observable.struct accessor range: ValueRange = [0, 0]
+    @observable private accessor _scaleType?: ScaleType
+    @observable private accessor _label?: string
 
     constructor(config: AxisConfig, axisManager?: AxisManager) {
         makeObservable(this)
