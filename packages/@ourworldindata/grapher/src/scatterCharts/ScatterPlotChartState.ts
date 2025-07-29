@@ -21,12 +21,10 @@ import {
     EntityName,
     ScaleType,
     ScatterPointLabelStrategy,
+    ColorScaleConfigInterface,
 } from "@ourworldindata/types"
 import { intersection } from "@ourworldindata/utils"
-import {
-    ColorScaleConfig,
-    ColorScaleConfigDefaults,
-} from "../color/ColorScaleConfig"
+import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { AxisConfig } from "../axis/AxisConfig"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
@@ -224,7 +222,7 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
         )
     }
 
-    @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
+    @computed get colorScaleConfig(): ColorScaleConfigInterface | undefined {
         return (
             ColorScaleConfig.fromDSL(this.colorColumn.def) ??
             this.manager.colorScale
