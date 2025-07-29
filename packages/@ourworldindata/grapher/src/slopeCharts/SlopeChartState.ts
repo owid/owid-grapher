@@ -227,6 +227,8 @@ export class SlopeChartState implements ChartState {
             seriesName
         )
 
+        const focus = this.focusArray.state(seriesName)
+
         return {
             column,
             seriesName,
@@ -236,6 +238,7 @@ export class SlopeChartState implements ChartState {
             start,
             end,
             annotation,
+            focus,
         }
     }
 
