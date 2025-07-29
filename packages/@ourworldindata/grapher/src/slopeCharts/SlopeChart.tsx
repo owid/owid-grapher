@@ -101,7 +101,8 @@ export class SlopeChart
 
     private sidebarMargin = 10
 
-    @observable private accessor hoveredSeriesName?: string
+    @observable private accessor hoveredSeriesName: string | undefined =
+        undefined
     @observable private accessor tooltipState = new TooltipState<{
         series: SlopeChartSeries
     }>({ fade: "immediate" })

@@ -28,7 +28,7 @@ interface ErrorMessage {
 // Entry point for the grapher admin
 // Currently just the editor, but eventually should expand to cover everything
 export class Admin {
-    @observable accessor errorMessage?: ErrorMessage
+    @observable accessor errorMessage: ErrorMessage | undefined = undefined
     basePath: string
     username: string
     email: string

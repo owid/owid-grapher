@@ -432,8 +432,10 @@ export class LineChart
 
     private defaultRightPadding = 1
 
-    @observable private accessor lineLegendHoveredSeriesName?: SeriesName
-    @observable private accessor hoverTimer?: number
+    @observable private accessor lineLegendHoveredSeriesName:
+        | SeriesName
+        | undefined = undefined
+    @observable private accessor hoverTimer: number | undefined = undefined
 
     @action.bound private onLineLegendMouseOver(seriesName: SeriesName): void {
         clearTimeout(this.hoverTimer)

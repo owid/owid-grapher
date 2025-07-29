@@ -425,7 +425,7 @@ interface DatasetEditPageProps {
 export class DatasetEditPage extends Component<DatasetEditPageProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
-    @observable accessor dataset?: DatasetPageData
+    @observable accessor dataset: DatasetPageData | undefined = undefined
 
     constructor(props: DatasetEditPageProps) {
         super(props)

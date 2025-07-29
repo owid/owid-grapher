@@ -21,7 +21,7 @@ export class DatasetsIndexPage extends Component {
 
     @observable accessor datasets: DatasetListItem[] = []
     @observable accessor maxVisibleRows = 50
-    @observable accessor searchInput?: string
+    @observable accessor searchInput: string | undefined = undefined
 
     constructor(props: Record<string, never>) {
         super(props)

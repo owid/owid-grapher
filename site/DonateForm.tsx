@@ -113,13 +113,13 @@ function EveryOrgSection({
 @observer
 export class DonateForm extends React.Component<{ countryCode?: string }> {
     @observable accessor interval: DonationInterval = "once"
-    @observable accessor presetAmount?: number =
-        amountsByInterval.once[DEFAULT_AMOUNT_INDEX]
+    @observable accessor presetAmount: number | undefined = (undefined =
+        amountsByInterval.once[DEFAULT_AMOUNT_INDEX])
     @observable accessor customAmount: string = ""
     @observable accessor name: string = ""
     @observable accessor showOnList: boolean = true
     @observable accessor subscribeToDonorNewsletter: boolean = true
-    @observable accessor errorMessage?: string
+    @observable accessor errorMessage: string | undefined = undefined
     @observable accessor isSubmitting: boolean = false
     @observable accessor isLoading: boolean = true
     @observable accessor currencyCode: DonationCurrencyCode = "GBP"

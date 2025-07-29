@@ -43,9 +43,10 @@ export class ChartEditorPage
     @observable accessor logs: Log[] = []
     @observable accessor references: References | undefined = undefined
     @observable accessor redirects: ChartRedirect[] = []
-    @observable accessor pageviews?: RawPageview = undefined
-    @observable accessor tags?: DbChartTagJoin[] = undefined
-    @observable accessor availableTags?: MinimalTagWithIsTopic[] = undefined
+    @observable accessor pageviews: RawPageview | undefined = undefined
+    @observable accessor tags: DbChartTagJoin[] | undefined = undefined
+    @observable accessor availableTags: MinimalTagWithIsTopic[] | undefined =
+        undefined
 
     patchConfig: GrapherInterface = {}
     parentConfig: GrapherInterface | undefined = undefined

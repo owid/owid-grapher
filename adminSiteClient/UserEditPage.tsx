@@ -12,7 +12,7 @@ export class UserEditPage extends Component<{ userId: number }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor user?: UserIndexMeta
+    @observable accessor user: UserIndexMeta | undefined = undefined
     @observable accessor isSaved: boolean = false
 
     constructor(props: { userId: number }) {

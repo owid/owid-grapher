@@ -328,7 +328,7 @@ export class TagGraphPage extends React.Component {
 
     @observable accessor flatTagGraph: FlatTagGraph = {}
     @observable accessor rootId: number | null = null
-    @observable accessor addTagParentId?: number
+    @observable accessor addTagParentId: number | undefined = undefined
     @observable accessor tags: MinimalTagWithIsTopic[] = []
 
     @computed get tagGraph(): TagGraphRoot | null {

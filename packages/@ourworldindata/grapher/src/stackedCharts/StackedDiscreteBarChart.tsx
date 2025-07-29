@@ -125,7 +125,7 @@ export class StackedDiscreteBarChart
         return this.chartState.sortConfig
     }
 
-    @observable accessor focusSeriesName?: SeriesName
+    @observable accessor focusSeriesName: SeriesName | undefined = undefined
 
     @computed get chartState(): StackedDiscreteBarChartState {
         return this.props.chartState

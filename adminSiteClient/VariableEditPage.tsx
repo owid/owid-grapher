@@ -154,7 +154,7 @@ class VariableEditor extends Component<{
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable.ref accessor grapherState?: GrapherState
+    @observable.ref accessor grapherState: GrapherState | undefined = undefined
 
     @computed get isModified(): boolean {
         return (
@@ -759,7 +759,7 @@ export class VariableEditPage extends Component<{ variableId: number }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor variable?: VariablePageData
+    @observable accessor variable: VariablePageData | undefined = undefined
 
     constructor(props: { variableId: number }) {
         super(props)

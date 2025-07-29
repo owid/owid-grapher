@@ -53,9 +53,9 @@ export class VariableSelector<
     Editor extends AbstractChartEditor,
 > extends React.Component<VariableSelectorProps<Editor>> {
     @observable.ref accessor chosenNamespaces: Namespace[] = []
-    @observable.ref accessor searchInput?: string
-    @observable.ref accessor isProjection?: boolean
-    @observable.ref accessor tolerance?: number
+    @observable.ref accessor searchInput: string | undefined = undefined
+    @observable.ref accessor isProjection: boolean | undefined = undefined
+    @observable.ref accessor tolerance: number | undefined = undefined
     @observable.ref accessor chosenVariables: Variable[] = []
     scrollElement = React.createRef<HTMLDivElement>()
 

@@ -25,11 +25,12 @@ import * as R from "remeda"
 // It wraps the map property on ChartConfig.
 // TODO: migrate database config & only pass legend props
 class MapConfigDefaults {
-    @observable accessor columnSlug?: ColumnSlug
-    @observable accessor time?: number
-    @observable accessor timeTolerance?: number
-    @observable accessor toleranceStrategy?: ToleranceStrategy
-    @observable accessor hideTimeline?: boolean
+    @observable accessor columnSlug: ColumnSlug | undefined = undefined
+    @observable accessor time: number | undefined = undefined
+    @observable accessor timeTolerance: number | undefined = undefined
+    @observable accessor toleranceStrategy: ToleranceStrategy | undefined =
+        undefined
+    @observable accessor hideTimeline: boolean | undefined = undefined
 
     @observable accessor region = MapRegionName.World
     @observable accessor selection = new MapSelectionArray()
@@ -42,7 +43,7 @@ class MapConfigDefaults {
 
     @observable accessor colorScale = new ColorScaleConfig()
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
-    @observable accessor tooltipUseCustomLabels?: boolean = undefined
+    @observable accessor tooltipUseCustomLabels: boolean | undefined = undefined
 
     constructor() {
         makeObservable(this)

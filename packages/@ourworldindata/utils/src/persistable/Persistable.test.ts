@@ -13,19 +13,28 @@ interface CharacterInterface {
     country: string
 }
 
-class GameBoyGameDefaults {
-    @observable accessor title?: string
-    @observable accessor players?: number = 2
-    @observable accessor relatedGames?: GameBoyGameDefaults[]
-    @observable accessor characters?: CharacterInterface[]
-    @observable accessor mainCharacter?: CharacterInterface
+interface GameBoyGameInterface {
+    title?: string
+    players?: number
+    relatedGames?: GameBoyGameInterface[]
+    characters?: CharacterInterface[]
+    mainCharacter?: CharacterInterface
+}
+
+class GameBoyGameDefaults implements GameBoyGameInterface {
+    @observable accessor title: string | undefined = undefined
+    @observable accessor players: number | undefined = 2
+    @observable accessor relatedGames: GameBoyGameDefaults[] | undefined =
+        undefined
+    @observable accessor characters: CharacterInterface[] | undefined =
+        undefined
+    @observable accessor mainCharacter: CharacterInterface | undefined =
+        undefined
 
     constructor() {
         makeObservable(this)
     }
 }
-
-type GameBoyGameInterface = GameBoyGameDefaults
 
 class GameBoyGame extends GameBoyGameDefaults implements Persistable {
     constructor(obj?: GameBoyGameInterface) {

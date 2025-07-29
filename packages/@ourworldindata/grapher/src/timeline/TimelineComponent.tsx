@@ -278,9 +278,10 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
     @observable private accessor startTooltipVisible: boolean = false
     @observable private accessor endTooltipVisible: boolean = false
-    @observable private accessor lastUpdatedTooltip?:
+    @observable private accessor lastUpdatedTooltip:
         | "startMarker"
         | "endMarker"
+        | undefined = undefined
 
     @action.bound private togglePlay(): void {
         void this.controller.togglePlay()

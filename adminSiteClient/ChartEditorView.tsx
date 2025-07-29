@@ -122,7 +122,9 @@ export class ChartEditorView<
         return this.manager.editor.grapherState
     }
 
-    @observable accessor simulateVisionDeficiency?: VisionDeficiency
+    @observable accessor simulateVisionDeficiency:
+        | VisionDeficiency
+        | undefined = undefined
 
     @computed private get manager(): ChartEditorViewManager<Editor> {
         return this.props.manager
