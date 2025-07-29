@@ -199,11 +199,27 @@ function buildDataTablePropsForLineChart({
 }
 
 function buildDataTablePropsForDiscreteBarChart({
-    grapherState: _grapherState,
-    chartState: _chartState,
-    maxRows: _maxRows,
+    grapherState,
+    chartState,
+    maxRows,
 }: Args<DiscreteBarChartState>): SearchChartHitDataTableProps {
-    return { rows: [], title: "" }
+    const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
+
+    let rows = chartState.series.map((series) => ({
+        series,
+        name: series.shortEntityName ?? series.entityName,
+        color: series.color,
+        value: formatColumn.formatValueShort(series.value),
+        time: formatColumn.formatTime(series.time),
+        striped: series.yColumn.isProjection,
+        muted: series.focus.background,
+    }))
+
+    if (maxRows !== undefined) rows = rows.slice(0, maxRows)
+
+    const title = makeTableTitle(grapherState, chartState)
+
+    return { rows, title }
 }
 
 function buildDataTablePropsForSlopeChart({
