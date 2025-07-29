@@ -1,9 +1,8 @@
-import { svg2png, initialize as initializeSvg2Png } from "svg2png-wasm"
+import { initWasm, Resvg, type ResvgRenderOptions } from "@resvg/resvg-wasm"
 import { TimeLogger } from "./timeLogger.js"
 import { png } from "itty-router"
 
-// eslint-disable-next-line import-x/no-relative-packages
-import svg2png_wasm from "../../node_modules/svg2png-wasm/svg2png_wasm_bg.wasm"
+import resvg_wasm from "@resvg/resvg-wasm/index_bg.wasm"
 
 // these are regular .ttf files, but cloudflare needs the .bin extension to serve them correctly
 import LatoRegular from "../_common/fonts/LatoLatin-Regular.ttf.bin"
@@ -149,21 +148,30 @@ export async function renderSvgToPng(
     backgroundColor: string
 ) {
     if (!initialized) {
-        await initializeSvg2Png(svg2png_wasm)
+        await initWasm(resvg_wasm)
         initialized = true
     }
 
-    const pngLogger = new TimeLogger("png")
-    const pngData = await svg2png(svg, {
-        width: options.pngWidth,
+    const opts: ResvgRenderOptions = {
+        fitTo: {
+            mode: "width",
+            value: options.pngWidth,
+        },
+        background: backgroundColor,
+        font: {
+            fontBuffers: [
+                LatoRegular,
+                LatoMedium,
+                LatoBold,
+                PlayfairSemiBold,
+            ].map((f) => new Uint8Array(f)),
+        },
+    }
 
-        // if we include details, pngHeight is only the height of the chart, but we also have an "appendix" at the bottom that we want to include
-        height: options.details ? undefined : options.pngHeight,
-        backgroundColor,
-        fonts: [LatoRegular, LatoMedium, LatoBold, PlayfairSemiBold].map(
-            (f) => new Uint8Array(f)
-        ),
-    })
+    const pngLogger = new TimeLogger("png")
+    const resvgJS = new Resvg(svg, opts)
+
+    const pngData = await resvgJS.render().asPng()
     pngLogger.log("svg2png")
     return pngData
 }
