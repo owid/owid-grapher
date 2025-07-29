@@ -1,14 +1,20 @@
 import cx from "classnames"
 import * as R from "remeda"
+import {
+    GrapherTrendArrow,
+    GrapherTrendArrowDirection,
+} from "@ourworldindata/components"
 
 interface TableRow {
     color: string
     name: string
     value: string
+    startValue?: string
     time?: string
     timePreposition?: string // defaults to 'in'
     muted?: boolean
     striped?: boolean
+    trend?: GrapherTrendArrowDirection // only relevant if startValue is given
 }
 
 export interface SearchChartHitDataTableProps {
@@ -89,6 +95,15 @@ function Row({
             <span className="search-chart-hit-table-row__name">{row.name}</span>
             <span className="search-chart-hit-table-row__spacer" />
             <span className="search-chart-hit-table-row__value">
+                {row.startValue && (
+                    <>
+                        {row.startValue}
+                        <GrapherTrendArrow
+                            className="search-chart-hit-table-row__arrow"
+                            direction={row.trend ?? "right"}
+                        />
+                    </>
+                )}
                 {row.value}
                 {row.time && (
                     <span className="search-chart-hit-table-row__time">
