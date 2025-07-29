@@ -64,12 +64,12 @@ export async function updateUserHandler(
 
     const userId = parseIntOrUndefined(req.params.userId)
     const user = userId !== undefined ? await getUserById(trx, userId) : null
-    if (!user) throw new JsonError("No such user", 404)
+    if (!user || userId === undefined) throw new JsonError("No such user", 404)
 
     user.fullName = req.body.fullName
     user.isActive = req.body.isActive
 
-    await updateUser(trx, userId!, _.pick(user, ["fullName", "isActive"]))
+    await updateUser(trx, userId, _.pick(user, ["fullName", "isActive"]))
 
     return { success: true }
 }

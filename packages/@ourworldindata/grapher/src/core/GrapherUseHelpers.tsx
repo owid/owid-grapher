@@ -46,7 +46,7 @@ export function renderGrapherIntoContainer(
             <Sentry.ErrorBoundary>
                 <FetchingGrapher
                     config={grapherConfigWithBounds}
-                    dataApiUrl={dataApiUrl!}
+                    dataApiUrl={dataApiUrl}
                     archivedChartInfo={archivedChartInfo}
                     externalBounds={Bounds.fromRect(entry.contentRect)}
                     queryStr={grapherConfigWithBounds.queryStr}

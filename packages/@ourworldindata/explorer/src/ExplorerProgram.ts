@@ -319,7 +319,7 @@ export class ExplorerProgram extends GridProgram {
                       existingTableDef.columnDefinitions
                   )
                 : undefined)
-        const newCols = table!.autodetectedColumnDefs
+        const newCols = table.autodetectedColumnDefs
         const missing = newCols
             .appendColumns([
                 {

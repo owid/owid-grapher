@@ -114,7 +114,7 @@ export class AutofillColDefCommand extends HotCommand {
         const newProgram = await (program as any)[commandName](
             tableSlugCell.contents
         )
-        this.setProgramCallback!(newProgram.toString())
+        this.setProgramCallback?.(newProgram.toString())
     }
 
     disabled() {

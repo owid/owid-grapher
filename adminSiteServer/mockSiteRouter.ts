@@ -182,7 +182,7 @@ getPlainRouteWithROTransaction(
     async (req, res, trx, next) => {
         const explorerRedirect = getExplorerRedirectForPath(req.path)
         // If no explorer redirect exists, continue to next express handler
-        if (!explorerRedirect) return next!()
+        if (!explorerRedirect) return next?.()
 
         const { migrationId, baseQueryStr } = explorerRedirect
         const { explorerSlug } = explorerUrlMigrationsById[migrationId]

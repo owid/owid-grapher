@@ -129,7 +129,7 @@ export class EditorTextTab<
                         }
                         auto={
                             editor.canPropertyBeInherited("title")
-                                ? editor.activeParentConfig!.title
+                                ? editor.activeParentConfig?.title
                                 : undefined
                         }
                         isAuto={
@@ -197,7 +197,7 @@ export class EditorTextTab<
                         }
                         auto={
                             editor.canPropertyBeInherited("subtitle")
-                                ? editor.activeParentConfig!.subtitle
+                                ? editor.activeParentConfig?.subtitle
                                 : undefined
                         }
                         isAuto={
@@ -235,7 +235,7 @@ export class EditorTextTab<
                         }
                         auto={
                             editor.canPropertyBeInherited("sourceDesc")
-                                ? editor.activeParentConfig!.sourceDesc
+                                ? editor.activeParentConfig?.sourceDesc
                                 : undefined
                         }
                         isAuto={

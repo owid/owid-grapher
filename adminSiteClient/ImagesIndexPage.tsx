@@ -288,15 +288,13 @@ function createColumns({
                     <div style={{ height: 100, width: 100 }} key={cloudflareId}>
                         <a
                             target="_blank"
-                            href={makeImageSrc(cloudflareId, originalWidth!)}
+                            href={makeImageSrc(cloudflareId, originalWidth)}
                             rel="noopener"
                         >
                             <img
                                 src={makeImageSrc(cloudflareId, 200)}
                                 width="100"
-                                height={
-                                    (originalHeight! / originalWidth!) * 100
-                                }
+                                height={(originalHeight / originalWidth) * 100}
                             />
                         </a>
                     </div>

@@ -428,9 +428,9 @@ export function DataInsightIndexPage() {
                               ? {
                                     ...dataInsight.image,
                                     id: uploadedImage.id,
-                                    filename: uploadedImage.filename!,
+                                    filename: uploadedImage.filename,
                                     cloudflareId: uploadedImage.cloudflareId!,
-                                    originalWidth: uploadedImage.originalWidth!,
+                                    originalWidth: uploadedImage.originalWidth,
                                 }
                               : undefined,
                       }

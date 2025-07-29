@@ -314,20 +314,21 @@ export function toleranceInterpolation(
         const nextTimeDiff = Math.abs(timeOfNextIndex - timeOfCurrent)
 
         if (
+            nextNonBlankIndex !== undefined &&
             nextNonBlankIndex !== -1 &&
             nextTimeDiff <= prevTimeDiff &&
             nextTimeDiff <= context.timeToleranceForwards
         ) {
             valuesSortedByTimeAsc[index] =
-                valuesSortedByTimeAsc[nextNonBlankIndex!]
-            timesAsc[index] = timesAsc[nextNonBlankIndex!]
+                valuesSortedByTimeAsc[nextNonBlankIndex]
+            timesAsc[index] = timesAsc[nextNonBlankIndex]
         } else if (
             prevNonBlankIndex !== undefined &&
             prevTimeDiff <= context.timeToleranceBackwards
         ) {
             valuesSortedByTimeAsc[index] =
-                valuesSortedByTimeAsc[prevNonBlankIndex!]
-            timesAsc[index] = timesAsc[prevNonBlankIndex!]
+                valuesSortedByTimeAsc[prevNonBlankIndex]
+            timesAsc[index] = timesAsc[prevNonBlankIndex]
         } else
             valuesSortedByTimeAsc[index] =
                 ErrorValueTypes.NoValueWithinTolerance

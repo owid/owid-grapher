@@ -79,8 +79,8 @@ export class TextField extends React.Component<TextFieldProps> {
 
     override componentDidMount() {
         if (this.props.autofocus) {
-            const input = this.base.current!.querySelector("input")!
-            input.focus()
+            const input = this.base.current?.querySelector("input")
+            input?.focus()
         }
     }
 

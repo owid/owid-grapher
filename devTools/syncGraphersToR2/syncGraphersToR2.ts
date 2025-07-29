@@ -50,8 +50,8 @@ async function listS3ObjectsAndPerformAction(
             await s3Client.send(
                 new ListObjectsV2Command(listObjectsCommandInput)
             )
-        if ((listObjectsCommandOutput.Contents?.length ?? 0) > 0) {
-            listObjectsCommandOutput.Contents!.forEach((object) => {
+        if (listObjectsCommandOutput.Contents?.length) {
+            listObjectsCommandOutput.Contents.forEach((object) => {
                 action(object)
             })
         }
