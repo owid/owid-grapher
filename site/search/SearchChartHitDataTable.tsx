@@ -9,25 +9,29 @@ interface TableRow {
     striped?: boolean
 }
 
-export function SearchChartHitTableContent({
-    rows,
-    title,
-    time,
-}: {
+export interface SearchChartHitDataTableProps {
     rows: TableRow[]
     title: string
     time?: string
-}): React.ReactElement {
+}
+
+export function SearchChartHitDataTable({
+    rows,
+    title,
+    time,
+}: SearchChartHitDataTableProps): React.ReactElement {
     return (
-        <div className="search-chart-hit-table-content">
-            <Header title={title} time={time} />
-            {rows.map((row) => (
-                <Row
-                    key={row.name}
-                    row={row}
-                    shouldSpanBothColumns={rows.length <= 4}
-                />
-            ))}
+        <div className="search-chart-hit-table">
+            <div className="search-chart-hit-table-content">
+                <Header title={title} time={time} />
+                {rows.map((row) => (
+                    <Row
+                        key={row.name}
+                        row={row}
+                        shouldSpanBothColumns={rows.length <= 4}
+                    />
+                ))}
+            </div>
         </div>
     )
 }
