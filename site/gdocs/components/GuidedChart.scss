@@ -1,15 +1,21 @@
 .guided-chart-link {
-    color: $blue-60;
+    color: $blue-65;
     text-decoration: none;
-    background: #eee;
-    padding: 2px;
+    background: $blue-20;
+    padding: 2px 8px;
     border-radius: 4px;
     box-decoration-break: clone;
+    svg {
+        height: 0.875rem;
+        padding-right: 6px;
+        position: relative;
+        top: -1px;
+    }
     &:visited {
         color: $blue-60;
     }
     &:hover {
-        background: #ddd;
+        background: $accent-pale-blue;
     }
 }
 

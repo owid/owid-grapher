@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react"
 import * as Sentry from "@sentry/react"
 import {
     getCachingInputTableFetcher,
@@ -7,6 +14,7 @@ import {
     GrapherProgrammaticInterface,
     loadVariableDataAndMetadata,
     useOptionallyGlobalGrapherStateRef,
+    GuidedChartContext,
 } from "@ourworldindata/grapher"
 import {
     extractMultiDimChoicesFromSearchParams,
@@ -74,6 +82,22 @@ export default function MultiDim({
         return config.filterToAvailableChoices(choices).selectedChoices
     })
 
+    // Register with GuidedChartContext for guided chart link support
+    const guidedChartContext = useContext(GuidedChartContext)
+    const hasRegistered = useRef(false)
+    useEffect(() => {
+        if (
+            guidedChartContext?.onMultiDimSettingsUpdate &&
+            !hasRegistered.current
+        ) {
+            guidedChartContext.onMultiDimSettingsUpdate({
+                config,
+                updater: setSettings,
+            })
+            hasRegistered.current = true
+        }
+    }, [guidedChartContext, config])
+
     const handleSettingsChange = useCallback(
         (settings: MultiDimDimensionChoices) => {
             const { selectedChoices } =
@@ -114,7 +138,7 @@ export default function MultiDim({
 
         const newGrapherParams: GrapherQueryParams = {
             ...grapher.changedParams,
-            // If the grapher has data preserve the active tab in the new view,
+            // If the grapher has data, preserve the active tab in the new view,
             // otherwise use the tab from the URL.
             tab: grapher.hasData
                 ? grapher.mapGrapherTabToQueryParam(grapher.activeTab)
@@ -193,8 +217,6 @@ export default function MultiDim({
         manager,
         grapherRef,
     ])
-
-    // use a useEffects on the bounds to update the grapherState.externalBounds
 
     useEffect(() => {
         if (grapherRef.current) {
