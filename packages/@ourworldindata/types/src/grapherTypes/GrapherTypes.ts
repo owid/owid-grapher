@@ -17,6 +17,11 @@ import {
 import { OwidVariableDataMetadataDimensions } from "../OwidVariable.js"
 import { ArchiveContext } from "../domainTypes/Archive.js"
 
+// Utility type that marks all properties of T that may be undefined as optional.
+type UndefinedToOptional<T> = Partial<T> & {
+    [K in keyof T as undefined extends T[K] ? never : K]: T[K]
+}
+
 export interface Box {
     x: number
     y: number
@@ -430,7 +435,8 @@ export class ColorScaleConfigDefaults {
 // types project - but for some reason the implementation in grapher/src/color/ColorScale.ts
 // of the config getter didn't like that change and the drop downs in the admin
 // for the base color scheme stopped working. To try again some time.
-export type ColorScaleConfigInterface = ColorScaleConfigDefaults
+export type ColorScaleConfigInterface =
+    UndefinedToOptional<ColorScaleConfigDefaults>
 
 // export interface ColorScaleConfigInterface {
 //     baseColorScheme?: ColorSchemeName

@@ -4,14 +4,12 @@ import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { MarimekkoChartManager } from "./MarimekkoChartConstants"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { autoDetectYColumnSlugs } from "../chart/ChartUtils"
-import {
-    ColorScaleConfig,
-    ColorScaleConfigDefaults,
-} from "../color/ColorScaleConfig"
+import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import {
     ChartErrorInfo,
     ColorSchemeName,
     EntityName,
+    ColorScaleConfigInterface,
 } from "@ourworldindata/types"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { StackedSeries } from "./StackedConstants"
@@ -107,7 +105,7 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         return this.transformedTable.get(this.colorColumnSlug)
     }
 
-    @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
+    @computed get colorScaleConfig(): ColorScaleConfigInterface | undefined {
         return (
             ColorScaleConfig.fromDSL(this.colorColumn.def) ??
             this.manager.colorScale

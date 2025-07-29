@@ -1097,9 +1097,10 @@ export class Explorer
         return this.grapherState?.tableAfterAuthorTimelineAndEntityFilter
     }
 
-    @observable accessor entityPickerMetric? =
+    @observable accessor entityPickerMetric: string | undefined =
         this.initialQueryParams.pickerMetric
-    @observable accessor entityPickerSort? = this.initialQueryParams.pickerSort
+    @observable accessor entityPickerSort: SortOrder | undefined =
+        this.initialQueryParams.pickerSort
 
     @observable.ref accessor entityPickerTable: OwidTable | undefined =
         undefined

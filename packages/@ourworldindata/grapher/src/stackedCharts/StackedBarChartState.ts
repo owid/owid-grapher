@@ -8,8 +8,10 @@ import {
     withMissingValuesAsZeroes,
 } from "./StackedUtils.js"
 import { ColorScaleManager } from "../color/ColorScale.js"
-import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig.js"
-import { ColorSchemeName } from "@ourworldindata/types"
+import {
+    ColorScaleConfigInterface,
+    ColorSchemeName,
+} from "@ourworldindata/types"
 import { ChartManager } from "../chart/ChartManager.js"
 
 export class StackedBarChartState
@@ -56,7 +58,7 @@ export class StackedBarChartState
         )
     }
 
-    @computed get colorScaleConfig(): ColorScaleConfigDefaults | undefined {
+    @computed get colorScaleConfig(): ColorScaleConfigInterface | undefined {
         return this.manager.colorScale
     }
 }
