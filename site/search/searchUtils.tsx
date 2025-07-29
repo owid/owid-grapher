@@ -12,6 +12,7 @@ import {
     GrapherValuesJson,
     GrapherValuesJsonDataPoint,
     OwidGdocType,
+    PrimitiveType,
     TagGraphRoot,
     TimeBounds,
 } from "@ourworldindata/types"
@@ -30,6 +31,7 @@ import {
     queryParamsToStr,
 } from "@ourworldindata/utils"
 import { partition, uniqueBy } from "remeda"
+import { type GrapherTrendArrowDirection } from "@ourworldindata/components"
 import {
     generateSelectedEntityNamesParam,
     GrapherState,
@@ -972,14 +974,10 @@ export function buildChartHitDataDisplayProps({
     const time = startDatapoint?.formattedTime
         ? `${startDatapoint?.formattedTime}–${endDatapoint.formattedTime}`
         : endDatapoint.formattedTime
-    const trend =
-        startDatapoint?.value !== undefined && endDatapoint?.value !== undefined
-            ? endDatapoint.value > startDatapoint.value
-                ? "up"
-                : endDatapoint.value < startDatapoint.value
-                  ? "down"
-                  : "right"
-            : undefined
+    const trend = calculateTrendDirection(
+        startDatapoint?.value,
+        endDatapoint?.value
+    )
     const showLocationIcon = isEntityPickedByUser
 
     return {
@@ -991,6 +989,19 @@ export function buildChartHitDataDisplayProps({
         trend,
         showLocationIcon,
     }
+}
+
+export function calculateTrendDirection(
+    startValue?: PrimitiveType,
+    endValue?: PrimitiveType
+): GrapherTrendArrowDirection | undefined {
+    if (typeof startValue !== "number" || typeof endValue !== "number")
+        return undefined
+    return endValue > startValue
+        ? "up"
+        : endValue < startValue
+          ? "down"
+          : "right"
 }
 
 function findDatapoint(
