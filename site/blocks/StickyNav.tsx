@@ -47,7 +47,7 @@ class StickyNav extends Component<
     ulRef = createRef<HTMLUListElement>()
     resizeObserver: ResizeObserver | null = null
 
-    override state = {
+    state = {
         currentHeadingIndex: undefined,
         headingPositions: [] as HeadingPosition[],
         links: this.props.links,

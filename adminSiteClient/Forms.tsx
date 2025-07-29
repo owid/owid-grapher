@@ -301,12 +301,11 @@ export class NumberField extends React.Component<
     NumberFieldProps,
     NumberFieldState
 > {
+    state: NumberFieldState = {
+        inputValue: undefined,
+    }
     constructor(props: NumberFieldProps) {
         super(props)
-
-        this.state = {
-            inputValue: undefined,
-        }
     }
 
     override render() {
