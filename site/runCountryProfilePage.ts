@@ -1,7 +1,6 @@
 import * as _ from "lodash-es"
 import { FuzzySearch, FuzzySearchResult } from "@ourworldindata/utils"
 import { action, autorun, computed, observable, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 interface ChartItem {
     title: string
@@ -24,7 +23,7 @@ class ChartFilter {
     results: any[] = []
     sections: HTMLDivElement[] = []
 
-    @observable @enumerable accessor query: string = ""
+    @observable accessor query: string = ""
 
     @computed private get fuzzy(): FuzzySearch<ChartItem> {
         return FuzzySearch.withKey(this.chartItems, (chart) => chart.title, {

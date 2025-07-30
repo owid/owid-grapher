@@ -7,7 +7,6 @@ import {
     SeriesName,
 } from "@ourworldindata/utils"
 import { action, computed, observable, when, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import { EditorFeatures } from "./EditorFeatures.js"
 import { Admin } from "./Admin.js"
 import {
@@ -55,7 +54,7 @@ export abstract class AbstractChartEditor<
 > {
     manager: Manager
 
-    @observable.ref @enumerable accessor grapherState = new GrapherState({
+    @observable.ref accessor grapherState = new GrapherState({
         additionalDataLoaderFn: (varId: number) =>
             loadVariableDataAndMetadata(varId, DATA_API_URL, { noCache: true }),
     })
@@ -64,25 +63,21 @@ export abstract class AbstractChartEditor<
         undefined,
         true
     )
-    @observable.ref @enumerable accessor currentRequest:
-        | Promise<any>
-        | undefined // Whether the current chart state is saved or not
-    @observable.ref @enumerable accessor tab: EditorTab = "basic"
-    @observable.ref @enumerable accessor errorMessage:
+    @observable.ref accessor currentRequest: Promise<any> | undefined // Whether the current chart state is saved or not
+    @observable.ref accessor tab: EditorTab = "basic"
+    @observable.ref accessor errorMessage:
         | { title: string; content: string }
         | undefined = undefined
-    @observable.ref @enumerable accessor previewMode: "mobile" | "desktop"
-    @observable.ref @enumerable accessor showStaticPreview = false
-    @observable.ref @enumerable accessor savedPatchConfig: GrapherInterface = {}
+    @observable.ref accessor previewMode: "mobile" | "desktop"
+    @observable.ref accessor showStaticPreview = false
+    @observable.ref accessor savedPatchConfig: GrapherInterface = {}
 
     // parent config derived from the current chart config
-    @observable.ref @enumerable accessor parentConfig:
-        | GrapherInterface
-        | undefined = undefined
+    @observable.ref accessor parentConfig: GrapherInterface | undefined =
+        undefined
     // if inheritance is enabled, the parent config is applied to grapherState
-    @observable.ref @enumerable accessor isInheritanceEnabled:
-        | boolean
-        | undefined = undefined
+    @observable.ref accessor isInheritanceEnabled: boolean | undefined =
+        undefined
 
     constructor(props: { manager: Manager }) {
         makeObservable(this)

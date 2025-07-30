@@ -1,7 +1,6 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import { Prompt } from "react-router-dom"
 
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -25,8 +24,8 @@ interface SourcePageData {
 }
 
 class SourceEditable {
-    @observable @enumerable accessor name: string = ""
-    @observable @enumerable accessor description = {
+    @observable accessor name: string = ""
+    @observable accessor description = {
         dataPublishedBy: undefined,
         dataPublisherSource: undefined,
         link: undefined,
@@ -49,8 +48,8 @@ class SourceEditor extends Component<{ source: SourcePageData }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable @enumerable accessor newSource!: SourceEditable
-    @observable @enumerable accessor isDeleted: boolean = false
+    @observable accessor newSource!: SourceEditable
+    @observable accessor isDeleted: boolean = false
 
     constructor(props: { source: SourcePageData }) {
         super(props)
@@ -176,8 +175,7 @@ export class SourceEditPage extends Component<{ sourceId: number }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable @enumerable accessor source: SourcePageData | undefined =
-        undefined
+    @observable accessor source: SourcePageData | undefined = undefined
 
     constructor(props: { sourceId: number }) {
         super(props)

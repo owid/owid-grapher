@@ -14,7 +14,6 @@ import {
     isTouchDevice,
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import { select, type Selection, type BaseType } from "d3-selection"
 import { easeLinear } from "d3-ease"
@@ -138,7 +137,7 @@ export class LineChart
         return this.placedSeries.flatMap((series) => series.points)
     }
 
-    @observable @enumerable private accessor tooltipState = new TooltipState<{
+    @observable private accessor tooltipState = new TooltipState<{
         x: number
     }>({ fade: "immediate" })
 
@@ -433,11 +432,10 @@ export class LineChart
 
     private defaultRightPadding = 1
 
-    @observable @enumerable private accessor lineLegendHoveredSeriesName:
+    @observable private accessor lineLegendHoveredSeriesName:
         | SeriesName
         | undefined = undefined
-    @observable @enumerable private accessor hoverTimer: number | undefined =
-        undefined
+    @observable private accessor hoverTimer: number | undefined = undefined
 
     @action.bound private onLineLegendMouseOver(seriesName: SeriesName): void {
         clearTimeout(this.hoverTimer)

@@ -1,6 +1,5 @@
 import * as React from "react"
 import { observable, action, computed, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 
 import { Link } from "./Link.js"
@@ -28,8 +27,8 @@ export class AdminLayout extends React.Component<AdminLayoutProps> {
     declare context: AdminAppContextType
     static defaultProps = { fixedNav: true }
 
-    @observable @enumerable private accessor showFAQ: boolean = false
-    @observable @enumerable private accessor showSidebar: boolean = false
+    @observable private accessor showFAQ: boolean = false
+    @observable private accessor showSidebar: boolean = false
 
     constructor(props: AdminLayoutProps) {
         super(props)

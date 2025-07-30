@@ -1,7 +1,6 @@
 import * as _ from "lodash-es"
 import { scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic } from "d3-scale"
 import { observable, computed, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import {
     rollingMap,
     numberMagnitude,
@@ -70,15 +69,12 @@ abstract class AbstractAxis {
     config: AxisConfig
     axisManager?: AxisManager
 
-    @observable.ref @enumerable accessor domain: ValueRange
-    @observable @enumerable accessor formatColumn: CoreColumn | undefined =
-        undefined // Pass the column purely for formatting reasons. Might be a better way to do this.
-    @observable @enumerable accessor hideFractionalTicks = false
-    @observable.struct @enumerable accessor range: ValueRange = [0, 0]
-    @observable @enumerable private accessor _scaleType: ScaleType | undefined =
-        undefined
-    @observable @enumerable private accessor _label: string | undefined =
-        undefined
+    @observable.ref accessor domain: ValueRange
+    @observable accessor formatColumn: CoreColumn | undefined = undefined // Pass the column purely for formatting reasons. Might be a better way to do this.
+    @observable accessor hideFractionalTicks = false
+    @observable.struct accessor range: ValueRange = [0, 0]
+    @observable private accessor _scaleType: ScaleType | undefined = undefined
+    @observable private accessor _label: string | undefined = undefined
 
     constructor(config: AxisConfig, axisManager?: AxisManager) {
         makeObservable(this)

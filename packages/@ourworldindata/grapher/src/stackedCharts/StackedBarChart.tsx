@@ -1,7 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { computed, action, observable, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import {
     Bounds,
@@ -76,13 +75,11 @@ export class StackedBarChart
     }
 
     // currently hovered legend color
-    @observable @enumerable accessor hoverColor: string | undefined = undefined
+    @observable accessor hoverColor: string | undefined = undefined
     // currently hovered axis label
-    @observable @enumerable accessor hoveredTick:
-        | TickmarkPlacement
-        | undefined = undefined
+    @observable accessor hoveredTick: TickmarkPlacement | undefined = undefined
     // current hovered individual bar
-    @observable @enumerable accessor tooltipState = new TooltipState<{
+    @observable accessor tooltipState = new TooltipState<{
         bar: StackedPoint<number>
         series: StackedSeries<number>
     }>()

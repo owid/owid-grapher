@@ -42,7 +42,6 @@ import { SourceList } from "./SourceList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { Base64 } from "js-base64"
 import {
-    enumerable,
     GRAPHER_TAB_CONFIG_OPTIONS,
     GrapherInterface,
     OwidVariableRoundingMode,
@@ -97,30 +96,27 @@ class VariableEditable
             "id" | "values" | "years" | "entities"
         >
 {
-    @observable @enumerable accessor name = ""
-    @observable @enumerable accessor unit = ""
-    @observable @enumerable accessor shortUnit = ""
-    @observable @enumerable accessor description = ""
-    @observable @enumerable accessor entityAnnotationsMap = ""
-    @observable @enumerable accessor display = new OwidVariableDisplayConfig()
+    @observable accessor name = ""
+    @observable accessor unit = ""
+    @observable accessor shortUnit = ""
+    @observable accessor description = ""
+    @observable accessor entityAnnotationsMap = ""
+    @observable accessor display = new OwidVariableDisplayConfig()
 
-    @observable @enumerable accessor descriptionShort = ""
-    @observable @enumerable accessor descriptionFromProducer = ""
-    @observable @enumerable accessor descriptionKey: string[] = []
-    @observable @enumerable accessor descriptionProcessing = ""
-    @observable @enumerable accessor processingLevel:
-        | OwidProcessingLevel
-        | undefined = undefined
-
-    @observable @enumerable accessor presentation =
-        {} as OwidVariablePresentation
-
-    @observable @enumerable accessor updatePeriodDays: number | undefined =
+    @observable accessor descriptionShort = ""
+    @observable accessor descriptionFromProducer = ""
+    @observable accessor descriptionKey: string[] = []
+    @observable accessor descriptionProcessing = ""
+    @observable accessor processingLevel: OwidProcessingLevel | undefined =
         undefined
 
-    @observable @enumerable accessor origins: OwidOrigin[] = []
+    @observable accessor presentation = {} as OwidVariablePresentation
 
-    @observable @enumerable accessor source: OwidSource | undefined = undefined
+    @observable accessor updatePeriodDays: number | undefined = undefined
+
+    @observable accessor origins: OwidOrigin[] = []
+
+    @observable accessor source: OwidSource | undefined = undefined
 
     constructor(json: any) {
         makeObservable(this)
@@ -138,8 +134,8 @@ class VariableEditable
 class VariableEditor extends Component<{
     variable: VariablePageData
 }> {
-    @observable @enumerable accessor newVariable!: VariableEditable
-    @observable @enumerable accessor isDeleted: boolean = false
+    @observable accessor newVariable!: VariableEditable
+    @observable accessor isDeleted: boolean = false
 
     constructor(props: { variable: VariablePageData }) {
         super(props)
@@ -158,9 +154,7 @@ class VariableEditor extends Component<{
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable.ref @enumerable accessor grapherState:
-        | GrapherState
-        | undefined = undefined
+    @observable.ref accessor grapherState: GrapherState | undefined = undefined
 
     @computed get isModified(): boolean {
         return (
@@ -765,8 +759,7 @@ export class VariableEditPage extends Component<{ variableId: number }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable @enumerable accessor variable: VariablePageData | undefined =
-        undefined
+    @observable accessor variable: VariablePageData | undefined = undefined
 
     constructor(props: { variableId: number }) {
         super(props)

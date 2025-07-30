@@ -19,7 +19,6 @@ import {
     bind,
 } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import { ScaleType, SeriesName, VerticalAlign } from "@ourworldindata/types"
 import {
@@ -126,8 +125,7 @@ export class StackedDiscreteBarChart
         return this.chartState.sortConfig
     }
 
-    @observable @enumerable accessor focusSeriesName: SeriesName | undefined =
-        undefined
+    @observable accessor focusSeriesName: SeriesName | undefined = undefined
 
     @computed get chartState(): StackedDiscreteBarChartState {
         return this.props.chartState
@@ -496,7 +494,7 @@ export class StackedDiscreteBarChart
         })
     }
 
-    @observable @enumerable accessor tooltipState = new TooltipState<{
+    @observable accessor tooltipState = new TooltipState<{
         entityName: string
         seriesName?: string
     }>()

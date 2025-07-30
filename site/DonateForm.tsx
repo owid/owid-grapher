@@ -2,7 +2,6 @@ import * as React from "react"
 import * as Sentry from "@sentry/react"
 import cx from "classnames"
 import { observable, action, computed, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import {
     bind,
@@ -113,21 +112,20 @@ function EveryOrgSection({
 
 @observer
 export class DonateForm extends React.Component<{ countryCode?: string }> {
-    @observable @enumerable accessor interval: DonationInterval = "once"
-    @observable @enumerable accessor presetAmount: number | undefined =
+    @observable accessor interval: DonationInterval = "once"
+    @observable accessor presetAmount: number | undefined =
         amountsByInterval.once[DEFAULT_AMOUNT_INDEX]
-    @observable @enumerable accessor customAmount: string = ""
-    @observable @enumerable accessor name: string = ""
-    @observable @enumerable accessor showOnList: boolean = true
-    @observable @enumerable accessor subscribeToDonorNewsletter: boolean = true
-    @observable @enumerable accessor errorMessage: string | undefined =
-        undefined
-    @observable @enumerable accessor isSubmitting: boolean = false
-    @observable @enumerable accessor isLoading: boolean = true
-    @observable @enumerable accessor currencyCode: DonationCurrencyCode = "GBP"
+    @observable accessor customAmount: string = ""
+    @observable accessor name: string = ""
+    @observable accessor showOnList: boolean = true
+    @observable accessor subscribeToDonorNewsletter: boolean = true
+    @observable accessor errorMessage: string | undefined = undefined
+    @observable accessor isSubmitting: boolean = false
+    @observable accessor isLoading: boolean = true
+    @observable accessor currencyCode: DonationCurrencyCode = "GBP"
 
     captchaInstance = React.createRef<Recaptcha>()
-    @observable.ref @enumerable accessor captchaPromiseHandlers:
+    @observable.ref accessor captchaPromiseHandlers:
         | {
               resolve: (value: any) => void
               reject: (value: any) => void

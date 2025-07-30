@@ -17,20 +17,17 @@ import { VariableList, VariableListItem } from "./VariableList.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
 import urljoin from "url-join"
-import { enumerable } from "@ourworldindata/types"
 
 @observer
 export class VariablesIndexPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable @enumerable accessor variables: VariableListItem[] = []
-    @observable @enumerable accessor maxVisibleRows = 50
-    @observable @enumerable accessor numTotalRows: number | undefined =
-        undefined
-    @observable @enumerable accessor searchInput: string | undefined = undefined
-    @observable @enumerable accessor highlightSearch: string | undefined =
-        undefined
+    @observable accessor variables: VariableListItem[] = []
+    @observable accessor maxVisibleRows = 50
+    @observable accessor numTotalRows: number | undefined = undefined
+    @observable accessor searchInput: string | undefined = undefined
+    @observable accessor highlightSearch: string | undefined = undefined
 
     constructor(props: Record<string, never>) {
         super(props)

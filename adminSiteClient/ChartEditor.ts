@@ -17,7 +17,6 @@ import {
 } from "@ourworldindata/utils"
 import { DbChartTagJoin } from "@ourworldindata/types"
 import { action, computed, observable, runInAction, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import { BAKED_GRAPHER_URL } from "../settings/clientSettings.js"
 import {
     AbstractChartEditor,
@@ -56,8 +55,7 @@ export interface ChartEditorManager extends AbstractChartEditorManager {
 export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     // This gets set when we save a new chart for the first time
     // so the page knows to update the url
-    @observable.ref @enumerable accessor newChartId: number | undefined =
-        undefined
+    @observable.ref accessor newChartId: number | undefined = undefined
 
     constructor(props: { manager: ChartEditorManager }) {
         super(props)

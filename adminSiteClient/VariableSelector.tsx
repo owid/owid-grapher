@@ -1,7 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { OwidVariableId, excludeUndefined } from "@ourworldindata/utils"
-import { enumerable } from "@ourworldindata/types"
 import {
     buildSearchWordsFromSearchString,
     filterFunctionForSearchWords,
@@ -53,19 +52,16 @@ interface Variable {
 export class VariableSelector<
     Editor extends AbstractChartEditor,
 > extends React.Component<VariableSelectorProps<Editor>> {
-    @observable.ref @enumerable accessor chosenNamespaces: Namespace[] = []
-    @observable.ref @enumerable accessor searchInput: string | undefined =
-        undefined
-    @observable.ref @enumerable accessor isProjection: boolean | undefined =
-        undefined
-    @observable.ref @enumerable accessor tolerance: number | undefined =
-        undefined
-    @observable.ref @enumerable accessor chosenVariables: Variable[] = []
+    @observable.ref accessor chosenNamespaces: Namespace[] = []
+    @observable.ref accessor searchInput: string | undefined = undefined
+    @observable.ref accessor isProjection: boolean | undefined = undefined
+    @observable.ref accessor tolerance: number | undefined = undefined
+    @observable.ref accessor chosenVariables: Variable[] = []
     scrollElement = React.createRef<HTMLDivElement>()
 
-    @observable @enumerable accessor rowOffset: number = 0
-    @observable @enumerable accessor numVisibleRows: number = 15
-    @observable @enumerable accessor rowHeight: number = 32
+    @observable accessor rowOffset: number = 0
+    @observable accessor numVisibleRows: number = 15
+    @observable accessor rowHeight: number = 32
 
     constructor(props: VariableSelectorProps<Editor>) {
         super(props)

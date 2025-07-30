@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { differenceOfSets } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import cx from "classnames"
 import {
@@ -55,7 +54,7 @@ interface SeriesListItemProps extends React.HTMLProps<HTMLDivElement> {
 
 @observer
 class EntityListItem extends React.Component<EntityListItemProps> {
-    @observable.ref @enumerable accessor isChoosingColor: boolean = false
+    @observable.ref accessor isChoosingColor: boolean = false
 
     constructor(props: EntityListItemProps) {
         super(props)
@@ -164,8 +163,7 @@ class SeriesListItem extends React.Component<SeriesListItemProps> {
 export class EntitySelectionSection extends React.Component<{
     editor: AbstractChartEditor
 }> {
-    @observable.ref @enumerable accessor dragKey: EntityName | undefined =
-        undefined
+    @observable.ref accessor dragKey: EntityName | undefined = undefined
 
     constructor(props: { editor: AbstractChartEditor }) {
         super(props)

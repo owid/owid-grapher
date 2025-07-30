@@ -1,7 +1,6 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, action, runInAction, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
@@ -12,7 +11,7 @@ export class ChartIndexPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable @enumerable accessor charts: ChartListItem[] = []
+    @observable accessor charts: ChartListItem[] = []
 
     constructor(props: Record<string, never>) {
         super(props)

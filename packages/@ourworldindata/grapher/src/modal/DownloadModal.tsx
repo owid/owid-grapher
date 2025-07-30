@@ -2,7 +2,6 @@ import * as _ from "lodash-es"
 import { useCallback, useMemo, useState } from "react"
 import * as React from "react"
 import { observable, computed, action, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import {
     Bounds,
@@ -220,17 +219,13 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
         return this.props.manager
     }
 
-    @observable @enumerable private accessor svgBlob: Blob | undefined =
-        undefined
-    @observable @enumerable private accessor svgPreviewUrl: string | undefined =
-        undefined
+    @observable private accessor svgBlob: Blob | undefined = undefined
+    @observable private accessor svgPreviewUrl: string | undefined = undefined
 
-    @observable @enumerable private accessor pngBlob: Blob | undefined =
-        undefined
-    @observable @enumerable private accessor pngPreviewUrl: string | undefined =
-        undefined
+    @observable private accessor pngBlob: Blob | undefined = undefined
+    @observable private accessor pngPreviewUrl: string | undefined = undefined
 
-    @observable @enumerable private accessor isReady: boolean = false
+    @observable private accessor isReady: boolean = false
 
     @action.bound private export(): void {
         // render the graphic then cache data-urls for display & blobs for downloads

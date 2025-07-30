@@ -23,7 +23,6 @@ import {
     ALGOLIA_SEARCH_KEY,
 } from "../../settings/clientSettings.js"
 import { action, observable, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import {
     IChartHit,
@@ -490,7 +489,7 @@ export class DEPRECATEDInstantSearchContainer extends React.Component {
         }
     }
 
-    @observable @enumerable accessor inputValue: string = ""
+    @observable accessor inputValue: string = ""
 
     @action.bound handleQuery(query: string, search: (value: string) => void) {
         this.inputValue = query
@@ -498,9 +497,7 @@ export class DEPRECATEDInstantSearchContainer extends React.Component {
         search(query)
     }
 
-    @observable
-    @enumerable
-    accessor activeCategoryFilter: SearchCategoryFilter = "all"
+    @observable accessor activeCategoryFilter: SearchCategoryFilter = "all"
 
     @action.bound setActiveCategoryFilter(filter: SearchCategoryFilter) {
         this.activeCategoryFilter = filter
