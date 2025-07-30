@@ -474,7 +474,11 @@ export class DEPRECATEDInstantSearchContainer extends React.Component {
 
     constructor(props: Record<string, never>) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            inputValue: observable,
+            activeCategoryFilter: observable,
+        })
         this.searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
         this.handleCategoryFilterClick =
             this.handleCategoryFilterClick.bind(this)
@@ -489,7 +493,7 @@ export class DEPRECATEDInstantSearchContainer extends React.Component {
         }
     }
 
-    @observable inputValue: string = ""
+    inputValue: string = ""
 
     @action.bound handleQuery(query: string, search: (value: string) => void) {
         this.inputValue = query
@@ -497,7 +501,7 @@ export class DEPRECATEDInstantSearchContainer extends React.Component {
         search(query)
     }
 
-    @observable activeCategoryFilter: SearchCategoryFilter = "all"
+    activeCategoryFilter: SearchCategoryFilter = "all"
 
     @action.bound setActiveCategoryFilter(filter: SearchCategoryFilter) {
         this.activeCategoryFilter = filter

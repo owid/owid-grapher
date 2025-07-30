@@ -22,21 +22,30 @@ interface GameBoyGameInterface {
 }
 
 class GameBoyGameDefaults implements GameBoyGameInterface {
-    @observable title: string | undefined = undefined
-    @observable players: number | undefined = 2
-    @observable relatedGames: GameBoyGameDefaults[] | undefined = undefined
-    @observable characters: CharacterInterface[] | undefined = undefined
-    @observable mainCharacter: CharacterInterface | undefined = undefined
+    title: string | undefined = undefined
+    players: number | undefined = 2
+    relatedGames: GameBoyGameDefaults[] | undefined = undefined
+    characters: CharacterInterface[] | undefined = undefined
+    mainCharacter: CharacterInterface | undefined = undefined
 
     constructor() {
-        makeObservable(this)
+        makeObservable(this, {
+            title: observable,
+            players: observable,
+            relatedGames: observable,
+            characters: observable,
+            mainCharacter: observable,
+        })
     }
 }
 
 class GameBoyGame extends GameBoyGameDefaults implements Persistable {
     constructor(obj?: GameBoyGameInterface) {
         super()
-        makeObservable(this)
+
+        makeObservable(this, {
+            someRuntimeProp: observable,
+        })
         if (obj) this.updateFromObject(obj)
     }
 
@@ -56,15 +65,18 @@ class GameBoyGame extends GameBoyGameDefaults implements Persistable {
         return deleteRuntimeAndUnchangedProps(obj, new GameBoyGame())
     }
 
-    @observable someRuntimeProp = 5
+    someRuntimeProp = 5
 }
 
 class CharacterDefaults {
-    @observable name = ""
-    @observable country = ""
+    name = ""
+    country = ""
 
     constructor() {
-        makeObservable(this)
+        makeObservable(this, {
+            name: observable,
+            country: observable,
+        })
     }
 }
 

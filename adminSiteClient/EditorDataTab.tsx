@@ -54,11 +54,14 @@ interface SeriesListItemProps extends React.HTMLProps<HTMLDivElement> {
 
 @observer
 class EntityListItem extends React.Component<EntityListItemProps> {
-    @observable.ref isChoosingColor: boolean = false
+    isChoosingColor: boolean = false
 
     constructor(props: EntityListItemProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            isChoosingColor: observable.ref,
+        })
     }
 
     @computed get table() {
@@ -163,11 +166,14 @@ class SeriesListItem extends React.Component<SeriesListItemProps> {
 export class EntitySelectionSection extends React.Component<{
     editor: AbstractChartEditor
 }> {
-    @observable.ref dragKey: EntityName | undefined = undefined
+    dragKey: EntityName | undefined = undefined
 
     constructor(props: { editor: AbstractChartEditor }) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            dragKey: observable.ref,
+        })
     }
 
     @computed get editor() {

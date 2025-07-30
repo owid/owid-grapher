@@ -118,14 +118,18 @@ export class StackedDiscreteBarChart
 
     constructor(props: StackedDiscreteBarChartProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            focusSeriesName: observable,
+            tooltipState: observable,
+        })
     }
 
     @computed private get sortConfig(): SortConfig {
         return this.chartState.sortConfig
     }
 
-    @observable focusSeriesName: SeriesName | undefined = undefined
+    focusSeriesName: SeriesName | undefined = undefined
 
     @computed get chartState(): StackedDiscreteBarChartState {
         return this.props.chartState
@@ -494,7 +498,7 @@ export class StackedDiscreteBarChart
         })
     }
 
-    @observable tooltipState = new TooltipState<{
+    tooltipState = new TooltipState<{
         entityName: string
         seriesName?: string
     }>()

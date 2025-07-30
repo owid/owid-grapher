@@ -23,15 +23,22 @@ export class VariablesIndexPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable variables: VariableListItem[] = []
-    @observable maxVisibleRows = 50
-    @observable numTotalRows: number | undefined = undefined
-    @observable searchInput: string | undefined = undefined
-    @observable highlightSearch: string | undefined = undefined
+    variables: VariableListItem[] = []
+    maxVisibleRows = 50
+    numTotalRows: number | undefined = undefined
+    searchInput: string | undefined = undefined
+    highlightSearch: string | undefined = undefined
 
     constructor(props: Record<string, never>) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            variables: observable,
+            maxVisibleRows: observable,
+            numTotalRows: observable,
+            searchInput: observable,
+            highlightSearch: observable,
+        })
     }
 
     @computed get variablesToShow(): VariableListItem[] {

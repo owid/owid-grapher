@@ -3,11 +3,13 @@ import { action, computed, observable, makeObservable } from "mobx"
 
 export class SelectionArray {
     constructor(selectedEntityNames: EntityName[] = []) {
-        makeObservable(this)
+        makeObservable(this, {
+            selectedEntityNames: observable,
+        })
         this.selectedEntityNames = selectedEntityNames.slice()
     }
 
-    @observable selectedEntityNames: EntityName[]
+    selectedEntityNames: EntityName[]
 
     @computed get hasSelection(): boolean {
         return this.selectedEntityNames.length > 0

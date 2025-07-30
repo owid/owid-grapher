@@ -32,13 +32,17 @@ const TOOLTIP_ICON: Record<TooltipFooterIcon, React.ReactElement | null> = {
 }
 
 export class TooltipState<T> {
-    @observable position = new PointVector(0, 0)
-    @observable _target: T | undefined = undefined
-    @observable _timer: number | undefined = undefined
+    position = new PointVector(0, 0)
+    _target: T | undefined = undefined
+    _timer: number | undefined = undefined
     _fade: TooltipFadeMode
 
     constructor({ fade }: { fade?: TooltipFadeMode } = {}) {
-        makeObservable(this)
+        makeObservable(this, {
+            position: observable,
+            _target: observable,
+            _timer: observable,
+        })
         // "delayed" mode is good for charts with gaps between targetable areas
         // "immediate" is better if the tooltip is displayed for all points in the chart's bounds
         // "none" disables the fade transition altogether
@@ -96,7 +100,7 @@ class TooltipCard extends React.Component<
 
     private base = React.createRef<HTMLDivElement>()
 
-    @observable.struct private bounds: Bounds | undefined = undefined
+    private bounds: Bounds | undefined = undefined
 
     constructor(
         props: TooltipProps & {
@@ -106,7 +110,10 @@ class TooltipCard extends React.Component<
         }
     ) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<TooltipCard, "bounds">(this, {
+            bounds: observable.struct,
+        })
     }
 
     @action.bound private updateBounds(): void {

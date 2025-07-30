@@ -12,12 +12,16 @@ export class UserEditPage extends Component<{ userId: number }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable user: UserIndexMeta | undefined = undefined
-    @observable isSaved: boolean = false
+    user: UserIndexMeta | undefined = undefined
+    isSaved: boolean = false
 
     constructor(props: { userId: number }) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            user: observable,
+            isSaved: observable,
+        })
     }
 
     override render() {

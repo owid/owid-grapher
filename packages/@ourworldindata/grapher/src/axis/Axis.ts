@@ -69,15 +69,22 @@ abstract class AbstractAxis {
     config: AxisConfig
     axisManager?: AxisManager
 
-    @observable.ref domain: ValueRange
-    @observable formatColumn: CoreColumn | undefined = undefined // Pass the column purely for formatting reasons. Might be a better way to do this.
-    @observable hideFractionalTicks = false
-    @observable.struct range: ValueRange = [0, 0]
-    @observable private _scaleType: ScaleType | undefined = undefined
-    @observable private _label: string | undefined = undefined
+    domain: ValueRange
+    formatColumn: CoreColumn | undefined = undefined // Pass the column purely for formatting reasons. Might be a better way to do this.
+    hideFractionalTicks = false
+    range: ValueRange = [0, 0]
+    private _scaleType: ScaleType | undefined = undefined
+    private _label: string | undefined = undefined
 
     constructor(config: AxisConfig, axisManager?: AxisManager) {
-        makeObservable(this)
+        makeObservable<AbstractAxis, "_scaleType" | "_label">(this, {
+            domain: observable.ref,
+            formatColumn: observable,
+            hideFractionalTicks: observable,
+            range: observable.struct,
+            _scaleType: observable,
+            _label: observable,
+        })
         this.config = config
         this.domain = [config.domain[0], config.domain[1]]
         this.axisManager = axisManager

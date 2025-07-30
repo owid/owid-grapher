@@ -97,13 +97,15 @@ interface DataTableProps {
 
 @observer
 export class DataTable extends React.Component<DataTableProps> {
-    @observable private storedState: DataTableState = {
+    private storedState: DataTableState = {
         sort: DEFAULT_SORT_STATE,
     }
 
     constructor(props: DataTableProps) {
         super(props)
-        makeObservable(this)
+        makeObservable<DataTable, "storedState">(this, {
+            storedState: observable,
+        })
     }
 
     @computed get manager(): DataTableManager {
@@ -303,7 +305,7 @@ export class DataTable extends React.Component<DataTableProps> {
             )
         )
 
-        const = (row: MinimalOwidRow): number | undefined =>
+        const accessor = (row: MinimalOwidRow): number | undefined =>
             typeof row.value === "string" ? row.value.length : row.value
         const maxValue = _.maxBy(values, accessor)
         const minValue = _.minBy(values, accessor)

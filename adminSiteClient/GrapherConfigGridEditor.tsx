@@ -154,7 +154,7 @@ class HotColorScaleEditor extends BaseEditorComponent<any> {
 export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEditorProps> {
     static override contextType = AdminAppContext
 
-    @observable.ref grapherState = new GrapherState({
+    grapherState = new GrapherState({
         additionalDataLoaderFn: (varId: number) =>
             loadVariableDataAndMetadata(varId, DATA_API_URL, { noCache: true }),
         bounds: new Bounds(0, 0, 480, 500),
@@ -163,50 +163,71 @@ export class GrapherConfigGridEditor extends React.Component<GrapherConfigGridEd
         manager: {},
     }) // the grapher instance we keep around and update
     numTotalRows: number | undefined = undefined
-    @observable selectedRow: number | undefined = undefined
-    @observable selectionEndRow: number | undefined = undefined
-    @observable selectedColumn: number | undefined = undefined
-    @observable selectionEndColumn: number | undefined = undefined
-    @observable activeTab = Tabs.FilterTab
-    @observable currentColumnSet: ColumnSet
-    @observable columnFilter: string = ""
-    @observable hasUncommitedRichEditorChanges: boolean = false
+    selectedRow: number | undefined = undefined
+    selectionEndRow: number | undefined = undefined
+    selectedColumn: number | undefined = undefined
+    selectionEndColumn: number | undefined = undefined
+    activeTab = Tabs.FilterTab
+    currentColumnSet: ColumnSet
+    columnFilter: string = ""
+    hasUncommitedRichEditorChanges: boolean = false
 
-    @observable.ref columnSelection: ColumnInformation[] = []
-    @observable.ref filterState: FilterPanelState | undefined = undefined
+    columnSelection: ColumnInformation[] = []
+    filterState: FilterPanelState | undefined = undefined
 
     declare context: AdminAppContextType
     /** This array contains a description for every column, information like which field
         to display, what editor control should be used, ... */
-    @observable.ref fieldDescriptions: FieldDescription[] | undefined =
-        undefined
+    fieldDescriptions: FieldDescription[] | undefined = undefined
 
     /** Rows of the query result to the /variable-annotations endpoint that include a parsed
         grapher object for the grapherConfig field */
-    @observable richDataRows: VariableAnnotationsRow[] | undefined = undefined
+    richDataRows: VariableAnnotationsRow[] | undefined = undefined
 
     /** Undo stack - not yet used - TODO: implement Undo/redo */
-    @observable undoStack: Action[] = []
+    undoStack: Action[] = []
     /** Redo stack - not yet used */
-    @observable redoStack: Action[] = []
+    redoStack: Action[] = []
 
-    @observable keepEntitySelectionOnChartChange: boolean = false
+    keepEntitySelectionOnChartChange: boolean = false
     /** This field stores the offset of what is currently displayed on screen */
-    @observable currentPagingOffset: number = 0
+    currentPagingOffset: number = 0
     /** This field stores the offset that the user requested. E.g. if the user clicks
         the "Next page" quickly twice then this field will be 2 paging offsets higher
         than currentPagingOffset until the request to retrieve that data is complete
         at which point they will be the same */
-    @observable desiredPagingOffset: number = 0
+    desiredPagingOffset: number = 0
     // Sorting fields - not yet used - TODO: implement sorting
-    @observable sortByColumn: string = "id"
-    @observable sortByAscending: boolean = false
+    sortByColumn: string = "id"
+    sortByAscending: boolean = false
     readonly config: GrapherConfigGridEditorConfig
     disposers: Disposer[] = []
 
     constructor(props: GrapherConfigGridEditorProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            grapherState: observable.ref,
+            selectedRow: observable,
+            selectionEndRow: observable,
+            selectedColumn: observable,
+            selectionEndColumn: observable,
+            activeTab: observable,
+            currentColumnSet: observable,
+            columnFilter: observable,
+            hasUncommitedRichEditorChanges: observable,
+            columnSelection: observable.ref,
+            filterState: observable.ref,
+            fieldDescriptions: observable.ref,
+            richDataRows: observable,
+            undoStack: observable,
+            redoStack: observable,
+            keepEntitySelectionOnChartChange: observable,
+            currentPagingOffset: observable,
+            desiredPagingOffset: observable,
+            sortByColumn: observable,
+            sortByAscending: observable,
+        })
         this.config = props.config
         this.currentColumnSet = this.config.columnSet[0]
     }

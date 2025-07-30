@@ -22,15 +22,22 @@ type ExplorerWithTags = {
 export class ExplorerTagsPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
-    @observable explorersWithTags: ExplorerWithTags[] = []
-    @observable explorers: ExplorerProgram[] = []
-    @observable tags: DbChartTagJoin[] = []
-    @observable newExplorerSlug = ""
-    @observable newExplorerTags: DbChartTagJoin[] = []
+    explorersWithTags: ExplorerWithTags[] = []
+    explorers: ExplorerProgram[] = []
+    tags: DbChartTagJoin[] = []
+    newExplorerSlug = ""
+    newExplorerTags: DbChartTagJoin[] = []
 
     constructor(props: Record<string, never>) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            explorersWithTags: observable,
+            explorers: observable,
+            tags: observable,
+            newExplorerSlug: observable,
+            newExplorerTags: observable,
+        })
     }
 
     override componentDidMount() {

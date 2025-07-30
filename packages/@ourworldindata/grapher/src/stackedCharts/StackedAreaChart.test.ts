@@ -23,7 +23,9 @@ import { ChartManager } from "../chart/ChartManager"
 
 class MockManager implements ChartManager {
     constructor() {
-        makeObservable(this)
+        makeObservable(this, {
+            isRelativeMode: observable,
+        })
     }
 
     table = SynthesizeGDPTable({
@@ -31,7 +33,7 @@ class MockManager implements ChartManager {
     })
     yColumnSlugs = [SampleColumnSlugs.GDP]
     yAxisConfig = new AxisConfig({ min: 0, max: 200 })
-    @observable isRelativeMode = false
+    isRelativeMode = false
     selection = new SelectionArray()
     activeChartType = GRAPHER_CHART_TYPES.StackedArea
 }

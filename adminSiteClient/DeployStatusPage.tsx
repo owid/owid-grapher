@@ -20,13 +20,18 @@ export class DeployStatusPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable deploys: Deploy[] = []
-    @observable canManuallyDeploy = true
+    deploys: Deploy[] = []
+    canManuallyDeploy = true
     refreshIntervalId?: number
 
     constructor(props: Record<string, never>) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            deploys: observable,
+            canManuallyDeploy: observable,
+            handleVisibilityChange: action.bound,
+        })
     }
 
     override componentDidMount() {
@@ -124,7 +129,7 @@ export class DeployStatusPage extends Component {
         )
     }
 
-    @action.bound handleVisibilityChange = () => {
+    handleVisibilityChange = () => {
         if (document.visibilityState === "visible") void this.getData()
     }
 

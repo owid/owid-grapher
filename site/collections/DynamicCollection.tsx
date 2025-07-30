@@ -54,15 +54,19 @@ export function embedDynamicCollectionGrapher(
 
 @observer
 export class DynamicCollection extends React.Component<DynamicCollectionProps> {
-    @observable initialDynamicCollection: string | undefined =
+    initialDynamicCollection: string | undefined =
         this.props.initialDynamicCollection
-    @observable graphers: undefined | WindowGraphers = undefined
+    graphers: undefined | WindowGraphers = undefined
     pollInterval: null | ReturnType<typeof setInterval> = null
     disposers: IReactionDisposer[] = []
 
     constructor(props: DynamicCollectionProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            initialDynamicCollection: observable,
+            graphers: observable,
+        })
     }
 
     @computed get allGrapherSlugsAndQueryStrings() {

@@ -71,15 +71,20 @@ export class StackedBarChart
 
     constructor(props: StackedBarChartProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            hoverColor: observable,
+            hoveredTick: observable,
+            tooltipState: observable,
+        })
     }
 
     // currently hovered legend color
-    @observable hoverColor: string | undefined = undefined
+    hoverColor: string | undefined = undefined
     // currently hovered axis label
-    @observable hoveredTick: TickmarkPlacement | undefined = undefined
+    hoveredTick: TickmarkPlacement | undefined = undefined
     // current hovered individual bar
-    @observable tooltipState = new TooltipState<{
+    tooltipState = new TooltipState<{
         bar: StackedPoint<number>
         series: StackedSeries<number>
     }>()

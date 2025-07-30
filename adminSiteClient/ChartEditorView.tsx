@@ -84,12 +84,16 @@ export interface NamespaceData {
 }
 
 export class EditorDatabase {
-    @observable.ref namespaces: Namespace[]
-    @observable.ref variableUsageCounts: Map<number, number> = new Map()
-    @observable dataByNamespace: Map<string, NamespaceData> = new Map()
+    namespaces: Namespace[]
+    variableUsageCounts: Map<number, number> = new Map()
+    dataByNamespace: Map<string, NamespaceData> = new Map()
 
     constructor(json: any) {
-        makeObservable(this)
+        makeObservable(this, {
+            namespaces: observable.ref,
+            variableUsageCounts: observable.ref,
+            dataByNamespace: observable,
+        })
         this.namespaces = json.namespaces
     }
 }
@@ -109,26 +113,31 @@ interface ChartEditorViewProps<Editor> {
 export class ChartEditorView<
     Editor extends AbstractChartEditor,
 > extends React.Component<ChartEditorViewProps<Editor>> {
-    @observable.ref database = new EditorDatabase({})
-    @observable details: DetailDictionary = {}
+    database = new EditorDatabase({})
+    details: DetailDictionary = {}
 
     constructor(props: ChartEditorViewProps<Editor>) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<ChartEditorView<Editor>, "_isDbSet">(this, {
+            database: observable.ref,
+            details: observable,
+            simulateVisionDeficiency: observable,
+            _isDbSet: observable,
+        })
     }
 
     @computed get grapherState(): GrapherState {
         return this.manager.editor.grapherState
     }
 
-    @observable simulateVisionDeficiency: VisionDeficiency | undefined =
-        undefined
+    simulateVisionDeficiency: VisionDeficiency | undefined = undefined
 
     @computed private get manager(): ChartEditorViewManager<Editor> {
         return this.props.manager
     }
 
-    @observable private _isDbSet = false
+    private _isDbSet = false
     @computed get isReady(): boolean {
         return this._isDbSet
     }

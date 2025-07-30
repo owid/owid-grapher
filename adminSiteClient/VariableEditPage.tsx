@@ -96,29 +96,45 @@ class VariableEditable
             "id" | "values" | "years" | "entities"
         >
 {
-    @observable name = ""
-    @observable unit = ""
-    @observable shortUnit = ""
-    @observable description = ""
-    @observable entityAnnotationsMap = ""
-    @observable display = new OwidVariableDisplayConfig()
+    name = ""
+    unit = ""
+    shortUnit = ""
+    description = ""
+    entityAnnotationsMap = ""
+    display = new OwidVariableDisplayConfig()
 
-    @observable descriptionShort = ""
-    @observable descriptionFromProducer = ""
-    @observable descriptionKey: string[] = []
-    @observable descriptionProcessing = ""
-    @observable processingLevel: OwidProcessingLevel | undefined = undefined
+    descriptionShort = ""
+    descriptionFromProducer = ""
+    descriptionKey: string[] = []
+    descriptionProcessing = ""
+    processingLevel: OwidProcessingLevel | undefined = undefined
 
-    @observable presentation = {} as OwidVariablePresentation
+    presentation = {} as OwidVariablePresentation
 
-    @observable updatePeriodDays: number | undefined = undefined
+    updatePeriodDays: number | undefined = undefined
 
-    @observable origins: OwidOrigin[] = []
+    origins: OwidOrigin[] = []
 
-    @observable source: OwidSource | undefined = undefined
+    source: OwidSource | undefined = undefined
 
     constructor(json: any) {
-        makeObservable(this)
+        makeObservable(this, {
+            name: observable,
+            unit: observable,
+            shortUnit: observable,
+            description: observable,
+            entityAnnotationsMap: observable,
+            display: observable,
+            descriptionShort: observable,
+            descriptionFromProducer: observable,
+            descriptionKey: observable,
+            descriptionProcessing: observable,
+            processingLevel: observable,
+            presentation: observable,
+            updatePeriodDays: observable,
+            origins: observable,
+            source: observable,
+        })
         for (const key in this) {
             if (key === "display") _.extend(this.display, json.display)
             else if (key === "presentation")
@@ -133,12 +149,17 @@ class VariableEditable
 class VariableEditor extends Component<{
     variable: VariablePageData
 }> {
-    @observable newVariable!: VariableEditable
-    @observable isDeleted: boolean = false
+    newVariable!: VariableEditable
+    isDeleted: boolean = false
 
     constructor(props: { variable: VariablePageData }) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            newVariable: observable,
+            isDeleted: observable,
+            grapherState: observable.ref,
+        })
     }
 
     // Store the original dataset to determine when it is modified
@@ -153,7 +174,7 @@ class VariableEditor extends Component<{
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable.ref grapherState: GrapherState | undefined = undefined
+    grapherState: GrapherState | undefined = undefined
 
     @computed get isModified(): boolean {
         return (
@@ -758,11 +779,14 @@ export class VariableEditPage extends Component<{ variableId: number }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable variable: VariablePageData | undefined = undefined
+    variable: VariablePageData | undefined = undefined
 
     constructor(props: { variableId: number }) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            variable: observable,
+        })
     }
 
     override render() {

@@ -24,8 +24,8 @@ interface SourcePageData {
 }
 
 class SourceEditable {
-    @observable name: string = ""
-    @observable description = {
+    name: string = ""
+    description = {
         dataPublishedBy: undefined,
         dataPublisherSource: undefined,
         link: undefined,
@@ -34,7 +34,10 @@ class SourceEditable {
     }
 
     constructor(json: SourcePageData) {
-        makeObservable(this)
+        makeObservable(this, {
+            name: observable,
+            description: observable,
+        })
         for (const key in this) {
             if (key === "description")
                 Object.assign(this.description, json.description)
@@ -48,12 +51,16 @@ class SourceEditor extends Component<{ source: SourcePageData }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable newSource!: SourceEditable
-    @observable isDeleted: boolean = false
+    newSource!: SourceEditable
+    isDeleted: boolean = false
 
     constructor(props: { source: SourcePageData }) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            newSource: observable,
+            isDeleted: observable,
+        })
     }
 
     // Store the original source to determine when it is modified
@@ -175,11 +182,14 @@ export class SourceEditPage extends Component<{ sourceId: number }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable source: SourcePageData | undefined = undefined
+    source: SourcePageData | undefined = undefined
 
     constructor(props: { sourceId: number }) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            source: observable,
+        })
     }
 
     override render() {

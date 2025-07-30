@@ -31,13 +31,17 @@ const sendFeedback = async (feedback: Feedback) => {
 }
 
 class Feedback {
-    @observable name: string = ""
-    @observable email: string = ""
-    @observable message: string = ""
+    name: string = ""
+    email: string = ""
+    message: string = ""
     environment: string = ""
 
     constructor() {
-        makeObservable(this)
+        makeObservable(this, {
+            name: observable,
+            email: observable,
+            message: observable,
+        })
     }
 
     @action.bound clear() {
@@ -128,13 +132,18 @@ interface FeedbackFormProps {
 @observer
 export class FeedbackForm extends React.Component<FeedbackFormProps> {
     feedback: Feedback = new Feedback()
-    @observable loading: boolean = false
-    @observable done: boolean = false
-    @observable error: string | undefined
+    loading: boolean = false
+    done: boolean = false
+    error: string | undefined
 
     constructor(props: FeedbackFormProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            loading: observable,
+            done: observable,
+            error: observable,
+        })
     }
 
     async submit() {
@@ -318,11 +327,14 @@ export class FeedbackForm extends React.Component<FeedbackFormProps> {
 
 @observer
 export class FeedbackPrompt extends React.Component {
-    @observable isOpen: boolean = false
+    isOpen: boolean = false
 
     constructor(props: Record<string, never>) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            isOpen: observable,
+        })
     }
 
     @action.bound toggleOpen() {

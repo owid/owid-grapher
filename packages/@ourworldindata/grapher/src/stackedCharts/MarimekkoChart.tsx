@@ -238,16 +238,20 @@ export class MarimekkoChart
 
     constructor(props: MarimekkoChartProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            focusColorBin: observable,
+            tooltipState: observable,
+        })
     }
 
     labelAngleInDegrees = -45 // 0 is horizontal, -90 is vertical from bottom to top, ...
 
     // currently hovered legend color
-    @observable focusColorBin: ColorScaleBin | undefined = undefined
+    focusColorBin: ColorScaleBin | undefined = undefined
 
     // current tooltip target & position
-    @observable tooltipState = new TooltipState<{
+    tooltipState = new TooltipState<{
         entityName: string
     }>()
 

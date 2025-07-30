@@ -50,12 +50,19 @@ interface GroupedDropdownOption {
 export class MapCountryDropdown extends React.Component<{
     manager: MapCountryDropdownManager
 }> {
-    @observable private searchInput = ""
-    @observable private localEntityNames: EntityName[] | undefined = undefined
+    private searchInput = ""
+    private localEntityNames: EntityName[] | undefined = undefined
 
     constructor(props: { manager: MapCountryDropdownManager }) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<MapCountryDropdown, "searchInput" | "localEntityNames">(
+            this,
+            {
+                searchInput: observable,
+                localEntityNames: observable,
+            }
+        )
     }
 
     static shouldShow(manager: MapCountryDropdownManager): boolean {

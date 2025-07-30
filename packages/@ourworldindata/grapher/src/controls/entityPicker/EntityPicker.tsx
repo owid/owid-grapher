@@ -71,26 +71,50 @@ interface EntityPickerProps {
 
 @observer
 export class EntityPicker extends React.Component<EntityPickerProps> {
-    @observable private searchInput: string | undefined = undefined
-    @observable private searchInputRef = React.createRef<HTMLInputElement>()
+    private searchInput: string | undefined = undefined
+    private searchInputRef = React.createRef<HTMLInputElement>()
 
-    @observable private focusIndex: number | undefined = undefined
-    @observable private focusRef = React.createRef<HTMLLabelElement>()
-    @observable private scrollFocusedIntoViewOnUpdate = false
+    private focusIndex: number | undefined = undefined
+    private focusRef = React.createRef<HTMLLabelElement>()
+    private scrollFocusedIntoViewOnUpdate = false
 
-    @observable private blockOptionHover = false
+    private blockOptionHover = false
 
-    @observable private mostRecentlySelectedEntityName: string | null = null
+    private mostRecentlySelectedEntityName: string | null = null
 
-    @observable private scrollContainerRef = React.createRef<HTMLDivElement>()
+    private scrollContainerRef = React.createRef<HTMLDivElement>()
 
-    @observable private isOpen = false
+    private isOpen = false
 
-    @observable private localEntityNames: string[] | undefined = undefined
+    private localEntityNames: string[] | undefined = undefined
 
     constructor(props: EntityPickerProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<
+            EntityPicker,
+            | "searchInput"
+            | "searchInputRef"
+            | "focusIndex"
+            | "focusRef"
+            | "scrollFocusedIntoViewOnUpdate"
+            | "blockOptionHover"
+            | "mostRecentlySelectedEntityName"
+            | "scrollContainerRef"
+            | "isOpen"
+            | "localEntityNames"
+        >(this, {
+            searchInput: observable,
+            searchInputRef: observable,
+            focusIndex: observable,
+            focusRef: observable,
+            scrollFocusedIntoViewOnUpdate: observable,
+            blockOptionHover: observable,
+            mostRecentlySelectedEntityName: observable,
+            scrollContainerRef: observable,
+            isOpen: observable,
+            localEntityNames: observable,
+        })
     }
 
     @computed private get isDropdownMenu(): boolean {
