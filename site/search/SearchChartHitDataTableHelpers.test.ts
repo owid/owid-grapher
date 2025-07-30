@@ -17,6 +17,7 @@ import {
     SynthesizeFruitTable,
 } from "@ourworldindata/core-table"
 import { buildChartHitDataTableProps } from "./SearchChartHitDataTableHelpers"
+import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable"
 
 function createSingleIndicatorGrapherState(
     overrides: GrapherProgrammaticInterface = {}
@@ -104,33 +105,39 @@ describe("buildChartHitDataTableProps for LineChart", () => {
     it("lists entities when entities are plotted", () => {
         const grapherState = createSingleIndicatorGrapherState()
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.title).toBe("GDP")
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.title).toBe("GDP")
+        expect(dataTable.rows).toMatchObject([
             { name: "Philippines", time: "2009", value: "$682.03 billion" },
             { name: "Benin", time: "2009", value: "$233.42 billion" },
             { name: "Eritrea", time: "2009", value: "$63.2 billion" },
         ])
 
         // Check that the colors are unique
-        const colors = dataTable?.rows.map((row) => row.color)
+        const colors = dataTable.rows.map((row) => row.color)
         expect(new Set(colors)).toHaveLength(colors!.length)
     })
 
     it("lists columns when columns are plotted", () => {
         const grapherState = createFruityMultipleIndicatorsGrapherState()
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.title).toBe("Benin")
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.title).toBe("Benin")
+        expect(dataTable.rows).toMatchObject([
             { name: "Fruit", time: "2009", value: "573" },
             { name: "Vegetables", time: "2009", value: "542" },
         ])
 
         // Check that the colors are unique
-        const colors = dataTable?.rows.map((row) => row.color)
+        const colors = dataTable.rows.map((row) => row.color)
         expect(new Set(colors)).toHaveLength(colors!.length)
     })
 
@@ -141,9 +148,12 @@ describe("buildChartHitDataTableProps for LineChart", () => {
             focusedSeriesNames: [selectedEntityNames[1]],
         })
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.rows).toMatchObject([
             { name: "Philippines", muted: true },
             { name: "Benin", muted: false },
             { name: "Eritrea", muted: true },
@@ -155,10 +165,13 @@ describe("buildChartHitDataTableProps for LineChart", () => {
             selectedFacetStrategy: FacetStrategy.entity,
         })
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.title).toBe("GDP")
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.title).toBe("GDP")
+        expect(dataTable.rows).toMatchObject([
             { name: "Philippines", time: "2009", value: "$682.03 billion" },
             { name: "Benin", time: "2009", value: "$233.42 billion" },
             { name: "Eritrea", time: "2009", value: "$63.2 billion" },
@@ -170,17 +183,20 @@ describe("buildChartHitDataTableProps for LineChart", () => {
             selectedFacetStrategy: FacetStrategy.metric,
         })
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.title).toBe("GDP")
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.title).toBe("GDP")
+        expect(dataTable.rows).toMatchObject([
             { name: "Philippines", time: "2009", value: "$682.03 billion" },
             { name: "Benin", time: "2009", value: "$233.42 billion" },
             { name: "Eritrea", time: "2009", value: "$63.2 billion" },
         ])
 
         // Check that the colors are unique
-        const colors = dataTable?.rows.map((row) => row.color)
+        const colors = dataTable.rows.map((row) => row.color)
         expect(new Set(colors)).toHaveLength(colors!.length)
     })
 })
@@ -191,10 +207,13 @@ describe("buildChartHitDataTableProps for SlopeChart", () => {
             chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
         })
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.title).toBe("GDP")
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.title).toBe("GDP")
+        expect(dataTable.rows).toMatchObject([
             {
                 name: "Philippines",
                 time: "2000–2009",
@@ -219,7 +238,7 @@ describe("buildChartHitDataTableProps for SlopeChart", () => {
         ])
 
         // Check that the colors are unique
-        const colors = dataTable?.rows.map((row) => row.color)
+        const colors = dataTable.rows.map((row) => row.color)
         expect(new Set(colors)).toHaveLength(colors!.length)
     })
 
@@ -228,10 +247,13 @@ describe("buildChartHitDataTableProps for SlopeChart", () => {
             chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
         })
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.title).toBe("Benin")
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.title).toBe("Benin")
+        expect(dataTable.rows).toMatchObject([
             {
                 name: "Fruit",
                 time: "2000–2009",
@@ -249,7 +271,7 @@ describe("buildChartHitDataTableProps for SlopeChart", () => {
         ])
 
         // Check that the colors are unique
-        const colors = dataTable?.rows.map((row) => row.color)
+        const colors = dataTable.rows.map((row) => row.color)
         expect(new Set(colors)).toHaveLength(colors!.length)
     })
 
@@ -264,10 +286,13 @@ describe("buildChartHitDataTableProps for SlopeChart", () => {
             focusedSeriesNames: [selectedEntityNames[0]],
         })
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.title).toBe("GDP")
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.title).toBe("GDP")
+        expect(dataTable.rows).toMatchObject([
             { name: "Philippines", muted: true },
             { name: "Benin", muted: false },
             { name: "Eritrea", muted: true },
@@ -280,10 +305,13 @@ describe("buildChartHitDataTableProps for SlopeChart", () => {
             selectedFacetStrategy: FacetStrategy.entity,
         })
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.title).toBe("GDP")
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.title).toBe("GDP")
+        expect(dataTable.rows).toMatchObject([
             {
                 name: "Philippines",
                 startValue: "$663.99 billion",
@@ -314,10 +342,13 @@ describe("buildChartHitDataTableProps for SlopeChart", () => {
             selectedFacetStrategy: FacetStrategy.metric,
         })
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.title).toBe("GDP")
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.title).toBe("GDP")
+        expect(dataTable.rows).toMatchObject([
             {
                 name: "Philippines",
                 startValue: "$663.99 billion",
@@ -342,7 +373,7 @@ describe("buildChartHitDataTableProps for SlopeChart", () => {
         ])
 
         // Check that the colors are unique
-        const colors = dataTable?.rows.map((row) => row.color)
+        const colors = dataTable.rows.map((row) => row.color)
         expect(new Set(colors)).toHaveLength(colors!.length)
     })
 })
@@ -353,17 +384,20 @@ describe("buildChartHitDataTableProps for StackedAreaChart", () => {
             chartTypes: [GRAPHER_CHART_TYPES.StackedArea],
         })
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.title).toBe("GDP")
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.title).toBe("GDP")
+        expect(dataTable.rows).toMatchObject([
             { name: "Benin", time: "2009", value: "$233.42 billion" },
             { name: "Philippines", time: "2009", value: "$682.03 billion" },
             { name: "Eritrea", time: "2009", value: "$63.2 billion" },
         ])
 
         // Check that the colors are unique
-        const colors = dataTable?.rows.map((row) => row.color)
+        const colors = dataTable.rows.map((row) => row.color)
         expect(new Set(colors)).toHaveLength(colors!.length)
     })
 
@@ -372,16 +406,19 @@ describe("buildChartHitDataTableProps for StackedAreaChart", () => {
             chartTypes: [GRAPHER_CHART_TYPES.StackedArea],
         })
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.title).toBe("Benin")
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.title).toBe("Benin")
+        expect(dataTable.rows).toMatchObject([
             { name: "Fruit", time: "2009", value: "573" },
             { name: "Vegetables", time: "2009", value: "542" },
         ])
 
         // Check that the colors are unique
-        const colors = dataTable?.rows.map((row) => row.color)
+        const colors = dataTable.rows.map((row) => row.color)
         expect(new Set(colors)).toHaveLength(colors!.length)
     })
 
@@ -393,9 +430,12 @@ describe("buildChartHitDataTableProps for StackedAreaChart", () => {
             focusedSeriesNames: [selectedEntityNames[1]],
         })
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.rows).toMatchObject([
             { name: "Philippines", muted: true },
             { name: "Benin", muted: false },
             { name: "Eritrea", muted: true },
@@ -408,10 +448,13 @@ describe("buildChartHitDataTableProps for StackedAreaChart", () => {
             selectedFacetStrategy: FacetStrategy.entity,
         })
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.title).toBe("GDP")
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.title).toBe("GDP")
+        expect(dataTable.rows).toMatchObject([
             { name: "Benin", time: "2009", value: "$233.42 billion" },
             { name: "Philippines", time: "2009", value: "$682.03 billion" },
             { name: "Eritrea", time: "2009", value: "$63.2 billion" },
@@ -424,17 +467,20 @@ describe("buildChartHitDataTableProps for StackedAreaChart", () => {
             selectedFacetStrategy: FacetStrategy.metric,
         })
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.title).toBe("GDP")
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.title).toBe("GDP")
+        expect(dataTable.rows).toMatchObject([
             { name: "Benin", time: "2009", value: "$233.42 billion" },
             { name: "Philippines", time: "2009", value: "$682.03 billion" },
             { name: "Eritrea", time: "2009", value: "$63.2 billion" },
         ])
 
         // Check that the colors are unique
-        const colors = dataTable?.rows.map((row) => row.color)
+        const colors = dataTable.rows.map((row) => row.color)
         expect(new Set(colors)).toHaveLength(colors!.length)
     })
 })
@@ -445,10 +491,13 @@ describe("buildChartHitDataTableProps for DiscreteBar", () => {
             chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
         })
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.title).toBe("GDP")
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.title).toBe("GDP")
+        expect(dataTable.rows).toMatchObject([
             { name: "Philippines", time: "2009", value: "$682.03 billion" },
             { name: "Benin", time: "2009", value: "$233.42 billion" },
             { name: "Eritrea", time: "2009", value: "$63.2 billion" },
@@ -460,10 +509,13 @@ describe("buildChartHitDataTableProps for DiscreteBar", () => {
             chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
         })
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.title).toBe("Benin")
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.title).toBe("Benin")
+        expect(dataTable.rows).toMatchObject([
             { name: "Fruit", time: "2009", value: "573" },
             { name: "Vegetables", time: "2009", value: "542" },
         ])
@@ -477,9 +529,12 @@ describe("buildChartHitDataTableProps for DiscreteBar", () => {
             focusedSeriesNames: [selectedEntityNames[1]],
         })
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.rows).toMatchObject([
             { name: "Philippines", muted: true },
             { name: "Benin", muted: false },
             { name: "Eritrea", muted: true },
@@ -492,10 +547,13 @@ describe("buildChartHitDataTableProps for DiscreteBar", () => {
             selectedFacetStrategy: FacetStrategy.entity,
         })
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.title).toBe("GDP")
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.title).toBe("GDP")
+        expect(dataTable.rows).toMatchObject([
             { name: "Philippines", time: "2009", value: "$682.03 billion" },
             { name: "Benin", time: "2009", value: "$233.42 billion" },
             { name: "Eritrea", time: "2009", value: "$63.2 billion" },
@@ -508,10 +566,13 @@ describe("buildChartHitDataTableProps for DiscreteBar", () => {
             selectedFacetStrategy: FacetStrategy.metric,
         })
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.title).toBe("GDP")
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.title).toBe("GDP")
+        expect(dataTable.rows).toMatchObject([
             { name: "Philippines", time: "2009", value: "$682.03 billion" },
             { name: "Benin", time: "2009", value: "$233.42 billion" },
             { name: "Eritrea", time: "2009", value: "$63.2 billion" },
@@ -536,10 +597,13 @@ describe("buildChartHitDataTableProps for WorldMap", () => {
             },
         })
 
-        const dataTable = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableProps({ grapherState })
 
-        expect(dataTable?.title).toBe("GDP")
-        expect(dataTable?.rows).toMatchObject([
+        expect(result?.type).toBe("data-table")
+        const dataTable = result as SearchChartHitDataTableProps
+
+        expect(dataTable.title).toBe("GDP")
+        expect(dataTable.rows).toMatchObject([
             {
                 color: "#eff3ff",
                 name: "$1 billion-$3 billion",
