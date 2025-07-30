@@ -23,6 +23,7 @@ export default function GuidedChart({
     containerType?: Container
 }) {
     const stateRef = useRef<GrapherState | null>(null)
+    const chartRef = useRef<HTMLDivElement | null>(null)
     const multiDimRegistration = useRef<{
         config: any
         updater: (newSettings: MultiDimDimensionChoices) => void
@@ -57,12 +58,24 @@ export default function GuidedChart({
         stateRef.current.clearQueryParams()
         stateRef.current.populateFromQueryParams(url.queryParams)
         analytics.logGuidedChartLinkClick(url.fullUrl)
+
+        // Scroll to chart on small screens
+        if (chartRef.current && window.innerWidth <= 768) {
+            // Small delay to allow chart updates to complete
+            setTimeout(() => {
+                chartRef.current?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                })
+            }, 100)
+        }
     }, [])
 
     return (
         <GuidedChartContext.Provider
             value={{
                 grapherStateRef: stateRef as React.RefObject<GrapherState>,
+                chartRef: chartRef as React.RefObject<HTMLDivElement>,
                 onGuidedChartLinkClick: handleGuidedChartLinkClick,
                 onMultiDimSettingsUpdate: (registrationData: {
                     config: MultiDimDataPageConfig

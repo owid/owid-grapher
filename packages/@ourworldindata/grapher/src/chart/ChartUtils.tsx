@@ -368,6 +368,7 @@ export function getChartSvgProps({
 
 export interface GuidedChartContextValue {
     grapherStateRef: React.RefObject<GrapherState>
+    chartRef?: React.RefObject<HTMLDivElement>
     onGuidedChartLinkClick?: (href: string) => void
     // MultiDim support
     onMultiDimSettingsUpdate?: (registrationData: {
