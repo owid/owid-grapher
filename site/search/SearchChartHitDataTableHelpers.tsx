@@ -18,6 +18,7 @@ import {
     NumericBin,
     ColorScaleBin,
 } from "@ourworldindata/grapher"
+import { excludeUndefined } from "@ourworldindata/utils"
 import {
     EntityName,
     FacetStrategy,
@@ -27,6 +28,7 @@ import {
     SeriesStrategy,
 } from "@ourworldindata/types"
 import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable"
+import { SearchChartHitDataPointsProps } from "./SearchChartHitDataPoints"
 import {
     getColumnNameForDisplay,
     getColumnUnitForDisplay,
@@ -45,7 +47,7 @@ interface Args<State extends ChartState = ChartState> extends BaseArgs {
 
 export function buildChartHitDataTableProps(
     props: BaseArgs
-): SearchChartHitDataTableProps | undefined {
+): SearchChartHitDataTableProps | SearchChartHitDataPointsProps | undefined {
     if (!props.grapherState.isReady) return undefined
 
     // If the chart is faceted and displays multiple series per facet
@@ -195,7 +197,7 @@ function buildDataTablePropsForLineChart({
 
     const title = makeTableTitle(grapherState, chartState)
 
-    return { rows: displayRows, title }
+    return { type: "data-table", rows: displayRows, title }
 }
 
 function buildDataTablePropsForDiscreteBarChart({
@@ -219,7 +221,7 @@ function buildDataTablePropsForDiscreteBarChart({
 
     const title = makeTableTitle(grapherState, chartState)
 
-    return { rows, title }
+    return { type: "data-table", rows, title }
 }
 
 function buildDataTablePropsForSlopeChart({
@@ -262,7 +264,7 @@ function buildDataTablePropsForSlopeChart({
 
     const title = makeTableTitle(grapherState, chartState)
 
-    return { rows, title }
+    return { type: "data-table", rows, title }
 }
 
 function buildDataTablePropsForStackedDiscreteBarChart({
@@ -337,7 +339,7 @@ function buildDataTablePropsForStackedDiscreteBarChart({
 
     if (maxRows !== undefined) rows = rows.slice(0, maxRows)
 
-    return { rows, title }
+    return { type: "data-table", rows, title }
 }
 
 function buildDataTablePropsForStackedAreaAndBarChart({
@@ -388,7 +390,7 @@ function buildDataTablePropsForStackedAreaAndBarChart({
 
     const title = makeTableTitle(grapherState, chartState)
 
-    return { rows, title }
+    return { type: "data-table", rows, title }
 }
 
 function buildDataTablePropsForMarimekkoChart({
@@ -396,15 +398,201 @@ function buildDataTablePropsForMarimekkoChart({
     chartState: _chartState,
     maxRows: _maxRows,
 }: Args<MarimekkoChartState>): SearchChartHitDataTableProps {
-    return { rows: [], title: "" }
+    return { type: "data-table", rows: [], title: "" }
 }
 
 function buildDataTablePropsForScatterPlot({
-    grapherState: _grapherState,
-    chartState: _chartState,
-    maxRows: _maxRows,
-}: Args<ScatterPlotChartState>): SearchChartHitDataTableProps {
-    return { rows: [], title: "" }
+    grapherState,
+    chartState,
+    maxRows,
+}: Args<ScatterPlotChartState>):
+    | SearchChartHitDataTableProps
+    | SearchChartHitDataPointsProps {
+    // If entities are selected, then we display the x and y values for the
+    // first entity. The remaining entities are ignored
+    if (grapherState.selection.hasSelection) {
+        const selectedEntity = grapherState.selection.selectedEntityNames[0]
+        return buildDataPointsPropsForScatterPlot({
+            grapherState,
+            chartState,
+            entityName: selectedEntity,
+        })
+    }
+
+    // If the selection is empty and the scatter plot has a legend (which is the
+    // case if it has a color dimension), then we display the legend
+    if (!grapherState.selection.hasSelection && grapherState.colorColumnSlug) {
+        return buildLegendTablePropsForScatterPlot({
+            grapherState,
+            chartState,
+            maxRows,
+        })
+    }
+
+    // Special handling for two cases:
+    // Case 1:
+    //   The scatter plot has exactly one entity. In this case, displaying
+    //   the x-and y-value of that entity in a large format is nicer than
+    //   a single-row table.
+    // Case 2:
+    //   The scatter plot is connected and has more than one entity. In this
+    //   case, we can't fit the start and end values for both dimensions into
+    //   a single table row. That's why we simply display the x- and y-values
+    //   of one of the entities.
+    if (chartState.series.length === 1 || chartState.isConnected) {
+        const firstEntity = chartState.series[0].seriesName
+        return buildDataPointsPropsForScatterPlot({
+            grapherState,
+            chartState,
+            entityName: firstEntity,
+        })
+    }
+
+    // Display a table where each row corresponds to an entity and lists x and
+    // y-values in this format: '<x-value> vs. <y-value>'.
+    return buildValueTablePropsForScatterPlot({
+        grapherState,
+        chartState,
+        maxRows,
+    })
+}
+
+/** Creates a table where each row represents a legend bin from the color scale */
+function buildLegendTablePropsForScatterPlot({
+    grapherState,
+    chartState,
+    maxRows,
+}: {
+    grapherState: GrapherState
+    chartState: ScatterPlotChartState
+    maxRows?: number
+}): SearchChartHitDataTableProps {
+    const bins = chartState.colorScale.legendBins
+
+    let rows = bins
+        .map((bin) => {
+            if (bin.isHidden || isNoDataBin(bin)) return undefined
+            return { bin, name: bin.text, color: bin.color }
+        })
+        .filter((row) => row !== undefined)
+
+    if (maxRows !== undefined) rows = rows.slice(0, maxRows)
+
+    const title = grapherState.colorScale.legendDescription || "Legend"
+
+    return { type: "data-table", rows, title }
+}
+
+/**
+ * Creates a table where each row represents an entity in a scatter plot,
+ * displaying both x and y values in a "y vs x" format for each entity.
+ */
+function buildValueTablePropsForScatterPlot({
+    grapherState,
+    chartState,
+    maxRows,
+}: {
+    grapherState: GrapherState
+    chartState: ScatterPlotChartState
+    maxRows?: number
+}): SearchChartHitDataTableProps {
+    const { xColumn, yColumn } = chartState
+
+    const yLabel = grapherState.yAxis.label || getColumnNameForDisplay(yColumn)
+    const xLabel = grapherState.xAxis.label || getColumnNameForDisplay(xColumn)
+
+    let rows = chartState.series
+        .map((series) => {
+            const point = series.points[0]
+            if (!point) return undefined
+            const yValue = yColumn.formatValueShort(point.y)
+            const xValue = xColumn.formatValueShort(point.x)
+            return {
+                name: series.seriesName,
+                color: series.color,
+                value: `${yValue} vs. ${xValue}`,
+                time: yColumn.formatTime(point.timeValue),
+            }
+        })
+        .filter((row) => row !== undefined)
+
+    if (maxRows !== undefined) rows = rows.slice(0, maxRows)
+
+    const title = `${yLabel} vs. ${xLabel}`
+
+    return { type: "data-table", rows, title }
+}
+
+/**
+ * Builds data points props for scatter plot charts, extracting x and y values
+ * for a specific entity. For connected scatter plots, includes both start and
+ * end values.
+ */
+function buildDataPointsPropsForScatterPlot({
+    grapherState,
+    chartState,
+    entityName,
+}: {
+    grapherState: GrapherState
+    chartState: ScatterPlotChartState
+    entityName: string
+}): SearchChartHitDataPointsProps {
+    const { xColumn, yColumn } = chartState
+
+    const yLabel = grapherState.yAxis.label || getColumnNameForDisplay(yColumn)
+    const xLabel = grapherState.xAxis.label || getColumnNameForDisplay(xColumn)
+
+    const series = chartState.series.find(
+        (series) => series.seriesName === entityName
+    )
+    const points = series?.points ?? []
+    const endPoint = R.firstBy(points, [(point) => point.timeValue, "desc"])
+    const startPoint = chartState.isConnected
+        ? R.firstBy(points, [(point) => point.timeValue, "asc"])
+        : undefined
+
+    const formattedStartTime = startPoint
+        ? yColumn.formatTime(startPoint.timeValue)
+        : undefined
+    const formattedEndTime = yColumn.formatTime(
+        endPoint?.timeValue ?? grapherState.endTime!
+    )
+
+    const time = formattedStartTime
+        ? `${formattedStartTime}–${formattedEndTime}`
+        : formattedEndTime
+
+    const yDataPoint = {
+        entityName,
+        columnName: yLabel,
+        unit: getColumnUnitForDisplay(yColumn),
+        time,
+        value: endPoint ? yColumn.formatValueShort(endPoint.y) : "No data",
+        startValue: startPoint
+            ? yColumn.formatValueShort(startPoint.y)
+            : undefined,
+        trend: calculateTrendDirection(startPoint?.y, endPoint?.y),
+    }
+
+    const xDataPoint = grapherState.xColumnSlug
+        ? {
+              entityName,
+              columnName: xLabel,
+              unit: getColumnUnitForDisplay(xColumn),
+              time,
+              value: endPoint
+                  ? xColumn.formatValueShort(endPoint.x)
+                  : "No data",
+              startValue: startPoint
+                  ? xColumn.formatValueShort(startPoint.x)
+                  : undefined,
+              trend: calculateTrendDirection(startPoint?.x, endPoint?.x),
+          }
+        : undefined
+
+    const dataPoints = excludeUndefined([yDataPoint, xDataPoint])
+
+    return { type: "data-points", dataPoints }
 }
 
 function buildDataTablePropsForWorldMap({
@@ -463,14 +651,14 @@ function buildDataTablePropsForWorldMap({
 
     const title = makeTableTitle(grapherState, chartState)
 
-    return { rows, title }
+    return { type: "data-table", rows, title }
 }
 
 function buildDataTablePropsForTableTab({
     grapherState: _grapherState,
     maxRows: _maxRows,
 }: BaseArgs): SearchChartHitDataTableProps {
-    return { rows: [], title: "" }
+    return { type: "data-table", rows: [], title: "" }
 }
 
 function makeTableTitle(
