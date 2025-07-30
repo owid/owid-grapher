@@ -162,4 +162,12 @@ export class SiteAnalytics extends GrapherAnalytics {
             autocompleteSuggestionsCount: suggestionsCount,
         })
     }
+
+    logGuidedChartLinkClick(url: string) {
+        this.logToGA({
+            event: EventCategory.SiteGuidedChartLinkClick,
+            eventAction: "click",
+            eventTarget: url,
+        })
+    }
 }
