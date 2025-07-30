@@ -348,10 +348,6 @@ export class MarimekkoChart
         return this.chartState.colorColumnSlug
     }
 
-    @computed private get colorColumn(): CoreColumn {
-        return this.chartState.colorColumn
-    }
-
     @computed private get colorScale(): ColorScale {
         return this.chartState.colorScale
     }
@@ -523,40 +519,9 @@ export class MarimekkoChart
         return sortedItems.filter((item) => selectedSet.has(item.entityName))
     }
 
-    @computed private get uniqueEntityNames(): EntityName[] | undefined {
-        return this.xColumn?.uniqEntityNames ?? this.yColumns[0].uniqEntityNames
-    }
-
-    @computed private get domainColorForEntityMap(): Map<
-        string,
-        EntityColorData
-    > {
-        const { colorColumn, colorScale, uniqueEntityNames } = this
-        const hasColorColumn = !colorColumn.isMissing
-        const colorRowsByEntity = hasColorColumn
-            ? colorColumn.owidRowsByEntityName
-            : undefined
-        const domainColorMap = new Map<string, EntityColorData>()
-        if (uniqueEntityNames !== undefined) {
-            for (const name of uniqueEntityNames) {
-                const colorDomainValue = colorRowsByEntity?.get(name)?.[0]
-
-                if (colorDomainValue) {
-                    const color = colorScale.getColor(colorDomainValue.value)
-                    if (color)
-                        domainColorMap.set(name, {
-                            color,
-                            colorDomainValue: colorDomainValue.value,
-                        })
-                }
-            }
-        }
-        return domainColorMap
-    }
-
     @computed private get items(): Item[] {
-        const { xSeries, series, domainColorForEntityMap, uniqueEntityNames } =
-            this
+        const { xSeries, series } = this
+        const { domainColorForEntityMap, uniqueEntityNames } = this.chartState
 
         if (uniqueEntityNames === undefined) return []
 
@@ -1572,7 +1537,8 @@ export class MarimekkoChart
     }
 
     @computed private get labels(): LabelCandidateWithElement[] {
-        const { labelAngleInDegrees, series, domainColorForEntityMap } = this
+        const { labelAngleInDegrees, series } = this
+        const { domainColorForEntityMap } = this.chartState
         return this.pickedLabelCandidates.map((candidate) => {
             const labelX = candidate.bounds.width
             const domainColor = domainColorForEntityMap.get(
