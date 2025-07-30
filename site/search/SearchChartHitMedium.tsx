@@ -53,6 +53,7 @@ import {
     SearchChartHitDataTable,
     SearchChartHitDataTableProps,
 } from "./SearchChartHitDataTable.js"
+import { SearchChartHitDataPoints } from "./SearchChartHitDataPoints.js"
 import { match } from "ts-pattern"
 import { runInAction } from "mobx"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
@@ -165,7 +166,11 @@ function SearchChartHitMediumRichData({
         })
 
         // We might need to adjust entity selection and focus according to the chosen layout
-        configureGrapherStateForLayout(grapherState, layout)
+        if (layout?.dataTableProps.type === "data-table")
+            configureGrapherStateForLayout(grapherState, {
+                placedTabs: layout.placedTabs,
+                dataTableProps: layout.dataTableProps,
+            })
 
         // Reset the persisted color map to make sure the data table
         // and thumbnails use the some colors for the same entities
@@ -230,7 +235,7 @@ function SearchChartHitMediumRichData({
             </div>
 
             <div className="search-chart-hit-medium__content">
-                {layout.placedTabs.map(({ tab, slot }) =>
+                {layout?.placedTabs.map(({ tab, slot }) =>
                     tab === GRAPHER_TAB_NAMES.Table ? (
                         <CaptionedTable
                             key={tab}
@@ -252,7 +257,7 @@ function SearchChartHitMediumRichData({
                     )
                 )}
 
-                {layout.dataDisplayProps && (
+                {layout?.dataDisplayProps && (
                     <SearchChartHitDataDisplay
                         className="data-slot"
                         {...layout.dataDisplayProps}
@@ -319,6 +324,7 @@ function SearchChartHitMediumFallback({
     )
     const placedTabs = placeGrapherTabsInGridLayout(grapherTabs, {
         hasDataDisplay: !!dataDisplayProps,
+        tableType: "none", // since there is no table tab
     })
 
     return (
@@ -440,7 +446,16 @@ function CaptionedTable({
             className={slot}
             onClick={onClick}
         >
-            <SearchChartHitDataTable {...dataTableProps} />
+            <div className="search-chart-hit-table-wrapper">
+                {match(dataTableProps)
+                    .with({ type: "data-table" }, (props) => (
+                        <SearchChartHitDataTable {...props} />
+                    ))
+                    .with({ type: "data-points" }, (props) => (
+                        <SearchChartHitDataPoints {...props} />
+                    ))
+                    .exhaustive()}
+            </div>
         </CaptionedLink>
     )
 }
@@ -776,11 +791,15 @@ function calculateLayout(
         entityForDataDisplay = WORLD_ENTITY_NAME,
     }: { sortedTabs: GrapherTabName[]; entityForDataDisplay: EntityName }
 ) {
+    // Build the data table props
+    const dataTableProps = buildChartHitDataTableProps({ grapherState })
+    if (!dataTableProps) return undefined
+
     // Prepare rendering the data display
-    const chartInfo = constructGrapherValuesJson(
-        grapherState,
-        entityForDataDisplay
-    )
+    const hasDataDisplayProps = dataTableProps?.type !== "data-points"
+    const chartInfo = hasDataDisplayProps
+        ? constructGrapherValuesJson(grapherState, entityForDataDisplay)
+        : undefined
     const dataDisplayProps = buildChartHitDataDisplayProps({
         chartInfo,
         chartType: grapherState.chartType,
@@ -791,14 +810,23 @@ function calculateLayout(
     // Figure out the layout by assigning each Grapher tab to grid slots.
     // The table tab can optionally span two or more slots (instead of just one)
     // if there's enough space in the grid and enough data to justify it.
-    // Since this decision depends on the table content, we need to
-    // build the table props first to get the row count.
-    const dataTableProps = buildChartHitDataTableProps({ grapherState })
-    const placedTabs = placeGrapherTabsInGridLayout(sortedTabs, {
-        numDataTableRows: dataTableProps?.rows.length,
-        hasDataDisplay: !!dataDisplayProps,
-        numDataTableRowsPerColumn: NUM_DATA_TABLE_ROWS_PER_COLUMN,
-    })
+    const placedTabs = match(dataTableProps)
+        .with({ type: "data-table" }, (dataTableProps) =>
+            placeGrapherTabsInGridLayout(sortedTabs, {
+                hasDataDisplay: !!dataDisplayProps,
+                tableType: dataTableProps.type,
+                numDataTableRows: dataTableProps.rows.length,
+                numDataTableRowsPerColumn: NUM_DATA_TABLE_ROWS_PER_COLUMN,
+            })
+        )
+        .with({ type: "data-points" }, (dataTableProps) =>
+            placeGrapherTabsInGridLayout(sortedTabs, {
+                hasDataDisplay: !!dataDisplayProps,
+                tableType: dataTableProps.type,
+                numMaxSlotsForTable: 2,
+            })
+        )
+        .exhaustive()
 
     return { placedTabs, dataTableProps, dataDisplayProps }
 }
