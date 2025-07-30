@@ -31,9 +31,9 @@ const sendFeedback = async (feedback: Feedback) => {
 }
 
 class Feedback {
-    @observable accessor name: string = ""
-    @observable accessor email: string = ""
-    @observable accessor message: string = ""
+    @observable name: string = ""
+    @observable email: string = ""
+    @observable message: string = ""
     environment: string = ""
 
     constructor() {
@@ -128,9 +128,9 @@ interface FeedbackFormProps {
 @observer
 export class FeedbackForm extends React.Component<FeedbackFormProps> {
     feedback: Feedback = new Feedback()
-    @observable accessor loading: boolean = false
-    @observable accessor done: boolean = false
-    @observable accessor error: string | undefined
+    @observable loading: boolean = false
+    @observable done: boolean = false
+    @observable error: string | undefined
 
     constructor(props: FeedbackFormProps) {
         super(props)
@@ -318,7 +318,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps> {
 
 @observer
 export class FeedbackPrompt extends React.Component {
-    @observable accessor isOpen: boolean = false
+    @observable isOpen: boolean = false
 
     constructor(props: Record<string, never>) {
         super(props)

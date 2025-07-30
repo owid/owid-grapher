@@ -25,25 +25,24 @@ import * as R from "remeda"
 // It wraps the map property on ChartConfig.
 // TODO: migrate database config & only pass legend props
 class MapConfigDefaults {
-    @observable accessor columnSlug: ColumnSlug | undefined = undefined
-    @observable accessor time: number | undefined = undefined
-    @observable accessor timeTolerance: number | undefined = undefined
-    @observable accessor toleranceStrategy: ToleranceStrategy | undefined =
-        undefined
-    @observable accessor hideTimeline: boolean | undefined = undefined
+    @observable columnSlug: ColumnSlug | undefined = undefined
+    @observable time: number | undefined = undefined
+    @observable timeTolerance: number | undefined = undefined
+    @observable toleranceStrategy: ToleranceStrategy | undefined = undefined
+    @observable hideTimeline: boolean | undefined = undefined
 
-    @observable accessor region = MapRegionName.World
-    @observable accessor selection = new MapSelectionArray()
+    @observable region = MapRegionName.World
+    @observable selection = new MapSelectionArray()
 
-    @observable accessor globe: GlobeConfig = {
+    @observable globe: GlobeConfig = {
         isActive: false,
         rotation: DEFAULT_GLOBE_ROTATION, // specified as [lot, lan]
         zoom: DEFAULT_GLOBE_ZOOM,
     }
 
-    @observable accessor colorScale = new ColorScaleConfig()
+    @observable colorScale = new ColorScaleConfig()
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
-    @observable accessor tooltipUseCustomLabels: boolean | undefined = undefined
+    @observable tooltipUseCustomLabels: boolean | undefined = undefined
 
     constructor() {
         makeObservable(this)

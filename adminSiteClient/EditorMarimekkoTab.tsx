@@ -15,7 +15,7 @@ import { NumberField, Section, Toggle } from "./Forms.js"
 export class EditorMarimekkoTab extends Component<{
     grapherState: GrapherState
 }> {
-    @observable accessor xOverrideTimeInputField: number | undefined
+    @observable xOverrideTimeInputField: number | undefined
     constructor(props: { grapherState: GrapherState }) {
         super(props)
         makeObservable(this)

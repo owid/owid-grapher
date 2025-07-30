@@ -97,7 +97,7 @@ interface DataTableProps {
 
 @observer
 export class DataTable extends React.Component<DataTableProps> {
-    @observable private accessor storedState: DataTableState = {
+    @observable private storedState: DataTableState = {
         sort: DEFAULT_SORT_STATE,
     }
 
@@ -303,7 +303,7 @@ export class DataTable extends React.Component<DataTableProps> {
             )
         )
 
-        const accessor = (row: MinimalOwidRow): number | undefined =>
+        const = (row: MinimalOwidRow): number | undefined =>
             typeof row.value === "string" ? row.value.length : row.value
         const maxValue = _.maxBy(values, accessor)
         const minValue = _.minBy(values, accessor)

@@ -375,9 +375,8 @@ abstract class AbstractFooter<
     }
 
     base = React.createRef<HTMLDivElement>()
-    @observable.ref accessor tooltipTarget:
-        | { x: number; y: number }
-        | undefined = undefined
+    @observable.ref tooltipTarget: { x: number; y: number } | undefined =
+        undefined
 
     @action.bound private onMouseMove(e: MouseEvent): void {
         const cc = this.base.current?.querySelector(".cclogo")

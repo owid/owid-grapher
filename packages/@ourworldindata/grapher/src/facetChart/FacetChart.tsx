@@ -795,7 +795,7 @@ export class FacetChart
         return sortedBins
     }
 
-    @observable.ref private accessor legendHoverBin: ColorScaleBin | undefined =
+    @observable.ref private legendHoverBin: ColorScaleBin | undefined =
         undefined
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {

@@ -110,9 +110,9 @@ export class ScatterPlotChart
     }
 
     // currently hovered legend color
-    @observable private accessor hoverColor: Color | undefined = undefined
+    @observable private hoverColor: Color | undefined = undefined
     // current hovered individual series + tooltip position
-    @observable accessor tooltipState = new TooltipState<{
+    @observable tooltipState = new TooltipState<{
         series: ScatterSeries
     }>()
 

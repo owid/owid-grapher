@@ -84,10 +84,9 @@ export interface NamespaceData {
 }
 
 export class EditorDatabase {
-    @observable.ref accessor namespaces: Namespace[]
-    @observable.ref accessor variableUsageCounts: Map<number, number> =
-        new Map()
-    @observable accessor dataByNamespace: Map<string, NamespaceData> = new Map()
+    @observable.ref namespaces: Namespace[]
+    @observable.ref variableUsageCounts: Map<number, number> = new Map()
+    @observable dataByNamespace: Map<string, NamespaceData> = new Map()
 
     constructor(json: any) {
         makeObservable(this)
@@ -110,8 +109,8 @@ interface ChartEditorViewProps<Editor> {
 export class ChartEditorView<
     Editor extends AbstractChartEditor,
 > extends React.Component<ChartEditorViewProps<Editor>> {
-    @observable.ref accessor database = new EditorDatabase({})
-    @observable accessor details: DetailDictionary = {}
+    @observable.ref database = new EditorDatabase({})
+    @observable details: DetailDictionary = {}
 
     constructor(props: ChartEditorViewProps<Editor>) {
         super(props)
@@ -122,15 +121,14 @@ export class ChartEditorView<
         return this.manager.editor.grapherState
     }
 
-    @observable accessor simulateVisionDeficiency:
-        | VisionDeficiency
-        | undefined = undefined
+    @observable simulateVisionDeficiency: VisionDeficiency | undefined =
+        undefined
 
     @computed private get manager(): ChartEditorViewManager<Editor> {
         return this.props.manager
     }
 
-    @observable private accessor _isDbSet = false
+    @observable private _isDbSet = false
     @computed get isReady(): boolean {
         return this._isDbSet
     }

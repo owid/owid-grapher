@@ -47,11 +47,9 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
     base = React.createRef<SVGGElement>()
 
     // closest point by quadtree search
-    @observable private accessor nearSeries: ScatterSeries | undefined =
-        undefined
+    @observable private nearSeries: ScatterSeries | undefined = undefined
     // currently hovered-over point via mouseenter/leave
-    @observable private accessor overSeries: ScatterSeries | undefined =
-        undefined
+    @observable private overSeries: ScatterSeries | undefined = undefined
 
     constructor(props: ScatterPointsWithLabelsProps) {
         super(props)

@@ -86,9 +86,8 @@ class SaveButtonsForChart extends Component<SaveButtonsProps<ChartEditor>> {
         return slugify(this.props.editor.grapherState.title ?? "")
     }
 
-    @observable accessor isNarrativeChartNameModalOpen = false
-    @observable accessor narrativeChartNameModalError: string | undefined =
-        undefined
+    @observable isNarrativeChartNameModalOpen = false
+    @observable narrativeChartNameModalError: string | undefined = undefined
 
     @action.bound async onSubmitNarrativeChartButton(name: string) {
         const { editor } = this.props
@@ -235,7 +234,7 @@ class SaveButtonsForIndicatorChart extends Component<
 class SaveButtonsForNarrativeChart extends Component<
     SaveButtonsProps<NarrativeChartEditor>
 > {
-    @observable accessor isCreateDataInsightModalOpen = false
+    @observable isCreateDataInsightModalOpen = false
 
     constructor(props: SaveButtonsProps<NarrativeChartEditor>) {
         super(props)

@@ -20,8 +20,8 @@ export class DeployStatusPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor deploys: Deploy[] = []
-    @observable accessor canManuallyDeploy = true
+    @observable deploys: Deploy[] = []
+    @observable canManuallyDeploy = true
     refreshIntervalId?: number
 
     constructor(props: Record<string, never>) {

@@ -99,8 +99,8 @@ interface AddChildFormProps {
 
 @observer
 class AddChildForm extends React.Component<AddChildFormProps> {
-    @observable accessor isAddingTag: boolean = false
-    @observable accessor autocompleteValue: string = ""
+    @observable isAddingTag: boolean = false
+    @observable autocompleteValue: string = ""
 
     constructor(props: AddChildFormProps) {
         super(props)
@@ -326,10 +326,10 @@ export class TagGraphPage extends React.Component {
         makeObservable(this)
     }
 
-    @observable accessor flatTagGraph: FlatTagGraph = {}
-    @observable accessor rootId: number | null = null
-    @observable accessor addTagParentId: number | undefined = undefined
-    @observable accessor tags: MinimalTagWithIsTopic[] = []
+    @observable flatTagGraph: FlatTagGraph = {}
+    @observable rootId: number | null = null
+    @observable addTagParentId: number | undefined = undefined
+    @observable tags: MinimalTagWithIsTopic[] = []
 
     @computed get tagGraph(): TagGraphRoot | null {
         if (!this.rootId) return null

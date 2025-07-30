@@ -54,7 +54,7 @@ export abstract class AbstractChartEditor<
 > {
     manager: Manager
 
-    @observable.ref accessor grapherState = new GrapherState({
+    @observable.ref grapherState = new GrapherState({
         additionalDataLoaderFn: (varId: number) =>
             loadVariableDataAndMetadata(varId, DATA_API_URL, { noCache: true }),
     })
@@ -63,21 +63,19 @@ export abstract class AbstractChartEditor<
         undefined,
         true
     )
-    @observable.ref accessor currentRequest: Promise<any> | undefined // Whether the current chart state is saved or not
-    @observable.ref accessor tab: EditorTab = "basic"
-    @observable.ref accessor errorMessage:
+    @observable.ref currentRequest: Promise<any> | undefined // Whether the current chart state is saved or not
+    @observable.ref tab: EditorTab = "basic"
+    @observable.ref errorMessage:
         | { title: string; content: string }
         | undefined = undefined
-    @observable.ref accessor previewMode: "mobile" | "desktop"
-    @observable.ref accessor showStaticPreview = false
-    @observable.ref accessor savedPatchConfig: GrapherInterface = {}
+    @observable.ref previewMode: "mobile" | "desktop"
+    @observable.ref showStaticPreview = false
+    @observable.ref savedPatchConfig: GrapherInterface = {}
 
     // parent config derived from the current chart config
-    @observable.ref accessor parentConfig: GrapherInterface | undefined =
-        undefined
+    @observable.ref parentConfig: GrapherInterface | undefined = undefined
     // if inheritance is enabled, the parent config is applied to grapherState
-    @observable.ref accessor isInheritanceEnabled: boolean | undefined =
-        undefined
+    @observable.ref isInheritanceEnabled: boolean | undefined = undefined
 
     constructor(props: { manager: Manager }) {
         makeObservable(this)

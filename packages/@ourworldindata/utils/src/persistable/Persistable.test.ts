@@ -22,14 +22,11 @@ interface GameBoyGameInterface {
 }
 
 class GameBoyGameDefaults implements GameBoyGameInterface {
-    @observable accessor title: string | undefined = undefined
-    @observable accessor players: number | undefined = 2
-    @observable accessor relatedGames: GameBoyGameDefaults[] | undefined =
-        undefined
-    @observable accessor characters: CharacterInterface[] | undefined =
-        undefined
-    @observable accessor mainCharacter: CharacterInterface | undefined =
-        undefined
+    @observable title: string | undefined = undefined
+    @observable players: number | undefined = 2
+    @observable relatedGames: GameBoyGameDefaults[] | undefined = undefined
+    @observable characters: CharacterInterface[] | undefined = undefined
+    @observable mainCharacter: CharacterInterface | undefined = undefined
 
     constructor() {
         makeObservable(this)
@@ -59,12 +56,12 @@ class GameBoyGame extends GameBoyGameDefaults implements Persistable {
         return deleteRuntimeAndUnchangedProps(obj, new GameBoyGame())
     }
 
-    @observable accessor someRuntimeProp = 5
+    @observable someRuntimeProp = 5
 }
 
 class CharacterDefaults {
-    @observable accessor name = ""
-    @observable accessor country = ""
+    @observable name = ""
+    @observable country = ""
 
     constructor() {
         makeObservable(this)

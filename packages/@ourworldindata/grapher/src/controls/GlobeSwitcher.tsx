@@ -24,8 +24,7 @@ const availableTabs = Object.values(TabName)
 export class GlobeSwitcher extends React.Component<{
     manager: GlobeSwitcherManager
 }> {
-    @observable private accessor localCountryName: EntityName | undefined =
-        undefined
+    @observable private localCountryName: EntityName | undefined = undefined
 
     private availableTabs = ["2D", "3D"] as const
 

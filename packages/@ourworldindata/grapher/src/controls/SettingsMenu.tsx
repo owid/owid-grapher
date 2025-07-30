@@ -86,7 +86,7 @@ interface SettingsMenuProps {
 
 @observer
 export class SettingsMenu extends React.Component<SettingsMenuProps> {
-    @observable.ref accessor active: boolean = false
+    @observable.ref active: boolean = false
 
     constructor(props: SettingsMenuProps) {
         super(props)

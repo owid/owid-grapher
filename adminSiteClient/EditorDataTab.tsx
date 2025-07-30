@@ -54,7 +54,7 @@ interface SeriesListItemProps extends React.HTMLProps<HTMLDivElement> {
 
 @observer
 class EntityListItem extends React.Component<EntityListItemProps> {
-    @observable.ref accessor isChoosingColor: boolean = false
+    @observable.ref isChoosingColor: boolean = false
 
     constructor(props: EntityListItemProps) {
         super(props)
@@ -163,7 +163,7 @@ class SeriesListItem extends React.Component<SeriesListItemProps> {
 export class EntitySelectionSection extends React.Component<{
     editor: AbstractChartEditor
 }> {
-    @observable.ref accessor dragKey: EntityName | undefined = undefined
+    @observable.ref dragKey: EntityName | undefined = undefined
 
     constructor(props: { editor: AbstractChartEditor }) {
         super(props)

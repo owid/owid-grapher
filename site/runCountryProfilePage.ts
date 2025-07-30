@@ -23,7 +23,7 @@ class ChartFilter {
     results: any[] = []
     sections: HTMLDivElement[] = []
 
-    @observable accessor query: string = ""
+    @observable query: string = ""
 
     @computed private get fuzzy(): FuzzySearch<ChartItem> {
         return FuzzySearch.withKey(this.chartItems, (chart) => chart.title, {

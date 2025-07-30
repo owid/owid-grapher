@@ -55,7 +55,7 @@ export interface ChartEditorManager extends AbstractChartEditorManager {
 export class ChartEditor extends AbstractChartEditor<ChartEditorManager> {
     // This gets set when we save a new chart for the first time
     // so the page knows to update the url
-    @observable.ref accessor newChartId: number | undefined = undefined
+    @observable.ref newChartId: number | undefined = undefined
 
     constructor(props: { manager: ChartEditorManager }) {
         super(props)

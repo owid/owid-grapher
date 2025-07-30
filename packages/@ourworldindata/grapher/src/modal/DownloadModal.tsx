@@ -219,13 +219,13 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
         return this.props.manager
     }
 
-    @observable private accessor svgBlob: Blob | undefined = undefined
-    @observable private accessor svgPreviewUrl: string | undefined = undefined
+    @observable private svgBlob: Blob | undefined = undefined
+    @observable private svgPreviewUrl: string | undefined = undefined
 
-    @observable private accessor pngBlob: Blob | undefined = undefined
-    @observable private accessor pngPreviewUrl: string | undefined = undefined
+    @observable private pngBlob: Blob | undefined = undefined
+    @observable private pngPreviewUrl: string | undefined = undefined
 
-    @observable private accessor isReady: boolean = false
+    @observable private isReady: boolean = false
 
     @action.bound private export(): void {
         // render the graphic then cache data-urls for display & blobs for downloads

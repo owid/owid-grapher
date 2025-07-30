@@ -14,26 +14,23 @@ import {
 } from "@ourworldindata/types"
 
 class OwidVariableDisplayConfigDefaults {
-    @observable accessor name: string | undefined = undefined
-    @observable accessor unit: string | undefined = undefined
-    @observable accessor shortUnit: string | undefined = undefined
-    @observable accessor isProjection: boolean | undefined = undefined
-    @observable accessor conversionFactor: number | undefined = undefined
-    @observable accessor roundingMode: OwidVariableRoundingMode | undefined =
+    @observable name: string | undefined = undefined
+    @observable unit: string | undefined = undefined
+    @observable shortUnit: string | undefined = undefined
+    @observable isProjection: boolean | undefined = undefined
+    @observable conversionFactor: number | undefined = undefined
+    @observable roundingMode: OwidVariableRoundingMode | undefined = undefined
+    @observable numDecimalPlaces: number | undefined = undefined
+    @observable numSignificantFigures: number | undefined = undefined
+    @observable tolerance: number | undefined = undefined
+    @observable yearIsDay: boolean | undefined = undefined
+    @observable zeroDay: string | undefined = undefined
+    @observable entityAnnotationsMap: string | undefined = undefined
+    @observable includeInTable: boolean | undefined = true
+    @observable tableDisplay: OwidVariableDataTableConfigInterface | undefined =
         undefined
-    @observable accessor numDecimalPlaces: number | undefined = undefined
-    @observable accessor numSignificantFigures: number | undefined = undefined
-    @observable accessor tolerance: number | undefined = undefined
-    @observable accessor yearIsDay: boolean | undefined = undefined
-    @observable accessor zeroDay: string | undefined = undefined
-    @observable accessor entityAnnotationsMap: string | undefined = undefined
-    @observable accessor includeInTable: boolean | undefined = true
-    @observable accessor tableDisplay:
-        | OwidVariableDataTableConfigInterface
-        | undefined = undefined
-    @observable accessor color: string | undefined = undefined
-    @observable accessor plotMarkersOnlyInLineChart: boolean | undefined =
-        undefined
+    @observable color: string | undefined = undefined
+    @observable plotMarkersOnlyInLineChart: boolean | undefined = undefined
 
     constructor() {
         makeObservable(this)
