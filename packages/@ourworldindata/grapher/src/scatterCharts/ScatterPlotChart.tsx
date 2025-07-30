@@ -10,6 +10,7 @@ import {
     ColumnSlug,
 } from "@ourworldindata/types"
 import { observable, computed, action, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { ScaleLinear, scaleSqrt } from "d3-scale"
 import { Quadtree, quadtree } from "d3-quadtree"
 import { quantize, interpolate } from "d3-interpolate"
@@ -110,9 +111,10 @@ export class ScatterPlotChart
     }
 
     // currently hovered legend color
-    @observable private accessor hoverColor: Color | undefined = undefined
+    @observable @enumerable private accessor hoverColor: Color | undefined =
+        undefined
     // current hovered individual series + tooltip position
-    @observable accessor tooltipState = new TooltipState<{
+    @observable @enumerable accessor tooltipState = new TooltipState<{
         series: ScatterSeries
     }>()
 

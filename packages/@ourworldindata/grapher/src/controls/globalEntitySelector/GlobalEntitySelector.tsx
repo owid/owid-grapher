@@ -32,7 +32,7 @@ import { GrapherAnalytics } from "../../core/GrapherAnalytics"
 import { WORLD_ENTITY_NAME } from "../../core/GrapherConstants"
 import { GLOBAL_ENTITY_SELECTOR_ELEMENT } from "./GlobalEntitySelectorConstants"
 import { SelectionArray } from "../../selection/SelectionArray"
-import { EntityName } from "@ourworldindata/types"
+import { EntityName, enumerable } from "@ourworldindata/types"
 import { setSelectedEntityNamesParam } from "../../core/EntityUrlBuilder"
 
 enum GlobalEntitySelectionModes {
@@ -162,16 +162,19 @@ export class GlobalEntitySelector extends React.Component<GlobalEntitySelectorPr
     refContainer = React.createRef<HTMLDivElement>()
     disposers: IReactionDisposer[] = []
 
-    @observable accessor mode = GlobalEntitySelectionModes.none
+    @observable @enumerable accessor mode = GlobalEntitySelectionModes.none
 
-    @observable private accessor isNarrow = true
-    @observable private accessor isOpen = false
-    @observable private accessor localEntityName: EntityName | undefined
+    @observable @enumerable private accessor isNarrow = true
+    @observable @enumerable private accessor isOpen = false
+    @observable @enumerable private accessor localEntityName:
+        | EntityName
+        | undefined
 
     selection = this.props.selection
 
-    @observable.ref private accessor optionGroups: GroupBase<DropdownEntity>[] =
-        []
+    @observable.ref
+    @enumerable
+    private accessor optionGroups: GroupBase<DropdownEntity>[] = []
 
     constructor(props: GlobalEntitySelectorProps) {
         super(props)

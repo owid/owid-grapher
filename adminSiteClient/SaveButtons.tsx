@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import { Component } from "react"
 import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
 import { action, computed, observable, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import { excludeUndefined, slugify } from "@ourworldindata/utils"
 import {
@@ -86,9 +87,10 @@ class SaveButtonsForChart extends Component<SaveButtonsProps<ChartEditor>> {
         return slugify(this.props.editor.grapherState.title ?? "")
     }
 
-    @observable accessor isNarrativeChartNameModalOpen = false
-    @observable accessor narrativeChartNameModalError: string | undefined =
-        undefined
+    @observable @enumerable accessor isNarrativeChartNameModalOpen = false
+    @observable @enumerable accessor narrativeChartNameModalError:
+        | string
+        | undefined = undefined
 
     @action.bound async onSubmitNarrativeChartButton(name: string) {
         const { editor } = this.props
@@ -235,7 +237,7 @@ class SaveButtonsForIndicatorChart extends Component<
 class SaveButtonsForNarrativeChart extends Component<
     SaveButtonsProps<NarrativeChartEditor>
 > {
-    @observable accessor isCreateDataInsightModalOpen = false
+    @observable @enumerable accessor isCreateDataInsightModalOpen = false
 
     constructor(props: SaveButtonsProps<NarrativeChartEditor>) {
         super(props)

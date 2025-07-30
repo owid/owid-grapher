@@ -8,6 +8,7 @@ import {
     EntityName,
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import { Quadtree, quadtree } from "d3-quadtree"
 import {
@@ -56,10 +57,10 @@ export class ChoroplethMap extends React.Component<{
 }> {
     base = React.createRef<SVGGElement>()
 
-    @observable private accessor hoverEnterFeature:
+    @observable @enumerable private accessor hoverEnterFeature:
         | MapRenderFeature
         | undefined = undefined
-    @observable private accessor hoverNearbyFeature:
+    @observable @enumerable private accessor hoverNearbyFeature:
         | MapRenderFeature
         | undefined = undefined
 

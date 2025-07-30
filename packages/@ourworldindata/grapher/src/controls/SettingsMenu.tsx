@@ -1,5 +1,6 @@
 import * as React from "react"
 import { computed, action, observable, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -86,7 +87,7 @@ interface SettingsMenuProps {
 
 @observer
 export class SettingsMenu extends React.Component<SettingsMenuProps> {
-    @observable.ref accessor active: boolean = false
+    @observable.ref @enumerable accessor active: boolean = false
 
     constructor(props: SettingsMenuProps) {
         super(props)

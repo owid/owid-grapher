@@ -10,12 +10,13 @@ import {
 import { observer } from "mobx-react"
 import { Component } from "react"
 import { NumberField, Section, Toggle } from "./Forms.js"
+import { enumerable } from "@ourworldindata/types"
 
 @observer
 export class EditorMarimekkoTab extends Component<{
     grapherState: GrapherState
 }> {
-    @observable accessor xOverrideTimeInputField: number | undefined
+    @observable @enumerable accessor xOverrideTimeInputField: number | undefined
     constructor(props: { grapherState: GrapherState }) {
         super(props)
         makeObservable(this)

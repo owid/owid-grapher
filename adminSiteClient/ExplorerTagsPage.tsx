@@ -1,6 +1,7 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
 import { action, computed, observable, runInAction, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
@@ -22,11 +23,11 @@ type ExplorerWithTags = {
 export class ExplorerTagsPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
-    @observable accessor explorersWithTags: ExplorerWithTags[] = []
-    @observable accessor explorers: ExplorerProgram[] = []
-    @observable accessor tags: DbChartTagJoin[] = []
-    @observable accessor newExplorerSlug = ""
-    @observable accessor newExplorerTags: DbChartTagJoin[] = []
+    @observable @enumerable accessor explorersWithTags: ExplorerWithTags[] = []
+    @observable @enumerable accessor explorers: ExplorerProgram[] = []
+    @observable @enumerable accessor tags: DbChartTagJoin[] = []
+    @observable @enumerable accessor newExplorerSlug = ""
+    @observable @enumerable accessor newExplorerTags: DbChartTagJoin[] = []
 
     constructor(props: Record<string, never>) {
         super(props)

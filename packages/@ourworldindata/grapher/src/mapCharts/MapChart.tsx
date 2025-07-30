@@ -8,6 +8,7 @@ import {
     PrimitiveType,
 } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import {
     HorizontalCategoricalColorLegend,
@@ -85,16 +86,18 @@ export class MapChart
     }
 
     /** The id of the currently hovered feature/country */
-    @observable accessor hoverFeatureId: string | undefined = undefined
+    @observable @enumerable accessor hoverFeatureId: string | undefined =
+        undefined
 
     /**
      * The currently hovered map bracket.
      *
      * Hovering a map bracket highlights all countries within that bracket on the map.
      */
-    @observable accessor hoverBracket: MapBracket | undefined = undefined
+    @observable @enumerable accessor hoverBracket: MapBracket | undefined =
+        undefined
 
-    @observable accessor tooltipState = new TooltipState<{
+    @observable @enumerable accessor tooltipState = new TooltipState<{
         featureId: string
     }>()
 

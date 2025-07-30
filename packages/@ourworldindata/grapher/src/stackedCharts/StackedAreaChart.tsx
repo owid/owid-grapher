@@ -10,6 +10,7 @@ import {
     exposeInstanceOnWindow,
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { InteractionState, SeriesName } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
@@ -217,7 +218,7 @@ export class StackedAreaChart
         })
     }
 
-    @observable accessor tooltipState = new TooltipState<{
+    @observable @enumerable accessor tooltipState = new TooltipState<{
         index: number // time-index into points array
         series?: SeriesName
     }>({ fade: "immediate" })
@@ -237,9 +238,11 @@ export class StackedAreaChart
         _.extend(this.tooltipState.target, { series: undefined })
     }
 
-    @observable accessor lineLegendHoveredSeriesName: SeriesName | undefined =
+    @observable @enumerable accessor lineLegendHoveredSeriesName:
+        | SeriesName
+        | undefined = undefined
+    @observable @enumerable private accessor hoverTimer: number | undefined =
         undefined
-    @observable private accessor hoverTimer: number | undefined = undefined
 
     @computed private get paddingForLegendRight(): number {
         return this.lineLegendWidth

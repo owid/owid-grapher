@@ -7,6 +7,7 @@ import {
     faPaperPlane,
 } from "@fortawesome/free-solid-svg-icons"
 import { observable, action, toJS, computed, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import classnames from "classnames"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { stringifyUnknownError } from "@ourworldindata/utils"
@@ -31,9 +32,9 @@ const sendFeedback = async (feedback: Feedback) => {
 }
 
 class Feedback {
-    @observable accessor name: string = ""
-    @observable accessor email: string = ""
-    @observable accessor message: string = ""
+    @observable @enumerable accessor name: string = ""
+    @observable @enumerable accessor email: string = ""
+    @observable @enumerable accessor message: string = ""
     environment: string = ""
 
     constructor() {
@@ -128,9 +129,9 @@ interface FeedbackFormProps {
 @observer
 export class FeedbackForm extends React.Component<FeedbackFormProps> {
     feedback: Feedback = new Feedback()
-    @observable accessor loading: boolean = false
-    @observable accessor done: boolean = false
-    @observable accessor error: string | undefined
+    @observable @enumerable accessor loading: boolean = false
+    @observable @enumerable accessor done: boolean = false
+    @observable @enumerable accessor error: string | undefined
 
     constructor(props: FeedbackFormProps) {
         super(props)
@@ -318,7 +319,7 @@ export class FeedbackForm extends React.Component<FeedbackFormProps> {
 
 @observer
 export class FeedbackPrompt extends React.Component {
-    @observable accessor isOpen: boolean = false
+    @observable @enumerable accessor isOpen: boolean = false
 
     constructor(props: Record<string, never>) {
         super(props)

@@ -9,6 +9,7 @@ import {
     isChartEditorInstance,
 } from "./ChartEditor.js"
 import { computed, action, observable, runInAction, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import {
     BAKED_GRAPHER_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
@@ -246,10 +247,11 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor slug: string | undefined = ""
+    @observable @enumerable accessor slug: string | undefined = ""
 
-    @observable accessor isLoading: boolean = false
-    @observable accessor errorMessage: string | undefined = undefined
+    @observable @enumerable accessor isLoading: boolean = false
+    @observable @enumerable accessor errorMessage: string | undefined =
+        undefined
 
     constructor(props: AddRedirectFormProps<Editor>) {
         super(props)

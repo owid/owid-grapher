@@ -24,6 +24,7 @@ import {
     EntityName,
     CoreColumnDef,
     OwidTableSlugs,
+    enumerable,
 } from "@ourworldindata/utils"
 import classnames from "classnames"
 import { scaleLinear, ScaleLinear } from "d3-scale"
@@ -71,26 +72,32 @@ interface EntityPickerProps {
 
 @observer
 export class EntityPicker extends React.Component<EntityPickerProps> {
-    @observable private accessor searchInput: string | undefined = undefined
-    @observable private accessor searchInputRef =
+    @observable @enumerable private accessor searchInput: string | undefined =
+        undefined
+    @observable @enumerable private accessor searchInputRef =
         React.createRef<HTMLInputElement>()
 
-    @observable private accessor focusIndex: number | undefined = undefined
-    @observable private accessor focusRef = React.createRef<HTMLLabelElement>()
-    @observable private accessor scrollFocusedIntoViewOnUpdate = false
+    @observable @enumerable private accessor focusIndex: number | undefined =
+        undefined
+    @observable @enumerable private accessor focusRef =
+        React.createRef<HTMLLabelElement>()
+    @observable @enumerable private accessor scrollFocusedIntoViewOnUpdate =
+        false
 
-    @observable private accessor blockOptionHover = false
+    @observable @enumerable private accessor blockOptionHover = false
 
-    @observable private accessor mostRecentlySelectedEntityName: string | null =
-        null
+    @observable @enumerable private accessor mostRecentlySelectedEntityName:
+        | string
+        | null = null
 
-    @observable private accessor scrollContainerRef =
+    @observable @enumerable private accessor scrollContainerRef =
         React.createRef<HTMLDivElement>()
 
-    @observable private accessor isOpen = false
+    @observable @enumerable private accessor isOpen = false
 
-    @observable private accessor localEntityNames: string[] | undefined =
-        undefined
+    @observable @enumerable private accessor localEntityNames:
+        | string[]
+        | undefined = undefined
 
     constructor(props: EntityPickerProps) {
         super(props)

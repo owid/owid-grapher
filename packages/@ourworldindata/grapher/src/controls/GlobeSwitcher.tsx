@@ -1,6 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { action, computed, observable, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { TabItem, Tabs } from "../tabs/Tabs"
 import { MapConfig } from "../mapCharts/MapConfig"
 import { GlobeController } from "../mapCharts/GlobeController"
@@ -24,8 +25,9 @@ const availableTabs = Object.values(TabName)
 export class GlobeSwitcher extends React.Component<{
     manager: GlobeSwitcherManager
 }> {
-    @observable private accessor localCountryName: EntityName | undefined =
-        undefined
+    @observable @enumerable private accessor localCountryName:
+        | EntityName
+        | undefined = undefined
 
     private availableTabs = ["2D", "3D"] as const
 

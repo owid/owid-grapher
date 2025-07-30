@@ -1,6 +1,7 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, action, runInAction, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { AdminLayout } from "./AdminLayout.js"
 import { FieldsRow } from "./Forms.js"
 import { Link } from "./Link.js"
@@ -52,7 +53,7 @@ export class RedirectsIndexPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor redirects: RedirectListItem[] = []
+    @observable @enumerable accessor redirects: RedirectListItem[] = []
 
     constructor(props: Record<string, never>) {
         super(props)

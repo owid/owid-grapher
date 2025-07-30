@@ -1,6 +1,7 @@
 import * as React from "react"
 import classnames from "classnames"
 import { observable, computed, action, makeObservable, runInAction } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons"
@@ -32,9 +33,9 @@ const TOOLTIP_ICON: Record<TooltipFooterIcon, React.ReactElement | null> = {
 }
 
 export class TooltipState<T> {
-    @observable accessor position = new PointVector(0, 0)
-    @observable accessor _target: T | undefined = undefined
-    @observable accessor _timer: number | undefined = undefined
+    @observable @enumerable accessor position = new PointVector(0, 0)
+    @observable @enumerable accessor _target: T | undefined = undefined
+    @observable @enumerable accessor _timer: number | undefined = undefined
     _fade: TooltipFadeMode
 
     constructor({ fade }: { fade?: TooltipFadeMode } = {}) {
@@ -96,7 +97,8 @@ class TooltipCard extends React.Component<
 
     private base = React.createRef<HTMLDivElement>()
 
-    @observable.struct private accessor bounds: Bounds | undefined = undefined
+    @observable.struct @enumerable private accessor bounds: Bounds | undefined =
+        undefined
 
     constructor(
         props: TooltipProps & {
