@@ -359,17 +359,13 @@ export async function fetchDataValuesForGrapher(
         return dimInfo
     }
 
-    const values = omitUndefinedValues({
-        startTime: makeDimensionValuesForTime(grapherState, startTime),
-        endTime: makeDimensionValuesForTime(grapherState, endTime),
-    })
-
     const result = omitUndefinedValues({
         entityName,
         startTime: grapherState.startTime,
         endTime: grapherState.endTime,
         columns: makeColumnInfoForRelevantSlugs(grapherState),
-        values: _.isEmpty(values) ? undefined : values,
+        startTimeValues: makeDimensionValuesForTime(grapherState, startTime),
+        endTimeValues: makeDimensionValuesForTime(grapherState, endTime),
         source: grapherState.sourcesLine,
     })
 
