@@ -246,7 +246,7 @@ const generateQueryStrForChartHit = ({
         .map((queryStr) => queryStr?.replace(/^\?/, ""))
         .filter((queryStr) => queryStr)
 
-    const queryStr = "?" + queryStrList.join("&")
+    const queryStr = queryStrList.length > 0 ? "?" + queryStrList.join("&") : ""
 
     return queryStr
 }
