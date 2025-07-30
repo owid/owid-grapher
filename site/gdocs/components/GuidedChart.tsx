@@ -11,6 +11,9 @@ import {
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import { GuidedChartContext, GrapherState } from "@ourworldindata/grapher"
+import { SiteAnalytics } from "../../SiteAnalytics.js"
+
+const analytics = new SiteAnalytics()
 
 export default function GuidedChart({
     d,
@@ -53,6 +56,7 @@ export default function GuidedChart({
 
         stateRef.current.clearQueryParams()
         stateRef.current.populateFromQueryParams(url.queryParams)
+        analytics.logGuidedChartLinkClick(url.fullUrl)
     }, [])
 
     return (
