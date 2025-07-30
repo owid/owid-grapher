@@ -162,23 +162,12 @@ function buildDataTablePropsForLineChart({
     // Sort by value in descending order
     const sortedRows = R.sortBy(rows, (row) => -row.point.y)
 
-    const filteredRows =
+    const displayRows =
         maxRows !== undefined ? sortedRows.slice(0, maxRows) : sortedRows
-
-    // Only show the time in the title if all items refer to the same time
-    const shouldShowTimeInTitle =
-        rows[0].time !== undefined &&
-        rows.every((row) => row.time === rows[0].time)
-    const time = shouldShowTimeInTitle ? rows[0].time : undefined
-
-    // Hide the time in each row if it's shown in the title
-    const displayRows = shouldShowTimeInTitle
-        ? filteredRows.map((item) => R.omit(item, ["time"]))
-        : filteredRows
 
     const title = makeSeriesListTitle(grapherState, chartState)
 
-    return { rows: displayRows, title, time }
+    return { rows: displayRows, title }
 }
 
 function buildDataTablePropsForDiscreteBarChart({
