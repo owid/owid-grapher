@@ -230,9 +230,12 @@ test: node_modules
 	yarn test run --reporter=dot $(filter-out test,$(MAKECMDGOALS))
 
 # When additional arguments are provided after 'test', treat them as non-targets
+# Only apply this rule when 'test' is actually one of the goals
+ifneq ($(filter test,$(MAKECMDGOALS)),)
 ifneq ($(filter-out test,$(MAKECMDGOALS)),)
 $(filter-out test,$(MAKECMDGOALS)):
 	@:
+endif
 endif
 
 dbtest: node_modules
