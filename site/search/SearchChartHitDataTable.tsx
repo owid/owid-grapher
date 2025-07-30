@@ -1,4 +1,5 @@
 import cx from "classnames"
+import * as R from "remeda"
 
 interface TableRow {
     color: string
@@ -12,19 +13,30 @@ interface TableRow {
 export interface SearchChartHitDataTableProps {
     rows: TableRow[]
     title: string
-    time?: string
 }
 
 export function SearchChartHitDataTable({
     rows,
     title,
-    time,
 }: SearchChartHitDataTableProps): React.ReactElement {
+    // Show the time in the title if all items refer to the same time
+    const time = rows[0]?.time
+    const shouldShowTimeInTitle =
+        time !== undefined && rows.every((row) => row.time === time)
+
+    // Hide the time in each row if it's shown in the title
+    const displayRows = shouldShowTimeInTitle
+        ? rows.map((item) => R.omit(item, ["time"]))
+        : rows
+
     return (
         <div className="search-chart-hit-table">
             <div className="search-chart-hit-table-content">
-                <Header title={title} time={time} />
-                {rows.map((row) => (
+                <Header
+                    title={title}
+                    time={shouldShowTimeInTitle ? time : undefined}
+                />
+                {displayRows.map((row) => (
                     <Row
                         key={row.name}
                         row={row}
