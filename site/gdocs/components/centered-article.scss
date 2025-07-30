@@ -466,6 +466,7 @@ h3.article-block__heading {
 
 .article-block__video {
     margin: 32px 0;
+    text-align: center;
     a {
         @include owid-link-90;
     }
