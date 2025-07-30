@@ -1,0 +1,43 @@
+.search-chart-hit-data-points {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    height: 100%;
+    gap: 6px;
+
+    &.search-chart-hit-data-points--align-top {
+        justify-content: flex-start;
+    }
+
+    .search-chart-hit-data-points__separator {
+        border-bottom: 1px solid $gray-50;
+    }
+}
+
+.search-chart-hit-data-point {
+    .search-chart-hit-data-point__label {
+        @include note-1-regular;
+        color: $gray-70;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 2px;
+    }
+
+    .search-chart-hit-data-point__title {
+        font-weight: 700;
+    }
+
+    .search-chart-hit-data-point__value {
+        @include subtitle-1;
+        margin: 0;
+        font-weight: 700;
+        color: $gray-100;
+    }
+
+    .search-chart-hit-data-point__arrow {
+        height: 0.8em;
+        padding-right: 0.25em;
+        padding-left: 0.15em;
+    }
+}
