@@ -48,8 +48,15 @@ import { chartHitQueryKeys } from "./queries.js"
 import { SearchChartHitThumbnail } from "./SearchChartHitThumbnail.js"
 import { SearchChartHitDataDisplay } from "./SearchChartHitDataDisplay.js"
 import { buildChartHitDataTableProps } from "./SearchChartHitDataTableHelpers.js"
-import { SearchChartHitDataTable } from "./SearchChartHitDataTable.js"
+import {
+    SearchChartHitDataTable,
+    SearchChartHitDataTableProps,
+} from "./SearchChartHitDataTable.js"
 import { match } from "ts-pattern"
+import {
+    SearchChartHitDataPoints,
+    SearchChartHitDataPointsProps,
+} from "./SearchChartHitDataPoints.js"
 
 const NUM_DATA_TABLE_ROWS_PER_COLUMN = 4
 
@@ -210,7 +217,7 @@ function SearchChartHitMediumRichData({
     const chartInfo = entityForDisplay
         ? constructGrapherValuesJson(grapherState, entityForDisplay)
         : undefined
-    const dataDisplayProps = buildChartHitDataDisplayProps({
+    let dataDisplayProps = buildChartHitDataDisplayProps({
         chartInfo,
         chartType: grapherState.chartType,
         entity: entityForDisplay,
@@ -223,6 +230,7 @@ function SearchChartHitMediumRichData({
     // Since this decision depends on the table content, we need to
     // build the table props first to get the row count.
     const dataTableProps = buildChartHitDataTableProps({ grapherState })
+    if (dataTableProps.type === "data-points") dataDisplayProps = undefined
     const placedTabs = placeGrapherTabsInGridLayout(sortedTabs, {
         numDataTableRows: dataTableProps.rows.length,
         hasDataDisplay: !!dataDisplayProps,
@@ -481,7 +489,16 @@ function CaptionedTable({
             className={slot}
             onClick={onClick}
         >
-            <SearchChartHitDataTable {...dataTableProps} />
+            <div className="search-chart-hit-table-wrapper">
+                {match(dataTableProps)
+                    .with({ type: "data-table" }, (props) => (
+                        <SearchChartHitDataTable {...props} />
+                    ))
+                    .with({ type: "data-points" }, (props) => (
+                        <SearchChartHitDataPoints {...props} />
+                    ))
+                    .exhaustive()}
+            </div>
         </CaptionedLink>
     )
 }

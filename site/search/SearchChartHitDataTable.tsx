@@ -19,6 +19,7 @@ interface TableRow {
 }
 
 export interface SearchChartHitDataTableProps {
+    type: "data-table" // discriminant property, not used for rendering
     rows: TableRow[]
     title: string
 }
@@ -39,19 +40,17 @@ export function SearchChartHitDataTable({
 
     return (
         <div className="search-chart-hit-table">
-            <div className="search-chart-hit-table-content">
-                <Header
-                    title={title}
-                    time={shouldShowTimeInTitle ? time : undefined}
+            <Header
+                title={title}
+                time={shouldShowTimeInTitle ? time : undefined}
+            />
+            {displayRows.map((row) => (
+                <Row
+                    key={row.name}
+                    row={row}
+                    shouldSpanBothColumns={displayRows.length <= 4}
                 />
-                {displayRows.map((row) => (
-                    <Row
-                        key={row.name}
-                        row={row}
-                        shouldSpanBothColumns={rows.length <= 4}
-                    />
-                ))}
-            </div>
+            ))}
         </div>
     )
 }
