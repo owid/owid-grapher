@@ -22,7 +22,7 @@
     "dayjs": "^1.11.11",
     "fuzzysort": "^3.1.0",
     "lodash-es": "^4.17.21",
-    "mobx": "patch:mobx@npm%3A6.13.7#~/.yarn/patches/mobx-npm-6.13.7-f32d167142.patch",
+    "mobx": "^6.13.7",
     "mobx-react": "^7.6.0",
     "react": "^19.1.0",
     "react-select": "^5.10.2",
