@@ -22,6 +22,10 @@ import {
     SeriesStrategy,
 } from "@ourworldindata/types"
 import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable"
+import {
+    getColumnNameForDisplay,
+    getColumnUnitForDisplay,
+} from "./searchUtils.js"
 
 interface BaseArgs {
     grapherState: GrapherState
@@ -163,7 +167,7 @@ function buildDataTablePropsForLineChart({
     const displayRows =
         maxRows !== undefined ? sortedRows.slice(0, maxRows) : sortedRows
 
-    const title = makeSeriesListTitle(grapherState, chartState)
+    const title = makeTableTitle(grapherState, chartState)
 
     return { rows: displayRows, title }
 }
@@ -239,7 +243,7 @@ function buildDataTablePropsForTableTab({
     return { rows: [], title: "" }
 }
 
-function makeSeriesListTitle(
+function makeTableTitle(
     grapherState: GrapherState,
     chartState: ChartState
 ): string {
@@ -249,14 +253,10 @@ function makeSeriesListTitle(
     const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
     const unit =
         isEntityStrategy && // only show unit if entities are plotted
-        formatColumn.unit &&
-        formatColumn.shortUnit !== formatColumn.unit
-            ? formatColumn.unit
-            : undefined
+        getColumnUnitForDisplay(formatColumn)
 
     const title = isEntityStrategy
-        ? (formatColumn.titlePublicOrDisplayName.title ??
-          formatColumn.nonEmptyDisplayName)
+        ? getColumnNameForDisplay(formatColumn)
         : grapherState.selection.selectedEntityNames[0]
 
     return unit ? `${title} (${unit})` : title
