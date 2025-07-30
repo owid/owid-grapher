@@ -1,4 +1,5 @@
 import { action, observable, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import {
     getOwidGdocFromJSON,
     OwidGdocJSON,
@@ -21,8 +22,8 @@ import {
  * Today, this store acts as CRUD proxy for requests to API endpoints.
  */
 export class GdocsStore {
-    @observable accessor gdocs: OwidGdocIndexItem[] = []
-    @observable accessor availableTags: DbChartTagJoin[] = []
+    @observable @enumerable accessor gdocs: OwidGdocIndexItem[] = []
+    @observable @enumerable accessor availableTags: DbChartTagJoin[] = []
     admin: Admin
 
     constructor(admin: Admin) {

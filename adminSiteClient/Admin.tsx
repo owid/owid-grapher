@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/react"
 import * as lodash from "lodash-es"
 import { observable, computed, action, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import urljoin from "url-join"
 
 import { AdminApp } from "./AdminApp.js"
@@ -28,7 +29,8 @@ interface ErrorMessage {
 // Entry point for the grapher admin
 // Currently just the editor, but eventually should expand to cover everything
 export class Admin {
-    @observable accessor errorMessage: ErrorMessage | undefined = undefined
+    @observable @enumerable accessor errorMessage: ErrorMessage | undefined =
+        undefined
     basePath: string
     username: string
     email: string
@@ -54,7 +56,7 @@ export class Admin {
         })
     }
 
-    @observable accessor currentRequests: Promise<Response>[] = []
+    @observable @enumerable accessor currentRequests: Promise<Response>[] = []
 
     @computed get showLoadingIndicator(): boolean {
         return this.loadingIndicatorSetting === "default"
@@ -62,7 +64,7 @@ export class Admin {
             : this.loadingIndicatorSetting === "loading"
     }
 
-    @observable accessor loadingIndicatorSetting:
+    @observable @enumerable accessor loadingIndicatorSetting:
         | "loading"
         | "off"
         | "default" = "default"

@@ -14,6 +14,7 @@ import {
     domainExtent,
 } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
@@ -101,9 +102,10 @@ export class SlopeChart
 
     private sidebarMargin = 10
 
-    @observable private accessor hoveredSeriesName: string | undefined =
-        undefined
-    @observable private accessor tooltipState = new TooltipState<{
+    @observable @enumerable private accessor hoveredSeriesName:
+        | string
+        | undefined = undefined
+    @observable @enumerable private accessor tooltipState = new TooltipState<{
         series: SlopeChartSeries
     }>({ fade: "immediate" })
 

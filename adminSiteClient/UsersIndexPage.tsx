@@ -1,6 +1,7 @@
 import * as React from "react"
 import { observer } from "mobx-react"
 import { observable, action, runInAction, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 
 import { Modal, Timeago } from "./Forms.js"
 import { Link } from "./Link.js"
@@ -17,9 +18,9 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor email: string = ""
-    @observable accessor fullName: string = ""
-    @observable accessor responseSuccess: boolean = false
+    @observable @enumerable accessor email: string = ""
+    @observable @enumerable accessor fullName: string = ""
+    @observable @enumerable accessor responseSuccess: boolean = false
 
     constructor(props: { onClose: () => void }) {
         super(props)
@@ -101,8 +102,8 @@ export class UsersIndexPage extends React.Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor users: UserIndexMetaWithLastSeen[] = []
-    @observable accessor isInviteModal: boolean = false
+    @observable @enumerable accessor users: UserIndexMetaWithLastSeen[] = []
+    @observable @enumerable accessor isInviteModal: boolean = false
 
     constructor(props: Record<string, never>) {
         super(props)

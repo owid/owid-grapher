@@ -10,6 +10,7 @@ import {
     Bounds,
 } from "@ourworldindata/utils"
 import { observable, computed, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { HorizontalAxis, VerticalAxis } from "./Axis"
 import {
     AxisMinMaxValueStr,
@@ -26,31 +27,46 @@ export interface AxisManager {
 }
 
 class AxisConfigDefaults implements AxisConfigInterface {
-    @observable.ref accessor orient: Position | undefined = undefined
-    @observable.ref accessor min: number | undefined = undefined
-    @observable.ref accessor max: number | undefined = undefined
-    @observable.ref accessor canChangeScaleType: boolean | undefined = undefined
-    @observable.ref accessor removePointsOutsideDomain: boolean | undefined =
+    @observable.ref @enumerable accessor orient: Position | undefined =
         undefined
-    @observable.ref accessor minSize: number | undefined = undefined
-    @observable.ref accessor hideAxis: boolean | undefined = undefined
-    @observable.ref accessor hideGridlines: boolean | undefined = undefined
-    @observable.ref accessor hideTickLabels: boolean | undefined = undefined
-    @observable.ref accessor labelPadding: number | undefined = undefined
-    @observable.ref accessor tickPadding: number | undefined = undefined
-    @observable.ref accessor nice: boolean | undefined = undefined
-    @observable.ref accessor maxTicks: number | undefined = undefined
-    @observable.ref accessor tickFormattingOptions:
+    @observable.ref @enumerable accessor min: number | undefined = undefined
+    @observable.ref @enumerable accessor max: number | undefined = undefined
+    @observable.ref @enumerable accessor canChangeScaleType:
+        | boolean
+        | undefined = undefined
+    @observable.ref @enumerable accessor removePointsOutsideDomain:
+        | boolean
+        | undefined = undefined
+    @observable.ref @enumerable accessor minSize: number | undefined = undefined
+    @observable.ref @enumerable accessor hideAxis: boolean | undefined =
+        undefined
+    @observable.ref @enumerable accessor hideGridlines: boolean | undefined =
+        undefined
+    @observable.ref @enumerable accessor hideTickLabels: boolean | undefined =
+        undefined
+    @observable.ref @enumerable accessor labelPadding: number | undefined =
+        undefined
+    @observable.ref @enumerable accessor tickPadding: number | undefined =
+        undefined
+    @observable.ref @enumerable accessor nice: boolean | undefined = undefined
+    @observable.ref @enumerable accessor maxTicks: number | undefined =
+        undefined
+    @observable.ref @enumerable accessor tickFormattingOptions:
         | TickFormattingOptions
         | undefined = undefined
-    @observable.ref accessor scaleType: ScaleType | undefined = ScaleType.linear
-    @observable.ref accessor facetDomain: FacetAxisDomain | undefined =
+    @observable.ref @enumerable accessor scaleType: ScaleType | undefined =
+        ScaleType.linear
+    @observable.ref @enumerable accessor facetDomain:
+        | FacetAxisDomain
+        | undefined = undefined
+    @observable.ref @enumerable accessor ticks: Tickmark[] | undefined =
         undefined
-    @observable.ref accessor ticks: Tickmark[] | undefined = undefined
-    @observable.ref accessor singleValueAxisPointAlign: AxisAlign | undefined =
+    @observable.ref @enumerable accessor singleValueAxisPointAlign:
+        | AxisAlign
+        | undefined = undefined
+    @observable.ref @enumerable accessor label: string | undefined = undefined
+    @observable.ref @enumerable accessor domainValues: number[] | undefined =
         undefined
-    @observable.ref accessor label: string | undefined = undefined
-    @observable.ref accessor domainValues: number[] | undefined = undefined
 
     constructor() {
         makeObservable(this)

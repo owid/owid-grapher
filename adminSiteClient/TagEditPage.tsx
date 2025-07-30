@@ -1,6 +1,7 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { Prompt, Redirect } from "react-router-dom"
 import { DbChartTagJoin } from "@ourworldindata/utils"
 import { AdminLayout } from "./AdminLayout.js"
@@ -22,8 +23,8 @@ interface TagPageData {
 }
 
 class TagEditable {
-    @observable accessor name: string = ""
-    @observable accessor slug: string | null = null
+    @observable @enumerable accessor name: string = ""
+    @observable @enumerable accessor slug: string | null = null
 
     constructor(json: TagPageData) {
         makeObservable(this)
@@ -38,8 +39,8 @@ class TagEditor extends Component<{ tag: TagPageData }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor newtag!: TagEditable
-    @observable accessor isDeleted: boolean = false
+    @observable @enumerable accessor newtag!: TagEditable
+    @observable @enumerable accessor isDeleted: boolean = false
 
     constructor(props: { tag: TagPageData }) {
         super(props)
@@ -187,7 +188,7 @@ export class TagEditPage extends Component<{ tagId: number }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor tag: TagPageData | undefined = undefined
+    @observable @enumerable accessor tag: TagPageData | undefined = undefined
 
     constructor(props: { tagId: number }) {
         super(props)

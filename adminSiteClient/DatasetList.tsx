@@ -1,5 +1,6 @@
 import * as React from "react"
 import { observable, action, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import * as lodash from "lodash-es"
 import { bind, DbChartTagJoin } from "@ourworldindata/utils"
@@ -113,7 +114,7 @@ export class DatasetList extends React.Component<DatasetListProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor availableTags: DbChartTagJoin[] = []
+    @observable @enumerable accessor availableTags: DbChartTagJoin[] = []
 
     constructor(props: DatasetListProps) {
         super(props)

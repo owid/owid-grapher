@@ -33,6 +33,7 @@ import { GdocsAdd } from "./GdocsAdd.js"
 import { observer } from "mobx-react"
 import { GdocsStoreContext } from "./GdocsStoreContext.js"
 import { computed, observable, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { BAKED_BASE_URL } from "../settings/clientSettings.js"
 import { GdocsEditLink } from "./GdocsEditLink.js"
 
@@ -142,7 +143,7 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
     static override contextType = GdocsStoreContext
     declare context: React.ContextType<typeof GdocsStoreContext>
 
-    @observable accessor filters: GdocsSearchFilters = {
+    @observable @enumerable accessor filters: GdocsSearchFilters = {
         [OwidGdocType.Fragment]: false,
         [OwidGdocType.Article]: false,
         [OwidGdocType.TopicPage]: false,
@@ -154,7 +155,7 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
         publishStatus: GdocPublishStatus.All,
     }
 
-    @observable accessor search = { value: "" }
+    @observable @enumerable accessor search = { value: "" }
 
     constructor(props: RouteComponentProps) {
         super(props)

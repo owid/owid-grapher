@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { observer } from "mobx-react"
 import { runInAction, observable, computed, action, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import {
     bind,
     DbChartTagJoin,
@@ -71,10 +72,11 @@ export class ChartList extends React.Component<ChartListProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor searchInput: string | undefined = undefined
-    @observable accessor maxVisibleCharts = 50
-    @observable accessor sortConfig: SortConfig | undefined = undefined
-    @observable accessor availableTags: DbChartTagJoin[] = []
+    @observable @enumerable accessor searchInput: string | undefined = undefined
+    @observable @enumerable accessor maxVisibleCharts = 50
+    @observable @enumerable accessor sortConfig: SortConfig | undefined =
+        undefined
+    @observable @enumerable accessor availableTags: DbChartTagJoin[] = []
 
     constructor(props: ChartListProps) {
         super(props)

@@ -3,6 +3,7 @@ import { Component } from "react"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { observable, runInAction, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { DbPlainTag } from "@ourworldindata/types"
 import { TagBadge } from "./TagBadge.js"
 import { Link } from "react-router-dom"
@@ -13,10 +14,10 @@ export class TagsIndexPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor tags: DbPlainTag[] = []
-    @observable accessor newTagName = ""
-    @observable accessor newTagSlug = ""
-    @observable accessor isAddingTag = false
+    @observable @enumerable accessor tags: DbPlainTag[] = []
+    @observable @enumerable accessor newTagName = ""
+    @observable @enumerable accessor newTagSlug = ""
+    @observable @enumerable accessor isAddingTag = false
 
     constructor(props: Record<string, never>) {
         super(props)

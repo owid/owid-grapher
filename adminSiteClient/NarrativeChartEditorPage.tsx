@@ -1,6 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { computed, action, runInAction, observable, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import type { History } from "history"
 import { GrapherInterface } from "@ourworldindata/types"
 import { Admin } from "./Admin.js"
@@ -43,7 +44,8 @@ export class NarrativeChartEditorPage
 
     isInheritanceEnabled: boolean | undefined = true
 
-    @observable accessor references: References | undefined = undefined
+    @observable @enumerable accessor references: References | undefined =
+        undefined
 
     async fetchNarrativeChartData(): Promise<void> {
         const data = await this.context.admin.getJSON(

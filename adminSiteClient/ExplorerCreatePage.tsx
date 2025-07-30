@@ -10,6 +10,7 @@ import classNames from "classnames"
 import Handsontable from "handsontable"
 import { registerAllModules } from "handsontable/registry"
 import { action, computed, observable, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import { Component, createRef } from "react"
 import { Prompt } from "react-router-dom"
@@ -46,7 +47,7 @@ export class ExplorerCreatePage extends Component<ExplorerCreatePageProps> {
     declare context: AdminAppContextType
     disposers: Array<() => void> = []
 
-    @observable accessor showPreview: boolean = true
+    @observable @enumerable accessor showPreview: boolean = true
 
     constructor(props: ExplorerCreatePageProps) {
         super(props)
@@ -90,7 +91,7 @@ export class ExplorerCreatePage extends Component<ExplorerCreatePageProps> {
         this.disposers.push(() => clearInterval(intervalId))
     }
 
-    @observable accessor isReady = false
+    @observable @enumerable accessor isReady = false
 
     override componentWillUnmount() {
         this.resetLoadingModal()
@@ -137,9 +138,10 @@ export class ExplorerCreatePage extends Component<ExplorerCreatePageProps> {
         localStorage.removeItem(UNSAVED_EXPLORER_DRAFT + this.program.slug)
     }
 
-    @observable.ref private accessor programOnDisk = new ExplorerProgram("", "")
+    @observable.ref @enumerable private accessor programOnDisk =
+        new ExplorerProgram("", "")
 
-    @observable.ref private accessor program = new ExplorerProgram(
+    @observable.ref @enumerable private accessor program = new ExplorerProgram(
         this.props.slug,
         ""
     )

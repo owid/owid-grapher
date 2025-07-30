@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { computed, action, observable, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import { Time } from "@ourworldindata/utils"
 import { BAR_OPACITY, StackedPoint, StackedSeries } from "./StackedConstants"
@@ -31,7 +32,7 @@ export class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
         makeObservable(this)
     }
 
-    @observable accessor mouseOver: boolean = false
+    @observable @enumerable accessor mouseOver: boolean = false
 
     @computed get yPos(): number {
         const { bar, yAxis } = this.props

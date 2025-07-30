@@ -1,6 +1,7 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, computed, action, runInAction, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import * as lodash from "lodash-es"
 
 import { AdminLayout } from "./AdminLayout.js"
@@ -19,9 +20,9 @@ export class DatasetsIndexPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor datasets: DatasetListItem[] = []
-    @observable accessor maxVisibleRows = 50
-    @observable accessor searchInput: string | undefined = undefined
+    @observable @enumerable accessor datasets: DatasetListItem[] = []
+    @observable @enumerable accessor maxVisibleRows = 50
+    @observable @enumerable accessor searchInput: string | undefined = undefined
 
     constructor(props: Record<string, never>) {
         super(props)

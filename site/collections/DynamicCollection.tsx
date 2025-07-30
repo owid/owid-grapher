@@ -14,7 +14,7 @@ import {
 import { observer } from "mobx-react"
 import { WindowGraphers } from "./DynamicCollectionPage.js"
 import { Grapher } from "@ourworldindata/grapher"
-import { GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
+import { enumerable, GRAPHER_PREVIEW_CLASS } from "@ourworldindata/types"
 import GrapherImage from "../GrapherImage.js"
 
 interface DynamicCollectionProps {
@@ -54,9 +54,11 @@ export function embedDynamicCollectionGrapher(
 
 @observer
 export class DynamicCollection extends React.Component<DynamicCollectionProps> {
-    @observable accessor initialDynamicCollection: string | undefined =
-        this.props.initialDynamicCollection
-    @observable accessor graphers: undefined | WindowGraphers = undefined
+    @observable @enumerable accessor initialDynamicCollection:
+        | string
+        | undefined = this.props.initialDynamicCollection
+    @observable @enumerable accessor graphers: undefined | WindowGraphers =
+        undefined
     pollInterval: null | ReturnType<typeof setInterval> = null
     disposers: IReactionDisposer[] = []
 

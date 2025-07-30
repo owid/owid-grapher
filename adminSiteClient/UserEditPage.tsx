@@ -1,6 +1,7 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
 import { observable, runInAction, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { BindString, Toggle } from "./Forms.js"
 import { Redirect } from "react-router-dom"
 import { AdminLayout } from "./AdminLayout.js"
@@ -12,8 +13,8 @@ export class UserEditPage extends Component<{ userId: number }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor user: UserIndexMeta | undefined = undefined
-    @observable accessor isSaved: boolean = false
+    @observable @enumerable accessor user: UserIndexMeta | undefined = undefined
+    @observable @enumerable accessor isSaved: boolean = false
 
     constructor(props: { userId: number }) {
         super(props)

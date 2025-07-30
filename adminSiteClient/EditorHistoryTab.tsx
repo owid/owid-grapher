@@ -3,6 +3,7 @@ import { observer } from "mobx-react"
 import { ChartEditor, Log } from "./ChartEditor.js"
 import { Timeago } from "./Forms.js"
 import { computed, observable, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { Modal } from "antd"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
 
@@ -59,7 +60,7 @@ interface LogRendererProps {
 
 @observer
 class LogRenderer extends Component<LogRendererProps> {
-    @observable accessor isCompareModalOpen = false
+    @observable @enumerable accessor isCompareModalOpen = false
 
     constructor(props: LogRendererProps) {
         super(props)

@@ -1,5 +1,6 @@
 import * as React from "react"
 import { observable, computed, action, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import parseUrl from "url-parse"
 import {
@@ -375,7 +376,7 @@ abstract class AbstractFooter<
     }
 
     base = React.createRef<HTMLDivElement>()
-    @observable.ref accessor tooltipTarget:
+    @observable.ref @enumerable accessor tooltipTarget:
         | { x: number; y: number }
         | undefined = undefined
 

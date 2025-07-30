@@ -4,6 +4,7 @@ import { select } from "d3-selection"
 import cx from "classnames"
 import { getRelativeMouse, isMobile, Bounds } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -276,9 +277,10 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         )
     }
 
-    @observable private accessor startTooltipVisible: boolean = false
-    @observable private accessor endTooltipVisible: boolean = false
-    @observable private accessor lastUpdatedTooltip:
+    @observable @enumerable private accessor startTooltipVisible: boolean =
+        false
+    @observable @enumerable private accessor endTooltipVisible: boolean = false
+    @observable @enumerable private accessor lastUpdatedTooltip:
         | "startMarker"
         | "endMarker"
         | undefined = undefined

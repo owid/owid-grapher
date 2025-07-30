@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { computed, observable, action, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import classnames from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -97,7 +98,7 @@ interface DataTableProps {
 
 @observer
 export class DataTable extends React.Component<DataTableProps> {
-    @observable private accessor storedState: DataTableState = {
+    @observable @enumerable private accessor storedState: DataTableState = {
         sort: DEFAULT_SORT_STATE,
     }
 

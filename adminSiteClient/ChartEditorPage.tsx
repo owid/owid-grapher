@@ -1,6 +1,7 @@
 import React from "react"
 import { observer } from "mobx-react"
 import { observable, computed, runInAction, action, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import {
     getParentVariableIdFromChartConfig,
     RawPageview,
@@ -40,13 +41,17 @@ export class ChartEditorPage
         makeObservable(this)
     }
 
-    @observable accessor logs: Log[] = []
-    @observable accessor references: References | undefined = undefined
-    @observable accessor redirects: ChartRedirect[] = []
-    @observable accessor pageviews: RawPageview | undefined = undefined
-    @observable accessor tags: DbChartTagJoin[] | undefined = undefined
-    @observable accessor availableTags: MinimalTagWithIsTopic[] | undefined =
+    @observable @enumerable accessor logs: Log[] = []
+    @observable @enumerable accessor references: References | undefined =
         undefined
+    @observable @enumerable accessor redirects: ChartRedirect[] = []
+    @observable @enumerable accessor pageviews: RawPageview | undefined =
+        undefined
+    @observable @enumerable accessor tags: DbChartTagJoin[] | undefined =
+        undefined
+    @observable @enumerable accessor availableTags:
+        | MinimalTagWithIsTopic[]
+        | undefined = undefined
 
     patchConfig: GrapherInterface = {}
     parentConfig: GrapherInterface | undefined = undefined

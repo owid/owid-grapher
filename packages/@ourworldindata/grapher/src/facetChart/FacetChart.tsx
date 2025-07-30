@@ -16,6 +16,7 @@ import {
 } from "@ourworldindata/utils"
 import { shortenForTargetWidth } from "@ourworldindata/components"
 import { action, computed, makeObservable, observable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -795,8 +796,9 @@ export class FacetChart
         return sortedBins
     }
 
-    @observable.ref private accessor legendHoverBin: ColorScaleBin | undefined =
-        undefined
+    @observable.ref @enumerable private accessor legendHoverBin:
+        | ColorScaleBin
+        | undefined = undefined
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
         this.legendHoverBin = bin

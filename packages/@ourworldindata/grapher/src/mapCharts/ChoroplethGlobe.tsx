@@ -1,6 +1,7 @@
 import * as _ from "lodash-es"
 import React from "react"
 import { computed, action, observable, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import {
     geoGraticule,
@@ -83,10 +84,10 @@ export class ChoroplethGlobe extends React.Component<{
 }> {
     base = React.createRef<SVGGElement>()
 
-    @observable private accessor hoverEnterFeature:
+    @observable @enumerable private accessor hoverEnterFeature:
         | GlobeRenderFeature
         | undefined = undefined
-    @observable private accessor hoverNearbyFeature:
+    @observable @enumerable private accessor hoverNearbyFeature:
         | GlobeRenderFeature
         | undefined = undefined
 

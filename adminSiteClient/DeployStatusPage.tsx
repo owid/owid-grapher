@@ -1,6 +1,7 @@
 import { Component } from "react"
 import { observer } from "mobx-react"
 import { action, observable, runInAction, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCheckCircle } from "@fortawesome/free-solid-svg-icons"
@@ -20,8 +21,8 @@ export class DeployStatusPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor deploys: Deploy[] = []
-    @observable accessor canManuallyDeploy = true
+    @observable @enumerable accessor deploys: Deploy[] = []
+    @observable @enumerable accessor canManuallyDeploy = true
     refreshIntervalId?: number
 
     constructor(props: Record<string, never>) {

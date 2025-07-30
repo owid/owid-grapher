@@ -11,6 +11,7 @@ import {
 } from "@ourworldindata/core-table"
 
 import { makeObservable, observable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import { AxisConfig } from "../axis/AxisConfig"
 import { SelectionArray } from "../selection/SelectionArray"
 import {
@@ -31,7 +32,7 @@ class MockManager implements ChartManager {
     })
     yColumnSlugs = [SampleColumnSlugs.GDP]
     yAxisConfig = new AxisConfig({ min: 0, max: 200 })
-    @observable accessor isRelativeMode = false
+    @observable @enumerable accessor isRelativeMode = false
     selection = new SelectionArray()
     activeChartType = GRAPHER_CHART_TYPES.StackedArea
 }

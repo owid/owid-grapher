@@ -17,6 +17,7 @@ import {
     GrapherChartType,
     DbChartTagJoin,
     TaggableType,
+    enumerable,
 } from "@ourworldindata/types"
 import {
     DimensionSlot,
@@ -68,7 +69,7 @@ class DimensionSlotView<
 > extends React.Component<DimensionSlotViewProps<Editor>> {
     disposers: IReactionDisposer[] = []
 
-    @observable.ref accessor isSelectingVariables: boolean = false
+    @observable.ref @enumerable accessor isSelectingVariables: boolean = false
 
     constructor(props: DimensionSlotViewProps<Editor>) {
         super(props)
@@ -337,7 +338,7 @@ class VariablesSection<
     Editor extends AbstractChartEditor,
 > extends React.Component<VariablesSectionProps<Editor>> {
     base = React.createRef<HTMLDivElement>()
-    @observable.ref accessor isAddingVariable: boolean = false
+    @observable.ref @enumerable accessor isAddingVariable: boolean = false
 
     constructor(props: VariablesSectionProps<Editor>) {
         super(props)

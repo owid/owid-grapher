@@ -1,5 +1,6 @@
 import * as React from "react"
 import { action, computed, observable, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import cx from "classnames"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -41,7 +42,7 @@ export class ContentSwitchers extends React.Component<{
         return test.shouldShow
     }
 
-    @observable private accessor isOverflowMenuOpen = false
+    @observable @enumerable private accessor isOverflowMenuOpen = false
 
     @computed private get manager(): ContentSwitchersManager {
         return this.props.manager

@@ -1,4 +1,5 @@
 import { computed, observable, runInAction, when, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 import {
     AbstractChartEditor,
     AbstractChartEditorManager,
@@ -24,7 +25,8 @@ export interface IndicatorChartEditorManager
 }
 
 export class IndicatorChartEditor extends AbstractChartEditor<IndicatorChartEditorManager> {
-    @observable.ref accessor _isNewGrapher: boolean | undefined = undefined
+    @observable.ref @enumerable accessor _isNewGrapher: boolean | undefined =
+        undefined
 
     constructor(props: { manager: IndicatorChartEditorManager }) {
         super(props)

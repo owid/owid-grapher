@@ -1,5 +1,6 @@
 import { EntityName } from "@ourworldindata/types"
 import { action, computed, observable, makeObservable } from "mobx"
+import { enumerable } from "@ourworldindata/types"
 
 export class SelectionArray {
     constructor(selectedEntityNames: EntityName[] = []) {
@@ -7,7 +8,7 @@ export class SelectionArray {
         this.selectedEntityNames = selectedEntityNames.slice()
     }
 
-    @observable accessor selectedEntityNames: EntityName[]
+    @observable @enumerable accessor selectedEntityNames: EntityName[]
 
     @computed get hasSelection(): boolean {
         return this.selectedEntityNames.length > 0
