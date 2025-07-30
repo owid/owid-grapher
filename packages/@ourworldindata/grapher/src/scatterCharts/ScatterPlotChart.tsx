@@ -505,7 +505,7 @@ export class ScatterPlotChart
         return (
             <ScatterPointsWithLabels
                 noDataModalManager={this.manager}
-                isConnected={this.isConnected}
+                isConnected={this.chartState.isConnected}
                 hideConnectedScatterLines={this.hideConnectedScatterLines}
                 seriesArray={this.series}
                 dualAxis={this.dualAxis}
@@ -574,13 +574,9 @@ export class ScatterPlotChart
             )
     }
 
-    /** Whether series are shown as lines (instead of single points) */
-    @computed private get isConnected(): boolean {
-        return this.series.some((s) => s.points.length > 1)
-    }
-
     @computed private get sizeLegend(): ScatterSizeLegend | undefined {
-        if (this.isConnected || this.sizeColumn.isMissing) return undefined
+        if (this.chartState.isConnected || this.sizeColumn.isMissing)
+            return undefined
         return new ScatterSizeLegend(this)
     }
 
@@ -990,7 +986,7 @@ export class ScatterPlotChart
     @computed private get sizeRange(): [number, number] {
         if (this.sizeColumn.isMissing) {
             // if the size column is missing, we want all points/lines to have the same width
-            return this.isConnected
+            return this.chartState.isConnected
                 ? [SCATTER_LINE_DEFAULT_WIDTH, SCATTER_LINE_DEFAULT_WIDTH]
                 : [SCATTER_POINT_DEFAULT_RADIUS, SCATTER_POINT_DEFAULT_RADIUS]
         }
@@ -1005,7 +1001,7 @@ export class ScatterPlotChart
             )
         )
 
-        return this.isConnected
+        return this.chartState.isConnected
             ? // Note that the scale starts at 0.
               // When using the scale to plot marks, we need to make sure the minimums
               // (e.g. `SCATTER_POINT_MIN_RADIUS`) are respected.

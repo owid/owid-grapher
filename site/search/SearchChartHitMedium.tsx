@@ -57,6 +57,10 @@ import { match } from "ts-pattern"
 import { runInAction } from "mobx"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "@ourworldindata/components"
+import {
+    SearchChartHitDataPoints,
+    SearchChartHitDataPointsProps,
+} from "./SearchChartHitDataPoints.js"
 
 const NUM_DATA_TABLE_ROWS_PER_COLUMN = 4
 
@@ -440,7 +444,16 @@ function CaptionedTable({
             className={slot}
             onClick={onClick}
         >
-            <SearchChartHitDataTable {...dataTableProps} />
+            <div className="search-chart-hit-table-wrapper">
+                {match(dataTableProps)
+                    .with({ type: "data-table" }, (props) => (
+                        <SearchChartHitDataTable {...props} />
+                    ))
+                    .with({ type: "data-points" }, (props) => (
+                        <SearchChartHitDataPoints {...props} />
+                    ))
+                    .exhaustive()}
+            </div>
         </CaptionedLink>
     )
 }
