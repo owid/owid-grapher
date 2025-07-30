@@ -404,11 +404,113 @@ function buildDataTableContentForStackedAreaAndBarChart({
 }
 
 function buildDataTableContentForMarimekkoChart({
-    grapherState: _grapherState,
-    chartState: _chartState,
-    maxRows: _maxRows,
+    grapherState,
+    chartState,
+    maxRows,
 }: Args<MarimekkoChartState>): SearchChartHitDataTableContent {
-    return { type: "data-table", props: { rows: [], title: "" } }
+    // If at least one entity is selected, then we display the values
+    // for the first two entities. The remaining selected entities are ignored
+    if (grapherState.selection.hasSelection) {
+        const { selectedEntityNames } = grapherState.selection
+        return buildDataPointsContentForMarimekko({
+            grapherState,
+            chartState,
+            entityNames: selectedEntityNames.slice(0, 2),
+        })
+    }
+
+    // If the selection is empty and the chart has a legend (which is the
+    // case if it has a color dimension), then we display the legend
+    if (grapherState.colorColumnSlug) {
+        return buildLegendTableProps({ grapherState, chartState, maxRows })
+    }
+
+    // Display a table where each row corresponds to an entity
+    return buildValueTableContentForMarimekko({
+        grapherState,
+        chartState,
+        maxRows,
+    })
+}
+
+/**
+ * Builds data points props for Marimekko charts, extracting the values for
+ * specific entities
+ */
+function buildDataPointsContentForMarimekko({
+    grapherState,
+    chartState,
+    entityNames,
+}: {
+    grapherState: GrapherState
+    chartState: MarimekkoChartState
+    entityNames: EntityName[]
+}): SearchChartHitDataTableContent {
+    // Marimekko charts can be stacked, but this feature has never been used.
+    // It's safe to assume we're dealing with a single y-indicator chart.
+    const series = chartState.series[0]
+    const yColumn = chartState.yColumns[0]
+
+    const dataPoints = entityNames.map((entityName) => {
+        const point = series.points.find(
+            (point) => point.position === entityName
+        )
+
+        const value = point ? yColumn.formatValueShort(point.value) : "No data"
+        const time = point
+            ? yColumn.formatTime(point.time)
+            : yColumn.formatTime(grapherState.endTime!)
+
+        return {
+            entityName,
+            columnName: getColumnNameForDisplay(yColumn),
+            unit: getColumnUnitForDisplay(yColumn),
+            value,
+            time,
+        }
+    })
+
+    return { type: "data-points", props: { dataPoints } }
+}
+
+/**
+ * Creates a table where each row represents an entity in Marimekko chart.
+ */
+function buildValueTableContentForMarimekko({
+    grapherState,
+    chartState,
+    maxRows,
+}: {
+    grapherState: GrapherState
+    chartState: MarimekkoChartState
+    maxRows?: number
+}): SearchChartHitDataTableContent {
+    const series = chartState.series[0]
+    const yColumn = chartState.yColumns[0]
+
+    let rows = series.points
+        .map((point) => {
+            const entityColor = chartState.domainColorForEntityMap.get(
+                point.position
+            )
+            return {
+                point,
+                name: point.position,
+                color: entityColor?.color ?? point.color ?? series.color,
+                value: yColumn.formatValueShort(point.value),
+                time: yColumn.formatTime(point.time),
+            }
+        })
+        .filter((row) => row !== undefined)
+
+    // Sort by value in descending order
+    rows = R.sortBy(rows, [(row) => row.point.value, "desc"])
+
+    if (maxRows !== undefined) rows = rows.slice(0, maxRows)
+
+    const title = makeTableTitle(grapherState, chartState)
+
+    return { type: "data-table", props: { rows, title } }
 }
 
 function buildDataTableContentForScatterPlot({
@@ -430,11 +532,7 @@ function buildDataTableContentForScatterPlot({
     // If the selection is empty and the scatter plot has a legend (which is the
     // case if it has a color dimension), then we display the legend
     if (!grapherState.selection.hasSelection && grapherState.colorColumnSlug) {
-        return buildLegendTableContentForScatterPlot({
-            grapherState,
-            chartState,
-            maxRows,
-        })
+        return buildLegendTableProps({ grapherState, chartState, maxRows })
     }
 
     // Special handling for two cases:
@@ -466,16 +564,16 @@ function buildDataTableContentForScatterPlot({
 }
 
 /** Creates a table where each row represents a legend bin from the color scale */
-function buildLegendTableContentForScatterPlot({
+function buildLegendTableProps({
     grapherState,
     chartState,
     maxRows,
 }: {
     grapherState: GrapherState
-    chartState: ScatterPlotChartState
+    chartState: ChartState
     maxRows?: number
 }): SearchChartHitDataTableContent {
-    const bins = chartState.colorScale.legendBins
+    const bins = chartState.colorScale?.legendBins ?? []
 
     let rows = bins
         .map((bin) => {
