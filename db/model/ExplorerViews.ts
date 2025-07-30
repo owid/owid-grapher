@@ -185,10 +185,7 @@ async function iterateExplorerViews(
             explorer.setSlide(view)
 
             // Trigger the grapher update from the explorer
-            explorer.updateGrapherFromExplorer()
-
-            // Wait for any async operations to complete
-            // await new Promise(resolve => setTimeout(resolve, 0))
+            await explorer.updateGrapherFromExplorer()
 
             // Extract the generated config from the explorer's grapher state
             const config = explorer.grapherState.object

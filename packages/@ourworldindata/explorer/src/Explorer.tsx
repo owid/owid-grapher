@@ -349,7 +349,7 @@ export class Explorer
     disposers: (() => void)[] = []
     override componentDidMount() {
         this.setGrapher(this.grapherRef!.current!)
-        this.updateGrapherFromExplorer()
+        void this.updateGrapherFromExplorer()
 
         let url = Url.fromQueryParams(this.initialQueryParams)
 
@@ -437,7 +437,9 @@ export class Explorer
     > = new Map()
 
     // todo: break this method up and unit test more. this is pretty ugly right now.
-    @action.bound private reactToUserChangingSelection(oldSelectedRow: number) {
+    @action.bound private async reactToUserChangingSelection(
+        oldSelectedRow: number
+    ) {
         if (!this.explorerProgram.currentlySelectedGrapherRow) return // todo: can we remove this?
         this.initSlideshow()
 
@@ -458,7 +460,7 @@ export class Explorer
 
         const previousTab = this.grapherState.activeTab
 
-        this.updateGrapherFromExplorer()
+        void this.updateGrapherFromExplorer()
 
         newGrapherParams.tab =
             this.grapherState.mapGrapherTabToQueryParam(previousTab)
@@ -512,16 +514,16 @@ export class Explorer
         this.explorerProgram.constructTable(slug)
     )
 
-    @action.bound updateGrapherFromExplorer() {
+    @action.bound async updateGrapherFromExplorer() {
         switch (this.explorerProgram.chartCreationMode) {
             case ExplorerChartCreationMode.FromGrapherId:
-                void this.updateGrapherFromExplorerUsingGrapherId()
+                await this.updateGrapherFromExplorerUsingGrapherId()
                 break
             case ExplorerChartCreationMode.FromVariableIds:
-                void this.updateGrapherFromExplorerUsingVariableIds()
+                await this.updateGrapherFromExplorerUsingVariableIds()
                 break
             case ExplorerChartCreationMode.FromExplorerTableColumnSlugs:
-                this.updateGrapherFromExplorerUsingColumnSlugs()
+                await this.updateGrapherFromExplorerUsingColumnSlugs()
                 break
         }
     }
@@ -908,7 +910,7 @@ export class Explorer
         const { currentlySelectedGrapherRow } = this.explorerProgram
         this.explorerProgram.decisionMatrix.setValueCommand(choiceTitle, value)
         if (currentlySelectedGrapherRow)
-            this.reactToUserChangingSelection(currentlySelectedGrapherRow)
+            void this.reactToUserChangingSelection(currentlySelectedGrapherRow)
     }
 
     private renderHeaderElement() {

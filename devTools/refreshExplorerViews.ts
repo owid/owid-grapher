@@ -9,6 +9,8 @@ interface ExplorerProcessingStats {
     errorCount: number
     duration: number
     isNew: boolean
+    failed?: boolean
+    failureReason?: string
 }
 
 async function fetchPublishedExplorers(
@@ -73,41 +75,75 @@ async function prepareGrapherConfigsForExplorerViews(
         const startTime = performance.now()
         const isNew = !existingExplorerSlugs.has(explorer.slug)
 
-        if (isNew) {
-            console.log(`Processing new explorer: ${explorer.slug}`)
+        console.log(
+            `Processing explorer: ${explorer.slug} (${isNew ? "NEW" : "UPDATE"})`
+        )
+
+        try {
+            // Wrap the refresh call with additional error handling
+            await Promise.race([
+                refreshExplorerViewsForSlug(knex, explorer.slug),
+                new Promise((_, reject) => {
+                    setTimeout(
+                        () =>
+                            reject(
+                                new Error("Operation timed out after 5 minutes")
+                            ),
+                        5 * 60 * 1000
+                    )
+                }),
+            ])
+
+            // Get the view counts after refreshing
+            const [totalViews, successViews, errorViews] = await Promise.all([
+                knex("explorer_views")
+                    .where({ explorerSlug: explorer.slug })
+                    .count("* as count")
+                    .first(),
+                knex("explorer_views")
+                    .where({ explorerSlug: explorer.slug })
+                    .whereNotNull("chartConfigId")
+                    .count("* as count")
+                    .first(),
+                knex("explorer_views")
+                    .where({ explorerSlug: explorer.slug })
+                    .whereNotNull("error")
+                    .count("* as count")
+                    .first(),
+            ])
+
+            const endTime = performance.now()
+            const duration = Math.round(endTime - startTime)
+
+            stats.push({
+                slug: explorer.slug,
+                viewCount: Number(totalViews?.count || 0),
+                successCount: Number(successViews?.count || 0),
+                errorCount: Number(errorViews?.count || 0),
+                duration,
+                isNew,
+            })
+        } catch (error) {
+            const endTime = performance.now()
+            const duration = Math.round(endTime - startTime)
+            const failureReason =
+                error instanceof Error ? error.message : String(error)
+
+            console.error(
+                `Failed to process explorer ${explorer.slug}: ${failureReason}`
+            )
+
+            stats.push({
+                slug: explorer.slug,
+                viewCount: 0,
+                successCount: 0,
+                errorCount: 0,
+                duration,
+                isNew,
+                failed: true,
+                failureReason,
+            })
         }
-
-        await refreshExplorerViewsForSlug(knex, explorer.slug)
-
-        // Get the view counts after refreshing
-        const [totalViews, successViews, errorViews] = await Promise.all([
-            knex("explorer_views")
-                .where({ explorerSlug: explorer.slug })
-                .count("* as count")
-                .first(),
-            knex("explorer_views")
-                .where({ explorerSlug: explorer.slug })
-                .whereNotNull("chartConfigId")
-                .count("* as count")
-                .first(),
-            knex("explorer_views")
-                .where({ explorerSlug: explorer.slug })
-                .whereNotNull("error")
-                .count("* as count")
-                .first(),
-        ])
-
-        const endTime = performance.now()
-        const duration = Math.round(endTime - startTime)
-
-        stats.push({
-            slug: explorer.slug,
-            viewCount: Number(totalViews?.count || 0),
-            successCount: Number(successViews?.count || 0),
-            errorCount: Number(errorViews?.count || 0),
-            duration,
-            isNew,
-        })
     }
 
     return stats
@@ -161,10 +197,37 @@ function printStatsTable(stats: ExplorerProcessingStats[]): void {
     console.log(
         `\nOptimization Summary: ${newExplorers.length} new explorers, ${existingExplorers.length} existing explorers updated efficiently`
     )
+
+    // Print failed explorer updates
+    const failedExplorers = stats.filter((s) => s.failed)
+    if (failedExplorers.length > 0) {
+        console.log(`\n${"=".repeat(100)}`)
+        console.log("FAILED EXPLORER UPDATES")
+        console.log("=".repeat(100))
+        for (const failed of failedExplorers) {
+            console.log(`${failed.slug}: ${failed.failureReason}`)
+        }
+        console.log("=".repeat(100))
+        console.log(`\nTotal failed: ${failedExplorers.length}`)
+    }
 }
 
 const main = async (): Promise<void> => {
     const showStats = process.argv.includes("--stats")
+
+    // Handle unhandled promise rejections
+    process.on("unhandledRejection", (reason, promise) => {
+        console.error(
+            "Unhandled Promise Rejection at:",
+            promise,
+            "reason:",
+            reason
+        )
+    })
+
+    process.on("uncaughtException", (error) => {
+        console.error("Uncaught Exception:", error)
+    })
 
     try {
         const stats = await db.knexReadWriteTransaction(
