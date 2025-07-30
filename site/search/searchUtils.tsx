@@ -60,6 +60,7 @@ import {
 } from "../../settings/clientSettings.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { SearchChartHitDataDisplayProps } from "./SearchChartHitDataDisplay.js"
+import { CoreColumn } from "@ourworldindata/core-table"
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -875,10 +876,7 @@ export function buildChartHitDataDisplayProps({
     const endValue = endDatapoint.valueLabel ?? endDatapoint.formattedValueShort
     const startValue =
         startDatapoint?.valueLabel ?? startDatapoint?.formattedValueShort
-    const unit =
-        columnInfo?.unit && columnInfo?.unit !== columnInfo?.shortUnit
-            ? columnInfo?.unit
-            : undefined
+    const unit = columnInfo ? getColumnUnitForDisplay(columnInfo) : undefined
     const time = startDatapoint?.formattedTime
         ? `${startDatapoint?.formattedTime}–${endDatapoint.formattedTime}`
         : endDatapoint.formattedTime
@@ -924,4 +922,23 @@ function findDatapoint(
     if (historicalDims.length > 1) return undefined
 
     return historicalDims[0]
+}
+
+export function getColumnNameForDisplay(column: CoreColumn): string {
+    return column.titlePublicOrDisplayName.title ?? column.nonEmptyDisplayName
+}
+
+export function getColumnUnitForDisplay(
+    column: CoreColumn | { unit?: string; shortUnit?: string }
+): string | undefined {
+    // Get non-trivial unit, i.e. only consider it if it's different from the short unit
+    const unit =
+        column.unit && column.shortUnit !== column.unit
+            ? column.unit
+            : undefined
+
+    // Remove parentheses from the beginning and end of the unit
+    const strippedUnit = unit?.replace(/(^\(|\)$)/g, "")
+
+    return strippedUnit
 }
