@@ -24,9 +24,6 @@ export function SearchChartHitDataDisplay({
     showLocationIcon,
     className,
 }: SearchChartHitDataDisplayProps): React.ReactElement | null {
-    // Remove parentheses from the beginning and end of the unit
-    const strippedUnit = unit?.replace(/(^\(|\)$)/g, "")
-
     return (
         <div className={cx("search-chart-hit-data-display", className)}>
             <div className="search-chart-hit-data-display__location">
@@ -49,10 +46,10 @@ export function SearchChartHitDataDisplay({
                 {endValue}
             </div>
             <div className="search-chart-hit-data-display__unit-time">
-                {strippedUnit && (
+                {unit && (
                     <>
                         <span className="search-chart-hit-data-display__unit">
-                            {strippedUnit}
+                            {unit}
                         </span>
                         ,{" "}
                     </>
