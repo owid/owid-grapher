@@ -47,14 +47,14 @@ export function SearchChartHitDataDisplay({
             </div>
             <div className="search-chart-hit-data-display__unit-time">
                 {strippedUnit && (
-                    <span className="search-chart-hit-data-display__unit">
-                        {strippedUnit}
-                    </span>
+                    <>
+                        <span className="search-chart-hit-data-display__unit">
+                            {strippedUnit}
+                        </span>
+                        ,{" "}
+                    </>
                 )}
-                <span className="search-chart-hit-data-display__unit">
-                    {strippedUnit ? ", " : ""}
-                    {time}
-                </span>
+                {time}
             </div>
         </div>
     )
