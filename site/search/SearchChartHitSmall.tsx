@@ -202,7 +202,7 @@ function getTimeBoundsForChartUrl(
     // charts don't customize their start time.
     if (startTime && startTime !== endTime) return undefined
 
-    const columnSlug = chartInfo.values?.endTime?.y[0].columnSlug ?? ""
+    const columnSlug = chartInfo.endTimeValues?.y[0].columnSlug ?? ""
     const columnInfo = chartInfo.columns?.[columnSlug]
 
     return {
@@ -218,8 +218,8 @@ function findDatapoint(
     if (!chartInfo) return undefined
 
     const yDims = match(time)
-        .with("end", () => chartInfo.values?.endTime?.y)
-        .with("start", () => chartInfo.values?.startTime?.y)
+        .with("end", () => chartInfo.endTimeValues?.y)
+        .with("start", () => chartInfo.startTimeValues?.y)
         .exhaustive()
     if (!yDims) return undefined
 
@@ -263,7 +263,7 @@ function buildDataDisplayProps({
     if (!endDatapoint?.formattedValueShort || !endDatapoint?.formattedTime)
         return undefined
 
-    const xSlug = chartInfo?.values?.endTime?.x?.columnSlug
+    const xSlug = chartInfo?.endTimeValues?.x?.columnSlug
     const xColumnInfo = chartInfo?.columns?.[xSlug ?? ""]
     const hasDataDisplay =
         // For scatter plots, displaying a single data value is ambiguous since
