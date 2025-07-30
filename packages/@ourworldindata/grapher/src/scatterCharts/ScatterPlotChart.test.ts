@@ -955,7 +955,7 @@ describe("correct bubble sizes", () => {
 
         const scatterPoints = new ScatterPointsWithLabels({
             noDataModalManager: manager,
-            isConnected: chart["isConnected"],
+            isConnected: chartState["isConnected"],
             hideConnectedScatterLines: chart["hideConnectedScatterLines"],
             seriesArray: chart["series"],
             dualAxis: chart["dualAxis"],
@@ -1020,7 +1020,7 @@ describe("correct bubble sizes", () => {
 
         const scatterPoints = new ScatterPointsWithLabels({
             noDataModalManager: manager,
-            isConnected: chart["isConnected"],
+            isConnected: chartState["isConnected"],
             hideConnectedScatterLines: chart["hideConnectedScatterLines"],
             seriesArray: chart["series"],
             dualAxis: chart["dualAxis"],

@@ -49,7 +49,7 @@
         text-underline-offset: 3px;
     }
 
-    .search-chart-hit-table {
+    .search-chart-hit-table-wrapper {
         height: 100%;
         width: 100%;
         background: #fff;
@@ -65,6 +65,10 @@
             aspect-ratio: calc(
                 2 * $grapher-thumbnail-width / $grapher-thumbnail-height
             );
+        }
+
+        .search-chart-hit-data-points--align-top {
+            padding-top: 12px;
         }
     }
 
@@ -95,7 +99,7 @@
         grid-column: span 2;
         grid-row: span 2;
 
-        .search-chart-hit-table-content {
+        .search-chart-hit-table {
             grid-template-columns: repeat(1, 1fr);
         }
     }
@@ -104,7 +108,7 @@
         grid-column: span 4;
         grid-row: span 2;
 
-        .search-chart-hit-table-content {
+        .search-chart-hit-table {
             grid-template-columns: repeat(2, 1fr);
         }
     }
@@ -113,7 +117,7 @@
         grid-column: span 6;
         grid-row: span 2;
 
-        .search-chart-hit-table-content {
+        .search-chart-hit-table {
             grid-template-columns: repeat(3, 1fr);
         }
     }
@@ -122,7 +126,7 @@
         grid-column: span 8;
         grid-row: span 2;
 
-        .search-chart-hit-table-content {
+        .search-chart-hit-table {
             grid-template-columns: repeat(4, 1fr);
         }
     }
