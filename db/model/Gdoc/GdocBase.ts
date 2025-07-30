@@ -873,6 +873,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async validate(knex: db.KnexReadonlyTransaction): Promise<void> {
+        console.log("validate called")
         const authorErrors = this.content.authors.reduce(
             (errors: OwidGdocErrorMessage[], name): OwidGdocErrorMessage[] => {
                 if (!this.linkedAuthors.find((a) => a.name === name)) {
@@ -923,6 +924,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         ])
 
         const linkErrors: OwidGdocErrorMessage[] = []
+        console.log("this.links", this.links)
         for (const link of this.links) {
             await match(link)
                 .with({ linkType: ContentGraphLinkType.Gdoc }, () => {
@@ -990,6 +992,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                     const queryParams = link.target.split("&")
                     for (const param of queryParams) {
                         const [key] = param.split("=")
+                        console.log("key", key)
                         if (
                             key &&
                             !GRAPHER_QUERY_PARAM_KEYS.includes(key as any)
