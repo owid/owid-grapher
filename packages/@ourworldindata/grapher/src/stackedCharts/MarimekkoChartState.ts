@@ -1,7 +1,10 @@
 import { computed, makeObservable } from "mobx"
 import { ChartState } from "../chart/ChartInterface"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
-import { MarimekkoChartManager } from "./MarimekkoChartConstants"
+import {
+    EntityColorData,
+    MarimekkoChartManager,
+} from "./MarimekkoChartConstants"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import { autoDetectYColumnSlugs } from "../chart/ChartUtils"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
@@ -141,6 +144,34 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
                 : undefined) ??
             ColorSchemes.get(ColorSchemeName["owid-distinct"])
         )
+    }
+
+    @computed get domainColorForEntityMap(): Map<string, EntityColorData> {
+        const { colorColumn, colorScale, uniqueEntityNames } = this
+        const hasColorColumn = !colorColumn.isMissing
+        const colorRowsByEntity = hasColorColumn
+            ? colorColumn.owidRowsByEntityName
+            : undefined
+        const domainColorMap = new Map<string, EntityColorData>()
+        if (uniqueEntityNames !== undefined) {
+            for (const name of uniqueEntityNames) {
+                const colorDomainValue = colorRowsByEntity?.get(name)?.[0]
+
+                if (colorDomainValue) {
+                    const color = colorScale.getColor(colorDomainValue.value)
+                    if (color)
+                        domainColorMap.set(name, {
+                            color,
+                            colorDomainValue: colorDomainValue.value,
+                        })
+                }
+            }
+        }
+        return domainColorMap
+    }
+
+    @computed get uniqueEntityNames(): EntityName[] | undefined {
+        return this.xColumn?.uniqEntityNames ?? this.yColumns[0].uniqEntityNames
     }
 
     @computed private get unstackedSeries(): StackedSeries<EntityName>[] {
