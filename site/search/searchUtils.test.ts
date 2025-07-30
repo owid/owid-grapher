@@ -105,6 +105,7 @@ describe("placeGrapherTabsInGridLayout", () => {
         it("distributes tabs across 4 available grid slots", () => {
             const tabs = [LineChart, Table, WorldMap, DiscreteBar]
             const result = placeGrapherTabsInGridLayout(tabs, {
+                tableType: "data-table",
                 hasDataDisplay: false,
                 numDataTableRows: 4,
             })
@@ -120,6 +121,7 @@ describe("placeGrapherTabsInGridLayout", () => {
         it("limits tabs to available grid slots when there are too many", () => {
             const tabs = [LineChart, Table, WorldMap, Marimekko, DiscreteBar]
             const result = placeGrapherTabsInGridLayout(tabs, {
+                tableType: "data-table",
                 hasDataDisplay: false,
                 numDataTableRows: 2,
             })
@@ -135,6 +137,7 @@ describe("placeGrapherTabsInGridLayout", () => {
         it("allocates larger slot to Table when it has many rows", () => {
             const tabs = [LineChart, Table, WorldMap]
             const result = placeGrapherTabsInGridLayout(tabs, {
+                tableType: "data-table",
                 hasDataDisplay: false,
                 numDataTableRows: 12,
             })
@@ -149,6 +152,7 @@ describe("placeGrapherTabsInGridLayout", () => {
         it("uses single slot for Table when it has few rows", () => {
             const tabs = [LineChart, Table, WorldMap]
             const result = placeGrapherTabsInGridLayout(tabs, {
+                tableType: "data-table",
                 hasDataDisplay: false,
                 numDataTableRows: 2,
             })
@@ -163,6 +167,7 @@ describe("placeGrapherTabsInGridLayout", () => {
         it("allocates triple slot to Table when it needs more space", () => {
             const tabs = [LineChart, Table]
             const result = placeGrapherTabsInGridLayout(tabs, {
+                tableType: "data-table",
                 hasDataDisplay: false,
                 numDataTableRows: 20,
             })
@@ -173,9 +178,24 @@ describe("placeGrapherTabsInGridLayout", () => {
             ])
         })
 
+        it("should respect the given number of max slots for the table", () => {
+            const tabs = [LineChart, Table]
+            const result = placeGrapherTabsInGridLayout(tabs, {
+                tableType: "data-points",
+                hasDataDisplay: false,
+                numMaxSlotsForTable: 2,
+            })
+
+            expect(result).toEqual([
+                { tab: LineChart, slot: GridSlot.SingleSlot },
+                { tab: Table, slot: GridSlot.DoubleSlot },
+            ])
+        })
+
         it("should handle single tab case", () => {
             const tabs = [Table]
             const result = placeGrapherTabsInGridLayout(tabs, {
+                tableType: "data-table",
                 hasDataDisplay: false,
                 numDataTableRows: 6,
             })
@@ -186,6 +206,7 @@ describe("placeGrapherTabsInGridLayout", () => {
         it("should give Table the maximum available space when needed", () => {
             const tabs = [Table]
             const result = placeGrapherTabsInGridLayout(tabs, {
+                tableType: "data-table",
                 hasDataDisplay: false,
                 numDataTableRows: 18,
             })
@@ -198,6 +219,7 @@ describe("placeGrapherTabsInGridLayout", () => {
         it("places first 3 tabs in main slots and remaining tabs in small slots", () => {
             const tabs = [LineChart, Table, Marimekko, WorldMap, DiscreteBar]
             const result = placeGrapherTabsInGridLayout(tabs, {
+                tableType: "data-table",
                 hasDataDisplay: true,
                 numDataTableRows: 12,
             })
@@ -214,6 +236,7 @@ describe("placeGrapherTabsInGridLayout", () => {
         it("uses only main slots when 3 or fewer tabs are provided", () => {
             const tabs = [LineChart, Table, WorldMap]
             const result = placeGrapherTabsInGridLayout(tabs, {
+                tableType: "data-table",
                 hasDataDisplay: true,
                 numDataTableRows: 16,
             })
@@ -228,6 +251,7 @@ describe("placeGrapherTabsInGridLayout", () => {
         it("should allocate two slots to Table if possible", () => {
             const tabs = [LineChart, Table]
             const result = placeGrapherTabsInGridLayout(tabs, {
+                tableType: "data-table",
                 hasDataDisplay: true,
                 numDataTableRows: 16,
             })
@@ -235,6 +259,20 @@ describe("placeGrapherTabsInGridLayout", () => {
             expect(result).toEqual([
                 { tab: LineChart, slot: GridSlot.SingleSlot },
                 { tab: Table, slot: GridSlot.DoubleSlot },
+            ])
+        })
+
+        it("should respect the given number of max slots for the table", () => {
+            const tabs = [LineChart, Table]
+            const result = placeGrapherTabsInGridLayout(tabs, {
+                tableType: "data-points",
+                hasDataDisplay: true,
+                numMaxSlotsForTable: 1,
+            })
+
+            expect(result).toEqual([
+                { tab: LineChart, slot: GridSlot.SingleSlot },
+                { tab: Table, slot: GridSlot.SingleSlot },
             ])
         })
     })
