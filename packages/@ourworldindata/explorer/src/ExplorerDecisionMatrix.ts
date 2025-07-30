@@ -1,6 +1,5 @@
 import * as _ from "lodash-es"
 import { observable, computed, action, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import {
     queryParamsToStr,
     differenceObj,
@@ -85,7 +84,7 @@ const makeCheckBoxOption = (
 // allow the user to navigate amongst charts.
 export class DecisionMatrix {
     table: CoreTable
-    @observable @enumerable accessor currentParams: ExplorerChoiceParams = {}
+    @observable accessor currentParams: ExplorerChoiceParams = {}
     constructor(delimited: string, hash = "") {
         makeObservable(this)
         this.choiceNameToControlTypeMap = makeChoicesMap(delimited)
@@ -383,7 +382,7 @@ export class DecisionMatrix {
             : this.table.indexOf(this.firstMatch)
     }
 
-    @observable @enumerable accessor selectedRow: any = {}
+    @observable accessor selectedRow: any = {}
 
     private toControlOption(
         choiceName: ChoiceName,

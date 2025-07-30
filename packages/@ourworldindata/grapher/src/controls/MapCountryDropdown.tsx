@@ -1,7 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { computed, action, observable, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import { MapConfig } from "../mapCharts/MapConfig"
 import {
@@ -51,10 +50,9 @@ interface GroupedDropdownOption {
 export class MapCountryDropdown extends React.Component<{
     manager: MapCountryDropdownManager
 }> {
-    @observable @enumerable private accessor searchInput = ""
-    @observable @enumerable private accessor localEntityNames:
-        | EntityName[]
-        | undefined = undefined
+    @observable private accessor searchInput = ""
+    @observable private accessor localEntityNames: EntityName[] | undefined =
+        undefined
 
     constructor(props: { manager: MapCountryDropdownManager }) {
         super(props)

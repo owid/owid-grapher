@@ -1,5 +1,4 @@
 import { observable, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import {
     GlobeConfig,
     MapRegionName,
@@ -26,31 +25,25 @@ import * as R from "remeda"
 // It wraps the map property on ChartConfig.
 // TODO: migrate database config & only pass legend props
 class MapConfigDefaults {
-    @observable @enumerable accessor columnSlug: ColumnSlug | undefined =
+    @observable accessor columnSlug: ColumnSlug | undefined = undefined
+    @observable accessor time: number | undefined = undefined
+    @observable accessor timeTolerance: number | undefined = undefined
+    @observable accessor toleranceStrategy: ToleranceStrategy | undefined =
         undefined
-    @observable @enumerable accessor time: number | undefined = undefined
-    @observable @enumerable accessor timeTolerance: number | undefined =
-        undefined
-    @observable @enumerable accessor toleranceStrategy:
-        | ToleranceStrategy
-        | undefined = undefined
-    @observable @enumerable accessor hideTimeline: boolean | undefined =
-        undefined
+    @observable accessor hideTimeline: boolean | undefined = undefined
 
-    @observable @enumerable accessor region = MapRegionName.World
-    @observable @enumerable accessor selection = new MapSelectionArray()
+    @observable accessor region = MapRegionName.World
+    @observable accessor selection = new MapSelectionArray()
 
-    @observable @enumerable accessor globe: GlobeConfig = {
+    @observable accessor globe: GlobeConfig = {
         isActive: false,
         rotation: DEFAULT_GLOBE_ROTATION, // specified as [lot, lan]
         zoom: DEFAULT_GLOBE_ZOOM,
     }
 
-    @observable @enumerable accessor colorScale = new ColorScaleConfig()
+    @observable accessor colorScale = new ColorScaleConfig()
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
-    @observable @enumerable accessor tooltipUseCustomLabels:
-        | boolean
-        | undefined = undefined
+    @observable accessor tooltipUseCustomLabels: boolean | undefined = undefined
 
     constructor() {
         makeObservable(this)

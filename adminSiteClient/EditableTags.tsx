@@ -1,7 +1,6 @@
 import * as React from "react"
 import * as lodash from "lodash-es"
 import { observable, action, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import {
     KeyChartLevel,
@@ -34,12 +33,10 @@ export class EditableTags extends React.Component<EditableTagsProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable @enumerable accessor isEditing: boolean = false
+    @observable accessor isEditing: boolean = false
     base = React.createRef<HTMLDivElement>()
 
-    @observable @enumerable accessor tags: DbChartTagJoin[] = lodash.clone(
-        this.props.tags
-    )
+    @observable accessor tags: DbChartTagJoin[] = lodash.clone(this.props.tags)
 
     constructor(props: EditableTagsProps) {
         super(props)

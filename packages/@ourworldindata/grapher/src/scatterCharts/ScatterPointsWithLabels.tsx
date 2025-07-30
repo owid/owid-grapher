@@ -15,7 +15,6 @@ import {
     makeIdForHumanConsumption,
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import * as React from "react"
 import { Halo } from "@ourworldindata/components"
@@ -48,13 +47,11 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
     base = React.createRef<SVGGElement>()
 
     // closest point by quadtree search
-    @observable @enumerable private accessor nearSeries:
-        | ScatterSeries
-        | undefined = undefined
+    @observable private accessor nearSeries: ScatterSeries | undefined =
+        undefined
     // currently hovered-over point via mouseenter/leave
-    @observable @enumerable private accessor overSeries:
-        | ScatterSeries
-        | undefined = undefined
+    @observable private accessor overSeries: ScatterSeries | undefined =
+        undefined
 
     constructor(props: ScatterPointsWithLabelsProps) {
         super(props)

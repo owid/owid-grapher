@@ -1,7 +1,6 @@
 import * as React from "react"
 import cx from "classnames"
 import { computed, action, observable, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import { isTargetOutsideElement } from "../chart/ChartUtils"
 
@@ -18,7 +17,7 @@ interface SlideInDrawerProps {
 
 @observer
 export class SlideInDrawer extends React.Component<SlideInDrawerProps> {
-    @observable.ref @enumerable accessor visible: boolean = this.props.active // true while the drawer is active and during enter/exit transitions
+    @observable.ref accessor visible: boolean = this.props.active // true while the drawer is active and during enter/exit transitions
     drawerRef = React.createRef<HTMLDivElement>()
 
     constructor(props: SlideInDrawerProps) {

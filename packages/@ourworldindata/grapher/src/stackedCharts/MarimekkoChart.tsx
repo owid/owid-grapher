@@ -16,7 +16,6 @@ import {
     exposeInstanceOnWindow,
 } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import {
     BASE_FONT_SIZE,
@@ -245,11 +244,10 @@ export class MarimekkoChart
     labelAngleInDegrees = -45 // 0 is horizontal, -90 is vertical from bottom to top, ...
 
     // currently hovered legend color
-    @observable @enumerable accessor focusColorBin: ColorScaleBin | undefined =
-        undefined
+    @observable accessor focusColorBin: ColorScaleBin | undefined = undefined
 
     // current tooltip target & position
-    @observable @enumerable accessor tooltipState = new TooltipState<{
+    @observable accessor tooltipState = new TooltipState<{
         entityName: string
     }>()
 

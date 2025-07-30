@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import { LoadingIndicator } from "@ourworldindata/components"
-import { dayjs, enumerable, SerializedGridProgram } from "@ourworldindata/utils"
+import { dayjs, SerializedGridProgram } from "@ourworldindata/utils"
 import {
     action,
     computed,
@@ -171,13 +171,11 @@ export class ExplorersIndexPage extends Component<{
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable @enumerable accessor explorers: ExplorerProgram[] = []
-    @observable @enumerable accessor maxVisibleRows = 50
-    @observable @enumerable accessor numTotalRows: number | undefined =
-        undefined
-    @observable @enumerable accessor searchInput: string | undefined = undefined
-    @observable @enumerable accessor highlightSearch: string | undefined =
-        undefined
+    @observable accessor explorers: ExplorerProgram[] = []
+    @observable accessor maxVisibleRows = 50
+    @observable accessor numTotalRows: number | undefined = undefined
+    @observable accessor searchInput: string | undefined = undefined
+    @observable accessor highlightSearch: string | undefined = undefined
 
     constructor(props: { manager?: AdminManager }) {
         super(props)
@@ -245,7 +243,7 @@ export class ExplorersIndexPage extends Component<{
         )
     }
 
-    @observable @enumerable accessor isReady = false
+    @observable accessor isReady = false
 
     private async fetchAllExplorers() {
         const { searchInput } = this

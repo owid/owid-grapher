@@ -2,7 +2,6 @@
 // Any display changes really can be computed columns. And then charts just need xColumnSlug, sizeColumnSlug, yColumnSlug (or yColumnSlugs) et cetera
 
 import { observable, computed, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import {
     trimObject,
     ColumnSlug,
@@ -21,15 +20,15 @@ import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 // A chart "dimension" represents a binding between a chart
 // and a particular variable that it requests as data
 class ChartDimensionDefaults implements OwidChartDimensionInterface {
-    @observable @enumerable accessor property!: DimensionProperty
-    @observable @enumerable accessor variableId!: OwidVariableId
+    @observable accessor property!: DimensionProperty
+    @observable accessor variableId!: OwidVariableId
 
     // check on: malaria-deaths-comparisons and computing-efficiency
 
-    @observable @enumerable accessor display = new OwidVariableDisplayConfig() // todo: make persistable
+    @observable accessor display = new OwidVariableDisplayConfig() // todo: make persistable
 
     // XXX move this somewhere else, it's only used for scatter x override and Marimekko override
-    @observable @enumerable accessor targetYear: Time | undefined = undefined
+    @observable accessor targetYear: Time | undefined = undefined
 
     constructor() {
         makeObservable(this)
@@ -93,7 +92,7 @@ export class ChartDimension
     }
 
     // Do not persist yet, until we migrate off VariableIds
-    @observable @enumerable accessor _slug: ColumnSlug | undefined = undefined
+    @observable accessor _slug: ColumnSlug | undefined = undefined
 
     @computed get slug(): ColumnSlug {
         if (this._slug) return this._slug

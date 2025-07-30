@@ -4,7 +4,6 @@ import { observer } from "mobx-react"
 import { Section, Toggle } from "./Forms.js"
 import { ChartEditor, isChartEditorInstance } from "./ChartEditor.js"
 import { action, computed, observable, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import {
     NARRATIVE_CHART_PROPS_TO_OMIT,
     copyToClipboard,
@@ -235,7 +234,7 @@ class EditorDebugTabForNarrativeChart extends Component<{
         })
     }
 
-    @observable @enumerable accessor diffModalOpen = false
+    @observable accessor diffModalOpen = false
 
     @action.bound onModalClose() {
         this.diffModalOpen = false

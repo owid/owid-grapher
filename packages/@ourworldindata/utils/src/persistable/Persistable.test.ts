@@ -7,7 +7,6 @@ import {
     deleteRuntimeAndUnchangedProps,
 } from "./Persistable.js"
 import { observable, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 
 interface CharacterInterface {
     name: string
@@ -23,17 +22,14 @@ interface GameBoyGameInterface {
 }
 
 class GameBoyGameDefaults implements GameBoyGameInterface {
-    @observable @enumerable accessor title: string | undefined = undefined
-    @observable @enumerable accessor players: number | undefined = 2
-    @observable @enumerable accessor relatedGames:
-        | GameBoyGameDefaults[]
-        | undefined = undefined
-    @observable @enumerable accessor characters:
-        | CharacterInterface[]
-        | undefined = undefined
-    @observable @enumerable accessor mainCharacter:
-        | CharacterInterface
-        | undefined = undefined
+    @observable accessor title: string | undefined = undefined
+    @observable accessor players: number | undefined = 2
+    @observable accessor relatedGames: GameBoyGameDefaults[] | undefined =
+        undefined
+    @observable accessor characters: CharacterInterface[] | undefined =
+        undefined
+    @observable accessor mainCharacter: CharacterInterface | undefined =
+        undefined
 
     constructor() {
         makeObservable(this)
@@ -63,12 +59,12 @@ class GameBoyGame extends GameBoyGameDefaults implements Persistable {
         return deleteRuntimeAndUnchangedProps(obj, new GameBoyGame())
     }
 
-    @observable @enumerable accessor someRuntimeProp = 5
+    @observable accessor someRuntimeProp = 5
 }
 
 class CharacterDefaults {
-    @observable @enumerable accessor name = ""
-    @observable @enumerable accessor country = ""
+    @observable accessor name = ""
+    @observable accessor country = ""
 
     constructor() {
         makeObservable(this)

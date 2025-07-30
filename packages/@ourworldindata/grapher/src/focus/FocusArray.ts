@@ -1,6 +1,5 @@
 import { SeriesName, InteractionState } from "@ourworldindata/types"
 import { action, computed, observable, makeObservable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 
 export class FocusArray {
     constructor() {
@@ -8,7 +7,7 @@ export class FocusArray {
         this.store = new Set()
     }
 
-    @observable @enumerable private accessor store: Set<SeriesName>
+    @observable private accessor store: Set<SeriesName>
 
     @computed get seriesNameSet(): Set<SeriesName> {
         return this.store

@@ -29,11 +29,7 @@ import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faGrip } from "@fortawesome/free-solid-svg-icons"
 import { AutoComplete, Button, Popconfirm } from "antd"
-import {
-    enumerable,
-    FlatTagGraph,
-    FlatTagGraphNode,
-} from "@ourworldindata/types"
+import { FlatTagGraph, FlatTagGraphNode } from "@ourworldindata/types"
 import { Link } from "react-router-dom"
 
 // The rule doesn't support class components in the same file.
@@ -103,8 +99,8 @@ interface AddChildFormProps {
 
 @observer
 class AddChildForm extends React.Component<AddChildFormProps> {
-    @observable @enumerable accessor isAddingTag: boolean = false
-    @observable @enumerable accessor autocompleteValue: string = ""
+    @observable accessor isAddingTag: boolean = false
+    @observable accessor autocompleteValue: string = ""
 
     constructor(props: AddChildFormProps) {
         super(props)
@@ -330,11 +326,10 @@ export class TagGraphPage extends React.Component {
         makeObservable(this)
     }
 
-    @observable @enumerable accessor flatTagGraph: FlatTagGraph = {}
-    @observable @enumerable accessor rootId: number | null = null
-    @observable @enumerable accessor addTagParentId: number | undefined =
-        undefined
-    @observable @enumerable accessor tags: MinimalTagWithIsTopic[] = []
+    @observable accessor flatTagGraph: FlatTagGraph = {}
+    @observable accessor rootId: number | null = null
+    @observable accessor addTagParentId: number | undefined = undefined
+    @observable accessor tags: MinimalTagWithIsTopic[] = []
 
     @computed get tagGraph(): TagGraphRoot | null {
         if (!this.rootId) return null

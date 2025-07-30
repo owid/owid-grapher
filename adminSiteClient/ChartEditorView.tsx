@@ -17,11 +17,7 @@ import {
     extractDetailsFromSyntax,
     getIndexableKeys,
 } from "@ourworldindata/utils"
-import {
-    GrapherInterface,
-    DimensionProperty,
-    enumerable,
-} from "@ourworldindata/types"
+import { GrapherInterface, DimensionProperty } from "@ourworldindata/types"
 import {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
@@ -88,15 +84,10 @@ export interface NamespaceData {
 }
 
 export class EditorDatabase {
-    @observable.ref @enumerable accessor namespaces: Namespace[]
-    @observable.ref @enumerable accessor variableUsageCounts: Map<
-        number,
-        number
-    > = new Map()
-    @observable @enumerable accessor dataByNamespace: Map<
-        string,
-        NamespaceData
-    > = new Map()
+    @observable.ref accessor namespaces: Namespace[]
+    @observable.ref accessor variableUsageCounts: Map<number, number> =
+        new Map()
+    @observable accessor dataByNamespace: Map<string, NamespaceData> = new Map()
 
     constructor(json: any) {
         makeObservable(this)
@@ -119,8 +110,8 @@ interface ChartEditorViewProps<Editor> {
 export class ChartEditorView<
     Editor extends AbstractChartEditor,
 > extends React.Component<ChartEditorViewProps<Editor>> {
-    @observable.ref @enumerable accessor database = new EditorDatabase({})
-    @observable @enumerable accessor details: DetailDictionary = {}
+    @observable.ref accessor database = new EditorDatabase({})
+    @observable accessor details: DetailDictionary = {}
 
     constructor(props: ChartEditorViewProps<Editor>) {
         super(props)
@@ -131,7 +122,7 @@ export class ChartEditorView<
         return this.manager.editor.grapherState
     }
 
-    @observable @enumerable accessor simulateVisionDeficiency:
+    @observable accessor simulateVisionDeficiency:
         | VisionDeficiency
         | undefined = undefined
 
@@ -139,7 +130,7 @@ export class ChartEditorView<
         return this.props.manager
     }
 
-    @observable @enumerable private accessor _isDbSet = false
+    @observable private accessor _isDbSet = false
     @computed get isReady(): boolean {
         return this._isDbSet
     }

@@ -1,7 +1,6 @@
 import * as React from "react"
 import { useHistory, useLocation } from "react-router-dom"
 import { action, computed, makeObservable, observable } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import type { History } from "history"
 
@@ -59,8 +58,8 @@ class CreateNarrativeChartEditorPageInternal
     }
 
     id?: number
-    @observable @enumerable accessor name: string | undefined = undefined
-    @observable @enumerable accessor nameError: string | undefined = undefined
+    @observable accessor name: string | undefined = undefined
+    @observable accessor nameError: string | undefined = undefined
     configId?: string
     patchConfig: GrapherInterface = {}
     fullConfig: GrapherInterface = {}

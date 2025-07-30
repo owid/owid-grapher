@@ -54,7 +54,6 @@ import {
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import classNames from "classnames"
 import { action, computed, makeObservable, observable, reaction } from "mobx"
-import { enumerable } from "@ourworldindata/types"
 import { observer } from "mobx-react"
 import React, { useCallback, useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
@@ -293,12 +292,10 @@ export class Explorer
 
     // We want to ensure that unavailable entity are shown in the explorer entity
     // that's why we employ an append-only version of `grapher.availableEntityNames`
-    @observable
-    @enumerable
-    accessor appendOnlyAvailableEntityNames: Set<EntityName> = new Set()
+    @observable accessor appendOnlyAvailableEntityNames: Set<EntityName> =
+        new Set()
 
-    @observable.ref @enumerable accessor grapher: Grapher | undefined =
-        undefined
+    @observable.ref accessor grapher: Grapher | undefined = undefined
 
     @action.bound setGrapher(grapher: Grapher) {
         this.grapher = grapher
@@ -944,7 +941,7 @@ export class Explorer
         )
     }
 
-    @observable @enumerable private accessor isNarrow = isNarrow()
+    @observable private accessor isNarrow = isNarrow()
 
     @computed private get isInIFrame() {
         return isInIFrame()
@@ -963,11 +960,10 @@ export class Explorer
         return this.explorerProgram.downloadDataLink
     }
 
-    @observable @enumerable private accessor grapherContainerRef =
+    @observable private accessor grapherContainerRef =
         React.createRef<HTMLDivElement>()
 
-    @observable.ref @enumerable private accessor grapherRef =
-        React.createRef<Grapher>()
+    @observable.ref private accessor grapherRef = React.createRef<Grapher>()
 
     private renderControlBar() {
         return (
@@ -1031,7 +1027,7 @@ export class Explorer
             )
     }
 
-    @observable @enumerable private accessor showMobileControlsPopup = false
+    @observable private accessor showMobileControlsPopup = false
     private get mobileCustomizeButton() {
         return (
             <a
@@ -1101,16 +1097,14 @@ export class Explorer
         return this.grapherState?.tableAfterAuthorTimelineAndEntityFilter
     }
 
-    @observable @enumerable accessor entityPickerMetric: string | undefined =
+    @observable accessor entityPickerMetric: string | undefined =
         this.initialQueryParams.pickerMetric
-    @observable @enumerable accessor entityPickerSort: SortOrder | undefined =
+    @observable accessor entityPickerSort: SortOrder | undefined =
         this.initialQueryParams.pickerSort
 
-    @observable.ref @enumerable accessor entityPickerTable:
-        | OwidTable
-        | undefined = undefined
-    @observable.ref @enumerable accessor entityPickerTableIsLoading: boolean =
-        false
+    @observable.ref accessor entityPickerTable: OwidTable | undefined =
+        undefined
+    @observable.ref accessor entityPickerTableIsLoading: boolean = false
 
     private futureEntityPickerTable = new PromiseSwitcher<OwidTable>({
         onResolve: (table) => {
