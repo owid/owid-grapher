@@ -143,10 +143,12 @@ export function SearchChartHitSmall({
                 </a>
                 <div className="search-chart-hit-small__tabs-container">
                     {hit.availableTabs.map((tab) => {
-                        // Single-time line charts automatically switch to a
-                        // discrete bar chart. For the line chart tab preview URL,
-                        // we need to set the time parameter that forces Grapher
-                        // to show an actual line chart instead of the bar chart.
+                        // Single-time line charts are rendered as bar charts
+                        // by Grapher. Adjusting the time param makes sure
+                        // Grapher actually shows a line chart. This is important
+                        // since we offer separate links for going to the line
+                        // chart view and the bar chart view. If we didn't do
+                        // this, both links would end up going to the bar chart.
                         const timeParam =
                             CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME.includes(
                                 tab as any
