@@ -817,4 +817,3 @@ export {
     type MultiDimChecksumsObjectWithHash,
 } from "./domainTypes/Archive.js"
 export { type AdditionalGrapherDataFetchFn } from "./grapherTypes/GrapherTypes.js"
-export { enumerable } from "./decorators.js"
