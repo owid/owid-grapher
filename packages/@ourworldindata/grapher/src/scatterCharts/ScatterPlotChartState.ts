@@ -364,6 +364,11 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
         })
     }
 
+    /** Whether series are shown as lines (instead of single points) */
+    @computed get isConnected(): boolean {
+        return this.series.some((s) => s.points.length > 1)
+    }
+
     @computed get allPoints(): SeriesPoint[] {
         return this.series.flatMap((series) => series.points)
     }

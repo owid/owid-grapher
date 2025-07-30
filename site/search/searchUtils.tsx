@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import * as R from "remeda"
 import { HitAttributeHighlightResult } from "instantsearch.js"
 import {
     EntityName,
@@ -738,7 +739,7 @@ export function getAutocompleteSuggestionsWithUnmatchedQuery(
 
     const allMatches = [...countryMatches, ...topicMatches]
 
-    const [exactMatches, partialMatches] = partition(
+    const [exactMatches, partialMatches] = R.partition(
         allMatches,
         (item) => item.score === 1
     )
@@ -1055,28 +1056,30 @@ export enum GridSlot {
     SmallSlotRight = "small-slot-right",
 }
 
+type PlacingOptions =
+    | { tableType: "none" }
+    | {
+          tableType: "data-table"
+          numDataTableRows: number
+          numDataTableRowsPerColumn?: number
+      }
+    | {
+          tableType: "data-points"
+          numMaxSlotsForTable: number
+      }
+
 export function placeGrapherTabsInGridLayout(
     tabs: GrapherTabName[],
-    {
-        hasDataDisplay,
-        numDataTableRows,
-        numDataTableRowsPerColumn,
-    }: {
-        hasDataDisplay: boolean
-        numDataTableRows?: number
-        numDataTableRowsPerColumn?: number
-    }
+    options: { hasDataDisplay: boolean } & PlacingOptions
 ): { tab: GrapherTabName; slot: GridSlot }[] {
     // If there is a data display, then three equally-sized slots are available,
     // plus two smaller slots below the data display. If there is no data display,
     // then four equally-sized slots are available.
 
-    if (hasDataDisplay) {
-        const placedMainTabs = placeTabsInUniformGrid({
-            tabs,
+    if (options.hasDataDisplay) {
+        const placedMainTabs = placeTabsInUniformGrid(tabs, {
             numAvailableGridSlots: 3,
-            numDataTableRows,
-            numDataTableRowsPerColumn,
+            ...options,
         })
 
         const remainingTabs = tabs.slice(placedMainTabs.length)
@@ -1091,11 +1094,9 @@ export function placeGrapherTabsInGridLayout(
             }))
         return [...placedMainTabs, ...placedRemainingTabs]
     } else {
-        return placeTabsInUniformGrid({
-            tabs,
+        return placeTabsInUniformGrid(tabs, {
             numAvailableGridSlots: 4,
-            numDataTableRows,
-            numDataTableRowsPerColumn,
+            ...options,
         })
     }
 }
@@ -1106,18 +1107,11 @@ export function placeGrapherTabsInGridLayout(
  * Chart tabs always occupy a single slots. The table tab might occupy more
  * than one slot if there is space and enough data to fill it.
  */
-function placeTabsInUniformGrid({
-    tabs,
-    numAvailableGridSlots,
-    numDataTableRows,
-    numDataTableRowsPerColumn = 4,
-}: {
-    tabs: GrapherTabName[]
-    numAvailableGridSlots: number
-    numDataTableRows?: number // no restriction if undefined
-    numDataTableRowsPerColumn?: number
-}) {
-    const maxNumTabs = numAvailableGridSlots
+function placeTabsInUniformGrid(
+    tabs: GrapherTabName[],
+    options: { numAvailableGridSlots: number } & PlacingOptions
+) {
+    const maxNumTabs = options.numAvailableGridSlots
 
     // If none of the tabs display a table, then all tabs trivially take up one slot each
     if (!tabs.some((tab) => tab === GRAPHER_TAB_NAMES.Table)) {
@@ -1129,7 +1123,7 @@ function placeTabsInUniformGrid({
     const numTabs = Math.min(tabs.length, maxNumTabs)
     const numCharts = numTabs - 1 // without the table tab
 
-    const numAvailableSlotsForTable = numAvailableGridSlots - numCharts // >= 1
+    const numAvailableSlotsForTable = options.numAvailableGridSlots - numCharts // >= 1
 
     if (numAvailableSlotsForTable <= 1) {
         return tabs
@@ -1137,15 +1131,28 @@ function placeTabsInUniformGrid({
             .map((tab) => ({ tab, slot: GridSlot.SingleSlot }))
     }
 
-    const numNeededSlotsForTable =
-        numDataTableRows === undefined
-            ? Infinity // no restriction
-            : Math.ceil(numDataTableRows / numDataTableRowsPerColumn)
+    const numSlotsForTable = match(options)
+        .with({ tableType: "none" }, () => 0)
+        .with({ tableType: "data-points" }, ({ numMaxSlotsForTable }) =>
+            numMaxSlotsForTable
+                ? Math.min(numAvailableSlotsForTable, numMaxSlotsForTable)
+                : numAvailableSlotsForTable
+        )
+        .with(
+            { tableType: "data-table" },
+            ({ numDataTableRows, numDataTableRowsPerColumn = 4 }) => {
+                const numNeededSlotsForTable = Math.ceil(
+                    numDataTableRows / numDataTableRowsPerColumn
+                )
 
-    const numSlotsForTable = Math.min(
-        numAvailableSlotsForTable,
-        numNeededSlotsForTable
-    )
+                return Math.min(
+                    numAvailableSlotsForTable,
+                    numNeededSlotsForTable
+                )
+            }
+        )
+        .exhaustive()
+
     const tableSlot = getGridSlotForCount(numSlotsForTable)
 
     return tabs.map((tab) => ({
