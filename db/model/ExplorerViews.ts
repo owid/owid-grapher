@@ -35,7 +35,8 @@ interface ExplorerDataForViews {
 
 async function fetchExplorerDataForViews(
     knex: KnexReadWriteTransaction,
-    explorerProgram: ExplorerProgram
+    explorerProgram: ExplorerProgram,
+    _loadMetadataOnly?: boolean
 ): Promise<ExplorerDataForViews> {
     const transformResult = await transformExplorerProgramToResolveCatalogPaths(
         explorerProgram,
@@ -146,7 +147,10 @@ async function fetchExplorerDataForViews(
     }
 }
 
-function createExplorerForViews(data: ExplorerDataForViews): Explorer {
+function createExplorerForViews(
+    data: ExplorerDataForViews,
+    loadMetadataOnly?: boolean
+): Explorer {
     const { transformedProgram, grapherConfigs, partialGrapherConfigs } = data
 
     const props: ExplorerProps = {
@@ -159,6 +163,7 @@ function createExplorerForViews(data: ExplorerDataForViews): Explorer {
         bakedBaseUrl: BAKED_BASE_URL,
         bakedGrapherUrl: BAKED_GRAPHER_URL,
         dataApiUrl: DATA_API_URL,
+        loadMetadataOnly,
     }
 
     // Create Explorer with setupGrapher: false to avoid setting up the actual grapher
@@ -219,7 +224,8 @@ async function iterateExplorerViews(
 
 export async function refreshExplorerViewsForSlug(
     knex: KnexReadWriteTransaction,
-    slug: string
+    slug: string,
+    loadMetadataOnly?: boolean
 ): Promise<void> {
     const explorer = await knex
         .select("slug", "tsv", "isPublished")
@@ -262,9 +268,13 @@ export async function refreshExplorerViewsForSlug(
     // Create full Explorer instance and iterate over its views
     const explorerData = await fetchExplorerDataForViews(
         knex,
-        rawExplorerProgram
+        rawExplorerProgram,
+        loadMetadataOnly
     )
-    const explorerInstance = createExplorerForViews(explorerData)
+    const explorerInstance = createExplorerForViews(
+        explorerData,
+        loadMetadataOnly
+    )
 
     // Generate all new views with their configs using the full Explorer instance
     type GeneratedView = DbInsertExplorerView & {

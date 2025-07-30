@@ -82,7 +82,7 @@ async function prepareGrapherConfigsForExplorerViews(
         try {
             // Wrap the refresh call with additional error handling
             await Promise.race([
-                refreshExplorerViewsForSlug(knex, explorer.slug),
+                refreshExplorerViewsForSlug(knex, explorer.slug, true),
                 new Promise((_, reject) => {
                     setTimeout(
                         () =>

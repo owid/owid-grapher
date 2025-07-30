@@ -90,6 +90,7 @@ export interface ExplorerProps extends SerializedGridProgram {
     dataApiUrl: string
     bounds?: Bounds
     staticBounds?: Bounds
+    loadMetadataOnly?: boolean
 }
 
 const LivePreviewComponent = (props: ExplorerProps) => {
@@ -210,9 +211,13 @@ export class Explorer
             isEmbeddedInAnOwidPage: this.props.isEmbeddedInAnOwidPage,
             adminBaseUrl: this.adminBaseUrl,
             canHideExternalControlsInEmbed: true,
-            additionalDataLoaderFn: (varId: number) =>
+            additionalDataLoaderFn: (
+                varId: number,
+                loadMetadataOnly?: boolean
+            ) =>
                 loadVariableDataAndMetadata(varId, this.dataApiUrl, {
                     noCache: props.isPreview,
+                    loadMetadataOnly,
                 }),
         })
 
@@ -606,7 +611,8 @@ export class Explorer
                 config.selectedEntityColors,
                 this.props.dataApiUrl,
                 undefined,
-                this.props.isPreview
+                this.props.isPreview,
+                this.props.loadMetadataOnly
             )
             if (inputTable)
                 grapherState.inputTable = this.inputTableTransformer(inputTable)
@@ -791,7 +797,8 @@ export class Explorer
                 config.selectedEntityColors,
                 this.props.dataApiUrl,
                 undefined,
-                this.props.isPreview
+                this.props.isPreview,
+                this.props.loadMetadataOnly
             )
             if (inputTable)
                 grapherState.inputTable = this.inputTableTransformer(inputTable)
