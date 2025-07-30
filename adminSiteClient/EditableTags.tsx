@@ -33,14 +33,18 @@ export class EditableTags extends React.Component<EditableTagsProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable isEditing: boolean = false
+    isEditing: boolean = false
     base = React.createRef<HTMLDivElement>()
 
-    @observable tags: DbChartTagJoin[] = lodash.clone(this.props.tags)
+    tags: DbChartTagJoin[] = lodash.clone(this.props.tags)
 
     constructor(props: EditableTagsProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            isEditing: observable,
+            tags: observable,
+        })
     }
 
     @action.bound onAddTag(tag: DbChartTagJoin) {

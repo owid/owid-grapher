@@ -171,15 +171,23 @@ export class ExplorersIndexPage extends Component<{
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable explorers: ExplorerProgram[] = []
-    @observable maxVisibleRows = 50
-    @observable numTotalRows: number | undefined = undefined
-    @observable searchInput: string | undefined = undefined
-    @observable highlightSearch: string | undefined = undefined
+    explorers: ExplorerProgram[] = []
+    maxVisibleRows = 50
+    numTotalRows: number | undefined = undefined
+    searchInput: string | undefined = undefined
+    highlightSearch: string | undefined = undefined
 
     constructor(props: { manager?: AdminManager }) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            explorers: observable,
+            maxVisibleRows: observable,
+            numTotalRows: observable,
+            searchInput: observable,
+            highlightSearch: observable,
+            isReady: observable,
+        })
     }
 
     @computed get explorersToShow(): ExplorerProgram[] {
@@ -243,7 +251,7 @@ export class ExplorersIndexPage extends Component<{
         )
     }
 
-    @observable isReady = false
+    isReady = false
 
     private async fetchAllExplorers() {
         const { searchInput } = this

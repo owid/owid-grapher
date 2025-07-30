@@ -22,11 +22,14 @@ interface TagPageData {
 }
 
 class TagEditable {
-    @observable name: string = ""
-    @observable slug: string | null = null
+    name: string = ""
+    slug: string | null = null
 
     constructor(json: TagPageData) {
-        makeObservable(this)
+        makeObservable(this, {
+            name: observable,
+            slug: observable,
+        })
         for (const key in this) {
             this[key] = (json as any)[key]
         }
@@ -38,12 +41,16 @@ class TagEditor extends Component<{ tag: TagPageData }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable newtag!: TagEditable
-    @observable isDeleted: boolean = false
+    newtag!: TagEditable
+    isDeleted: boolean = false
 
     constructor(props: { tag: TagPageData }) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            newtag: observable,
+            isDeleted: observable,
+        })
     }
 
     // Store the original tag to determine when it is modified
@@ -187,11 +194,14 @@ export class TagEditPage extends Component<{ tagId: number }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable tag: TagPageData | undefined = undefined
+    tag: TagPageData | undefined = undefined
 
     constructor(props: { tagId: number }) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            tag: observable,
+        })
     }
 
     override render() {

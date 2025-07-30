@@ -14,26 +14,42 @@ import {
 } from "@ourworldindata/types"
 
 class OwidVariableDisplayConfigDefaults {
-    @observable name: string | undefined = undefined
-    @observable unit: string | undefined = undefined
-    @observable shortUnit: string | undefined = undefined
-    @observable isProjection: boolean | undefined = undefined
-    @observable conversionFactor: number | undefined = undefined
-    @observable roundingMode: OwidVariableRoundingMode | undefined = undefined
-    @observable numDecimalPlaces: number | undefined = undefined
-    @observable numSignificantFigures: number | undefined = undefined
-    @observable tolerance: number | undefined = undefined
-    @observable yearIsDay: boolean | undefined = undefined
-    @observable zeroDay: string | undefined = undefined
-    @observable entityAnnotationsMap: string | undefined = undefined
-    @observable includeInTable: boolean | undefined = true
-    @observable tableDisplay: OwidVariableDataTableConfigInterface | undefined =
-        undefined
-    @observable color: string | undefined = undefined
-    @observable plotMarkersOnlyInLineChart: boolean | undefined = undefined
+    name: string | undefined = undefined
+    unit: string | undefined = undefined
+    shortUnit: string | undefined = undefined
+    isProjection: boolean | undefined = undefined
+    conversionFactor: number | undefined = undefined
+    roundingMode: OwidVariableRoundingMode | undefined = undefined
+    numDecimalPlaces: number | undefined = undefined
+    numSignificantFigures: number | undefined = undefined
+    tolerance: number | undefined = undefined
+    yearIsDay: boolean | undefined = undefined
+    zeroDay: string | undefined = undefined
+    entityAnnotationsMap: string | undefined = undefined
+    includeInTable: boolean | undefined = true
+    tableDisplay: OwidVariableDataTableConfigInterface | undefined = undefined
+    color: string | undefined = undefined
+    plotMarkersOnlyInLineChart: boolean | undefined = undefined
 
     constructor() {
-        makeObservable(this)
+        makeObservable(this, {
+            name: observable,
+            unit: observable,
+            shortUnit: observable,
+            isProjection: observable,
+            conversionFactor: observable,
+            roundingMode: observable,
+            numDecimalPlaces: observable,
+            numSignificantFigures: observable,
+            tolerance: observable,
+            yearIsDay: observable,
+            zeroDay: observable,
+            entityAnnotationsMap: observable,
+            includeInTable: observable,
+            tableDisplay: observable,
+            color: observable,
+            plotMarkersOnlyInLineChart: observable,
+        })
     }
 }
 

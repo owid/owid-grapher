@@ -162,19 +162,34 @@ export class GlobalEntitySelector extends React.Component<GlobalEntitySelectorPr
     refContainer = React.createRef<HTMLDivElement>()
     disposers: IReactionDisposer[] = []
 
-    @observable mode = GlobalEntitySelectionModes.none
+    mode = GlobalEntitySelectionModes.none
 
-    @observable private isNarrow = true
-    @observable private isOpen = false
-    @observable private localEntityName: EntityName | undefined
+    private isNarrow = true
+    private isOpen = false
+    private localEntityName: EntityName | undefined
 
     selection = this.props.selection
 
-    @observable.ref private optionGroups: GroupBase<DropdownEntity>[] = []
+    private optionGroups: GroupBase<DropdownEntity>[] = []
 
     constructor(props: GlobalEntitySelectorProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<
+            GlobalEntitySelector,
+            | "isNarrow"
+            | "isOpen"
+            | "localEntityName"
+            | "optionGroups"
+            | "onResizeThrottled"
+        >(this, {
+            mode: observable,
+            isNarrow: observable,
+            isOpen: observable,
+            localEntityName: observable,
+            optionGroups: observable.ref,
+            onResizeThrottled: action.bound,
+        })
     }
 
     override componentDidMount(): void {
@@ -194,7 +209,7 @@ export class GlobalEntitySelector extends React.Component<GlobalEntitySelectorPr
         this.disposers.forEach((dispose): void => dispose())
     }
 
-    @action.bound private onResizeThrottled = _.throttle(this.onResize, 200)
+    private onResizeThrottled = _.throttle(this.onResize, 200)
     @action.bound private onResize(): void {
         const container = this.refContainer.current
         if (container) this.isNarrow = container.offsetWidth <= 640

@@ -29,7 +29,10 @@ export class NarrativeChartEditorPage
 
     constructor(props: NarrativeChartEditorPageProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            references: observable,
+        })
     }
 
     id?: number
@@ -43,7 +46,7 @@ export class NarrativeChartEditorPage
 
     isInheritanceEnabled: boolean | undefined = true
 
-    @observable references: References | undefined = undefined
+    references: References | undefined = undefined
 
     async fetchNarrativeChartData(): Promise<void> {
         const data = await this.context.admin.getJSON(

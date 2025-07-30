@@ -24,13 +24,16 @@ const availableTabs = Object.values(TabName)
 export class GlobeSwitcher extends React.Component<{
     manager: GlobeSwitcherManager
 }> {
-    @observable private localCountryName: EntityName | undefined = undefined
+    private localCountryName: EntityName | undefined = undefined
 
     private availableTabs = ["2D", "3D"] as const
 
     constructor(props: { manager: GlobeSwitcherManager }) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<GlobeSwitcher, "localCountryName">(this, {
+            localCountryName: observable,
+        })
     }
 
     @computed private get manager(): GlobeSwitcherManager {

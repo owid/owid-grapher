@@ -309,86 +309,79 @@ export interface GrapherManager {
 }
 
 export class GrapherState {
-    @observable.ref $schema = latestGrapherConfigSchema
-    @observable.ref chartTypes: GrapherChartType[] = [
+    $schema = latestGrapherConfigSchema
+    chartTypes: GrapherChartType[] = [
         GRAPHER_CHART_TYPES.LineChart,
         GRAPHER_CHART_TYPES.DiscreteBar,
     ]
-    @observable.ref id: number | undefined = undefined
-    @observable.ref version = 1
-    @observable.ref slug: string | undefined = undefined
+    id: number | undefined = undefined
+    version = 1
+    slug: string | undefined = undefined
 
     // Initializing text fields with `undefined` ensures that empty strings get serialised
-    @observable.ref title: string | undefined = undefined
-    @observable.ref subtitle: string | undefined = undefined
-    @observable.ref sourceDesc: string | undefined = undefined
-    @observable.ref note: string | undefined = undefined
+    title: string | undefined = undefined
+    subtitle: string | undefined = undefined
+    sourceDesc: string | undefined = undefined
+    note: string | undefined = undefined
     // Missing from GrapherInterface: details
-    @observable.ref internalNotes: string | undefined = undefined
-    @observable.ref variantName: string | undefined = undefined
-    @observable.ref originUrl: string | undefined = undefined
-    @observable hideAnnotationFieldsInTitle:
-        | AnnotationFieldsInTitle
-        | undefined = undefined
+    internalNotes: string | undefined = undefined
+    variantName: string | undefined = undefined
+    originUrl: string | undefined = undefined
+    hideAnnotationFieldsInTitle: AnnotationFieldsInTitle | undefined = undefined
 
-    @observable.ref minTime: TimeBound | undefined = undefined
-    @observable.ref maxTime: TimeBound | undefined = undefined
-    @observable.ref timelineMinTime: Time | undefined = undefined
-    @observable.ref timelineMaxTime: Time | undefined = undefined
-    @observable.ref addCountryMode = EntitySelectionMode.MultipleEntities
-    @observable.ref stackMode = StackMode.absolute
-    @observable.ref showNoDataArea = true
-    @observable.ref hideLegend: boolean | undefined = false
-    @observable.ref logo: LogoOption | undefined = undefined
-    @observable.ref hideLogo: boolean | undefined = undefined
-    @observable.ref hideRelativeToggle: boolean | undefined = true
-    @observable.ref entityType = DEFAULT_GRAPHER_ENTITY_TYPE
-    @observable.ref entityTypePlural = DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL
-    @observable.ref facettingLabelByYVariables = "metric"
-    @observable.ref hideTimeline: boolean | undefined = undefined
-    @observable.ref zoomToSelection: boolean | undefined = undefined
-    @observable.ref showYearLabels: boolean | undefined = undefined // Always show year in labels for bar charts
-    @observable.ref hasMapTab = false
-    @observable.ref tab: GrapherTabConfigOption =
-        GRAPHER_TAB_CONFIG_OPTIONS.chart
-    @observable.ref isPublished: boolean | undefined = undefined
-    @observable.ref baseColorScheme: ColorSchemeName | undefined = undefined
-    @observable.ref invertColorScheme: boolean | undefined = undefined
-    @observable hideConnectedScatterLines: boolean | undefined = undefined // Hides lines between points when timeline spans multiple years. Requested by core-econ for certain charts
-    @observable.ref hideScatterLabels: boolean | undefined = undefined
-    @observable scatterPointLabelStrategy:
-        | ScatterPointLabelStrategy
-        | undefined = undefined
-    @observable.ref compareEndPointsOnly: boolean | undefined = undefined
-    @observable.ref matchingEntitiesOnly: boolean | undefined = undefined
+    minTime: TimeBound | undefined = undefined
+    maxTime: TimeBound | undefined = undefined
+    timelineMinTime: Time | undefined = undefined
+    timelineMaxTime: Time | undefined = undefined
+    addCountryMode = EntitySelectionMode.MultipleEntities
+    stackMode = StackMode.absolute
+    showNoDataArea = true
+    hideLegend: boolean | undefined = false
+    logo: LogoOption | undefined = undefined
+    hideLogo: boolean | undefined = undefined
+    hideRelativeToggle: boolean | undefined = true
+    entityType = DEFAULT_GRAPHER_ENTITY_TYPE
+    entityTypePlural = DEFAULT_GRAPHER_ENTITY_TYPE_PLURAL
+    facettingLabelByYVariables = "metric"
+    hideTimeline: boolean | undefined = undefined
+    zoomToSelection: boolean | undefined = undefined
+    showYearLabels: boolean | undefined = undefined // Always show year in labels for bar charts
+    hasMapTab = false
+    tab: GrapherTabConfigOption = GRAPHER_TAB_CONFIG_OPTIONS.chart
+    isPublished: boolean | undefined = undefined
+    baseColorScheme: ColorSchemeName | undefined = undefined
+    invertColorScheme: boolean | undefined = undefined
+    hideConnectedScatterLines: boolean | undefined = undefined // Hides lines between points when timeline spans multiple years. Requested by core-econ for certain charts
+    hideScatterLabels: boolean | undefined = undefined
+    scatterPointLabelStrategy: ScatterPointLabelStrategy | undefined = undefined
+    compareEndPointsOnly: boolean | undefined = undefined
+    matchingEntitiesOnly: boolean | undefined = undefined
     /** Hides the total value label that is normally displayed for stacked bar charts */
-    @observable.ref hideTotalValueLabel: boolean | undefined = undefined
+    hideTotalValueLabel: boolean | undefined = undefined
 
-    @observable.ref missingDataStrategy: MissingDataStrategy | undefined =
-        undefined
+    missingDataStrategy: MissingDataStrategy | undefined = undefined
 
-    @observable.ref xAxis = new AxisConfig(undefined, this)
-    @observable.ref yAxis = new AxisConfig(undefined, this)
-    @observable colorScale = new ColorScaleConfig()
-    @observable map = new MapConfig()
-    @observable.ref dimensions: ChartDimension[] = []
-    @observable ySlugs: ColumnSlugs | undefined = undefined
-    @observable xSlug: ColumnSlug | undefined = undefined
-    @observable colorSlug: ColumnSlug | undefined = undefined
-    @observable sizeSlug: ColumnSlug | undefined = undefined
-    @observable tableSlugs: ColumnSlugs | undefined = undefined
-    @observable selectedEntityColors: {
+    xAxis = new AxisConfig(undefined, this)
+    yAxis = new AxisConfig(undefined, this)
+    colorScale = new ColorScaleConfig()
+    map = new MapConfig()
+    dimensions: ChartDimension[] = []
+    ySlugs: ColumnSlugs | undefined = undefined
+    xSlug: ColumnSlug | undefined = undefined
+    colorSlug: ColumnSlug | undefined = undefined
+    sizeSlug: ColumnSlug | undefined = undefined
+    tableSlugs: ColumnSlugs | undefined = undefined
+    selectedEntityColors: {
         [entityName: string]: string | undefined
     } = {}
-    @observable selectedEntityNames: EntityName[] = []
-    @observable focusedSeriesNames: SeriesName[] = []
-    @observable excludedEntityNames: EntityName[] | undefined = undefined
-    @observable includedEntityNames: EntityName[] | undefined = undefined
-    @observable comparisonLines: ComparisonLineConfig[] | undefined = undefined // todo: Persistables?
-    @observable relatedQuestions: RelatedQuestionsConfig[] | undefined =
-        undefined // todo: Persistables?
+    selectedEntityNames: EntityName[] = []
+    focusedSeriesNames: SeriesName[] = []
+    excludedEntityNames: EntityName[] | undefined = undefined
+    includedEntityNames: EntityName[] | undefined = undefined
+    comparisonLines: ComparisonLineConfig[] | undefined = undefined // todo: Persistables?
+    relatedQuestions: RelatedQuestionsConfig[] | undefined = undefined // todo: Persistables?
 
-    @observable dataTableConfig: DataTableConfig = {
+    dataTableConfig: DataTableConfig = {
         filter: "all",
         search: "",
     }
@@ -397,19 +390,18 @@ export class GrapherState {
      * Used to highlight an entity at a particular time in a line chart.
      * The sparkline in map tooltips makes use of this.
      */
-    @observable.ref entityYearHighlight: EntityYearHighlight | undefined =
-        undefined
+    entityYearHighlight: EntityYearHighlight | undefined = undefined
 
-    @observable.ref hideFacetControl = true
+    hideFacetControl = true
 
     // the desired faceting strategy, which might not be possible if we change the data
-    @observable selectedFacetStrategy: FacetStrategy | undefined = undefined
-    @observable sortBy: SortBy | undefined = SortBy.total
-    @observable sortOrder: SortOrder | undefined = SortOrder.desc
-    @observable sortColumnSlug: string | undefined = undefined
-    @observable.ref _isInFullScreenMode = false
-    @observable.ref windowInnerWidth: number | undefined = undefined
-    @observable.ref windowInnerHeight: number | undefined = undefined
+    selectedFacetStrategy: FacetStrategy | undefined = undefined
+    sortBy: SortBy | undefined = SortBy.total
+    sortOrder: SortOrder | undefined = SortOrder.desc
+    sortColumnSlug: string | undefined = undefined
+    _isInFullScreenMode = false
+    windowInnerWidth: number | undefined = undefined
+    windowInnerHeight: number | undefined = undefined
     manuallyProvideData? = false // This will be removed.
 
     @computed get isDev(): boolean {
@@ -417,12 +409,12 @@ export class GrapherState {
     }
     isEditor =
         typeof window !== "undefined" && (window as any).isEditor === true
-    @observable bakedGrapherURL: string | undefined = undefined
+    bakedGrapherURL: string | undefined = undefined
     adminBaseUrl: string | undefined = undefined
-    @observable.ref externalQueryParams: QueryParams = {}
+    externalQueryParams: QueryParams = {}
     private framePaddingHorizontal = GRAPHER_FRAME_PADDING_HORIZONTAL
     private framePaddingVertical = GRAPHER_FRAME_PADDING_VERTICAL
-    @observable.ref _inputTable: OwidTable = new OwidTable()
+    _inputTable: OwidTable = new OwidTable()
 
     // TODO Daniel: probably obsolete?
     // @observable.ref interpolatedSortColumnsBySlug:
@@ -443,12 +435,10 @@ export class GrapherState {
         } else this.applyOriginalSelectionAsAuthored()
     }
 
-    @observable mapRegionDropdownValue: MapRegionDropdownValue | undefined =
-        undefined
+    mapRegionDropdownValue: MapRegionDropdownValue | undefined = undefined
 
-    @observable.ref
     legacyConfigAsAuthored: Partial<LegacyGrapherInterface> = {}
-    @observable entitySelectorState: Partial<EntitySelectorState> = {}
+    entitySelectorState: Partial<EntitySelectorState> = {}
     @computed get dataTableSlugs(): ColumnSlug[] {
         return this.tableSlugs ? this.tableSlugs.split(" ") : this.newSlugs
     }
@@ -457,15 +447,15 @@ export class GrapherState {
 
     // This one's explicitly set to `false` if FetchingGrapher or some other
     // external code is fetching the config
-    @observable isConfigReady: boolean | undefined = true
+    isConfigReady: boolean | undefined = true
     /** Whether external grapher controls can be hidden in embeds. */
-    @observable.ref canHideExternalControlsInEmbed: boolean = false
+    canHideExternalControlsInEmbed: boolean = false
 
     /**
      * Value of the query parameter in the embed URL that hides external grapher
      * controls.
      */
-    @observable.ref hideExternalControlsInEmbedUrl: boolean =
+    hideExternalControlsInEmbedUrl: boolean =
         this.canHideExternalControlsInEmbed
 
     narrativeChartInfo?: MinimalNarrativeChartInfo = undefined
@@ -499,7 +489,123 @@ export class GrapherState {
         }
     }
     constructor(options: GrapherProgrammaticInterface) {
-        makeObservable(this)
+        makeObservable(this, {
+            $schema: observable.ref,
+            chartTypes: observable.ref,
+            id: observable.ref,
+            version: observable.ref,
+            slug: observable.ref,
+            title: observable.ref,
+            subtitle: observable.ref,
+            sourceDesc: observable.ref,
+            note: observable.ref,
+            internalNotes: observable.ref,
+            variantName: observable.ref,
+            originUrl: observable.ref,
+            hideAnnotationFieldsInTitle: observable,
+            minTime: observable.ref,
+            maxTime: observable.ref,
+            timelineMinTime: observable.ref,
+            timelineMaxTime: observable.ref,
+            addCountryMode: observable.ref,
+            stackMode: observable.ref,
+            showNoDataArea: observable.ref,
+            hideLegend: observable.ref,
+            logo: observable.ref,
+            hideLogo: observable.ref,
+            hideRelativeToggle: observable.ref,
+            entityType: observable.ref,
+            entityTypePlural: observable.ref,
+            facettingLabelByYVariables: observable.ref,
+            hideTimeline: observable.ref,
+            zoomToSelection: observable.ref,
+            showYearLabels: observable.ref,
+            hasMapTab: observable.ref,
+            tab: observable.ref,
+            isPublished: observable.ref,
+            baseColorScheme: observable.ref,
+            invertColorScheme: observable.ref,
+            hideConnectedScatterLines: observable,
+            hideScatterLabels: observable.ref,
+            scatterPointLabelStrategy: observable,
+            compareEndPointsOnly: observable.ref,
+            matchingEntitiesOnly: observable.ref,
+            hideTotalValueLabel: observable.ref,
+            missingDataStrategy: observable.ref,
+            xAxis: observable.ref,
+            yAxis: observable.ref,
+            colorScale: observable,
+            map: observable,
+            dimensions: observable.ref,
+            ySlugs: observable,
+            xSlug: observable,
+            colorSlug: observable,
+            sizeSlug: observable,
+            tableSlugs: observable,
+            selectedEntityColors: observable,
+            selectedEntityNames: observable,
+            focusedSeriesNames: observable,
+            excludedEntityNames: observable,
+            includedEntityNames: observable,
+            comparisonLines: observable,
+            relatedQuestions: observable,
+            dataTableConfig: observable,
+            entityYearHighlight: observable.ref,
+            hideFacetControl: observable.ref,
+            selectedFacetStrategy: observable,
+            sortBy: observable,
+            sortOrder: observable,
+            sortColumnSlug: observable,
+            _isInFullScreenMode: observable.ref,
+            windowInnerWidth: observable.ref,
+            windowInnerHeight: observable.ref,
+            bakedGrapherURL: observable,
+            externalQueryParams: observable.ref,
+            _inputTable: observable.ref,
+            mapRegionDropdownValue: observable,
+            legacyConfigAsAuthored: observable.ref,
+            entitySelectorState: observable,
+            isConfigReady: observable,
+            canHideExternalControlsInEmbed: observable.ref,
+            hideExternalControlsInEmbedUrl: observable.ref,
+            isExportingToSvgOrPng: observable.ref,
+            isSocialMediaExport: observable.ref,
+            isWikimediaExport: observable.ref,
+            renderMode: observable.ref,
+            staticBounds: observable,
+            isPlaying: observable.ref,
+            isTimelineAnimationActive: observable.ref,
+            animationStartTime: observable.ref,
+            areHandlesOnSameTimeBeforeAnimation: observable.ref,
+            timelineDragTarget: observable.ref,
+            isEntitySelectorModalOrDrawerOpen: observable.ref,
+            isSourcesModalOpen: observable.ref,
+            isDownloadModalOpen: observable.ref,
+            isEmbedModalOpen: observable.ref,
+            shouldIncludeDetailsInStaticExport: observable,
+            _externalBounds: observable,
+            slideShow: observable,
+            _baseFontSize: observable,
+            isShareMenuActive: observable,
+            hideTitle: observable,
+            hideSubtitle: observable,
+            hideNote: observable,
+            hideOriginUrl: observable,
+            hideEntityControls: observable,
+            enableMapSelection: observable,
+            hideZoomToggle: observable,
+            hideNoDataAreaToggle: observable,
+            hideFacetYDomainToggle: observable,
+            hideXScaleToggle: observable,
+            hideYScaleToggle: observable,
+            hideMapRegionDropdown: observable,
+            forceHideAnnotationFieldsInTitle: observable,
+            hasTableTab: observable,
+            hideChartTabs: observable,
+            hideShareButton: observable,
+            hideExploreTheDataButton: observable,
+            hideRelatedQuestion: observable,
+        })
         // prefer the manager's selection over the config's selectedEntityNames
         // if both are passed in and the manager's selection is not empty.
         // this is necessary for the global entity selector to work correctly.
@@ -1116,32 +1222,30 @@ export class GrapherState {
     @computed get transformedTable(): OwidTable {
         return this.tableAfterAllTransformsAndFilters
     }
-    @observable.ref isExportingToSvgOrPng = false
-    @observable.ref isSocialMediaExport = false
-    @observable.ref isWikimediaExport = false
+    isExportingToSvgOrPng = false
+    isSocialMediaExport = false
+    isWikimediaExport = false
 
-    @observable.ref renderMode = GrapherRenderMode.Captioned
+    renderMode = GrapherRenderMode.Captioned
 
-    @observable staticBounds: Bounds = DEFAULT_GRAPHER_BOUNDS
+    staticBounds: Bounds = DEFAULT_GRAPHER_BOUNDS
 
     enableKeyboardShortcuts: boolean = false
     bindUrlToWindow: boolean = false
     tooltip?: TooltipManager["tooltip"] = observable.box(undefined, {
         deep: false,
     })
-    @observable.ref isPlaying = false
-    @observable.ref isTimelineAnimationActive = false // true if the timeline animation is either playing or paused but not finished
+    isPlaying = false
+    isTimelineAnimationActive = false // true if the timeline animation is either playing or paused but not finished
 
-    @observable.ref animationStartTime: Time | undefined = undefined
-    @observable.ref areHandlesOnSameTimeBeforeAnimation: boolean | undefined =
-        undefined
-    @observable.ref timelineDragTarget: TimelineDragTarget | undefined =
-        undefined
+    animationStartTime: Time | undefined = undefined
+    areHandlesOnSameTimeBeforeAnimation: boolean | undefined = undefined
+    timelineDragTarget: TimelineDragTarget | undefined = undefined
 
-    @observable.ref isEntitySelectorModalOrDrawerOpen = false
-    @observable.ref isSourcesModalOpen = false
-    @observable.ref isDownloadModalOpen = false
-    @observable.ref isEmbedModalOpen = false
+    isEntitySelectorModalOrDrawerOpen = false
+    isSourcesModalOpen = false
+    isDownloadModalOpen = false
+    isEmbedModalOpen = false
 
     @computed get isStatic(): boolean {
         return this.isExportingToSvgOrPng
@@ -1691,7 +1795,7 @@ export class GrapherState {
     @computed get displaySlug(): string {
         return this.slug ?? slugify(this.displayTitle)
     }
-    @observable shouldIncludeDetailsInStaticExport = true
+    shouldIncludeDetailsInStaticExport = true
     // Used for superscript numbers in static exports
     @computed get detailsOrderedByReference(): string[] {
         if (typeof window === "undefined") return []
@@ -2435,7 +2539,7 @@ export class GrapherState {
     @computed get isTouchDevice(): boolean {
         return isTouchDevice()
     }
-    @observable _externalBounds: Bounds | undefined = undefined
+    _externalBounds: Bounds | undefined = undefined
     /** externalBounds should be set to the available plotting area for a
         Grapher that resizes itself to fit. When this area changes,
         externalBounds should be updated. Updating externalBounds can
@@ -2697,7 +2801,7 @@ export class GrapherState {
             ])
         )
     }
-    @observable slideShow: SlideShowController<any> | undefined = undefined
+    slideShow: SlideShowController<any> | undefined = undefined
     @computed get _sortConfig(): Readonly<SortConfig> {
         return {
             sortBy: this.sortBy ?? SortBy.total,
@@ -2862,17 +2966,18 @@ export class GrapherState {
     @computed get isServerSideDownloadAvailable(): boolean {
         return (
             // Chart is published (this is false for charts inside explorers, for example)
+            // We're not in a narrative chart
             !!this.isPublished &&
             // We're not on an archival grapher page
             !this.isOnArchivalPage &&
             // We're not inside the admin
             window.admin === undefined &&
             // The slug is set
-            !!this.slug && // We're not in a narrative chart
+            !!this.slug &&
             !this.narrativeChartInfo
         )
     }
-    @observable _baseFontSize = BASE_FONT_SIZE
+    _baseFontSize = BASE_FONT_SIZE
     @computed get baseFontSize(): number {
         if (this.isStaticAndSmall) {
             return this.computeBaseFontSizeFromHeight(this.staticBounds)
@@ -2953,7 +3058,7 @@ export class GrapherState {
         return this.isTouchDevice
     }
 
-    @observable isShareMenuActive = false
+    isShareMenuActive = false
     @computed get hasRelatedQuestion(): boolean {
         if (
             this.hideRelatedQuestion ||
@@ -3411,8 +3516,8 @@ export class GrapherState {
         return (
             // If the entity controls are hidden, then selecting entities from
             // the map should also be disabled
-            !this.hideEntityControls && // only show the entity selector on the map tab if it's rendered
-            // into the side panel or into the slide-in drawer
+            // only show the entity selector on the map tab if it's rendered
+            !this.hideEntityControls && // into the side panel or into the slide-in drawer
             this.shouldShowEntitySelectorAs !== GrapherWindowType.modal
         )
     }
@@ -3470,38 +3575,37 @@ export class GrapherState {
             : this.defaultTab
     }
 
-    @observable hideTitle = false
-    @observable hideSubtitle = false
-    @observable hideNote = false
-    @observable hideOriginUrl = false
+    hideTitle = false
+    hideSubtitle = false
+    hideNote = false
+    hideOriginUrl = false
 
     // For now I am only exposing this programmatically for the dashboard builder. Setting this to true
     // allows you to still use add country "modes" without showing the buttons in order to prioritize
     // another entity selector over the built in ones.
-    @observable hideEntityControls = false
+    hideEntityControls = false
 
-    @observable enableMapSelection = false
+    enableMapSelection = false
 
     // exposed programmatically for hiding interactive controls or tabs when desired
     // (e.g. used to hide Grapher chrome when a Grapher chart in a Gdoc article is in "read-only" mode)
-    @observable hideZoomToggle = false
-    @observable hideNoDataAreaToggle = false
-    @observable hideFacetYDomainToggle = false
-    @observable hideXScaleToggle = false
-    @observable hideYScaleToggle = false
-    @observable hideMapRegionDropdown = false
+    hideZoomToggle = false
+    hideNoDataAreaToggle = false
+    hideFacetYDomainToggle = false
+    hideXScaleToggle = false
+    hideYScaleToggle = false
+    hideMapRegionDropdown = false
     // enforces hiding an annotation, even if that means that a crucial piece of information is missing from the chart title
-    @observable
     forceHideAnnotationFieldsInTitle: AnnotationFieldsInTitle = {
         entity: false,
         time: false,
         changeInPrefix: false,
     }
-    @observable hasTableTab = true
-    @observable hideChartTabs = false
-    @observable hideShareButton = false
-    @observable hideExploreTheDataButton = true
-    @observable hideRelatedQuestion = false
+    hasTableTab = true
+    hideChartTabs = false
+    hideShareButton = false
+    hideExploreTheDataButton = true
+    hideRelatedQuestion = false
 
     initialOptions: GrapherProgrammaticInterface
 }
@@ -3520,17 +3624,24 @@ export class Grapher extends React.Component<GrapherProps> {
 
     // stored on Grapher so state is preserved when switching to full-screen mode
 
-    @observable
     private legacyVariableDataJson:
         | MultipleOwidVariableDataDimensionsMap
         | undefined = undefined
     private hasLoggedGAViewEvent = false
-    @observable private hasBeenVisible = false
-    @observable private uncaughtError: Error | undefined = undefined
+    private hasBeenVisible = false
+    private uncaughtError: Error | undefined = undefined
 
     constructor(props: { grapherState: GrapherState }) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<
+            Grapher,
+            "legacyVariableDataJson" | "hasBeenVisible" | "uncaughtError"
+        >(this, {
+            legacyVariableDataJson: observable,
+            hasBeenVisible: observable,
+            uncaughtError: observable,
+        })
     }
 
     // Convenience method for debugging

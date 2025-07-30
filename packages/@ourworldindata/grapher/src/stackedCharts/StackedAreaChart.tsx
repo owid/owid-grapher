@@ -56,7 +56,12 @@ export class StackedAreaChart
 {
     constructor(props: StackedAreaChartProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<StackedAreaChart, "hoverTimer">(this, {
+            tooltipState: observable,
+            lineLegendHoveredSeriesName: observable,
+            hoverTimer: observable,
+        })
     }
 
     @computed get chartState(): StackedAreaChartState {
@@ -217,7 +222,7 @@ export class StackedAreaChart
         })
     }
 
-    @observable tooltipState = new TooltipState<{
+    tooltipState = new TooltipState<{
         index: number // time-index into points array
         series?: SeriesName
     }>({ fade: "immediate" })
@@ -237,8 +242,8 @@ export class StackedAreaChart
         _.extend(this.tooltipState.target, { series: undefined })
     }
 
-    @observable lineLegendHoveredSeriesName: SeriesName | undefined = undefined
-    @observable private hoverTimer: number | undefined = undefined
+    lineLegendHoveredSeriesName: SeriesName | undefined = undefined
+    private hoverTimer: number | undefined = undefined
 
     @computed private get paddingForLegendRight(): number {
         return this.lineLegendWidth
@@ -332,9 +337,10 @@ export class StackedAreaChart
     @computed private get hoveredSeriesName(): SeriesName | undefined {
         return (
             // if the chart area is hovered
+            // if the facet legend is hovered
             this.tooltipState.target?.series ??
             // if the line legend is hovered
-            this.lineLegendHoveredSeriesName ?? // if the facet legend is hovered
+            this.lineLegendHoveredSeriesName ??
             this.facetLegendHoveredSeriesName
         )
     }

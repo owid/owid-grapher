@@ -46,11 +46,17 @@ export class ExplorerCreatePage extends Component<ExplorerCreatePageProps> {
     declare context: AdminAppContextType
     disposers: Array<() => void> = []
 
-    @observable showPreview: boolean = true
+    showPreview: boolean = true
 
     constructor(props: ExplorerCreatePageProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<ExplorerCreatePage, "programOnDisk" | "program">(this, {
+            showPreview: observable,
+            isReady: observable,
+            programOnDisk: observable.ref,
+            program: observable.ref,
+        })
     }
 
     @computed private get manager() {
@@ -90,7 +96,7 @@ export class ExplorerCreatePage extends Component<ExplorerCreatePageProps> {
         this.disposers.push(() => clearInterval(intervalId))
     }
 
-    @observable isReady = false
+    isReady = false
 
     override componentWillUnmount() {
         this.resetLoadingModal()
@@ -137,9 +143,9 @@ export class ExplorerCreatePage extends Component<ExplorerCreatePageProps> {
         localStorage.removeItem(UNSAVED_EXPLORER_DRAFT + this.program.slug)
     }
 
-    @observable.ref private programOnDisk = new ExplorerProgram("", "")
+    private programOnDisk = new ExplorerProgram("", "")
 
-    @observable.ref private program = new ExplorerProgram(this.props.slug, "")
+    private program = new ExplorerProgram(this.props.slug, "")
 
     @action.bound private async _save(slug: string, commitMessage: string) {
         this.loadingModalOn()

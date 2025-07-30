@@ -71,14 +71,20 @@ export class ChartList extends React.Component<ChartListProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable searchInput: string | undefined = undefined
-    @observable maxVisibleCharts = 50
-    @observable sortConfig: SortConfig | undefined = undefined
-    @observable availableTags: DbChartTagJoin[] = []
+    searchInput: string | undefined = undefined
+    maxVisibleCharts = 50
+    sortConfig: SortConfig | undefined = undefined
+    availableTags: DbChartTagJoin[] = []
 
     constructor(props: ChartListProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            searchInput: observable,
+            maxVisibleCharts: observable,
+            sortConfig: observable,
+            availableTags: observable,
+        })
     }
 
     async fetchRefs(grapherId: number | undefined): Promise<References> {

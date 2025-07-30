@@ -37,15 +37,23 @@ export class ChartEditorPage
 
     constructor(props: ChartEditorPageProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            logs: observable,
+            references: observable,
+            redirects: observable,
+            pageviews: observable,
+            tags: observable,
+            availableTags: observable,
+        })
     }
 
-    @observable logs: Log[] = []
-    @observable references: References | undefined = undefined
-    @observable redirects: ChartRedirect[] = []
-    @observable pageviews: RawPageview | undefined = undefined
-    @observable tags: DbChartTagJoin[] | undefined = undefined
-    @observable availableTags: MinimalTagWithIsTopic[] | undefined = undefined
+    logs: Log[] = []
+    references: References | undefined = undefined
+    redirects: ChartRedirect[] = []
+    pageviews: RawPageview | undefined = undefined
+    tags: DbChartTagJoin[] | undefined = undefined
+    availableTags: MinimalTagWithIsTopic[] | undefined = undefined
 
     patchConfig: GrapherInterface = {}
     parentConfig: GrapherInterface | undefined = undefined

@@ -112,20 +112,20 @@ function EveryOrgSection({
 
 @observer
 export class DonateForm extends React.Component<{ countryCode?: string }> {
-    @observable interval: DonationInterval = "once"
-    @observable presetAmount: number | undefined =
+    interval: DonationInterval = "once"
+    presetAmount: number | undefined =
         amountsByInterval.once[DEFAULT_AMOUNT_INDEX]
-    @observable customAmount: string = ""
-    @observable name: string = ""
-    @observable showOnList: boolean = true
-    @observable subscribeToDonorNewsletter: boolean = true
-    @observable errorMessage: string | undefined = undefined
-    @observable isSubmitting: boolean = false
-    @observable isLoading: boolean = true
-    @observable currencyCode: DonationCurrencyCode = "GBP"
+    customAmount: string = ""
+    name: string = ""
+    showOnList: boolean = true
+    subscribeToDonorNewsletter: boolean = true
+    errorMessage: string | undefined = undefined
+    isSubmitting: boolean = false
+    isLoading: boolean = true
+    currencyCode: DonationCurrencyCode = "GBP"
 
     captchaInstance = React.createRef<Recaptcha>()
-    @observable.ref captchaPromiseHandlers:
+    captchaPromiseHandlers:
         | {
               resolve: (value: any) => void
               reject: (value: any) => void
@@ -134,7 +134,20 @@ export class DonateForm extends React.Component<{ countryCode?: string }> {
 
     constructor(props: { countryCode?: string }) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            interval: observable,
+            presetAmount: observable,
+            customAmount: observable,
+            name: observable,
+            showOnList: observable,
+            subscribeToDonorNewsletter: observable,
+            errorMessage: observable,
+            isSubmitting: observable,
+            isLoading: observable,
+            currencyCode: observable,
+            captchaPromiseHandlers: observable.ref,
+        })
     }
 
     @action.bound setInterval(interval: DonationInterval) {

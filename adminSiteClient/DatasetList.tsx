@@ -113,11 +113,14 @@ export class DatasetList extends React.Component<DatasetListProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable availableTags: DbChartTagJoin[] = []
+    availableTags: DbChartTagJoin[] = []
 
     constructor(props: DatasetListProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            availableTags: observable,
+        })
     }
 
     @bind async getTags() {

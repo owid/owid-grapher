@@ -19,13 +19,18 @@ export class DatasetsIndexPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable datasets: DatasetListItem[] = []
-    @observable maxVisibleRows = 50
-    @observable searchInput: string | undefined = undefined
+    datasets: DatasetListItem[] = []
+    maxVisibleRows = 50
+    searchInput: string | undefined = undefined
 
     constructor(props: Record<string, never>) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            datasets: observable,
+            maxVisibleRows: observable,
+            searchInput: observable,
+        })
     }
 
     @computed get searchWords(): SearchWord[] {

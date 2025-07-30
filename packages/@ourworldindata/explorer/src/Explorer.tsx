@@ -197,7 +197,25 @@ export class Explorer
 
     constructor(props: ExplorerProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<
+            Explorer,
+            | "isNarrow"
+            | "grapherContainerRef"
+            | "grapherRef"
+            | "showMobileControlsPopup"
+        >(this, {
+            appendOnlyAvailableEntityNames: observable,
+            grapher: observable.ref,
+            isNarrow: observable,
+            grapherContainerRef: observable,
+            grapherRef: observable.ref,
+            showMobileControlsPopup: observable,
+            entityPickerMetric: observable,
+            entityPickerSort: observable,
+            entityPickerTable: observable.ref,
+            entityPickerTableIsLoading: observable.ref,
+        })
 
         this.explorerProgram = ExplorerProgram.fromJson(
             props
@@ -292,9 +310,9 @@ export class Explorer
 
     // We want to ensure that unavailable entity are shown in the explorer entity
     // that's why we employ an append-only version of `grapher.availableEntityNames`
-    @observable appendOnlyAvailableEntityNames: Set<EntityName> = new Set()
+    appendOnlyAvailableEntityNames: Set<EntityName> = new Set()
 
-    @observable.ref grapher: Grapher | undefined = undefined
+    grapher: Grapher | undefined = undefined
 
     @action.bound setGrapher(grapher: Grapher) {
         this.grapher = grapher
@@ -940,7 +958,7 @@ export class Explorer
         )
     }
 
-    @observable private isNarrow = isNarrow()
+    private isNarrow = isNarrow()
 
     @computed private get isInIFrame() {
         return isInIFrame()
@@ -959,9 +977,9 @@ export class Explorer
         return this.explorerProgram.downloadDataLink
     }
 
-    @observable private grapherContainerRef = React.createRef<HTMLDivElement>()
+    private grapherContainerRef = React.createRef<HTMLDivElement>()
 
-    @observable.ref private grapherRef = React.createRef<Grapher>()
+    private grapherRef = React.createRef<Grapher>()
 
     private renderControlBar() {
         return (
@@ -1025,7 +1043,7 @@ export class Explorer
             )
     }
 
-    @observable private showMobileControlsPopup = false
+    private showMobileControlsPopup = false
     private get mobileCustomizeButton() {
         return (
             <a
@@ -1095,13 +1113,12 @@ export class Explorer
         return this.grapherState?.tableAfterAuthorTimelineAndEntityFilter
     }
 
-    @observable entityPickerMetric: string | undefined =
+    entityPickerMetric: string | undefined =
         this.initialQueryParams.pickerMetric
-    @observable entityPickerSort: SortOrder | undefined =
-        this.initialQueryParams.pickerSort
+    entityPickerSort: SortOrder | undefined = this.initialQueryParams.pickerSort
 
-    @observable.ref entityPickerTable: OwidTable | undefined = undefined
-    @observable.ref entityPickerTableIsLoading: boolean = false
+    entityPickerTable: OwidTable | undefined = undefined
+    entityPickerTableIsLoading: boolean = false
 
     private futureEntityPickerTable = new PromiseSwitcher<OwidTable>({
         onResolve: (table) => {
