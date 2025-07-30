@@ -40,13 +40,12 @@ export class ChartEditorPage
         makeObservable(this)
     }
 
-    @observable accessor logs: Log[] = []
-    @observable accessor references: References | undefined = undefined
-    @observable accessor redirects: ChartRedirect[] = []
-    @observable accessor pageviews: RawPageview | undefined = undefined
-    @observable accessor tags: DbChartTagJoin[] | undefined = undefined
-    @observable accessor availableTags: MinimalTagWithIsTopic[] | undefined =
-        undefined
+    @observable logs: Log[] = []
+    @observable references: References | undefined = undefined
+    @observable redirects: ChartRedirect[] = []
+    @observable pageviews: RawPageview | undefined = undefined
+    @observable tags: DbChartTagJoin[] | undefined = undefined
+    @observable availableTags: MinimalTagWithIsTopic[] | undefined = undefined
 
     patchConfig: GrapherInterface = {}
     parentConfig: GrapherInterface | undefined = undefined

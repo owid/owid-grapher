@@ -54,9 +54,9 @@ export function embedDynamicCollectionGrapher(
 
 @observer
 export class DynamicCollection extends React.Component<DynamicCollectionProps> {
-    @observable accessor initialDynamicCollection: string | undefined =
+    @observable initialDynamicCollection: string | undefined =
         this.props.initialDynamicCollection
-    @observable accessor graphers: undefined | WindowGraphers = undefined
+    @observable graphers: undefined | WindowGraphers = undefined
     pollInterval: null | ReturnType<typeof setInterval> = null
     disposers: IReactionDisposer[] = []
 

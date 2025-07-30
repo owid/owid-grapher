@@ -71,10 +71,10 @@ export class ChartList extends React.Component<ChartListProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor searchInput: string | undefined = undefined
-    @observable accessor maxVisibleCharts = 50
-    @observable accessor sortConfig: SortConfig | undefined = undefined
-    @observable accessor availableTags: DbChartTagJoin[] = []
+    @observable searchInput: string | undefined = undefined
+    @observable maxVisibleCharts = 50
+    @observable sortConfig: SortConfig | undefined = undefined
+    @observable availableTags: DbChartTagJoin[] = []
 
     constructor(props: ChartListProps) {
         super(props)

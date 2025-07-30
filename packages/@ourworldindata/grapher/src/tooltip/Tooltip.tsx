@@ -32,9 +32,9 @@ const TOOLTIP_ICON: Record<TooltipFooterIcon, React.ReactElement | null> = {
 }
 
 export class TooltipState<T> {
-    @observable accessor position = new PointVector(0, 0)
-    @observable accessor _target: T | undefined = undefined
-    @observable accessor _timer: number | undefined = undefined
+    @observable position = new PointVector(0, 0)
+    @observable _target: T | undefined = undefined
+    @observable _timer: number | undefined = undefined
     _fade: TooltipFadeMode
 
     constructor({ fade }: { fade?: TooltipFadeMode } = {}) {
@@ -96,7 +96,7 @@ class TooltipCard extends React.Component<
 
     private base = React.createRef<HTMLDivElement>()
 
-    @observable.struct private accessor bounds: Bounds | undefined = undefined
+    @observable.struct private bounds: Bounds | undefined = undefined
 
     constructor(
         props: TooltipProps & {

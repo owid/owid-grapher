@@ -7,7 +7,7 @@ export class FocusArray {
         this.store = new Set()
     }
 
-    @observable private accessor store: Set<SeriesName>
+    @observable private store: Set<SeriesName>
 
     @computed get seriesNameSet(): Set<SeriesName> {
         return this.store

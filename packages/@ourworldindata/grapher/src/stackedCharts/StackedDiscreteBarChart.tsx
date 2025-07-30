@@ -125,7 +125,7 @@ export class StackedDiscreteBarChart
         return this.chartState.sortConfig
     }
 
-    @observable accessor focusSeriesName: SeriesName | undefined = undefined
+    @observable focusSeriesName: SeriesName | undefined = undefined
 
     @computed get chartState(): StackedDiscreteBarChartState {
         return this.props.chartState
@@ -494,7 +494,7 @@ export class StackedDiscreteBarChart
         })
     }
 
-    @observable accessor tooltipState = new TooltipState<{
+    @observable tooltipState = new TooltipState<{
         entityName: string
         seriesName?: string
     }>()

@@ -75,11 +75,11 @@ export class StackedBarChart
     }
 
     // currently hovered legend color
-    @observable accessor hoverColor: string | undefined = undefined
+    @observable hoverColor: string | undefined = undefined
     // currently hovered axis label
-    @observable accessor hoveredTick: TickmarkPlacement | undefined = undefined
+    @observable hoveredTick: TickmarkPlacement | undefined = undefined
     // current hovered individual bar
-    @observable accessor tooltipState = new TooltipState<{
+    @observable tooltipState = new TooltipState<{
         bar: StackedPoint<number>
         series: StackedSeries<number>
     }>()

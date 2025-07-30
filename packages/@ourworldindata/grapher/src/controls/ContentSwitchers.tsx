@@ -41,7 +41,7 @@ export class ContentSwitchers extends React.Component<{
         return test.shouldShow
     }
 
-    @observable private accessor isOverflowMenuOpen = false
+    @observable private isOverflowMenuOpen = false
 
     @computed private get manager(): ContentSwitchersManager {
         return this.props.manager

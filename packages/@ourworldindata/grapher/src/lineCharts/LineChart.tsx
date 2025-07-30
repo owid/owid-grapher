@@ -137,7 +137,7 @@ export class LineChart
         return this.placedSeries.flatMap((series) => series.points)
     }
 
-    @observable private accessor tooltipState = new TooltipState<{
+    @observable private tooltipState = new TooltipState<{
         x: number
     }>({ fade: "immediate" })
 
@@ -432,10 +432,9 @@ export class LineChart
 
     private defaultRightPadding = 1
 
-    @observable private accessor lineLegendHoveredSeriesName:
-        | SeriesName
-        | undefined = undefined
-    @observable private accessor hoverTimer: number | undefined = undefined
+    @observable private lineLegendHoveredSeriesName: SeriesName | undefined =
+        undefined
+    @observable private hoverTimer: number | undefined = undefined
 
     @action.bound private onLineLegendMouseOver(seriesName: SeriesName): void {
         clearTimeout(this.hoverTimer)

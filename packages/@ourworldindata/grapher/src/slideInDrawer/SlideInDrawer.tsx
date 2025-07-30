@@ -17,7 +17,7 @@ interface SlideInDrawerProps {
 
 @observer
 export class SlideInDrawer extends React.Component<SlideInDrawerProps> {
-    @observable.ref accessor visible: boolean = this.props.active // true while the drawer is active and during enter/exit transitions
+    @observable.ref visible: boolean = this.props.active // true while the drawer is active and during enter/exit transitions
     drawerRef = React.createRef<HTMLDivElement>()
 
     constructor(props: SlideInDrawerProps) {

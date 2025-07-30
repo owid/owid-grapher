@@ -234,7 +234,7 @@ class EditorDebugTabForNarrativeChart extends Component<{
         })
     }
 
-    @observable accessor diffModalOpen = false
+    @observable diffModalOpen = false
 
     @action.bound onModalClose() {
         this.diffModalOpen = false

@@ -58,8 +58,8 @@ class CreateNarrativeChartEditorPageInternal
     }
 
     id?: number
-    @observable accessor name: string | undefined = undefined
-    @observable accessor nameError: string | undefined = undefined
+    @observable name: string | undefined = undefined
+    @observable nameError: string | undefined = undefined
     configId?: string
     patchConfig: GrapherInterface = {}
     fullConfig: GrapherInterface = {}

@@ -367,55 +367,52 @@ export class ColorScaleConfigDefaults {
     // ============
 
     /** Key for a colorbrewer scheme */
-    @observable accessor baseColorScheme: ColorSchemeName | undefined =
-        undefined
+    @observable baseColorScheme: ColorSchemeName | undefined = undefined
 
     /** Reverse the order of colors in the color scheme (defined by `baseColorScheme`) */
-    @observable accessor colorSchemeInvert: boolean | undefined = undefined
+    @observable colorSchemeInvert: boolean | undefined = undefined
 
     // Numeric bins
     // ============
 
     /** The strategy for generating the bin boundaries */
-    @observable accessor binningStrategy: BinningStrategy =
-        BinningStrategy.ckmeans
+    @observable binningStrategy: BinningStrategy = BinningStrategy.ckmeans
     /** The *suggested* number of bins for the automatic binning algorithm */
-    @observable accessor binningStrategyBinCount: number | undefined = undefined
+    @observable binningStrategyBinCount: number | undefined = undefined
 
     /** Custom maximum brackets for each numeric bin. Only applied when strategy is `manual`. */
-    @observable accessor customNumericValues: number[] = []
+    @observable customNumericValues: number[] = []
     /**
      * Custom labels for each numeric bin. Only applied when strategy is `manual`.
      * `undefined` or `null` falls back to default label.
      * We need to handle `null` because JSON serializes `undefined` values
      * inside arrays into `null`.
      */
-    @observable accessor customNumericLabels: (string | undefined | null)[] = []
+    @observable customNumericLabels: (string | undefined | null)[] = []
 
     /** Whether `customNumericColors` are used to override the color scheme. */
-    @observable accessor customNumericColorsActive: boolean | undefined =
-        undefined
+    @observable customNumericColorsActive: boolean | undefined = undefined
     /**
      * Override some or all colors for the numerical color legend.
      * `undefined` or `null` falls back the color scheme color.
      * We need to handle `null` because JSON serializes `undefined` values
      * inside arrays into `null`.
      */
-    @observable accessor customNumericColors: (Color | undefined | null)[] = []
+    @observable customNumericColors: (Color | undefined | null)[] = []
 
     // Categorical bins
     // ================
 
-    @observable.ref accessor customCategoryColors: {
+    @observable.ref customCategoryColors: {
         [key: string]: string | undefined
     } = {}
 
-    @observable.ref accessor customCategoryLabels: {
+    @observable.ref customCategoryLabels: {
         [key: string]: string | undefined
     } = {}
 
     // Allow hiding categories from the legend
-    @observable.ref accessor customHiddenCategories: {
+    @observable.ref customHiddenCategories: {
         [key: string]: true | undefined
     } = {}
 
@@ -423,7 +420,7 @@ export class ColorScaleConfigDefaults {
     // =====
 
     /** A custom legend description. Only used in ScatterPlot legend titles for now. */
-    @observable accessor legendDescription: string | undefined = undefined
+    @observable legendDescription: string | undefined = undefined
 
     constructor() {
         makeObservable(this)

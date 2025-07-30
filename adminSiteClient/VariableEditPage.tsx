@@ -96,27 +96,26 @@ class VariableEditable
             "id" | "values" | "years" | "entities"
         >
 {
-    @observable accessor name = ""
-    @observable accessor unit = ""
-    @observable accessor shortUnit = ""
-    @observable accessor description = ""
-    @observable accessor entityAnnotationsMap = ""
-    @observable accessor display = new OwidVariableDisplayConfig()
+    @observable name = ""
+    @observable unit = ""
+    @observable shortUnit = ""
+    @observable description = ""
+    @observable entityAnnotationsMap = ""
+    @observable display = new OwidVariableDisplayConfig()
 
-    @observable accessor descriptionShort = ""
-    @observable accessor descriptionFromProducer = ""
-    @observable accessor descriptionKey: string[] = []
-    @observable accessor descriptionProcessing = ""
-    @observable accessor processingLevel: OwidProcessingLevel | undefined =
-        undefined
+    @observable descriptionShort = ""
+    @observable descriptionFromProducer = ""
+    @observable descriptionKey: string[] = []
+    @observable descriptionProcessing = ""
+    @observable processingLevel: OwidProcessingLevel | undefined = undefined
 
-    @observable accessor presentation = {} as OwidVariablePresentation
+    @observable presentation = {} as OwidVariablePresentation
 
-    @observable accessor updatePeriodDays: number | undefined = undefined
+    @observable updatePeriodDays: number | undefined = undefined
 
-    @observable accessor origins: OwidOrigin[] = []
+    @observable origins: OwidOrigin[] = []
 
-    @observable accessor source: OwidSource | undefined = undefined
+    @observable source: OwidSource | undefined = undefined
 
     constructor(json: any) {
         makeObservable(this)
@@ -134,8 +133,8 @@ class VariableEditable
 class VariableEditor extends Component<{
     variable: VariablePageData
 }> {
-    @observable accessor newVariable!: VariableEditable
-    @observable accessor isDeleted: boolean = false
+    @observable newVariable!: VariableEditable
+    @observable isDeleted: boolean = false
 
     constructor(props: { variable: VariablePageData }) {
         super(props)
@@ -154,7 +153,7 @@ class VariableEditor extends Component<{
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable.ref accessor grapherState: GrapherState | undefined = undefined
+    @observable.ref grapherState: GrapherState | undefined = undefined
 
     @computed get isModified(): boolean {
         return (
@@ -759,7 +758,7 @@ export class VariableEditPage extends Component<{ variableId: number }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable accessor variable: VariablePageData | undefined = undefined
+    @observable variable: VariablePageData | undefined = undefined
 
     constructor(props: { variableId: number }) {
         super(props)

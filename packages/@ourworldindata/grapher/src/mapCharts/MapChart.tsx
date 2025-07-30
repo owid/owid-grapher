@@ -85,16 +85,16 @@ export class MapChart
     }
 
     /** The id of the currently hovered feature/country */
-    @observable accessor hoverFeatureId: string | undefined = undefined
+    @observable hoverFeatureId: string | undefined = undefined
 
     /**
      * The currently hovered map bracket.
      *
      * Hovering a map bracket highlights all countries within that bracket on the map.
      */
-    @observable accessor hoverBracket: MapBracket | undefined = undefined
+    @observable hoverBracket: MapBracket | undefined = undefined
 
-    @observable accessor tooltipState = new TooltipState<{
+    @observable tooltipState = new TooltipState<{
         featureId: string
     }>()
 

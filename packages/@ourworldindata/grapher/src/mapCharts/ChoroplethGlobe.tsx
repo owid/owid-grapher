@@ -83,12 +83,10 @@ export class ChoroplethGlobe extends React.Component<{
 }> {
     base = React.createRef<SVGGElement>()
 
-    @observable private accessor hoverEnterFeature:
-        | GlobeRenderFeature
-        | undefined = undefined
-    @observable private accessor hoverNearbyFeature:
-        | GlobeRenderFeature
-        | undefined = undefined
+    @observable private hoverEnterFeature: GlobeRenderFeature | undefined =
+        undefined
+    @observable private hoverNearbyFeature: GlobeRenderFeature | undefined =
+        undefined
 
     private isPanningOrZooming = false
 

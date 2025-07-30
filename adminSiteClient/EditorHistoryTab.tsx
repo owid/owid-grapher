@@ -59,7 +59,7 @@ interface LogRendererProps {
 
 @observer
 class LogRenderer extends Component<LogRendererProps> {
-    @observable accessor isCompareModalOpen = false
+    @observable isCompareModalOpen = false
 
     constructor(props: LogRendererProps) {
         super(props)
