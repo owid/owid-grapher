@@ -2,6 +2,8 @@ import fs from "fs-extra"
 import path from "path"
 import {
     ExplorerProgram,
+    ExplorerGrammar,
+    ColumnGrammar,
     explorerUrlMigrationsById,
 } from "@ourworldindata/explorer"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"

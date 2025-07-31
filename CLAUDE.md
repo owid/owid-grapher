@@ -29,7 +29,7 @@ Some key directories, going roughly along the dependency chain from the most sta
 - ./packages/core-table - our custom dataframe classes used by Grapher
 - ./packages/components - shared React components
 - ./packages/grapher - our data viz component. Written using MobX 5 for state management
-- ./packages/explorer - our data explorer that wraps grapher and adds additional dropdowns to explore more complex datasets
+- ./packages/explorer - our data explorer that wraps grapher and adds additional drop-downs to explore more complex datasets
 - ./db - code to access our MySQL 8 database as well as a substantial amount of business logic around reading ArchieML written in Google Docs
 - ./site - code for our website (React rendering ArchieML). This part of the codebase does not use MobX but instead uses React hooks
 - ./baker - code that "bakes" our website by rendering React to static HTML
