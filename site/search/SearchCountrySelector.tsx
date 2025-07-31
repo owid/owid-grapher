@@ -82,12 +82,9 @@ export const SearchCountrySelector = ({
         <div className="search-country-selector">
             <DialogTrigger isOpen={isOpen} onOpenChange={handleOpenChange}>
                 <Button
-                    className={cx(
-                        "search-country-selector-button body-3-medium",
-                        {
-                            "search-country-selector-button--is-open": isOpen,
-                        }
-                    )}
+                    className={cx("search-country-selector-button", {
+                        "search-country-selector-button--is-open": isOpen,
+                    })}
                     aria-expanded={isOpen}
                     aria-label={
                         isOpen
@@ -95,9 +92,12 @@ export const SearchCountrySelector = ({
                             : "Open country selector"
                     }
                 >
-                    <FontAwesomeIcon icon={faMapMarkerAlt} />
+                    <FontAwesomeIcon
+                        className="search-country-selector-button__icon"
+                        icon={faMapMarkerAlt}
+                    />
                     <span className="search-country-selector-button__text">
-                        Country selector
+                        Select country
                     </span>
                 </Button>
                 <Popover
