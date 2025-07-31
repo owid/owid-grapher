@@ -71,11 +71,37 @@
     .single-slot {
         grid-column: span 2;
         grid-row: span 2;
+
+        .search-chart-hit-table-content {
+            grid-template-columns: repeat(1, 1fr);
+        }
     }
 
     .double-slot {
         grid-column: span 4;
         grid-row: span 2;
+
+        .search-chart-hit-table-content {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .triple-slot {
+        grid-column: span 6;
+        grid-row: span 2;
+
+        .search-chart-hit-table-content {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    .quad-slot {
+        grid-column: span 8;
+        grid-row: span 2;
+
+        .search-chart-hit-table-content {
+            grid-template-columns: repeat(4, 1fr);
+        }
     }
 
     .small-slot-left {
