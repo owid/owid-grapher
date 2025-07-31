@@ -12,7 +12,7 @@ fields:
         description: The slug of the explorer this view belongs to. References explorers.slug
     explorerView:
         description: |
-            JSON object containing the specific parameter choices for this view (e.g., {"tab": "chart", "yAxis": "population", "country": "USA"}). 
+            JSON object containing the specific parameter choices for this view (e.g., {"energySource": "solar", "metric": "absolute energy"}).
             This represents the state of the explorer's controls that would produce this specific chart configuration.
     chartConfigId:
         description: |

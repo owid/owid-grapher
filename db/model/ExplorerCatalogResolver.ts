@@ -14,7 +14,8 @@ import { ColumnTypeNames } from "@ourworldindata/types"
 
 export const transformExplorerProgramToResolveCatalogPaths = async (
     program: ExplorerProgram,
-    knex: KnexReadonlyTransaction
+    knex: KnexReadonlyTransaction,
+    errorReporter?: (error: Error) => Promise<void>
 ): Promise<{
     program: ExplorerProgram
     unresolvedCatalogPaths?: Set<string>
@@ -69,9 +70,14 @@ export const transformExplorerProgramToResolveCatalogPaths = async (
 
     // Log unresolved catalog paths if any
     if (missingCatalogPaths.length > 0) {
-        console.error(
+        const error = new Error(
             `Not all catalog paths resolved to indicator ids for the explorer with slug "${program.slug}": ${missingCatalogPaths.join(", ")}.`
         )
+        if (errorReporter) {
+            await errorReporter(error)
+        } else {
+            console.error(error.message)
+        }
     }
 
     // Write the result to the "graphers" block

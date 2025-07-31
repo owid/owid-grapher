@@ -92,6 +92,7 @@ export interface ExplorerProps extends SerializedGridProgram {
     staticBounds?: Bounds
     loadMetadataOnly?: boolean
     throwOnMissingGrapher?: boolean
+    setupGrapher?: boolean
 }
 
 const LivePreviewComponent = (props: ExplorerProps) => {
@@ -197,7 +198,7 @@ export class Explorer
     grapherState: GrapherState
     inputTableTransformer = (table: OwidTable) => table
 
-    constructor(props: ExplorerProps, setupGrapher: boolean = true) {
+    constructor(props: ExplorerProps) {
         super(props)
         makeObservable(this)
 
@@ -222,7 +223,7 @@ export class Explorer
                 }),
         })
 
-        if (setupGrapher)
+        if (props.setupGrapher !== false)
             this.grapher = new Grapher({ grapherState: this.grapherState })
     }
     // caution: do a ctrl+f to find untyped usages
@@ -523,14 +524,11 @@ export class Explorer
     @action.bound async updateGrapherFromExplorer() {
         switch (this.explorerProgram.chartCreationMode) {
             case ExplorerChartCreationMode.FromGrapherId:
-                await this.updateGrapherFromExplorerUsingGrapherId()
-                break
+                return this.updateGrapherFromExplorerUsingGrapherId()
             case ExplorerChartCreationMode.FromVariableIds:
-                await this.updateGrapherFromExplorerUsingVariableIds()
-                break
+                return this.updateGrapherFromExplorerUsingVariableIds()
             case ExplorerChartCreationMode.FromExplorerTableColumnSlugs:
-                await this.updateGrapherFromExplorerUsingColumnSlugs()
-                break
+                return this.updateGrapherFromExplorerUsingColumnSlugs()
         }
     }
 

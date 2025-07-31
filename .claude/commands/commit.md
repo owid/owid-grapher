@@ -1,5 +1,5 @@
 ---
-allowedTools: Bash(git log:*), Bash(git commit:*), Bash(git add:*)
+allowed-tools: Bash(git log:*), Bash(git commit:*), Bash(git add:*)
 description: Create a git commit according to our git styleguide (assumes code was written by an agent)
 ---
 

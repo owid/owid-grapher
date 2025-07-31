@@ -40,7 +40,8 @@ async function fetchExplorerDataForViews(
 ): Promise<ExplorerDataForViews> {
     const transformResult = await transformExplorerProgramToResolveCatalogPaths(
         explorerProgram,
-        knex
+        knex,
+        logErrorAndMaybeCaptureInSentry
     )
     const { program: transformedProgram, unresolvedCatalogPaths } =
         transformResult
@@ -165,10 +166,11 @@ function createExplorerForViews(
         dataApiUrl: DATA_API_URL,
         loadMetadataOnly,
         throwOnMissingGrapher: true,
+        setupGrapher: false, // We will set up the grapher later in iterateExplorerViews
     }
 
     // Create Explorer with setupGrapher: false to avoid setting up the actual grapher
-    return new Explorer(props, false)
+    return new Explorer(props)
 }
 
 async function iterateExplorerViews(
