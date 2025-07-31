@@ -17,7 +17,7 @@ export function SearchAutocompleteItemContents({
     unmatchedQuery?: string
 }) {
     return (
-        <span className="search-autocomplete-item-contents">
+        <div className="search-autocomplete-item-contents">
             {match(filter.type)
                 // keep in sync with setQueries logic in SearchAutocomplete
                 .with(FilterType.QUERY, () => (
@@ -56,7 +56,7 @@ export function SearchAutocompleteItemContents({
                     </>
                 ))
                 .exhaustive()}
-        </span>
+        </div>
     )
 }
 
