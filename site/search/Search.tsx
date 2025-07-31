@@ -83,17 +83,8 @@ export const Search = ({
                     topicTagGraph,
                 }}
             >
-                <div className="search-header span-cols-14 grid grid-cols-12-full-width">
-                    <header className="search-heading span-cols-12 col-start-2">
-                        <h1 className="h1-semibold">Search & Explore</h1>
-                        <p className="body-2-regular">
-                            Search for a specific chart, topic or article or
-                            explore all our content.
-                        </p>
-                    </header>
-                    <div className="search-controls-container span-cols-12 col-start-2">
-                        <Searchbar allTopics={allTopics} />
-                    </div>
+                <div className="search-controls-container span-cols-12 col-start-2">
+                    <Searchbar allTopics={allTopics} />
                 </div>
                 <SearchDebugNavigator
                     availableAreas={allAreas}
