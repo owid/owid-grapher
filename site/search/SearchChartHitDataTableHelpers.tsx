@@ -15,17 +15,16 @@ import {
     makeChartState,
 } from "@ourworldindata/grapher"
 import {
+    EntityName,
+    FacetStrategy,
     GRAPHER_MAP_TYPE,
     GRAPHER_TAB_NAMES,
     PrimitiveType,
-    SeriesName,
     SeriesStrategy,
 } from "@ourworldindata/types"
 import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable"
-import {
-    getColumnNameForDisplay,
-    getColumnUnitForDisplay,
-} from "./searchUtils.js"
+import { getColumnNameForDisplay } from "./searchUtils.js"
+import { OwidTable } from "@ourworldindata/core-table"
 
 interface BaseArgs {
     grapherState: GrapherState
@@ -39,67 +38,69 @@ interface Args<State extends ChartState = ChartState> extends BaseArgs {
 export function buildChartHitDataTableProps(
     props: BaseArgs
 ): SearchChartHitDataTableProps {
+    // If the chart is faceted and displays multiple series per facet
+    // (i.e. multiple entities + multiple columns), we only show data from
+    // the first facet in the data table
+    const chartState = hasMultipleSeriesPerFacet(props.grapherState)
+        ? props.grapherState.facetChartInstance?.intermediateChartInstances[0]
+              ?.chartState
+        : props.grapherState.chartState
+
     if (!chartState) return undefined
 
     return match(props.grapherState.activeTab)
         .with(GRAPHER_TAB_NAMES.LineChart, () =>
             buildDataTablePropsForLineChart({
                 ...props,
-                chartState: props.grapherState.chartState as LineChartState,
+                chartState: chartState as LineChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.DiscreteBar, () =>
             buildDataTablePropsForDiscreteBarChart({
                 ...props,
-                chartState: props.grapherState
-                    .chartState as DiscreteBarChartState,
+                chartState: chartState as DiscreteBarChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.ScatterPlot, () =>
             buildDataTablePropsForScatterPlot({
                 ...props,
-                chartState: props.grapherState
-                    .chartState as ScatterPlotChartState,
+                chartState: chartState as ScatterPlotChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.StackedArea, () =>
             buildDataTablePropsForStackedAreaChart({
                 ...props,
-                chartState: props.grapherState
-                    .chartState as StackedAreaChartState,
+                chartState: chartState as StackedAreaChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.StackedDiscreteBar, () =>
             buildDataTablePropsForStackedDiscreteBarChart({
                 ...props,
-                chartState: props.grapherState
-                    .chartState as StackedDiscreteBarChartState,
+                chartState: chartState as StackedDiscreteBarChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.SlopeChart, () =>
             buildDataTablePropsForSlopeChart({
                 ...props,
-                chartState: props.grapherState.chartState as SlopeChartState,
+                chartState: chartState as SlopeChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.StackedBar, () =>
             buildDataTablePropsForStackedBarChart({
                 ...props,
-                chartState: props.grapherState
-                    .chartState as StackedBarChartState,
+                chartState: chartState as StackedBarChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.Marimekko, () =>
             buildDataTablePropsForMarimekkoChart({
                 ...props,
-                chartState: props.grapherState
-                    .chartState as MarimekkoChartState,
+                chartState: chartState as MarimekkoChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.WorldMap, () =>
             buildDataTablePropsForWorldMap({
                 ...props,
-                chartState: props.grapherState.chartState as MapChartState,
+                chartState: chartState as MapChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.Table, () =>
@@ -146,25 +147,38 @@ function buildDataTablePropsForLineChart({
             if (!point) return undefined
 
             const color =
-                getColorForSeriesIfFaceted(grapherState, series.seriesName) ??
-                series.color
+                getColorForSeriesIfFaceted(
+                    grapherState,
+                    series.entityName,
+                    series.columnName
+                ) ?? series.color
 
             return {
+                series,
+                point,
                 name: series.seriesName,
                 color,
                 value:
                     formatValueIfCustom(point.y) ??
                     formatColumn.formatValueShort(point.y),
                 time: formatColumn.formatTime(point.x),
-                point,
+                timePreposition: OwidTable.getPreposition(
+                    chartState.transformedTable.timeColumn
+                ),
                 muted: series.focus.background,
                 striped: series.isProjection,
             }
         })
         .filter((row) => row !== undefined)
 
+    // Only show projected data points if there are any
+    const hasProjectedData = rows.some((row) => row.series.isProjection)
+    const filteredRows = hasProjectedData
+        ? rows.filter((row) => row.series.isProjection)
+        : rows
+
     // Sort by value in descending order
-    const sortedRows = R.sortBy(rows, (row) => -row.point.y)
+    const sortedRows = R.sortBy(filteredRows, [(row) => row.point.y, "desc"])
 
     const displayRows =
         maxRows !== undefined ? sortedRows.slice(0, maxRows) : sortedRows
@@ -251,27 +265,43 @@ function makeTableTitle(
 ): string {
     const { seriesStrategy = SeriesStrategy.entity } = chartState
     const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
+    const isFacetedByEntity =
+        grapherState.facetStrategy === FacetStrategy.entity
 
     const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
-    const unit =
-        isEntityStrategy && // only show unit if entities are plotted
-        getColumnUnitForDisplay(formatColumn)
 
-    const title = isEntityStrategy
-        ? getColumnNameForDisplay(formatColumn)
-        : grapherState.selection.selectedEntityNames[0]
+    const columnName = getColumnNameForDisplay(formatColumn)
+    const unit = formatColumn.unit
 
-    return unit ? `${title} (${unit})` : title
+    if (hasMultipleSeriesPerFacet(grapherState)) {
+        if (isFacetedByEntity) {
+            return grapherState.selection.selectedEntityNames[0]
+        } else {
+            return unit ? `${columnName} (${unit})` : columnName
+        }
+    }
+
+    if (isEntityStrategy) {
+        return unit ? `In ${unit}` : columnName
+    } else {
+        return grapherState.selection.selectedEntityNames[0]
+    }
 }
 
 function getColorForSeriesIfFaceted(
     grapherState: GrapherState,
-    seriesName: SeriesName
+    entityName: EntityName,
+    columnName: string
 ): string | undefined {
     if (!grapherState.isFaceted || !grapherState.facetChartInstance)
         return undefined
 
     const { facetChartInstance } = grapherState
+
+    const { facetName, seriesName } =
+        grapherState.facetStrategy === FacetStrategy.entity
+            ? { facetName: entityName, seriesName: columnName }
+            : { facetName: columnName, seriesName: entityName }
 
     // Reset the persisted color map to make sure the data table
     // uses the same colors as the thumbnails
@@ -279,16 +309,24 @@ function getColorForSeriesIfFaceted(
 
     // Find the chart instance that renders the given series
     const facetSeriesIndex = facetChartInstance.series.findIndex(
-        (s) => s.seriesName === seriesName
+        (s) => s.seriesName === facetName
     )
+
     if (facetSeriesIndex < 0) return undefined
     const chartInstance =
         facetChartInstance.intermediateChartInstances[facetSeriesIndex]
 
-    // Typically, there is only one series per facet. There might be two if
-    // the chart has projected data, but in that case, the historical and
-    // projected line typically share the same color.
-    const series = chartInstance?.chartState.series[0]
+    const series = chartInstance?.chartState.series.find(
+        (series) => series.seriesName === seriesName
+    )
 
     return series?.color
+}
+
+function hasMultipleSeriesPerFacet(grapherState: GrapherState): boolean {
+    return (
+        grapherState.isFaceted &&
+        grapherState.selection.numSelectedEntities > 1 &&
+        grapherState.yColumnSlugs.length > 1
+    )
 }
