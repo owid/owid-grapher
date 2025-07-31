@@ -10,7 +10,6 @@ import { SearchResultHeader } from "./SearchResultHeader.js"
 import { useInfiniteSearch } from "./searchHooks.js"
 import { SearchShowMore } from "./SearchShowMore.js"
 import { SearchFlatArticleHit } from "./SearchFlatArticleHit.js"
-import { SearchLargeTopicPageHit } from "./SearchLargeTopicPageHit.js"
 import { SearchTopicPageHit } from "./SearchTopicPageHit.js"
 import { SearchWritingResultsSkeleton } from "./SearchWritingResultsSkeleton.js"
 
@@ -86,8 +85,9 @@ export const SearchWritingResults = ({
                 {interleavedTopics.length > 0 && (
                     <div className="search-writing-results__topics">
                         {hasLargeTopic ? (
-                            <SearchLargeTopicPageHit
+                            <SearchTopicPageHit
                                 hit={interleavedTopics[0]}
+                                variant="large"
                             />
                         ) : (
                             interleavedTopics.map((hit) => (
@@ -102,7 +102,10 @@ export const SearchWritingResults = ({
                 {remainingTopics.length > 0 && (
                     <div className="search-writing-results__overflow">
                         {hasLargeTopic ? (
-                            <SearchLargeTopicPageHit hit={remainingTopics[0]} />
+                            <SearchTopicPageHit
+                                hit={remainingTopics[0]}
+                                variant="large"
+                            />
                         ) : (
                             remainingTopics.map((hit) => (
                                 <SearchTopicPageHit
