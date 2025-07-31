@@ -11,6 +11,12 @@
     }
 }
 
+.search-topic-page-hit__tag {
+    @include h6-black-caps;
+    color: $blue-60;
+    margin-bottom: 4px;
+}
+
 .search-topic-page-hit__title {
     @include h3-bold;
     margin: 0;
@@ -21,4 +27,12 @@
 .search-topic-page-hit__excerpt {
     @include body-3-regular;
     color: $blue-60;
+}
+
+.search-topic-page-hit__excerpt-paragraph {
+    margin: 0 0 16px;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
 }
