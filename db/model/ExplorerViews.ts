@@ -222,6 +222,25 @@ async function iterateExplorerViews(
     return generatedViews
 }
 
+// Helper function to create deterministic JSON serialization
+// by sorting object keys to ensure consistent string comparison
+function deterministicStringify(obj: any): string {
+    if (obj === null || obj === undefined) {
+        return JSON.stringify(obj)
+    }
+    if (typeof obj !== "object" || Array.isArray(obj)) {
+        return JSON.stringify(obj)
+    }
+
+    // Sort keys and recursively stringify
+    const sortedKeys = Object.keys(obj).sort()
+    const sortedObj: Record<string, any> = {}
+    for (const key of sortedKeys) {
+        sortedObj[key] = obj[key]
+    }
+    return JSON.stringify(sortedObj)
+}
+
 export async function refreshExplorerViewsForSlug(
     knex: KnexReadWriteTransaction,
     slug: string,
@@ -256,10 +275,20 @@ export async function refreshExplorerViewsForSlug(
         .where("ev.explorerSlug", slug)
 
     // Create a map for efficient lookup of existing views
+    // Use deterministic JSON serialization as the key
     const existingViewsMap = new Map<string, ExistingView>()
 
     for (const view of existingViews) {
-        existingViewsMap.set(view.explorerView, view)
+        try {
+            const parsedView = JSON.parse(view.explorerView)
+            const deterministicKey = deterministicStringify(parsedView)
+            existingViewsMap.set(deterministicKey, view)
+        } catch {
+            // Skip views with invalid JSON
+            console.warn(
+                `Skipping view with invalid JSON: ${view.explorerView}`
+            )
+        }
     }
 
     // init explorer program
@@ -295,7 +324,11 @@ export async function refreshExplorerViewsForSlug(
 
     for (const generatedView of generatedViews) {
         generatedViewsSet.add(generatedView.explorerView)
-        const existingView = existingViewsMap.get(generatedView.explorerView)
+
+        // Find existing view using deterministic serialization for O(1) lookup
+        const generatedViewObj = JSON.parse(generatedView.explorerView)
+        const deterministicKey = deterministicStringify(generatedViewObj)
+        const existingView = existingViewsMap.get(deterministicKey)
 
         if (!existingView) {
             // New view that doesn't exist yet
@@ -335,9 +368,16 @@ export async function refreshExplorerViewsForSlug(
     }
 
     // Find views to remove (exist in DB but not in generated views)
+    const generatedViewKeys = new Set<string>()
+    for (const generatedView of generatedViews) {
+        const generatedViewObj = JSON.parse(generatedView.explorerView)
+        const deterministicKey = deterministicStringify(generatedViewObj)
+        generatedViewKeys.add(deterministicKey)
+    }
+
     const removedViews: ExistingView[] = []
-    for (const [explorerViewStr, existingView] of existingViewsMap) {
-        if (!generatedViewsSet.has(explorerViewStr)) {
+    for (const [existingKey, existingView] of existingViewsMap) {
+        if (!generatedViewKeys.has(existingKey)) {
             removedViews.push(existingView)
         }
     }
