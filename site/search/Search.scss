@@ -6,12 +6,6 @@
     margin-bottom: 56px;
 }
 
-.search-header {
-    background-color: $blue-5;
-    margin-bottom: 16px;
-    padding-bottom: 24px;
-}
-
 .search-heading {
     h1 {
         margin-top: 24px;
@@ -26,18 +20,21 @@
 .search-bar {
     display: flex;
     align-items: flex-start;
-    outline: 1px solid $blue-20;
+    border: 1px solid $blue-20;
     background-color: #fff;
     position: relative;
+
     &:focus-within {
-        outline: 1px solid $blue-5;
+        border: 1px solid transparent;
+        border-bottom: 1px solid $blue-20;
+        box-shadow: $box-shadow-xl;
     }
 }
 
 .search-bar__submit-button {
     background-color: transparent;
     width: 24px;
-    height: 48px;
+    height: 46px; // 48px - 2px border
     flex: none;
     margin-left: 8px;
     margin-right: 8px;
@@ -83,6 +80,7 @@
 
 .search-controls-container {
     position: relative;
+    margin: 24px 0;
 }
 
 .search-filters {
@@ -123,15 +121,12 @@
 
     &:focus {
         outline: none;
-        &::placeholder {
-            opacity: 0;
-        }
     }
 
     &::placeholder,
     &:placeholder-shown {
         text-overflow: ellipsis;
-        color: $blue-60;
+        color: $blue-50;
     }
 
     @include sm-only {
