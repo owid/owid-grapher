@@ -942,3 +942,133 @@ export function getColumnUnitForDisplay(
 
     return strippedUnit
 }
+
+export enum GridSlot {
+    SingleSlot = "single-slot",
+    DoubleSlot = "double-slot",
+    TripleSlot = "triple-slot",
+    QuadSlot = "quad-slot",
+    SmallSlotLeft = "small-slot-left",
+    SmallSlotRight = "small-slot-right",
+}
+
+export function placeGrapherTabsInGridLayout(
+    tabs: GrapherTabName[],
+    {
+        hasDataDisplay,
+        numDataTableRows,
+        numDataTableRowsPerColumn,
+    }: {
+        hasDataDisplay: boolean
+        numDataTableRows?: number
+        numDataTableRowsPerColumn?: number
+    }
+): { tab: GrapherTabName; slot: GridSlot }[] {
+    // If there is a data display, then three equally-sized slots are available,
+    // plus two smaller slots below the data display. If there is no data display,
+    // then four equally-sized slots are available.
+
+    if (hasDataDisplay) {
+        const placedMainTabs = placeTabsInUniformGrid({
+            tabs,
+            numAvailableGridSlots: 3,
+            numDataTableRows,
+            numDataTableRowsPerColumn,
+        })
+
+        const remainingTabs = tabs.slice(placedMainTabs.length)
+        const placedRemainingTabs = remainingTabs
+            .slice(0, 2)
+            .map((tab, tabIndex) => ({
+                tab,
+                slot:
+                    tabIndex === 0
+                        ? GridSlot.SmallSlotLeft
+                        : GridSlot.SmallSlotRight,
+            }))
+        return [...placedMainTabs, ...placedRemainingTabs]
+    } else {
+        return placeTabsInUniformGrid({
+            tabs,
+            numAvailableGridSlots: 4,
+            numDataTableRows,
+            numDataTableRowsPerColumn,
+        })
+    }
+}
+
+/**
+ * Place Grapher tabs in a uniform grid layout.
+ *
+ * Chart tabs always occupy a single slots. The table tab might occupy more
+ * than one slot if there is space and enough data to fill it.
+ */
+function placeTabsInUniformGrid({
+    tabs,
+    numAvailableGridSlots,
+    numDataTableRows,
+    numDataTableRowsPerColumn = 4,
+}: {
+    tabs: GrapherTabName[]
+    numAvailableGridSlots: number
+    numDataTableRows?: number // no restriction if undefined
+    numDataTableRowsPerColumn?: number
+}) {
+    const maxNumTabs = numAvailableGridSlots
+
+    // If none of the tabs display a table, then all tabs trivially take up one slot each
+    if (!tabs.some((tab) => tab === GRAPHER_TAB_NAMES.Table)) {
+        return tabs
+            .slice(0, maxNumTabs)
+            .map((tab) => ({ tab, slot: GridSlot.SingleSlot }))
+    }
+
+    const numTabs = Math.min(tabs.length, maxNumTabs)
+    const numCharts = numTabs - 1 // without the table tab
+
+    const numAvailableSlotsForTable = numAvailableGridSlots - numCharts // >= 1
+
+    if (numAvailableSlotsForTable <= 1) {
+        return tabs
+            .slice(0, maxNumTabs)
+            .map((tab) => ({ tab, slot: GridSlot.SingleSlot }))
+    }
+
+    const numNeededSlotsForTable =
+        numDataTableRows === undefined
+            ? Infinity // no restriction
+            : Math.ceil(numDataTableRows / numDataTableRowsPerColumn)
+
+    const numSlotsForTable = Math.min(
+        numAvailableSlotsForTable,
+        numNeededSlotsForTable
+    )
+    const tableSlot = getGridSlotForCount(numSlotsForTable)
+
+    return tabs.map((tab) => ({
+        tab,
+        slot: tab === GRAPHER_TAB_NAMES.Table ? tableSlot : GridSlot.SingleSlot,
+    }))
+}
+
+function getGridSlotForCount(slotCount: number): GridSlot {
+    if (slotCount <= 1) return GridSlot.SingleSlot
+    else if (slotCount === 2) return GridSlot.DoubleSlot
+    else if (slotCount === 3) return GridSlot.TripleSlot
+    else return GridSlot.QuadSlot
+}
+
+export function getRowCountForGridSlot(
+    slot: GridSlot,
+    numRowsPerColumn: number
+): number {
+    const numColumns = match(slot)
+        .with(GridSlot.SingleSlot, () => 1)
+        .with(GridSlot.DoubleSlot, () => 2)
+        .with(GridSlot.TripleSlot, () => 3)
+        .with(GridSlot.QuadSlot, () => 4)
+        .with(GridSlot.SmallSlotLeft, () => 0)
+        .with(GridSlot.SmallSlotRight, () => 0)
+        .exhaustive()
+    return numColumns * numRowsPerColumn
+}
