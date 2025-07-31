@@ -5,6 +5,8 @@
     padding: 16px;
 
     &:hover {
+        background-color: $blue-10;
+
         .search-topic-page-hit__title-text {
             text-decoration: underline;
         }
