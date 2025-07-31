@@ -3,39 +3,45 @@
     align-self: flex-end;
     display: flex;
     align-items: center;
-    height: 48px;
+    height: 46px; // 48px - 2px border
 }
 
 .search-country-selector-button {
+    @include body-3-bold;
     background-color: #fff;
     cursor: pointer;
     font-weight: bold;
     color: $blue-90;
-    padding: 8px 16px;
+    height: 32px;
+    padding: 0 16px;
+
     margin-right: 8px;
-    line-height: 16px;
     display: flex;
     justify-content: center;
+    align-items: center;
+
     &:hover {
         background-color: $gray-10;
     }
+
     &.search-country-selector-button--is-open {
         background-color: $accent-pale-blue;
-    }
-    svg {
-        margin-right: 6px;
     }
 
     @include sm-only {
         width: 32px;
-        height: 32px;
         background-color: $blue-10;
+    }
+}
 
-        svg {
-            margin-right: 0;
-            font-size: 14px;
-            line-height: 14px;
-        }
+.search-country-selector-button__icon {
+    font-size: 12px;
+    margin-right: 6px;
+
+    @include sm-only {
+        margin-right: 0;
+        font-size: 14px;
+        line-height: 14px;
     }
 }
 
