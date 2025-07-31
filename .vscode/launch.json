@@ -127,6 +127,25 @@
             ],
         },
         {
+            "name": "Run refreshExplorerViews (via fnm)",
+            "program": "${workspaceFolder}/devTools/refreshExplorerViews.ts",
+            "request": "launch",
+            "type": "node",
+            "runtimeExecutable": "fnm",
+            "runtimeArgs": [
+                "exec",
+                "--",
+                "yarn",
+                "tsx",
+                "--tsconfig",
+                "tsconfig.tsx.json"
+            ],
+            "skipFiles": [
+                "<node_internals>/**",
+                "${workspaceFolder}/node_modules/**"
+            ]
+        },
+        {
             "name": "Attach to node",
             "type": "node",
             "request": "attach",

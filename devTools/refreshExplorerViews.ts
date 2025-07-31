@@ -14,23 +14,28 @@ interface ExplorerProcessingStats {
 }
 
 async function fetchPublishedExplorers(
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    slugWildcard?: string
 ): Promise<Pick<DbPlainExplorer, "slug" | "tsv">[]> {
-    return db.knexRaw(
-        knex,
-        `-- sql
-            SELECT slug, tsv
-            FROM explorers
-            WHERE isPublished IS TRUE
-        `
-    )
+    let query = `-- sql
+        SELECT slug, tsv
+        FROM explorers
+        WHERE isPublished IS TRUE`
+
+    if (slugWildcard) {
+        query += ` AND slug LIKE ?`
+        return db.knexRaw(knex, query, [slugWildcard])
+    }
+
+    return db.knexRaw(knex, query)
 }
 
 async function prepareGrapherConfigsForExplorerViews(
-    knex: db.KnexReadWriteTransaction
+    knex: db.KnexReadWriteTransaction,
+    slugWildcard?: string
 ): Promise<ExplorerProcessingStats[]> {
     // Fetch published explorers and existing explorer slugs
-    const publishedExplorers = await fetchPublishedExplorers(knex)
+    const publishedExplorers = await fetchPublishedExplorers(knex, slugWildcard)
     const existingExplorerRows = await db.knexRaw<{ explorerSlug: string }>(
         knex,
         `-- sql
@@ -212,26 +217,69 @@ function printStatsTable(stats: ExplorerProcessingStats[]): void {
     }
 }
 
+function showHelp(): void {
+    console.log(`
+Usage: yarn tsx devTools/refreshExplorerViews.ts [OPTIONS]
+
+This script refreshes explorer views for published explorers in the database.
+It processes chart configurations and updates the explorer_views table.
+
+Options:
+  --help            Show this help message and exit
+  --stats           Display detailed statistics after processing
+  --slug=PATTERN    Process only explorers matching the SQL LIKE pattern
+                    Examples:
+                      --slug="energy%"     (explorers starting with "energy")
+                      --slug="energy-mix"  (exact match)
+                      --slug="%climate%"   (explorers containing "climate")
+
+Examples:
+  yarn tsx devTools/refreshExplorerViews.ts
+  yarn tsx devTools/refreshExplorerViews.ts --stats
+  yarn tsx devTools/refreshExplorerViews.ts --slug="energy%" --stats
+  yarn tsx devTools/refreshExplorerViews.ts --slug="energy-mix"
+`)
+}
+
 const main = async (): Promise<void> => {
+    // Check for help flag
+    if (process.argv.includes("--help")) {
+        showHelp()
+        return
+    }
+
     const showStats = process.argv.includes("--stats")
 
-    // Handle unhandled promise rejections
-    process.on("unhandledRejection", (reason, promise) => {
-        console.error(
-            "Unhandled Promise Rejection at:",
-            promise,
-            "reason:",
-            reason
-        )
-    })
+    // Parse slug wildcard argument
+    const slugArgIndex = process.argv.findIndex((arg) =>
+        arg.startsWith("--slug=")
+    )
+    const slugWildcard =
+        slugArgIndex !== -1
+            ? process.argv[slugArgIndex].split("=")[1]
+            : undefined
 
-    process.on("uncaughtException", (error) => {
-        console.error("Uncaught Exception:", error)
-    })
+    if (slugWildcard) {
+        console.log(`Filtering explorers with slug pattern: ${slugWildcard}`)
+    }
+
+    // Handle unhandled promise rejections
+    // process.on("unhandledRejection", (reason, promise) => {
+    //     console.error(
+    //         "Unhandled Promise Rejection at:",
+    //         promise,
+    //         "reason:",
+    //         reason
+    //     )
+    // })
+
+    // process.on("uncaughtException", (error) => {
+    //     console.error("Uncaught Exception:", error)
+    // })
 
     try {
         const stats = await db.knexReadWriteTransaction(
-            (trx) => prepareGrapherConfigsForExplorerViews(trx),
+            (trx) => prepareGrapherConfigsForExplorerViews(trx, slugWildcard),
             db.TransactionCloseMode.Close
         )
 
@@ -240,7 +288,9 @@ const main = async (): Promise<void> => {
         }
     } catch (e) {
         console.error(e)
+        process.exit(1)
     }
+    process.exit(0)
 }
 
 void main()

@@ -193,7 +193,16 @@ async function iterateExplorerViews(
             await explorer.updateGrapherFromExplorer()
 
             // Extract the generated config from the explorer's grapher state
-            const config = explorer.grapherState.object
+            const config = explorer.grapherState.toObject(false)
+
+            // Grapher uses an internal fallback chain for some important properties.
+            // For explorer views we want to have a config that materializes as much
+            // as possible of what is shown, even if by default grapher would fall back
+            // to defaults (e.g. from the first Y indicator metadata), so we fill
+            // the important properties with the fallback defaults here
+            config.title = config.title ?? explorer.grapherState.defaultTitle
+            config.subtitle =
+                config.subtitle ?? explorer.grapherState.currentSubtitle
 
             if (!config) {
                 throw new Error(
