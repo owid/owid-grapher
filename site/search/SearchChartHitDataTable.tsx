@@ -6,6 +6,7 @@ interface TableRow {
     name: string
     value: string
     time?: string
+    timePreposition?: string // defaults to 'in'
     muted?: boolean
     striped?: boolean
 }
@@ -92,7 +93,7 @@ function Row({
                 {row.time && (
                     <span className="search-chart-hit-table-row__time">
                         {" "}
-                        in {row.time}
+                        {row.timePreposition ?? "in"} {row.time}
                     </span>
                 )}
             </span>
