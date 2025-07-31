@@ -43,13 +43,18 @@
     margin-bottom: 16px;
     cursor: pointer;
     padding: 0;
+
     &:focus {
         text-decoration: none;
     }
+
     &:hover {
-        text-decoration: underline;
-        text-decoration-color: $blue-90;
+        .search-data-topic__header h2,
+        .search-data-topic__hit-count {
+            text-decoration: underline;
+        }
     }
+
     @include sm-only {
         // Remove margin and instead add a margin-top to the ChartHits, so that their box shadows don't clip
         margin-bottom: 0;
