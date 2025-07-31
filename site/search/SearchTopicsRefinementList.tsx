@@ -59,7 +59,7 @@ export const SearchTopicsRefinementList = ({
                                     aria-label={`Filter by ${topic}`}
                                     onClick={() => setTopic(topic)}
                                 >
-                                    <span className="body-3-bold">
+                                    <span className="body-3-medium">
                                         {topicLabel}
                                     </span>{" "}
                                 </button>
