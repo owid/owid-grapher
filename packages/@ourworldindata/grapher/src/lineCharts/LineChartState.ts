@@ -302,6 +302,8 @@ export class LineChartState implements ChartState, ColorScaleManager {
         return {
             points,
             seriesName,
+            entityName,
+            columnName,
             isProjection: column.isProjection,
             plotMarkersOnly: column.display?.plotMarkersOnlyInLineChart,
             color: seriesColor,
