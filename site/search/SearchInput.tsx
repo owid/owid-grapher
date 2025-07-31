@@ -43,8 +43,8 @@ export const SearchInput = forwardRef(
             // Only set the placeholder once the component has rendered so that useMediaQuery has a chance to initialize
             // Otherwise on mobile it will flash from the desktop version to the mobile placeholder
             placeholder = isSmallScreen
-                ? "Search data, topics, or countries…"
-                : "Search for an indicator, a topic, or a country…"
+                ? "Search data, topics, countries or keywords…"
+                : "Search for an indicator, a topic, a country, or a keyword…"
         }
 
         // Generate unique IDs for ARIA relationships using utility functions
@@ -143,16 +143,6 @@ export const SearchInput = forwardRef(
                         onFocus={() => {
                             setShowSuggestions(true)
                             setActiveIndex(value ? 0 : -1)
-
-                            // Scroll to position the input near the top of the viewport on mobile
-                            if (isSmallScreen && isCurrentRef(inputRef)) {
-                                const rect =
-                                    inputRef.current.getBoundingClientRect()
-                                window.scrollBy({
-                                    top: rect.top - 24,
-                                    behavior: "smooth",
-                                })
-                            }
                         }}
                         onBlur={() => {
                             setShowSuggestions(false)
