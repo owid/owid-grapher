@@ -2,6 +2,7 @@ import { DualAxis } from "../axis/Axis"
 import { ChartManager } from "../chart/ChartManager"
 import {
     CoreValueType,
+    EntityName,
     EntityYearHighlight,
     InteractionState,
 } from "@ourworldindata/types"
@@ -46,6 +47,8 @@ export interface LineChartSeries extends ChartSeries {
     plotMarkersOnly?: boolean
     points: LinePoint[]
     focus: InteractionState
+    entityName: EntityName
+    columnName: string
 }
 
 export interface PlacedLineChartSeries extends LineChartSeries {
