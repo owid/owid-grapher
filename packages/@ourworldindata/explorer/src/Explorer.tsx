@@ -91,6 +91,7 @@ export interface ExplorerProps extends SerializedGridProgram {
     bounds?: Bounds
     staticBounds?: Bounds
     loadMetadataOnly?: boolean
+    throwOnMissingGrapher?: boolean
 }
 
 const LivePreviewComponent = (props: ExplorerProps) => {
@@ -583,11 +584,17 @@ export class Explorer
         const grapherState = this.grapherState
 
         const { grapherId } = this.explorerProgram.explorerGrapherConfig
-        const grapherConfig = this.grapherConfigs.get(grapherId!) ?? {}
+        const grapherConfig = this.grapherConfigs.get(grapherId!)
+        if (!grapherConfig) {
+            if (this.props.throwOnMissingGrapher) {
+                throw new Error(`Grapher config not found for ID: ${grapherId}`)
+            }
+        }
+        const finalGrapherConfig = grapherConfig ?? {}
 
         const config: GrapherProgrammaticInterface = {
             ...mergeGrapherConfigs(
-                grapherConfig,
+                finalGrapherConfig,
                 this.explorerProgram.grapherConfig
             ),
             bakedGrapherURL: this.bakedBaseUrl,

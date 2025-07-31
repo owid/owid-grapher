@@ -164,6 +164,7 @@ function createExplorerForViews(
         bakedGrapherUrl: BAKED_GRAPHER_URL,
         dataApiUrl: DATA_API_URL,
         loadMetadataOnly,
+        throwOnMissingGrapher: true,
     }
 
     // Create Explorer with setupGrapher: false to avoid setting up the actual grapher
