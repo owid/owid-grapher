@@ -48,15 +48,9 @@ import { chartHitQueryKeys } from "./queries.js"
 import { SearchChartHitThumbnail } from "./SearchChartHitThumbnail.js"
 import { SearchChartHitDataDisplay } from "./SearchChartHitDataDisplay.js"
 import { buildChartHitDataTableProps } from "./SearchChartHitDataTableHelpers.js"
-import {
-    SearchChartHitDataTable,
-    SearchChartHitDataTableProps,
-} from "./SearchChartHitDataTable.js"
+import { SearchChartHitDataTable } from "./SearchChartHitDataTable.js"
+import { SearchChartHitDataPoints } from "./SearchChartHitDataPoints.js"
 import { match } from "ts-pattern"
-import {
-    SearchChartHitDataPoints,
-    SearchChartHitDataPointsProps,
-} from "./SearchChartHitDataPoints.js"
 
 const NUM_DATA_TABLE_ROWS_PER_COLUMN = 4
 
@@ -231,11 +225,23 @@ function SearchChartHitMediumRichData({
     // build the table props first to get the row count.
     const dataTableProps = buildChartHitDataTableProps({ grapherState })
     if (dataTableProps.type === "data-points") dataDisplayProps = undefined
-    const placedTabs = placeGrapherTabsInGridLayout(sortedTabs, {
-        numDataTableRows: dataTableProps.rows.length,
-        hasDataDisplay: !!dataDisplayProps,
-        numDataTableRowsPerColumn: NUM_DATA_TABLE_ROWS_PER_COLUMN,
-    })
+    const placedTabs = match(dataTableProps)
+        .with({ type: "data-table" }, (dataTableProps) =>
+            placeGrapherTabsInGridLayout(sortedTabs, {
+                hasDataDisplay: !!dataDisplayProps,
+                tableType: dataTableProps.type,
+                numDataTableRows: dataTableProps.rows.length,
+                numDataTableRowsPerColumn: NUM_DATA_TABLE_ROWS_PER_COLUMN,
+            })
+        )
+        .with({ type: "data-points" }, (dataTableProps) =>
+            placeGrapherTabsInGridLayout(sortedTabs, {
+                hasDataDisplay: !!dataDisplayProps,
+                tableType: dataTableProps.type,
+                numMaxSlotsForTable: 2,
+            })
+        )
+        .exhaustive()
 
     // Check how much many rows are available for the table and update
     // the selected/focused entities accordingly. This is important to ensure
@@ -243,7 +249,11 @@ function SearchChartHitMediumRichData({
     const tableSlot = placedTabs.find(
         ({ tab }) => tab === GRAPHER_TAB_NAMES.Table
     )?.slot
-    if (tableSlot && !grapherState.isFaceted) {
+    if (
+        tableSlot &&
+        dataTableProps.type === "data-table" &&
+        !grapherState.isFaceted
+    ) {
         const numAvailableRows = getRowCountForGridSlot(
             tableSlot,
             NUM_DATA_TABLE_ROWS_PER_COLUMN
@@ -379,6 +389,7 @@ function SearchChartHitMediumFallback({
     )
     const placedTabs = placeGrapherTabsInGridLayout(grapherTabs, {
         hasDataDisplay: !!dataDisplayProps,
+        tableType: "none", // since there is no table tab
     })
 
     return (
