@@ -32,6 +32,7 @@ import { SearchChartHitDataPointsProps } from "./SearchChartHitDataPoints"
 import {
     getColumnNameForDisplay,
     calculateTrendDirection,
+    getColumnUnitForDisplay,
 } from "./searchUtils.js"
 import { OwidTable } from "@ourworldindata/core-table"
 
@@ -404,9 +405,9 @@ function buildDataTablePropsForScatterPlot({
 }: Args<ScatterPlotChartState>):
     | SearchChartHitDataTableProps
     | SearchChartHitDataPointsProps {
-    // If at least one entity is selected, then we display the x and y values
-    // for that entity. The remaining selected entities are ignored
-    if (grapherState.selection.hasSelection) {
+    // If exactly one entity is selected, then we display the x and y values
+    // for that entity
+    if (grapherState.selection.selectedEntityNames.length === 1) {
         const selectedEntity = grapherState.selection.selectedEntityNames[0]
         return buildDataPointsPropsForScatterPlot({
             grapherState,
