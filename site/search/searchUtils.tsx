@@ -1141,7 +1141,7 @@ export function getPageTypeNameAndIcon(pageType: PageType): {
             icon: faLightbulb,
         }))
         .with(OwidGdocType.LinearTopicPage, OwidGdocType.TopicPage, () => ({
-            name: "Topic",
+            name: "Topic page",
             icon: faBookmark,
         }))
         .with(WordpressPageType.Country, () => ({
