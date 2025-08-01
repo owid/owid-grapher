@@ -2,9 +2,21 @@
 
 - yarn typecheckLerna: runs the typescript typechecker across all files (both frontend code in lerna managed packages and the rest of the site)
 - yarn testLintChanged: run eslint on changed files
-- yarn test: run vitest
 - yarn testPrettierChanged: run prettier on changed files
 - yarn fixPrettierChanged: attempt to fix prettier issues on changed files
+- make migrate: apply migrations
+- make test: run unit tests. Uses vitest, can take test filenames to only run a subset
+- make dbtest: run database and api tests
+
+When you have completed implementing a set of changes, ALWAYS run `yarn typecheckLerna` and fix any errors you have.
+
+When you want to create a git commit, refer to docs/agent-guidelines/commit-messages.md for instructions.
+
+## Code style
+
+- We use double quotes for string literals instead of single quotes
+- Use type definitions for function params and return values. Reuse existing shared type definitions where possible.
+- Avoid the use of the `any` type. Only use it if you have to and ask for permission.
 
 # Codebase overview
 
@@ -17,7 +29,7 @@ Some key directories, going roughly along the dependency chain from the most sta
 - ./packages/core-table - our custom dataframe classes used by Grapher
 - ./packages/components - shared React components
 - ./packages/grapher - our data viz component. Written using MobX 5 for state management
-- ./packages/explorer - our data explorer that wraps grapher and adds additional dropdowns to explore more complex datasets
+- ./packages/explorer - our data explorer that wraps grapher and adds additional drop-downs to explore more complex datasets
 - ./db - code to access our MySQL 8 database as well as a substantial amount of business logic around reading ArchieML written in Google Docs
 - ./site - code for our website (React rendering ArchieML). This part of the codebase does not use MobX but instead uses React hooks
 - ./baker - code that "bakes" our website by rendering React to static HTML

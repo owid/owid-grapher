@@ -20,6 +20,14 @@ export async function getChartConfigById(
     return chartConfig ? parseChartConfigsRow(chartConfig) : undefined
 }
 
+export async function insertChartConfig(
+    knex: db.KnexReadWriteTransaction,
+    config: DbInsertChartConfig
+): Promise<string> {
+    await knex(ChartConfigsTableName).insert(config)
+    return config.id
+}
+
 export async function updateExistingConfigPair(
     knex: db.KnexReadWriteTransaction,
     {

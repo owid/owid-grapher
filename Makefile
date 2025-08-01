@@ -221,13 +221,22 @@ tmp-downloads/owid_metadata.sql.gz:
 
 test: node_modules
 	@echo '==> Linting'
-	yarn run eslint
+	yarn run testLintChanged
 
 	@echo '==> Checking formatting'
-	yarn testPrettierAll
+	yarn fixPrettierChanged
 
 	@echo '==> Running tests'
-	yarn run test
+	yarn test run --reporter=dot $(filter-out test,$(MAKECMDGOALS))
+
+# When additional arguments are provided after 'test', treat them as non-targets
+# Only apply this rule when 'test' is actually one of the goals
+ifneq ($(filter test,$(MAKECMDGOALS)),)
+ifneq ($(filter-out test,$(MAKECMDGOALS)),)
+$(filter-out test,$(MAKECMDGOALS)):
+	@:
+endif
+endif
 
 dbtest: node_modules
 	@echo '==> Running db test script'
