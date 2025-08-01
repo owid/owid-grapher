@@ -21,19 +21,6 @@ export function checkIsWordpressPageType(
 
 export type PageType = OwidGdocType | WordpressPageType
 
-export const pageTypeDisplayNames: Record<PageType, string> = {
-    [OwidGdocType.AboutPage]: "About",
-    [OwidGdocType.Article]: "Article",
-    [OwidGdocType.DataInsight]: "Data Insight",
-    [OwidGdocType.LinearTopicPage]: "Topic",
-    [OwidGdocType.TopicPage]: "Topic",
-    [WordpressPageType.Country]: "Country",
-    [WordpressPageType.Other]: "",
-    [OwidGdocType.Author]: "", // Should never be indexed
-    [OwidGdocType.Fragment]: "", // Should never be indexed
-    [OwidGdocType.Homepage]: "", // Should never be indexed
-}
-
 export interface PageRecord {
     objectID: string
     type: PageType
@@ -219,6 +206,14 @@ export enum SearchResultType {
 export type Filter = {
     type: FilterType
     name: string
+}
+
+export enum SearchUrlParam {
+    COUNTRY = "countries",
+    TOPIC = "topics",
+    QUERY = "q",
+    REQUIRE_ALL_COUNTRIES = "requireAllCountries",
+    RESULT_TYPE = "resultType",
 }
 
 export type SearchState = Readonly<{
