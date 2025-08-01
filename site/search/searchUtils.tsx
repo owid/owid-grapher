@@ -316,7 +316,7 @@ export const constructThumbnailUrl = ({
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
 
     const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
-    const thumbnailQueryStr = "imType=thumbnail"
+    const thumbnailQueryStr = "imType=thumbnail&nocache" // TODO: remove nocache param
     const fullQueryStr = queryStr
         ? `${queryStr}&${thumbnailQueryStr}`
         : `?${thumbnailQueryStr}`
