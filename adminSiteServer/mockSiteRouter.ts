@@ -297,7 +297,7 @@ mockSiteRouter.get("/thank-you", async (req, res) =>
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
-    "/data-insights/{:pageNumberOrSlug}",
+    "/data-insights{/:pageNumberOrSlug}",
     async (req, res, trx) => {
         const totalPageCount = calculateDataInsightIndexPageCount(
             await db.getPublishedDataInsightCount(trx)
