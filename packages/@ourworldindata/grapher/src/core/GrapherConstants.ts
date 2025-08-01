@@ -6,6 +6,7 @@ import {
 import { Bounds } from "@ourworldindata/utils"
 import { defaultGrapherConfig } from "../schema/defaultGrapherConfig.js"
 import type { GrapherProgrammaticInterface } from "./Grapher"
+import { GRAY_50 } from "../color/ColorConstants.js"
 
 export const GRAPHER_EMBEDDED_FIGURE_ATTR = "data-grapher-src"
 export const GRAPHER_EMBEDDED_FIGURE_CONFIG_ATTR = "data-grapher-config"
@@ -35,8 +36,8 @@ export const DEFAULT_GRAPHER_WIDTH = 850
 export const DEFAULT_GRAPHER_HEIGHT = 600
 
 // Keep in sync with $grapher-thumbnail-width and $grapher-thumbnail-height in Grapher.scss
-export const GRAPHER_THUMBNAIL_WIDTH = 900
-export const GRAPHER_THUMBNAIL_HEIGHT = 480
+export const GRAPHER_THUMBNAIL_WIDTH = 300
+export const GRAPHER_THUMBNAIL_HEIGHT = 160
 
 export const GRAPHER_SQUARE_SIZE = 540
 
@@ -81,6 +82,9 @@ export const GRAPHER_FONT_SCALE_14 = 14 / BASE_FONT_SIZE
 
 // keep in sync with $max-tooltip-width in Tooltip.scss
 export const GRAPHER_MAX_TOOLTIP_WIDTH = 400
+
+export const GRAPHER_THUMBNAIL_PADDING = 8
+export const GRAPHER_THUMBNAIL_GRID_LINE = GRAY_50
 
 export const latestGrapherConfigSchema = defaultGrapherConfig.$schema
 

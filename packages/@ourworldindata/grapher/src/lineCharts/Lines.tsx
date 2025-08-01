@@ -14,7 +14,6 @@ import {
     DEFAULT_LINE_OUTLINE_WIDTH,
     DEFAULT_MARKER_RADIUS,
     DEFAULT_STROKE_WIDTH,
-    LinesProps,
     NON_FOCUSED_LINE_COLOR,
     PlacedLineChartSeries,
     RenderLineChartSeries,
@@ -22,6 +21,19 @@ import {
 import { getSeriesKey } from "../chart/ChartUtils"
 import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
 import { MultiColorPolyline } from "../scatterCharts/MultiColorPolyline"
+import { DualAxis } from "../axis/Axis"
+
+export interface LinesProps {
+    dualAxis: DualAxis
+    series: RenderLineChartSeries[]
+    hidePoints?: boolean
+    lineStrokeWidth?: number
+    lineOutlineWidth?: number
+    markerRadius?: number
+    isStatic?: boolean
+    multiColor?: boolean
+    backgroundColor?: string
+}
 
 @observer
 export class Lines extends React.Component<LinesProps> {
@@ -201,6 +213,35 @@ export class Lines extends React.Component<LinesProps> {
         )
     }
 
+    private renderStartPointDot(
+        series: RenderLineChartSeries
+    ): React.ReactElement | null {
+        if (!series.shouldHighlightStartPoint || series.plotMarkersOnly)
+            return null
+        const startPoint = _.minBy(series.placedPoints, (point) => point.x)
+        if (!startPoint) return null
+        return (
+            <circle
+                cx={startPoint.x}
+                cy={startPoint.y}
+                r={4}
+                fill={series.color}
+            />
+        )
+    }
+
+    private renderEndPointDot(
+        series: RenderLineChartSeries
+    ): React.ReactElement | null {
+        if (!series.shouldHighlightEndPoint || series.plotMarkersOnly)
+            return null
+        const endPoint = _.maxBy(series.placedPoints, (point) => point.x)
+        if (!endPoint) return null
+        return (
+            <circle cx={endPoint.x} cy={endPoint.y} r={4} fill={series.color} />
+        )
+    }
+
     private renderLines(): React.ReactElement {
         return (
             <>
@@ -208,6 +249,8 @@ export class Lines extends React.Component<LinesProps> {
                     <React.Fragment key={getSeriesKey(series, index)}>
                         {this.renderLine(series)}
                         {this.renderLineMarkers(series)}
+                        {this.renderStartPointDot(series)}
+                        {this.renderEndPointDot(series)}
                     </React.Fragment>
                 ))}
             </>
