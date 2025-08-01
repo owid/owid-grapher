@@ -57,6 +57,9 @@ export interface PlacedLineChartSeries extends LineChartSeries {
 export interface RenderLineChartSeries extends PlacedLineChartSeries {
     hover: InteractionState
     focus: InteractionState
+
+    shouldHighlightStartPoint?: boolean
+    shouldHighlightEndPoint?: boolean
 }
 
 export interface LineChartManager extends ChartManager {

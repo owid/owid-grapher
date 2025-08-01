@@ -28,4 +28,5 @@ export interface PlacedSeries extends SizedSeries {
     level: number
     totalLevels: number
     midY: number
+    isHidden?: boolean
 }

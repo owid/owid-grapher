@@ -12,10 +12,11 @@ import {
     PlacedLineChartSeries,
     RenderLineChartSeries,
 } from "./LineChartConstants"
-import { Bounds, InteractionState } from "@ourworldindata/utils"
+import { Bounds, InteractionState, VerticalAlign } from "@ourworldindata/utils"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
+    GRAPHER_FONT_SCALE_12,
     GRAPHER_THUMBNAIL_PADDING,
 } from "../core/GrapherConstants"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
@@ -32,6 +33,10 @@ import {
     HorizontalAxisDomainLine,
 } from "../axis/AxisViews"
 import { byHoverThenFocusState } from "../chart/ChartUtils"
+import { LineLabelSeries } from "../lineLegend/LineLegendTypes"
+import { LineLegend, LineLegendProps } from "../lineLegend/LineLegend"
+
+const SPACE_BETWEEN_LINE_AND_LABEL = 4
 
 @observer
 export class LineChartThumbnail
@@ -56,7 +61,18 @@ export class LineChartThumbnail
     }
 
     @computed private get innerBounds(): Bounds {
-        return this.bounds.pad(GRAPHER_THUMBNAIL_PADDING)
+        return this.bounds
+            .pad(GRAPHER_THUMBNAIL_PADDING)
+            .padRight(
+                this.manager.showLegend
+                    ? this.lineLegendWidthRight + SPACE_BETWEEN_LINE_AND_LABEL
+                    : 0
+            )
+            .padLeft(
+                this.manager.showLegend
+                    ? this.lineLegendWidthLeft + SPACE_BETWEEN_LINE_AND_LABEL
+                    : 0
+            )
     }
 
     @computed get fontSize(): number {
@@ -107,15 +123,21 @@ export class LineChartThumbnail
     }
 
     @computed private get renderSeries(): RenderLineChartSeries[] {
-        let series: RenderLineChartSeries[] = this.placedSeries.map(
-            (series) => {
-                return {
-                    ...series,
-                    hover: { active: false, background: false },
-                    focus: this.focusStateForSeries(series),
-                }
+        let series = this.placedSeries.map((series) => {
+            return {
+                ...series,
+                hover: { active: false, background: false },
+                focus: this.focusStateForSeries(series),
+                shouldHighlightStartPoint:
+                    this.lineLegendLeft.visibleSeriesNames.includes(
+                        series.seriesName
+                    ),
+                shouldHighlightEndPoint:
+                    this.lineLegendRight.visibleSeriesNames.includes(
+                        series.seriesName
+                    ),
             }
-        )
+        })
 
         // draw lines on top of markers-only series
         series = _.sortBy(series, (series) => !series.plotMarkersOnly)
@@ -127,6 +149,112 @@ export class LineChartThumbnail
         }
 
         return series
+    }
+
+    @computed private get maxLineLegendWidth(): number {
+        return Infinity
+    }
+
+    @computed private get lineLegendPropsCommon(): Partial<LineLegendProps> {
+        return {
+            yAxis: this.dualAxis.verticalAxis,
+            maxWidth: this.maxLineLegendWidth,
+            fontSize: this.fontSize,
+            isStatic: this.manager.isStatic,
+            yRange: this.lineLegendYRange,
+            verticalAlign: VerticalAlign.top,
+            useConnectorLines: false,
+        }
+    }
+
+    @computed private get lineLegendPropsRight(): Partial<LineLegendProps> {
+        return { xAnchor: "start" }
+    }
+
+    @computed private get lineLegendPropsLeft(): Partial<LineLegendProps> {
+        return { xAnchor: "end" }
+    }
+
+    @computed private get lineLegendWidthRight(): number {
+        // todo: copy-pasted from LineLegend
+        const fontSize = Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize)
+        const labelWidths = this.lineLegendSeriesRight.map(
+            (series) =>
+                Bounds.forText(series.label, {
+                    fontSize,
+                }).width
+        )
+        const maxLabelWidth = _.max(labelWidths) ?? 0
+        return maxLabelWidth
+    }
+
+    @computed private get lineLegendWidthLeft(): number {
+        // todo: copy-pasted from LineLegend
+        const fontSize = Math.floor(GRAPHER_FONT_SCALE_12 * this.fontSize)
+        const labelWidths = this.lineLegendSeriesRight.map(
+            (series) =>
+                Bounds.forText(series.label, {
+                    fontSize,
+                }).width
+        )
+        const maxLabelWidth = _.max(labelWidths) ?? 0
+        return maxLabelWidth
+    }
+
+    private constructLineLegendSeries(
+        series: LineChartSeries,
+        getValue: (series: LineChartSeries) => number
+    ): LineLabelSeries {
+        const { seriesName, color } = series
+        const value = getValue(series)
+        const formattedValue =
+            this.chartState.formatColumn.formatValueShortWithAbbreviations(
+                value
+            )
+        return {
+            color,
+            seriesName,
+            label: formattedValue,
+            yValue: value,
+        }
+    }
+
+    @computed private get lineLegendYRange(): [number, number] {
+        return [this.bounds.top, this.bounds.bottom]
+    }
+
+    @computed private get lineLegendSeriesRight(): LineLabelSeries[] {
+        return this.chartState.series.map((series) =>
+            this.constructLineLegendSeries(series, (series) => {
+                const maxPoint = _.maxBy(series.points, (point) => point.x)
+                return maxPoint?.y ?? 0
+            })
+        )
+    }
+
+    @computed private get lineLegendSeriesLeft(): LineLabelSeries[] {
+        return this.chartState.series.map((series) =>
+            this.constructLineLegendSeries(series, (series) => {
+                const minPoint = _.minBy(series.points, (point) => point.x)
+                return minPoint?.y ?? 0
+            })
+        )
+    }
+
+    @computed private get lineLegendRight(): LineLegend {
+        return new LineLegend({
+            series: this.lineLegendSeriesRight,
+            ...this.lineLegendPropsCommon,
+            ...this.lineLegendPropsRight,
+        })
+    }
+
+    @computed private get lineLegendLeft(): LineLegend {
+        return new LineLegend({
+            series: this.lineLegendSeriesLeft,
+            ...this.lineLegendPropsCommon,
+            ...this.lineLegendPropsLeft,
+        })
     }
 
     override render(): React.ReactElement {
@@ -149,6 +277,18 @@ export class LineChartThumbnail
                     lineStrokeWidth={1.5}
                     lineOutlineWidth={0}
                     isStatic={this.manager.isStatic}
+                />
+                <LineLegend
+                    series={this.lineLegendSeriesRight}
+                    x={this.innerBounds.right + SPACE_BETWEEN_LINE_AND_LABEL}
+                    {...this.lineLegendPropsCommon}
+                    {...this.lineLegendPropsRight}
+                />
+                <LineLegend
+                    series={this.lineLegendSeriesLeft}
+                    x={this.innerBounds.left - SPACE_BETWEEN_LINE_AND_LABEL}
+                    {...this.lineLegendPropsCommon}
+                    {...this.lineLegendPropsLeft}
                 />
             </g>
         )

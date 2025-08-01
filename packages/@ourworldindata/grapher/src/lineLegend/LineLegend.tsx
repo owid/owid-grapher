@@ -311,6 +311,7 @@ export interface LineLegendProps {
     fontWeight?: number
     showTextOutlines?: boolean
     textOutlineColor?: Color
+    useConnectorLines?: boolean // true by default
 
     // used to determine which series should be labelled when there is limited space
     seriesNamesSortedByImportance?: SeriesName[]
@@ -385,6 +386,10 @@ export class LineLegend extends React.Component<LineLegendProps> {
 
     @computed private get textMaxWidth(): number {
         return this.maxWidth - DEFAULT_CONNECTOR_LINE_WIDTH
+    }
+
+    @computed private get useConnectorLines(): boolean {
+        return this.props.useConnectorLines ?? true
     }
 
     private makeLabelTextWrap(
@@ -650,10 +655,49 @@ export class LineLegend extends React.Component<LineLegendProps> {
 
     @computed get visiblePlacedSeries(): PlacedSeries[] {
         const { initialPlacedSeries, seriesSortedByImportance, legendY } = this
-        const availableHeight = Math.abs(legendY[1] - legendY[0])
-        const totalHeight = this.computeHeight(initialPlacedSeries)
+
+        if (!this.useConnectorLines) {
+            // How to work out which of two slopes to prioritize for labelling conflicts
+            function chooseLabel(s1: PlacedSeries, s2: PlacedSeries) {
+                if (s1.hover?.active && !s2.hover?.active)
+                    // Hovered slopes always have priority
+                    return s1
+                else if (!s1.hover?.active && s2.hover?.active) return s2
+                else if (s1.focus?.active && !s2.focus?.active)
+                    // Focused slopes are next in priority
+                    return s1
+                else if (!s1.focus?.active && s2.focus?.active)
+                    // Focused slopes are next in priority
+                    return s2
+                // TODO: this is not possible right now, but would be nice
+                // else if (s1.hasRightLabel && !s2.hasRightLabel)
+                //     // Slopes which already have one label are prioritized for the other side
+                //     return s1
+                // else if (!s1.hasRightLabel && s2.hasRightLabel) return s2
+                else return s1 // Equal priority, just do the first one
+            }
+
+            for (let i = 0; i < initialPlacedSeries.length; i++) {
+                const s1 = initialPlacedSeries[i]
+                if (s1.isHidden) continue
+
+                for (let j = i + 1; j < initialPlacedSeries.length; j++) {
+                    const s2 = initialPlacedSeries[j]
+                    if (s2.isHidden) continue
+
+                    if (s1.bounds.hasVerticalOverlap(s2.bounds)) {
+                        if (chooseLabel(s1, s2) === s1) s2.isHidden = true
+                        else s1.isHidden = true
+                    }
+                }
+            }
+
+            return initialPlacedSeries.filter((series) => !series.isHidden)
+        }
 
         // early return if filtering is not needed
+        const availableHeight = Math.abs(legendY[1] - legendY[0])
+        const totalHeight = this.computeHeight(initialPlacedSeries)
         if (totalHeight <= availableHeight) return initialPlacedSeries
 
         // if a list of series sorted by importance is provided, use it
