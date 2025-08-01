@@ -729,7 +729,8 @@ export const getUrlParamNameForFilter = (filter: Filter): SearchUrlParam =>
 export const getItemUrlForFilter = (filter: Filter): string => {
     const queryParams = {
         [getUrlParamNameForFilter(filter)]: filter.name,
-        ...(filter.type === FilterType.COUNTRY && {
+        ...((filter.type === FilterType.COUNTRY ||
+            filter.type === FilterType.TOPIC) && {
             [SearchUrlParam.RESULT_TYPE]: SearchResultType.ALL,
         }),
     }
