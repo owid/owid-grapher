@@ -1,7 +1,12 @@
 import { ChartManager } from "../chart/ChartManager"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { ChartSeries } from "../chart/ChartInterface"
-import { Color, CoreValueType, Time } from "@ourworldindata/types"
+import {
+    Color,
+    CoreValueType,
+    InteractionState,
+    Time,
+} from "@ourworldindata/types"
 import { TextWrap } from "@ourworldindata/components"
 
 export interface DiscreteBarSeries extends ChartSeries {
@@ -12,6 +17,7 @@ export interface DiscreteBarSeries extends ChartSeries {
     time: Time
     colorValue?: CoreValueType
     label?: TextWrap
+    focus: InteractionState
 }
 
 export interface PlacedDiscreteBarSeries extends DiscreteBarSeries {
