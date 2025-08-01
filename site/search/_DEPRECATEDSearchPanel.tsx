@@ -45,7 +45,7 @@ import { PreferenceType, getPreferenceValue } from "../cookiePreferences.js"
 import type { SearchResults as AlgoliaSearchResultsType } from "algoliasearch-helper"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { extractRegionNamesFromSearchQuery } from "./searchUtils.js"
-import { ChartHit } from "./ChartHit.js"
+import { DEPRECATEDChartHit } from "./_DEPRECATEChartHit.js"
 import DataInsightDateline from "../gdocs/components/DataInsightDateline.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
 
@@ -440,7 +440,7 @@ const SearchResults = (props: SearchResultsProps) => {
                                 item: "list-style-none span-md-cols-2",
                             }}
                             hitComponent={(props) => (
-                                <ChartHit
+                                <DEPRECATEDChartHit
                                     {...props}
                                     searchQueryRegionsMatches={
                                         searchQueryRegionsMatches

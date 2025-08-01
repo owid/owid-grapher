@@ -1,0 +1,11 @@
+.search-result-type-toggle {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 8px;
+    margin-left: auto;
+
+    .radio .label {
+        @include note-1-regular;
+        color: $blue-50;
+    }
+}

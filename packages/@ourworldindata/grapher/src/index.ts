@@ -37,6 +37,7 @@ export {
     latestGrapherConfigSchema,
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
+    CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME,
 } from "./core/GrapherConstants"
 export {
     getVariableDataRoute,
@@ -90,6 +91,7 @@ export {
     migrateSelectedEntityNamesParam,
     getSelectedEntityNamesParam,
     generateSelectedEntityNamesParam,
+    getEntityNamesParam,
 } from "./core/EntityUrlBuilder"
 export { grapherConfigToQueryParams } from "./core/GrapherUrl.js"
 export {
@@ -105,6 +107,8 @@ export { generateGrapherImageSrcSet } from "./chart/ChartUtils"
 export {
     isValidTabQueryParam,
     findPotentialChartTypeSiblings,
+    mapGrapherTabNameToQueryParam,
+    makeLabelForGrapherTab,
 } from "./chart/ChartTabs"
 export {
     renderGrapherIntoContainer,
@@ -112,3 +116,4 @@ export {
 } from "./core/GrapherUseHelpers.js"
 export { GeoFeatures } from "./mapCharts/GeoFeatures"
 export { isValidVerticalComparisonLineConfig } from "./comparisonLine/ComparisonLineHelpers"
+export { makeChartState } from "./chart/ChartTypeMap"
