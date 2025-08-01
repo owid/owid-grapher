@@ -683,10 +683,11 @@ function configureGrapherStateFocus(
     grapherState: GrapherState,
     { entities }: { entities: EntityName[] }
 ): void {
+    const { seriesStrategy = SeriesStrategy.entity } = grapherState.chartState
     if (
         entities.length > 0 &&
         // focusing entities only makes sense when we're plotting entities
-        grapherState.chartState.seriesStrategy === SeriesStrategy.entity &&
+        seriesStrategy === SeriesStrategy.entity &&
         grapherState.facetStrategy !== FacetStrategy.entity
     ) {
         const validEntities = entities.filter((entity) =>
@@ -739,7 +740,8 @@ function configureGrapherStateForLayout(
         )
     } else if (
         grapherState.yColumnSlugs.length > numAvailableRows &&
-        !grapherState.hasProjectedData
+        !grapherState.hasProjectedData &&
+        !grapherState.isStackedDiscreteBar
     ) {
         // When plotting columns as series, focus only the subset of columns
         // that can be displayed in the table
