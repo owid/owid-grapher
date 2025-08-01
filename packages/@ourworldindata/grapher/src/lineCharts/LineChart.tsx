@@ -82,7 +82,6 @@ import {
     getAnnotationsForSeries,
     getAnnotationsMap,
 } from "./LineChartHelpers"
-import { FocusArray } from "../focus/FocusArray.js"
 import { LineLabelSeries } from "../lineLegend/LineLegendTypes"
 import { Lines } from "./Lines"
 import { LineChartState } from "./LineChartState.js"
@@ -218,10 +217,6 @@ export class LineChart
         if (this.hasColorScale) return VARIABLE_COLOR_MARKER_RADIUS
         if (this.manager.isStaticAndSmall) return STATIC_SMALL_MARKER_RADIUS
         return DEFAULT_MARKER_RADIUS
-    }
-
-    @computed private get focusArray(): FocusArray {
-        return this.manager.focusArray ?? new FocusArray()
     }
 
     @computed private get activeX(): number | undefined {
@@ -397,7 +392,7 @@ export class LineChart
 
                         const blurred =
                             this.hoverStateForSeries(series).background ||
-                            this.focusStateForSeries(series).background ||
+                            series.focus.background ||
                             point === undefined
 
                         const color = blurred
@@ -453,7 +448,7 @@ export class LineChart
     }
 
     @action.bound private onLineLegendClick(seriesName: SeriesName): void {
-        this.focusArray.toggle(seriesName)
+        this.chartState.focusArray.toggle(seriesName)
     }
 
     @computed private get hoveredSeriesNames(): string[] {
@@ -483,7 +478,7 @@ export class LineChart
     }
 
     @computed private get isFocusModeActive(): boolean {
-        return !this.focusArray.isEmpty
+        return !this.chartState.focusArray.isEmpty
     }
 
     @computed private get canToggleFocusMode(): boolean {
@@ -839,17 +834,12 @@ export class LineChart
         })
     }
 
-    private focusStateForSeries(series: LineChartSeries): InteractionState {
-        return this.focusArray.state(series.seriesName)
-    }
-
     @computed private get renderSeries(): RenderLineChartSeries[] {
         let series: RenderLineChartSeries[] = this.placedSeries.map(
             (series) => {
                 return {
                     ...series,
                     hover: this.hoverStateForSeries(series),
-                    focus: this.focusStateForSeries(series),
                 }
             }
         )
@@ -896,8 +886,8 @@ export class LineChart
                     seriesName
                 ),
                 yValue: lastValue,
+                focus: series.focus,
                 hover: this.hoverStateForSeries(series),
-                focus: this.focusStateForSeries(series),
             }
         })
     }
