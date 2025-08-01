@@ -74,6 +74,7 @@ import {
 import * as R from "remeda"
 import { GlobeController } from "./GlobeController"
 import { isDarkColor } from "../color/ColorUtils"
+import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 
 const DEFAULT_SCALE = geoOrthographic().scale()
 
@@ -113,6 +114,10 @@ export class ChoroplethGlobe extends React.Component<{
         return this.manager.choroplethMapBounds
     }
 
+    @computed private get selectionArray(): MapSelectionArray {
+        return this.manager.selectionArray ?? new MapSelectionArray()
+    }
+
     @computed.struct private get choroplethData(): ChoroplethSeriesByName {
         return this.manager.choroplethData
     }
@@ -126,7 +131,7 @@ export class ChoroplethGlobe extends React.Component<{
     }
 
     @computed private get foregroundFeatures(): GlobeRenderFeature[] {
-        return getForegroundFeatures(this.features, this.manager.selectionArray)
+        return getForegroundFeatures(this.features, this.selectionArray)
     }
 
     @computed
@@ -149,8 +154,9 @@ export class ChoroplethGlobe extends React.Component<{
         // and smaller countries are rendered on top of bigger ones
         return sortFeaturesByInteractionStateAndSize(this.featuresWithData, {
             isHovered: (featureId: string) =>
-                this.manager.getHoverState(featureId).active,
-            isSelected: (featureId) => this.manager.isSelected(featureId),
+                this.manager.getHoverState?.(featureId).active ?? false,
+            isSelected: (featureId) =>
+                this.manager.isSelected?.(featureId) ?? false,
         })
     }
 
@@ -181,13 +187,13 @@ export class ChoroplethGlobe extends React.Component<{
 
         if (!nearbyFeature) {
             this.hoverNearbyFeature = undefined
-            this.manager.onMapMouseLeave()
+            this.manager.onMapMouseLeave?.()
             return
         }
 
         if (nearbyFeature.id !== this.hoverNearbyFeature?.id) {
             this.hoverNearbyFeature = nearbyFeature
-            this.manager.onMapMouseOver(nearbyFeature.geo)
+            this.manager.onMapMouseOver?.(nearbyFeature.geo)
         }
 
         return nearbyFeature
@@ -409,7 +415,7 @@ export class ChoroplethGlobe extends React.Component<{
     @action.bound private clearHover(): void {
         this.hoverEnterFeature = undefined
         this.hoverNearbyFeature = undefined
-        this.manager.onMapMouseLeave()
+        this.manager.onMapMouseLeave?.()
         this.globeController.dismissCountryFocus()
     }
 
@@ -439,12 +445,12 @@ export class ChoroplethGlobe extends React.Component<{
         if (this.hoverEnterFeature?.id === feature.id) return
 
         this.hoverEnterFeature = feature
-        this.manager.onMapMouseOver(feature.geo)
+        this.manager.onMapMouseOver?.(feature.geo)
     }
 
     @action.bound private clearHoverEnterFeature(): void {
         this.hoverEnterFeature = undefined
-        this.manager.onMapMouseLeave()
+        this.manager.onMapMouseLeave?.()
     }
 
     @action.bound private onClick(feature: GlobeRenderFeature): void {
@@ -744,8 +750,8 @@ export class ChoroplethGlobe extends React.Component<{
                         feature={feature}
                         path={this.getPath(feature)}
                         patternId={patternId}
-                        isSelected={this.manager.isSelected(feature.id)}
-                        hover={this.manager.getHoverState(feature.id)}
+                        isSelected={this.manager.isSelected?.(feature.id)}
+                        hover={this.manager.getHoverState?.(feature.id)}
                         onClick={(event) => {
                             // don't invoke a second click on parent that
                             // catches clicks on 'nearby' features
@@ -805,8 +811,8 @@ export class ChoroplethGlobe extends React.Component<{
                             feature={feature}
                             series={series}
                             path={this.getPath(feature)}
-                            isSelected={this.manager.isSelected(feature.id)}
-                            hover={this.manager.getHoverState(feature.id)}
+                            isSelected={this.manager.isSelected?.(feature.id)}
+                            hover={this.manager.getHoverState?.(feature.id)}
                             onClick={(event) => {
                                 // don't invoke a second click on parent that
                                 // catches clicks on 'nearby' features
