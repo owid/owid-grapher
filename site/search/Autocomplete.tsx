@@ -45,11 +45,7 @@ import {
 } from "./searchUtils.js"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {
-    faChartSimple,
-    faLineChart,
-    faSearch,
-} from "@fortawesome/free-solid-svg-icons"
+import { faLineChart, faSearch } from "@fortawesome/free-solid-svg-icons"
 
 const siteAnalytics = new SiteAnalytics()
 type BaseItem = Record<string, unknown>
@@ -323,16 +319,6 @@ const createFiltersSource = (
                             <>
                                 <span className="autocomplete-item-contents__type-icon">
                                     <FontAwesomeIcon icon={faSearch} />
-                                </span>
-                                <span className="autocomplete-item-contents__description">
-                                    All
-                                </span>
-                                <span className="autocomplete-item-contents__description autocomplete-item-contents__description--type">
-                                    <FontAwesomeIcon icon={faChartSimple} />
-                                    data
-                                </span>
-                                <span className="autocomplete-item-contents__description">
-                                    on
                                 </span>
                                 <SearchFilterPill
                                     name={filter.name}
