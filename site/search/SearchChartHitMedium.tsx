@@ -537,6 +537,17 @@ function pickEntitiesForDisplay(
             grapherState.table.availableEntityNameSet.has(entityName)
     )
 
+    // TODO: debatable
+    // // In case of a stacked discrete bar chart with multiple y-columns,
+    // // we want to show a single entity, i.e. bar
+    // if (
+    //     grapherState.isStackedDiscreteBar &&
+    //     grapherState.yColumnSlugs.length > 1
+    // ) {
+    //     const entity = pickedEntities[0] ?? defaultEntities[0]
+    //     return entity ? [entity] : []
+    // }
+
     if (pickedEntities.length === 0) return defaultEntities
 
     return match(grapherState.addCountryMode)
