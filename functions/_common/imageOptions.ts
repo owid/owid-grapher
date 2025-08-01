@@ -81,8 +81,14 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
     // We have some special images types specified via the `imType` query param:
     if (imType === "twitter") return TWITTER_OPTIONS
     else if (imType === "og") return OPEN_GRAPH_OPTIONS
-    else if (imType === "thumbnail") return THUMBNAIL_OPTIONS
-    else if (imType === "square" || imType === "social-media-square") {
+    else if (imType === "thumbnail") {
+        const thumbnailOptions = _.cloneDeep(THUMBNAIL_OPTIONS) as ImageOptions
+        if (params.has("imFontSize")) {
+            const fontSize = parseInt(params.get("imFontSize")!)
+            thumbnailOptions.fontSize = fontSize
+        }
+        return thumbnailOptions
+    } else if (imType === "square" || imType === "social-media-square") {
         const squareOptions = _.cloneDeep(SQUARE_OPTIONS) as ImageOptions
         if (imType === "social-media-square") {
             squareOptions.grapherProps.isSocialMediaExport = true
