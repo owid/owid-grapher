@@ -232,20 +232,6 @@ section[data-autocomplete-source-id="recentSearchesPlugin"] {
 }
 
 section[data-autocomplete-source-id="filters"] {
-    .autocomplete-item-contents__description {
-        @include sm-only {
-            display: none;
-        }
-    }
-
-    .autocomplete-item-contents__description--type {
-        font-style: italic;
-        color: $blue-50;
-        svg {
-            margin-right: 4px;
-        }
-    }
-
     .search-filter-pill {
         flex-shrink: 0;
     }
