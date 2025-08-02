@@ -1,12 +1,20 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react"
 import * as Sentry from "@sentry/react"
 import {
     getCachingInputTableFetcher,
     Grapher,
     GrapherAnalytics,
     GrapherProgrammaticInterface,
-    GrapherState,
     loadVariableDataAndMetadata,
+    useOptionallyGlobalGrapherStateRef,
+    GuidedChartContext,
 } from "@ourworldindata/grapher"
 import {
     extractMultiDimChoicesFromSearchParams,
@@ -24,6 +32,15 @@ import { DATA_API_URL } from "../../settings/clientSettings.js"
 
 const analytics = new GrapherAnalytics()
 
+interface MultiDimProps {
+    config: MultiDimDataPageConfig
+    localGrapherConfig?: GrapherProgrammaticInterface
+    slug: string | null
+    queryStr: string
+    archivedChartInfo?: ArchiveContext
+    isPreviewing?: boolean
+}
+
 export default function MultiDim({
     config,
     localGrapherConfig,
@@ -31,26 +48,18 @@ export default function MultiDim({
     queryStr,
     archivedChartInfo,
     isPreviewing,
-}: {
-    config: MultiDimDataPageConfig
-    localGrapherConfig?: GrapherProgrammaticInterface
-    slug: string | null
-    queryStr: string
-    archivedChartInfo?: ArchiveContext
-    isPreviewing?: boolean
-}) {
+}: MultiDimProps) {
     const manager = useRef(localGrapherConfig?.manager ?? {})
-    const grapherRef = useRef<GrapherState>(
-        new GrapherState({
-            manager: manager.current,
-            queryStr,
-            additionalDataLoaderFn: (varId: number) =>
-                loadVariableDataAndMetadata(varId, DATA_API_URL, {
-                    noCache: isPreviewing,
-                }),
-            isConfigReady: false,
-        })
-    )
+    const grapherRef = useOptionallyGlobalGrapherStateRef({
+        manager: manager.current,
+        queryStr,
+        additionalDataLoaderFn: (varId: number) =>
+            loadVariableDataAndMetadata(varId, DATA_API_URL, {
+                noCache: isPreviewing,
+            }),
+        isConfigReady: false,
+    })
+
     const grapherDataLoader = useRef(
         getCachingInputTableFetcher(DATA_API_URL, undefined, isPreviewing)
     )
@@ -74,6 +83,22 @@ export default function MultiDim({
         )
         return config.filterToAvailableChoices(choices).selectedChoices
     })
+
+    // Register with GuidedChartContext for guided chart link support
+    const guidedChartContext = useContext(GuidedChartContext)
+    const hasRegistered = useRef(false)
+    useEffect(() => {
+        if (
+            guidedChartContext?.onMultiDimSettingsUpdate &&
+            !hasRegistered.current
+        ) {
+            guidedChartContext.onMultiDimSettingsUpdate({
+                config,
+                updater: setSettings,
+            })
+            hasRegistered.current = true
+        }
+    }, [guidedChartContext, config])
 
     const handleSettingsChange = useCallback(
         (settings: MultiDimDimensionChoices) => {
@@ -115,7 +140,7 @@ export default function MultiDim({
 
         const newGrapherParams: GrapherQueryParams = {
             ...grapher.changedParams,
-            // If the grapher has data preserve the active tab in the new view,
+            // If the grapher has data, preserve the active tab in the new view,
             // otherwise use the tab from the URL.
             tab: grapher.hasData
                 ? grapher.mapGrapherTabToQueryParam(grapher.activeTab)
@@ -192,15 +217,14 @@ export default function MultiDim({
         archivedChartInfo,
         baseGrapherConfig,
         manager,
+        grapherRef,
     ])
-
-    // use a useEffects on the bounds to update the grapherState.externalBounds
 
     useEffect(() => {
         if (grapherRef.current) {
             grapherRef.current.externalBounds = bounds
         }
-    }, [bounds])
+    }, [bounds, grapherRef])
 
     return (
         <div className="multi-dim-container">

@@ -15,6 +15,7 @@ import {
     RawBlockNumberedList,
     RawBlockProminentLink,
     RawBlockPullQuote,
+    RawBlockGuidedChart,
     RawBlockRecirc,
     RawBlockScroller,
     RawBlockSDGGrid,
@@ -280,6 +281,16 @@ export function enrichedBlockToRawBlock(
                             enrichedBlockToRawBlock(enriched) as RawBlockText
                     ),
                 },
+            })
+        )
+        .with(
+            { type: "guided-chart" },
+            (b): RawBlockGuidedChart => ({
+                type: b.type,
+                value: b.content.map(
+                    (enriched) =>
+                        enrichedBlockToRawBlock(enriched) as RawBlockText
+                ),
             })
         )
         .with(

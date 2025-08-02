@@ -32,6 +32,7 @@ export enum EventCategory {
     DetailOnDemand = "owid.detail_on_demand",
     DataCatalogSearch = "owid.data_catalog_search",
     DataCatalogResultClick = "owid.data_catalog_result_click",
+    SiteGuidedChartLinkClick = "owid.site_guided_chart_link_click",
 }
 
 enum EventAction {

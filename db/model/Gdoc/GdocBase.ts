@@ -18,6 +18,7 @@ import {
     OwidGdocMinimalPostInterface,
     urlToSlug,
     GRAPHER_TAB_CONFIG_OPTIONS,
+    GRAPHER_QUERY_PARAM_KEYS,
     DbInsertPostGdocLink,
     DbPlainTag,
     formatDate,
@@ -669,6 +670,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "people",
                         "people-rows",
                         "pull-quote",
+                        "guided-chart",
                         "sdg-grid",
                         "sdg-toc",
                         "side-by-side",
@@ -981,6 +983,23 @@ export class GdocBase implements OwidGdocBaseInterface {
                             message: `Link with text "${link.text}" is referencing an unknown dod with name "${link.target}"`,
                             type: OwidGdocErrorMessageType.Error,
                         })
+                    }
+                })
+                .with({ linkType: ContentGraphLinkType.GuidedChart }, () => {
+                    // Validate that guided chart query parameters are spelled correctly
+                    const queryParams = link.target.split("&")
+                    for (const param of queryParams) {
+                        const [key] = param.split("=")
+                        if (
+                            key &&
+                            !GRAPHER_QUERY_PARAM_KEYS.includes(key as any)
+                        ) {
+                            linkErrors.push({
+                                property: "content",
+                                message: `Guided chart link contains invalid query parameter "${key}". Valid parameters are: ${GRAPHER_QUERY_PARAM_KEYS.join(", ")}`,
+                                type: OwidGdocErrorMessageType.Warning,
+                            })
+                        }
                     }
                 })
                 .with(
