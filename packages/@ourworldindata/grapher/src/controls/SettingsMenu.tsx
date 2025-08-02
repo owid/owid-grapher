@@ -86,11 +86,14 @@ interface SettingsMenuProps {
 
 @observer
 export class SettingsMenu extends React.Component<SettingsMenuProps> {
-    @observable.ref active: boolean = false
+    active: boolean = false
 
     constructor(props: SettingsMenuProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            active: observable.ref,
+        })
     }
 
     static shouldShow(manager: SettingsMenuManager): boolean {

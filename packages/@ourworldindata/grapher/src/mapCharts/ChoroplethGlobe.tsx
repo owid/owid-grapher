@@ -83,14 +83,21 @@ export class ChoroplethGlobe extends React.Component<{
 }> {
     base = React.createRef<SVGGElement>()
 
-    @observable private hoverEnterFeature?: GlobeRenderFeature
-    @observable private hoverNearbyFeature?: GlobeRenderFeature
+    private hoverEnterFeature: GlobeRenderFeature | undefined = undefined
+    private hoverNearbyFeature: GlobeRenderFeature | undefined = undefined
 
     private isPanningOrZooming = false
 
     constructor(props: { manager: ChoroplethMapManager }) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<
+            ChoroplethGlobe,
+            "hoverEnterFeature" | "hoverNearbyFeature"
+        >(this, {
+            hoverEnterFeature: observable,
+            hoverNearbyFeature: observable,
+        })
     }
 
     @computed private get isTouchDevice(): boolean {

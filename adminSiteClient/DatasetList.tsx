@@ -2,10 +2,9 @@ import * as React from "react"
 import { observable, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import * as lodash from "lodash-es"
-import { bind } from "decko"
+import { bind, DbChartTagJoin } from "@ourworldindata/utils"
 
 import { Link } from "./Link.js"
-import { DbChartTagJoin } from "@ourworldindata/utils"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { Timeago } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
@@ -114,11 +113,14 @@ export class DatasetList extends React.Component<DatasetListProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable availableTags: DbChartTagJoin[] = []
+    availableTags: DbChartTagJoin[] = []
 
     constructor(props: DatasetListProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            availableTags: observable,
+        })
     }
 
     @bind async getTags() {

@@ -17,13 +17,18 @@ class InviteModal extends React.Component<{ onClose: () => void }> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable email: string = ""
-    @observable fullName: string = ""
-    @observable responseSuccess: boolean = false
+    email: string = ""
+    fullName: string = ""
+    responseSuccess: boolean = false
 
     constructor(props: { onClose: () => void }) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            email: observable,
+            fullName: observable,
+            responseSuccess: observable,
+        })
     }
 
     async submit() {
@@ -101,12 +106,16 @@ export class UsersIndexPage extends React.Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable users: UserIndexMetaWithLastSeen[] = []
-    @observable isInviteModal: boolean = false
+    users: UserIndexMetaWithLastSeen[] = []
+    isInviteModal: boolean = false
 
     constructor(props: Record<string, never>) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            users: observable,
+            isInviteModal: observable,
+        })
     }
 
     @action.bound async onDelete(user: UserIndexMetaWithLastSeen) {

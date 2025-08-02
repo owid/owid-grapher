@@ -33,7 +33,15 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
     constructor(props: TimelineComponentProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<
+            TimelineComponent,
+            "startTooltipVisible" | "endTooltipVisible" | "lastUpdatedTooltip"
+        >(this, {
+            startTooltipVisible: observable,
+            endTooltipVisible: observable,
+            lastUpdatedTooltip: observable,
+        })
     }
 
     @computed protected get maxWidth(): number {
@@ -276,9 +284,10 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         )
     }
 
-    @observable private startTooltipVisible: boolean = false
-    @observable private endTooltipVisible: boolean = false
-    @observable private lastUpdatedTooltip?: "startMarker" | "endMarker"
+    private startTooltipVisible: boolean = false
+    private endTooltipVisible: boolean = false
+    private lastUpdatedTooltip: "startMarker" | "endMarker" | undefined =
+        undefined
 
     @action.bound private togglePlay(): void {
         void this.controller.togglePlay()

@@ -84,9 +84,12 @@ const makeCheckBoxOption = (
 // allow the user to navigate amongst charts.
 export class DecisionMatrix {
     table: CoreTable
-    @observable currentParams: ExplorerChoiceParams = {}
+    currentParams: ExplorerChoiceParams = {}
     constructor(delimited: string, hash = "") {
-        makeObservable(this)
+        makeObservable(this, {
+            currentParams: observable,
+            selectedRow: observable,
+        })
         this.choiceNameToControlTypeMap = makeChoicesMap(delimited)
         this.table = new CoreTable(parseDelimited(dropColumnTypes(delimited)), [
             // todo: remove col def?
@@ -382,7 +385,7 @@ export class DecisionMatrix {
             : this.table.indexOf(this.firstMatch)
     }
 
-    @observable selectedRow: any = {}
+    selectedRow: any = {}
 
     private toControlOption(
         choiceName: ChoiceName,

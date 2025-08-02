@@ -14,25 +14,42 @@ import {
 } from "@ourworldindata/types"
 
 class OwidVariableDisplayConfigDefaults {
-    @observable name?: string = undefined
-    @observable unit?: string = undefined
-    @observable shortUnit?: string = undefined
-    @observable isProjection?: boolean = undefined
-    @observable conversionFactor?: number = undefined
-    @observable roundingMode?: OwidVariableRoundingMode = undefined
-    @observable numDecimalPlaces?: number = undefined
-    @observable numSignificantFigures?: number = undefined
-    @observable tolerance?: number = undefined
-    @observable yearIsDay?: boolean = undefined
-    @observable zeroDay?: string = undefined
-    @observable entityAnnotationsMap?: string = undefined
-    @observable includeInTable? = true
-    @observable tableDisplay?: OwidVariableDataTableConfigInterface
-    @observable color?: string = undefined
-    @observable plotMarkersOnlyInLineChart?: boolean = undefined
+    name: string | undefined = undefined
+    unit: string | undefined = undefined
+    shortUnit: string | undefined = undefined
+    isProjection: boolean | undefined = undefined
+    conversionFactor: number | undefined = undefined
+    roundingMode: OwidVariableRoundingMode | undefined = undefined
+    numDecimalPlaces: number | undefined = undefined
+    numSignificantFigures: number | undefined = undefined
+    tolerance: number | undefined = undefined
+    yearIsDay: boolean | undefined = undefined
+    zeroDay: string | undefined = undefined
+    entityAnnotationsMap: string | undefined = undefined
+    includeInTable: boolean | undefined = true
+    tableDisplay: OwidVariableDataTableConfigInterface | undefined = undefined
+    color: string | undefined = undefined
+    plotMarkersOnlyInLineChart: boolean | undefined = undefined
 
     constructor() {
-        makeObservable(this)
+        makeObservable(this, {
+            name: observable,
+            unit: observable,
+            shortUnit: observable,
+            isProjection: observable,
+            conversionFactor: observable,
+            roundingMode: observable,
+            numDecimalPlaces: observable,
+            numSignificantFigures: observable,
+            tolerance: observable,
+            yearIsDay: observable,
+            zeroDay: observable,
+            entityAnnotationsMap: observable,
+            includeInTable: observable,
+            tableDisplay: observable,
+            color: observable,
+            plotMarkersOnlyInLineChart: observable,
+        })
     }
 }
 

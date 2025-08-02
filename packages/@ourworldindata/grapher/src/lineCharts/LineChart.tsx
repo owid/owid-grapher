@@ -100,7 +100,15 @@ export class LineChart
 
     constructor(props: LineChartProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<
+            LineChart,
+            "tooltipState" | "lineLegendHoveredSeriesName" | "hoverTimer"
+        >(this, {
+            tooltipState: observable,
+            lineLegendHoveredSeriesName: observable,
+            hoverTimer: observable,
+        })
     }
 
     @computed get chartState(): LineChartState {
@@ -137,7 +145,7 @@ export class LineChart
         return this.placedSeries.flatMap((series) => series.points)
     }
 
-    @observable private tooltipState = new TooltipState<{
+    private tooltipState = new TooltipState<{
         x: number
     }>({ fade: "immediate" })
 
@@ -432,8 +440,8 @@ export class LineChart
 
     private defaultRightPadding = 1
 
-    @observable private lineLegendHoveredSeriesName?: SeriesName
-    @observable private hoverTimer?: number
+    private lineLegendHoveredSeriesName: SeriesName | undefined = undefined
+    private hoverTimer: number | undefined = undefined
 
     @action.bound private onLineLegendMouseOver(seriesName: SeriesName): void {
         clearTimeout(this.hoverTimer)

@@ -96,7 +96,6 @@
         "cookie-parser": "^1.4.7",
         "d3": "^7.9.0",
         "dayjs": "^1.11.11",
-        "decko": "^1.2.0",
         "dotenv": "^16.0.1",
         "embla-carousel-class-names": "^8.6.0",
         "embla-carousel-react": "^8.6.0",

@@ -81,20 +81,27 @@ export class MapChart
 {
     constructor(props: MapChartProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            hoverFeatureId: observable,
+            hoverBracket: observable,
+            tooltipState: observable,
+        })
     }
 
     /** The id of the currently hovered feature/country */
-    @observable hoverFeatureId?: string
+    hoverFeatureId: string | undefined = undefined
 
     /**
      * The currently hovered map bracket.
      *
      * Hovering a map bracket highlights all countries within that bracket on the map.
      */
-    @observable hoverBracket?: MapBracket
+    hoverBracket: MapBracket | undefined = undefined
 
-    @observable tooltipState = new TooltipState<{ featureId: string }>()
+    tooltipState = new TooltipState<{
+        featureId: string
+    }>()
 
     @computed get chartState(): MapChartState {
         return this.props.chartState

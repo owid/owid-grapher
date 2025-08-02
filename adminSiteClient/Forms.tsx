@@ -7,13 +7,12 @@
 import * as _ from "lodash-es"
 import * as React from "react"
 import { useState } from "react"
-import { bind } from "decko"
+import { bind, dayjs, Tippy, copyToClipboard } from "@ourworldindata/utils"
 import { action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import cx from "classnames"
 import { useTimeout } from "usehooks-ts"
 
-import { dayjs, Tippy, copyToClipboard } from "@ourworldindata/utils"
 import { Colorpicker } from "./Colorpicker.js"
 import {
     faCog,

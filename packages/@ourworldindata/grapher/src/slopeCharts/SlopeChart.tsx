@@ -94,15 +94,19 @@ export class SlopeChart
 {
     constructor(props: SlopeChartProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<SlopeChart, "hoveredSeriesName" | "tooltipState">(this, {
+            hoveredSeriesName: observable,
+            tooltipState: observable,
+        })
     }
 
     private slopeAreaRef = React.createRef<SVGGElement>()
 
     private sidebarMargin = 10
 
-    @observable private hoveredSeriesName?: string
-    @observable private tooltipState = new TooltipState<{
+    private hoveredSeriesName: string | undefined = undefined
+    private tooltipState = new TooltipState<{
         series: SlopeChartSeries
     }>({ fade: "immediate" })
 

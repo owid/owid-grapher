@@ -51,13 +51,13 @@ interface DatasetPageData {
 }
 
 class DatasetEditable {
-    @observable name: string = ""
-    @observable description: string = ""
-    @observable isPrivate: boolean = false
-    @observable nonRedistributable: boolean = false
-    @observable updatePeriodDays: number | undefined = undefined
+    name: string = ""
+    description: string = ""
+    isPrivate: boolean = false
+    nonRedistributable: boolean = false
+    updatePeriodDays: number | undefined = undefined
 
-    @observable source: OwidSource = {
+    source: OwidSource = {
         id: -1,
         name: "",
         dataPublishedBy: "",
@@ -67,10 +67,18 @@ class DatasetEditable {
         additionalInfo: "",
     }
 
-    @observable tags: DbChartTagJoin[] = []
+    tags: DbChartTagJoin[] = []
 
     constructor(json: DatasetPageData) {
-        makeObservable(this)
+        makeObservable(this, {
+            name: observable,
+            description: observable,
+            isPrivate: observable,
+            nonRedistributable: observable,
+            updatePeriodDays: observable,
+            source: observable,
+            tags: observable,
+        })
         for (const key in this) {
             if (key in json) {
                 if (key === "tags") this.tags = lodash.clone(json.tags)
@@ -124,14 +132,18 @@ interface DatasetEditorProps {
 class DatasetEditor extends Component<DatasetEditorProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
-    @observable newDataset!: DatasetEditable
+    newDataset!: DatasetEditable
 
     // HACK (Mispy): Force variable refresh when dataset metadata is updated
-    @observable timesUpdated: number = 0
+    timesUpdated: number = 0
 
     constructor(props: DatasetEditorProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            newDataset: observable,
+            timesUpdated: observable,
+        })
     }
 
     // Store the original dataset to determine when it is modified
@@ -425,11 +437,14 @@ interface DatasetEditPageProps {
 export class DatasetEditPage extends Component<DatasetEditPageProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
-    @observable dataset?: DatasetPageData
+    dataset: DatasetPageData | undefined = undefined
 
     constructor(props: DatasetEditPageProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            dataset: observable,
+        })
     }
 
     override render() {

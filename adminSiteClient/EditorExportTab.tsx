@@ -78,14 +78,17 @@ interface EditorExportTabProps<Editor> {
 export class EditorExportTab<
     Editor extends AbstractChartEditor,
 > extends Component<EditorExportTabProps<Editor>> {
-    @observable private settings = DEFAULT_SETTINGS
+    private settings = DEFAULT_SETTINGS
     private originalSettings: Partial<ExportSettings> = DEFAULT_SETTINGS
     private originalGrapher: OriginalGrapher
     private disposers: IReactionDisposer[] = []
 
     constructor(props: EditorExportTabProps<Editor>) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<EditorExportTab<Editor>, "settings">(this, {
+            settings: observable,
+        })
         this.originalGrapher = this.grabRelevantPropertiesFromGrapher()
     }
 

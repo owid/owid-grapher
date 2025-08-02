@@ -28,7 +28,7 @@ interface ErrorMessage {
 // Entry point for the grapher admin
 // Currently just the editor, but eventually should expand to cover everything
 export class Admin {
-    @observable errorMessage?: ErrorMessage
+    errorMessage: ErrorMessage | undefined = undefined
     basePath: string
     username: string
     email: string
@@ -41,7 +41,11 @@ export class Admin {
         isSuperuser: boolean
         settings: ClientSettings
     }) {
-        makeObservable(this)
+        makeObservable(this, {
+            errorMessage: observable,
+            currentRequests: observable,
+            loadingIndicatorSetting: observable,
+        })
         this.basePath = "/admin"
         this.username = props.username
         this.email = props.email
@@ -54,7 +58,7 @@ export class Admin {
         })
     }
 
-    @observable currentRequests: Promise<Response>[] = []
+    currentRequests: Promise<Response>[] = []
 
     @computed get showLoadingIndicator(): boolean {
         return this.loadingIndicatorSetting === "default"
@@ -62,8 +66,7 @@ export class Admin {
             : this.loadingIndicatorSetting === "loading"
     }
 
-    @observable loadingIndicatorSetting: "loading" | "off" | "default" =
-        "default"
+    loadingIndicatorSetting: "loading" | "off" | "default" = "default"
 
     start(containerNode: HTMLElement): void {
         const root = createRoot(containerNode)

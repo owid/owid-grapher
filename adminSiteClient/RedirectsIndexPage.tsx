@@ -52,11 +52,14 @@ export class RedirectsIndexPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable redirects: RedirectListItem[] = []
+    redirects: RedirectListItem[] = []
 
     constructor(props: Record<string, never>) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            redirects: observable,
+        })
     }
 
     @action.bound async onDelete(redirect: RedirectListItem) {

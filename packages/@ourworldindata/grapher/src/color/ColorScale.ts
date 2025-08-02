@@ -45,7 +45,7 @@ export class ColorScale {
 
     // Config accessors
 
-    @computed get config(): ColorScaleConfigDefaults {
+    @computed get config(): ColorScaleConfigInterface {
         return this.manager.colorScaleConfig
             ? this.manager.colorScaleConfig
             : new ColorScaleConfig()

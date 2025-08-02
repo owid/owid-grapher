@@ -6,6 +6,7 @@ import {
     Time,
     lastOfNonEmptyArray,
     makeIdForHumanConsumption,
+    bind,
 } from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
 import { SeriesName } from "@ourworldindata/types"
@@ -21,7 +22,6 @@ import {
     StackedPoint,
     StackedSeries,
 } from "./StackedConstants"
-import { bind } from "decko"
 
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
     dualAxis: DualAxis

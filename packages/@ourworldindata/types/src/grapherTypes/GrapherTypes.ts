@@ -17,6 +17,11 @@ import {
 import { OwidVariableDataMetadataDimensions } from "../OwidVariable.js"
 import { ArchiveContext } from "../domainTypes/Archive.js"
 
+// Utility type that marks all properties of T that may be undefined as optional.
+type UndefinedToOptional<T> = Partial<T> & {
+    [K in keyof T as undefined extends T[K] ? never : K]: T[K]
+}
+
 export interface Box {
     x: number
     y: number
@@ -362,52 +367,52 @@ export class ColorScaleConfigDefaults {
     // ============
 
     /** Key for a colorbrewer scheme */
-    @observable baseColorScheme?: ColorSchemeName
+    baseColorScheme: ColorSchemeName | undefined = undefined
 
     /** Reverse the order of colors in the color scheme (defined by `baseColorScheme`) */
-    @observable colorSchemeInvert?: boolean = undefined
+    colorSchemeInvert: boolean | undefined = undefined
 
     // Numeric bins
     // ============
 
     /** The strategy for generating the bin boundaries */
-    @observable binningStrategy: BinningStrategy = BinningStrategy.ckmeans
+    binningStrategy: BinningStrategy = BinningStrategy.ckmeans
     /** The *suggested* number of bins for the automatic binning algorithm */
-    @observable binningStrategyBinCount?: number
+    binningStrategyBinCount: number | undefined = undefined
 
     /** Custom maximum brackets for each numeric bin. Only applied when strategy is `manual`. */
-    @observable customNumericValues: number[] = []
+    customNumericValues: number[] = []
     /**
      * Custom labels for each numeric bin. Only applied when strategy is `manual`.
      * `undefined` or `null` falls back to default label.
      * We need to handle `null` because JSON serializes `undefined` values
      * inside arrays into `null`.
      */
-    @observable customNumericLabels: (string | undefined | null)[] = []
+    customNumericLabels: (string | undefined | null)[] = []
 
     /** Whether `customNumericColors` are used to override the color scheme. */
-    @observable customNumericColorsActive?: boolean = undefined
+    customNumericColorsActive: boolean | undefined = undefined
     /**
      * Override some or all colors for the numerical color legend.
      * `undefined` or `null` falls back the color scheme color.
      * We need to handle `null` because JSON serializes `undefined` values
      * inside arrays into `null`.
      */
-    @observable customNumericColors: (Color | undefined | null)[] = []
+    customNumericColors: (Color | undefined | null)[] = []
 
     // Categorical bins
     // ================
 
-    @observable.ref customCategoryColors: {
+    customCategoryColors: {
         [key: string]: string | undefined
     } = {}
 
-    @observable.ref customCategoryLabels: {
+    customCategoryLabels: {
         [key: string]: string | undefined
     } = {}
 
     // Allow hiding categories from the legend
-    @observable.ref customHiddenCategories: {
+    customHiddenCategories: {
         [key: string]: true | undefined
     } = {}
 
@@ -415,10 +420,23 @@ export class ColorScaleConfigDefaults {
     // =====
 
     /** A custom legend description. Only used in ScatterPlot legend titles for now. */
-    @observable legendDescription?: string = undefined
+    legendDescription: string | undefined = undefined
 
     constructor() {
-        makeObservable(this)
+        makeObservable(this, {
+            baseColorScheme: observable,
+            colorSchemeInvert: observable,
+            binningStrategy: observable,
+            binningStrategyBinCount: observable,
+            customNumericValues: observable,
+            customNumericLabels: observable,
+            customNumericColorsActive: observable,
+            customNumericColors: observable,
+            customCategoryColors: observable.ref,
+            customCategoryLabels: observable.ref,
+            customHiddenCategories: observable.ref,
+            legendDescription: observable,
+        })
     }
 }
 
@@ -427,7 +445,8 @@ export class ColorScaleConfigDefaults {
 // types project - but for some reason the implementation in grapher/src/color/ColorScale.ts
 // of the config getter didn't like that change and the drop downs in the admin
 // for the base color scheme stopped working. To try again some time.
-export type ColorScaleConfigInterface = ColorScaleConfigDefaults
+export type ColorScaleConfigInterface =
+    UndefinedToOptional<ColorScaleConfigDefaults>
 
 // export interface ColorScaleConfigInterface {
 //     baseColorScheme?: ColorSchemeName

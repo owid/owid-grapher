@@ -118,7 +118,10 @@ export class FacetChart
 {
     constructor(props: FacetChartProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<FacetChart, "legendHoverBin">(this, {
+            legendHoverBin: observable.ref,
+        })
     }
 
     transformTable(table: OwidTable): OwidTable {
@@ -795,8 +798,7 @@ export class FacetChart
         return sortedBins
     }
 
-    @observable.ref private legendHoverBin: ColorScaleBin | undefined =
-        undefined
+    private legendHoverBin: ColorScaleBin | undefined = undefined
 
     @action.bound onLegendMouseOver(bin: ColorScaleBin): void {
         this.legendHoverBin = bin

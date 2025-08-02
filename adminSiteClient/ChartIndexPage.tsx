@@ -11,11 +11,14 @@ export class ChartIndexPage extends Component {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable charts: ChartListItem[] = []
+    charts: ChartListItem[] = []
 
     constructor(props: Record<string, never>) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            charts: observable,
+        })
     }
 
     override render() {

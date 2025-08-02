@@ -246,14 +246,19 @@ class AddRedirectForm<Editor extends AbstractChartEditor> extends Component<
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable slug?: string = ""
+    slug: string | undefined = ""
 
-    @observable isLoading: boolean = false
-    @observable errorMessage?: string
+    isLoading: boolean = false
+    errorMessage: string | undefined = undefined
 
     constructor(props: AddRedirectFormProps<Editor>) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            slug: observable,
+            isLoading: observable,
+            errorMessage: observable,
+        })
     }
 
     @action.bound onChange(slug: string) {

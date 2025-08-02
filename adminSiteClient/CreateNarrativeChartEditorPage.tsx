@@ -54,12 +54,16 @@ class CreateNarrativeChartEditorPageInternal
 
     constructor(props: CreateNarrativeChartEditorPageInternalProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            name: observable,
+            nameError: observable,
+        })
     }
 
     id?: number
-    @observable name?: string
-    @observable nameError?: string
+    name: string | undefined = undefined
+    nameError: string | undefined = undefined
     configId?: string
     patchConfig: GrapherInterface = {}
     fullConfig: GrapherInterface = {}

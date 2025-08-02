@@ -3,11 +3,13 @@ import { action, computed, observable, makeObservable } from "mobx"
 
 export class FocusArray {
     constructor() {
-        makeObservable(this)
+        makeObservable<FocusArray, "store">(this, {
+            store: observable,
+        })
         this.store = new Set()
     }
 
-    @observable private store: Set<SeriesName>
+    private store: Set<SeriesName>
 
     @computed get seriesNameSet(): Set<SeriesName> {
         return this.store

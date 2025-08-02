@@ -27,12 +27,16 @@ export class AdminLayout extends React.Component<AdminLayoutProps> {
     declare context: AdminAppContextType
     static defaultProps = { fixedNav: true }
 
-    @observable private showFAQ: boolean = false
-    @observable private showSidebar: boolean = false
+    private showFAQ: boolean = false
+    private showSidebar: boolean = false
 
     constructor(props: AdminLayoutProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<AdminLayout, "showFAQ" | "showSidebar">(this, {
+            showFAQ: observable,
+            showSidebar: observable,
+        })
     }
 
     @action.bound onToggleFAQ(): void {

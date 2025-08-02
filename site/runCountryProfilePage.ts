@@ -23,7 +23,7 @@ class ChartFilter {
     results: any[] = []
     sections: HTMLDivElement[] = []
 
-    @observable query: string = ""
+    query: string = ""
 
     @computed private get fuzzy(): FuzzySearch<ChartItem> {
         return FuzzySearch.withKey(this.chartItems, (chart) => chart.title, {
@@ -40,7 +40,9 @@ class ChartFilter {
     }
 
     constructor() {
-        makeObservable(this)
+        makeObservable(this, {
+            query: observable,
+        })
         this.searchInput = document.querySelector(
             ".chartsSearchInput"
         ) as HTMLInputElement

@@ -38,11 +38,14 @@ interface DimensionCardProps<Editor> {
 export class DimensionCard<
     Editor extends AbstractChartEditor,
 > extends Component<DimensionCardProps<Editor>> {
-    @observable.ref isExpanded: boolean = false
+    isExpanded: boolean = false
 
     constructor(props: DimensionCardProps<Editor>) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            isExpanded: observable.ref,
+        })
     }
 
     @computed get table(): OwidTable {

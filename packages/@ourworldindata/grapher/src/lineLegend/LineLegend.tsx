@@ -566,9 +566,9 @@ export class LineLegend extends React.Component<LineLegendProps> {
             (label) => label.midY
         )
 
-        const groups: PlacedSeries[][] = _.cloneDeep(sortedSeries).map(
-            (mark) => [mark]
-        )
+        const groups: PlacedSeries[][] = sortedSeries.map((mark) => [
+            { ...mark },
+        ])
 
         let hasOverlap
 

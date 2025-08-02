@@ -54,7 +54,7 @@ export abstract class AbstractChartEditor<
 > {
     manager: Manager
 
-    @observable.ref grapherState = new GrapherState({
+    grapherState = new GrapherState({
         additionalDataLoaderFn: (varId: number) =>
             loadVariableDataAndMetadata(varId, DATA_API_URL, { noCache: true }),
     })
@@ -63,20 +63,30 @@ export abstract class AbstractChartEditor<
         undefined,
         true
     )
-    @observable.ref currentRequest: Promise<any> | undefined // Whether the current chart state is saved or not
-    @observable.ref tab: EditorTab = "basic"
-    @observable.ref errorMessage?: { title: string; content: string }
-    @observable.ref previewMode: "mobile" | "desktop"
-    @observable.ref showStaticPreview = false
-    @observable.ref savedPatchConfig: GrapherInterface = {}
+    currentRequest: Promise<any> | undefined // Whether the current chart state is saved or not
+    tab: EditorTab = "basic"
+    errorMessage: { title: string; content: string } | undefined = undefined
+    previewMode: "mobile" | "desktop"
+    showStaticPreview = false
+    savedPatchConfig: GrapherInterface = {}
 
     // parent config derived from the current chart config
-    @observable.ref parentConfig: GrapherInterface | undefined = undefined
+    parentConfig: GrapherInterface | undefined = undefined
     // if inheritance is enabled, the parent config is applied to grapherState
-    @observable.ref isInheritanceEnabled: boolean | undefined = undefined
+    isInheritanceEnabled: boolean | undefined = undefined
 
     constructor(props: { manager: Manager }) {
-        makeObservable(this)
+        makeObservable(this, {
+            grapherState: observable.ref,
+            currentRequest: observable.ref,
+            tab: observable.ref,
+            errorMessage: observable.ref,
+            previewMode: observable.ref,
+            showStaticPreview: observable.ref,
+            savedPatchConfig: observable.ref,
+            parentConfig: observable.ref,
+            isInheritanceEnabled: observable.ref,
+        })
         this.manager = props.manager
         this.previewMode =
             localStorage.getItem("editorPreviewMode") === "mobile"
