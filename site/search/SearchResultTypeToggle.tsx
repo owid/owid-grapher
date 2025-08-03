@@ -32,6 +32,9 @@ export const SearchResultTypeToggle = () => {
             role="radiogroup"
             aria-label="Result type"
         >
+            <legend className="search-result-type-toggle__legend">
+                Filter by type of content:
+            </legend>
             {optionsToShow.map((option) => (
                 <RadioButton
                     key={option.value}
