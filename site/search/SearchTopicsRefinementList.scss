@@ -1,9 +1,8 @@
 .search-topics-refinement-list {
     margin-bottom: 24px;
+
     @include sm-only {
-        display: block;
-        border-top: 1px solid $gray-20;
-        border-bottom: 1px solid $gray-20;
+        display: none;
     }
 }
 
@@ -11,9 +10,6 @@
     color: $blue-60;
     margin-bottom: 4px;
     margin-top: 0;
-    @include sm-only {
-        display: none;
-    }
 }
 
 .search-topics-refinement-list__expand-button {
@@ -23,31 +19,11 @@
     svg {
         color: $blue-90;
     }
-    @include sm-only {
-        display: flex;
-        justify-content: space-between;
-        width: 100%;
-        background-color: transparent;
-        padding: 16px 8px;
-        h5 {
-            margin: 0;
-        }
-    }
 }
 
 .search-topics-refinement-list__list {
     line-height: 24px;
     list-style: none;
-    @include sm-only {
-        display: none;
-        line-height: 32px;
-    }
-}
-
-.search-topics-refinement-list__list--is-expanded {
-    @include sm-only {
-        display: block;
-    }
 }
 
 .search-topics-refinement-list__list-item {
@@ -64,14 +40,6 @@
             text-underline-offset: 3px;
         }
     }
-    @include sm-only {
-        display: inline-block;
-        width: 100%;
-        margin-left: 8px;
-        &:last-child {
-            margin-bottom: 16px;
-        }
-    }
 }
 
 .search-topics-refinement-list__separator {
@@ -83,9 +51,6 @@
     &::after {
         content: "•";
     }
-    @include sm-only {
-        display: none;
-    }
 }
 
 // Skeletons
@@ -95,9 +60,5 @@
     // Most areas have more than 2 lines of topics, so when we're in an area we set the height to 96px and hope for the best
     &.search-topics-refinement-list__skeleton--large {
         height: 96px;
-        @include sm-only {
-            // On mobile, topics are nested under an accordion that is always 48px tall
-            height: 48px;
-        }
     }
 }
