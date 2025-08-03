@@ -6,6 +6,12 @@
     cursor: pointer;
     max-width: 294px;
 
+    @include sm-only {
+        flex: none;
+        width: 64vw;
+        scroll-snap-align: start;
+    }
+
     &:hover {
         .search-stacked-article-hit__title {
             text-decoration: underline;
