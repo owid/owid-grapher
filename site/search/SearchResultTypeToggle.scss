@@ -8,4 +8,20 @@
         @include note-1-regular;
         color: $blue-50;
     }
+
+    @include sm-only {
+        margin-left: 0;
+        margin-bottom: 24px;
+    }
+}
+
+.search-result-type-toggle__legend {
+    display: none;
+    @include body-3-bold;
+    color: $blue-60;
+    margin-bottom: 8px;
+
+    @include sm-only {
+        display: block;
+    }
 }
