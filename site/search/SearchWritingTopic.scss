@@ -1,3 +1,9 @@
+.search-writing-topic-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 .search-writing-topic {
     background: $blue-5;
     padding: 16px;
@@ -8,7 +14,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
-    height: 28px;
+    min-height: 28px;
     width: 100%;
     background: none;
     border: none;
@@ -37,6 +43,10 @@
     align-items: center;
     gap: 8px;
     color: $blue-60;
+
+    @include sm-only {
+        display: none;
+    }
 }
 
 .search-writing-topic__arrow {
@@ -54,6 +64,10 @@
 .search-writing-topic__content {
     display: flex;
     gap: 24px;
+
+    @include sm-only {
+        flex-direction: column;
+    }
 }
 
 .search-writing-topic__sub-title {
@@ -64,6 +78,23 @@
 
 .search-writing-topic__featured-topic-pages {
     flex: 0 1 286px;
+
+    @include sm-only {
+        flex-basis: 100%;
+    }
+}
+
+.search-writing-topic__divider {
+    display: none;
+    border: none;
+    border-top: 1px solid $blue-20;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+
+    @include sm-only {
+        display: block;
+    }
 }
 
 .search-writing-topic__featured-articles {
@@ -78,6 +109,19 @@
     flex-direction: column;
     gap: 16px;
     margin-bottom: 16px;
+
+    @include sm-only {
+        flex-direction: row;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+    }
+}
+
+.search-writing-featured-topics__list-item {
+    @include sm-only {
+        flex-basis: calc(50% - 8px);
+        overflow: hidden;
+    }
 }
 
 .search-writing-topic-link {
@@ -89,6 +133,12 @@
     &:hover {
         text-decoration: underline;
     }
+
+    @include sm-only {
+        text-wrap: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 }
 
 .search-writing-topic-link__icon {
@@ -98,5 +148,19 @@
 
 .search-writing-featured-articles__list {
     display: flex;
-    gap: 24px;
+    gap: var(--grid-gap);
+
+    @include sm-only {
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+.search-writing-topic__see-all {
+    display: none;
+
+    @include sm-only {
+        display: block;
+    }
 }
