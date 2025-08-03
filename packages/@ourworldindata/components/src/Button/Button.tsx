@@ -29,7 +29,7 @@ type WithHrefProps = {
 type WithOnClickProps = {
     onClick?: () => void
     href?: never
-    ariaLabel: string
+    ariaLabel?: string
     type?: "button" | "submit"
 }
 
