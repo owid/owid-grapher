@@ -13,9 +13,10 @@ import {
 import {
     fetchUnparsedGrapherConfig,
     rewriteMetaTags,
-    addABTestClasses,
+    addClassNamesToBody,
 } from "../_common/grapherTools.js"
 import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
+import { ARM_SEPARATOR, EXPERIMENT_PREFIX } from "../experiments/Experiment.js"
 
 const { preflight, corsify } = cors({
     allowMethods: ["GET", "OPTIONS", "HEAD"],
@@ -128,10 +129,10 @@ async function handleHtmlPageRequest(
 ) {
     const url = env.url
     const cookies = ctx.request.headers.get("cookie")
-    const abTestClasses = cookies
+    const experimentClassNames = cookies
         .split(";")
-        .filter((c) => c.includes("ab-"))
-        .map((c) => c.replace("=", "-"))
+        .filter((c) => c.includes(`${EXPERIMENT_PREFIX}-`))
+        .map((c) => c.replace("=", ARM_SEPARATOR))
 
     // For local testing
     // const grapherPageResp = await fetch(
@@ -159,15 +160,15 @@ async function handleHtmlPageRequest(
         url.search ? "&" + url.search.slice(1) : ""
     }`
 
-    const grapherPageWithABTestClasses = addABTestClasses(
+    const grapherPageWithExperimentClasses = addClassNamesToBody(
         grapherPageResp,
-        abTestClasses
+        experimentClassNames
     )
     const grapherPageWithUpdatedMetaTags = rewriteMetaTags(
         url,
         openGraphThumbnailUrl,
         twitterThumbnailUrl,
-        grapherPageWithABTestClasses
+        grapherPageWithExperimentClasses
     )
     return grapherPageWithUpdatedMetaTags
 }

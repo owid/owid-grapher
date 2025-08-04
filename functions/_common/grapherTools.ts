@@ -308,13 +308,13 @@ export function rewriteMetaTags(
 /**
  * Add CSS classes to document body
  */
-export function addABTestClasses(page: Response, classes: string[]) {
+export function addClassNamesToBody(page: Response, classNames: string[]) {
     const rewriter = new HTMLRewriter().on("body", {
         element(element) {
             const existingClass = element.getAttribute("class")
             element.setAttribute(
                 "class",
-                `${existingClass ?? ""} ${classes.join(" ")}`.trim()
+                `${existingClass ?? ""} ${classNames.join(" ")}`.trim()
             )
         },
     })

@@ -48,7 +48,7 @@ export function getAnalyticsConsentValue(request) {
     let value = false
     if (preferencesRaw) {
         preferencesRaw.split("|").map((p) => {
-            const [pRaw /* dateRaw */] = p.split("-")
+            const [pRaw] = p.split("-")
             const [type, valueRaw] = pRaw.split(":")
             if (type === "a") {
                 value = valueRaw === "1"
