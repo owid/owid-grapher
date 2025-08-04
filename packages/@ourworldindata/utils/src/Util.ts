@@ -1339,7 +1339,7 @@ export const imemo = <Type, This extends Record<string, any>>(
     const propName = `${String(name)}_memoized`
 
     return function (this: This): Type {
-        if (this[propName] !== undefined) {
+        if (propName in this) {
             return this[propName]
         }
         const value = target.call(this)

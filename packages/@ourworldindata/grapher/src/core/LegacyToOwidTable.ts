@@ -46,10 +46,7 @@ export const legacyToOwidTableAndDimensionsWithMandatorySlug = (
         | undefined
 ): OwidTable => {
     const dimensionsWithSlug = dimensions?.map((dimension) => ({
-        property: dimension.property,
-        targetYear: dimension.targetYear,
-        display: dimension.display,
-        variableId: dimension.variableId,
+        ...dimension,
         slug:
             dimension.slug ??
             getDimensionColumnSlug(dimension.variableId, dimension.targetYear),

@@ -2966,7 +2966,6 @@ export class GrapherState {
     @computed get isServerSideDownloadAvailable(): boolean {
         return (
             // Chart is published (this is false for charts inside explorers, for example)
-            // We're not in a narrative chart
             !!this.isPublished &&
             // We're not on an archival grapher page
             !this.isOnArchivalPage &&
@@ -2974,7 +2973,7 @@ export class GrapherState {
             window.admin === undefined &&
             // The slug is set
             !!this.slug &&
-            !this.narrativeChartInfo
+            !this.narrativeChartInfo // We're not in a narrative chart
         )
     }
     _baseFontSize = BASE_FONT_SIZE
@@ -3516,8 +3515,9 @@ export class GrapherState {
         return (
             // If the entity controls are hidden, then selecting entities from
             // the map should also be disabled
+            !this.hideEntityControls &&
             // only show the entity selector on the map tab if it's rendered
-            !this.hideEntityControls && // into the side panel or into the slide-in drawer
+            // into the side panel or into the slide-in drawer
             this.shouldShowEntitySelectorAs !== GrapherWindowType.modal
         )
     }

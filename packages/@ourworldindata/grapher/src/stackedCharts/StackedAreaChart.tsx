@@ -337,10 +337,10 @@ export class StackedAreaChart
     @computed private get hoveredSeriesName(): SeriesName | undefined {
         return (
             // if the chart area is hovered
-            // if the facet legend is hovered
             this.tooltipState.target?.series ??
             // if the line legend is hovered
             this.lineLegendHoveredSeriesName ??
+            // if the facet legend is hovered
             this.facetLegendHoveredSeriesName
         )
     }
