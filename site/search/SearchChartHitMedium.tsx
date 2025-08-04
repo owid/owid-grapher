@@ -48,8 +48,12 @@ import { chartHitQueryKeys } from "./queries.js"
 import { SearchChartHitThumbnail } from "./SearchChartHitThumbnail.js"
 import { SearchChartHitDataDisplay } from "./SearchChartHitDataDisplay.js"
 import { buildChartHitDataTableProps } from "./SearchChartHitDataTableHelpers.js"
-import { SearchChartHitDataTable } from "./SearchChartHitDataTable.js"
+import {
+    SearchChartHitDataTable,
+    SearchChartHitDataTableProps,
+} from "./SearchChartHitDataTable.js"
 import { match } from "ts-pattern"
+import { runInAction } from "mobx"
 
 const NUM_DATA_TABLE_ROWS_PER_COLUMN = 4
 
@@ -84,11 +88,6 @@ function SearchChartHitMediumRichData({
         freezeOnceVisible: true, // Only trigger once
     })
 
-    const pickedEntities = useMemo(
-        () => pickEntitiesForChartHit(hit, searchQueryRegionsMatches),
-        [hit, searchQueryRegionsMatches]
-    )
-
     // Fetch the grapher config
     const { data: fetchedChartConfig, status: loadingStatusConfig } = useQuery({
         queryKey: chartHitQueryKeys.chartConfig(hit.slug, hit.queryParams),
@@ -117,6 +116,61 @@ function SearchChartHitMediumRichData({
         enabled: hasBeenVisible && !!chartConfig,
     })
 
+    // Init the grapher state and update its data
+    const grapherState = useMemo(() => {
+        const grapherState = new GrapherState(
+            chartConfig ?? { isConfigReady: false }
+        )
+        if (inputTable) grapherState.inputTable = inputTable
+        return grapherState
+    }, [chartConfig, inputTable])
+
+    // Entities selected by the user
+    const pickedEntities = useMemo(
+        () => pickEntitiesForChartHit(hit, searchQueryRegionsMatches),
+        [hit, searchQueryRegionsMatches]
+    )
+
+    // The grapherState contains MobX observables. When observable values are modified,
+    // MobX automatically triggers reactions and recomputes derived values. To improve
+    // performance, we wrap all state modifications in runInAction() so that MobX
+    // batches all changes and only runs expensive computations (like transformTable)
+    // once at the end, rather than after each individual state change.
+    const layout = runInAction(() => {
+        // Find Grapher tabs to display and bring them in the right order
+        const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
+
+        // Choose the entities to display
+        const displayEntities = pickEntitiesForDisplay(grapherState, {
+            pickedEntities,
+        })
+
+        // Bring Grapher into the right state for this search result:
+        // - Set the tab to the leftmost tab in the sorted list
+        // - Select the entities determined for this search result
+        // - Highlight the entity (or entities) the user picked
+        configureGrapherStateTab(grapherState, { tab: sortedTabs[0] })
+        configureGrapherStateSelection(grapherState, {
+            entities: displayEntities,
+        })
+        configureGrapherStateFocus(grapherState, { entities: pickedEntities })
+
+        // Place Grapher tabs into grid layout and calculate info for data display
+        const layout = calculateLayout(grapherState, {
+            sortedTabs,
+            entityForDataDisplay: pickedEntities[0],
+        })
+
+        // We might need to adjust entity selection and focus according to the chosen layout
+        configureGrapherStateForLayout(grapherState, layout)
+
+        // Reset the persisted color map to make sure the data table
+        // and thumbnails use the some colors for the same entities
+        resetGrapherColors(grapherState)
+
+        return layout
+    })
+
     // Render the fallback component if config or data loading failed
     if (loadingStatusConfig === "error" || loadingStatusData === "error") {
         return (
@@ -129,15 +183,8 @@ function SearchChartHitMediumRichData({
     }
 
     // Render a placeholder component while the config and data are loading
-    // to prevent layout shifts and flashing content
-    if (
-        loadingStatusConfig === "loading" ||
-        loadingStatusData === "loading" ||
-        !chartConfig ||
-        !inputTable
-    ) {
-        const entityParam = toGrapherQueryParams({ entities: pickedEntities })
-        const chartUrl = constructChartUrl({ hit, grapherParams: entityParam })
+    if (loadingStatusConfig === "loading" || loadingStatusData === "loading") {
+        const chartUrl = constructChartUrl({ hit })
 
         return (
             <div ref={ref} className="search-chart-hit-medium">
@@ -156,121 +203,9 @@ function SearchChartHitMediumRichData({
         )
     }
 
-    // Init the grapher state and update its data
-    const grapherState = new GrapherState(chartConfig)
-    grapherState.inputTable = inputTable
-
-    // If the user hasn't picked any entities, use the default ones
-    const entities = pickEntitiesForDisplay({ grapherState, pickedEntities })
-
-    // Find Grapher tabs to display and bring them in the right order
-    const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
-    const primaryTab = sortedTabs[0]
-
-    // Update the GrapherState before rendering the tab previews,
-    // so that the active tab matches the first tab we'll render
-    grapherState.tab = mapGrapherTabNameToConfigOption(primaryTab)
-
-    // When a line or slope chart has only a single time point selected by default,
-    // Grapher automatically switches to a discrete bar chart. This means the active
-    // tab type (DiscreteBar) wouldn't match what we want to render in the preview
-    // (LineChart). By ensuring the time handles are on different times, we force
-    // Grapher to display the actual line/slope chart instead of a bar chart.
-    grapherState.ensureTimeHandlesAreSensibleForTab(primaryTab)
-
-    // Update the selected entities to match the ones we determined for this
-    // search result, and update the focused entities to match the ones the
-    // user picked
-    if (entities.length > 0)
-        grapherState.selection.setSelectedEntities(entities)
-    if (
-        pickedEntities.length > 0 &&
-        // focusing entities only makes sense when we're plotting entities
-        grapherState.chartState.seriesStrategy === SeriesStrategy.entity &&
-        grapherState.facetStrategy !== FacetStrategy.entity
-    ) {
-        const pickedAndSelectedEntities = pickedEntities.filter((entity) =>
-            grapherState.selection.selectedSet.has(entity)
-        )
-        grapherState.focusArray.clearAllAndAdd(...pickedAndSelectedEntities)
-    } else {
-        // Clear the focus state for any entities that might be focused by default
-        grapherState.focusArray.clear()
-    }
-
-    // Prepare rendering the data display
-    const defaultEntityForDisplay =
-        // Displaying a data value for World doesn't make sense when we're plotting
-        // columns and the currently selected entity isn't World
-        grapherState.chartState.seriesStrategy === SeriesStrategy.column &&
-        grapherState.selection.selectedEntityNames[0] !== WORLD_ENTITY_NAME
-            ? undefined
-            : WORLD_ENTITY_NAME
-    const entityForDisplay = pickedEntities[0] ?? defaultEntityForDisplay
-    const chartInfo = entityForDisplay
-        ? constructGrapherValuesJson(grapherState, entityForDisplay)
-        : undefined
-    const dataDisplayProps = buildChartHitDataDisplayProps({
-        chartInfo,
-        chartType: grapherState.chartType,
-        entity: entityForDisplay,
-        isEntityPickedByUser: pickedEntities.length > 0,
-    })
-
-    // Figure out the layout by assigning each Grapher tab to grid slots.
-    // The table tab can optionally span two or more slots (instead of just one)
-    // if there's enough space in the grid and enough data to justify it.
-    // Since this decision depends on the table content, we need to
-    // build the table props first to get the row count.
-    const dataTableProps = buildChartHitDataTableProps({ grapherState })
-    const placedTabs = placeGrapherTabsInGridLayout(sortedTabs, {
-        numDataTableRows: dataTableProps.rows.length,
-        hasDataDisplay: !!dataDisplayProps,
-        numDataTableRowsPerColumn: NUM_DATA_TABLE_ROWS_PER_COLUMN,
-    })
-
-    // Check how much many rows are available for the table and update
-    // the selected/focused entities accordingly. This is important to ensure
-    // that the table and thumbnail display the same entities/series.
-    const tableSlot = placedTabs.find(
-        ({ tab }) => tab === GRAPHER_TAB_NAMES.Table
-    )?.slot
-    if (tableSlot && !grapherState.isFaceted) {
-        const numAvailableRows = getRowCountForGridSlot(
-            tableSlot,
-            NUM_DATA_TABLE_ROWS_PER_COLUMN
-        )
-        const selectedEntities = grapherState.selection.selectedEntityNames
-        if (
-            grapherState.chartState.seriesStrategy === SeriesStrategy.entity &&
-            selectedEntities.length > numAvailableRows
-        ) {
-            // When plotting entities as series, limit the selection to only
-            // those that can be displayed in the table rows to ensure
-            // thumbnails and table show the same data
-            grapherState.selection.setSelectedEntities(
-                selectedEntities.slice(0, numAvailableRows)
-            )
-        } else if (
-            grapherState.yColumnSlugs.length > numAvailableRows &&
-            !grapherState.hasProjectedData
-        ) {
-            // When plotting columns as series, focus only the subset of columns
-            // that can be displayed in the table to ensure thumbnails and table
-            // show the same data
-            const seriesNamesInTable = dataTableProps.rows
-                .slice(0, numAvailableRows)
-                .map((row) => row.name)
-            grapherState.focusArray.clearAllAndAdd(...seriesNamesInTable)
-        }
-    }
-
-    // Reset the persisted color map to make sure the data table
-    // and thumbnails use the some colors for the same entities
-    grapherState.seriesColorMap?.clear()
-
-    const entityParam = toGrapherQueryParams({ entities })
-    const chartUrl = constructChartUrl({ hit, grapherParams: entityParam })
+    const countryParam = grapherState.changedParams.country
+    const grapherParams = countryParam ? { country: countryParam } : undefined
+    const chartUrl = constructChartUrl({ hit, grapherParams })
 
     return (
         <div ref={ref} className="search-chart-hit-medium">
@@ -282,7 +217,7 @@ function SearchChartHitMediumRichData({
             />
 
             <div className="search-chart-hit-medium__content">
-                {placedTabs.map(({ tab, slot }) =>
+                {layout.placedTabs.map(({ tab, slot }) =>
                     tab === GRAPHER_TAB_NAMES.Table ? (
                         <CaptionedTable
                             key={tab}
@@ -304,10 +239,10 @@ function SearchChartHitMediumRichData({
                     )
                 )}
 
-                {dataDisplayProps && (
+                {layout.dataDisplayProps && (
                     <SearchChartHitDataDisplay
                         className="data-slot"
-                        {...dataDisplayProps}
+                        {...layout.dataDisplayProps}
                     />
                 )}
             </div>
@@ -451,7 +386,7 @@ function CaptionedTable({
     slot?: GridSlot
     grapherState: GrapherState
     onClick?: () => void
-}): React.ReactElement {
+}): React.ReactElement | null {
     const { chartUrl } = constructChartAndPreviewUrlsForTab({
         hit,
         grapherState,
@@ -469,10 +404,11 @@ function CaptionedTable({
             : `Data available for ${numAvailableEntities} ${grapherState.entityTypePlural}`
 
     const maxRows = getRowCountForGridSlot(slot, NUM_DATA_TABLE_ROWS_PER_COLUMN)
-    const dataTableProps = buildChartHitDataTableProps({
-        grapherState,
-        maxRows,
-    })
+    const dataTableProps = runInAction(() =>
+        buildChartHitDataTableProps({ grapherState, maxRows })
+    )
+
+    if (!dataTableProps) return null
 
     return (
         <CaptionedLink
@@ -561,22 +497,17 @@ function CaptionedLink({
 
 function GrapherThumbnailPlaceholder(): React.ReactElement {
     return (
-        <div className="search-chart-hit-medium__skeleton single-slot">
-            <div className="search-chart-hit-medium__placeholder" />
-            <div className="search-chart-hit-medium__captioned-link-label">
-                Chart
-            </div>
+        <div className="search-chart-hit-medium__placeholder single-slot">
+            <div className="search-chart-hit-medium__thumbnail-placeholder" />
+            <div className="search-chart-hit-medium__captioned-link-label" />
         </div>
     )
 }
 
-function pickEntitiesForDisplay({
-    grapherState,
-    pickedEntities,
-}: {
-    grapherState: GrapherState
-    pickedEntities: EntityName[] // picked by the user
-}): EntityName[] {
+function pickEntitiesForDisplay(
+    grapherState: GrapherState,
+    { pickedEntities }: { pickedEntities: EntityName[] }
+): EntityName[] {
     // Make sure the default entities actually exist in the chart
     const defaultEntities = grapherState.selection.selectedEntityNames.filter(
         (entityName) =>
@@ -642,4 +573,138 @@ function constructChartAndPreviewUrlsForTab({
     })
 
     return { chartUrl, previewUrl }
+}
+
+function configureGrapherStateTab(
+    grapherState: GrapherState,
+    { tab }: { tab: GrapherTabName }
+): void {
+    if (!tab) return
+
+    // Update Grapher's active tab
+    grapherState.tab = mapGrapherTabNameToConfigOption(tab)
+
+    // When a line or slope chart has only a single time point selected by default,
+    // Grapher automatically switches to a discrete bar chart. This means the active
+    // tab type (DiscreteBar) wouldn't match what we want to render in the preview
+    // (LineChart). By ensuring the time handles are on different times, we force
+    // Grapher to display the actual line/slope chart instead of a bar chart.
+    grapherState.ensureTimeHandlesAreSensibleForTab(tab)
+}
+
+function configureGrapherStateSelection(
+    grapherState: GrapherState,
+    { entities }: { entities: EntityName[] }
+): void {
+    if (entities.length > 0)
+        grapherState.selection.setSelectedEntities(entities)
+}
+
+function configureGrapherStateFocus(
+    grapherState: GrapherState,
+    { entities }: { entities: EntityName[] }
+): void {
+    if (
+        entities.length > 0 &&
+        // focusing entities only makes sense when we're plotting entities
+        grapherState.chartState.seriesStrategy === SeriesStrategy.entity &&
+        grapherState.facetStrategy !== FacetStrategy.entity
+    ) {
+        const validEntities = entities.filter((entity) =>
+            grapherState.selection.selectedSet.has(entity)
+        )
+        grapherState.focusArray.clearAllAndAdd(...validEntities)
+    } else {
+        // Clear the focus state for any entities that might be focused by default
+        grapherState.focusArray.clear()
+    }
+}
+
+function configureGrapherStateForLayout(
+    grapherState: GrapherState,
+    {
+        placedTabs,
+        dataTableProps,
+    }: {
+        placedTabs?: { tab: GrapherTabName; slot: GridSlot }[]
+        dataTableProps?: SearchChartHitDataTableProps
+    }
+) {
+    if (!placedTabs || !dataTableProps) return
+
+    // Check how many rows are available for the table and update
+    // the selected/focused entities accordingly. This is important to ensure
+    // that the table and thumbnail display the same entities/series.
+    const tableSlot = placedTabs.find(
+        ({ tab }) => tab === GRAPHER_TAB_NAMES.Table
+    )?.slot
+    if (!tableSlot) return
+
+    if (grapherState.isFaceted) return
+
+    const numAvailableRows = getRowCountForGridSlot(
+        tableSlot,
+        NUM_DATA_TABLE_ROWS_PER_COLUMN
+    )
+    const selectedEntities = grapherState.selection.selectedEntityNames
+    const { seriesStrategy = SeriesStrategy.entity } = grapherState.chartState
+    if (
+        seriesStrategy === SeriesStrategy.entity &&
+        selectedEntities.length > numAvailableRows
+    ) {
+        // When plotting entities as series, limit the selection to only
+        // those that can be displayed in the table rows to ensure
+        // thumbnails and table show the same data
+        grapherState.selection.setSelectedEntities(
+            selectedEntities.slice(0, numAvailableRows)
+        )
+    } else if (
+        grapherState.yColumnSlugs.length > numAvailableRows &&
+        !grapherState.hasProjectedData
+    ) {
+        // When plotting columns as series, focus only the subset of columns
+        // that can be displayed in the table
+        const seriesNamesInTable = dataTableProps.rows
+            .slice(0, numAvailableRows)
+            .map((row) => row.name)
+        grapherState.focusArray.clearAllAndAdd(...seriesNamesInTable)
+    }
+}
+
+function resetGrapherColors(grapherState: GrapherState): void {
+    grapherState.seriesColorMap?.clear()
+}
+
+function calculateLayout(
+    grapherState: GrapherState,
+    {
+        sortedTabs,
+        entityForDataDisplay = WORLD_ENTITY_NAME,
+    }: { sortedTabs: GrapherTabName[]; entityForDataDisplay: EntityName }
+) {
+    // Prepare rendering the data display
+    const chartInfo = constructGrapherValuesJson(
+        grapherState,
+        entityForDataDisplay
+    )
+    const dataDisplayProps = buildChartHitDataDisplayProps({
+        chartInfo,
+        chartType: grapherState.chartType,
+        entity: entityForDataDisplay,
+        isEntityPickedByUser: entityForDataDisplay !== WORLD_ENTITY_NAME,
+    })
+
+    // Figure out the layout by assigning each Grapher tab to grid slots.
+    // The table tab can optionally span two or more slots (instead of just one)
+    // if there's enough space in the grid and enough data to justify it.
+    // Since this decision depends on the table content, we need to
+    // build the table props first to get the row count.
+    const dataTableProps = buildChartHitDataTableProps({ grapherState })
+    const placedTabs = placeGrapherTabsInGridLayout(sortedTabs, {
+        numDataTableRows: dataTableProps?.rows.length,
+        hasDataDisplay: !!dataDisplayProps,
+        numDataTableRowsPerColumn: NUM_DATA_TABLE_ROWS_PER_COLUMN,
+    })
+
+    return { placedTabs, dataTableProps, dataDisplayProps }
 }
