@@ -16,7 +16,7 @@
   "author": "",
   "dependencies": {
     "@ourworldindata/types": "workspace:^",
-    "@sentry/browser": "^9.42.0",
+    "@sentry/browser": "^10.0.0",
     "@tippyjs/react": "^4.2.6",
     "d3": "^7.9.0",
     "dayjs": "^1.11.11",
