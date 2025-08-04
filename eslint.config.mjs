@@ -146,6 +146,8 @@ export default tseslint.config(
 
             // we would want to have this rule enabled, but it doesn't allow for our mix of `makeObservable` arguments and decorators
             "mobx/missing-make-observable": "off",
+
+            "mobx/exhaustive-make-observable": "off"
         },
     },
     {
