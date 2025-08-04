@@ -51,18 +51,24 @@
         }
     }
 
-    .search-chart-hit-medium__skeleton {
+    .search-chart-hit-medium__placeholder {
         display: flex;
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
 
-        .search-chart-hit-medium__placeholder {
+        .search-chart-hit-medium__thumbnail-placeholder {
             aspect-ratio: calc(
                 $grapher-thumbnail-width / $grapher-thumbnail-height
             );
             width: 100%;
-            background: $gray-20;
+            background: $blue-10;
+        }
+
+        .search-chart-hit-medium__captioned-link-label {
+            height: 16px;
+            background: $blue-10;
+            width: 40px;
         }
     }
 
