@@ -37,7 +37,9 @@ interface Args<State extends ChartState = ChartState> extends BaseArgs {
 
 export function buildChartHitDataTableProps(
     props: BaseArgs
-): SearchChartHitDataTableProps {
+): SearchChartHitDataTableProps | undefined {
+    if (!props.grapherState.isReady) return undefined
+
     // If the chart is faceted and displays multiple series per facet
     // (i.e. multiple entities + multiple columns), we only show data from
     // the first facet in the data table
