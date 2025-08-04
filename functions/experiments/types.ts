@@ -59,13 +59,5 @@ function makeCookiePath(path: string): CookiePath {
     return path as CookiePath
 }
 
-export {
-    ExperimentInterface,
-    Arm,
-    Fraction,
-    ISODateString,
-    CookiePath,
-    makeFraction,
-    makeISODateString,
-    makeCookiePath,
-}
+export type { ExperimentInterface, Arm, Fraction, ISODateString, CookiePath }
+export { makeFraction, makeISODateString, makeCookiePath }

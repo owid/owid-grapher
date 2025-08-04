@@ -399,50 +399,72 @@ export async function loadGdocFromGdocBase(
 
 export async function getAndLoadPublishedDataInsights(
     knex: KnexReadonlyTransaction,
-    options?: { limit: number; offset?: number }
+    options?: { limit: number; offset?: number; topicSlug?: string }
 ): Promise<GdocDataInsight[]> {
     let query = knex<DbRawPostGdoc>(PostsGdocsTableName)
         .where("type", OwidGdocType.DataInsight)
         .where("published", 1)
         .where("publishedAt", "<=", knex.fn.now())
         .orderBy("publishedAt", "desc")
+
+    if (options?.topicSlug) {
+        query = query
+            .join("posts_gdocs_x_tags as pgt", "posts_gdocs.id", "pgt.gdocId")
+            .join("tags", "pgt.tagId", "tags.id")
+            .where("tags.slug", options.topicSlug)
+            .distinct()
+    }
+
     if (options?.limit) query = query.limit(options.limit)
     if (options?.offset) query = query.offset(options.offset)
-    const rows = await query.select("*")
+    const rows = await query.select(`${PostsGdocsTableName}.*`)
     const ids = rows.map((row) => row.id)
-    const tags = await knexRaw<DbPlainTag>(
-        knex,
-        `-- sql
-                SELECT gt.gdocId as gdocId, tags.*
-                FROM tags
-                JOIN posts_gdocs_x_tags gt ON gt.tagId = tags.id
-                WHERE gt.gdocId in (:ids)`,
-        { ids: ids }
-    )
-    const groupedTags = _.groupBy(tags, "gdocId")
-    const enrichedRows = rows.map((row) => {
-        return {
-            ...parsePostsGdocsRow(row),
-            tags: groupedTags[row.id] ? groupedTags[row.id] : null,
-        } satisfies OwidGdocBaseInterface
-    })
-    const gdocs = await Promise.all(
-        enrichedRows.map(async (row) => loadGdocFromGdocBase(knex, row))
-    )
-    return gdocs as GdocDataInsight[]
+    let gdocs: GdocDataInsight[] = []
+    if (ids.length) {
+        const tags = await knexRaw<DbPlainTag>(
+            knex,
+            `-- sql
+                    SELECT gt.gdocId as gdocId, tags.*
+                    FROM tags
+                    JOIN posts_gdocs_x_tags gt ON gt.tagId = tags.id
+                    WHERE gt.gdocId in (:ids)`,
+            { ids: ids }
+        )
+        const groupedTags = _.groupBy(tags, "gdocId")
+        const enrichedRows = rows.map((row) => {
+            return {
+                ...parsePostsGdocsRow(row),
+                tags: groupedTags[row.id] ? groupedTags[row.id] : null,
+            } satisfies OwidGdocBaseInterface
+        })
+        gdocs = (await Promise.all(
+            enrichedRows.map(async (row) => loadGdocFromGdocBase(knex, row))
+        )) as GdocDataInsight[]
+    }
+    return gdocs
 }
 
 export async function getAndLoadPublishedDataInsightsPage(
     knex: KnexReadonlyTransaction,
-    page?: number
+    page?: number,
+    topicSlug?: string
 ): Promise<GdocDataInsight[]> {
-    const options =
-        page === undefined
-            ? undefined
-            : {
-                  limit: DATA_INSIGHTS_INDEX_PAGE_SIZE,
-                  offset: page * DATA_INSIGHTS_INDEX_PAGE_SIZE,
-              }
+    let options:
+        | { limit: number; offset?: number; topicSlug?: string }
+        | undefined
+    if (page !== undefined) {
+        options = {
+            limit: DATA_INSIGHTS_INDEX_PAGE_SIZE,
+            offset: page * DATA_INSIGHTS_INDEX_PAGE_SIZE,
+        }
+    }
+    if (topicSlug !== undefined) {
+        options = {
+            limit: options?.limit ?? DATA_INSIGHTS_INDEX_PAGE_SIZE,
+            offset: options?.offset,
+            topicSlug,
+        }
+    }
     return await getAndLoadPublishedDataInsights(knex, options)
 }
 

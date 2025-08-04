@@ -21,7 +21,7 @@ export const experimentsMiddleware = async (context) => {
 
         const analyticsConsent = getAnalyticsConsentValue(context.request)
         const replay = Sentry.getReplay()
-        let isReplayRecording = !!replay?.getReplayId()
+        const isReplayRecording = !!replay?.getReplayId()
 
         for (const exp of activeExperiments) {
             if (
