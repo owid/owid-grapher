@@ -230,6 +230,7 @@ import {
 } from "./EntitiesByRegionType"
 import * as R from "remeda"
 import { CaptionedOrThumbnailChart } from "../chart/CaptionedOrThumbnailChart.js"
+import { flushSync } from "react-dom"
 
 declare global {
     interface Window {
@@ -3937,7 +3938,12 @@ export class Grapher extends React.Component<GrapherProps> {
                 (entries) => {
                     entries.forEach((entry) => {
                         if (entry.isIntersecting) {
-                            this.hasBeenVisible = true
+                            // We need to render this immediately to avoid a Safari bug, where Safari
+                            // is seemingly blocking rendering during the initial fetches, and will then
+                            // subsequently render using the wrong bounds.
+                            flushSync(() => {
+                                this.hasBeenVisible = true
+                            })
 
                             if (!this.hasLoggedGAViewEvent) {
                                 this.hasLoggedGAViewEvent = true
