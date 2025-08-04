@@ -214,37 +214,172 @@
     }
 }
 
-/* A/B testing experiment(s) */
+/* CSS for A/B testing experiments */
 
-// .ab-show is hidden by default. Only shown if visitor is in an experimental condition.
-.ab-show {
-    visibility: hidden;
-    display: none;
-}
+// CSS pattern for hiding/showing elements based on visitor's assignment to an experiment:
+//
+// Elements to be shown for an experimental arm should be given a class such as "exp-data-page-insight-links--t0",
+// following the format "exp-{experimentId}--{armId}". If the visitor is assigned to that arm,
+// the html body will also be given the "exp-data-page-insight-links--t0" class, which is how we then
+// determine whether to show or hide the elements.
+//
+// To implement this show/hide logic for an experiment, you must add the following css code.
+// This will hide all elements associated with the experiment, except for elements
+// that match the experimental arm the visitor is assigned to.
+//
+// The logic is that all elements with "exp-{experimentId}--{armId}" classes are hidden, except those
+// that match the body's "exp-{experimentId}--{armId1}" class (which indicates the visitor's
+// experimental arm assignment).
+//
+// body {
+//     .exp-{experimentId}--{armId1},
+//     .exp-{experimentId}--{armId2} {
+//         visibility: hidden;
+//         display: none;
+//     }
+//     &.exp-{experimentId}--{admId1} .exp-{experimentId}--{admId1},
+//     &.exp-{experimentId}--{admId2} .exp-{experimentId}--{admId2} {
+//         visibility: visible;
+//         display: block;
+//     }
+// }
+//
+// Note: it's important that any additional css you write for experimental elements is scoped
+// to the experiment and arm, so that it doesn't unintentionally affect other elements.
+//
+// Example:
+// .exp-{experimentId}--{armId} {
+//     .my-btn {
+//         padding: 1rem;
+//         ...
+//     }
+// }
 
-// experiment: ab-data-page-header-trt
-body.ab-data-page-header-trt {
-    .ab-data-page-header-trt {
-        &.ab-hide {
-            visibility: hidden;
-            display: none;
+// experiment: exp-data-page-insight-buttons-basic
+body {
+    .exp-data-page-insight-buttons-basic--t0,
+    .exp-data-page-insight-buttons-basic--t1 {
+        visibility: hidden;
+        display: none;
+    }
+    &.exp-data-page-insight-buttons-basic--t0
+        .exp-data-page-insight-buttons-basic--t0,
+    &.exp-data-page-insight-buttons-basic--t1
+        .exp-data-page-insight-buttons-basic--t1 {
+        visibility: visible;
+        display: block;
+
+        margin-bottom: 24px;
+        @include sm-up {
+            margin-bottom: 40px;
+        }
+
+        &.grid {
+            display: grid;
         }
     }
 }
 
-// experiment: ab-data-page-insights-1-trt
-body.ab-data-page-insights-1-trt {
-    .ab-data-page-insights-1-trt {
-        &.ab-show {
-            visibility: visible;
-            display: block;
+// experiment: exp-data-page-insight-buttons-full
+body {
+    .exp-data-page-insight-buttons-full--t000,
+    .exp-data-page-insight-buttons-full--t010,
+    .exp-data-page-insight-buttons-full--t100,
+    .exp-data-page-insight-buttons-full--t110,
+    .exp-data-page-insight-buttons-full--t101,
+    .exp-data-page-insight-buttons-full--t111,
+    .exp-data-page-insight-buttons-full--t200,
+    .exp-data-page-insight-buttons-full--t210,
+    .exp-data-page-insight-buttons-full--t201,
+    .exp-data-page-insight-buttons-full--t211 {
+        visibility: hidden;
+        display: none;
+    }
+    &.exp-data-page-insight-buttons-full--t000
+        .exp-data-page-insight-buttons-full--t000,
+    &.exp-data-page-insight-buttons-full--t010
+        .exp-data-page-insight-buttons-full--t010,
+    &.exp-data-page-insight-buttons-full--t100
+        .exp-data-page-insight-buttons-full--t100,
+    &.exp-data-page-insight-buttons-full--t110
+        .exp-data-page-insight-buttons-full--t110,
+    &.exp-data-page-insight-buttons-full--t101
+        .exp-data-page-insight-buttons-full--t101,
+    &.exp-data-page-insight-buttons-full--t111
+        .exp-data-page-insight-buttons-full--t111,
+    &.exp-data-page-insight-buttons-full--t200
+        .exp-data-page-insight-buttons-full--t200,
+    &.exp-data-page-insight-buttons-full--t210
+        .exp-data-page-insight-buttons-full--t210,
+    &.exp-data-page-insight-buttons-full--t201
+        .exp-data-page-insight-buttons-full--t201,
+    &.exp-data-page-insight-buttons-full--t211
+        .exp-data-page-insight-buttons-full--t211 {
+        visibility: visible;
+        display: block;
+
+        margin-bottom: 24px;
+        @include sm-up {
+            margin-bottom: 40px;
         }
 
-        &.insights-btn {
-            padding: 1rem;
-            margin: 1rem 0;
-            background-color: $blue-20;
-            text-align: center;
+        &.grid {
+            display: grid;
+        }
+    }
+}
+
+.exp-data-page-insight-buttons-full--t000,
+.exp-data-page-insight-buttons-full--t010,
+.exp-data-page-insight-buttons-full--t100,
+.exp-data-page-insight-buttons-full--t110,
+.exp-data-page-insight-buttons-full--t101,
+.exp-data-page-insight-buttons-full--t111,
+.exp-data-page-insight-buttons-full--t200,
+.exp-data-page-insight-buttons-full--t210,
+.exp-data-page-insight-buttons-full--t201,
+.exp-data-page-insight-buttons-full--t211 {
+    .insight-links {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .insights-link {
+        padding: 12px 24px;
+        &.has-thumbnail {
+            text-align: left;
+        }
+    }
+
+    .insights__title {
+        @include h2-bold;
+        margin: 24px 0 16px;
+
+        @include sm-up {
+            margin: 24px 0 24px;
+        }
+    }
+
+    .insight__type {
+        @include h5-black-caps;
+
+        @include md-down {
+            @include h6-black-caps;
+        }
+
+        margin-bottom: 4px;
+        margin-top: 0;
+        color: $blue-20;
+    }
+
+    .insight__title {
+        margin: 0;
+
+        @include subtitle-2-bold;
+
+        @include md-down {
+            font-size: 18px;
         }
     }
 }

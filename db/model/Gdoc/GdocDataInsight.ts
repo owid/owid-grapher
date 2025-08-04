@@ -64,8 +64,9 @@ export class GdocDataInsight
 
     static async getPublishedDataInsights(
         knex: db.KnexReadonlyTransaction,
-        page?: number
+        page?: number,
+        topicSlug?: string
     ): Promise<GdocDataInsight[]> {
-        return getAndLoadPublishedDataInsightsPage(knex, page)
+        return getAndLoadPublishedDataInsightsPage(knex, page, topicSlug)
     }
 }

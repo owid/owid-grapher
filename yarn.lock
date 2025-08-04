@@ -5451,6 +5451,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sentry-internal/feedback@npm:9.44.0":
+  version: 9.44.0
+  resolution: "@sentry-internal/feedback@npm:9.44.0"
+  dependencies:
+    "@sentry/core": "npm:9.44.0"
+  checksum: 10/79745ed691cf458ca73fecb320fbb53e9905367ef33dbf63fd4f4e5aebc548885e29ca749a9d9c67984f040cdce79e154c9044c4cc60d1201d6f131162c2bf13
+  languageName: node
+  linkType: hard
+
 "@sentry-internal/node-cpu-profiler@npm:^2.2.0":
   version: 2.2.0
   resolution: "@sentry-internal/node-cpu-profiler@npm:2.2.0"
