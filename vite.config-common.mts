@@ -70,7 +70,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
             pluginReact({
                 babel: {
                     parserOpts: {
-                        plugins: ["decorators", "decoratorAutoAccessors"], // needed so mobx decorators work correctly
+                        plugins: ["decorators"], // needed so mobx decorators work correctly
                     },
                 },
             }),
