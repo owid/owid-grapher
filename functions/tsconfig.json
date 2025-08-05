@@ -9,6 +9,8 @@
 
         "outDir": "./dist",
 
-        "experimentalDecorators": true
+        "experimentalDecorators": false,
+
+        "jsx": "react-jsx"
     }
 }
