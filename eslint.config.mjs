@@ -143,6 +143,11 @@ export default tseslint.config(
             "@typescript-eslint/no-floating-promises": "error",
             "no-constant-binary-expression": "error",
             "mobx/missing-observer": "off",
+
+            // we would want to have this rule enabled, but it doesn't allow for our mix of `makeObservable` arguments and decorators
+            "mobx/missing-make-observable": "off",
+
+            "mobx/exhaustive-make-observable": "off"
         },
     },
     {

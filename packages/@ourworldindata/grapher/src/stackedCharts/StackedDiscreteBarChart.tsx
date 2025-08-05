@@ -16,6 +16,7 @@ import {
     makeIdForHumanConsumption,
     dyFromAlign,
     exposeInstanceOnWindow,
+    bind,
 } from "@ourworldindata/utils"
 import { action, computed, makeObservable, observable } from "mobx"
 import { observer } from "mobx-react"
@@ -56,7 +57,6 @@ import { HorizontalAxis } from "../axis/Axis"
 import { SelectionArray } from "../selection/SelectionArray"
 import { HashMap, NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
-import { bind } from "decko"
 import { TextWrap } from "@ourworldindata/components"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
@@ -118,14 +118,18 @@ export class StackedDiscreteBarChart
 
     constructor(props: StackedDiscreteBarChartProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            focusSeriesName: observable,
+            tooltipState: observable,
+        })
     }
 
     @computed private get sortConfig(): SortConfig {
         return this.chartState.sortConfig
     }
 
-    @observable focusSeriesName?: SeriesName
+    focusSeriesName: SeriesName | undefined = undefined
 
     @computed get chartState(): StackedDiscreteBarChartState {
         return this.props.chartState
@@ -494,7 +498,7 @@ export class StackedDiscreteBarChart
         })
     }
 
-    @observable tooltipState = new TooltipState<{
+    tooltipState = new TooltipState<{
         entityName: string
         seriesName?: string
     }>()

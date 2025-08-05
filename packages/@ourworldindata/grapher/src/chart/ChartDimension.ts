@@ -20,18 +20,23 @@ import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 // A chart "dimension" represents a binding between a chart
 // and a particular variable that it requests as data
 class ChartDimensionDefaults implements OwidChartDimensionInterface {
-    @observable property!: DimensionProperty
-    @observable variableId!: OwidVariableId
+    property!: DimensionProperty
+    variableId!: OwidVariableId
 
     // check on: malaria-deaths-comparisons and computing-efficiency
 
-    @observable display = new OwidVariableDisplayConfig() // todo: make persistable
+    display = new OwidVariableDisplayConfig() // todo: make persistable
 
     // XXX move this somewhere else, it's only used for scatter x override and Marimekko override
-    @observable targetYear?: Time = undefined
+    targetYear: Time | undefined = undefined
 
     constructor() {
-        makeObservable(this)
+        makeObservable(this, {
+            property: observable,
+            variableId: observable,
+            display: observable,
+            targetYear: observable,
+        })
     }
 }
 
@@ -59,7 +64,10 @@ export class ChartDimension
         manager: LegacyDimensionsManager
     ) {
         super()
-        makeObservable(this)
+
+        makeObservable(this, {
+            _slug: observable,
+        })
         this.manager = manager
         if (obj) this.updateFromObject(obj)
     }
@@ -92,7 +100,7 @@ export class ChartDimension
     }
 
     // Do not persist yet, until we migrate off VariableIds
-    @observable _slug?: ColumnSlug | undefined
+    _slug: ColumnSlug | undefined = undefined
 
     @computed get slug(): ColumnSlug {
         if (this._slug) return this._slug

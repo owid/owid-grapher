@@ -25,27 +25,38 @@ import * as R from "remeda"
 // It wraps the map property on ChartConfig.
 // TODO: migrate database config & only pass legend props
 class MapConfigDefaults {
-    @observable columnSlug?: ColumnSlug
-    @observable time?: number
-    @observable timeTolerance?: number
-    @observable toleranceStrategy?: ToleranceStrategy
-    @observable hideTimeline?: boolean
+    columnSlug: ColumnSlug | undefined = undefined
+    time: number | undefined = undefined
+    timeTolerance: number | undefined = undefined
+    toleranceStrategy: ToleranceStrategy | undefined = undefined
+    hideTimeline: boolean | undefined = undefined
 
-    @observable region = MapRegionName.World
-    @observable selection = new MapSelectionArray()
+    region = MapRegionName.World
+    selection = new MapSelectionArray()
 
-    @observable globe: GlobeConfig = {
+    globe: GlobeConfig = {
         isActive: false,
         rotation: DEFAULT_GLOBE_ROTATION, // specified as [lot, lan]
         zoom: DEFAULT_GLOBE_ZOOM,
     }
 
-    @observable colorScale = new ColorScaleConfig()
+    colorScale = new ColorScaleConfig()
     // Show the label from colorSchemeLabels in the tooltip instead of the numeric value
-    @observable tooltipUseCustomLabels?: boolean = undefined
+    tooltipUseCustomLabels: boolean | undefined = undefined
 
     constructor() {
-        makeObservable(this)
+        makeObservable(this, {
+            columnSlug: observable,
+            time: observable,
+            timeTolerance: observable,
+            toleranceStrategy: observable,
+            hideTimeline: observable,
+            region: observable,
+            selection: observable,
+            globe: observable,
+            colorScale: observable,
+            tooltipUseCustomLabels: observable,
+        })
     }
 }
 

@@ -210,7 +210,10 @@ class EditorDebugTabForNarrativeChart extends Component<{
 }> {
     constructor(props: { editor: NarrativeChartEditor }) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            diffModalOpen: observable,
+        })
     }
 
     @action.bound copyYamlToClipboard() {
@@ -234,7 +237,7 @@ class EditorDebugTabForNarrativeChart extends Component<{
         })
     }
 
-    @observable diffModalOpen = false
+    diffModalOpen = false
 
     @action.bound onModalClose() {
         this.diffModalOpen = false

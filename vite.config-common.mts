@@ -44,6 +44,9 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                 ])
             ),
         },
+        esbuild: {
+            target: "es2024", // needed so decorators are compiled by esbuild
+        },
         build: {
             manifest: true, // creates a manifest.json file, which we use to determine which files to load in prod
             emptyOutDir: true,
@@ -67,7 +70,7 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
             pluginReact({
                 babel: {
                     parserOpts: {
-                        plugins: ["decorators-legacy"], // needed so mobx decorators work correctly
+                        plugins: ["decorators"], // needed so mobx decorators work correctly
                     },
                 },
             }),

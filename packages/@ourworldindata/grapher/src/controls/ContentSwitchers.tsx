@@ -33,7 +33,10 @@ export class ContentSwitchers extends React.Component<{
 }> {
     constructor(props: { manager: ContentSwitchersManager }) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<ContentSwitchers, "isOverflowMenuOpen">(this, {
+            isOverflowMenuOpen: observable,
+        })
     }
 
     static shouldShow(manager: ContentSwitchersManager): boolean {
@@ -41,7 +44,7 @@ export class ContentSwitchers extends React.Component<{
         return test.shouldShow
     }
 
-    @observable private isOverflowMenuOpen = false
+    private isOverflowMenuOpen = false
 
     @computed private get manager(): ContentSwitchersManager {
         return this.props.manager

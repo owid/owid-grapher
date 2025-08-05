@@ -3,14 +3,8 @@ import * as Sentry from "@sentry/react"
 import cx from "classnames"
 import { observable, action, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { bind } from "decko"
-import Recaptcha from "react-recaptcha"
 import {
-    DONATE_API_URL,
-    BAKED_BASE_URL,
-    RECAPTCHA_SITE_KEY,
-} from "../settings/clientSettings.js"
-import {
+    bind,
     Tippy,
     stringifyUnknownError,
     titleCase,
@@ -23,6 +17,12 @@ import {
     DonateSessionResponse,
     PLEASE_TRY_AGAIN,
 } from "@ourworldindata/utils"
+import Recaptcha from "react-recaptcha"
+import {
+    DONATE_API_URL,
+    BAKED_BASE_URL,
+    RECAPTCHA_SITE_KEY,
+} from "../settings/clientSettings.js"
 import { Checkbox } from "@ourworldindata/components"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
@@ -112,27 +112,42 @@ function EveryOrgSection({
 
 @observer
 export class DonateForm extends React.Component<{ countryCode?: string }> {
-    @observable interval: DonationInterval = "once"
-    @observable presetAmount?: number =
+    interval: DonationInterval = "once"
+    presetAmount: number | undefined =
         amountsByInterval.once[DEFAULT_AMOUNT_INDEX]
-    @observable customAmount: string = ""
-    @observable name: string = ""
-    @observable showOnList: boolean = true
-    @observable subscribeToDonorNewsletter: boolean = true
-    @observable errorMessage?: string
-    @observable isSubmitting: boolean = false
-    @observable isLoading: boolean = true
-    @observable currencyCode: DonationCurrencyCode = "GBP"
+    customAmount: string = ""
+    name: string = ""
+    showOnList: boolean = true
+    subscribeToDonorNewsletter: boolean = true
+    errorMessage: string | undefined = undefined
+    isSubmitting: boolean = false
+    isLoading: boolean = true
+    currencyCode: DonationCurrencyCode = "GBP"
 
     captchaInstance = React.createRef<Recaptcha>()
-    @observable.ref captchaPromiseHandlers?: {
-        resolve: (value: any) => void
-        reject: (value: any) => void
-    }
+    captchaPromiseHandlers:
+        | {
+              resolve: (value: any) => void
+              reject: (value: any) => void
+          }
+        | undefined = undefined
 
     constructor(props: { countryCode?: string }) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            interval: observable,
+            presetAmount: observable,
+            customAmount: observable,
+            name: observable,
+            showOnList: observable,
+            subscribeToDonorNewsletter: observable,
+            errorMessage: observable,
+            isSubmitting: observable,
+            isLoading: observable,
+            currencyCode: observable,
+            captchaPromiseHandlers: observable.ref,
+        })
     }
 
     @action.bound setInterval(interval: DonationInterval) {

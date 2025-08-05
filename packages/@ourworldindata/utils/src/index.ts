@@ -137,6 +137,7 @@ export {
     detailOnDemandRegex,
     extractDetailsFromSyntax,
     parseFloatOrUndefined,
+    bind,
 } from "./Util.js"
 
 export {

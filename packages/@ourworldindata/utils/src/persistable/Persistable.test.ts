@@ -13,24 +13,39 @@ interface CharacterInterface {
     country: string
 }
 
-class GameBoyGameDefaults {
-    @observable title?: string
-    @observable players?: number = 2
-    @observable relatedGames?: GameBoyGameDefaults[]
-    @observable characters?: CharacterInterface[]
-    @observable mainCharacter?: CharacterInterface
-
-    constructor() {
-        makeObservable(this)
-    }
+interface GameBoyGameInterface {
+    title?: string
+    players?: number
+    relatedGames?: GameBoyGameInterface[]
+    characters?: CharacterInterface[]
+    mainCharacter?: CharacterInterface
 }
 
-type GameBoyGameInterface = GameBoyGameDefaults
+class GameBoyGameDefaults implements GameBoyGameInterface {
+    title: string | undefined = undefined
+    players: number | undefined = 2
+    relatedGames: GameBoyGameDefaults[] | undefined = undefined
+    characters: CharacterInterface[] | undefined = undefined
+    mainCharacter: CharacterInterface | undefined = undefined
+
+    constructor() {
+        makeObservable(this, {
+            title: observable,
+            players: observable,
+            relatedGames: observable,
+            characters: observable,
+            mainCharacter: observable,
+        })
+    }
+}
 
 class GameBoyGame extends GameBoyGameDefaults implements Persistable {
     constructor(obj?: GameBoyGameInterface) {
         super()
-        makeObservable(this)
+
+        makeObservable(this, {
+            someRuntimeProp: observable,
+        })
         if (obj) this.updateFromObject(obj)
     }
 
@@ -50,15 +65,18 @@ class GameBoyGame extends GameBoyGameDefaults implements Persistable {
         return deleteRuntimeAndUnchangedProps(obj, new GameBoyGame())
     }
 
-    @observable someRuntimeProp = 5
+    someRuntimeProp = 5
 }
 
 class CharacterDefaults {
-    @observable name = ""
-    @observable country = ""
+    name = ""
+    country = ""
 
     constructor() {
-        makeObservable(this)
+        makeObservable(this, {
+            name: observable,
+            country: observable,
+        })
     }
 }
 

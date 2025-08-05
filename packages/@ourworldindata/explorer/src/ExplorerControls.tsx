@@ -1,12 +1,11 @@
 import { Component } from "react"
-import { bind } from "decko"
+import { bind, getStylesForTargetHeight } from "@ourworldindata/utils"
 import Select, { components, SingleValueProps } from "react-select"
 import {
     ExplorerControlType,
     ExplorerChoiceOption,
     ExplorerChoice,
 } from "./ExplorerConstants.js"
-import { getStylesForTargetHeight } from "@ourworldindata/utils"
 import { GridBoolean } from "./gridLang/GridLangConstants.js"
 import classNames from "classnames"
 import * as R from "remeda"

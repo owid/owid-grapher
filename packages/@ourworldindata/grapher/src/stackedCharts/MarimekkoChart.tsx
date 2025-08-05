@@ -31,6 +31,7 @@ import {
     EntityName,
     OwidVariableRow,
     VerticalAlign,
+    ColorScaleConfigInterface,
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 import { getShortNameForEntity, makeSelectionArray } from "../chart/ChartUtils"
@@ -50,7 +51,6 @@ import {
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { ColorScale } from "../color/ColorScale"
-import { ColorScaleConfigDefaults } from "../color/ColorScaleConfig"
 import { SelectionArray } from "../selection/SelectionArray"
 import {
     MarimekkoChartManager,
@@ -238,16 +238,20 @@ export class MarimekkoChart
 
     constructor(props: MarimekkoChartProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            focusColorBin: observable,
+            tooltipState: observable,
+        })
     }
 
     labelAngleInDegrees = -45 // 0 is horizontal, -90 is vertical from bottom to top, ...
 
     // currently hovered legend color
-    @observable focusColorBin?: ColorScaleBin
+    focusColorBin: ColorScaleBin | undefined = undefined
 
     // current tooltip target & position
-    @observable tooltipState = new TooltipState<{
+    tooltipState = new TooltipState<{
         entityName: string
     }>()
 
@@ -353,7 +357,7 @@ export class MarimekkoChart
     }
 
     @computed private get colorScaleConfig():
-        | ColorScaleConfigDefaults
+        | ColorScaleConfigInterface
         | undefined {
         return this.chartState.colorScaleConfig
     }

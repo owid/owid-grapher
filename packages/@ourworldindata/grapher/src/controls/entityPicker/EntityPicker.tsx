@@ -11,13 +11,8 @@ import {
 } from "mobx"
 import { observer } from "mobx-react"
 import { Flipper, Flipped } from "react-flip-toolkit"
-import { bind } from "decko"
-import classnames from "classnames"
-import { scaleLinear, ScaleLinear } from "d3-scale"
-import Select from "react-select"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faSearch, faTimes } from "@fortawesome/free-solid-svg-icons"
 import {
+    bind,
     FuzzySearch,
     scrollIntoViewIfNeeded,
     sortByUndefinedLast,
@@ -30,6 +25,11 @@ import {
     CoreColumnDef,
     OwidTableSlugs,
 } from "@ourworldindata/utils"
+import classnames from "classnames"
+import { scaleLinear, ScaleLinear } from "d3-scale"
+import Select from "react-select"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faSearch, faTimes } from "@fortawesome/free-solid-svg-icons"
 import { VerticalScrollContainer } from "../../controls/VerticalScrollContainer"
 import { SortIcon } from "../../controls/SortIcon"
 import {
@@ -71,29 +71,50 @@ interface EntityPickerProps {
 
 @observer
 export class EntityPicker extends React.Component<EntityPickerProps> {
-    @observable private searchInput?: string
-    @observable
+    private searchInput: string | undefined = undefined
     private searchInputRef = React.createRef<HTMLInputElement>()
 
-    @observable private focusIndex?: number
-    @observable
+    private focusIndex: number | undefined = undefined
     private focusRef = React.createRef<HTMLLabelElement>()
-    @observable private scrollFocusedIntoViewOnUpdate = false
+    private scrollFocusedIntoViewOnUpdate = false
 
-    @observable private blockOptionHover = false
+    private blockOptionHover = false
 
-    @observable private mostRecentlySelectedEntityName: string | null = null
+    private mostRecentlySelectedEntityName: string | null = null
 
-    @observable
     private scrollContainerRef = React.createRef<HTMLDivElement>()
 
-    @observable private isOpen = false
+    private isOpen = false
 
-    @observable private localEntityNames?: string[]
+    private localEntityNames: string[] | undefined = undefined
 
     constructor(props: EntityPickerProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<
+            EntityPicker,
+            | "searchInput"
+            | "searchInputRef"
+            | "focusIndex"
+            | "focusRef"
+            | "scrollFocusedIntoViewOnUpdate"
+            | "blockOptionHover"
+            | "mostRecentlySelectedEntityName"
+            | "scrollContainerRef"
+            | "isOpen"
+            | "localEntityNames"
+        >(this, {
+            searchInput: observable,
+            searchInputRef: observable,
+            focusIndex: observable,
+            focusRef: observable,
+            scrollFocusedIntoViewOnUpdate: observable,
+            blockOptionHover: observable,
+            mostRecentlySelectedEntityName: observable,
+            scrollContainerRef: observable,
+            isOpen: observable,
+            localEntityNames: observable,
+        })
     }
 
     @computed private get isDropdownMenu(): boolean {

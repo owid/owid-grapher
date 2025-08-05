@@ -57,7 +57,11 @@ export class SaveButtons<Editor extends AbstractChartEditor> extends Component<
 class SaveButtonsForChart extends Component<SaveButtonsProps<ChartEditor>> {
     constructor(props: SaveButtonsProps<ChartEditor>) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            isNarrativeChartNameModalOpen: observable,
+            narrativeChartNameModalError: observable,
+        })
     }
 
     @action.bound onSaveChart() {
@@ -86,8 +90,8 @@ class SaveButtonsForChart extends Component<SaveButtonsProps<ChartEditor>> {
         return slugify(this.props.editor.grapherState.title ?? "")
     }
 
-    @observable isNarrativeChartNameModalOpen = false
-    @observable narrativeChartNameModalError: string | undefined = undefined
+    isNarrativeChartNameModalOpen = false
+    narrativeChartNameModalError: string | undefined = undefined
 
     @action.bound async onSubmitNarrativeChartButton(name: string) {
         const { editor } = this.props
@@ -234,11 +238,14 @@ class SaveButtonsForIndicatorChart extends Component<
 class SaveButtonsForNarrativeChart extends Component<
     SaveButtonsProps<NarrativeChartEditor>
 > {
-    @observable isCreateDataInsightModalOpen = false
+    isCreateDataInsightModalOpen = false
 
     constructor(props: SaveButtonsProps<NarrativeChartEditor>) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            isCreateDataInsightModalOpen: observable,
+        })
     }
 
     @action.bound onSaveChart() {

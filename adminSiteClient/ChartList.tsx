@@ -2,7 +2,12 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { observer } from "mobx-react"
 import { runInAction, observable, computed, action, makeObservable } from "mobx"
-import { bind } from "decko"
+import {
+    bind,
+    DbChartTagJoin,
+    sortNumeric,
+    queryParamsToStr,
+} from "@ourworldindata/utils"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import {
     GrapherChartType,
@@ -11,11 +16,6 @@ import {
     GRAPHER_TAB_CONFIG_OPTIONS,
     SortOrder,
 } from "@ourworldindata/types"
-import {
-    DbChartTagJoin,
-    sortNumeric,
-    queryParamsToStr,
-} from "@ourworldindata/utils"
 import { getFullReferencesCount } from "./ChartEditor.js"
 import { ChartRow } from "./ChartRow.js"
 import { References } from "./AbstractChartEditor.js"
@@ -71,14 +71,20 @@ export class ChartList extends React.Component<ChartListProps> {
     static override contextType = AdminAppContext
     declare context: AdminAppContextType
 
-    @observable searchInput?: string
-    @observable maxVisibleCharts = 50
-    @observable sortConfig?: SortConfig
-    @observable availableTags: DbChartTagJoin[] = []
+    searchInput: string | undefined = undefined
+    maxVisibleCharts = 50
+    sortConfig: SortConfig | undefined = undefined
+    availableTags: DbChartTagJoin[] = []
 
     constructor(props: ChartListProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable(this, {
+            searchInput: observable,
+            maxVisibleCharts: observable,
+            sortConfig: observable,
+            availableTags: observable,
+        })
     }
 
     async fetchRefs(grapherId: number | undefined): Promise<References> {

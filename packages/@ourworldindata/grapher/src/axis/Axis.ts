@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import { scaleLog, scaleLinear, ScaleLinear, ScaleLogarithmic } from "d3-scale"
-import { observable, computed, override, makeObservable } from "mobx"
+import { observable, computed, makeObservable } from "mobx"
 import {
     rollingMap,
     numberMagnitude,
@@ -69,15 +69,22 @@ abstract class AbstractAxis {
     config: AxisConfig
     axisManager?: AxisManager
 
-    @observable.ref domain: ValueRange
-    @observable formatColumn?: CoreColumn // Pass the column purely for formatting reasons. Might be a better way to do this.
-    @observable hideFractionalTicks = false
-    @observable.struct range: ValueRange = [0, 0]
-    @observable private _scaleType?: ScaleType
-    @observable private _label?: string
+    domain: ValueRange
+    formatColumn: CoreColumn | undefined = undefined // Pass the column purely for formatting reasons. Might be a better way to do this.
+    hideFractionalTicks = false
+    range: ValueRange = [0, 0]
+    private _scaleType: ScaleType | undefined = undefined
+    private _label: string | undefined = undefined
 
     constructor(config: AxisConfig, axisManager?: AxisManager) {
-        makeObservable(this)
+        makeObservable<AbstractAxis, "_scaleType" | "_label">(this, {
+            domain: observable.ref,
+            formatColumn: observable,
+            hideFractionalTicks: observable,
+            range: observable.struct,
+            _scaleType: observable,
+            _label: observable,
+        })
         this.config = config
         this.domain = [config.domain[0], config.domain[1]]
         this.axisManager = axisManager
@@ -611,7 +618,7 @@ export class HorizontalAxis extends AbstractAxis {
         return this.height
     }
 
-    @override protected override get baseTicks(): Tickmark[] {
+    protected override get baseTicks(): Tickmark[] {
         let ticks = this.getTickValues().filter(
             (tick): boolean => !tick.gridLineOnly
         )

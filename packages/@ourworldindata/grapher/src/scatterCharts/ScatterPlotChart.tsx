@@ -106,13 +106,17 @@ export class ScatterPlotChart
 {
     constructor(props: ScatterPlotChartProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<ScatterPlotChart, "hoverColor">(this, {
+            hoverColor: observable,
+            tooltipState: observable,
+        })
     }
 
     // currently hovered legend color
-    @observable private hoverColor?: Color
+    private hoverColor: Color | undefined = undefined
     // current hovered individual series + tooltip position
-    @observable tooltipState = new TooltipState<{
+    tooltipState = new TooltipState<{
         series: ScatterSeries
     }>()
 

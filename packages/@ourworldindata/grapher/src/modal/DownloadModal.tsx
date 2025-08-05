@@ -173,7 +173,21 @@ export const DownloadModal = (
 export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
     constructor(props: DownloadModalProps) {
         super(props)
-        makeObservable(this)
+
+        makeObservable<
+            DownloadModalVisTab,
+            | "svgBlob"
+            | "svgPreviewUrl"
+            | "pngBlob"
+            | "pngPreviewUrl"
+            | "isReady"
+        >(this, {
+            svgBlob: observable,
+            svgPreviewUrl: observable,
+            pngBlob: observable,
+            pngPreviewUrl: observable,
+            isReady: observable,
+        })
     }
 
     @computed private get staticBounds(): Bounds {
@@ -219,13 +233,13 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
         return this.props.manager
     }
 
-    @observable private svgBlob?: Blob
-    @observable private svgPreviewUrl?: string
+    private svgBlob: Blob | undefined = undefined
+    private svgPreviewUrl: string | undefined = undefined
 
-    @observable private pngBlob?: Blob
-    @observable private pngPreviewUrl?: string
+    private pngBlob: Blob | undefined = undefined
+    private pngPreviewUrl: string | undefined = undefined
 
-    @observable private isReady: boolean = false
+    private isReady: boolean = false
 
     @action.bound private export(): void {
         // render the graphic then cache data-urls for display & blobs for downloads

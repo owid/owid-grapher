@@ -6,7 +6,7 @@ import {
     Bounds,
 } from "@ourworldindata/utils"
 import { MarkdownTextWrap, TextWrap } from "@ourworldindata/components"
-import { computed, override, makeObservable } from "mobx"
+import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { Logo } from "../captionedChart/Logos"
 
@@ -308,11 +308,11 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
         makeObservable(this)
     }
 
-    @override override get titleLineHeight(): number {
+    override get titleLineHeight(): number {
         return this.manager.isStaticAndSmall ? 1.1 : 1.2
     }
 
-    @override override get subtitleLineHeight(): number {
+    override get subtitleLineHeight(): number {
         return 1.2
     }
 
