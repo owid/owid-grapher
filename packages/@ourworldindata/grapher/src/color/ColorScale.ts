@@ -1,7 +1,7 @@
 import * as _ from "lodash-es"
 import { computed, toJS, makeObservable } from "mobx"
 import { mean, deviation } from "d3-array"
-import { ColorScaleConfig, ColorScaleConfigDefaults } from "./ColorScaleConfig"
+import { ColorScaleConfig } from "./ColorScaleConfig"
 import {
     roundSigFig,
     mapNullToUndefined,
