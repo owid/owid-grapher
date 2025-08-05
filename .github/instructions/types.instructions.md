@@ -1,0 +1,6 @@
+---
+applyTo: "packages/@ourworldindata/types/**/*.ts"
+---
+
+- When you add new types here, check related type definition files to understand the conventions (especially for database types)
+- Export all types and helper functions in the index.ts file
