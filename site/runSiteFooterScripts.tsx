@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import { createRoot, hydrateRoot } from "react-dom/client"
 import {
     ArchiveMetaInformation,
+    DATA_INSIGHTS_INDEX_PAGE_SIZE,
     DataPageV2ContentFields,
     deserializeOwidGdocPageData,
     MultiDimDataPageConfig,
@@ -55,13 +56,44 @@ function hydrateSearchPage() {
     }
 }
 
-function hydrateDataInsightsIndexPage() {
+async function hydrateDataInsightsIndexPage() {
     const props = (window as any)[_OWID_DATA_INSIGHTS_INDEX_PAGE_DATA]
     const container = document.querySelector(
         `#data-insights-index-page-container`
     )
 
     if (container && props) {
+        const urlParams = new URLSearchParams(window.location.search)
+        const topicName = urlParams.get("topic")
+        if (topicName) {
+            // filter data insights to {topic}
+            const response = await fetch(`/dataInsights.json`)
+            if (!response.ok) {
+                throw new Error("Failed to fetch data insights for topic")
+            }
+            let dataInsights = await response.json()
+            dataInsights = dataInsights.filter(
+                (di: { tags: { name: string }[] }) =>
+                    di.tags &&
+                    di.tags.some(
+                        (tag: { name: string }) => tag.name === topicName
+                    )
+            )
+
+            if (dataInsights.length) {
+                const tag = dataInsights[0].tags.find(
+                    (tag: { name: string }) => tag.name === topicName
+                )
+                props.totalPageCount = Math.ceil(
+                    dataInsights.length / DATA_INSIGHTS_INDEX_PAGE_SIZE
+                )
+                props.topic = { name: tag.name, slug: tag.slug }
+                props.dataInsights = dataInsights.slice(
+                    props.pageNumber * DATA_INSIGHTS_INDEX_PAGE_SIZE,
+                    (props.pageNumber + 1) * DATA_INSIGHTS_INDEX_PAGE_SIZE
+                )
+            }
+        }
         hydrateRoot(
             container,
             <DebugProvider>
@@ -275,7 +307,7 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
     }
 }
 
-export const runSiteFooterScripts = (
+export const runSiteFooterScripts = async (
     args: SiteFooterScriptsArgs | undefined
 ) => {
     // We used to destructure this in the function signature, but that caused
@@ -329,7 +361,7 @@ export const runSiteFooterScripts = (
         // falls through
         case SiteFooterContext.dataInsightsIndexPage:
             // Don't break, run default case too
-            hydrateDataInsightsIndexPage()
+            await hydrateDataInsightsIndexPage()
         // falls through
         case SiteFooterContext.searchPage:
             hydrateSearchPage()

@@ -47,6 +47,8 @@ import {
     gdocUrlRegex,
     OwidGdocMinimalPostInterface,
     ImageMetadata,
+    queryParamsToStr,
+    EnrichedBlockImage,
 } from "@ourworldindata/utils"
 import {
     EXPLORERS_ROUTE_FOLDER,
@@ -75,6 +77,8 @@ import {
 import { getMinimalGdocPostsByIds } from "../db/model/Gdoc/GdocBase.js"
 import { getMultiDimDataPageBySlug } from "../db/model/MultiDimDataPage.js"
 import { getParsedDodsDictionary } from "../db/model/Dod.js"
+import { TopicTag } from "../site/DataInsightsIndexPage.js"
+import { getSlugForTopicTag } from "../baker/GrapherBakingUtils.js"
 
 // todo: switch to an object literal where the key is the path and the value is the request handler? easier to test, reflect on, and manipulate
 const mockSiteRouter = Router()
@@ -299,14 +303,30 @@ getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/data-insights{/:pageNumberOrSlug}",
     async (req, res, trx) => {
+        const topicName = req.query.topic as string | undefined
+        const topic: TopicTag | undefined = topicName
+            ? {
+                  name: topicName,
+                  slug: await getSlugForTopicTag(trx, topicName),
+              }
+            : undefined
+
         const totalPageCount = calculateDataInsightIndexPageCount(
-            await db.getPublishedDataInsightCount(trx)
+            await db.getPublishedDataInsightCount(trx, topic?.slug)
         )
-        async function renderIndexPage(pageNumber: number) {
-            const dataInsights = await GdocDataInsight.getPublishedDataInsights(
-                trx,
-                pageNumber
-            )
+
+        if (topic && topic.slug !== undefined) {
+            // if topic slug is not a valid topic, return NotFound page
+            const validTopicSlugs = await db.getAllTopicSlugs(trx)
+            if (!validTopicSlugs.includes(topic.slug)) {
+                return res.status(404).send(renderNotFoundPage())
+            }
+        }
+        async function renderIndexPage(
+            pageNumber: number,
+            dataInsights: GdocDataInsight[],
+            topic?: TopicTag
+        ) {
             // calling fetchImageMetadata 20 times makes me sad, would be nice if we could cache this
             await Promise.all(
                 dataInsights.map((insight) => insight.loadState(trx))
@@ -315,21 +335,40 @@ getPlainRouteWithROTransaction(
                 dataInsights,
                 pageNumber,
                 totalPageCount,
-                true
+                true,
+                topic
             )
         }
         const pageNumberOrSlug = req.params.pageNumberOrSlug
         if (!pageNumberOrSlug) {
-            return res.send(await renderIndexPage(0))
+            const dataInsights = await GdocDataInsight.getPublishedDataInsights(
+                trx,
+                0,
+                topic?.slug
+            )
+            return res.send(await renderIndexPage(0, dataInsights, topic))
         }
 
         // pageNumber is 1-indexed, but DB operations are 0-indexed
         const pageNumber = parseInt(pageNumberOrSlug) - 1
         if (!isNaN(pageNumber)) {
             if (pageNumber <= 0 || pageNumber >= totalPageCount) {
-                return res.redirect("/data-insights")
+                return res.redirect(
+                    `/data-insights${topicName ? queryParamsToStr({ topic: topicName }) : ""}`
+                )
             }
-            return res.send(await renderIndexPage(pageNumber))
+            const dataInsights = await GdocDataInsight.getPublishedDataInsights(
+                trx,
+                pageNumber,
+                topic?.slug
+            )
+            // if no data insights are found, return NotFound page
+            if (dataInsights.length === 0) {
+                return res.status(404).send(renderNotFoundPage())
+            }
+            return res.send(
+                await renderIndexPage(pageNumber, dataInsights, topic)
+            )
         }
 
         try {
@@ -554,6 +593,38 @@ getPlainRouteWithROTransaction(
     async (req, res, trx) => {
         const headerMenu = await db.generateTopicTagGraph(trx)
         res.send(headerMenu)
+    }
+)
+
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    "/dataInsights.json",
+    async (req, res, trx) => {
+        const publishedDataInsights =
+            await GdocDataInsight.getPublishedDataInsights(trx)
+        for (const dataInsight of publishedDataInsights) {
+            // removes data that isn't need for rendering the feed page
+            dataInsight.latestDataInsights = []
+            dataInsight.linkedCharts = {}
+            dataInsight.linkedIndicators = {}
+            dataInsight.linkedDocuments = {}
+            dataInsight.linkedNarrativeCharts = {}
+            const firstImageIndex = dataInsight.content.body.findIndex(
+                (block) => block.type === "image"
+            )
+            const firstImageBlock = dataInsight.content.body[
+                firstImageIndex
+            ] as EnrichedBlockImage | undefined
+            const imgFilename =
+                firstImageBlock?.smallFilename || firstImageBlock?.filename
+            if (imgFilename) {
+                dataInsight.imageMetadata = {
+                    [imgFilename]: dataInsight.imageMetadata[imgFilename],
+                }
+            }
+        }
+        // const data = db.generateTopicDataInsightsGraph(publishedDataInsights)
+        res.send(publishedDataInsights)
     }
 )
 
