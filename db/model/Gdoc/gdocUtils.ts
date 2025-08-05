@@ -62,9 +62,9 @@ export function spanToHtmlString(s: Span): string {
         .with(
             { spanType: "span-guided-chart-link" },
             (span) =>
-                `<span><a href="${span.url}" class="guided-chart-link">${spansToHtmlString(
+                `<a href="#guide:${span.url}" class="guided-chart-link">${spansToHtmlString(
                     span.children
-                )}</a></span>`
+                )}</a>`
         )
         .with({ spanType: "span-newline" }, () => "<br/>")
         .with(
