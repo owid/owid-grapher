@@ -8,7 +8,7 @@
         "@ourworldindata/utils": "workspace:^",
         "@resvg/resvg-wasm": "^2.6.2",
         "@sentry/cloudflare": "^10.0.0",
-        "@sentry/react": "^9.31.0",
+        "@sentry/react": "^10.0.0",
         "itty-router": "^5.0.17",
         "littlezipper": "^0.1.4",
         "react": "^19.1.0",
