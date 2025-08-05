@@ -3,18 +3,13 @@
   "version": "0.0.0",
   "description": "OWID's data exploration and visualization library.",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist/index.js",
-    "dist/index.css"
-  ],
+  "main": "src/index.ts",
+  "types": "src/index.ts",
   "directories": {
     "lib": "src"
   },
   "scripts": {
-    "build": "tsup src/index.ts",
-    "watch": "tsup src/index.ts --watch",
+    "build": "",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [],
@@ -59,11 +54,8 @@
     "@types/react-dom": "^19.1.6",
     "@types/topojson-client": "^3.1.1",
     "@types/url-parse": "^1.4.8",
-    "esbuild": "^0.25.0",
-    "esbuild-sass-plugin": "^3.3.1",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "tsup": "^8.4.0",
     "typescript": "~5.9.2",
     "vitest": "^3.2.4"
   },
