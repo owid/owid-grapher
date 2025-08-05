@@ -23,6 +23,7 @@ import {
     DbPlainTag,
     formatDate,
     excludeUndefined,
+    Url,
 } from "@ourworldindata/utils"
 import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
 import { docs as googleDocs } from "@googleapis/docs"
@@ -718,6 +719,17 @@ export class GdocBase implements OwidGdocBaseInterface {
                 linkType: ContentGraphLinkType.Dod,
             } satisfies DbInsertPostGdocLink
         }
+        if (span.spanType === "span-guided-chart-link") {
+            return {
+                target: span.url,
+                sourceId: this.id,
+                componentType: span.spanType,
+                hash: "",
+                queryString: "",
+                text: spansToSimpleString(span.children),
+                linkType: ContentGraphLinkType.GuidedChart,
+            }
+        }
     }
 
     async loadLinkedCharts(knex: db.KnexReadonlyTransaction): Promise<void> {
@@ -924,7 +936,6 @@ export class GdocBase implements OwidGdocBaseInterface {
         ])
 
         const linkErrors: OwidGdocErrorMessage[] = []
-        console.log("this.links", this.links)
         for (const link of this.links) {
             await match(link)
                 .with({ linkType: ContentGraphLinkType.Gdoc }, () => {
@@ -989,17 +1000,27 @@ export class GdocBase implements OwidGdocBaseInterface {
                 })
                 .with({ linkType: ContentGraphLinkType.GuidedChart }, () => {
                     // Validate that guided chart query parameters are spelled correctly
-                    const queryParams = link.target.split("&")
-                    for (const param of queryParams) {
-                        const [key] = param.split("=")
-                        console.log("key", key)
+                    const url = Url.fromURL(link.target)
+                    const slug = url.slug
+                    const queryParams = url.queryParams
+                    const chart = slug ? this.linkedCharts[slug] : undefined
+                    if (!chart) {
+                        linkErrors.push({
+                            property: "content",
+                            message: `Chart with slug "${slug}" does not exist`,
+                            type: OwidGdocErrorMessageType.Error,
+                        })
+                        return
+                    }
+                    for (const key of Object.keys(queryParams)) {
                         if (
                             key &&
-                            !GRAPHER_QUERY_PARAM_KEYS.includes(key as any)
+                            !GRAPHER_QUERY_PARAM_KEYS.includes(key as any) &&
+                            !chart.dimensionSlugs?.includes(key)
                         ) {
                             linkErrors.push({
                                 property: "content",
-                                message: `Guided chart link contains invalid query parameter "${key}". Valid parameters are: ${GRAPHER_QUERY_PARAM_KEYS.join(", ")}`,
+                                message: `Guided chart link with text "${link.text}" contains invalid query parameter "${key}".`,
                                 type: OwidGdocErrorMessageType.Warning,
                             })
                         }
@@ -1222,6 +1243,7 @@ export function makeMultiDimLinkedChart(
         configType: ChartConfigType.MultiDim,
         originalSlug: slug,
         title,
+        dimensionSlugs: config.dimensions.map((d) => d.slug),
         resolvedUrl: `${BAKED_GRAPHER_URL}/${slug}`,
         tags: [],
         archivedChartInfo,
