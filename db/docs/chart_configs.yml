@@ -16,6 +16,8 @@ metadata:
     incoming_foreign_keys:
         - table: charts
           column: configId
+        - table: explorer_views
+          column: chartConfigId
         - table: multi_dim_x_chart_configs
           column: chartConfigId
         - table: narrative_charts
@@ -50,7 +52,7 @@ fields:
     slug:
         description: URL-friendly identifier for the chart, used in URLs like /grapher/[slug]
     chartType:
-        description: Type of chart visualization (e.g., LineChart, BarChart, ScatterPlot, WorldMap). This only indicates the main chart - prefer to query the chartTypes field and the hasMapTab field in the full config instead.
+        description: Type of chart visualization (e.g., LineChart, BarChart, ScatterPlot, WorldMap). This only indicates the main chart - prefer to query the chartTypes field and the hasMapTab field in the full config instead. This column is a GENERATED STORED column, no need to update it in insert/update calls
     createdAt:
         description: Timestamp when the configuration was created
     updatedAt:

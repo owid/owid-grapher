@@ -1,0 +1,26 @@
+metadata:
+    description: |
+        This table stores precomputed views for explorers, allowing for efficient retrieval of specific grapher configurations corresponding to different parameter combinations in an explorer.
+
+        Each row represents a unique combination of parameter choices within an explorer (e.g., specific variable, country, chart type selections). Successfully processed views reference a corresponding grapher chart configuration stored in the chart_configs table, while failed views store error information for debugging.
+
+        This table is populated automatically when explorer TSV files are refreshed and enables fast loading of explorer charts without recomputing configurations at runtime. The system gracefully handles configuration failures, allowing explorers to remain functional even when some parameter combinations cannot be processed.
+fields:
+    id:
+        description: Unique identifier for the explorer view
+    explorerSlug:
+        description: The slug of the explorer this view belongs to. References explorers.slug
+    explorerView:
+        description: |
+            JSON object containing the specific parameter choices for this view (e.g., {"energySource": "solar", "metric": "absolute energy"}).
+            This represents the state of the explorer's controls that would produce this specific chart configuration.
+    chartConfigId:
+        description: |
+            Foreign key reference to chart_configs.id. Points to the complete grapher configuration JSON that should be used when this combination of explorer parameters is selected.
+            This allows explorer views to leverage the existing chart configuration infrastructure.
+            NULL when configuration extraction failed (error will be populated instead).
+    error:
+        description: |
+            Error message explaining why the grapher configuration could not be generated for this parameter combination.
+            NULL when configuration was successfully created (chartConfigId will be populated instead).
+            Limited to 500 characters for database efficiency.
