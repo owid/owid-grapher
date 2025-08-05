@@ -34,14 +34,6 @@
 
         "isolatedModules": true,
 
-        "noImplicitOverride": true,
-
-        "paths": {
-            "@ourworldindata/*": [
-                "../packages/@ourworldindata/*",
-                "./packages/@ourworldindata/*",
-                "../../../packages/@ourworldindata/*"
-            ]
-        }
+        "noImplicitOverride": true
     }
 }
