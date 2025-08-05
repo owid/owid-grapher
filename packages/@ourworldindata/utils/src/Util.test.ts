@@ -1,4 +1,4 @@
-import { expect, it, describe } from "vitest"
+import { expect, it, describe, vi } from "vitest"
 
 import timezoneMock from "timezone-mock"
 import {
@@ -29,6 +29,7 @@ import {
     cartesian,
     formatInlineList,
     flattenNonTopicNodes,
+    imemo,
 } from "./Util.js"
 import {
     BlockImageSize,
@@ -869,5 +870,27 @@ describe(formatInlineList, () => {
         expect(formatInlineList(["a", "b", "c", "d"], "or")).toEqual(
             "a, b, c or d"
         )
+    })
+})
+
+describe(imemo, () => {
+    class IMemoTest {
+        randomValueRaw(): number {
+            return Math.random()
+        }
+        @imemo get randomValue(): number {
+            return this.randomValueRaw()
+        }
+    }
+
+    it("memoizes a function", () => {
+        const classInstance = new IMemoTest()
+        const spy = vi.spyOn(classInstance, "randomValueRaw")
+        const firstValue = classInstance.randomValue
+        const secondValue = classInstance.randomValue
+
+        expect(firstValue).toEqual(secondValue)
+        expect(firstValue).toBeTypeOf("number")
+        expect(spy).toHaveBeenCalledOnce()
     })
 })
