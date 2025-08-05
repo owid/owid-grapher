@@ -21,7 +21,7 @@ export const experiments: Experiment[] = [
                 fraction: 0.9,
                 replaysSessionSampleRate: 0.1,
             },
-            // experimental arm
+            // experimental arms
             {
                 id: "t0",
                 fraction: 0.05,
