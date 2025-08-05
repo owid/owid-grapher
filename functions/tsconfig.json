@@ -7,10 +7,6 @@
         "types": ["@cloudflare/workers-types"],
         "esModuleInterop": true,
 
-        "outDir": "./dist",
-
-        "experimentalDecorators": false,
-
-        "jsx": "react-jsx"
+        "outDir": "./dist"
     }
 }
