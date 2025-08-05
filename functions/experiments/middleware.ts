@@ -14,7 +14,12 @@ export const experimentsMiddleware = async (context) => {
 
     const activeExperiments = experiments.filter((e) => !e.isExpired())
 
-    if (activeExperiments && activeExperiments.length && !isInIFrame()) {
+    if (
+        !isStaticAsset(context.request.url) &&
+        activeExperiments &&
+        activeExperiments.length &&
+        !isInIFrame()
+    ) {
         if (!validateUniqueExperimentIds(activeExperiments)) {
             throw new Error(`Experiment IDs are not unique`)
         }
@@ -80,4 +85,15 @@ function assignToArm(experiment: Experiment): Arm {
         cumulFraction += arm.fraction
     }
     return assignedArm
+}
+
+function isStaticAsset(url: string): boolean {
+    if (
+        /\.(js|css|svg|png|jpg|jpeg|gif|woff2?|ttf|eot|otf|json|ico|map)$/.test(
+            url
+        )
+    ) {
+        return true
+    }
+    return false
 }
