@@ -89,7 +89,7 @@ import {
     getAndLoadGdocById,
     getAndLoadPublishedDataInsightsPage,
 } from "../db/model/Gdoc/GdocFactory.js"
-import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerBaker.js"
+import { transformExplorerProgramToResolveCatalogPaths } from "../db/model/ExplorerCatalogResolver.js"
 import {
     Attachments,
     AttachmentsContext,
@@ -660,7 +660,8 @@ export const renderExplorerPage = async (
 ) => {
     const transformResult = await transformExplorerProgramToResolveCatalogPaths(
         program,
-        knex
+        knex,
+        logErrorAndMaybeCaptureInSentry
     )
     const { program: transformedProgram, unresolvedCatalogPaths } =
         transformResult

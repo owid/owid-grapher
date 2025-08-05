@@ -36,6 +36,7 @@ export {
     ExplorerProgram,
     EXPLORER_FILE_SUFFIX,
     makeFullPath,
+    type ExplorerGrapherInterface,
 } from "./ExplorerProgram.js"
 
 export { type ExplorerPageUrlMigrationSpec } from "./urlMigrations/ExplorerPageUrlMigrationSpec.js"
