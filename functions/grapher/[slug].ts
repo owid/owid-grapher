@@ -12,7 +12,8 @@ import {
     getRedirectForUrl,
 } from "../_common/redirectTools.js"
 import {
-    fetchUnparsedGrapherConfig,
+    fetchGrapherConfigForGrapherSlugOrMdimSlug,
+    GrapherIdentifier,
     rewriteMetaTags,
 } from "../_common/grapherTools.js"
 import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
@@ -32,7 +33,12 @@ router
     .get(
         `/grapher/:slug${extensions.configJson}`,
         async ({ params: { slug } }, { searchParams }, env, etag) =>
-            handleConfigRequest(slug, searchParams, env, etag)
+            handleConfigRequest(
+                { type: "slug", id: slug },
+                searchParams,
+                env,
+                etag
+            )
     )
     .get(
         `/grapher/:slug${extensions.png}`,
@@ -172,26 +178,27 @@ async function handleHtmlPageRequest(
 }
 
 async function handleConfigRequest(
-    slug: string,
+    id: GrapherIdentifier,
     searchParams: URLSearchParams,
     env: Env,
     etag: string | undefined
 ) {
     const shouldCache = searchParams.get("nocache") === null
-    console.log("Preparing json response for ", slug)
+    console.log("Preparing json response for ", id.type, id.id)
 
-    const grapherPageResp = await fetchUnparsedGrapherConfig(
-        { type: "slug", id: slug },
+    const grapherConfigResp = await fetchGrapherConfigForGrapherSlugOrMdimSlug(
+        id,
+        searchParams,
         env,
         etag
     )
 
-    if (grapherPageResp.status === 304) {
-        console.log("Returning 304 for ", slug)
+    if (grapherConfigResp.status === 304) {
+        console.log("Returning 304 for ", id.type, id.id)
         return new Response(null, { status: 304 })
     }
 
-    if (grapherPageResp.status === 404) {
+    if (grapherConfigResp.status === 404) {
         throw new StatusError(404)
     }
 
@@ -200,12 +207,15 @@ async function handleConfigRequest(
         : "no-cache"
 
     //grapherPageResp.headers.set("Cache-Control", cacheControl)
-    return new Response(grapherPageResp.body as any, {
-        status: 200,
-        headers: {
-            "Content-Type": "application/json",
-            "Cache-Control": cacheControl,
-            ETag: grapherPageResp.headers.get("ETag") ?? "",
-        },
-    })
+    return new Response(
+        JSON.stringify(grapherConfigResp.grapherConfig) as any,
+        {
+            status: 200,
+            headers: {
+                "Content-Type": "application/json",
+                "Cache-Control": cacheControl,
+                ETag: grapherConfigResp.etag ?? "",
+            },
+        }
+    )
 }

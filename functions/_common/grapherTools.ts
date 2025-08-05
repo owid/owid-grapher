@@ -190,35 +190,12 @@ export async function initGrapher(
     grapher: Grapher
     multiDimAvailableDimensions?: string[]
 }> {
-    let grapherConfigResponse: FetchGrapherConfigResult
-    try {
-        grapherConfigResponse = await fetchGrapherConfig({
+    const grapherConfigResponse =
+        await fetchGrapherConfigForGrapherSlugOrMdimSlug(
             identifier,
-            env,
             searchParams,
-        })
-    } catch (e) {
-        if (
-            identifier.type === "slug" &&
-            e instanceof StatusError &&
-            e.status === 404
-        ) {
-            // Normal graphers and multi-dims have the same URL namespace, but
-            // we have no way of knowing which of them was requested, so we try
-            // again with a multi-dim identifier.
-            const multiDimId: MultiDimSlug = {
-                type: "multi-dim-slug",
-                id: identifier.id,
-            }
-            grapherConfigResponse = await fetchGrapherConfig({
-                identifier: multiDimId,
-                env,
-                searchParams,
-            })
-        } else {
-            throw e
-        }
-    }
+            env
+        )
 
     if (grapherConfigResponse.status === 404) {
         // we throw 404 errors instad of returning a 404 response so that the router
@@ -246,6 +223,46 @@ export async function initGrapher(
         multiDimAvailableDimensions:
             grapherConfigResponse.multiDimAvailableDimensions,
     }
+}
+
+export async function fetchGrapherConfigForGrapherSlugOrMdimSlug(
+    identifier: GrapherIdentifier,
+    searchParams: URLSearchParams,
+    env: Env,
+    etag?: string
+): Promise<FetchGrapherConfigResult> {
+    let grapherConfigResponse: FetchGrapherConfigResult
+    try {
+        grapherConfigResponse = await fetchGrapherConfig({
+            identifier,
+            env,
+            etag,
+            searchParams,
+        })
+    } catch (e) {
+        if (
+            identifier.type === "slug" &&
+            e instanceof StatusError &&
+            e.status === 404
+        ) {
+            // Normal graphers and multi-dims have the same URL namespace, but
+            // we have no way of knowing which of them was requested, so we try
+            // again with a multi-dim identifier.
+            const multiDimId: MultiDimSlug = {
+                type: "multi-dim-slug",
+                id: identifier.id,
+            }
+            grapherConfigResponse = await fetchGrapherConfig({
+                identifier: multiDimId,
+                env,
+                etag,
+                searchParams,
+            })
+        } else {
+            throw e
+        }
+    }
+    return grapherConfigResponse
 }
 
 /**
