@@ -130,9 +130,11 @@ async function handleHtmlPageRequest(
     const url = env.url
     const cookies = ctx.request.headers.get("cookie")
     const experimentClassNames = cookies
-        .split(";")
-        .filter((c) => c.includes(`${EXPERIMENT_PREFIX}-`))
-        .map((c) => c.replace("=", ARM_SEPARATOR))
+        ? cookies
+              .split(";")
+              .filter((c) => c.includes(`${EXPERIMENT_PREFIX}-`))
+              .map((c) => c.replace("=", ARM_SEPARATOR))
+        : undefined
 
     // For local testing
     // const grapherPageResp = await fetch(
@@ -160,10 +162,13 @@ async function handleHtmlPageRequest(
         url.search ? "&" + url.search.slice(1) : ""
     }`
 
-    const grapherPageWithExperimentClasses = addClassNamesToBody(
-        grapherPageResp,
-        experimentClassNames
-    )
+    let grapherPageWithExperimentClasses = grapherPageResp
+    if (experimentClassNames) {
+        grapherPageWithExperimentClasses = addClassNamesToBody(
+            grapherPageResp,
+            experimentClassNames
+        )
+    }
     const grapherPageWithUpdatedMetaTags = rewriteMetaTags(
         url,
         openGraphThumbnailUrl,
