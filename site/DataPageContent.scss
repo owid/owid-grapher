@@ -214,108 +214,98 @@
     }
 }
 
-/* CSS for A/B testing experiments */
+/*
+CSS for A/B experiments  
 
-// CSS pattern for hiding/showing elements based on visitor's assignment to an experiment:
-//
-// Elements to be shown for an experimental arm should be given a class such as "exp-data-page-insight-links--t0",
-// following the format "exp-{experimentId}--{armId}". If the visitor is assigned to that arm,
-// the html body will also be given the "exp-data-page-insight-links--t0" class, which is how we then
-// determine whether to show or hide the elements.
-//
-// To implement this show/hide logic for an experiment, you must add the following css code.
-// This will hide all elements associated with the experiment, except for elements
-// that match the experimental arm the visitor is assigned to.
-//
-// The logic is that all elements with "exp-{experimentId}--{armId}" classes are hidden, except those
-// that match the body's "exp-{experimentId}--{armId1}" class (which indicates the visitor's
-// experimental arm assignment).
-//
-// body {
-//     .exp-{experimentId}--{armId1},
-//     .exp-{experimentId}--{armId2} {
-//         visibility: hidden;
-//         display: none;
-//     }
-//     &.exp-{experimentId}--{admId1} .exp-{experimentId}--{admId1},
-//     &.exp-{experimentId}--{admId2} .exp-{experimentId}--{admId2} {
-//         visibility: visible;
-//         display: block;
-//     }
-// }
-//
-// Note: it's important that any additional css you write for experimental elements is scoped
-// to the experiment and arm, so that it doesn't unintentionally affect other elements.
-//
-// Example:
-// .exp-{experimentId}--{armId} {
-//     .my-btn {
-//         padding: 1rem;
-//         ...
-//     }
-// }
+CSS pattern for hiding/showing elements based on visitor's assignment to an experiment:
 
-// experiment: exp-data-page-insight-buttons-basic
+Elements to be shown for an experimental arm should be given a class such as "exp-data-page-insight-links--t0__block",
+following the format "exp-{experimentId}--{armId}__block". If the visitor is assigned to that arm,
+the html body will contain the "exp-data-page-insight-links--t0" class, which is how we then
+determine whether to show or hide the elements.
+
+To implement this show/hide logic for an experiment, you must add the following css code.
+This will hide all elements associated with the experiment, except for elements
+that match the experimental arm the visitor is assigned to.
+
+The logic is that all elements with "exp-{experimentId}--{armId}__block" classes are hidden, except those
+that match the body's "exp-{experimentId}--{armId1}" class (which indicates the visitor's
+experimental arm assignment).
+
 body {
-    .exp-data-page-insight-buttons-basic--t0,
-    .exp-data-page-insight-buttons-basic--t1 {
-        visibility: hidden;
+    .exp-{experimentId}--{armId1}__block,
+    .exp-{experimentId}--{armId2}__block {
         display: none;
     }
-    &.exp-data-page-insight-buttons-basic--t0
-        .exp-data-page-insight-buttons-basic--t0,
-    &.exp-data-page-insight-buttons-basic--t1
-        .exp-data-page-insight-buttons-basic--t1 {
-        visibility: visible;
+    &.exp-{experimentId}--{armId1} .exp-{experimentId}--{armId1}__block,
+    &.exp-{experimentId}--{armId2} .exp-{experimentId}--{armId2}__block {
         display: block;
-
-        margin-bottom: 24px;
-        @include sm-up {
-            margin-bottom: 40px;
-        }
-
-        &.grid {
-            display: grid;
-        }
     }
 }
 
-// experiment: exp-data-page-insight-buttons-full
-body {
-    .exp-data-page-insight-buttons-full--t000,
-    .exp-data-page-insight-buttons-full--t010,
-    .exp-data-page-insight-buttons-full--t100,
-    .exp-data-page-insight-buttons-full--t110,
-    .exp-data-page-insight-buttons-full--t101,
-    .exp-data-page-insight-buttons-full--t111,
-    .exp-data-page-insight-buttons-full--t200,
-    .exp-data-page-insight-buttons-full--t210,
-    .exp-data-page-insight-buttons-full--t201,
-    .exp-data-page-insight-buttons-full--t211 {
-        visibility: hidden;
-        display: none;
+Note: make sure any additional css you write for experimental elements is scoped
+to the experiment and arm, so that it doesn't unintentionally affect other elements.
+
+Example:
+.exp-{experimentId}--{armId} {
+    .my-btn {
+        padding: 1rem;
+        ...
     }
+}
+*/
+
+/* experiments: exp-data-page-insight-buttons-basic, exp-data-page-insight-buttons-full */
+body {
+    .exp-data-page-insight-buttons-basic--c1__block,
+    .exp-data-page-insight-buttons-basic--t0__block,
+    .exp-data-page-insight-buttons-basic--t1__block,
+    .exp-data-page-insight-buttons-full--c1__block,
+    .exp-data-page-insight-buttons-full--t000__block,
+    .exp-data-page-insight-buttons-full--t010__block,
+    .exp-data-page-insight-buttons-full--t100__block,
+    .exp-data-page-insight-buttons-full--t110__block,
+    .exp-data-page-insight-buttons-full--t101__block,
+    .exp-data-page-insight-buttons-full--t200__block,
+    .exp-data-page-insight-buttons-full--t210__block,
+    .exp-data-page-insight-buttons-full--t201__block,
+    .exp-data-page-insight-buttons-full--t211__block {
+        display: none;
+
+        // add .exp-hide to elements that are shown by default but which you want
+        // to hide for an experimental arm (must also include experimental arm in
+        // the element's class names, e.g. "exp-data-page-insight-buttons-basic--t0__block exp-hide")
+        &.exp-hide {
+            display: block;
+        }
+    }
+
+    &.exp-data-page-insight-buttons-basic--c1
+        .exp-data-page-insight-buttons-basic--c1__block,
+    &.exp-data-page-insight-buttons-basic--t0
+        .exp-data-page-insight-buttons-basic--t0__block,
+    &.exp-data-page-insight-buttons-basic--t1
+        .exp-data-page-insight-buttons-basic--t1__block,
+    &.exp-data-page-insight-buttons-full--c1
+        .exp-data-page-insight-buttons-full--c1__block,
     &.exp-data-page-insight-buttons-full--t000
-        .exp-data-page-insight-buttons-full--t000,
+        .exp-data-page-insight-buttons-full--t000__block,
     &.exp-data-page-insight-buttons-full--t010
-        .exp-data-page-insight-buttons-full--t010,
+        .exp-data-page-insight-buttons-full--t010__block,
     &.exp-data-page-insight-buttons-full--t100
-        .exp-data-page-insight-buttons-full--t100,
+        .exp-data-page-insight-buttons-full--t100__block,
     &.exp-data-page-insight-buttons-full--t110
-        .exp-data-page-insight-buttons-full--t110,
+        .exp-data-page-insight-buttons-full--t110__block,
     &.exp-data-page-insight-buttons-full--t101
-        .exp-data-page-insight-buttons-full--t101,
-    &.exp-data-page-insight-buttons-full--t111
-        .exp-data-page-insight-buttons-full--t111,
+        .exp-data-page-insight-buttons-full--t101__block,
     &.exp-data-page-insight-buttons-full--t200
-        .exp-data-page-insight-buttons-full--t200,
+        .exp-data-page-insight-buttons-full--t200__block,
     &.exp-data-page-insight-buttons-full--t210
         .exp-data-page-insight-buttons-full--t210,
     &.exp-data-page-insight-buttons-full--t201
-        .exp-data-page-insight-buttons-full--t201,
+        .exp-data-page-insight-buttons-full--t201__block,
     &.exp-data-page-insight-buttons-full--t211
-        .exp-data-page-insight-buttons-full--t211 {
-        visibility: visible;
+        .exp-data-page-insight-buttons-full--t211__block {
         display: block;
 
         margin-bottom: 24px;
@@ -323,63 +313,78 @@ body {
             margin-bottom: 40px;
         }
 
+        &.exp-hide {
+            display: none !important;
+        }
+
         &.grid {
             display: grid;
         }
     }
-}
 
-.exp-data-page-insight-buttons-full--t000,
-.exp-data-page-insight-buttons-full--t010,
-.exp-data-page-insight-buttons-full--t100,
-.exp-data-page-insight-buttons-full--t110,
-.exp-data-page-insight-buttons-full--t101,
-.exp-data-page-insight-buttons-full--t111,
-.exp-data-page-insight-buttons-full--t200,
-.exp-data-page-insight-buttons-full--t210,
-.exp-data-page-insight-buttons-full--t201,
-.exp-data-page-insight-buttons-full--t211 {
-    .insight-links {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
+    &.exp-data-page-insight-buttons-basic--c1,
+    &.exp-data-page-insight-buttons-basic--t0,
+    &.exp-data-page-insight-buttons-basic--t1,
+    &.exp-data-page-insight-buttons-full--c1,
+    &.exp-data-page-insight-buttons-full--t000,
+    &.exp-data-page-insight-buttons-full--t010,
+    &.exp-data-page-insight-buttons-full--t100,
+    &.exp-data-page-insight-buttons-full--t110,
+    &.exp-data-page-insight-buttons-full--t101,
+    &.exp-data-page-insight-buttons-full--t200,
+    &.exp-data-page-insight-buttons-full--t210,
+    &.exp-data-page-insight-buttons-full--t201,
+    &.exp-data-page-insight-buttons-full--t211 {
+        .DataPageContent {
+            .chart-key-info {
+                padding-bottom: 0;
+                @include sm-up {
+                    padding-bottom: 0;
+                }
+            }
+            .insight-links {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
 
-    .insights-link {
-        padding: 12px 24px;
-        &.has-thumbnail {
-            text-align: left;
-        }
-    }
+            .insights-link {
+                padding: 12px 24px;
+                &.has-thumbnail {
+                    text-align: left;
+                }
+            }
 
-    .insights__title {
-        @include h2-bold;
-        margin: 24px 0 16px;
+            .insights__title {
+                @include h2-bold;
+                margin: 24px 0 16px;
 
-        @include sm-up {
-            margin: 24px 0 24px;
-        }
-    }
+                @include sm-up {
+                    margin: 24px 0 24px;
+                }
+            }
 
-    .insight__type {
-        @include h5-black-caps;
+            .insight__type {
+                @include h5-black-caps;
 
-        @include md-down {
-            @include h6-black-caps;
-        }
+                @include md-down {
+                    @include h6-black-caps;
+                }
 
-        margin-bottom: 4px;
-        margin-top: 0;
-        color: $blue-20;
-    }
+                margin-bottom: 4px;
+                margin-top: 0;
+                color: $blue-20;
+            }
 
-    .insight__title {
-        margin: 0;
+            .insight__title {
+                margin: 0;
 
-        @include subtitle-2-bold;
+                @include subtitle-2-bold;
 
-        @include md-down {
-            font-size: 18px;
+                @include md-down {
+                    font-size: 18px;
+                }
+            }
         }
     }
 }
