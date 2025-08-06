@@ -413,7 +413,7 @@ export class StackedAreaChart
         const bottomSeriesPoint = series[0].points[hoveredPointIndex]
         if (!bottomSeriesPoint) return undefined
 
-        const formatColumn = this.chartState.yColumns[0], // Assumes same type for all columns.
+        const formatColumn = this.chartState.formatColumn,
             formattedTime = formatColumn.formatTime(bottomSeriesPoint.position),
             { unit, shortUnit } = formatColumn
 
