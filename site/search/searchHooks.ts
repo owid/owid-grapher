@@ -145,12 +145,17 @@ export function useUrlSync(
     return isInitialUrlStateLoaded
 }
 
+type QueryKeyState = Pick<
+    SearchState,
+    "query" | "filters" | "requireAllCountries"
+>
+
 export function useInfiniteSearch<T extends SearchResponse<U>, U>({
     queryKey,
     queryFn,
     enabled = true,
 }: {
-    queryKey: (state: SearchState) => readonly (string | SearchState)[]
+    queryKey: (state: SearchState) => readonly (string | QueryKeyState)[]
     queryFn: (
         searchClient: SearchClient,
         state: SearchState,
