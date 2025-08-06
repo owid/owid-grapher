@@ -58,6 +58,7 @@
 @import "./search/Autocomplete.scss";
 @import "./search/SearchTopicsRefinementList.scss";
 @import "./search/_DEPRECATEDChartHit.scss";
+@import "./search/SearchShowMore.scss";
 @import "./search/SearchChartHitMedium.scss";
 @import "./search/SearchChartHitSmall.scss";
 @import "./search/SearchChartHitDataDisplay.scss";
@@ -72,13 +73,13 @@
 @import "./search/SearchDebugNavigator.scss";
 @import "./search/SearchWritingTopicsResults.scss";
 @import "./search/SearchWritingTopic.scss";
+@import "./search/SearchHorizontalDivider.scss";
 @import "./search/SearchWritingResults.scss";
 @import "./search/SearchFlatArticleHit.scss";
 @import "./search/SearchStackedArticleHit.scss";
 @import "./search/SearchTopicPageHit.scss";
 @import "./search/SearchResultHeader.scss";
 @import "./search/SearchAsDraft.scss";
-@import "./search/SearchShowMore.scss";
 @import "./search/SearchNoResults.scss";
 @import "./SiteLogos.scss";
 @import "./SiteNavigation.scss";
