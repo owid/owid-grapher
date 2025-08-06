@@ -498,6 +498,7 @@ export class FacetChart
             }
             // NOTE: The order of overrides is important!
             // We need to preserve most config coming in.
+            console.log(yAxis, yAxis?.hideAxis)
             const manager = {
                 ...series.manager,
                 useValueBasedColorScheme,
