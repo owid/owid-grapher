@@ -22,6 +22,9 @@
 // Style/handle them as regular links when JS is disabled
 .js-disabled .guided-chart-link {
     @include owid-link-60;
+    svg {
+        display: none;
+    }
     background: none;
     &:hover {
         background: none;
