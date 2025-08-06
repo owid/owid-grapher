@@ -8,12 +8,18 @@ import { OwidSource, DbChartTagJoin, OwidOrigin } from "@ourworldindata/utils"
 
 import { AdminLayout } from "./AdminLayout.js"
 import { Link } from "./Link.js"
-import { BindString, Toggle, FieldsRow, Timeago } from "./Forms.js"
+import { BindString, Toggle, FieldsRow, Timeago, TextField } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
 import { OriginList } from "./OriginList.js"
 import { SourceList } from "./SourceList.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
+import {
+    SearchWord,
+    buildSearchWordsFromSearchString,
+    filterFunctionForSearchWords,
+    highlightFunctionForSearchWords,
+} from "../adminShared/search.js"
 import { AdminAppContext, AdminAppContextType } from "./AdminAppContext.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faDownload, faHatWizard } from "@fortawesome/free-solid-svg-icons"
@@ -137,12 +143,18 @@ class DatasetEditor extends Component<DatasetEditorProps> {
     // HACK (Mispy): Force variable refresh when dataset metadata is updated
     timesUpdated: number = 0
 
+    // Tab management
+    activeTab: string = "metadata"
+    searchInput: string = ""
+
     constructor(props: DatasetEditorProps) {
         super(props)
 
         makeObservable(this, {
             newDataset: observable,
             timesUpdated: observable,
+            activeTab: observable,
+            searchInput: observable,
         })
     }
 
@@ -159,6 +171,39 @@ class DatasetEditor extends Component<DatasetEditorProps> {
             JSON.stringify(this.newDataset) !==
             JSON.stringify(new DatasetEditable(this.props.dataset))
         )
+    }
+
+    @computed get searchWords(): SearchWord[] {
+        return buildSearchWordsFromSearchString(this.searchInput)
+    }
+
+    @computed get filteredVariables(): VariableListItem[] {
+        const { dataset } = this.props
+        const { searchWords } = this
+
+        if (searchWords.length > 0) {
+            const filterFn = filterFunctionForSearchWords(
+                searchWords,
+                (variable: VariableListItem) => [
+                    variable.name,
+                    variable.namespace,
+                    variable.dataset,
+                    variable.table,
+                    variable.shortName,
+                    `${variable.id}`,
+                ]
+            )
+            return dataset.variables.filter(filterFn)
+        }
+        return dataset.variables
+    }
+
+    @action.bound onSearchInput(input: string) {
+        this.searchInput = input
+    }
+
+    @action.bound onTabChange(tab: string) {
+        this.activeTab = tab
     }
 
     async save() {
@@ -210,10 +255,216 @@ class DatasetEditor extends Component<DatasetEditorProps> {
         )
     }
 
+    renderTabContent() {
+        const { dataset } = this.props
+        const { newDataset, activeTab, searchInput, filteredVariables } = this
+        const highlight = highlightFunctionForSearchWords(this.searchWords)
+
+        switch (activeTab) {
+            case "metadata":
+                return (
+                    <section>
+                        <h3>Dataset metadata</h3>
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault()
+                                void this.save()
+                            }}
+                        >
+                            <p>
+                                Metadata is non-editable and can be only changed
+                                in ETL.
+                            </p>
+                            <div className="row">
+                                <div className="col">
+                                    <BindString
+                                        field="name"
+                                        store={newDataset}
+                                        label="Name"
+                                        secondaryLabel="DB field: datasets.name"
+                                        disabled
+                                        helpText="Short name for this dataset, followed by the source and year. Example: Government Revenue Data – ICTD (2016)"
+                                    />
+                                    <DatasetTagEditor
+                                        newDataset={newDataset}
+                                        availableTags={dataset.availableTags}
+                                    />
+                                    <FieldsRow>
+                                        <Toggle
+                                            label="Is publishable (include in exported OWID collection)"
+                                            value={!newDataset.isPrivate}
+                                            onValue={(v) =>
+                                                (newDataset.isPrivate = !v)
+                                            }
+                                            disabled={
+                                                newDataset.nonRedistributable
+                                            }
+                                        />
+                                    </FieldsRow>
+                                    <FieldsRow>
+                                        <Toggle
+                                            label="Redistribution is prohibited (disable chart data download)"
+                                            value={
+                                                newDataset.nonRedistributable
+                                            }
+                                            onValue={(v) => {
+                                                newDataset.nonRedistributable =
+                                                    v
+                                            }}
+                                            disabled
+                                        />
+                                    </FieldsRow>
+                                </div>
+                                <div className="col">
+                                    <BindString
+                                        label="Number of days between OWID updates"
+                                        field="updatePeriodDays"
+                                        store={newDataset}
+                                        disabled
+                                        helpText="Date when this data was obtained by us. Date format should always be YYYY-MM-DD."
+                                    />
+                                    <BindString
+                                        field="description"
+                                        store={newDataset}
+                                        label="Internal notes"
+                                        secondaryLabel="DB field: datasets.description"
+                                        textarea
+                                        disabled
+                                    />
+                                </div>
+                            </div>
+                            <input
+                                type="submit"
+                                className="btn btn-success"
+                                value="Update dataset"
+                            />
+                        </form>
+
+                        {/* ORIGINS */}
+                        <h3 className="mt-4">Origins</h3>
+                        <OriginList origins={dataset.origins || []} />
+
+                        {/* SOURCES */}
+                        {dataset.variableSources &&
+                            dataset.variableSources.length > 0 && (
+                                <>
+                                    <h3 className="mt-4">Sources</h3>
+                                    <SourceList
+                                        sources={dataset.variableSources}
+                                    />
+                                </>
+                            )}
+                    </section>
+                )
+
+            case "indicators":
+                return (
+                    <section>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h3>Indicators</h3>
+                            <TextField
+                                placeholder="Search indicators..."
+                                value={searchInput}
+                                onValue={this.onSearchInput}
+                            />
+                        </div>
+                        <p>
+                            Showing {filteredVariables.length} of{" "}
+                            {dataset.variables.length} indicators
+                            {searchInput && <> for "{searchInput}"</>}
+                        </p>
+                        <VariableList
+                            variables={filteredVariables}
+                            fields={[]}
+                            searchHighlight={highlight}
+                        />
+                    </section>
+                )
+
+            case "charts":
+                return (
+                    <section>
+                        <button
+                            className="btn btn-primary float-right"
+                            onClick={() => this.republishCharts()}
+                        >
+                            Republish all charts
+                        </button>
+                        <h3>Charts</h3>
+                        <ChartList charts={dataset.charts} />
+                    </section>
+                )
+
+            case "settings":
+                return (
+                    <section>
+                        {/* ARCHIVE DATASET */}
+                        {!dataset.isArchived && (
+                            <>
+                                <h3>Archive</h3>
+                                <p>
+                                    Archive this grapher dataset to remove it
+                                    from the main list of active datasets.
+                                </p>
+                                {dataset.charts && dataset.charts.length > 0 ? (
+                                    <p>
+                                        <strong>
+                                            This dataset cannot be archived
+                                            because it contains charts.
+                                        </strong>
+                                    </p>
+                                ) : (
+                                    <p>
+                                        <strong>
+                                            Before archiving, ensure that:
+                                        </strong>
+                                        <ul>
+                                            <li>
+                                                The corresponding ETL grapher
+                                                step has been archived:{" "}
+                                                <code>
+                                                    grapher/{dataset.namespace}/
+                                                    {dataset.version}/
+                                                    {dataset.shortName}
+                                                </code>
+                                            </li>
+                                            <li>
+                                                The dataset is not used in any
+                                                indicator-based explorers.
+                                            </li>
+                                        </ul>
+                                    </p>
+                                )}
+                                <button
+                                    className="btn btn-outline-danger"
+                                    onClick={() => this.archive()}
+                                    disabled={
+                                        dataset.charts &&
+                                        dataset.charts.length > 0
+                                    }
+                                >
+                                    Archive dataset
+                                </button>
+                            </>
+                        )}
+                    </section>
+                )
+
+            default:
+                return null
+        }
+    }
+
     override render() {
         const { dataset } = this.props
-        const { newDataset } = this
-        const _isBulkImport = dataset.namespace !== "owid"
+        const { activeTab } = this
+        const tabs = [
+            { key: "metadata", label: "Metadata" },
+            { key: "indicators", label: "Indicators" },
+            { key: "charts", label: "Charts" },
+            { key: "settings", label: "Settings" },
+        ]
+
         return (
             <main className="DatasetEditPage">
                 <Prompt
@@ -271,159 +522,29 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                     </a>
                 </section>
 
-                {/* DATASET METADATA */}
-                <section>
-                    <h3>Dataset metadata</h3>
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault()
-                            void this.save()
-                        }}
-                    >
-                        <p>
-                            Metadata is non-editable and can be only changed in
-                            ETL.
-                        </p>
-                        <div className="row">
-                            <div className="col">
-                                <BindString
-                                    field="name"
-                                    store={newDataset}
-                                    label="Name"
-                                    secondaryLabel="DB field: datasets.name"
-                                    disabled
-                                    helpText="Short name for this dataset, followed by the source and year. Example: Government Revenue Data – ICTD (2016)"
-                                />
-                                <DatasetTagEditor
-                                    newDataset={newDataset}
-                                    availableTags={dataset.availableTags}
-                                />
-                                <FieldsRow>
-                                    <Toggle
-                                        label="Is publishable (include in exported OWID collection)"
-                                        value={!newDataset.isPrivate}
-                                        onValue={(v) =>
-                                            (newDataset.isPrivate = !v)
-                                        }
-                                        disabled={newDataset.nonRedistributable}
-                                    />
-                                </FieldsRow>
-                                <FieldsRow>
-                                    <Toggle
-                                        label="Redistribution is prohibited (disable chart data download)"
-                                        value={newDataset.nonRedistributable}
-                                        onValue={(v) => {
-                                            newDataset.nonRedistributable = v
-                                        }}
-                                        disabled
-                                    />
-                                </FieldsRow>
-                            </div>
-                            <div className="col">
-                                <BindString
-                                    label="Number of days between OWID updates"
-                                    field="updatePeriodDays"
-                                    store={newDataset}
-                                    disabled
-                                    helpText="Date when this data was obtained by us. Date format should always be YYYY-MM-DD."
-                                />
-                                <BindString
-                                    field="description"
-                                    store={newDataset}
-                                    label="Internal notes"
-                                    secondaryLabel="DB field: datasets.description"
-                                    textarea
-                                    disabled
-                                />
-                            </div>
-                        </div>
-                        <input
-                            type="submit"
-                            className="btn btn-success"
-                            value="Update dataset"
-                        />
-                    </form>
-                </section>
+                {/* TAB NAVIGATION */}
+                <div className="mt-4">
+                    <ul className="nav nav-tabs">
+                        {tabs.map((tab) => (
+                            <li key={tab.key} className="nav-item">
+                                <a
+                                    className={
+                                        "nav-link" +
+                                        (tab.key === activeTab ? " active" : "")
+                                    }
+                                    onClick={() => this.onTabChange(tab.key)}
+                                >
+                                    {tab.label}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
 
-                {/* ORIGINS */}
-                <section>
-                    <h3>Origins</h3>
-                    <OriginList origins={dataset.origins || []} />
-                </section>
-
-                {/* SOURCES */}
-                {dataset.variableSources &&
-                    dataset.variableSources.length > 0 && (
-                        <section>
-                            <h3>Sources</h3>
-                            <SourceList sources={dataset.variableSources} />
-                        </section>
-                    )}
-
-                {/* INDICATORS */}
-                <section>
-                    <h3>Indicators</h3>
-                    <VariableList variables={dataset.variables} fields={[]} />
-                </section>
-
-                {/* CHARTS */}
-                <section>
-                    <button
-                        className="btn btn-primary float-right"
-                        onClick={() => this.republishCharts()}
-                    >
-                        Republish all charts
-                    </button>
-                    <h3>Charts</h3>
-                    <ChartList charts={dataset.charts} />
-                </section>
-
-                {/* ARCHIVE DATASET */}
-                {!dataset.isArchived && (
-                    <section>
-                        <h3>Archive</h3>
-                        <p>
-                            Archive this grapher dataset to remove it from the
-                            main list of active datasets.
-                        </p>
-                        {dataset.charts && dataset.charts.length > 0 ? (
-                            <p>
-                                <strong>
-                                    This dataset cannot be archived because it
-                                    contains charts.
-                                </strong>
-                            </p>
-                        ) : (
-                            <p>
-                                <strong>Before archiving, ensure that:</strong>
-                                <ul>
-                                    <li>
-                                        The corresponding ETL grapher step has
-                                        been archived:{" "}
-                                        <code>
-                                            grapher/{dataset.namespace}/
-                                            {dataset.version}/
-                                            {dataset.shortName}
-                                        </code>
-                                    </li>
-                                    <li>
-                                        The dataset is not used in any
-                                        indicator-based explorers.
-                                    </li>
-                                </ul>
-                            </p>
-                        )}
-                        <button
-                            className="btn btn-outline-danger"
-                            onClick={() => this.archive()}
-                            disabled={
-                                dataset.charts && dataset.charts.length > 0
-                            }
-                        >
-                            Archive dataset
-                        </button>
-                    </section>
-                )}
+                {/* TAB CONTENT */}
+                <div className="tab-content mt-3">
+                    {this.renderTabContent()}
+                </div>
             </main>
         )
     }
