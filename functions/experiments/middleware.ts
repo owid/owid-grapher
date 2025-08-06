@@ -8,18 +8,16 @@ import { Experiment, validateUniqueExperimentIds } from "./Experiment.js"
 import { Arm } from "./types.js"
 import { experiments } from "./config.js"
 
-export const experimentsMiddleware = async (context) => {
-    const originalResponse = await context.next()
+export const experimentsMiddleware = (context) => {
+    if (isStaticAsset(context.request.url) || isInIFrame()) {
+        return context.next()
+    }
+
     const cookies = parseCookies(context.request)
+    const cookiesToSet: string[] = []
 
     const activeExperiments = experiments.filter((e) => !e.isExpired())
-
-    if (
-        !isStaticAsset(context.request.url) &&
-        activeExperiments &&
-        activeExperiments.length &&
-        !isInIFrame()
-    ) {
+    if (activeExperiments && activeExperiments.length) {
         if (!validateUniqueExperimentIds(activeExperiments)) {
             throw new Error(`Experiment IDs are not unique`)
         }
@@ -35,13 +33,16 @@ export const experimentsMiddleware = async (context) => {
             ) {
                 const assignedArm = assignToArm(exp)
                 for (const path of exp.paths) {
-                    originalResponse.headers.append(
-                        "Set-Cookie",
+                    cookiesToSet.push(
                         `${exp.id}=${assignedArm.id}; expires=${exp.expires.toUTCString()}; path=${path}`
                     )
                     cookies[exp.id] = assignedArm.id
                 }
             }
+        }
+
+        if (cookiesToSet.length) {
+            context.data.cookiesToSet = cookiesToSet
         }
 
         // if user has accepted cookies and replay is not already recording, record
@@ -63,11 +64,9 @@ export const experimentsMiddleware = async (context) => {
                 }
             }
         }
-
-        return originalResponse
     }
 
-    return originalResponse
+    return context.next()
 }
 
 // assign visitor to an experimental arm
