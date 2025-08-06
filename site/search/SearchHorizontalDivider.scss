@@ -1,0 +1,16 @@
+.search-horizontal-divider {
+    display: none;
+    border: none;
+    border-top: 1px solid $blue-20;
+    width: 100%;
+    padding: 0;
+    margin: 24px 0;
+
+    &:last-child {
+        display: none;
+    }
+
+    @include sm-only {
+        display: block;
+    }
+}
