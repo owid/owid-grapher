@@ -12,9 +12,11 @@ import {
     EntityName,
     excludeUndefined,
     getRegionByName,
+    AxisConfigInterface,
 } from "@ourworldindata/utils"
 import { StackedPointPositionType, StackedSeries } from "./StackedConstants"
 import { WORLD_ENTITY_NAME } from "../core/GrapherConstants.js"
+import { StackedBarChartState } from "./StackedBarChartState.js"
 
 // This method shift up the Y Values of a Series with Points in place.
 export const stackSeries = <PositionType extends StackedPointPositionType>(
@@ -187,4 +189,14 @@ export function resolveCollision(
     if (area2 > area1) return s2
 
     return undefined // no preference
+}
+
+export function getXAxisConfigDefaultsForStackedBar(
+    chartState: StackedBarChartState
+): AxisConfigInterface {
+    return {
+        hideGridlines: true,
+        domainValues: chartState.xValues,
+        ticks: chartState.xValues.map((value) => ({ value, priority: 2 })),
+    }
 }
