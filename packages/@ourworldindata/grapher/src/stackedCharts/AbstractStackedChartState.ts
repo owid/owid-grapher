@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import * as R from "remeda"
 import { ChartState } from "../chart/ChartInterface.js"
 import { ChartManager } from "../chart/ChartManager.js"
 import {
@@ -48,6 +49,7 @@ export abstract class AbstractStackedChartState implements ChartState {
     abstract shouldRunLinearInterpolation: boolean
 
     abstract get series(): readonly StackedSeries<number>[]
+    abstract get yDomain(): [number, number]
     abstract get useValueBasedColorScheme(): boolean
 
     constructor({ manager }: { manager: ChartManager }) {
@@ -131,6 +133,11 @@ export abstract class AbstractStackedChartState implements ChartState {
 
     @computed get yColumnSlugs(): string[] {
         return this.manager.yColumnSlugs ?? autoDetectYColumnSlugs(this.manager)
+    }
+
+    @computed get formatColumn(): CoreColumn {
+        // we can just use the first column for formatting, b/c we assume all columns have same type
+        return this.yColumns[0]
     }
 
     @computed get seriesStrategy(): SeriesStrategy {
@@ -310,11 +317,17 @@ export abstract class AbstractStackedChartState implements ChartState {
             })
     }
 
-    @computed get yDomain(): [number, number] {
-        const yValues = this.allStackedPoints.map(
-            (point) => point.value + point.valueOffset
-        )
-        return [0, _.max(yValues) ?? 0]
+    @computed get midpoints(): number[] {
+        let prevY = 0
+        return this.series.map((series) => {
+            const lastValue = R.last(series.points)
+            if (!lastValue) return 0
+
+            const y = lastValue.value + lastValue.valueOffset
+            const middleY = prevY + (y - prevY) / 2
+            prevY = y
+            return middleY
+        })
     }
 
     toHorizontalAxis(config: AxisConfig): HorizontalAxis {
