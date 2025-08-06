@@ -885,7 +885,6 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async validate(knex: db.KnexReadonlyTransaction): Promise<void> {
-        console.log("validate called")
         const authorErrors = this.content.authors.reduce(
             (errors: OwidGdocErrorMessage[], name): OwidGdocErrorMessage[] => {
                 if (!this.linkedAuthors.find((a) => a.name === name)) {

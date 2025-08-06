@@ -99,13 +99,13 @@ export {
     migrateGrapherConfigToLatestVersion,
     migrateGrapherConfigToLatestVersionAndFailOnError,
 } from "./schema/migrations/migrate"
+export { generateGrapherImageSrcSet } from "./chart/ChartUtils"
 export {
-    generateGrapherImageSrcSet,
     useMaybeGlobalGrapherStateRef,
     useGuidedChartLinkHandler,
     GuidedChartContext,
     type GuidedChartContextValue,
-} from "./chart/ChartUtils"
+} from "./chart/GuidedChartUtils"
 export {
     isValidTabQueryParam,
     findPotentialChartTypeSiblings,
