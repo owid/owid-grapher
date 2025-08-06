@@ -31,7 +31,7 @@ import { DocumentContext } from "./gdocs/DocumentContext.js"
 import Image from "./gdocs/components/Image.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
-import { DataInsightLink } from "@ourworldindata/types/dist/gdocTypes/Datapage.js"
+import { DataInsightLink } from "@ourworldindata/types"
 
 declare global {
     interface Window {
