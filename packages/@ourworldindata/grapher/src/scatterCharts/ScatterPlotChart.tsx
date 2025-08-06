@@ -1,14 +1,7 @@
 import * as _ from "lodash-es"
 import React from "react"
 import * as R from "remeda"
-import {
-    ScaleType,
-    EntitySelectionMode,
-    SeriesName,
-    Color,
-    ValueRange,
-    ColumnSlug,
-} from "@ourworldindata/types"
+import { EntitySelectionMode, SeriesName, Color } from "@ourworldindata/types"
 import { observable, computed, action, makeObservable } from "mobx"
 import { ScaleLinear, scaleSqrt } from "d3-scale"
 import { Quadtree, quadtree } from "d3-quadtree"
@@ -18,7 +11,6 @@ import {
     excludeNullish,
     pairs,
     excludeUndefined,
-    domainExtent,
     getRelativeMouse,
     lowerCaseFirstLetterUnlessAbbreviation,
     exposeInstanceOnWindow,
@@ -68,8 +60,6 @@ import {
     SCATTER_QUADTREE_SAMPLING_DISTANCE,
 } from "./ScatterPlotChartConstants"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
-import { makeSelectionArray } from "../chart/ChartUtils"
-import { SelectionArray } from "../selection/SelectionArray"
 import { ColorScaleBin } from "../color/ColorScaleBin"
 import {
     ScatterSizeLegend,
@@ -86,11 +76,7 @@ import {
 import { NoDataSection } from "./NoDataSection"
 import { ScatterPlotChartState } from "./ScatterPlotChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
-
-function computeSizeDomain(table: OwidTable, slug: ColumnSlug): ValueRange {
-    const sizeValues = table.get(slug).values.filter(_.isNumber)
-    return [0, _.max(sizeValues) ?? 1]
-}
+import { toHorizontalAxis, toVerticalAxisPart } from "./ScatterUtils"
 
 export type ScatterPlotChartProps = ChartComponentProps<ScatterPlotChartState>
 
@@ -136,49 +122,6 @@ export class ScatterPlotChart
         return this.chartState.transformedTable
     }
 
-    @computed private get domainsForAnimation(): {
-        x?: ValueRange
-        y?: ValueRange
-        size?: ValueRange
-    } {
-        const { inputTable } = this.chartState
-        const { animationStartTime, animationEndTime } = this.manager
-
-        if (!animationStartTime || !animationEndTime) return {}
-
-        let table = inputTable.filterByTimeRange(
-            animationStartTime,
-            animationEndTime
-        )
-
-        if (this.manager.matchingEntitiesOnly && !this.colorColumn.isMissing) {
-            table = table.filterByEntityNames(
-                table.get(this.colorColumnSlug).uniqEntityNames
-            )
-        }
-
-        table = table
-            .columnFilter(
-                this.xColumnSlug,
-                _.isNumber,
-                "Drop rows with non-number values in X column"
-            )
-            .columnFilter(
-                this.yColumnSlug,
-                _.isNumber,
-                "Drop rows with non-number values in Y column"
-            )
-
-        const xValues = table.get(this.xColumnSlug).uniqValues
-        const yValues = table.get(this.yColumnSlug).uniqValues
-
-        return {
-            x: domainExtent(xValues, this.xScaleType),
-            y: domainExtent(yValues, this.yScaleType),
-            size: computeSizeDomain(table, this.sizeColumn.slug),
-        }
-    }
-
     @computed.struct private get bounds(): Bounds {
         return this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS
     }
@@ -208,12 +151,9 @@ export class ScatterPlotChart
             addCountryMode !== EntitySelectionMode.Disabled) as boolean
     }
 
-    @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager.selection)
-    }
-
     @action.bound private onSelectEntity(entityName: SeriesName): void {
-        if (this.canAddCountry) this.selectionArray.toggleSelection(entityName)
+        if (this.canAddCountry)
+            this.chartState.selectionArray.toggleSelection(entityName)
     }
 
     // Returns the colors that are used by all points, *across the whole timeline*.
@@ -256,7 +196,7 @@ export class ScatterPlotChart
 
     // When the color legend is clicked, toggle selection fo all associated keys
     @action.bound onLegendClick(color: string): void {
-        const { selectionArray } = this
+        const { selectionArray } = this.chartState
         if (!this.canAddCountry) return
 
         const keysToToggle = this.series
@@ -314,7 +254,7 @@ export class ScatterPlotChart
     }
 
     @computed private get selectedEntityNames(): string[] {
-        return this.selectionArray.selectedEntityNames
+        return this.chartState.selectionArray.selectedEntityNames
     }
 
     @computed get displayStartTime(): string {
@@ -550,7 +490,9 @@ export class ScatterPlotChart
     }
 
     @computed get sizeScale(): ScaleLinear<number, number> {
-        return scaleSqrt().domain(this.sizeDomain).range(this.sizeRange)
+        return scaleSqrt()
+            .domain(this.chartState.sizeDomain)
+            .range(this.sizeRange)
     }
 
     @computed private get fontScale(): ScaleLinear<number, number> {
@@ -565,7 +507,7 @@ export class ScatterPlotChart
         const minFontSize = minFactor * this.fontSize
         const maxFontSize = maxFactor * this.fontSize
         return scaleSqrt()
-            .domain(this.sizeDomain)
+            .domain(this.chartState.sizeDomain)
             .range(
                 this.sizeColumn.isMissing
                     ? // if the size column is missing, we want all labels to have the same font size
@@ -873,16 +815,8 @@ export class ScatterPlotChart
         return new AxisConfig(config, this)
     }
 
-    @computed private get yColumnSlug(): string {
-        return this.chartState.yColumnSlug
-    }
-
     @computed private get yColumn(): CoreColumn {
         return this.chartState.yColumn
-    }
-
-    @computed private get xColumnSlug(): string {
-        return this.chartState.xColumnSlug
     }
 
     @computed private get xColumn(): CoreColumn {
@@ -897,90 +831,12 @@ export class ScatterPlotChart
         return this.chartState.xOverrideTime
     }
 
-    // todo: remove. do this at table filter level
-    @computed get seriesNamesToHighlight(): Set<SeriesName> {
-        const seriesNames = this.selectionArray.selectedEntityNames
-
-        if (this.manager.matchingEntitiesOnly && !this.colorColumn.isMissing)
-            return new Set(
-                intersection(seriesNames, this.colorColumn.uniqEntityNames)
-            )
-
-        return new Set(seriesNames)
-    }
-
     @computed get compareEndPointsOnly(): boolean {
         return this.chartState.compareEndPointsOnly
     }
 
     @computed get allPoints(): SeriesPoint[] {
         return this.chartState.allPoints
-    }
-
-    // domains across the entire timeline
-    private domainDefault(property: "x" | "y"): [number, number] {
-        const scaleType = property === "x" ? this.xScaleType : this.yScaleType
-        const defaultDomain: [number, number] =
-            scaleType === ScaleType.log ? [1, 100] : [-1, 1]
-        return (
-            domainExtent(
-                this.pointsForAxisDomains.map((point) => point[property]),
-                scaleType,
-                this.manager.zoomToSelection && this.selectedPoints.length
-                    ? 1.1
-                    : 1
-            ) ?? defaultDomain
-        )
-    }
-
-    @computed private get validValuesForAxisDomainX(): number[] {
-        const { xScaleType, pointsForAxisDomains } = this
-
-        const values = pointsForAxisDomains.map((point) => point.x)
-        return xScaleType === ScaleType.log
-            ? values.filter((v) => v > 0)
-            : values
-    }
-
-    @computed private get validValuesForAxisDomainY(): number[] {
-        const { yScaleType, pointsForAxisDomains } = this
-
-        const values = pointsForAxisDomains.map((point) => point.y)
-        return yScaleType === ScaleType.log
-            ? values.filter((v) => v > 0)
-            : values
-    }
-
-    @computed private get xDomainDefault(): [number, number] {
-        return this.domainDefault("x")
-    }
-
-    @computed private get selectedPoints(): SeriesPoint[] {
-        const seriesNamesSet = this.seriesNamesToHighlight
-        return this.allPoints.filter(
-            (point) => point.entityName && seriesNamesSet.has(point.entityName)
-        )
-    }
-
-    @computed private get pointsForAxisDomains(): SeriesPoint[] {
-        if (
-            !this.selectionArray.numSelectedEntities ||
-            !this.manager.zoomToSelection
-        )
-            return this.allPoints
-
-        return this.selectedPoints.length ? this.selectedPoints : this.allPoints
-    }
-
-    @computed private get sizeDomain(): [number, number] {
-        if (this.sizeColumn.isMissing) return [1, 100]
-        if (
-            this.manager.isSingleTimeScatterAnimationActive &&
-            this.domainsForAnimation.size
-        ) {
-            return this.domainsForAnimation.size
-        }
-        return computeSizeDomain(this.transformedTable, this.sizeColumn.slug)
     }
 
     @computed private get sizeRange(): [number, number] {
@@ -1009,14 +865,6 @@ export class ScatterPlotChart
             : [0, maxPointRadius]
     }
 
-    @computed private get yScaleType(): ScaleType {
-        return this.chartState.yScaleType
-    }
-
-    @computed private get yDomainDefault(): [number, number] {
-        return this.domainDefault("y")
-    }
-
     @computed private get defaultYAxisLabel(): string | undefined {
         return this.yColumn?.displayName
     }
@@ -1036,41 +884,9 @@ export class ScatterPlotChart
     }
 
     @computed private get verticalAxisPart(): VerticalAxis {
-        const { manager, yDomainDefault, validValuesForAxisDomainY } = this
-        const axisConfig = this.yAxisConfig
-
-        const axis = axisConfig.toVerticalAxis()
-        axis.formatColumn = this.yColumn
-        axis.scaleType = this.yScaleType
-        axis.label = this.currentVerticalAxisLabel
-
-        if (
-            this.manager.isSingleTimeScatterAnimationActive &&
-            this.domainsForAnimation.y
-        ) {
-            axis.updateDomainPreservingUserSettings(this.domainsForAnimation.y)
-        } else if (manager.isRelativeMode) {
-            axis.domain = yDomainDefault // Overwrite author's min/max
-        } else {
-            const isAnyValueOutsideUserDomain = validValuesForAxisDomainY.some(
-                (value) => value < axis.domain[0] || value > axis.domain[1]
-            )
-
-            // only overwrite the authors's min/max if there is more than one unique value along the y-axis
-            // or if respecting the author's setting would hide data points
-            if (
-                new Set(validValuesForAxisDomainY).size > 1 ||
-                isAnyValueOutsideUserDomain
-            ) {
-                axis.updateDomainPreservingUserSettings(yDomainDefault)
-            }
-        }
-
-        return axis
-    }
-
-    @computed private get xScaleType(): ScaleType {
-        return this.chartState.xScaleType
+        return toVerticalAxisPart(this.yAxisConfig, this.chartState, {
+            label: this.currentVerticalAxisLabel,
+        })
     }
 
     @computed private get defaultXAxisLabel(): string | undefined {
@@ -1098,38 +914,9 @@ export class ScatterPlotChart
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
-        const { xDomainDefault, manager } = this
-        const { xAxisConfig, validValuesForAxisDomainX } = this
-        const axis = xAxisConfig.toHorizontalAxis()
-        axis.formatColumn = this.xColumn
-        axis.scaleType = this.xScaleType
-
-        if (this.currentHorizontalAxisLabel)
-            axis.label = this.currentHorizontalAxisLabel
-
-        if (
-            this.manager.isSingleTimeScatterAnimationActive &&
-            this.domainsForAnimation.x
-        ) {
-            axis.updateDomainPreservingUserSettings(this.domainsForAnimation.x)
-        } else if (manager.isRelativeMode) {
-            axis.domain = xDomainDefault // Overwrite author's min/max
-        } else {
-            const isAnyValueOutsideUserDomain = validValuesForAxisDomainX.some(
-                (value) => value < axis.domain[0] || value > axis.domain[1]
-            )
-
-            // only overwrite the authors's min/max if there is more than one unique value along the x-axis
-            // or if respecting the author's setting would hide data points
-            if (
-                new Set(validValuesForAxisDomainX).size > 1 ||
-                isAnyValueOutsideUserDomain
-            ) {
-                axis.updateDomainPreservingUserSettings(xDomainDefault)
-            }
-        }
-
-        return axis
+        return toHorizontalAxis(this.xAxisConfig, this.chartState, {
+            label: this.currentHorizontalAxisLabel,
+        })
     }
 
     @computed private get series(): ScatterSeries[] {

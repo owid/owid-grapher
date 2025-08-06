@@ -14,7 +14,7 @@ import {
     SeriesPoint,
 } from "./ScatterPlotChartConstants"
 import { computed, makeObservable } from "mobx"
-import { autoDetectYColumnSlugs } from "../chart/ChartUtils"
+import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import {
     ChartErrorInfo,
     ColorSchemeName,
@@ -22,12 +22,16 @@ import {
     ScaleType,
     ScatterPointLabelStrategy,
     ColorScaleConfigInterface,
+    SeriesName,
+    ValueRange,
 } from "@ourworldindata/types"
-import { intersection } from "@ourworldindata/utils"
+import { domainExtent, intersection } from "@ourworldindata/utils"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { AxisConfig } from "../axis/AxisConfig"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { SelectionArray } from "../selection/SelectionArray"
+import { computeSizeDomain } from "./ScatterUtils"
 
 export class ScatterPlotChartState implements ChartState, ColorScaleManager {
     manager: ScatterPlotManager
@@ -152,6 +156,22 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
                 "Drop rows with non-number values in Y column"
             )
         return table
+    }
+
+    @computed get selectionArray(): SelectionArray {
+        return makeSelectionArray(this.manager.selection)
+    }
+
+    // todo: remove. do this at table filter level
+    @computed get seriesNamesToHighlight(): Set<SeriesName> {
+        const seriesNames = this.selectionArray.selectedEntityNames
+
+        if (this.manager.matchingEntitiesOnly && !this.colorColumn.isMissing)
+            return new Set(
+                intersection(seriesNames, this.colorColumn.uniqEntityNames)
+            )
+
+        return new Set(seriesNames)
     }
 
     // todo: remove this. Should be done as a simple column transform at the data level.
@@ -371,6 +391,119 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
 
     @computed get allPoints(): SeriesPoint[] {
         return this.series.flatMap((series) => series.points)
+    }
+
+    @computed private get selectedPoints(): SeriesPoint[] {
+        const seriesNamesSet = this.seriesNamesToHighlight
+        return this.allPoints.filter(
+            (point) => point.entityName && seriesNamesSet.has(point.entityName)
+        )
+    }
+
+    @computed get pointsForAxisDomains(): SeriesPoint[] {
+        if (
+            !this.selectionArray.numSelectedEntities ||
+            !this.manager.zoomToSelection
+        )
+            return this.allPoints
+
+        return this.selectedPoints.length ? this.selectedPoints : this.allPoints
+    }
+
+    // domains across the entire timeline
+    private domainDefault(property: "x" | "y"): [number, number] {
+        const scaleType = property === "x" ? this.xScaleType : this.yScaleType
+        const defaultDomain: [number, number] =
+            scaleType === ScaleType.log ? [1, 100] : [-1, 1]
+        return (
+            domainExtent(
+                this.pointsForAxisDomains.map((point) => point[property]),
+                scaleType,
+                this.manager.zoomToSelection && this.selectedPoints.length
+                    ? 1.1
+                    : 1
+            ) ?? defaultDomain
+        )
+    }
+
+    @computed get xDomainDefault(): [number, number] {
+        return this.domainDefault("x")
+    }
+
+    @computed get yDomainDefault(): [number, number] {
+        return this.domainDefault("y")
+    }
+
+    @computed get sizeDomain(): [number, number] {
+        if (this.sizeColumn.isMissing) return [1, 100]
+        if (
+            this.manager.isSingleTimeScatterAnimationActive &&
+            this.domainsForAnimation.size
+        ) {
+            return this.domainsForAnimation.size
+        }
+        return computeSizeDomain(this.transformedTable, this.sizeColumn.slug)
+    }
+
+    @computed get domainsForAnimation(): {
+        x?: ValueRange
+        y?: ValueRange
+        size?: ValueRange
+    } {
+        const { inputTable } = this
+        const { animationStartTime, animationEndTime } = this.manager
+
+        if (!animationStartTime || !animationEndTime) return {}
+
+        let table = inputTable.filterByTimeRange(
+            animationStartTime,
+            animationEndTime
+        )
+
+        if (this.manager.matchingEntitiesOnly && !this.colorColumn.isMissing) {
+            table = table.filterByEntityNames(
+                table.get(this.colorColumnSlug).uniqEntityNames
+            )
+        }
+
+        table = table
+            .columnFilter(
+                this.xColumnSlug,
+                _.isNumber,
+                "Drop rows with non-number values in X column"
+            )
+            .columnFilter(
+                this.yColumnSlug,
+                _.isNumber,
+                "Drop rows with non-number values in Y column"
+            )
+
+        const xValues = table.get(this.xColumnSlug).uniqValues
+        const yValues = table.get(this.yColumnSlug).uniqValues
+
+        return {
+            x: domainExtent(xValues, this.xScaleType),
+            y: domainExtent(yValues, this.yScaleType),
+            size: computeSizeDomain(table, this.sizeColumn.slug),
+        }
+    }
+
+    @computed get validValuesForAxisDomainX(): number[] {
+        const { xScaleType, pointsForAxisDomains } = this
+
+        const values = pointsForAxisDomains.map((point) => point.x)
+        return xScaleType === ScaleType.log
+            ? values.filter((v) => v > 0)
+            : values
+    }
+
+    @computed get validValuesForAxisDomainY(): number[] {
+        const { yScaleType, pointsForAxisDomains } = this
+
+        const values = pointsForAxisDomains.map((point) => point.y)
+        return yScaleType === ScaleType.log
+            ? values.filter((v) => v > 0)
+            : values
     }
 
     @computed get errorInfo(): ChartErrorInfo {

@@ -1,6 +1,11 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
-import { Bounds, PointVector } from "@ourworldindata/utils"
+import {
+    Bounds,
+    ColumnSlug,
+    PointVector,
+    ValueRange,
+} from "@ourworldindata/utils"
 import {
     SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES,
     ScatterLabel,
@@ -8,6 +13,10 @@ import {
     ScatterRenderSeries,
 } from "./ScatterPlotChartConstants"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
+import { AxisConfig } from "../axis/AxisConfig"
+import { ScatterPlotChartState } from "./ScatterPlotChartState"
+import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
+import { OwidTable } from "@ourworldindata/core-table"
 
 export const labelPriority = (label: ScatterLabel): number => {
     let priority = label.fontSize
@@ -218,4 +227,91 @@ export const makeEndLabel = (
         series,
         isEnd: true,
     }
+}
+
+export function toHorizontalAxis(
+    config: AxisConfig,
+    chartState: ScatterPlotChartState,
+    { label }: { label?: string } = {}
+): HorizontalAxis {
+    const axis = config.toHorizontalAxis()
+
+    axis.formatColumn = chartState.xColumn
+    axis.scaleType = chartState.xScaleType
+
+    if (label) axis.label = label
+
+    if (
+        chartState.manager.isSingleTimeScatterAnimationActive &&
+        chartState.domainsForAnimation.x
+    ) {
+        axis.updateDomainPreservingUserSettings(
+            chartState.domainsForAnimation.x
+        )
+    } else if (chartState.manager.isRelativeMode) {
+        axis.domain = chartState.xDomainDefault // Overwrite author's min/max
+    } else {
+        const isAnyValueOutsideUserDomain =
+            chartState.validValuesForAxisDomainX.some(
+                (value) => value < axis.domain[0] || value > axis.domain[1]
+            )
+
+        // only overwrite the authors's min/max if there is more than one unique value along the x-axis
+        // or if respecting the author's setting would hide data points
+        if (
+            new Set(chartState.validValuesForAxisDomainX).size > 1 ||
+            isAnyValueOutsideUserDomain
+        ) {
+            axis.updateDomainPreservingUserSettings(chartState.xDomainDefault)
+        }
+    }
+
+    return axis
+}
+
+export function toVerticalAxisPart(
+    config: AxisConfig,
+    chartState: ScatterPlotChartState,
+    { label }: { label?: string } = {}
+): VerticalAxis {
+    const axis = config.toVerticalAxis()
+
+    axis.formatColumn = chartState.yColumn
+    axis.scaleType = chartState.yScaleType
+    if (label) axis.label = label
+
+    if (
+        chartState.manager.isSingleTimeScatterAnimationActive &&
+        chartState.domainsForAnimation.y
+    ) {
+        axis.updateDomainPreservingUserSettings(
+            chartState.domainsForAnimation.y
+        )
+    } else if (chartState.manager.isRelativeMode) {
+        axis.domain = chartState.yDomainDefault // Overwrite author's min/max
+    } else {
+        const isAnyValueOutsideUserDomain =
+            chartState.validValuesForAxisDomainY.some(
+                (value) => value < axis.domain[0] || value > axis.domain[1]
+            )
+
+        // only overwrite the authors's min/max if there is more than one unique value along the y-axis
+        // or if respecting the author's setting would hide data points
+        if (
+            new Set(chartState.validValuesForAxisDomainY).size > 1 ||
+            isAnyValueOutsideUserDomain
+        ) {
+            axis.updateDomainPreservingUserSettings(chartState.yDomainDefault)
+        }
+    }
+
+    return axis
+}
+
+export function computeSizeDomain(
+    table: OwidTable,
+    slug: ColumnSlug
+): ValueRange {
+    const sizeValues = table.get(slug).values.filter(_.isNumber)
+    return [0, _.max(sizeValues) ?? 1]
 }
