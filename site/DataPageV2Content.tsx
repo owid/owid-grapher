@@ -208,6 +208,12 @@ export const DataPageV2Content = ({
                             <AboutThisData
                                 datapageData={datapageData}
                                 hasFaq={!!faqEntries?.faqs.length}
+                                className={cx(
+                                    "exp-data-page-insight-buttons-basic--c1__block",
+                                    "exp-data-page-insight-buttons-basic--t0__block",
+                                    "exp-data-page-insight-buttons-basic--t1__block",
+                                    "exp-hide"
+                                )}
                             />
                         </div>
                     </div>
@@ -233,6 +239,28 @@ export const DataPageV2Content = ({
                                 </div>
                             </div>
                         ) : null}
+                    </div>
+                    <div className="col-start-2 span-cols-12">
+                        <AboutThisData
+                            datapageData={datapageData}
+                            hasFaq={!!faqEntries?.faqs.length}
+                            className={cx(
+                                "exp-data-page-insight-buttons-basic--c1__block",
+                                "exp-data-page-insight-buttons-basic--t0__block",
+                                "exp-data-page-insight-buttons-basic--t1__block",
+                                "exp-data-page-insight-buttons-full--c1__block",
+                                "exp-data-page-insight-buttons-full--t000__block",
+                                "exp-data-page-insight-buttons-full--t010__block",
+                                "exp-data-page-insight-buttons-full--t100__block",
+                                "exp-data-page-insight-buttons-full--t110__block",
+                                "exp-data-page-insight-buttons-full--t101__block",
+                                "exp-data-page-insight-buttons-full--t200__block",
+                                "exp-data-page-insight-buttons-full--t210__block",
+                                "exp-data-page-insight-buttons-full--t201__block",
+                                "exp-data-page-insight-buttons-full--t211__block"
+                            )}
+                            id="about-the-data" // this must be slightly different than DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
+                        />
                     </div>
                     <MetadataSection
                         attributionShort={datapageData.attributionShort}
@@ -272,17 +300,17 @@ const InsightLinksInsightButtonsBasic = ({
     return (
         <>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t0`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t0__block`}
             >
                 <Button
                     className="insights-link"
-                    href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
+                    href="#about-the-data"
                     text="Data sources & measurement"
                     theme="solid-blue"
                 />
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t1`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t1__block`}
             >
                 <Button
                     className="insights-link"
@@ -313,22 +341,22 @@ const InsightLinksInsightButtonsFull = ({
     return (
         <>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t000`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t000__block`}
             >
                 <Button
                     className="insights-link insight__title"
                     text="Data sources & measurement"
-                    href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
+                    href="#about-the-data"
                     theme="solid-blue"
                 />
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t010`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t010__block`}
             >
                 <Button
                     className="insights-link insight__title"
                     text="Data sources & measurement"
-                    href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
+                    href="#about-the-data"
                     theme="solid-blue"
                 />
                 <Button
@@ -345,7 +373,7 @@ const InsightLinksInsightButtonsFull = ({
                 />
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t100`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t100__block`}
             >
                 <Button
                     className="insights-link insight__title"
@@ -355,7 +383,7 @@ const InsightLinksInsightButtonsFull = ({
                 />
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t110`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t110__block`}
             >
                 <Button
                     className="insights-link insight__title"
@@ -366,7 +394,7 @@ const InsightLinksInsightButtonsFull = ({
                 <Button
                     className="insights-link insight__title"
                     text="Data sources & measurement"
-                    href={`#${DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID}`}
+                    href="#about-the-data"
                     theme="solid-blue"
                 />
                 <Button
@@ -377,7 +405,7 @@ const InsightLinksInsightButtonsFull = ({
                 />
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t101`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t101__block`}
             >
                 {/* todo: what if no insightLinks? */}
                 {insightLinks && insightLinks?.length && (
@@ -406,14 +434,7 @@ const InsightLinksInsightButtonsFull = ({
                 )}
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t111`}
-            >
-                <div>
-                    {/* todo: what thumbnails to show for placebo texts? should this even be a permitted experimental arm? */}
-                </div>
-            </InsightLinks>
-            <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t200`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t200__block`}
             >
                 {/* todo: what if no link? */}
                 {insightLinks && insightLinks?.length && (
@@ -426,7 +447,7 @@ const InsightLinksInsightButtonsFull = ({
                 )}
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t210`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t210__block`}
                 showHeader={true}
             >
                 {/* todo: what if no link? */}
@@ -443,7 +464,7 @@ const InsightLinksInsightButtonsFull = ({
                     ))}
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t201`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t201__block`}
             >
                 <div className="insight-links col-start-2 col-lg-start-2 span-cols-10 span-lg-cols-10 span-sm-cols-12">
                     {/* todo: what if no link? */}
@@ -453,7 +474,7 @@ const InsightLinksInsightButtonsFull = ({
                 </div>
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t211`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t211__block`}
                 showHeader={true}
             >
                 {/* todo: what if no link? */}
