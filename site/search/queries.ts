@@ -1,3 +1,4 @@
+import * as R from "remeda"
 import { OwidGdocType, TagGraphRoot } from "@ourworldindata/types"
 import { SearchClient } from "algoliasearch"
 import {
@@ -24,36 +25,45 @@ import {
     formatTopicFacetFilters,
 } from "./searchUtils.js"
 
+function makeStateForKey(state: SearchState) {
+    return R.pick(state, ["query", "filters", "requireAllCountries"])
+}
+
 /**
  * Query Key factory for search
  * Provides hierarchical query keys for better cache management and invalidation
  */
 export const searchQueryKeys = {
     topicTagGraph: ["topicTagGraph"] as const,
-    // Base key for all data catalog queries
-    data: [SearchIndexName.ExplorerViewsMdimViewsAndCharts] as const,
     charts: (state: SearchState) =>
-        [...searchQueryKeys.data, "charts", state] as const,
+        [
+            SearchIndexName.ExplorerViewsMdimViewsAndCharts,
+            "charts",
+            makeStateForKey(state),
+        ] as const,
     dataTopics: (state: SearchState) =>
-        [...searchQueryKeys.data, "topics", state] as const,
-    writing: [SearchIndexName.Pages] as const,
+        [
+            SearchIndexName.ExplorerViewsMdimViewsAndCharts,
+            "topics",
+            makeStateForKey(state),
+        ] as const,
     dataInsights: (state: SearchState) =>
-        [...searchQueryKeys.writing, "data-insights", state] as const,
+        [
+            SearchIndexName.Pages,
+            "data-insights",
+            makeStateForKey(state),
+        ] as const,
     articles: (state: SearchState) =>
-        [...searchQueryKeys.writing, "articles", state] as const,
+        [SearchIndexName.Pages, "articles", makeStateForKey(state)] as const,
     topicPages: (state: SearchState) =>
-        [...searchQueryKeys.writing, "topic-pages", state] as const,
+        [SearchIndexName.Pages, "topic-pages", makeStateForKey(state)] as const,
     writingTopics: (state: SearchState) =>
-        [...searchQueryKeys.writing, "topics", state] as const,
+        [SearchIndexName.Pages, "topics", makeStateForKey(state)] as const,
 } as const
 
 export const chartHitQueryKeys = {
-    // Base key for all chart hit queries
-    chartHit: ["chart-hit"] as const,
-
-    // Specific keys for chart hit queries
     chartInfo: (slug: string, entities: string[]) =>
-        [...chartHitQueryKeys.chartHit, "chart-info", slug, entities] as const,
+        ["chart-info", slug, entities] as const,
 } as const
 
 export async function queryDataTopics(
