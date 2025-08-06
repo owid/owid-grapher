@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { ChartState } from "../chart/ChartInterface.js"
 import { ChartManager } from "../chart/ChartManager.js"
 import {
@@ -5,6 +6,7 @@ import {
     ColorSchemeName,
     FacetStrategy,
     MissingDataStrategy,
+    SeriesName,
     SeriesStrategy,
 } from "@ourworldindata/types"
 import { computed, makeObservable } from "mobx"
@@ -33,6 +35,8 @@ import {
 import { BinaryMapPaletteE } from "../color/CustomSchemes.js"
 import { checkIsStackingEntitiesSensible } from "./StackedUtils.js"
 import { FocusArray } from "../focus/FocusArray.js"
+import { AxisConfig } from "../axis/AxisConfig.js"
+import { HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
 
 // used in StackedBar charts to color negative and positive bars
 const POSITIVE_COLOR = BinaryMapPaletteE.colorSets[0][0] // orange
@@ -171,6 +175,10 @@ export abstract class AbstractStackedChartState implements ChartState {
             : this.columnsAsSeries
     }
 
+    @computed get seriesByName(): Map<SeriesName, StackedSeries<number>> {
+        return new Map(this.series.map((series) => [series.seriesName, series]))
+    }
+
     @computed
     get allStackedPoints(): readonly StackedPoint<number>[] {
         return this.series.flatMap((series) => series.points)
@@ -205,6 +213,10 @@ export abstract class AbstractStackedChartState implements ChartState {
 
     @computed get focusArray(): FocusArray {
         return this.manager.focusArray ?? new FocusArray()
+    }
+
+    @computed get isFocusModeActive(): boolean {
+        return this.focusArray.hasFocusedSeries
     }
 
     @computed get isEntitySeries(): boolean {
@@ -296,6 +308,39 @@ export abstract class AbstractStackedChartState implements ChartState {
                     focus: series.focus,
                 }
             })
+    }
+
+    @computed get yDomain(): [number, number] {
+        const yValues = this.allStackedPoints.map(
+            (point) => point.value + point.valueOffset
+        )
+        return [0, _.max(yValues) ?? 0]
+    }
+
+    toHorizontalAxis(config: AxisConfig): HorizontalAxis {
+        const axis = config.toHorizontalAxis()
+
+        // Update domain
+        axis.updateDomainPreservingUserSettings(
+            this.transformedTable.timeDomainFor(this.yColumnSlugs)
+        )
+
+        axis.formatColumn = this.inputTable.timeColumn
+        axis.hideFractionalTicks = true
+
+        return axis
+    }
+
+    toVerticalAxis(config: AxisConfig): VerticalAxis {
+        const axis = config.toVerticalAxis()
+
+        // Use user settings for axis, unless relative mode
+        if (this.manager.isRelativeMode) axis.domain = [0, 100]
+        else axis.updateDomainPreservingUserSettings(this.yDomain)
+
+        axis.formatColumn = this.yColumns[0]
+
+        return axis
     }
 
     @computed get errorInfo(): ChartErrorInfo {
