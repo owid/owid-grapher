@@ -13,7 +13,7 @@ import {
     GrapherAnalytics,
     GrapherProgrammaticInterface,
     loadVariableDataAndMetadata,
-    useOptionallyGlobalGrapherStateRef,
+    useMaybeGlobalGrapherStateRef,
     GuidedChartContext,
 } from "@ourworldindata/grapher"
 import {
@@ -48,7 +48,7 @@ export default function MultiDim({
     isPreviewing?: boolean
 }) {
     const manager = useRef(localGrapherConfig?.manager ?? {})
-    const grapherRef = useOptionallyGlobalGrapherStateRef({
+    const grapherRef = useMaybeGlobalGrapherStateRef({
         manager: manager.current,
         queryStr,
         additionalDataLoaderFn: (varId: number) =>
@@ -86,11 +86,8 @@ export default function MultiDim({
     const guidedChartContext = useContext(GuidedChartContext)
     const hasRegistered = useRef(false)
     useEffect(() => {
-        if (
-            guidedChartContext?.onMultiDimSettingsUpdate &&
-            !hasRegistered.current
-        ) {
-            guidedChartContext.onMultiDimSettingsUpdate({
+        if (guidedChartContext?.registerMultiDim && !hasRegistered.current) {
+            guidedChartContext.registerMultiDim({
                 config,
                 updater: setSettings,
             })
