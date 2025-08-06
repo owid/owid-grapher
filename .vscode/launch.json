@@ -106,6 +106,46 @@
             ],
         },
         {
+            "name": "Run tests (via fnm)",
+            "request": "launch",
+            "type": "node",
+            "runtimeExecutable": "fnm",
+            "runtimeArgs": [
+                "exec",
+                "--",
+                "yarn",
+                "test",
+                "run",
+                "--reporter=dot"
+            ],
+            // Files to exclude from debugger (e.g. call stack)
+            "skipFiles": [
+                // Node.js internal core modules
+                "<node_internals>/**",
+                // Ignore all dependencies (optional)
+                "${workspaceFolder}/node_modules/**",
+            ],
+        },
+        {
+            "name": "Run refreshExplorerViews (via fnm)",
+            "program": "${workspaceFolder}/devTools/refreshExplorerViews.ts",
+            "request": "launch",
+            "type": "node",
+            "runtimeExecutable": "fnm",
+            "runtimeArgs": [
+                "exec",
+                "--",
+                "yarn",
+                "tsx",
+                "--tsconfig",
+                "tsconfig.tsx.json"
+            ],
+            "skipFiles": [
+                "<node_internals>/**",
+                "${workspaceFolder}/node_modules/**"
+            ]
+        },
+        {
             "name": "Attach to node",
             "type": "node",
             "request": "attach",
