@@ -58,8 +58,8 @@ const SQUARE_OPTIONS: Readonly<ImageOptions> = {
     },
 }
 const THUMBNAIL_OPTIONS: Readonly<ImageOptions> = {
-    pngWidth: GRAPHER_THUMBNAIL_WIDTH,
-    pngHeight: GRAPHER_THUMBNAIL_HEIGHT,
+    pngWidth: 4 * GRAPHER_THUMBNAIL_WIDTH,
+    pngHeight: 4 * GRAPHER_THUMBNAIL_HEIGHT,
     svgWidth: GRAPHER_THUMBNAIL_WIDTH,
     svgHeight: GRAPHER_THUMBNAIL_HEIGHT,
     details: false,

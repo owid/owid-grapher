@@ -19,6 +19,7 @@ import { action, computed, makeObservable, observable } from "mobx"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
+    GRAPHER_FONT_SCALE_11,
 } from "../core/GrapherConstants"
 import {
     GRAPHER_CHART_TYPES,
@@ -29,6 +30,7 @@ import {
     SeriesStrategy,
     AxisConfigInterface,
     ChartErrorInfo,
+    GrapherRenderMode,
 } from "@ourworldindata/types"
 import { ChartComponent, makeChartInstance } from "../chart/ChartTypeMap"
 import { ChartManager } from "../chart/ChartManager"
@@ -179,6 +181,8 @@ export class FacetChart
     }
 
     @computed private get facetFontSize(): number {
+        if (this.manager.renderMode === GrapherRenderMode.Thumbnail)
+            return GRAPHER_FONT_SCALE_11 * this.fontSize
         return getFontSize(this.series.length, this.fontSize)
     }
 
@@ -507,20 +511,16 @@ export class FacetChart
                     // hidden. This expands the available area for the chart, which can in turn increase
                     // the number of ticks shown, which can make the size of the axis in the placed
                     // series greater than the one in the intermediate series.
-                    hideTickLabels: shouldHideFacetAxis(
-                        xAxis,
-                        cellEdges,
-                        sharedAxesSizes
-                    ),
+                    hideTickLabels:
+                        xAxis?.hideAxis ??
+                        shouldHideFacetAxis(xAxis, cellEdges, sharedAxesSizes),
                     ...series.manager.xAxisConfig,
                     ...axes.x.config,
                 },
                 yAxisConfig: {
-                    hideAxis: shouldHideFacetAxis(
-                        yAxis,
-                        cellEdges,
-                        sharedAxesSizes
-                    ),
+                    hideAxis:
+                        yAxis?.hideAxis ??
+                        shouldHideFacetAxis(yAxis, cellEdges, sharedAxesSizes),
                     ...series.manager.yAxisConfig,
                     ...axes.y.config,
                 },

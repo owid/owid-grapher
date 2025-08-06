@@ -139,6 +139,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
     CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME,
     GrapherModal,
+    GRAPHER_THUMBNAIL_PADDING,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import { ChartDimension } from "../chart/ChartDimension"
@@ -2730,7 +2731,7 @@ export class GrapherState {
     /** Bounds of the chart area if no CaptionedChart is rendered */
     @computed get chartAreaBounds(): Bounds {
         // 2px accounts for the border
-        return this.activeBounds.pad(2)
+        return this.activeBounds.pad(GRAPHER_THUMBNAIL_PADDING + 2)
     }
 
     /** Bounds of the entity selector if rendered into the side panel */
