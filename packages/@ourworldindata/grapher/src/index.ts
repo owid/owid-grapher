@@ -101,7 +101,7 @@ export {
 } from "./schema/migrations/migrate"
 export {
     generateGrapherImageSrcSet,
-    useOptionallyGlobalGrapherStateRef,
+    useMaybeGlobalGrapherStateRef,
     useGuidedChartLinkHandler,
     GuidedChartContext,
     type GuidedChartContextValue,

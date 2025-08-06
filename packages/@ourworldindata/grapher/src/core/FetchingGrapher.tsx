@@ -12,7 +12,7 @@ import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 import { unstable_batchedUpdates } from "react-dom"
 import { Bounds } from "@ourworldindata/utils"
 import { migrateGrapherConfigToLatestVersion } from "../schema/migrations/migrate.js"
-import { useOptionallyGlobalGrapherStateRef } from "../chart/ChartUtils.js"
+import { useMaybeGlobalGrapherStateRef } from "../chart/ChartUtils.js"
 
 export interface FetchingGrapherProps {
     config?: GrapherProgrammaticInterface
@@ -33,7 +33,7 @@ export function FetchingGrapher(
         GrapherInterface | undefined
     >(undefined)
 
-    const grapherState = useOptionallyGlobalGrapherStateRef({
+    const grapherState = useMaybeGlobalGrapherStateRef({
         ...props.config,
         additionalDataLoaderFn: (
             varId: OwidVariableId

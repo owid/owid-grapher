@@ -24,8 +24,8 @@ export default function GuidedChart({
 }) {
     const stateRef = useRef<GrapherState | null>(null)
     const chartRef = useRef<HTMLDivElement | null>(null)
-    const multiDimRegistration = useRef<{
-        config: any
+    const multiDimRef = useRef<{
+        config: MultiDimDataPageConfig
         updater: (newSettings: MultiDimDimensionChoices) => void
     } | null>(null)
 
@@ -34,8 +34,8 @@ export default function GuidedChart({
 
         const url = Url.fromURL(href)
 
-        // If we have a MultiDim, update its settings directly
-        if (multiDimRegistration.current) {
+        // If the chart is a MultiDim, we have to update its settings directly
+        if (multiDimRef.current) {
             const searchParams = new URLSearchParams()
             Object.entries(url.queryParams).forEach(([key, value]) => {
                 if (value !== undefined) {
@@ -44,17 +44,17 @@ export default function GuidedChart({
             })
 
             // Extract MultiDim settings from the guided chart link
+            // and update the MultiDim component
             const choices = extractMultiDimChoicesFromSearchParams(
                 searchParams,
-                multiDimRegistration.current.config
+                multiDimRef.current.config
             )
-            const newSettings =
-                multiDimRegistration.current.config.filterToAvailableChoices(
-                    choices
-                ).selectedChoices
-            multiDimRegistration.current.updater(newSettings)
+            const availableChoices =
+                multiDimRef.current.config.filterToAvailableChoices(choices)
+            multiDimRef.current.updater(availableChoices.selectedChoices)
         }
 
+        // Update the grapher state with the new params (e.g. countries, tab, etc)
         stateRef.current.clearQueryParams()
         stateRef.current.populateFromQueryParams(url.queryParams)
         analytics.logGuidedChartLinkClick(url.fullUrl)
@@ -77,11 +77,11 @@ export default function GuidedChart({
                 grapherStateRef: stateRef as React.RefObject<GrapherState>,
                 chartRef: chartRef as React.RefObject<HTMLDivElement>,
                 onGuidedChartLinkClick: handleGuidedChartLinkClick,
-                onMultiDimSettingsUpdate: (registrationData: {
+                registerMultiDim: (registrationData: {
                     config: MultiDimDataPageConfig
                     updater: (newSettings: MultiDimDimensionChoices) => void
                 }) => {
-                    multiDimRegistration.current = registrationData
+                    multiDimRef.current = registrationData
                 },
             }}
         >

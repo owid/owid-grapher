@@ -371,7 +371,7 @@ export interface GuidedChartContextValue {
     chartRef?: React.RefObject<HTMLDivElement>
     onGuidedChartLinkClick?: (href: string) => void
     // MultiDim support
-    onMultiDimSettingsUpdate?: (registrationData: {
+    registerMultiDim?: (registrationData: {
         config: MultiDimDataPageConfig
         updater: (newSettings: MultiDimDimensionChoices) => void
     }) => void
@@ -380,7 +380,14 @@ export interface GuidedChartContextValue {
 export const GuidedChartContext =
     React.createContext<GuidedChartContextValue | null>(null)
 
-export function useOptionallyGlobalGrapherStateRef(
+/**
+ * If called within a `GuidedChartContext`, sets the context's `grapherStateRef`
+ * to a new `GrapherState` instance initialized with the provided config.
+ * If no context is available, returns a local ref initialized with the config.
+ * This is so the `GrapherState` can be controlled from a GuidedChart,
+ * but also allows for local usage when not in a GuidedChart context.
+ */
+export function useMaybeGlobalGrapherStateRef(
     config: GrapherProgrammaticInterface
 ): React.RefObject<GrapherState> {
     const context = React.useContext(GuidedChartContext)
