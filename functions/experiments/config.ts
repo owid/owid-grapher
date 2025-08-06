@@ -16,22 +16,12 @@ export const experiments: Experiment[] = [
         expires: "2025-08-31T00:00:00.000Z",
         arms: [
             // control arm
-            {
-                id: "c",
-                fraction: 0.9,
-                replaysSessionSampleRate: 0.1,
-            },
+            { id: "c", fraction: 0.7, replaysSessionSampleRate: 0.1 },
+            // control arm, with "what you should know about this data" block moved down
+            { id: "c1", fraction: 0.1, replaysSessionSampleRate: 1 },
             // experimental arms
-            {
-                id: "t0",
-                fraction: 0.05,
-                replaysSessionSampleRate: 1,
-            },
-            {
-                id: "t1",
-                fraction: 0.05,
-                replaysSessionSampleRate: 1,
-            },
+            { id: "t0", fraction: 0.1, replaysSessionSampleRate: 1 },
+            { id: "t1", fraction: 0.1, replaysSessionSampleRate: 1 },
         ],
         paths: ["/grapher/"],
     }),
@@ -65,7 +55,6 @@ export const experiments: Experiment[] = [
          * Treatment arm t100: generic - 1 link - no thumbnail
          * Treatment arm t110: generic - 3 links - no thumbnail
          * Treatment arm t101: generic - 1 link - thumbnail
-         * Treatment arm t111: generic - 3 links - thumbnail
          * Treatment arm t200: specific - 1 link - no thumbnail
          * Treatment arm t210: specific - 3 links - no thumbnail
          * Treatment arm t201: specific - 1 link - thumbnail
@@ -76,10 +65,10 @@ export const experiments: Experiment[] = [
          * e.g. t001: placebo - 1 link - thumbnail.
          */
         id: "data-page-insight-buttons-full",
-        expires: "2025-01-01T00:00:00.000Z",
+        expires: "2025-01-01T00:00:00.000Z", // this experiment is disabled
         arms: [
             // control arm
-            { id: "c", fraction: 0.5, replaysSessionSampleRate: 0.1 },
+            { id: "c", fraction: 0.55, replaysSessionSampleRate: 0.1 },
             // Treatment arm t000: placebo - 1 link - no thumbnail
             { id: "t000", fraction: 0.05, replaysSessionSampleRate: 1 },
             // Treatment arm t010: placebo - 3 links - no thumbnail
@@ -90,8 +79,6 @@ export const experiments: Experiment[] = [
             { id: "t110", fraction: 0.05, replaysSessionSampleRate: 1 },
             // Treatment arm t101: generic - 1 link - thumbnail
             { id: "t101", fraction: 0.05, replaysSessionSampleRate: 1 },
-            // Treatment arm t111: generic - 3 links - thumbnail
-            { id: "t111", fraction: 0.05, replaysSessionSampleRate: 1 },
             // Treatment arm t200: specific - 1 link - no thumbnail
             { id: "t200", fraction: 0.05, replaysSessionSampleRate: 1 },
             // Treatment arm t210: specific - 3 links - no thumbnail
