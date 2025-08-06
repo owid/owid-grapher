@@ -63,7 +63,7 @@
 
 .search-writing-topic__content {
     display: flex;
-    gap: 24px;
+    column-gap: 24px;
 
     @include sm-only {
         flex-direction: column;
@@ -81,19 +81,6 @@
 
     @include sm-only {
         flex-basis: 100%;
-    }
-}
-
-.search-writing-topic__divider {
-    display: none;
-    border: none;
-    border-top: 1px solid $blue-20;
-    width: 100%;
-    padding: 0;
-    margin: 0;
-
-    @include sm-only {
-        display: block;
     }
 }
 

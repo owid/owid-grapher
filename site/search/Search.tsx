@@ -94,7 +94,8 @@ export const Search = ({
                     <SearchTopicsRefinementList topicType={topicType} />
                     <SearchResultTypeToggle />
                 </div>
-                <div className="search-template-results grid span-cols-14 grid grid-cols-12-full-width">
+                <div className="search-template-results col-start-2 span-cols-12">
+                    <SearchNoResults />
                     {match(templateConfig.resultType)
                         .with(SearchResultType.ALL, () => (
                             <SearchTemplatesAll />
@@ -106,7 +107,6 @@ export const Search = ({
                             <SearchTemplatesWriting />
                         ))
                         .exhaustive()}
-                    <SearchNoResults />
                 </div>
             </SearchContext.Provider>
         </SearchDebugProvider>
