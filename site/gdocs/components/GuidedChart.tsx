@@ -3,7 +3,7 @@ import {
     MultiDimDimensionChoices,
 } from "@ourworldindata/types"
 import { Container } from "./layout.js"
-import { useRef, useCallback } from "react"
+import { useRef, useCallback, useState } from "react"
 import {
     MultiDimDataPageConfig,
     Url,
@@ -28,48 +28,63 @@ export default function GuidedChart({
         config: MultiDimDataPageConfig
         updater: (newSettings: MultiDimDimensionChoices) => void
     } | null>(null)
+    const [updateStatus, setUpdateStatus] = useState("")
 
-    const handleGuidedChartLinkClick = useCallback((href: string) => {
-        if (!stateRef.current) return
-
-        const url = Url.fromURL(href)
-
-        // If the chart is a MultiDim, we have to update its settings directly
-        if (multiDimRef.current) {
-            const searchParams = new URLSearchParams()
-            Object.entries(url.queryParams).forEach(([key, value]) => {
-                if (value !== undefined) {
-                    searchParams.set(key, value)
-                }
-            })
-
-            // Extract MultiDim settings from the guided chart link
-            // and update the MultiDim component
-            const choices = extractMultiDimChoicesFromSearchParams(
-                searchParams,
-                multiDimRef.current.config
-            )
-            const availableChoices =
-                multiDimRef.current.config.filterToAvailableChoices(choices)
-            multiDimRef.current.updater(availableChoices.selectedChoices)
-        }
-
-        // Update the grapher state with the new params (e.g. countries, tab, etc)
-        stateRef.current.clearQueryParams()
-        stateRef.current.populateFromQueryParams(url.queryParams)
-        analytics.logGuidedChartLinkClick(url.fullUrl)
-
-        // Scroll to chart on small screens
-        if (chartRef.current && window.innerWidth <= 768) {
-            // Small delay to allow chart updates to complete
+    const announceUpdate = useCallback((message: string) => {
+        setTimeout(() => {
+            setUpdateStatus(message)
             setTimeout(() => {
-                chartRef.current?.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start",
-                })
-            }, 100)
-        }
+                setUpdateStatus("")
+            }, 2000)
+        }, 100)
     }, [])
+
+    const handleGuidedChartLinkClick = useCallback(
+        (href: string) => {
+            if (!stateRef.current) return
+            setUpdateStatus("")
+
+            const url = Url.fromURL(href)
+
+            // If the chart is a MultiDim, we have to update its settings directly
+            if (multiDimRef.current) {
+                const searchParams = new URLSearchParams()
+                Object.entries(url.queryParams).forEach(([key, value]) => {
+                    if (value !== undefined) {
+                        searchParams.set(key, value)
+                    }
+                })
+
+                // Extract MultiDim settings from the guided chart link
+                // and update the MultiDim component
+                const choices = extractMultiDimChoicesFromSearchParams(
+                    searchParams,
+                    multiDimRef.current.config
+                )
+                const availableChoices =
+                    multiDimRef.current.config.filterToAvailableChoices(choices)
+                multiDimRef.current.updater(availableChoices.selectedChoices)
+            }
+
+            // Update the grapher state with the new params (e.g. countries, tab, etc)
+            stateRef.current.clearQueryParams()
+            stateRef.current.populateFromQueryParams(url.queryParams)
+            analytics.logGuidedChartLinkClick(url.fullUrl)
+            announceUpdate("Chart updated to reflect the selected view.")
+
+            // Scroll to chart on small screens
+            if (chartRef.current && window.innerWidth <= 768) {
+                // Small delay to allow chart updates to complete
+                setTimeout(() => {
+                    chartRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                    })
+                }, 100)
+            }
+        },
+        [announceUpdate]
+    )
 
     return (
         <GuidedChartContext.Provider
@@ -85,6 +100,14 @@ export default function GuidedChart({
                 },
             }}
         >
+            <div
+                className="guided-chart__screenreader-announcement"
+                aria-live="assertive"
+                aria-atomic="true"
+                role="status"
+            >
+                {updateStatus}
+            </div>
             <div className="grid grid-cols-12-full-width span-cols-14">
                 <ArticleBlocks
                     blocks={d.content}

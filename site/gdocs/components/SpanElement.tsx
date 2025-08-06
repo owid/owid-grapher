@@ -6,6 +6,7 @@ import SpanElements from "./SpanElements.js"
 import { useGuidedChartLinkHandler } from "@ourworldindata/grapher"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEye } from "@fortawesome/free-solid-svg-icons"
+import { spansToUnformattedPlainText } from "@ourworldindata/utils"
 
 export default function SpanElement({
     span,
@@ -15,6 +16,10 @@ export default function SpanElement({
     shouldRenderLinks?: boolean
 }): React.ReactElement {
     const handleGuidedChartLinkClick = useGuidedChartLinkHandler()
+    const [hasHydrated, setHasHydrated] = React.useState(false)
+    React.useEffect(() => {
+        setHasHydrated(true)
+    }, [])
 
     return match(span)
         .with({ spanType: "span-simple-text" }, (span) => (
@@ -60,6 +65,11 @@ export default function SpanElement({
                 <a
                     className="guided-chart-link"
                     href={span.url}
+                    aria-label={
+                        hasHydrated
+                            ? `"${spansToUnformattedPlainText(span.children)}". Click to set this section's chart to this view.`
+                            : undefined
+                    }
                     onClick={handleClick}
                 >
                     <FontAwesomeIcon icon={faEye} />
