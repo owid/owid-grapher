@@ -5,7 +5,6 @@ import { observer } from "mobx-react"
 import {
     Bounds,
     Time,
-    makeSafeForCSS,
     getRelativeMouse,
     excludeUndefined,
     makeIdForHumanConsumption,
@@ -35,7 +34,6 @@ import { BAR_OPACITY, StackedPoint, StackedSeries } from "./StackedConstants"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { HorizontalAlign } from "@ourworldindata/types"
 import { makeClipPath } from "../chart/ChartUtils"
-import { CoreColumn } from "@ourworldindata/core-table"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
@@ -46,8 +44,9 @@ import { easeLinear } from "d3-ease"
 import { select, type BaseType, type Selection } from "d3-selection"
 import { ChartInterface } from "../chart/ChartInterface"
 import { ChartManager } from "../chart/ChartManager"
-import { StackedBarSegment } from "./StackedBarSegment"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
+import { StackedBars } from "./StackedBars"
+import { getXAxisConfigDefaultsForStackedBar } from "./StackedUtils"
 
 interface TickmarkPlacement {
     time: number
@@ -148,62 +147,28 @@ export class StackedBarChart
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
-        const axis = this.xAxisConfig.toHorizontalAxis()
-        axis.updateDomainPreservingUserSettings(
-            this.chartState.transformedTable.timeDomainFor(
-                this.chartState.yColumnSlugs
-            )
-        )
-        axis.formatColumn = this.chartState.inputTable.timeColumn
-        axis.hideFractionalTicks = true
-        return axis
+        return this.chartState.toHorizontalAxis(this.xAxisConfig)
     }
 
     @computed private get yAxisConfig(): AxisConfig {
-        return new AxisConfig(
-            {
-                nice: true,
-                ...this.manager.yAxisConfig,
-            },
-            this
-        )
+        const { yAxisConfig } = this.manager
+        const custom = { nice: true }
+        return new AxisConfig({ ...custom, ...yAxisConfig }, this)
     }
 
     @computed private get verticalAxisPart(): VerticalAxis {
-        const axis = this.yAxisConfig.toVerticalAxis()
-        // Use user settings for axis, unless relative mode
-        if (this.manager.isRelativeMode) axis.domain = [0, 100]
-        else axis.updateDomainPreservingUserSettings(this.yAxisDomain)
-        axis.formatColumn = this.chartState.yColumns[0]
-        return axis
+        return this.chartState.toVerticalAxis(this.yAxisConfig)
     }
 
     @computed private get xAxisConfig(): AxisConfig {
-        return new AxisConfig(
-            {
-                hideGridlines: true,
-                domainValues: this.xValues,
-                ticks: this.xValues.map((value) => ({ value, priority: 2 })),
-                ...this.manager.xAxisConfig,
-            },
-            this
-        )
+        const { xAxisConfig } = this.manager
+        const defaults = getXAxisConfigDefaultsForStackedBar(this.chartState)
+        return new AxisConfig({ ...defaults, ...xAxisConfig }, this)
     }
 
     @computed
     get allStackedPoints(): readonly StackedPoint<number>[] {
         return this.stackedSeries.flatMap((series) => series.points)
-    }
-
-    @computed private get yAxisDomain(): [number, number] {
-        const yValues = this.allStackedPoints.map(
-            (point) => point.value + point.valueOffset
-        )
-        return [_.min([0, ...yValues]) ?? 0, _.max([0, ...yValues]) ?? 0]
-    }
-
-    @computed private get barWidth(): number {
-        return (this.dualAxis.horizontalAxis.bandWidth ?? 0) * 0.8
     }
 
     @computed private get showHorizontalLegend(): boolean {
@@ -353,18 +318,13 @@ export class StackedBarChart
         return undefined
     }
 
-    @computed private get formatColumn(): CoreColumn {
-        // we can just use the first column for formatting, b/c we assume all columns have same type
-        return this.chartState.yColumns[0]
-    }
-
     @computed private get tooltip(): React.ReactElement | undefined {
         const {
             tooltipState: { target, position, fading },
             stackedSeries: series,
             hoveredTick,
-            formatColumn,
         } = this
+        const { formatColumn } = this.chartState
 
         const { bar: hoverBar, series: hoverSeries } = target ?? {}
         let hoverTime: number
@@ -524,65 +484,16 @@ export class StackedBarChart
     }
 
     renderBars(): React.ReactElement {
-        const {
-            dualAxis,
-            barWidth,
-            tooltipState: { target },
-        } = this
-        const { verticalAxis, horizontalAxis } = dualAxis
-
         return (
-            <>
-                {this.stackedSeries.map((series, index) => {
-                    const isLegendHovered = this.hoverKeys.includes(
-                        series.seriesName
-                    )
-                    const opacity =
-                        isLegendHovered || this.hoverKeys.length === 0
-                            ? BAR_OPACITY.DEFAULT
-                            : BAR_OPACITY.MUTE
-
-                    return (
-                        <g
-                            key={index}
-                            id={makeIdForHumanConsumption(series.seriesName)}
-                            className={
-                                makeSafeForCSS(series.seriesName) + "-segments"
-                            }
-                        >
-                            {series.points.map((bar, index) => {
-                                const xPos =
-                                    horizontalAxis.place(bar.position) -
-                                    this.barWidth / 2
-                                const barOpacity =
-                                    bar === target?.bar
-                                        ? BAR_OPACITY.FOCUS
-                                        : opacity
-
-                                return (
-                                    <StackedBarSegment
-                                        key={index}
-                                        id={makeIdForHumanConsumption(
-                                            this.formatColumn.formatTime(
-                                                bar.time
-                                            )
-                                        )}
-                                        bar={bar}
-                                        color={bar.color ?? series.color}
-                                        xOffset={xPos}
-                                        opacity={barOpacity}
-                                        yAxis={verticalAxis}
-                                        series={series}
-                                        onBarMouseOver={this.onBarMouseOver}
-                                        onBarMouseLeave={this.onBarMouseLeave}
-                                        barWidth={barWidth}
-                                    />
-                                )
-                            })}
-                        </g>
-                    )
-                })}
-            </>
+            <StackedBars
+                dualAxis={this.dualAxis}
+                series={this.stackedSeries}
+                formatColumn={this.chartState.formatColumn}
+                hoveredSeriesNames={this.hoverKeys}
+                hoveredBar={this.tooltipState.target?.bar}
+                onBarMouseOver={this.onBarMouseOver}
+                onBarMouseLeave={this.onBarMouseLeave}
+            />
         )
     }
 
@@ -672,14 +583,6 @@ export class StackedBarChart
     @computed
     get stackedSeries(): readonly StackedSeries<number>[] {
         return this.chartState.series
-    }
-
-    @computed private get xValues(): number[] {
-        return _.uniq(
-            this.chartState.unstackedSeriesWithMissingValuesAsZeroes.flatMap(
-                (s) => s.points.map((p) => p.position)
-            )
-        )
     }
 
     animSelection?: Selection<BaseType, unknown, SVGGElement | null, unknown>
