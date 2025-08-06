@@ -1,10 +1,6 @@
 {
     "permissions": {
-        "allow": [
-            "Bash(grep:*)",
-            "Bash(yarn typecheck)",
-            "Bash(git log:*)"
-        ],
+        "allow": ["Bash(grep:*)", "Bash(yarn typecheck)", "Bash(git log:*)"],
         "deny": []
     }
 }
