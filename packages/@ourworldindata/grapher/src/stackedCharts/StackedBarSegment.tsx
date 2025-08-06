@@ -15,11 +15,11 @@ interface StackedBarSegmentProps extends React.SVGAttributes<SVGGElement> {
     yAxis: VerticalAxis
     xOffset: number
     barWidth: number
-    onBarMouseOver: (
+    onBarMouseOver?: (
         bar: StackedPoint<Time>,
         series: StackedSeries<Time>
     ) => void
-    onBarMouseLeave: () => void
+    onBarMouseLeave?: () => void
 }
 
 @observer
@@ -57,12 +57,12 @@ export class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
 
     @action.bound onBarMouseOver(): void {
         this.mouseOver = true
-        this.props.onBarMouseOver(this.props.bar, this.props.series)
+        this.props.onBarMouseOver?.(this.props.bar, this.props.series)
     }
 
     @action.bound onBarMouseLeave(): void {
         this.mouseOver = false
-        this.props.onBarMouseLeave()
+        this.props.onBarMouseLeave?.()
     }
 
     override render(): React.ReactElement {
