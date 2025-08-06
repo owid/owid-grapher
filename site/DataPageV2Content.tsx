@@ -13,6 +13,7 @@ import {
     joinTitleFragments,
     ImageMetadata,
     excludeNull,
+    queryParamsToStr,
 } from "@ourworldindata/utils"
 import StickyNav from "./blocks/StickyNav.js"
 import {
@@ -106,7 +107,7 @@ export const DataPageV2Content = ({
     if (datapageData.primaryTopic) {
         const topicSlug = tagToSlugMap[datapageData.primaryTopic.topicTag]
         if (datapageData.dataInsights?.length) {
-            insightsHref = `/data-insights?topic=${datapageData.primaryTopic.topicTag}`
+            insightsHref = `/data-insights${queryParamsToStr({ topic: datapageData.primaryTopic.topicTag })}`
         } else {
             insightsHref = `/${topicSlug}`
         }
