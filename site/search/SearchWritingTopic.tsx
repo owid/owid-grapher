@@ -5,6 +5,7 @@ import { SearchWritingTopicsResponse } from "./searchTypes.js"
 import { useSearchContext } from "./SearchContext.js"
 import { Button, getCanonicalPath } from "@ourworldindata/components"
 import { SearchStackedArticleHit } from "./SearchStackedArticleHit.js"
+import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
 
 export const SearchWritingTopic = ({
     result,
@@ -23,7 +24,7 @@ export const SearchWritingTopic = ({
     }
 
     return (
-        <section className="search-writing-topic-container span-cols-12 col-start-2">
+        <section className="search-writing-topic-container">
             <div className="search-writing-topic">
                 <button
                     className="search-writing-topic__header"
@@ -58,7 +59,7 @@ export const SearchWritingTopic = ({
                         </div>
                     </div>
 
-                    <hr className="search-writing-topic__divider" />
+                    <SearchHorizontalDivider />
 
                     <div className="search-writing-topic__featured-topic-pages">
                         <h3 className="search-writing-topic__sub-title">
