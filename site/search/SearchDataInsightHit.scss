@@ -4,6 +4,10 @@
             text-decoration: underline;
         }
     }
+
+    @include sm-only {
+        scroll-snap-align: start;
+    }
 }
 
 .search-data-insight-hit__image-container {
@@ -17,6 +21,10 @@
 
     border: 1px solid $blue-10;
     margin-bottom: 16px;
+
+    @include sm-only {
+        width: 76vw;
+    }
 }
 
 .search-data-insight-hit__image {
