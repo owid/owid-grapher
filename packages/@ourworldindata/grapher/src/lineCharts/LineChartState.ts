@@ -131,6 +131,10 @@ export class LineChartState implements ChartState, ColorScaleManager {
         return this.manager.focusArray ?? new FocusArray()
     }
 
+    @computed get isFocusModeActive(): boolean {
+        return !this.focusArray.isEmpty
+    }
+
     @computed get yColumnSlugs(): string[] {
         return autoDetectYColumnSlugs(this.manager)
     }
@@ -142,6 +146,10 @@ export class LineChartState implements ChartState, ColorScaleManager {
 
     @computed get yColumns(): CoreColumn[] {
         return this.yColumnSlugs.map((slug) => this.transformedTable.get(slug))
+    }
+
+    @computed get formatColumn(): CoreColumn {
+        return this.yColumns[0]
     }
 
     @computed get colorColumn(): CoreColumn {

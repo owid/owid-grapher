@@ -1,11 +1,24 @@
+import * as _ from "lodash-es"
 import { OwidTable } from "@ourworldindata/core-table"
 import {
+    AxisAlign,
+    AxisConfigInterface,
     ColumnSlug,
     EntityName,
     PrimitiveType,
+    ScaleType,
     SeriesName,
     SeriesStrategy,
 } from "@ourworldindata/types"
+import { AxisConfig } from "../axis/AxisConfig"
+import {
+    LineChartSeries,
+    PlacedLineChartSeries,
+    PlacedPoint,
+} from "./LineChartConstants"
+import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
+import { LineChartState } from "./LineChartState"
+import { darkenColorForLine } from "../color/ColorUtils"
 
 export type AnnotationsMap = Map<PrimitiveType, Set<PrimitiveType>>
 
@@ -76,4 +89,89 @@ export function getAnnotationsForSeries(
     return Array.from(annotations.values())
         .filter((anno) => anno)
         .join(" & ")
+}
+
+export function getYAxisConfigDefaults(
+    config?: AxisConfigInterface
+): AxisConfigInterface {
+    return {
+        nice: config?.scaleType !== ScaleType.log,
+        // if we only have a single y value (probably 0), we want the
+        // horizontal axis to be at the bottom of the chart.
+        // see https://github.com/owid/owid-grapher/pull/975#issuecomment-890798547
+        singleValueAxisPointAlign: AxisAlign.start,
+        // default to 0 if not set
+        min: 0,
+    }
+}
+
+export function toHorizontalAxis(
+    config: AxisConfig,
+    chartState: LineChartState
+): HorizontalAxis {
+    const axis = config.toHorizontalAxis()
+
+    // Update domain
+    axis.updateDomainPreservingUserSettings(
+        chartState.transformedTable.timeDomainFor(chartState.yColumnSlugs)
+    )
+
+    axis.scaleType = ScaleType.linear
+    axis.formatColumn = chartState.inputTable.timeColumn
+    axis.hideFractionalTicks = true
+
+    return axis
+}
+
+export function toVerticalAxis(
+    config: AxisConfig,
+    chartState: LineChartState
+): VerticalAxis {
+    const axis = config.toVerticalAxis()
+
+    // Update domain
+    const yDomain = chartState.transformedTable.domainFor(
+        chartState.yColumnSlugs
+    )
+    axis.updateDomainPreservingUserSettings([
+        Math.min(axis.domain[0], yDomain[0]),
+        Math.max(axis.domain[1], yDomain[1]),
+    ])
+
+    // all y axis points are integral, don't show fractional ticks in that case
+    axis.hideFractionalTicks = chartState.yColumns.every(
+        (yColumn) => yColumn.isAllIntegers
+    )
+
+    // line charts never render an axis label
+    axis.label = ""
+
+    axis.formatColumn = chartState.formatColumn
+
+    return axis
+}
+
+export function toPlacedSeries(
+    series: readonly LineChartSeries[],
+    { chartState, dualAxis }: { chartState: LineChartState; dualAxis: DualAxis }
+): PlacedLineChartSeries[] {
+    const { horizontalAxis, verticalAxis } = dualAxis
+
+    return series.toReversed().map((series) => {
+        const placedPoints = series.points.map((point): PlacedPoint => {
+            const color = chartState.hasColorScale
+                ? darkenColorForLine(
+                      chartState.getColorScaleColor(point.colorValue)
+                  )
+                : series.color
+
+            return {
+                time: point.x,
+                x: _.round(horizontalAxis.place(point.x), 1),
+                y: _.round(verticalAxis.place(point.y), 1),
+                color,
+            }
+        })
+        return { ...series, placedPoints }
+    })
 }
