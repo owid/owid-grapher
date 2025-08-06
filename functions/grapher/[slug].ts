@@ -128,13 +128,6 @@ async function handleHtmlPageRequest(
     ctx: EventContext<unknown, any, Record<string, unknown>>
 ) {
     const url = env.url
-    const cookies = ctx.request.headers.get("cookie")
-    const experimentClassNames = cookies
-        ? cookies
-              .split(";")
-              .filter((c) => c.includes(`${EXPERIMENT_PREFIX}-`))
-              .map((c) => c.replace("=", ARM_SEPARATOR))
-        : undefined
 
     // For local testing
     // const grapherPageResp = await fetch(
@@ -150,6 +143,16 @@ async function handleHtmlPageRequest(
         // grapherPageResp should be a static 404 HTML page.
         return handlePageNotFound(env, grapherPageResp)
     }
+
+    const cookies = ctx.request.headers.get("cookie") || ""
+    const cookiesToSet: string[] = (ctx.data.cookiesToSet as string[]) || []
+    const cookieNames = [
+        ...cookies.split(";"),
+        ...cookiesToSet.map((c) => c.split(";")[0]),
+    ]
+    const experimentClassNames = cookieNames
+        .filter((c) => c.includes(`${EXPERIMENT_PREFIX}-`))
+        .map((c) => c.replace("=", ARM_SEPARATOR))
 
     // A non-200 status code is most likely a redirect (301 or 302), all of which we want to pass through as-is.
     // In the case of the redirect, the browser will then request the new URL which will again be handled by this worker.
@@ -175,6 +178,19 @@ async function handleHtmlPageRequest(
         twitterThumbnailUrl,
         grapherPageWithExperimentClasses
     )
+
+    if (cookiesToSet && cookiesToSet.length) {
+        const headers = new Headers(grapherPageWithUpdatedMetaTags.headers)
+        for (const cookie of cookiesToSet) {
+            headers.append("Set-Cookie", cookie)
+        }
+        return new Response(grapherPageWithUpdatedMetaTags.body, {
+            status: grapherPageWithUpdatedMetaTags.status,
+            statusText: grapherPageWithUpdatedMetaTags.statusText,
+            headers,
+        })
+    }
+
     return grapherPageWithUpdatedMetaTags
 }
 
