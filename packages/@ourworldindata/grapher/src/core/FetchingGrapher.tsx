@@ -12,7 +12,7 @@ import { legacyToCurrentGrapherQueryParams } from "./GrapherUrlMigrations.js"
 import { unstable_batchedUpdates } from "react-dom"
 import { Bounds } from "@ourworldindata/utils"
 import { migrateGrapherConfigToLatestVersion } from "../schema/migrations/migrate.js"
-import { useMaybeGlobalGrapherStateRef } from "../chart/ChartUtils.js"
+import { useMaybeGlobalGrapherStateRef } from "../chart/GuidedChartUtils.js"
 
 export interface FetchingGrapherProps {
     config?: GrapherProgrammaticInterface
