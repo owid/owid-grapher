@@ -130,7 +130,10 @@ export const SearchWritingResults = ({
         FlatArticleHit
     >({
         queryKey: (state) => searchQueryKeys.articles(state),
-        queryFn: queryArticles,
+        queryFn: (searchClient, state, page) => {
+            const hitsPerPage = page === 0 ? 3 : 6
+            return queryArticles(searchClient, state, page, hitsPerPage)
+        },
     })
 
     const topicsQuery = useInfiniteSearch<
@@ -138,8 +141,14 @@ export const SearchWritingResults = ({
         TopicPageHit
     >({
         queryKey: (state) => searchQueryKeys.topicPages(state),
-        queryFn: queryTopicPages,
-        enabled: hasTopicPages,
+        queryFn: (searchClient, state, page) => {
+            let hitsPerPage = page === 0 ? 2 : 4
+            if (articlesQuery.totalResults === 0) {
+                hitsPerPage = 6
+            }
+            return queryTopicPages(searchClient, state, page, hitsPerPage)
+        },
+        enabled: hasTopicPages && !articlesQuery.isInitialLoading,
     })
 
     const totalCount = articlesQuery.totalResults + topicsQuery.totalResults
