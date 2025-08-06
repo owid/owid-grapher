@@ -17,11 +17,13 @@
 
 .search-flat-article-hit__image-container {
     width: 84px; // Same size as the image in case the image is missing.
-    margin-right: 24px;
+    margin-right: var(--grid-gap);
 }
 
 .search-flat-article-hit__image {
     width: 84px;
+    height: 64px;
+    object-fit: cover;
 }
 
 .search-flat-article-hit__title {
@@ -45,6 +47,11 @@
     -webkit-line-clamp: 2;
     line-clamp: 2;
     -webkit-box-orient: vertical;
+
+    @include sm-only {
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+    }
 }
 
 .search-flat-article-hit__authors {
