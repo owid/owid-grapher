@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { computed, makeObservable } from "mobx"
 import { AbstractStackedChartState } from "./AbstractStackedChartState.js"
 import { ChartState } from "../chart/ChartInterface.js"
@@ -42,6 +43,14 @@ export class StackedBarChartState
     @computed get series(): readonly StackedSeries<number>[] {
         return stackSeriesInBothDirections(
             this.unstackedSeriesWithMissingValuesAsZeroes
+        )
+    }
+
+    @computed get xValues(): number[] {
+        return _.uniq(
+            this.unstackedSeriesWithMissingValuesAsZeroes.flatMap((s) =>
+                s.points.map((p) => p.position)
+            )
         )
     }
 
