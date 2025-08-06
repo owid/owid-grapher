@@ -6,7 +6,7 @@ import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { StackedAreaChartState } from "./StackedAreaChartState.js"
 import { type StackedAreaChartProps } from "./StackedAreaChart.js"
-import { Bounds, GrapherRenderMode, SeriesName } from "@ourworldindata/utils"
+import { Bounds, GrapherRenderMode } from "@ourworldindata/utils"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -26,7 +26,6 @@ import {
     VerticalAxisLabelsState,
 } from "../verticalAxisLabels/VerticalAxisLabelsState"
 import { VerticalAxisLabels } from "../verticalAxisLabels/VerticalAxisLabels"
-import { StackedSeries } from "./StackedConstants"
 
 const LEGEND_PADDING = 4
 
@@ -109,15 +108,6 @@ export class StackedAreaChartThumbnail
         return Math.floor(GRAPHER_FONT_SCALE_14 * this.fontSize)
     }
 
-    @computed private get seriesByName(): Map<
-        SeriesName,
-        StackedSeries<number>
-    > {
-        return new Map(
-            this.chartState.series.map((series) => [series.seriesName, series])
-        )
-    }
-
     // TODO: clean up
     // Same as dualAxis.verticalAxis, but doesn't depend on innerBounds
     @computed get yAxisForLabels(): VerticalAxis {
@@ -155,8 +145,8 @@ export class StackedAreaChartThumbnail
                 s1: InitialVerticalAxisLabelsSeries,
                 s2: InitialVerticalAxisLabelsSeries
             ): InitialVerticalAxisLabelsSeries => {
-                const series1 = this.seriesByName.get(s1.seriesName)
-                const series2 = this.seriesByName.get(s2.seriesName)
+                const series1 = this.chartState.seriesByName.get(s1.seriesName)
+                const series2 = this.chartState.seriesByName.get(s2.seriesName)
 
                 if (!series1 || !series2) return s1 // no preference
 
