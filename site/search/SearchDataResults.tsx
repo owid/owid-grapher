@@ -6,6 +6,7 @@ import { SearchResultHeader } from "./SearchResultHeader.js"
 import { SearchChartsResponse, SearchChartHit } from "./searchTypes.js"
 import { SearchDataResultsSkeleton } from "./SearchDataResultsSkeleton.js"
 import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
+import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
 
 const analytics = new SiteAnalytics()
 
@@ -23,48 +24,51 @@ export const SearchDataResults = () => {
     if (totalResults === 0) return null
 
     return (
-        <div className="span-cols-12 col-start-2">
-            <div className="search-data-results__hits">
-                <SearchResultHeader count={totalResults}>
-                    Data
-                </SearchResultHeader>
-                <ul className="search-data-results__list">
-                    {hits.map((hit, i) => {
-                        const isMediumHit = i < 4
-                        const mode = isMediumHit ? "medium" : "small"
+        <>
+            <section>
+                <div className="search-data-results__hits">
+                    <SearchResultHeader count={totalResults}>
+                        Data
+                    </SearchResultHeader>
+                    <ul className="search-data-results__list">
+                        {hits.map((hit, i) => {
+                            const isMediumHit = i < 4
+                            const mode = isMediumHit ? "medium" : "small"
 
-                        const onClick = () => {
-                            analytics.logDataCatalogResultClick(
-                                hit,
-                                i + 1,
-                                "search"
+                            const onClick = () => {
+                                analytics.logDataCatalogResultClick(
+                                    hit,
+                                    i + 1,
+                                    "search"
+                                )
+                            }
+
+                            return (
+                                <li
+                                    className="search-data-results__hit"
+                                    key={hit.objectID}
+                                >
+                                    <SearchChartHitComponent
+                                        hit={hit}
+                                        mode={mode}
+                                        searchQueryRegionsMatches={
+                                            selectedCountries
+                                        }
+                                        onClick={onClick}
+                                    />
+                                </li>
                             )
-                        }
-
-                        return (
-                            <li
-                                className="search-data-results__hit"
-                                key={hit.objectID}
-                            >
-                                <SearchChartHitComponent
-                                    hit={hit}
-                                    mode={mode}
-                                    searchQueryRegionsMatches={
-                                        selectedCountries
-                                    }
-                                    onClick={onClick}
-                                />
-                            </li>
-                        )
-                    })}
-                </ul>
-            </div>
-            {query.hasNextPage && (
-                <SearchShowMore
-                    isLoading={query.isFetchingNextPage}
-                    onClick={query.fetchNextPage}
-                />
-            )}
-        </div>
+                        })}
+                    </ul>
+                </div>
+                {query.hasNextPage && (
+                    <SearchShowMore
+                        isLoading={query.isFetchingNextPage}
+                        onClick={query.fetchNextPage}
+                    />
+                )}
+            </section>
+            {!query.hasNextPage && <SearchHorizontalDivider />}
+        </>
     )
 }
