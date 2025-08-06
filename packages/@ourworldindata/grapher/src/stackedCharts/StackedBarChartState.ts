@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { computed, makeObservable } from "mobx"
 import { AbstractStackedChartState } from "./AbstractStackedChartState.js"
 import { ChartState } from "../chart/ChartInterface.js"
@@ -45,6 +46,14 @@ export class StackedBarChartState
         )
     }
 
+    @computed get xValues(): number[] {
+        return _.uniq(
+            this.unstackedSeriesWithMissingValuesAsZeroes.flatMap((s) =>
+                s.points.map((p) => p.position)
+            )
+        )
+    }
+
     /** Colour positive and negative values differently in stacked bar charts */
     @computed get useValueBasedColorScheme(): boolean {
         // Switched on externally, e.g. in a faceted chart
@@ -60,5 +69,12 @@ export class StackedBarChartState
 
     @computed get colorScaleConfig(): ColorScaleConfigInterface | undefined {
         return this.manager.colorScale
+    }
+
+    @computed get yDomain(): [number, number] {
+        const yValues = this.allStackedPoints.map(
+            (point) => point.value + point.valueOffset
+        )
+        return [_.min([0, ...yValues]) ?? 0, _.max([0, ...yValues]) ?? 0]
     }
 }
