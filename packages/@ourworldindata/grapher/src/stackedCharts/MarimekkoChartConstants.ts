@@ -7,6 +7,7 @@ import {
     Bounds,
     EntityName,
     ColumnSlug,
+    InteractionState,
 } from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"
 import { StackedPoint } from "./StackedConstants"
@@ -62,6 +63,7 @@ export interface Item {
     entityColor: EntityColorData | undefined
     bars: Bar[] // contains the y values for every y variable
     xPoint: SimplePoint | undefined // contains the single x value
+    focus: InteractionState
 }
 
 export interface PlacedItem extends Item {
@@ -98,6 +100,7 @@ export interface MarimekkoBarProps {
     barWidth: number
     isHovered: boolean
     isSelected: boolean
+    isBackground: boolean
     isFaint: boolean
     entityColor: string | undefined
     y0: number
