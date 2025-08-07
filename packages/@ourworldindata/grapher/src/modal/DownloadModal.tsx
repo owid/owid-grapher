@@ -73,100 +73,134 @@ export interface DownloadModalManager {
     activeColumnSlugs?: string[]
     isServerSideDownloadAvailable?: boolean
     logImageDownloadEvent?: (action: GrapherImageDownloadEvent) => void
+    activeDownloadModalTab: DownloadModalTabName
 }
 
 interface DownloadModalProps {
     manager: DownloadModalManager
 }
 
-enum TabName {
+export enum DownloadModalTabName {
     "Vis" = "Vis",
     "Data" = "Data",
 }
 
-export const DownloadModal = (
-    props: DownloadModalProps
-): React.ReactElement => {
-    const frameBounds = props.manager.frameBounds ?? DEFAULT_GRAPHER_BOUNDS
+@observer
+export class DownloadModal extends React.Component<DownloadModalProps> {
+    constructor(props: DownloadModalProps) {
+        super(props)
+        makeObservable(this)
+    }
 
-    const modalBounds = useMemo(() => {
+    private get tabItems(): TabItem<DownloadModalTabName>[] {
+        return [
+            {
+                key: DownloadModalTabName.Vis,
+                element: <>Visualization</>,
+                buttonProps: {
+                    "data-track-note": "chart_download_modal_tab_visualization",
+                },
+            },
+            {
+                key: DownloadModalTabName.Data,
+                element: <>Data</>,
+                buttonProps: {
+                    "data-track-note": "chart_download_modal_tab_data",
+                },
+            },
+        ]
+    }
+
+    @computed private get frameBounds() {
+        return this.props.manager.frameBounds ?? DEFAULT_GRAPHER_BOUNDS
+    }
+
+    @computed private get modalBounds() {
         const maxWidth = 640
-        const padWidth = Math.max(16, (frameBounds.width - maxWidth) / 2)
-        return frameBounds.padHeight(16).padWidth(padWidth)
-    }, [frameBounds])
+        const padWidth = Math.max(16, (this.frameBounds.width - maxWidth) / 2)
+        return this.frameBounds.padHeight(16).padWidth(padWidth)
+    }
 
-    const onDismiss = useCallback(
-        () => (props.manager.isDownloadModalOpen = false),
-        [props.manager]
-    )
+    @computed private get activeTab(): DownloadModalTabName {
+        return this.props.manager.activeDownloadModalTab
+    }
 
-    const tabItems: TabItem<TabName>[] = [
-        {
-            key: TabName.Vis,
-            element: <>Visualization</>,
-            buttonProps: {
-                "data-track-note": "chart_download_modal_tab_visualization",
-            },
-        },
-        {
-            key: TabName.Data,
-            element: <>Data</>,
-            buttonProps: {
-                "data-track-note": "chart_download_modal_tab_data",
-            },
-        },
-    ]
+    @computed private get isVisTabActive() {
+        return this.activeTab === DownloadModalTabName.Vis
+    }
 
-    const [activeTab, setActiveTab] = useState(TabName.Vis)
+    @computed private get isDataTabActive() {
+        return this.activeTab === DownloadModalTabName.Data
+    }
 
-    const isVisTabActive = activeTab === TabName.Vis
-    const isDataTabActive = activeTab === TabName.Data
+    @action.bound private onTabChange(key: DownloadModalTabName) {
+        this.props.manager.activeDownloadModalTab = key
+    }
 
-    return (
-        <Modal bounds={modalBounds} onDismiss={onDismiss} alignVertical="top">
-            <div
-                className="download-modal-content"
-                style={{ maxHeight: modalBounds.height }}
+    @action.bound private onDismiss() {
+        this.props.manager.isDownloadModalOpen = false
+    }
+
+    override render(): React.ReactElement {
+        return (
+            <Modal
+                bounds={this.modalBounds}
+                onDismiss={this.onDismiss}
+                alignVertical="top"
             >
-                <OverlayHeader title="Download" onDismiss={onDismiss} />
-                <div className="download-modal__tab-list">
-                    <Tabs
-                        variant="slim"
-                        items={tabItems}
-                        selectedKey={activeTab}
-                        onChange={(key) => setActiveTab(key)}
+                <div
+                    className="download-modal-content"
+                    style={{ maxHeight: this.modalBounds.height }}
+                >
+                    <OverlayHeader
+                        title="Download"
+                        onDismiss={this.onDismiss}
                     />
-                </div>
+                    <div className="download-modal__tab-list">
+                        <Tabs
+                            variant="slim"
+                            items={this.tabItems}
+                            selectedKey={this.activeTab}
+                            onChange={this.onTabChange}
+                        />
+                    </div>
 
-                {/* Tabs */}
-                {/**
-                 * We only hide the inactive tab with display: none and don't unmount it,
-                 * so that the tab state (selected radio buttons, etc) is preserved
-                 * when switching between tabs.
-                 */}
-                <div className="download-modal__tab-panel" role="tabpanel">
-                    <div
-                        className="download-modal__tab-content"
-                        style={{ display: isVisTabActive ? undefined : "none" }}
-                        role="tab"
-                        aria-hidden={!isVisTabActive}
-                    >
-                        <DownloadModalVisTab {...props} />
-                    </div>
-                    <div
-                        className="download-modal__tab-content"
-                        style={{
-                            display: isDataTabActive ? undefined : "none",
-                        }}
-                        role="tab"
-                        aria-hidden={!isDataTabActive}
-                    >
-                        <DownloadModalDataTab {...props} />
+                    {/* Tabs */}
+                    {/**
+                     * We only hide the inactive tab with display: none and don't unmount it,
+                     * so that the tab state (selected radio buttons, etc) is preserved
+                     * when switching between tabs.
+                     */}
+                    <div className="download-modal__tab-panel" role="tabpanel">
+                        <div
+                            className="download-modal__tab-content"
+                            style={{
+                                display: this.isVisTabActive
+                                    ? undefined
+                                    : "none",
+                            }}
+                            role="tab"
+                            aria-hidden={!this.isVisTabActive}
+                        >
+                            <DownloadModalVisTab {...this.props} />
+                        </div>
+                        <div
+                            className="download-modal__tab-content"
+                            style={{
+                                display: this.isDataTabActive
+                                    ? undefined
+                                    : "none",
+                            }}
+                            role="tab"
+                            aria-hidden={!this.isDataTabActive}
+                        >
+                            <DownloadModalDataTab {...this.props} />
+                        </div>
                     </div>
                 </div>
-            </div>
-        </Modal>
-    )
+            </Modal>
+        )
+    }
 }
 
 @observer
