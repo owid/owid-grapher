@@ -19,6 +19,7 @@ import {
     placeGrapherTabsInGridLayout,
     GridSlot,
     getRowCountForGridSlot,
+    constructDownloadUrl,
 } from "./searchUtils.js"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
 import {
@@ -54,6 +55,8 @@ import {
 } from "./SearchChartHitDataTable.js"
 import { match } from "ts-pattern"
 import { runInAction } from "mobx"
+import { faDownload } from "@fortawesome/free-solid-svg-icons"
+import { Button } from "@ourworldindata/components"
 
 const NUM_DATA_TABLE_ROWS_PER_COLUMN = 4
 
@@ -209,12 +212,22 @@ function SearchChartHitMediumRichData({
 
     return (
         <div ref={ref} className="search-chart-hit-medium">
-            <SearchChartHitHeader
-                hit={hit}
-                url={chartUrl}
-                source={grapherState.sourcesLine}
-                onClick={onClick}
-            />
+            <div className="search-chart-hit-medium__header">
+                <SearchChartHitHeader
+                    hit={hit}
+                    url={chartUrl}
+                    source={grapherState.sourcesLine}
+                    onClick={onClick}
+                />
+                <Button
+                    text="Download options"
+                    className="search-chart-hit-medium__download-button"
+                    theme="solid-light-blue"
+                    href={constructDownloadUrl({ hit })}
+                    icon={faDownload}
+                    iconPosition="left"
+                />
+            </div>
 
             <div className="search-chart-hit-medium__content">
                 {layout.placedTabs.map(({ tab, slot }) =>
@@ -310,12 +323,22 @@ function SearchChartHitMediumFallback({
 
     return (
         <div ref={ref} className="search-chart-hit-medium">
-            <SearchChartHitHeader
-                hit={hit}
-                url={chartUrl}
-                source={chartInfo?.source}
-                onClick={onClick}
-            />
+            <div className="search-chart-hit-medium__header">
+                <SearchChartHitHeader
+                    hit={hit}
+                    url={chartUrl}
+                    source={chartInfo?.source}
+                    onClick={onClick}
+                />
+                <Button
+                    text="Download options"
+                    className="search-chart-hit-medium__download-button"
+                    theme="solid-light-blue"
+                    href={constructDownloadUrl({ hit })}
+                    icon={faDownload}
+                    iconPosition="left"
+                />
+            </div>
 
             <div className="search-chart-hit-medium__content">
                 {placedTabs.map(({ tab, slot }) => {
