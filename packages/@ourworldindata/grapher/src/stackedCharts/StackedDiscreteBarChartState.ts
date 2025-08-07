@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { computed, makeObservable } from "mobx"
 import { ChartState } from "../chart/ChartInterface"
 import { StackedDiscreteBarChartManager } from "./StackedDiscreteBarChart"
@@ -8,11 +9,17 @@ import {
     EntityName,
     FacetStrategy,
     MissingDataStrategy,
+    SortBy,
     SortConfig,
+    SortOrder,
 } from "@ourworldindata/types"
-import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
+import {
+    autoDetectYColumnSlugs,
+    getShortNameForEntity,
+    makeSelectionArray,
+} from "../chart/ChartUtils"
 import { SelectionArray } from "../selection/SelectionArray"
-import { StackedSeries } from "./StackedConstants"
+import { Item, StackedSeries } from "./StackedConstants"
 import {
     stackSeriesInBothDirections,
     withMissingValuesAsZeroes,
@@ -20,6 +27,7 @@ import {
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
 import { ColorScheme } from "../color/ColorScheme"
 import { ColorSchemes } from "../color/ColorSchemes"
+import { excludeUndefined } from "@ourworldindata/utils"
 
 export class StackedDiscreteBarChartState implements ChartState {
     manager: StackedDiscreteBarChartManager
@@ -167,6 +175,67 @@ export class StackedDiscreteBarChartState implements ChartState {
         return stackSeriesInBothDirections(
             withMissingValuesAsZeroes(this.unstackedSeries)
         )
+    }
+
+    @computed get items(): readonly Omit<Item, "label">[] {
+        const entityNames = this.selectionArray.selectedEntityNames
+        const items = entityNames
+            .map((entityName) => {
+                let totalValue = 0
+                const bars = excludeUndefined(
+                    this.series.map((series) => {
+                        const point = series.points.find(
+                            (point) => point.position === entityName
+                        )
+                        if (!point) return undefined
+                        totalValue += point.value
+                        return {
+                            point,
+                            columnSlug: series.columnSlug!,
+                            color: series.color,
+                            seriesName: series.seriesName,
+                        }
+                    })
+                )
+
+                return {
+                    entityName,
+                    shortEntityName: getShortNameForEntity(entityName),
+                    bars,
+                    totalValue,
+                }
+            })
+            .filter((item) => item.bars.length)
+
+        return items
+    }
+
+    @computed get sortedItems(): readonly Item[] {
+        let sortByFunc: (item: Item) => number | string | undefined
+        switch (this.sortConfig.sortBy) {
+            case SortBy.custom:
+                sortByFunc = (): undefined => undefined
+                break
+            case SortBy.entityName:
+                sortByFunc = (item: Item): string => item.entityName
+                break
+            case SortBy.column: {
+                const owidRowsByEntityName =
+                    this.sortColumn?.owidRowsByEntityName
+                sortByFunc = (item: Item): number => {
+                    const rows = owidRowsByEntityName?.get(item.entityName)
+                    return rows?.[0]?.value ?? 0
+                }
+                break
+            }
+            default:
+            case SortBy.total:
+                sortByFunc = (item: Item): number => item.totalValue
+        }
+        const sortedItems = _.sortBy(this.items, sortByFunc)
+        const sortOrder = this.sortConfig.sortOrder ?? SortOrder.desc
+        if (sortOrder === SortOrder.desc) return sortedItems.toReversed()
+        else return sortedItems
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
