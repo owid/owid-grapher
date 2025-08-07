@@ -834,6 +834,14 @@ export class SiteBaker {
             publishedDataInsights.length
         )
 
+        // temporary: bake all data insights to dataInsights.json to allow
+        // for a topic-filtered view of the feed (for the purposes of a data
+        // pages experiment).
+        await this.stageWrite(
+            `${this.bakedSiteDir}/dataInsights.json`,
+            JSON.stringify(publishedDataInsights)
+        )
+
         for (let pageNumber = 0; pageNumber < totalPageCount; pageNumber++) {
             const html = renderDataInsightsIndexPage(
                 publishedDataInsights.slice(

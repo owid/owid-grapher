@@ -6,6 +6,7 @@ import {
     excludeUndefined,
     urlToSlug,
     mergeGrapherConfigs,
+    EnrichedBlockImage,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import {
@@ -55,6 +56,7 @@ import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
 import { GrapherArchivalManifest } from "../serverUtils/archivalUtils.js"
 import { getLatestChartArchivedVersionsIfEnabled } from "../db/model/archival/archivalDb.js"
+import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -241,6 +243,42 @@ export async function renderDataPageV2(
         )
 
         tagToSlugMap = await getTagToSlugMap(knex)
+
+        if (datapageData.primaryTopic?.topicTag) {
+            const dataInsights = await GdocDataInsight.getPublishedDataInsights(
+                knex,
+                0,
+                tagToSlugMap[datapageData.primaryTopic?.topicTag]
+            )
+
+            datapageData.dataInsights = dataInsights.map((row) => {
+                const firstImageIndex = row.content.body.findIndex(
+                    (block) => block.type === "image"
+                )
+                const firstImageBlock = row.content.body[firstImageIndex] as
+                    | EnrichedBlockImage
+                    | undefined
+                const imgFilename =
+                    firstImageBlock?.smallFilename || firstImageBlock?.filename
+
+                return {
+                    title: row.content?.title,
+                    slug: row.slug,
+                    imgFilename,
+                }
+            })
+            const dataInsightFilenames = datapageData.dataInsights
+                .map((insight) => insight.imgFilename)
+                .filter((x) => x !== undefined)
+
+            imageMetadata = {
+                ...imageMetadata,
+                ..._.pick(
+                    imageMetadataDictionary,
+                    _.uniq(dataInsightFilenames)
+                ),
+            }
+        }
     }
 
     let canonicalUrl: string

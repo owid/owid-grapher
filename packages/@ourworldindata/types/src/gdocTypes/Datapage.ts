@@ -21,6 +21,12 @@ export interface PrimaryTopic {
     citation: string
 }
 
+export interface DataInsightLink {
+    title: string
+    slug: string
+    imgFilename?: string
+}
+
 export interface DataPageDataV2 {
     status: "published" | "draft"
     title: IndicatorTitleWithFragments
@@ -45,6 +51,7 @@ export interface DataPageDataV2 {
     chartConfig: Record<string, unknown>
     unit?: string
     unitConversionFactor?: number
+    dataInsights?: DataInsightLink[]
 }
 
 export interface DataPageRelatedResearch {

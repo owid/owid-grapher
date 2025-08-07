@@ -6,6 +6,7 @@ import {
     OwidGdocMinimalPostInterface,
     LinkedAuthor,
     getPaginationPageNumbers,
+    queryParamsToStr,
 } from "@ourworldindata/utils"
 import { DataInsightBody } from "./gdocs/pages/DataInsight.js"
 import { dataInsightIndexToIdMap } from "./SiteConstants.js"
@@ -13,26 +14,39 @@ import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DataInsightsIndexPageProps } from "./DataInsightsIndexPage.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons"
+import {
+    faArrowLeft,
+    faArrowRight,
+    faClose,
+    faTag,
+} from "@fortawesome/free-solid-svg-icons"
 import DataInsightsNewsletterBanner from "./DataInsightsNewsletterBanner.js"
 
-const Pagination = (props: { pageNumber: number; totalPageCount: number }) => {
-    const { pageNumber, totalPageCount } = props
+const Pagination = (props: {
+    pageNumber: number
+    totalPageCount: number
+    topicName?: string
+}) => {
+    const { pageNumber, totalPageCount, topicName } = props
     if (totalPageCount <= 1) return null
+
+    const queryParamsString = topicName
+        ? queryParamsToStr({ topic: topicName })
+        : ""
 
     // pageNumber is 0-indexed, even though the page routes are 1-indexed. Also pageNumber === 0 is a special case.
     // e.g. /data-insights, /data-insights/2, /data-insights/3
     const prevTarget =
         pageNumber === 1
-            ? "/data-insights"
+            ? `/data-insights${queryParamsString}`
             : // pageNumber is already "one less" than the page route we're on
-              `/data-insights/${pageNumber}`
+              `/data-insights/${pageNumber}${queryParamsString}`
     const isLeftArrowDisabled = pageNumber === 0
 
     const nextTarget =
         // pageNumber + 1 is the same as the route we're on, hence pageNumber + 2
         pageNumber < totalPageCount - 1
-            ? `/data-insights/${pageNumber + 2}`
+            ? `/data-insights/${pageNumber + 2}${queryParamsString}`
             : ""
     const isRightArrowDisabled = pageNumber === totalPageCount - 1
 
@@ -53,7 +67,7 @@ const Pagination = (props: { pageNumber: number; totalPageCount: number }) => {
             </a>
             {pageNumbers.map((i) => (
                 <a
-                    href={`/data-insights${i === 0 ? "" : `/${i + 1}`}`}
+                    href={`/data-insights${i === 0 ? "" : `/${i + 1}`}${queryParamsString}`}
                     key={i}
                     className={cx("data-insights-index-page__pagination-link", {
                         "data-insights-index-page__pagination-link--active":
@@ -80,7 +94,7 @@ const Pagination = (props: { pageNumber: number; totalPageCount: number }) => {
 export const DataInsightsIndexPageContent = (
     props: DataInsightsIndexPageProps
 ) => {
-    const { pageNumber, dataInsights, isPreviewing = false } = props
+    const { pageNumber, dataInsights, isPreviewing = false, topic } = props
     // Extract all attachments from the data insights and supply them to the AttachmentsContext
     const { imageMetadata, linkedAuthors, linkedCharts, linkedDocuments } =
         dataInsights.reduce(
@@ -127,6 +141,12 @@ export const DataInsightsIndexPageContent = (
                         Bite-sized insights on how the world is changing,
                         published every few days.
                     </p>
+                    {topic?.name && (
+                        <FilterPill
+                            name={topic.name}
+                            className="span-cols-6 col-start-5 col-md-start-4 span-md-cols-8 col-sm-start-2 span-sm-cols-12"
+                        />
+                    )}
                 </header>
                 {dataInsights.map((dataInsight, index) => {
                     const id =
@@ -145,10 +165,38 @@ export const DataInsightsIndexPageContent = (
                 <Pagination
                     totalPageCount={props.totalPageCount}
                     pageNumber={props.pageNumber}
+                    topicName={props.topic?.name}
                 />
                 <DataInsightsNewsletterBanner />
             </AttachmentsContext.Provider>
         </DocumentContext.Provider>
+    )
+}
+
+export function FilterPill({
+    name,
+    className,
+}: {
+    name: string
+    className?: string
+}) {
+    const nameLabel = name.replaceAll(" and ", " & ")
+
+    return (
+        <a
+            key={name}
+            aria-label={`Remove ${name}`}
+            href="/data-insights"
+            className={cx("filter-button", className)}
+        >
+            <span className="filter-pill">
+                <FontAwesomeIcon className="icon" icon={faTag} />
+                <span className="name">{nameLabel}</span>
+                <span className="close">
+                    <FontAwesomeIcon icon={faClose} />
+                </span>
+            </span>
+        </a>
     )
 }
 
