@@ -38,6 +38,7 @@ import { TabItem, Tabs } from "../tabs/Tabs"
 import { ExpandableTabs } from "../tabs/ExpandableTabs"
 import {
     DEFAULT_GRAPHER_BOUNDS,
+    GrapherModal,
     isContinentsVariableId,
 } from "../core/GrapherConstants"
 import * as R from "remeda"
@@ -54,7 +55,7 @@ export interface SourcesModalManager {
     adminBaseUrl?: string
     columnsWithSourcesExtensive: CoreColumn[]
     showAdminControls?: boolean
-    isSourcesModalOpen?: boolean
+    activeModal?: GrapherModal
     frameBounds?: Bounds
     isEmbeddedInADataPage?: boolean
     isNarrow?: boolean
@@ -310,7 +311,7 @@ export class SourcesModal extends React.Component<
     }
 
     @action.bound private onDismiss(): void {
-        this.manager.isSourcesModalOpen = false
+        this.manager.activeModal = undefined
     }
 
     override render(): React.ReactElement {

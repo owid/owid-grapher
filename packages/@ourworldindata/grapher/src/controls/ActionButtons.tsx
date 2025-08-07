@@ -20,7 +20,10 @@ import {
 } from "./ShareMenu.js"
 import { Bounds } from "@ourworldindata/utils"
 import classNames from "classnames"
-import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants.js"
+import {
+    DEFAULT_GRAPHER_BOUNDS,
+    GrapherModal,
+} from "../core/GrapherConstants.js"
 
 export interface ActionButtonsManager extends ShareMenuManager {
     isAdmin?: boolean
@@ -30,7 +33,7 @@ export interface ActionButtonsManager extends ShareMenuManager {
     isInIFrame?: boolean
     canonicalUrl?: string
     isInFullScreenMode?: boolean
-    isDownloadModalOpen?: boolean
+    activeModal?: GrapherModal
     hideFullScreenButton?: boolean
 }
 
@@ -297,7 +300,8 @@ export class ActionButtons extends React.Component<ActionButtonsProps> {
                                 showLabel={this.showButtonLabels}
                                 icon={faDownload}
                                 onClick={(e): void => {
-                                    this.manager.isDownloadModalOpen = true
+                                    this.manager.activeModal =
+                                        GrapherModal.Download
                                     e.stopPropagation()
                                 }}
                             />
