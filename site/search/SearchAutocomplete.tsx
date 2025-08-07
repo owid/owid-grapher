@@ -8,6 +8,7 @@ import {
     getSearchAutocompleteItemId,
     getFilterAriaLabel,
 } from "./searchUtils.js"
+import { buildSynonymMap } from "./synonymUtils.js"
 import { useSearchAutocomplete } from "./SearchAutocompleteContext.js"
 import { SearchAutocompleteItemContents } from "./SearchAutocompleteItemContents.js"
 import { Filter, FilterType } from "./searchTypes.js"
@@ -41,6 +42,8 @@ export const SearchAutocomplete = ({
 
     const analytics = useMemo(() => new SiteAnalytics(), [])
 
+    const synonymMap = useMemo(() => buildSynonymMap(), [])
+
     const { suggestions, unmatchedQuery } = useMemo(() => {
         if (!localQuery && !filters.length) {
             return {
@@ -51,9 +54,10 @@ export const SearchAutocomplete = ({
         return getAutocompleteSuggestionsWithUnmatchedQuery(
             localQuery,
             allTopics,
-            filters
+            filters,
+            synonymMap
         )
-    }, [localQuery, allTopics, filters])
+    }, [localQuery, allTopics, filters, synonymMap])
 
     const {
         activeIndex,
