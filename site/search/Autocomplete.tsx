@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react"
+import { useRef, useState, useEffect, useMemo } from "react"
 import * as React from "react"
 import { createRoot, Root } from "react-dom/client"
 import urljoin from "url-join"
@@ -43,6 +43,7 @@ import {
     getPageTypeNameAndIcon,
     SEARCH_BASE_PATH,
 } from "./searchUtils.js"
+import { buildSynonymMap } from "./synonymUtils.js"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLineChart, faSearch } from "@fortawesome/free-solid-svg-icons"
@@ -243,7 +244,8 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
 }
 
 const createFiltersSource = (
-    allTopics: string[]
+    allTopics: string[],
+    synonymMap: Map<string, string[]>
 ): AutocompleteSource<BaseItem> => ({
     sourceId: "filters",
     onSelect({ navigator, item, state }) {
@@ -263,6 +265,7 @@ const createFiltersSource = (
             query,
             allTopics,
             [], // no selected filters in this context
+            synonymMap,
             1
         )
 
@@ -357,6 +360,8 @@ export function Autocomplete({
     const rootRef = useRef<HTMLElement | null>(null)
     const { allTopics } = useTagGraphTopics(useTopicTagGraph())
 
+    const synonymMap = useMemo(() => buildSynonymMap(), [])
+
     const [search, setSearch] = useState<AutocompleteApi<BaseItem> | null>(null)
 
     useEffect(() => {
@@ -405,7 +410,10 @@ export function Autocomplete({
             getSources({ query }) {
                 const sources: AutocompleteSource<BaseItem>[] = []
                 if (query) {
-                    sources.push(createFiltersSource(allTopics), AlgoliaSource)
+                    sources.push(
+                        createFiltersSource(allTopics, synonymMap),
+                        AlgoliaSource
+                    )
                 } else {
                     sources.push(FeaturedSearchesSource)
                 }
@@ -446,6 +454,7 @@ export function Autocomplete({
         panelClassName,
         containerRef,
         allTopics,
+        synonymMap,
     ])
 
     // Register a global shortcut to open the search box on typing "/"
