@@ -29,7 +29,7 @@ import {
     timeBoundToTimeBoundString,
     queryParamsToStr,
 } from "@ourworldindata/utils"
-import { partition } from "remeda"
+import { partition, uniqueBy } from "remeda"
 import {
     generateSelectedEntityNamesParam,
     GrapherState,
@@ -517,7 +517,8 @@ export function searchWithWords(
     allTopics: string[],
     selectedCountryNames: Set<string>,
     selectedTopics: Set<string>,
-    sortOptions: { threshold: number; limit: number }
+    sortOptions: { threshold: number; limit: number },
+    synonymMap: Map<string, string[]>
 ): {
     countryResults: ScoredSearchResult[]
     topicResults: ScoredSearchResult[]
@@ -525,35 +526,66 @@ export function searchWithWords(
 } {
     const searchTerm = words.join(" ")
 
-    const countryResults = FuzzySearch.withKey(
-        allCountryNames,
-        (country) => country,
-        sortOptions
-    )
-        .searchResults(searchTerm)
-        .filter(
-            (result: FuzzySearchResult) =>
-                !selectedCountryNames.has(result.target)
+    const searchCountryTopics = (term: string) => {
+        const countryResults = FuzzySearch.withKey(
+            allCountryNames,
+            (country) => country,
+            sortOptions
         )
-        .map((result: FuzzySearchResult) => ({
-            name: result.target,
-            score: result.score,
-        }))
+            .searchResults(term)
+            .filter(
+                (result: FuzzySearchResult) =>
+                    !selectedCountryNames.has(result.target)
+            )
+            .map((result: FuzzySearchResult) => ({
+                name: result.target,
+                score: result.score,
+            }))
 
-    const topicResults: ScoredSearchResult[] =
-        selectedTopics.size === 0
-            ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
-                  .searchResults(searchTerm)
-                  .map((result: FuzzySearchResult) => ({
-                      name: result.target,
-                      score: result.score,
-                  }))
-            : []
+        const topicResults: ScoredSearchResult[] =
+            selectedTopics.size === 0
+                ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
+                      .searchResults(term)
+                      .map((result: FuzzySearchResult) => ({
+                          name: result.target,
+                          score: result.score,
+                      }))
+                : []
+
+        return { countryResults, topicResults }
+    }
+
+    // 1. Perform original search
+    const originalResults = searchCountryTopics(searchTerm)
+    let allCountryResults = [...originalResults.countryResults]
+    let allTopicResults = [...originalResults.topicResults]
+
+    // 2. Search with synonyms
+    const synonyms = synonymMap.get(searchTerm.toLowerCase())
+
+    if (synonyms && synonyms.length > 0) {
+        // Search with each synonym and combine results
+        for (const synonym of synonyms) {
+            const synonymResults = searchCountryTopics(synonym)
+            allCountryResults.push(...synonymResults.countryResults)
+            allTopicResults.push(...synonymResults.topicResults)
+        }
+
+        // Deduplicate results by name, keeping the highest score
+        const deduplicateResults = (results: ScoredSearchResult[]) =>
+            uniqueBy(
+                results.sort((a, b) => b.score - a.score),
+                (result) => result.name
+            )
+
+        allCountryResults = deduplicateResults(allCountryResults)
+        allTopicResults = deduplicateResults(allTopicResults)
+    }
 
     return {
-        countryResults,
-        topicResults,
-        hasResults: countryResults.length > 0 || topicResults.length > 0,
+        countryResults: allCountryResults,
+        topicResults: allTopicResults,
+        hasResults: allCountryResults.length > 0 || allTopicResults.length > 0,
     }
 }
 
@@ -564,6 +596,7 @@ export function findMatches(
     selectedCountryNames: Set<string>,
     selectedTopics: Set<string>,
     sortOptions: { threshold: number; limit: number },
+    synonymMap: Map<string, string[]>,
     wordIndex: number = 0
 ): {
     countryResults: ScoredSearchResult[]
@@ -577,7 +610,8 @@ export function findMatches(
         allTopics,
         selectedCountryNames,
         selectedTopics,
-        sortOptions
+        sortOptions,
+        synonymMap
     )
 
     if (results.hasResults) {
@@ -596,6 +630,7 @@ export function findMatches(
               selectedCountryNames,
               selectedTopics,
               sortOptions,
+              synonymMap,
               wordIndex + 1
           )
         : {
@@ -608,13 +643,7 @@ export function findMatches(
 /**
  * Generates autocomplete suggestions for a search query and identifies any unmatched portion of the query.
  *
- * This function takes a search query and finds possible country and topic suggestions by:
- * 1. Splitting the query into words
- * 2. Finding the earliest word index where country and/or topic matches can be found using fuzzy search
- * 3. Returning the found matches as Filter objects, sorted with exact matches first
- * 4. Also returning the unmatched portion of the query (words before the match point)
- *
- * The function uses fuzzy search to match partial query words against country names and topics,
+ * This function uses fuzzy search to match partial query words against country names and topics,
  * filtering out any countries or topics that have already been selected as filters.
  * It progressively tries to match from increasing starting points in the query until it finds matches
  * or reaches the end of the query. This prioritizes matching whole phrases from the beginning, while still
@@ -622,14 +651,34 @@ export function findMatches(
  * "Indoor Air Pollution" and "Outdoor Air Pollution" and prevent the "pollution" query from being run;
  * thus not returning "Lead Pollution" as a suggestion).
  *
- * Exact matches (score = 1) are prioritized in the returned suggestions array, followed by
- * the original query (as a query filter), and then partial matches sorted by score.
+ * **Search Process:**
+ * 1. Splitting the query into words
+ * 2. Finding the earliest word index where country and/or topic matches can be found using fuzzy search
+ * 3. Returning the found matches as Filter objects, sorted with exact matches first
+ * 4. Also returning the unmatched portion of the query (words before the match point)
  *
+ * The search utilizes the same synonym definitions as Algolia to ensure consistent experiences
+ * between Algolia-powered search (homepage autocomplete, nav bar autocomplete, search results) and local fuzzy search (filter autocomplete).
+ * This includes bidirectional synonyms from synonym groups (e.g., "ai" ↔ "artificial intelligence")
+ * and unidirectional country alternatives (e.g., "us" → "united states"). Results from both original
+ * and synonym searches are combined, with duplicates removed while preserving the highest scores.
+ *
+ * **Result Prioritization:**
+ * Exact matches (score = 1) are prioritized in the returned suggestions array, followed by
+ * the original query (as a query filter), and then partial matches sorted by score descending.
+ *
+ * **Examples:**
+ * - Query "artificial intelligence" → also searches for synonyms like "ai", "machine learning"
+ * - Query "co2 emissions" → also searches for "carbon dioxide", "c02"
+ * - Query "us" → "us" gets expanded to "united states" for better country matching
+ *
+ * @returns Object containing suggestion filters and any unmatched query portion
  */
 export function getAutocompleteSuggestionsWithUnmatchedQuery(
     query: string,
     allTopics: string[],
-    filters: Filter[],
+    filters: Filter[], // currently active filters to exclude from suggestions
+    synonymMap: Map<string, string[]>,
     limitPerFilter: number = 3
 ): {
     suggestions: Filter[]
@@ -664,7 +713,8 @@ export function getAutocompleteSuggestionsWithUnmatchedQuery(
         allTopics,
         selectedCountryNames,
         selectedTopics,
-        sortOptions
+        sortOptions,
+        synonymMap
     )
 
     const unmatchedQuery = queryWords
