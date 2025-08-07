@@ -170,3 +170,9 @@ export const SVG_STYLE_PROPS: React.CSSProperties = {
     textRendering: "geometricPrecision",
     WebkitFontSmoothing: "antialiased",
 }
+
+export enum GrapherModal {
+    Sources = "sources",
+    Download = "download",
+    Embed = "embed",
+}
