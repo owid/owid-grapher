@@ -2,9 +2,8 @@ import {
     EnrichedBlockGuidedChart,
     MultiDimDimensionChoices,
 } from "@ourworldindata/types"
-import cx from "classnames"
 import { Container } from "./layout.js"
-import { useRef, useCallback, useState } from "react"
+import { useRef, useCallback } from "react"
 import {
     MultiDimDataPageConfig,
     Url,
@@ -13,13 +12,13 @@ import {
 import { ArticleBlocks } from "./ArticleBlocks.js"
 import { GuidedChartContext, GrapherState } from "@ourworldindata/grapher"
 import { SiteAnalytics } from "../../SiteAnalytics.js"
+import { useAriaAnnouncer } from "../../AriaAnnouncerUtils.js"
 
 const analytics = new SiteAnalytics()
 
 export default function GuidedChart({
     d,
     containerType = "default",
-    className,
 }: {
     d: EnrichedBlockGuidedChart
     containerType?: Container
@@ -31,21 +30,11 @@ export default function GuidedChart({
         config: MultiDimDataPageConfig
         updater: (newSettings: MultiDimDimensionChoices) => void
     } | null>(null)
-    const [updateStatus, setUpdateStatus] = useState("")
-
-    const announceUpdate = useCallback((message: string) => {
-        setTimeout(() => {
-            setUpdateStatus(message)
-            setTimeout(() => {
-                setUpdateStatus("")
-            }, 2000)
-        }, 100)
-    }, [])
+    const { announce } = useAriaAnnouncer()
 
     const handleGuidedChartLinkClick = useCallback(
         (href: string) => {
             if (!stateRef.current) return
-            setUpdateStatus("")
 
             const url = Url.fromURL(href)
 
@@ -73,7 +62,7 @@ export default function GuidedChart({
             stateRef.current.clearQueryParams()
             stateRef.current.populateFromQueryParams(url.queryParams)
             analytics.logGuidedChartLinkClick(url.fullUrl)
-            announceUpdate("Chart updated to reflect the selected view.")
+            announce("Chart updated to reflect the selected view.")
 
             // Scroll to chart on small screens
             if (chartRef.current && window.innerWidth <= 768) {
@@ -86,7 +75,7 @@ export default function GuidedChart({
                 }, 100)
             }
         },
-        [announceUpdate]
+        [announce]
     )
 
     return (
@@ -103,20 +92,7 @@ export default function GuidedChart({
                 },
             }}
         >
-            <div className={cx("guided-chart", className)}>
-                <div
-                    className="guided-chart__screenreader-announcement"
-                    aria-live="assertive"
-                    aria-atomic="true"
-                    role="status"
-                >
-                    {updateStatus}
-                </div>
-                <ArticleBlocks
-                    blocks={d.content}
-                    containerType={containerType}
-                />
-            </div>
+            <ArticleBlocks blocks={d.content} containerType={containerType} />
         </GuidedChartContext.Provider>
     )
 }

@@ -1,4 +1,4 @@
-import React from "react"
+import * as React from "react"
 import { GrapherProgrammaticInterface, GrapherState } from "../core/Grapher.js"
 import { MultiDimDataPageConfig } from "@ourworldindata/utils"
 import { MultiDimDimensionChoices } from "@ourworldindata/types"
