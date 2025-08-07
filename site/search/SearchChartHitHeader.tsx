@@ -32,7 +32,7 @@ export function SearchChartHitHeader({
                         {hit.title}
                     </h3>
                     {source && (
-                        <span className="search-chart-hit-header__source">
+                        <span className="search-chart-hit-header__source search-chart-hit-header__source--desktop">
                             {source}
                         </span>
                     )}
@@ -43,6 +43,11 @@ export function SearchChartHitHeader({
                     highlightedTagName="strong"
                     classNames={{ root: "search-chart-hit-header__subtitle" }}
                 />
+                {source && (
+                    <span className="search-chart-hit-header__source search-chart-hit-header__source--mobile">
+                        {source}
+                    </span>
+                )}
             </header>
         </a>
     )
