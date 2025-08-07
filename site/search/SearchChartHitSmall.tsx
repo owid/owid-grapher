@@ -14,8 +14,9 @@ import {
     toGrapherQueryParams,
     getTimeBoundsForChartUrl,
     buildChartHitDataDisplayProps,
+    constructDownloadUrl,
 } from "./searchUtils.js"
-import { GrapherTabIcon } from "@ourworldindata/components"
+import { Button, GrapherTabIcon } from "@ourworldindata/components"
 import { useIntersectionObserver } from "usehooks-ts"
 import { chartHitQueryKeys } from "./queries.js"
 import { useQuery } from "@tanstack/react-query"
@@ -26,6 +27,7 @@ import {
 } from "@ourworldindata/grapher"
 import { SearchChartHitDataDisplay } from "./SearchChartHitDataDisplay.js"
 import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
+import { faDownload } from "@fortawesome/free-solid-svg-icons"
 
 export function SearchChartHitSmall({
     hit,
@@ -132,6 +134,12 @@ export function SearchChartHitSmall({
             {dataDisplayProps && (
                 <SearchChartHitDataDisplay {...dataDisplayProps} />
             )}
+            <Button
+                className="search-chart-hit-small__download-button"
+                theme="solid-light-blue"
+                href={constructDownloadUrl({ hit })}
+                icon={faDownload}
+            />
         </article>
     )
 }

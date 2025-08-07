@@ -339,6 +339,28 @@ export const constructConfigUrl = ({
     return `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}.config.json${queryStr}`
 }
 
+export const constructDownloadUrl = ({
+    hit,
+}: {
+    hit: SearchChartHit
+}): string => {
+    const viewQueryStr = generateQueryStrForChartHit({ hit })
+    const grapherParams = new URLSearchParams({
+        overlay: "download",
+        downloadOverlayTab: "data",
+    })
+    const queryStr = viewQueryStr
+        ? `${viewQueryStr}&${grapherParams}`
+        : `?${grapherParams}`
+
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    const basePath = isExplorerView
+        ? `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}`
+        : BAKED_GRAPHER_URL
+
+    return `${basePath}/${hit.slug}${queryStr}`
+}
+
 // Generates time bounds to force line charts to display properly in previews.
 // When start and end times are the same (single time point), line charts
 // automatically switch to discrete bar charts. To prevent that, we set the start
