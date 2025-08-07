@@ -9,6 +9,7 @@ export const experiments: Experiment[] = [
          * Experiment: data-page-insight-butons-basic
          *
          * Control arm: no changes
+         * Control arm c1: "what you should know about this data" block is moved down the page (also the case in arms t0 and t1)
          * Treatment arm t0: show placebo button ("Data sources and measurement") beneath grapher
          * Treatment arm t1: show "view insights about this data" button beneath grapher
          */
@@ -19,11 +20,16 @@ export const experiments: Experiment[] = [
             { id: "c", fraction: 0.7, replaysSessionSampleRate: 0.1 },
             // control arm, with "what you should know about this data" block moved down
             { id: "c1", fraction: 0.1, replaysSessionSampleRate: 1 },
-            // experimental arms
+            // experimental arm: placebo button ("Data sources and measurement")
             { id: "t0", fraction: 0.1, replaysSessionSampleRate: 1 },
+            // experimental arm: "View insights about this data" button
             { id: "t1", fraction: 0.1, replaysSessionSampleRate: 1 },
         ],
-        paths: ["/grapher/"],
+        paths: [
+            "/grapher/life-expectancy",
+            "/grapher/co-emissions-per-capita",
+            "/grapher/gdp-per-capita-worldbank",
+        ],
     }),
     // note: the below experiment "data-page-insight-butons-full" is a more elaborate
     // version of the above "data-page-insight-butons-basic" experiment, but cannot
