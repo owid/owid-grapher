@@ -450,6 +450,17 @@ body {
     @include body-3-bold;
 }
 
+@mixin label-1-regular {
+    font-family: $sans-serif-font-stack;
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: normal;
+}
+
+.label-1-regular {
+    @include label-1-regular;
+}
+
 @mixin label-2-medium {
     font-family: $sans-serif-font-stack;
     font-size: 0.8125rem;
