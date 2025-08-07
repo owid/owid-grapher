@@ -181,3 +181,9 @@ export const SVG_STYLE_PROPS: React.CSSProperties = {
 
 export const CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME: GrapherChartType[] =
     [GRAPHER_CHART_TYPES.LineChart, GRAPHER_CHART_TYPES.SlopeChart]
+
+export enum GrapherModal {
+    Sources = "sources",
+    Download = "download",
+    Embed = "embed",
+}
