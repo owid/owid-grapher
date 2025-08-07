@@ -7,9 +7,12 @@
 
         .search-chart-hit-header__title-container {
             line-height: 1.2222;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+
+            @include sm-up {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
         }
 
         .search-chart-hit-header__title {
@@ -23,16 +26,42 @@
         .search-chart-hit-header__source {
             @include note-12-medium;
             color: $blue-90;
+
+            &.search-chart-hit-header__source--desktop {
+                @include sm-only {
+                    display: none;
+                }
+            }
+
+            &.search-chart-hit-header__source--mobile {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                margin-top: 2px;
+
+                @include sm-up {
+                    display: none;
+                }
+            }
         }
 
         .search-chart-hit-header__subtitle {
             @include body-3-medium;
             color: $blue-65;
-            margin: 0;
-            white-space: nowrap;
+            margin: 2px 0 0;
+
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 1;
+            line-clamp: 1;
             overflow: hidden;
-            width: 100%;
-            text-overflow: ellipsis;
+
+            @include sm-only {
+                @include label-1-regular;
+
+                -webkit-line-clamp: 2;
+                line-clamp: 2;
+            }
         }
     }
 }
