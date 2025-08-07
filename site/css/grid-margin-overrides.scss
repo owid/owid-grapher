@@ -23,9 +23,11 @@
         margin-top: 48px;
         margin-bottom: 32px;
         > div {
-            /* Set the first child of each column to have no top margin */
-            [class*="article-block__"]:first-child {
-                margin-top: 0;
+            @include md-up {
+                /* Set the first child of each column to have no top margin on desktop */
+                [class*="article-block__"]:first-child {
+                    margin-top: 0;
+                }
             }
             /* Set the last child of each column to have no bottom margin */
             [class*="article-block__"]:last-child {

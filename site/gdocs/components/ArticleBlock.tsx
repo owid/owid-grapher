@@ -229,7 +229,11 @@ function ArticleBlockInternal({
             />
         ))
         .with({ type: "guided-chart" }, (block) => (
-            <GuidedChart containerType={containerType} d={block} />
+            <GuidedChart
+                className={getLayout("guided-chart", containerType)}
+                containerType={containerType}
+                d={block}
+            />
         ))
         .with({ type: "recirc" }, (block) => (
             <Recirc
@@ -463,7 +467,7 @@ function ArticleBlockInternal({
                             }
                         )}
                     >
-                        <div className="sticky-column-wrapper grid grid-cols-7 span-cols-7 grid-md-cols-12 span-md-cols-12">
+                        <div className="sticky-column-wrapper grid grid-cols-7 span-cols-7 grid-md-cols-10 span-md-cols-10 grid-sm-cols-12 span-sm-cols-12">
                             {block.right.map((item, i) => (
                                 <ArticleBlock
                                     key={i}
@@ -484,7 +488,7 @@ function ArticleBlockInternal({
                         containerType
                     )}
                 >
-                    <div className="sticky-column-wrapper grid grid-cols-7 span-cols-7 grid-md-cols-12 span-md-cols-12">
+                    <div className="sticky-column-wrapper grid grid-cols-7 span-cols-7 grid-md-cols-10 span-md-cols-10 grid-sm-cols-12 span-sm-cols-12">
                         {block.left.map((item, i) => (
                             <ArticleBlock
                                 key={i}
