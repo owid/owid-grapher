@@ -1,4 +1,6 @@
 import {
+    Color,
+    EntityName,
     InteractionState,
     OwidVariableRow,
     SeriesName,
@@ -9,6 +11,7 @@ import {
     GRAPHER_AREA_OPACITY_FOCUS,
     GRAPHER_AREA_OPACITY_MUTE,
 } from "../core/GrapherConstants"
+import { TextWrap } from "@ourworldindata/components"
 
 export const BAR_OPACITY = {
     DEFAULT: GRAPHER_AREA_OPACITY_DEFAULT,
@@ -70,4 +73,26 @@ export interface StackedRawSeries<
     isProjection?: boolean
     rows: OwidVariableRow<PositionType>[]
     focus: InteractionState
+}
+
+export interface Bar {
+    color: Color
+    seriesName: string
+    columnSlug: string
+    point: StackedPoint<EntityName>
+}
+
+export interface Item {
+    entityName: string
+    shortEntityName?: string
+    bars: Bar[]
+    totalValue: number
+}
+
+export interface SizedItem extends Item {
+    label: TextWrap
+}
+
+export interface PlacedItem extends SizedItem {
+    yPosition: number
 }
