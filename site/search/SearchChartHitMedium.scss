@@ -2,6 +2,23 @@
     background-color: $blue-5;
     padding: 16px;
 
+    .search-chart-hit-medium__header {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+    }
+
+    .search-chart-hit-medium__download-button {
+        padding: 5px 8px;
+        font-size: 13px;
+        white-space: nowrap;
+        align-self: flex-start;
+
+        &:hover {
+            background-color: #bed2e7;
+        }
+    }
+
     .search-chart-hit-medium__content {
         margin-top: 16px;
         display: grid;
