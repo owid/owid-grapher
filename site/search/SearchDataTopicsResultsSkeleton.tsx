@@ -11,7 +11,7 @@ export const SearchDataTopicsResultsSkeleton = () => {
 }
 
 export const SearchChartHitMediumSkeleton = () => (
-    <div className="search-data-topic--skeleton span-cols-12 col-start-2">
+    <div className="search-data-topic--skeleton span-cols-14">
         <div className="search-data-topic__header--skeleton animate-pulse"></div>
         <ul className="search-data-topic__list--skeleton grid grid-cols-4">
             <CaptionedThumbnailSkeleton />
