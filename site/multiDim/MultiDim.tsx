@@ -222,7 +222,7 @@ export default function MultiDim({
     }, [bounds, grapherRef])
 
     return (
-        <div className="multi-dim-container">
+        <div className="multi-dim-container full-width-on-mobile">
             {hasControls && (
                 <MultiDimEmbedSettingsPanel
                     className="multi-dim-settings"

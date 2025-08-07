@@ -2,6 +2,7 @@ import {
     EnrichedBlockGuidedChart,
     MultiDimDimensionChoices,
 } from "@ourworldindata/types"
+import cx from "classnames"
 import { Container } from "./layout.js"
 import { useRef, useCallback, useState } from "react"
 import {
@@ -18,9 +19,11 @@ const analytics = new SiteAnalytics()
 export default function GuidedChart({
     d,
     containerType = "default",
+    className,
 }: {
     d: EnrichedBlockGuidedChart
     containerType?: Container
+    className?: string
 }) {
     const stateRef = useRef<GrapherState | null>(null)
     const chartRef = useRef<HTMLDivElement | null>(null)
@@ -100,15 +103,15 @@ export default function GuidedChart({
                 },
             }}
         >
-            <div
-                className="guided-chart__screenreader-announcement"
-                aria-live="assertive"
-                aria-atomic="true"
-                role="status"
-            >
-                {updateStatus}
-            </div>
-            <div className="grid grid-cols-12-full-width span-cols-14">
+            <div className={cx("guided-chart", className)}>
+                <div
+                    className="guided-chart__screenreader-announcement"
+                    aria-live="assertive"
+                    aria-atomic="true"
+                    role="status"
+                >
+                    {updateStatus}
+                </div>
                 <ArticleBlocks
                     blocks={d.content}
                     containerType={containerType}
