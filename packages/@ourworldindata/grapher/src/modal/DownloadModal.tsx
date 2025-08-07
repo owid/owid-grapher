@@ -42,6 +42,7 @@ import { GrapherImageDownloadEvent } from "../core/GrapherAnalytics"
 import {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
+    GrapherModal,
 } from "../core/GrapherConstants"
 
 export interface DownloadModalManager {
@@ -58,8 +59,7 @@ export interface DownloadModalManager {
     yColumnsFromDimensionsOrSlugsOrAuto?: CoreColumn[]
     shouldIncludeDetailsInStaticExport?: boolean
     detailsOrderedByReference?: string[]
-    isDownloadModalOpen?: boolean
-    isEmbedModalOpen?: boolean
+    activeModal?: GrapherModal
     frameBounds?: Bounds
     captionedChartBounds?: Bounds
     isOnChartOrMapTab?: boolean
@@ -138,7 +138,7 @@ export class DownloadModal extends React.Component<DownloadModalProps> {
     }
 
     @action.bound private onDismiss() {
-        this.props.manager.isDownloadModalOpen = false
+        this.props.manager.activeModal = undefined
     }
 
     override render(): React.ReactElement {
@@ -357,8 +357,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
     }
 
     @action.bound openEmbedDialog(): void {
-        this.manager.isDownloadModalOpen = false
-        this.manager.isEmbedModalOpen = true
+        this.manager.activeModal = GrapherModal.Embed
     }
 
     override componentDidMount(): void {
