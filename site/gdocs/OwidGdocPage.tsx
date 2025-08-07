@@ -34,6 +34,8 @@ import { DATA_INSIGHT_ATOM_FEED_PROPS } from "../SiteConstants.js"
 import { Html } from "../Html.js"
 import { CLOUDFLARE_IMAGES_URL } from "../../settings/clientSettings.js"
 import { addPreferSmallFilenameToDataInsightImages } from "../gdocs/utils.js"
+import { AriaAnnouncerProvider } from "../AriaAnnouncerContext.js"
+import { AriaAnnouncer } from "../AriaAnnouncer.js"
 
 declare global {
     interface Window {
@@ -304,9 +306,12 @@ export default function OwidGdocPage({
                     isOnHomepage={gdoc.content.type === OwidGdocType.Homepage}
                 />
                 <div id="owid-document-root">
-                    <DebugProvider debug={debug}>
-                        <OwidGdoc {...gdoc} isPreviewing={isPreviewing} />
-                    </DebugProvider>
+                    <AriaAnnouncerProvider>
+                        <DebugProvider debug={debug}>
+                            <OwidGdoc {...gdoc} isPreviewing={isPreviewing} />
+                        </DebugProvider>
+                        <AriaAnnouncer />
+                    </AriaAnnouncerProvider>
                 </div>
                 <SiteFooter
                     context={SiteFooterContext.gdocsDocument}
