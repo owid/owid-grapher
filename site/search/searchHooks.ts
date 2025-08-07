@@ -5,7 +5,7 @@ import {
     getSelectedTopic,
 } from "./searchUtils.js"
 import { useSearchContext } from "./SearchContext.js"
-import { Region, Url } from "@ourworldindata/utils"
+import { flattenNonTopicNodes, Region, Url } from "@ourworldindata/utils"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { SearchClient } from "algoliasearch"
 import { SearchResponse } from "instantsearch.js"
@@ -32,16 +32,18 @@ export const useSelectedCountryNames = (): Set<string> => {
 /**
  * Extracts and memoizes area names and all topics from the topic tag graph
  */
-export function useTagGraphTopics(topicTagGraph: TagGraphRoot): {
+export function useTagGraphTopics(topicTagGraph: TagGraphRoot | null): {
     allAreas: string[]
     allTopics: string[]
 } {
     const allAreas = useMemo(
-        () => topicTagGraph.children.map((child) => child.name) || [],
+        () => topicTagGraph?.children.map((child) => child.name) || [],
         [topicTagGraph]
     )
 
     const allTopics = useMemo(() => {
+        if (!topicTagGraph) return []
+
         function getAllTopics(node: TagGraphNode): Set<string> {
             return node.children.reduce((acc, child) => {
                 if (child.isTopic) {
@@ -184,4 +186,22 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
         hits,
         totalResults,
     }
+}
+export const useTopicTagGraph = () => {
+    const [tagGraph, setTagGraph] = useState<TagGraphRoot | null>(null)
+
+    useEffect(() => {
+        const fetchTagGraph = async () => {
+            const response = await fetch("/topicTagGraph.json")
+            const tagGraph = await response.json()
+            setTagGraph(flattenNonTopicNodes(tagGraph))
+        }
+        if (!tagGraph) {
+            fetchTagGraph().catch((err) => {
+                throw new Error(`Failed to fetch tag graph: ${err}`)
+            })
+        }
+    }, [tagGraph, setTagGraph])
+
+    return tagGraph
 }
