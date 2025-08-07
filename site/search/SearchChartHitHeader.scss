@@ -1,34 +1,38 @@
 .search-chart-hit-header {
-    display: flex;
-    flex-direction: column;
+    overflow: hidden;
 
-    .search-chart-hit-header__title-container {
-        line-height: 1.2222;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+    .search-chart-hit-header__content {
+        display: flex;
+        flex-direction: column;
 
-    .search-chart-hit-header__title {
-        @include h3-bold;
-        display: inline-block;
-        color: $blue-90;
-        margin: 0 8px 0 0;
-        line-height: 1.2222;
-    }
+        .search-chart-hit-header__title-container {
+            line-height: 1.2222;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
-    .search-chart-hit-header__source {
-        @include note-12-medium;
-        color: $blue-90;
-    }
+        .search-chart-hit-header__title {
+            @include h3-bold;
+            display: inline-block;
+            color: $blue-90;
+            margin: 0 8px 0 0;
+            line-height: 1.2222;
+        }
 
-    .search-chart-hit-header__subtitle {
-        @include body-3-medium;
-        color: $blue-65;
-        margin: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        width: 100%;
-        text-overflow: ellipsis;
+        .search-chart-hit-header__source {
+            @include note-12-medium;
+            color: $blue-90;
+        }
+
+        .search-chart-hit-header__subtitle {
+            @include body-3-medium;
+            color: $blue-65;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            width: 100%;
+            text-overflow: ellipsis;
+        }
     }
 }
