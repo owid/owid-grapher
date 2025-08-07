@@ -17,6 +17,7 @@ export function SearchChartHitHeader({
 }: SearchChartHitHeaderProps) {
     return (
         <a
+            className="search-chart-hit-header"
             href={url}
             onClick={onClick}
             data-algolia-index={getIndexName(
@@ -25,7 +26,7 @@ export function SearchChartHitHeader({
             data-algolia-object-id={hit.objectID}
             data-algolia-position={hit.__position}
         >
-            <header className="search-chart-hit-header">
+            <header className="search-chart-hit-header__content">
                 <div className="search-chart-hit-header__title-container">
                     <h3 className="search-chart-hit-header__title">
                         {hit.title}
