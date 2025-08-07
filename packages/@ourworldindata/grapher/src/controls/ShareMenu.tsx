@@ -10,6 +10,7 @@ import {
     faPanorama,
 } from "@fortawesome/free-solid-svg-icons"
 import { canWriteToClipboard, isAndroid, isIOS } from "@ourworldindata/utils"
+import { GrapherModal } from "../core/GrapherConstants"
 
 export interface ShareMenuManager {
     slug?: string
@@ -17,7 +18,7 @@ export interface ShareMenuManager {
     canonicalUrl?: string
     editUrl?: string
     createNarrativeChartUrl?: string
-    isEmbedModalOpen?: boolean
+    activeModal?: GrapherModal
 }
 
 interface ShareMenuProps {
@@ -138,7 +139,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     @action.bound onEmbed(e: React.MouseEvent): void {
         const { canonicalUrl, manager } = this
         if (!canonicalUrl) return
-        manager.isEmbedModalOpen = true
+        manager.activeModal = GrapherModal.Embed
         this.dismiss()
         e.stopPropagation()
     }
