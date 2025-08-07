@@ -5,11 +5,7 @@ import {
     Bounds,
     excludeUndefined,
     numberMagnitude,
-    Color,
-    SortOrder,
     Time,
-    SortBy,
-    SortConfig,
     HorizontalAlign,
     EntityName,
     getRelativeMouse,
@@ -36,7 +32,6 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisConfig } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
-import { getShortNameForEntity } from "../chart/ChartUtils"
 import { ChartManager } from "../chart/ChartManager"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
@@ -46,7 +41,13 @@ import {
     makeTooltipRoundingNotice,
     makeTooltipToleranceNotice,
 } from "../tooltip/Tooltip"
-import { StackedPoint, StackedSeries } from "./StackedConstants"
+import {
+    Bar,
+    PlacedItem,
+    SizedItem,
+    StackedPoint,
+    StackedSeries,
+} from "./StackedConstants"
 import {
     HorizontalCategoricalColorLegend,
     HorizontalColorLegendManager,
@@ -54,7 +55,6 @@ import {
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { isDarkColor } from "../color/ColorUtils"
 import { HorizontalAxis } from "../axis/Axis"
-import { SelectionArray } from "../selection/SelectionArray"
 import { HashMap, NodeGroup } from "react-move"
 import { easeQuadOut } from "d3-ease"
 import { TextWrap } from "@ourworldindata/components"
@@ -71,25 +71,6 @@ const labelToBarPadding = 5
 export interface StackedDiscreteBarChartManager extends ChartManager {
     endTime?: Time
     hideTotalValueLabel?: boolean
-}
-
-interface Item {
-    entityName: string
-    shortEntityName?: string
-    label: TextWrap
-    bars: Bar[]
-    totalValue: number
-}
-
-interface PlacedItem extends Item {
-    yPosition: number
-}
-
-interface Bar {
-    color: Color
-    seriesName: string
-    columnSlug: string
-    point: StackedPoint<EntityName>
 }
 
 interface StackedBarChartContext {
@@ -125,10 +106,6 @@ export class StackedDiscreteBarChart
         })
     }
 
-    @computed private get sortConfig(): SortConfig {
-        return this.chartState.sortConfig
-    }
-
     focusSeriesName: SeriesName | undefined = undefined
 
     @computed get chartState(): StackedDiscreteBarChartState {
@@ -159,7 +136,7 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get barCount(): number {
-        return this.items.length
+        return this.chartState.items.length
     }
 
     @computed private get labelFontSize(): number {
@@ -270,48 +247,11 @@ export class StackedDiscreteBarChart
             .padRight(this.totalValueLabelWidth)
     }
 
-    @computed private get selectionArray(): SelectionArray {
-        return this.chartState.selectionArray
-    }
-
-    @computed private get items(): readonly Omit<Item, "label">[] {
-        const entityNames = this.selectionArray.selectedEntityNames
-        const items = entityNames
-            .map((entityName) => {
-                let totalValue = 0
-                const bars = excludeUndefined(
-                    this.series.map((series) => {
-                        const point = series.points.find(
-                            (point) => point.position === entityName
-                        )
-                        if (!point) return undefined
-                        totalValue += point.value
-                        return {
-                            point,
-                            columnSlug: series.columnSlug!,
-                            color: series.color,
-                            seriesName: series.seriesName,
-                        }
-                    })
-                )
-
-                return {
-                    entityName,
-                    shortEntityName: getShortNameForEntity(entityName),
-                    bars,
-                    totalValue,
-                }
-            })
-            .filter((item) => item.bars.length)
-
-        return items
-    }
-
-    @computed private get sizedItems(): readonly Item[] {
+    @computed private get sizedItems(): readonly SizedItem[] {
         // can't use `this.barHeight` due to a circular dependency
         const barHeight = this.approximateBarHeight
 
-        return this.items.map((item) => {
+        return this.chartState.sortedItems.map((item) => {
             // make sure we're dealing with a single-line text fragment
             const entityName = item.entityName.replace(/\n/g, " ").trim()
 
@@ -354,40 +294,12 @@ export class StackedDiscreteBarChart
         })
     }
 
-    @computed get sortedItems(): readonly Item[] {
-        let sortByFunc: (item: Item) => number | string | undefined
-        switch (this.sortConfig.sortBy) {
-            case SortBy.custom:
-                sortByFunc = (): undefined => undefined
-                break
-            case SortBy.entityName:
-                sortByFunc = (item: Item): string => item.entityName
-                break
-            case SortBy.column: {
-                const owidRowsByEntityName =
-                    this.sortColumn?.owidRowsByEntityName
-                sortByFunc = (item: Item): number => {
-                    const rows = owidRowsByEntityName?.get(item.entityName)
-                    return rows?.[0]?.value ?? 0
-                }
-                break
-            }
-            default:
-            case SortBy.total:
-                sortByFunc = (item: Item): number => item.totalValue
-        }
-        const sortedItems = _.sortBy(this.sizedItems, sortByFunc)
-        const sortOrder = this.sortConfig.sortOrder ?? SortOrder.desc
-        if (sortOrder === SortOrder.desc) return sortedItems.toReversed()
-        else return sortedItems
-    }
-
     @computed private get placedItems(): PlacedItem[] {
         const { innerBounds, barHeight, barSpacing } = this
 
         const topYOffset = innerBounds.top + barHeight / 2 + barSpacing / 2
 
-        return this.sortedItems.map((d, i) => ({
+        return this.sizedItems.map((d, i) => ({
             yPosition: topYOffset + (barHeight + barSpacing) * i,
             ...d,
         }))
@@ -881,10 +793,6 @@ export class StackedDiscreteBarChart
 
     @computed private get yColumns(): CoreColumn[] {
         return this.chartState.yColumns
-    }
-
-    @computed private get sortColumn(): CoreColumn | undefined {
-        return this.chartState.sortColumn
     }
 
     @computed private get series(): readonly StackedSeries<EntityName>[] {
