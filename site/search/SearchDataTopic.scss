@@ -1,48 +1,30 @@
 .search-data-topic {
     margin-bottom: 32px;
-
-    @include sm-only {
-        background: transparent;
-        overflow: hidden;
-        padding: 0;
-        margin-bottom: 32px;
-    }
-}
-
-.search-data-topic-list {
-    @include sm-only {
-        overflow-x: scroll;
-        scrollbar-width: thin;
-        margin-bottom: 12px;
-        .search-data-topic-hit {
-            .chart-hit-img-container img {
-                margin-top: 16px;
-            }
-        }
-    }
 }
 
 .search-data-topic__header {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+
     h2 {
+        @include subtitle-2-bold;
         margin: 0;
-        font-weight: bold;
+        text-align: left;
         color: $blue-90;
-    }
-    @include sm-only {
-        width: calc(100% - 16px);
+
+        @include sm-only {
+            @include body-1-bold;
+        }
     }
 }
 
 .search-data-topic__header-button {
-    background-color: transparent;
     width: 100%;
-    line-height: 38.4px;
-    margin-right: 16px;
     margin-bottom: 16px;
     cursor: pointer;
     padding: 0;
+    background: transparent;
 
     &:focus {
         text-decoration: none;
@@ -54,14 +36,10 @@
             text-decoration: underline;
         }
     }
-
-    @include sm-only {
-        // Remove margin and instead add a margin-top to the ChartHits, so that their box shadows don't clip
-        margin-bottom: 0;
-    }
 }
 
 .search-data-topic__hit-count {
+    @include body-2-semibold;
     color: $blue-65;
 
     svg {
@@ -73,6 +51,7 @@
         color: $blue-10;
         margin-left: 8px;
     }
+
     @include sm-only {
         display: none;
     }
@@ -81,26 +60,32 @@
 .search-data-topic__see-all-button {
     @include body-3-medium;
     display: none;
+
     background-color: $blue-20;
     color: $blue-90;
-    padding: 0 8px;
+    padding: 0 24px;
     height: 40px;
     line-height: 40px;
     border: none;
     cursor: pointer;
+    align-items: baseline;
     justify-content: center;
-    align-items: center;
-    // the container is 13 columns wide to be flush with the right edge so that the thumbnail horizontal scroll is also flush,
-    // but we want the see all button to be inset as if the container were only 12 columns wide
-    width: calc(100% - 16px);
-    margin-right: 16px;
+    width: 100%;
+
+    @include sm-only {
+        display: flex;
+    }
+
     &:hover {
         text-decoration: underline;
     }
-    @include sm-only {
-        display: flex;
-        width: 100%;
+
+    span {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
     }
+
     svg {
         height: 10px;
         margin-left: 8px;
