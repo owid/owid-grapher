@@ -3,7 +3,7 @@
     padding: 16px;
 
     display: flex;
-    gap: 48px;
+    gap: 24px;
 
     .search-chart-hit-small__content {
         flex: 1 1 0;
@@ -27,6 +27,14 @@
         svg {
             width: 14px;
             height: 14px;
+        }
+    }
+
+    .search-chart-hit-small__download-button {
+        align-self: center;
+
+        &:hover {
+            background-color: #bed2e7;
         }
     }
 

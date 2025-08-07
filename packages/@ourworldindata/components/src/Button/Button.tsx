@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { IconDefinition, faArrowRight } from "@fortawesome/free-solid-svg-icons"
 
 type ButtonCommonProps = {
-    text: string
+    text?: string
     className?: string
     theme:
         | "solid-vermillion"
@@ -50,7 +50,9 @@ export const Button = ({
     dataTrackNote,
     disabled,
 }: ButtonProps) => {
-    const classes = cx("owid-btn", `owid-btn--${theme}`, className)
+    const classes = cx("owid-btn", `owid-btn--${theme}`, className, {
+        "owid-btn--icon-only": icon && !text,
+    })
     const content = (
         <>
             {iconPosition === "left" && icon && (
