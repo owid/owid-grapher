@@ -8,12 +8,12 @@ import {
     CodeSnippet,
     OverlayHeader,
 } from "@ourworldindata/components"
-import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants"
+import { DEFAULT_GRAPHER_BOUNDS, GrapherModal } from "../core/GrapherConstants"
 
 export interface EmbedModalManager {
     embedUrl?: string
     embedArchivedUrl?: string
-    isEmbedModalOpen?: boolean
+    activeModal?: GrapherModal
     canHideExternalControlsInEmbed: boolean
     hideExternalControlsInEmbedUrl: boolean
     setHideExternalControlsInEmbedUrl: (value: boolean) => void
@@ -99,7 +99,7 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
     }
 
     @action.bound private onDismiss(): void {
-        this.manager.isEmbedModalOpen = false
+        this.manager.activeModal = undefined
     }
 
     override render() {
