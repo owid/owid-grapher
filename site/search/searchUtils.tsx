@@ -571,12 +571,14 @@ export function searchWithWords(
             allTopicResults.push(...synonymResults.topicResults)
         }
 
-        // Deduplicate results by name, keeping the highest score
+        // Deduplicate results by name, keeping the highest score, and enforce
+        // the limit given that we are running the search twice and combining
+        // result sets, effectively doubling the number of results.
         const deduplicateResults = (results: ScoredSearchResult[]) =>
             uniqueBy(
                 results.sort((a, b) => b.score - a.score),
                 (result) => result.name
-            )
+            ).slice(0, sortOptions.limit)
 
         allCountryResults = deduplicateResults(allCountryResults)
         allTopicResults = deduplicateResults(allTopicResults)
