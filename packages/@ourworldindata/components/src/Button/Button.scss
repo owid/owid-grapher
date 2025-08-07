@@ -7,6 +7,10 @@
     display: block;
     cursor: pointer;
 
+    &.owid-btn--icon-only {
+        padding: 4.5px 9px;
+    }
+
     &:disabled {
         cursor: default;
 
