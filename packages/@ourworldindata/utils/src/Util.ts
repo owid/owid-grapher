@@ -1615,6 +1615,12 @@ export function traverseEnrichedBlock(
                 traverseEnrichedBlock(textBlock, callback, spanCallback)
             })
         })
+        .with({ type: "guided-chart" }, (guidedChart) => {
+            callback(guidedChart)
+            guidedChart.content.forEach((block) => {
+                traverseEnrichedBlock(block, callback, spanCallback)
+            })
+        })
         .with({ type: "align" }, (align) => {
             callback(align)
             align.content.forEach((node) => {
@@ -1734,7 +1740,8 @@ export function spansToUnformattedPlainText(spans: Span[]): string {
                             "span-subscript",
                             "span-underline",
                             "span-ref",
-                            "span-dod"
+                            "span-dod",
+                            "span-guided-chart-link"
                         ),
                     },
                     (span) => spansToUnformattedPlainText(span.children)
@@ -1802,6 +1809,8 @@ export function filterValidStringValues<ValidValue extends string>(
  * Duplicated in parser.ts
  */
 export const detailOnDemandRegex = /#dod:([\w\-_]+)/
+
+export const guidedChartRegex = /#guide:(https?:\/\/[^\s]+)/
 
 export function extractDetailsFromSyntax(str: string): string[] {
     return [...str.matchAll(new RegExp(detailOnDemandRegex, "g"))].map(

@@ -11,7 +11,7 @@ fields:
     target:
         description: Target URL of the link
     linkType:
-        description: Type of link ('gdoc', 'url', 'grapher', 'explorer', 'chart-view', 'dod')
+        description: Type of link ('gdoc', 'url', 'grapher', 'explorer', 'chart-view', 'dod', 'guided-chart')
     componentType:
         description: Type of component containing the link (e.g., 'markdown', 'chart', 'iframe')
     text:

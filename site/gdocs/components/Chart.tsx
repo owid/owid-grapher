@@ -1,9 +1,10 @@
 import * as _ from "lodash-es"
-import { useRef, useMemo, useContext } from "react"
+import { useRef, useMemo, useContext, useEffect } from "react"
 import {
     grapherInterfaceWithHiddenControls,
     grapherInterfaceWithHiddenTabs,
     GrapherProgrammaticInterface,
+    GuidedChartContext,
 } from "@ourworldindata/grapher"
 import {
     ChartControlKeyword,
@@ -33,6 +34,14 @@ export default function Chart({
     const { isPreviewing } = useContext(DocumentContext)
     const refChartContainer = useRef<HTMLDivElement>(null)
     useEmbedChart(0, refChartContainer, isPreviewing)
+
+    // Connect chart ref to GuidedChartContext for guided chart scrollTo on mobile
+    const guidedChartContext = useContext(GuidedChartContext)
+    useEffect(() => {
+        if (guidedChartContext?.chartRef && refChartContainer.current) {
+            guidedChartContext.chartRef.current = refChartContainer.current
+        }
+    }, [guidedChartContext])
 
     // d.url may use an old slug that has since had a redirect created for it
     // useLinkedChart references a hashmap that has resolved these old slugs to their current chart

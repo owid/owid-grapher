@@ -26,6 +26,12 @@ export type SpanDod = {
     id: string
 }
 
+export type SpanGuidedChartLink = {
+    spanType: "span-guided-chart-link"
+    children: Span[]
+    url: string
+}
+
 export type SpanNewline = {
     spanType: "span-newline"
 }
@@ -64,6 +70,7 @@ export type UnformattedSpan = SpanSimpleText | SpanNewline
 export type Span =
     | SpanSimpleText
     | SpanDod
+    | SpanGuidedChartLink
     | SpanLink
     | SpanRef
     | SpanNewline

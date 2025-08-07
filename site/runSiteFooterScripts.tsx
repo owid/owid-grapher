@@ -37,6 +37,8 @@ import { SearchInstantSearchWrapper } from "./search/SearchInstantSearchWrapper.
 import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
+import { AriaAnnouncerProvider } from "./AriaAnnouncerContext.js"
+import { AriaAnnouncer } from "./AriaAnnouncer.js"
 import {
     MultiDimDataPageContent,
     MultiDimDataPageData,
@@ -201,9 +203,12 @@ const hydrateOwidGdoc = (debug?: boolean, isPreviewing?: boolean) => {
     if (!wrapper) return
     hydrateRoot(
         wrapper,
-        <DebugProvider debug={debug}>
-            <OwidGdoc {...props} isPreviewing={isPreviewing} />
-        </DebugProvider>
+        <AriaAnnouncerProvider>
+            <DebugProvider debug={debug}>
+                <OwidGdoc {...props} isPreviewing={isPreviewing} />
+            </DebugProvider>
+            <AriaAnnouncer />
+        </AriaAnnouncerProvider>
     )
 }
 

@@ -101,6 +101,12 @@ export {
 } from "./schema/migrations/migrate"
 export { generateGrapherImageSrcSet } from "./chart/ChartUtils"
 export {
+    useMaybeGlobalGrapherStateRef,
+    useGuidedChartLinkHandler,
+    GuidedChartContext,
+    type GuidedChartContextValue,
+} from "./chart/GuidedChartUtils"
+export {
     isValidTabQueryParam,
     findPotentialChartTypeSiblings,
 } from "./chart/ChartTabs"

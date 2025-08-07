@@ -20,6 +20,7 @@ export function spanToSimpleString(s: Span): string {
                     "span-link",
                     "span-ref",
                     "span-dod",
+                    "span-guided-chart-link",
                     "span-italic",
                     "span-bold",
                     "span-underline",
@@ -57,6 +58,13 @@ export function spanToHtmlString(s: Span): string {
                 }"  class="dod-span">${spansToHtmlString(
                     span.children
                 )}</a></span>`
+        )
+        .with(
+            { spanType: "span-guided-chart-link" },
+            (span) =>
+                `<a href="#guide:${span.url}" class="guided-chart-link">${spansToHtmlString(
+                    span.children
+                )}</a>`
         )
         .with({ spanType: "span-newline" }, () => "<br/>")
         .with(
@@ -245,6 +253,7 @@ export function extractFilenamesFromBlock(
                     "people-rows",
                     "pill-row",
                     "pull-quote",
+                    "guided-chart",
                     "recirc",
                     "resource-panel",
                     "scroller",

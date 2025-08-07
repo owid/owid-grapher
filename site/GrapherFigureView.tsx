@@ -1,5 +1,4 @@
 import { useMemo, useRef } from "react"
-
 import {
     FetchingGrapher,
     GrapherProgrammaticInterface,

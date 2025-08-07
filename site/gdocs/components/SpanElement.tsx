@@ -3,6 +3,10 @@ import * as React from "react"
 import { match } from "ts-pattern"
 import LinkedA from "./LinkedA.js"
 import SpanElements from "./SpanElements.js"
+import { useGuidedChartLinkHandler } from "@ourworldindata/grapher"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faEye } from "@fortawesome/free-solid-svg-icons"
+import { spansToUnformattedPlainText } from "@ourworldindata/utils"
 
 export default function SpanElement({
     span,
@@ -11,6 +15,12 @@ export default function SpanElement({
     span: Span
     shouldRenderLinks?: boolean
 }): React.ReactElement {
+    const handleGuidedChartLinkClick = useGuidedChartLinkHandler()
+    const [hasHydrated, setHasHydrated] = React.useState(false)
+    React.useEffect(() => {
+        setHasHydrated(true)
+    }, [])
+
     return match(span)
         .with({ spanType: "span-simple-text" }, (span) => (
             <span>{span.text}</span>
@@ -35,6 +45,38 @@ export default function SpanElement({
                 </span>
             )
         )
+        .with({ spanType: "span-guided-chart-link" }, (span) => {
+            if (!shouldRenderLinks) {
+                return (
+                    <span className="guided-chart-link">
+                        <SpanElements spans={span.children} />
+                    </span>
+                )
+            }
+
+            const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+                e.preventDefault()
+                if (handleGuidedChartLinkClick) {
+                    handleGuidedChartLinkClick(span.url)
+                }
+            }
+
+            return (
+                <a
+                    className="guided-chart-link"
+                    href={span.url}
+                    aria-label={
+                        hasHydrated
+                            ? `"${spansToUnformattedPlainText(span.children)}". Click to set this section's chart to this view.`
+                            : undefined
+                    }
+                    onClick={handleClick}
+                >
+                    <FontAwesomeIcon icon={faEye} />
+                    <SpanElements spans={span.children} />
+                </a>
+            )
+        })
         .with({ spanType: "span-dod" }, (span) => (
             <span className="dod-span" data-id={`${span.id}`} tabIndex={0}>
                 <SpanElements spans={span.children} />

@@ -6,6 +6,7 @@ import Scroller from "./Scroller.js"
 import Chart from "./Chart.js"
 import Donors from "./Donors.js"
 import PullQuote from "./PullQuote.js"
+import GuidedChart from "./GuidedChart.js"
 import Recirc from "./Recirc.js"
 import List from "./List.js"
 import NumberedList from "./NumberedList.js"
@@ -224,6 +225,13 @@ function ArticleBlockInternal({
                     `pull-quote--${block.align}`,
                     containerType
                 )}
+                d={block}
+            />
+        ))
+        .with({ type: "guided-chart" }, (block) => (
+            <GuidedChart
+                className={getLayout("guided-chart", containerType)}
+                containerType={containerType}
                 d={block}
             />
         ))
@@ -459,7 +467,7 @@ function ArticleBlockInternal({
                             }
                         )}
                     >
-                        <div className="sticky-column-wrapper grid grid-cols-7 span-cols-7 grid-md-cols-12 span-md-cols-12">
+                        <div className="sticky-column-wrapper grid grid-cols-7 span-cols-7 grid-md-cols-10 span-md-cols-10 grid-sm-cols-12 span-sm-cols-12">
                             {block.right.map((item, i) => (
                                 <ArticleBlock
                                     key={i}
@@ -480,7 +488,7 @@ function ArticleBlockInternal({
                         containerType
                     )}
                 >
-                    <div className="sticky-column-wrapper grid grid-cols-7 span-cols-7 grid-md-cols-12 span-md-cols-12">
+                    <div className="sticky-column-wrapper grid grid-cols-7 span-cols-7 grid-md-cols-10 span-md-cols-10 grid-sm-cols-12 span-sm-cols-12">
                         {block.left.map((item, i) => (
                             <ArticleBlock
                                 key={i}

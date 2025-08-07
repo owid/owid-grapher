@@ -60,6 +60,7 @@ export interface LinkedChart {
     tab?: GrapherTabConfigOption
     indicatorId?: number // in case of a datapage
     archivedChartInfo?: ArchivedPageVersion | undefined
+    dimensionSlugs?: string[] // for validating mdim links, to make sure the query params are correct
 }
 
 // An object containing metadata needed for embedded narrative charts

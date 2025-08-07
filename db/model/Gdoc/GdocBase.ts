@@ -18,10 +18,12 @@ import {
     OwidGdocMinimalPostInterface,
     urlToSlug,
     GRAPHER_TAB_CONFIG_OPTIONS,
+    GRAPHER_QUERY_PARAM_KEYS,
     DbInsertPostGdocLink,
     DbPlainTag,
     formatDate,
     excludeUndefined,
+    Url,
 } from "@ourworldindata/utils"
 import { BAKED_GRAPHER_URL } from "../../../settings/serverSettings.js"
 import { docs as googleDocs } from "@googleapis/docs"
@@ -669,6 +671,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                         "people",
                         "people-rows",
                         "pull-quote",
+                        "guided-chart",
                         "sdg-grid",
                         "sdg-toc",
                         "side-by-side",
@@ -715,6 +718,17 @@ export class GdocBase implements OwidGdocBaseInterface {
                 text: spansToSimpleString(span.children),
                 linkType: ContentGraphLinkType.Dod,
             } satisfies DbInsertPostGdocLink
+        }
+        if (span.spanType === "span-guided-chart-link") {
+            return {
+                target: span.url,
+                sourceId: this.id,
+                componentType: span.spanType,
+                hash: "",
+                queryString: "",
+                text: spansToSimpleString(span.children),
+                linkType: ContentGraphLinkType.GuidedChart,
+            }
         }
     }
 
@@ -983,6 +997,34 @@ export class GdocBase implements OwidGdocBaseInterface {
                         })
                     }
                 })
+                .with({ linkType: ContentGraphLinkType.GuidedChart }, () => {
+                    // Validate that guided chart query parameters are spelled correctly
+                    const url = Url.fromURL(link.target)
+                    const slug = url.slug
+                    const queryParams = url.queryParams
+                    const chart = slug ? this.linkedCharts[slug] : undefined
+                    if (!chart) {
+                        linkErrors.push({
+                            property: "content",
+                            message: `Chart with slug "${slug}" does not exist`,
+                            type: OwidGdocErrorMessageType.Error,
+                        })
+                        return
+                    }
+                    for (const key of Object.keys(queryParams)) {
+                        if (
+                            key &&
+                            !GRAPHER_QUERY_PARAM_KEYS.includes(key as any) &&
+                            !chart.dimensionSlugs?.includes(key)
+                        ) {
+                            linkErrors.push({
+                                property: "content",
+                                message: `Guided chart link with text "${link.text}" contains invalid query parameter "${key}".`,
+                                type: OwidGdocErrorMessageType.Warning,
+                            })
+                        }
+                    }
+                })
                 .with(
                     {
                         linkType: P.union(
@@ -1200,6 +1242,7 @@ export function makeMultiDimLinkedChart(
         configType: ChartConfigType.MultiDim,
         originalSlug: slug,
         title,
+        dimensionSlugs: config.dimensions.map((d) => d.slug),
         resolvedUrl: `${BAKED_GRAPHER_URL}/${slug}`,
         tags: [],
         archivedChartInfo,

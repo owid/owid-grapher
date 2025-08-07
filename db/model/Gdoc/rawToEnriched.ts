@@ -22,6 +22,7 @@ import {
     EnrichedBlockMissingData,
     EnrichedBlockProminentLink,
     EnrichedBlockPullQuote,
+    EnrichedBlockGuidedChart,
     EnrichedBlockRecirc,
     EnrichedBlockScroller,
     EnrichedBlockSDGGrid,
@@ -56,6 +57,7 @@ import {
     RawBlockNumberedList,
     RawBlockProminentLink,
     RawBlockPullQuote,
+    RawBlockGuidedChart,
     RawBlockRecirc,
     RawBlockScroller,
     RawBlockSDGGrid,
@@ -153,6 +155,7 @@ import {
     omitUndefinedValues,
     Url,
     toAsciiQuotes,
+    traverseEnrichedBlock,
 } from "@ourworldindata/utils"
 import { checkIsInternalLink, getLinkType } from "@ourworldindata/components"
 import {
@@ -194,6 +197,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "person" }, parsePerson)
         .with({ type: "pull-quote" }, parsePullQuote)
         .with({ type: "resource-panel" }, parseResourcePanel)
+        .with({ type: "guided-chart" }, parseGuidedChart)
         .with(
             { type: "horizontal-rule" },
             (b): EnrichedBlockHorizontalRule => ({
@@ -1127,6 +1131,68 @@ function parseHybridLinks(rawLinks: RawHybridLink[]): {
     return {
         parsedLinks,
         parseErrors,
+    }
+}
+
+const parseGuidedChart = (
+    raw: RawBlockGuidedChart
+): EnrichedBlockGuidedChart => {
+    const createError = (
+        error: ParseError,
+        content: OwidEnrichedGdocBlock[] = []
+    ): EnrichedBlockGuidedChart => ({
+        type: "guided-chart",
+        content,
+        parseErrors: [error],
+    })
+
+    if (typeof raw.value === "string") {
+        return createError({
+            message: "Value is a string, not an object with properties",
+        })
+    }
+
+    const content = raw.value
+
+    if (!content) {
+        return createError({
+            message: "Guided-chart must have content",
+        })
+    }
+
+    const parsedContent = content
+        .map(parseRawBlocksToEnrichedBlocks)
+        .filter((item): item is OwidEnrichedGdocBlock => item !== null)
+
+    let chartCount = 0
+    const contentErrors: ParseError[] = []
+
+    for (const block of parsedContent) {
+        traverseEnrichedBlock(block, (node) => {
+            if (node.type === "chart") {
+                chartCount++
+            }
+            if (node.parseErrors.length) {
+                contentErrors.push(
+                    ...node.parseErrors.map((error) => ({
+                        ...error,
+                        message: `${node.type} block has error: ${error.message}`,
+                    }))
+                )
+            }
+        })
+    }
+
+    if (chartCount !== 1) {
+        return createError({
+            message: "guided-chart must contain exactly one chart block",
+        })
+    }
+
+    return {
+        type: "guided-chart",
+        content: parsedContent,
+        parseErrors: contentErrors,
     }
 }
 

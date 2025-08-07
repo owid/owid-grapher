@@ -282,6 +282,41 @@ export const enrichedBlockExamples: Record<
         value: {},
         parseErrors: [],
     },
+    "guided-chart": {
+        type: "guided-chart",
+        content: [
+            {
+                type: "chart",
+                url: "https://ourworldindata.org/grapher/life-expectancy",
+                parseErrors: [],
+            },
+            {
+                type: "text",
+                value: [
+                    {
+                        spanType: "span-simple-text",
+                        text: "This is explanatory text that goes along with the guided chart. You can ",
+                    },
+                    {
+                        spanType: "span-guided-chart-link",
+                        url: "https://ourworldindata.org/grapher/life-expectancy?tab=map&time=2020&country=USA~GBR",
+                        children: [
+                            {
+                                spanType: "span-simple-text",
+                                text: "click here to see the map view",
+                            },
+                        ],
+                    },
+                    {
+                        spanType: "span-simple-text",
+                        text: " for specific countries.",
+                    },
+                ],
+                parseErrors: [],
+            },
+        ],
+        parseErrors: [],
+    },
     recirc: {
         type: "recirc",
         title: "Continue reading",
