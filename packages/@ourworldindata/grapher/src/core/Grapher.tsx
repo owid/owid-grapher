@@ -157,7 +157,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
 import { TooltipContainer } from "../tooltip/Tooltip"
 import { EntitySelectorModal } from "../modal/EntitySelectorModal"
-import { DownloadModal } from "../modal/DownloadModal"
+import { DownloadModal, DownloadModalTabName } from "../modal/DownloadModal"
 import { observer } from "mobx-react"
 import "d3-transition"
 import { SourcesModal } from "../modal/SourcesModal"
@@ -232,6 +232,7 @@ import {
 import * as R from "remeda"
 import { CaptionedOrThumbnailChart } from "../chart/CaptionedOrThumbnailChart.js"
 import { flushSync } from "react-dom"
+import { match } from "ts-pattern"
 
 declare global {
     interface Window {
@@ -583,6 +584,7 @@ export class GrapherState {
             isSourcesModalOpen: observable.ref,
             isDownloadModalOpen: observable.ref,
             isEmbedModalOpen: observable.ref,
+            activeDownloadModalTab: observable.ref,
             shouldIncludeDetailsInStaticExport: observable,
             _externalBounds: observable,
             slideShow: observable,
@@ -746,8 +748,19 @@ export class GrapherState {
                 this.isSourcesModalOpen = true
             } else if (overlay === "download") {
                 this.isDownloadModalOpen = true
+            } else if (overlay === "embed") {
+                this.isEmbedModalOpen = true
             } else {
                 console.error("Unexpected overlay: " + overlay)
+            }
+        }
+
+        const downloadOverlayTab = params.downloadOverlayTab
+        if (downloadOverlayTab) {
+            if (downloadOverlayTab === "data") {
+                this.activeDownloadModalTab = DownloadModalTabName.Data
+            } else if (downloadOverlayTab === "vis") {
+                this.activeDownloadModalTab = DownloadModalTabName.Vis
             }
         }
 
@@ -1256,6 +1269,8 @@ export class GrapherState {
     isSourcesModalOpen = false
     isDownloadModalOpen = false
     isEmbedModalOpen = false
+
+    activeDownloadModalTab: DownloadModalTabName = DownloadModalTabName.Vis
 
     @computed get isStatic(): boolean {
         return this.isExportingToSvgOrPng
@@ -3164,6 +3179,22 @@ export class GrapherState {
     @computed.struct get allParams(): GrapherQueryParams {
         return grapherObjectToQueryParams(this)
     }
+
+    @computed get overlayParam(): string | undefined {
+        if (this.isSourcesModalOpen) return "sources"
+        if (this.isDownloadModalOpen) return "download"
+        if (this.isEmbedModalOpen) return "embed"
+        return undefined
+    }
+
+    @computed get downloadOverlayTabParam(): string | undefined {
+        if (!this.isDownloadModalOpen) return undefined
+        return match(this.activeDownloadModalTab)
+            .with(DownloadModalTabName.Data, () => "data")
+            .with(DownloadModalTabName.Vis, () => "vis")
+            .exhaustive()
+    }
+
     @computed get areSelectedEntitiesDifferentThanAuthors(): boolean {
         const authoredConfig = this.legacyConfigAsAuthored
         const currentSelectedEntityNames = this.selection.selectedEntityNames
