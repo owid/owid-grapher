@@ -18,7 +18,6 @@ import {
     NumericBin,
     ColorScaleBin,
 } from "@ourworldindata/grapher"
-import { mappableCountries } from "@ourworldindata/utils"
 import {
     EntityName,
     FacetStrategy,
@@ -315,15 +314,6 @@ function buildDataTablePropsForWorldMap({
         })
     )
 
-    // Find the number of countries with no data
-    const noDataBin = bins.find((bin) => isNoDataBin(bin))
-    if (noDataBin) {
-        const numMappableCountries = mappableCountries.length
-        const numSeriesWithNoData =
-            numMappableCountries - chartState.series.length
-        numSeriesByBinLabel.set(noDataBin.text, numSeriesWithNoData)
-    }
-
     // The table shows a map legend where each row corresponds to a legend bin
     const rows = bins
         .map((bin) => {
@@ -336,7 +326,8 @@ function buildDataTablePropsForWorldMap({
                     ? chartState.mapColumn.formatTime(grapherState.endTime)
                     : undefined,
                 color: bin.color,
-                muted: numSeriesByBinLabel.get(label) === 0,
+                muted:
+                    !isNoDataBin(bin) && numSeriesByBinLabel.get(label) === 0,
                 outlined: true,
                 striped: isNoDataBin(bin) ? ("no-data" as const) : false,
             }
