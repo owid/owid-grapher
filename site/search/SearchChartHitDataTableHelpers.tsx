@@ -760,11 +760,38 @@ function buildDataTableContentForWorldMap({
     return { type: "data-table", props: { rows, title } }
 }
 
+// Only used to build a data table when Grapher has neither a chart
+// nor a map tab which should never (or very rarely) happen
 function buildDataTableContentForTableTab({
-    grapherState: _grapherState,
-    maxRows: _maxRows,
+    grapherState,
+    maxRows,
 }: BaseArgs): SearchChartHitDataTableContent {
-    return { type: "data-table", props: { rows: [], title: "" } }
+    const yColumn = grapherState.tableForDisplay.get(grapherState.yColumnSlug)
+    const columnName = getColumnNameForDisplay(yColumn)
+    const unit = yColumn.unit
+    const title = unit ? `In ${unit}` : columnName
+
+    const time = grapherState.endTime ?? grapherState.tableForDisplay.maxTime
+
+    if (!time) return { type: "data-table", props: { rows: [], title } }
+
+    const owidRows = grapherState.tableForDisplay
+        .filterByTargetTimes([time])
+        .get(grapherState.yColumnSlug).owidRows
+    const sortedOwidRows = R.sortBy(owidRows, [(row) => row.value, "desc"])
+
+    const filteredOwidRows =
+        maxRows !== undefined
+            ? sortedOwidRows.slice(0, maxRows)
+            : sortedOwidRows
+
+    const tableRows = filteredOwidRows.map((row) => ({
+        name: row.entityName,
+        time: yColumn.formatTime(row.originalTime),
+        value: yColumn.formatValueShort(row.value),
+    }))
+
+    return { type: "data-table", props: { rows: tableRows, title } }
 }
 
 function makeTableTitle(
