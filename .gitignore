@@ -32,6 +32,7 @@ localBake/
 /differentGrapherSvgs
 /owid-content
 tmp-downloads
+tmp-uploads
 tmp-logs
 /data_files_checksums
 packages/@ourworldindata/*/dist/
