@@ -77,9 +77,7 @@ export const SearchDataTopic = ({
                 aria-label={`Add ${title} to filters`}
                 onClick={handleAddTopicClick}
             >
-                {charts.nbHits === 1
-                    ? `See 1 chart`
-                    : `See ${commafyNumber(charts.nbHits)} charts`}
+                <span>See all charts on {titleLabel}</span>
                 <FontAwesomeIcon icon={faArrowRight} />
             </button>
         </div>

@@ -17,7 +17,11 @@
     .search-chart-hit-small__tabs-container {
         margin-top: 8px;
         display: flex;
-        gap: 10px;
+        gap: 12px;
+
+        @include sm-only {
+            margin-top: 12px;
+        }
 
         a {
             color: $blue-60;
@@ -35,6 +39,10 @@
 
         &:hover {
             background-color: #bed2e7;
+        }
+
+        @include sm-only {
+            display: none;
         }
     }
 
