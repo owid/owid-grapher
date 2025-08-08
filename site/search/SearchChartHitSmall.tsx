@@ -139,6 +139,7 @@ export function SearchChartHitSmall({
                 theme="solid-light-blue"
                 href={constructDownloadUrl({ hit })}
                 icon={faDownload}
+                ariaLabel="Download options"
             />
         </article>
     )
