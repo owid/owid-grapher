@@ -23,7 +23,10 @@ import {
     SeriesStrategy,
 } from "@ourworldindata/types"
 import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable"
-import { getColumnNameForDisplay } from "./searchUtils.js"
+import {
+    getColumnNameForDisplay,
+    calculateTrendDirection,
+} from "./searchUtils.js"
 import { OwidTable } from "@ourworldindata/core-table"
 
 interface BaseArgs {
@@ -197,11 +200,47 @@ function buildDataTablePropsForDiscreteBarChart({
 }
 
 function buildDataTablePropsForSlopeChart({
-    grapherState: _grapherState,
-    chartState: _chartState,
-    maxRows: _maxRows,
+    grapherState,
+    chartState,
+    maxRows,
 }: Args<SlopeChartState>): SearchChartHitDataTableProps {
-    return { rows: [], title: "" }
+    const formatColumn = chartState.formatColumn
+
+    const rows = chartState.series.map((series) => {
+        const { start, end } = series
+
+        const formattedStartTime = formatColumn.formatTime(start.originalTime)
+        const formattedEndTime = formatColumn.formatTime(end.originalTime)
+
+        const color =
+            getColorForSeriesIfFaceted(
+                grapherState,
+                series.entityName,
+                series.column.nonEmptyDisplayName
+            ) ?? series.color
+
+        return {
+            endValue: series.end.value,
+            name: series.seriesName,
+            color,
+            value: formatColumn.formatValueShort(end.value),
+            startValue: formatColumn.formatValueShort(start.value),
+            trend: calculateTrendDirection(start.value, end.value),
+            time: `${formattedStartTime}–${formattedEndTime}`,
+            timePreposition: "",
+            muted: series.focus.background,
+        }
+    })
+
+    // Sort by value in descending order
+    const sortedRows = R.sortBy(rows, [(row) => row.endValue, "desc"])
+
+    const displayRows =
+        maxRows !== undefined ? sortedRows.slice(0, maxRows) : sortedRows
+
+    const title = makeTableTitle(grapherState, chartState)
+
+    return { rows: displayRows, title }
 }
 
 function buildDataTablePropsForStackedDiscreteBarChart({
