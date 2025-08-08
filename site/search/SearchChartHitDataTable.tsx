@@ -8,12 +8,13 @@ import {
 interface TableRow {
     color: string
     name: string
-    value: string
+    value?: string
     startValue?: string
     time?: string
     timePreposition?: string // defaults to 'in'
     muted?: boolean
-    striped?: boolean
+    striped?: boolean | "no-data"
+    outlined?: boolean
     trend?: GrapherTrendArrowDirection // only relevant if startValue is given
 }
 
@@ -88,30 +89,38 @@ function Row({
         >
             <span
                 className={cx("search-chart-hit-table-row__swatch", {
+                    "search-chart-hit-table-row__swatch--outlined":
+                        row.outlined,
                     "search-chart-hit-table-row__swatch--striped": row.striped,
+                    "search-chart-hit-table-row__swatch--no-data":
+                        row.striped === "no-data",
                 })}
                 style={{ backgroundColor: row.color }}
             />
             <span className="search-chart-hit-table-row__name">{row.name}</span>
-            <span className="search-chart-hit-table-row__spacer" />
-            <span className="search-chart-hit-table-row__value">
-                {row.startValue && (
-                    <>
-                        {row.startValue}
-                        <GrapherTrendArrow
-                            className="search-chart-hit-table-row__arrow"
-                            direction={row.trend ?? "right"}
-                        />
-                    </>
-                )}
-                {row.value}
-                {row.time && (
-                    <span className="search-chart-hit-table-row__time">
-                        {" "}
-                        {row.timePreposition ?? "in"} {row.time}
+            {row.value !== undefined && (
+                <>
+                    <span className="search-chart-hit-table-row__spacer" />
+                    <span className="search-chart-hit-table-row__value">
+                        {row.startValue && (
+                            <>
+                                {row.startValue}
+                                <GrapherTrendArrow
+                                    className="search-chart-hit-table-row__arrow"
+                                    direction={row.trend ?? "right"}
+                                />
+                            </>
+                        )}
+                        {row.value}
+                        {row.time && (
+                            <span className="search-chart-hit-table-row__time">
+                                {" "}
+                                {row.timePreposition ?? "in"} {row.time}
+                            </span>
+                        )}
                     </span>
-                )}
-            </span>
+                </>
+            )}
         </div>
     )
 }
