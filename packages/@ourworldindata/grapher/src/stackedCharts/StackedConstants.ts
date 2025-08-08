@@ -7,7 +7,7 @@ import {
 import { ChartSeries } from "../chart/ChartInterface"
 import {
     GRAPHER_AREA_OPACITY_DEFAULT,
-    GRAPHER_AREA_OPACITY_HOVER,
+    GRAPHER_AREA_OPACITY_FOCUS,
     GRAPHER_AREA_OPACITY_MUTE,
 } from "../core/GrapherConstants"
 import { TextWrap } from "@ourworldindata/components"
@@ -15,25 +15,25 @@ import { InteractionState } from "../interaction/InteractionState.js"
 
 export const BAR_OPACITY = {
     DEFAULT: GRAPHER_AREA_OPACITY_DEFAULT,
-    HOVER: GRAPHER_AREA_OPACITY_HOVER,
+    FOCUS: GRAPHER_AREA_OPACITY_FOCUS,
     MUTE: GRAPHER_AREA_OPACITY_MUTE,
 }
 
 export const AREA_OPACITY = {
     DEFAULT: GRAPHER_AREA_OPACITY_DEFAULT,
-    HOVER: GRAPHER_AREA_OPACITY_HOVER,
+    FOCUS: GRAPHER_AREA_OPACITY_FOCUS,
     MUTE: GRAPHER_AREA_OPACITY_MUTE,
 } as const
 
 export const BORDER_OPACITY = {
     DEFAULT: 0.7,
-    HOVER: 1,
+    FOCUS: 1,
     MUTE: 0.3,
 } as const
 
 export const BORDER_WIDTH = {
     DEFAULT: 0.5,
-    HOVER: 1.5,
+    FOCUS: 1.5,
 } as const
 
 export type StackedPointPositionType = string | number
