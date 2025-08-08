@@ -17,19 +17,18 @@ type ButtonCommonProps = {
     iconPosition?: "left" | "right"
     dataTrackNote?: string
     disabled?: boolean
+    ariaLabel?: string
 }
 
 type WithHrefProps = {
     href: string
     onClick?: never
-    ariaLabel?: never
     type?: never
 }
 
 type WithOnClickProps = {
     onClick?: () => void
     href?: never
-    ariaLabel?: string
     type?: "button" | "submit"
 }
 
@@ -79,6 +78,7 @@ export const Button = ({
             onClick: disabled
                 ? (e: React.MouseEvent) => e.preventDefault()
                 : undefined,
+            "aria-label": ariaLabel,
             "aria-disabled": disabled,
         }
         return <a {...aProps}>{content}</a>
