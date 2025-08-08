@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { QueryStatus, useQuery } from "@tanstack/react-query"
 import { useIntersectionObserver } from "usehooks-ts"
 import cx from "classnames"
 import * as R from "remeda"
@@ -69,6 +69,7 @@ import { match } from "ts-pattern"
 import { runInAction } from "mobx"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "@ourworldindata/components"
+import { OwidTable } from "@ourworldindata/core-table"
 
 const NUM_DATA_TABLE_ROWS_PER_COLUMN = 4
 
@@ -103,31 +104,15 @@ function SearchChartHitMediumRichData({
         freezeOnceVisible: true, // Only trigger once
     })
 
-    // Fetch the grapher config
-    const { data: fetchedChartConfig, status: loadingStatusConfig } = useQuery({
-        queryKey: chartHitQueryKeys.chartConfig(hit.slug, hit.queryParams),
-        queryFn: () => {
-            const configUrl = constructConfigUrl({ hit })
-            if (!configUrl) return null
-            return fetchJson<GrapherInterface>(configUrl)
-        },
-        // Only fetch when the component is visible
-        enabled: hasBeenVisible,
-    })
-    const chartConfig = fetchedChartConfig
-        ? migrateGrapherConfigToLatestVersion(fetchedChartConfig)
-        : undefined
+    // Fetch the grapher config (only fetch when the component is visible)
+    const { data: chartConfig, status: loadingStatusConfig } =
+        useQueryChartConfig({ hit, enabled: hasBeenVisible })
 
     // Fetch chart data and metadata
-    const { data: inputTable, status: loadingStatusData } = useQuery({
-        queryKey: chartHitQueryKeys.chartData(hit.slug, hit.queryParams),
-        queryFn: () =>
-            fetchInputTableForConfig({
-                dimensions: chartConfig!.dimensions,
-                selectedEntityColors: chartConfig!.selectedEntityColors,
-                dataApiUrl: DATA_API_URL,
-            }),
-        // Only fetch when the config is available
+    const { data: inputTable, status: loadingStatusData } = useQueryChartData({
+        hit,
+        chartConfig,
+        // Only fetch when the chart config is available
         enabled: hasBeenVisible && !!chartConfig,
     })
 
@@ -549,6 +534,57 @@ function GrapherThumbnailPlaceholder(): React.ReactElement {
             <div className="search-chart-hit-medium__captioned-link-label" />
         </div>
     )
+}
+
+/** Fetches the Grapher config for a given chart hit */
+function useQueryChartConfig({
+    hit,
+    enabled,
+}: {
+    hit: SearchChartHit
+    enabled?: boolean
+}): {
+    data?: GrapherInterface
+    status: QueryStatus
+} {
+    const { data: fetchedChartConfig, status } = useQuery({
+        queryKey: chartHitQueryKeys.chartConfig(hit.slug, hit.queryParams),
+        queryFn: () => {
+            const configUrl = constructConfigUrl({ hit })
+            if (!configUrl) return null
+            return fetchJson<GrapherInterface>(configUrl)
+        },
+        enabled,
+    })
+    const chartConfig = fetchedChartConfig
+        ? migrateGrapherConfigToLatestVersion(fetchedChartConfig)
+        : undefined
+    return { data: chartConfig, status }
+}
+
+/** Fetches relevant data and metadata for a given chart hit */
+function useQueryChartData({
+    hit,
+    chartConfig,
+    enabled,
+}: {
+    hit: SearchChartHit
+    chartConfig?: GrapherInterface
+    enabled?: boolean
+}): {
+    data?: OwidTable
+    status: QueryStatus
+} {
+    return useQuery({
+        queryKey: chartHitQueryKeys.chartData(hit.slug, hit.queryParams),
+        queryFn: () =>
+            fetchInputTableForConfig({
+                dimensions: chartConfig!.dimensions,
+                selectedEntityColors: chartConfig!.selectedEntityColors,
+                dataApiUrl: DATA_API_URL,
+            }),
+        enabled,
+    })
 }
 
 function pickEntitiesForDisplay(
