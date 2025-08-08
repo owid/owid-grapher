@@ -445,7 +445,7 @@ export class StackedBarChart
 
                             const color = point?.color ?? seriesColor
                             const opacity = focused
-                                ? BAR_OPACITY.HOVER
+                                ? BAR_OPACITY.FOCUS
                                 : BAR_OPACITY.DEFAULT
                             const swatch = { color, opacity }
 
@@ -556,7 +556,7 @@ export class StackedBarChart
                                     this.barWidth / 2
                                 const barOpacity =
                                     bar === target?.bar
-                                        ? BAR_OPACITY.HOVER
+                                        ? BAR_OPACITY.FOCUS
                                         : opacity
 
                                 return (
