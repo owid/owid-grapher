@@ -46,7 +46,7 @@ import {
     deleteImageHandler,
     getImageUsageHandler,
 } from "./apiRoutes/images.js"
-import { getFiles } from "./apiRoutes/files.js"
+import { getFiles, uploadFileToR2 } from "./apiRoutes/files.js"
 import {
     handlePutMultiDim,
     handleGetMultiDims,
@@ -115,6 +115,7 @@ import {
     putRouteWithRWTransaction,
     deleteRouteWithRWTransaction,
     getRouteNonIdempotentWithRWTransaction,
+    postFileUploadWithRWTransaction,
 } from "./functionalRouterHelpers.js"
 import {
     getChartsJson,
@@ -287,6 +288,9 @@ deleteRouteWithRWTransaction(
     "/explorer/:slug/tags",
     deleteExplorerTags
 )
+
+// File routes
+postFileUploadWithRWTransaction(apiRouter, "/files", uploadFileToR2)
 
 // Gdoc routes
 getRouteWithROTransaction(apiRouter, "/gdocs", getAllGdocIndexItems)

@@ -1,5 +1,8 @@
 import express, { NextFunction, Router } from "express"
 import { Request, Response } from "./authentication.js"
+import multer from "multer"
+
+const upload = multer({ dest: "tmp-uploads/" })
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner
@@ -56,5 +59,12 @@ export class FunctionalRouter {
         callback: (req: Request, res: Response) => Promise<any>
     ) {
         this.router.delete(targetPath, this.wrap(callback))
+    }
+
+    postWithFileUpload(
+        targetPath: string,
+        callback: (req: Request, res: Response) => Promise<any>
+    ) {
+        this.router.post(targetPath, upload.single("file"), this.wrap(callback))
     }
 }

@@ -54,6 +54,25 @@ export function postRouteWithRWTransaction<T>(
     })
 }
 
+export function postFileUploadWithRWTransaction<T>(
+    router: FunctionalRouter,
+    targetPath: string,
+    handler: (
+        req: Request,
+        res: Response,
+        trx: db.KnexReadWriteTransaction
+    ) => Promise<T>
+) {
+    return router.postWithFileUpload(
+        targetPath,
+        async (req: Request, res: Response) => {
+            return db.knexReadWriteTransaction((transaction) =>
+                handler(req, res, transaction)
+            )
+        }
+    )
+}
+
 export function putRouteWithRWTransaction<T>(
     router: FunctionalRouter,
     targetPath: string,

@@ -1,17 +1,16 @@
 import * as R from "remeda"
 import React, { useContext, useState, useMemo, useEffect } from "react"
 import { useHistory, useLocation } from "react-router-dom"
-import { Flex, Input, Breadcrumb, Space } from "antd"
+import { Flex, Input, Breadcrumb, Space, Tooltip } from "antd"
 import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { DbPlainFile } from "@ourworldindata/types"
-
-import { useQuery } from "@tanstack/react-query"
-
+import cx from "classnames"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Admin } from "./Admin.js"
 import urlJoin from "url-join"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faCopy, faTimes } from "@fortawesome/free-solid-svg-icons"
+import { faCopy, faSpinner, faTimes } from "@fortawesome/free-solid-svg-icons"
 import { copyToClipboard } from "@ourworldindata/utils"
 
 type FileMap = {
@@ -76,12 +75,14 @@ function FileButton({
                     </div>
                 )}
             </div>
-            <button
-                className="file-viewer__copy-button"
-                onClick={() => copyToClipboard(fileUrl)}
-            >
-                <FontAwesomeIcon icon={faCopy} />
-            </button>
+            <Tooltip title="Copy file URL">
+                <button
+                    className="file-viewer__copy-button"
+                    onClick={() => copyToClipboard(fileUrl)}
+                >
+                    <FontAwesomeIcon icon={faCopy} />
+                </button>
+            </Tooltip>
         </div>
     )
 }
@@ -198,19 +199,105 @@ function SearchResultsViewer({
     )
 }
 
+function PostFileButton({ currentPath }: { currentPath: string }) {
+    const { admin } = useContext(AdminAppContext)
+    const [isUploading, setIsUploading] = useState(false)
+    const queryClient = useQueryClient()
+    const history = useHistory()
+    const now = new Date()
+    const defaultPath = urlJoin(
+        "uploads",
+        `${now.getFullYear()}`,
+        `${now.getMonth() + 1}`.padStart(2, "0")
+    )
+
+    const handleFileUpload = async (
+        event: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        const file = event.target.files?.[0]
+        if (!file) return
+
+        setIsUploading(true)
+        try {
+            const formData = new FormData()
+            formData.append("file", file)
+            const targetPath = currentPath || defaultPath
+
+            const response = await admin.requestJSON<{
+                success: boolean
+                path: string
+            }>(`/api/files?path=${targetPath}`, formData, "POST")
+
+            if (!response.success) {
+                throw new Error(`Upload failed`)
+            }
+
+            await queryClient.invalidateQueries({ queryKey: ["files"] })
+            event.target.value = ""
+            history.push(`?path=${response.path}`)
+        } catch (error) {
+            console.error("File upload error:", error)
+        } finally {
+            setIsUploading(false)
+        }
+    }
+
+    return (
+        <div>
+            <input
+                type="file"
+                onChange={handleFileUpload}
+                disabled={isUploading}
+                style={{ display: "none" }}
+                id="file-upload-input"
+            />
+            <label
+                htmlFor="file-upload-input"
+                className={cx(
+                    "file-upload-label",
+                    isUploading && "is-uploading"
+                )}
+            >
+                {isUploading ? (
+                    <FontAwesomeIcon icon={faSpinner} size="sm" spin />
+                ) : (
+                    <span>
+                        <span>Upload File to </span>
+                        {currentPath ? "the current folder" : defaultPath}
+                    </span>
+                )}
+            </label>
+        </div>
+    )
+}
+
 export function FilesIndexPage() {
     const { admin } = useContext(AdminAppContext)
     const location = useLocation()
     const history = useHistory()
     const [searchValue, setSearchValue] = useState("")
 
-    // Get current path from URL query params
-    const currentPath = new URLSearchParams(location.search).get("path") || ""
-
     const { data } = useQuery({
         queryKey: ["files"],
         queryFn: () => fetchFiles(admin),
     })
+
+    // Get current path from URL query params
+    const currentPath = new URLSearchParams(location.search).get("path") || ""
+
+    // Validate path query param; remove it if the folder doesn't exist
+    useEffect(() => {
+        if (!data || !currentPath) return
+        const pathSegments = currentPath.split("/").filter(Boolean)
+        let activeNode = data
+        for (const segment of pathSegments) {
+            activeNode = activeNode[segment] as FileMap
+            if (!activeNode) {
+                history.push("/files")
+                break
+            }
+        }
+    }, [data, currentPath, history])
 
     const clearSearch = () => {
         setSearchValue("")
@@ -237,10 +324,7 @@ export function FilesIndexPage() {
                                 />
                             }
                         />
-                        {/* <PostFileButton
-                            postFile={postFileMutation}
-                            currentPath={currentPath}
-                        /> */}
+                        <PostFileButton currentPath={currentPath} />
                     </Flex>
 
                     <Breadcrumb
