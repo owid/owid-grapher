@@ -14,6 +14,9 @@ import {
 } from "@ourworldindata/utils"
 import { StackedPointPositionType, StackedSeries } from "./StackedConstants"
 import { WORLD_ENTITY_NAME } from "../core/GrapherConstants.js"
+import { AxisConfig } from "../axis/AxisConfig"
+import { AbstractStackedChartState } from "./AbstractStackedChartState"
+import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 
 // This method shift up the Y Values of a Series with Points in place.
 export const stackSeries = <PositionType extends StackedPointPositionType>(
@@ -157,4 +160,36 @@ function getCountryNames(region: Region): string[] {
     return checkHasMembers(region)
         ? getCountryNamesForRegion(region)
         : [region.name]
+}
+
+export function toHorizontalAxis(
+    config: AxisConfig,
+    chartState: AbstractStackedChartState
+): HorizontalAxis {
+    const axis = config.toHorizontalAxis()
+
+    // Update domain
+    axis.updateDomainPreservingUserSettings(
+        chartState.transformedTable.timeDomainFor(chartState.yColumnSlugs)
+    )
+
+    axis.formatColumn = chartState.inputTable.timeColumn
+    axis.hideFractionalTicks = true
+
+    return axis
+}
+
+export function toVerticalAxis(
+    config: AxisConfig,
+    chartState: AbstractStackedChartState
+): VerticalAxis {
+    const axis = config.toVerticalAxis()
+
+    // Use user settings for axis, unless relative mode
+    if (chartState.manager.isRelativeMode) axis.domain = [0, 100]
+    else axis.updateDomainPreservingUserSettings(chartState.yDomain)
+
+    axis.formatColumn = chartState.yColumns[0]
+
+    return axis
 }

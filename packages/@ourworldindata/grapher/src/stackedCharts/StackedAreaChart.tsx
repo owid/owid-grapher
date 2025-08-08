@@ -44,6 +44,7 @@ import { StackedAreas } from "./StackedAreas"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
+import { toHorizontalAxis, toVerticalAxis } from "./StackedUtils"
 
 const STACKED_AREA_CHART_CLASS_NAME = "StackedArea"
 
@@ -122,51 +123,23 @@ export class StackedAreaChart
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
-        const axis = this.xAxisConfig.toHorizontalAxis()
-        axis.updateDomainPreservingUserSettings(
-            this.chartState.transformedTable.timeDomainFor(
-                this.chartState.yColumnSlugs
-            )
-        )
-        axis.formatColumn = this.chartState.inputTable.timeColumn
-        axis.hideFractionalTicks = true
-        return axis
+        return toHorizontalAxis(this.xAxisConfig, this.chartState)
     }
 
     @computed private get yAxisConfig(): AxisConfig {
-        return new AxisConfig(
-            {
-                nice: true,
-                ...this.manager.yAxisConfig,
-            },
-            this
-        )
+        const { yAxisConfig } = this.manager
+        const custom = { nice: true }
+        return new AxisConfig({ ...custom, ...yAxisConfig }, this)
     }
 
     @computed private get verticalAxisPart(): VerticalAxis {
-        const axis = this.yAxisConfig.toVerticalAxis()
-        // Use user settings for axis, unless relative mode
-        if (this.manager.isRelativeMode) axis.domain = [0, 100]
-        else axis.updateDomainPreservingUserSettings(this.yAxisDomain)
-        axis.formatColumn = this.chartState.yColumns[0]
-        return axis
-    }
-
-    @computed private get yAxisDomain(): [number, number] {
-        const yValues = this.chartState.allStackedPoints.map(
-            (point) => point.value + point.valueOffset
-        )
-        return [0, _.max(yValues) ?? 0]
+        return toVerticalAxis(this.yAxisConfig, this.chartState)
     }
 
     @computed private get xAxisConfig(): AxisConfig {
-        return new AxisConfig(
-            {
-                hideGridlines: true,
-                ...this.manager.xAxisConfig,
-            },
-            this
-        )
+        const { xAxisConfig } = this.manager
+        const custom = { hideGridlines: true }
+        return new AxisConfig({ ...custom, ...xAxisConfig }, this)
     }
 
     @computed private get midpoints(): number[] {
@@ -519,8 +492,8 @@ export class StackedAreaChart
                         const focused = name === target.series
                         const values = [point?.fake ? undefined : point?.value]
                         const opacity = focused
-                            ? AREA_OPACITY.focus
-                            : AREA_OPACITY.default
+                            ? AREA_OPACITY.FOCUS
+                            : AREA_OPACITY.DEFAULT
                         const swatch = { color, opacity }
 
                         return {
@@ -621,7 +594,7 @@ export class StackedAreaChart
                 <StackedAreas
                     dualAxis={this.dualAxis}
                     seriesArr={this.stackedSeries}
-                    focusedSeriesName={this.hoveredSeriesName}
+                    hoveredSeriesName={this.hoveredSeriesName}
                 />
             </>
         )
@@ -662,7 +635,7 @@ export class StackedAreaChart
                     <StackedAreas
                         dualAxis={dualAxis}
                         seriesArr={series}
-                        focusedSeriesName={this.hoveredSeriesName}
+                        hoveredSeriesName={this.hoveredSeriesName}
                         onAreaMouseEnter={this.onAreaMouseEnter}
                         onAreaMouseLeave={this.onAreaMouseLeave}
                     />

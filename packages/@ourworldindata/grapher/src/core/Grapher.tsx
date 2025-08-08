@@ -1249,7 +1249,7 @@ export class GrapherState {
     isSocialMediaExport = false
     isWikimediaExport = false
 
-    renderMode = GrapherRenderMode.Captioned
+    renderMode = GrapherRenderMode.Thumbnail
 
     staticBounds: Bounds = DEFAULT_GRAPHER_BOUNDS
 

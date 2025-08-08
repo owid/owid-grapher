@@ -26,7 +26,7 @@ import {
 interface AreasProps extends React.SVGAttributes<SVGGElement> {
     dualAxis: DualAxis
     seriesArr: readonly StackedSeries<Time>[]
-    focusedSeriesName?: SeriesName
+    hoveredSeriesName?: SeriesName
     onAreaMouseEnter?: (seriesName: SeriesName) => void
     onAreaMouseLeave?: () => void
 }
@@ -106,13 +106,17 @@ export class StackedAreas extends React.Component<AreasProps> {
             }))
     }
 
+    @computed get isHoverModeActive(): boolean {
+        return this.props.hoveredSeriesName !== undefined
+    }
+
     @computed get isFocusModeActive(): boolean {
-        return this.props.focusedSeriesName !== undefined
+        return this.props.seriesArr.some((series) => series.focus?.active)
     }
 
     @computed private get areas(): React.ReactElement[] {
         const { placedSeriesArr } = this
-        const { dualAxis, focusedSeriesName } = this.props
+        const { dualAxis, hoveredSeriesName } = this.props
         const { verticalAxis } = dualAxis
 
         return placedSeriesArr.map((series, index) => {
@@ -133,11 +137,13 @@ export class StackedAreas extends React.Component<AreasProps> {
                 ]
             }
             const points = [...placedPoints, ...prevPoints.toReversed()]
-            const opacity = !this.isFocusModeActive
-                ? AREA_OPACITY.default // normal opacity
-                : focusedSeriesName === series.seriesName
-                  ? AREA_OPACITY.focus // hovered
-                  : AREA_OPACITY.mute // non-hovered
+            const opacity =
+                !this.isHoverModeActive && !this.isFocusModeActive
+                    ? AREA_OPACITY.DEFAULT // normal opacity
+                    : hoveredSeriesName === series.seriesName ||
+                        series.focus?.active
+                      ? AREA_OPACITY.FOCUS // hovered or focused
+                      : AREA_OPACITY.MUTE // background
 
             return (
                 <path
@@ -162,18 +168,21 @@ export class StackedAreas extends React.Component<AreasProps> {
 
     @computed private get borders(): React.ReactElement[] {
         const { placedSeriesArr } = this
-        const { focusedSeriesName } = this.props
+        const { hoveredSeriesName } = this.props
 
         return placedSeriesArr.map((placedSeries) => {
-            const opacity = !this.isFocusModeActive
-                ? BORDER_OPACITY.default // normal opacity
-                : focusedSeriesName === placedSeries.seriesName
-                  ? BORDER_OPACITY.focus // hovered
-                  : BORDER_OPACITY.mute // non-hovered
+            const opacity =
+                !this.isHoverModeActive && !this.isFocusModeActive
+                    ? BORDER_OPACITY.DEFAULT // normal opacity
+                    : hoveredSeriesName === placedSeries.seriesName ||
+                        placedSeries.focus?.active
+                      ? BORDER_OPACITY.FOCUS // hovered or focused
+                      : BORDER_OPACITY.MUTE // background
             const strokeWidth =
-                focusedSeriesName === placedSeries.seriesName
-                    ? BORDER_WIDTH.focus
-                    : BORDER_WIDTH.default
+                hoveredSeriesName === placedSeries.seriesName ||
+                placedSeries.focus?.active
+                    ? BORDER_WIDTH.FOCUS
+                    : BORDER_WIDTH.DEFAULT
 
             return (
                 <path
