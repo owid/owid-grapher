@@ -129,6 +129,11 @@ export abstract class AbstractStackedChartState implements ChartState {
         return this.manager.yColumnSlugs ?? autoDetectYColumnSlugs(this.manager)
     }
 
+    @computed get formatColumn(): CoreColumn {
+        // we can just use the first column for formatting, b/c we assume all columns have same type
+        return this.yColumns[0]
+    }
+
     @computed get seriesStrategy(): SeriesStrategy {
         return autoDetectSeriesStrategy(this.manager)
     }
