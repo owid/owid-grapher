@@ -339,6 +339,7 @@ export class LineChartThumbnail
                     lineStrokeWidth={1.5}
                     lineOutlineWidth={0}
                     isStatic={this.manager.isStatic}
+                    unfocusedStyle="faded"
                 />
                 {this.renderSeries
                     .filter(

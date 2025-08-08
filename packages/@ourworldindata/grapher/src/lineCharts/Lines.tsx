@@ -38,6 +38,10 @@ export class Lines extends React.Component<LinesProps> {
         )
     }
 
+    @computed private get unfocusedStyle(): "muted" | "faded" {
+        return this.props.unfocusedStyle ?? "muted"
+    }
+
     @computed private get markerRadius(): number {
         return this.props.markerRadius ?? DEFAULT_MARKER_RADIUS
     }
@@ -91,7 +95,9 @@ export class Lines extends React.Component<LinesProps> {
 
         const seriesColor = series.placedPoints[0]?.color ?? DEFAULT_LINE_COLOR
         const color =
-            !focus.background || hover.active
+            !focus.background ||
+            hover.active ||
+            (focus.background && this.unfocusedStyle === "faded")
                 ? seriesColor
                 : NON_FOCUSED_LINE_COLOR
 
@@ -101,7 +107,10 @@ export class Lines extends React.Component<LinesProps> {
                 ? 0.66 * this.strokeWidth
                 : this.strokeWidth
         const strokeOpacity =
-            hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
+            (hover.background && !focus.background) ||
+            (focus.background && this.unfocusedStyle === "faded")
+                ? GRAPHER_OPACITY_MUTE
+                : 1
 
         const showOutline = !focus.background || hover.active
         const outlineColor = this.outlineColor
