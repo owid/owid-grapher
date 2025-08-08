@@ -567,8 +567,13 @@ function pickEntitiesForDisplay(
 
     return match(grapherState.addCountryMode)
         .with(EntitySelectionMode.Disabled, () => {
-            // Entity selection is disabled, so the default entities are the only valid choice
-            return defaultEntities
+            // Entity selection is disabled, so the default entities are the
+            // only valid choice, unless we're dealing with a chart type where
+            // all entities are plotted by default. In that case _highlighting_
+            // an entity is valid even when entity _selection_ is disabled
+            return grapherState.isScatter || grapherState.isMarimekko
+                ? pickedEntities
+                : defaultEntities
         })
         .with(EntitySelectionMode.SingleEntity, () => {
             // Only a single entity can be selected at a time, so pick the first one,
