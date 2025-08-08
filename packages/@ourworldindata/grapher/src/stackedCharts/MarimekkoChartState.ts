@@ -1,20 +1,36 @@
+import * as _ from "lodash-es"
+import * as R from "remeda"
 import { computed, makeObservable } from "mobx"
 import { ChartState } from "../chart/ChartInterface"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
-import { MarimekkoChartManager } from "./MarimekkoChartConstants"
+import {
+    Bar,
+    BarShape,
+    EntityColorData,
+    Item,
+    MarimekkoChartManager,
+    SimpleChartSeries,
+    SimplePoint,
+} from "./MarimekkoChartConstants"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
-import { autoDetectYColumnSlugs } from "../chart/ChartUtils"
+import { autoDetectYColumnSlugs, makeSelectionArray } from "../chart/ChartUtils"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import {
     ChartErrorInfo,
     ColorSchemeName,
     EntityName,
     ColorScaleConfigInterface,
+    OwidVariableRow,
+    SortConfig,
+    SortBy,
+    SortOrder,
 } from "@ourworldindata/types"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
-import { StackedSeries } from "./StackedConstants"
+import { StackedPoint, StackedSeries } from "./StackedConstants"
 import { ColorScheme } from "../color/ColorScheme"
 import { ColorSchemes } from "../color/ColorSchemes"
+import { excludeUndefined } from "@ourworldindata/utils"
+import { SelectionArray } from "../selection/SelectionArray"
 
 export class MarimekkoChartState implements ChartState, ColorScaleManager {
     manager: MarimekkoChartManager
@@ -76,6 +92,10 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         }
 
         return table
+    }
+
+    @computed get selectionArray(): SelectionArray {
+        return makeSelectionArray(this.manager.selection)
     }
 
     @computed get yColumnSlugs(): string[] {
@@ -143,6 +163,10 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         )
     }
 
+    @computed private get sortConfig(): SortConfig {
+        return this.manager.sortConfig ?? {}
+    }
+
     @computed private get unstackedSeries(): StackedSeries<EntityName>[] {
         const { colorScheme, yColumns } = this
         return (
@@ -178,6 +202,181 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
                 return newPoint
             }),
         }))
+    }
+
+    @computed private get allPoints(): StackedPoint<EntityName>[] {
+        return this.series.flatMap((series) => series.points)
+    }
+
+    @computed get x0(): number {
+        return 0
+    }
+
+    @computed get y0(): number {
+        return 0
+    }
+
+    @computed get xSeries(): SimpleChartSeries | undefined {
+        const createStackedXPoints = (
+            rows: OwidVariableRow<any>[]
+        ): SimplePoint[] => {
+            const points: SimplePoint[] = []
+            for (const row of rows) {
+                points.push({
+                    time: row.originalTime,
+                    value: row.value,
+                    entity: row.entityName,
+                })
+            }
+            return points
+        }
+        if (this.xColumn === undefined) return undefined
+        const column = this.xColumn
+        return {
+            seriesName: column.displayName,
+            points: createStackedXPoints(column.owidRows),
+        }
+    }
+
+    @computed get domainColorForEntityMap(): Map<string, EntityColorData> {
+        const { colorColumn, colorScale, uniqueEntityNames } = this
+        const hasColorColumn = !colorColumn.isMissing
+        const colorRowsByEntity = hasColorColumn
+            ? colorColumn.owidRowsByEntityName
+            : undefined
+        const domainColorMap = new Map<string, EntityColorData>()
+        if (uniqueEntityNames !== undefined) {
+            for (const name of uniqueEntityNames) {
+                const colorDomainValue = colorRowsByEntity?.get(name)?.[0]
+
+                if (colorDomainValue) {
+                    const color = colorScale.getColor(colorDomainValue.value)
+                    if (color)
+                        domainColorMap.set(name, {
+                            color,
+                            colorDomainValue: colorDomainValue.value,
+                        })
+                }
+            }
+        }
+        return domainColorMap
+    }
+
+    @computed private get uniqueEntityNames(): EntityName[] | undefined {
+        return this.xColumn?.uniqEntityNames ?? this.yColumns[0].uniqEntityNames
+    }
+
+    @computed get items(): Item[] {
+        const { xSeries, series, domainColorForEntityMap, uniqueEntityNames } =
+            this
+
+        if (uniqueEntityNames === undefined) return []
+
+        const items: Item[] = uniqueEntityNames
+            .map((entityName) => {
+                const xPoint = xSeries
+                    ? xSeries.points.find(
+                          (point) => point.entity === entityName
+                      )
+                    : undefined
+                if (xSeries && !xPoint) return undefined
+
+                const color = domainColorForEntityMap.get(entityName)
+
+                return {
+                    entityName,
+                    xPoint: xPoint,
+                    entityColor: color,
+                    bars: excludeUndefined(
+                        series.map((series): Bar | undefined => {
+                            const point = series.points.find(
+                                (point) => point.position === entityName
+                            )
+                            if (!point) return undefined
+                            return {
+                                kind: BarShape.Bar,
+                                yPoint: point,
+                                color: series.color,
+                                seriesName: series.seriesName,
+                                columnSlug: series.columnSlug,
+                            }
+                        })
+                    ),
+                }
+            })
+            .filter((item) => item) as Item[]
+
+        return items
+    }
+
+    @computed get sortedItems(): Item[] {
+        const { items, sortConfig } = this
+
+        let sortByFuncs: ((item: Item) => number | string | undefined)[]
+        switch (sortConfig.sortBy) {
+            case SortBy.custom:
+                sortByFuncs = [(): undefined => undefined]
+                break
+            case SortBy.entityName:
+                sortByFuncs = [(item: Item): string => item.entityName]
+                break
+            case SortBy.column: {
+                const sortColumnSlug = sortConfig.sortColumnSlug
+                sortByFuncs = [
+                    (item: Item): number =>
+                        item.bars.find((b) => b.seriesName === sortColumnSlug)
+                            ?.yPoint.value ?? 0,
+                    (item: Item): string => item.entityName,
+                ]
+                break
+            }
+            default:
+            case SortBy.total:
+                sortByFuncs = [
+                    (item: Item): number => {
+                        const lastPoint = R.last(item.bars)?.yPoint
+                        if (!lastPoint) return 0
+                        return lastPoint.valueOffset + lastPoint.value
+                    },
+                    (item: Item): string => item.entityName,
+                ]
+        }
+        const sortedItems = _.sortBy(items, sortByFuncs)
+        const sortOrder = sortConfig.sortOrder ?? SortOrder.desc
+        if (sortOrder === SortOrder.desc) sortedItems.reverse()
+
+        const [itemsWithValues, itemsWithoutValues] = _.partition(
+            sortedItems,
+            (item) => item.bars.length !== 0
+        )
+
+        return [...itemsWithValues, ...itemsWithoutValues]
+    }
+
+    @computed get selectedItems(): Item[] {
+        const selectedSet = this.selectionArray.selectedSet
+        if (selectedSet.size === 0) return []
+        return this.sortedItems.filter((item) =>
+            selectedSet.has(item.entityName)
+        )
+    }
+
+    @computed get yDomainDefault(): [number, number] {
+        const maxValues = this.allPoints.map(
+            (point) => point.value + point.valueOffset
+        )
+        return [
+            Math.min(this.y0, _.min(maxValues) as number),
+            Math.max(this.y0, _.max(maxValues) as number),
+        ]
+    }
+
+    @computed get xDomainDefault(): [number, number] {
+        if (this.xSeries !== undefined) {
+            const sum = _.sumBy(this.xSeries.points, (point) => point.value)
+
+            return [this.x0, sum]
+        } else return [this.x0, this.items.length]
     }
 
     @computed get errorInfo(): ChartErrorInfo {
