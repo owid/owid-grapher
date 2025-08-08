@@ -6,7 +6,7 @@ import {
 } from "@ourworldindata/components"
 
 interface TableRow {
-    color: string
+    color?: string
     name: string
     value?: string
     startValue?: string
@@ -94,7 +94,7 @@ function Row({
                 "search-chart-hit-table-row--muted": row.muted,
             })}
         >
-            {shouldShowSwatch && (
+            {shouldShowSwatch && row.color && (
                 <span
                     className={cx("search-chart-hit-table-row__swatch", {
                         "search-chart-hit-table-row__swatch--outlined":
