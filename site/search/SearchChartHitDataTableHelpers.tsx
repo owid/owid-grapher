@@ -13,6 +13,10 @@ import {
     MapChartState,
     ChartState,
     makeChartState,
+    isNumericBin,
+    isNoDataBin,
+    NumericBin,
+    ColorScaleBin,
 } from "@ourworldindata/grapher"
 import {
     EntityName,
@@ -284,11 +288,70 @@ function buildDataTablePropsForScatterPlot({
 }
 
 function buildDataTablePropsForWorldMap({
-    grapherState: _grapherState,
-    chartState: _chartState,
-    maxRows: _maxRows,
+    grapherState,
+    chartState,
+    maxRows,
 }: Args<MapChartState>): SearchChartHitDataTableProps {
-    return { rows: [], title: "" }
+    const bins = chartState.colorScale.legendBins
+
+    const makeLabelForNumericBin = (bin: NumericBin): string => {
+        if (bin.text) return bin.text
+        if (bin.props.isOpenLeft) return `<${bin.maxText}`
+        if (bin.props.isOpenRight) return `>${bin.minText}`
+        return `${bin.minText}-${bin.maxText}`
+    }
+
+    const makeLabelForBin = (bin: ColorScaleBin): string =>
+        isNumericBin(bin) ? makeLabelForNumericBin(bin) : bin.text
+
+    // Number of countries per bin
+    const numSeriesByBinLabel = new Map(
+        bins.map((bin) => {
+            const count = chartState.series.filter((series) => {
+                return bin.contains(series.value)
+            }).length
+            return [makeLabelForBin(bin), count]
+        })
+    )
+
+    // The table shows a map legend where each row corresponds to a legend bin
+    const rows = bins
+        .map((bin) => {
+            if (bin.isHidden) return undefined
+            const label = makeLabelForBin(bin)
+            return {
+                bin,
+                name: label,
+                time: grapherState.endTime
+                    ? chartState.mapColumn.formatTime(grapherState.endTime)
+                    : undefined,
+                color: bin.color,
+                muted:
+                    !isNoDataBin(bin) && numSeriesByBinLabel.get(label) === 0,
+                outlined: true,
+                striped: isNoDataBin(bin) ? ("no-data" as const) : false,
+            }
+        })
+        .filter((row) => row !== undefined)
+
+    // Sort bins by the number of countries it contains, with the No Data bin at the bottom
+    const hasNumericBins = bins.some((bin) => isNumericBin(bin))
+    const sortedRows = hasNumericBins
+        ? rows
+        : R.sortBy(rows, [
+              (row) =>
+                  isNoDataBin(row.bin)
+                      ? -Infinity // sort No Data bin to the bottom
+                      : (numSeriesByBinLabel.get(row.name) ?? 0),
+              "desc",
+          ])
+
+    const filteredRows =
+        maxRows !== undefined ? sortedRows.slice(0, maxRows) : sortedRows
+
+    const title = makeTableTitle(grapherState, chartState)
+
+    return { rows: filteredRows, title }
 }
 
 function buildDataTablePropsForTableTab({
