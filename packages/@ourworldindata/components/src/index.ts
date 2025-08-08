@@ -17,6 +17,7 @@ export {
     getPrefixedGdocPath,
     getBakePath,
     getCanonicalUrl,
+    getCanonicalPath,
     getPageTitle,
 } from "./GdocsUtils.js"
 
@@ -65,3 +66,6 @@ export { BodyDiv } from "./bodyDiv/BodyDiv.js"
 export { LoadingIndicator } from "./loadingIndicator/LoadingIndicator.js"
 
 export { reactRenderToStringClientOnly } from "./reactUtil.js"
+
+export { GrapherTabIcon } from "./GrapherTabIcon.js"
+export { GrapherTrendArrow } from "./GrapherTrendArrow.js"

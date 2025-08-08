@@ -1,9 +1,22 @@
+import * as _ from "lodash-es"
 import {
     fetchInputTableForConfig,
     Grapher,
     GrapherState,
+    WORLD_ENTITY_NAME,
+    getEntityNamesParam,
+    generateSelectedEntityNamesParam,
+    makeChartState,
+    MapChartState,
 } from "@ourworldindata/grapher"
-import { OwidColumnDef } from "@ourworldindata/types"
+import { omitUndefinedValues, excludeUndefined } from "@ourworldindata/utils"
+import {
+    OwidColumnDef,
+    GRAPHER_MAP_TYPE,
+    GRAPHER_TAB_QUERY_PARAMS,
+    Time,
+} from "@ourworldindata/types"
+import { CoreColumn } from "@ourworldindata/core-table"
 import { StatusError } from "itty-router"
 import { createZip, File } from "littlezipper"
 import { assembleMetadata, getColumnsForMetadata } from "./metadataTools.js"
@@ -29,12 +42,11 @@ export async function fetchMetadataForGrapher(
         env
     )
 
-    const inputTable = await fetchInputTableForConfig(
-        grapher.grapherState.dimensions,
-        grapher.grapherState.selectedEntityColors,
-        getDataApiUrl(env),
-        undefined
-    )
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: grapher.grapherState.dimensions,
+        selectedEntityColors: grapher.grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
     grapher.grapherState.inputTable = inputTable
 
     const fullMetadata = assembleMetadata(
@@ -58,12 +70,11 @@ export async function fetchZipForGrapher(
         searchParams ?? new URLSearchParams(""),
         env
     )
-    const inputTable = await fetchInputTableForConfig(
-        grapher.grapherState.dimensions,
-        grapher.grapherState.selectedEntityColors,
-        getDataApiUrl(env),
-        undefined
-    )
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: grapher.grapherState.dimensions,
+        selectedEntityColors: grapher.grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
     grapher.grapherState.inputTable = inputTable
     ensureDownloadOfDataAllowed(grapher.grapherState)
     const metadata = assembleMetadata(grapher.grapherState, searchParams)
@@ -112,12 +123,11 @@ export async function fetchCsvForGrapher(
         searchParams ?? new URLSearchParams(""),
         env
     )
-    const inputTable = await fetchInputTableForConfig(
-        grapher.grapherState.dimensions,
-        grapher.grapherState.selectedEntityColors,
-        getDataApiUrl(env),
-        undefined
-    )
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: grapher.grapherState.dimensions,
+        selectedEntityColors: grapher.grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
     grapher.grapherState.inputTable = inputTable
     console.log("checking if download is allowed")
     ensureDownloadOfDataAllowed(grapher.grapherState)
@@ -132,6 +142,7 @@ export async function fetchCsvForGrapher(
         },
     })
 }
+
 function ensureDownloadOfDataAllowed(grapherState: GrapherState) {
     if (
         grapherState.inputTable.columnsAsArray.some(
@@ -158,12 +169,11 @@ export async function fetchReadmeForGrapher(
         env
     )
 
-    const inputTable = await fetchInputTableForConfig(
-        grapher.grapherState.dimensions,
-        grapher.grapherState.selectedEntityColors,
-        getDataApiUrl(env),
-        undefined
-    )
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: grapher.grapherState.dimensions,
+        selectedEntityColors: grapher.grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
     grapher.grapherState.inputTable = inputTable
 
     const readme = assembleReadme(
@@ -190,4 +200,169 @@ function assembleReadme(
         searchParams,
         multiDimAvailableDimensions
     )
+}
+
+export async function fetchDataValuesForGrapher(
+    identifier: GrapherIdentifier,
+    env: Env,
+    searchParams: URLSearchParams
+) {
+    // This endpoint returns data for a single entity/country. If the 'country'
+    // query param is provided, the first entity is used. It defaults to 'World'
+    // when no entity is provided.
+    const entityNames = getEntityNamesParam(
+        searchParams.get("country") ?? undefined
+    )
+    const entityName = entityNames?.[0] ?? WORLD_ENTITY_NAME
+
+    // We update the search params to ensure the entity is selected, which is
+    // necessary for it to be included in the chart's `transformedTable` that is
+    // later used to retrieve the data.
+    searchParams.set("country", generateSelectedEntityNamesParam([entityName]))
+
+    // If no tab param is specified, default to the chart tab
+    const tab = searchParams.get("tab") ?? GRAPHER_TAB_QUERY_PARAMS.chart
+    searchParams.set("tab", tab)
+
+    // Initialize Grapher and download its data
+    const { grapher } = await initGrapher(
+        identifier,
+        TWITTER_OPTIONS,
+        searchParams,
+        env
+    )
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: grapher.grapherState.dimensions,
+        selectedEntityColors: grapher.grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
+    grapher.grapherState.inputTable = inputTable
+
+    const { grapherState } = grapher
+
+    // If the entity is invalid or not included in the chart, we can't return
+    // any data, so we return the source only
+    if (!grapherState.availableEntityNames.includes(entityName))
+        return Response.json({ source: grapherState.sourcesLine })
+
+    // Find the relevant times
+    const endTime = grapherState.endTime
+    const startTime =
+        grapherState.startTime !== grapherState.endTime
+            ? grapherState.startTime
+            : undefined
+
+    // Create a map chart state to access custom label formatting.
+    // When `map.tooltipUseCustomLabels` is enabled, this allows us to display
+    // custom color scheme labels (e.g. "Low", "Medium", "High") instead of
+    // the numeric values
+    const mapChartState = makeChartState(
+        GRAPHER_MAP_TYPE,
+        grapherState
+    ) as MapChartState
+
+    /**
+     * Returns the transformed column for the given slug.
+     *
+     * Note that the chart's transformed table is used, rather than
+     * grapherState.transformedTable, because in rare cases the
+     * chart's transformed table includes transformations that are not
+     * applied to grapherState.transformedTable (e.g. relative mode in
+     * line charts).
+     */
+    const getTransformedColumn = (grapherState: GrapherState, slug: string) =>
+        grapherState.chartState.transformedTable.get(slug)
+
+    const makeDimensionValueForColumnAndTime = (
+        column: CoreColumn,
+        time: Time
+    ) => {
+        if (column.isMissing) return undefined
+
+        const owidRow = column.owidRowByEntityNameAndTime
+            .get(entityName)
+            ?.get(time)
+
+        const value = owidRow?.value
+        if (value === undefined) return { columnSlug: column.def.slug }
+
+        return omitUndefinedValues({
+            columnSlug: column.def.slug,
+
+            value,
+            formattedValue: column.formatValue(value),
+            formattedValueShort: column.formatValueShort(value),
+            formattedValueShortWithAbbreviations:
+                column.formatValueShortWithAbbreviations(value),
+
+            valueLabel: mapChartState.formatTooltipValueIfCustom(value),
+
+            time: owidRow.originalTime,
+            formattedTime: column.formatTime(owidRow.originalTime),
+        })
+    }
+
+    const makeDimensionValuesForTime = (
+        grapherState: GrapherState,
+        time?: Time
+    ) => {
+        if (time === undefined) return undefined
+
+        const ySlugs = grapherState.yColumnSlugs
+        const xSlug = grapherState.xColumnSlug
+
+        return omitUndefinedValues({
+            y: ySlugs.map((ySlug) =>
+                makeDimensionValueForColumnAndTime(
+                    getTransformedColumn(grapherState, ySlug),
+                    time
+                )
+            ),
+            x: makeDimensionValueForColumnAndTime(
+                getTransformedColumn(grapherState, xSlug),
+                time
+            ),
+        })
+    }
+
+    const makeColumnInfo = (column: CoreColumn) => {
+        if (column.isMissing) return undefined
+
+        return omitUndefinedValues({
+            name: column.titlePublicOrDisplayName.title,
+            unit: column.unit,
+            shortUnit: column.shortUnit,
+            isProjection: column.isProjection ? true : undefined,
+            yearIsDay: column.display.yearIsDay ? true : undefined,
+        })
+    }
+
+    const makeColumnInfoForRelevantSlugs = (grapherState: GrapherState) => {
+        const targetSlugs = excludeUndefined([
+            ...grapherState.yColumnSlugs,
+            grapherState.xColumnSlug,
+        ])
+
+        const dimInfo = {}
+        for (const slug of targetSlugs) {
+            if (dimInfo[slug] !== undefined) continue
+            const column = getTransformedColumn(grapherState, slug)
+            const info = makeColumnInfo(column)
+            if (info !== undefined) dimInfo[slug] = info
+        }
+
+        return dimInfo
+    }
+
+    const result = omitUndefinedValues({
+        entityName,
+        startTime: grapherState.startTime,
+        endTime: grapherState.endTime,
+        columns: makeColumnInfoForRelevantSlugs(grapherState),
+        startTimeValues: makeDimensionValuesForTime(grapherState, startTime),
+        endTimeValues: makeDimensionValuesForTime(grapherState, endTime),
+        source: grapherState.sourcesLine,
+    })
+
+    return Response.json(result)
 }

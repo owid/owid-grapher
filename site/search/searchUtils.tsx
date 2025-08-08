@@ -1,10 +1,13 @@
 import * as _ from "lodash-es"
-import { HitAttributeHighlightResult, SearchResponse } from "instantsearch.js"
+import { HitAttributeHighlightResult } from "instantsearch.js"
 import {
     EntityName,
+    GRAPHER_TAB_QUERY_PARAMS,
     GrapherQueryParams,
-    TagGraphNode,
+    GrapherTabName,
+    GrapherTabQueryParam,
     TagGraphRoot,
+    TimeBounds,
 } from "@ourworldindata/types"
 import {
     Region,
@@ -16,26 +19,38 @@ import {
     countriesByName,
     FuzzySearch,
     FuzzySearchResult,
+    getAllChildrenOfArea,
+    timeBoundToTimeBoundString,
+    queryParamsToStr,
 } from "@ourworldindata/utils"
 import { partition } from "remeda"
-import { generateSelectedEntityNamesParam } from "@ourworldindata/grapher"
-import { getIndexName } from "./searchClient.js"
-import { SearchClient } from "algoliasearch"
 import {
-    IDataCatalogHit,
-    DataCatalogRibbonResult,
-    DataCatalogSearchResult,
+    generateSelectedEntityNamesParam,
+    isValidTabQueryParam,
+    mapGrapherTabNameToQueryParam,
+} from "@ourworldindata/grapher"
+import { getIndexName } from "./searchClient.js"
+import {
     SearchIndexName,
-    SearchState,
     Filter,
     FilterType,
-    SearchAutocompleteContextType,
     ScoredSearchResult,
+    SearchResultType,
+    SearchTopicType,
+    SearchFacetFilters,
+    ChartRecordType,
+    SearchChartHit,
 } from "./searchTypes.js"
 import { faTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { match, P } from "ts-pattern"
-import { createContext, ForwardedRef, useContext } from "react"
+import { ForwardedRef } from "react"
+import {
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_URL,
+    GRAPHER_DYNAMIC_THUMBNAIL_URL,
+} from "../../settings/clientSettings.js"
+import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -140,18 +155,134 @@ export function pickEntitiesForChartHit(
     return sortedEntities ?? []
 }
 
-export const getEntityQueryStr = (
-    entities: EntityName[] | null | undefined,
-    existingQueryStr: string = ""
-) => {
-    if (!entities?.length) return existingQueryStr
-    else {
-        return Url.fromQueryStr(existingQueryStr).updateQueryParams({
-            // If we have any entities pre-selected, we want to show the chart tab
-            tab: "chart",
-            country: generateSelectedEntityNamesParam(entities),
-        } satisfies GrapherQueryParams).queryStr
+const generateGrapherTabQueryParam = ({
+    tab,
+    hasEntities,
+}: {
+    tab?: GrapherTabName | GrapherTabQueryParam
+    hasEntities: boolean
+}) => {
+    if (tab) {
+        return isValidTabQueryParam(tab)
+            ? tab
+            : mapGrapherTabNameToQueryParam(tab)
     }
+
+    // If we have any entities pre-selected, we want to show the chart tab
+    if (hasEntities) return GRAPHER_TAB_QUERY_PARAMS.chart
+
+    return undefined
+}
+
+const generateGrapherTimeQueryParam = ({
+    timeBounds,
+    timeMode = "year",
+}: {
+    timeBounds: TimeBounds
+    timeMode?: "year" | "day"
+}) => {
+    return timeBounds
+        .map((time) => timeBoundToTimeBoundString(time, timeMode === "day"))
+        .join("..")
+}
+
+export const getEntityQueryStr = (
+    entities: EntityName[] | null | undefined
+): string => {
+    const hasEntities = !!entities?.length
+
+    const countryParam = hasEntities
+        ? generateSelectedEntityNamesParam(entities)
+        : undefined
+
+    const queryParams = { country: countryParam } satisfies GrapherQueryParams
+
+    const url = Url.fromQueryParams(queryParams)
+
+    return url.queryStr
+}
+
+export const toGrapherQueryParams = ({
+    entities = [],
+    tab,
+    timeBounds,
+    timeMode = "year",
+}: {
+    entities?: EntityName[]
+    tab?: GrapherTabName
+    timeBounds?: TimeBounds
+    timeMode?: "year" | "day"
+}): GrapherQueryParams => {
+    const hasEntities = entities.length > 0
+    return {
+        tab: generateGrapherTabQueryParam({ tab, hasEntities }),
+        country: hasEntities
+            ? generateSelectedEntityNamesParam(entities)
+            : undefined,
+        time: timeBounds
+            ? generateGrapherTimeQueryParam({ timeBounds, timeMode })
+            : undefined,
+    }
+}
+
+const generateQueryStrForChartHit = ({
+    hit,
+    grapherParams,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+}): string => {
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    const isMultiDimView = hit.type === ChartRecordType.MultiDimView
+
+    const viewQueryStr =
+        isExplorerView || isMultiDimView ? hit.queryParams : undefined
+    const grapherQueryStr = grapherParams
+        ? queryParamsToStr(grapherParams)
+        : undefined
+
+    // Remove leading '?' from query strings
+    const queryStrList = [viewQueryStr, grapherQueryStr]
+        .map((queryStr) => queryStr?.replace(/^\?/, ""))
+        .filter((queryStr) => queryStr)
+
+    const queryStr = queryStrList.length > 0 ? "?" + queryStrList.join("&") : ""
+
+    return queryStr
+}
+
+export const constructChartUrl = ({
+    hit,
+    grapherParams,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+}): string => {
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+
+    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
+
+    const basePath = isExplorerView
+        ? `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}`
+        : BAKED_GRAPHER_URL
+
+    return `${basePath}/${hit.slug}${queryStr}`
+}
+
+export const constructChartInfoUrl = ({
+    hit,
+    grapherParams,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+}): string | undefined => {
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+
+    if (isExplorerView) return undefined // Not yet supported
+
+    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
+
+    return `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}.values.json${queryStr}`
 }
 
 export const CHARTS_INDEX = getIndexName(
@@ -165,40 +296,10 @@ export const DATA_CATALOG_ATTRIBUTES = [
     "variantName",
     "type",
     "queryParams",
+    "availableTabs",
+    "source",
+    "subtitle",
 ]
-
-function checkIfNoTopicsOrOneAreaTopicApplied(
-    topics: Set<string>,
-    areas: string[]
-) {
-    if (topics.size === 0) return true
-    if (topics.size > 1) return false
-
-    const [tag] = topics.values()
-    return areas.includes(tag)
-}
-
-export function checkShouldShowRibbonView(
-    query: string,
-    topics: Set<string>,
-    areaNames: string[]
-): boolean {
-    return (
-        query === "" && checkIfNoTopicsOrOneAreaTopicApplied(topics, areaNames)
-    )
-}
-
-/**
- * Set url if it's different from the current url.
- * When the user navigates back, we derive the state from the url and set it
- * so the url is already identical to the state - we don't need to push it again (otherwise we'd get an infinite loop)
- */
-export function syncDataCatalogURL(stateAsUrl: string) {
-    const currentUrl = window.location.href
-    if (currentUrl !== stateAsUrl) {
-        window.history.pushState({}, "", stateAsUrl)
-    }
-}
 
 export function setToFacetFilters(
     facetSet: Set<string>,
@@ -206,34 +307,26 @@ export function setToFacetFilters(
 ) {
     return Array.from(facetSet).map((facet) => `${attribute}:${facet}`)
 }
-function getAllTagsInArea(area: TagGraphNode): string[] {
-    const topics = area.children.reduce((tags, child) => {
-        tags.push(child.name)
-        if (child.children.length > 0) {
-            tags.push(...getAllTagsInArea(child))
-        }
-        return tags
-    }, [] as string[])
-    return Array.from(new Set(topics))
-}
 
-export function getTopicsForRibbons(
-    topics: Set<string>,
-    tagGraph: TagGraphRoot
-) {
-    if (topics.size === 0) return tagGraph.children.map((child) => child.name)
-    if (topics.size === 1) {
-        const area = tagGraph.children.find((child) => topics.has(child.name))
-        if (area) return getAllTagsInArea(area)
-    }
-    return []
+export function getSelectableTopics(
+    tagGraph: TagGraphRoot,
+    selectedTopic: string | undefined
+): Set<string> {
+    if (!selectedTopic)
+        return new Set(tagGraph.children.map((child) => child.name))
+
+    const area = tagGraph.children.find((child) => child.name === selectedTopic)
+    if (area)
+        return new Set(getAllChildrenOfArea(area).map((node) => node.name))
+
+    return new Set()
 }
 
 export function formatCountryFacetFilters(
     countries: Set<string>,
     requireAllCountries: boolean
 ) {
-    const facetFilters: (string | string[])[] = []
+    const facetFilters: SearchFacetFilters = []
     if (requireAllCountries) {
         // conjunction mode (A AND B): [attribute:"A", attribute:"B"]
         facetFilters.push(...setToFacetFilters(countries, "availableEntities"))
@@ -246,6 +339,13 @@ export function formatCountryFacetFilters(
         facetFilters.push("isIncomeGroupSpecificFM:false")
     }
     return facetFilters
+}
+
+export const formatTopicFacetFilters = (
+    topics: Set<string>
+): SearchFacetFilters => {
+    // disjunction mode (A OR B): [[attribute:"A", attribute:"B"]]
+    return [setToFacetFilters(topics, "tags")]
 }
 
 export function getCountryData(selectedCountries: Set<string>): Region[] {
@@ -293,78 +393,6 @@ export const getFilterIcon = (filter: Filter) => {
             </span>
         ))
         .otherwise(() => null)
-}
-
-export async function queryDataCatalogRibbons(
-    searchClient: SearchClient,
-    state: SearchState,
-    tagGraph: TagGraphRoot
-): Promise<DataCatalogRibbonResult[]> {
-    const topicsForRibbons = getTopicsForRibbons(
-        getFilterNamesOfType(state.filters, FilterType.TOPIC),
-        tagGraph
-    )
-
-    const countryFacetFilters = formatCountryFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        state.requireAllCountries
-    )
-    const searchParams = topicsForRibbons.map((topic) => {
-        const facetFilters = [[`tags:${topic}`], ...countryFacetFilters]
-        return {
-            indexName: CHARTS_INDEX,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            query: state.query,
-            facetFilters: facetFilters,
-            hitsPerPage: 4,
-            facets: ["tags"],
-            page: state.page < 0 ? 0 : state.page,
-        }
-    })
-
-    return searchClient.search<IDataCatalogHit>(searchParams).then((response) =>
-        response.results.map((res, i: number) => ({
-            ...(res as SearchResponse<IDataCatalogHit>),
-            title: topicsForRibbons[i],
-        }))
-    )
-}
-
-export async function queryDataCatalogSearch(
-    searchClient: SearchClient,
-    state: SearchState
-): Promise<DataCatalogSearchResult> {
-    const facetFilters = formatCountryFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        state.requireAllCountries
-    )
-    facetFilters.push(
-        ...setToFacetFilters(
-            getFilterNamesOfType(state.filters, FilterType.TOPIC),
-            "tags"
-        )
-    )
-
-    const searchParams = [
-        {
-            indexName: CHARTS_INDEX,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            query: state.query,
-            facetFilters: facetFilters,
-            highlightPostTag: "</mark>",
-            highlightPreTag: "<mark>",
-            facets: ["tags"],
-            maxValuesPerFacet: 15,
-            hitsPerPage: 60,
-            page: state.page < 0 ? 0 : state.page,
-        },
-    ]
-
-    return searchClient
-        .search<IDataCatalogHit>(searchParams)
-        .then(
-            (response) => response.results[0] as SearchResponse<IDataCatalogHit>
-        )
 }
 
 export function searchWithWords(
@@ -567,20 +595,6 @@ export const createCountryFilter = createFilter(FilterType.COUNTRY)
 export const createTopicFilter = createFilter(FilterType.TOPIC)
 export const createQueryFilter = createFilter(FilterType.QUERY)
 
-export const SearchAutocompleteContext = createContext<
-    SearchAutocompleteContextType | undefined
->(undefined)
-
-export function useSearchAutocomplete() {
-    const context = useContext(SearchAutocompleteContext)
-    if (context === undefined) {
-        throw new Error(
-            "useSearchAutocomplete must be used within a SearchAutocompleteContextProvider"
-        )
-    }
-    return context
-}
-
 /**
  * Returns a click handler that focuses an input element when clicking on the
  * target element or its children. If checkTargetEquality is true, only focus
@@ -635,4 +649,59 @@ export const getFilterAriaLabel = (
             () => `${actionName} ${filter.name} ${filter.type} filter`
         )
         .exhaustive()
+}
+
+export const isValidResultType = (
+    value: string | undefined
+): value is SearchResultType => {
+    return Object.values(SearchResultType).includes(value as SearchResultType)
+}
+
+export const getSelectedTopic = (filters: Filter[]): string | undefined => {
+    const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
+    return selectedTopics.size > 0 ? [...selectedTopics][0] : undefined
+}
+
+export function getSelectedTopicType(
+    filters: Filter[],
+    areaNames: string[]
+): SearchTopicType | null {
+    const selectedTopic = getSelectedTopic(filters)
+    if (!selectedTopic) return null
+
+    return areaNames.includes(selectedTopic)
+        ? SearchTopicType.Area
+        : SearchTopicType.Topic
+}
+
+/**
+ * Checks if the search is in browsing mode, which is defined as having no query
+ * and no filters applied.
+ */
+export const isBrowsing = (filters: Filter[], query: string) => {
+    return query.trim() === "" && filters.length === 0
+}
+
+/**
+ * Computes the effective result type that should be displayed/used in the UI.
+ * This respects constraints (e.g., "all" is not allowed when browsing) while
+ * preserving the user's desired result type in the state.
+ */
+export const getEffectiveResultType = (
+    filters: Filter[],
+    query: string,
+    desiredResultType: SearchResultType
+): SearchResultType => {
+    return isBrowsing(filters, query) &&
+        desiredResultType === SearchResultType.ALL
+        ? SearchResultType.DATA
+        : desiredResultType
+}
+
+export async function fetchJson<TResult>(url: string): Promise<TResult> {
+    const response = await fetch(url)
+    if (!response.ok) {
+        throw new Error(`Failed to fetch ${url}: ${response.statusText}`)
+    }
+    return response.json()
 }

@@ -2,6 +2,7 @@
     "name": "owid-functions",
     "type": "module",
     "dependencies": {
+        "@ourworldindata/core-table": "workspace:^",
         "@ourworldindata/explorer": "workspace:^",
         "@ourworldindata/grapher": "workspace:^",
         "@ourworldindata/types": "workspace:^",

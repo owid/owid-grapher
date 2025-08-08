@@ -1,0 +1,15 @@
+.GrapherTrendArrow {
+    $grey: #787878;
+    $red: #cc3b55;
+    $green: #2c8465;
+
+    &.up path {
+        fill: $green;
+    }
+    &.down path {
+        fill: $red;
+    }
+    &.right path {
+        fill: $grey;
+    }
+}
