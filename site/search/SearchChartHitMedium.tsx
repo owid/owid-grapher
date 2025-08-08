@@ -447,14 +447,16 @@ function CaptionedTable({
             onClick={onClick}
         >
             <div className="search-chart-hit-table-wrapper">
-                {match(dataTableProps)
-                    .with({ type: "data-table" }, (props) => (
-                        <SearchChartHitDataTable {...props} />
-                    ))
-                    .with({ type: "data-points" }, (props) => (
-                        <SearchChartHitDataPoints {...props} />
-                    ))
-                    .exhaustive()}
+                <div className="search-chart-hit-table-wrapper-content">
+                    {match(dataTableProps)
+                        .with({ type: "data-table" }, (props) => (
+                            <SearchChartHitDataTable {...props} />
+                        ))
+                        .with({ type: "data-points" }, (props) => (
+                            <SearchChartHitDataPoints {...props} />
+                        ))
+                        .exhaustive()}
+                </div>
             </div>
         </CaptionedLink>
     )
