@@ -607,7 +607,7 @@ const getSortFromDimensions = (
     return sort
 }
 
-const columnDefFromOwidVariable = (
+export const columnDefFromOwidVariable = (
     variable: OwidVariableWithSourceAndDimension
 ): OwidColumnDef => {
     const slug = variable.id.toString() // For now, the variableId will be the column slug

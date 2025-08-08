@@ -15,6 +15,7 @@ import pl from "nodejs-polars"
 import { uuidv7 } from "uuidv7"
 import { DATA_API_URL } from "../../settings/serverSettings.js"
 import { escape } from "mysql2"
+import pMap from "p-map"
 import {
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
@@ -32,6 +33,7 @@ import {
     DbEnrichedVariable,
     DbPlainChart,
     DbPlainMultiDimXChartConfig,
+    OwidVariableWithSourceAndDimensionById,
 } from "@ourworldindata/types"
 import { knexRaw, knexRawFirst } from "../db.js"
 import {
@@ -665,6 +667,55 @@ export async function getDataForMultipleVariables(
         allVariablesDataAndMetadata.map((item) => [item.metadata.id, item])
     )
     return allVariablesDataAndMetadataMap
+}
+
+export async function getMetadataForMultipleVariables(
+    variableIds: Iterable<number>
+): Promise<OwidVariableWithSourceAndDimensionById> {
+    const metadata = await pMap(
+        variableIds,
+        async (id) => {
+            return getVariableMetadata(id)
+        },
+        { concurrency: 10 }
+    )
+
+    return new Map(metadata.map((m) => [m.id, m]))
+}
+
+const variableMetadataCache: OwidVariableWithSourceAndDimensionById = new Map()
+export async function getCachedMetadataForMultipleVariables(
+    variableIds: Iterable<number>
+): Promise<OwidVariableWithSourceAndDimensionById> {
+    const missingVariableIds = new Set<number>()
+
+    // Check the cache and collect variables to be fetched
+    const metadataMap = new Map()
+    for (const id of variableIds) {
+        const cached = variableMetadataCache.get(id)
+        if (cached) {
+            metadataMap.set(id, cached)
+        } else {
+            missingVariableIds.add(id)
+        }
+    }
+
+    // Fetch metadata for missing variables
+    const fetchedMetadata = await pMap(
+        missingVariableIds,
+        async (id) => {
+            return getVariableMetadata(id)
+        },
+        { concurrency: 10 }
+    )
+
+    // Update the cache and result map
+    fetchedMetadata.forEach((metadata) => {
+        metadataMap.set(metadata.id, metadata)
+        variableMetadataCache.set(metadata.id, metadata)
+    })
+
+    return metadataMap
 }
 
 export async function writeVariableCSV(

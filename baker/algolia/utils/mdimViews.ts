@@ -4,7 +4,9 @@ import {
     DbEnrichedMultiDimDataPage,
     DbPlainMultiDimXChartConfig,
     DbRawChartConfig,
+    excludeUndefined,
     getUniqueNamesFromTopicHierarchies,
+    MultiDimDataPageConfigPreProcessed,
     multiDimDimensionsToViewId,
     MultiDimXChartConfigsTableName,
     parseChartConfig,
@@ -13,16 +15,13 @@ import {
 import * as db from "../../../db/db.js"
 import { getAllPublishedMultiDimDataPages } from "../../../db/model/MultiDimDataPage.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
+import { getCachedMetadataForMultipleVariables } from "../../../db/model/Variable.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import {
     ChartRecord,
     ChartRecordType,
 } from "../../../site/search/searchTypes.js"
-import {
-    getRelevantVariableIds,
-    getRelevantVariableMetadata,
-} from "../../MultiDimBaker.js"
-import { GrapherState } from "@ourworldindata/grapher"
+import { makeGrapherStateWithMetadata } from "./shared.js"
 
 async function getChartConfigsByIds(
     knex: db.KnexReadonlyTransaction,
@@ -50,6 +49,7 @@ async function getRecords(
     pageviews: Record<string, { views_7d: number }>
 ) {
     const { slug } = multiDim
+    if (!slug) throw new Error("MultiDim slug is null")
     console.log(
         `Creating ${multiDim.config.views.length} records for mdim ${slug}`
     )
@@ -58,9 +58,9 @@ async function getRecords(
         trx,
         multiDim.config.views.map((view) => view.fullConfigId)
     )
-    const relevantVariableIds = getRelevantVariableIds(multiDim.config)
-    const relevantVariableMetadata =
-        await getRelevantVariableMetadata(relevantVariableIds)
+    const variableIds = getMdimVariableIds(multiDim.config)
+    const variableMetadataById =
+        await getCachedMetadataForMultipleVariables(variableIds)
     return multiDim.config.views.map((view) => {
         const viewId = multiDimDimensionsToViewId(view.dimensions)
         const id = multiDimXChartConfigIdMap.get(`${multiDim.id}-${viewId}`)
@@ -76,13 +76,26 @@ async function getRecords(
                     `viewId=${viewId} chartConfigId=${view.fullConfigId}`
             )
         }
-        const grapherState = new GrapherState(chartConfig)
+
+        const metadataOverwrites = _.merge(
+            {}, // merge mutates the first argument
+            multiDim.config.metadata,
+            view.metadata
+        )
+
+        // Construct GrapherState enriched with metadata
+        const grapherState = makeGrapherStateWithMetadata(
+            chartConfig,
+            variableMetadataById,
+            metadataOverwrites
+        )
+
         const queryStr = queryParamsToStr(view.dimensions)
         const variableId = view.indicators.y[0].id
         const metadata = _.merge(
-            relevantVariableMetadata[variableId],
-            multiDim.config.metadata,
-            view.metadata
+            {}, // merge mutates the first argument
+            variableMetadataById.get(variableId),
+            metadataOverwrites
         )
         const title =
             metadata.presentation?.titlePublic ||
@@ -91,9 +104,9 @@ async function getRecords(
             metadata.name ||
             ""
         const subtitle = metadata.descriptionShort || chartConfig.subtitle || ""
-        const availableEntities = metadata.dimensions.entities.values
-            .map((entity) => entity.name)
-            .filter(Boolean)
+        const availableEntities = excludeUndefined(
+            metadata.dimensions.entities.values.map((entity) => entity.name)
+        )
         const views_7d = pageviews[`/grapher/${slug}`]?.views_7d ?? 0
         const score = views_7d * 10 - title.length
         return {
@@ -105,7 +118,8 @@ async function getRecords(
             queryParams: queryStr,
             title,
             subtitle,
-            variantName: chartConfig.variantName,
+            source: grapherState.sourcesLine,
+            variantName: grapherState.variantName,
             availableTabs: grapherState.availableTabs,
             keyChartForTags: [],
             tags,
@@ -118,7 +132,7 @@ async function getRecords(
             views_7d,
             score,
             isIncomeGroupSpecificFM: false,
-        } as ChartRecord
+        } satisfies ChartRecord
     })
 }
 
@@ -159,4 +173,18 @@ export async function getMdimViewRecords(trx: db.KnexReadonlyTransaction) {
         )
     )
     return records.flat()
+}
+
+export function getMdimVariableIds(config: MultiDimDataPageConfigPreProcessed) {
+    const allIndicatorIds = config.views
+        .flatMap((view) => [
+            ...view.indicators.y,
+            view.indicators.x,
+            view.indicators.size,
+            view.indicators.color,
+        ])
+        .filter((indicator) => indicator !== undefined)
+        .map((indicator) => indicator.id)
+
+    return new Set(allIndicatorIds)
 }
