@@ -264,6 +264,7 @@ function buildDataTablePropsForStackedAreaAndBarChart({
 >): SearchChartHitDataTableProps {
     const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
 
+    const grapherHasSingleSeriesPerFacet = hasSingleSeriesPerFacet(grapherState)
     const rows = chartState.series
         .map((series) => {
             // Pick the data point at the latest time
@@ -273,9 +274,16 @@ function buildDataTablePropsForStackedAreaAndBarChart({
             ])
             if (!point) return undefined
 
+            // Hacky way to fix a bug where `useValueBasedColorScheme` isn't
+            // respected when faceted and the color swatches in the table don't
+            // match the chart colors
+            const color = grapherHasSingleSeriesPerFacet
+                ? undefined // Don't show a color swatch in the table
+                : (point.color ?? series.color)
+
             return {
                 name: series.seriesName,
-                color: point.color ?? series.color,
+                color,
                 value: formatColumn.formatValueShort(point.value),
                 time: formatColumn.formatTime(point.time),
                 muted: series.focus?.background,
@@ -453,5 +461,16 @@ function hasMultipleSeriesPerFacet(grapherState: GrapherState): boolean {
         grapherState.isFaceted &&
         grapherState.selection.numSelectedEntities > 1 &&
         grapherState.yColumnSlugs.length > 1
+    )
+}
+
+function hasSingleSeriesPerFacet(grapherState: GrapherState): boolean {
+    return (
+        // Single column per facet
+        (grapherState.facetStrategy === FacetStrategy.entity &&
+            grapherState.yColumnSlugs.length === 1) ||
+        // Single entity per facet
+        (grapherState.facetStrategy === FacetStrategy.metric &&
+            grapherState.selection.numSelectedEntities === 1)
     )
 }
