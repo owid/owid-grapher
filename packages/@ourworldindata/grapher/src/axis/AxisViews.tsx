@@ -218,6 +218,7 @@ interface DualAxisViewProps {
     gridDashPattern?: string
     detailsMarker?: DetailsMarker
     backgroundColor?: string
+    onlyShowMinMaxLabels?: boolean
 }
 
 @observer
@@ -232,6 +233,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
             gridDashPattern,
             detailsMarker,
             backgroundColor,
+            onlyShowMinMaxLabels,
         } = this.props
         const { bounds, horizontalAxis, verticalAxis, innerBounds } = dualAxis
 
@@ -260,6 +262,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
                 labelColor={labelColor}
                 tickColor={tickColor}
                 detailsMarker={detailsMarker}
+                onlyShowMinMaxLabels={onlyShowMinMaxLabels}
             />
         )
 
@@ -273,6 +276,7 @@ export class DualAxisComponent extends React.Component<DualAxisViewProps> {
                 tickColor={tickColor}
                 tickMarkWidth={lineWidth}
                 detailsMarker={detailsMarker}
+                onlyShowMinMaxLabels={onlyShowMinMaxLabels}
             />
         )
 
@@ -304,6 +308,7 @@ interface VerticalAxisComponentProps {
     labelColor?: string
     tickColor?: string
     detailsMarker?: DetailsMarker
+    onlyShowMinMaxLabels?: boolean
 }
 
 @observer
@@ -316,8 +321,17 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
             tickColor,
             detailsMarker,
             showTickMarks,
+            onlyShowMinMaxLabels,
         } = this.props
         const { tickLabels, labelTextWrap, config } = verticalAxis
+
+        const sortedTickLabels = R.sortBy(tickLabels, (label) => label.x)
+        const visibleTickLabels = onlyShowMinMaxLabels
+            ? [
+                  sortedTickLabels[0],
+                  sortedTickLabels[sortedTickLabels.length - 1],
+              ]
+            : sortedTickLabels
 
         return (
             <g
@@ -339,7 +353,7 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
                 )}
                 {showTickMarks && (
                     <g id={makeIdForHumanConsumption("tick-marks")}>
-                        {tickLabels.map((label, i) => (
+                        {visibleTickLabels.map((label, i) => (
                             <VerticalAxisTickMark
                                 id={makeIdForHumanConsumption(
                                     label.formattedValue
@@ -358,7 +372,7 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
                 )}
                 {!config.hideTickLabels && (
                     <g id={makeIdForHumanConsumption("tick-labels")}>
-                        {tickLabels.map((label, i) => {
+                        {visibleTickLabels.map((label, i) => {
                             const { y, xAlign, yAlign, formattedValue } = label
                             return (
                                 <text

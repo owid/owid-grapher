@@ -118,23 +118,23 @@ export interface ScatterLabel {
 
 export interface ScatterPointsWithLabelsProps {
     seriesArray: ScatterSeries[]
-    hoveredSeriesNames: SeriesName[]
-    focusedSeriesNames: SeriesName[]
+    hoveredSeriesNames?: SeriesName[]
+    focusedSeriesNames?: SeriesName[]
     tooltipSeriesName?: SeriesName
     dualAxis: DualAxis
     colorScale?: ColorScale
     sizeScale: ScaleLinear<number, number>
-    fontScale: ScaleLinear<number, number>
+    fontScale?: ScaleLinear<number, number>
     baseFontSize: number
-    onMouseEnter: (series: ScatterSeries) => void
-    onMouseLeave: () => void
-    onClick: () => void
+    onMouseEnter?: (series: ScatterSeries) => void
+    onMouseLeave?: () => void
+    onClick?: () => void
     isConnected: boolean
     hideConnectedScatterLines: boolean
     noDataModalManager: NoDataModalManager
     disableIntroAnimation?: boolean
     hideScatterLabels?: boolean
-    quadtree: Quadtree<ScatterPointQuadtreeNode>
+    quadtree?: Quadtree<ScatterPointQuadtreeNode>
     backgroundColor?: Color
 }
 
