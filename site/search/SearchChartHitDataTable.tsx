@@ -37,6 +37,10 @@ export function SearchChartHitDataTable({
         ? rows.map((item) => R.omit(item, ["time"]))
         : rows
 
+    // Hide the color in each row if all rows share the same color
+    const shouldShowSwatch =
+        rows.length <= 1 || rows.some((row) => row.color !== rows[0].color)
+
     return (
         <div className="search-chart-hit-table">
             <div className="search-chart-hit-table-content">
@@ -48,6 +52,7 @@ export function SearchChartHitDataTable({
                     <Row
                         key={row.name}
                         row={row}
+                        shouldShowSwatch={shouldShowSwatch}
                         shouldSpanBothColumns={rows.length <= 4}
                     />
                 ))}
@@ -75,9 +80,11 @@ function Header({
 
 function Row({
     row,
+    shouldShowSwatch = true,
     shouldSpanBothColumns,
 }: {
     row: TableRow
+    shouldShowSwatch?: boolean
     shouldSpanBothColumns: boolean
 }): React.ReactElement {
     return (
@@ -87,16 +94,19 @@ function Row({
                 "search-chart-hit-table-row--muted": row.muted,
             })}
         >
-            <span
-                className={cx("search-chart-hit-table-row__swatch", {
-                    "search-chart-hit-table-row__swatch--outlined":
-                        row.outlined,
-                    "search-chart-hit-table-row__swatch--striped": row.striped,
-                    "search-chart-hit-table-row__swatch--no-data":
-                        row.striped === "no-data",
-                })}
-                style={{ backgroundColor: row.color }}
-            />
+            {shouldShowSwatch && (
+                <span
+                    className={cx("search-chart-hit-table-row__swatch", {
+                        "search-chart-hit-table-row__swatch--outlined":
+                            row.outlined,
+                        "search-chart-hit-table-row__swatch--striped":
+                            row.striped,
+                        "search-chart-hit-table-row__swatch--no-data":
+                            row.striped === "no-data",
+                    })}
+                    style={{ backgroundColor: row.color }}
+                />
+            )}
             <span className="search-chart-hit-table-row__name">{row.name}</span>
             {row.value !== undefined && (
                 <>
