@@ -1,4 +1,6 @@
 .search-chart-hit-medium {
+    $grid-gap: 16px;
+
     background-color: $blue-5;
     padding: 16px;
 
@@ -24,7 +26,7 @@
         display: grid;
         grid-template-columns: repeat(8, minmax(0, 1fr));
         grid-template-rows: repeat(2, auto);
-        gap: 16px;
+        gap: $grid-gap;
         align-items: flex-end;
     }
 
@@ -32,6 +34,7 @@
         display: flex;
         flex-direction: column;
         align-items: flex-start;
+        justify-content: flex-end;
         gap: 8px;
         height: 100%;
 
@@ -47,24 +50,34 @@
         color: $blue-90;
         text-decoration: underline;
         text-underline-offset: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
     }
 
     .search-chart-hit-table-wrapper {
-        height: 100%;
-        width: 100%;
         background: #fff;
-        padding: 6px 12px;
 
-        &.single-slot {
-            aspect-ratio: calc(
-                $grapher-thumbnail-width / $grapher-thumbnail-height
-            );
+        // Trick to maintain aspect ratio of the container. We can use the
+        // aspect-ratio property in the future when more browsers support it.
+        // Needs padding-bottom to work, which is set below.
+        // https://stackoverflow.com/a/10441480/9846837
+        position: relative;
+        width: 100%;
+        height: 0;
+
+        .search-chart-hit-table-wrapper-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
         }
 
-        &.double-slot {
-            aspect-ratio: calc(
-                2 * $grapher-thumbnail-width / $grapher-thumbnail-height
-            );
+        .search-chart-hit-table,
+        .search-chart-hit-data-points {
+            padding: 6px 12px;
         }
 
         .search-chart-hit-data-points--align-top {
@@ -99,6 +112,12 @@
         grid-column: span 2;
         grid-row: span 2;
 
+        .search-chart-hit-table-wrapper {
+            padding-bottom: calc(
+                ($grapher-thumbnail-height / $grapher-thumbnail-width * 100%)
+            );
+        }
+
         .search-chart-hit-table {
             grid-template-columns: repeat(1, 1fr);
         }
@@ -108,6 +127,13 @@
         grid-column: span 4;
         grid-row: span 2;
 
+        .search-chart-hit-table-wrapper {
+            padding-bottom: calc(
+                $grapher-thumbnail-height /
+                    (2 * $grapher-thumbnail-width + 1 * $grid-gap) * 100%
+            );
+        }
+
         .search-chart-hit-table {
             grid-template-columns: repeat(2, 1fr);
         }
@@ -116,6 +142,13 @@
     .triple-slot {
         grid-column: span 6;
         grid-row: span 2;
+
+        .search-chart-hit-table-wrapper {
+            padding-bottom: calc(
+                $grapher-thumbnail-height /
+                    (3 * $grapher-thumbnail-width + 2 * $grid-gap) * 100%
+            );
+        }
 
         .search-chart-hit-table {
             grid-template-columns: repeat(3, 1fr);
