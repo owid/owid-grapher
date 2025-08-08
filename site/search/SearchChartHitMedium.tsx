@@ -620,7 +620,10 @@ function constructChartAndPreviewUrlsForTab({
         tab: mapGrapherTabNameToQueryParam(tab),
     }
 
-    const previewUrl = constructThumbnailUrl({ hit, grapherParams })
+    // The legend should be relatively small for map thumbnails
+    const fontSize = tab === GRAPHER_TAB_NAMES.WorldMap ? 11 : undefined
+
+    const previewUrl = constructThumbnailUrl({ hit, grapherParams, fontSize })
 
     const chartUrl = constructChartUrl({
         hit,
