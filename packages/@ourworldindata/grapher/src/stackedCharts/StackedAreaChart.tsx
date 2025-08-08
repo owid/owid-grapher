@@ -461,7 +461,7 @@ export class StackedAreaChart
                         const focused = name === target.series
                         const values = [point?.fake ? undefined : point?.value]
                         const opacity = focused
-                            ? AREA_OPACITY.HOVER
+                            ? AREA_OPACITY.FOCUS
                             : AREA_OPACITY.DEFAULT
                         const swatch = { color, opacity }
 
