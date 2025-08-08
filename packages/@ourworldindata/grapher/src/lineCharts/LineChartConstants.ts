@@ -70,6 +70,7 @@ export interface LinesProps {
     isStatic?: boolean
     multiColor?: boolean
     backgroundColor?: string
+    unfocusedStyle?: "muted" | "faded"
 }
 
 export interface LineChartManager extends ChartManager {
