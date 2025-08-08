@@ -110,6 +110,10 @@ export class StackedAreas extends React.Component<AreasProps> {
         return this.props.hoveredSeriesName !== undefined
     }
 
+    @computed get isFocusModeActive(): boolean {
+        return this.props.seriesArr.some((series) => series.focus?.active)
+    }
+
     @computed private get areas(): React.ReactElement[] {
         const { placedSeriesArr } = this
         const { dualAxis, hoveredSeriesName } = this.props
@@ -133,11 +137,13 @@ export class StackedAreas extends React.Component<AreasProps> {
                 ]
             }
             const points = [...placedPoints, ...prevPoints.toReversed()]
-            const opacity = !this.isHoverModeActive
-                ? AREA_OPACITY.DEFAULT // normal opacity
-                : hoveredSeriesName === series.seriesName
-                  ? AREA_OPACITY.HOVER // hovered
-                  : AREA_OPACITY.MUTE // non-hovered
+            const opacity =
+                !this.isHoverModeActive && !this.isFocusModeActive
+                    ? AREA_OPACITY.DEFAULT // normal opacity
+                    : hoveredSeriesName === series.seriesName ||
+                        series.focus?.active
+                      ? AREA_OPACITY.FOCUS // hovered or focused
+                      : AREA_OPACITY.MUTE // background
 
             return (
                 <path
@@ -165,14 +171,17 @@ export class StackedAreas extends React.Component<AreasProps> {
         const { hoveredSeriesName } = this.props
 
         return placedSeriesArr.map((placedSeries) => {
-            const opacity = !this.isHoverModeActive
-                ? BORDER_OPACITY.DEFAULT // normal opacity
-                : hoveredSeriesName === placedSeries.seriesName
-                  ? BORDER_OPACITY.HOVER // hovered
-                  : BORDER_OPACITY.MUTE // non-hovered
+            const opacity =
+                !this.isHoverModeActive && !this.isFocusModeActive
+                    ? BORDER_OPACITY.DEFAULT // normal opacity
+                    : hoveredSeriesName === placedSeries.seriesName ||
+                        placedSeries.focus?.active
+                      ? BORDER_OPACITY.FOCUS // hovered or focused
+                      : BORDER_OPACITY.MUTE // background
             const strokeWidth =
-                hoveredSeriesName === placedSeries.seriesName
-                    ? BORDER_WIDTH.HOVER
+                hoveredSeriesName === placedSeries.seriesName ||
+                placedSeries.focus?.active
+                    ? BORDER_WIDTH.FOCUS
                     : BORDER_WIDTH.DEFAULT
 
             return (
