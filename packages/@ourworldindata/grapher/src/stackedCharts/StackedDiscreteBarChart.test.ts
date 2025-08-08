@@ -305,8 +305,7 @@ describe("sorting", () => {
         const chartState = new StackedDiscreteBarChartState({
             manager: baseManager,
         })
-        const chart = new StackedDiscreteBarChart({ chartState })
-        expect(chart.sortedItems.map((item) => item.entityName)).toEqual([
+        expect(chartState.sortedItems.map((item) => item.entityName)).toEqual([
             "Spain",
             "France",
             "Germany",
@@ -323,9 +322,8 @@ describe("sorting", () => {
                 },
             },
         })
-        const chart = new StackedDiscreteBarChart({ chartState })
 
-        expect(chart.sortedItems.map((item) => item.entityName)).toEqual([
+        expect(chartState.sortedItems.map((item) => item.entityName)).toEqual([
             "France",
             "Germany",
             "Spain",
@@ -342,9 +340,8 @@ describe("sorting", () => {
                 },
             },
         })
-        const chart = new StackedDiscreteBarChart({ chartState })
 
-        expect(chart.sortedItems.map((item) => item.entityName)).toEqual([
+        expect(chartState.sortedItems.map((item) => item.entityName)).toEqual([
             "Spain",
             "France",
             "Germany",
@@ -361,9 +358,8 @@ describe("sorting", () => {
                 },
             },
         })
-        const chart = new StackedDiscreteBarChart({ chartState })
 
-        expect(chart.sortedItems.map((item) => item.entityName)).toEqual([
+        expect(chartState.sortedItems.map((item) => item.entityName)).toEqual([
             "Spain",
             "France",
             "Germany",
@@ -382,9 +378,8 @@ describe("sorting", () => {
                 selection,
             },
         })
-        const chart = new StackedDiscreteBarChart({ chartState })
 
-        expect(chart.sortedItems.map((item) => item.entityName)).toEqual(
+        expect(chartState.sortedItems.map((item) => item.entityName)).toEqual(
             selection
         )
     })
@@ -400,9 +395,8 @@ describe("sorting", () => {
                 },
             },
         })
-        const chart = new StackedDiscreteBarChart({ chartState })
 
-        expect(chart.sortedItems.map((item) => item.entityName)).toEqual([
+        expect(chartState.sortedItems.map((item) => item.entityName)).toEqual([
             "Spain",
             "Germany",
             "France",
@@ -429,10 +423,9 @@ describe("sorting", () => {
                 },
             },
         })
-        const chart = new StackedDiscreteBarChart({ chartState })
 
         // Expected behavior: Belgium and Germany are sorted first because they have values.
-        expect(chart.sortedItems.map((item) => item.entityName)).toEqual([
+        expect(chartState.sortedItems.map((item) => item.entityName)).toEqual([
             "Belgium",
             "Germany",
             "Spain",

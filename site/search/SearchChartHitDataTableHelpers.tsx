@@ -268,11 +268,76 @@ function buildDataTablePropsForSlopeChart({
 }
 
 function buildDataTablePropsForStackedDiscreteBarChart({
-    grapherState: _grapherState,
-    chartState: _chartState,
-    maxRows: _maxRows,
+    grapherState,
+    chartState,
+    maxRows,
 }: Args<StackedDiscreteBarChartState>): SearchChartHitDataTableProps {
-    return { rows: [], title: "" }
+    const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
+
+    const mode =
+        chartState.yColumnSlugs.length === 1
+            ? "single-dimensional"
+            : "multi-dimensional"
+
+    const { rows, title } = match(mode)
+        .with("single-dimensional", () => {
+            const series = chartState.series[0]
+
+            const rows = series.points
+                .map((point) => {
+                    if (point.fake || point.interpolated) return undefined
+                    return {
+                        point,
+                        name: point.position,
+                        color: point.color ?? series.color,
+                        value: formatColumn.formatValueShort(point.value),
+                        time: formatColumn.formatTime(point.time),
+                    }
+                })
+                .filter((row) => row !== undefined)
+
+            const sortedRows = R.sortBy(rows, [
+                (row) => row.point.value,
+                "desc",
+            ])
+
+            const columnName = getColumnNameForDisplay(formatColumn)
+            const unit = formatColumn.unit
+            const title = unit ? `${columnName} (${unit})` : columnName
+
+            return { rows: sortedRows, title }
+        })
+        .with("multi-dimensional", () => {
+            const focusedEntityName = grapherState.focusArray.seriesNames[0]
+            const focusedItem = focusedEntityName
+                ? chartState.sortedItems.find(
+                      (item) => item.entityName === focusedEntityName
+                  )
+                : undefined
+            const item = focusedItem ?? chartState.sortedItems[0]
+
+            if (!item) return { rows: [], title: "" }
+
+            const rows = item.bars
+                .map((bar) => {
+                    const point = bar.point
+                    if (point.fake || point.interpolated) return undefined
+                    return {
+                        name: bar.seriesName,
+                        color: bar.color,
+                        value: formatColumn.formatValueShort(point.value),
+                        time: formatColumn.formatTime(point.time),
+                    }
+                })
+                .filter((row) => row !== undefined)
+
+            return { rows, title: item.entityName }
+        })
+        .exhaustive()
+
+    const displayRows = maxRows !== undefined ? rows.slice(0, maxRows) : rows
+
+    return { rows: displayRows, title }
 }
 
 function buildDataTablePropsForStackedAreaAndBarChart({

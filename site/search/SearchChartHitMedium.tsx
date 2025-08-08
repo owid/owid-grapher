@@ -537,6 +537,17 @@ function pickEntitiesForDisplay(
             grapherState.table.availableEntityNameSet.has(entityName)
     )
 
+    // TODO: debatable
+    // // In case of a stacked discrete bar chart with multiple y-columns,
+    // // we want to show a single entity, i.e. bar
+    // if (
+    //     grapherState.isStackedDiscreteBar &&
+    //     grapherState.yColumnSlugs.length > 1
+    // ) {
+    //     const entity = pickedEntities[0] ?? defaultEntities[0]
+    //     return entity ? [entity] : []
+    // }
+
     if (pickedEntities.length === 0) return defaultEntities
 
     return match(grapherState.addCountryMode)
@@ -627,10 +638,11 @@ function configureGrapherStateFocus(
     grapherState: GrapherState,
     { entities }: { entities: EntityName[] }
 ): void {
+    const { seriesStrategy = SeriesStrategy.entity } = grapherState.chartState
     if (
         entities.length > 0 &&
         // focusing entities only makes sense when we're plotting entities
-        grapherState.chartState.seriesStrategy === SeriesStrategy.entity &&
+        seriesStrategy === SeriesStrategy.entity &&
         grapherState.facetStrategy !== FacetStrategy.entity
     ) {
         const validEntities = entities.filter((entity) =>
@@ -683,7 +695,8 @@ function configureGrapherStateForLayout(
         )
     } else if (
         grapherState.yColumnSlugs.length > numAvailableRows &&
-        !grapherState.hasProjectedData
+        !grapherState.hasProjectedData &&
+        !grapherState.isStackedDiscreteBar
     ) {
         // When plotting columns as series, focus only the subset of columns
         // that can be displayed in the table
