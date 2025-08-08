@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { Region } from "@ourworldindata/utils"
+import { Region, Tippy } from "@ourworldindata/utils"
 import {
     GRAPHER_TAB_NAMES,
     GrapherChartType,
@@ -116,17 +116,28 @@ export function SearchChartHitSmall({
                             ...timeParam,
                         })
 
+                        const href = constructChartUrl({ hit, grapherParams })
+                        const label = makeLabelForGrapherTab(tab, {
+                            format: "long",
+                        })
+
                         return (
-                            <a
+                            <Tippy
                                 key={tab}
-                                href={constructChartUrl({ hit, grapherParams })}
-                                onClick={onClick}
-                                aria-label={makeLabelForGrapherTab(tab, {
-                                    format: "long",
-                                })}
+                                appendTo={() => document.body}
+                                className="search-chart-hit-small__tippy"
+                                content={label}
+                                placement="bottom"
+                                theme="dark"
                             >
-                                <GrapherTabIcon tab={tab} />
-                            </a>
+                                <a
+                                    href={href}
+                                    onClick={onClick}
+                                    aria-label={label}
+                                >
+                                    <GrapherTabIcon tab={tab} />
+                                </a>
+                            </Tippy>
                         )
                     })}
                 </div>
@@ -134,13 +145,24 @@ export function SearchChartHitSmall({
             {dataDisplayProps && (
                 <SearchChartHitDataDisplay {...dataDisplayProps} />
             )}
-            <Button
-                className="search-chart-hit-small__download-button"
-                theme="solid-light-blue"
-                href={constructDownloadUrl({ hit })}
-                icon={faDownload}
-                ariaLabel="Download options"
-            />
+            <Tippy
+                appendTo={() => document.body}
+                className="search-chart-hit-small__tippy"
+                content="Download options"
+                placement="bottom"
+                theme="dark"
+            >
+                {/* Without this wrapper element, the tippy isn't positioned correctly */}
+                <div className="search-chart-hit-small__download-button-wrapper">
+                    <Button
+                        className="search-chart-hit-small__download-button"
+                        theme="solid-light-blue"
+                        href={constructDownloadUrl({ hit })}
+                        icon={faDownload}
+                        ariaLabel="Download options"
+                    />
+                </div>
+            </Tippy>
         </article>
     )
 }
