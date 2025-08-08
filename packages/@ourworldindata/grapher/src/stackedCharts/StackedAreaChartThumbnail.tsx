@@ -5,7 +5,7 @@ import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { StackedAreaChartState } from "./StackedAreaChartState.js"
 import { type StackedAreaChartProps } from "./StackedAreaChart.js"
-import { Bounds, GrapherVariant } from "@ourworldindata/utils"
+import { Bounds, excludeUndefined, GrapherVariant } from "@ourworldindata/utils"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -115,21 +115,21 @@ export class StackedAreaChartThumbnail
         | undefined {
         if (!this.manager.showLegend || this.isMinimal) return undefined
 
-        // If any series is focused, only show the labels for those
-        const candidateSeries = this.chartState.isFocusModeActive
-            ? this.chartState.series.filter((series) => series.focus?.active)
-            : this.chartState.series
+        const series = excludeUndefined(
+            this.chartState.series.map((series, seriesIndex) => {
+                const { seriesName, color, focus } = series
 
-        const series = candidateSeries.map((series, seriesIndex) => {
-            const { seriesName, color } = series
+                // Don't label background series
+                if (focus?.background) return undefined
 
-            const value = this.chartState.midpoints[seriesIndex]
+                const value = this.chartState.midpoints[seriesIndex]
 
-            const yPosition = this.outerBoundsVerticalAxis.place(value)
-            const label = seriesName
+                const yPosition = this.outerBoundsVerticalAxis.place(value)
+                const label = seriesName
 
-            return { series, seriesName, value, label, yPosition, color }
-        })
+                return { series, seriesName, value, label, yPosition, color }
+            })
+        )
 
         return new VerticalLabelsState(series, {
             fontSize: this.labelFontSize,
