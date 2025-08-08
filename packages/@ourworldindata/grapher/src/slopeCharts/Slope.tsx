@@ -9,6 +9,7 @@ interface SlopeProps {
     strokeWidth?: number
     outlineWidth?: number
     outlineStroke?: string
+    unfocusedStyle?: "muted" | "faded"
 }
 
 export function Slope({
@@ -17,14 +18,20 @@ export function Slope({
     strokeWidth = 2,
     outlineWidth = 0.5,
     outlineStroke = "#fff",
+    unfocusedStyle = "muted",
 }: SlopeProps) {
     const { seriesName, startPoint, endPoint, hover, focus } = series
 
     const showOutline = !focus.background || hover.active
     const opacity =
-        hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
+        (hover.background && !focus.background) ||
+        (focus.background && unfocusedStyle === "faded")
+            ? GRAPHER_OPACITY_MUTE
+            : 1
     const color =
-        !focus.background || hover.active
+        !focus.background ||
+        hover.active ||
+        (focus.background && unfocusedStyle === "faded")
             ? series.color
             : NON_FOCUSED_LINE_COLOR
     const lineWidth =
