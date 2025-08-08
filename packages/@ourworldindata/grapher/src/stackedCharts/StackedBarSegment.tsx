@@ -52,7 +52,7 @@ export class StackedBarSegment extends React.Component<StackedBarSegmentProps> {
     }
 
     @computed get trueOpacity(): number {
-        return this.mouseOver ? BAR_OPACITY.FOCUS : this.props.opacity
+        return this.mouseOver ? BAR_OPACITY.HOVER : this.props.opacity
     }
 
     @action.bound onBarMouseOver(): void {
