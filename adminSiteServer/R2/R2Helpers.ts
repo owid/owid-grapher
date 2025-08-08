@@ -55,7 +55,7 @@ export async function saveObjectToR2(
     contentType: string = "application/json",
     contentMD5?: Base64String,
     s3Client?: S3Client
-): Promise<void> {
+) {
     if (process.env.NODE_ENV === "test") {
         console.log("Skipping saving object to R2 in test environment")
         return
@@ -82,10 +82,11 @@ export async function saveObjectToR2(
         console.log(
             `Saving object to R2: ${params.Bucket}/${params.Key} with content type ${params.ContentType}`
         )
-        await s3Client.send(new PutObjectCommand(params))
+        const result = await s3Client.send(new PutObjectCommand(params))
         console.log(
             `Successfully uploaded object: ${params.Bucket}/${params.Key}`
         )
+        return result
     } catch (err) {
         console.log("err", err)
         throw new JsonError(

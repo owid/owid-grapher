@@ -1,3 +1,23 @@
+.file-upload-label {
+    display: inline-block;
+    padding: 6px 16px;
+    background-color: #1890ff;
+    color: white;
+    border-radius: 6px;
+    min-width: 105px;
+    text-align: center;
+    cursor: pointer;
+
+    &:hover {
+        background-color: darken(#1890ff, 5%);
+    }
+
+    &.is-uploading {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+}
+
 .file-viewer__file,
 .file-viewer__folder {
     padding: 12px;
@@ -22,4 +42,10 @@
     background-color: transparent;
     border: none;
     color: #5b6576;
+    &:hover {
+        opacity: 0.7;
+    }
+    &:active {
+        opacity: 1;
+    }
 }

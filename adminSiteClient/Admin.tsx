@@ -84,13 +84,13 @@ export class Admin {
     // Make a request with no error or response handling
     async rawRequest(
         path: string,
-        data: string | File | undefined,
+        data: string | File | undefined | FormData,
         method: HTTPMethod,
         abortController?: AbortController,
         credentials: RequestCredentials = "same-origin"
     ): Promise<Response> {
         const headers: HeadersInit = {}
-        const isFile = data instanceof File
+        const isFile = data instanceof File || data instanceof FormData
         if (!isFile) {
             headers["Content-Type"] = "application/json"
         }
@@ -111,7 +111,7 @@ export class Admin {
     // If we can't retrieve and parse JSON, it is treated as a fatal/unexpected error
     async requestJSON<T extends Json = Json>(
         path: string,
-        data: Json | File,
+        data: Json | File | FormData,
         method: HTTPMethod,
         opts: { onFailure?: "show" | "continue" } = {}
     ): Promise<T> {
@@ -132,7 +132,9 @@ export class Admin {
         try {
             request = this.rawRequest(
                 targetPath,
-                data instanceof File ? data : JSON.stringify(data),
+                data instanceof File || data instanceof FormData
+                    ? data
+                    : JSON.stringify(data),
                 method,
                 abortController
             )
