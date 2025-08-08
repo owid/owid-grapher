@@ -4045,15 +4045,18 @@ export class Grapher extends React.Component<GrapherProps> {
                 </div>
 
                 {/* Modals */}
-                {this.grapherState.activeModal === GrapherModal.Sources && (
-                    <SourcesModal manager={this.grapherState} />
-                )}
-                {this.grapherState.activeModal === GrapherModal.Download && (
-                    <DownloadModal manager={this.grapherState} />
-                )}
-                {this.grapherState.activeModal === GrapherModal.Embed && (
-                    <EmbedModal manager={this.grapherState} />
-                )}
+                {this.grapherState.activeModal === GrapherModal.Sources &&
+                    this.grapherState.isReady && (
+                        <SourcesModal manager={this.grapherState} />
+                    )}
+                {this.grapherState.activeModal === GrapherModal.Download &&
+                    this.grapherState.isReady && (
+                        <DownloadModal manager={this.grapherState} />
+                    )}
+                {this.grapherState.activeModal === GrapherModal.Embed &&
+                    this.grapherState.isReady && (
+                        <EmbedModal manager={this.grapherState} />
+                    )}
                 {this.grapherState.isEntitySelectorModalOpen && (
                     <EntitySelectorModal manager={this.grapherState} />
                 )}
