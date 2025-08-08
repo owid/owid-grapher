@@ -279,13 +279,15 @@ function buildDataTablePropsForStackedDiscreteBarChart({
             ? "single-dimensional"
             : "multi-dimensional"
 
-    const rows = match(mode)
+    const { rows, title } = match(mode)
         .with("single-dimensional", () => {
             const series = chartState.series[0]
-            return series.points
+
+            const rows = series.points
                 .map((point) => {
-                    if (point.fake) return undefined
+                    if (point.fake || point.interpolated) return undefined
                     return {
+                        point,
                         name: point.position,
                         color: point.color ?? series.color,
                         value: formatColumn.formatValueShort(point.value),
@@ -293,39 +295,47 @@ function buildDataTablePropsForStackedDiscreteBarChart({
                     }
                 })
                 .filter((row) => row !== undefined)
+
+            const sortedRows = R.sortBy(rows, [
+                (row) => row.point.value,
+                "desc",
+            ])
+
+            const columnName = getColumnNameForDisplay(formatColumn)
+            const unit = formatColumn.unit
+            const title = unit ? `${columnName} (${unit})` : columnName
+
+            return { rows: sortedRows, title }
         })
         .with("multi-dimensional", () => {
-            const entityName = grapherState.selection.selectedEntityNames[0]
-            return chartState.series
-                .map((series) => {
-                    const point = series.points.find(
-                        (point) => point.position === entityName
-                    )
-                    if (!point || point.fake) return undefined
+            const focusedEntityName = grapherState.focusArray.seriesNames[0]
+            const focusedItem = focusedEntityName
+                ? chartState.sortedItems.find(
+                      (item) => item.entityName === focusedEntityName
+                  )
+                : undefined
+            const item = focusedItem ?? chartState.sortedItems[0]
+
+            if (!item) return { rows: [], title: "" }
+
+            const rows = item.bars
+                .map((bar) => {
+                    const point = bar.point
+                    if (point.fake || point.interpolated) return undefined
                     return {
-                        name: series.seriesName,
-                        color: series.color,
+                        name: bar.seriesName,
+                        color: bar.color,
                         value: formatColumn.formatValueShort(point.value),
                         time: formatColumn.formatTime(point.time),
                     }
                 })
                 .filter((row) => row !== undefined)
+
+            return { rows, title: item.entityName }
         })
         .exhaustive()
 
     const displayRows = maxRows !== undefined ? rows.slice(0, maxRows) : rows
-
-    const title = match(mode)
-        .with("single-dimensional", () => {
-            const columnName = getColumnNameForDisplay(formatColumn)
-            const unit = formatColumn.unit
-            return unit ? `${columnName} (${unit})` : columnName
-        })
-        .with(
-            "multi-dimensional",
-            () => grapherState.selection.selectedEntityNames[0]
-        )
-        .exhaustive()
 
     return { rows: displayRows, title }
 }
