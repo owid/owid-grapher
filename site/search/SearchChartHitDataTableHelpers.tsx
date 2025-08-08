@@ -75,7 +75,7 @@ export function buildChartHitDataTableProps(
             })
         )
         .with(GRAPHER_TAB_NAMES.StackedArea, () =>
-            buildDataTablePropsForStackedAreaChart({
+            buildDataTablePropsForStackedAreaAndBarChart({
                 ...props,
                 chartState: chartState as StackedAreaChartState,
             })
@@ -93,7 +93,7 @@ export function buildChartHitDataTableProps(
             })
         )
         .with(GRAPHER_TAB_NAMES.StackedBar, () =>
-            buildDataTablePropsForStackedBarChart({
+            buildDataTablePropsForStackedAreaAndBarChart({
                 ...props,
                 chartState: chartState as StackedBarChartState,
             })
@@ -255,20 +255,51 @@ function buildDataTablePropsForStackedDiscreteBarChart({
     return { rows: [], title: "" }
 }
 
-function buildDataTablePropsForStackedBarChart({
-    grapherState: _grapherState,
-    chartState: _chartState,
-    maxRows: _maxRows,
-}: Args<StackedBarChartState>): SearchChartHitDataTableProps {
-    return { rows: [], title: "" }
-}
+function buildDataTablePropsForStackedAreaAndBarChart({
+    grapherState,
+    chartState,
+    maxRows,
+}: Args<
+    StackedAreaChartState | StackedBarChartState
+>): SearchChartHitDataTableProps {
+    const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
 
-function buildDataTablePropsForStackedAreaChart({
-    grapherState: _grapherState,
-    chartState: _chartState,
-    maxRows: _maxRows,
-}: Args<StackedAreaChartState>): SearchChartHitDataTableProps {
-    return { rows: [], title: "" }
+    const grapherHasSingleSeriesPerFacet = hasSingleSeriesPerFacet(grapherState)
+    const rows = chartState.series
+        .map((series) => {
+            // Pick the data point at the latest time
+            const point = R.firstBy(series.points, [
+                (point) => point.time,
+                "desc",
+            ])
+            if (!point) return undefined
+
+            // Hacky way to fix a bug where `useValueBasedColorScheme` isn't
+            // respected when faceted and the color swatches in the table don't
+            // match the chart colors
+            const color = grapherHasSingleSeriesPerFacet
+                ? undefined // Don't show a color swatch in the table
+                : (point.color ?? series.color)
+
+            return {
+                name: series.seriesName,
+                color,
+                value: formatColumn.formatValueShort(point.value),
+                time: formatColumn.formatTime(point.time),
+                muted: series.focus?.background,
+                point,
+            }
+        })
+        .filter((row) => row !== undefined)
+
+    const sortedRows = R.reverse(rows)
+
+    const displayRows =
+        maxRows !== undefined ? sortedRows.slice(0, maxRows) : sortedRows
+
+    const title = makeTableTitle(grapherState, chartState)
+
+    return { rows: displayRows, title }
 }
 
 function buildDataTablePropsForMarimekkoChart({
@@ -430,5 +461,16 @@ function hasMultipleSeriesPerFacet(grapherState: GrapherState): boolean {
         grapherState.isFaceted &&
         grapherState.selection.numSelectedEntities > 1 &&
         grapherState.yColumnSlugs.length > 1
+    )
+}
+
+function hasSingleSeriesPerFacet(grapherState: GrapherState): boolean {
+    return (
+        // Single column per facet
+        (grapherState.facetStrategy === FacetStrategy.entity &&
+            grapherState.yColumnSlugs.length === 1) ||
+        // Single entity per facet
+        (grapherState.facetStrategy === FacetStrategy.metric &&
+            grapherState.selection.numSelectedEntities === 1)
     )
 }
