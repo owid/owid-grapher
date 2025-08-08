@@ -55,6 +55,7 @@ export interface ChartRecord {
     type: ChartRecordType
     objectID: string
     chartId: number
+    chartConfigId?: string
     slug: string
     queryParams?: string
     title: string
