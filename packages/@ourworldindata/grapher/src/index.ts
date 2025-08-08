@@ -56,6 +56,12 @@ export { EntityPicker } from "./controls/entityPicker/EntityPicker"
 export type { EntityPickerManager } from "./controls/entityPicker/EntityPickerConstants"
 export { getColorSchemeForChartType } from "./color/ColorSchemes"
 export {
+    isCategoricalBin,
+    isNumericBin,
+    isNoDataBin,
+    isProjectedDataBin,
+} from "./color/ColorScaleBin"
+export {
     GLOBAL_ENTITY_SELECTOR_DATA_ATTR,
     GLOBAL_ENTITY_SELECTOR_ELEMENT,
     GLOBAL_ENTITY_SELECTOR_DEFAULT_COUNTRY,
