@@ -492,8 +492,8 @@ export class StackedAreaChart
                         const focused = name === target.series
                         const values = [point?.fake ? undefined : point?.value]
                         const opacity = focused
-                            ? AREA_OPACITY.focus
-                            : AREA_OPACITY.default
+                            ? AREA_OPACITY.HOVER
+                            : AREA_OPACITY.DEFAULT
                         const swatch = { color, opacity }
 
                         return {
@@ -594,7 +594,7 @@ export class StackedAreaChart
                 <StackedAreas
                     dualAxis={this.dualAxis}
                     seriesArr={this.stackedSeries}
-                    focusedSeriesName={this.hoveredSeriesName}
+                    hoveredSeriesName={this.hoveredSeriesName}
                 />
             </>
         )
@@ -635,7 +635,7 @@ export class StackedAreaChart
                     <StackedAreas
                         dualAxis={dualAxis}
                         seriesArr={series}
-                        focusedSeriesName={this.hoveredSeriesName}
+                        hoveredSeriesName={this.hoveredSeriesName}
                         onAreaMouseEnter={this.onAreaMouseEnter}
                         onAreaMouseLeave={this.onAreaMouseLeave}
                     />
