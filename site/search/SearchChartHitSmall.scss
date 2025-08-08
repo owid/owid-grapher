@@ -26,6 +26,10 @@
         a {
             color: $blue-60;
             line-height: 0;
+
+            &:hover {
+                color: $blue-90;
+            }
         }
 
         svg {
@@ -34,9 +38,11 @@
         }
     }
 
-    .search-chart-hit-small__download-button {
+    .search-chart-hit-small__download-button-wrapper {
         align-self: center;
+    }
 
+    .search-chart-hit-small__download-button {
         &:hover {
             background-color: #bed2e7;
         }
@@ -50,5 +56,16 @@
         .search-chart-hit-data-display {
             display: none;
         }
+    }
+}
+
+.search-chart-hit-small__tippy {
+    $background: $gray-90;
+
+    @include note-1-regular;
+    background-color: $background;
+
+    .tippy-arrow {
+        color: $background;
     }
 }
