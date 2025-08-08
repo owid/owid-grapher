@@ -128,4 +128,20 @@ export class CategoricalBin extends AbstractColorScaleBin<CategoricalBinProps> {
     }
 }
 
+export function isCategoricalBin(bin: ColorScaleBin): bin is CategoricalBin {
+    return bin instanceof CategoricalBin
+}
+
+export function isNumericBin(bin: ColorScaleBin): bin is NumericBin {
+    return bin instanceof NumericBin
+}
+
+export function isNoDataBin(bin: ColorScaleBin): bin is CategoricalBin {
+    return isCategoricalBin(bin) && bin.value === NO_DATA_LABEL
+}
+
+export function isProjectedDataBin(bin: ColorScaleBin): bin is CategoricalBin {
+    return isCategoricalBin(bin) && bin.value === PROJECTED_DATA_LABEL
+}
+
 export type ColorScaleBin = CategoricalBin | NumericBin
