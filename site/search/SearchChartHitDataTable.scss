@@ -58,6 +58,10 @@
         margin-right: 4px;
         flex-shrink: 0;
 
+        &.search-chart-hit-table-row__swatch--outlined {
+            border: 0.5px solid #333;
+        }
+
         @mixin diagonal-background($background, $color) {
             background: repeating-linear-gradient(
                 -45deg,
@@ -70,6 +74,10 @@
 
         &.search-chart-hit-table-row__swatch--striped {
             @include diagonal-background(transparent, #fff);
+        }
+
+        &.search-chart-hit-table-row__swatch--no-data {
+            @include diagonal-background(#fff, #ccc);
         }
     }
 

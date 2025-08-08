@@ -8,6 +8,8 @@ import {
     DimensionProperty,
     EntitySelectionMode,
     GRAPHER_CHART_TYPES,
+    ColorSchemeName,
+    BinningStrategy,
 } from "@ourworldindata/types"
 import {
     SynthesizeGDPTable,
@@ -342,5 +344,72 @@ describe("buildChartHitDataTableProps for SlopeChart", () => {
         // Check that the colors are unique
         const colors = dataTable?.rows.map((row) => row.color)
         expect(new Set(colors)).toHaveLength(colors!.length)
+    })
+})
+
+describe("buildChartHitDataTableProps for WorldMap", () => {
+    it("shows the map legend", () => {
+        const grapherState = createSingleIndicatorGrapherState({
+            chartTypes: [],
+            hasMapTab: true,
+            map: {
+                colorScale: {
+                    baseColorScheme: ColorSchemeName.Blues,
+                    binningStrategy: BinningStrategy.manual,
+                    customNumericValues: [
+                        1000000000, 3000000000, 5000000000, 7000000000,
+                        9000000000, 1000000000,
+                    ],
+                },
+            },
+        })
+
+        const dataTable = buildChartHitDataTableProps({ grapherState })
+
+        expect(dataTable?.title).toBe("GDP")
+        expect(dataTable?.rows).toMatchObject([
+            {
+                color: "#eff3ff",
+                name: "$1 billion-$3 billion",
+                outlined: true,
+                striped: false,
+                time: "2009",
+            },
+            {
+                color: "#bdd7e7",
+                name: "$3 billion-$5 billion",
+                outlined: true,
+                striped: false,
+                time: "2009",
+            },
+            {
+                color: "#6baed6",
+                name: "$5 billion-$7 billion",
+                outlined: true,
+                striped: false,
+                time: "2009",
+            },
+            {
+                color: "#3182bd",
+                name: "$7 billion-$9 billion",
+                outlined: true,
+                striped: false,
+                time: "2009",
+            },
+            {
+                color: "#08519c",
+                name: ">$9 billion",
+                outlined: true,
+                striped: false,
+                time: "2009",
+            },
+            {
+                color: "#6e7581",
+                name: "No data",
+                outlined: true,
+                striped: "no-data",
+                time: "2009",
+            },
+        ])
     })
 })
