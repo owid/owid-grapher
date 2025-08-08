@@ -104,6 +104,7 @@ async function getRecords(
             objectID: `mdim-view-${id}`,
             id: `mdim/${slug}${queryStr}`,
             chartId: -1,
+            chartConfigId: view.fullConfigId,
             slug,
             queryParams: queryStr,
             title,
