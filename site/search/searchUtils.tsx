@@ -72,6 +72,7 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
     EXPLORER_DYNAMIC_THUMBNAIL_URL,
+    GRAPHER_DYNAMIC_CONFIG_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../../settings/clientSettings.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
@@ -348,11 +349,17 @@ export const constructConfigUrl = ({
     hit: SearchChartHit
 }): string | undefined => {
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    const isMultiDimView = hit.type === ChartRecordType.MultiDimView
+
     if (isExplorerView) return undefined // Not yet supported
 
-    const queryStr = generateQueryStrForChartHit({ hit })
+    // Fetch Mdim config by its UUID
+    if (isMultiDimView)
+        return hit.chartConfigId
+            ? `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${hit.chartConfigId}.config.json`
+            : undefined
 
-    return `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}.config.json${queryStr}`
+    return `${GRAPHER_DYNAMIC_CONFIG_URL}/${hit.slug}.config.json`
 }
 
 export const constructDownloadUrl = ({
@@ -417,8 +424,8 @@ export const DATA_CATALOG_ATTRIBUTES = [
     "type",
     "queryParams",
     "availableTabs",
-    "source",
     "subtitle",
+    "chartConfigId",
 ]
 
 export function setToFacetFilters(
