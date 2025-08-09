@@ -119,6 +119,7 @@ export type SearchChartHit = {
     queryParams: string
     subtitle?: string
     availableTabs: GrapherTabName[]
+    chartConfigId?: string
     __position: number
     _highlightResult?: HitHighlightResult
     _snippetResult?: HitHighlightResult
