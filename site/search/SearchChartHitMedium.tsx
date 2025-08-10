@@ -740,6 +740,19 @@ function configureGrapherStateForLayout(
             .map((row) => row.name)
         grapherState.focusArray.clearAllAndAdd(...seriesNamesInTable)
     }
+
+    // If the selected entities are the same as the authored ones, they won't
+    // be persisted in the (thumbnail) URL, so we must update the local grapherState
+    // to make sure they're in the same order. The order is of importance in
+    // stacked area charts for example.
+    if (
+        grapherState.selection.hasSelection &&
+        !grapherState.areSelectedEntitiesDifferentThanAuthors
+    ) {
+        grapherState.selection.setSelectedEntities(
+            grapherState.legacyConfigAsAuthored.selectedEntityNames ?? []
+        )
+    }
 }
 
 function resetGrapherColors(grapherState: GrapherState): void {
