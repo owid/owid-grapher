@@ -282,7 +282,7 @@ function buildDataTablePropsForStackedAreaAndBarChart({
 >): SearchChartHitDataTableProps {
     const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
 
-    const grapherHasSingleSeriesPerFacet =
+    const hasSingleSeriesPerFacet =
         grapherState.isFaceted && !grapherState.hasMultipleSeriesPerFacet
     let rows = chartState.series
         .map((series) => {
@@ -296,7 +296,7 @@ function buildDataTablePropsForStackedAreaAndBarChart({
             // Hacky way to fix a bug where `useValueBasedColorScheme` isn't
             // respected when faceted and the color swatches in the table don't
             // match the chart colors
-            const color = grapherHasSingleSeriesPerFacet
+            const color = hasSingleSeriesPerFacet
                 ? undefined // Don't show a color swatch in the table
                 : (point.color ?? series.color)
 
