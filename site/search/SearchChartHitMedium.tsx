@@ -635,6 +635,14 @@ function constructChartAndPreviewUrlsForTab({
         tab: mapGrapherTabNameToQueryParam(tab),
     }
 
+    // Instead of showing a single series per facet,
+    // show all series in a single discrete bar chart
+    const hasSingleSeriesPerFacet =
+        grapherState.isFaceted && !grapherState.hasMultipleSeriesPerFacet
+    if (tab === GRAPHER_TAB_NAMES.DiscreteBar && hasSingleSeriesPerFacet) {
+        grapherParams.facet = FacetStrategy.none
+    }
+
     const previewUrl = constructThumbnailUrl({ hit, grapherParams })
 
     const chartUrl = constructChartUrl({
