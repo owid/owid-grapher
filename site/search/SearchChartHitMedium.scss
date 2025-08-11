@@ -19,6 +19,10 @@
         &:hover {
             background-color: #bed2e7;
         }
+
+        @include sm-only {
+            display: none;
+        }
     }
 
     .search-chart-hit-medium__content {
@@ -28,6 +32,26 @@
         grid-template-rows: repeat(2, auto);
         gap: $grid-gap;
         align-items: flex-end;
+
+        @include md-down {
+            margin-top: 12px;
+
+            // The number of columns are set in the component
+            --num-columns: 4; // fallback value
+            grid-template-columns: repeat(calc(2 * var(--num-columns)), 120px);
+
+            // Horizontal scroll container with scroll snapping
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+
+            // Hide scrollbar
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* Internet Explorer and Edge */
+            &::-webkit-scrollbar {
+                display: none; /* Safari and Chrome */
+            }
+        }
     }
 
     .search-chart-hit-medium__captioned-link {
@@ -37,6 +61,10 @@
         justify-content: flex-end;
         gap: 8px;
         height: 100%;
+
+        @include md-down {
+            scroll-snap-align: start;
+        }
 
         &:hover {
             .search-chart-hit-medium__captioned-link-label {
@@ -106,6 +134,12 @@
         }
     }
 
+    @include md-down {
+        .search-chart-hit-data-display {
+            display: none;
+        }
+    }
+
     // grid utilities
 
     .single-slot {
@@ -167,11 +201,23 @@
     .small-slot-left {
         grid-column: 7;
         grid-row: 2;
+
+        // Takes up a full slot on smaller screens
+        @include md-down {
+            grid-column: span 2;
+            grid-row: span 2;
+        }
     }
 
     .small-slot-right {
         grid-column: 8;
         grid-row: 2;
+
+        // Takes up a full slot on smaller screens
+        @include md-down {
+            grid-column: span 2;
+            grid-row: span 2;
+        }
     }
 
     .data-slot {
