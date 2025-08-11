@@ -36,6 +36,7 @@ import {
     mapGrapherTabNameToQueryParam,
     CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME,
     StackedDiscreteBarChartState,
+    makeChartState,
 } from "@ourworldindata/grapher"
 import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
 import {
@@ -257,14 +258,15 @@ function SearchChartHitMediumRichData({
             >
                 {layout?.placedTabs.map(({ tab, slot }, tabIndex) => {
                     // Always use the thumbnail version on smaller screens since
-                    // the table might not be visible. Otherwise, use the minimal
-                    // version for the first tab (which is annotated by the table)
-                    // and thumbnails for all other tabs.
+                    // the table might not be visible
                     const previewVariant = isMediumScreen
                         ? "thumbnail"
-                        : tabIndex === 0
-                          ? "minimal"
-                          : "thumbnail"
+                        : getPreviewVariant({
+                              tab,
+                              tabIndex,
+                              grapherState,
+                              layout,
+                          })
 
                     const { chartUrl, previewUrl } =
                         constructChartAndPreviewUrlsForTab({
@@ -767,6 +769,41 @@ function pickEntitiesForDisplay(
             return R.unique([...pickedEntities, ...defaultEntities])
         })
         .exhaustive()
+}
+
+function getPreviewVariant({
+    tab,
+    tabIndex,
+    grapherState,
+    layout,
+}: {
+    tab: GrapherTabName
+    tabIndex: number
+    grapherState: GrapherState
+    layout: Layout
+}): PreviewVariant {
+    const { DiscreteBar } = GRAPHER_TAB_NAMES
+
+    const isPrimaryTab = tabIndex === 0
+
+    if (tab === DiscreteBar) {
+        const bars = isPrimaryTab
+            ? (layout.dataTableContent.props as SearchChartHitDataTableProps)
+                  .rows
+            : makeChartState(DiscreteBar, grapherState).series
+
+        if (bars.length <= 1) return "thumbnail"
+
+        // If all bars share the same color, make sure to render the thumbnail
+        // version (that includes entity labels)
+        const colors = bars.map((bar) => bar.color)
+        const areColorsUnique = R.unique(colors).length === colors.length
+        if (!areColorsUnique) return "thumbnail"
+    }
+
+    // Use the minimal version for the first tab (which is annotated by the table)
+    // and thumbnails for all other tabs
+    return isPrimaryTab ? "minimal" : "thumbnail"
 }
 
 function constructChartAndPreviewUrlsForTab({
