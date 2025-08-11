@@ -11,6 +11,7 @@ import { observer } from "mobx-react"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
+    GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { AxisManager } from "../axis/AxisConfig"
@@ -29,9 +30,16 @@ import { DiscreteBarChartState } from "./DiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { DiscreteBars } from "./DiscreteBars"
 import { makeProjectedDataPatternId } from "./DiscreteBarChartHelpers"
+import { TextWrap } from "@ourworldindata/components"
 
 const LEGEND_PADDING = 25
 const DEFAULT_PROJECTED_DATA_COLOR_IN_LEGEND = "#787878"
+
+// If an entity name exceeds this width, we use the short name instead (if available)
+const SOFT_MAX_LABEL_WIDTH = 90
+
+// todo: duplicated
+const BAR_SPACING_FACTOR = 0.35
 
 export interface Label {
     valueString: string
@@ -71,8 +79,94 @@ export class DiscreteBarChart
         )
     }
 
+    // Account for the width of the legend
+    @computed private get seriesLegendWidth(): number {
+        return _.max(this.sizedSeries.map((s) => s.label?.width ?? 0)) ?? 0
+    }
+
+    @computed private get innerBounds(): Bounds {
+        return this.boundsWithoutColorLegend.padLeft(this.seriesLegendWidth)
+    }
+
     @computed get fontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
+    }
+
+    @computed private get barCount(): number {
+        return this.series.length
+    }
+
+    @computed private get labelFontSize(): number {
+        const availableHeight = this.bounds.height / this.barCount
+        return Math.min(
+            GRAPHER_FONT_SCALE_12 * this.fontSize,
+            1.1 * availableHeight
+        )
+    }
+
+    @computed private get entityLabelStyle(): {
+        fontSize: number
+        fontWeight: number
+    } {
+        return { fontSize: this.labelFontSize, fontWeight: 700 }
+    }
+
+    // useful if `barHeight` can't be used due to a cyclic dependency
+    // keep in mind though that this is not exactly the same as `barHeight`
+    @computed private get approximateBarHeight(): number {
+        const { height } = this.bounds
+        const approximateMaxBarHeight = height / this.barCount
+        const approximateBarSpacing =
+            approximateMaxBarHeight * BAR_SPACING_FACTOR
+        const totalWhiteSpace = this.barCount * approximateBarSpacing
+        return (height - totalWhiteSpace) / this.barCount
+    }
+
+    @computed private get sizedSeries(): DiscreteBarSeries[] {
+        // can't use `this.barHeight` due to a circular dependency
+        const barHeight = this.approximateBarHeight
+
+        return this.series.map((series) => {
+            // make sure we're dealing with a single-line text fragment
+            const entityName = series.entityName.replace(/\n/g, " ").trim()
+
+            const maxLegendWidth = 0.3 * this.bounds.width
+
+            let label = new TextWrap({
+                text: entityName,
+                maxWidth: maxLegendWidth,
+                ...this.entityLabelStyle,
+            })
+
+            // prevent labels from being taller than the bar
+            let step = 0
+            while (
+                label.height > barHeight &&
+                label.lines.length > 1 &&
+                step < 10 // safety net
+            ) {
+                label = new TextWrap({
+                    text: entityName,
+                    maxWidth: label.maxWidth + 20,
+                    ...this.entityLabelStyle,
+                })
+                step += 1
+            }
+
+            // if the label is too long, use the short name instead
+            const tooLong =
+                label.width > SOFT_MAX_LABEL_WIDTH ||
+                label.width > maxLegendWidth
+            if (tooLong && series.shortEntityName) {
+                label = new TextWrap({
+                    text: series.shortEntityName,
+                    maxWidth: label.maxWidth,
+                    ...this.entityLabelStyle,
+                })
+            }
+
+            return { ...series, label }
+        })
     }
 
     override componentDidMount(): void {
@@ -116,7 +210,9 @@ export class DiscreteBarChart
                 )}
                 <DiscreteBars
                     chartState={this.chartState}
-                    bounds={this.boundsWithoutColorLegend}
+                    bounds={this.innerBounds}
+                    series={this.sizedSeries}
+                    labelFontSize={this.labelFontSize}
                 />
             </>
         )
