@@ -20,6 +20,7 @@ import {
     GridSlot,
     getRowCountForGridSlot,
     constructDownloadUrl,
+    getColumnCountForGridSlot,
     PlacedTab,
     constructMdimConfigUrl,
 } from "./searchUtils.js"
@@ -207,7 +208,10 @@ function SearchChartHitMediumRichData({
                     onClick={onClick}
                 />
 
-                <div className="search-chart-hit-medium__content">
+                <div
+                    className="search-chart-hit-medium__content"
+                    style={{ "--num-columns": 3 } as React.CSSProperties}
+                >
                     <GrapherThumbnailPlaceholder />
                     <GrapherThumbnailPlaceholder />
                     <GrapherThumbnailPlaceholder />
@@ -219,6 +223,10 @@ function SearchChartHitMediumRichData({
     const countryParam = grapherState.changedParams.country
     const grapherParams = countryParam ? { country: countryParam } : undefined
     const chartUrl = constructChartUrl({ hit, grapherParams })
+
+    const contentStyle = {
+        "--num-columns": getTotalColumnCount(layout?.placedTabs ?? []),
+    } as React.CSSProperties
 
     return (
         <div ref={ref} className="search-chart-hit-medium">
@@ -239,7 +247,10 @@ function SearchChartHitMediumRichData({
                 />
             </div>
 
-            <div className="search-chart-hit-medium__content">
+            <div
+                className="search-chart-hit-medium__content"
+                style={contentStyle}
+            >
                 {layout?.placedTabs.map(({ tab, slot }) =>
                     tab === GRAPHER_TAB_NAMES.Table ? (
                         <CaptionedTable
@@ -332,6 +343,10 @@ function SearchChartHitMediumFallback({
         tableType: "none", // since there is no table tab
     })
 
+    const contentStyle = {
+        "--num-columns": getTotalColumnCount(placedTabs),
+    } as React.CSSProperties
+
     return (
         <div ref={ref} className="search-chart-hit-medium">
             <div className="search-chart-hit-medium__header">
@@ -351,7 +366,10 @@ function SearchChartHitMediumFallback({
                 />
             </div>
 
-            <div className="search-chart-hit-medium__content">
+            <div
+                className="search-chart-hit-medium__content"
+                style={contentStyle}
+            >
                 {placedTabs.map(({ tab, slot }) => {
                     const caption = makeLabelForGrapherTab(tab, {
                         format: "long",
@@ -985,4 +1003,8 @@ function calculateLayout(
         .exhaustive()
 
     return { placedTabs, dataTableContent, dataDisplayProps }
+}
+
+function getTotalColumnCount(placedTabs: PlacedTab[]): number {
+    return R.sumBy(placedTabs, (tab) => getColumnCountForGridSlot(tab.slot))
 }
