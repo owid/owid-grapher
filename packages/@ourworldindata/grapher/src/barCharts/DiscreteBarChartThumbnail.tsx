@@ -21,6 +21,6 @@ export class DiscreteBarChartThumbnail
     }
 
     override render(): React.ReactElement {
-        return <DiscreteBars {...this.props} />
+        return <DiscreteBars {...this.props} series={this.chartState.series} />
     }
 }
