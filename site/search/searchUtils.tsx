@@ -929,13 +929,14 @@ export function getColumnNameForDisplay(column: CoreColumn): string {
 }
 
 export function getColumnUnitForDisplay(
-    column: CoreColumn | { unit?: string; shortUnit?: string }
+    column: CoreColumn | { unit?: string; shortUnit?: string },
+    { allowTrivial = false }: { allowTrivial?: boolean } = {}
 ): string | undefined {
-    // Get non-trivial unit, i.e. only consider it if it's different from the short unit
-    const unit =
-        column.unit && column.shortUnit !== column.unit
-            ? column.unit
-            : undefined
+    if (!column.unit) return undefined
+
+    // The unit is considered trivial if it is the same as the short unit
+    const isTrivial = column.unit === column.shortUnit
+    const unit = allowTrivial || !isTrivial ? column.unit : undefined
 
     // Remove parentheses from the beginning and end of the unit
     const strippedUnit = unit?.replace(/(^\(|\)$)/g, "")
