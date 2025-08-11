@@ -9,7 +9,8 @@ export interface GuidedChartContextValue {
     onGuidedChartLinkClick?: (href: string) => void
     registerMultiDim?: (registrationData: {
         config: MultiDimDataPageConfig
-        updater: (newSettings: MultiDimDimensionChoices) => void
+        onSettingsChange: (newSettings: MultiDimDimensionChoices) => void
+        grapherContainerRef: React.RefObject<HTMLDivElement | null>
     }) => void
 }
 
