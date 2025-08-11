@@ -56,6 +56,13 @@ async function initGrapherForExplorerView(
     await explorer.updateGrapherFromExplorer()
     explorer.grapherState.populateFromQueryParams(urlObj.queryParams)
 
+    explorer.grapherState.isExportingToSvgOrPng = true
+    explorer.grapherState.shouldIncludeDetailsInStaticExport = options.details
+    explorer.grapherState.isSocialMediaExport =
+        options.grapherProps.isSocialMediaExport
+    explorer.grapherState.renderMode = options.grapherProps.renderMode
+    explorer.grapherState.initialOptions = { baseFontSize: options.fontSize }
+
     return {
         grapherState: explorer.grapherState,
         explorerParams: explorer.explorerProgram.decisionMatrix.currentParams,
