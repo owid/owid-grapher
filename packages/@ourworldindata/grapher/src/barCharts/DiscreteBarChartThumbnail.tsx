@@ -3,10 +3,8 @@ import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { DiscreteBarChartState } from "./DiscreteBarChartState"
-import {
-    DiscreteBarChart,
-    type DiscreteBarChartProps,
-} from "./DiscreteBarChart.js"
+import { type DiscreteBarChartProps } from "./DiscreteBarChart.js"
+import { DiscreteBars } from "./DiscreteBars"
 
 @observer
 export class DiscreteBarChartThumbnail
@@ -23,6 +21,6 @@ export class DiscreteBarChartThumbnail
     }
 
     override render(): React.ReactElement {
-        return <DiscreteBarChart {...this.props} />
+        return <DiscreteBars {...this.props} />
     }
 }
