@@ -1188,18 +1188,22 @@ function getGridSlotForCount(slotCount: number): GridSlot {
     else return GridSlot.QuadSlot
 }
 
-export function getRowCountForGridSlot(
-    slot: GridSlot,
-    numRowsPerColumn: number
-): number {
-    const numColumns = match(slot)
+export function getColumnCountForGridSlot(slot: GridSlot): number {
+    return match(slot)
         .with(GridSlot.SingleSlot, () => 1)
         .with(GridSlot.DoubleSlot, () => 2)
         .with(GridSlot.TripleSlot, () => 3)
         .with(GridSlot.QuadSlot, () => 4)
-        .with(GridSlot.SmallSlotLeft, () => 0)
-        .with(GridSlot.SmallSlotRight, () => 0)
+        .with(GridSlot.SmallSlotLeft, () => 1)
+        .with(GridSlot.SmallSlotRight, () => 1)
         .exhaustive()
+}
+
+export function getRowCountForGridSlot(
+    slot: GridSlot,
+    numRowsPerColumn: number
+): number {
+    const numColumns = getColumnCountForGridSlot(slot)
     return numColumns * numRowsPerColumn
 }
 
