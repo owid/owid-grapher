@@ -23,7 +23,10 @@ import {
     SeriesStrategy,
 } from "@ourworldindata/types"
 import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable"
-import { getColumnNameForDisplay } from "./searchUtils.js"
+import {
+    getColumnNameForDisplay,
+    getColumnUnitForDisplay,
+} from "./searchUtils.js"
 import { OwidTable } from "@ourworldindata/core-table"
 
 interface BaseArgs {
@@ -273,7 +276,7 @@ function makeTableTitle(
     const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
 
     const columnName = getColumnNameForDisplay(formatColumn)
-    const unit = formatColumn.unit
+    const unit = getColumnUnitForDisplay(formatColumn, { allowTrivial: true })
 
     if (hasMultipleSeriesPerFacet(grapherState)) {
         if (isFacetedByEntity) {
