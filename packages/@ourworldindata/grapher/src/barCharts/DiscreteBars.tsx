@@ -31,15 +31,11 @@ import { HorizontalAxis } from "../axis/Axis"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import type { BaseType, Selection } from "d3-selection"
-import { TextWrap } from "@ourworldindata/components"
 import { DiscreteBarChartState } from "./DiscreteBarChartState"
 import { makeProjectedDataPatternId } from "./DiscreteBarChartHelpers"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
-
-// if an entity name exceeds this width, we use the short name instead (if available)
-const SOFT_MAX_LABEL_WIDTH = 90
 
 const BAR_SPACING_FACTOR = 0.35
 
@@ -52,6 +48,8 @@ export interface Label {
 export interface DiscreteBarsProps {
     chartState: DiscreteBarChartState
     bounds?: Bounds
+    series: DiscreteBarSeries[]
+    labelFontSize?: number
 }
 
 @observer
@@ -87,18 +85,11 @@ export class DiscreteBars
     }
 
     @computed private get labelFontSize(): number {
-        const availableHeight = this.bounds.height / this.barCount
-        return Math.min(
-            GRAPHER_FONT_SCALE_12 * this.fontSize,
-            1.1 * availableHeight
-        )
+        return this.props.labelFontSize ?? GRAPHER_FONT_SCALE_12 * this.fontSize
     }
 
-    @computed private get legendLabelStyle(): {
-        fontSize: number
-        fontWeight: number
-    } {
-        return { fontSize: this.labelFontSize, fontWeight: 700 }
+    @computed private get sizedSeries(): DiscreteBarSeries[] {
+        return this.props.series
     }
 
     @computed private get valueLabelStyle(): {
@@ -106,11 +97,6 @@ export class DiscreteBars
         fontWeight: number
     } {
         return { fontSize: this.labelFontSize, fontWeight: 400 }
-    }
-
-    // Account for the width of the legend
-    @computed private get seriesLegendWidth(): number {
-        return _.max(this.sizedSeries.map((s) => s.label?.width ?? 0)) ?? 0
     }
 
     @computed private get hasPositive(): boolean {
@@ -166,8 +152,7 @@ export class DiscreteBars
 
     @computed private get xRange(): [number, number] {
         return [
-            this.bounds.left +
-                Math.max(this.seriesLegendWidth, this.leftValueLabelWidth),
+            this.bounds.left + this.leftValueLabelWidth,
             this.bounds.right - this.rightValueLabelWidth,
         ]
     }
@@ -199,7 +184,7 @@ export class DiscreteBars
 
     @computed private get innerBounds(): Bounds {
         return this.bounds
-            .padLeft(Math.max(this.seriesLegendWidth, this.leftValueLabelWidth))
+            .padLeft(this.leftValueLabelWidth)
             .padRight(this.rightValueLabelWidth)
     }
 
@@ -219,17 +204,6 @@ export class DiscreteBars
     @computed private get barHeight(): number {
         const totalWhiteSpace = this.barCount * this.barSpacing
         return (this.innerBounds.height - totalWhiteSpace) / this.barCount
-    }
-
-    // useful if `barHeight` can't be used due to a cyclic dependency
-    // keep in mind though that this is not exactly the same as `barHeight`
-    @computed private get approximateBarHeight(): number {
-        const { height } = this.bounds
-        const approximateMaxBarHeight = height / this.barCount
-        const approximateBarSpacing =
-            approximateMaxBarHeight * BAR_SPACING_FACTOR
-        const totalWhiteSpace = this.barCount * approximateBarSpacing
-        return (height - totalWhiteSpace) / this.barCount
     }
 
     @computed private get barPlacements(): { x: number; width: number }[] {
@@ -408,53 +382,6 @@ export class DiscreteBars
 
     @computed private get series(): DiscreteBarSeries[] {
         return this.chartState.series
-    }
-
-    @computed private get sizedSeries(): DiscreteBarSeries[] {
-        // can't use `this.barHeight` due to a circular dependency
-        const barHeight = this.approximateBarHeight
-
-        return this.series.map((series) => {
-            // make sure we're dealing with a single-line text fragment
-            const entityName = series.entityName.replace(/\n/g, " ").trim()
-
-            const maxLegendWidth = 0.3 * this.bounds.width
-
-            let label = new TextWrap({
-                text: entityName,
-                maxWidth: maxLegendWidth,
-                ...this.legendLabelStyle,
-            })
-
-            // prevent labels from being taller than the bar
-            let step = 0
-            while (
-                label.height > barHeight &&
-                label.lines.length > 1 &&
-                step < 10 // safety net
-            ) {
-                label = new TextWrap({
-                    text: entityName,
-                    maxWidth: label.maxWidth + 20,
-                    ...this.legendLabelStyle,
-                })
-                step += 1
-            }
-
-            // if the label is too long, use the short name instead
-            const tooLong =
-                label.width > SOFT_MAX_LABEL_WIDTH ||
-                label.width > maxLegendWidth
-            if (tooLong && series.shortEntityName) {
-                label = new TextWrap({
-                    text: series.shortEntityName,
-                    maxWidth: label.maxWidth,
-                    ...this.legendLabelStyle,
-                })
-            }
-
-            return { ...series, label }
-        })
     }
 
     @computed private get placedSeries(): PlacedDiscreteBarSeries[] {
