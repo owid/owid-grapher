@@ -3,7 +3,7 @@ import {
     MultiDimDimensionChoices,
 } from "@ourworldindata/types"
 import { Container } from "./layout.js"
-import { useRef, useCallback } from "react"
+import { useRef, useCallback, useState } from "react"
 import {
     MultiDimDataPageConfig,
     Url,
@@ -26,9 +26,10 @@ export default function GuidedChart({
 }) {
     const stateRef = useRef<GrapherState | null>(null)
     const chartRef = useRef<HTMLDivElement | null>(null)
-    const multiDimRef = useRef<{
+    const [multiDimData, setMultiDimData] = useState<{
         config: MultiDimDataPageConfig
-        updater: (newSettings: MultiDimDimensionChoices) => void
+        onSettingsChange: (newSettings: MultiDimDimensionChoices) => void
+        grapherContainerRef: React.RefObject<HTMLDivElement | null>
     } | null>(null)
     const { announce } = useAriaAnnouncer()
 
@@ -39,7 +40,7 @@ export default function GuidedChart({
             const url = Url.fromURL(href)
 
             // If the chart is a MultiDim, we have to update its settings directly
-            if (multiDimRef.current) {
+            if (multiDimData) {
                 const searchParams = new URLSearchParams()
                 Object.entries(url.queryParams).forEach(([key, value]) => {
                     if (value !== undefined) {
@@ -47,15 +48,12 @@ export default function GuidedChart({
                     }
                 })
 
-                // Extract MultiDim settings from the guided chart link
-                // and update the MultiDim component
+                // Extract MultiDim choices from the guided chart link and update the MultiDim component
                 const choices = extractMultiDimChoicesFromSearchParams(
                     searchParams,
-                    multiDimRef.current.config
+                    multiDimData.config
                 )
-                const availableChoices =
-                    multiDimRef.current.config.filterToAvailableChoices(choices)
-                multiDimRef.current.updater(availableChoices.selectedChoices)
+                multiDimData.onSettingsChange(choices)
             }
 
             // Update the grapher state with the new params (e.g. countries, tab, etc)
@@ -65,17 +63,19 @@ export default function GuidedChart({
             announce("Chart updated to reflect the selected view.")
 
             // Scroll to chart on small screens
-            if (chartRef.current && window.innerWidth <= 768) {
+            if (window.innerWidth <= 768) {
+                const target =
+                    multiDimData?.grapherContainerRef.current ||
+                    chartRef.current
                 // Small delay to allow chart updates to complete
                 setTimeout(() => {
-                    chartRef.current?.scrollIntoView({
+                    target?.scrollIntoView({
                         behavior: "smooth",
-                        block: "start",
                     })
                 }, 100)
             }
         },
-        [announce]
+        [announce, multiDimData]
     )
 
     return (
@@ -86,9 +86,12 @@ export default function GuidedChart({
                 onGuidedChartLinkClick: handleGuidedChartLinkClick,
                 registerMultiDim: (registrationData: {
                     config: MultiDimDataPageConfig
-                    updater: (newSettings: MultiDimDimensionChoices) => void
+                    onSettingsChange: (
+                        newSettings: MultiDimDimensionChoices
+                    ) => void
+                    grapherContainerRef: React.RefObject<HTMLDivElement | null>
                 }) => {
-                    multiDimRef.current = registrationData
+                    setMultiDimData(registrationData)
                 },
             }}
         >

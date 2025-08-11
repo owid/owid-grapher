@@ -82,19 +82,6 @@ export default function MultiDim({
         return config.filterToAvailableChoices(choices).selectedChoices
     })
 
-    // Register with GuidedChartContext for guided chart link support
-    const guidedChartContext = useContext(GuidedChartContext)
-    const hasRegistered = useRef(false)
-    useEffect(() => {
-        if (guidedChartContext?.registerMultiDim && !hasRegistered.current) {
-            guidedChartContext.registerMultiDim({
-                config,
-                updater: setSettings,
-            })
-            hasRegistered.current = true
-        }
-    }, [guidedChartContext, config])
-
     const handleSettingsChange = useCallback(
         (settings: MultiDimDimensionChoices) => {
             const { selectedChoices } =
@@ -104,6 +91,20 @@ export default function MultiDim({
         },
         [config, slug]
     )
+
+    // Register with GuidedChartContext for guided chart link support
+    const guidedChartContext = useContext(GuidedChartContext)
+    const hasRegistered = useRef(false)
+    useEffect(() => {
+        if (guidedChartContext?.registerMultiDim && !hasRegistered.current) {
+            guidedChartContext.registerMultiDim({
+                config,
+                onSettingsChange: handleSettingsChange,
+                grapherContainerRef: grapherContainerRef,
+            })
+            hasRegistered.current = true
+        }
+    }, [guidedChartContext, config, handleSettingsChange])
 
     useEffect(() => {
         // Prevent a race condition from setting incorrect data.
