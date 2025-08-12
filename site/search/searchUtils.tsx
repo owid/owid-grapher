@@ -30,6 +30,7 @@ import {
     getAllChildrenOfArea,
     timeBoundToTimeBoundString,
     queryParamsToStr,
+    omitUndefinedValues,
 } from "@ourworldindata/utils"
 import { type GrapherTrendArrowDirection } from "@ourworldindata/components"
 import {
@@ -323,20 +324,29 @@ export const constructChartInfoUrl = ({
     return `${basePath}/${hit.slug}.values.json${queryStr}`
 }
 
-export const constructThumbnailUrl = ({
+export type PreviewVariant = "thumbnail" | "minimal-thumbnail"
+
+export const constructPreviewUrl = ({
     hit,
     grapherParams,
+    variant,
 }: {
     hit: SearchChartHit
     grapherParams?: GrapherQueryParams
+    variant: PreviewVariant
 }): string => {
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
 
     const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
-    const thumbnailQueryStr = "imType=thumbnail"
+    const searchParams = new URLSearchParams(
+        omitUndefinedValues({
+            imType: variant,
+            nocache: "true", // TODO: remove nocache param
+        })
+    )
     const fullQueryStr = queryStr
-        ? `${queryStr}&${thumbnailQueryStr}`
-        : `?${thumbnailQueryStr}`
+        ? `${queryStr}&${searchParams}`
+        : `?${searchParams}`
 
     const basePath = isExplorerView
         ? EXPLORER_DYNAMIC_THUMBNAIL_URL
