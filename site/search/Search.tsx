@@ -2,6 +2,7 @@ import { TagGraphRoot } from "@ourworldindata/types"
 import { SearchClient } from "algoliasearch"
 import { useReducer, useMemo } from "react"
 import { match } from "ts-pattern"
+import { useIsFetching } from "@tanstack/react-query"
 
 // Search state and types
 import { searchReducer, createActions } from "./searchState.js"
@@ -58,6 +59,8 @@ export const Search = ({
     // Handle analytics tracking
     useSearchAnalytics(state, isInitialUrlStateLoaded)
 
+    const isFetching = useIsFetching()
+
     // Derived state for template configuration
     const topicType = getSelectedTopicType(state.filters, allAreas)
     const templateConfig: TemplateConfig = {
@@ -95,7 +98,7 @@ export const Search = ({
                     <SearchResultTypeToggle />
                 </div>
                 <div className="search-template-results col-start-2 span-cols-12">
-                    <SearchNoResults />
+                    {!isFetching && <SearchNoResults />}
                     {match(templateConfig.resultType)
                         .with(SearchResultType.ALL, () => (
                             <SearchTemplatesAll />
