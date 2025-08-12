@@ -24,6 +24,18 @@
     margin: 0;
     color: $blue-90;
     margin-bottom: 8px;
+
+    @include sm-only {
+        font-size: 16px;
+    }
+}
+
+.search-topic-page-hit__icon {
+    font-size: 16px;
+
+    @include sm-only {
+        font-size: 14px;
+    }
 }
 
 .search-topic-page-hit__excerpt {

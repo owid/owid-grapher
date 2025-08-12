@@ -2,9 +2,9 @@ import { SearchResultHeaderSkeleton } from "./SearchResultHeaderSkeleton.js"
 
 export const SearchWritingResultsSkeleton = () => {
     return (
-        <section className="search-writing-results-skeleton animate-pulse col-start-2 span-cols-12">
+        <div className="animate-pulse">
             <SearchResultHeaderSkeleton />
-            <div className="search-writing-results__grid">
+            <div className="search-writing-results-skeleton search-writing-results__grid">
                 <div className="search-writing-results__articles">
                     <SearchArticleHitSkeleton />
                     <SearchArticleHitSkeleton />
@@ -15,7 +15,7 @@ export const SearchWritingResultsSkeleton = () => {
                     <SearchTopicPageHitSkeleton />
                 </div>
             </div>
-        </section>
+        </div>
     )
 }
 

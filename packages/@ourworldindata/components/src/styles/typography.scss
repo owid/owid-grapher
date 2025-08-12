@@ -391,7 +391,6 @@ body {
     font-size: 0.875rem;
     line-height: 1.5;
     font-weight: 400;
-    letter-spacing: 0.01rem;
 }
 
 .body-3-regular {
@@ -403,7 +402,6 @@ body {
     font-size: 0.875rem;
     line-height: 1.5;
     font-weight: 500;
-    letter-spacing: 0.01rem;
 }
 
 .body-3-medium {
@@ -443,7 +441,6 @@ body {
     font-size: 0.875rem;
     line-height: 1.5;
     font-weight: 700;
-    letter-spacing: 0.01rem;
 }
 
 .body-3-bold {
@@ -454,6 +451,7 @@ body {
     font-family: $sans-serif-font-stack;
     font-size: 0.875rem;
     font-weight: 400;
+    letter-spacing: normal;
     line-height: normal;
 }
 

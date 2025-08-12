@@ -1,6 +1,8 @@
 .search-writing-results-skeleton {
-    @extend .animate-pulse;
-    margin-bottom: 42px; // Space for show more button.
+    @include sm-only {
+        display: flex;
+        flex-direction: column;
+    }
 }
 
 .search-flat-article-hit-skeleton {
