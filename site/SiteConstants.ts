@@ -25,6 +25,7 @@ export const PROD_URL = "https://ourworldindata.org"
 export const DEFAULT_LOCAL_BAKE_DIR = "localBake"
 
 export const SMALL_BREAKPOINT_MEDIA_QUERY = "(max-width: 768px)"
+export const MEDIUM_BREAKPOINT_MEDIA_QUERY = "(max-width: 960px)"
 
 export const TOUCH_DEVICE_MEDIA_QUERY =
     "(hover: none), (pointer: coarse), (pointer: none)"
