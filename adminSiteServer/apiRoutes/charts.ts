@@ -79,8 +79,10 @@ export const getReferencesByChartId = async (
             explorerSlug
         FROM
             explorer_charts
+            join explorers e on explorerSlug = e.slug
         WHERE
-            chartId = ?`,
+            chartId = ?
+            and e.isPublished = 1`,
         [chartId]
     )
     const narrativeChartsPromise = db.knexRaw<NarrativeChartMinimalInformation>(
@@ -498,28 +500,42 @@ export async function getChartsJson(
     const charts = await db.knexRaw<OldChartFieldList>(
         trx,
         `-- sql
-            WITH 
+            WITH
+            chart_slug_mapping AS (
+                -- Direct chart slug mappings
+                SELECT c.id as chartId, cc.slug as target_slug
+                FROM charts c
+                JOIN chart_configs cc ON c.configId = cc.id
+                UNION ALL
+                -- Redirect slug mappings
+                SELECT cr.chart_id as chartId, cr.slug as target_slug
+                FROM chart_slug_redirects cr
+            ),
             narrative_chart_counts AS (
                 SELECT parentChartId, COUNT(*) as narrativeChartsCount
                 FROM narrative_charts
                 GROUP BY parentChartId
             ),
             gdocs_refs AS (
-                SELECT c.id as chartId, COUNT(DISTINCT pgl.sourceId) as count
-                FROM charts c
-                JOIN chart_configs cc ON c.configId = cc.id
-                LEFT JOIN posts_gdocs_links pgl ON pgl.target = cc.slug
-                GROUP BY c.id
+                SELECT csm.chartId, COUNT(DISTINCT pgl.sourceId) as count
+                FROM chart_slug_mapping csm
+                JOIN posts_gdocs_links pgl ON pgl.target = csm.target_slug
+                JOIN posts_gdocs pg ON pg.id = pgl.sourceId
+                WHERE pg.published = true
+                  AND pg.type NOT IN ('fragment', 'about-page')
+                GROUP BY csm.chartId
             ),
             explorer_refs AS (
-                SELECT chartId, COUNT(*) as count
-                FROM explorer_charts
-                GROUP BY chartId
+                SELECT ec.chartId, COUNT(DISTINCT ec.explorerSlug) as count
+                FROM explorer_charts ec
+                JOIN explorers e ON ec.explorerSlug = e.slug
+                WHERE e.isPublished = 1
+                GROUP BY ec.chartId
             )
             SELECT ${oldChartFieldList},
                 round(views_365d / 365, 1) as pageviewsPerDay,
                 COALESCE(narrative_chart_counts.narrativeChartsCount, 0) as narrativeChartsCount,
-                COALESCE(gdocs_refs.count, 0) + 
+                COALESCE(gdocs_refs.count, 0) +
                 COALESCE(explorer_refs.count, 0) as referencesCount
             FROM charts
             JOIN chart_configs ON chart_configs.id = charts.configId
