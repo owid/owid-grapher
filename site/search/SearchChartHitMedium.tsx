@@ -1,6 +1,6 @@
 import { useMemo } from "react"
 import { QueryStatus, useQuery } from "@tanstack/react-query"
-import { useIntersectionObserver } from "usehooks-ts"
+import { useIntersectionObserver, useMediaQuery } from "usehooks-ts"
 import cx from "classnames"
 import * as R from "remeda"
 import * as _ from "lodash-es"
@@ -77,6 +77,7 @@ import {
     useQueryInputTableForMultiDimView,
 } from "../loadChartData.js"
 import { OwidTable } from "@ourworldindata/core-table"
+import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 
 const NUM_DATA_TABLE_ROWS_PER_COLUMN = 4
 
@@ -108,6 +109,8 @@ function SearchChartHitMediumRichData({
     searchQueryRegionsMatches,
     onClick,
 }: SearchChartHitMediumProps) {
+    const isMediumScreen = useMediaQuery(MEDIUM_BREAKPOINT_MEDIA_QUERY)
+
     // Intersection observer for lazy loading config and data
     const { ref, isIntersecting: hasBeenVisible } = useIntersectionObserver({
         rootMargin: "400px", // Start loading 400px before visible
@@ -253,8 +256,15 @@ function SearchChartHitMediumRichData({
                 style={contentStyle}
             >
                 {layout?.placedTabs.map(({ tab, slot }, tabIndex) => {
-                    const previewVariant =
-                        tabIndex === 0 ? "minimal" : "thumbnail"
+                    // Always use the thumbnail version on smaller screens since
+                    // the table might not be visible. Otherwise, use the minimal
+                    // version for the first tab (which is annotated by the table)
+                    // and thumbnails for all other tabs.
+                    const previewVariant = isMediumScreen
+                        ? "thumbnail"
+                        : tabIndex === 0
+                          ? "minimal"
+                          : "thumbnail"
 
                     const { chartUrl, previewUrl } =
                         constructChartAndPreviewUrlsForTab({
