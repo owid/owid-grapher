@@ -498,19 +498,37 @@ export async function getChartsJson(
     const charts = await db.knexRaw<OldChartFieldList>(
         trx,
         `-- sql
+            WITH 
+            narrative_chart_counts AS (
+                SELECT parentChartId, COUNT(*) as narrativeChartsCount
+                FROM narrative_charts
+                GROUP BY parentChartId
+            ),
+            gdocs_refs AS (
+                SELECT c.id as chartId, COUNT(DISTINCT pgl.sourceId) as count
+                FROM charts c
+                JOIN chart_configs cc ON c.configId = cc.id
+                LEFT JOIN posts_gdocs_links pgl ON pgl.target = cc.slug
+                GROUP BY c.id
+            ),
+            explorer_refs AS (
+                SELECT chartId, COUNT(*) as count
+                FROM explorer_charts
+                GROUP BY chartId
+            )
             SELECT ${oldChartFieldList},
                 round(views_365d / 365, 1) as pageviewsPerDay,
-                COALESCE(narrative_chart_counts.narrativeChartsCount, 0) as narrativeChartsCount
+                COALESCE(narrative_chart_counts.narrativeChartsCount, 0) as narrativeChartsCount,
+                COALESCE(gdocs_refs.count, 0) + 
+                COALESCE(explorer_refs.count, 0) as referencesCount
             FROM charts
             JOIN chart_configs ON chart_configs.id = charts.configId
             JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
             LEFT JOIN analytics_pageviews on (analytics_pageviews.url = CONCAT("https://ourworldindata.org/grapher/", chart_configs.slug) AND chart_configs.full ->> '$.isPublished' = "true" )
             LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
-            LEFT JOIN (
-                SELECT parentChartId, COUNT(*) as narrativeChartsCount
-                FROM narrative_charts
-                GROUP BY parentChartId
-            ) narrative_chart_counts ON narrative_chart_counts.parentChartId = charts.id
+            LEFT JOIN narrative_chart_counts ON narrative_chart_counts.parentChartId = charts.id
+            LEFT JOIN gdocs_refs ON gdocs_refs.chartId = charts.id
+            LEFT JOIN explorer_refs ON explorer_refs.chartId = charts.id
             ORDER BY charts.lastEditedAt DESC LIMIT ?
         `,
         [limit]

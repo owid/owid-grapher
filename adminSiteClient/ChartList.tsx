@@ -54,10 +54,11 @@ export interface ChartListItem {
     tags: DbChartTagJoin[]
     pageviewsPerDay: number
     narrativeChartsCount: number
+    referencesCount: number
 }
 
 export type SortConfig = {
-    field: "pageviewsPerDay" | "narrativeChartsCount"
+    field: "pageviewsPerDay" | "narrativeChartsCount" | "referencesCount"
     direction: "asc" | "desc"
 } | null
 
@@ -207,7 +208,9 @@ export class ChartList extends React.Component<ChartListProps> {
         const getValue =
             field === "pageviewsPerDay"
                 ? (chart: ChartListItem) => chart.pageviewsPerDay
-                : (chart: ChartListItem) => chart.narrativeChartsCount
+                : field === "narrativeChartsCount"
+                  ? (chart: ChartListItem) => chart.narrativeChartsCount
+                  : (chart: ChartListItem) => chart.referencesCount
 
         return sortNumeric(
             [...chartsFiltered],
@@ -273,6 +276,21 @@ export class ChartList extends React.Component<ChartListProps> {
             }
         }
 
+        const getReferencesCountSortIndicator = () => {
+            if (!sortConfig || sortConfig.field !== "referencesCount") return ""
+            return sortConfig.direction === "desc" ? " ↓" : " ↑"
+        }
+
+        const handleReferencesCountSortClick = () => {
+            if (!sortConfig || sortConfig.field !== "referencesCount") {
+                onSort({ field: "referencesCount", direction: "desc" })
+            } else if (sortConfig.direction === "desc") {
+                onSort({ field: "referencesCount", direction: "asc" })
+            } else {
+                onSort(null)
+            }
+        }
+
         // if the first chart has inheritance information, we assume all charts have it
         const showInheritanceColumn =
             chartsToShow[0]?.isInheritanceEnabled !== undefined
@@ -320,6 +338,12 @@ export class ChartList extends React.Component<ChartListProps> {
                             >
                                 narrative charts
                                 {getNarrativeChartsSortIndicator()}
+                            </th>
+                            <th
+                                style={{ cursor: "pointer" }}
+                                onClick={handleReferencesCountSortClick}
+                            >
+                                references{getReferencesCountSortIndicator()}
                             </th>
                             <th></th>
                             <th></th>
