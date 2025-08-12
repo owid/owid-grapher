@@ -23,8 +23,6 @@ declare global {
     var window: any
 }
 
-export const grapherBaseUrl = "https://ourworldindata.org/grapher"
-
 // Lots of defaults; these are mostly the same as they are in owid-grapher.
 // Note, however, that these are not being used for Twitter or Facebook images, these use custom sizes defined below.
 export const DEFAULT_WIDTH = 850
@@ -34,31 +32,6 @@ export const DEFAULT_NUM_PIXELS = DEFAULT_WIDTH * DEFAULT_HEIGHT
 export const MIN_ASPECT_RATIO = 0.5
 export const MAX_ASPECT_RATIO = 2
 export const MAX_NUM_PNG_PIXELS = 4250 * 3000 // 12.75 megapixels, or 5x the initial resolution, is the maximum png size we generate
-
-const WORKER_CACHE_TIME_IN_SECONDS = 60
-
-export async function fetchFromR2(
-    url: URL,
-    etag: string | undefined,
-    fallbackUrl?: URL
-) {
-    const headers = new Headers()
-    if (etag) headers.set("If-None-Match", etag)
-    const init = {
-        cf: {
-            cacheEverything: true,
-            cacheTtl: WORKER_CACHE_TIME_IN_SECONDS,
-        },
-        headers,
-    }
-    const primaryResponse = await fetch(url.toString(), init)
-    // The fallback URL here is used so that on staging or dev we can fallback
-    // to the production bucket if the file is not found in the branch bucket
-    if (primaryResponse.status === 404 && fallbackUrl) {
-        return fetch(fallbackUrl.toString(), init)
-    }
-    return primaryResponse
-}
 
 async function fetchAndRenderGrapherToSvg(
     identifier: GrapherIdentifier,
