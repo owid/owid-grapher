@@ -19,13 +19,13 @@
     "@ourworldindata/utils": "workspace:^",
     "d3": "^7.9.0",
     "dayjs": "^1.11.11",
-    "papaparse": "^5.4.1",
+    "papaparse": "^5.5.3",
     "remeda": "^2.23.3"
   },
   "devDependencies": {
     "@types/d3": "^7.4.3",
     "@types/lodash-es": "^4",
-    "@types/papaparse": "^5.3.15",
+    "@types/papaparse": "^5.3.16",
     "eslint": "^9.32.0",
     "typescript": "~5.9.2",
     "vitest": "^3.2.4"
