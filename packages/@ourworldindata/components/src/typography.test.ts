@@ -21,6 +21,8 @@ describe("Typography font features", () => {
         const typographyContent = fs.readFileSync(typographyPath, "utf-8")
 
         // Check that body uses default font features (which now includes lnum)
-        expect(typographyContent).toContain("font-feature-settings: $default-font-features;")
+        expect(typographyContent).toContain(
+            "font-feature-settings: $default-font-features;"
+        )
     })
 })
