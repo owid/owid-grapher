@@ -125,7 +125,7 @@
         "nodejs-polars": "^0.7.2",
         "normalize.css": "^8.0.1",
         "openai": "^5.5.0",
-        "p-map": "^4.0.0",
+        "p-map": "^7.0.3",
         "papaparse": "^5.4.1",
         "polylabel": "^2.0.1",
         "progress": "^2.0.3",

@@ -11894,7 +11894,7 @@ __metadata:
     nodejs-polars: "npm:^0.7.2"
     normalize.css: "npm:^8.0.1"
     openai: "npm:^5.5.0"
-    p-map: "npm:^4.0.0"
+    p-map: "npm:^7.0.3"
     papaparse: "npm:^5.4.1"
     polylabel: "npm:^2.0.1"
     prettier: "npm:^3.6.0"
@@ -14890,7 +14890,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"p-map@npm:^7.0.2":
+"p-map@npm:^7.0.2, p-map@npm:^7.0.3":
   version: 7.0.3
   resolution: "p-map@npm:7.0.3"
   checksum: 10/2ef48ccfc6dd387253d71bf502604f7893ed62090b2c9d73387f10006c342606b05233da0e4f29388227b61eb5aeface6197e166520c465c234552eeab2fe633
