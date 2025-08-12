@@ -704,9 +704,22 @@ export const grapherKeysToSerialize = [
     "bakedGrapherURL",
 ]
 
-export enum GrapherRenderMode {
-    Captioned = "captioned", // Chart with header and footer
-    Thumbnail = "thumbnail", // Chart only, no header or footer
+export enum GrapherVariant {
+    /**
+     * Default rendering, with header and footer
+     */
+    Default = "default",
+
+    /**
+     * Simplified rendering, suitable for thumbnails.
+     * Less noisy visualization, but should be understandable on its own
+     */
+    Thumbnail = "thumbnail",
+
+    /**
+     * Similar to Thumbnail, but not enough annotations to be understandable on its own
+     */
+    MinimalThumbnail = "minimal-thumbnail",
 }
 
 export interface ChartRedirect {
