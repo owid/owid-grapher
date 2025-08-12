@@ -7,6 +7,10 @@
     .radio .label {
         @include note-1-regular;
         color: $blue-50;
+
+        @include sm-only {
+            @include label-1-regular;
+        }
     }
 
     @include sm-only {

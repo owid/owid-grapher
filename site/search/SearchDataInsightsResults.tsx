@@ -1,16 +1,17 @@
 import { useRef } from "react"
-import { useIntersectionObserver } from "usehooks-ts"
+import { useIntersectionObserver, useMediaQuery } from "usehooks-ts"
 
+import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 import { DataInsightHit, SearchDataInsightResponse } from "./searchTypes.js"
 import { queryDataInsights, searchQueryKeys } from "./queries.js"
 import { SearchDataInsightHit } from "./SearchDataInsightHit.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
-import { SearchShowMore } from "./SearchShowMore.js"
 import { useInfiniteSearch } from "./searchHooks.js"
 import { SearchDataInsightsResultsSkeleton } from "./SearchDataInsightsResultsSkeleton.js"
 import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
 
 export function SearchDataInsightsResults() {
+    const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const query = useInfiniteSearch<SearchDataInsightResponse, DataInsightHit>({
         queryKey: (state) => searchQueryKeys.dataInsights(state),
         queryFn: queryDataInsights,
@@ -31,38 +32,45 @@ export function SearchDataInsightsResults() {
 
     const { hits, totalResults, isInitialLoading } = query
 
-    if (isInitialLoading) return <SearchDataInsightsResultsSkeleton />
-    if (totalResults === 0) return null
+    if (!isInitialLoading && totalResults === 0) return null
 
     return (
         <>
             <section>
-                <SearchResultHeader count={totalResults}>
-                    Data Insights
-                </SearchResultHeader>
-                <div
-                    ref={container}
-                    className="search-data-insights-results__hits"
-                >
-                    {hits.map((hit: DataInsightHit) => (
-                        <SearchDataInsightHit key={hit.objectID} hit={hit} />
-                    ))}
-                    {query.hasNextPage && (
+                {isInitialLoading ? (
+                    <SearchDataInsightsResultsSkeleton />
+                ) : (
+                    <>
+                        <SearchResultHeader count={totalResults}>
+                            Data Insights
+                        </SearchResultHeader>
                         <div
-                            ref={triggerRef}
-                            className="search-data-insights-results__trigger"
-                        />
-                    )}
-                </div>
-                {query.hasNextPage && (
-                    <SearchShowMore
-                        className="search-data-insights-results__show-more"
-                        isLoading={query.isFetchingNextPage}
-                        onClick={query.fetchNextPage}
-                    />
+                            ref={container}
+                            className="search-data-insights-results__hits"
+                        >
+                            {hits.map((hit: DataInsightHit) => (
+                                <SearchDataInsightHit
+                                    key={hit.objectID}
+                                    hit={hit}
+                                />
+                            ))}
+                            {query.hasNextPage && (
+                                <div
+                                    ref={triggerRef}
+                                    className="search-data-insights-results__trigger"
+                                />
+                            )}
+                        </div>
+                    </>
                 )}
             </section>
-            <SearchHorizontalDivider />
+            <SearchHorizontalDivider
+                hasButton={
+                    !isInitialLoading && query.hasNextPage && !isSmallScreen
+                }
+                isLoading={query.isFetchingNextPage}
+                onClick={query.fetchNextPage}
+            />
         </>
     )
 }

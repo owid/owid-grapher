@@ -3,7 +3,7 @@ import { SearchChartHitMediumSkeleton } from "./SearchDataTopicsResultsSkeleton.
 
 export const SearchDataResultsSkeleton = () => {
     return (
-        <div className="search-data-results__hits span-cols-12 col-start-2 animate-pulse">
+        <div className="search-data-results__hits animate-pulse">
             <SearchResultHeaderSkeleton />
             <ul className="search-data-results__list">
                 <li className="search-data-results__hit">
