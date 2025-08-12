@@ -559,10 +559,11 @@ export function ImageIndexPage() {
                 setUsers(_.keyBy(json.users, "id"))
             },
             patchImage: async (image, patch) => {
-                const response = await admin.requestJSON<
-                    | { success: true; image: DbEnrichedImageWithUserId }
-                    | { success: false; errorMessage: string }
-                >(`/api/images/${image.id}`, patch, "PATCH")
+                const response = await admin.requestJSON<ImageUploadResponse>(
+                    `/api/images/${image.id}`,
+                    patch,
+                    "PATCH"
+                )
                 if (response.success) {
                     setImages((prevMap) => ({
                         ...prevMap,
