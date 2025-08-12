@@ -2,7 +2,6 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: var(--grid-gap);
-    margin-bottom: var(--grid-gap);
 
     @include md-down {
         grid-template-columns: repeat(2, 1fr);
@@ -24,11 +23,5 @@
     @include sm-only {
         display: block;
         flex-shrink: 0;
-    }
-}
-
-.search-data-insights-results__show-more {
-    @include sm-only {
-        display: none;
     }
 }
