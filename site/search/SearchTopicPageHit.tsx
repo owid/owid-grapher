@@ -47,7 +47,10 @@ export const SearchTopicPageHit = ({
             <span className="search-topic-page-hit__title-text">
                 {hit.title}
             </span>{" "}
-            <FontAwesomeIcon icon={faArrowRightLong} />
+            <FontAwesomeIcon
+                className="search-topic-page-hit__icon"
+                icon={faArrowRightLong}
+            />
         </h3>
         <div className="search-topic-page-hit__excerpt">
             {variant === "large" &&
