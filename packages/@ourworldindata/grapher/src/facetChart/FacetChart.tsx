@@ -366,7 +366,7 @@ export class FacetChart
                 manager,
                 bounds,
                 chartType: this.chartTypeName,
-                renderMode: this.manager.renderMode,
+                variant: this.manager.variant,
             })
         })
     }
@@ -908,7 +908,7 @@ export class FacetChart
                                 <ChartComponent
                                     manager={facetChart.manager}
                                     chartType={this.chartTypeName}
-                                    renderMode={this.manager.renderMode}
+                                    variant={this.manager.variant}
                                     bounds={bounds}
                                 />
                             </g>
