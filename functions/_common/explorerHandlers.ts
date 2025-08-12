@@ -59,8 +59,8 @@ async function initGrapherForExplorerView(
     if (options.grapherProps?.isSocialMediaExport)
         explorer.grapherState.isSocialMediaExport =
             options.grapherProps.isSocialMediaExport
-    if (options.grapherProps?.renderMode)
-        explorer.grapherState.renderMode = options.grapherProps.renderMode
+    if (options.grapherProps?.variant)
+        explorer.grapherState.variant = options.grapherProps.variant
     explorer.grapherState.initialOptions = { baseFontSize: options.fontSize }
 
     return {

@@ -1,9 +1,9 @@
-import { match } from "ts-pattern"
+import { match, P } from "ts-pattern"
 import {
     GRAPHER_CHART_TYPES,
     GRAPHER_MAP_TYPE,
     GrapherChartOrMapType,
-    GrapherRenderMode,
+    GrapherVariant,
 } from "@ourworldindata/types"
 import { ChartInterface, ChartState } from "./ChartInterface"
 import { ChartManager } from "./ChartManager"
@@ -54,7 +54,7 @@ type ChartFactoryProps = {
     manager: ChartManager
     chartType: GrapherChartOrMapType
     chartState?: ChartState
-    renderMode?: GrapherRenderMode
+    variant?: GrapherVariant
 } & Omit<ChartComponentProps, "chartState">
 
 const ChartComponentClassMap = new Map<
@@ -112,17 +112,20 @@ export function makeChartState(
 
 function getChartComponentClass(
     chartType: GrapherChartOrMapType,
-    renderMode = GrapherRenderMode.Captioned
+    variant = GrapherVariant.Default
 ): ChartComponentClass {
-    const { ClassMap, DefaultChartClass } = match(renderMode)
-        .with(GrapherRenderMode.Captioned, () => ({
+    const { ClassMap, DefaultChartClass } = match(variant)
+        .with(GrapherVariant.Default, () => ({
             ClassMap: ChartComponentClassMap,
             DefaultChartClass: LineChart,
         }))
-        .with(GrapherRenderMode.Thumbnail, () => ({
-            ClassMap: ChartThumbnailClassMap,
-            DefaultChartClass: LineChartThumbnail,
-        }))
+        .with(
+            P.union(GrapherVariant.Thumbnail, GrapherVariant.MinimalThumbnail),
+            () => ({
+                ClassMap: ChartThumbnailClassMap,
+                DefaultChartClass: LineChartThumbnail,
+            })
+        )
         .exhaustive()
 
     const ChartClass = ClassMap.get(chartType) ?? DefaultChartClass
@@ -134,11 +137,11 @@ export const ChartComponent = ({
     manager,
     chartType,
     chartState,
-    renderMode = GrapherRenderMode.Captioned,
+    variant = GrapherVariant.Default,
     ...componentProps
 }: ChartFactoryProps): React.ReactElement => {
     const validChartState = chartState ?? makeChartState(chartType, manager)
-    const ChartClass = getChartComponentClass(chartType, renderMode)
+    const ChartClass = getChartComponentClass(chartType, variant)
     return <ChartClass {...componentProps} chartState={validChartState} />
 }
 
@@ -146,10 +149,10 @@ export const makeChartInstance = ({
     manager,
     chartType,
     chartState,
-    renderMode = GrapherRenderMode.Captioned,
+    variant = GrapherVariant.Default,
     ...componentProps
 }: ChartFactoryProps): ChartInterface => {
     const validChartState = chartState ?? makeChartState(chartType, manager)
-    const ChartClass = getChartComponentClass(chartType, renderMode)
+    const ChartClass = getChartComponentClass(chartType, variant)
     return new ChartClass({ ...componentProps, chartState: validChartState })
 }
