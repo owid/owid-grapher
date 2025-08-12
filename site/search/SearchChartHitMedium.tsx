@@ -1,6 +1,6 @@
 import { useMemo } from "react"
 import { QueryStatus, useQuery } from "@tanstack/react-query"
-import { useIntersectionObserver } from "usehooks-ts"
+import { useIntersectionObserver, useMediaQuery } from "usehooks-ts"
 import cx from "classnames"
 import * as R from "remeda"
 import * as _ from "lodash-es"
@@ -9,7 +9,7 @@ import { ChartRecordType, ExplorerType, SearchChartHit } from "./searchTypes.js"
 import {
     constructChartUrl,
     constructConfigUrl,
-    constructThumbnailUrl,
+    constructPreviewUrl,
     pickEntitiesForChartHit,
     getSortedGrapherTabsForChartHit,
     buildChartHitDataDisplayProps,
@@ -22,6 +22,7 @@ import {
     constructDownloadUrl,
     getColumnCountForGridSlot,
     PlacedTab,
+    PreviewVariant,
     constructMdimConfigUrl,
 } from "./searchUtils.js"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
@@ -76,6 +77,7 @@ import {
     useQueryInputTableForMultiDimView,
 } from "../loadChartData.js"
 import { OwidTable } from "@ourworldindata/core-table"
+import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 
 const NUM_DATA_TABLE_ROWS_PER_COLUMN = 4
 
@@ -107,6 +109,8 @@ function SearchChartHitMediumRichData({
     searchQueryRegionsMatches,
     onClick,
 }: SearchChartHitMediumProps) {
+    const isMediumScreen = useMediaQuery(MEDIUM_BREAKPOINT_MEDIA_QUERY)
+
     // Intersection observer for lazy loading config and data
     const { ref, isIntersecting: hasBeenVisible } = useIntersectionObserver({
         rootMargin: "400px", // Start loading 400px before visible
@@ -251,27 +255,45 @@ function SearchChartHitMediumRichData({
                 className="search-chart-hit-medium__content"
                 style={contentStyle}
             >
-                {layout?.placedTabs.map(({ tab, slot }) =>
-                    tab === GRAPHER_TAB_NAMES.Table ? (
+                {layout?.placedTabs.map(({ tab, slot }, tabIndex) => {
+                    // Always use the thumbnail version on smaller screens since
+                    // the table might not be visible. Otherwise, use the minimal
+                    // version for the first tab (which is annotated by the table)
+                    // and thumbnails for all other tabs.
+                    const previewVariant = isMediumScreen
+                        ? "thumbnail"
+                        : tabIndex === 0
+                          ? "minimal-thumbnail"
+                          : "thumbnail"
+
+                    const { chartUrl, previewUrl } =
+                        constructChartAndPreviewUrlsForTab({
+                            hit,
+                            grapherState,
+                            tab,
+                            previewVariant,
+                        })
+
+                    return tab === GRAPHER_TAB_NAMES.Table ? (
                         <CaptionedTable
                             key={tab}
-                            hit={hit}
-                            tab={tab}
                             slot={slot}
+                            chartUrl={chartUrl}
                             grapherState={grapherState}
                             onClick={onClick}
                         />
                     ) : (
                         <CaptionedThumbnail
                             key={tab}
-                            hit={hit}
-                            tab={tab}
                             slot={slot}
+                            chartType={tab}
+                            chartUrl={chartUrl}
+                            previewUrl={previewUrl}
                             grapherState={grapherState}
                             onClick={onClick}
                         />
                     )
-                )}
+                })}
 
                 {layout?.dataDisplayProps && (
                     <SearchChartHitDataDisplay
@@ -397,9 +419,10 @@ function SearchChartHitMediumFallback({
                         hit,
                         grapherParams,
                     })
-                    const previewUrl = constructThumbnailUrl({
+                    const previewUrl = constructPreviewUrl({
                         hit,
                         grapherParams,
+                        variant: "thumbnail",
                     })
 
                     return (
@@ -427,24 +450,16 @@ function SearchChartHitMediumFallback({
 }
 
 function CaptionedTable({
-    hit,
-    tab,
+    chartUrl,
     slot = GridSlot.SingleSlot,
     grapherState,
     onClick,
 }: {
-    hit: SearchChartHit
-    tab: GrapherTabName
+    chartUrl: string
     slot?: GridSlot
     grapherState: GrapherState
     onClick?: () => void
 }): React.ReactElement | null {
-    const { chartUrl } = constructChartAndPreviewUrlsForTab({
-        hit,
-        grapherState,
-        tab,
-    })
-
     // Construct caption
     const numAvailableEntities =
         grapherState.addCountryMode === EntitySelectionMode.Disabled
@@ -486,28 +501,24 @@ function CaptionedTable({
 }
 
 function CaptionedThumbnail({
-    hit,
-    tab,
+    chartType,
+    chartUrl,
+    previewUrl,
     grapherState,
     slot = GridSlot.SingleSlot,
     onClick,
 }: {
-    hit: SearchChartHit
-    tab: GrapherTabName
+    chartType: GrapherTabName
+    chartUrl: string
+    previewUrl: string
     grapherState: GrapherState
     slot?: GridSlot
     onClick?: () => void
 }): React.ReactElement {
-    const { chartUrl, previewUrl } = constructChartAndPreviewUrlsForTab({
-        hit,
-        grapherState,
-        tab,
-    })
-
-    let caption = makeLabelForGrapherTab(tab, { format: "long" })
+    let caption = makeLabelForGrapherTab(chartType, { format: "long" })
 
     // Add the map time to the caption if it's different from the chart's end time
-    if (tab === GRAPHER_TAB_NAMES.WorldMap) {
+    if (chartType === GRAPHER_TAB_NAMES.WorldMap) {
         const mapTime = grapherState.map.time
             ? findClosestTime(grapherState.times, grapherState.map.time)
             : undefined
@@ -762,10 +773,12 @@ function constructChartAndPreviewUrlsForTab({
     hit,
     grapherState,
     tab,
+    previewVariant,
 }: {
     hit: SearchChartHit
     grapherState: GrapherState
     tab: GrapherTabName
+    previewVariant: PreviewVariant
 }): { chartUrl: string; previewUrl: string } {
     // Use Grapher's changedParams to construct chart and preview URLs.
     // We override the tab parameter because the GrapherState is currently set to
@@ -784,7 +797,11 @@ function constructChartAndPreviewUrlsForTab({
         grapherParams.facet = FacetStrategy.none
     }
 
-    const previewUrl = constructThumbnailUrl({ hit, grapherParams })
+    const previewUrl = constructPreviewUrl({
+        hit,
+        grapherParams,
+        variant: previewVariant,
+    })
 
     const chartUrl = constructChartUrl({
         hit,
