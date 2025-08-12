@@ -30,6 +30,10 @@
     @include h3-bold;
     color: $blue-90;
     margin: 0 0 2px 0;
+
+    @include sm-only {
+        font-size: 16px;
+    }
 }
 
 .search-flat-article-hit__date {
@@ -40,6 +44,7 @@
 
 .search-flat-article-hit__authors-and-excerpt {
     @include body-3-medium;
+    color: $blue-90;
     display: -webkit-box;
     overflow: hidden;
     // see https://github.com/owid/owid-grapher/issues/4982
@@ -56,10 +61,6 @@
 
 .search-flat-article-hit__authors {
     color: $blue-60;
-}
-
-.search-flat-article-hit__excerpt {
-    color: $blue-90;
 }
 
 .search-flat-article-hit__text {
