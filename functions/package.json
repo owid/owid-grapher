@@ -22,6 +22,7 @@
         "@cloudflare/workers-types": "^4.20250510.0",
         "@types/lodash-es": "^4",
         "@types/react": "^19.1.8",
-        "@types/react-dom": "^19.1.6"
+        "@types/react-dom": "^19.1.6",
+        "vitest": "^3.2.4"
     }
 }
