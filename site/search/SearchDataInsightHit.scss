@@ -8,6 +8,12 @@
     @include sm-only {
         scroll-snap-align: start;
     }
+
+    &:only-child .search-data-insight-hit__image-container {
+        @include sm-only {
+            width: 100%;
+        }
+    }
 }
 
 .search-data-insight-hit__image-container {
