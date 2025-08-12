@@ -8,7 +8,7 @@ import { ChartRecordType, SearchChartHit } from "./searchTypes.js"
 import {
     constructChartUrl,
     constructConfigUrl,
-    constructThumbnailUrl,
+    constructPreviewUrl,
     fetchJson,
     pickEntitiesForChartHit,
     getSortedGrapherTabsForChartHit,
@@ -22,6 +22,7 @@ import {
     constructDownloadUrl,
     getColumnCountForGridSlot,
     PlacedTab,
+    PreviewVariant,
 } from "./searchUtils.js"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
 import {
@@ -238,27 +239,38 @@ function SearchChartHitMediumRichData({
                 className="search-chart-hit-medium__content"
                 style={contentStyle}
             >
-                {layout?.placedTabs.map(({ tab, slot }) =>
-                    tab === GRAPHER_TAB_NAMES.Table ? (
+                {layout?.placedTabs.map(({ tab, slot }, tabIndex) => {
+                    const previewVariant =
+                        tabIndex === 0 ? "minimal" : "thumbnail"
+
+                    const { chartUrl, previewUrl } =
+                        constructChartAndPreviewUrlsForTab({
+                            hit,
+                            grapherState,
+                            tab,
+                            previewVariant,
+                        })
+
+                    return tab === GRAPHER_TAB_NAMES.Table ? (
                         <CaptionedTable
                             key={tab}
-                            hit={hit}
-                            tab={tab}
                             slot={slot}
+                            chartUrl={chartUrl}
                             grapherState={grapherState}
                             onClick={onClick}
                         />
                     ) : (
                         <CaptionedThumbnail
                             key={tab}
-                            hit={hit}
-                            tab={tab}
                             slot={slot}
+                            chartType={tab}
+                            chartUrl={chartUrl}
+                            previewUrl={previewUrl}
                             grapherState={grapherState}
                             onClick={onClick}
                         />
                     )
-                )}
+                })}
 
                 {layout?.dataDisplayProps && (
                     <SearchChartHitDataDisplay
@@ -384,9 +396,10 @@ function SearchChartHitMediumFallback({
                         hit,
                         grapherParams,
                     })
-                    const previewUrl = constructThumbnailUrl({
+                    const previewUrl = constructPreviewUrl({
                         hit,
                         grapherParams,
+                        variant: "thumbnail",
                     })
 
                     return (
@@ -414,24 +427,16 @@ function SearchChartHitMediumFallback({
 }
 
 function CaptionedTable({
-    hit,
-    tab,
+    chartUrl,
     slot = GridSlot.SingleSlot,
     grapherState,
     onClick,
 }: {
-    hit: SearchChartHit
-    tab: GrapherTabName
+    chartUrl: string
     slot?: GridSlot
     grapherState: GrapherState
     onClick?: () => void
 }): React.ReactElement | null {
-    const { chartUrl } = constructChartAndPreviewUrlsForTab({
-        hit,
-        grapherState,
-        tab,
-    })
-
     // Construct caption
     const numAvailableEntities =
         grapherState.addCountryMode === EntitySelectionMode.Disabled
@@ -473,28 +478,24 @@ function CaptionedTable({
 }
 
 function CaptionedThumbnail({
-    hit,
-    tab,
+    chartType,
+    chartUrl,
+    previewUrl,
     grapherState,
     slot = GridSlot.SingleSlot,
     onClick,
 }: {
-    hit: SearchChartHit
-    tab: GrapherTabName
+    chartType: GrapherTabName
+    chartUrl: string
+    previewUrl: string
     grapherState: GrapherState
     slot?: GridSlot
     onClick?: () => void
 }): React.ReactElement {
-    const { chartUrl, previewUrl } = constructChartAndPreviewUrlsForTab({
-        hit,
-        grapherState,
-        tab,
-    })
-
-    let caption = makeLabelForGrapherTab(tab, { format: "long" })
+    let caption = makeLabelForGrapherTab(chartType, { format: "long" })
 
     // Add the map time to the caption if it's different from the chart's end time
-    if (tab === GRAPHER_TAB_NAMES.WorldMap) {
+    if (chartType === GRAPHER_TAB_NAMES.WorldMap) {
         const mapTime = grapherState.map.time
             ? findClosestTime(grapherState.times, grapherState.map.time)
             : undefined
@@ -698,10 +699,12 @@ function constructChartAndPreviewUrlsForTab({
     hit,
     grapherState,
     tab,
+    previewVariant,
 }: {
     hit: SearchChartHit
     grapherState: GrapherState
     tab: GrapherTabName
+    previewVariant: PreviewVariant
 }): { chartUrl: string; previewUrl: string } {
     // Use Grapher's changedParams to construct chart and preview URLs.
     // We override the tab parameter because the GrapherState is currently set to
@@ -720,7 +723,11 @@ function constructChartAndPreviewUrlsForTab({
         grapherParams.facet = FacetStrategy.none
     }
 
-    const previewUrl = constructThumbnailUrl({ hit, grapherParams })
+    const previewUrl = constructPreviewUrl({
+        hit,
+        grapherParams,
+        variant: previewVariant,
+    })
 
     const chartUrl = constructChartUrl({
         hit,
