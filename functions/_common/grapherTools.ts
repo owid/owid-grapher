@@ -23,8 +23,11 @@ import {
 } from "@ourworldindata/core-table"
 import { StatusError } from "itty-router"
 import { Env } from "./env.js"
-import { fetchFromR2, grapherBaseUrl } from "./grapherRenderer.js"
 import { ImageOptions } from "./imageOptions.js"
+
+export const grapherBaseUrl = "https://ourworldindata.org/grapher"
+
+const WORKER_CACHE_TIME_IN_SECONDS = 60
 
 interface FetchGrapherConfigResult {
     grapherConfig: GrapherInterface | null
@@ -65,6 +68,29 @@ export function getDataApiUrl(env: Env) {
     throw new Error(
         "Neither DATA_API_URL_COMPLETE nor DATA_API_URL_PARTIAL_PREFIX and DATA_API_URL_PARTIAL_POSTFIX were declared!"
     )
+}
+
+export async function fetchFromR2(
+    url: URL,
+    etag: string | undefined,
+    fallbackUrl?: URL
+) {
+    const headers = new Headers()
+    if (etag) headers.set("If-None-Match", etag)
+    const init = {
+        cf: {
+            cacheEverything: true,
+            cacheTtl: WORKER_CACHE_TIME_IN_SECONDS,
+        },
+        headers,
+    }
+    const primaryResponse = await fetch(url.toString(), init)
+    // The fallback URL here is used so that on staging or dev we can fallback
+    // to the production bucket if the file is not found in the branch bucket
+    if (primaryResponse.status === 404 && fallbackUrl) {
+        return fetch(fallbackUrl.toString(), init)
+    }
+    return primaryResponse
 }
 
 export async function fetchUnparsedGrapherConfig(
