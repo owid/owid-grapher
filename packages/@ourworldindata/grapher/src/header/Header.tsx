@@ -334,6 +334,8 @@ export class StaticHeader extends AbstractHeader<StaticHeaderProps> {
                         style={{
                             fontFamily:
                                 "'Playfair Display', Georgia, 'Times New Roman', 'Liberation Serif', serif",
+                            fontFeatureSettings:
+                                '"liga", "kern", "calt", "lnum"',
                         }}
                         target="_blank"
                         rel="noopener"

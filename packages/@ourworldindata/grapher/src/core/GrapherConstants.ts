@@ -166,6 +166,7 @@ export const grapherInterfaceWithHiddenTabs: GrapherProgrammaticInterface = {
 export const SVG_STYLE_PROPS: React.CSSProperties = {
     fontFamily:
         "Lato, 'Helvetica Neue', Helvetica, Arial, 'Liberation Sans', sans-serif",
+    fontFeatureSettings: '"liga", "kern", "calt", "lnum"',
     textRendering: "geometricPrecision",
     WebkitFontSmoothing: "antialiased",
 }
