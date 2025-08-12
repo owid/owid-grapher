@@ -31,7 +31,11 @@ import {
     faRobot,
     faUpload,
 } from "@fortawesome/free-solid-svg-icons"
-import { type File, fileToBase64, type ImageUploadResponse } from "./imagesHelpers.js"
+import {
+    type File,
+    fileToBase64,
+    type ImageUploadResponse,
+} from "./imagesHelpers.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
 import { NotificationInstance } from "antd/es/notification/interface.js"
 import { EditableTextarea } from "./EditableTextarea.js"
@@ -574,7 +578,9 @@ export function ImageIndexPage() {
             },
             postImage: async (image) => {
                 const response = await admin.requestJSON<ImageUploadResponse>(
-                    `/api/images`, image, "POST"
+                    `/api/images`,
+                    image,
+                    "POST"
                 )
                 if (response.success) {
                     setImages((prevMap) => ({
@@ -591,7 +597,9 @@ export function ImageIndexPage() {
             },
             putImage: async (id, payload) => {
                 const response = await admin.requestJSON<ImageUploadResponse>(
-                    `/api/images/${id}`, payload, "PUT"
+                    `/api/images/${id}`,
+                    payload,
+                    "PUT"
                 )
                 if (response.success) {
                     setImages((prevMap) => {
