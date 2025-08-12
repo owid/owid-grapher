@@ -112,7 +112,7 @@ import {
     OwidVariableRow,
     AdditionalGrapherDataFetchFn,
     ProjectionColumnInfo,
-    GrapherRenderMode,
+    GrapherVariant,
     GRAPHER_MAP_TYPE,
 } from "@ourworldindata/types"
 import {
@@ -231,7 +231,7 @@ import {
     groupEntityNamesByRegionType,
 } from "./EntitiesByRegionType"
 import * as R from "remeda"
-import { CaptionedOrThumbnailChart } from "../chart/CaptionedOrThumbnailChart.js"
+import { Chart } from "../chart/Chart.js"
 import { flushSync } from "react-dom"
 import { match } from "ts-pattern"
 
@@ -255,7 +255,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     entityYearHighlight?: EntityYearHighlight
     baseFontSize?: number
     staticBounds?: Bounds
-    renderMode?: GrapherRenderMode
+    variant?: GrapherVariant
 
     hideTitle?: boolean
     hideSubtitle?: boolean
@@ -574,7 +574,7 @@ export class GrapherState {
             isExportingToSvgOrPng: observable.ref,
             isSocialMediaExport: observable.ref,
             isWikimediaExport: observable.ref,
-            renderMode: observable.ref,
+            variant: observable.ref,
             staticBounds: observable,
             isPlaying: observable.ref,
             isTimelineAnimationActive: observable.ref,
@@ -1251,7 +1251,7 @@ export class GrapherState {
     isSocialMediaExport = false
     isWikimediaExport = false
 
-    renderMode = GrapherRenderMode.Captioned
+    variant = GrapherVariant.Default
 
     staticBounds: Bounds = DEFAULT_GRAPHER_BOUNDS
 
@@ -2464,9 +2464,7 @@ export class GrapherState {
         const _isExportingToSvgOrPng = this.isExportingToSvgOrPng
         this.isExportingToSvgOrPng = true
 
-        const innerHTML = renderToHtmlString(
-            <CaptionedOrThumbnailChart manager={this} />
-        )
+        const innerHTML = renderToHtmlString(<Chart manager={this} />)
 
         this.isExportingToSvgOrPng = _isExportingToSvgOrPng
         return innerHTML
@@ -3535,8 +3533,6 @@ export class GrapherState {
     @computed get isEntitySelectorPanelActive(): boolean {
         if (this.hideEntityControls) return false
 
-        if (this.renderMode === GrapherRenderMode.Thumbnail) return false
-
         const shouldShowPanel =
             this.shouldShowEntitySelectorAs === GrapherWindowType.panel
 
@@ -4019,7 +4015,7 @@ export class Grapher extends React.Component<GrapherProps> {
     override render(): React.ReactElement | undefined {
         // Used in the admin to render a static preview of the chart
         if (this.grapherState.isExportingToSvgOrPng)
-            return <CaptionedOrThumbnailChart manager={this.grapherState} />
+            return <Chart manager={this.grapherState} />
 
         if (this.grapherState.isInFullScreenMode) {
             return (
@@ -4048,7 +4044,7 @@ export class Grapher extends React.Component<GrapherProps> {
             <>
                 {/* Chart and entity selector */}
                 <div className="CaptionedChartAndSidePanel">
-                    <CaptionedOrThumbnailChart manager={this.grapherState} />
+                    <Chart manager={this.grapherState} />
 
                     {this.grapherState.sidePanelBounds && (
                         <SidePanel bounds={this.grapherState.sidePanelBounds}>
