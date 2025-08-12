@@ -706,8 +706,23 @@ export const grapherKeysToSerialize = [
 ]
 
 export enum GrapherRenderMode {
-    Captioned = "captioned", // Chart with header and footer
-    Thumbnail = "thumbnail", // Chart only, no header or footer
+    /**
+     * Default rendering, with header and footer
+     */
+    Captioned = "captioned",
+
+    /**
+     * Simplified rendering, suitable for thumbnails (chart area only).
+     * Less noisy visualization, but should be understandable on its own,
+     * e.g. renders text elements like entity labels
+     */
+    Thumbnail = "thumbnail",
+
+    /**
+     * Like the thumbnail version but with fewer annotations.
+     * Not intended to be readable on its own. This is just a picture.
+     */
+    Minimal = "minimal",
 }
 
 export interface ChartRedirect {

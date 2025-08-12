@@ -1,4 +1,4 @@
-import { match } from "ts-pattern"
+import { match, P } from "ts-pattern"
 import {
     GRAPHER_CHART_TYPES,
     GRAPHER_MAP_TYPE,
@@ -119,10 +119,13 @@ function getChartComponentClass(
             ClassMap: ChartComponentClassMap,
             DefaultChartClass: LineChart,
         }))
-        .with(GrapherRenderMode.Thumbnail, () => ({
-            ClassMap: ChartThumbnailClassMap,
-            DefaultChartClass: LineChartThumbnail,
-        }))
+        .with(
+            P.union(GrapherRenderMode.Thumbnail, GrapherRenderMode.Minimal),
+            () => ({
+                ClassMap: ChartThumbnailClassMap,
+                DefaultChartClass: LineChartThumbnail,
+            })
+        )
         .exhaustive()
 
     const ChartClass = ClassMap.get(chartType) ?? DefaultChartClass

@@ -1,8 +1,6 @@
 import React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
-import { match } from "ts-pattern"
-import { GrapherRenderMode } from "@ourworldindata/utils"
 import {
     CaptionedChart,
     StaticCaptionedChart,
@@ -10,9 +8,10 @@ import {
 import { GrapherState } from "../core/Grapher.js"
 import { ChartAreaContent } from "./ChartAreaContent.js"
 import { StaticChartWrapper } from "./StaticChartWrapper.js"
+import { GrapherRenderMode } from "@ourworldindata/types"
 
 @observer
-export class CaptionedOrThumbnailChart extends React.Component<{
+export class Chart extends React.Component<{
     manager: GrapherState
 }> {
     constructor(props: { manager: GrapherState }) {
@@ -28,37 +27,35 @@ export class CaptionedOrThumbnailChart extends React.Component<{
         return this.props.manager.renderMode ?? GrapherRenderMode.Captioned
     }
 
+    @computed private get isCaptioned(): boolean {
+        return this.renderMode === GrapherRenderMode.Captioned
+    }
+
     private renderInteractive(): React.ReactElement {
-        return match(this.renderMode)
-            .with(GrapherRenderMode.Captioned, () => (
-                <CaptionedChart manager={this.manager} />
-            ))
-            .with(GrapherRenderMode.Thumbnail, () => (
+        return this.isCaptioned ? (
+            <CaptionedChart manager={this.manager} />
+        ) : (
+            <ChartAreaContent
+                manager={this.manager}
+                bounds={this.manager.chartAreaBounds}
+            />
+        )
+    }
+
+    private renderStatic(): React.ReactElement {
+        return this.isCaptioned ? (
+            <StaticCaptionedChart manager={this.manager} />
+        ) : (
+            <StaticChartWrapper
+                manager={this.manager}
+                bounds={this.manager.chartAreaBounds}
+            >
                 <ChartAreaContent
                     manager={this.manager}
                     bounds={this.manager.chartAreaBounds}
                 />
-            ))
-            .exhaustive()
-    }
-
-    private renderStatic(): React.ReactElement {
-        return match(this.renderMode)
-            .with(GrapherRenderMode.Captioned, () => (
-                <StaticCaptionedChart manager={this.manager} />
-            ))
-            .with(GrapherRenderMode.Thumbnail, () => (
-                <StaticChartWrapper
-                    manager={this.manager}
-                    bounds={this.manager.chartAreaBounds}
-                >
-                    <ChartAreaContent
-                        manager={this.manager}
-                        bounds={this.manager.chartAreaBounds}
-                    />
-                </StaticChartWrapper>
-            ))
-            .exhaustive()
+            </StaticChartWrapper>
+        )
     }
 
     override render(): React.ReactElement {
