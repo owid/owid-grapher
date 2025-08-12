@@ -53,10 +53,11 @@ export interface ChartListItem {
 
     tags: DbChartTagJoin[]
     pageviewsPerDay: number
+    narrativeChartsCount: number
 }
 
 export type SortConfig = {
-    field: "pageviewsPerDay"
+    field: "pageviewsPerDay" | "narrativeChartsCount"
     direction: "asc" | "desc"
 } | null
 
@@ -202,10 +203,15 @@ export class ChartList extends React.Component<ChartListProps> {
         const { chartsFiltered } = this
         if (!this.sortConfig) return chartsFiltered
 
-        const { direction } = this.sortConfig
+        const { direction, field } = this.sortConfig
+        const getValue =
+            field === "pageviewsPerDay"
+                ? (chart: ChartListItem) => chart.pageviewsPerDay
+                : (chart: ChartListItem) => chart.narrativeChartsCount
+
         return sortNumeric(
             [...chartsFiltered],
-            (chart) => chart.pageviewsPerDay,
+            getValue,
             direction === "asc" ? SortOrder.asc : SortOrder.desc
         )
     }
@@ -251,6 +257,22 @@ export class ChartList extends React.Component<ChartListProps> {
             }
         }
 
+        const getNarrativeChartsSortIndicator = () => {
+            if (!sortConfig || sortConfig.field !== "narrativeChartsCount")
+                return ""
+            return sortConfig.direction === "desc" ? " ↓" : " ↑"
+        }
+
+        const handleNarrativeChartsSortClick = () => {
+            if (!sortConfig || sortConfig.field !== "narrativeChartsCount") {
+                onSort({ field: "narrativeChartsCount", direction: "desc" })
+            } else if (sortConfig.direction === "desc") {
+                onSort({ field: "narrativeChartsCount", direction: "asc" })
+            } else {
+                onSort(null)
+            }
+        }
+
         // if the first chart has inheritance information, we assume all charts have it
         const showInheritanceColumn =
             chartsToShow[0]?.isInheritanceEnabled !== undefined
@@ -291,6 +313,13 @@ export class ChartList extends React.Component<ChartListProps> {
                                 onClick={handleSortClick}
                             >
                                 views/day{getSortIndicator()}
+                            </th>
+                            <th
+                                style={{ cursor: "pointer" }}
+                                onClick={handleNarrativeChartsSortClick}
+                            >
+                                narrative charts
+                                {getNarrativeChartsSortIndicator()}
                             </th>
                             <th></th>
                             <th></th>
