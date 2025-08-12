@@ -63,7 +63,7 @@
 
 .search-writing-topic__content {
     display: flex;
-    column-gap: 24px;
+    gap: 24px;
 
     @include sm-only {
         flex-direction: column;
@@ -81,6 +81,19 @@
 
     @include sm-only {
         flex-basis: 100%;
+    }
+}
+
+.search-writing-topic__divider {
+    display: none;
+    border: none;
+    border-top: 1px solid $blue-20;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+
+    @include sm-only {
+        display: block;
     }
 }
 
@@ -141,6 +154,12 @@
         overflow-x: auto;
         scroll-snap-type: x mandatory;
         -webkit-overflow-scrolling: touch;
+
+        scrollbar-width: none; // Firefox
+        -ms-overflow-style: none; // IE and Edge
+        &::-webkit-scrollbar {
+            display: none; // Chrome, Safari, Opera
+        }
     }
 }
 

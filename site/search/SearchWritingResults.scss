@@ -2,7 +2,6 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: var(--grid-gap);
-    margin-bottom: var(--grid-gap);
 }
 
 .search-writing-results__articles {
