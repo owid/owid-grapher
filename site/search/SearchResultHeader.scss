@@ -14,4 +14,8 @@
 .search-result-header__count {
     @include note-13-medium;
     font-style: italic;
+
+    @include sm-only {
+        @include note-12-medium;
+    }
 }
