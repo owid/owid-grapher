@@ -13,7 +13,6 @@ import {
 import { searchQueryKeys, queryArticles, queryTopicPages } from "./queries.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 import { useInfiniteSearch } from "./searchHooks.js"
-import { SearchShowMore } from "./SearchShowMore.js"
 import { SearchFlatArticleHit } from "./SearchFlatArticleHit.js"
 import { SearchTopicPageHit } from "./SearchTopicPageHit.js"
 import { SearchWritingResultsSkeleton } from "./SearchWritingResultsSkeleton.js"
@@ -166,36 +165,39 @@ export const SearchWritingResults = ({
             topicsQuery.hasNextPage ? topicsQuery.fetchNextPage() : undefined,
         ])
 
-    if (isInitialLoading) return <SearchWritingResultsSkeleton />
-    if (totalCount === 0) return null
+    if (!isInitialLoading && totalCount === 0) return null
 
     return (
         <>
             <section>
-                <SearchResultHeader count={totalCount}>
-                    Research & Writing
-                </SearchResultHeader>
-                {isSmallScreen ? (
-                    <SingleColumnResults
-                        articlePages={articlesQuery.data?.pages || []}
-                        topicPages={topicsQuery.data?.pages || []}
-                        hasLargeTopic={hasLargeTopic}
-                    />
+                {isInitialLoading ? (
+                    <SearchWritingResultsSkeleton />
                 ) : (
-                    <MultiColumnResults
-                        articles={articlesQuery.hits}
-                        topics={topicsQuery.hits}
-                        hasLargeTopic={hasLargeTopic}
-                    />
-                )}
-                {hasNextPage && (
-                    <SearchShowMore
-                        isLoading={isFetchingNextPage}
-                        onClick={fetchNextPage}
-                    />
+                    <>
+                        <SearchResultHeader count={totalCount}>
+                            Research & Writing
+                        </SearchResultHeader>
+                        {isSmallScreen ? (
+                            <SingleColumnResults
+                                articlePages={articlesQuery.data?.pages || []}
+                                topicPages={topicsQuery.data?.pages || []}
+                                hasLargeTopic={hasLargeTopic}
+                            />
+                        ) : (
+                            <MultiColumnResults
+                                articles={articlesQuery.hits}
+                                topics={topicsQuery.hits}
+                                hasLargeTopic={hasLargeTopic}
+                            />
+                        )}
+                    </>
                 )}
             </section>
-            {!hasNextPage && <SearchHorizontalDivider />}
+            <SearchHorizontalDivider
+                hasButton={!isInitialLoading && hasNextPage}
+                isLoading={isFetchingNextPage}
+                onClick={fetchNextPage}
+            />
         </>
     )
 }
