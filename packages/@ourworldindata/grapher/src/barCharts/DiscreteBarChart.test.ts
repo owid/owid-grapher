@@ -15,6 +15,7 @@ import { SelectionArray } from "../selection/SelectionArray"
 import { SortBy, SortOrder } from "@ourworldindata/utils"
 import { OwidDistinctColorScheme } from "../color/CustomSchemes"
 import { DiscreteBarChartState } from "./DiscreteBarChartState"
+import { DiscreteBars } from "./DiscreteBars"
 
 it("can create a new bar chart", () => {
     const table = SynthesizeGDPTable({ timeRange: [2000, 2001] })
@@ -108,11 +109,15 @@ describe("barcharts with columns as the series", () => {
         }
         const chartState = new DiscreteBarChartState({ manager })
         const chart = new DiscreteBarChart({ chartState })
-        expect(chart.formatValue(chartState.series[0])).toMatchObject({
+        const discreteBars = new DiscreteBars({
+            chartState,
+            series: chart.sizedSeries,
+        })
+        expect(discreteBars.formatValue(chartState.series[0])).toMatchObject({
             valueString: "1,002",
             timeString: "",
         })
-        expect(chart.formatValue(chartState.series[1])).toMatchObject({
+        expect(discreteBars.formatValue(chartState.series[1])).toMatchObject({
             valueString: "1,000",
             timeString: " in 2019",
         })
