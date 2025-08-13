@@ -46,7 +46,7 @@ export function buildChartHitDataTableProps(
     // If the chart is faceted and displays multiple series per facet
     // (i.e. multiple entities + multiple columns), we only show data from
     // the first facet in the data table
-    const chartState = hasMultipleSeriesPerFacet(props.grapherState)
+    const chartState = props.grapherState.hasMultipleSeriesPerFacet
         ? props.grapherState.facetChartInstance?.intermediateChartInstances[0]
               ?.chartState
         : props.grapherState.chartState
@@ -278,7 +278,7 @@ function makeTableTitle(
     const columnName = getColumnNameForDisplay(formatColumn)
     const unit = getColumnUnitForDisplay(formatColumn, { allowTrivial: true })
 
-    if (hasMultipleSeriesPerFacet(grapherState)) {
+    if (grapherState.hasMultipleSeriesPerFacet) {
         if (isFacetedByEntity) {
             return grapherState.selection.selectedEntityNames[0]
         } else {
@@ -326,12 +326,4 @@ function getColorForSeriesIfFaceted(
     )
 
     return series?.color
-}
-
-function hasMultipleSeriesPerFacet(grapherState: GrapherState): boolean {
-    return (
-        grapherState.isFaceted &&
-        grapherState.selection.numSelectedEntities > 1 &&
-        grapherState.yColumnSlugs.length > 1
-    )
 }
