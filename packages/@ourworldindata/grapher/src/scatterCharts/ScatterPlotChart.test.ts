@@ -36,9 +36,8 @@ it("can create a new chart", () => {
     }
 
     const chartState = new ScatterPlotChartState({ manager })
-    const chart = new ScatterPlotChart({ chartState })
     expect(chartState.errorInfo.reason).toBeFalsy()
-    expect(chart.seriesNamesToHighlight.size).toEqual(0)
+    expect(chartState.seriesNamesToHighlight.size).toEqual(0)
     expect(chartState.series.length).toEqual(2)
     expect(chartState.allPoints.length).toBeGreaterThan(0)
 })
