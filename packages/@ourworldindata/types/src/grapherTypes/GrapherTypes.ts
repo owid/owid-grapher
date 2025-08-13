@@ -373,7 +373,10 @@ export interface ColorScaleConfigInterface {
     baseColorScheme?: ColorSchemeName
     colorSchemeInvert?: boolean
     binningStrategy: BinningStrategy
-    binningStrategyBinCount?: number
+    createBinForMidpoint?: boolean
+    minValue?: number
+    maxValue?: number
+    midpointMode?: string
     customNumericValues: number[]
     customNumericLabels: (string | undefined | null)[]
     customNumericColorsActive?: boolean
@@ -386,7 +389,7 @@ export interface ColorScaleConfigInterface {
 }
 
 export const colorScaleConfigDefaults = {
-    binningStrategy: BinningStrategy.ckmeans,
+    binningStrategy: "auto",
     customNumericValues: [],
     customNumericLabels: [],
     customNumericColors: [],
