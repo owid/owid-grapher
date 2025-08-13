@@ -537,12 +537,23 @@ function pickEntitiesForDisplay(
             grapherState.table.availableEntityNameSet.has(entityName)
     )
 
-    if (pickedEntities.length === 0) return defaultEntities
+    // Combine the picked entities with the default ones.
+    // It's important to prepend the picked entities because we later
+    // take the first N entities to render if there are space constraints
+    const pickedAndDefaultEntities = R.unique([
+        ...pickedEntities,
+        ...defaultEntities,
+    ])
 
     return match(grapherState.addCountryMode)
         .with(EntitySelectionMode.Disabled, () => {
-            // Entity selection is disabled, so the default entities are the only valid choice
-            return defaultEntities
+            // Entity selection is disabled, so the default entities are the
+            // only valid choice, unless we're dealing with a chart type where
+            // all entities are plotted by default. In that case _highlighting_
+            // an entity is valid even when entity _selection_ is disabled
+            return grapherState.isScatter || grapherState.isMarimekko
+                ? pickedEntities
+                : defaultEntities
         })
         .with(EntitySelectionMode.SingleEntity, () => {
             // Only a single entity can be selected at a time, so pick the first one,
@@ -556,15 +567,36 @@ function pickEntitiesForDisplay(
                 grapherState.chartState
             const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
 
-            // Don't add entities if columns are plotted since Grapher would switch to faceting mode
-            if (!isEntityStrategy) return pickedEntities
+            return match(grapherState.facetStrategy)
+                .with(FacetStrategy.none, () => {
+                    // Don't combine picked and default entities if columns are
+                    // plotted since Grapher would switch to faceting mode
+                    if (!isEntityStrategy)
+                        return pickedEntities.length > 0
+                            ? pickedEntities
+                            : defaultEntities
 
-            const nonDefaultPickedEntities = pickedEntities.filter(
-                (entity) => !defaultEntities.includes(entity)
-            )
+                    return pickedAndDefaultEntities
+                })
+                .with(FacetStrategy.entity, () => {
+                    // When faceting by entity, don't add default entities
+                    // to the selection because charts with many facets become
+                    // hard to read in thumbnail previews
+                    if (pickedEntities.length > 0) return pickedEntities
 
-            // Fill up the remaining slots with the default ones
-            return [...nonDefaultPickedEntities, ...defaultEntities]
+                    // If no entities were picked by the user, check if the chart
+                    // has multiple series per facet. If so, simplify the display
+                    // by showing only the first default entity (effectively
+                    // un-faceting the chart)
+                    if (defaultEntities.length === 0) return [] // Shouldn't happen
+                    return grapherState.hasMultipleSeriesPerFacet
+                        ? [defaultEntities[0]]
+                        : defaultEntities
+                })
+                .with(FacetStrategy.metric, () =>
+                    pickedEntities.length > 0 ? pickedEntities : defaultEntities
+                )
+                .exhaustive()
         })
         .exhaustive()
 }
