@@ -84,7 +84,6 @@ export class ColorScaleConfigDefaults implements ColorScaleConfigInterface {
             baseColorScheme: observable,
             colorSchemeInvert: observable,
             binningStrategy: observable,
-            binningStrategyBinCount: observable,
             customNumericValues: observable,
             customNumericLabels: observable,
             customNumericColorsActive: observable,
