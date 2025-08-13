@@ -1026,7 +1026,11 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     @computed private get filteredAvailableEntities(): SearchableEntity[] {
         const { availableEntities, entityFilter } = this
 
-        if (entityFilter === "all") return this.sortEntities(availableEntities)
+        // Sort locals and World to the top if we are looking at all entites
+        if (entityFilter === "all")
+            return this.sortEntities(availableEntities, {
+                sortLocalsAndWorldToTop: true,
+            })
 
         const entityNameSet = new Set(
             this.manager.entityNamesByRegionType?.get(entityFilter) ?? []
@@ -1036,8 +1040,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         )
 
         return this.sortEntities(filteredAvailableEntities, {
-            // non-country groups are usually small,
-            // so sorting local entities to the top isn't necessary
+            // Sort locals and World to the top if looking at the long countries list, not for others
             sortLocalsAndWorldToTop: entityFilter === "countries",
         })
     }
@@ -1049,69 +1052,78 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         }
     ): SearchableEntity[] {
         const { sortConfig } = this
+        const byName = (e: SearchableEntity) => e.name
+        const byValue = (e: SearchableEntity) =>
+            e.sortColumnValues[sortConfig.slug]
 
-        const shouldBeSortedByName =
-            sortConfig.slug === this.table.entityNameSlug
+        // Name sorting
+        if (this.isSortedByName) {
+            // Simple name sort without local/world prioritization
+            if (!options.sortLocalsAndWorldToTop) {
+                return _.orderBy(entities, byName, sortConfig.order)
+            }
 
-        // sort by name, ignoring local entities
-        if (shouldBeSortedByName && !options.sortLocalsAndWorldToTop) {
-            return _.orderBy(
-                entities,
-                (entity: SearchableEntity) => entity.name,
-                sortConfig.order
+            // Name sort with locals on top and World between locals and others
+            const [[worldEntity], rest] = _.partition(entities, (e) =>
+                isWorldEntityName(e.name)
             )
-        }
+            const [locals, others] = _.partition(rest, (e) => e.isLocal)
 
-        // sort by name, with local entities at the top
-        if (shouldBeSortedByName && options.sortLocalsAndWorldToTop) {
-            const [[worldEntity], entitiesWithoutWorld] = _.partition(
-                entities,
-                (entity) => isWorldEntityName(entity.name)
+            const sortedLocals = _.sortBy(locals, (e) =>
+                this.localEntityNames?.indexOf(e.name)
             )
-
-            const [localEntities, otherEntities] = _.partition(
-                entitiesWithoutWorld,
-                (entity: SearchableEntity) => entity.isLocal
-            )
-
-            const sortedLocalEntities = _.sortBy(
-                localEntities,
-                (entity: SearchableEntity) =>
-                    this.localEntityNames?.indexOf(entity.name)
-            )
-
-            const sortedOtherEntities = _.orderBy(
-                otherEntities,
-                (entity: SearchableEntity) => entity.name,
-                sortConfig.order
-            )
+            const sortedOthers = _.orderBy(others, byName, sortConfig.order)
 
             return excludeUndefined([
-                ...sortedLocalEntities,
+                ...sortedLocals,
                 worldEntity,
-                ...sortedOtherEntities,
+                ...sortedOthers,
             ])
         }
 
-        // sort by number column, with missing values at the end
-        const [withValues, withoutValues] = _.partition(
-            entities,
-            (entity: SearchableEntity) =>
-                isFiniteWithGuard(entity.sortColumnValues[sortConfig.slug])
+        // Value sorting: missing values go last
+        const [withValues, withoutValues] = _.partition(entities, (e) =>
+            isFiniteWithGuard(byValue(e))
         )
-        const sortedEntitiesWithValues = _.orderBy(
-            withValues,
-            (entity: SearchableEntity) =>
-                entity.sortColumnValues[sortConfig.slug],
-            sortConfig.order
-        )
-        const sortedEntitiesWithoutValues = _.orderBy(
+
+        let sortedWithValues: SearchableEntity[]
+        if (options.sortLocalsAndWorldToTop) {
+            const [[worldWith], restWith] = _.partition(withValues, (e) =>
+                isWorldEntityName(e.name)
+            )
+            const [localWith, otherWith] = _.partition(
+                restWith,
+                (e) => e.isLocal
+            )
+
+            // Locals: keep user-preferred order (by localEntityNames index)
+            const sortedLocalWith = _.sortBy(localWith, (e) =>
+                this.localEntityNames?.indexOf(e.name)
+            )
+
+            // Others: sort by value according to selected order
+            const sortedOtherWith = _.orderBy(
+                otherWith,
+                byValue,
+                sortConfig.order
+            )
+
+            sortedWithValues = excludeUndefined([
+                ...sortedLocalWith,
+                worldWith,
+                ...sortedOtherWith,
+            ])
+        } else {
+            sortedWithValues = _.orderBy(withValues, byValue, sortConfig.order)
+        }
+
+        const sortedWithoutValues = _.orderBy(
             withoutValues,
-            (entity: SearchableEntity) => entity.name,
+            byName,
             SortOrder.asc
         )
 
-        return [...sortedEntitiesWithValues, ...sortedEntitiesWithoutValues]
+        return [...sortedWithValues, ...sortedWithoutValues]
     }
 
     @computed get isMultiMode(): boolean {
