@@ -518,7 +518,8 @@ export async function getFlatTagGraph(knex: KnexReadonlyTransaction): Promise<
 
 // DFS through the tag graph and track all paths from a child to the root
 // e.g. { "childTag": [ [parentTag1, parentTag2, childTag], [parentTag3, childTag] ] }
-// Use this with getUniqueNamesFromParentTagArrays to get Record<string, string[]> instead
+// Use with getUniqueNamesFromTopicHierarchies to collapse all paths to the child into
+// a single array of unique parent tag names, including the original tags if they are topics.
 export async function getTagHierarchiesByChildName(
     trx: KnexReadonlyTransaction,
     includeAreasAndTopicsOnly: boolean = false
