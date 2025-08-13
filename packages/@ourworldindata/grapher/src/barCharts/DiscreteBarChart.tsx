@@ -122,7 +122,7 @@ export class DiscreteBarChart
         return (height - totalWhiteSpace) / this.barCount
     }
 
-    @computed private get sizedSeries(): DiscreteBarSeries[] {
+    @computed get sizedSeries(): DiscreteBarSeries[] {
         // can't use `this.barHeight` due to a circular dependency
         const barHeight = this.approximateBarHeight
 
