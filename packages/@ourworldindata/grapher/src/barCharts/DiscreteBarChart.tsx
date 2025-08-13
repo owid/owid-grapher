@@ -145,9 +145,12 @@ export class DiscreteBarChart
                 label.lines.length > 1 &&
                 step < 10 // safety net
             ) {
+                const currMaxWidth = label.maxWidth + 20
+                // labels shouldn't exceed this width
+                if (currMaxWidth > 0.66 * this.bounds.width) break
                 label = new TextWrap({
                     text: entityName,
-                    maxWidth: label.maxWidth + 20,
+                    maxWidth: currMaxWidth,
                     ...this.entityLabelStyle,
                 })
                 step += 1
