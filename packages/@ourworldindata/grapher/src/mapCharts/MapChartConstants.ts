@@ -99,12 +99,12 @@ export interface ChoroplethMapManager {
     globeController?: GlobeController
     mapRegionDropdownValue?: MapRegionDropdownValue
     resetMapRegionDropdownValue?: () => void
-    selectionArray: MapSelectionArray
+    selectionArray?: MapSelectionArray
     fontSize?: number
-    getHoverState: (featureId: string) => InteractionState
-    isSelected: (featureId: string) => boolean
-    onMapMouseOver: (d: GeoFeature) => void
-    onMapMouseLeave: () => void
+    getHoverState?: (featureId: string) => InteractionState
+    isSelected?: (featureId: string) => boolean
+    onMapMouseOver?: (d: GeoFeature) => void
+    onMapMouseLeave?: () => void
     isMapSelectionEnabled?: boolean
     isStatic?: boolean
     binColors?: string[]
