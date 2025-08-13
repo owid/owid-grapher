@@ -20,6 +20,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_FONT_SCALE_12,
+    GRAPHER_THUMBNAIL_OPACITY_MUTE,
 } from "../core/GrapherConstants"
 import {
     HorizontalAxisComponent,
@@ -393,6 +394,10 @@ export class StackedDiscreteBars
         const totalLabel = this.formatValueForLabel(totalValue)
         const showLabelInsideBar = bars.length > 1
 
+        const opacity = data.focus.background
+            ? GRAPHER_THUMBNAIL_OPACITY_MUTE
+            : 1
+
         // We can't just take the last bar here because if the last bar has a negative value,
         // its position on the chart (valueOffset + value) might actually be leftmost rather than rightmost.
         // So we find the maximum position across all bars to determine where to place the total value label.
@@ -406,6 +411,7 @@ export class StackedDiscreteBars
                 id={makeIdForHumanConsumption(entityName)}
                 className="bar"
                 transform={`translate(0, ${state.translateY ?? 0})`}
+                opacity={opacity}
             >
                 {bars.map((bar) => (
                     <StackedDiscreteBars.Bar
