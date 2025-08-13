@@ -23,6 +23,7 @@ import {
     urlToSlug,
     toRectangularMatrix,
     slugifySameCase,
+    slugify,
     greatestCommonDivisor,
     findGreatestCommonDivisorOfArray,
     traverseEnrichedBlock,
@@ -488,6 +489,35 @@ describe(toRectangularMatrix, () => {
             [1, 2, 3, 4],
         ]
         expect(toRectangularMatrix(arr, undefined)).toEqual(expected)
+    })
+})
+
+describe("slugify", () => {
+    it("handles subscript numbers correctly", () => {
+        expect(slugify("Per capita CO₂ emissions")).toBe("per-capita-co2-emissions")
+        expect(slugify("SO₂ concentrations")).toBe("so2-concentrations") 
+        expect(slugify("H₂O molecules")).toBe("h2o-molecules")
+        expect(slugify("CO₂ and CH₄ emissions")).toBe("co2-and-ch4-emissions")
+        expect(slugify("X₁₂₃ test case")).toBe("x123-test-case")
+    })
+
+    it("handles superscript numbers correctly", () => {
+        expect(slugify("X² + Y² = Z²")).toBe("x2-y2-z2")
+        expect(slugify("10³ cubic meters")).toBe("103-cubic-meters")
+        expect(slugify("E = mc²")).toBe("e-mc2")
+    })
+
+    it("handles mixed subscript and superscript numbers", () => {
+        expect(slugify("H₂SO₄²⁻ ion")).toBe("h2so42-ion")
+    })
+
+    it("handles text without subscripts/superscripts normally", () => {
+        expect(slugify("Regular text without subscripts")).toBe("regular-text-without-subscripts")
+        expect(slugify("Normal Numbers 123")).toBe("normal-numbers-123")
+    })
+
+    it("can allow slashes with subscripts", () => {
+        expect(slugify("CO₂/GDP ratios", true)).toBe("co2/gdp-ratios")
     })
 })
 
