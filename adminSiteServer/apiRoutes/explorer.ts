@@ -109,7 +109,26 @@ export async function handleDeleteExplorer(
         throw new JsonError("Explorer not found", 404)
     }
 
+    // Get chart config IDs from explorer views before deletion
+    const explorerViewChartConfigs = await trx("explorer_views")
+        .select("chartConfigId")
+        .where({ explorerSlug: slug })
+        .whereNotNull("chartConfigId")
+
+    const chartConfigIds = explorerViewChartConfigs.map(
+        (row) => row.chartConfigId
+    )
+
     await trx(ExplorersTableName).where({ slug }).delete()
+
+    // Note: explorer_views are automatically cleaned up via ON DELETE CASCADE
+    // foreign key constraint from explorerSlug to explorers.slug
+
+    // Explicitly clean up chart configs that were created for explorer views
+    // (CASCADE constraint should handle this, but explicitly doing it to ensure cleanup)
+    if (chartConfigIds.length > 0) {
+        await trx("chart_configs").whereIn("id", chartConfigIds).delete()
+    }
 
     if (explorer.isPublished) {
         await triggerStaticBuild(user, `Unpublishing explorer ${slug}`)

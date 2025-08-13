@@ -773,6 +773,15 @@ export {
 
 export { RedirectCode, type DbPlainRedirect } from "./dbTypes/Redirects.js"
 
+export {
+    ExplorerViewsTableName,
+    type DbInsertExplorerView,
+    type DbRawExplorerView,
+    type DbEnrichedExplorerView,
+    parseExplorerViewRow,
+    serializeExplorerViewRow,
+} from "./dbTypes/ExplorerViews.js"
+
 export { type Nominal, wrap, unwrap } from "./NominalType.js"
 
 export {

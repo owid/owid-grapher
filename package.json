@@ -25,6 +25,7 @@
         "runRegionsUpdater": "tsx --tsconfig tsconfig.tsx.json devTools/regionsUpdater/update.ts",
         "runDbMigrations": "tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration:run -d db/dataSource.ts",
         "refreshPageviews": "tsx --tsconfig tsconfig.tsx.json db/refreshPageviewsFromDatasette.ts",
+        "refreshExplorerViews": "tsx --tsconfig tsconfig.tsx.json devTools/refreshExplorerViews.ts",
         "revertLastDbMigration": "tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration:revert -d db/dataSource.ts",
         "startAdminServer": "tsx --tsconfig tsconfig.tsx.json adminSiteServer/app.ts",
         "startAdminDevServer": "tsx watch --ignore '**.mjs' --tsconfig tsconfig.tsx.json adminSiteServer/app.ts",

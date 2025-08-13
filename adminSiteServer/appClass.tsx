@@ -149,7 +149,7 @@ export class OwidAdminApp {
             adminServerPort,
             adminServerHost
         )
-        this.server.timeout = 5 * 60 * 1000 // Increase server timeout for long-running uploads
+        this.server.timeout = 8 * 60 * 1000 // Increase server timeout for long-running uploads
 
         if (!this.options.quiet)
             console.log(

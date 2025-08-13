@@ -6,6 +6,7 @@ import {
 } from "@ourworldindata/types"
 import { areSetsEqual } from "@ourworldindata/utils"
 import { parseExplorer } from "../explorerParser.js"
+import { refreshExplorerViewsForSlug } from "./ExplorerViews.js"
 
 type PlainExplorerWithLastCommit = Required<DbPlainExplorer> & {
     // lastCommit is a relic from our git-CMS days, it should be broken down
@@ -292,6 +293,8 @@ export async function upsertExplorer(
 
     await upsertExplorerCharts(knex, slug, JSON.parse(config))
     await upsertExplorerVariables(knex, slug, JSON.parse(config))
+
+    await refreshExplorerViewsForSlug(knex, slug)
 
     return slug
 }

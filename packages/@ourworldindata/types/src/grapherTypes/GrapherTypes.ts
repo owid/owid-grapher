@@ -723,5 +723,6 @@ export enum GrapherWindowType {
 }
 
 export type AdditionalGrapherDataFetchFn = (
-    varId: OwidVariableId
+    varId: OwidVariableId,
+    loadMetadataOnly?: boolean
 ) => Promise<OwidVariableDataMetadataDimensions>
