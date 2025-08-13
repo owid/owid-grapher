@@ -375,10 +375,42 @@ export class MapChart
         return [bins[bins.length - 1], ...bins.slice(0, -1)]
     }
 
+    @computed private get numMembersPerCategoricalBinByIndex(): Map<
+        number,
+        number
+    > {
+        const { chartState, legendData } = this
+        return new Map(
+            legendData
+                .filter((bin) => isCategoricalBin(bin))
+                .map((bin) => {
+                    const memberCount = chartState.series.filter((series) =>
+                        bin.contains(series.value)
+                    ).length
+                    return [bin.index, memberCount]
+                })
+        )
+    }
+
     @computed get categoricalLegendData(): CategoricalBin[] {
-        return this.legendData
+        let categoricalLegendData = this.legendData
             .filter((bin) => isCategoricalBin(bin))
             .map((bin) => this.maybeAddPatternRefToBin(bin))
+
+        // Hide empty bins for static charts
+        if (this.isStatic) {
+            categoricalLegendData = categoricalLegendData.filter((bin) => {
+                const memberCount =
+                    this.numMembersPerCategoricalBinByIndex.get(bin.index) ?? 0
+                return (
+                    isNoDataBin(bin) ||
+                    isProjectedDataBin(bin) ||
+                    memberCount > 0
+                )
+            })
+        }
+
+        return categoricalLegendData
     }
 
     @computed private get hasCategoricalLegendData(): boolean {
