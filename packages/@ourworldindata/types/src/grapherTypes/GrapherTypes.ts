@@ -6,7 +6,6 @@ import { ColumnSlugs, EntityName } from "../domainTypes/CoreTableTypes.js"
 import { AxisAlign, Position } from "../domainTypes/Layout.js"
 import { Integer, OwidVariableId } from "../domainTypes/Various.js"
 import { DetailDictionary } from "../gdocTypes/Gdoc.js"
-import { observable, makeObservable } from "mobx"
 import {
     GRAPHER_CHART_TYPES,
     GRAPHER_MAP_TYPE,
@@ -18,7 +17,7 @@ import { OwidVariableDataMetadataDimensions } from "../OwidVariable.js"
 import { ArchiveContext } from "../domainTypes/Archive.js"
 
 // Utility type that marks all properties of T that may be undefined as optional.
-type UndefinedToOptional<T> = Partial<T> & {
+export type UndefinedToOptional<T> = Partial<T> & {
     [K in keyof T as undefined extends T[K] ? never : K]: T[K]
 }
 
@@ -362,118 +361,32 @@ export interface ProjectionColumnInfo {
     slugForIsProjectionColumn: ColumnSlug
 }
 
-export class ColorScaleConfigDefaults {
-    // Color scheme
-    // ============
+export interface ColorScaleConfigInterface {
+    baseColorScheme?: ColorSchemeName
+    colorSchemeInvert?: boolean
+    binningStrategy: BinningStrategy
+    binningStrategyBinCount?: number
+    customNumericValues: number[]
+    customNumericLabels: (string | undefined | null)[]
+    customNumericColorsActive?: boolean
+    customNumericColors: (Color | undefined | null)[]
 
-    /** Key for a colorbrewer scheme */
-    baseColorScheme: ColorSchemeName | undefined = undefined
-
-    /** Reverse the order of colors in the color scheme (defined by `baseColorScheme`) */
-    colorSchemeInvert: boolean | undefined = undefined
-
-    // Numeric bins
-    // ============
-
-    /** The strategy for generating the bin boundaries */
-    binningStrategy: BinningStrategy = BinningStrategy.ckmeans
-    /** The *suggested* number of bins for the automatic binning algorithm */
-    binningStrategyBinCount: number | undefined = undefined
-
-    /** Custom maximum brackets for each numeric bin. Only applied when strategy is `manual`. */
-    customNumericValues: number[] = []
-    /**
-     * Custom labels for each numeric bin. Only applied when strategy is `manual`.
-     * `undefined` or `null` falls back to default label.
-     * We need to handle `null` because JSON serializes `undefined` values
-     * inside arrays into `null`.
-     */
-    customNumericLabels: (string | undefined | null)[] = []
-
-    /** Whether `customNumericColors` are used to override the color scheme. */
-    customNumericColorsActive: boolean | undefined = undefined
-    /**
-     * Override some or all colors for the numerical color legend.
-     * `undefined` or `null` falls back the color scheme color.
-     * We need to handle `null` because JSON serializes `undefined` values
-     * inside arrays into `null`.
-     */
-    customNumericColors: (Color | undefined | null)[] = []
-
-    // Categorical bins
-    // ================
-
-    customCategoryColors: {
-        [key: string]: string | undefined
-    } = {}
-
-    customCategoryLabels: {
-        [key: string]: string | undefined
-    } = {}
-
-    // Allow hiding categories from the legend
-    customHiddenCategories: {
-        [key: string]: true | undefined
-    } = {}
-
-    // Other
-    // =====
-
-    /** A custom legend description. Only used in ScatterPlot legend titles for now. */
-    legendDescription: string | undefined = undefined
-
-    constructor() {
-        makeObservable(this, {
-            baseColorScheme: observable,
-            colorSchemeInvert: observable,
-            binningStrategy: observable,
-            binningStrategyBinCount: observable,
-            customNumericValues: observable,
-            customNumericLabels: observable,
-            customNumericColorsActive: observable,
-            customNumericColors: observable,
-            customCategoryColors: observable.ref,
-            customCategoryLabels: observable.ref,
-            customHiddenCategories: observable.ref,
-            legendDescription: observable,
-        })
-    }
+    customCategoryColors: Record<string, string | undefined>
+    customCategoryLabels: Record<string, string | undefined>
+    customHiddenCategories: Record<string, true | undefined>
+    legendDescription?: string
 }
 
-// TODO: It would be nice to replace the type definition below with
-// the commented out version below and remove mobx as a depdency on the
-// types project - but for some reason the implementation in grapher/src/color/ColorScale.ts
-// of the config getter didn't like that change and the drop downs in the admin
-// for the base color scheme stopped working. To try again some time.
-export type ColorScaleConfigInterface =
-    UndefinedToOptional<ColorScaleConfigDefaults>
+export const colorScaleConfigDefaults = {
+    binningStrategy: BinningStrategy.ckmeans,
+    customNumericValues: [],
+    customNumericLabels: [],
+    customNumericColors: [],
 
-// export interface ColorScaleConfigInterface {
-//     baseColorScheme?: ColorSchemeName
-//     colorSchemeInvert?: boolean
-//     binningStrategy?: BinningStrategy
-//     binningStrategyBinCount?: number
-//     customNumericValues: number[]
-//     customNumericLabels: (string | undefined | null)[]
-//     customNumericColorsActive?: boolean
-//     customNumericColors: (Color | undefined | null)[]
-
-//     customCategoryColors: Record<string, string | undefined>
-//     customCategoryLabels: Record<string, string | undefined>
-//     customHiddenCategories: Record<string, true | undefined>
-//     legendDescription?: string
-// }
-
-// export const colorScaleConfigDefaults = {
-//     binningStrategy: BinningStrategy.ckmeans,
-//     customNumericValues: [],
-//     customNumericLabels: [],
-//     customNumericColors: [],
-
-//     customCategoryColors: {},
-//     customCategoryLabels: {},
-//     customHiddenCategories: {},
-// } satisfies ColorScaleConfigInterface
+    customCategoryColors: {},
+    customCategoryLabels: {},
+    customHiddenCategories: {},
+} satisfies ColorScaleConfigInterface
 
 export interface ColorSchemeInterface {
     name: string

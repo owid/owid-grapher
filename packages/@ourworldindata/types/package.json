@@ -21,7 +21,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "mobx": "^6.13.7",
     "zod": "^4.0.5"
   }
 }

@@ -3140,7 +3140,6 @@ __metadata:
   dependencies:
     eslint: "npm:^9.32.0"
     eslint-plugin-react-hooks: "npm:^5.2.0"
-    mobx: "npm:^6.13.7"
     typescript: "npm:~5.9.2"
     zod: "npm:^4.0.5"
   languageName: unknown

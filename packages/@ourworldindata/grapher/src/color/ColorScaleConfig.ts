@@ -17,7 +17,7 @@ import {
 
 import { NO_DATA_LABEL } from "./ColorScale"
 
-export class ColorScaleConfigDefaults {
+export class ColorScaleConfigDefaults implements ColorScaleConfigInterface {
     // Color scheme
     // ============
 
