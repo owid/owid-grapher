@@ -4,7 +4,6 @@ import {
     Bounds,
     excludeUndefined,
     numberMagnitude,
-    Color,
     Time,
     HorizontalAlign,
     EntityName,
@@ -39,7 +38,13 @@ import {
     makeTooltipRoundingNotice,
     makeTooltipToleranceNotice,
 } from "../tooltip/Tooltip"
-import { StackedPoint, StackedSeries } from "./StackedConstants"
+import {
+    Bar,
+    PlacedItem,
+    SizedItem,
+    StackedPoint,
+    StackedSeries,
+} from "./StackedConstants"
 import { isDarkColor } from "../color/ColorUtils"
 import { HorizontalAxis } from "../axis/Axis"
 import { HashMap, NodeGroup } from "react-move"
@@ -57,25 +62,6 @@ const labelToBarPadding = 5
 export interface StackedDiscreteBarChartManager extends ChartManager {
     endTime?: Time
     hideTotalValueLabel?: boolean
-}
-
-interface Item {
-    entityName: string
-    shortEntityName?: string
-    label: TextWrap
-    bars: Bar[]
-    totalValue: number
-}
-
-interface PlacedItem extends Item {
-    yPosition: number
-}
-
-interface Bar {
-    color: Color
-    seriesName: string
-    columnSlug: string
-    point: StackedPoint<EntityName>
 }
 
 interface StackedBarChartContext {
@@ -256,7 +242,7 @@ export class StackedDiscreteBars
             .padRight(this.totalValueLabelWidth)
     }
 
-    @computed private get sizedItems(): readonly Item[] {
+    @computed private get sizedItems(): readonly SizedItem[] {
         // can't use `this.barHeight` due to a circular dependency
         const barHeight = this.approximateBarHeight
 
