@@ -17,6 +17,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_FONT_SCALE_12,
+    GRAPHER_THUMBNAIL_OPACITY_MUTE,
 } from "../core/GrapherConstants"
 import { HorizontalAxisZeroLine } from "../axis/AxisViews"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
@@ -265,7 +266,14 @@ export class DiscreteBars
                                 {series.label.renderSVG(
                                     series.entityLabelX,
                                     series.barY - series.label.height / 2,
-                                    { textProps: style }
+                                    {
+                                        textProps: {
+                                            ...style,
+                                            opacity: series.focus.background
+                                                ? GRAPHER_THUMBNAIL_OPACITY_MUTE
+                                                : 1,
+                                        },
+                                    }
                                 )}
                             </React.Fragment>
                         )
@@ -289,6 +297,11 @@ export class DiscreteBars
                             fill={GRAPHER_DARK_TEXT}
                             dy={dyFromAlign(VerticalAlign.middle)}
                             textAnchor={series.value < 0 ? "end" : "start"}
+                            opacity={
+                                series.focus.background
+                                    ? GRAPHER_THUMBNAIL_OPACITY_MUTE
+                                    : 1
+                            }
                             {...this.valueLabelStyle}
                         >
                             {formattedLabel.valueString}
@@ -323,7 +336,11 @@ export class DiscreteBars
                             width={series.barWidth}
                             height={this.barHeight}
                             fill={barColor}
-                            opacity={GRAPHER_AREA_OPACITY_DEFAULT}
+                            opacity={
+                                series.focus.background
+                                    ? GRAPHER_THUMBNAIL_OPACITY_MUTE
+                                    : GRAPHER_AREA_OPACITY_DEFAULT
+                            }
                             style={{ transition: "height 200ms ease" }}
                         />
                     )
