@@ -494,8 +494,10 @@ describe(toRectangularMatrix, () => {
 
 describe("slugify", () => {
     it("handles subscript numbers correctly", () => {
-        expect(slugify("Per capita CO₂ emissions")).toBe("per-capita-co2-emissions")
-        expect(slugify("SO₂ concentrations")).toBe("so2-concentrations") 
+        expect(slugify("Per capita CO₂ emissions")).toBe(
+            "per-capita-co2-emissions"
+        )
+        expect(slugify("SO₂ concentrations")).toBe("so2-concentrations")
         expect(slugify("H₂O molecules")).toBe("h2o-molecules")
         expect(slugify("CO₂ and CH₄ emissions")).toBe("co2-and-ch4-emissions")
         expect(slugify("X₁₂₃ test case")).toBe("x123-test-case")
@@ -512,7 +514,9 @@ describe("slugify", () => {
     })
 
     it("handles text without subscripts/superscripts normally", () => {
-        expect(slugify("Regular text without subscripts")).toBe("regular-text-without-subscripts")
+        expect(slugify("Regular text without subscripts")).toBe(
+            "regular-text-without-subscripts"
+        )
         expect(slugify("Normal Numbers 123")).toBe("normal-numbers-123")
     })
 

@@ -321,13 +321,29 @@ export const slugify = (str: string, allowSlashes?: boolean): string => {
     const normalizedStr = str.replace(/[₀₁₂₃₄₅₆₇₈₉⁰¹²³⁴⁵⁶⁷⁸⁹]/g, (match) => {
         // Subscript characters (₀₁₂₃₄₅₆₇₈₉)
         const subscriptMap: { [key: string]: string } = {
-            '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4',
-            '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9'
+            "₀": "0",
+            "₁": "1",
+            "₂": "2",
+            "₃": "3",
+            "₄": "4",
+            "₅": "5",
+            "₆": "6",
+            "₇": "7",
+            "₈": "8",
+            "₉": "9",
         }
         // Superscript characters (⁰¹²³⁴⁵⁶⁷⁸⁹)
         const superscriptMap: { [key: string]: string } = {
-            '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4',
-            '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9'
+            "⁰": "0",
+            "¹": "1",
+            "²": "2",
+            "³": "3",
+            "⁴": "4",
+            "⁵": "5",
+            "⁶": "6",
+            "⁷": "7",
+            "⁸": "8",
+            "⁹": "9",
         }
         return subscriptMap[match] || superscriptMap[match] || match
     })
