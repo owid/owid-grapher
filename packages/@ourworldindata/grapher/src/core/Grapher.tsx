@@ -745,21 +745,18 @@ export class GrapherState {
         if (overlay) {
             if (overlay === "sources") {
                 this.activeModal = GrapherModal.Sources
+            } else if (overlay === "download-data") {
+                this.activeModal = GrapherModal.Download
+                this.activeDownloadModalTab = DownloadModalTabName.Data
+            } else if (overlay === "download-vis") {
+                this.activeModal = GrapherModal.Download
+                this.activeDownloadModalTab = DownloadModalTabName.Vis
             } else if (overlay === "download") {
                 this.activeModal = GrapherModal.Download
             } else if (overlay === "embed") {
                 this.activeModal = GrapherModal.Embed
             } else {
                 console.error("Unexpected overlay: " + overlay)
-            }
-        }
-
-        const downloadOverlayTab = params.downloadOverlayTab
-        if (downloadOverlayTab) {
-            if (downloadOverlayTab === "data") {
-                this.activeDownloadModalTab = DownloadModalTabName.Data
-            } else if (downloadOverlayTab === "vis") {
-                this.activeDownloadModalTab = DownloadModalTabName.Vis
             }
         }
 
@@ -3173,7 +3170,12 @@ export class GrapherState {
     @computed get overlayParam(): string | undefined {
         if (!this.activeModal) return undefined
         return match(this.activeModal)
-            .with(GrapherModal.Download, () => "download")
+            .with(GrapherModal.Download, () => {
+                return match(this.activeDownloadModalTab)
+                    .with(DownloadModalTabName.Data, () => "download-data")
+                    .with(DownloadModalTabName.Vis, () => "download-vis")
+                    .exhaustive()
+            })
             .with(GrapherModal.Embed, () => "embed")
             .with(GrapherModal.Sources, () => "sources")
             .exhaustive()
