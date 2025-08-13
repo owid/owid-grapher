@@ -334,19 +334,51 @@ function buildDataTableContentForStackedDiscreteBarChart({
                 : undefined
             const item = focusedItem ?? chartState.sortedItems[0]
 
-            const rows = item?.bars
+            type TableRow = SearchChartHitDataTableProps["rows"][number] & {
+                columnSlug: string
+            }
+
+            const rows: TableRow[] = item?.bars
                 .map((bar) => {
                     const point = bar.point
                     if (point.fake || point.interpolated) return undefined
                     return {
                         seriesName: bar.seriesName,
                         label: bar.seriesName,
+                        columnSlug: bar.columnSlug,
                         color: bar.color,
                         value: formatColumn.formatValueShort(point.value),
                         time: formatColumn.formatTime(point.time),
                     }
                 })
                 .filter((row) => row !== undefined)
+
+            // If the current entity doesn't have data for some of the columns,
+            // we manually add those to the data table with a 'No data' label.
+            // This is necessary because the data table serves as color legend,
+            // and otherwise some colors in the chart wouldn't be explained.
+            if (rows.length < chartState.yColumnSlugs.length) {
+                const existingSlugs = new Set(
+                    rows.map((row) => row.columnSlug) ?? []
+                )
+                const missingSlugs = chartState.yColumnSlugs.filter(
+                    (slug) => !existingSlugs.has(slug)
+                )
+
+                rows.push(
+                    ...missingSlugs.map((slug) => {
+                        const column = chartState.transformedTable.get(slug)
+                        return {
+                            columnSlug: slug,
+                            label: column.displayName,
+                            color: chartState.categoricalColorAssigner.assign(
+                                column.displayName
+                            ),
+                            value: "No data",
+                        }
+                    })
+                )
+            }
 
             return { rows, title: item.entityName }
         })
