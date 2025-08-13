@@ -177,7 +177,7 @@ export class StackedDiscreteBarChartState implements ChartState {
         )
     }
 
-    @computed get items(): readonly Omit<Item, "label">[] {
+    @computed get items(): readonly Item[] {
         const entityNames = this.selectionArray.selectedEntityNames
         const items = entityNames
             .map((entityName) => {
