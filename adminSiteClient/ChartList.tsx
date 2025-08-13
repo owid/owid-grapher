@@ -53,10 +53,12 @@ export interface ChartListItem {
 
     tags: DbChartTagJoin[]
     pageviewsPerDay: number
+    narrativeChartsCount: number
+    referencesCount: number
 }
 
 export type SortConfig = {
-    field: "pageviewsPerDay"
+    field: "pageviewsPerDay" | "narrativeChartsCount" | "referencesCount"
     direction: "asc" | "desc"
 } | null
 
@@ -202,10 +204,17 @@ export class ChartList extends React.Component<ChartListProps> {
         const { chartsFiltered } = this
         if (!this.sortConfig) return chartsFiltered
 
-        const { direction } = this.sortConfig
+        const { direction, field } = this.sortConfig
+        const getValue =
+            field === "pageviewsPerDay"
+                ? (chart: ChartListItem) => chart.pageviewsPerDay
+                : field === "narrativeChartsCount"
+                  ? (chart: ChartListItem) => chart.narrativeChartsCount
+                  : (chart: ChartListItem) => chart.referencesCount
+
         return sortNumeric(
             [...chartsFiltered],
-            (chart) => chart.pageviewsPerDay,
+            getValue,
             direction === "asc" ? SortOrder.asc : SortOrder.desc
         )
     }
@@ -251,6 +260,37 @@ export class ChartList extends React.Component<ChartListProps> {
             }
         }
 
+        const getNarrativeChartsSortIndicator = () => {
+            if (!sortConfig || sortConfig.field !== "narrativeChartsCount")
+                return ""
+            return sortConfig.direction === "desc" ? " ↓" : " ↑"
+        }
+
+        const handleNarrativeChartsSortClick = () => {
+            if (!sortConfig || sortConfig.field !== "narrativeChartsCount") {
+                onSort({ field: "narrativeChartsCount", direction: "desc" })
+            } else if (sortConfig.direction === "desc") {
+                onSort({ field: "narrativeChartsCount", direction: "asc" })
+            } else {
+                onSort(null)
+            }
+        }
+
+        const getReferencesCountSortIndicator = () => {
+            if (!sortConfig || sortConfig.field !== "referencesCount") return ""
+            return sortConfig.direction === "desc" ? " ↓" : " ↑"
+        }
+
+        const handleReferencesCountSortClick = () => {
+            if (!sortConfig || sortConfig.field !== "referencesCount") {
+                onSort({ field: "referencesCount", direction: "desc" })
+            } else if (sortConfig.direction === "desc") {
+                onSort({ field: "referencesCount", direction: "asc" })
+            } else {
+                onSort(null)
+            }
+        }
+
         // if the first chart has inheritance information, we assume all charts have it
         const showInheritanceColumn =
             chartsToShow[0]?.isInheritanceEnabled !== undefined
@@ -291,6 +331,19 @@ export class ChartList extends React.Component<ChartListProps> {
                                 onClick={handleSortClick}
                             >
                                 views/day{getSortIndicator()}
+                            </th>
+                            <th
+                                style={{ cursor: "pointer" }}
+                                onClick={handleNarrativeChartsSortClick}
+                            >
+                                narrative charts
+                                {getNarrativeChartsSortIndicator()}
+                            </th>
+                            <th
+                                style={{ cursor: "pointer" }}
+                                onClick={handleReferencesCountSortClick}
+                            >
+                                references{getReferencesCountSortIndicator()}
                             </th>
                             <th></th>
                             <th></th>
