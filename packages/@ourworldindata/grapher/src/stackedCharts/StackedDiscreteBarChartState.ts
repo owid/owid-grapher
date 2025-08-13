@@ -28,6 +28,7 @@ import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
 import { ColorScheme } from "../color/ColorScheme"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { excludeUndefined } from "@ourworldindata/utils"
+import { FocusArray } from "../focus/FocusArray"
 
 export class StackedDiscreteBarChartState implements ChartState {
     manager: StackedDiscreteBarChartManager
@@ -101,6 +102,14 @@ export class StackedDiscreteBarChartState implements ChartState {
 
     @computed get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager.selection)
+    }
+
+    @computed get focusArray(): FocusArray {
+        return this.manager.focusArray ?? new FocusArray()
+    }
+
+    @computed get isFocusModeActive(): boolean {
+        return this.focusArray.hasFocusedSeries
     }
 
     @computed get missingDataStrategy(): MissingDataStrategy {
@@ -203,6 +212,7 @@ export class StackedDiscreteBarChartState implements ChartState {
                     shortEntityName: getShortNameForEntity(entityName),
                     bars,
                     totalValue,
+                    focus: this.focusArray.state(entityName),
                 }
             })
             .filter((item) => item.bars.length)
