@@ -1,13 +1,12 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
-import { ckmeans } from "simple-statistics"
-import { range, quantile } from "d3-array"
+import { range } from "d3-array"
 
 import { excludeUndefined, roundSigFig } from "@ourworldindata/utils"
 import { BinningStrategy } from "@ourworldindata/types"
 
 /** Human-readable labels for the binning strategies */
-export const binningStrategyLabels: Record<BinningStrategy, string> = {
+export const binningStrategyLabels: Record<string, string> = {
     equalInterval: "Equal-interval",
     quantiles: "Quantiles",
     ckmeans: "Ckmeans",
@@ -46,35 +45,19 @@ function normalizeBinValues(
 }
 
 export function getBinMaximums(args: GetBinMaximumsWithStrategyArgs): number[] {
-    const { binningStrategy, sortedValues, binCount, minBinValue } = args
+    const { sortedValues, binCount, minBinValue } = args
     const valueCount = sortedValues.length
 
     if (valueCount < 1 || binCount < 1) return []
 
-    if (binningStrategy === BinningStrategy.ckmeans) {
-        const clusters = ckmeans(
-            sortedValues,
-            binCount > valueCount ? valueCount : binCount
-        )
-        return normalizeBinValues(clusters.map(R.last()), minBinValue)
-    } else if (binningStrategy === BinningStrategy.quantiles) {
-        return normalizeBinValues(
-            range(1, binCount + 1).map((v) =>
-                quantile(sortedValues, v / binCount)
-            ),
-            minBinValue
-        )
-    } else {
-        // Equal-interval strategy by default
-        const minValue = minBinValue ?? R.first(sortedValues) ?? 0
-        const binStepSize = calcEqualIntervalStepSize(
-            sortedValues,
-            binCount,
-            minValue
-        )
-        return normalizeBinValues(
-            range(1, binCount + 1).map((n) => minValue + n * binStepSize),
-            minBinValue
-        )
-    }
+    const minValue = minBinValue ?? R.first(sortedValues) ?? 0
+    const binStepSize = calcEqualIntervalStepSize(
+        sortedValues,
+        binCount,
+        minValue
+    )
+    return normalizeBinValues(
+        range(1, binCount + 1).map((n) => minValue + n * binStepSize),
+        minBinValue
+    )
 }
