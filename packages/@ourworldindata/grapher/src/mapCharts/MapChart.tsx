@@ -22,7 +22,6 @@ import {
     GeoFeature,
     MapBracket,
     MapChartManager,
-    ChoroplethSeries,
     DEFAULT_STROKE_COLOR,
     ChoroplethSeriesByName,
     ChoroplethMapManager,
@@ -53,7 +52,6 @@ import {
     ColumnSlug,
     InteractionState,
     MapRegionName,
-    SeriesName,
 } from "@ourworldindata/types"
 import { ClipPath, makeClipPath } from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -135,7 +133,7 @@ export class MapChart
     }
 
     @computed get choroplethData(): ChoroplethSeriesByName {
-        return this.seriesMap
+        return this.chartState.seriesMap
     }
 
     base = createRef<SVGGElement>()
@@ -210,18 +208,6 @@ export class MapChart
 
     @action.bound onRegionChange(value: MapRegionName): void {
         this.mapConfig.region = value
-    }
-
-    @computed private get series(): ChoroplethSeries[] {
-        return this.chartState.series
-    }
-
-    @computed private get seriesMap(): ChoroplethSeriesByName {
-        const map = new Map<SeriesName, ChoroplethSeries>()
-        this.series.forEach((series) => {
-            map.set(series.seriesName, series)
-        })
-        return map
     }
 
     @computed private get colorScale(): ColorScale {
@@ -409,7 +395,11 @@ export class MapChart
             categoricalLegendData = categoricalLegendData.filter((bin) => {
                 const memberCount =
                     this.numMembersPerCateoricalBinByIndex.get(bin.index) ?? 0
-                return memberCount > 0
+                return (
+                    isNoDataBin(bin) ||
+                    isProjectedDataBin(bin) ||
+                    memberCount > 0
+                )
             })
         }
 
@@ -542,6 +532,10 @@ export class MapChart
             renderUid: this.renderUid,
             box: this.choroplethMapBounds,
         })
+    }
+
+    @computed get numericBinSize(): number {
+        return 0.625 * this.fontSize
     }
 
     renderMapLegend(): React.ReactElement {
