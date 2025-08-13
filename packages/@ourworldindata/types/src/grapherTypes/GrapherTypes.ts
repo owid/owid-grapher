@@ -585,7 +585,6 @@ export type GrapherQueryParams = {
     focus?: string
     tab?: string
     overlay?: string
-    downloadOverlayTab?: string
     stackMode?: string
     zoomToSelection?: string
     xScale?: string
@@ -634,7 +633,6 @@ const GRAPHER_ALL_QUERY_PARAMS: Required<LegacyGrapherQueryParams> = {
     mapSelect: "",
     tableFilter: "",
     tableSearch: "",
-    downloadOverlayTab: "",
 }
 export const GRAPHER_QUERY_PARAM_KEYS = Object.keys(
     GRAPHER_ALL_QUERY_PARAMS

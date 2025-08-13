@@ -75,7 +75,6 @@ export const grapherConfigToQueryParams = (
         // These cannot be specified in config, so we always set them to undefined
         showSelectionOnlyInTable: undefined,
         overlay: undefined,
-        downloadOverlayTab: undefined,
         tableFilter: undefined,
         tableSearch: undefined,
     }
@@ -135,7 +134,6 @@ export const grapherObjectToQueryParams = (
         tableFilter: grapher.dataTableConfig.filter,
         tableSearch: grapher.dataTableConfig.search,
         overlay: grapher.overlayParam,
-        downloadOverlayTab: grapher.downloadOverlayTabParam,
     }
     return params
 }

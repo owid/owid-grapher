@@ -346,8 +346,7 @@ export const constructDownloadUrl = ({
 }): string => {
     const viewQueryStr = generateQueryStrForChartHit({ hit })
     const grapherParams = new URLSearchParams({
-        overlay: "download",
-        downloadOverlayTab: "data",
+        overlay: "download-data",
     })
     const queryStr = viewQueryStr
         ? `${viewQueryStr}&${grapherParams}`
