@@ -2950,10 +2950,20 @@ export class GrapherState {
 
         return firstOfNonEmptyArray(this.availableFacetStrategies)
     }
+
     @computed get isFaceted(): boolean {
         const hasFacetStrategy = this.facetStrategy !== FacetStrategy.none
         return this.isOnChartTab && hasFacetStrategy
     }
+
+    @computed get hasMultipleSeriesPerFacet(): boolean {
+        return (
+            this.isFaceted &&
+            this.selection.numSelectedEntities > 1 &&
+            this.yColumnSlugs.length > 1
+        )
+    }
+
     @computed get isInFullScreenMode(): boolean {
         return this._isInFullScreenMode
     }
