@@ -20,6 +20,7 @@ import {
     GridSlot,
     getRowCountForGridSlot,
     constructDownloadUrl,
+    PlacedTab,
 } from "./searchUtils.js"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
 import {
@@ -32,6 +33,7 @@ import {
     makeLabelForGrapherTab,
     mapGrapherTabNameToQueryParam,
     CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME,
+    StackedDiscreteBarChartState,
 } from "@ourworldindata/grapher"
 import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
 import {
@@ -47,13 +49,22 @@ import {
 } from "@ourworldindata/types"
 import { chartHitQueryKeys } from "./queries.js"
 import { SearchChartHitThumbnail } from "./SearchChartHitThumbnail.js"
-import { SearchChartHitDataDisplay } from "./SearchChartHitDataDisplay.js"
-import { buildChartHitDataTableProps } from "./SearchChartHitDataTableHelpers.js"
+import {
+    SearchChartHitDataDisplay,
+    SearchChartHitDataDisplayProps,
+} from "./SearchChartHitDataDisplay.js"
+import {
+    buildChartHitDataTableContent,
+    SearchChartHitDataTableContent,
+} from "./SearchChartHitDataTableHelpers.js"
 import {
     SearchChartHitDataTable,
     SearchChartHitDataTableProps,
 } from "./SearchChartHitDataTable.js"
-import { SearchChartHitDataPoints } from "./SearchChartHitDataPoints.js"
+import {
+    SearchChartHitDataPoints,
+    SearchChartHitDataPointsProps,
+} from "./SearchChartHitDataPoints.js"
 import { match } from "ts-pattern"
 import { runInAction } from "mobx"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
@@ -166,11 +177,7 @@ function SearchChartHitMediumRichData({
         })
 
         // We might need to adjust entity selection and focus according to the chosen layout
-        if (layout?.dataTableProps.type === "data-table")
-            configureGrapherStateForLayout(grapherState, {
-                placedTabs: layout.placedTabs,
-                dataTableProps: layout.dataTableProps,
-            })
+        if (layout) configureGrapherStateForLayout(grapherState, layout)
 
         // Reset the persisted color map to make sure the data table
         // and thumbnails use the some colors for the same entities
@@ -433,11 +440,11 @@ function CaptionedTable({
             : `Data available for ${numAvailableEntities} ${grapherState.entityTypePlural}`
 
     const maxRows = getRowCountForGridSlot(slot, NUM_DATA_TABLE_ROWS_PER_COLUMN)
-    const dataTableProps = runInAction(() =>
-        buildChartHitDataTableProps({ grapherState, maxRows })
+    const dataTableContent = runInAction(() =>
+        buildChartHitDataTableContent({ grapherState, maxRows })
     )
 
-    if (!dataTableProps) return null
+    if (!dataTableContent) return null
 
     return (
         <CaptionedLink
@@ -447,12 +454,12 @@ function CaptionedTable({
             onClick={onClick}
         >
             <div className="search-chart-hit-table-wrapper">
-                {match(dataTableProps)
-                    .with({ type: "data-table" }, (props) => (
-                        <SearchChartHitDataTable {...props} />
+                {match(dataTableContent)
+                    .with({ type: "data-table" }, (content) => (
+                        <SearchChartHitDataTable {...content.props} />
                     ))
-                    .with({ type: "data-points" }, (props) => (
-                        <SearchChartHitDataPoints {...props} />
+                    .with({ type: "data-points" }, (content) => (
+                        <SearchChartHitDataPoints {...content.props} />
                     ))
                     .exhaustive()}
             </div>
@@ -717,53 +724,32 @@ function configureGrapherStateFocus(
 
 function configureGrapherStateForLayout(
     grapherState: GrapherState,
-    {
-        placedTabs,
-        dataTableProps,
-    }: {
-        placedTabs?: { tab: GrapherTabName; slot: GridSlot }[]
-        dataTableProps?: SearchChartHitDataTableProps
-    }
+    layout: Layout
 ) {
-    if (!placedTabs || !dataTableProps) return
+    const { placedTabs, dataTableContent } = layout
 
-    // Check how many rows are available for the table and update
-    // the selected/focused entities accordingly. This is important to ensure
-    // that the table and thumbnail display the same entities/series.
-    const tableSlot = placedTabs.find(
-        ({ tab }) => tab === GRAPHER_TAB_NAMES.Table
-    )?.slot
-    if (!tableSlot) return
-
-    if (grapherState.isFaceted) return
-
-    const numAvailableRows = getRowCountForGridSlot(
-        tableSlot,
-        NUM_DATA_TABLE_ROWS_PER_COLUMN
-    )
-    const selectedEntities = grapherState.selection.selectedEntityNames
-    const { seriesStrategy = SeriesStrategy.entity } = grapherState.chartState
-    if (
-        seriesStrategy === SeriesStrategy.entity &&
-        selectedEntities.length > numAvailableRows
-    ) {
-        // When plotting entities as series, limit the selection to only
-        // those that can be displayed in the table rows to ensure
-        // thumbnails and table show the same data
-        grapherState.selection.setSelectedEntities(
-            selectedEntities.slice(0, numAvailableRows)
+    match(dataTableContent)
+        .with({ type: "data-table" }, (dataTableContent) =>
+            configureGrapherStateForDataTable(grapherState, {
+                placedTabs,
+                props: dataTableContent.props,
+            })
         )
-    } else if (
-        grapherState.yColumnSlugs.length > numAvailableRows &&
-        !grapherState.hasProjectedData &&
-        !grapherState.isStackedDiscreteBar
-    ) {
-        // When plotting columns as series, focus only the subset of columns
-        // that can be displayed in the table
-        const seriesNamesInTable = dataTableProps.rows
-            .slice(0, numAvailableRows)
-            .map((row) => row.name)
-        grapherState.focusArray.clearAllAndAdd(...seriesNamesInTable)
+        .with({ type: "data-points" }, (dataTableContent) =>
+            configureGrapherStateForDataPoints(grapherState, {
+                props: dataTableContent.props,
+            })
+        )
+        .exhaustive()
+
+    // For stacked discrete bar charts, we display multiple stacked bars in the
+    // chart but the data table only shows values for one entity. We highlight
+    // the entity whose data is shown in the table
+    if (grapherState.isStackedDiscreteBar && grapherState.focusArray.isEmpty) {
+        const chartState =
+            grapherState.chartState as StackedDiscreteBarChartState
+        const firstEntity = chartState.sortedItems[0]?.entityName
+        if (firstEntity) grapherState.focusArray.clearAllAndAdd(firstEntity)
     }
 
     // If the selected entities are the same as the authored ones, they won't
@@ -780,8 +766,77 @@ function configureGrapherStateForLayout(
     }
 }
 
+function configureGrapherStateForDataTable(
+    grapherState: GrapherState,
+    {
+        placedTabs,
+        props,
+    }: { placedTabs: PlacedTab[]; props: SearchChartHitDataTableProps }
+): void {
+    const selectedEntities = grapherState.selection.selectedEntityNames
+    const { seriesStrategy = SeriesStrategy.entity } = grapherState.chartState
+
+    const tableSlot = placedTabs.find(
+        ({ tab }) => tab === GRAPHER_TAB_NAMES.Table
+    )?.slot
+    if (!tableSlot) return
+
+    // Check how many rows are available for the table and update
+    // the selected/focused entities accordingly. This is important to ensure
+    // that the table and thumbnail display the same entities/series.
+    const numAvailableRows = getRowCountForGridSlot(
+        tableSlot,
+        NUM_DATA_TABLE_ROWS_PER_COLUMN
+    )
+    const numRows = props.rows.length
+
+    // No need to adjust the selection if all rows fit
+    if (numRows <= numAvailableRows) return
+
+    if (seriesStrategy === SeriesStrategy.entity) {
+        // When plotting entities as series, limit the selection to only
+        // those that can be displayed in the table rows to ensure
+        // thumbnails and table show the same data
+        grapherState.selection.setSelectedEntities(
+            selectedEntities.slice(0, numAvailableRows)
+        )
+    } else if (
+        seriesStrategy === SeriesStrategy.column &&
+        !grapherState.isFaceted &&
+        !grapherState.hasProjectedData &&
+        !grapherState.isStackedDiscreteBar
+    ) {
+        // When plotting columns as series, focus only the subset of columns
+        // that can be displayed in the table
+        const seriesNames = props.rows
+            .slice(0, numAvailableRows)
+            .map((row) => row.name)
+        grapherState.focusArray.clearAllAndAdd(...seriesNames)
+    }
+}
+
+function configureGrapherStateForDataPoints(
+    grapherState: GrapherState,
+    { props }: { props: SearchChartHitDataPointsProps }
+): void {
+    // Highlight the entities that are displayed as data points in the chart
+    const entityNames = props.dataPoints.map(
+        (dataPoint) => dataPoint.entityName
+    )
+    if (entityNames.length) {
+        grapherState.focusArray.clearAllAndAdd(...entityNames)
+        grapherState.selection.setSelectedEntities(entityNames)
+    }
+}
+
 function resetGrapherColors(grapherState: GrapherState): void {
     grapherState.seriesColorMap?.clear()
+}
+
+interface Layout {
+    placedTabs: PlacedTab[]
+    dataTableContent: SearchChartHitDataTableContent
+    dataDisplayProps?: SearchChartHitDataDisplayProps
 }
 
 function calculateLayout(
@@ -790,13 +845,13 @@ function calculateLayout(
         sortedTabs,
         entityForDataDisplay = WORLD_ENTITY_NAME,
     }: { sortedTabs: GrapherTabName[]; entityForDataDisplay: EntityName }
-) {
+): Layout | undefined {
     // Build the data table props
-    const dataTableProps = buildChartHitDataTableProps({ grapherState })
-    if (!dataTableProps) return undefined
+    const dataTableContent = buildChartHitDataTableContent({ grapherState })
+    if (!dataTableContent) return undefined
 
     // Prepare rendering the data display
-    const hasDataDisplayProps = dataTableProps?.type !== "data-points"
+    const hasDataDisplayProps = dataTableContent.type !== "data-points"
     const chartInfo = hasDataDisplayProps
         ? constructGrapherValuesJson(grapherState, entityForDataDisplay)
         : undefined
@@ -810,23 +865,23 @@ function calculateLayout(
     // Figure out the layout by assigning each Grapher tab to grid slots.
     // The table tab can optionally span two or more slots (instead of just one)
     // if there's enough space in the grid and enough data to justify it.
-    const placedTabs = match(dataTableProps)
-        .with({ type: "data-table" }, (dataTableProps) =>
+    const placedTabs = match(dataTableContent)
+        .with({ type: "data-table" }, (dataTableContent) =>
             placeGrapherTabsInGridLayout(sortedTabs, {
                 hasDataDisplay: !!dataDisplayProps,
-                tableType: dataTableProps.type,
-                numDataTableRows: dataTableProps.rows.length,
+                tableType: dataTableContent.type,
+                numDataTableRows: dataTableContent.props.rows.length,
                 numDataTableRowsPerColumn: NUM_DATA_TABLE_ROWS_PER_COLUMN,
             })
         )
-        .with({ type: "data-points" }, (dataTableProps) =>
+        .with({ type: "data-points" }, (dataTableContent) =>
             placeGrapherTabsInGridLayout(sortedTabs, {
                 hasDataDisplay: !!dataDisplayProps,
-                tableType: dataTableProps.type,
+                tableType: dataTableContent.type,
                 numMaxSlotsForTable: 2,
             })
         )
         .exhaustive()
 
-    return { placedTabs, dataTableProps, dataDisplayProps }
+    return { placedTabs, dataTableContent, dataDisplayProps }
 }
