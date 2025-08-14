@@ -531,8 +531,13 @@ function pickEntitiesForDisplay(
     grapherState: GrapherState,
     { pickedEntities }: { pickedEntities: EntityName[] }
 ): EntityName[] {
+    // The original grapher state as defined by the chart author's config.
+    // This represents the unmodified state before any search-specific customizations
+    // (entity selection, tab switching, etc.) are applied
+    const originalGrapherState = grapherState.authorsVersion
+
     // Make sure the default entities actually exist in the chart
-    const defaultEntities = grapherState.selection.selectedEntityNames.filter(
+    const defaultEntities = originalGrapherState.selectedEntityNames.filter(
         (entityName) =>
             grapherState.table.availableEntityNameSet.has(entityName)
     )
@@ -545,13 +550,14 @@ function pickEntitiesForDisplay(
         ...defaultEntities,
     ])
 
-    return match(grapherState.addCountryMode)
+    return match(originalGrapherState.addCountryMode)
         .with(EntitySelectionMode.Disabled, () => {
             // Entity selection is disabled, so the default entities are the
             // only valid choice, unless we're dealing with a chart type where
             // all entities are plotted by default. In that case _highlighting_
             // an entity is valid even when entity _selection_ is disabled
-            return grapherState.isScatter || grapherState.isMarimekko
+            return originalGrapherState.isScatter ||
+                originalGrapherState.isMarimekko
                 ? pickedEntities
                 : defaultEntities
         })
@@ -564,10 +570,19 @@ function pickEntitiesForDisplay(
         })
         .with(EntitySelectionMode.MultipleEntities, () => {
             const { seriesStrategy = SeriesStrategy.entity } =
-                grapherState.chartState
+                originalGrapherState.chartState
             const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
 
-            return match(grapherState.facetStrategy)
+            // Use the author's explicitly selected facet strategy if available,
+            // otherwise fall back to the computed one. This is necessary because
+            // the authorsVersion state we're working with here lacks the data table
+            // that facetStrategy computation requires, so the computed value may be
+            // incorrect.
+            const facetStrategy =
+                originalGrapherState.selectedFacetStrategy ??
+                originalGrapherState.facetStrategy
+
+            return match(facetStrategy)
                 .with(FacetStrategy.none, () => {
                     // Don't combine picked and default entities if columns are
                     // plotted since Grapher would switch to faceting mode
@@ -589,7 +604,7 @@ function pickEntitiesForDisplay(
                     // by showing only the first default entity (effectively
                     // un-faceting the chart)
                     if (defaultEntities.length === 0) return [] // Shouldn't happen
-                    return grapherState.hasMultipleSeriesPerFacet
+                    return originalGrapherState.hasMultipleSeriesPerFacet
                         ? [defaultEntities[0]]
                         : defaultEntities
                 })
