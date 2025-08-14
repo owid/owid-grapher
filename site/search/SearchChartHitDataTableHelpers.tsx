@@ -138,6 +138,11 @@ function buildDataTableContentForLineChart({
 }: Args<LineChartState>): SearchChartHitDataTableContent {
     const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
 
+    // Line charts might have a color scale, in which case the lines are colored
+    // according to the scale. In this case, we show a legend as table
+    if (chartState.hasColorScale)
+        return buildLegendTableProps({ grapherState, chartState, maxRows })
+
     // Create a map chart state to access custom label formatting.
     // When `map.tooltipUseCustomLabels` is enabled, this allows us to display
     // custom color scheme labels (e.g. "Low", "Medium", "High") instead of
@@ -651,7 +656,8 @@ function buildLegendTableProps({
     let rows = bins
         .map((bin) => {
             if (bin.isHidden || isNoDataBin(bin)) return undefined
-            return { bin, label: bin.text, color: bin.color }
+            const label = makeLabelForBin(bin)
+            return { label, color: bin.color }
         })
         .filter((row) => row !== undefined)
 
@@ -784,16 +790,6 @@ function buildDataTableContentForWorldMap({
     maxRows,
 }: Args<MapChartState>): SearchChartHitDataTableContent {
     const bins = chartState.colorScale.legendBins
-
-    const makeLabelForNumericBin = (bin: NumericBin): string => {
-        if (bin.text) return bin.text
-        if (bin.props.isOpenLeft) return `<${bin.maxText}`
-        if (bin.props.isOpenRight) return `>${bin.minText}`
-        return `${bin.minText}-${bin.maxText}`
-    }
-
-    const makeLabelForBin = (bin: ColorScaleBin): string =>
-        isNumericBin(bin) ? makeLabelForNumericBin(bin) : bin.text
 
     // The table shows a map legend where each row corresponds to a legend bin
     let rows = bins
@@ -941,3 +937,13 @@ function getColorForSeriesIfFaceted(
 function appendInParens(text: string, parenthetical?: string): string {
     return parenthetical ? `${text} (${parenthetical})` : text
 }
+
+const makeLabelForNumericBin = (bin: NumericBin): string => {
+    if (bin.text) return bin.text
+    if (bin.props.isOpenLeft) return `<${bin.maxText}`
+    if (bin.props.isOpenRight) return `>${bin.minText}`
+    return `${bin.minText}-${bin.maxText}`
+}
+
+const makeLabelForBin = (bin: ColorScaleBin): string =>
+    isNumericBin(bin) ? makeLabelForNumericBin(bin) : bin.text
