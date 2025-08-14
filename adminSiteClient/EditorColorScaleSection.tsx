@@ -165,7 +165,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
 
     @action.bound onBinningStrategy(
         binningStrategy: {
-            value: string
+            value: BinningStrategy
         } | null
     ) {
         if (binningStrategy) this.config.binningStrategy = binningStrategy.value
