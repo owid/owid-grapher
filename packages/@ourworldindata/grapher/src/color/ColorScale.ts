@@ -175,7 +175,7 @@ export class ColorScale {
 
     // When automatic classification is turned on, this takes the numeric map data
     // and works out some discrete ranges to assign colors to
-    @computed get autoBinMaximums(): number[] {
+    @computed get autoBinThresholds(): number[] {
         return runBinningStrategy({
             sortedValues: this.sortedNumericValues,
             isPercent: this.colorScaleColumn?.shortUnit === "%",
@@ -254,7 +254,7 @@ export class ColorScale {
     }
 
     @computed get numAutoBins(): number {
-        return this.config.binningStrategyBinCount ?? 5
+        return 5
     }
 
     @computed get isManualBuckets(): boolean {
