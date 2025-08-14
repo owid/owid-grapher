@@ -16,7 +16,7 @@ import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
 } from "@ourworldindata/core-table"
-import { buildChartHitDataTableProps } from "./SearchChartHitDataTableHelpers"
+import { buildChartHitDataTableContent } from "./SearchChartHitDataTableHelpers"
 import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable"
 
 function createSingleIndicatorGrapherState(
@@ -101,14 +101,14 @@ function createFruityMultipleIndicatorsGrapherState(
     })
 }
 
-describe("buildChartHitDataTableProps for LineChart", () => {
+describe("buildChartHitDataTableContent for LineChart", () => {
     it("lists entities when entities are plotted", () => {
         const grapherState = createSingleIndicatorGrapherState()
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -125,10 +125,10 @@ describe("buildChartHitDataTableProps for LineChart", () => {
     it("lists columns when columns are plotted", () => {
         const grapherState = createFruityMultipleIndicatorsGrapherState()
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.title).toBe("Benin")
         expect(dataTable.rows).toMatchObject([
@@ -148,10 +148,10 @@ describe("buildChartHitDataTableProps for LineChart", () => {
             focusedSeriesNames: [selectedEntityNames[1]],
         })
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.rows).toMatchObject([
             { name: "Philippines", muted: true },
@@ -165,10 +165,10 @@ describe("buildChartHitDataTableProps for LineChart", () => {
             selectedFacetStrategy: FacetStrategy.entity,
         })
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -183,10 +183,10 @@ describe("buildChartHitDataTableProps for LineChart", () => {
             selectedFacetStrategy: FacetStrategy.metric,
         })
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -201,16 +201,16 @@ describe("buildChartHitDataTableProps for LineChart", () => {
     })
 })
 
-describe("buildChartHitDataTableProps for SlopeChart", () => {
+describe("buildChartHitDataTableContent for SlopeChart", () => {
     it("lists entities when entities are plotted", () => {
         const grapherState = createSingleIndicatorGrapherState({
             chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
         })
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -247,10 +247,10 @@ describe("buildChartHitDataTableProps for SlopeChart", () => {
             chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
         })
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.title).toBe("Benin")
         expect(dataTable.rows).toMatchObject([
@@ -286,10 +286,10 @@ describe("buildChartHitDataTableProps for SlopeChart", () => {
             focusedSeriesNames: [selectedEntityNames[0]],
         })
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -305,10 +305,10 @@ describe("buildChartHitDataTableProps for SlopeChart", () => {
             selectedFacetStrategy: FacetStrategy.entity,
         })
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -342,10 +342,10 @@ describe("buildChartHitDataTableProps for SlopeChart", () => {
             selectedFacetStrategy: FacetStrategy.metric,
         })
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -378,16 +378,16 @@ describe("buildChartHitDataTableProps for SlopeChart", () => {
     })
 })
 
-describe("buildChartHitDataTableProps for StackedAreaChart", () => {
+describe("buildChartHitDataTableContent for StackedAreaChart", () => {
     it("lists entities when entities are plotted", () => {
         const grapherState = createSingleIndicatorGrapherState({
             chartTypes: [GRAPHER_CHART_TYPES.StackedArea],
         })
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -406,10 +406,10 @@ describe("buildChartHitDataTableProps for StackedAreaChart", () => {
             chartTypes: [GRAPHER_CHART_TYPES.StackedArea],
         })
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.title).toBe("Benin")
         expect(dataTable.rows).toMatchObject([
@@ -430,10 +430,10 @@ describe("buildChartHitDataTableProps for StackedAreaChart", () => {
             focusedSeriesNames: [selectedEntityNames[1]],
         })
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.rows).toMatchObject([
             { name: "Philippines", muted: true },
@@ -448,10 +448,10 @@ describe("buildChartHitDataTableProps for StackedAreaChart", () => {
             selectedFacetStrategy: FacetStrategy.entity,
         })
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -467,10 +467,10 @@ describe("buildChartHitDataTableProps for StackedAreaChart", () => {
             selectedFacetStrategy: FacetStrategy.metric,
         })
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -485,16 +485,16 @@ describe("buildChartHitDataTableProps for StackedAreaChart", () => {
     })
 })
 
-describe("buildChartHitDataTableProps for DiscreteBar", () => {
+describe("buildChartHitDataTableContent for DiscreteBar", () => {
     it("lists entities when entities are plotted", () => {
         const grapherState = createSingleIndicatorGrapherState({
             chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
         })
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -509,10 +509,10 @@ describe("buildChartHitDataTableProps for DiscreteBar", () => {
             chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
         })
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.title).toBe("Benin")
         expect(dataTable.rows).toMatchObject([
@@ -529,10 +529,10 @@ describe("buildChartHitDataTableProps for DiscreteBar", () => {
             focusedSeriesNames: [selectedEntityNames[1]],
         })
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.rows).toMatchObject([
             { name: "Philippines", muted: true },
@@ -547,10 +547,10 @@ describe("buildChartHitDataTableProps for DiscreteBar", () => {
             selectedFacetStrategy: FacetStrategy.entity,
         })
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -566,10 +566,10 @@ describe("buildChartHitDataTableProps for DiscreteBar", () => {
             selectedFacetStrategy: FacetStrategy.metric,
         })
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -580,7 +580,7 @@ describe("buildChartHitDataTableProps for DiscreteBar", () => {
     })
 })
 
-describe("buildChartHitDataTableProps for WorldMap", () => {
+describe("buildChartHitDataTableContent for WorldMap", () => {
     it("shows the map legend", () => {
         const grapherState = createSingleIndicatorGrapherState({
             chartTypes: [],
@@ -597,10 +597,10 @@ describe("buildChartHitDataTableProps for WorldMap", () => {
             },
         })
 
-        const result = buildChartHitDataTableProps({ grapherState })
+        const result = buildChartHitDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
-        const dataTable = result as SearchChartHitDataTableProps
+        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
