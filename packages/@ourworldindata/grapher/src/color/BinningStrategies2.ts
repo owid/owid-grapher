@@ -431,15 +431,30 @@ const autoChooseBinningStrategy = (
         return "equalSizeBins-normal"
     }
 
-    const { minValue, maxValue } = computeMinMaxForStrategy(
-        "log-auto",
-        posValuesOnly,
-        { minValue: conf.minValue, maxValue: conf.maxValue }
-    )
+    // If either minValue or maxValue is non-positive, we cannot use log bins
+    const hasNegativeMinOrMaxValue =
+        (conf.minValue !== undefined && conf.minValue <= 0) ||
+        (conf.maxValue !== undefined && conf.maxValue <= 0)
 
-    const magnitudeDiff = calcMagnitudeDiff(minValue, maxValue)
+    let minValueForLog, maxValueForLog
+    if (hasNegativeMinOrMaxValue) {
+        minValueForLog = maxValueForLog = 0
+    } else {
+        const { minValue, maxValue } = computeMinMaxForStrategy(
+            "log-auto",
+            posValuesOnly,
+            { minValue: conf.minValue, maxValue: conf.maxValue }
+        )
+        minValueForLog = minValue
+        maxValueForLog = maxValue
+    }
 
-    if (magnitudeDiff < AUTO_EQUAL_BINS_MAX_MAGNITUDE_DIFF) {
+    const magnitudeDiff = calcMagnitudeDiff(minValueForLog, maxValueForLog)
+
+    if (
+        magnitudeDiff < AUTO_EQUAL_BINS_MAX_MAGNITUDE_DIFF ||
+        hasNegativeMinOrMaxValue
+    ) {
         if (conf.isPercent) {
             const lastValue = lastOfNonEmptyArray(posValuesOnly)
             const percentile99 = quantile(posValuesOnly, 0.99)
