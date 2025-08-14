@@ -14,11 +14,13 @@ import {
     saveObjectToR2,
 } from "./R2Helpers.js"
 
-const getS3Client = lazy(() => createS3ClientForConfig({
-    endpoint: R2_ENDPOINT,
-    accessKeyId: R2_ACCESS_KEY_ID,
-    secretAccessKey: R2_SECRET_ACCESS_KEY,
-}))
+const getS3Client = lazy(() =>
+    createS3ClientForConfig({
+        endpoint: R2_ENDPOINT,
+        accessKeyId: R2_ACCESS_KEY_ID,
+        secretAccessKey: R2_SECRET_ACCESS_KEY,
+    })
+)
 
 export async function saveGrapherConfigToR2ByUUID(
     uuid: string,
