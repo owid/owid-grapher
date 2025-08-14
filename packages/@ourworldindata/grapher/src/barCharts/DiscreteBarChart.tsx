@@ -32,7 +32,6 @@ import { DiscreteBars } from "./DiscreteBars"
 import { makeProjectedDataPatternId } from "./DiscreteBarChartHelpers"
 import { TextWrap } from "@ourworldindata/components"
 
-const LEGEND_PADDING = 25
 const DEFAULT_PROJECTED_DATA_COLOR_IN_LEGEND = "#787878"
 
 // If an entity name exceeds this width, we use the short name instead (if available)
@@ -73,9 +72,13 @@ export class DiscreteBarChart
         return (this.props.bounds ?? DEFAULT_GRAPHER_BOUNDS).padRight(10)
     }
 
+    @computed private get legendPadding(): number {
+        return 0.5 * this.legendHeight
+    }
+
     @computed private get boundsWithoutColorLegend(): Bounds {
         return this.bounds.padTop(
-            this.showColorLegend ? this.legendHeight + LEGEND_PADDING : 0
+            this.showColorLegend ? this.legendHeight + this.legendPadding : 0
         )
     }
 
@@ -305,7 +308,10 @@ export class DiscreteBarChart
         return undefined
     }
 
-    numericBinSize = 10
+    @computed get numericBinSize(): number {
+        return 0.625 * this.fontSize
+    }
+
     numericBinStroke = BACKGROUND_COLOR
     numericBinStrokeWidth = 1
     legendTextColor = "#555"
