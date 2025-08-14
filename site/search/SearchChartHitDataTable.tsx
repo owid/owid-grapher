@@ -19,7 +19,6 @@ interface TableRow {
 }
 
 export interface SearchChartHitDataTableProps {
-    type: "data-table" // discriminant property, not used for rendering
     rows: TableRow[]
     title: string
 }
