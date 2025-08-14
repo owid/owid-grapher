@@ -23,6 +23,7 @@ import {
     faLightbulb,
     faStar,
     faCircleInfo,
+    faFolder,
 } from "@fortawesome/free-solid-svg-icons"
 
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
@@ -86,6 +87,11 @@ export const AdminSidebar = (): React.ReactElement => (
                         </Link>
                     </li>
                 </ul>
+            </li>
+            <li>
+                <Link to="/files">
+                    <FontAwesomeIcon icon={faFolder} fixedWidth /> Files
+                </Link>
             </li>
             <li className="header">DATA</li>
 
