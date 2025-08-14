@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import cx from "classnames"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowDown } from "@fortawesome/free-solid-svg-icons"
 import dayjs from "dayjs"
@@ -25,9 +26,13 @@ function getYearSuffixFromOrigin(origin: OwidOrigin) {
 export default function AboutThisData({
     datapageData,
     hasFaq,
+    className,
+    id,
 }: {
     datapageData: DataPageDataV2
     hasFaq: boolean
+    className?: string
+    id?: string
 }) {
     const hasDescriptionKey =
         datapageData.descriptionKey && datapageData.descriptionKey.length > 0
@@ -38,17 +43,20 @@ export default function AboutThisData({
     )
     const attributionFragments = datapageData.attributions ?? producersWithYear
     const attributionUnshortened = attributionFragments.join("; ")
+    const id_ = id ?? DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
 
     return (
-        <div className="wrapper-about-this-data grid grid-cols-12">
+        <div
+            className={cx(
+                "wrapper-about-this-data grid grid-cols-12",
+                className
+            )}
+        >
             {hasDescriptionKey ||
             datapageData.descriptionFromProducer ||
             datapageData.source?.additionalInfo ? (
                 <>
-                    <h2
-                        id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
-                        className="key-info__title span-cols-12"
-                    >
+                    <h2 id={id_} className="key-info__title span-cols-12">
                         What you should know about this indicator
                     </h2>
                     <div className="col-start-1 span-cols-8 span-lg-cols-7 span-sm-cols-12">
@@ -139,7 +147,7 @@ export default function AboutThisData({
                 <>
                     <h2
                         className="about-this-data__title span-cols-3 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"
-                        id={DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}
+                        id={id_}
                     >
                         About this data
                     </h2>
