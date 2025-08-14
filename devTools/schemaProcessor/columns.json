@@ -100,7 +100,19 @@
         "pointer": "/map/colorScale/binningStrategy",
         "default": "ckmeans",
         "editor": "dropdown",
-        "enumOptions": ["equalInterval", "quantiles", "ckmeans", "manual"]
+        "enumOptions": [
+            "auto",
+
+            "log-auto",
+            "log-1-2-5",
+            "log-1-3",
+            "log-10",
+
+            "equalSizeBins-few-bins",
+            "equalSizeBins-normal",
+            "equalSizeBins-many-bins",
+            "equalSizeBins-percent"
+        ]
     },
     {
         "type": "string",
@@ -133,12 +145,6 @@
         "type": "object",
         "pointer": "/map/colorScale/customCategoryLabels",
         "editor": "mappingEditor"
-    },
-    {
-        "type": "integer",
-        "pointer": "/map/colorScale/binningStrategyBinCount",
-        "default": 5,
-        "editor": "numeric"
     },
     {
         "type": "integer",
@@ -338,7 +344,19 @@
         "pointer": "/colorScale/binningStrategy",
         "default": "ckmeans",
         "editor": "dropdown",
-        "enumOptions": ["equalInterval", "quantiles", "ckmeans", "manual"]
+        "enumOptions": [
+            "auto",
+
+            "log-auto",
+            "log-1-2-5",
+            "log-1-3",
+            "log-10",
+
+            "equalSizeBins-few-bins",
+            "equalSizeBins-normal",
+            "equalSizeBins-many-bins",
+            "equalSizeBins-percent"
+        ]
     },
     {
         "type": "string",
@@ -371,12 +389,6 @@
         "type": "object",
         "pointer": "/colorScale/customCategoryLabels",
         "editor": "mappingEditor"
-    },
-    {
-        "type": "integer",
-        "pointer": "/colorScale/binningStrategyBinCount",
-        "default": 5,
-        "editor": "numeric"
     },
     {
         "type": "string",
