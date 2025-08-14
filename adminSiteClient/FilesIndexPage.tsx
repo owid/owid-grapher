@@ -111,7 +111,7 @@ function FileMapViewer({
     const history = useHistory()
 
     const handleFolderClick = (folderName: string) => {
-        history.push(`?path=${currentPath}/${folderName}`)
+        history.push(`?path=${urlJoin(currentPath, folderName)}`)
     }
 
     const pathSegments = currentPath.split("/").filter(Boolean)
