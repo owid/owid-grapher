@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import { computed, toJS, makeObservable } from "mobx"
-import { mean, deviation, quantile } from "d3-array"
+import { mean, deviation } from "d3-array"
 import { ColorScaleConfig } from "./ColorScaleConfig"
 import {
     roundSigFig,
@@ -12,23 +12,16 @@ import { ColorSchemes } from "../color/ColorSchemes"
 import { ColorScheme } from "../color/ColorScheme"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
 import { OWID_NO_DATA_GRAY } from "./ColorConstants"
-import { getBinMaximums } from "./BinningStrategies"
 import {
     ColorScaleConfigInterface,
     ColorSchemeName,
-    BinningStrategy,
     Color,
     CoreValueType,
     OwidVariableRoundingMode,
 } from "@ourworldindata/types"
 import { CoreColumn } from "@ourworldindata/core-table"
 import * as R from "remeda"
-import {
-    autoChooseLogBins,
-    equalSizeBins,
-    equalSizeBinsWithMidpoint,
-    runBinningStrategy,
-} from "./BinningStrategies2.js"
+import { runBinningStrategy } from "./BinningStrategies2.js"
 
 export const NO_DATA_LABEL = "No data"
 export const PROJECTED_DATA_LABEL = "Projected data"

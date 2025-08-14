@@ -458,45 +458,7 @@ const autoChooseBinningStrategy = (
     return "log-auto"
 }
 
-const log10 = [1]
-const log125 = [1, 2, 5]
-const log13 = [1, 3]
-
-export const autoChooseLogBins = ({
-    minValue,
-    maxValue,
-}: {
-    minValue: number
-    maxValue: number
-}): number[] => {
-    if (minValue <= 0 || maxValue <= 0) {
-        throw new Error("autoChooseLogBins only supports positive values")
-    }
-
-    const magnitudeDiff = Math.log10(maxValue) - Math.log10(minValue)
-
-    if (magnitudeDiff >= 3.6) {
-        return fakeLogBins({
-            minValue,
-            maxValue,
-            logSteps: log10,
-        })
-    } else if (magnitudeDiff >= 2.6) {
-        return fakeLogBins({
-            minValue,
-            maxValue,
-            logSteps: log13,
-        })
-    } else {
-        return fakeLogBins({
-            minValue,
-            maxValue,
-            logSteps: log125,
-        })
-    }
-}
-
-export const fakeLogBins = ({
+const fakeLogBins = ({
     minValue,
     maxValue,
     logSteps,
