@@ -213,9 +213,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
         // Authors can still get into manual mode by selecting an
         // automatic binning strategy and editing the bins.
         if (!this.config.customNumericValues.length) {
-            return options.filter(
-                ({ value }) => value !== BinningStrategy.manual
-            )
+            return options.filter(({ value }) => value !== "manual")
         }
         return options
     }
@@ -445,10 +443,10 @@ class BinLabelView extends Component<BinLabelViewProps> {
 
 function populateManualBinValuesIfAutomatic(scale: ColorScale) {
     runInAction(() => {
-        if (scale.config.binningStrategy !== BinningStrategy.manual) {
+        if (scale.config.binningStrategy !== "manual") {
             scale.config.customNumericValues = scale.autoBinThresholds
             scale.config.customNumericLabels = []
-            scale.config.binningStrategy = BinningStrategy.manual
+            scale.config.binningStrategy = "manual"
         }
     })
 }
