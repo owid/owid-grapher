@@ -16,7 +16,6 @@ interface DataPoint {
 }
 
 export interface SearchChartHitDataPointsProps {
-    type: "data-points" // discriminant property, not used for rendering
     dataPoints: DataPoint[]
 }
 
