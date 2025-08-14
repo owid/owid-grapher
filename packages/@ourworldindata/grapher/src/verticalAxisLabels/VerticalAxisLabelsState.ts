@@ -1,9 +1,13 @@
 import * as R from "remeda"
 import { computed } from "mobx"
-import { Bounds } from "@ourworldindata/utils"
+import { Bounds, VerticalAlign } from "@ourworldindata/utils"
+import { TextWrap } from "@ourworldindata/components"
 
 interface VerticalAxisLabelsOptions {
     fontSize: number
+    maxWidth?: number // no restriction by default
+    minSpacing?: number // space between labels
+    verticalAlign?: VerticalAlign
     resolveCollision?: (
         s1: InitialVerticalAxisLabelsSeries,
         s2: InitialVerticalAxisLabelsSeries
@@ -14,12 +18,13 @@ export interface InitialVerticalAxisLabelsSeries {
     seriesName: string
     value: number
     label: string
-    position: number
+    yPosition: number
     color: string
 }
 
 interface SizedVerticalAxisLabelsSeries
     extends InitialVerticalAxisLabelsSeries {
+    textWrap: TextWrap
     bounds: Bounds
 }
 
@@ -37,21 +42,53 @@ export class VerticalAxisLabelsState {
         this.options = options
     }
 
+    @computed private get maxWidth(): number {
+        return this.options.maxWidth ?? Infinity
+    }
+
+    @computed private get minSpacing(): number {
+        return this.options.minSpacing ?? 5
+    }
+
+    @computed private get verticalAlign(): VerticalAlign {
+        return this.options.verticalAlign ?? VerticalAlign.middle
+    }
+
     @computed
     private get sizedSeries(): SizedVerticalAxisLabelsSeries[] {
-        return this.initialSeries.map((series) => {
-            const bounds = Bounds.forText(series.label, {
-                fontSize: this.options.fontSize,
-            }).set({ y: series.position })
+        const {
+            maxWidth,
+            verticalAlign,
+            options: { fontSize },
+        } = this
 
-            return { ...series, bounds }
+        return this.initialSeries.map((series) => {
+            const { label, yPosition } = series
+
+            const textWrap = new TextWrap({
+                text: label,
+                maxWidth,
+                fontSize,
+                verticalAlign,
+            })
+
+            const [x, y] = textWrap.getPositionForSvgRendering(0, yPosition)
+            const bounds = new Bounds(x, y, textWrap.width, textWrap.height)
+
+            return { ...series, textWrap, bounds }
         })
     }
 
     @computed get series(): VerticalAxisLabelsSeries[] {
-        // None of the series are initially hidden
+        const margin = this.minSpacing > 0 ? this.minSpacing / 2 : 0
+        const margins = { top: margin, bottom: margin }
+
         const series = this.sizedSeries.map((series) => ({
             ...series,
+            // Bounds used to detect collisions. They're a bit larger than the
+            // text bounds to account for the minimum spacing between labels.
+            collisionBounds: series.bounds.expand(margins),
+            // None of the series are initially hidden
             isHidden: false,
         }))
 
@@ -63,7 +100,7 @@ export class VerticalAxisLabelsState {
                 const s2 = series[j]
                 if (s2.isHidden) continue
 
-                if (s1.bounds.hasVerticalOverlap(s2.bounds)) {
+                if (s1.collisionBounds.hasVerticalOverlap(s2.collisionBounds)) {
                     const picked = this.options.resolveCollision?.(s1, s2) ?? s1
 
                     if (picked === s1) s2.isHidden = true
@@ -74,11 +111,11 @@ export class VerticalAxisLabelsState {
 
         return series
             .filter((series) => !series.isHidden)
-            .map((series) => R.omit(series, ["isHidden"]))
+            .map((series) => R.omit(series, ["isHidden", "collisionBounds"]))
     }
 
     @computed get width(): number {
-        const labelWidths = this.series.map((series) => series.bounds.width)
+        const labelWidths = this.series.map((series) => series.textWrap.width)
         const maxLabelWidth = R.firstBy(labelWidths, [R.identity(), "desc"])
         return maxLabelWidth ?? 0
     }

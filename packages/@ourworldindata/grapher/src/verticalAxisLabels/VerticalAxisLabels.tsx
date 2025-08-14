@@ -1,6 +1,7 @@
-import { dyFromAlign, VerticalAlign } from "@ourworldindata/utils"
+import React from "react"
 import { VerticalAxis } from "../axis/Axis"
 import { VerticalAxisLabelsState } from "./VerticalAxisLabelsState"
+import { darkenColorForText } from "../color/ColorUtils.js"
 
 export function VerticalAxisLabels({
     state,
@@ -16,17 +17,14 @@ export function VerticalAxisLabels({
     return (
         <g>
             {state.series.map((series) => (
-                <text
-                    key={series.position}
-                    x={x}
-                    y={yAxis.place(series.value)}
-                    fontSize={state.options.fontSize}
-                    fill={series.color}
-                    dy={dyFromAlign(VerticalAlign.middle)}
-                    textAnchor={xAnchor}
-                >
-                    {series.label}
-                </text>
+                <React.Fragment key={series.yPosition}>
+                    {series.textWrap.renderSVG(x, yAxis.place(series.value), {
+                        textProps: {
+                            textAnchor: xAnchor,
+                            fill: darkenColorForText(series.color),
+                        },
+                    })}
+                </React.Fragment>
             ))}
         </g>
     )

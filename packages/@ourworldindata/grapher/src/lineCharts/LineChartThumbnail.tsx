@@ -192,14 +192,14 @@ export class LineChartThumbnail
             const lastPoint = lastPointBySeriesName.get(series.seriesName)
             const value = lastPoint?.y ?? 0
 
-            const position = this.yAxis.place(value)
+            const yPosition = this.yAxis.place(value)
             const label = this.formatLabel(value)
 
             const color = this.chartState.hasColorScale
                 ? this.chartState.getColorScaleColor(lastPoint?.colorValue)
                 : series.color
 
-            const labelSeries = { seriesName, value, label, position, color }
+            const labelSeries = { seriesName, value, label, yPosition, color }
 
             return { ...labelSeries, point: lastPoint }
         })
@@ -254,7 +254,7 @@ export class LineChartThumbnail
                 const firstPoint = firstPointBySeriesName.get(series.seriesName)
                 const value = firstPoint?.y ?? 0
 
-                const position = this.yAxis.place(value)
+                const yPosition = this.yAxis.place(value)
                 const label = this.isMinimal
                     ? this.formatLabel(value)
                     : seriesName
@@ -267,7 +267,7 @@ export class LineChartThumbnail
                     seriesName,
                     value,
                     label,
-                    position,
+                    yPosition,
                     color,
                 }
                 return { ...labelSeries, point: firstPoint }
@@ -276,6 +276,7 @@ export class LineChartThumbnail
 
         return new VerticalAxisLabelsState(series, {
             fontSize: this.labelFontSize,
+            maxWidth: 0.25 * this.bounds.width,
             resolveCollision: (
                 s1: InitialVerticalAxisLabelsSeries,
                 s2: InitialVerticalAxisLabelsSeries
