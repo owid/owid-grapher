@@ -20,6 +20,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_FOOTER_CLASS,
     GRAPHER_FRAME_PADDING_HORIZONTAL,
+    GrapherModal,
 } from "../core/GrapherConstants"
 import { GRAPHER_LIGHT_TEXT } from "../color/ColorConstants"
 
@@ -448,7 +449,7 @@ abstract class AbstractFooter<
                             this.manager.isEmbeddedInAnOwidPage ||
                             this.manager.isInIFrame
                         ) {
-                            this.manager.isSourcesModalOpen = true
+                            this.manager.activeModal = GrapherModal.Sources
                             return
                         }
 
@@ -468,7 +469,7 @@ abstract class AbstractFooter<
                             this.manager.isInFullScreenMode = false
                         } else {
                             // on grapher pages, open the sources modal
-                            this.manager.isSourcesModalOpen = true
+                            this.manager.activeModal = GrapherModal.Sources
                         }
                     })}
                 >

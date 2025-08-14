@@ -1,17 +1,15 @@
 import { Env, Etag, extensions } from "../_common/env.js"
-import { extractOptions } from "../_common/imageOptions.js"
-import { buildExplorerProps, Explorer } from "@ourworldindata/explorer"
 import { handlePageNotFound } from "../_common/redirectTools.js"
-import { renderSvgToPng } from "../_common/grapherRenderer.js"
-import { IRequestStrict, Router, error, cors, png } from "itty-router"
-import { Bounds, Url } from "@ourworldindata/utils"
-import {
-    getSelectedEntityNamesParam,
-    migrateSelectedEntityNamesParam,
-    SelectionArray,
-} from "@ourworldindata/grapher"
+import { IRequestStrict, Router, error, cors } from "itty-router"
 import { rewriteMetaTags } from "../_common/grapherTools.js"
-import ReactDOMServer from "react-dom/server"
+import {
+    fetchCsvForExplorerView,
+    fetchDataValuesForExplorerView,
+    fetchMetadataForExplorerView,
+    fetchReadmeForExplorerView,
+    fetchZipForExplorerView,
+    handleThumbnailRequestForExplorerView,
+} from "../_common/explorerHandlers.js"
 
 const { preflight, corsify } = cors({
     allowMethods: ["GET", "OPTIONS", "HEAD"],
@@ -29,14 +27,57 @@ router
         `/explorers/:slug${extensions.svg}`,
         async (_, { searchParams }, env) => {
             console.log("Handling explorer SVG thumbnail request")
-            return handleThumbnailRequest(searchParams, env, "svg")
+            return handleThumbnailRequestForExplorerView(
+                searchParams,
+                env,
+                "svg"
+            )
         }
     )
     .get(
         `/explorers/:slug${extensions.png}`,
         async (_, { searchParams }, env) => {
             console.log("Handling explorer PNG thumbnail request")
-            return handleThumbnailRequest(searchParams, env, "png")
+            return handleThumbnailRequestForExplorerView(
+                searchParams,
+                env,
+                "png"
+            )
+        }
+    )
+    .get(
+        `/explorers/:slug${extensions.csv}`,
+        async (_, { searchParams }, env) => {
+            console.log("Handling explorer CSV request")
+            return fetchCsvForExplorerView(searchParams, env)
+        }
+    )
+    .get(
+        `/explorers/:slug${extensions.metadata}`,
+        async (_, { searchParams }, env) => {
+            console.log("Handling explorer metadata request")
+            return fetchMetadataForExplorerView(searchParams, env)
+        }
+    )
+    .get(
+        `/explorers/:slug${extensions.readme}`,
+        async (_, { searchParams }, env) => {
+            console.log("Handling explorer README request")
+            return fetchReadmeForExplorerView(searchParams, env)
+        }
+    )
+    .get(
+        `/explorers/:slug${extensions.zip}`,
+        async (_, { searchParams }, env) => {
+            console.log("Handling explorer ZIP request")
+            return fetchZipForExplorerView(searchParams, env)
+        }
+    )
+    .get(
+        `/explorers/:slug${extensions.values}`,
+        async (_, { searchParams }, env) => {
+            console.log("Handling explorer values request")
+            return fetchDataValuesForExplorerView(searchParams, env)
         }
     )
     .get(
@@ -47,60 +88,6 @@ router
         }
     )
     .all("*", () => error(404, "Route not defined"))
-
-async function handleThumbnailRequest(
-    searchParams: URLSearchParams,
-    env: Env,
-    extension: "png" | "svg"
-) {
-    const options = extractOptions(searchParams)
-    const url = env.url
-    url.href = url.href.replace(`.${extension}`, "")
-    const explorerPage = await env.ASSETS.fetch(url, {
-        redirect: "manual",
-    })
-
-    try {
-        const html = await explorerPage.text()
-        const queryStr = url.searchParams.toString()
-        // The env URL class isn't compatible with the Url class from @ourworldindata/utils
-        const urlObj = Url.fromURL(url.toString())
-        const [windowEntityNames] = [urlObj]
-            .map(migrateSelectedEntityNamesParam)
-            .map(getSelectedEntityNamesParam)
-
-        const selection = new SelectionArray(windowEntityNames)
-        const bounds = new Bounds(0, 0, options.svgWidth, options.svgHeight)
-        const explorerProps = await buildExplorerProps(
-            html,
-            queryStr,
-            selection,
-            bounds
-        )
-        const explorer = new Explorer(explorerProps)
-        explorer.updateGrapherFromExplorer()
-        while (!explorer.grapherState.isReady) {
-            await new Promise((resolve) => setTimeout(resolve, 100))
-        }
-        explorer.grapherState.populateFromQueryParams(urlObj.queryParams)
-        const svg = explorer.grapherState.generateStaticSvg(
-            ReactDOMServer.renderToStaticMarkup
-        )
-        if (extension === "svg") {
-            return new Response(svg, {
-                headers: {
-                    "Content-Type": "image/svg+xml",
-                    "Cache-Control": "public, max-age=600",
-                },
-            })
-        } else {
-            return png(await renderSvgToPng(svg, options, "#fff"))
-        }
-    } catch (e) {
-        console.error(e)
-        return error(500, e)
-    }
-}
 
 async function handleHtmlPageRequest(
     slug: string,

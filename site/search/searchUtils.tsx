@@ -1,10 +1,18 @@
 import * as _ from "lodash-es"
-import { HitAttributeHighlightResult, SearchResponse } from "instantsearch.js"
+import { HitAttributeHighlightResult } from "instantsearch.js"
 import {
     EntityName,
+    GRAPHER_CHART_TYPES,
+    GRAPHER_TAB_NAMES,
+    GRAPHER_TAB_QUERY_PARAMS,
+    GrapherChartType,
     GrapherQueryParams,
-    TagGraphNode,
+    GrapherTabName,
+    GrapherTabQueryParam,
+    GrapherValuesJson,
+    GrapherValuesJsonDataPoint,
     TagGraphRoot,
+    TimeBounds,
 } from "@ourworldindata/types"
 import {
     Region,
@@ -16,26 +24,43 @@ import {
     countriesByName,
     FuzzySearch,
     FuzzySearchResult,
+    getAllChildrenOfArea,
+    timeBoundToTimeBoundString,
+    queryParamsToStr,
 } from "@ourworldindata/utils"
 import { partition } from "remeda"
-import { generateSelectedEntityNamesParam } from "@ourworldindata/grapher"
-import { getIndexName } from "./searchClient.js"
-import { SearchClient } from "algoliasearch"
 import {
-    IDataCatalogHit,
-    DataCatalogRibbonResult,
-    DataCatalogSearchResult,
+    generateSelectedEntityNamesParam,
+    GrapherState,
+    isValidTabQueryParam,
+    mapGrapherTabNameToQueryParam,
+} from "@ourworldindata/grapher"
+import { getIndexName } from "./searchClient.js"
+import {
     SearchIndexName,
-    SearchState,
     Filter,
     FilterType,
-    SearchAutocompleteContextType,
     ScoredSearchResult,
+    SearchResultType,
+    SearchTopicType,
+    SearchFacetFilters,
+    ChartRecordType,
+    SearchChartHit,
+    IChartHit,
 } from "./searchTypes.js"
 import { faTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { match, P } from "ts-pattern"
-import { createContext, ForwardedRef, useContext } from "react"
+import { ForwardedRef } from "react"
+import {
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_URL,
+    EXPLORER_DYNAMIC_THUMBNAIL_URL,
+    GRAPHER_DYNAMIC_THUMBNAIL_URL,
+} from "../../settings/clientSettings.js"
+import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
+import { SearchChartHitDataDisplayProps } from "./SearchChartHitDataDisplay.js"
+import { CoreColumn } from "@ourworldindata/core-table"
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -84,11 +109,18 @@ const removeHighlightTags = (text: string) =>
     text.replace(/<\/?(mark|strong)>/g, "")
 
 export function pickEntitiesForChartHit(
-    availableEntitiesHighlighted: HitAttributeHighlightResult[] | undefined,
-    availableEntities: EntityName[] | undefined,
+    hit: IChartHit | SearchChartHit,
     searchQueryRegionsMatches: Region[] | undefined
 ): EntityName[] {
+    const availableEntities =
+        hit.originalAvailableEntities ?? hit.availableEntities
     if (!availableEntities) return []
+
+    const availableEntitiesHighlighted = (hit._highlightResult
+        ?.originalAvailableEntities ||
+        hit._highlightResult?.availableEntities) as
+        | HitAttributeHighlightResult[]
+        | undefined
 
     const pickedEntities = new Set(
         searchQueryRegionsMatches?.map((r) => r.name)
@@ -104,6 +136,8 @@ export function pickEntitiesForChartHit(
         }
     }
 
+    // Add entities to the list of picked entities if they're typed in the search bar
+    // even if a user hasn't selected them from the autocomplete dropdown
     if (availableEntitiesHighlighted) {
         for (const highlightEntry of availableEntitiesHighlighted) {
             if (highlightEntry.matchLevel === "none") continue
@@ -140,17 +174,218 @@ export function pickEntitiesForChartHit(
     return sortedEntities ?? []
 }
 
+const generateGrapherTabQueryParam = ({
+    tab,
+    hasEntities,
+}: {
+    tab?: GrapherTabName | GrapherTabQueryParam
+    hasEntities: boolean
+}) => {
+    if (tab) {
+        return isValidTabQueryParam(tab)
+            ? tab
+            : mapGrapherTabNameToQueryParam(tab)
+    }
+
+    // If we have any entities pre-selected, we want to show the chart tab
+    if (hasEntities) return GRAPHER_TAB_QUERY_PARAMS.chart
+
+    return undefined
+}
+
+const generateGrapherTimeQueryParam = ({
+    timeBounds,
+    timeMode = "year",
+}: {
+    timeBounds: TimeBounds
+    timeMode?: "year" | "day"
+}) => {
+    return timeBounds
+        .map((time) => timeBoundToTimeBoundString(time, timeMode === "day"))
+        .join("..")
+}
+
 export const getEntityQueryStr = (
-    entities: EntityName[] | null | undefined,
-    existingQueryStr: string = ""
-) => {
-    if (!entities?.length) return existingQueryStr
-    else {
-        return Url.fromQueryStr(existingQueryStr).updateQueryParams({
-            // If we have any entities pre-selected, we want to show the chart tab
-            tab: "chart",
-            country: generateSelectedEntityNamesParam(entities),
-        } satisfies GrapherQueryParams).queryStr
+    entities: EntityName[] | null | undefined
+): string => {
+    const hasEntities = !!entities?.length
+
+    const countryParam = hasEntities
+        ? generateSelectedEntityNamesParam(entities)
+        : undefined
+
+    const queryParams = { country: countryParam } satisfies GrapherQueryParams
+
+    const url = Url.fromQueryParams(queryParams)
+
+    return url.queryStr
+}
+
+export const toGrapherQueryParams = ({
+    entities = [],
+    tab,
+    timeBounds,
+    timeMode = "year",
+}: {
+    entities?: EntityName[]
+    tab?: GrapherTabName
+    timeBounds?: TimeBounds
+    timeMode?: "year" | "day"
+}): GrapherQueryParams => {
+    const hasEntities = entities.length > 0
+    return {
+        tab: generateGrapherTabQueryParam({ tab, hasEntities }),
+        country: hasEntities
+            ? generateSelectedEntityNamesParam(entities)
+            : undefined,
+        time: timeBounds
+            ? generateGrapherTimeQueryParam({ timeBounds, timeMode })
+            : undefined,
+    }
+}
+
+const generateQueryStrForChartHit = ({
+    hit,
+    grapherParams,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+}): string => {
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    const isMultiDimView = hit.type === ChartRecordType.MultiDimView
+
+    const viewQueryStr =
+        isExplorerView || isMultiDimView ? hit.queryParams : undefined
+    const grapherQueryStr = grapherParams
+        ? queryParamsToStr(grapherParams)
+        : undefined
+
+    // Remove leading '?' from query strings
+    const queryStrList = [viewQueryStr, grapherQueryStr]
+        .map((queryStr) => queryStr?.replace(/^\?/, ""))
+        .filter((queryStr) => queryStr)
+
+    const queryStr = queryStrList.length > 0 ? "?" + queryStrList.join("&") : ""
+
+    return queryStr
+}
+
+export const constructChartUrl = ({
+    hit,
+    grapherParams,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+}): string => {
+    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
+
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    const basePath = isExplorerView
+        ? `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}`
+        : BAKED_GRAPHER_URL
+
+    return `${basePath}/${hit.slug}${queryStr}`
+}
+
+export const constructChartInfoUrl = ({
+    hit,
+    grapherParams,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+}): string | undefined => {
+    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
+
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    const basePath = isExplorerView
+        ? EXPLORER_DYNAMIC_THUMBNAIL_URL
+        : GRAPHER_DYNAMIC_THUMBNAIL_URL
+
+    return `${basePath}/${hit.slug}.values.json${queryStr}`
+}
+
+export const constructThumbnailUrl = ({
+    hit,
+    grapherParams,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+}): string => {
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+
+    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
+    const thumbnailQueryStr = "imType=thumbnail"
+    const fullQueryStr = queryStr
+        ? `${queryStr}&${thumbnailQueryStr}`
+        : `?${thumbnailQueryStr}`
+
+    const basePath = isExplorerView
+        ? EXPLORER_DYNAMIC_THUMBNAIL_URL
+        : GRAPHER_DYNAMIC_THUMBNAIL_URL
+
+    return `${basePath}/${hit.slug}.png${fullQueryStr}`
+}
+
+export const constructConfigUrl = ({
+    hit,
+}: {
+    hit: SearchChartHit
+}): string | undefined => {
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    if (isExplorerView) return undefined // Not yet supported
+
+    const queryStr = generateQueryStrForChartHit({ hit })
+
+    return `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${hit.slug}.config.json${queryStr}`
+}
+
+export const constructDownloadUrl = ({
+    hit,
+}: {
+    hit: SearchChartHit
+}): string => {
+    const viewQueryStr = generateQueryStrForChartHit({ hit })
+    const grapherParams = new URLSearchParams({
+        overlay: "download-data",
+    })
+    const queryStr = viewQueryStr
+        ? `${viewQueryStr}&${grapherParams}`
+        : `?${grapherParams}`
+
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    const basePath = isExplorerView
+        ? `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}`
+        : BAKED_GRAPHER_URL
+
+    return `${basePath}/${hit.slug}${queryStr}`
+}
+
+// Generates time bounds to force line charts to display properly in previews.
+// When start and end times are the same (single time point), line charts
+// automatically switch to discrete bar charts. To prevent that, we set the start
+// time to -Infinity, which refers to the earliest available data.
+export function getTimeBoundsForChartUrl(
+    chartInfo?: GrapherValuesJson | null
+): { timeBounds: TimeBounds; timeMode: "year" | "day" } | undefined {
+    if (!chartInfo) return undefined
+
+    const { startTime, endTime } = chartInfo
+
+    // When a chart has different start and end times, we don't need to adjust
+    // the time parameter because the chart will naturally display as a line chart.
+    // Note: `chartInfo` is fetched for the _default_ view. If startTime equals
+    // endTime here, it doesn't necessarily mean that the line chart is actually
+    // single-time, since we're looking at the default tab rather than the specific
+    // line chart tab. However, false positives are generally harmless because most
+    // charts don't customize their start time.
+    if (startTime && startTime !== endTime) return undefined
+
+    const columnSlug = chartInfo.endTimeValues?.y[0].columnSlug ?? ""
+    const columnInfo = chartInfo.columns?.[columnSlug]
+
+    return {
+        timeBounds: [-Infinity, endTime ?? Infinity],
+        timeMode: columnInfo?.yearIsDay ? "day" : "year",
     }
 }
 
@@ -165,40 +400,10 @@ export const DATA_CATALOG_ATTRIBUTES = [
     "variantName",
     "type",
     "queryParams",
+    "availableTabs",
+    "source",
+    "subtitle",
 ]
-
-function checkIfNoTopicsOrOneAreaTopicApplied(
-    topics: Set<string>,
-    areas: string[]
-) {
-    if (topics.size === 0) return true
-    if (topics.size > 1) return false
-
-    const [tag] = topics.values()
-    return areas.includes(tag)
-}
-
-export function checkShouldShowRibbonView(
-    query: string,
-    topics: Set<string>,
-    areaNames: string[]
-): boolean {
-    return (
-        query === "" && checkIfNoTopicsOrOneAreaTopicApplied(topics, areaNames)
-    )
-}
-
-/**
- * Set url if it's different from the current url.
- * When the user navigates back, we derive the state from the url and set it
- * so the url is already identical to the state - we don't need to push it again (otherwise we'd get an infinite loop)
- */
-export function syncDataCatalogURL(stateAsUrl: string) {
-    const currentUrl = window.location.href
-    if (currentUrl !== stateAsUrl) {
-        window.history.pushState({}, "", stateAsUrl)
-    }
-}
 
 export function setToFacetFilters(
     facetSet: Set<string>,
@@ -206,34 +411,26 @@ export function setToFacetFilters(
 ) {
     return Array.from(facetSet).map((facet) => `${attribute}:${facet}`)
 }
-function getAllTagsInArea(area: TagGraphNode): string[] {
-    const topics = area.children.reduce((tags, child) => {
-        tags.push(child.name)
-        if (child.children.length > 0) {
-            tags.push(...getAllTagsInArea(child))
-        }
-        return tags
-    }, [] as string[])
-    return Array.from(new Set(topics))
-}
 
-export function getTopicsForRibbons(
-    topics: Set<string>,
-    tagGraph: TagGraphRoot
-) {
-    if (topics.size === 0) return tagGraph.children.map((child) => child.name)
-    if (topics.size === 1) {
-        const area = tagGraph.children.find((child) => topics.has(child.name))
-        if (area) return getAllTagsInArea(area)
-    }
-    return []
+export function getSelectableTopics(
+    tagGraph: TagGraphRoot,
+    selectedTopic: string | undefined
+): Set<string> {
+    if (!selectedTopic)
+        return new Set(tagGraph.children.map((child) => child.name))
+
+    const area = tagGraph.children.find((child) => child.name === selectedTopic)
+    if (area)
+        return new Set(getAllChildrenOfArea(area).map((node) => node.name))
+
+    return new Set()
 }
 
 export function formatCountryFacetFilters(
     countries: Set<string>,
     requireAllCountries: boolean
 ) {
-    const facetFilters: (string | string[])[] = []
+    const facetFilters: SearchFacetFilters = []
     if (requireAllCountries) {
         // conjunction mode (A AND B): [attribute:"A", attribute:"B"]
         facetFilters.push(...setToFacetFilters(countries, "availableEntities"))
@@ -246,6 +443,13 @@ export function formatCountryFacetFilters(
         facetFilters.push("isIncomeGroupSpecificFM:false")
     }
     return facetFilters
+}
+
+export const formatTopicFacetFilters = (
+    topics: Set<string>
+): SearchFacetFilters => {
+    // disjunction mode (A OR B): [[attribute:"A", attribute:"B"]]
+    return [setToFacetFilters(topics, "tags")]
 }
 
 export function getCountryData(selectedCountries: Set<string>): Region[] {
@@ -293,78 +497,6 @@ export const getFilterIcon = (filter: Filter) => {
             </span>
         ))
         .otherwise(() => null)
-}
-
-export async function queryDataCatalogRibbons(
-    searchClient: SearchClient,
-    state: SearchState,
-    tagGraph: TagGraphRoot
-): Promise<DataCatalogRibbonResult[]> {
-    const topicsForRibbons = getTopicsForRibbons(
-        getFilterNamesOfType(state.filters, FilterType.TOPIC),
-        tagGraph
-    )
-
-    const countryFacetFilters = formatCountryFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        state.requireAllCountries
-    )
-    const searchParams = topicsForRibbons.map((topic) => {
-        const facetFilters = [[`tags:${topic}`], ...countryFacetFilters]
-        return {
-            indexName: CHARTS_INDEX,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            query: state.query,
-            facetFilters: facetFilters,
-            hitsPerPage: 4,
-            facets: ["tags"],
-            page: state.page < 0 ? 0 : state.page,
-        }
-    })
-
-    return searchClient.search<IDataCatalogHit>(searchParams).then((response) =>
-        response.results.map((res, i: number) => ({
-            ...(res as SearchResponse<IDataCatalogHit>),
-            title: topicsForRibbons[i],
-        }))
-    )
-}
-
-export async function queryDataCatalogSearch(
-    searchClient: SearchClient,
-    state: SearchState
-): Promise<DataCatalogSearchResult> {
-    const facetFilters = formatCountryFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        state.requireAllCountries
-    )
-    facetFilters.push(
-        ...setToFacetFilters(
-            getFilterNamesOfType(state.filters, FilterType.TOPIC),
-            "tags"
-        )
-    )
-
-    const searchParams = [
-        {
-            indexName: CHARTS_INDEX,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            query: state.query,
-            facetFilters: facetFilters,
-            highlightPostTag: "</mark>",
-            highlightPreTag: "<mark>",
-            facets: ["tags"],
-            maxValuesPerFacet: 15,
-            hitsPerPage: 60,
-            page: state.page < 0 ? 0 : state.page,
-        },
-    ]
-
-    return searchClient
-        .search<IDataCatalogHit>(searchParams)
-        .then(
-            (response) => response.results[0] as SearchResponse<IDataCatalogHit>
-        )
 }
 
 export function searchWithWords(
@@ -567,20 +699,6 @@ export const createCountryFilter = createFilter(FilterType.COUNTRY)
 export const createTopicFilter = createFilter(FilterType.TOPIC)
 export const createQueryFilter = createFilter(FilterType.QUERY)
 
-export const SearchAutocompleteContext = createContext<
-    SearchAutocompleteContextType | undefined
->(undefined)
-
-export function useSearchAutocomplete() {
-    const context = useContext(SearchAutocompleteContext)
-    if (context === undefined) {
-        throw new Error(
-            "useSearchAutocomplete must be used within a SearchAutocompleteContextProvider"
-        )
-    }
-    return context
-}
-
 /**
  * Returns a click handler that focuses an input element when clicking on the
  * target element or its children. If checkTargetEquality is true, only focus
@@ -635,4 +753,344 @@ export const getFilterAriaLabel = (
             () => `${actionName} ${filter.name} ${filter.type} filter`
         )
         .exhaustive()
+}
+
+export const isValidResultType = (
+    value: string | undefined
+): value is SearchResultType => {
+    return Object.values(SearchResultType).includes(value as SearchResultType)
+}
+
+export const getSelectedTopic = (filters: Filter[]): string | undefined => {
+    const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
+    return selectedTopics.size > 0 ? [...selectedTopics][0] : undefined
+}
+
+export function getSelectedTopicType(
+    filters: Filter[],
+    areaNames: string[]
+): SearchTopicType | null {
+    const selectedTopic = getSelectedTopic(filters)
+    if (!selectedTopic) return null
+
+    return areaNames.includes(selectedTopic)
+        ? SearchTopicType.Area
+        : SearchTopicType.Topic
+}
+
+/**
+ * Checks if the search is in browsing mode, which is defined as having no query
+ * and no filters applied.
+ */
+export const isBrowsing = (filters: Filter[], query: string) => {
+    return query.trim() === "" && filters.length === 0
+}
+
+/**
+ * Computes the effective result type that should be displayed/used in the UI.
+ * This respects constraints (e.g., "all" is not allowed when browsing) while
+ * preserving the user's desired result type in the state.
+ */
+export const getEffectiveResultType = (
+    filters: Filter[],
+    query: string,
+    desiredResultType: SearchResultType
+): SearchResultType => {
+    return isBrowsing(filters, query) &&
+        desiredResultType === SearchResultType.ALL
+        ? SearchResultType.DATA
+        : desiredResultType
+}
+
+export async function fetchJson<TResult>(url: string): Promise<TResult> {
+    const response = await fetch(url)
+    if (!response.ok) {
+        throw new Error(`Failed to fetch ${url}: ${response.statusText}`)
+    }
+    return response.json()
+}
+
+export function getSortedGrapherTabsForChartHit(
+    grapherState: GrapherState,
+    maxTabs = 5
+): GrapherTabName[] {
+    const { Table, LineChart, Marimekko, WorldMap } = GRAPHER_TAB_NAMES
+
+    const {
+        availableTabs,
+        validChartTypes: availableChartTypes,
+        validChartTypeSet: availableChartTypeSet,
+    } = grapherState
+
+    const sortedTabs: GrapherTabName[] = []
+
+    // First position
+    if (availableChartTypeSet.has(LineChart)) {
+        // If a line chart is available, it's always the first tab
+        sortedTabs.push(LineChart)
+    } else if (availableChartTypes.length > 0) {
+        // Otherwise, pick the first valid chart type
+        sortedTabs.push(availableChartTypes[0])
+    } else if (availableTabs.includes(WorldMap)) {
+        // Or a map
+        sortedTabs.push(WorldMap)
+    } else if (availableTabs.includes(Table)) {
+        // Or a table
+        sortedTabs.push(Table)
+    }
+
+    // Second position is always the table
+    // (unless the table is already in the first position)
+    if (sortedTabs[0] !== Table) sortedTabs.push(Table)
+
+    // In the third position, prioritize the Marimekko chart
+    if (sortedTabs[0] === LineChart && availableChartTypeSet.has(Marimekko)) {
+        sortedTabs.push(Marimekko)
+    }
+
+    // Fill up the remaining positions
+    sortedTabs.push(...availableTabs.filter((tab) => !sortedTabs.includes(tab)))
+
+    return sortedTabs.slice(0, maxTabs)
+}
+
+export function buildChartHitDataDisplayProps({
+    chartInfo,
+    chartType,
+    entity,
+    isEntityPickedByUser,
+}: {
+    chartInfo?: GrapherValuesJson | null
+    chartType?: GrapherChartType
+    entity: EntityName
+    isEntityPickedByUser?: boolean
+}): SearchChartHitDataDisplayProps | undefined {
+    if (!chartInfo) return undefined
+
+    // Showing a time range only makes sense for slope charts and connected scatter plots
+    const showTimeRange =
+        chartType === GRAPHER_CHART_TYPES.SlopeChart ||
+        chartType === GRAPHER_CHART_TYPES.ScatterPlot
+
+    const endDatapoint = findDatapoint(chartInfo, "end")
+    const startDatapoint = showTimeRange
+        ? findDatapoint(chartInfo, "start")
+        : undefined
+    const columnInfo = endDatapoint?.columnSlug
+        ? chartInfo?.columns?.[endDatapoint?.columnSlug]
+        : undefined
+
+    if (!endDatapoint?.formattedValueShort || !endDatapoint?.formattedTime)
+        return undefined
+
+    // For scatter plots, displaying a single data value is ambiguous since
+    // they have two dimensions. But we do show a data value if the x axis
+    // is GDP since then it's sufficiently clear
+    const xSlug = chartInfo?.endTimeValues?.x?.columnSlug
+    const xColumnInfo = chartInfo?.columns?.[xSlug ?? ""]
+    const hasDataDisplay =
+        chartType !== GRAPHER_CHART_TYPES.ScatterPlot ||
+        /GDP/.test(xColumnInfo?.name ?? "")
+
+    if (!hasDataDisplay) return undefined
+
+    const endValue = endDatapoint.valueLabel ?? endDatapoint.formattedValueShort
+    const startValue =
+        startDatapoint?.valueLabel ?? startDatapoint?.formattedValueShort
+    const unit = columnInfo ? getColumnUnitForDisplay(columnInfo) : undefined
+    const time = startDatapoint?.formattedTime
+        ? `${startDatapoint?.formattedTime}–${endDatapoint.formattedTime}`
+        : endDatapoint.formattedTime
+    const trend =
+        startDatapoint?.value !== undefined && endDatapoint?.value !== undefined
+            ? endDatapoint.value > startDatapoint.value
+                ? "up"
+                : endDatapoint.value < startDatapoint.value
+                  ? "down"
+                  : "right"
+            : undefined
+    const showLocationIcon = isEntityPickedByUser
+
+    return {
+        entityName: entity,
+        endValue,
+        startValue,
+        time,
+        unit,
+        trend,
+        showLocationIcon,
+    }
+}
+
+function findDatapoint(
+    chartInfo: GrapherValuesJson | undefined,
+    time: "end" | "start" = "end"
+): GrapherValuesJsonDataPoint | undefined {
+    if (!chartInfo) return undefined
+
+    const yDims = match(time)
+        .with("end", () => chartInfo.endTimeValues?.y)
+        .with("start", () => chartInfo.startTimeValues?.y)
+        .exhaustive()
+    if (!yDims) return undefined
+
+    // Make sure we're not showing a projected data point
+    const historicalDims = yDims.filter(
+        (dim) => !chartInfo.columns?.[dim.columnSlug]?.isProjection
+    )
+
+    // Don't show a data value for charts with multiple y-indicators
+    if (historicalDims.length > 1) return undefined
+
+    return historicalDims[0]
+}
+
+export function getColumnNameForDisplay(column: CoreColumn): string {
+    return column.titlePublicOrDisplayName.title ?? column.nonEmptyDisplayName
+}
+
+export function getColumnUnitForDisplay(
+    column: CoreColumn | { unit?: string; shortUnit?: string },
+    { allowTrivial = false }: { allowTrivial?: boolean } = {}
+): string | undefined {
+    if (!column.unit) return undefined
+
+    // The unit is considered trivial if it is the same as the short unit
+    const isTrivial = column.unit === column.shortUnit
+    const unit = allowTrivial || !isTrivial ? column.unit : undefined
+
+    // Remove parentheses from the beginning and end of the unit
+    const strippedUnit = unit?.replace(/(^\(|\)$)/g, "")
+
+    return strippedUnit
+}
+
+export enum GridSlot {
+    SingleSlot = "single-slot",
+    DoubleSlot = "double-slot",
+    TripleSlot = "triple-slot",
+    QuadSlot = "quad-slot",
+    SmallSlotLeft = "small-slot-left",
+    SmallSlotRight = "small-slot-right",
+}
+
+export function placeGrapherTabsInGridLayout(
+    tabs: GrapherTabName[],
+    {
+        hasDataDisplay,
+        numDataTableRows,
+        numDataTableRowsPerColumn,
+    }: {
+        hasDataDisplay: boolean
+        numDataTableRows?: number
+        numDataTableRowsPerColumn?: number
+    }
+): { tab: GrapherTabName; slot: GridSlot }[] {
+    // If there is a data display, then three equally-sized slots are available,
+    // plus two smaller slots below the data display. If there is no data display,
+    // then four equally-sized slots are available.
+
+    if (hasDataDisplay) {
+        const placedMainTabs = placeTabsInUniformGrid({
+            tabs,
+            numAvailableGridSlots: 3,
+            numDataTableRows,
+            numDataTableRowsPerColumn,
+        })
+
+        const remainingTabs = tabs.slice(placedMainTabs.length)
+        const placedRemainingTabs = remainingTabs
+            .slice(0, 2)
+            .map((tab, tabIndex) => ({
+                tab,
+                slot:
+                    tabIndex === 0
+                        ? GridSlot.SmallSlotLeft
+                        : GridSlot.SmallSlotRight,
+            }))
+        return [...placedMainTabs, ...placedRemainingTabs]
+    } else {
+        return placeTabsInUniformGrid({
+            tabs,
+            numAvailableGridSlots: 4,
+            numDataTableRows,
+            numDataTableRowsPerColumn,
+        })
+    }
+}
+
+/**
+ * Place Grapher tabs in a uniform grid layout.
+ *
+ * Chart tabs always occupy a single slots. The table tab might occupy more
+ * than one slot if there is space and enough data to fill it.
+ */
+function placeTabsInUniformGrid({
+    tabs,
+    numAvailableGridSlots,
+    numDataTableRows,
+    numDataTableRowsPerColumn = 4,
+}: {
+    tabs: GrapherTabName[]
+    numAvailableGridSlots: number
+    numDataTableRows?: number // no restriction if undefined
+    numDataTableRowsPerColumn?: number
+}) {
+    const maxNumTabs = numAvailableGridSlots
+
+    // If none of the tabs display a table, then all tabs trivially take up one slot each
+    if (!tabs.some((tab) => tab === GRAPHER_TAB_NAMES.Table)) {
+        return tabs
+            .slice(0, maxNumTabs)
+            .map((tab) => ({ tab, slot: GridSlot.SingleSlot }))
+    }
+
+    const numTabs = Math.min(tabs.length, maxNumTabs)
+    const numCharts = numTabs - 1 // without the table tab
+
+    const numAvailableSlotsForTable = numAvailableGridSlots - numCharts // >= 1
+
+    if (numAvailableSlotsForTable <= 1) {
+        return tabs
+            .slice(0, maxNumTabs)
+            .map((tab) => ({ tab, slot: GridSlot.SingleSlot }))
+    }
+
+    const numNeededSlotsForTable =
+        numDataTableRows === undefined
+            ? Infinity // no restriction
+            : Math.ceil(numDataTableRows / numDataTableRowsPerColumn)
+
+    const numSlotsForTable = Math.min(
+        numAvailableSlotsForTable,
+        numNeededSlotsForTable
+    )
+    const tableSlot = getGridSlotForCount(numSlotsForTable)
+
+    return tabs.map((tab) => ({
+        tab,
+        slot: tab === GRAPHER_TAB_NAMES.Table ? tableSlot : GridSlot.SingleSlot,
+    }))
+}
+
+function getGridSlotForCount(slotCount: number): GridSlot {
+    if (slotCount <= 1) return GridSlot.SingleSlot
+    else if (slotCount === 2) return GridSlot.DoubleSlot
+    else if (slotCount === 3) return GridSlot.TripleSlot
+    else return GridSlot.QuadSlot
+}
+
+export function getRowCountForGridSlot(
+    slot: GridSlot,
+    numRowsPerColumn: number
+): number {
+    const numColumns = match(slot)
+        .with(GridSlot.SingleSlot, () => 1)
+        .with(GridSlot.DoubleSlot, () => 2)
+        .with(GridSlot.TripleSlot, () => 3)
+        .with(GridSlot.QuadSlot, () => 4)
+        .with(GridSlot.SmallSlotLeft, () => 0)
+        .with(GridSlot.SmallSlotRight, () => 0)
+        .exhaustive()
+    return numColumns * numRowsPerColumn
 }
