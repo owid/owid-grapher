@@ -210,10 +210,7 @@ function buildDataTableContentForLineChart({
     if (hasProjectedData) rows = rows.filter((row) => row.series.isProjection)
 
     // Sort by value in descending order
-    const hasSingleSeriesPerFacet =
-        grapherState.isFaceted && !grapherState.hasMultipleSeriesPerFacet
-    if (!hasSingleSeriesPerFacet)
-        rows = R.sortBy(rows, [(row) => row.point.y, "desc"])
+    rows = R.sortBy(rows, [(row) => row.point.y, "desc"])
 
     rows = maxRows !== undefined ? rows.slice(0, maxRows) : rows
 
