@@ -28,7 +28,7 @@ import {
 } from "./LineChartHelpers"
 import {
     HorizontalAxisComponent,
-    HorizontalAxisDomainLine,
+    VerticalAxisZeroLine,
 } from "../axis/AxisViews"
 import { byHoverThenFocusState } from "../chart/ChartUtils"
 import {
@@ -323,8 +323,8 @@ export class LineChartThumbnail
 
         return (
             <>
-                <HorizontalAxisDomainLine
-                    horizontalAxis={this.dualAxis.horizontalAxis}
+                <VerticalAxisZeroLine
+                    verticalAxis={this.dualAxis.verticalAxis}
                     bounds={this.dualAxis.innerBounds}
                 />
                 <HorizontalAxisComponent

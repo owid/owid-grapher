@@ -16,10 +16,7 @@ import classNames from "classnames"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
 import { ScaleType, DetailsMarker } from "@ourworldindata/types"
 import { ComparisonLine } from "../comparisonLine/ComparisonLine"
-import {
-    DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_THUMBNAIL_GRID_LINE,
-} from "../core/GrapherConstants"
+import { DEFAULT_GRAPHER_BOUNDS } from "../core/GrapherConstants"
 
 const TICK_COLOR = "#ddd"
 const FAINT_TICK_COLOR = "#eee"
@@ -174,34 +171,28 @@ export class HorizontalAxisZeroLine extends React.Component<HorizontalAxisZeroLi
     }
 }
 
-interface HorizontalAxisDomainLineProps {
-    horizontalAxis: HorizontalAxis
+interface VerticalAxisZeroLineProps {
+    verticalAxis: VerticalAxis
     bounds: Bounds
     strokeWidth?: number
 }
 
 @observer
-export class HorizontalAxisDomainLine extends React.Component<HorizontalAxisDomainLineProps> {
+export class VerticalAxisZeroLine extends React.Component<VerticalAxisZeroLineProps> {
     override render(): React.ReactElement {
-        const { bounds, horizontalAxis, strokeWidth = 1 } = this.props
-        const axis = horizontalAxis.clone()
-        axis.range = bounds.xRange()
-
-        const y =
-            horizontalAxis.orient === Position.top ? bounds.top : bounds.bottom
-
-        const x1 = bounds.left
-        const x2 = bounds.right
-
-        const stroke = GRAPHER_THUMBNAIL_GRID_LINE
+        const { bounds, verticalAxis, strokeWidth = 1 } = this.props
+        const axis = verticalAxis.clone()
+        axis.range = bounds.yRange()
+        const y = axis.place(0)
 
         return (
             <line
-                x1={x1}
-                x2={x2}
-                y1={y}
-                y2={y}
-                stroke={stroke}
+                id={makeIdForHumanConsumption("horizontal-zero-line")}
+                x1={bounds.left.toFixed(2)}
+                y1={y.toFixed(2)}
+                x2={bounds.right.toFixed(2)}
+                y2={y.toFixed(2)}
+                stroke={SOLID_TICK_COLOR}
                 strokeWidth={strokeWidth}
             />
         )

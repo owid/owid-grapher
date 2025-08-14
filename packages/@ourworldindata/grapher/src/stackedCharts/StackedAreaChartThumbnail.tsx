@@ -18,7 +18,7 @@ import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { toHorizontalAxis, toVerticalAxis } from "./StackedUtils"
 import {
     HorizontalAxisComponent,
-    HorizontalAxisDomainLine,
+    VerticalAxisZeroLine,
 } from "../axis/AxisViews"
 import { StackedAreas } from "./StackedAreas"
 import {
@@ -186,8 +186,8 @@ export class StackedAreaChartThumbnail
 
         return (
             <>
-                <HorizontalAxisDomainLine
-                    horizontalAxis={this.dualAxis.horizontalAxis}
+                <VerticalAxisZeroLine
+                    verticalAxis={this.dualAxis.verticalAxis}
                     bounds={this.dualAxis.innerBounds}
                 />
                 <HorizontalAxisComponent
