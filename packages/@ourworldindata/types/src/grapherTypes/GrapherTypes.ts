@@ -345,14 +345,22 @@ export enum LogoOption {
     "gv+owid" = "gv+owid",
 }
 
-export enum BinningStrategy {
-    equalInterval = "equalInterval",
-    quantiles = "quantiles",
-    ckmeans = "ckmeans",
-    // The `manual` option is ignored in the algorithms below,
-    // but it is stored and handled by the chart.
-    manual = "manual",
-}
+export type LogBinningStrategy = "log-1-2-5" | "log-1-3" | "log-10" | "log-auto"
+export type EqualSizeBinningStrategy =
+    | "equalSizeBins-few-bins"
+    | "equalSizeBins-normal"
+    | "equalSizeBins-many-bins"
+    | "equalSizeBins-percent"
+
+export type ResolvedLogBinningStrategy = Exclude<LogBinningStrategy, "log-auto">
+
+export type BinningStrategy =
+    | "auto"
+    | EqualSizeBinningStrategy
+    | LogBinningStrategy
+    | "manual"
+
+export type ResolvedBinningStrategy = Exclude<BinningStrategy, "auto">
 
 export interface ProjectionColumnInfo {
     projectedSlug: ColumnSlug
@@ -365,7 +373,10 @@ export interface ColorScaleConfigInterface {
     baseColorScheme?: ColorSchemeName
     colorSchemeInvert?: boolean
     binningStrategy: BinningStrategy
-    binningStrategyBinCount?: number
+    createBinForMidpoint?: boolean
+    minValue?: number
+    maxValue?: number
+    midpointMode?: string
     customNumericValues: number[]
     customNumericLabels: (string | undefined | null)[]
     customNumericColorsActive?: boolean
@@ -378,7 +389,7 @@ export interface ColorScaleConfigInterface {
 }
 
 export const colorScaleConfigDefaults = {
-    binningStrategy: BinningStrategy.ckmeans,
+    binningStrategy: "auto",
     customNumericValues: [],
     customNumericLabels: [],
     customNumericColors: [],

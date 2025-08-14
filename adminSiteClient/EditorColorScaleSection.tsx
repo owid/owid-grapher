@@ -35,6 +35,7 @@ import {
     ColorSchemeOption,
     ColorSchemeDropdown,
 } from "./ColorSchemeDropdown.js"
+import { automaticBinningStrategies } from "@ourworldindata/grapher/src/color/BinningStrategies2.js"
 
 interface EditorColorScaleSectionFeatures {
     legendDescription: boolean
@@ -164,7 +165,6 @@ class ColorsSection extends Component<ColorsSectionProps> {
 
     @action.bound onBinningStrategy(
         binningStrategy: {
-            label: string
             value: BinningStrategy
         } | null
     ) {
@@ -179,7 +179,21 @@ class ColorsSection extends Component<ColorsSectionProps> {
             : scale.baseColorScheme
     }
 
+    @computed get midpointModeOptions() {
+        return [
+            { value: undefined, label: "Auto" },
+            { value: "none", label: "None" },
+            { value: "symmetric", label: "symmetric" },
+            { value: "same-num-bins", label: "same-num-bins" },
+            { value: "asymmetric", label: "Asymmetric" },
+        ]
+    }
+
     @computed get binningStrategyOptions() {
+        return automaticBinningStrategies.map((strategy) => ({
+            value: strategy,
+            label: strategy,
+        }))
         const options = Object.entries(binningStrategyLabels).map(
             ([value, label]) => ({
                 label: label,
@@ -191,9 +205,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
         // Authors can still get into manual mode by selecting an
         // automatic binning strategy and editing the bins.
         if (!this.config.customNumericValues.length) {
-            return options.filter(
-                ({ value }) => value !== BinningStrategy.manual
-            )
+            return options.filter(({ value }) => value !== "manual")
         }
         return options
     }
@@ -234,6 +246,56 @@ class ColorsSection extends Component<ColorsSectionProps> {
                         value={config.colorSchemeInvert || false}
                         onValue={this.onInvert}
                     />
+                    <Toggle
+                        label="Include bin for midpoint"
+                        value={config.createBinForMidpoint || false}
+                        onValue={(val) => {
+                            config.createBinForMidpoint = val
+                            this.props.onChange?.()
+                        }}
+                    />
+                </FieldsRow>
+                <FieldsRow>
+                    <NumberField
+                        label="Min value"
+                        value={config.minValue}
+                        onValue={(value) => {
+                            config.minValue = value
+                            this.props.onChange?.()
+                        }}
+                        allowDecimal
+                        allowNegative
+                    />
+                    <NumberField
+                        label="Max value"
+                        value={config.maxValue}
+                        onValue={(value) => {
+                            config.maxValue = value
+                            this.props.onChange?.()
+                        }}
+                        allowDecimal
+                        allowNegative
+                    />
+                </FieldsRow>
+                <FieldsRow>
+                    <div className="form-group">
+                        <label>Midpoint mode</label>
+                        <Select
+                            options={this.midpointModeOptions}
+                            onChange={(option) => {
+                                config.midpointMode = option?.value
+                                this.props.onChange?.()
+                            }}
+                            value={this.midpointModeOptions.find(
+                                (option) => option.value === config.midpointMode
+                            )}
+                            components={{
+                                IndicatorSeparator: null,
+                            }}
+                            menuPlacement="auto"
+                            isSearchable={false}
+                        />
+                    </div>
                 </FieldsRow>
                 <FieldsRow>
                     <div className="form-group">
@@ -249,16 +311,6 @@ class ColorsSection extends Component<ColorsSectionProps> {
                             isSearchable={false}
                         />
                     </div>
-                </FieldsRow>
-                <FieldsRow>
-                    {!scale.isManualBuckets && (
-                        <BindAutoFloat
-                            field="binningStrategyBinCount"
-                            store={config}
-                            label="Target number of bins"
-                            auto={scale.numAutoBins}
-                        />
-                    )}
                 </FieldsRow>
                 <ColorSchemeEditor
                     scale={scale}
@@ -373,10 +425,10 @@ class BinLabelView extends Component<BinLabelViewProps> {
 
 function populateManualBinValuesIfAutomatic(scale: ColorScale) {
     runInAction(() => {
-        if (scale.config.binningStrategy !== BinningStrategy.manual) {
+        if (scale.config.binningStrategy !== "manual") {
             scale.config.customNumericValues = scale.autoBinThresholds
             scale.config.customNumericLabels = []
-            scale.config.binningStrategy = BinningStrategy.manual
+            scale.config.binningStrategy = "manual"
         }
     })
 }
