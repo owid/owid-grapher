@@ -1069,10 +1069,15 @@ type PlacingOptions =
           numMaxSlotsForTable: number
       }
 
+export interface PlacedTab {
+    tab: GrapherTabName
+    slot: GridSlot
+}
+
 export function placeGrapherTabsInGridLayout(
     tabs: GrapherTabName[],
     options: { hasDataDisplay: boolean } & PlacingOptions
-): { tab: GrapherTabName; slot: GridSlot }[] {
+): PlacedTab[] {
     // If there is a data display, then three equally-sized slots are available,
     // plus two smaller slots below the data display. If there is no data display,
     // then four equally-sized slots are available.
