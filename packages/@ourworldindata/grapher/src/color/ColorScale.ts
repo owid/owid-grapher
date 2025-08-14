@@ -254,7 +254,7 @@ export class ColorScale {
     }
 
     @computed get numAutoBins(): number {
-        return 5
+        return 10
     }
 
     @computed get isManualBuckets(): boolean {

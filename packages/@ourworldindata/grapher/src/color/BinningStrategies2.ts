@@ -394,7 +394,7 @@ const runLogBinningStrategy = (
         resolvedStrategy = conf.strategy as ResolvedLogBinningStrategy
     }
 
-    return match(resolvedStrategy)
+    const bins = match(resolvedStrategy)
         .with("log-10", () =>
             fakeLogBins({ minValue, maxValue, logSteps: [1] })
         )
@@ -405,6 +405,17 @@ const runLogBinningStrategy = (
             fakeLogBins({ minValue, maxValue, logSteps: [1, 2, 5] })
         )
         .exhaustive()
+
+    // Add the midpoint (most likely zero) if it is not already included in a bin
+    if (
+        !hasMidpoint &&
+        conf.midpoint !== undefined &&
+        bins[0] > conf.midpoint
+    ) {
+        bins.unshift(conf.midpoint)
+    }
+
+    return bins
 }
 
 const autoChooseBinningStrategy = (
