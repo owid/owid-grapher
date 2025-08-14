@@ -6,13 +6,12 @@ import { ChartInterface } from "../chart/ChartInterface"
 import { MarimekkoChartState } from "./MarimekkoChartState"
 import { type MarimekkoChartProps } from "./MarimekkoChart.js"
 import {
-    BarShape,
+    Bar,
+    BAR_COLOR_ACTIVE,
     Item,
     MarimekkoChartManager,
     PlacedItem,
 } from "./MarimekkoChartConstants"
-import { AxisMinMaxValueStr } from "@ourworldindata/types"
-import { CoreColumn } from "@ourworldindata/core-table"
 import { Bounds } from "@ourworldindata/utils"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { AxisConfig } from "../axis/AxisConfig"
@@ -24,6 +23,7 @@ import {
 import { MarimekkoBars } from "./MarimekkoBars"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { Halo } from "@ourworldindata/components"
+import { toHorizontalAxis, toVerticalAxis } from "./MarimekkoChartHelpers"
 
 const LABEL_PADDING = 4
 
@@ -58,24 +58,8 @@ export class MarimekkoChartThumbnail
         )
     }
 
-    @computed private get xColumnSlug(): string | undefined {
-        return this.chartState.xColumnSlug
-    }
-
-    @computed private get xColumn(): CoreColumn | undefined {
-        return this.chartState.xColumn
-    }
-
-    @computed private get yColumns(): CoreColumn[] {
-        return this.chartState.yColumns
-    }
-
-    @computed private get baseFontSize(): number {
-        return this.manager.fontSize ?? BASE_FONT_SIZE
-    }
-
     @computed get fontSize(): number {
-        return this.baseFontSize
+        return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
     @computed get labelFontSize(): number {
@@ -89,16 +73,15 @@ export class MarimekkoChartThumbnail
     @computed private get yAxisConfig(): AxisConfig {
         return new AxisConfig(
             {
+                hideGridlines: true,
                 ...this.manager.yAxisConfig,
-                min: AxisMinMaxValueStr.auto,
-                max: AxisMinMaxValueStr.auto,
             },
             this
         )
     }
 
     @computed private get xAxisConfig(): AxisConfig {
-        const { xColumnSlug } = this
+        const { xColumnSlug } = this.chartState
         return new AxisConfig(
             {
                 ...this.manager.xAxisConfig,
@@ -112,39 +95,11 @@ export class MarimekkoChartThumbnail
     }
 
     @computed private get verticalAxisPart(): VerticalAxis {
-        const config = this.yAxisConfig
-        const axis = config.toVerticalAxis()
-        axis.updateDomainPreservingUserSettings(this.chartState.yDomainDefault)
-
-        axis.formatColumn = this.yColumns[0]
-        axis.label = ""
-
-        return axis
+        return toVerticalAxis(this.yAxisConfig, this.chartState)
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
-        const { manager, xColumn } = this
-        const { xDomainDefault } = this.chartState
-        const config = this.xAxisConfig
-        let axis = config.toHorizontalAxis()
-        if (manager.isRelativeMode && xColumn) {
-            // MobX and classes  interact in an annoying way here so we have to construct a new object via
-            // an object copy of the AxisConfig class instance to be able to set a property without
-            // making MobX unhappy about a mutation originating from a computed property
-            axis = new HorizontalAxis(
-                new AxisConfig(
-                    { ...config.toObject(), maxTicks: 10 },
-                    config.axisManager
-                ),
-                config.axisManager
-            )
-            axis.domain = [0, 100]
-        } else axis.updateDomainPreservingUserSettings(xDomainDefault)
-
-        axis.formatColumn = xColumn
-
-        axis.label = this.chartState.horizontalAxisLabel
-        return axis
+        return toHorizontalAxis(this.xAxisConfig, this.chartState)
     }
 
     @computed private get dualAxis(): DualAxis {
@@ -180,8 +135,8 @@ export class MarimekkoChartThumbnail
     override render(): React.ReactElement {
         return (
             <g>
-                {/*<rect {...this.bounds.toProps()} fill="steelblue" />*/}
-                {/*<rect {...this.innerBounds.toProps()} fill="aliceblue" />*/}
+                {/* <rect {...this.bounds.toProps()} fill="green" /> */}
+                {/* <rect {...this.dualAxis.innerBounds.toProps()} fill="gold" /> */}
                 <DualAxisComponent
                     dualAxis={this.dualAxis}
                     onlyShowMinMaxLabels
@@ -194,17 +149,20 @@ export class MarimekkoChartThumbnail
                     y0={this.chartState.y0}
                     selectionArray={this.chartState.selectionArray}
                     selectedItems={this.chartState.selectedItems}
+                    isFocusModeActive={this.chartState.isFocusModeActive}
                 />
                 <MarimekkoLabels
                     items={this.chartState.focusArray.seriesNames
-                        .map((entityName) =>
-                            this.placedItems.find(
+                        .map((entityName) => {
+                            const placedItem = this.placedItems.find(
                                 (item) => item.entityName === entityName
                             )
-                        )
+                            return placedItem
+                        })
                         .filter((item) => item !== undefined)}
                     dualAxis={this.dualAxis}
                     x0={this.chartState.x0}
+                    y0={this.chartState.y0}
                     fontSize={Math.floor(GRAPHER_FONT_SCALE_14 * this.fontSize)}
                 />
             </g>
@@ -216,11 +174,13 @@ function MarimekkoLabels({
     items,
     dualAxis,
     x0,
+    y0,
     fontSize,
 }: {
     items: PlacedItem[]
     dualAxis: DualAxis
     x0: number
+    y0: number
     fontSize: number
 }): React.ReactElement | null {
     const sortedItems = _.sortBy(
@@ -230,20 +190,25 @@ function MarimekkoLabels({
 
     const placedLabels = sortedItems
         .map((item) => {
-            const bar = item.bars[0]
-            if (!bar) return undefined
+            const bar: Bar | undefined = item.bars[0]
+            if (bar === undefined) return undefined
 
             const x = dualAxis.horizontalAxis.place(x0) + item.xPosition
 
-            const y =
-                dualAxis.verticalAxis.place(bar.yPoint.value) - LABEL_PADDING
+            const _y =
+                bar === undefined
+                    ? dualAxis.verticalAxis.place(y0) -
+                      (Bounds.forText("no data").height + 10)
+                    : dualAxis.verticalAxis.place(bar.yPoint.value)
+            const y = _y - LABEL_PADDING
 
             const label = item.entityName // todo: short entity name
             const bounds = Bounds.forText(label, { fontSize }).set({ x, y })
 
-            const color =
-                item.entityColor?.color ??
-                (bar.kind === BarShape.Bar ? bar.color : "#555")
+            const color = BAR_COLOR_ACTIVE
+            // const color =
+            //     item.entityColor?.color ??
+            //     (bar.kind === BarShape.Bar ? bar.color : "#555")
 
             // Hide label if it doesn't fit within the chart area
             const isHidden = bounds.x + bounds.width > dualAxis.bounds.right

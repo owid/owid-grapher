@@ -1,7 +1,11 @@
-import { makeIdForHumanConsumption } from "@ourworldindata/utils"
+import {
+    InteractionState,
+    makeIdForHumanConsumption,
+} from "@ourworldindata/utils"
 import { DualAxis } from "../axis/Axis"
 import {
     Bar,
+    BAR_COLOR_ACTIVE,
     BarShape,
     EntityColorData,
     MarimekkoBarProps,
@@ -14,7 +18,7 @@ interface MarimekkoBarsProps {
     isFaint: boolean
     isHovered: boolean
     isSelected: boolean
-    isBackground: boolean
+    focus: InteractionState
     barWidth: number
     currentX: number
     onEntityMouseOver?: (entityName: string, ev: React.MouseEvent) => void
@@ -36,7 +40,7 @@ export function MarimekkoBarsForOneEntity(
         isFaint,
         isHovered,
         isSelected,
-        isBackground,
+        focus,
         barWidth,
         currentX,
         onEntityClick,
@@ -56,7 +60,7 @@ export function MarimekkoBarsForOneEntity(
                 barWidth={barWidth}
                 isHovered={isHovered}
                 isSelected={isSelected}
-                isBackground={isBackground}
+                focus={focus}
                 isFaint={isFaint}
                 entityColor={entityColor?.color}
                 y0={y0}
@@ -74,7 +78,7 @@ export function MarimekkoBarsForOneEntity(
             barWidth={barWidth}
             isHovered={isHovered}
             isSelected={isSelected}
-            isBackground={isBackground}
+            focus={focus}
             isFaint={isFaint}
             entityColor={entityColor?.color}
             y0={y0}
@@ -102,7 +106,7 @@ function MarimekkoBar({
     barWidth,
     isHovered,
     isSelected,
-    isBackground,
+    focus,
     isFaint,
     entityColor,
     y0,
@@ -113,11 +117,13 @@ function MarimekkoBar({
     const barBaseColor =
         entityColor ?? (bar.kind === BarShape.Bar ? bar.color : "#555")
 
-    const barColor = isBackground
-        ? "#DADADA"
-        : bar.kind === BarShape.BarPlaceholder
-          ? "#555"
-          : barBaseColor
+    const barColor = focus.active
+        ? BAR_COLOR_ACTIVE
+        : focus.background
+          ? "#DADADA"
+          : bar.kind === BarShape.BarPlaceholder
+            ? "#555"
+            : barBaseColor
     const strokeColor = barColor
     const strokeWidth = isHovered || isSelected ? 1 : 0.5
     const strokeOpacity = isPlaceholder ? 0.8 : isFaint ? 0.2 : 1.0

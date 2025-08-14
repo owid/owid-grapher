@@ -22,6 +22,7 @@ interface MarimekkoBarsProps {
     y0: number
     selectionArray: SelectionArray
     selectedItems: Item[]
+    isFocusModeActive?: boolean
 }
 
 export function MarimekkoBars(props: MarimekkoBarsProps): React.ReactElement {
@@ -40,6 +41,7 @@ export function MarimekkoBars(props: MarimekkoBarsProps): React.ReactElement {
         y0,
         selectionArray,
         selectedItems,
+        isFocusModeActive,
     } = props
     const selectionSet = selectionArray.selectedSet
     const labelYOffset = 0
@@ -160,7 +162,7 @@ export function MarimekkoBars(props: MarimekkoBarsProps): React.ReactElement {
             isFaint,
             isHovered,
             isSelected,
-            isBackground: item.focus.background,
+            focus: item.focus,
             barWidth,
             currentX,
             onEntityClick,
@@ -183,7 +185,7 @@ export function MarimekkoBars(props: MarimekkoBarsProps): React.ReactElement {
             {noDataAreaElement}
             {normalElements}
             {highlightedElements}
-            {noDataLabel}
+            {!isFocusModeActive && noDataLabel}
         </>
     )
 }

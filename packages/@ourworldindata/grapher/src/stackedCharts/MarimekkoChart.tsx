@@ -61,6 +61,7 @@ import {
 import { MarimekkoChartState } from "./MarimekkoChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { MarimekkoBars } from "./MarimekkoBars"
+import { toHorizontalAxis, toVerticalAxis } from "./MarimekkoChartHelpers"
 
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25
@@ -213,7 +214,7 @@ export class MarimekkoChart
         return this.manager.isStatic ?? false
     }
 
-    @computed private get baseFontSize(): number {
+    @computed get fontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
     }
 
@@ -239,39 +240,11 @@ export class MarimekkoChart
     }
 
     @computed private get verticalAxisPart(): VerticalAxis {
-        const config = this.yAxisConfig
-        const axis = config.toVerticalAxis()
-        axis.updateDomainPreservingUserSettings(this.chartState.yDomainDefault)
-
-        axis.formatColumn = this.yColumns[0]
-        axis.label = ""
-
-        return axis
+        return toVerticalAxis(this.yAxisConfig, this.chartState)
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
-        const { manager, xColumn } = this
-        const { xDomainDefault } = this.chartState
-        const config = this.xAxisConfig
-        let axis = config.toHorizontalAxis()
-        if (manager.isRelativeMode && xColumn) {
-            // MobX and classes  interact in an annoying way here so we have to construct a new object via
-            // an object copy of the AxisConfig class instance to be able to set a property without
-            // making MobX unhappy about a mutation originating from a computed property
-            axis = new HorizontalAxis(
-                new AxisConfig(
-                    { ...config.toObject(), maxTicks: 10 },
-                    config.axisManager
-                ),
-                config.axisManager
-            )
-            axis.domain = [0, 100]
-        } else axis.updateDomainPreservingUserSettings(xDomainDefault)
-
-        axis.formatColumn = xColumn
-
-        axis.label = this.chartState.horizontalAxisLabel
-        return axis
+        return toHorizontalAxis(this.xAxisConfig, this.chartState)
     }
 
     @computed private get dualAxis(): DualAxis {
@@ -314,7 +287,7 @@ export class MarimekkoChart
     // legend props
 
     @computed private get legendPaddingTop(): number {
-        return this.legend.height > 0 ? this.baseFontSize : 0
+        return this.legend.height > 0 ? this.fontSize : 0
     }
 
     @computed get legendX(): number {
@@ -335,10 +308,6 @@ export class MarimekkoChart
 
     @computed get legendAlign(): HorizontalAlign {
         return HorizontalAlign.left
-    }
-
-    @computed get fontSize(): number {
-        return this.baseFontSize
     }
 
     @computed get detailsOrderedByReference(): string[] {
