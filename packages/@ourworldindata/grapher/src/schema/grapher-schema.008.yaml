@@ -704,12 +704,17 @@ $defs:
             binningStrategy:
                 type: string
                 description: The strategy for generating the bin boundaries
-                default: ckmeans
+                default: auto
                 enum:
-                    - equalInterval
-                    - quantiles
-                    - ckmeans
-                    - manual
+                    - auto
+                    - log-auto
+                    - log-1-2-5
+                    - log-1-3
+                    - log-10
+                    - equalSizeBins-few-bins
+                    - equalSizeBins-normal
+                    - equalSizeBins-many-bins
+                    - equalSizeBins-percent
             legendDescription:
                 type: string
                 description: A custom legend description. Only used in ScatterPlot legend titles for now.
@@ -742,9 +747,4 @@ $defs:
                 patternProperties:
                     ".*":
                         type: string
-            binningStrategyBinCount:
-                type: integer
-                default: 5
-                description: The *suggested* number of bins for the automatic binning algorithm
-                minimum: 0
         additionalProperties: false
