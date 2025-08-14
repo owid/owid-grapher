@@ -35,6 +35,7 @@ import {
     ColorSchemeOption,
     ColorSchemeDropdown,
 } from "./ColorSchemeDropdown.js"
+import { automaticBinningStrategies } from "@ourworldindata/grapher/src/color/BinningStrategies2.js"
 
 interface EditorColorScaleSectionFeatures {
     legendDescription: boolean
@@ -189,15 +190,6 @@ class ColorsSection extends Component<ColorsSectionProps> {
     }
 
     @computed get binningStrategyOptions() {
-        const automaticBinningStrategies = [
-            "auto",
-            "log-auto",
-            "log-fake-2",
-            "log-fake-3",
-            "log-10",
-            "equalSizeBins",
-            "percent",
-        ]
         return automaticBinningStrategies.map((strategy) => ({
             value: strategy,
             label: strategy,
@@ -319,16 +311,6 @@ class ColorsSection extends Component<ColorsSectionProps> {
                             isSearchable={false}
                         />
                     </div>
-                </FieldsRow>
-                <FieldsRow>
-                    {!scale.isManualBuckets && (
-                        <BindAutoFloat
-                            field="binningStrategyBinCount"
-                            store={config}
-                            label="Target number of bins"
-                            auto={scale.numAutoBins}
-                        />
-                    )}
                 </FieldsRow>
                 <ColorSchemeEditor
                     scale={scale}
