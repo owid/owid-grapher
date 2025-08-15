@@ -231,7 +231,7 @@ import {
     groupEntityNamesByRegionType,
 } from "./EntitiesByRegionType"
 import * as R from "remeda"
-import { CaptionedOrThumbnailChart } from "../chart/CaptionedOrThumbnailChart.js"
+import { Chart } from "../chart/Chart.js"
 import { flushSync } from "react-dom"
 import { match } from "ts-pattern"
 
@@ -2458,9 +2458,7 @@ export class GrapherState {
         const _isExportingToSvgOrPng = this.isExportingToSvgOrPng
         this.isExportingToSvgOrPng = true
 
-        const innerHTML = renderToHtmlString(
-            <CaptionedOrThumbnailChart manager={this} />
-        )
+        const innerHTML = renderToHtmlString(<Chart manager={this} />)
 
         this.isExportingToSvgOrPng = _isExportingToSvgOrPng
         return innerHTML
@@ -4015,7 +4013,7 @@ export class Grapher extends React.Component<GrapherProps> {
     override render(): React.ReactElement | undefined {
         // Used in the admin to render a static preview of the chart
         if (this.grapherState.isExportingToSvgOrPng)
-            return <CaptionedOrThumbnailChart manager={this.grapherState} />
+            return <Chart manager={this.grapherState} />
 
         if (this.grapherState.isInFullScreenMode) {
             return (
@@ -4044,7 +4042,7 @@ export class Grapher extends React.Component<GrapherProps> {
             <>
                 {/* Chart and entity selector */}
                 <div className="CaptionedChartAndSidePanel">
-                    <CaptionedOrThumbnailChart manager={this.grapherState} />
+                    <Chart manager={this.grapherState} />
 
                     {this.grapherState.sidePanelBounds && (
                         <SidePanel bounds={this.grapherState.sidePanelBounds}>

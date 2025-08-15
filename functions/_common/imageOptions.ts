@@ -75,6 +75,13 @@ const THUMBNAIL_OPTIONS: Readonly<ImageOptions> = {
         renderMode: GrapherRenderMode.Thumbnail,
     },
 }
+const MINIMAL_OPTIONS: Readonly<ImageOptions> = {
+    ...THUMBNAIL_OPTIONS,
+    grapherProps: {
+        ...THUMBNAIL_OPTIONS.grapherProps,
+        renderMode: GrapherRenderMode.Minimal,
+    },
+}
 
 export const extractOptions = (params: URLSearchParams): ImageOptions => {
     const imType = params.get("imType")
@@ -82,6 +89,7 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
     if (imType === "twitter") return TWITTER_OPTIONS
     else if (imType === "og") return OPEN_GRAPH_OPTIONS
     else if (imType === "thumbnail") return THUMBNAIL_OPTIONS
+    else if (imType === "minimal") return MINIMAL_OPTIONS
     else if (imType === "square" || imType === "social-media-square") {
         const squareOptions = _.cloneDeep(SQUARE_OPTIONS) as ImageOptions
         if (imType === "social-media-square") {
