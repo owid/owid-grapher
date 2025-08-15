@@ -23,7 +23,7 @@ import {
 } from "./StackedUtils"
 import {
     HorizontalAxisComponent,
-    HorizontalAxisDomainLine,
+    VerticalAxisZeroLine,
 } from "../axis/AxisViews"
 import { StackedBars } from "./StackedBars"
 import {
@@ -186,8 +186,8 @@ export class StackedBarChartThumbnail
     override render(): React.ReactElement {
         return (
             <>
-                <HorizontalAxisDomainLine
-                    horizontalAxis={this.dualAxis.horizontalAxis}
+                <VerticalAxisZeroLine
+                    verticalAxis={this.dualAxis.verticalAxis}
                     bounds={this.dualAxis.innerBounds}
                 />
                 <HorizontalAxisComponent

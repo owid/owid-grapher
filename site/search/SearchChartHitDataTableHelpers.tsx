@@ -138,6 +138,11 @@ function buildDataTableContentForLineChart({
 }: Args<LineChartState>): SearchChartHitDataTableContent {
     const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
 
+    // Line charts might have a color scale, in which case the lines are colored
+    // according to the scale. In this case, we show a legend as table
+    if (chartState.hasColorScale)
+        return buildLegendTableProps({ grapherState, chartState, maxRows })
+
     // Create a map chart state to access custom label formatting.
     // When `map.tooltipUseCustomLabels` is enabled, this allows us to display
     // custom color scheme labels (e.g. "Low", "Medium", "High") instead of
@@ -156,7 +161,7 @@ function buildDataTableContentForLineChart({
         (series) => series.seriesName
     )
 
-    const rows = Object.values(groupedSeries)
+    let rows = Object.values(groupedSeries)
         .map((seriesList) => {
             // Pick the series with the latest time
             const series = R.firstBy(seriesList, [
@@ -175,6 +180,19 @@ function buildDataTableContentForLineChart({
                     series.columnName
                 ) ?? series.color
 
+            // If the x-axis (that is usually time) has a label,
+            // we append it to the time string in parentheses
+            const xAxisLabel = grapherState.xAxis.label
+            const time = appendInParens(
+                formatColumn.formatTime(point.x),
+                xAxisLabel
+            )
+            const timePreposition = !xAxisLabel
+                ? OwidTable.getPreposition(
+                      chartState.transformedTable.timeColumn
+                  )
+                : ""
+
             return {
                 series,
                 point,
@@ -183,10 +201,8 @@ function buildDataTableContentForLineChart({
                 value:
                     formatValueIfCustom(point.y) ??
                     formatColumn.formatValueShort(point.y),
-                time: formatColumn.formatTime(point.x),
-                timePreposition: OwidTable.getPreposition(
-                    chartState.transformedTable.timeColumn
-                ),
+                time,
+                timePreposition,
                 muted: series.focus.background,
                 striped: series.isProjection,
             }
@@ -195,19 +211,16 @@ function buildDataTableContentForLineChart({
 
     // Only show projected data points if there are any
     const hasProjectedData = rows.some((row) => row.series.isProjection)
-    const filteredRows = hasProjectedData
-        ? rows.filter((row) => row.series.isProjection)
-        : rows
+    if (hasProjectedData) rows = rows.filter((row) => row.series.isProjection)
 
     // Sort by value in descending order
-    const sortedRows = R.sortBy(filteredRows, [(row) => row.point.y, "desc"])
+    rows = R.sortBy(rows, [(row) => row.point.y, "desc"])
 
-    const displayRows =
-        maxRows !== undefined ? sortedRows.slice(0, maxRows) : sortedRows
+    rows = maxRows !== undefined ? rows.slice(0, maxRows) : rows
 
     const title = makeTableTitle(grapherState, chartState)
 
-    return { type: "data-table", props: { rows: displayRows, title } }
+    return { type: "data-table", props: { rows, title } }
 }
 
 function buildDataTableContentForDiscreteBarChart({
@@ -303,6 +316,9 @@ function buildDataTableContentForStackedDiscreteBarChart({
                         color: point.color ?? series.color,
                         value: formatColumn.formatValueShort(point.value),
                         time: formatColumn.formatTime(point.time),
+                        timePreposition: OwidTable.getPreposition(
+                            chartState.transformedTable.timeColumn
+                        ),
                     }
                 })
                 .filter((row) => row !== undefined)
@@ -313,7 +329,7 @@ function buildDataTableContentForStackedDiscreteBarChart({
             ])
 
             const columnName = getColumnNameForDisplay(formatColumn)
-            const unit = formatColumn.unit
+            const unit = getColumnUnitForDisplay(formatColumn)
             const title = unit ? `${columnName} (${unit})` : columnName
 
             return { rows: sortedRows, title }
@@ -344,6 +360,9 @@ function buildDataTableContentForStackedDiscreteBarChart({
                         color: bar.color,
                         value: formatColumn.formatValueShort(point.value),
                         time: formatColumn.formatTime(point.time),
+                        timePreposition: OwidTable.getPreposition(
+                            chartState.transformedTable.timeColumn
+                        ),
                     }
                 })
                 .filter((row) => row !== undefined)
@@ -411,11 +430,25 @@ function buildDataTableContentForStackedAreaAndBarChart({
                 ? undefined // Don't show a color swatch in the table
                 : (point.color ?? series.color)
 
+            // If the x-axis (that is usually time) has a label,
+            // we append it to the time string in parentheses
+            const xAxisLabel = grapherState.xAxis.label
+            const time = appendInParens(
+                formatColumn.formatTime(point.time),
+                xAxisLabel
+            )
+            const timePreposition = !xAxisLabel
+                ? OwidTable.getPreposition(
+                      chartState.transformedTable.timeColumn
+                  )
+                : ""
+
             return {
                 name: series.seriesName,
                 color,
                 value: formatColumn.formatValueShort(point.value),
-                time: formatColumn.formatTime(point.time),
+                time,
+                timePreposition,
                 muted: series.focus?.background,
                 point,
             }
@@ -499,6 +532,9 @@ function buildDataPointsContentForMarimekko({
             unit: getColumnUnitForDisplay(yColumn),
             value,
             time,
+            timePreposition: OwidTable.getPreposition(
+                chartState.transformedTable.timeColumn
+            ),
         }
     })
 
@@ -531,6 +567,9 @@ function buildValueTableContentForMarimekko({
                 color: entityColor?.color ?? point.color ?? series.color,
                 value: yColumn.formatValueShort(point.value),
                 time: yColumn.formatTime(point.time),
+                timePreposition: OwidTable.getPreposition(
+                    chartState.transformedTable.timeColumn
+                ),
             }
         })
         .filter((row) => row !== undefined)
@@ -610,7 +649,8 @@ function buildLegendTableProps({
     let rows = bins
         .map((bin) => {
             if (bin.isHidden || isNoDataBin(bin)) return undefined
-            return { bin, name: bin.text, color: bin.color }
+            const label = makeLabelForBin(bin)
+            return { name: label, color: bin.color }
         })
         .filter((row) => row !== undefined)
 
@@ -650,6 +690,9 @@ function buildValueTableContentForScatterPlot({
                 color: series.color,
                 value: `${yValue} vs. ${xValue}`,
                 time: yColumn.formatTime(point.timeValue),
+                timePreposition: OwidTable.getPreposition(
+                    chartState.transformedTable.timeColumn
+                ),
             }
         })
         .filter((row) => row !== undefined)
@@ -740,16 +783,6 @@ function buildDataTableContentForWorldMap({
 }: Args<MapChartState>): SearchChartHitDataTableContent {
     const bins = chartState.colorScale.legendBins
 
-    const makeLabelForNumericBin = (bin: NumericBin): string => {
-        if (bin.text) return bin.text
-        if (bin.props.isOpenLeft) return `<${bin.maxText}`
-        if (bin.props.isOpenRight) return `>${bin.minText}`
-        return `${bin.minText}-${bin.maxText}`
-    }
-
-    const makeLabelForBin = (bin: ColorScaleBin): string =>
-        isNumericBin(bin) ? makeLabelForNumericBin(bin) : bin.text
-
     // The table shows a map legend where each row corresponds to a legend bin
     let rows = bins
         .map((bin) => {
@@ -800,7 +833,7 @@ function buildDataTableContentForTableTab({
 }: BaseArgs): SearchChartHitDataTableContent {
     const yColumn = grapherState.tableForDisplay.get(grapherState.yColumnSlug)
     const columnName = getColumnNameForDisplay(yColumn)
-    const unit = yColumn.unit
+    const unit = getColumnUnitForDisplay(yColumn, { allowTrivial: true })
     const title = unit ? `In ${unit}` : columnName
 
     const time = grapherState.endTime ?? grapherState.tableForDisplay.maxTime
@@ -820,6 +853,9 @@ function buildDataTableContentForTableTab({
     const tableRows = filteredOwidRows.map((row) => ({
         name: row.entityName,
         time: yColumn.formatTime(row.originalTime),
+        timePreposition: OwidTable.getPreposition(
+            grapherState.transformedTable.timeColumn
+        ),
         value: yColumn.formatValueShort(row.value),
     }))
 
@@ -889,3 +925,17 @@ function getColorForSeriesIfFaceted(
 
     return series?.color
 }
+
+function appendInParens(text: string, parenthetical?: string): string {
+    return parenthetical ? `${text} (${parenthetical})` : text
+}
+
+const makeLabelForNumericBin = (bin: NumericBin): string => {
+    if (bin.text) return bin.text
+    if (bin.props.isOpenLeft) return `<${bin.maxText}`
+    if (bin.props.isOpenRight) return `>${bin.minText}`
+    return `${bin.minText}-${bin.maxText}`
+}
+
+const makeLabelForBin = (bin: ColorScaleBin): string =>
+    isNumericBin(bin) ? makeLabelForNumericBin(bin) : bin.text
