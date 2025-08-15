@@ -71,6 +71,7 @@ import { ForwardedRef } from "react"
 import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
+    EXPLORER_DYNAMIC_CONFIG_URL,
     EXPLORER_DYNAMIC_THUMBNAIL_URL,
     GRAPHER_DYNAMIC_CONFIG_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
@@ -349,18 +350,21 @@ export const constructConfigUrl = ({
 }: {
     hit: SearchChartHit
 }): string | undefined => {
-    const isExplorerView = hit.type === ChartRecordType.ExplorerView
-    const isMultiDimView = hit.type === ChartRecordType.MultiDimView
-
-    if (isExplorerView) return undefined // Not yet supported
-
-    // Fetch Mdim config by its UUID
-    if (isMultiDimView)
-        return hit.chartConfigId
-            ? `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${hit.chartConfigId}.config.json`
-            : undefined
-
-    return `${GRAPHER_DYNAMIC_CONFIG_URL}/${hit.slug}.config.json`
+    return match(hit)
+        .with(
+            { type: ChartRecordType.Chart },
+            (hit) => `${GRAPHER_DYNAMIC_CONFIG_URL}/${hit.slug}.config.json`
+        )
+        .with(
+            { type: ChartRecordType.MultiDimView },
+            (hit) =>
+                `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${hit.chartConfigId}.config.json`
+        )
+        .with({ type: ChartRecordType.ExplorerView }, () => {
+            const queryStr = generateQueryStrForChartHit({ hit })
+            return `${EXPLORER_DYNAMIC_CONFIG_URL}/${hit.slug}.config.json${queryStr}`
+        })
+        .exhaustive()
 }
 
 export const constructMdimConfigUrl = ({
@@ -437,6 +441,7 @@ export const DATA_CATALOG_ATTRIBUTES = [
     "availableTabs",
     "subtitle",
     "chartConfigId",
+    "explorerType",
 ]
 
 export function setToFacetFilters(
