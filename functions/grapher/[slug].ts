@@ -150,9 +150,13 @@ async function handleHtmlPageRequest(
         ...cookies.split(";"),
         ...cookiesToSet.map((c) => c.split(";")[0]),
     ]
-    const experimentClassNames = cookieNames
-        .filter((c) => c.includes(`${EXPERIMENT_PREFIX}-`))
-        .map((c) => c.replace("=", ARM_SEPARATOR))
+    const experimentClassNames = Array.from(
+        new Set(
+            cookieNames
+                .filter((c) => c.includes(`${EXPERIMENT_PREFIX}-`))
+                .map((c) => c.replace("=", ARM_SEPARATOR))
+        )
+    )
 
     // A non-200 status code is most likely a redirect (301 or 302), all of which we want to pass through as-is.
     // In the case of the redirect, the browser will then request the new URL which will again be handled by this worker.
