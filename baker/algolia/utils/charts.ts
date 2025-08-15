@@ -19,7 +19,7 @@ import {
     excludeNullish,
     getUniqueNamesFromTagHierarchies,
 } from "@ourworldindata/utils"
-import { processAvailableEntities } from "./shared.js"
+import { maybeAddChangeInPrefix, processAvailableEntities } from "./shared.js"
 import { GrapherState } from "@ourworldindata/grapher"
 
 const computeChartScore = (record: Omit<ChartRecord, "score">): number => {
@@ -124,6 +124,10 @@ export const getChartsRecords = async (
             ContentGraphLinkType.Grapher
         )
 
+        const title = maybeAddChangeInPrefix(
+            c.config.title,
+            grapherState.shouldAddChangeInPrefixToTitle
+        )
         const plaintextSubtitle = _.isNil(c.config.subtitle)
             ? undefined
             : new MarkdownTextWrap({
@@ -142,7 +146,7 @@ export const getChartsRecords = async (
             type: ChartRecordType.Chart,
             chartId: c.id,
             slug: c.slug,
-            title: c.config.title,
+            title,
             variantName: c.config.variantName,
             subtitle: plaintextSubtitle,
             availableEntities: c.entityNames,
