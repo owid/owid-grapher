@@ -78,7 +78,7 @@ export function buildChartHitDataTableProps(
             })
         )
         .with(GRAPHER_TAB_NAMES.StackedArea, () =>
-            buildDataTablePropsForStackedAreaChart({
+            buildDataTablePropsForStackedAreaAndBarChart({
                 ...props,
                 chartState: chartState as StackedAreaChartState,
             })
@@ -96,7 +96,7 @@ export function buildChartHitDataTableProps(
             })
         )
         .with(GRAPHER_TAB_NAMES.StackedBar, () =>
-            buildDataTablePropsForStackedBarChart({
+            buildDataTablePropsForStackedAreaAndBarChart({
                 ...props,
                 chartState: chartState as StackedBarChartState,
             })
@@ -257,20 +257,55 @@ function buildDataTablePropsForStackedDiscreteBarChart({
     return { rows: [], title: "" }
 }
 
-function buildDataTablePropsForStackedBarChart({
-    grapherState: _grapherState,
-    chartState: _chartState,
-    maxRows: _maxRows,
-}: Args<StackedBarChartState>): SearchChartHitDataTableProps {
-    return { rows: [], title: "" }
-}
+function buildDataTablePropsForStackedAreaAndBarChart({
+    grapherState,
+    chartState,
+    maxRows,
+}: Args<
+    StackedAreaChartState | StackedBarChartState
+>): SearchChartHitDataTableProps {
+    const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
 
-function buildDataTablePropsForStackedAreaChart({
-    grapherState: _grapherState,
-    chartState: _chartState,
-    maxRows: _maxRows,
-}: Args<StackedAreaChartState>): SearchChartHitDataTableProps {
-    return { rows: [], title: "" }
+    const grapherHasSingleSeriesPerFacet =
+        grapherState.isFaceted && !grapherState.hasMultipleSeriesPerFacet
+    let rows = chartState.series
+        .map((series) => {
+            // Pick the data point at the latest time
+            const point = R.firstBy(series.points, [
+                (point) => point.time,
+                "desc",
+            ])
+            if (!point) return undefined
+
+            // Hacky way to fix a bug where `useValueBasedColorScheme` isn't
+            // respected when faceted and the color swatches in the table don't
+            // match the chart colors
+            const color = grapherHasSingleSeriesPerFacet
+                ? undefined // Don't show a color swatch in the table
+                : (point.color ?? series.color)
+
+            return {
+                name: series.seriesName,
+                color,
+                value: formatColumn.formatValueShort(point.value),
+                time: formatColumn.formatTime(point.time),
+                muted: series.focus?.background,
+                point,
+            }
+        })
+        .filter((row) => row !== undefined)
+
+    // Stacked area charts plot series from bottom to top and reverse the
+    // original order, so that the first selected series appears on top.
+    // We reverse the order again here, so that the first selected entity
+    // (which is on top of the chart) is also on top of the table.
+    rows = R.reverse(rows)
+
+    if (maxRows !== undefined) rows = rows.slice(0, maxRows)
+
+    const title = makeTableTitle(grapherState, chartState)
+
+    return { rows, title }
 }
 
 function buildDataTablePropsForMarimekkoChart({
