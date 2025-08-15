@@ -23,6 +23,7 @@ import {
     getRelevantVariableMetadata,
 } from "../../MultiDimBaker.js"
 import { GrapherState } from "@ourworldindata/grapher"
+import { maybeAddChangeInPrefix } from "./shared.js"
 
 async function getChartConfigsByIds(
     knex: db.KnexReadonlyTransaction,
@@ -84,12 +85,14 @@ async function getRecords(
             multiDim.config.metadata,
             view.metadata
         )
-        const title =
+        const title = maybeAddChangeInPrefix(
             metadata.presentation?.titlePublic ||
-            chartConfig.title ||
-            metadata.display?.name ||
-            metadata.name ||
-            ""
+                chartConfig.title ||
+                metadata.display?.name ||
+                metadata.name ||
+                "",
+            grapherState.shouldAddChangeInPrefixToTitle
+        )
         const subtitle = metadata.descriptionShort || chartConfig.subtitle || ""
         const availableEntities = metadata.dimensions.entities.values
             .map((entity) => entity.name)
