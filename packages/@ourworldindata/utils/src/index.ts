@@ -41,6 +41,7 @@ export {
     urlToSlug,
     trimObject,
     fetchText,
+    fetchJson,
     getUserCountryInformation,
     stripHTML,
     getRandomNumberGenerator,
