@@ -878,14 +878,6 @@ export const getEffectiveResultType = (
         : desiredResultType
 }
 
-export async function fetchJson<TResult>(url: string): Promise<TResult> {
-    const response = await fetch(url)
-    if (!response.ok) {
-        throw new Error(`Failed to fetch ${url}: ${response.statusText}`)
-    }
-    return response.json()
-}
-
 export function getSortedGrapherTabsForChartHit(
     grapherState: GrapherState,
     maxTabs = 5
