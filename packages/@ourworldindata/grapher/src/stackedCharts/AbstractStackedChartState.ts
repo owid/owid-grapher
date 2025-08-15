@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { ChartState } from "../chart/ChartInterface.js"
 import { ChartManager } from "../chart/ChartManager.js"
 import {
@@ -206,6 +207,10 @@ export abstract class AbstractStackedChartState implements ChartState {
         return this.manager.focusArray ?? new FocusArray()
     }
 
+    @computed get isFocusModeActive(): boolean {
+        return !this.focusArray.isEmpty
+    }
+
     @computed get isEntitySeries(): boolean {
         return this.seriesStrategy === SeriesStrategy.entity
     }
@@ -295,6 +300,13 @@ export abstract class AbstractStackedChartState implements ChartState {
                     focus: series.focus,
                 }
             })
+    }
+
+    @computed get yDomain(): [number, number] {
+        const yValues = this.allStackedPoints.map(
+            (point) => point.value + point.valueOffset
+        )
+        return [0, _.max(yValues) ?? 0]
     }
 
     @computed get errorInfo(): ChartErrorInfo {

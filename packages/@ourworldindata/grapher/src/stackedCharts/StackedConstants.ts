@@ -20,20 +20,20 @@ export const BAR_OPACITY = {
 }
 
 export const AREA_OPACITY = {
-    default: GRAPHER_AREA_OPACITY_DEFAULT,
-    focus: GRAPHER_AREA_OPACITY_FOCUS,
-    mute: GRAPHER_AREA_OPACITY_MUTE,
+    DEFAULT: GRAPHER_AREA_OPACITY_DEFAULT,
+    FOCUS: GRAPHER_AREA_OPACITY_FOCUS,
+    MUTE: GRAPHER_AREA_OPACITY_MUTE,
 } as const
 
 export const BORDER_OPACITY = {
-    default: 0.7,
-    focus: 1,
-    mute: 0.3,
+    DEFAULT: 0.7,
+    FOCUS: 1,
+    MUTE: 0.3,
 } as const
 
 export const BORDER_WIDTH = {
-    default: 0.5,
-    focus: 1.5,
+    DEFAULT: 0.5,
+    FOCUS: 1.5,
 } as const
 
 export type StackedPointPositionType = string | number
