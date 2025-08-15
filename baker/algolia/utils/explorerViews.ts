@@ -43,6 +43,7 @@ import {
 } from "./types.js"
 import {
     MAX_NON_FM_RECORD_SCORE,
+    maybeAddChangeInPrefix,
     processAvailableEntities as processRecordAvailableEntities,
     scaleRecordScores,
 } from "./shared.js"
@@ -354,13 +355,17 @@ const createBaseRecord = (
 
     const grapherConfig = program.grapherConfig
     const grapherState = new GrapherState(grapherConfig)
+    const viewTitle = maybeAddChangeInPrefix(
+        matrix.selectedRow.title,
+        grapherState.shouldAddChangeInPrefixToTitle
+    )
 
     const nonDefaultSettings = getNonDefaultSettings(choice, matrix)
     const yVariableIds = parseYVariableIds(matrix.selectedRow)
 
     return {
         availableEntities: [],
-        viewTitle: matrix.selectedRow.title,
+        viewTitle,
         viewSubtitle: matrix.selectedRow.subtitle,
         viewAvailableTabs: grapherState.availableTabs,
         viewSettings: explorerChoiceToViewSettings(choice, matrix),

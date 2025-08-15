@@ -8,6 +8,7 @@ import {
     removeTrailingParenthetical,
     slugify,
     Url,
+    lowerCaseFirstLetterUnlessAbbreviation,
 } from "@ourworldindata/utils"
 import * as Sentry from "@sentry/node"
 import {
@@ -289,4 +290,14 @@ export async function createFeaturedMetricRecords(
     }
 
     return featuredMetricRecords
+}
+
+export function maybeAddChangeInPrefix(
+    title?: string,
+    shouldAddChangeInPrefix?: boolean
+): string {
+    if (!title) return ""
+    return shouldAddChangeInPrefix
+        ? "Change in " + lowerCaseFirstLetterUnlessAbbreviation(title)
+        : title
 }
