@@ -1,15 +1,14 @@
 import { useMemo } from "react"
-import { QueryStatus, useQueries, useQuery } from "@tanstack/react-query"
+import { QueryStatus, useQuery } from "@tanstack/react-query"
 import { useIntersectionObserver } from "usehooks-ts"
 import cx from "classnames"
 import * as R from "remeda"
-import { findClosestTime, Region } from "@ourworldindata/utils"
+import { fetchJson, findClosestTime, Region } from "@ourworldindata/utils"
 import { ChartRecordType, SearchChartHit } from "./searchTypes.js"
 import {
     constructChartUrl,
     constructConfigUrl,
     constructThumbnailUrl,
-    fetchJson,
     pickEntitiesForChartHit,
     getSortedGrapherTabsForChartHit,
     buildChartHitDataDisplayProps,
@@ -33,9 +32,6 @@ import {
     mapGrapherTabNameToQueryParam,
     CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME,
     StackedDiscreteBarChartState,
-    getVariableMetadataRoute,
-    getVariableDataRoute,
-    legacyToOwidTableAndDimensionsWithMandatorySlug,
 } from "@ourworldindata/grapher"
 import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
 import {
@@ -48,10 +44,6 @@ import {
     FacetStrategy,
     SeriesStrategy,
     EntitySelectionMode,
-    OwidVariableWithSourceAndDimension,
-    OwidVariableMixedData,
-    MultipleOwidVariableDataDimensionsMap,
-    OwidVariableDataMetadataDimensions,
 } from "@ourworldindata/types"
 import { chartHitQueryKeys } from "./queries.js"
 import { SearchChartHitThumbnail } from "./SearchChartHitThumbnail.js"
@@ -75,7 +67,7 @@ import { match } from "ts-pattern"
 import { runInAction } from "mobx"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { Button } from "@ourworldindata/components"
-import { OwidTable } from "@ourworldindata/core-table"
+import { useQueryInputTable } from "../loadChartData.js"
 
 const NUM_DATA_TABLE_ROWS_PER_COLUMN = 4
 
@@ -117,7 +109,7 @@ function SearchChartHitMediumRichData({
     // Fetch chart data and metadata
     const { data: inputTable, status: loadingStatusData } = useQueryInputTable(
         chartConfig ?? {},
-        { enabled: !!chartConfig }
+        { enabled: !!chartConfig, dataApiUrl: DATA_API_URL }
     )
 
     // Init the grapher state and update its data
@@ -565,98 +557,6 @@ function useQueryChartConfig({
         : undefined
     return { data: chartConfig, status }
 }
-
-/** Fetches relevant data and metadata for a given chart config */
-function useQueryInputTable(
-    chartConfig: GrapherInterface,
-    { enabled }: { enabled?: boolean } = {}
-): { data?: OwidTable; status: QueryStatus } {
-    const { dimensions = [], selectedEntityColors } = chartConfig ?? {}
-
-    // Fetch both data and metadata for all variables
-    const variableIds = dimensions.map((d) => d.variableId)
-    const { data: variablesDataMap, status } = useQueryVariablesDataAndMetadata(
-        variableIds,
-        { enabled }
-    )
-
-    // Return early if data fetching failed or is still in progress
-    if (status !== "success" || !variablesDataMap) return { status }
-
-    // Transform the fetched variable data and metadata into Grapher's input table format
-    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
-        variablesDataMap,
-        dimensions,
-        selectedEntityColors
-    )
-
-    return { status: "success", data: inputTable }
-}
-
-function useQueryVariablesDataAndMetadata(
-    variableIds: number[],
-    { enabled }: { enabled?: boolean } = {}
-): { data?: MultipleOwidVariableDataDimensionsMap; status: QueryStatus } {
-    // Fetch data and metadata for all variables
-    const metadataResponses = useQueryVariablesMetadata(variableIds, {
-        enabled,
-    })
-    const dataResponses = useQueryVariablesData(variableIds, { enabled })
-
-    // Return early if any individual query has failed or is still pending
-    const allResponses = [...metadataResponses, ...dataResponses]
-    if (allResponses.some((result) => result.status === "error"))
-        return { status: "error" }
-    if (allResponses.some((result) => result.status === "loading"))
-        return { status: "loading" }
-
-    // Combine the metadata and data query results into a unified map
-    // Each variable ID maps to an object containing both its data and metadata
-    const dataMap = new Map<number, OwidVariableDataMetadataDimensions>()
-    variableIds.forEach((variableId, index) => {
-        const metadataResponse = metadataResponses[index]
-        const dataResponse = dataResponses[index]
-
-        if (metadataResponse.data && dataResponse.data) {
-            dataMap.set(variableId, {
-                data: dataResponse.data,
-                metadata: metadataResponse.data,
-            })
-        }
-    })
-
-    return { data: dataMap, status: "success" }
-}
-
-const useQueryVariablesMetadata = (
-    variableIds: number[],
-    { enabled }: { enabled?: boolean } = {}
-) =>
-    useQueries({
-        queries: variableIds.map((variableId) => ({
-            queryKey: chartHitQueryKeys.variableMetadata(variableId),
-            queryFn: () => {
-                const route = getVariableMetadataRoute(DATA_API_URL, variableId)
-                return fetchJson<OwidVariableWithSourceAndDimension>(route)
-            },
-            enabled,
-        })),
-    })
-
-const useQueryVariablesData = (
-    variableIds: number[],
-    { enabled }: { enabled?: boolean } = {}
-) =>
-    useQueries({
-        queries: variableIds.map((variableId) => ({
-            queryKey: chartHitQueryKeys.variableData(variableId),
-            queryFn: () => {
-                const route = getVariableDataRoute(DATA_API_URL, variableId)
-                return fetchJson<OwidVariableMixedData>(route)
-            },
-            enabled,
-        })),
-    })
 
 function pickEntitiesForDisplay(
     grapherState: GrapherState,
