@@ -11,12 +11,14 @@ import {
     EntityName,
     excludeUndefined,
     getRegionByName,
+    AxisConfigInterface,
 } from "@ourworldindata/utils"
 import { StackedPointPositionType, StackedSeries } from "./StackedConstants"
 import { WORLD_ENTITY_NAME } from "../core/GrapherConstants.js"
 import { AxisConfig } from "../axis/AxisConfig"
 import { AbstractStackedChartState } from "./AbstractStackedChartState"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
+import { StackedBarChartState } from "./StackedBarChartState.js"
 
 // This method shift up the Y Values of a Series with Points in place.
 export const stackSeries = <PositionType extends StackedPointPositionType>(
@@ -189,7 +191,20 @@ export function toVerticalAxis(
     if (chartState.manager.isRelativeMode) axis.domain = [0, 100]
     else axis.updateDomainPreservingUserSettings(chartState.yDomain)
 
-    axis.formatColumn = chartState.yColumns[0]
+    axis.formatColumn = chartState.formatColumn
 
     return axis
+}
+
+export function getXAxisConfigDefaultsForStackedBar(
+    chartState: StackedBarChartState
+): AxisConfigInterface {
+    return {
+        hideGridlines: true,
+        domainValues: chartState.xValues,
+        ticks: chartState.xValues.map((value) => ({
+            value,
+            priority: 2,
+        })),
+    }
 }
