@@ -18,6 +18,7 @@ import {
     NumericBin,
     ColorScaleBin,
 } from "@ourworldindata/grapher"
+import { excludeUndefined } from "@ourworldindata/utils"
 import {
     EntityName,
     FacetStrategy,
@@ -27,6 +28,7 @@ import {
     SeriesStrategy,
 } from "@ourworldindata/types"
 import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable"
+import { SearchChartHitDataPointsProps } from "./SearchChartHitDataPoints"
 import {
     getColumnNameForDisplay,
     getColumnUnitForDisplay,
@@ -43,9 +45,19 @@ interface Args<State extends ChartState = ChartState> extends BaseArgs {
     chartState: State
 }
 
-export function buildChartHitDataTableProps(
+export type SearchChartHitDataTableContent =
+    | {
+          type: "data-table"
+          props: SearchChartHitDataTableProps
+      }
+    | {
+          type: "data-points"
+          props: SearchChartHitDataPointsProps
+      }
+
+export function buildChartHitDataTableContent(
     props: BaseArgs
-): SearchChartHitDataTableProps | undefined {
+): SearchChartHitDataTableContent | undefined {
     if (!props.grapherState.isReady) return undefined
 
     // If the chart is faceted and displays multiple series per facet
@@ -60,70 +72,70 @@ export function buildChartHitDataTableProps(
 
     return match(props.grapherState.activeTab)
         .with(GRAPHER_TAB_NAMES.LineChart, () =>
-            buildDataTablePropsForLineChart({
+            buildDataTableContentForLineChart({
                 ...props,
                 chartState: chartState as LineChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.DiscreteBar, () =>
-            buildDataTablePropsForDiscreteBarChart({
+            buildDataTableContentForDiscreteBarChart({
                 ...props,
                 chartState: chartState as DiscreteBarChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.ScatterPlot, () =>
-            buildDataTablePropsForScatterPlot({
+            buildDataTableContentForScatterPlot({
                 ...props,
                 chartState: chartState as ScatterPlotChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.StackedArea, () =>
-            buildDataTablePropsForStackedAreaAndBarChart({
+            buildDataTableContentForStackedAreaAndBarChart({
                 ...props,
                 chartState: chartState as StackedAreaChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.StackedDiscreteBar, () =>
-            buildDataTablePropsForStackedDiscreteBarChart({
+            buildDataTableContentForStackedDiscreteBarChart({
                 ...props,
                 chartState: chartState as StackedDiscreteBarChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.SlopeChart, () =>
-            buildDataTablePropsForSlopeChart({
+            buildDataTableContentForSlopeChart({
                 ...props,
                 chartState: chartState as SlopeChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.StackedBar, () =>
-            buildDataTablePropsForStackedAreaAndBarChart({
+            buildDataTableContentForStackedAreaAndBarChart({
                 ...props,
                 chartState: chartState as StackedBarChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.Marimekko, () =>
-            buildDataTablePropsForMarimekkoChart({
+            buildDataTableContentForMarimekkoChart({
                 ...props,
                 chartState: chartState as MarimekkoChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.WorldMap, () =>
-            buildDataTablePropsForWorldMap({
+            buildDataTableContentForWorldMap({
                 ...props,
                 chartState: chartState as MapChartState,
             })
         )
         .with(GRAPHER_TAB_NAMES.Table, () =>
-            buildDataTablePropsForTableTab(props)
+            buildDataTableContentForTableTab(props)
         )
         .exhaustive()
 }
 
-function buildDataTablePropsForLineChart({
+function buildDataTableContentForLineChart({
     grapherState,
     chartState,
     maxRows,
-}: Args<LineChartState>): SearchChartHitDataTableProps {
+}: Args<LineChartState>): SearchChartHitDataTableContent {
     const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
 
     // Create a map chart state to access custom label formatting.
@@ -195,14 +207,14 @@ function buildDataTablePropsForLineChart({
 
     const title = makeTableTitle(grapherState, chartState)
 
-    return { rows: displayRows, title }
+    return { type: "data-table", props: { rows: displayRows, title } }
 }
 
-function buildDataTablePropsForDiscreteBarChart({
+function buildDataTableContentForDiscreteBarChart({
     grapherState,
     chartState,
     maxRows,
-}: Args<DiscreteBarChartState>): SearchChartHitDataTableProps {
+}: Args<DiscreteBarChartState>): SearchChartHitDataTableContent {
     const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
 
     let rows = chartState.series.map((series) => ({
@@ -219,14 +231,14 @@ function buildDataTablePropsForDiscreteBarChart({
 
     const title = makeTableTitle(grapherState, chartState)
 
-    return { rows, title }
+    return { type: "data-table", props: { rows, title } }
 }
 
-function buildDataTablePropsForSlopeChart({
+function buildDataTableContentForSlopeChart({
     grapherState,
     chartState,
     maxRows,
-}: Args<SlopeChartState>): SearchChartHitDataTableProps {
+}: Args<SlopeChartState>): SearchChartHitDataTableContent {
     const formatColumn = chartState.formatColumn
 
     let rows = chartState.series.map((series) => {
@@ -262,14 +274,14 @@ function buildDataTablePropsForSlopeChart({
 
     const title = makeTableTitle(grapherState, chartState)
 
-    return { rows, title }
+    return { type: "data-table", props: { rows, title } }
 }
 
-function buildDataTablePropsForStackedDiscreteBarChart({
+function buildDataTableContentForStackedDiscreteBarChart({
     grapherState,
     chartState,
     maxRows,
-}: Args<StackedDiscreteBarChartState>): SearchChartHitDataTableProps {
+}: Args<StackedDiscreteBarChartState>): SearchChartHitDataTableContent {
     const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
 
     const mode =
@@ -337,16 +349,16 @@ function buildDataTablePropsForStackedDiscreteBarChart({
 
     if (maxRows !== undefined) rows = rows.slice(0, maxRows)
 
-    return { rows, title }
+    return { type: "data-table", props: { rows, title } }
 }
 
-function buildDataTablePropsForStackedAreaAndBarChart({
+function buildDataTableContentForStackedAreaAndBarChart({
     grapherState,
     chartState,
     maxRows,
 }: Args<
     StackedAreaChartState | StackedBarChartState
->): SearchChartHitDataTableProps {
+>): SearchChartHitDataTableContent {
     const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
 
     const hasSingleSeriesPerFacet =
@@ -388,30 +400,214 @@ function buildDataTablePropsForStackedAreaAndBarChart({
 
     const title = makeTableTitle(grapherState, chartState)
 
-    return { rows, title }
+    return { type: "data-table", props: { rows, title } }
 }
 
-function buildDataTablePropsForMarimekkoChart({
+function buildDataTableContentForMarimekkoChart({
     grapherState: _grapherState,
     chartState: _chartState,
     maxRows: _maxRows,
-}: Args<MarimekkoChartState>): SearchChartHitDataTableProps {
-    return { rows: [], title: "" }
+}: Args<MarimekkoChartState>): SearchChartHitDataTableContent {
+    return { type: "data-table", props: { rows: [], title: "" } }
 }
 
-function buildDataTablePropsForScatterPlot({
-    grapherState: _grapherState,
-    chartState: _chartState,
-    maxRows: _maxRows,
-}: Args<ScatterPlotChartState>): SearchChartHitDataTableProps {
-    return { rows: [], title: "" }
-}
-
-function buildDataTablePropsForWorldMap({
+function buildDataTableContentForScatterPlot({
     grapherState,
     chartState,
     maxRows,
-}: Args<MapChartState>): SearchChartHitDataTableProps {
+}: Args<ScatterPlotChartState>): SearchChartHitDataTableContent {
+    // If entities are selected, then we display the x and y values for the
+    // first entity. The remaining entities are ignored
+    if (grapherState.selection.hasSelection) {
+        const selectedEntity = grapherState.selection.selectedEntityNames[0]
+        return buildDataPointsContentForScatterPlot({
+            grapherState,
+            chartState,
+            entityName: selectedEntity,
+        })
+    }
+
+    // If the selection is empty and the scatter plot has a legend (which is the
+    // case if it has a color dimension), then we display the legend
+    if (!grapherState.selection.hasSelection && grapherState.colorColumnSlug) {
+        return buildLegendTableContentForScatterPlot({
+            grapherState,
+            chartState,
+            maxRows,
+        })
+    }
+
+    // Special handling for two cases:
+    // Case 1:
+    //   The scatter plot has exactly one entity. In this case, displaying
+    //   the x-and y-value of that entity in a large format is nicer than
+    //   a single-row table.
+    // Case 2:
+    //   The scatter plot is connected and has more than one entity. In this
+    //   case, we can't fit the start and end values for both dimensions into
+    //   a single table row. That's why we simply display the x- and y-values
+    //   of one of the entities.
+    if (chartState.series.length === 1 || chartState.isConnected) {
+        const firstEntity = chartState.series[0].seriesName
+        return buildDataPointsContentForScatterPlot({
+            grapherState,
+            chartState,
+            entityName: firstEntity,
+        })
+    }
+
+    // Display a table where each row corresponds to an entity and lists x and
+    // y-values in this format: '<x-value> vs. <y-value>'.
+    return buildValueTableContentForScatterPlot({
+        grapherState,
+        chartState,
+        maxRows,
+    })
+}
+
+/** Creates a table where each row represents a legend bin from the color scale */
+function buildLegendTableContentForScatterPlot({
+    grapherState,
+    chartState,
+    maxRows,
+}: {
+    grapherState: GrapherState
+    chartState: ScatterPlotChartState
+    maxRows?: number
+}): SearchChartHitDataTableContent {
+    const bins = chartState.colorScale.legendBins
+
+    let rows = bins
+        .map((bin) => {
+            if (bin.isHidden || isNoDataBin(bin)) return undefined
+            return { bin, name: bin.text, color: bin.color }
+        })
+        .filter((row) => row !== undefined)
+
+    if (maxRows !== undefined) rows = rows.slice(0, maxRows)
+
+    const title = grapherState.colorScale.legendDescription || "Legend"
+
+    return { type: "data-table", props: { rows, title } }
+}
+
+/**
+ * Creates a table where each row represents an entity in a scatter plot,
+ * displaying both x and y values in a "y vs x" format for each entity.
+ */
+function buildValueTableContentForScatterPlot({
+    grapherState,
+    chartState,
+    maxRows,
+}: {
+    grapherState: GrapherState
+    chartState: ScatterPlotChartState
+    maxRows?: number
+}): SearchChartHitDataTableContent {
+    const { xColumn, yColumn } = chartState
+
+    const yLabel = grapherState.yAxis.label || getColumnNameForDisplay(yColumn)
+    const xLabel = grapherState.xAxis.label || getColumnNameForDisplay(xColumn)
+
+    let rows = chartState.series
+        .map((series) => {
+            const point = series.points[0]
+            if (!point) return undefined
+            const yValue = yColumn.formatValueShort(point.y)
+            const xValue = xColumn.formatValueShort(point.x)
+            return {
+                name: series.seriesName,
+                color: series.color,
+                value: `${yValue} vs. ${xValue}`,
+                time: yColumn.formatTime(point.timeValue),
+            }
+        })
+        .filter((row) => row !== undefined)
+
+    if (maxRows !== undefined) rows = rows.slice(0, maxRows)
+
+    const title = `${yLabel} vs. ${xLabel}`
+
+    return { type: "data-table", props: { rows, title } }
+}
+
+/**
+ * Builds data points props for scatter plot charts, extracting x and y values
+ * for a specific entity. For connected scatter plots, includes both start and
+ * end values.
+ */
+function buildDataPointsContentForScatterPlot({
+    grapherState,
+    chartState,
+    entityName,
+}: {
+    grapherState: GrapherState
+    chartState: ScatterPlotChartState
+    entityName: string
+}): SearchChartHitDataTableContent {
+    const { xColumn, yColumn } = chartState
+
+    const yLabel = grapherState.yAxis.label || getColumnNameForDisplay(yColumn)
+    const xLabel = grapherState.xAxis.label || getColumnNameForDisplay(xColumn)
+
+    const series = chartState.series.find(
+        (series) => series.seriesName === entityName
+    )
+    const points = series?.points ?? []
+    const endPoint = R.firstBy(points, [(point) => point.timeValue, "desc"])
+    const startPoint = chartState.isConnected
+        ? R.firstBy(points, [(point) => point.timeValue, "asc"])
+        : undefined
+
+    const formattedStartTime = startPoint
+        ? yColumn.formatTime(startPoint.timeValue)
+        : undefined
+    const formattedEndTime = yColumn.formatTime(
+        endPoint?.timeValue ?? grapherState.endTime!
+    )
+
+    const time = formattedStartTime
+        ? `${formattedStartTime}–${formattedEndTime}`
+        : formattedEndTime
+
+    const yDataPoint = {
+        entityName,
+        columnName: yLabel,
+        unit: getColumnUnitForDisplay(yColumn),
+        time,
+        value: endPoint ? yColumn.formatValueShort(endPoint.y) : "No data",
+        startValue: startPoint
+            ? yColumn.formatValueShort(startPoint.y)
+            : undefined,
+        trend: calculateTrendDirection(startPoint?.y, endPoint?.y),
+    }
+
+    const xDataPoint = grapherState.xColumnSlug
+        ? {
+              entityName,
+              columnName: xLabel,
+              unit: getColumnUnitForDisplay(xColumn),
+              time,
+              value: endPoint
+                  ? xColumn.formatValueShort(endPoint.x)
+                  : "No data",
+              startValue: startPoint
+                  ? xColumn.formatValueShort(startPoint.x)
+                  : undefined,
+              trend: calculateTrendDirection(startPoint?.x, endPoint?.x),
+          }
+        : undefined
+
+    const dataPoints = excludeUndefined([yDataPoint, xDataPoint])
+
+    return { type: "data-points", props: { dataPoints } }
+}
+
+function buildDataTableContentForWorldMap({
+    grapherState,
+    chartState,
+    maxRows,
+}: Args<MapChartState>): SearchChartHitDataTableContent {
     const bins = chartState.colorScale.legendBins
 
     const makeLabelForNumericBin = (bin: NumericBin): string => {
@@ -463,14 +659,14 @@ function buildDataTablePropsForWorldMap({
 
     const title = makeTableTitle(grapherState, chartState)
 
-    return { rows, title }
+    return { type: "data-table", props: { rows, title } }
 }
 
-function buildDataTablePropsForTableTab({
+function buildDataTableContentForTableTab({
     grapherState: _grapherState,
     maxRows: _maxRows,
-}: BaseArgs): SearchChartHitDataTableProps {
-    return { rows: [], title: "" }
+}: BaseArgs): SearchChartHitDataTableContent {
+    return { type: "data-table", props: { rows: [], title: "" } }
 }
 
 function makeTableTitle(
