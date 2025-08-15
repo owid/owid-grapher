@@ -56,11 +56,11 @@ async function initGrapherForExplorerView(
     await explorer.updateGrapherFromExplorer()
     explorer.grapherState.populateFromQueryParams(urlObj.queryParams)
 
-    explorer.grapherState.isExportingToSvgOrPng = true
-    explorer.grapherState.shouldIncludeDetailsInStaticExport = options.details
-    explorer.grapherState.isSocialMediaExport =
-        options.grapherProps.isSocialMediaExport
-    explorer.grapherState.renderMode = options.grapherProps.renderMode
+    if (options.grapherProps?.isSocialMediaExport)
+        explorer.grapherState.isSocialMediaExport =
+            options.grapherProps.isSocialMediaExport
+    if (options.grapherProps?.renderMode)
+        explorer.grapherState.renderMode = options.grapherProps.renderMode
     explorer.grapherState.initialOptions = { baseFontSize: options.fontSize }
 
     return {
@@ -100,6 +100,29 @@ export async function handleThumbnailRequestForExplorerView(
     }
 }
 
+export async function handleConfigRequestForExplorerView(
+    searchParams: URLSearchParams,
+    env: Env
+) {
+    const options = extractOptions(searchParams)
+
+    const url = env.url
+    url.href = url.href.replace(extensions.configJson, "")
+
+    try {
+        const { grapherState } = await initGrapherForExplorerView(env, options)
+
+        const config = grapherState.object
+        return new Response(JSON.stringify(config), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+        })
+    } catch (e) {
+        console.error(e)
+        return error(500, e)
+    }
+}
+
 export async function fetchCsvForExplorerView(
     searchParams: URLSearchParams,
     env: Env
@@ -121,9 +144,7 @@ export async function fetchCsvForExplorerView(
             searchParams ?? new URLSearchParams("")
         )
         return new Response(csv, {
-            headers: {
-                "Content-Type": "text/csv",
-            },
+            headers: { "Content-Type": "text/csv" },
         })
     } catch (e) {
         console.error(e)
@@ -163,9 +184,7 @@ export async function fetchReadmeForExplorerView(
         const { grapherState } = await initGrapherForExplorerView(env, options)
         const readme = assembleReadme(grapherState, searchParams)
         return new Response(readme, {
-            headers: {
-                "Content-Type": "text/markdown; charset=utf-8",
-            },
+            headers: { "Content-Type": "text/markdown; charset=utf-8" },
         })
     } catch (e) {
         console.error(e)
