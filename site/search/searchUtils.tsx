@@ -816,11 +816,15 @@ export function getSortedGrapherTabsForChartHit(
 ): GrapherTabName[] {
     const { Table, LineChart, Marimekko, WorldMap } = GRAPHER_TAB_NAMES
 
+    // Original chart config before search customizations
+    // (entity selection, tab switching, etc.)
+    const originalGrapherState = grapherState.authorsVersion
+
     const {
         availableTabs,
         validChartTypes: availableChartTypes,
         validChartTypeSet: availableChartTypeSet,
-    } = grapherState
+    } = originalGrapherState
 
     const sortedTabs: GrapherTabName[] = []
 
