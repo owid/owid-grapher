@@ -495,6 +495,14 @@ export const fetchText = async (url: string): Promise<string> => {
     })
 }
 
+export async function fetchJson<TResult>(url: string): Promise<TResult> {
+    const response = await fetch(url)
+    if (!response.ok) {
+        throw new Error(`Failed to fetch ${url}: ${response.statusText}`)
+    }
+    return response.json()
+}
+
 const _getUserCountryInformation = async (): Promise<
     UserCountryInformation | undefined
 > =>
