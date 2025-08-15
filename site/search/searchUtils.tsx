@@ -74,6 +74,7 @@ import {
     EXPLORER_DYNAMIC_THUMBNAIL_URL,
     GRAPHER_DYNAMIC_CONFIG_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
+    MULTI_DIM_DYNAMIC_CONFIG_URL,
 } from "../../settings/clientSettings.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { SearchChartHitDataDisplayProps } from "./SearchChartHitDataDisplay.js"
@@ -360,6 +361,16 @@ export const constructConfigUrl = ({
             : undefined
 
     return `${GRAPHER_DYNAMIC_CONFIG_URL}/${hit.slug}.config.json`
+}
+
+export const constructMdimConfigUrl = ({
+    hit,
+}: {
+    hit: SearchChartHit
+}): string | undefined => {
+    const isMultiDimView = hit.type === ChartRecordType.MultiDimView
+    if (!isMultiDimView) return undefined
+    return `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${hit.slug}.json`
 }
 
 export const constructDownloadUrl = ({
