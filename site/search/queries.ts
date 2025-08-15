@@ -68,10 +68,6 @@ export const chartHitQueryKeys = {
         ["chart-config", slug, queryParams] as const,
     chartData: (slug: string, queryParams?: string) =>
         ["chart-data", slug, queryParams] as const,
-    variableData: (variableId: number) =>
-        ["variable-data", variableId] as const,
-    variableMetadata: (variableId: number) =>
-        ["variable-metadata", variableId] as const,
 } as const
 
 export async function queryDataTopics(
