@@ -68,6 +68,7 @@ export const chartHitQueryKeys = {
         ["chart-config", slug, queryParams] as const,
     chartData: (slug: string, queryParams?: string) =>
         ["chart-data", slug, queryParams] as const,
+    mdimConfig: (slug: string) => ["mdim-config", slug] as const,
 } as const
 
 export async function queryDataTopics(
