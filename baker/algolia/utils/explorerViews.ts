@@ -40,6 +40,7 @@ import {
     IndicatorUnenrichedExplorerViewRecord,
     CsvEnrichedExplorerViewRecord,
     FinalizedExplorerRecord,
+    ExplorerType,
 } from "./types.js"
 import {
     MAX_NON_FM_RECORD_SCORE,
@@ -363,13 +364,23 @@ const createBaseRecord = (
     const nonDefaultSettings = getNonDefaultSettings(choice, matrix)
     const yVariableIds = parseYVariableIds(matrix.selectedRow)
 
+    const viewGrapherId = matrix.selectedRow.grapherId
+
+    const explorerType =
+        viewGrapherId !== undefined
+            ? ExplorerType.Grapher
+            : yVariableIds.length > 0
+              ? ExplorerType.Indicator
+              : ExplorerType.Csv
+
     return {
+        explorerType,
         availableEntities: [],
         viewTitle,
         viewSubtitle: matrix.selectedRow.subtitle,
         viewAvailableTabs: grapherState.availableTabs,
         viewSettings: explorerChoiceToViewSettings(choice, matrix),
-        viewGrapherId: matrix.selectedRow.grapherId,
+        viewGrapherId,
         yVariableIds,
         viewQueryParams: matrix.toString(),
         viewIndexWithinExplorer: index,
@@ -625,6 +636,7 @@ async function finalizeRecords(
         (record, i) =>
             ({
                 type: ChartRecordType.ExplorerView,
+                explorerType: record.explorerType,
                 chartId: record.viewGrapherId,
                 variantName: record.viewTitle,
                 // remap createdAt -> publishedAt
@@ -698,7 +710,7 @@ export const getExplorerViewRecordsForExplorer = async (
 
     const [grapherBaseRecords, nonGrapherBaseRecords] = _.partition(
         baseRecordsWithDuplicatedYVariableIdsAdded,
-        (record) => record.viewGrapherId !== undefined
+        (record) => record.explorerType === ExplorerType.Grapher
     ) as [GrapherUnenrichedExplorerViewRecord[], ExplorerViewBaseRecord[]]
 
     let enrichedGrapherRecords: GrapherEnrichedExplorerViewRecord[] = []
@@ -712,7 +724,7 @@ export const getExplorerViewRecordsForExplorer = async (
 
     const [indicatorBaseRecords, csvBaseRecords] = _.partition(
         nonGrapherBaseRecords,
-        (record) => record.yVariableIds.length > 0
+        (record) => record.explorerType === ExplorerType.Indicator
     ) as [
         IndicatorUnenrichedExplorerViewRecord[],
         CsvUnenrichedExplorerViewRecord[],
