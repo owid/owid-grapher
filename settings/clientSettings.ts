@@ -41,6 +41,9 @@ export const EXPLORER_DYNAMIC_THUMBNAIL_URL: string =
 export const GRAPHER_DYNAMIC_CONFIG_URL: string =
     process.env.GRAPHER_DYNAMIC_CONFIG_URL ?? `${BAKED_GRAPHER_URL}`
 
+export const EXPLORER_DYNAMIC_CONFIG_URL: string =
+    process.env.EXPLORER_DYNAMIC_CONFIG_URL ?? `${BAKED_BASE_URL}/explorers`
+
 export const MULTI_DIM_DYNAMIC_CONFIG_URL: string =
     process.env.MULTI_DIM_DYNAMIC_CONFIG_URL ?? `${BAKED_BASE_URL}/multi-dim`
 
