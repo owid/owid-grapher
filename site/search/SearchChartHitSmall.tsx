@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { Region, Tippy } from "@ourworldindata/utils"
+import { Region, Tippy, fetchJson } from "@ourworldindata/utils"
 import {
     GRAPHER_TAB_NAMES,
     GrapherChartType,
@@ -9,7 +9,6 @@ import { SearchChartHit } from "./searchTypes.js"
 import {
     constructChartUrl,
     constructChartInfoUrl,
-    fetchJson,
     pickEntitiesForChartHit,
     toGrapherQueryParams,
     getTimeBoundsForChartUrl,
