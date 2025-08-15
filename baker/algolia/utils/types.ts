@@ -61,7 +61,14 @@ export type ExplorerIndicatorMetadataDictionary = Record<
     }
 >
 
+export enum ExplorerType {
+    Grapher = "grapher",
+    Indicator = "indicator",
+    Csv = "csv",
+}
+
 export interface ExplorerViewBaseRecord {
+    explorerType: ExplorerType
     availableEntities: string[]
     numNonDefaultSettings: number
     tableSlug?: string
@@ -82,22 +89,26 @@ export interface ExplorerViewBaseRecord {
 }
 
 export type GrapherUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
+    explorerType: ExplorerType.Grapher
     viewGrapherId: number
 }
 
 export type GrapherEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
+    explorerType: ExplorerType.Grapher
     viewTitle: string
     viewSubtitle: string
     titleLength: number
 }
 
 export type IndicatorUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
+    explorerType: ExplorerType.Indicator
     viewGrapherId: never
     ySlugs: []
     tableSlug: never
 }
 
 export type IndicatorEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
+    explorerType: ExplorerType.Indicator
     viewGrapherId: never
     ySlugs: string[]
     tableSlug: never
@@ -106,12 +117,14 @@ export type IndicatorEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
 }
 
 export type CsvUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
+    explorerType: ExplorerType.Csv
     viewGrapherId: never
     ySlugs: string[]
     tableSlug: string
 }
 
 export type CsvEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
+    explorerType: ExplorerType.Csv
     viewGrapherId: never
     ySlugs: string[]
     tableSlug: string
@@ -127,6 +140,7 @@ export type EnrichedExplorerRecord =
 // These properties are only used in Algolia for ranking purposes.
 // This type shouldn't be necessary in any client-side code.
 export type FinalizedExplorerRecord = ChartRecord & {
+    explorerType: ExplorerType
     viewTitleIndexWithinExplorer: number
     isFirstExplorerView: boolean
 }
