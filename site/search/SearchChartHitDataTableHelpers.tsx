@@ -199,11 +199,27 @@ function buildDataTablePropsForLineChart({
 }
 
 function buildDataTablePropsForDiscreteBarChart({
-    grapherState: _grapherState,
-    chartState: _chartState,
-    maxRows: _maxRows,
+    grapherState,
+    chartState,
+    maxRows,
 }: Args<DiscreteBarChartState>): SearchChartHitDataTableProps {
-    return { rows: [], title: "" }
+    const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
+
+    let rows = chartState.series.map((series) => ({
+        series,
+        name: series.shortEntityName ?? series.entityName,
+        color: series.color,
+        value: formatColumn.formatValueShort(series.value),
+        time: formatColumn.formatTime(series.time),
+        striped: series.yColumn.isProjection,
+        muted: series.focus.background,
+    }))
+
+    if (maxRows !== undefined) rows = rows.slice(0, maxRows)
+
+    const title = makeTableTitle(grapherState, chartState)
+
+    return { rows, title }
 }
 
 function buildDataTablePropsForSlopeChart({
@@ -266,7 +282,7 @@ function buildDataTablePropsForStackedAreaAndBarChart({
 >): SearchChartHitDataTableProps {
     const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
 
-    const grapherHasSingleSeriesPerFacet =
+    const hasSingleSeriesPerFacet =
         grapherState.isFaceted && !grapherState.hasMultipleSeriesPerFacet
     let rows = chartState.series
         .map((series) => {
@@ -280,7 +296,7 @@ function buildDataTablePropsForStackedAreaAndBarChart({
             // Hacky way to fix a bug where `useValueBasedColorScheme` isn't
             // respected when faceted and the color swatches in the table don't
             // match the chart colors
-            const color = grapherHasSingleSeriesPerFacet
+            const color = hasSingleSeriesPerFacet
                 ? undefined // Don't show a color swatch in the table
                 : (point.color ?? series.color)
 

@@ -439,6 +439,86 @@ describe("buildChartHitDataTableProps for StackedAreaChart", () => {
     })
 })
 
+describe("buildChartHitDataTableProps for DiscreteBar", () => {
+    it("lists entities when entities are plotted", () => {
+        const grapherState = createSingleIndicatorGrapherState({
+            chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
+        })
+
+        const dataTable = buildChartHitDataTableProps({ grapherState })
+
+        expect(dataTable?.title).toBe("GDP")
+        expect(dataTable?.rows).toMatchObject([
+            { name: "Philippines", time: "2009", value: "$682.03 billion" },
+            { name: "Benin", time: "2009", value: "$233.42 billion" },
+            { name: "Eritrea", time: "2009", value: "$63.2 billion" },
+        ])
+    })
+
+    it("lists columns when columns are plotted", () => {
+        const grapherState = createFruityMultipleIndicatorsGrapherState({
+            chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
+        })
+
+        const dataTable = buildChartHitDataTableProps({ grapherState })
+
+        expect(dataTable?.title).toBe("Benin")
+        expect(dataTable?.rows).toMatchObject([
+            { name: "Fruit", time: "2009", value: "573" },
+            { name: "Vegetables", time: "2009", value: "542" },
+        ])
+    })
+
+    it("highlights focused entities", () => {
+        const selectedEntityNames = ["Philippines", "Benin", "Eritrea"]
+        const grapherState = createSingleIndicatorGrapherState({
+            chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
+            selectedEntityNames,
+            focusedSeriesNames: [selectedEntityNames[1]],
+        })
+
+        const dataTable = buildChartHitDataTableProps({ grapherState })
+
+        expect(dataTable?.rows).toMatchObject([
+            { name: "Philippines", muted: true },
+            { name: "Benin", muted: false },
+            { name: "Eritrea", muted: true },
+        ])
+    })
+
+    it("lists all entities in facets when each facet plots a single entity", () => {
+        const grapherState = createSingleIndicatorGrapherState({
+            chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
+            selectedFacetStrategy: FacetStrategy.entity,
+        })
+
+        const dataTable = buildChartHitDataTableProps({ grapherState })
+
+        expect(dataTable?.title).toBe("GDP")
+        expect(dataTable?.rows).toMatchObject([
+            { name: "Philippines", time: "2009", value: "$682.03 billion" },
+            { name: "Benin", time: "2009", value: "$233.42 billion" },
+            { name: "Eritrea", time: "2009", value: "$63.2 billion" },
+        ])
+    })
+
+    it("lists entities of the first facet when each facet plots multiple entities", () => {
+        const grapherState = createMultipleIndicatorsGrapherState({
+            chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
+            selectedFacetStrategy: FacetStrategy.metric,
+        })
+
+        const dataTable = buildChartHitDataTableProps({ grapherState })
+
+        expect(dataTable?.title).toBe("GDP")
+        expect(dataTable?.rows).toMatchObject([
+            { name: "Philippines", time: "2009", value: "$682.03 billion" },
+            { name: "Benin", time: "2009", value: "$233.42 billion" },
+            { name: "Eritrea", time: "2009", value: "$63.2 billion" },
+        ])
+    })
+})
+
 describe("buildChartHitDataTableProps for WorldMap", () => {
     it("shows the map legend", () => {
         const grapherState = createSingleIndicatorGrapherState({
