@@ -4,7 +4,7 @@ import {
     GrapherInterface,
     GrapherTabName,
 } from "@ourworldindata/types"
-import { ChartRecord } from "../../../site/search/searchTypes.js"
+import { ChartRecord, ExplorerType } from "../../../site/search/searchTypes.js"
 import { OwidIncomeGroupName } from "@ourworldindata/utils"
 
 /** Charts */
@@ -60,12 +60,6 @@ export type ExplorerIndicatorMetadataDictionary = Record<
         entityNames?: string[]
     }
 >
-
-export enum ExplorerType {
-    Grapher = "grapher",
-    Indicator = "indicator",
-    Csv = "csv",
-}
 
 export interface ExplorerViewBaseRecord {
     explorerType: ExplorerType
