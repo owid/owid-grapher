@@ -139,6 +139,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
     CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME,
     GrapherModal,
+    GRAPHER_THUMBNAIL_PADDING,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import { ChartDimension } from "../chart/ChartDimension"
@@ -2730,7 +2731,7 @@ export class GrapherState {
     /** Bounds of the chart area if no CaptionedChart is rendered */
     @computed get chartAreaBounds(): Bounds {
         // 2px accounts for the border
-        return this.activeBounds.pad(2)
+        return this.activeBounds.pad(GRAPHER_THUMBNAIL_PADDING + 2)
     }
 
     /** Bounds of the entity selector if rendered into the side panel */
@@ -2988,6 +2989,7 @@ export class GrapherState {
     @computed get isModalOpen(): boolean {
         return this.isEntitySelectorModalOpen || this.activeModal !== undefined
     }
+
     // Whether a server-side download is available for the download modal
     @computed get isServerSideDownloadAvailable(): boolean {
         return (
@@ -3004,16 +3006,20 @@ export class GrapherState {
     }
     _baseFontSize = BASE_FONT_SIZE
     @computed get baseFontSize(): number {
+        if (this.isStatic && this.initialOptions.baseFontSize)
+            return this.initialOptions.baseFontSize
         if (this.isStaticAndSmall) {
             return this.computeBaseFontSizeFromHeight(this.staticBounds)
         }
         if (this.isStatic) return 18
         return this._baseFontSize
     }
+
     // the header and footer don't rely on the base font size unless explicitly specified
     @computed get useBaseFontSize(): boolean {
         return this.initialOptions.baseFontSize !== undefined
     }
+
     private computeBaseFontSizeFromHeight(bounds: Bounds): number {
         const squareBounds = DEFAULT_GRAPHER_BOUNDS_SQUARE
         const factor = squareBounds.height / 21
@@ -3054,6 +3060,7 @@ export class GrapherState {
         if (!this.isStatic) return false
         return this.areStaticBoundsSmall
     }
+
     @computed get areStaticBoundsSmall(): boolean {
         const { defaultBounds, staticBounds } = this
         const idealPixelCount = defaultBounds.width * defaultBounds.height
@@ -4170,6 +4177,7 @@ export class Grapher extends React.Component<GrapherProps> {
             this.hasBeenVisible = true
         }
     }
+
     @action.bound private setBaseFontSize(): void {
         this.grapherState.baseFontSize =
             this.grapherState.computeBaseFontSizeFromWidth(
