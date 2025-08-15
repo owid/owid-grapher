@@ -8,6 +8,7 @@ import {
     fetchMetadataForExplorerView,
     fetchReadmeForExplorerView,
     fetchZipForExplorerView,
+    handleConfigRequestForExplorerView,
     handleThumbnailRequestForExplorerView,
 } from "../_common/explorerHandlers.js"
 
@@ -23,6 +24,13 @@ const router = Router<
     finally: [corsify],
 })
 router
+    .get(
+        `/explorers/:slug${extensions.configJson}`,
+        async (_, { searchParams }, env) => {
+            console.log("Handling explorer config request")
+            return handleConfigRequestForExplorerView(searchParams, env)
+        }
+    )
     .get(
         `/explorers/:slug${extensions.svg}`,
         async (_, { searchParams }, env) => {
