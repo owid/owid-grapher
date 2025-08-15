@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { OwidTable } from "@ourworldindata/core-table"
 import {
     getVariableDataRoute,
@@ -6,17 +7,18 @@ import {
 } from "@ourworldindata/grapher"
 import {
     GrapherInterface,
+    MultiDimDataPageConfigEnriched,
     MultipleOwidVariableDataDimensionsMap,
     OwidVariableDataMetadataDimensions,
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
 } from "@ourworldindata/types"
-import { fetchJson } from "@ourworldindata/utils"
+import { fetchJson, searchParamsToMultiDimView } from "@ourworldindata/utils"
 import { QueryStatus, useQueries } from "@tanstack/react-query"
 
 /** Fetches relevant data and metadata for a given chart config */
 export function useQueryInputTable(
-    chartConfig: GrapherInterface,
+    chartConfig: GrapherInterface | undefined,
     options: { enabled?: boolean; dataApiUrl: string }
 ): { data?: OwidTable; status: QueryStatus } {
     const { dimensions = [], selectedEntityColors } = chartConfig ?? {}
@@ -30,6 +32,65 @@ export function useQueryInputTable(
 
     // Return early if data fetching failed or is still in progress
     if (status !== "success" || !variablesDataMap) return { status }
+
+    // Transform the fetched variable data and metadata into Grapher's input table format
+    const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        variablesDataMap,
+        dimensions,
+        selectedEntityColors
+    )
+
+    return { status: "success", data: inputTable }
+}
+
+/** Fetches relevant data and metadata for a given mdim view */
+export function useQueryInputTableForMultiDimView(
+    {
+        mdimConfig,
+        mdimSearchParams,
+        chartConfig,
+    }: {
+        mdimConfig: MultiDimDataPageConfigEnriched | undefined
+        mdimSearchParams: URLSearchParams
+        chartConfig: GrapherInterface | undefined
+    },
+    options: { enabled?: boolean; dataApiUrl: string }
+): { data?: OwidTable; status: QueryStatus } {
+    const { dimensions = [], selectedEntityColors } = chartConfig ?? {}
+
+    // Fetch both data and metadata for all variables
+    const variableIds = dimensions.map((d) => d.variableId)
+    const { data: variablesDataMap, status } = useQueryVariablesDataAndMetadata(
+        variableIds,
+        options
+    )
+
+    // Return early if data fetching failed or is still in progress
+    if (status !== "success" || !variablesDataMap) return { status }
+
+    const mdimConfigView = mdimConfig
+        ? searchParamsToMultiDimView(mdimConfig, mdimSearchParams)
+        : undefined
+    const yVariableId = mdimConfigView?.indicators.y[0]?.id
+    if (yVariableId && variablesDataMap.has(yVariableId)) {
+        const variableData = variablesDataMap.get(yVariableId)!
+        const enrichedMetadata = _.mergeWith(
+            {}, // merge mutates the first argument
+            variableData?.metadata,
+            mdimConfig?.metadata,
+            mdimConfigView?.metadata,
+            // Overwrite arrays completely instead of merging them.
+            // Otherwise fall back to the default merge behavior.
+            (_, srcValue) => {
+                return Array.isArray(srcValue) ? srcValue : undefined
+            }
+        ) as OwidVariableWithSourceAndDimension
+
+        variablesDataMap.set(yVariableId, {
+            data: variableData.data,
+            metadata: enrichedMetadata,
+        })
+    }
 
     // Transform the fetched variable data and metadata into Grapher's input table format
     const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
