@@ -40,7 +40,6 @@ import {
     IndicatorUnenrichedExplorerViewRecord,
     CsvEnrichedExplorerViewRecord,
     FinalizedExplorerRecord,
-    ExplorerType,
 } from "./types.js"
 import {
     MAX_NON_FM_RECORD_SCORE,
@@ -51,6 +50,7 @@ import {
 import {
     ChartRecord,
     ChartRecordType,
+    ExplorerType,
 } from "../../../site/search/searchTypes.js"
 
 /**

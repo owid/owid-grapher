@@ -5,7 +5,7 @@ import cx from "classnames"
 import * as R from "remeda"
 import * as _ from "lodash-es"
 import { fetchJson, findClosestTime, Region } from "@ourworldindata/utils"
-import { ChartRecordType, SearchChartHit } from "./searchTypes.js"
+import { ChartRecordType, ExplorerType, SearchChartHit } from "./searchTypes.js"
 import {
     constructChartUrl,
     constructConfigUrl,
@@ -89,9 +89,12 @@ interface SearchChartHitMediumProps {
 export function SearchChartHitMedium(
     props: SearchChartHitMediumProps
 ): React.ReactElement {
-    // Explorers don't yet support rich data display
-    const isExplorerView = props.hit.type === ChartRecordType.ExplorerView
-    return isExplorerView ? (
+    // CSV-based explorers don't support rich data display
+    const isCsvExplorerView =
+        props.hit.type === ChartRecordType.ExplorerView &&
+        props.hit.explorerType === ExplorerType.Csv
+
+    return isCsvExplorerView ? (
         <SearchChartHitMediumFallback {...props} />
     ) : (
         <SearchChartHitMediumRichData {...props} />
@@ -580,8 +583,13 @@ function useQueryChartConfig(
     data?: GrapherInterface
     status: QueryStatus
 } {
+    const isChartRecord = hit.type === ChartRecordType.Chart
+
     const { data: fetchedChartConfig, status } = useQuery({
-        queryKey: chartHitQueryKeys.chartConfig(hit.slug, hit.queryParams),
+        queryKey: chartHitQueryKeys.chartConfig(
+            hit.slug,
+            isChartRecord ? undefined : hit.queryParams
+        ),
         queryFn: () => {
             const configUrl = constructConfigUrl({ hit })
             if (!configUrl) return null
@@ -617,30 +625,29 @@ function useQueryInputTableForChartHit(
     data?: OwidTable
     status: QueryStatus
 } {
-    // Build input table for a chart record (only executed in that case)
-    const inputTableForChartRecord = useQueryInputTable(chartConfig, {
-        enabled: enabled && hit.type === ChartRecordType.Chart,
+    const isMultiDimView = hit.type === ChartRecordType.MultiDimView
+
+    // Build input table for a chart or explorer view record (only executed in that case)
+    const inputTableForChartOrExplorerRecord = useQueryInputTable(chartConfig, {
+        enabled: enabled && !isMultiDimView,
         dataApiUrl: DATA_API_URL,
     })
 
     // Build input table for a mdim view record (only executed in that case)
-    const mdimSearchParams = new URLSearchParams(hit.queryParams)
-    const inputTableForMdimView = useQueryInputTableForMultiDimView(
+    const mdimSearchParams = new URLSearchParams(
+        isMultiDimView ? hit.queryParams : undefined
+    )
+    const inputTableForMdimRecord = useQueryInputTableForMultiDimView(
         { chartConfig, mdimConfig, mdimSearchParams },
         {
-            enabled: enabled && hit.type === ChartRecordType.MultiDimView,
+            enabled: enabled && isMultiDimView,
             dataApiUrl: DATA_API_URL,
         }
     )
 
-    return match(hit.type)
-        .with(ChartRecordType.Chart, () => inputTableForChartRecord)
-        .with(ChartRecordType.MultiDimView, () => inputTableForMdimView)
-        .with(ChartRecordType.ExplorerView, () => ({
-            // Not supported
-            status: "error" as const,
-        }))
-        .exhaustive()
+    return isMultiDimView
+        ? inputTableForMdimRecord
+        : inputTableForChartOrExplorerRecord
 }
 
 function pickEntitiesForDisplay(
