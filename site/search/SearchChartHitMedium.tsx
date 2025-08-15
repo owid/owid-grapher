@@ -79,6 +79,7 @@ import {
 } from "../loadChartData.js"
 import { OwidTable } from "@ourworldindata/core-table"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
+import { generateFocusedSeriesNamesParam } from "@ourworldindata/grapher/src/core/EntityUrlBuilder.js"
 
 const NUM_DATA_TABLE_ROWS_PER_COLUMN = 4
 
@@ -834,10 +835,28 @@ function constructChartAndPreviewUrlsForTab({
         grapherParams.facet = FacetStrategy.none
     }
 
+    // If the Marimekko chart has a selection, also set
+    // the focus param, so that the selected entities are
+    // labelled
+    if (
+        tab === GRAPHER_TAB_NAMES.Marimekko &&
+        !grapherParams.focus &&
+        grapherState.selection.hasSelection
+    ) {
+        grapherParams.focus = generateFocusedSeriesNamesParam(
+            grapherState.selection.selectedEntityNames
+        )
+    }
+
+    // TODO: temp fix. for some reason, the chart overflows when the
+    // font size is smaller than 15px
+    const fontSize = tab === GRAPHER_TAB_NAMES.Marimekko ? 15 : undefined
+
     const previewUrl = constructPreviewUrl({
         hit,
         grapherParams,
         variant: previewVariant,
+        fontSize,
     })
 
     const chartUrl = constructChartUrl({

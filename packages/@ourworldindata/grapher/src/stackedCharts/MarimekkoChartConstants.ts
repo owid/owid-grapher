@@ -7,10 +7,12 @@ import {
     Bounds,
     EntityName,
     ColumnSlug,
+    InteractionState,
 } from "@ourworldindata/utils"
 import { OwidTable } from "@ourworldindata/core-table"
 import { StackedPoint } from "./StackedConstants"
 import { DualAxis } from "../axis/Axis"
+import { GRAPHER_DENIM } from "../color/ColorConstants"
 export interface MarimekkoChartManager extends ChartManager {
     endTime?: Time
     matchingEntitiesOnly?: boolean
@@ -19,6 +21,8 @@ export interface MarimekkoChartManager extends ChartManager {
     sortConfig?: SortConfig
     hideNoDataArea?: boolean
 }
+
+export const BAR_COLOR_ACTIVE = GRAPHER_DENIM
 
 export interface EntityColorData {
     color: Color
@@ -62,6 +66,7 @@ export interface Item {
     entityColor: EntityColorData | undefined
     bars: Bar[] // contains the y values for every y variable
     xPoint: SimplePoint | undefined // contains the single x value
+    focus: InteractionState
 }
 
 export interface PlacedItem extends Item {
@@ -99,6 +104,7 @@ export interface MarimekkoBarProps {
     isHovered: boolean
     isSelected: boolean
     isFaint: boolean
+    focus: InteractionState
     entityColor: string | undefined
     y0: number
     dualAxis: DualAxis

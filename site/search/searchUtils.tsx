@@ -316,10 +316,12 @@ export const constructPreviewUrl = ({
     hit,
     grapherParams,
     variant,
+    fontSize,
 }: {
     hit: SearchChartHit
     grapherParams?: GrapherQueryParams
     variant: PreviewVariant
+    fontSize?: number
 }): string => {
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
 
@@ -327,6 +329,7 @@ export const constructPreviewUrl = ({
     const searchParams = new URLSearchParams(
         omitUndefinedValues({
             imType: variant,
+            // imFontSize: fontSize ? fontSize.toString() : undefined,
             nocache: "true", // TODO: remove nocache param
         })
     )

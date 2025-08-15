@@ -84,8 +84,6 @@ type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
     | React.TouchEvent<SVGGElement>
 
-const NON_FOCUSED_LINE_COLOR = OWID_NON_FOCUSED_GRAY
-
 const TOP_PADDING = 6 // leave room for overflowing dots
 const LINE_LEGEND_PADDING = 4
 
