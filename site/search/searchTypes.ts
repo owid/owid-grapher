@@ -51,6 +51,12 @@ export enum ChartRecordType {
     MultiDimView = "multiDimView",
 }
 
+export enum ExplorerType {
+    Grapher = "grapher",
+    Indicator = "indicator",
+    Csv = "csv",
+}
+
 export interface ChartRecord {
     type: ChartRecordType
     objectID: string
@@ -104,26 +110,44 @@ export const searchCategoryFilters: [string, SearchCategoryFilter][] = [
     ["Charts", SearchIndexName.ExplorerViewsMdimViewsAndCharts],
 ]
 
-/**
- * This is the type for the hits that we get back from algolia when we search
- * response.results[0].hits is an array of these
- */
-export type SearchChartHit = {
+interface BaseSearchChartHit {
     title: string
     slug: string
     availableEntities: string[]
     originalAvailableEntities?: string[]
     objectID: string
-    variantName: string | null
-    type: ChartRecordType
-    queryParams: string
+    variantName?: string
     subtitle?: string
     availableTabs: GrapherTabName[]
-    chartConfigId?: string
     __position: number
     _highlightResult?: HitHighlightResult
     _snippetResult?: HitHighlightResult
 }
+
+type SearchChartViewHit = BaseSearchChartHit & {
+    type: ChartRecordType.Chart
+}
+
+type SearchExplorerViewHit = BaseSearchChartHit & {
+    type: ChartRecordType.ExplorerView
+    explorerType: ExplorerType
+    queryParams: string
+}
+
+type SearchMultiDimViewHit = BaseSearchChartHit & {
+    type: ChartRecordType.MultiDimView
+    queryParams: string
+    chartConfigId: string
+}
+
+/**
+ * This is the type for the hits that we get back from algolia when we search
+ * response.results[0].hits is an array of these
+ */
+export type SearchChartHit =
+    | SearchChartViewHit
+    | SearchExplorerViewHit
+    | SearchMultiDimViewHit
 
 // SearchResponse adds the extra fields from Algolia: page, nbHits, etc
 export type SearchChartsResponse = SearchResponse<SearchChartHit>
