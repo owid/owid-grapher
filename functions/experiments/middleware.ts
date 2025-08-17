@@ -2,11 +2,15 @@ import * as Sentry from "@sentry/react"
 import { getAnalyticsConsentValue } from "../_common/cookieTools.js"
 import { Experiment, validateUniqueExperimentIds } from "./Experiment.js"
 import { Arm, ServerCookie } from "./types.js"
+import { requestIsInIframe, isStaticAsset } from "./utils.js"
 import { experiments } from "./config.js"
 import * as cookie from "cookie"
 
 export const experimentsMiddleware = (context) => {
-    if (isStaticAsset(context.request.url) || isInIFrame()) {
+    if (
+        isStaticAsset(context.request.url) ||
+        requestIsInIframe(context.request)
+    ) {
         return context.next()
     }
 
@@ -36,8 +40,8 @@ export const experimentsMiddleware = (context) => {
                 )
 
                 if (matchingPath) {
-                const assignedArm = assignToArm(exp)
-                for (const path of exp.paths) {
+                    const assignedArm = assignToArm(exp)
+                    for (const path of exp.paths) {
                         cookiesToSet.push({
                             name: exp.id,
                             value: assignedArm.id,
@@ -46,7 +50,7 @@ export const experimentsMiddleware = (context) => {
                                 path: path,
                             },
                         })
-                    cookies[exp.id] = assignedArm.id
+                        cookies[exp.id] = assignedArm.id
                     }
                 }
             }
@@ -95,15 +99,4 @@ function assignToArm(experiment: Experiment): Arm {
         cumulFraction += arm.fraction
     }
     return assignedArm
-}
-
-function isStaticAsset(url: string): boolean {
-    if (
-        /\.(js|css|svg|png|jpg|jpeg|gif|woff2?|ttf|eot|otf|json|ico|map)$/.test(
-            url
-        )
-    ) {
-        return true
-    }
-    return false
 }
