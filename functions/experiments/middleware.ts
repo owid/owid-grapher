@@ -28,6 +28,14 @@ export const experimentsMiddleware = (context) => {
                 !cookies ||
                 !Object.prototype.hasOwnProperty.call(cookies, exp.id)
             ) {
+                // Check if the current request URL matches any of the experiment paths.
+                // If so, then assign the same experimental arm to all paths in the experiment
+                const requestPath = new URL(context.request.url).pathname
+                const matchingPath = exp.paths.find((path) =>
+                    requestPath.startsWith(path)
+                )
+
+                if (matchingPath) {
                 const assignedArm = assignToArm(exp)
                 for (const path of exp.paths) {
                         cookiesToSet.push({
