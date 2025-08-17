@@ -219,9 +219,9 @@ CSS for A/B experiments
 
 CSS pattern for hiding/showing elements based on visitor's assignment to an experiment:
 
-Elements to be shown for an experimental arm should be given a class such as "exp-data-page-insight-links--t0__block",
+Elements to be shown for an experimental arm should be given a class such as "exp-data-page-insight-links--treat0__block",
 following the format "exp-{experimentId}--{armId}__block". If the visitor is assigned to that arm,
-the html body will contain the "exp-data-page-insight-links--t0" class, which is how we then
+the html body will contain the "exp-data-page-insight-links--treat0" class, which is how we then
 determine whether to show or hide the elements.
 
 To implement this show/hide logic for an experiment, you must add the following css code.
@@ -257,55 +257,55 @@ Example:
 
 /* experiments: exp-data-page-insight-buttons-basic, exp-data-page-insight-buttons-full */
 body {
-    .exp-data-page-insight-buttons-basic--c1__block,
-    .exp-data-page-insight-buttons-basic--t0__block,
-    .exp-data-page-insight-buttons-basic--t1__block,
-    .exp-data-page-insight-buttons-full--c1__block,
-    .exp-data-page-insight-buttons-full--t000__block,
-    .exp-data-page-insight-buttons-full--t010__block,
-    .exp-data-page-insight-buttons-full--t100__block,
-    .exp-data-page-insight-buttons-full--t110__block,
-    .exp-data-page-insight-buttons-full--t101__block,
-    .exp-data-page-insight-buttons-full--t200__block,
-    .exp-data-page-insight-buttons-full--t210__block,
-    .exp-data-page-insight-buttons-full--t201__block,
-    .exp-data-page-insight-buttons-full--t211__block {
+    .exp-data-page-insight-buttons-basic--control1__block,
+    .exp-data-page-insight-buttons-basic--treat0__block,
+    .exp-data-page-insight-buttons-basic--treat1__block,
+    .exp-data-page-insight-buttons-full--control1__block,
+    .exp-data-page-insight-buttons-full--treat000__block,
+    .exp-data-page-insight-buttons-full--treat010__block,
+    .exp-data-page-insight-buttons-full--treat100__block,
+    .exp-data-page-insight-buttons-full--treat110__block,
+    .exp-data-page-insight-buttons-full--treat101__block,
+    .exp-data-page-insight-buttons-full--treat200__block,
+    .exp-data-page-insight-buttons-full--treat210__block,
+    .exp-data-page-insight-buttons-full--treat201__block,
+    .exp-data-page-insight-buttons-full--treat211__block {
         display: none;
 
         // add .exp-hide to elements that are shown by default but which you want
         // to hide for an experimental arm (must also include experimental arm in
-        // the element's class names, e.g. "exp-data-page-insight-buttons-basic--t0__block exp-hide")
+        // the element's class names, e.g. "exp-data-page-insight-buttons-basic--treat0__block exp-hide")
         &.exp-hide {
             display: block;
         }
     }
 
-    &.exp-data-page-insight-buttons-basic--c1
-        .exp-data-page-insight-buttons-basic--c1__block,
-    &.exp-data-page-insight-buttons-basic--t0
-        .exp-data-page-insight-buttons-basic--t0__block,
-    &.exp-data-page-insight-buttons-basic--t1
-        .exp-data-page-insight-buttons-basic--t1__block,
-    &.exp-data-page-insight-buttons-full--c1
-        .exp-data-page-insight-buttons-full--c1__block,
-    &.exp-data-page-insight-buttons-full--t000
-        .exp-data-page-insight-buttons-full--t000__block,
-    &.exp-data-page-insight-buttons-full--t010
-        .exp-data-page-insight-buttons-full--t010__block,
-    &.exp-data-page-insight-buttons-full--t100
-        .exp-data-page-insight-buttons-full--t100__block,
-    &.exp-data-page-insight-buttons-full--t110
-        .exp-data-page-insight-buttons-full--t110__block,
-    &.exp-data-page-insight-buttons-full--t101
-        .exp-data-page-insight-buttons-full--t101__block,
-    &.exp-data-page-insight-buttons-full--t200
-        .exp-data-page-insight-buttons-full--t200__block,
-    &.exp-data-page-insight-buttons-full--t210
-        .exp-data-page-insight-buttons-full--t210,
-    &.exp-data-page-insight-buttons-full--t201
-        .exp-data-page-insight-buttons-full--t201__block,
-    &.exp-data-page-insight-buttons-full--t211
-        .exp-data-page-insight-buttons-full--t211__block {
+    &.exp-data-page-insight-buttons-basic--control1
+        .exp-data-page-insight-buttons-basic--control1__block,
+    &.exp-data-page-insight-buttons-basic--treat0
+        .exp-data-page-insight-buttons-basic--treat0__block,
+    &.exp-data-page-insight-buttons-basic--treat1
+        .exp-data-page-insight-buttons-basic--treat1__block,
+    &.exp-data-page-insight-buttons-full--control1
+        .exp-data-page-insight-buttons-full--control1__block,
+    &.exp-data-page-insight-buttons-full--treat000
+        .exp-data-page-insight-buttons-full--treat000__block,
+    &.exp-data-page-insight-buttons-full--treat010
+        .exp-data-page-insight-buttons-full--treat010__block,
+    &.exp-data-page-insight-buttons-full--treat100
+        .exp-data-page-insight-buttons-full--treat100__block,
+    &.exp-data-page-insight-buttons-full--treat110
+        .exp-data-page-insight-buttons-full--treat110__block,
+    &.exp-data-page-insight-buttons-full--treat101
+        .exp-data-page-insight-buttons-full--treat101__block,
+    &.exp-data-page-insight-buttons-full--treat200
+        .exp-data-page-insight-buttons-full--treat200__block,
+    &.exp-data-page-insight-buttons-full--treat210
+        .exp-data-page-insight-buttons-full--treat210,
+    &.exp-data-page-insight-buttons-full--treat201
+        .exp-data-page-insight-buttons-full--treat201__block,
+    &.exp-data-page-insight-buttons-full--treat211
+        .exp-data-page-insight-buttons-full--treat211__block {
         display: block;
 
         margin-bottom: 24px;
@@ -322,19 +322,19 @@ body {
         }
     }
 
-    &.exp-data-page-insight-buttons-basic--c1,
-    &.exp-data-page-insight-buttons-basic--t0,
-    &.exp-data-page-insight-buttons-basic--t1,
-    &.exp-data-page-insight-buttons-full--c1,
-    &.exp-data-page-insight-buttons-full--t000,
-    &.exp-data-page-insight-buttons-full--t010,
-    &.exp-data-page-insight-buttons-full--t100,
-    &.exp-data-page-insight-buttons-full--t110,
-    &.exp-data-page-insight-buttons-full--t101,
-    &.exp-data-page-insight-buttons-full--t200,
-    &.exp-data-page-insight-buttons-full--t210,
-    &.exp-data-page-insight-buttons-full--t201,
-    &.exp-data-page-insight-buttons-full--t211 {
+    &.exp-data-page-insight-buttons-basic--control1,
+    &.exp-data-page-insight-buttons-basic--treat0,
+    &.exp-data-page-insight-buttons-basic--treat1,
+    &.exp-data-page-insight-buttons-full--control1,
+    &.exp-data-page-insight-buttons-full--treat000,
+    &.exp-data-page-insight-buttons-full--treat010,
+    &.exp-data-page-insight-buttons-full--treat100,
+    &.exp-data-page-insight-buttons-full--treat110,
+    &.exp-data-page-insight-buttons-full--treat101,
+    &.exp-data-page-insight-buttons-full--treat200,
+    &.exp-data-page-insight-buttons-full--treat210,
+    &.exp-data-page-insight-buttons-full--treat201,
+    &.exp-data-page-insight-buttons-full--treat211 {
         .DataPageContent {
             .chart-key-info {
                 padding-bottom: 0;

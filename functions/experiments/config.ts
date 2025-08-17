@@ -9,24 +9,23 @@ export const experiments: Experiment[] = [
          * Experiment: data-page-insight-butons-basic
          *
          * Control arm: no changes
-         * Control arm c1: "what you should know about this data" block is moved down the page (also the case in arms t0 and t1)
-         * Treatment arm t0: show placebo button ("Data sources and measurement") beneath grapher
-         * Treatment arm t1: show "view insights about this data" button beneath grapher
+         * Control arm control1: "what you should know about this data" block is moved down the page (also the case in arms treat0 and treat1)
+         * Treatment arm treat0: show placebo button ("Data sources and measurement") beneath grapher
+         * Treatment arm treat1: show "view insights about this data" button beneath grapher
          */
         id: "data-page-insight-buttons-basic",
         expires: "2025-08-31T00:00:00.000Z",
         arms: [
             // control arm
-            { id: "c", fraction: 0.7, replaysSessionSampleRate: 0.1 },
+            { id: "control", fraction: 0.7, replaysSessionSampleRate: 0.1 },
             // control arm, with "what you should know about this data" block moved down
-            { id: "c1", fraction: 0.1, replaysSessionSampleRate: 1 },
+            { id: "control1", fraction: 0.1, replaysSessionSampleRate: 1 },
             // experimental arm: placebo button ("Data sources and measurement")
-            { id: "t0", fraction: 0.1, replaysSessionSampleRate: 1 },
+            { id: "treat0", fraction: 0.1, replaysSessionSampleRate: 1 },
             // experimental arm: "View insights about this data" button
-            { id: "t1", fraction: 0.1, replaysSessionSampleRate: 1 },
+            { id: "treat1", fraction: 0.1, replaysSessionSampleRate: 1 },
         ],
         paths: [
-            "/grapher/life-expectancy",
             "/grapher/co-emissions-per-capita",
             "/grapher/gdp-per-capita-worldbank",
         ],
@@ -56,43 +55,43 @@ export const experiments: Experiment[] = [
          *      - for "specific" text, thumbnail is of the data insight that matches the button text
          *
          * Control arm: no changes
-         * Treatment arm t000: placebo - 1 link - no thumbnail
-         * Treatment arm t010: placebo - 3 links - no thumbnail
-         * Treatment arm t100: generic - 1 link - no thumbnail
-         * Treatment arm t110: generic - 3 links - no thumbnail
-         * Treatment arm t101: generic - 1 link - thumbnail
-         * Treatment arm t200: specific - 1 link - no thumbnail
-         * Treatment arm t210: specific - 3 links - no thumbnail
-         * Treatment arm t201: specific - 1 link - thumbnail
-         * Treatment arm t211: specific - 3 links - thumbnail
+         * Treatment arm treat000: placebo - 1 link - no thumbnail
+         * Treatment arm treat010: placebo - 3 links - no thumbnail
+         * Treatment arm treat100: generic - 1 link - no thumbnail
+         * Treatment arm treat110: generic - 3 links - no thumbnail
+         * Treatment arm treat101: generic - 1 link - thumbnail
+         * Treatment arm treat200: specific - 1 link - no thumbnail
+         * Treatment arm treat210: specific - 3 links - no thumbnail
+         * Treatment arm treat201: specific - 1 link - thumbnail
+         * Treatment arm treat211: specific - 3 links - thumbnail
          *
          * Note: a few condition combinations are excluded from the experiment
          * b/c they are either nonsensical or not useful for our purposes.
-         * e.g. t001: placebo - 1 link - thumbnail.
+         * e.g. treat001: placebo - 1 link - thumbnail.
          */
         id: "data-page-insight-buttons-full",
         expires: "2025-01-01T00:00:00.000Z", // this experiment is disabled
         arms: [
             // control arm
-            { id: "c", fraction: 0.55, replaysSessionSampleRate: 0.1 },
-            // Treatment arm t000: placebo - 1 link - no thumbnail
-            { id: "t000", fraction: 0.05, replaysSessionSampleRate: 1 },
-            // Treatment arm t010: placebo - 3 links - no thumbnail
-            { id: "t010", fraction: 0.05, replaysSessionSampleRate: 1 },
-            // Treatment arm t100: generic - 1 link - no thumbnail
-            { id: "t100", fraction: 0.05, replaysSessionSampleRate: 1 },
-            // Treatment arm t110: generic - 3 links - no thumbnail
-            { id: "t110", fraction: 0.05, replaysSessionSampleRate: 1 },
-            // Treatment arm t101: generic - 1 link - thumbnail
-            { id: "t101", fraction: 0.05, replaysSessionSampleRate: 1 },
-            // Treatment arm t200: specific - 1 link - no thumbnail
-            { id: "t200", fraction: 0.05, replaysSessionSampleRate: 1 },
-            // Treatment arm t210: specific - 3 links - no thumbnail
-            { id: "t210", fraction: 0.05, replaysSessionSampleRate: 1 },
-            // Treatment arm t201: specific - 1 link - thumbnail
-            { id: "t201", fraction: 0.05, replaysSessionSampleRate: 1 },
-            // Treatment arm t211: specific - 3 links - thumbnail
-            { id: "t211", fraction: 0.05, replaysSessionSampleRate: 1 },
+            { id: "control", fraction: 0.55, replaysSessionSampleRate: 0.1 },
+            // Treatment arm treat000: placebo - 1 link - no thumbnail
+            { id: "treat000", fraction: 0.05, replaysSessionSampleRate: 1 },
+            // Treatment arm treat010: placebo - 3 links - no thumbnail
+            { id: "treat010", fraction: 0.05, replaysSessionSampleRate: 1 },
+            // Treatment arm treat100: generic - 1 link - no thumbnail
+            { id: "treat100", fraction: 0.05, replaysSessionSampleRate: 1 },
+            // Treatment arm treat110: generic - 3 links - no thumbnail
+            { id: "treat110", fraction: 0.05, replaysSessionSampleRate: 1 },
+            // Treatment arm treat101: generic - 1 link - thumbnail
+            { id: "treat101", fraction: 0.05, replaysSessionSampleRate: 1 },
+            // Treatment arm treat200: specific - 1 link - no thumbnail
+            { id: "treat200", fraction: 0.05, replaysSessionSampleRate: 1 },
+            // Treatment arm treat210: specific - 3 links - no thumbnail
+            { id: "treat210", fraction: 0.05, replaysSessionSampleRate: 1 },
+            // Treatment arm treat201: specific - 1 link - thumbnail
+            { id: "treat201", fraction: 0.05, replaysSessionSampleRate: 1 },
+            // Treatment arm treat211: specific - 3 links - thumbnail
+            { id: "treat211", fraction: 0.05, replaysSessionSampleRate: 1 },
         ],
         paths: ["/grapher/"],
     }),

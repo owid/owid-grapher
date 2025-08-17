@@ -210,9 +210,9 @@ export const DataPageV2Content = ({
                                 datapageData={datapageData}
                                 hasFaq={!!faqEntries?.faqs.length}
                                 className={cx(
-                                    "exp-data-page-insight-buttons-basic--c1__block",
-                                    "exp-data-page-insight-buttons-basic--t0__block",
-                                    "exp-data-page-insight-buttons-basic--t1__block",
+                                    "exp-data-page-insight-buttons-basic--control1__block",
+                                    "exp-data-page-insight-buttons-basic--treat0__block",
+                                    "exp-data-page-insight-buttons-basic--treat1__block",
                                     "exp-hide"
                                 )}
                             />
@@ -246,19 +246,19 @@ export const DataPageV2Content = ({
                             datapageData={datapageData}
                             hasFaq={!!faqEntries?.faqs.length}
                             className={cx(
-                                "exp-data-page-insight-buttons-basic--c1__block",
-                                "exp-data-page-insight-buttons-basic--t0__block",
-                                "exp-data-page-insight-buttons-basic--t1__block",
-                                "exp-data-page-insight-buttons-full--c1__block",
-                                "exp-data-page-insight-buttons-full--t000__block",
-                                "exp-data-page-insight-buttons-full--t010__block",
-                                "exp-data-page-insight-buttons-full--t100__block",
-                                "exp-data-page-insight-buttons-full--t110__block",
-                                "exp-data-page-insight-buttons-full--t101__block",
-                                "exp-data-page-insight-buttons-full--t200__block",
-                                "exp-data-page-insight-buttons-full--t210__block",
-                                "exp-data-page-insight-buttons-full--t201__block",
-                                "exp-data-page-insight-buttons-full--t211__block"
+                                "exp-data-page-insight-buttons-basic--control1__block",
+                                "exp-data-page-insight-buttons-basic--treat0__block",
+                                "exp-data-page-insight-buttons-basic--treat1__block",
+                                "exp-data-page-insight-buttons-full--control1__block",
+                                "exp-data-page-insight-buttons-full--treat000__block",
+                                "exp-data-page-insight-buttons-full--treat010__block",
+                                "exp-data-page-insight-buttons-full--treat100__block",
+                                "exp-data-page-insight-buttons-full--treat110__block",
+                                "exp-data-page-insight-buttons-full--treat101__block",
+                                "exp-data-page-insight-buttons-full--treat200__block",
+                                "exp-data-page-insight-buttons-full--treat210__block",
+                                "exp-data-page-insight-buttons-full--treat201__block",
+                                "exp-data-page-insight-buttons-full--treat211__block"
                             )}
                             id="about-the-data" // this must be slightly different than DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
                         />
@@ -301,7 +301,7 @@ const InsightLinksInsightButtonsBasic = ({
     return (
         <>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t0__block`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat0__block`}
             >
                 <Button
                     className="insights-link"
@@ -311,7 +311,7 @@ const InsightLinksInsightButtonsBasic = ({
                 />
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t1__block`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat1__block`}
             >
                 <Button
                     className="insights-link"
@@ -342,7 +342,7 @@ const InsightLinksInsightButtonsFull = ({
     return (
         <>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t000__block`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat000__block`}
             >
                 <Button
                     className="insights-link insight__title"
@@ -352,7 +352,7 @@ const InsightLinksInsightButtonsFull = ({
                 />
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t010__block`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat010__block`}
             >
                 <Button
                     className="insights-link insight__title"
@@ -374,7 +374,7 @@ const InsightLinksInsightButtonsFull = ({
                 />
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t100__block`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat100__block`}
             >
                 <Button
                     className="insights-link insight__title"
@@ -384,7 +384,7 @@ const InsightLinksInsightButtonsFull = ({
                 />
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t110__block`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat110__block`}
             >
                 <Button
                     className="insights-link insight__title"
@@ -406,7 +406,7 @@ const InsightLinksInsightButtonsFull = ({
                 />
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t101__block`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat101__block`}
             >
                 {/* todo: what if no insightLinks? */}
                 {insightLinks && insightLinks?.length && (
@@ -435,7 +435,7 @@ const InsightLinksInsightButtonsFull = ({
                 )}
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t200__block`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat200__block`}
             >
                 {/* todo: what if no link? */}
                 {insightLinks && insightLinks?.length && (
@@ -448,7 +448,7 @@ const InsightLinksInsightButtonsFull = ({
                 )}
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t210__block`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat210__block`}
                 showHeader={true}
             >
                 {/* todo: what if no link? */}
@@ -465,7 +465,7 @@ const InsightLinksInsightButtonsFull = ({
                     ))}
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t201__block`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat201__block`}
             >
                 <div className="insight-links col-start-2 col-lg-start-2 span-cols-10 span-lg-cols-10 span-sm-cols-12">
                     {/* todo: what if no link? */}
@@ -475,7 +475,7 @@ const InsightLinksInsightButtonsFull = ({
                 </div>
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}t211__block`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat211__block`}
                 showHeader={true}
             >
                 {/* todo: what if no link? */}
