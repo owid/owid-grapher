@@ -1,6 +1,7 @@
 /*
  * types for A/B testing
  */
+import { SerializeOptions } from "cookie"
 
 type Arm = {
     id: string // unique arm id
@@ -16,6 +17,12 @@ interface ExperimentInterface {
 }
 
 type Fraction = number & { __brand: "Fraction" }
+
+interface ServerCookie {
+    name: string
+    value: string
+    options?: SerializeOptions
+}
 
 function isFraction(n: number): n is Fraction {
     return n >= 0 && n <= 1
@@ -59,5 +66,12 @@ function makeCookiePath(path: string): CookiePath {
     return path as CookiePath
 }
 
-export type { ExperimentInterface, Arm, Fraction, ISODateString, CookiePath }
+export type {
+    ExperimentInterface,
+    Arm,
+    Fraction,
+    ISODateString,
+    CookiePath,
+    ServerCookie,
+}
 export { makeFraction, makeISODateString, makeCookiePath }

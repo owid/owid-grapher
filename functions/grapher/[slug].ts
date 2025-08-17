@@ -17,6 +17,8 @@ import {
 } from "../_common/grapherTools.js"
 import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
 import { ARM_SEPARATOR, EXPERIMENT_PREFIX } from "../experiments/Experiment.js"
+import { ServerCookie } from "../experiments/types.js"
+import * as cookie from "cookie"
 
 const { preflight, corsify } = cors({
     allowMethods: ["GET", "OPTIONS", "HEAD"],
@@ -144,17 +146,18 @@ async function handleHtmlPageRequest(
         return handlePageNotFound(env, grapherPageResp)
     }
 
-    const cookies = ctx.request.headers.get("cookie") || ""
-    const cookiesToSet: string[] = (ctx.data.cookiesToSet as string[]) || []
-    const cookieNames = [
-        ...cookies.split(";"),
-        ...cookiesToSet.map((c) => c.split(";")[0]),
-    ]
+    const cookies = cookie.parse(ctx.request.headers.get("cookie") || "")
+    const cookiesToSet: ServerCookie[] =
+        (ctx.data.cookiesToSet as ServerCookie[]) || []
+    const combinedCookies = {
+        ...cookies,
+        ...Object.fromEntries(cookiesToSet.map((c) => [c.name, c.value])),
+    }
     const experimentClassNames = Array.from(
         new Set(
-            cookieNames
-                .filter((c) => c.includes(`${EXPERIMENT_PREFIX}-`))
-                .map((c) => c.replace("=", ARM_SEPARATOR))
+            Object.entries(combinedCookies)
+                .filter(([key]) => key.startsWith(`${EXPERIMENT_PREFIX}-`))
+                .map(([key, value]) => `${key}${ARM_SEPARATOR}${value}`)
         )
     )
 
@@ -185,8 +188,13 @@ async function handleHtmlPageRequest(
 
     if (cookiesToSet && cookiesToSet.length) {
         const headers = new Headers(grapherPageWithUpdatedMetaTags.headers)
-        for (const cookie of cookiesToSet) {
-            headers.append("Set-Cookie", cookie)
+        for (const serverCookie of cookiesToSet) {
+            const cookieString = cookie.serialize(
+                serverCookie.name,
+                serverCookie.value,
+                serverCookie.options
+            )
+            headers.append("Set-Cookie", cookieString)
         }
         return new Response(grapherPageWithUpdatedMetaTags.body, {
             status: grapherPageWithUpdatedMetaTags.status,

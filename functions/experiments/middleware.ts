@@ -1,20 +1,17 @@
 import * as Sentry from "@sentry/react"
-import { isInIFrame } from "@ourworldindata/utils"
-import {
-    getAnalyticsConsentValue,
-    parseCookies,
-} from "../_common/cookieTools.js"
+import { getAnalyticsConsentValue } from "../_common/cookieTools.js"
 import { Experiment, validateUniqueExperimentIds } from "./Experiment.js"
-import { Arm } from "./types.js"
+import { Arm, ServerCookie } from "./types.js"
 import { experiments } from "./config.js"
+import * as cookie from "cookie"
 
 export const experimentsMiddleware = (context) => {
     if (isStaticAsset(context.request.url) || isInIFrame()) {
         return context.next()
     }
 
-    const cookies = parseCookies(context.request)
-    const cookiesToSet: string[] = []
+    const cookies = cookie.parse(context.request.headers.get("cookie") || "")
+    const cookiesToSet: ServerCookie[] = []
 
     const activeExperiments = experiments.filter((e) => !e.isExpired())
     if (activeExperiments && activeExperiments.length) {
@@ -33,10 +30,16 @@ export const experimentsMiddleware = (context) => {
             ) {
                 const assignedArm = assignToArm(exp)
                 for (const path of exp.paths) {
-                    cookiesToSet.push(
-                        `${exp.id}=${assignedArm.id}; expires=${exp.expires.toUTCString()}; path=${path}`
-                    )
+                        cookiesToSet.push({
+                            name: exp.id,
+                            value: assignedArm.id,
+                            options: {
+                                expires: exp.expires,
+                                path: path,
+                            },
+                        })
                     cookies[exp.id] = assignedArm.id
+                    }
                 }
             }
         }
