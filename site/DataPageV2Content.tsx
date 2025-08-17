@@ -30,7 +30,7 @@ import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
 import Image from "./gdocs/components/Image.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
+import { faArrowRight, faArrowDown } from "@fortawesome/free-solid-svg-icons"
 import { DataInsightLink } from "@ourworldindata/types"
 
 declare global {
@@ -306,8 +306,9 @@ const InsightLinksInsightButtonsBasic = ({
                 <Button
                     className="insights-link"
                     href="#about-the-data"
-                    text="Data sources & measurement"
+                    text="Learn about data sources and measurement"
                     theme="solid-blue"
+                    icon={faArrowDown}
                 />
             </InsightLinks>
             <InsightLinks
@@ -318,6 +319,7 @@ const InsightLinksInsightButtonsBasic = ({
                     href={insightsHref}
                     text="View insights about this data"
                     theme="solid-blue"
+                    icon={faArrowRight}
                 />
             </InsightLinks>
         </>
@@ -346,9 +348,10 @@ const InsightLinksInsightButtonsFull = ({
             >
                 <Button
                     className="insights-link insight__title"
-                    text="Data sources & measurement"
+                    text="Learn about data sources and measurement"
                     href="#about-the-data"
                     theme="solid-blue"
+                    icon={faArrowDown}
                 />
             </InsightLinks>
             <InsightLinks
@@ -356,21 +359,24 @@ const InsightLinksInsightButtonsFull = ({
             >
                 <Button
                     className="insights-link insight__title"
-                    text="Data sources & measurement"
+                    text="Learn about data sources and measurement"
                     href="#about-the-data"
                     theme="solid-blue"
+                    icon={faArrowDown}
                 />
                 <Button
                     className="insights-link insight__title"
-                    text="Research & writing"
+                    text="View research and writing"
                     href="#research-and-writing"
                     theme="solid-blue"
+                    icon={faArrowDown}
                 />
                 <Button
                     className="insights-link insight__title"
-                    text="Related charts"
+                    text="View related charts"
                     href="#all-charts"
                     theme="solid-blue"
+                    icon={faArrowDown}
                 />
             </InsightLinks>
             <InsightLinks
@@ -381,6 +387,7 @@ const InsightLinksInsightButtonsFull = ({
                     text={genericTreatmentText}
                     href={insightsHref}
                     theme="solid-blue"
+                    icon={faArrowRight}
                 />
             </InsightLinks>
             <InsightLinks
@@ -391,18 +398,21 @@ const InsightLinksInsightButtonsFull = ({
                     text={genericTreatmentText}
                     href={insightsHref}
                     theme="solid-blue"
+                    icon={faArrowRight}
                 />
                 <Button
                     className="insights-link insight__title"
-                    text="Data sources & measurement"
+                    text="Learn about data sources and measurement"
                     href="#about-the-data"
                     theme="solid-blue"
+                    icon={faArrowDown}
                 />
                 <Button
                     className="insights-link insight__title"
-                    text="Related charts"
+                    text="View related charts"
                     href="#all-charts"
                     theme="solid-blue"
+                    icon={faArrowDown}
                 />
             </InsightLinks>
             <InsightLinks
@@ -508,7 +518,7 @@ const InsightLinks = ({
                     Insights about this data
                 </h2>
             )}
-            <div className="insight-links col-start-2 col-lg-start-2 span-cols-10 span-lg-cols-10 span-sm-cols-12">
+            <div className="insight-links span-cols-4 span-lg-cols-4 span-sm-cols-12">
                 {children}
             </div>
         </div>
