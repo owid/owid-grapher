@@ -277,6 +277,10 @@ body {
         // the element's class names, e.g. "exp-data-page-insight-buttons-basic--treat0__block exp-hide")
         &.exp-hide {
             display: block;
+
+            &.grid {
+                display: grid;
+            }
         }
     }
 
