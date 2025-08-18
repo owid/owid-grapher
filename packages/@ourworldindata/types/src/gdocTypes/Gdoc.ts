@@ -73,6 +73,7 @@ export interface NarrativeChartInfo {
     latestArchivedParent?: ArchivedPageVersion
 }
 
+// An object containing metadata needed for embedded static visualizations
 export interface LinkedStaticViz {
     desktop: ImageMetadata
     mobile?: ImageMetadata
@@ -124,6 +125,7 @@ export interface OwidGdocBaseInterface {
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     linkedCharts?: Record<string, LinkedChart>
     linkedNarrativeCharts?: Record<string, NarrativeChartInfo>
+    linkedStaticViz?: Record<string, LinkedStaticViz>
     linkedIndicators?: Record<number, LinkedIndicator>
     imageMetadata?: Record<string, ImageMetadata>
     relatedCharts?: RelatedChart[]

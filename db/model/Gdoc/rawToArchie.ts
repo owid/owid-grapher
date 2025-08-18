@@ -57,6 +57,7 @@ import {
     RawBlockResourcePanel,
     RawBlockCta,
     RawBlockScript,
+    RawBlockStaticViz,
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
 
@@ -469,6 +470,14 @@ function* rawBlockSDGGridToArchieMLString(
         }
     }
     yield "[]"
+}
+
+function* rawBlockStaticVizToArchieMLString(
+    block: RawBlockStaticViz
+): Generator<string, void, undefined> {
+    yield "{.static-viz}"
+    yield* propertyToArchieMLString("name", block.value)
+    yield "{}"
 }
 
 function* RawBlockStickyRightContainerToArchieMLString(
@@ -999,6 +1008,8 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "position" }, rawBlockPositionToArchieMLString)
         .with({ type: "heading" }, RawBlockHeadingToArchieMLString)
         .with({ type: "sdg-grid" }, rawBlockSDGGridToArchieMLString)
+        .with({ type: "static-viz" }, rawBlockStaticVizToArchieMLString)
+
         .with(
             { type: "sticky-right" },
             RawBlockStickyRightContainerToArchieMLString

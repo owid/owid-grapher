@@ -17,6 +17,7 @@ import {
     OwidGdocDataInsightInterface,
     OwidGdocPostInterface,
     OwidEnrichedGdocBlockTypeMap,
+    LinkedStaticViz,
 } from "@ourworldindata/types"
 import {
     formatAuthors,
@@ -194,6 +195,13 @@ export function useDonors(): string[] | undefined {
 export const useLinkedNarrativeChart = (name: string) => {
     const { linkedNarrativeCharts } = useContext(AttachmentsContext)
     return linkedNarrativeCharts?.[name]
+}
+
+export const useLinkedStaticViz = (
+    name: string
+): LinkedStaticViz | undefined => {
+    const { linkedStaticViz } = useContext(AttachmentsContext)
+    return linkedStaticViz?.[name]
 }
 
 export function getShortPageCitation(
