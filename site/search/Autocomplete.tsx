@@ -18,6 +18,7 @@ import {
     WordpressPageType,
     Filter,
     FilterType,
+    SynonymMap,
 } from "./searchTypes.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
@@ -245,7 +246,7 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
 
 const createFiltersSource = (
     allTopics: string[],
-    synonymMap: Map<string, string[]>
+    synonymMap: SynonymMap
 ): AutocompleteSource<BaseItem> => ({
     sourceId: "filters",
     onSelect({ navigator, item, state }) {
