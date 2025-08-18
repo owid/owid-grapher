@@ -27,7 +27,11 @@ export const experiments: Experiment[] = [
         ],
         paths: [
             "/grapher/co-emissions-per-capita",
-            "/grapher/gdp-per-capita-worldbank",
+            "/grapher/life-expectancy",
+            "/grapher/democracy-index-eiu",
+            "/grapher/child-mortality",
+            "/grapher/population",
+            "/grapher/carbon-intensity-electricity",
         ],
     }),
 ]
