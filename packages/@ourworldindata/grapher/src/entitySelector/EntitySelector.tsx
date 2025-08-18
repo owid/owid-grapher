@@ -1026,7 +1026,11 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
     @computed private get filteredAvailableEntities(): SearchableEntity[] {
         const { availableEntities, entityFilter } = this
 
-        if (entityFilter === "all") return this.sortEntities(availableEntities)
+        // Sort locals and maybe World to the top if we are looking at all entites
+        if (entityFilter === "all")
+            return this.sortEntities(availableEntities, {
+                sortLocalsToTop: true,
+            })
 
         const entityNameSet = new Set(
             this.manager.entityNamesByRegionType?.get(entityFilter) ?? []
@@ -1036,82 +1040,93 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         )
 
         return this.sortEntities(filteredAvailableEntities, {
-            // non-country groups are usually small,
-            // so sorting local entities to the top isn't necessary
-            sortLocalsAndWorldToTop: entityFilter === "countries",
+            // Sort locals and maybe World to the top if looking at the long countries list, not for others
+            sortLocalsToTop: entityFilter === "countries",
         })
     }
 
     private sortEntities(
         entities: SearchableEntity[],
-        options: { sortLocalsAndWorldToTop: boolean } = {
-            sortLocalsAndWorldToTop: true,
+        options: { sortLocalsToTop: boolean } = {
+            sortLocalsToTop: true,
         }
     ): SearchableEntity[] {
         const { sortConfig } = this
+        const byName = (e: SearchableEntity) => e.name
+        const byValue = (e: SearchableEntity) =>
+            e.sortColumnValues[sortConfig.slug]
 
-        const shouldBeSortedByName =
-            sortConfig.slug === this.table.entityNameSlug
+        // Name sorting
+        if (this.isSortedByName) {
+            // Simple name sort without local/world prioritization
+            if (!options.sortLocalsToTop) {
+                return _.orderBy(entities, byName, sortConfig.order)
+            }
 
-        // sort by name, ignoring local entities
-        if (shouldBeSortedByName && !options.sortLocalsAndWorldToTop) {
-            return _.orderBy(
-                entities,
-                (entity: SearchableEntity) => entity.name,
-                sortConfig.order
+            // Name sort with locals on top and World between locals and others
+            // We include "World" here (unlike when sorting by values, see notes below) because
+            // here it is useful.
+            const [[worldEntity], rest] = _.partition(entities, (e) =>
+                isWorldEntityName(e.name)
             )
-        }
+            const [locals, others] = _.partition(rest, (e) => e.isLocal)
 
-        // sort by name, with local entities at the top
-        if (shouldBeSortedByName && options.sortLocalsAndWorldToTop) {
-            const [[worldEntity], entitiesWithoutWorld] = _.partition(
-                entities,
-                (entity) => isWorldEntityName(entity.name)
+            const sortedLocals = _.sortBy(locals, (e) =>
+                this.localEntityNames?.indexOf(e.name)
             )
-
-            const [localEntities, otherEntities] = _.partition(
-                entitiesWithoutWorld,
-                (entity: SearchableEntity) => entity.isLocal
-            )
-
-            const sortedLocalEntities = _.sortBy(
-                localEntities,
-                (entity: SearchableEntity) =>
-                    this.localEntityNames?.indexOf(entity.name)
-            )
-
-            const sortedOtherEntities = _.orderBy(
-                otherEntities,
-                (entity: SearchableEntity) => entity.name,
-                sortConfig.order
-            )
+            const sortedOthers = _.orderBy(others, byName, sortConfig.order)
 
             return excludeUndefined([
-                ...sortedLocalEntities,
+                ...sortedLocals,
                 worldEntity,
-                ...sortedOtherEntities,
+                ...sortedOthers,
             ])
         }
 
-        // sort by number column, with missing values at the end
-        const [withValues, withoutValues] = _.partition(
-            entities,
-            (entity: SearchableEntity) =>
-                isFiniteWithGuard(entity.sortColumnValues[sortConfig.slug])
+        // Value sorting: missing values go last
+        const [withValues, withoutValues] = _.partition(entities, (e) =>
+            isFiniteWithGuard(byValue(e))
         )
-        const sortedEntitiesWithValues = _.orderBy(
-            withValues,
-            (entity: SearchableEntity) =>
-                entity.sortColumnValues[sortConfig.slug],
-            sortConfig.order
-        )
-        const sortedEntitiesWithoutValues = _.orderBy(
+
+        let sortedWithValues: SearchableEntity[]
+        if (options.sortLocalsToTop) {
+            // We're not specially handling "World" here because we want to see the sorted
+            // items and the user should understand that these are sorted. we already pull
+            // up to three items (Germany, EU 27, Europe) up to the top and don't want to add
+            // a fourth item in such cases that is obviously not sorted and that doesn't have
+            // a "local" icon indicator
+            const [localWith, otherWith] = _.partition(
+                withValues,
+                (e) => e.isLocal
+            )
+
+            // Locals: keep user-preferred order (by localEntityNames index)
+            const sortedLocalWith = _.sortBy(localWith, (e) =>
+                this.localEntityNames?.indexOf(e.name)
+            )
+
+            // Others: sort by value according to selected order
+            const sortedOtherWith = _.orderBy(
+                otherWith,
+                byValue,
+                sortConfig.order
+            )
+
+            sortedWithValues = excludeUndefined([
+                ...sortedLocalWith,
+                ...sortedOtherWith,
+            ])
+        } else {
+            sortedWithValues = _.orderBy(withValues, byValue, sortConfig.order)
+        }
+
+        const sortedWithoutValues = _.orderBy(
             withoutValues,
-            (entity: SearchableEntity) => entity.name,
+            byName,
             SortOrder.asc
         )
 
-        return [...sortedEntitiesWithValues, ...sortedEntitiesWithoutValues]
+        return [...sortedWithValues, ...sortedWithoutValues]
     }
 
     @computed get isMultiMode(): boolean {
@@ -1135,7 +1150,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         const selected = this.availableEntities.filter((entity) =>
             this.isEntitySelected(entity)
         )
-        return this.sortEntities(selected, { sortLocalsAndWorldToTop: false })
+        return this.sortEntities(selected, { sortLocalsToTop: false })
     }
 
     @action.bound onTitleClick(): void {
@@ -1344,7 +1359,9 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                     value={this.searchInput}
                     onChange={(value) => this.set({ searchInput: value })}
                     onClear={() => this.clearSearchInput()}
-                    placeholder={`Search for ${a(this.searchPlaceholderEntityType)}`}
+                    placeholder={`Search for ${a(
+                        this.searchPlaceholderEntityType
+                    )}`}
                     trackNote="entity_selector_search"
                     onKeyDown={this.onSearchKeyDown}
                 />
@@ -1521,7 +1538,9 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                             <FlippedListItem
                                 index={entityIndex}
                                 key={entity.name}
-                                flipId={`selected_${makeSafeForCSS(entity.name)}`}
+                                flipId={`selected_${makeSafeForCSS(
+                                    entity.name
+                                )}`}
                             >
                                 <SelectableEntity
                                     name={entity.name}
@@ -1563,7 +1582,9 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                                     <FlippedListItem
                                         index={entityIndex}
                                         key={entity.name}
-                                        flipId={`available_${makeSafeForCSS(entity.name)}`}
+                                        flipId={`available_${makeSafeForCSS(
+                                            entity.name
+                                        )}`}
                                     >
                                         <SelectableEntity
                                             name={entity.name}
