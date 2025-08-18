@@ -255,21 +255,11 @@ Example:
 }
 */
 
-/* experiments: exp-data-page-insight-buttons-basic, exp-data-page-insight-buttons-full */
+/* experiment: exp-data-page-insight-buttons-basic */
 body {
     .exp-data-page-insight-buttons-basic--control1__block,
     .exp-data-page-insight-buttons-basic--treat0__block,
-    .exp-data-page-insight-buttons-basic--treat1__block,
-    .exp-data-page-insight-buttons-full--control1__block,
-    .exp-data-page-insight-buttons-full--treat000__block,
-    .exp-data-page-insight-buttons-full--treat010__block,
-    .exp-data-page-insight-buttons-full--treat100__block,
-    .exp-data-page-insight-buttons-full--treat110__block,
-    .exp-data-page-insight-buttons-full--treat101__block,
-    .exp-data-page-insight-buttons-full--treat200__block,
-    .exp-data-page-insight-buttons-full--treat210__block,
-    .exp-data-page-insight-buttons-full--treat201__block,
-    .exp-data-page-insight-buttons-full--treat211__block {
+    .exp-data-page-insight-buttons-basic--treat1__block {
         display: none;
 
         // add .exp-hide to elements that are shown by default but which you want
@@ -289,27 +279,7 @@ body {
     &.exp-data-page-insight-buttons-basic--treat0
         .exp-data-page-insight-buttons-basic--treat0__block,
     &.exp-data-page-insight-buttons-basic--treat1
-        .exp-data-page-insight-buttons-basic--treat1__block,
-    &.exp-data-page-insight-buttons-full--control1
-        .exp-data-page-insight-buttons-full--control1__block,
-    &.exp-data-page-insight-buttons-full--treat000
-        .exp-data-page-insight-buttons-full--treat000__block,
-    &.exp-data-page-insight-buttons-full--treat010
-        .exp-data-page-insight-buttons-full--treat010__block,
-    &.exp-data-page-insight-buttons-full--treat100
-        .exp-data-page-insight-buttons-full--treat100__block,
-    &.exp-data-page-insight-buttons-full--treat110
-        .exp-data-page-insight-buttons-full--treat110__block,
-    &.exp-data-page-insight-buttons-full--treat101
-        .exp-data-page-insight-buttons-full--treat101__block,
-    &.exp-data-page-insight-buttons-full--treat200
-        .exp-data-page-insight-buttons-full--treat200__block,
-    &.exp-data-page-insight-buttons-full--treat210
-        .exp-data-page-insight-buttons-full--treat210,
-    &.exp-data-page-insight-buttons-full--treat201
-        .exp-data-page-insight-buttons-full--treat201__block,
-    &.exp-data-page-insight-buttons-full--treat211
-        .exp-data-page-insight-buttons-full--treat211__block {
+        .exp-data-page-insight-buttons-basic--treat1__block {
         display: block;
 
         margin-bottom: 24px;
@@ -328,17 +298,7 @@ body {
 
     &.exp-data-page-insight-buttons-basic--control1,
     &.exp-data-page-insight-buttons-basic--treat0,
-    &.exp-data-page-insight-buttons-basic--treat1,
-    &.exp-data-page-insight-buttons-full--control1,
-    &.exp-data-page-insight-buttons-full--treat000,
-    &.exp-data-page-insight-buttons-full--treat010,
-    &.exp-data-page-insight-buttons-full--treat100,
-    &.exp-data-page-insight-buttons-full--treat110,
-    &.exp-data-page-insight-buttons-full--treat101,
-    &.exp-data-page-insight-buttons-full--treat200,
-    &.exp-data-page-insight-buttons-full--treat210,
-    &.exp-data-page-insight-buttons-full--treat201,
-    &.exp-data-page-insight-buttons-full--treat211 {
+    &.exp-data-page-insight-buttons-basic--treat1 {
         .DataPageContent {
             .chart-key-info {
                 padding-bottom: 0;

@@ -28,10 +28,7 @@ import { processRelatedResearch } from "./dataPage.js"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
-import Image from "./gdocs/components/Image.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome/index.js"
 import { faArrowRight, faArrowDown } from "@fortawesome/free-solid-svg-icons"
-import { DataInsightLink } from "@ourworldindata/types"
 
 declare global {
     interface Window {
@@ -103,6 +100,8 @@ export const DataPageV2Content = ({
     )
 
     // insight link for when only a single link is shown
+    // note: this is the only place we are currently using datapageData.dataInsights,
+    // but we anticipate using it more for subsequent experiments.
     let insightsHref: string | undefined
     if (datapageData.primaryTopic) {
         const topicSlug = tagToSlugMap[datapageData.primaryTopic.topicTag]
@@ -112,11 +111,6 @@ export const DataPageV2Content = ({
             insightsHref = `/${topicSlug}`
         }
     }
-
-    // insight links for when multiple links are shown
-    const insightLinks = datapageData.dataInsights?.length
-        ? datapageData.dataInsights?.slice(0, 3)
-        : undefined
 
     return (
         <AttachmentsContext.Provider
@@ -198,14 +192,6 @@ export const DataPageV2Content = ({
                                 />
                             )}
 
-                            {/* A/B experiment: data-page-insight-buttons-full */}
-                            {insightsHref && (
-                                <InsightLinksInsightButtonsFull
-                                    insightsHref={insightsHref}
-                                    insightLinks={insightLinks}
-                                />
-                            )}
-
                             <AboutThisData
                                 datapageData={datapageData}
                                 hasFaq={!!faqEntries?.faqs.length}
@@ -248,17 +234,7 @@ export const DataPageV2Content = ({
                             className={cx(
                                 "exp-data-page-insight-buttons-basic--control1__block",
                                 "exp-data-page-insight-buttons-basic--treat0__block",
-                                "exp-data-page-insight-buttons-basic--treat1__block",
-                                "exp-data-page-insight-buttons-full--control1__block",
-                                "exp-data-page-insight-buttons-full--treat000__block",
-                                "exp-data-page-insight-buttons-full--treat010__block",
-                                "exp-data-page-insight-buttons-full--treat100__block",
-                                "exp-data-page-insight-buttons-full--treat110__block",
-                                "exp-data-page-insight-buttons-full--treat101__block",
-                                "exp-data-page-insight-buttons-full--treat200__block",
-                                "exp-data-page-insight-buttons-full--treat210__block",
-                                "exp-data-page-insight-buttons-full--treat201__block",
-                                "exp-data-page-insight-buttons-full--treat211__block"
+                                "exp-data-page-insight-buttons-basic--treat1__block"
                             )}
                             id="about-the-data" // this must be slightly different than DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
                         />
@@ -326,182 +302,6 @@ const InsightLinksInsightButtonsBasic = ({
     )
 }
 
-/**
- * A/B experiment: data-page-insight-buttons-full
- *
- * Renders the insight buttons for each experimental arm in the
- * data-page-insight-buttons-full experiment.
- */
-const InsightLinksInsightButtonsFull = ({
-    insightsHref,
-    insightLinks,
-}: {
-    insightsHref: string
-    insightLinks?: DataInsightLink[]
-}) => {
-    const experimentId = "data-page-insight-buttons-full"
-    const genericTreatmentText = "View insights about this data"
-    return (
-        <>
-            <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat000__block`}
-            >
-                <Button
-                    className="insights-link insight__title"
-                    text="Learn about data sources and measurement"
-                    href="#about-the-data"
-                    theme="solid-blue"
-                    icon={faArrowDown}
-                />
-            </InsightLinks>
-            <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat010__block`}
-            >
-                <Button
-                    className="insights-link insight__title"
-                    text="Learn about data sources and measurement"
-                    href="#about-the-data"
-                    theme="solid-blue"
-                    icon={faArrowDown}
-                />
-                <Button
-                    className="insights-link insight__title"
-                    text="View research and writing"
-                    href="#research-and-writing"
-                    theme="solid-blue"
-                    icon={faArrowDown}
-                />
-                <Button
-                    className="insights-link insight__title"
-                    text="View related charts"
-                    href="#all-charts"
-                    theme="solid-blue"
-                    icon={faArrowDown}
-                />
-            </InsightLinks>
-            <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat100__block`}
-            >
-                <Button
-                    className="insights-link insight__title"
-                    text={genericTreatmentText}
-                    href={insightsHref}
-                    theme="solid-blue"
-                    icon={faArrowRight}
-                />
-            </InsightLinks>
-            <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat110__block`}
-            >
-                <Button
-                    className="insights-link insight__title"
-                    text={genericTreatmentText}
-                    href={insightsHref}
-                    theme="solid-blue"
-                    icon={faArrowRight}
-                />
-                <Button
-                    className="insights-link insight__title"
-                    text="Learn about data sources and measurement"
-                    href="#about-the-data"
-                    theme="solid-blue"
-                    icon={faArrowDown}
-                />
-                <Button
-                    className="insights-link insight__title"
-                    text="View related charts"
-                    href="#all-charts"
-                    theme="solid-blue"
-                    icon={faArrowDown}
-                />
-            </InsightLinks>
-            <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat101__block`}
-            >
-                {/* todo: what if no insightLinks? */}
-                {insightLinks && insightLinks?.length && (
-                    <a
-                        href={insightsHref}
-                        className="insights-link has-thumbnail grid grid-cols-12 span-cols-4 span-lg-cols-6 span-sm-cols-12 owid-btn owid-btn--solid-blue"
-                    >
-                        {insightLinks[0].imgFilename && (
-                            <Image
-                                className="span-cols-2"
-                                filename={insightLinks[0].imgFilename}
-                                containerType="thumbnail"
-                                shouldLightbox={false}
-                            />
-                        )}
-                        <div className="span-cols-10">
-                            <h3 className="insight__title">
-                                {genericTreatmentText}
-                                <FontAwesomeIcon
-                                    className="owid-btn--icon-right"
-                                    icon={faArrowRight}
-                                />
-                            </h3>
-                        </div>
-                    </a>
-                )}
-            </InsightLinks>
-            <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat200__block`}
-            >
-                {/* todo: what if no link? */}
-                {insightLinks && insightLinks?.length && (
-                    <LinkToDataInsight
-                        insightLink={{
-                            title: insightLinks[0].title,
-                            slug: insightLinks[0].slug,
-                        }}
-                    />
-                )}
-            </InsightLinks>
-            <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat210__block`}
-                showHeader={true}
-            >
-                {/* todo: what if no link? */}
-                {insightLinks &&
-                    insightLinks.map((link) => (
-                        <LinkToDataInsight
-                            key={link.slug}
-                            insightLink={{
-                                title: link.title,
-                                slug: link.slug,
-                            }}
-                            showContentType={true}
-                        />
-                    ))}
-            </InsightLinks>
-            <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat201__block`}
-            >
-                <div className="insight-links col-start-2 col-lg-start-2 span-cols-10 span-lg-cols-10 span-sm-cols-12">
-                    {/* todo: what if no link? */}
-                    {insightLinks && insightLinks?.length && (
-                        <LinkToDataInsight insightLink={insightLinks[0]} />
-                    )}
-                </div>
-            </InsightLinks>
-            <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat211__block`}
-                showHeader={true}
-            >
-                {/* todo: what if no link? */}
-                {insightLinks &&
-                    insightLinks.map((link) => (
-                        <LinkToDataInsight
-                            key={link.slug}
-                            insightLink={link}
-                            showContentType={true}
-                        />
-                    ))}
-            </InsightLinks>
-        </>
-    )
-}
-
 const InsightLinks = ({
     className,
     showHeader = false,
@@ -522,43 +322,5 @@ const InsightLinks = ({
                 {children}
             </div>
         </div>
-    )
-}
-
-const LinkToDataInsight = ({
-    insightLink,
-    showContentType = true,
-}: {
-    insightLink: DataInsightLink
-    showContentType?: boolean
-}) => {
-    return (
-        <a
-            href={`/data-insights/${insightLink.slug}`}
-            className="insights-link has-thumbnail grid grid-cols-12 span-cols-4 span-lg-cols-6 span-sm-cols-12 owid-btn owid-btn--solid-blue"
-        >
-            {insightLink.imgFilename && (
-                <Image
-                    className="span-cols-2"
-                    filename={insightLink.imgFilename}
-                    containerType="thumbnail"
-                    shouldLightbox={false}
-                />
-            )}
-            <div className="span-cols-10">
-                {showContentType && (
-                    <p className="insight__type">Data insight</p>
-                )}
-                <h3 className="insight__title">
-                    {insightLink.title}
-                    <FontAwesomeIcon
-                        className={cx({
-                            "owid-btn--icon-right": insightLink.title,
-                        })}
-                        icon={faArrowRight}
-                    />
-                </h3>
-            </div>
-        </a>
     )
 }
