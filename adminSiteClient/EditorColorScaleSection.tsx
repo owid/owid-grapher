@@ -35,7 +35,10 @@ import {
     ColorSchemeOption,
     ColorSchemeDropdown,
 } from "./ColorSchemeDropdown.js"
-import { automaticBinningStrategies } from "@ourworldindata/grapher/src/color/BinningStrategies2.js"
+import {
+    automaticBinningStrategies,
+    hasValidMinMaxValuesForBinningStrategy,
+} from "@ourworldindata/grapher/src/color/BinningStrategies2.js"
 
 interface EditorColorScaleSectionFeatures {
     legendDescription: boolean
@@ -189,6 +192,22 @@ class ColorsSection extends Component<ColorsSectionProps> {
         ]
     }
 
+    @computed get binningOptionsError() {
+        const { minValue, maxValue } = this.config
+        if (this.config.binningStrategy === "manual") {
+            return undefined
+        }
+
+        const validationResult = hasValidMinMaxValuesForBinningStrategy(
+            this.config.binningStrategy,
+            { minValue, maxValue }
+        )
+
+        if (!validationResult.valid) {
+            return validationResult.reason
+        }
+    }
+
     @computed get binningStrategyOptions() {
         return automaticBinningStrategies.map((strategy) => ({
             value: strategy,
@@ -265,6 +284,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
                         }}
                         allowDecimal
                         allowNegative
+                        errorMessage={this.binningOptionsError}
                     />
                     <NumberField
                         label="Max value"
@@ -275,6 +295,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
                         }}
                         allowDecimal
                         allowNegative
+                        errorMessage={this.binningOptionsError}
                     />
                 </FieldsRow>
                 <FieldsRow>
