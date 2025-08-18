@@ -574,10 +574,10 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         return this.manager.isOnMapTab
             ? `Select ${this.entityType.plural}`
             : this.manager.canHighlightEntities
-            ? `Select ${this.entityType.plural}`
-            : this.manager.canChangeEntity
-            ? `Choose ${a(this.entityType.singular)}`
-            : `Add/remove ${this.entityType.plural}`
+              ? `Select ${this.entityType.plural}`
+              : this.manager.canChangeEntity
+                ? `Choose ${a(this.entityType.singular)}`
+                : `Add/remove ${this.entityType.plural}`
     }
 
     @computed private get searchPlaceholderEntityType(): string {
@@ -1267,8 +1267,8 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
             const sortByTarget = this.isEntityNameSlug(slug)
                 ? "name"
                 : external
-                ? external.key
-                : "value"
+                  ? external.key
+                  : "value"
             this.manager.logEntitySelectorEvent("sortBy", sortByTarget)
         }
     }
@@ -1634,8 +1634,8 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                         {this.searchInput
                             ? this.renderSearchResults()
                             : this.isMultiMode
-                            ? this.renderAllEntitiesInMultiMode()
-                            : this.renderAllEntitiesInSingleMode()}
+                              ? this.renderAllEntitiesInMultiMode()
+                              : this.renderAllEntitiesInSingleMode()}
                     </div>
                 </div>
             </div>
