@@ -1,5 +1,6 @@
 import { countries, excludeUndefined } from "@ourworldindata/utils"
 import { partition } from "remeda"
+import { SynonymMap } from "./searchTypes.js"
 
 export const synonyms = [
     ["owid", "our world in data"],
@@ -159,8 +160,8 @@ export const synonyms = [
  *
  * @returns Map where keys are lowercase terms and values are arrays of their synonyms
  */
-export function buildSynonymMap(): Map<string, string[]> {
-    const synonymMap = new Map<string, string[]>()
+export function buildSynonymMap(): SynonymMap {
+    const synonymMap: SynonymMap = new Map()
 
     // Process bidirectional synonym groups
     for (const group of synonyms) {
