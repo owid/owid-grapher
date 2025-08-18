@@ -17,7 +17,7 @@ ifneq (,$(wildcard ./.env))
 	include .env
 endif
 
-.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest
+.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest worktree
 
 help:
 	@echo 'Available commands:'
@@ -41,6 +41,7 @@ help:
 	@echo '  make reindex                reindex (or initialise) search in Algolia'
 	@echo '  make bench.search           run search benchmarks'
 	@echo '  make sync-cloudflare-images sync Cloudflare Images with local DB'
+	@echo '  make worktree BRANCH=name     create new git worktree at ../owid-grapher-BRANCH'
 
 up: export DEBUG = 'knex:query'
 
@@ -293,6 +294,23 @@ archive: node_modules
 	@echo '==> Creating an archived version of our charts'
 	PRIMARY_ENV_FILE=.env.archive yarn buildViteArchive
 	PRIMARY_ENV_FILE=.env.archive yarn tsx --tsconfig tsconfig.tsx.json ./baker/archival/archiveChangedPages.ts --latestDir
+
+worktree:
+	@if [ -z "$(BRANCH)" ]; then \
+		echo "ERROR: BRANCH parameter is required. Usage: make worktree BRANCH=branch-name"; \
+		exit 1; \
+	fi
+	@echo "==> Creating git worktree for branch $(BRANCH)"
+	git worktree add -b $(BRANCH) ../owid-grapher-$(BRANCH)
+	@echo "==> Copying .env file"
+	cp .env ../owid-grapher-$(BRANCH)/.env
+	@echo "==> Installing dependencies in new worktree"
+	cd ../owid-grapher-$(BRANCH) && yarn install
+	@echo "==> Copying PR plan template"
+	cp ./docs/agent-guidelines/pr-plan-template.md ../owid-grapher-$(BRANCH)/pr-plan.md
+	@echo "==> Opening pr-plan.md in default editor"
+	$$EDITOR ../owid-grapher-$(BRANCH)/pr-plan.md || open ../owid-grapher-$(BRANCH)/pr-plan.md
+	@echo "==> Worktree created successfully at ../owid-grapher-$(BRANCH)"
 
 clean:
 	rm -rf node_modules
