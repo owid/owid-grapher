@@ -6,7 +6,7 @@ import {
     RequiredBy,
     roundSigFig,
 } from "@ourworldindata/utils"
-import { quantile } from "d3"
+import { min, quantile } from "d3"
 import { sortedUniq } from "lodash-es"
 import * as R from "remeda"
 import { match, P } from "ts-pattern"
@@ -193,6 +193,44 @@ export const runBinningStrategy = (
     }
 }
 
+type MinMaxValueResult = { valid: true } | { valid: false; reason: string }
+
+export const hasValidMinMaxValuesForBinningStrategy = (
+    strategy: BinningStrategy,
+    { minValue, maxValue }: { minValue?: number; maxValue?: number } = {}
+): MinMaxValueResult => {
+    if (minValue === undefined || maxValue === undefined) {
+        // Values will be determined automatically; no need for validation
+        return { valid: true }
+    }
+
+    if (
+        minValue !== undefined &&
+        maxValue !== undefined &&
+        maxValue < minValue
+    ) {
+        return { valid: false, reason: "minValue is greater than maxValue" }
+    }
+
+    return match(strategy)
+        .with("auto", () => {
+            return { valid: true } as const
+        })
+        .when(isEqualSizeBinningStrategy, () => {
+            return { valid: true } as const
+        })
+        .when(isLogBinningStrategy, () => {
+            if (minValue <= 0 || maxValue <= 0) {
+                return {
+                    valid: false,
+                    reason: "Log binning requires non-zero positive values",
+                } as const
+            }
+            return { valid: true } as const
+        })
+        .exhaustive()
+}
+
 /**
  * minValue and maxValue may either be explicitly given, or automatically computed from the data.
  * If auto-computed, they are based on some very much heuristic rules, based on quantiles etc.
@@ -232,6 +270,8 @@ const computeMinMaxForStrategy = (
             if (minValue === undefined || maxValue === undefined)
                 throw new Error("Couldn't obtain minValue or maxValue")
 
+            // Ensure that the min/max values are at least as high as the number of decimals precision.
+            // E.g. if we have 1 decimal place, the minimum value should be at least 0.1
             if (conf?.numDecimalPlaces !== undefined) {
                 if (minValue > 0)
                     minValue = Math.max(
@@ -250,6 +290,7 @@ const computeMinMaxForStrategy = (
     if (minValue === undefined || maxValue === undefined)
         throw new Error("Couldn't obtain minValue or maxValue")
 
+    // Ensure that we have minValue <= maxValue
     maxValue = Math.max(minValue, maxValue)
     return { minValue, maxValue }
 }
