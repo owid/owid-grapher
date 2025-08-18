@@ -12,7 +12,7 @@ import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../../SiteConstants.js"
 import { useMediaQuery } from "usehooks-ts"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faDownload } from "@fortawesome/free-solid-svg-icons"
+import { faCaretDown, faDownload } from "@fortawesome/free-solid-svg-icons"
 import { Container } from "./layout.js"
 import { Lightbox } from "../../Lightbox.js"
 
@@ -66,7 +66,7 @@ const containerSizes: Record<ImageParentContainer, string> = {
 export const LIGHTBOX_IMAGE_CLASS = "lightbox-image"
 
 export default function Image(props: {
-    filename: string
+    filename?: string
     smallFilename?: string
     alt?: string
     hasOutline?: boolean
@@ -74,6 +74,10 @@ export default function Image(props: {
     containerType?: ImageParentContainer
     shouldLightbox?: boolean
     preferSmallFilename?: boolean
+    // Direct image data (for StaticViz)
+    imageData?: ImageMetadata
+    smallImageData?: ImageMetadata
+    dataSource?: string
 }) {
     const {
         filename,
@@ -82,6 +86,9 @@ export default function Image(props: {
         containerType = "default",
         shouldLightbox = true,
         preferSmallFilename,
+        imageData,
+        smallImageData,
+        dataSource,
     } = props
 
     const className = cx("image", props.className, {
@@ -93,8 +100,14 @@ export default function Image(props: {
 
     const { isPreviewing } = useContext(DocumentContext)
     const isSmall = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
-    const image = useImage(filename)
-    const smallImage = useImage(smallFilename)
+
+    // Always call hooks unconditionally, then choose which data to use
+    const imageFromHook = useImage(filename)
+    const smallImageFromHook = useImage(smallFilename)
+
+    // Use direct image data if provided, otherwise use filename-based lookup
+    const image = imageData || imageFromHook
+    const smallImage = smallImageData || smallImageFromHook
     const activeImage =
         (isSmall || preferSmallFilename) && smallImage ? smallImage : image
     const [isLightboxOpen, setIsLightboxOpen] = useState(false)
@@ -128,7 +141,7 @@ export default function Image(props: {
 
     if (!activeImage || !activeImage.cloudflareId) {
         if (isPreviewing) {
-            return renderImageError(filename)
+            return renderImageError(filename || "unknown")
         }
         // Don't render anything if we're not previewing (i.e. a bake) and the image is not found
         return null
@@ -176,26 +189,11 @@ export default function Image(props: {
                 />
             </picture>
             {isInteractive && (
-                <div className="article-block__image-download-button-container">
-                    <button
-                        aria-label={`Download ${filename}`}
-                        className="article-block__image-download-button"
-                        onClick={(e) => {
-                            e.preventDefault()
-                            void handleDownload()
-                        }}
-                    >
-                        <div className="article-block__image-download-button-background-layer">
-                            <FontAwesomeIcon
-                                icon={faDownload}
-                                className="article-block__image-download-button-icon"
-                            />
-                            <span className="article-block__image-download-button-text">
-                                Download image
-                            </span>
-                        </div>
-                    </button>
-                </div>
+                <ImageDownloadButton
+                    filename={activeImage.filename}
+                    handleDownload={handleDownload}
+                    dataSource={dataSource}
+                />
             )}
             {isLightboxOpen && (
                 <Lightbox
@@ -208,5 +206,75 @@ export default function Image(props: {
                 />
             )}
         </div>
+    )
+}
+
+function ImageDownloadButton(props: {
+    filename: string
+    handleDownload: () => Promise<void>
+    dataSource?: string
+}) {
+    const { filename, handleDownload, dataSource } = props
+    if (!dataSource) {
+        return (
+            <div className="article-block__image-download-button-container">
+                <button
+                    aria-label={`Download ${filename}`}
+                    className="article-block__image-download-button"
+                    onClick={(e) => {
+                        e.preventDefault()
+                        void handleDownload()
+                    }}
+                >
+                    <div className="article-block__image-download-button-background-layer">
+                        <FontAwesomeIcon
+                            icon={faDownload}
+                            className="article-block__image-download-button-icon"
+                        />
+                        <span className="article-block__image-download-button-text">
+                            Download image
+                        </span>
+                    </div>
+                </button>
+            </div>
+        )
+    }
+    return (
+        <>
+            <div className="article-block__image-download-button-container article-block__image-download-button-container--has-dropdown">
+                <button className="article-block__image-download-dropdown">
+                    <div className="article-block__image-download-button-background-layer">
+                        <FontAwesomeIcon
+                            icon={faDownload}
+                            className="article-block__image-download-button-icon"
+                        />
+                        <span className="article-block__image-download-button-text">
+                            Download options
+                            <FontAwesomeIcon
+                                icon={faCaretDown}
+                                className="article-block__image-download-button-caret-icon"
+                            />
+                        </span>
+                    </div>
+                    <ul className="article-block__image-download-options">
+                        <li>
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault()
+                                    void handleDownload()
+                                }}
+                            >
+                                Download image
+                            </button>
+                        </li>
+                        <li>
+                            <a target="_blank" href={dataSource} rel="noopener">
+                                Download data
+                            </a>
+                        </li>
+                    </ul>
+                </button>
+            </div>
+        </>
     )
 }

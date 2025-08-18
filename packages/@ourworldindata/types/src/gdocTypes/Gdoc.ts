@@ -72,6 +72,17 @@ export interface NarrativeChartInfo {
     queryParamsForParentChart: QueryParams
 }
 
+// An object containing metadata needed for embedded static visualizations
+export interface LinkedStaticViz {
+    desktop: ImageMetadata
+    mobile?: ImageMetadata
+    slug: string
+    title: string
+    grapherUrl?: string
+    sourceUrl?: string
+    description: string
+}
+
 /**
  * A linked indicator is derived from a linked grapher's config (see: getVariableOfDatapageIfApplicable)
  * e.g. https://ourworldindata.org/grapher/tomato-production -> config for grapher with { slug: "tomato-production" } -> indicator metadata
@@ -112,6 +123,7 @@ export interface OwidGdocBaseInterface {
     linkedDocuments?: Record<string, OwidGdocMinimalPostInterface>
     linkedCharts?: Record<string, LinkedChart>
     linkedNarrativeCharts?: Record<string, NarrativeChartInfo>
+    linkedStaticViz?: Record<string, LinkedStaticViz>
     linkedIndicators?: Record<number, LinkedIndicator>
     imageMetadata?: Record<string, ImageMetadata>
     relatedCharts?: RelatedChart[]
