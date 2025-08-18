@@ -36,6 +36,7 @@ import { KeyInsights } from "./KeyInsights.js"
 import { ResearchAndWriting } from "./ResearchAndWriting.js"
 import { AllCharts } from "./AllCharts.js"
 import Video from "./Video.js"
+import StaticViz from "./StaticViz.js"
 import { Table } from "./Table.js"
 import { ExplorerTiles } from "./ExplorerTiles.js"
 import KeyIndicator from "./KeyIndicator.js"
@@ -204,6 +205,13 @@ function ArticleBlockInternal({
                 shouldAutoplay={block.shouldAutoplay}
                 caption={block.caption}
                 filename={block.filename}
+            />
+        ))
+        .with({ type: "static-viz" }, (block) => (
+            <StaticViz
+                className={getLayout("static-viz", containerType)}
+                name={block.name}
+                containerType={containerType}
             />
         ))
         .with({ type: "people" }, (block) => (
