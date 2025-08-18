@@ -1115,6 +1115,21 @@ export const getUrlParamNameForFilter = (filter: Filter) =>
         .with(FilterType.QUERY, () => SearchUrlParam.QUERY)
         .exhaustive()
 
+/**
+ * Builds a fully qualified search URL for the provided autocomplete filter.
+ *
+ * If the filter type is `COUNTRY` or `TOPIC`, the URL also includes a
+ * `resultType=ALL` parameter to broaden the search results. Regular query terms
+ * (the only other filter type) do not include this parameter and will default
+ * to "resultType=data" (this parameter is assumed but not shown in the URL)
+ *
+ * When selecting "Kenya" as a country filter, the search query string would be:
+ * "?country=Kenya&resultType=all"
+ *
+ * Non-country/topic filters do not include any extra parameters. For instance,
+ * an "outdoor" query would result in the following query string:
+ * "?query=outdoor"
+ */
 export const getItemUrlForFilter = (filter: Filter): string => {
     const queryParams = {
         [getUrlParamNameForFilter(filter)]: filter.name,
