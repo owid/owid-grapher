@@ -40,6 +40,7 @@ describe("buildSynonymMap", () => {
     it("should include country alternative mappings", () => {
         // Test unidirectional country mappings
         expect(synonymMap.get("us")).toContain("united states")
+        expect(synonymMap.get("usa")).toContain("united states")
         expect(synonymMap.get("uk")).toContain("united kingdom")
     })
 
