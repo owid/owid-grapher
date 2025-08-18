@@ -282,6 +282,8 @@ export class ChartEditorView<
             errorMessages.focusedSeriesNames = message
         }
 
+        // TODO Add central binning option validation here
+
         return errorMessages
     }
 

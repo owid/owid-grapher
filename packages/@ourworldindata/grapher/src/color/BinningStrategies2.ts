@@ -199,7 +199,7 @@ export const hasValidMinMaxValuesForBinningStrategy = (
     strategy: BinningStrategy,
     { minValue, maxValue }: { minValue?: number; maxValue?: number } = {}
 ): MinMaxValueResult => {
-    if (minValue === undefined || maxValue === undefined) {
+    if (minValue === undefined && maxValue === undefined) {
         // Values will be determined automatically; no need for validation
         return { valid: true }
     }
@@ -413,6 +413,12 @@ const runResolvedBinningStrategy = (
     conf: ResolvedBinningStrategyConfig,
     { hasMidpoint }: { hasMidpoint: boolean }
 ): number[] => {
+    const validationResult = hasValidMinMaxValuesForBinningStrategy(
+        conf.strategy,
+        conf
+    )
+    if (!validationResult.valid) return [0] // Placeholder binning for invalid configurations
+
     const { minValue, maxValue } = computeMinMaxForStrategy(
         conf.strategy,
         conf.sortedValues,
