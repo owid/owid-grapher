@@ -243,6 +243,11 @@ export const enrichedBlockExamples: Record<
         shouldAutoplay: false,
         parseErrors: [],
     },
+    "static-viz": {
+        type: "static-viz",
+        name: "some-static-viz",
+        parseErrors: [],
+    },
     list: {
         type: "list",
         items: [enrichedBlockText],

@@ -209,6 +209,7 @@ export {
     type RawBlockScript,
     type RawBlockImage,
     type RawBlockVideo,
+    type RawBlockStaticViz,
     type RawBlockKeyInsights,
     type RawBlockLatestDataInsights,
     type RawBlockList,
@@ -273,6 +274,7 @@ export {
     type EnrichedBlockScript,
     type EnrichedBlockImage,
     type EnrichedBlockVideo,
+    type EnrichedBlockStaticViz,
     type EnrichedBlockKeyInsights,
     type EnrichedBlockKeyInsightsSlide,
     type EnrichedBlockLatestDataInsights,
@@ -374,6 +376,7 @@ export {
     type OwidGdocIndexItem,
     extractGdocIndexItem,
     type NarrativeChartInfo,
+    type LinkedStaticViz,
     type OwidGdocDataInsightIndexItem,
 } from "./gdocTypes/Gdoc.js"
 
