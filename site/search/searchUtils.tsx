@@ -51,6 +51,7 @@ import {
     SearchUrlParam,
     PageType,
     WordpressPageType,
+    SynonymMap,
 } from "./searchTypes.js"
 import {
     faBook,
@@ -519,7 +520,7 @@ export function searchWithWords(
     selectedCountryNames: Set<string>,
     selectedTopics: Set<string>,
     sortOptions: { threshold: number; limit: number },
-    synonymMap: Map<string, string[]>
+    synonymMap: SynonymMap
 ): {
     countryResults: ScoredSearchResult[]
     topicResults: ScoredSearchResult[]
@@ -599,7 +600,7 @@ export function findMatches(
     selectedCountryNames: Set<string>,
     selectedTopics: Set<string>,
     sortOptions: { threshold: number; limit: number },
-    synonymMap: Map<string, string[]>,
+    synonymMap: SynonymMap,
     wordIndex: number = 0
 ): {
     countryResults: ScoredSearchResult[]
@@ -681,7 +682,7 @@ export function getAutocompleteSuggestionsWithUnmatchedQuery(
     query: string,
     allTopics: string[],
     filters: Filter[], // currently active filters to exclude from suggestions
-    synonymMap: Map<string, string[]>,
+    synonymMap: SynonymMap,
     limitPerFilter: number = 3
 ): {
     suggestions: Filter[]

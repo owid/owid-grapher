@@ -13,7 +13,7 @@ import {
     getAutocompleteSuggestionsWithUnmatchedQuery,
     createCountryFilter,
 } from "./searchUtils.js"
-import { FilterType } from "./searchTypes.js"
+import { FilterType, SynonymMap } from "./searchTypes.js"
 
 describe("getSortedGrapherTabsForChartHit", () => {
     const {
@@ -244,7 +244,7 @@ describe("placeGrapherTabsInGridLayout", () => {
 })
 
 describe("Fuzzy search in search autocomplete", () => {
-    let synonymMap: Map<string, string[]>
+    let synonymMap: SynonymMap
     const mockCountries = [
         "United States",
         "United Kingdom",
