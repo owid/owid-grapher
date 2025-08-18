@@ -71,12 +71,18 @@ import {
     ArchivedPageVersion,
     DbRawPostGdoc,
     PostsGdocsTableName,
+    LinkedStaticViz,
 } from "@ourworldindata/types"
 import {
     getAllNarrativeChartNames,
     getNarrativeChartsInfo,
 } from "../NarrativeChart.js"
-import * as R from "remeda"
+
+import { indexBy } from "remeda"
+import {
+    getLinkedStaticVizBySlugs,
+    getEnrichedStaticVizList,
+} from "../StaticViz.js"
 import { getDods } from "../Dod.js"
 import { getLatestArchivedExplorerPageVersionsIfEnabled } from "../ArchivedExplorerVersion.js"
 import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../ArchivedMultiDimVersion.js"
@@ -216,6 +222,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     linkedDocuments: Record<string, OwidGdocMinimalPostInterface> = {}
     latestDataInsights: LatestDataInsight[] = []
     linkedNarrativeCharts?: Record<string, NarrativeChartInfo> = {}
+    linkedStaticViz?: Record<string, LinkedStaticViz> = {}
     _omittableFields: string[] = []
 
     constructor(id?: string) {
@@ -429,6 +436,13 @@ export class GdocBase implements OwidGdocBaseInterface {
 
         return filteredLinks
     }
+    get linkedStaticVizNames(): string[] {
+        const filteredLinks = this.links
+            .filter((link) => link.linkType === ContentGraphLinkType.StaticViz)
+            .map((link) => link.target)
+
+        return filteredLinks
+    }
 
     get hasAllChartsBlock(): boolean {
         let hasAllChartsBlock = false
@@ -460,6 +474,19 @@ export class GdocBase implements OwidGdocBaseInterface {
                     })
                 }
                 return links
+            })
+            .with({ type: "static-viz" }, (block) => {
+                return [
+                    {
+                        target: block.name,
+                        linkType: ContentGraphLinkType.StaticViz,
+                        queryString: "",
+                        hash: "",
+                        text: "",
+                        componentType: block.type,
+                        sourceId: this.id,
+                    },
+                ]
             })
             .with({ type: "person" }, (block) => {
                 if (!block.url) return []
@@ -902,6 +929,14 @@ export class GdocBase implements OwidGdocBaseInterface {
         this.linkedNarrativeCharts = _.keyBy(result, "name")
     }
 
+    async loadLinkedStaticViz(knex: db.KnexReadonlyTransaction): Promise<void> {
+        const dbResults = await getLinkedStaticVizBySlugs(
+            knex,
+            this.linkedStaticVizNames
+        )
+        this.linkedStaticViz = _.keyBy(dbResults, "slug")
+    }
+
     async fetchAndEnrichGdoc(
         acceptSuggestions: boolean = false
     ): Promise<void> {
@@ -991,11 +1026,13 @@ export class GdocBase implements OwidGdocBaseInterface {
             publishedExplorersBySlug,
             narrativeChartNames,
             dods,
+            staticViz,
         ] = await Promise.all([
             mapSlugsToIds(knex),
             db.getPublishedExplorersBySlug(knex),
             getAllNarrativeChartNames(knex),
-            getDods(knex).then((dods) => R.indexBy(dods, (dod) => dod.name)),
+            getDods(knex).then((dods) => indexBy(dods, (dod) => dod.name)),
+            getEnrichedStaticVizList(knex),
         ])
 
         const linkErrors: OwidGdocErrorMessage[] = []
@@ -1061,6 +1098,22 @@ export class GdocBase implements OwidGdocBaseInterface {
                         })
                     }
                 })
+                .with(
+                    {
+                        linkType: ContentGraphLinkType.StaticViz,
+                    },
+                    () => {
+                        if (
+                            !staticViz.find((viz) => viz.slug === link.target)
+                        ) {
+                            linkErrors.push({
+                                property: "content",
+                                message: `Static viz with slug "${link.target}" does not exist`,
+                                type: OwidGdocErrorMessageType.Error,
+                            })
+                        }
+                    }
+                )
                 .with({ linkType: ContentGraphLinkType.GuidedChart }, () => {
                     // Validate that guided chart query parameters are spelled correctly
                     const url = Url.fromURL(link.target)
@@ -1149,6 +1202,8 @@ export class GdocBase implements OwidGdocBaseInterface {
         await this.loadLinkedCharts(knex)
         await this.loadLinkedIndicators(knex) // depends on linked charts
         await this.loadNarrativeChartsInfo(knex)
+        await this._loadSubclassAttachments(knex)
+        await this.loadLinkedStaticViz(knex)
         await this._loadSubclassAttachments(knex) // for GdocHomepage, mutates linkedCharts and linkedDocuments
         await this.validate(knex)
     }

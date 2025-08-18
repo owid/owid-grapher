@@ -59,6 +59,7 @@ import {
     RawBlockResourcePanel,
     RawBlockCta,
     RawBlockScript,
+    RawBlockStaticViz,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -224,6 +225,15 @@ export function enrichedBlockToRawBlock(
                     caption: b.caption && spansToHtmlText(b.caption),
                     size: b.size,
                     hasOutline: String(b.hasOutline),
+                },
+            })
+        )
+        .with(
+            { type: "static-viz" },
+            (block): RawBlockStaticViz => ({
+                type: "static-viz",
+                value: {
+                    name: block.name,
                 },
             })
         )

@@ -1,0 +1,165 @@
+@use "sass:color";
+
+.article-block__image,
+.static-viz,
+.key-insight__asset-container {
+    width: 100%;
+    margin: 32px 0;
+
+    .image {
+        position: relative;
+    }
+
+    & .image--has-outline picture {
+        outline: 1px solid $gray-10;
+    }
+
+    @include touch-device {
+        &:has(.article-block__image-download-button-container) {
+            margin-bottom: 16px;
+        }
+    }
+
+    picture {
+        // fixes strange extra height that is otherwise added to the element on firefox
+        display: flex;
+
+        // fixes wrong img aspect ratio in Safari < 14, see https://stackoverflow.com/a/61196907/10670163
+        align-items: flex-start;
+    }
+
+    img {
+        width: 100%;
+
+        &.lightbox-image {
+            cursor: zoom-in;
+        }
+    }
+
+    &:hover {
+        .article-block__image-download-button,
+        .article-block__image-download-dropdown {
+            opacity: 1;
+        }
+    }
+
+    .article-block__image-download-button-container {
+        bottom: 16px;
+        right: 16px;
+        position: absolute;
+        overflow: hidden;
+
+        @include touch-device {
+            position: initial;
+            margin-top: 16px;
+
+            .article-block__image-download-button {
+                opacity: 1;
+                transform: none;
+                width: 100%;
+            }
+            .article-block__image-download-button-background-layer {
+                display: flex;
+                justify-content: center;
+                height: 40px;
+                color: $blue-90;
+                background-color: $blue-20;
+            }
+            .article-block__image-download-button-text {
+                opacity: 1;
+            }
+        }
+    }
+
+    .article-block__image-download-button-container--has-dropdown {
+        bottom: -58px;
+    }
+
+    .article-block__image-download-button,
+    .article-block__image-download-dropdown {
+        background: transparent;
+        transform: translateX(calc(100% - 28px));
+        transition: 0.3s ease;
+        backdrop-filter: blur(1px);
+        padding: 0;
+        opacity: 0;
+
+        &:hover,
+        &:focus-within {
+            transform: translateX(0);
+            opacity: 1;
+            .article-block__image-download-button-text {
+                opacity: 1;
+            }
+        }
+    }
+
+    .article-block__image-download-button-background-layer {
+        background-color: color.scale($gray-70, $alpha: -25%);
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        border: none;
+        color: #fff;
+        height: 28px;
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .article-block__image-download-button-icon {
+        width: 12px;
+        height: 12px;
+        margin-right: 4px;
+    }
+
+    .article-block__image-download-button-text {
+        @include label-2-medium;
+        display: inline-block;
+        line-height: 16px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .article-block__image-download-button-caret-icon {
+        width: 12px;
+        height: 12px;
+        margin-left: 4px;
+    }
+
+    .article-block__image-download-dropdown {
+        &:focus-within {
+            .article-block__image-download-options {
+                opacity: 1;
+            }
+        }
+    }
+
+    .article-block__image-download-options {
+        background-color: #fff;
+        border-radius: 4px;
+        padding: 4px;
+        opacity: 0;
+
+        li {
+            list-style: none;
+        }
+        button,
+        a {
+            padding: 0;
+            display: block;
+            text-align: left;
+            background: none;
+            border: none;
+            height: 32px;
+            padding: 0 12px;
+            line-height: 32px;
+            width: 100%;
+            border-radius: 4px;
+            color: $blue-90;
+            cursor: pointer;
+            &:hover {
+                background-color: $blue-20;
+            }
+        }
+    }
+}

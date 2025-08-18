@@ -66,14 +66,11 @@ function ImagePreview({
     const image = imagesData?.find((img) => img.id === imageId)
     if (!image) return null
     return (
-        <div className="image-preview">
-            <img
-                src={makeImageSrc(image.cloudflareId!, 300)}
-                alt={image.filename}
-                style={{ maxWidth: "300px", maxHeight: "200px" }}
-            />
-            <div className="text-muted mt-1">{image.filename}</div>
-        </div>
+        <img
+            src={makeImageSrc(image.cloudflareId!, 300)}
+            alt={image.filename}
+            style={{ maxWidth: "300px", maxHeight: "200px" }}
+        />
     )
 }
 
@@ -346,7 +343,7 @@ export function StaticVizEditPage() {
                             </Select>
                         </Form.Item>
 
-                        <Form.Item label="Image Preview">
+                        <Form.Item>
                             <ImagePreview
                                 imagesData={imagesData}
                                 imageId={form.getFieldValue("imageId")}
@@ -360,11 +357,7 @@ export function StaticVizEditPage() {
                                 (optional)
                             </span>
                         </h3>
-                        <Form.Item
-                            label="Mobile Image"
-                            name="mobileImageId"
-                            help="Optional separate image for mobile devices"
-                        >
+                        <Form.Item name="mobileImageId">
                             <Select
                                 placeholder="Select a mobile image (optional)"
                                 loading={isLoadingImages}
@@ -385,7 +378,7 @@ export function StaticVizEditPage() {
                             </Select>
                         </Form.Item>
 
-                        <Form.Item label="Mobile Image Preview">
+                        <Form.Item>
                             <ImagePreview
                                 imagesData={imagesData}
                                 imageId={form.getFieldValue("mobileImageId")}

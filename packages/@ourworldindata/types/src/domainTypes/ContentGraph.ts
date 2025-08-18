@@ -70,6 +70,7 @@ export enum ContentGraphLinkType {
     Grapher = "grapher",
     Explorer = "explorer",
     NarrativeChart = "narrative-chart",
+    StaticViz = "static-viz",
     Dod = "dod",
     GuidedChart = "guided-chart",
 }
