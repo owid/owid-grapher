@@ -227,9 +227,9 @@ export function StaticVizIndexPage() {
         },
     })
 
-    const filteredStaticVizInfos = useMemo(() => {
-        const StaticVizInfos = staticVizResponse || []
-        return StaticVizInfos.filter((item) => {
+    const filteredLinkedStaticViz = useMemo(() => {
+        const linkedStaticViz = staticVizResponse || []
+        return linkedStaticViz.filter((item) => {
             if (!searchValue) return true
             const value = searchValue.toLowerCase()
             const { title, slug, description, createdBy, updatedBy } = item
@@ -281,7 +281,7 @@ export function StaticVizIndexPage() {
                     <Table
                         size="small"
                         columns={columns}
-                        dataSource={filteredStaticVizInfos}
+                        dataSource={filteredLinkedStaticViz}
                         rowKey={(x) => x.slug}
                         pagination={{
                             pageSize: 50,
