@@ -285,6 +285,7 @@ const InsightLinksInsightButtonsBasic = ({
                     text="Learn about data sources and measurement"
                     theme="solid-blue"
                     icon={faArrowDown}
+                    dataTrackNote="btn_click__about_the_data"
                 />
             </InsightLinks>
             <InsightLinks
@@ -296,6 +297,7 @@ const InsightLinksInsightButtonsBasic = ({
                     text="View insights about this data"
                     theme="solid-blue"
                     icon={faArrowRight}
+                    dataTrackNote="btn_click__insights"
                 />
             </InsightLinks>
         </>
