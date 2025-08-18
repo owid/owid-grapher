@@ -6,6 +6,8 @@ import {
     LinkedStaticViz,
 } from "@ourworldindata/types"
 import * as db from "../db.js"
+import urlJoin from "url-join"
+import { BAKED_GRAPHER_URL } from "../../settings/clientSettings.js"
 
 const BASE_STATIC_VIZ_QUERY = `-- sql
     SELECT
@@ -26,13 +28,15 @@ const BASE_STATIC_VIZ_QUERY = `-- sql
         desktopImage.filename AS desktopImageFilename,
         desktopImage.originalHeight AS desktopImageOriginalHeight,
         desktopImage.originalWidth AS desktopImageOriginalWidth,
+        desktopImage.updatedAt AS desktopImageUpdatedAt,
         mobileImage.defaultAlt AS mobileImageAlt,
         mobileImage.id AS mobileImageId,
         mobileImage.imageText AS mobileImageText,
         mobileImage.cloudflareId AS mobileImageCloudflareId,
         mobileImage.filename AS mobileImageFilename,
         mobileImage.originalHeight AS mobileImageOriginalHeight,
-        mobileImage.originalWidth AS mobileImageOriginalWidth
+        mobileImage.originalWidth AS mobileImageOriginalWidth,
+        mobileImage.updatedAt AS mobileImageUpdatedAt
     FROM
         ${StaticVizTableName} sv
     JOIN ${UsersTableName} u ON sv.createdBy = u.id
@@ -120,25 +124,29 @@ export async function getLinkedStaticVizBySlugs(
     return results.map((row: any) => {
         const linkedStaticViz: LinkedStaticViz = {
             desktop: {
-                alt: row.desktopImageAlt,
+                defaultAlt: row.desktopImageAlt,
                 cloudflareId: row.desktopImageCloudflareId,
                 filename: row.desktopImageFilename,
                 originalHeight: row.desktopImageOriginalHeight,
                 originalWidth: row.desktopImageOriginalWidth,
+                updatedAt: row.desktopImageUpdatedAt,
             },
             slug: row.slug,
             title: row.title,
-            grapherSlug: row.grapherSlug,
+            grapherUrl: row.grapherSlug
+                ? urlJoin(BAKED_GRAPHER_URL, row.grapherSlug)
+                : "",
             sourceUrl: row.sourceUrl,
             description: row.description || "",
         }
         if (row.mobileImageFilename) {
             linkedStaticViz.mobile = {
-                alt: row.mobileImageAlt,
+                defaultAlt: row.mobileImageAlt,
                 cloudflareId: row.mobileImageCloudflareId,
                 filename: row.mobileImageFilename,
                 originalHeight: row.mobileImageOriginalHeight,
                 originalWidth: row.mobileImageOriginalWidth,
+                updatedAt: row.mobileImageUpdatedAt,
             }
         }
         return linkedStaticViz

@@ -262,6 +262,7 @@ export function extractFilenamesFromBlock(
                     "side-by-side",
                     "simple-text",
                     "socials",
+                    "static-viz",
                     "sticky-left",
                     "sticky-right",
                     "table",
