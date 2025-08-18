@@ -199,6 +199,7 @@ ${items}
                 exportComponents
             )
         )
+        .with({ type: "static-viz" }, () => "")
         .with({ type: "video" }, (b): string | undefined =>
             markdownComponent(
                 "Video",
