@@ -7,10 +7,12 @@ import {
     makeISODateString,
 } from "./types.js"
 import { validateUniqueStrings } from "./utils.js"
+import {
+    EXPERIMENT_ARM_SEPARATOR,
+    EXPERIMENT_PREFIX,
+} from "@ourworldindata/types"
 
 const DEFAULT_COOKIE_EXPIRY = new Date(Date.now() + 7 * (24 * 60 * 60 * 1000)) // cookie expires in 7 days
-export const ARM_SEPARATOR = "--"
-export const EXPERIMENT_PREFIX = "exp"
 
 /**
  * Represents an experiment with multiple arms (variants) for A/B testing or feature experimentation.
@@ -85,7 +87,8 @@ export class Experiment implements ExperimentInterface {
 
     private validateArmIdLengths(): boolean {
         return this.arms.every(
-            (arm) => `${this.id}${ARM_SEPARATOR}${arm.id}`.length <= 100
+            (arm) =>
+                `${this.id}${EXPERIMENT_ARM_SEPARATOR}${arm.id}`.length <= 100
         )
     }
 

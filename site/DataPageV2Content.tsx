@@ -6,6 +6,10 @@ import {
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
     Button,
 } from "@ourworldindata/components"
+import {
+    EXPERIMENT_ARM_SEPARATOR,
+    EXPERIMENT_PREFIX,
+} from "@ourworldindata/types"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
     DataPageV2ContentFields,
@@ -37,10 +41,6 @@ declare global {
     }
 }
 export const OWID_DATAPAGE_CONTENT_ROOT_ID = "owid-datapageJson-root"
-
-// todo: the below constants should be moved to a shared A/B testing constants file
-const ARM_SEPARATOR = "--"
-const EXPERIMENT_PREFIX = "exp"
 
 export const DataPageV2Content = ({
     datapageData,
@@ -277,7 +277,7 @@ const InsightLinksInsightButtonsBasic = ({
     return (
         <>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat0__block`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat0__block`}
             >
                 <Button
                     className="insights-link"
@@ -288,7 +288,7 @@ const InsightLinksInsightButtonsBasic = ({
                 />
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${ARM_SEPARATOR}treat1__block`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat1__block`}
             >
                 <Button
                     className="insights-link"

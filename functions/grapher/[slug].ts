@@ -16,7 +16,10 @@ import {
     addClassNamesToBody,
 } from "../_common/grapherTools.js"
 import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
-import { ARM_SEPARATOR, EXPERIMENT_PREFIX } from "../experiments/Experiment.js"
+import {
+    EXPERIMENT_ARM_SEPARATOR,
+    EXPERIMENT_PREFIX,
+} from "@ourworldindata/types"
 import { ServerCookie } from "../experiments/types.js"
 import * as cookie from "cookie"
 
@@ -157,7 +160,10 @@ async function handleHtmlPageRequest(
         new Set(
             Object.entries(combinedCookies)
                 .filter(([key]) => key.startsWith(`${EXPERIMENT_PREFIX}-`))
-                .map(([key, value]) => `${key}${ARM_SEPARATOR}${value}`)
+                .map(
+                    ([key, value]) =>
+                        `${key}${EXPERIMENT_ARM_SEPARATOR}${value}`
+                )
         )
     )
 
