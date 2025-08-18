@@ -99,6 +99,35 @@ export class Experiment implements ExperimentInterface {
     isExpired(): boolean {
         return new Date(this.expires).getTime() < Date.now()
     }
+
+    /*
+     * Check if a URL matches any of the experiment paths.
+     *
+     * Checks if the given URL matches any of the cookie paths defined for the
+     * experiment, following the path-matching rules in https://datatracker.ietf.org/doc/html/rfc6265#section-5.1.4.
+     *
+     * @param url - The URL to check.
+     *
+     * @returns `true` if the URL matches any of the experiment paths, `false` otherwise.
+     */
+    isUrlInPaths(url: string): boolean {
+        return this.paths.some((path) => {
+            // Case 1: Exact match
+            if (url === path) {
+                return true
+            }
+
+            // Case 2: Cookie path is a prefix and ends with "/"
+            if (path.endsWith("/") && url.startsWith(path)) {
+                return true
+            }
+
+            // Case 3: Cookie path is a prefix and the next character in request path is "/"
+            if (url.startsWith(path) && url.charAt(path.length) === "/") {
+                return true
+            }
+        })
+    }
 }
 
 type RawArm = {
