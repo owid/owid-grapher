@@ -11,6 +11,21 @@ import { sortedUniq } from "lodash-es"
 import * as R from "remeda"
 import { match, P } from "ts-pattern"
 
+/**
+ * Strategies:
+ * - The log scales result in log-like steps, e.g. 1, 2, 5, 10, ...
+ *   They are fully defined given a minValue, maxValue and step size, and
+ *   then generate as many bins as needed to cover the range.
+ *   `log-auto` chooses the step size automatically in order to get a decent number of bins.
+ * - The equal size bins result in evenly spaced steps, e.g. 0, 1, 2, 3, ...
+ *   They are defined by a minValue, maxValue, and a rough target number of bins.
+ *   `equalSizeBins-few-bins` chooses a small number of bins, while
+ *   `equalSizeBins-many-bins` chooses a large number of bins.
+ *   They then generate nice round bin thresholds given the input data.
+ * - `equalSizeBins-percent` is a special case, where for data that looks like percent
+ *   from 0% to 100% we want to mostly use 0%, 10%, 20%, etc. bins.
+ */
+
 type LogBinningStrategy = "log-1-2-5" | "log-1-3" | "log-10" | "log-auto"
 type EqualSizeBinningStrategy =
     | "equalSizeBins-few-bins"
@@ -38,7 +53,13 @@ export const automaticBinningStrategies: BinningStrategy[] = [
     "equalSizeBins-percent",
 ]
 
-// TODO aspirational
+/**
+ * Sometimes, we do have a midpoint in our data. In many cases, a natural midpoint is zero
+ * (e.g. for year-over-year change, net migration, temperature anomaly, etc.), but other
+ * midpoints also make sense (e.g. for sex ratio).
+ * If we have a midpoint, then we want to account for it when binning, and generate bins
+ * that are centered or symmetric around the midpoint.
+ */
 type MidpointMode =
     | "none" // No midpoint
     | "symmetric" // Symmetric bins around a midpoint, with negBins = -1 * posBins
@@ -75,6 +96,9 @@ interface BinningStrategyOutput {
 const MANY_ZERO_VALUES_THRESHOLD = 0.1
 const AUTO_EQUAL_BINS_MAX_MAGNITUDE_DIFF = 1.2
 
+/**
+ * Calculates the log10 difference between two numbers, i.e. compute x such that lowerValue * 10^x = upperValue.
+ */
 const calcMagnitudeDiff = (lowerValue: number, upperValue: number): number => {
     if (lowerValue > upperValue)
         throw new Error("lowerValue must be less than upperValue")
@@ -169,6 +193,10 @@ export const runBinningStrategy = (
     }
 }
 
+/**
+ * minValue and maxValue may either be explicitly given, or automatically computed from the data.
+ * If auto-computed, they are based on some very much heuristic rules, based on quantiles etc.
+ */
 const computeMinMaxForStrategy = (
     strategy: ResolvedBinningStrategy,
     sortedValues: number[],
@@ -316,6 +344,12 @@ const runBinningStrategyAroundMidpoint = (
     return bins
 }
 
+/**
+ * The equal-size binning strategies all operate with a range of target bins depending on the strategy.
+ * For example, [5, 9] means that there should be at least 5 bins and at most 9.
+ * If there is a midpoint, the number of bins needs to be adjusted downward, because we are potentially
+ * creating up to twice as many bins overall.
+ */
 const getTargetBinCountForEqualSizeBinsStrategy = (
     strategy: EqualSizeBinningStrategy,
     { hasMidpoint }: { hasMidpoint?: boolean } = {}
@@ -363,6 +397,10 @@ const runResolvedBinningStrategy = (
         .exhaustive()
 }
 
+/**
+ * Automatically chooses a log binning strategy based on the magnitude difference between the min and max values.
+ * Very roughly, the resulting number of bins is roughly magnitudeDiff * numberOfLogSteps.
+ */
 const autoChooseLogBinningStrategy = (
     magnitudeDiff: number
 ): ResolvedLogBinningStrategy => {
