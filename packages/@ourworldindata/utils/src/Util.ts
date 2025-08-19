@@ -1972,16 +1972,16 @@ export function isFiniteWithGuard(value: unknown): value is number {
  * Use with getTagHierarchiesByChildName to get the topic hierarchies
  *
  */
-export const getUniqueNamesFromTopicHierarchies = (
+export const getUniqueNamesFromTagHierarchies = (
     tagNames: string[],
-    topicHierarchiesByChildName: Record<
+    tagHierarchiesByChildName: Record<
         string,
         Pick<DbPlainTag, "id" | "name" | "slug">[][]
     >
 ): string[] => {
     return R.unique(
         tagNames.flatMap((tagName) =>
-            (topicHierarchiesByChildName[tagName] ?? []) // fallback for non-topic tags
+            (tagHierarchiesByChildName[tagName] ?? []) // fallback for non-topic tags
                 .flatMap((tagHierarchy) => tagHierarchy.map((tag) => tag.name))
         )
     )
