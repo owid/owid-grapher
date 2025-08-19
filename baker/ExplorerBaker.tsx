@@ -52,7 +52,7 @@ export const transformExplorerProgramToResolveCatalogPaths = async (
         decisionMatrix.tableWithOriginalColumnNames.replaceCells(
             colSlugsToUpdate,
             (val) => {
-                if (typeof val === "string") {
+                if (typeof val === "string" && val !== "") {
                     const catalogPaths = val.split(" ")
                     const indicatorIds = catalogPaths.map(
                         (catalogPath) =>
