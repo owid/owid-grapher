@@ -1,6 +1,8 @@
 import * as db from "../db/db.js"
 import { DbPlainExplorer } from "@ourworldindata/types"
 import { refreshExplorerViewsForSlug } from "../db/model/ExplorerViews.js"
+import yargs from "yargs"
+import { hideBin } from "yargs/helpers"
 
 interface ExplorerProcessingStats {
     slug: string
@@ -36,7 +38,7 @@ async function prepareGrapherConfigsForExplorerViews(
 ): Promise<ExplorerProcessingStats[]> {
     // Fetch published explorers and existing explorer slugs
     const publishedExplorers = await fetchPublishedExplorers(knex, slugWildcard)
-    const existingExplorerRows = await db.knexRaw<{ explorerSlug: string }>(
+    const existingExplorerViewRows = await db.knexRaw<{ explorerSlug: string }>(
         knex,
         `-- sql
         SELECT DISTINCT explorerSlug
@@ -44,7 +46,7 @@ async function prepareGrapherConfigsForExplorerViews(
         `
     )
     const existingExplorerSlugs = new Set(
-        existingExplorerRows.map((row) => row.explorerSlug)
+        existingExplorerViewRows.map((row) => row.explorerSlug)
     )
 
     // Categorize explorers into new, existing, and removed
@@ -158,46 +160,29 @@ function printStatsTable(stats: ExplorerProcessingStats[]): void {
     const newExplorers = stats.filter((s) => s.isNew)
     const existingExplorers = stats.filter((s) => !s.isNew)
 
-    console.log("\n" + "=".repeat(100))
-    console.log("Explorer Processing Statistics (Optimized)")
-    console.log("=".repeat(100))
-    console.log(
-        "Explorer".padEnd(25) +
-            "Status".padStart(8) +
-            "Total".padStart(8) +
-            "Success".padStart(8) +
-            "Errors".padStart(8) +
-            "Duration (ms)".padStart(15)
-    )
-    console.log("-".repeat(100))
+    console.log("\nExplorer Processing Statistics (Optimized)")
 
-    for (const stat of stats) {
-        const status = stat.isNew ? "NEW" : "UPDATE"
-        console.log(
-            stat.slug.padEnd(25) +
-                status.padStart(8) +
-                stat.viewCount.toString().padStart(8) +
-                stat.successCount.toString().padStart(8) +
-                stat.errorCount.toString().padStart(8) +
-                stat.duration.toString().padStart(15)
-        )
-    }
+    // Prepare data for console.table with meaningful column names
+    const tableData = stats.map((stat) => ({
+        Explorer: stat.slug,
+        Status: stat.isNew ? "NEW" : "UPDATE",
+        "Total Views": stat.viewCount,
+        Success: stat.successCount,
+        Errors: stat.errorCount,
+        "Duration (ms)": stat.duration,
+        Failed: stat.failed ? "Yes" : "No",
+    }))
+
+    console.table(tableData)
 
     const totalViews = stats.reduce((sum, stat) => sum + stat.viewCount, 0)
     const totalSuccess = stats.reduce((sum, stat) => sum + stat.successCount, 0)
     const totalErrors = stats.reduce((sum, stat) => sum + stat.errorCount, 0)
     const totalDuration = stats.reduce((sum, stat) => sum + stat.duration, 0)
 
-    console.log("-".repeat(100))
     console.log(
-        "TOTAL".padEnd(25) +
-            "".padStart(8) +
-            totalViews.toString().padStart(8) +
-            totalSuccess.toString().padStart(8) +
-            totalErrors.toString().padStart(8) +
-            totalDuration.toString().padStart(15)
+        `\nSummary: ${totalViews} total views, ${totalSuccess} successful, ${totalErrors} errors, ${totalDuration}ms total duration`
     )
-    console.log("=".repeat(100))
 
     console.log(
         `\nOptimization Summary: ${newExplorers.length} new explorers, ${existingExplorers.length} existing explorers updated efficiently`
@@ -206,58 +191,25 @@ function printStatsTable(stats: ExplorerProcessingStats[]): void {
     // Print failed explorer updates
     const failedExplorers = stats.filter((s) => s.failed)
     if (failedExplorers.length > 0) {
-        console.log(`\n${"=".repeat(100)}`)
-        console.log("FAILED EXPLORER UPDATES")
-        console.log("=".repeat(100))
-        for (const failed of failedExplorers) {
-            console.log(`${failed.slug}: ${failed.failureReason}`)
-        }
-        console.log("=".repeat(100))
+        console.log(`\nFAILED EXPLORER UPDATES`)
+
+        const failedTableData = failedExplorers.map((failed) => ({
+            Explorer: failed.slug,
+            "Failure Reason": failed.failureReason,
+        }))
+
+        console.table(failedTableData)
         console.log(`\nTotal failed: ${failedExplorers.length}`)
     }
 }
 
-function showHelp(): void {
-    console.log(`
-Usage: yarn tsx devTools/refreshExplorerViews.ts [OPTIONS]
-
-This script refreshes explorer views for published explorers in the database.
-It processes chart configurations and updates the explorer_views table.
-
-Options:
-  --help            Show this help message and exit
-  --stats           Display detailed statistics after processing
-  --slug=PATTERN    Process only explorers matching the SQL LIKE pattern
-                    Examples:
-                      --slug="energy%"     (explorers starting with "energy")
-                      --slug="energy-mix"  (exact match)
-                      --slug="%climate%"   (explorers containing "climate")
-
-Examples:
-  yarn tsx devTools/refreshExplorerViews.ts
-  yarn tsx devTools/refreshExplorerViews.ts --stats
-  yarn tsx devTools/refreshExplorerViews.ts --slug="energy%" --stats
-  yarn tsx devTools/refreshExplorerViews.ts --slug="energy-mix"
-`)
+interface Options {
+    stats: boolean
+    slug?: string
 }
 
-const main = async (): Promise<void> => {
-    // Check for help flag
-    if (process.argv.includes("--help")) {
-        showHelp()
-        return
-    }
-
-    const showStats = process.argv.includes("--stats")
-
-    // Parse slug wildcard argument
-    const slugArgIndex = process.argv.findIndex((arg) =>
-        arg.startsWith("--slug=")
-    )
-    const slugWildcard =
-        slugArgIndex !== -1
-            ? process.argv[slugArgIndex].split("=")[1]
-            : undefined
+const main = async (options: Options): Promise<void> => {
+    const { stats: showStats, slug: slugWildcard } = options
 
     if (slugWildcard) {
         console.log(`Filtering explorers with slug pattern: ${slugWildcard}`)
@@ -293,4 +245,44 @@ const main = async (): Promise<void> => {
     process.exit(0)
 }
 
-void main()
+void yargs(hideBin(process.argv))
+    .command<Options>(
+        "$0",
+        "Refresh explorer views for published explorers in the database",
+        (yargs) => {
+            yargs
+                .option("stats", {
+                    type: "boolean",
+                    description: "Display detailed statistics after processing",
+                    default: false,
+                })
+                .option("slug", {
+                    type: "string",
+                    description:
+                        "Process only explorers matching the SQL LIKE pattern",
+                })
+                .example("$0", "Process all published explorers")
+                .example(
+                    "$0 --stats",
+                    "Process all explorers and display statistics"
+                )
+                .example(
+                    '$0 --slug="energy%" --stats',
+                    "Process explorers starting with 'energy' and show stats"
+                )
+                .example(
+                    '$0 --slug="energy-mix"',
+                    "Process only the 'energy-mix' explorer"
+                )
+                .example(
+                    '$0 --slug="%climate%"',
+                    "Process explorers containing 'climate'"
+                )
+        },
+        (argv) => {
+            void main(argv)
+        }
+    )
+    .help()
+    .alias("help", "h")
+    .strict().argv
