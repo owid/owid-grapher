@@ -60,7 +60,7 @@ export const automaticBinningStrategies: BinningStrategy[] = [
  * If we have a midpoint, then we want to account for it when binning, and generate bins
  * that are centered or symmetric around the midpoint.
  */
-type MidpointMode =
+export type MidpointMode =
     | "none" // No midpoint
     | "symmetric" // Symmetric bins around a midpoint, with negBins = -1 * posBins
     | "same-num-bins" // Symmetric bins around a midpoint, with negBins.length = posBins.length
@@ -195,10 +195,12 @@ export const runBinningStrategy = (
 
 type MinMaxValueResult = { valid: true } | { valid: false; reason: string }
 
-export const hasValidMinMaxValuesForBinningStrategy = (
+export const hasValidConfigForBinningStrategy = (
     strategy: BinningStrategy,
-    { minValue, maxValue }: { minValue?: number; maxValue?: number } = {}
+    config: { minValue?: number; maxValue?: number; midpoint?: number }
 ): MinMaxValueResult => {
+    const { minValue, maxValue, midpoint } = config
+
     if (minValue === undefined && maxValue === undefined) {
         // Values will be determined automatically; no need for validation
         return { valid: true }
@@ -224,6 +226,12 @@ export const hasValidMinMaxValuesForBinningStrategy = (
                 return {
                     valid: false,
                     reason: "Log binning requires non-zero positive values",
+                } as const
+            }
+            if (midpoint !== undefined && midpoint !== 0) {
+                return {
+                    valid: false,
+                    reason: "Log binning does not support midpoints other than 0",
                 } as const
             }
             return { valid: true } as const
@@ -413,7 +421,7 @@ const runResolvedBinningStrategy = (
     conf: ResolvedBinningStrategyConfig,
     { hasMidpoint }: { hasMidpoint: boolean }
 ): number[] => {
-    const validationResult = hasValidMinMaxValuesForBinningStrategy(
+    const validationResult = hasValidConfigForBinningStrategy(
         conf.strategy,
         conf
     )

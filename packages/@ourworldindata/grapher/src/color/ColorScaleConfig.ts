@@ -35,6 +35,7 @@ export class ColorScaleConfigDefaults implements ColorScaleConfigInterface {
     createBinForMidpoint?: boolean
     minValue?: number
     maxValue?: number
+    midpoint?: number
     midpointMode?: string
 
     /** Custom maximum brackets for each numeric bin. Only applied when strategy is `manual`. */
@@ -95,6 +96,7 @@ export class ColorScaleConfigDefaults implements ColorScaleConfigInterface {
             createBinForMidpoint: observable,
             minValue: observable,
             maxValue: observable,
+            midpoint: observable,
             midpointMode: observable,
         })
     }

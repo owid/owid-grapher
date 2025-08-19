@@ -27,8 +27,9 @@ import {
     NumberField,
     TextField,
     ColorBox,
-    BindAutoFloat,
     BindString,
+    BindAutoFloat,
+    BindFloat,
 } from "./Forms.js"
 import {
     ColorSchemeOption,
@@ -36,8 +37,10 @@ import {
 } from "./ColorSchemeDropdown.js"
 import {
     automaticBinningStrategies,
-    hasValidMinMaxValuesForBinningStrategy,
+    hasValidConfigForBinningStrategy,
+    MidpointMode,
 } from "@ourworldindata/grapher/src/color/BinningStrategies2.js"
+import { match } from "ts-pattern"
 
 interface EditorColorScaleSectionFeatures {
     legendDescription: boolean
@@ -183,42 +186,67 @@ class ColorsSection extends Component<ColorsSectionProps> {
 
     @computed get midpointModeOptions() {
         return [
-            { value: undefined, label: "Auto" },
-            { value: "none", label: "None" },
-            { value: "symmetric", label: "symmetric" },
-            { value: "same-num-bins", label: "same-num-bins" },
-            { value: "asymmetric", label: "Asymmetric" },
-        ]
+            { value: undefined, label: "Automatic" },
+            { value: "none", label: "No midpoint" },
+            { value: "symmetric", label: "Symmetric around midpoint" },
+            {
+                value: "same-num-bins",
+                label: "Same number of bins on both sides",
+            },
+            { value: "asymmetric", label: "Asymmetric around midpoint" },
+        ] satisfies { value: MidpointMode | undefined; label: string }[]
     }
 
+    @computed get binningStrategyOptions() {
+        return automaticBinningStrategies.map((strategy) => ({
+            value: strategy,
+            label: match(strategy)
+                .with("auto", () => "Automatic")
+                .with("log-auto", () => "Logarithmic (automatic)")
+                .with("log-1-2-5", () => "Logarithmic (1, 2, 5, 10, …)")
+                .with("log-1-3", () => "Logarithmic (1, 3, 10, …)")
+                .with("log-10", () => "Logarithmic (10, 100, …)")
+                .with("equalSizeBins-normal", () => "Equal-size bins (default)")
+                .with(
+                    "equalSizeBins-few-bins",
+                    () => "Equal-size bins (fewer bins)"
+                )
+                .with(
+                    "equalSizeBins-many-bins",
+                    () => "Equal-size bins (more bins)"
+                )
+                .with(
+                    "equalSizeBins-percent",
+                    () => "Equal-size bins (percent: 0, 10, …, 100%)"
+                )
+                .exhaustive(),
+        }))
+    }
+
+    // TODO Move this to ChartEditorView
     @computed get binningOptionsError() {
         const { minValue, maxValue } = this.config
         if (this.config.binningStrategy === "manual") {
             return undefined
         }
 
-        const validationResult = hasValidMinMaxValuesForBinningStrategy(
+        const validationResult = hasValidConfigForBinningStrategy(
             this.config.binningStrategy,
             { minValue, maxValue }
         )
 
         if (!validationResult.valid) {
             return validationResult.reason
-        }
-    }
-
-    @computed get binningStrategyOptions() {
-        return automaticBinningStrategies.map((strategy) => ({
-            value: strategy,
-            label: strategy,
-        }))
+        } else return undefined
     }
 
     @computed get currentBinningStrategyOption() {
         return this.binningStrategyOptions.find(
-            (option) => option.value === this.config.binningStrategy
+            (option) => option.value === (this.config.binningStrategy ?? "auto")
         )
     }
+
+    // TODO add field for midpoint
 
     override render() {
         const { scale, config } = this
@@ -250,14 +278,21 @@ class ColorsSection extends Component<ColorsSectionProps> {
                         value={config.colorSchemeInvert || false}
                         onValue={this.onInvert}
                     />
-                    <Toggle
-                        label="Include bin for midpoint"
-                        value={config.createBinForMidpoint || false}
-                        onValue={(val) => {
-                            config.createBinForMidpoint = val
-                            this.props.onChange?.()
-                        }}
-                    />
+                </FieldsRow>
+                <FieldsRow>
+                    <div className="form-group">
+                        <label>Binning strategy</label>
+                        <Select
+                            options={this.binningStrategyOptions}
+                            onChange={this.onBinningStrategy}
+                            value={this.currentBinningStrategyOption}
+                            components={{
+                                IndicatorSeparator: null,
+                            }}
+                            menuPlacement="auto"
+                            isSearchable={false}
+                        />
+                    </div>
                 </FieldsRow>
                 <FieldsRow>
                     <NumberField
@@ -284,6 +319,26 @@ class ColorsSection extends Component<ColorsSectionProps> {
                     />
                 </FieldsRow>
                 <FieldsRow>
+                    <NumberField
+                        label="Midpoint"
+                        value={config.midpoint}
+                        onValue={(value) => {
+                            config.midpoint = value
+                            this.props.onChange?.()
+                        }}
+                        allowDecimal
+                        allowNegative
+                    />
+                    <Toggle
+                        label="Include bin for midpoint"
+                        value={config.createBinForMidpoint || false}
+                        onValue={(val) => {
+                            config.createBinForMidpoint = val
+                            this.props.onChange?.()
+                        }}
+                    />
+                </FieldsRow>
+                <FieldsRow>
                     <div className="form-group">
                         <label>Midpoint mode</label>
                         <Select
@@ -295,21 +350,6 @@ class ColorsSection extends Component<ColorsSectionProps> {
                             value={this.midpointModeOptions.find(
                                 (option) => option.value === config.midpointMode
                             )}
-                            components={{
-                                IndicatorSeparator: null,
-                            }}
-                            menuPlacement="auto"
-                            isSearchable={false}
-                        />
-                    </div>
-                </FieldsRow>
-                <FieldsRow>
-                    <div className="form-group">
-                        <label>Binning strategy</label>
-                        <Select
-                            options={this.binningStrategyOptions}
-                            onChange={this.onBinningStrategy}
-                            value={this.currentBinningStrategyOption}
                             components={{
                                 IndicatorSeparator: null,
                             }}
