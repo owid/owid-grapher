@@ -225,14 +225,14 @@ class ColorsSection extends Component<ColorsSectionProps> {
 
     // TODO Move this to ChartEditorView
     @computed get binningOptionsError() {
-        const { minValue, maxValue } = this.config
+        const { minValue, maxValue, midpoint } = this.config
         if (this.config.binningStrategy === "manual") {
             return undefined
         }
 
         const validationResult = hasValidConfigForBinningStrategy(
             this.config.binningStrategy,
-            { minValue, maxValue }
+            { minValue, maxValue, midpoint }
         )
 
         if (!validationResult.valid) {
