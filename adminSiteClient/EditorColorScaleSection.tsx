@@ -39,7 +39,7 @@ import {
     automaticBinningStrategies,
     hasValidConfigForBinningStrategy,
     MidpointMode,
-} from "@ourworldindata/grapher/src/color/BinningStrategies2.js"
+} from "@ourworldindata/grapher/src/color/BinningStrategies.js"
 import { match } from "ts-pattern"
 
 interface EditorColorScaleSectionFeatures {
