@@ -275,12 +275,15 @@ export async function refreshExplorerViewsForSlug(
             const parsedView = JSON.parse(view.dimensions)
             const deterministicKey = stringify(parsedView as object)
             existingViewsMap.set(deterministicKey, view)
-        } catch {
+        } catch (ex) {
             // Skip views with invalid JSON - this indicates a data integrity issue
             void logErrorAndMaybeCaptureInSentry(
                 new Error(
                     `Explorer view contains invalid JSON for explorer ${slug}: ${view.dimensions}`
                 )
+            )
+            throw new Error(
+                `Failed to parse explorer view dimensions for explorer ${slug}: ${ex.message}`
             )
         }
     }
