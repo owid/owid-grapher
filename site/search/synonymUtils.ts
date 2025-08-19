@@ -192,6 +192,11 @@ export function buildSynonymMap(): SynonymMap {
         for (const alternative of alternatives) {
             const alternativeLower = alternative.toLowerCase()
             const countryNameLower = country.name.toLowerCase()
+            // this will technically overwrite any existing synonym mapping with
+            // country alternatives. In practice the risk of collision is low
+            // given that we don't use countries' short codes (only short names
+            // and variants, which amounts to less 10 countries). So code
+            // simplicity is favoured here.
             synonymMap.set(alternativeLower, [countryNameLower])
         }
     }
