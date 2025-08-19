@@ -391,6 +391,13 @@ export async function refreshExplorerViewsForSlug(
     for (const { existing, generated } of updatedViews) {
         if (generated.error) {
             // Update to error state, remove chart config reference
+            // Delete the chart config if it exists before removing the reference
+            if (existing.chartConfigId) {
+                await knex("chart_configs")
+                    .where("id", existing.chartConfigId)
+                    .delete()
+            }
+
             await knex("explorer_views")
                 .where("explorerSlug", slug)
                 .where("dimensions", existing.dimensions)
