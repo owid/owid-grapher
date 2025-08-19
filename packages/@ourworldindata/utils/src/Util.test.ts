@@ -31,7 +31,7 @@ import {
     formatInlineList,
     flattenNonTopicNodes,
     imemo,
-    getUniqueNamesFromTopicHierarchies,
+    getUniqueNamesFromTagHierarchies,
 } from "./Util.js"
 import {
     BlockImageSize,
@@ -930,11 +930,11 @@ describe(imemo, () => {
     })
 })
 
-describe(getUniqueNamesFromTopicHierarchies, () => {
+describe(getUniqueNamesFromTagHierarchies, () => {
     it("returns empty array when given empty tag names", () => {
         const topicHierarchiesByChildName = {}
         expect(
-            getUniqueNamesFromTopicHierarchies([], topicHierarchiesByChildName)
+            getUniqueNamesFromTagHierarchies([], topicHierarchiesByChildName)
         ).toEqual([])
     })
 
@@ -942,7 +942,7 @@ describe(getUniqueNamesFromTopicHierarchies, () => {
         const tagNames = ["Not A Topic"]
         const topicHierarchiesByChildName = {}
         expect(
-            getUniqueNamesFromTopicHierarchies(
+            getUniqueNamesFromTagHierarchies(
                 tagNames,
                 topicHierarchiesByChildName
             )
@@ -970,7 +970,7 @@ describe(getUniqueNamesFromTopicHierarchies, () => {
             ],
         }
         expect(
-            getUniqueNamesFromTopicHierarchies(
+            getUniqueNamesFromTagHierarchies(
                 tagNames,
                 topicHierarchiesByChildName
             )
@@ -999,7 +999,7 @@ describe(getUniqueNamesFromTopicHierarchies, () => {
             ],
         }
         expect(
-            getUniqueNamesFromTopicHierarchies(
+            getUniqueNamesFromTagHierarchies(
                 tagNames,
                 topicHierarchiesByChildName
             )
@@ -1018,7 +1018,7 @@ describe(getUniqueNamesFromTopicHierarchies, () => {
             // "Biodiversity" intentionally missing
         }
         expect(
-            getUniqueNamesFromTopicHierarchies(
+            getUniqueNamesFromTagHierarchies(
                 tagNames,
                 topicHierarchiesByChildName
             )
