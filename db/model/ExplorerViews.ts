@@ -17,7 +17,7 @@ import {
 import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerCatalogResolver.js"
 import { insertChartConfig, updateExistingConfigPair } from "./ChartConfigs.js"
 import { uuidv7 } from "uuidv7"
-import { isEqual } from "lodash-es"
+import { isEqual, difference } from "lodash-es"
 import { mergeGrapherConfigs } from "@ourworldindata/utils"
 import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 import {
@@ -96,10 +96,8 @@ async function fetchExplorerDataForViews(
         )
 
         // check if all required variable IDs exist in the database
-        const missingIds = requiredVariableIds.filter(
-            (id: number) =>
-                !partialGrapherConfigRows.find((row) => row.id === id)
-        )
+        const existingIds = partialGrapherConfigRows.map((row) => row.id)
+        const missingIds = difference(requiredVariableIds, existingIds)
         if (missingIds.length > 0) {
             void logErrorAndMaybeCaptureInSentry(
                 new Error(
