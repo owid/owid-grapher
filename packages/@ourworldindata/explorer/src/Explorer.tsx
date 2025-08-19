@@ -936,11 +936,11 @@ export class Explorer
         )
     }
 
-    onChangeChoice = (choiceTitle: string) => (value: string) => {
+    onChangeChoice = (choiceTitle: string) => async (value: string) => {
         const { currentlySelectedGrapherRow } = this.explorerProgram
         this.explorerProgram.decisionMatrix.setValueCommand(choiceTitle, value)
         if (currentlySelectedGrapherRow)
-            void this.reactToUserChangingSelection(currentlySelectedGrapherRow)
+            await this.reactToUserChangingSelection(currentlySelectedGrapherRow)
     }
 
     private renderHeaderElement() {
