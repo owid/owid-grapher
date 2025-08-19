@@ -26,32 +26,34 @@ import { match, P } from "ts-pattern"
  *   from 0% to 100% we want to mostly use 0%, 10%, 20%, etc. bins.
  */
 
-type LogBinningStrategy = "log-1-2-5" | "log-1-3" | "log-10" | "log-auto"
-type EqualSizeBinningStrategy =
-    | "equalSizeBins-few-bins"
-    | "equalSizeBins-normal"
-    | "equalSizeBins-many-bins"
-    | "equalSizeBins-percent"
-
-type ResolvedLogBinningStrategy = Exclude<LogBinningStrategy, "log-auto">
-
-type BinningStrategy = "auto" | EqualSizeBinningStrategy | LogBinningStrategy
-
-type ResolvedBinningStrategy = Exclude<BinningStrategy, "auto">
-
-export const automaticBinningStrategies: BinningStrategy[] = [
-    "auto",
-
+const logBinningStrategies = [
     "log-auto",
     "log-1-2-5",
     "log-1-3",
     "log-10",
+] as const
 
-    "equalSizeBins-few-bins",
+const equalSizeBinningStrategies = [
     "equalSizeBins-normal",
+    "equalSizeBins-few-bins",
     "equalSizeBins-many-bins",
     "equalSizeBins-percent",
-]
+] as const
+
+export const automaticBinningStrategies = [
+    "auto",
+    ...logBinningStrategies,
+    ...equalSizeBinningStrategies,
+] as const
+
+type LogBinningStrategy = (typeof logBinningStrategies)[number]
+type EqualSizeBinningStrategy = (typeof equalSizeBinningStrategies)[number]
+
+type ResolvedLogBinningStrategy = Exclude<LogBinningStrategy, "log-auto">
+
+type BinningStrategy = (typeof automaticBinningStrategies)[number]
+
+type ResolvedBinningStrategy = Exclude<BinningStrategy, "auto">
 
 /**
  * Sometimes, we do have a midpoint in our data. In many cases, a natural midpoint is zero
@@ -60,11 +62,14 @@ export const automaticBinningStrategies: BinningStrategy[] = [
  * If we have a midpoint, then we want to account for it when binning, and generate bins
  * that are centered or symmetric around the midpoint.
  */
-export type MidpointMode =
-    | "none" // No midpoint
-    | "symmetric" // Symmetric bins around a midpoint, with negBins = -1 * posBins
-    | "same-num-bins" // Symmetric bins around a midpoint, with negBins.length = posBins.length
-    | "asymmetric" // Bins around a midpoint, with negBins.length not necessarily equal to posBins.length
+export const binningMidpointModes = [
+    undefined, // Automatic
+    "none", // No midpoint
+    "symmetric", // Symmetric bins around a midpoint, with negBins = -1 * posBins
+    "same-num-bins", // Symmetric bins around a midpoint, with negBins.length = posBins.length
+    "asymmetric", // Bins around a midpoint, with negBins.length not necessarily equal to posBins.length
+] as const
+export type MidpointMode = (typeof binningMidpointModes)[number]
 
 interface BinningStrategyConfig {
     strategy: BinningStrategy
@@ -388,6 +393,9 @@ const runBinningStrategyAroundMidpoint = (
                 conf.midpoint,
                 ...binsRight.map((v) => v + conf.midpoint),
             ]
+        })
+        .with(undefined, () => {
+            throw new Error("Invalid unresolved midpoint mode")
         })
         .exhaustive()
 
