@@ -79,6 +79,7 @@ import {
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { SearchChartHitDataDisplayProps } from "./SearchChartHitDataDisplay.js"
 import { CoreColumn } from "@ourworldindata/core-table"
+import { PreviewVariant } from "./SearchChartHitRichDataTypes.js"
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -328,23 +329,28 @@ export const constructChartInfoUrl = ({
     return `${basePath}/${hit.slug}.values.json${queryStr}`
 }
 
-export type PreviewVariant = "thumbnail" | "minimal-thumbnail"
-
 export const constructPreviewUrl = ({
     hit,
     grapherParams,
     variant,
+    imageWidth,
+    imageHeight,
 }: {
     hit: SearchChartHit
     grapherParams?: GrapherQueryParams
     variant: PreviewVariant
+    imageWidth?: number
+    imageHeight?: number
 }): string => {
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
 
     const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
+
     const searchParams = new URLSearchParams(
         omitUndefinedValues({
-            imType: variant,
+            imType: variant !== "large" ? variant : undefined,
+            imWidth: imageWidth?.toString(),
+            imHeight: imageHeight?.toString(),
             nocache: "true", // TODO: remove nocache param
         })
     )
