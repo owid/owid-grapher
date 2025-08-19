@@ -376,6 +376,7 @@ export interface ColorScaleConfigInterface {
     createBinForMidpoint?: boolean
     minValue?: number
     maxValue?: number
+    midpoint?: number
     midpointMode?: string
     customNumericValues: number[]
     customNumericLabels: (string | undefined | null)[]

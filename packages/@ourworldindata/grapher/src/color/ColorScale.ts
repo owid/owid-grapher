@@ -168,6 +168,8 @@ export class ColorScale {
 
     // When automatic classification is turned on, this takes the numeric map data
     // and works out some discrete ranges to assign colors to
+
+    // TODO types
     @computed get autoBinThresholds(): number[] {
         return runBinningStrategy({
             sortedValues: this.sortedNumericValues,
@@ -181,6 +183,7 @@ export class ColorScale {
             createBinForMidpoint: this.config.createBinForMidpoint,
             minValue: this.config.minValue,
             maxValue: this.config.maxValue,
+            midpoint: this.config.midpoint,
             midpointMode: this.config.midpointMode as any,
         }).bins
 
