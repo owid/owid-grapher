@@ -78,7 +78,7 @@ async function handleThumbnailRequest(
             bounds
         )
         const explorer = new Explorer(explorerProps)
-        explorer.updateGrapherFromExplorer()
+        await explorer.updateGrapherFromExplorer()
         while (!explorer.grapherState.isReady) {
             await new Promise((resolve) => setTimeout(resolve, 100))
         }
