@@ -485,7 +485,7 @@ export class Explorer
 
         const previousTab = this.grapherState.activeTab
 
-        void this.updateGrapherFromExplorer()
+        await this.updateGrapherFromExplorer()
 
         newGrapherParams.tab =
             this.grapherState.mapGrapherTabToQueryParam(previousTab)
