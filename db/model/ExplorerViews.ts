@@ -19,6 +19,7 @@ import { insertChartConfig, updateExistingConfigPair } from "./ChartConfigs.js"
 import { uuidv7 } from "uuidv7"
 import { isEqual, difference } from "lodash-es"
 import { mergeGrapherConfigs } from "@ourworldindata/utils"
+import { stringify } from "safe-stable-stringify"
 import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 import {
     ADMIN_BASE_URL,
@@ -232,25 +233,6 @@ async function iterateExplorerViews(
     return generatedViews
 }
 
-// Helper function to create deterministic JSON serialization
-// by sorting object keys to ensure consistent string comparison
-function deterministicStringify(obj: any): string {
-    if (obj === null || obj === undefined) {
-        return JSON.stringify(obj)
-    }
-    if (typeof obj !== "object" || Array.isArray(obj)) {
-        return JSON.stringify(obj)
-    }
-
-    // Sort keys and recursively stringify
-    const sortedKeys = Object.keys(obj).sort()
-    const sortedObj: Record<string, any> = {}
-    for (const key of sortedKeys) {
-        sortedObj[key] = obj[key]
-    }
-    return JSON.stringify(sortedObj)
-}
-
 export async function refreshExplorerViewsForSlug(
     knex: KnexReadWriteTransaction,
     slug: string,
@@ -291,7 +273,7 @@ export async function refreshExplorerViewsForSlug(
     for (const view of existingViews) {
         try {
             const parsedView = JSON.parse(view.explorerView)
-            const deterministicKey = deterministicStringify(parsedView)
+            const deterministicKey = stringify(parsedView as object)
             existingViewsMap.set(deterministicKey, view)
         } catch {
             // Skip views with invalid JSON
@@ -337,7 +319,7 @@ export async function refreshExplorerViewsForSlug(
 
         // Find existing view using deterministic serialization for O(1) lookup
         const generatedViewObj = JSON.parse(generatedView.explorerView)
-        const deterministicKey = deterministicStringify(generatedViewObj)
+        const deterministicKey = stringify(generatedViewObj as object)
         const existingView = existingViewsMap.get(deterministicKey)
 
         if (!existingView) {
@@ -381,7 +363,7 @@ export async function refreshExplorerViewsForSlug(
     const generatedViewKeys = new Set<string>()
     for (const generatedView of generatedViews) {
         const generatedViewObj = JSON.parse(generatedView.explorerView)
-        const deterministicKey = deterministicStringify(generatedViewObj)
+        const deterministicKey = stringify(generatedViewObj as object)
         generatedViewKeys.add(deterministicKey)
     }
 
