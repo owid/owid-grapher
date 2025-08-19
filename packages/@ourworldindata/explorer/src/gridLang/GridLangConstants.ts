@@ -70,7 +70,11 @@ export const BooleanCellDef: CellDef = {
     ],
     cssClass: "BooleanCellDef",
     description: "Boolean",
-    parse: (value: any) => value === GridBoolean.true,
+    parse: (value: any) => {
+        // Handle already parsed boolean values (to avoid double parsing)
+        if (typeof value === "boolean") return value
+        return value === GridBoolean.true
+    },
 }
 
 export const StringCellDef: CellDef = {
