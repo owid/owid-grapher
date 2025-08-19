@@ -370,11 +370,17 @@ export const GrapherGrammar: Grammar<GrapherCellDef> = {
     },
 } as const
 
-const omitEmptyStringValues = <T extends Record<string, any>>(obj: T) =>
-    R.omitBy(obj, (parsedValue) => parsedValue === "")
+export function omitEmptyStringValues<T extends Record<string, any>>(
+    obj: T
+): Record<string, any> {
+    return R.omitBy(obj, (parsedValue) => parsedValue === "")
+}
 
-const omitEmptyObjectValues = <T extends Record<string, any>>(obj: T) =>
-    R.omitBy(
+export function omitEmptyObjectValues<T extends Record<string, any>>(
+    obj: T
+): Record<string, any> {
+    return R.omitBy(
         obj,
         (parsedValue) => R.isPlainObject(parsedValue) && R.isEmpty(parsedValue)
     )
+}
