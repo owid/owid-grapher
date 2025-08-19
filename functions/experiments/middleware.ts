@@ -1,5 +1,3 @@
-import * as Sentry from "@sentry/react"
-import { getAnalyticsConsentValue } from "../_common/cookieTools.js"
 import { Experiment, validateUniqueExperimentIds } from "./Experiment.js"
 import { Arm, ServerCookie } from "./types.js"
 import { requestIsInIframe, isStaticAsset } from "./utils.js"
@@ -23,10 +21,6 @@ export const experimentsMiddleware = (context) => {
             throw new Error(`Experiment IDs are not unique`)
         }
 
-        const analyticsConsent = getAnalyticsConsentValue(context.request)
-        const replay = Sentry.getReplay()
-        const isReplayRecording = !!replay?.getReplayId()
-
         for (const exp of activeExperiments) {
             if (
                 !cookies ||
@@ -40,15 +34,16 @@ export const experimentsMiddleware = (context) => {
                 if (isOnExperimentPath) {
                     const assignedArm = assignToArm(exp)
                     for (const path of exp.paths) {
+                        const value = `arm:${assignedArm.id}&sentrySampleRate:${assignedArm.replaysSessionSampleRate}`
                         cookiesToSet.push({
                             name: exp.id,
-                            value: assignedArm.id,
+                            value: value,
                             options: {
                                 expires: exp.expires,
                                 path: path,
                             },
                         })
-                        cookies[exp.id] = assignedArm.id
+                        cookies[exp.id] = value
                     }
                 }
             }
@@ -56,26 +51,6 @@ export const experimentsMiddleware = (context) => {
 
         if (cookiesToSet.length) {
             context.data.cookiesToSet = cookiesToSet
-        }
-
-        // if user has accepted cookies and replay is not already recording, record
-        // this session replay with probability 0 < p < 1 = max replaysSessionSampleRate
-        // of all assigned arms.
-        if (analyticsConsent && replay && !isReplayRecording) {
-            const assignedArms = activeExperiments
-                .filter((exp) =>
-                    Object.prototype.hasOwnProperty.call(cookies, exp.id)
-                )
-                .map((exp) => exp.getArmById(cookies[exp.id]))
-            const maxReplaySampleRate = Math.max(
-                ...assignedArms.map((a) => a.replaysSessionSampleRate || 0)
-            )
-            if (maxReplaySampleRate) {
-                const p = Math.random()
-                if (p < maxReplaySampleRate) {
-                    replay.start()
-                }
-            }
         }
     }
 

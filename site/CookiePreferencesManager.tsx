@@ -15,6 +15,7 @@ import {
     updatePreference,
 } from "./cookiePreferences.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
+import { stopOrStartReplay } from "./SentryUtils.js"
 
 const analytics = new SiteAnalytics()
 
@@ -53,6 +54,8 @@ export const CookiePreferencesManager = ({
         analytics.updateGAConsentSettings({
             analytics_storage: analyticsConsent,
         })
+
+        void stopOrStartReplay(analyticsConsent === "granted")
     }, [analyticsConsent])
 
     return (
