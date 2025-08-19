@@ -276,9 +276,11 @@ export async function refreshExplorerViewsForSlug(
             const deterministicKey = stringify(parsedView as object)
             existingViewsMap.set(deterministicKey, view)
         } catch {
-            // Skip views with invalid JSON
-            console.warn(
-                `Skipping view with invalid JSON: ${view.explorerView}`
+            // Skip views with invalid JSON - this indicates a data integrity issue
+            void logErrorAndMaybeCaptureInSentry(
+                new Error(
+                    `Explorer view contains invalid JSON for explorer ${slug}: ${view.explorerView}`
+                )
             )
         }
     }
