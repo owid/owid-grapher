@@ -286,49 +286,45 @@ const createFiltersSource = (
             const filter = item.filter as Filter
             const unmatchedQuery = item.unmatchedQuery as string
 
-            return (
-                <span className="autocomplete-item-contents">
-                    {match(filter.type)
-                        .with(FilterType.QUERY, () => (
-                            <>
-                                <span className="autocomplete-item-contents__type-icon">
-                                    <FontAwesomeIcon icon={faSearch} />
-                                </span>
-                                <span className="autocomplete-item-contents__query autocomplete-item-contents__query--only autocomplete-item-contents__query--highlighted">
-                                    {filter.name}
-                                </span>
-                            </>
-                        ))
-                        .with(FilterType.COUNTRY, () => (
-                            <>
-                                <span className="autocomplete-item-contents__type-icon">
-                                    <FontAwesomeIcon icon={faSearch} />
-                                </span>
-                                {unmatchedQuery && (
-                                    <span className="autocomplete-item-contents__query autocomplete-item-contents__query--unmatched">
-                                        {unmatchedQuery}
-                                    </span>
-                                )}
-                                <SearchFilterPill
-                                    name={filter.name}
-                                    icon={getFilterIcon(filter)}
-                                />
-                            </>
-                        ))
-                        .with(FilterType.TOPIC, () => (
-                            <>
-                                <span className="autocomplete-item-contents__type-icon">
-                                    <FontAwesomeIcon icon={faSearch} />
-                                </span>
-                                <SearchFilterPill
-                                    name={filter.name}
-                                    icon={getFilterIcon(filter)}
-                                />
-                            </>
-                        ))
-                        .exhaustive()}
-                </span>
-            )
+            return match(filter.type)
+                .with(FilterType.QUERY, () => (
+                    <span className="autocomplete-item-contents">
+                        <span className="autocomplete-item-contents__type-icon">
+                            <FontAwesomeIcon icon={faSearch} />
+                        </span>
+                        <span className="autocomplete-item-contents__query autocomplete-item-contents__query--only autocomplete-item-contents__query--highlighted">
+                            {filter.name}
+                        </span>
+                    </span>
+                ))
+                .with(FilterType.COUNTRY, () => (
+                    <span className="autocomplete-item-contents">
+                        <span className="autocomplete-item-contents__type-icon">
+                            <FontAwesomeIcon icon={faSearch} />
+                        </span>
+                        {unmatchedQuery && (
+                            <span className="autocomplete-item-contents__query autocomplete-item-contents__query--unmatched">
+                                {unmatchedQuery}
+                            </span>
+                        )}
+                        <SearchFilterPill
+                            name={filter.name}
+                            icon={getFilterIcon(filter)}
+                        />
+                    </span>
+                ))
+                .with(FilterType.TOPIC, () => (
+                    <span className="autocomplete-item-contents">
+                        <span className="autocomplete-item-contents__type-icon">
+                            <FontAwesomeIcon icon={faSearch} />
+                        </span>
+                        <SearchFilterPill
+                            name={filter.name}
+                            icon={getFilterIcon(filter)}
+                        />
+                    </span>
+                ))
+                .exhaustive()
         },
     },
 })
