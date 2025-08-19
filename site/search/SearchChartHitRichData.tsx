@@ -1,51 +1,82 @@
 import { useMemo } from "react"
 import { runInAction } from "mobx"
 import * as R from "remeda"
+import cx from "classnames"
 import { useMediaQuery } from "usehooks-ts"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
+import { match } from "ts-pattern"
 import {
     GrapherState,
     mapGrapherTabNameToQueryParam,
 } from "@ourworldindata/grapher"
 import {
+    EntityName,
     FacetStrategy,
     GRAPHER_TAB_NAMES,
     GrapherTabName,
 } from "@ourworldindata/types"
 import { Button } from "@ourworldindata/components"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
-import { SearchChartHit, SearchChartHitComponentProps } from "./searchTypes.js"
+import {
+    SearchChartHit,
+    SearchChartHitComponentProps,
+    SearchChartHitComponentVariant,
+} from "./searchTypes.js"
 import { useSearchChartHitData } from "./useSearchChartHitData.js"
 import {
     constructChartUrl,
     constructPreviewUrl,
     pickEntitiesForChartHit,
-    PreviewVariant,
 } from "./searchUtils.js"
 import {
-    calculateMediumHitLayout,
     configureGrapherStateFocus,
     configureGrapherStateForLayout,
     configureGrapherStateSelection,
     configureGrapherStateTab,
-    getRowCountForMediumHitGridSlot,
     getSortedGrapherTabsForChartHit,
     getTotalColumnCount,
     pickEntitiesForDisplay,
     resetGrapherColors,
+    getTableRowCountForGridSlot,
+    makeSlotClassNames,
+    findTableSlot,
 } from "./SearchChartHitRichDataHelpers.js"
+import { calculateMediumVariantLayout } from "./SearchChartHitRichDataMediumVariantHelpers.js"
 import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
 import { CaptionedTable } from "./SearchChartHitCaptionedTable.js"
 import { CaptionedThumbnail } from "./SearchChartHitCaptionedThumbnail.js"
 import { SearchChartHitDataDisplay } from "./SearchChartHitDataDisplay.js"
 import { SearchChartHitRichDataFallback } from "./SearchChartHitRichDataFallback.js"
+import {
+    GridSlot,
+    LargeVariantGridSlot,
+    Layout,
+    MediumVariantGridSlot,
+    PreviewVariant,
+    RichDataComponentVariant,
+} from "./SearchChartHitRichDataTypes.js"
+import {
+    calculateLargePreviewImageDimensions,
+    calculateLargeVariantLayout,
+} from "./SearchChartHitRichDataLargeVariantHelpers.js"
+
+// Keep in sync with $num-rows-per-column in SearchChartHitRichData.scss
+const NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT = 4
+const NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_LARGE_VARIANT = 10
 
 export function SearchChartHitRichData({
     hit,
     searchQueryRegionsMatches,
     onClick,
-    numDataTableRowsPerColumn,
-}: SearchChartHitComponentProps & { numDataTableRowsPerColumn: number }) {
+    variant,
+}: SearchChartHitComponentProps & {
+    variant: RichDataComponentVariant
+}) {
+    const isLargeVariant = variant === "large"
+    const numDataTableRowsPerColumn = isLargeVariant
+        ? NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_LARGE_VARIANT
+        : NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT
+
     const isMediumScreen = useMediaQuery(MEDIUM_BREAKPOINT_MEDIA_QUERY)
 
     const { ref, grapherState, status } = useSearchChartHitData(hit)
@@ -81,20 +112,18 @@ export function SearchChartHitRichData({
         configureGrapherStateFocus(grapherState, { entities: pickedEntities })
 
         // Place Grapher tabs into grid layout and calculate info for data display
-        const layout = calculateMediumHitLayout(grapherState, {
+        const layout = calculateLayout(variant, grapherState, {
             sortedTabs,
             entityForDataDisplay: pickedEntities[0],
             numDataTableRowsPerColumn,
         })
 
         // We might need to adjust entity selection and focus according to the chosen layout
-        const tableSlot = layout?.placedTabs.find(
-            ({ tab }) => tab === GRAPHER_TAB_NAMES.Table
-        )?.slot
-        if (tableSlot) {
+        const tableSlot = findTableSlot(layout)
+        if (layout && tableSlot) {
             configureGrapherStateForLayout(grapherState, {
                 dataTableContent: layout.dataTableContent,
-                numAvailableDataTableRows: getRowCountForMediumHitGridSlot(
+                numAvailableDataTableRows: getTableRowCountForGridSlot(
                     tableSlot,
                     numDataTableRowsPerColumn
                 ),
@@ -121,24 +150,14 @@ export function SearchChartHitRichData({
 
     // Render a placeholder component while the config and data are loading
     if (status === "loading") {
-        const chartUrl = constructChartUrl({ hit })
-
         return (
             <div ref={ref} className="search-chart-hit-rich-data">
                 <SearchChartHitHeader
                     hit={hit}
-                    url={chartUrl}
+                    url={constructChartUrl({ hit })}
                     onClick={onClick}
                 />
-
-                <div
-                    className="search-chart-hit-rich-data__content"
-                    style={{ "--num-columns": 3 } as React.CSSProperties}
-                >
-                    <GrapherThumbnailPlaceholder />
-                    <GrapherThumbnailPlaceholder />
-                    <GrapherThumbnailPlaceholder />
-                </div>
+                <RichDataContentPlaceholder variant={variant} />
             </div>
         )
     }
@@ -151,6 +170,9 @@ export function SearchChartHitRichData({
         "--num-columns": getTotalColumnCount(layout?.placedTabs ?? []),
     } as React.CSSProperties
 
+    const sourcesUrl = constructChartUrl({ hit, overlay: "sources" })
+    const downloadUrl = constructChartUrl({ hit, overlay: "download-data" })
+
     return (
         <div ref={ref} className="search-chart-hit-rich-data">
             <div className="search-chart-hit-rich-data__header">
@@ -160,30 +182,57 @@ export function SearchChartHitRichData({
                     source={grapherState.sourcesLine}
                     onClick={onClick}
                 />
-                <Button
-                    text="Download options"
-                    className="search-chart-hit-rich-data__download-button"
-                    theme="solid-light-blue"
-                    href={constructChartUrl({ hit, overlay: "download-data" })}
-                    icon={faDownload}
-                    iconPosition="left"
-                />
+                <div className="search-chart-hit-rich-data__header-actions">
+                    {isLargeVariant && (
+                        <Button
+                            text="Learn more about this data"
+                            className="search-chart-hit-rich-data__button"
+                            theme="outline-light-blue"
+                            href={sourcesUrl}
+                            icon={null}
+                        />
+                    )}
+                    <Button
+                        text="Download options"
+                        className="search-chart-hit-rich-data__button"
+                        theme="solid-light-blue"
+                        href={downloadUrl}
+                        icon={faDownload}
+                        iconPosition="left"
+                    />
+                    {isLargeVariant && (
+                        <img
+                            src="owid-logo.svg"
+                            alt="Our World in Data logo"
+                            width={104}
+                            height={57}
+                        />
+                    )}
+                </div>
             </div>
 
             <div
-                className="search-chart-hit-rich-data__content"
+                className={cx(
+                    "search-chart-hit-rich-data__content",
+                    `search-chart-hit-rich-data__content--${variant}`
+                )}
                 style={contentStyle}
             >
                 {layout?.placedTabs.map(({ tab, slot }, tabIndex) => {
                     // Always use the thumbnail version on smaller screens since
-                    // the table might not be visible. Otherwise, use the minimal
-                    // version for the first tab (which is annotated by the table)
-                    // and thumbnails for all other tabs.
+                    // the table might not be visible
                     const previewVariant = isMediumScreen
                         ? "thumbnail"
-                        : tabIndex === 0
-                          ? "minimal-thumbnail"
-                          : "thumbnail"
+                        : getPreviewVariant(variant, {
+                              isPrimaryTab: tabIndex === 0,
+                          })
+
+                    const { width: imageWidth, height: imageHeight } =
+                        previewVariant === "large"
+                            ? calculateLargePreviewImageDimensions(
+                                  layout as Layout<LargeVariantGridSlot>
+                              )
+                            : {}
 
                     const { chartUrl, previewUrl } =
                         constructChartAndPreviewUrlsForTab({
@@ -191,12 +240,16 @@ export function SearchChartHitRichData({
                             grapherState,
                             tab,
                             previewVariant,
+                            imageWidth,
+                            imageHeight,
                         })
 
-                    const maxRows = getRowCountForMediumHitGridSlot(
+                    const maxRows = getTableRowCountForGridSlot(
                         slot,
                         numDataTableRowsPerColumn
                     )
+
+                    const className = makeSlotClassNames(variant, slot)
 
                     return tab === GRAPHER_TAB_NAMES.Table ? (
                         <CaptionedTable
@@ -204,7 +257,7 @@ export function SearchChartHitRichData({
                             chartUrl={chartUrl}
                             grapherState={grapherState}
                             maxRows={maxRows}
-                            className={slot}
+                            className={className}
                             onClick={onClick}
                         />
                     ) : (
@@ -214,7 +267,9 @@ export function SearchChartHitRichData({
                             chartUrl={chartUrl}
                             previewUrl={previewUrl}
                             grapherState={grapherState}
-                            className={slot}
+                            imageWidth={imageWidth}
+                            imageHeight={imageHeight}
+                            className={className}
                             onClick={onClick}
                         />
                     )
@@ -231,13 +286,88 @@ export function SearchChartHitRichData({
     )
 }
 
-function GrapherThumbnailPlaceholder(): React.ReactElement {
+function RichDataContentPlaceholder({
+    variant,
+}: {
+    variant: RichDataComponentVariant
+}): React.ReactElement {
+    return match(variant)
+        .with("medium", () => <RichDataContentMediumVariantPlaceholder />)
+        .with("large", () => <RichDataContentLargeVariantPlaceholder />)
+        .exhaustive()
+}
+
+function RichDataContentMediumVariantPlaceholder(): React.ReactElement {
     return (
-        <div className="search-chart-hit-rich-data__placeholder single-slot">
+        <div
+            className="search-chart-hit-rich-data__content search-chart-hit-rich-data__content--medium"
+            style={{ "--num-columns": 3 } as React.CSSProperties}
+        >
+            <GrapherThumbnailPlaceholder
+                variant="medium"
+                slot={MediumVariantGridSlot.Single}
+            />
+            <GrapherThumbnailPlaceholder
+                variant="medium"
+                slot={MediumVariantGridSlot.Single}
+            />
+            <GrapherThumbnailPlaceholder
+                variant="medium"
+                slot={MediumVariantGridSlot.Single}
+            />
+        </div>
+    )
+}
+
+function RichDataContentLargeVariantPlaceholder(): React.ReactElement {
+    return (
+        <div className="search-chart-hit-rich-data__content search-chart-hit-rich-data__content--large">
+            <GrapherThumbnailPlaceholder
+                variant="large"
+                slot={LargeVariantGridSlot.LeftQuad}
+            />
+            <GrapherThumbnailPlaceholder
+                variant="large"
+                slot={LargeVariantGridSlot.RightQuadLeftColumn}
+            />
+            <GrapherThumbnailPlaceholder
+                variant="large"
+                slot={LargeVariantGridSlot.SingleCell}
+            />
+            <GrapherThumbnailPlaceholder
+                variant="large"
+                slot={LargeVariantGridSlot.SingleCell}
+            />
+        </div>
+    )
+}
+
+function GrapherThumbnailPlaceholder({
+    variant,
+    slot,
+}: {
+    variant: RichDataComponentVariant
+    slot: GridSlot
+}): React.ReactElement {
+    return (
+        <div
+            className={cx(
+                "search-chart-hit-rich-data__placeholder",
+                makeSlotClassNames(variant, slot)
+            )}
+        >
             <div className="search-chart-hit-rich-data__thumbnail-placeholder" />
             <div className="search-chart-hit-rich-data__captioned-link-label" />
         </div>
     )
+}
+
+function getPreviewVariant(
+    variant: SearchChartHitComponentVariant,
+    { isPrimaryTab }: { isPrimaryTab: boolean }
+): PreviewVariant {
+    if (isPrimaryTab) return variant === "large" ? "large" : "minimal-thumbnail"
+    return "thumbnail"
 }
 
 function constructChartAndPreviewUrlsForTab({
@@ -245,11 +375,15 @@ function constructChartAndPreviewUrlsForTab({
     grapherState,
     tab,
     previewVariant,
+    imageWidth,
+    imageHeight,
 }: {
     hit: SearchChartHit
     grapherState: GrapherState
     tab: GrapherTabName
     previewVariant: PreviewVariant
+    imageWidth?: number
+    imageHeight?: number
 }): { chartUrl: string; previewUrl: string } {
     // Use Grapher's changedParams to construct chart and preview URLs.
     // We override the tab parameter because the GrapherState is currently set to
@@ -272,6 +406,8 @@ function constructChartAndPreviewUrlsForTab({
         hit,
         grapherParams,
         variant: previewVariant,
+        imageWidth,
+        imageHeight,
     })
 
     const chartUrl = constructChartUrl({
@@ -281,4 +417,19 @@ function constructChartAndPreviewUrlsForTab({
     })
 
     return { chartUrl, previewUrl }
+}
+
+function calculateLayout(
+    variant: RichDataComponentVariant,
+    grapherState: GrapherState,
+    args: {
+        sortedTabs: GrapherTabName[]
+        entityForDataDisplay?: EntityName
+        numDataTableRowsPerColumn: number
+    }
+): Layout<GridSlot> | undefined {
+    return match(variant)
+        .with("large", () => calculateLargeVariantLayout(grapherState, args))
+        .with("medium", () => calculateMediumVariantLayout(grapherState, args))
+        .exhaustive()
 }

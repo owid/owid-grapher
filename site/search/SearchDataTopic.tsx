@@ -50,18 +50,18 @@ export const SearchDataTopic = ({
             </button>
             <div className="search-data-topic-hits">
                 <ul className="search-data-topic-list">
-                    {charts.hits.map((hit, i) => (
+                    {charts.hits.map((hit, hitIndex) => (
                         <li
                             className="search-data-topic-hit"
                             key={hit.objectID}
                         >
                             <SearchChartHitComponent
                                 hit={hit}
-                                variant={i === 0 ? "medium" : "small"}
+                                variant={hitIndex === 0 ? "medium" : "small"}
                                 onClick={() => {
                                     analytics.logDataCatalogResultClick(
                                         hit,
-                                        i + 1,
+                                        hitIndex + 1,
                                         "ribbon",
                                         title
                                     )
