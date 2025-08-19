@@ -17,7 +17,6 @@ import {
     ColorScaleBin,
     NumericBin,
     CategoricalBin,
-    binningStrategyLabels,
 } from "@ourworldindata/grapher"
 import {
     Section,
@@ -213,20 +212,6 @@ class ColorsSection extends Component<ColorsSectionProps> {
             value: strategy,
             label: strategy,
         }))
-        const options = Object.entries(binningStrategyLabels).map(
-            ([value, label]) => ({
-                label: label,
-                value: value as BinningStrategy,
-            })
-        )
-        // Remove the manual binning strategy from the options if
-        // no custom bin values are specified in the config.
-        // Authors can still get into manual mode by selecting an
-        // automatic binning strategy and editing the bins.
-        if (!this.config.customNumericValues.length) {
-            return options.filter(({ value }) => value !== "manual")
-        }
-        return options
     }
 
     @computed get currentBinningStrategyOption() {

@@ -1,4 +1,3 @@
-export { binningStrategyLabels } from "./color/BinningStrategies"
 export {
     NumericBin,
     CategoricalBin,
