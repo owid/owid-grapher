@@ -13,7 +13,7 @@ import { isPathRedirectedToExplorer } from "../../../explorerAdminServer/Explore
 import { ParsedChartRecordRow, RawChartRecordRow } from "./types.js"
 import {
     excludeNullish,
-    getUniqueNamesFromTopicHierarchies,
+    getUniqueNamesFromTagHierarchies,
 } from "@ourworldindata/utils"
 import { processAvailableEntities } from "./shared.js"
 
@@ -125,7 +125,7 @@ export const getChartsRecords = async (
                   fontSize: 10, // doesn't matter, but is a mandatory field
               }).plaintext
 
-        const topicTags = getUniqueNamesFromTopicHierarchies(
+        const topicTags = getUniqueNamesFromTagHierarchies(
             c.tags,
             topicHierarchiesByChildName
         )
