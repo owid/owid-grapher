@@ -1,19 +1,12 @@
 .search-chart-hit-captioned-link {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-end;
-    gap: 8px;
-    height: 100%;
-
-    @include md-down {
-        scroll-snap-align: start;
-    }
-
     &:hover {
         .search-chart-hit-captioned-link__label {
             text-decoration: none;
         }
+    }
+
+    @include md-down {
+        scroll-snap-align: start;
     }
 
     .search-chart-hit-captioned-link__label {
@@ -25,5 +18,6 @@
         overflow: hidden;
         text-overflow: ellipsis;
         max-width: 100%;
+        margin-top: 8px;
     }
 }
