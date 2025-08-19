@@ -279,6 +279,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
                         onValue={this.onInvert}
                     />
                 </FieldsRow>
+                <hr />
                 <FieldsRow>
                     <div className="form-group">
                         <label>Binning strategy</label>
@@ -318,6 +319,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
                         errorMessage={this.binningOptionsError}
                     />
                 </FieldsRow>
+                <hr />
                 <FieldsRow>
                     <NumberField
                         label="Midpoint"
@@ -358,6 +360,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
                         />
                     </div>
                 </FieldsRow>
+                <hr />
                 <ColorSchemeEditor
                     scale={scale}
                     onChange={this.props.onChange}
