@@ -23,16 +23,17 @@ import {
     GrapherChartType,
     GrapherValuesJson,
 } from "@ourworldindata/utils"
-import {
-    getTotalColumnCount,
-    placeGrapherTabsInMediumHitGridLayout,
-} from "./SearchChartHitRichDataHelpers.js"
+import { placeGrapherTabsInMediumVariantGridLayout } from "./SearchChartHitRichDataMediumVariantHelpers.js"
 import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
 import { Button } from "@ourworldindata/components"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { CaptionedLink } from "./SearchChartHitCaptionedLink.js"
 import { SearchChartHitThumbnail } from "./SearchChartHitThumbnail.js"
 import { SearchChartHitDataDisplay } from "./SearchChartHitDataDisplay.js"
+import {
+    getTotalColumnCount,
+    makeSlotClassNames,
+} from "./SearchChartHitRichDataHelpers.js"
 
 export function SearchChartHitRichDataFallback({
     hit,
@@ -88,7 +89,7 @@ export function SearchChartHitRichDataFallback({
     const grapherTabs = hit.availableTabs.filter(
         (tab) => tab !== GRAPHER_TAB_NAMES.Table
     )
-    const placedTabs = placeGrapherTabsInMediumHitGridLayout(grapherTabs, {
+    const placedTabs = placeGrapherTabsInMediumVariantGridLayout(grapherTabs, {
         hasDataDisplay: !!dataDisplayProps,
         tableType: "none", // since there is no table tab
     })
@@ -106,18 +107,23 @@ export function SearchChartHitRichDataFallback({
                     source={chartInfo?.source}
                     onClick={onClick}
                 />
-                <Button
-                    text="Download options"
-                    className="search-chart-hit-rich-data__download-button"
-                    theme="solid-light-blue"
-                    href={constructChartUrl({ hit, overlay: "download-data" })}
-                    icon={faDownload}
-                    iconPosition="left"
-                />
+                <div className="search-chart-hit-rich-data__header-actions">
+                    <Button
+                        text="Download options"
+                        className="search-chart-hit-rich-data__button"
+                        theme="solid-light-blue"
+                        href={constructChartUrl({
+                            hit,
+                            overlay: "download-data",
+                        })}
+                        icon={faDownload}
+                        iconPosition="left"
+                    />
+                </div>
             </div>
 
             <div
-                className="search-chart-hit-rich-data__content"
+                className="search-chart-hit-rich-data__content search-chart-hit-rich-data__content--medium"
                 style={contentStyle}
             >
                 {placedTabs.map(({ tab, slot }) => {
@@ -153,12 +159,14 @@ export function SearchChartHitRichDataFallback({
                         variant: "thumbnail",
                     })
 
+                    const className = makeSlotClassNames("medium", slot)
+
                     return (
                         <CaptionedLink
                             key={tab}
                             caption={caption}
                             url={chartUrl}
-                            className={slot}
+                            className={className}
                             onClick={onClick}
                         >
                             <SearchChartHitThumbnail previewUrl={previewUrl} />

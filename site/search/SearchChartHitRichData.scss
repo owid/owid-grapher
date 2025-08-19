@@ -10,76 +10,70 @@
         gap: 24px;
     }
 
-    .search-chart-hit-rich-data__download-button {
-        padding: 5px 8px;
-        font-size: 13px;
-        white-space: nowrap;
+    .search-chart-hit-rich-data__header-actions {
+        display: flex;
+        gap: 16px;
         align-self: flex-start;
+        flex-shrink: 0;
 
-        &:hover {
-            background-color: #bed2e7;
+        img {
+            height: 32px;
+            width: auto;
         }
 
-        @include sm-only {
-            display: none;
+        .search-chart-hit-rich-data__button {
+            padding: 5px 8px;
+            font-size: 13px;
+            white-space: nowrap;
+
+            &:hover {
+                background-color: #bed2e7;
+            }
+
+            @include sm-only {
+                display: none;
+            }
         }
     }
 
     .search-chart-hit-rich-data__content {
         margin-top: 16px;
         display: grid;
-        grid-template-columns: repeat(8, minmax(0, 1fr));
-        grid-template-rows: repeat(2, auto);
         gap: $grid-gap;
         align-items: flex-end;
 
-        @include md-down {
-            margin-top: 12px;
+        &.search-chart-hit-rich-data__content--medium {
+            grid-template-rows: repeat(2, auto);
+            grid-template-columns: repeat(8, minmax(0, 1fr));
 
-            // The number of columns are set in the component
-            --num-columns: 4; // fallback value
-            grid-template-columns: repeat(calc(2 * var(--num-columns)), 120px);
+            @include md-down {
+                margin-top: 12px;
 
-            // Horizontal scroll container with scroll snapping
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
+                // The number of columns are set in the component
+                --num-columns: 4; // fallback value
+                grid-template-columns: repeat(
+                    calc(2 * var(--num-columns)),
+                    120px
+                );
 
-            // Hide scrollbar
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* Internet Explorer and Edge */
-            &::-webkit-scrollbar {
-                display: none; /* Safari and Chrome */
+                // Horizontal scroll container with scroll snapping
+                overflow-x: auto;
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch;
+
+                // Hide scrollbar
+                scrollbar-width: none; /* Firefox */
+                -ms-overflow-style: none; /* Internet Explorer and Edge */
+                &::-webkit-scrollbar {
+                    display: none; /* Safari and Chrome */
+                }
             }
         }
-    }
 
-    .search-chart-hit-table-wrapper {
-        background: #fff;
-
-        // Trick to maintain aspect ratio of the container. We can use the
-        // aspect-ratio property in the future when more browsers support it.
-        // Needs padding-bottom to work, which is set below.
-        // https://stackoverflow.com/a/10441480/9846837
-        position: relative;
-        width: 100%;
-        height: 0;
-
-        .search-chart-hit-table-wrapper-content {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: 100%;
-        }
-
-        .search-chart-hit-table,
-        .search-chart-hit-data-points {
-            padding: 6px 12px;
-        }
-
-        .search-chart-hit-data-points--align-top {
-            padding-top: 12px;
+        &.search-chart-hit-rich-data__content--large {
+            grid-template-rows: repeat(2, 1fr);
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            align-items: flex-start;
         }
     }
 
@@ -88,13 +82,21 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
+        height: 100%;
 
         .search-chart-hit-rich-data__thumbnail-placeholder {
+            height: 100%;
+            width: 100%;
+            background: $blue-10;
+        }
+
+        &.large-variant__single-cell
+            .search-chart-hit-rich-data__thumbnail-placeholder,
+        &.medium-variant__single-slot
+            .search-chart-hit-rich-data__thumbnail-placeholder {
             aspect-ratio: calc(
                 $grapher-thumbnail-width / $grapher-thumbnail-height
             );
-            width: 100%;
-            background: $blue-10;
         }
 
         .search-chart-hit-rich-data__captioned-link-label {
@@ -118,88 +120,254 @@
         }
     }
 
-    // grid utilities
+    .search-chart-hit-table-wrapper {
+        background: #fff;
+        width: 100%;
 
-    .single-slot {
-        grid-column: span 2;
-        grid-row: span 2;
-
-        .search-chart-hit-table-wrapper {
-            padding-bottom: calc(
-                ($grapher-thumbnail-height / $grapher-thumbnail-width * 100%)
-            );
+        .search-chart-hit-table-wrapper-content {
+            height: 100%;
         }
 
-        .search-chart-hit-table {
-            grid-template-columns: repeat(1, 1fr);
-        }
-    }
-
-    .double-slot {
-        grid-column: span 4;
-        grid-row: span 2;
-
-        .search-chart-hit-table-wrapper {
-            padding-bottom: calc(
-                $grapher-thumbnail-height /
-                    (2 * $grapher-thumbnail-width + 1 * $grid-gap) * 100%
-            );
+        .search-chart-hit-table,
+        .search-chart-hit-data-points {
+            padding: 6px 12px;
         }
 
-        .search-chart-hit-table {
-            grid-template-columns: repeat(2, 1fr);
+        .search-chart-hit-data-points--align-top {
+            padding-top: 12px;
         }
     }
 
-    .triple-slot {
-        grid-column: span 6;
-        grid-row: span 2;
+    // Medium variant grid slots
+    .search-chart-hit-rich-data__content--medium {
+        // Keep in sync with NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT
+        $num-rows-per-column-without-caption: 4;
+        $num-rows-per-column: $num-rows-per-column-without-caption + 1;
 
-        .search-chart-hit-table-wrapper {
-            padding-bottom: calc(
-                $grapher-thumbnail-height /
-                    (3 * $grapher-thumbnail-width + 2 * $grid-gap) * 100%
-            );
+        // Applies to any medium variant grid slot
+        .medium-variant__slot {
+            .search-chart-hit-table-wrapper {
+                position: relative;
+            }
+
+            .search-chart-hit-table-wrapper-content {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+            }
+
+            .search-chart-hit-table {
+                grid-template-rows: repeat($num-rows-per-column, 1fr);
+            }
         }
 
-        .search-chart-hit-table {
-            grid-template-columns: repeat(3, 1fr);
-        }
-    }
-
-    .quad-slot {
-        grid-column: span 8;
-        grid-row: span 2;
-
-        .search-chart-hit-table {
-            grid-template-columns: repeat(4, 1fr);
-        }
-    }
-
-    .small-slot-left {
-        grid-column: 7;
-        grid-row: 2;
-
-        // Takes up a full slot on smaller screens
-        @include md-down {
+        .medium-variant__single-slot {
             grid-column: span 2;
             grid-row: span 2;
+
+            .search-chart-hit-table-wrapper {
+                @include aspect-ratio(
+                    $grapher-thumbnail-width / $grapher-thumbnail-height
+                );
+            }
+
+            .search-chart-hit-table {
+                grid-template-columns: repeat(1, 1fr);
+            }
         }
-    }
 
-    .small-slot-right {
-        grid-column: 8;
-        grid-row: 2;
-
-        // Takes up a full slot on smaller screens
-        @include md-down {
-            grid-column: span 2;
+        .medium-variant__double-slot {
+            grid-column: span 4;
             grid-row: span 2;
+
+            .search-chart-hit-table-wrapper {
+                @include aspect-ratio(
+                    (2 * $grapher-thumbnail-width + 1 * $grid-gap) /
+                        $grapher-thumbnail-height
+                );
+            }
+
+            .search-chart-hit-table {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .medium-variant__triple-slot {
+            grid-column: span 6;
+            grid-row: span 2;
+
+            .search-chart-hit-table-wrapper {
+                @include aspect-ratio(
+                    (3 * $grapher-thumbnail-width + 2 * $grid-gap) /
+                        $grapher-thumbnail-height
+                );
+            }
+
+            .search-chart-hit-table {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .medium-variant__quad-slot {
+            grid-column: span 8;
+            grid-row: span 2;
+
+            // No need to maintain a certain aspect ratio since there is no thumbnail
+            .search-chart-hit-table-wrapper {
+                height: 120px;
+            }
+
+            .search-chart-hit-table {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .medium-variant__small-slot-left {
+            grid-column: 7;
+            grid-row: 2;
+
+            // Takes up a full slot on smaller screens
+            @include md-down {
+                grid-column: span 2;
+                grid-row: span 2;
+            }
+
+            .chart-hit-img-error {
+                font-size: 0.6em;
+            }
+        }
+
+        .medium-variant__small-slot-right {
+            grid-column: 8;
+            grid-row: 2;
+
+            // Takes up a full slot on smaller screens
+            @include md-down {
+                grid-column: span 2;
+                grid-row: span 2;
+            }
+
+            .chart-hit-img-error {
+                font-size: 0.6em;
+            }
+        }
+
+        .data-slot {
+            grid-column: 7 / 9;
+            grid-row: 1;
         }
     }
 
-    .data-slot {
-        grid-column: 7 / 9;
-        grid-row: 1;
+    // Large variant grid slots
+    .search-chart-hit-rich-data__content--large {
+        // Keep in sync with NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT
+        $num-rows-per-column-without-caption: 10;
+        $num-rows-per-column: $num-rows-per-column-without-caption + 1;
+
+        // Applies to any large variant grid slot
+        .large-variant__slot {
+            .search-chart-hit-table {
+                grid-template-rows: repeat($num-rows-per-column, 1fr);
+            }
+        }
+
+        .large-variant__single-cell {
+            grid-column: span 1;
+            grid-row: span 1;
+        }
+
+        .large-variant__top-right-cell {
+            grid-column: 4;
+            grid-row: 1;
+        }
+
+        .large-variant__bottom-right-cell {
+            grid-column: 4;
+            grid-row: 2;
+        }
+
+        .large-variant__right-quad-bottom-row {
+            grid-column: 3 / -1;
+            grid-row: 2;
+
+            height: 100%;
+
+            .search-chart-hit-table-wrapper {
+                height: calc(100% - 24px);
+            }
+        }
+
+        .large-variant__right-quad-left-column {
+            grid-column: 3;
+            grid-row: 1 / -1;
+
+            height: 100%;
+
+            .search-chart-hit-table-wrapper {
+                height: calc(100% - 24px);
+            }
+
+            .search-chart-hit-table {
+                grid-template-columns: repeat(1, 1fr);
+            }
+        }
+
+        .large-variant__right-quad {
+            grid-column: 3 / -1;
+            grid-row: 1 / -1;
+
+            height: 100%;
+
+            .search-chart-hit-table-wrapper {
+                height: calc(100% - 24px);
+            }
+
+            .search-chart-hit-table {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .search-chart-hit-data-points {
+                height: auto;
+                padding-top: 12px;
+            }
+        }
+
+        .large-variant__left-quad {
+            grid-column: 1 / 3;
+            grid-row: 1 / -1;
+
+            height: 100%;
+
+            .search-chart-hit-thumbnail {
+                height: calc(100% - 24px);
+                background-color: #fff;
+                display: flex;
+                align-items: center;
+            }
+
+            .search-chart-hit-table-wrapper {
+                height: calc(100% - 24px);
+            }
+
+            .search-chart-hit-table {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .large-variant__full {
+            grid-column: 1 / -1;
+            grid-row: 1 / -1;
+
+            height: 330px;
+
+            .search-chart-hit-table-wrapper {
+                height: calc(100% - 24px);
+            }
+
+            .search-chart-hit-table {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
     }
 }
