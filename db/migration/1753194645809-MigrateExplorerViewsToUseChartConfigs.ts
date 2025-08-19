@@ -1,5 +1,4 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
-// cSpell:ignore uuidv7
 import { uuidv7 } from "uuidv7"
 
 export class MigrateExplorerViewsToUseChartConfigs1753194645809
@@ -30,7 +29,6 @@ export class MigrateExplorerViewsToUseChartConfigs1753194645809
 
         for (const view of existingViews) {
             // Generate a unique ID for the chart config using uuidv7
-            // cSpell:ignore uuidv7
             const chartConfigId = uuidv7()
 
             // Parse the JSON to ensure it's valid (we don't use it but validate it)
