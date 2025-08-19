@@ -9,8 +9,12 @@ import {
 
 export const SearchChartHitThumbnail = ({
     previewUrl,
+    imageWidth = GRAPHER_THUMBNAIL_WIDTH,
+    imageHeight = GRAPHER_THUMBNAIL_HEIGHT,
 }: {
     previewUrl: string
+    imageWidth?: number
+    imageHeight?: number
 }) => {
     const [imgLoaded, setImgLoaded] = useState(false)
     const [imgError, setImgError] = useState(false)
@@ -27,8 +31,8 @@ export const SearchChartHitThumbnail = ({
                 key={previewUrl}
                 className={cx({ loaded: imgLoaded, error: imgError })}
                 loading="lazy"
-                width={GRAPHER_THUMBNAIL_WIDTH}
-                height={GRAPHER_THUMBNAIL_HEIGHT}
+                width={imageWidth}
+                height={imageHeight}
                 src={previewUrl}
                 onLoad={() => setImgLoaded(true)}
                 onError={() => setImgError(true)}
