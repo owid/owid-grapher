@@ -97,3 +97,13 @@
         color: $blue-90;
     }
 }
+
+.owid-btn--outline-light-blue {
+    border-color: $blue-20;
+    color: $blue-90;
+
+    &:hover {
+        background-color: $white;
+        color: $blue-90;
+    }
+}
