@@ -4,7 +4,7 @@ import {
     fakeLogBins,
     mirrorBinsAroundMidpoint,
     pruneUnusedBins,
-} from "./BinningStrategies2.js"
+} from "./BinningStrategies.js"
 
 describe(fakeLogBins, () => {
     it("should generate logarithmic 1, 2, 5 bins", () => {

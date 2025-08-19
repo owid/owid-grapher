@@ -21,7 +21,7 @@ import {
 } from "@ourworldindata/types"
 import { CoreColumn } from "@ourworldindata/core-table"
 import * as R from "remeda"
-import { runBinningStrategy } from "./BinningStrategies2.js"
+import { runBinningStrategy } from "./BinningStrategies.js"
 
 export const NO_DATA_LABEL = "No data"
 export const PROJECTED_DATA_LABEL = "Projected data"
