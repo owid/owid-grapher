@@ -4,7 +4,7 @@ import {
     DbEnrichedMultiDimDataPage,
     DbPlainMultiDimXChartConfig,
     DbRawChartConfig,
-    getUniqueNamesFromTopicHierarchies,
+    getUniqueNamesFromTagHierarchies,
     multiDimDimensionsToViewId,
     MultiDimXChartConfigsTableName,
     parseChartConfig,
@@ -135,7 +135,7 @@ async function getMultiDimDataPagesWithInheritedTags(
             )
         }
 
-        const topicTags = getUniqueNamesFromTopicHierarchies(
+        const topicTags = getUniqueNamesFromTagHierarchies(
             tags,
             topicHierarchiesByChildName
         )
