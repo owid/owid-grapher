@@ -9,6 +9,8 @@ export function CaptionedThumbnail({
     chartUrl,
     previewUrl,
     grapherState,
+    imageWidth,
+    imageHeight,
     className,
     onClick,
 }: {
@@ -16,6 +18,8 @@ export function CaptionedThumbnail({
     chartUrl: string
     previewUrl: string
     grapherState: GrapherState
+    imageWidth?: number
+    imageHeight?: number
     className?: string
     onClick?: () => void
 }): React.ReactElement {
@@ -41,7 +45,11 @@ export function CaptionedThumbnail({
             className={className}
             onClick={onClick}
         >
-            <SearchChartHitThumbnail previewUrl={previewUrl} />
+            <SearchChartHitThumbnail
+                previewUrl={previewUrl}
+                imageWidth={imageWidth}
+                imageHeight={imageHeight}
+            />
         </CaptionedLink>
     )
 }

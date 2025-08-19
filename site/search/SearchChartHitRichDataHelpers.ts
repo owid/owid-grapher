@@ -8,231 +8,22 @@ import {
     GrapherTabName,
     SeriesStrategy,
 } from "@ourworldindata/types"
+import { SearchChartHitDataTableContent } from "./SearchChartHitDataTableHelpers"
 import {
-    buildChartHitDataTableContent,
-    SearchChartHitDataTableContent,
-} from "./SearchChartHitDataTableHelpers"
-import { SearchChartHitDataDisplayProps } from "./SearchChartHitDataDisplay"
-import {
-    constructGrapherValuesJson,
     GrapherState,
     mapGrapherTabNameToConfigOption,
     StackedDiscreteBarChartState,
-    WORLD_ENTITY_NAME,
 } from "@ourworldindata/grapher"
-import { buildChartHitDataDisplayProps } from "./searchUtils"
 import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable"
 import { SearchChartHitDataPointsProps } from "./SearchChartHitDataPoints"
-
-export enum MediumHitGridSlot {
-    Single = "single-slot",
-    Double = "double-slot",
-    Triple = "triple-slot",
-    Quad = "quad-slot",
-    SmallLeft = "small-slot-left",
-    SmallRight = "small-slot-right",
-}
-
-interface MediumHitPlacedTab {
-    tab: GrapherTabName
-    slot: MediumHitGridSlot
-}
-
-interface MediumHitLayout {
-    placedTabs: MediumHitPlacedTab[]
-    dataTableContent: SearchChartHitDataTableContent
-    dataDisplayProps?: SearchChartHitDataDisplayProps
-}
-
-type PlacingOptions =
-    | { tableType: "none" }
-    | {
-          tableType: "data-table"
-          numDataTableRows: number
-          numDataTableRowsPerColumn?: number
-      }
-    | {
-          tableType: "data-points"
-          numMaxSlotsForTable: number
-      }
-
-export function placeGrapherTabsInMediumHitGridLayout(
-    tabs: GrapherTabName[],
-    options: { hasDataDisplay: boolean } & PlacingOptions
-): MediumHitPlacedTab[] {
-    // If there is a data display, then three equally-sized slots are available,
-    // plus two smaller slots below the data display. If there is no data display,
-    // then four equally-sized slots are available.
-
-    if (options.hasDataDisplay) {
-        const placedMainTabs = placeTabsInUniformGrid(tabs, {
-            numAvailableGridSlots: 3,
-            ...options,
-        })
-
-        const remainingTabs = tabs.slice(placedMainTabs.length)
-        const placedRemainingTabs = remainingTabs
-            .slice(0, 2)
-            .map((tab, tabIndex) => ({
-                tab,
-                slot:
-                    tabIndex === 0
-                        ? MediumHitGridSlot.SmallLeft
-                        : MediumHitGridSlot.SmallRight,
-            }))
-        return [...placedMainTabs, ...placedRemainingTabs]
-    } else {
-        return placeTabsInUniformGrid(tabs, {
-            numAvailableGridSlots: 4,
-            ...options,
-        })
-    }
-}
-
-/**
- * Place Grapher tabs in a uniform grid layout.
- *
- * Chart tabs always occupy a single slots. The table tab might occupy more
- * than one slot if there is space and enough data to fill it.
- */
-function placeTabsInUniformGrid(
-    tabs: GrapherTabName[],
-    options: { numAvailableGridSlots: number } & PlacingOptions
-) {
-    const maxNumTabs = options.numAvailableGridSlots
-
-    // If none of the tabs display a table, then all tabs trivially take up one slot each
-    if (!tabs.some((tab) => tab === GRAPHER_TAB_NAMES.Table)) {
-        return tabs
-            .slice(0, maxNumTabs)
-            .map((tab) => ({ tab, slot: MediumHitGridSlot.Single }))
-    }
-
-    const numTabs = Math.min(tabs.length, maxNumTabs)
-    const numCharts = numTabs - 1 // without the table tab
-
-    const numAvailableSlotsForTable = options.numAvailableGridSlots - numCharts // >= 1
-
-    if (numAvailableSlotsForTable <= 1) {
-        return tabs
-            .slice(0, maxNumTabs)
-            .map((tab) => ({ tab, slot: MediumHitGridSlot.Single }))
-    }
-
-    const numSlotsForTable = match(options)
-        .with({ tableType: "none" }, () => 0)
-        .with({ tableType: "data-points" }, ({ numMaxSlotsForTable }) =>
-            numMaxSlotsForTable
-                ? Math.min(numAvailableSlotsForTable, numMaxSlotsForTable)
-                : numAvailableSlotsForTable
-        )
-        .with(
-            { tableType: "data-table" },
-            ({ numDataTableRows, numDataTableRowsPerColumn = 4 }) => {
-                const numNeededSlotsForTable = Math.ceil(
-                    numDataTableRows / numDataTableRowsPerColumn
-                )
-
-                return Math.min(
-                    numAvailableSlotsForTable,
-                    numNeededSlotsForTable
-                )
-            }
-        )
-        .exhaustive()
-
-    const tableSlot = getGridSlotForCount(numSlotsForTable)
-
-    return tabs.map((tab) => ({
-        tab,
-        slot:
-            tab === GRAPHER_TAB_NAMES.Table
-                ? tableSlot
-                : MediumHitGridSlot.Single,
-    }))
-}
-
-function getGridSlotForCount(slotCount: number): MediumHitGridSlot {
-    if (slotCount <= 1) return MediumHitGridSlot.Single
-    else if (slotCount === 2) return MediumHitGridSlot.Double
-    else if (slotCount === 3) return MediumHitGridSlot.Triple
-    else return MediumHitGridSlot.Quad
-}
-
-function getColumnCountForGridSlot(slot: MediumHitGridSlot): number {
-    return match(slot)
-        .with(MediumHitGridSlot.Single, () => 1)
-        .with(MediumHitGridSlot.Double, () => 2)
-        .with(MediumHitGridSlot.Triple, () => 3)
-        .with(MediumHitGridSlot.Quad, () => 4)
-        .with(MediumHitGridSlot.SmallLeft, () => 1)
-        .with(MediumHitGridSlot.SmallRight, () => 1)
-        .exhaustive()
-}
-
-export function getRowCountForMediumHitGridSlot(
-    slot: MediumHitGridSlot,
-    numRowsPerColumn: number
-): number {
-    const numColumns = getColumnCountForGridSlot(slot)
-    return numColumns * numRowsPerColumn
-}
-
-export function getTotalColumnCount(placedTabs: MediumHitPlacedTab[]): number {
-    return R.sumBy(placedTabs, (tab) => getColumnCountForGridSlot(tab.slot))
-}
-
-export function calculateMediumHitLayout(
-    grapherState: GrapherState,
-    {
-        sortedTabs,
-        entityForDataDisplay = WORLD_ENTITY_NAME,
-        numDataTableRowsPerColumn,
-    }: {
-        sortedTabs: GrapherTabName[]
-        entityForDataDisplay: EntityName
-        numDataTableRowsPerColumn: number
-    }
-): MediumHitLayout | undefined {
-    // Build the data table props
-    const dataTableContent = buildChartHitDataTableContent({ grapherState })
-    if (!dataTableContent) return undefined
-
-    // Prepare rendering the data display
-    const hasDataDisplayProps = dataTableContent.type !== "data-points"
-    const chartInfo = hasDataDisplayProps
-        ? constructGrapherValuesJson(grapherState, entityForDataDisplay)
-        : undefined
-    const dataDisplayProps = buildChartHitDataDisplayProps({
-        chartInfo,
-        chartType: grapherState.chartType,
-        entity: entityForDataDisplay,
-        isEntityPickedByUser: entityForDataDisplay !== WORLD_ENTITY_NAME,
-    })
-
-    // Figure out the layout by assigning each Grapher tab to grid slots.
-    // The table tab can optionally span two or more slots (instead of just one)
-    // if there's enough space in the grid and enough data to justify it.
-    const placedTabs = match(dataTableContent)
-        .with({ type: "data-table" }, (dataTableContent) =>
-            placeGrapherTabsInMediumHitGridLayout(sortedTabs, {
-                hasDataDisplay: !!dataDisplayProps,
-                tableType: dataTableContent.type,
-                numDataTableRows: dataTableContent.props.rows.length,
-                numDataTableRowsPerColumn,
-            })
-        )
-        .with({ type: "data-points" }, (dataTableContent) =>
-            placeGrapherTabsInMediumHitGridLayout(sortedTabs, {
-                hasDataDisplay: !!dataDisplayProps,
-                tableType: dataTableContent.type,
-                numMaxSlotsForTable: 2,
-            })
-        )
-        .exhaustive()
-
-    return { placedTabs, dataTableContent, dataDisplayProps }
-}
+import {
+    GridSlot,
+    LargeVariantGridSlot,
+    Layout,
+    MediumVariantGridSlot,
+    PlacedTab,
+    RichDataComponentVariant,
+} from "./SearchChartHitRichDataTypes.js"
 
 export function getSortedGrapherTabsForChartHit(
     grapherState: GrapherState,
@@ -452,7 +243,7 @@ export function configureGrapherStateForLayout(
     if (grapherState.isStackedDiscreteBar && grapherState.focusArray.isEmpty) {
         const chartState =
             grapherState.chartState as StackedDiscreteBarChartState
-        const firstEntity = chartState.sortedItems[0]?.entityName
+        const firstEntity = chartState.sortedItems?.[0]?.entityName
         if (firstEntity) grapherState.focusArray.clearAllAndAdd(firstEntity)
     }
 
@@ -525,4 +316,57 @@ function configureGrapherStateForDataPoints(
         grapherState.focusArray.clearAllAndAdd(...entityNames)
         grapherState.selection.setSelectedEntities(entityNames)
     }
+}
+
+function getTableColumnCountForGridSlot(slot: GridSlot): number {
+    return (
+        match(slot)
+            // medium variant grid slots
+            .with(MediumVariantGridSlot.Single, () => 1)
+            .with(MediumVariantGridSlot.Double, () => 2)
+            .with(MediumVariantGridSlot.Triple, () => 3)
+            .with(MediumVariantGridSlot.Quad, () => 4)
+            .with(MediumVariantGridSlot.SmallLeft, () => 1)
+            .with(MediumVariantGridSlot.SmallRight, () => 1)
+
+            // large variant grid slots
+            .with(LargeVariantGridSlot.LeftQuad, () => 2)
+            .with(LargeVariantGridSlot.RightQuad, () => 2)
+            .with(LargeVariantGridSlot.RightQuadLeftColumn, () => 1)
+            .with(LargeVariantGridSlot.SingleCell, () => 0.5)
+            .with(LargeVariantGridSlot.TopRightCell, () => 0.5)
+            .with(LargeVariantGridSlot.BottomRightCell, () => 0.5)
+            .with(LargeVariantGridSlot.RightQuadBottomRow, () => 2)
+            .with(LargeVariantGridSlot.Full, () => 4)
+            .exhaustive()
+    )
+}
+
+/** Number of table rows that can fit in a grid slot */
+export function getTableRowCountForGridSlot(
+    slot: GridSlot,
+    numRowsPerColumn: number
+): number {
+    const numColumns = getTableColumnCountForGridSlot(slot)
+    return numColumns * numRowsPerColumn
+}
+
+/** Number of table columns for a number of placed tabs */
+export function getTotalColumnCount(placedTabs: PlacedTab<GridSlot>[]): number {
+    return R.sumBy(placedTabs, (tab) =>
+        getTableColumnCountForGridSlot(tab.slot)
+    )
+}
+
+export function findTableSlot(layout?: Layout<GridSlot>): GridSlot | undefined {
+    return layout?.placedTabs.find(({ tab }) => tab === GRAPHER_TAB_NAMES.Table)
+        ?.slot
+}
+
+export function makeSlotClassNames(
+    variant: RichDataComponentVariant,
+    slot: GridSlot
+): string {
+    const baseName = `${variant}-variant`
+    return `${baseName}__slot ${baseName}__${slot}`
 }
