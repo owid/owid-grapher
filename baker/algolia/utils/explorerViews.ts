@@ -23,7 +23,7 @@ import {
 
 import * as db from "../../../db/db.js"
 import { DATA_API_URL } from "../../../settings/serverSettings.js"
-import { getUniqueNamesFromTopicHierarchies } from "@ourworldindata/utils"
+import { getUniqueNamesFromTagHierarchies } from "@ourworldindata/utils"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import {
     CsvUnenrichedExplorerViewRecord,
@@ -771,7 +771,7 @@ async function getExplorersWithInheritedTags(trx: db.KnexReadonlyTransaction) {
             // We don't index unlisted explorers
             continue
         }
-        const topicTags = getUniqueNamesFromTopicHierarchies(
+        const topicTags = getUniqueNamesFromTagHierarchies(
             explorer.tags,
             topicHierarchiesByChildName
         )
