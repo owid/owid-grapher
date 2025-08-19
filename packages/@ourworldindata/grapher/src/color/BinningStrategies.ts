@@ -175,6 +175,12 @@ export const runBinningStrategy = (
         resolvedStrategy = conf.strategy as ResolvedBinningStrategy
     }
 
+    const validationResult = hasValidConfigForBinningStrategy(
+        conf.strategy,
+        conf
+    )
+    if (!validationResult.valid) return { bins: [0] } // Placeholder binning for invalid configurations
+
     let bins = runBinningStrategyAroundMidpoint({
         ...conf,
         midpointMode: conf.midpointMode,
@@ -200,11 +206,6 @@ export const hasValidConfigForBinningStrategy = (
     config: { minValue?: number; maxValue?: number; midpoint?: number }
 ): MinMaxValueResult => {
     const { minValue, maxValue, midpoint } = config
-
-    if (minValue === undefined && maxValue === undefined) {
-        // Values will be determined automatically; no need for validation
-        return { valid: true }
-    }
 
     if (
         minValue !== undefined &&
@@ -421,12 +422,6 @@ const runResolvedBinningStrategy = (
     conf: ResolvedBinningStrategyConfig,
     { hasMidpoint }: { hasMidpoint: boolean }
 ): number[] => {
-    const validationResult = hasValidConfigForBinningStrategy(
-        conf.strategy,
-        conf
-    )
-    if (!validationResult.valid) return [0] // Placeholder binning for invalid configurations
-
     const { minValue, maxValue } = computeMinMaxForStrategy(
         conf.strategy,
         conf.sortedValues,
