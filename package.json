@@ -46,7 +46,8 @@
         "syncCloudflareImages": "tsx --tsconfig tsconfig.tsx.json devTools/cloudflareImagesSync/cloudflareImagesSync.ts",
         "reconstructPostsGdocsComponents": "tsx --tsconfig tsconfig.tsx.json devTools/reconstructPostsGdocsComponents/reconstructPostsGdocsComponents.ts",
         "query": "tsx --tsconfig tsconfig.tsx.json devTools/db-ai-helpers/query.ts",
-        "addIncomingForeignKeys": "tsx --tsconfig tsconfig.tsx.json devTools/db-ai-helpers/addIncomingForeignKeys.ts"
+        "addIncomingForeignKeys": "tsx --tsconfig tsconfig.tsx.json devTools/db-ai-helpers/addIncomingForeignKeys.ts",
+        "prComments": "tsx --tsconfig tsconfig.tsx.json devTools/prComments.ts"
     },
     "dependencies": {
         "@algolia/autocomplete-js": "^1.19.2",

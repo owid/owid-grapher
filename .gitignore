@@ -49,3 +49,4 @@ archive/*
 # Sentry Config File
 .env.sentry-build-plugin
 pr-plan.md
+pr-feedback/*

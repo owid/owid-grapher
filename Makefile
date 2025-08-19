@@ -17,7 +17,7 @@ ifneq (,$(wildcard ./.env))
 	include .env
 endif
 
-.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest worktree
+.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest worktree pr-comments
 
 help:
 	@echo 'Available commands:'
@@ -42,6 +42,7 @@ help:
 	@echo '  make bench.search           run search benchmarks'
 	@echo '  make sync-cloudflare-images sync Cloudflare Images with local DB'
 	@echo '  make worktree BRANCH=name     create new git worktree at ../owid-grapher-BRANCH'
+	@echo '  make pr-comments            get PR comments for current branch'
 
 up: export DEBUG = 'knex:query'
 
@@ -314,3 +315,6 @@ worktree:
 
 clean:
 	rm -rf node_modules
+
+pr-comments: node_modules
+	@yarn prComments
