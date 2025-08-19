@@ -163,10 +163,10 @@ export const runBinningStrategy = (
 
     conf.midpointMode ??= "none"
 
-    const midpointCount = countValues(conf.sortedValues, conf.midpoint)
-    const hasManyMidpointValues =
-        midpointCount >= MANY_ZERO_VALUES_THRESHOLD * conf.sortedValues.length
-    conf.createBinForMidpoint ??= hasManyMidpointValues
+    // const midpointCount = countValues(conf.sortedValues, conf.midpoint)
+    // const hasManyMidpointValues =
+    //     midpointCount >= MANY_ZERO_VALUES_THRESHOLD * conf.sortedValues.length
+    // conf.createBinForMidpoint ??= hasManyMidpointValues
 
     let resolvedStrategy: ResolvedBinningStrategy
     if (conf.strategy === "auto") {
