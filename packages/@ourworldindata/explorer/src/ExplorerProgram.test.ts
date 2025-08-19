@@ -124,7 +124,7 @@ columns\ttable1\ttable2\ttable3
             // parse function of the boolean value (that compares with ==="true")
             // to fail. This only happens here and only since the explore-views-in-chart-configs
             // branch. For now, I have commented out the test below.
-            // expect(program.explorerGrapherConfig.yScaleToggle).toEqual(true)
+            expect(program.explorerGrapherConfig.yScaleToggle).toEqual(true)
         })
 
         it("can convert \\n to a newline", () => {

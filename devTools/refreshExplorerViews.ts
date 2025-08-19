@@ -215,20 +215,6 @@ const main = async (options: Options): Promise<void> => {
         console.log(`Filtering explorers with slug pattern: ${slugWildcard}`)
     }
 
-    // Handle unhandled promise rejections
-    // process.on("unhandledRejection", (reason, promise) => {
-    //     console.error(
-    //         "Unhandled Promise Rejection at:",
-    //         promise,
-    //         "reason:",
-    //         reason
-    //     )
-    // })
-
-    // process.on("uncaughtException", (error) => {
-    //     console.error("Uncaught Exception:", error)
-    // })
-
     try {
         const stats = await db.knexReadWriteTransaction(
             (trx) => prepareGrapherConfigsForExplorerViews(trx, slugWildcard),
