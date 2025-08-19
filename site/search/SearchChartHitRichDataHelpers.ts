@@ -240,11 +240,13 @@ export function configureGrapherStateForLayout(
     // For stacked discrete bar charts, we display multiple stacked bars in the
     // chart but the data table only shows values for one entity. We highlight
     // the entity whose data is shown in the table
-    if (grapherState.isStackedDiscreteBar && grapherState.focusArray.isEmpty) {
+    if (grapherState.isStackedDiscreteBar) {
         const chartState =
             grapherState.chartState as StackedDiscreteBarChartState
-        const firstEntity = chartState.sortedItems?.[0]?.entityName
-        if (firstEntity) grapherState.focusArray.clearAllAndAdd(firstEntity)
+        const entity =
+            grapherState.focusArray.seriesNames[0] ??
+            chartState.sortedItems?.[0]?.entityName
+        if (entity) grapherState.focusArray.clearAllAndAdd(entity)
     }
 
     // If the selected entities are the same as the authored ones, they won't
