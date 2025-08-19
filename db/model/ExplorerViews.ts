@@ -282,9 +282,11 @@ export async function refreshExplorerViewsForSlug(
                     `Explorer view contains invalid JSON for explorer ${slug}: ${view.dimensions}`
                 )
             )
-            throw new Error(
-                `Failed to parse explorer view dimensions for explorer ${slug}: ${ex.message}`
-            )
+            if (ex instanceof Error) {
+                throw new Error(
+                    `Failed to parse explorer view dimensions for explorer ${slug}: ${ex.message}`
+                )
+            }
         }
     }
 
