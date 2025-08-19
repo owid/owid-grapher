@@ -214,7 +214,7 @@ async function iterateExplorerViews(
 
             generatedViews.push({
                 explorerSlug: explorerProgram.slug,
-                explorerView: explorerViewStr,
+                dimensions: explorerViewStr,
                 config: config,
             })
         } catch (error) {
@@ -224,7 +224,7 @@ async function iterateExplorerViews(
 
             generatedViews.push({
                 explorerSlug: explorerProgram.slug,
-                explorerView: explorerViewStr,
+                dimensions: explorerViewStr,
                 error: errorMessage.slice(0, 500), // Limit error message length
             })
         }
@@ -255,13 +255,13 @@ export async function refreshExplorerViewsForSlug(
     // Fetch existing explorer views with their chart configs
     type ExistingView = Pick<
         DbRawExplorerView,
-        "explorerView" | "chartConfigId" | "error"
+        "dimensions" | "chartConfigId" | "error"
     > & {
         full: string | null
     }
 
     const existingViews: ExistingView[] = await knex
-        .select("ev.explorerView", "ev.chartConfigId", "ev.error", "cc.full")
+        .select("ev.dimensions", "ev.chartConfigId", "ev.error", "cc.full")
         .from("explorer_views as ev")
         .leftJoin("chart_configs as cc", "ev.chartConfigId", "cc.id")
         .where("ev.explorerSlug", slug)
@@ -272,14 +272,14 @@ export async function refreshExplorerViewsForSlug(
 
     for (const view of existingViews) {
         try {
-            const parsedView = JSON.parse(view.explorerView)
+            const parsedView = JSON.parse(view.dimensions)
             const deterministicKey = stringify(parsedView as object)
             existingViewsMap.set(deterministicKey, view)
         } catch {
             // Skip views with invalid JSON - this indicates a data integrity issue
             void logErrorAndMaybeCaptureInSentry(
                 new Error(
-                    `Explorer view contains invalid JSON for explorer ${slug}: ${view.explorerView}`
+                    `Explorer view contains invalid JSON for explorer ${slug}: ${view.dimensions}`
                 )
             )
         }
@@ -317,10 +317,10 @@ export async function refreshExplorerViewsForSlug(
     const generatedViewsSet = new Set<string>()
 
     for (const generatedView of generatedViews) {
-        generatedViewsSet.add(generatedView.explorerView)
+        generatedViewsSet.add(generatedView.dimensions)
 
         // Find existing view using deterministic serialization for O(1) lookup
-        const generatedViewObj = JSON.parse(generatedView.explorerView)
+        const generatedViewObj = JSON.parse(generatedView.dimensions)
         const deterministicKey = stringify(generatedViewObj as object)
         const existingView = existingViewsMap.get(deterministicKey)
 
@@ -351,7 +351,7 @@ export async function refreshExplorerViewsForSlug(
             // If one has error and other doesn't, configsEqual remains false
 
             if (configsEqual) {
-                unchangedViews.push(generatedView.explorerView)
+                unchangedViews.push(generatedView.dimensions)
             } else {
                 updatedViews.push({
                     existing: existingView,
@@ -364,7 +364,7 @@ export async function refreshExplorerViewsForSlug(
     // Find views to remove (exist in DB but not in generated views)
     const generatedViewKeys = new Set<string>()
     for (const generatedView of generatedViews) {
-        const generatedViewObj = JSON.parse(generatedView.explorerView)
+        const generatedViewObj = JSON.parse(generatedView.dimensions)
         const deterministicKey = stringify(generatedViewObj as object)
         generatedViewKeys.add(deterministicKey)
     }
@@ -380,10 +380,10 @@ export async function refreshExplorerViewsForSlug(
 
     // Remove deleted views first
     if (removedViews.length > 0) {
-        const removedViewStrings = removedViews.map((v) => v.explorerView)
+        const removedViewStrings = removedViews.map((v) => v.dimensions)
         await knex("explorer_views")
             .where("explorerSlug", slug)
-            .whereIn("explorerView", removedViewStrings)
+            .whereIn("dimensions", removedViewStrings)
             .delete()
     }
 
@@ -393,7 +393,7 @@ export async function refreshExplorerViewsForSlug(
             // Update to error state, remove chart config reference
             await knex("explorer_views")
                 .where("explorerSlug", slug)
-                .where("explorerView", existing.explorerView)
+                .where("dimensions", existing.dimensions)
                 .update({
                     error: generated.error,
                     chartConfigId: null,
@@ -410,7 +410,7 @@ export async function refreshExplorerViewsForSlug(
             // Clear any previous error
             await knex("explorer_views")
                 .where("explorerSlug", slug)
-                .where("explorerView", existing.explorerView)
+                .where("dimensions", existing.dimensions)
                 .update({ error: null })
         } else if (generated.config && !existing.chartConfigId) {
             // Create new chart config for previously failed view
@@ -424,7 +424,7 @@ export async function refreshExplorerViewsForSlug(
 
             await knex("explorer_views")
                 .where("explorerSlug", slug)
-                .where("explorerView", existing.explorerView)
+                .where("dimensions", existing.dimensions)
                 .update({
                     chartConfigId: chartConfigId,
                     error: null,

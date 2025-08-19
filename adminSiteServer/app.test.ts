@@ -1369,7 +1369,7 @@ graphers
 
     async function getExplorerViewsWithConfigs(explorerSlug: string) {
         return await testKnexInstance!(ExplorerViewsTableName)
-            .select("explorerView", "chartConfigId", "error")
+            .select("dimensions", "chartConfigId", "error")
             .where({ explorerSlug })
             .orderBy("id")
     }
@@ -1482,10 +1482,10 @@ graphers
 
         // Check that each view has the expected structure
         for (const view of views) {
-            expect(view.explorerView).toBeTruthy()
+            expect(view.dimensions).toBeTruthy()
 
             // Parse the explorer view JSON
-            const parsedView = JSON.parse(view.explorerView)
+            const parsedView = JSON.parse(view.dimensions)
             // The actual property names are simpler (without "Radio" suffix)
             expect(parsedView).toHaveProperty("Diet", "Healthy diet")
             expect(parsedView).toHaveProperty(
@@ -1586,7 +1586,7 @@ graphers
         // Verify the new view exists
         const views = await getExplorerViewsWithConfigs(testExplorerSlug)
         const nutrientAdequateView = views.find((v) => {
-            const parsed = JSON.parse(v.explorerView)
+            const parsed = JSON.parse(v.dimensions)
             return parsed["Diet"] === "Nutrient adequate diet"
         })
         expect(nutrientAdequateView).toBeTruthy()
@@ -1921,7 +1921,7 @@ graphers
 
         for (let i = 0; i < views.length; i++) {
             const view = views[i]
-            const parsedView = JSON.parse(view.explorerView)
+            const parsedView = JSON.parse(view.dimensions)
 
             // Verify structure matches expected parameters
             expect(parsedView).toEqual(expectedParams[i])

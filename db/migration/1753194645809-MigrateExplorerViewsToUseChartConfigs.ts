@@ -11,7 +11,7 @@ export class MigrateExplorerViewsToUseChartConfigs1753194645809
             SELECT 
                 id,
                 explorerSlug,
-                explorerView,
+                dimensions,
                 grapherConfig
             FROM explorer_views
         `)

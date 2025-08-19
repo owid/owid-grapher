@@ -10,7 +10,7 @@ fields:
         description: Unique identifier for the explorer view
     explorerSlug:
         description: The slug of the explorer this view belongs to. References explorers.slug
-    explorerView:
+    dimensions:
         description: |
             JSON object containing the specific parameter choices for this view (e.g., {"energySource": "solar", "metric": "absolute energy"}).
             This represents the state of the explorer's controls that would produce this specific chart configuration.

@@ -6,7 +6,7 @@ export class AddExplorerViewsTable1746446180336 implements MigrationInterface {
             CREATE TABLE explorer_views (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 explorerSlug varchar(255) NOT NULL,
-                explorerView json NOT NULL,
+                dimensions json NOT NULL,
                 grapherConfig json NOT NULL
             )
         `)
