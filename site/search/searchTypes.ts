@@ -158,6 +158,8 @@ export interface SearchChartHitComponentProps {
     onClick?: () => void
 }
 
+export type SearchChartHitComponentVariant = "large" | "medium" | "small"
+
 // SearchResponse adds the extra fields from Algolia: page, nbHits, etc
 export type SearchChartsResponse = SearchResponse<SearchChartHit>
 

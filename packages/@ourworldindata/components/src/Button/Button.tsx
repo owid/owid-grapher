@@ -7,10 +7,11 @@ type ButtonCommonProps = {
     className?: string
     theme:
         | "solid-vermillion"
-        | "outline-vermillion"
         | "solid-blue"
         | "solid-dark-blue"
         | "solid-light-blue"
+        | "outline-vermillion"
+        | "outline-light-blue"
         | "outline-white"
     /** Set to null to hide the icon */
     icon?: IconDefinition | null
