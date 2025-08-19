@@ -14,7 +14,7 @@ import {
     DbEnrichedImage,
     OwidGdocDataInsightInterface,
     OwidGdocAboutInterface,
-    getUniqueNamesFromTopicHierarchies,
+    getUniqueNamesFromTagHierarchies,
 } from "@ourworldindata/utils"
 import { getAlgoliaClient } from "../configureAlgolia.js"
 import {
