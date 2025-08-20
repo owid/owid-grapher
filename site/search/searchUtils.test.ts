@@ -5,9 +5,6 @@ import {
     getSortedGrapherTabsForChartHit,
     placeGrapherTabsInGridLayout,
     GridSlot,
-} from "./searchUtils"
-
-import {
     searchWithWords,
     findMatches,
     getAutocompleteSuggestionsWithUnmatchedQuery,
