@@ -31,7 +31,6 @@ import {
     timeBoundToTimeBoundString,
     queryParamsToStr,
 } from "@ourworldindata/utils"
-import { partition, uniqueBy } from "remeda"
 import { type GrapherTrendArrowDirection } from "@ourworldindata/components"
 import {
     generateSelectedEntityNamesParam,
@@ -579,7 +578,7 @@ export function searchWithWords(
         // the limit given that we are running the search twice and combining
         // result sets, effectively doubling the number of results.
         const deduplicateResults = (results: ScoredSearchResult[]) =>
-            uniqueBy(
+            R.uniqueBy(
                 results.sort((a, b) => b.score - a.score),
                 (result) => result.name
             ).slice(0, sortOptions.limit)
