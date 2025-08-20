@@ -115,10 +115,13 @@ function getChartComponentClass(
     variant = GrapherVariant.Default
 ): ChartComponentClass {
     const { ClassMap, DefaultChartClass } = match(variant)
-        .with(GrapherVariant.Default, () => ({
-            ClassMap: ChartComponentClassMap,
-            DefaultChartClass: LineChart,
-        }))
+        .with(
+            P.union(GrapherVariant.Default, GrapherVariant.Uncaptioned),
+            () => ({
+                ClassMap: ChartComponentClassMap,
+                DefaultChartClass: LineChart,
+            })
+        )
         .with(
             P.union(GrapherVariant.Thumbnail, GrapherVariant.MinimalThumbnail),
             () => ({
