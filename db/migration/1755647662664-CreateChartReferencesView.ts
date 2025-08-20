@@ -1,7 +1,8 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from "typeorm"
 
-export class CreateChartReferencesView1755647662664 implements MigrationInterface {
-
+export class CreateChartReferencesView1755647662664
+    implements MigrationInterface
+{
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
             CREATE VIEW chart_references_view AS
@@ -45,11 +46,10 @@ export class CreateChartReferencesView1755647662664 implements MigrationInterfac
             LEFT JOIN narrative_chart_counts ncc ON ncc.parentChartId = c.id
             LEFT JOIN gdocs_refs gr ON gr.chartId = c.id
             LEFT JOIN explorer_refs er ON er.chartId = c.id
-        `);
+        `)
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`DROP VIEW IF EXISTS chart_references_view`);
+        await queryRunner.query(`DROP VIEW IF EXISTS chart_references_view`)
     }
-
 }
