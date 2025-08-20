@@ -11,6 +11,8 @@ import {
 import { OwidTable } from "@ourworldindata/core-table"
 import { StackedPoint } from "./StackedConstants"
 import { DualAxis } from "../axis/Axis"
+import { InteractionState } from "../interaction/InteractionState.js"
+
 export interface MarimekkoChartManager extends ChartManager {
     endTime?: Time
     matchingEntitiesOnly?: boolean
@@ -24,6 +26,7 @@ export interface EntityColorData {
     color: Color
     colorDomainValue: string
 }
+
 // Points used on the X axis
 export interface SimplePoint {
     value: number
@@ -59,9 +62,11 @@ export type BarOrPlaceholder = Bar | BarPlaceholder
 
 export interface Item {
     entityName: string
+    shortEntityName?: string
     entityColor: EntityColorData | undefined
     bars: Bar[] // contains the y values for every y variable
     xPoint: SimplePoint | undefined // contains the single x value
+    focus: InteractionState
 }
 
 export interface PlacedItem extends Item {
@@ -93,12 +98,14 @@ export interface LabelCandidateWithElement {
     candidate: LabelCandidate
     labelElement: React.ReactElement
 }
+
 export interface MarimekkoBarProps {
     bar: BarOrPlaceholder
     barWidth: number
     isHovered: boolean
     isSelected: boolean
     isFaint: boolean
+    focus: InteractionState
     entityColor: string | undefined
     y0: number
     dualAxis: DualAxis
