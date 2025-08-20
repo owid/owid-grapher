@@ -180,8 +180,7 @@ export const deployIfQueueIsNotEmpty = async (
             )}\n---`
         )
 
-        const changesSlackMentions =
-            await getChangesSlackMentions(parsedQueue)
+        const changesSlackMentions = await getChangesSlackMentions(parsedQueue)
         await triggerBakeAndDeploy(
             { title: changesAuthorNames[0], changesSlackMentions },
             knex,
