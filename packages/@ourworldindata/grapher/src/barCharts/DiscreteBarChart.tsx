@@ -578,7 +578,11 @@ export class DiscreteBarChart
     }
 
     @computed private get showColorLegend(): boolean {
-        return this.hasColorLegend && !!this.manager.showLegend
+        return (
+            this.hasColorLegend &&
+            !!this.manager.showLegend &&
+            !this.manager.hideLegendsOutsideChartArea
+        )
     }
 
     @computed get legendX(): number {
