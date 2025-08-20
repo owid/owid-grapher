@@ -735,7 +735,11 @@ export class LineChart
     }
 
     @computed private get hasColorLegend(): boolean {
-        return this.hasColorScale && !!this.manager.showLegend
+        return (
+            this.hasColorScale &&
+            !!this.manager.showLegend &&
+            !this.manager.hideLegendsOutsideChartArea
+        )
     }
 
     @computed get legendX(): number {
