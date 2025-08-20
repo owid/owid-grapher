@@ -338,6 +338,7 @@ function buildDataTableContentForStackedDiscreteBarChart({
 
             return { rows: sortedRows, title }
         })
+
         // In multi-dimensional mode, each row represents a column (for the same entity)
         .with("multi-dimensional", () => {
             // Find the entity to display data for. Prefer focused entities,
@@ -352,15 +353,17 @@ function buildDataTableContentForStackedDiscreteBarChart({
 
             type TableRow = SearchChartHitDataTableProps["rows"][number] & {
                 columnSlug: string
+                sortValue?: number
             }
 
-            const rows: TableRow[] = item?.bars
+            let rows: TableRow[] = item?.bars
                 .map((bar) => {
                     const point = bar.point
                     if (point.fake || point.interpolated) return undefined
                     return {
                         seriesName: bar.seriesName,
                         label: bar.seriesName,
+                        sortValue: point.value,
                         columnSlug: bar.columnSlug,
                         color: bar.color,
                         value: formatColumn.formatValueShort(point.value),
@@ -371,6 +374,9 @@ function buildDataTableContentForStackedDiscreteBarChart({
                     }
                 })
                 .filter((row) => row !== undefined)
+
+            // Sort by value in descending order
+            rows = R.sortBy(rows, [(row) => row.sortValue ?? 0, "desc"])
 
             // If the current entity doesn't have data for some of the columns,
             // we manually add those to the data table with a 'No data' label.
