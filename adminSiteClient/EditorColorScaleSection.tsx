@@ -11,12 +11,15 @@ import {
     BinningStrategy,
     GrapherChartOrMapType,
     Color,
+    automaticBinningStrategies,
+    MidpointMode,
 } from "@ourworldindata/types"
 import {
     ColorScale,
     ColorScaleBin,
     NumericBin,
     CategoricalBin,
+    hasValidConfigForBinningStrategy,
 } from "@ourworldindata/grapher"
 import {
     Section,
@@ -28,18 +31,11 @@ import {
     TextField,
     ColorBox,
     BindString,
-    BindAutoFloat,
-    BindFloat,
 } from "./Forms.js"
 import {
     ColorSchemeOption,
     ColorSchemeDropdown,
 } from "./ColorSchemeDropdown.js"
-import {
-    automaticBinningStrategies,
-    hasValidConfigForBinningStrategy,
-    MidpointMode,
-} from "@ourworldindata/grapher/src/color/BinningStrategies.js"
 import { match } from "ts-pattern"
 
 interface EditorColorScaleSectionFeatures {
