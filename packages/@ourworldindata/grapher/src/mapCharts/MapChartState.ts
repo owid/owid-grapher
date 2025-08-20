@@ -3,6 +3,7 @@ import { computed, makeObservable } from "mobx"
 import { ChartState } from "../chart/ChartInterface"
 import {
     ChoroplethSeries,
+    ChoroplethSeriesByName,
     MapChartManager,
     MapColumnInfo,
 } from "./MapChartConstants"
@@ -329,6 +330,10 @@ export class MapChartState implements ChartState, ColorScaleManager {
                 } satisfies ChoroplethSeries
             })
             .filter(isPresent)
+    }
+
+    @computed get seriesMap(): ChoroplethSeriesByName {
+        return new Map(this.series.map((series) => [series.seriesName, series]))
     }
 
     @computed get formatValueForTooltip(): MapFormatValueForTooltip {
