@@ -9,6 +9,7 @@ import * as db from "../db/db.js"
 // Ensure db is cleaned up on PM2 stop / restart / reload and cmd/ctrl + c
 // by registering listeners on SIGINT.
 import "../db/cleanup.js"
+import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
 const runDeployIfQueueIsNotEmpty = async () =>
     await db.knexReadonlyTransaction(
@@ -27,7 +28,11 @@ const main = async () => {
 
     // Poll for changes every 5 seconds
     while (true) {
-        await runDeployIfQueueIsNotEmpty()
+        try {
+            await runDeployIfQueueIsNotEmpty()
+        } catch (error) {
+            await logErrorAndMaybeCaptureInSentry(error)
+        }
         await new Promise((resolve) => setTimeout(resolve, 5 * 1000))
     }
 }

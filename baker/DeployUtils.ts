@@ -13,7 +13,6 @@ import { SiteBaker } from "../baker/SiteBaker.js"
 import { WebClient } from "@slack/web-api"
 import { DeployChange, DeployMetadata } from "@ourworldindata/utils"
 import { KnexReadonlyTransaction } from "../db/db.js"
-import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
 const deployQueueServer = new DeployQueueServer()
 
@@ -181,23 +180,18 @@ export const deployIfQueueIsNotEmpty = async (
             )}\n---`
         )
 
-        try {
-            const changesSlackMentions =
-                await getChangesSlackMentions(parsedQueue)
-            await triggerBakeAndDeploy(
-                { title: changesAuthorNames[0], changesSlackMentions },
-                knex,
-                // If every DeployChange is a lightning change, then we can do a
-                // lightning deploy. In the future, we might want to separate
-                // lightning updates from regular deploys so we could prioritize
-                // them, no matter the content of the queue.
-                parsedQueue.every(isLightningChange) ? parsedQueue : undefined
-            )
-            await deployQueueServer.deletePendingFile()
-        } catch (error) {
-            await logErrorAndMaybeCaptureInSentry(error)
-            throw error
-        }
+        const changesSlackMentions =
+            await getChangesSlackMentions(parsedQueue)
+        await triggerBakeAndDeploy(
+            { title: changesAuthorNames[0], changesSlackMentions },
+            knex,
+            // If every DeployChange is a lightning change, then we can do a
+            // lightning deploy. In the future, we might want to separate
+            // lightning updates from regular deploys so we could prioritize
+            // them, no matter the content of the queue.
+            parsedQueue.every(isLightningChange) ? parsedQueue : undefined
+        )
+        await deployQueueServer.deletePendingFile()
     }
 }
 
