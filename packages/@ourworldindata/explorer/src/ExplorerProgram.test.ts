@@ -118,12 +118,6 @@ columns\ttable1\ttable2\ttable3
 \ttrue\tLine`
             )
             expect(program.currentlySelectedGrapherRow).toEqual(2)
-            // For some bizarre reason, the yScaleToggle value true above
-            // ends up being converted to a boolean true value instead of a
-            // string "true" before parsing, which then leads to the
-            // parse function of the boolean value (that compares with ==="true")
-            // to fail. This only happens here and only since the explore-views-in-chart-configs
-            // branch. For now, I have commented out the test below.
             expect(program.explorerGrapherConfig.yScaleToggle).toEqual(true)
         })
 
