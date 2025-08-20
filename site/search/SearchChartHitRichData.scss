@@ -1,16 +1,16 @@
-.search-chart-hit-medium {
+.search-chart-hit-rich-data {
     $grid-gap: 16px;
 
     background-color: $blue-5;
     padding: 16px;
 
-    .search-chart-hit-medium__header {
+    .search-chart-hit-rich-data__header {
         display: flex;
         justify-content: space-between;
         gap: 24px;
     }
 
-    .search-chart-hit-medium__download-button {
+    .search-chart-hit-rich-data__download-button {
         padding: 5px 8px;
         font-size: 13px;
         white-space: nowrap;
@@ -25,7 +25,7 @@
         }
     }
 
-    .search-chart-hit-medium__content {
+    .search-chart-hit-rich-data__content {
         margin-top: 16px;
         display: grid;
         grid-template-columns: repeat(8, minmax(0, 1fr));
@@ -52,36 +52,6 @@
                 display: none; /* Safari and Chrome */
             }
         }
-    }
-
-    .search-chart-hit-medium__captioned-link {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        justify-content: flex-end;
-        gap: 8px;
-        height: 100%;
-
-        @include md-down {
-            scroll-snap-align: start;
-        }
-
-        &:hover {
-            .search-chart-hit-medium__captioned-link-label {
-                text-decoration: none;
-            }
-        }
-    }
-
-    .search-chart-hit-medium__captioned-link-label {
-        @include note-1-regular;
-        color: $blue-90;
-        text-decoration: underline;
-        text-underline-offset: 3px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
     }
 
     .search-chart-hit-table-wrapper {
@@ -113,13 +83,13 @@
         }
     }
 
-    .search-chart-hit-medium__placeholder {
+    .search-chart-hit-rich-data__placeholder {
         display: flex;
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
 
-        .search-chart-hit-medium__thumbnail-placeholder {
+        .search-chart-hit-rich-data__thumbnail-placeholder {
             aspect-ratio: calc(
                 $grapher-thumbnail-width / $grapher-thumbnail-height
             );
@@ -127,7 +97,15 @@
             background: $blue-10;
         }
 
-        .search-chart-hit-medium__captioned-link-label {
+        .search-chart-hit-rich-data__captioned-link-label {
+            @include note-1-regular;
+            color: $blue-90;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
             height: 16px;
             background: $blue-10;
             width: 40px;

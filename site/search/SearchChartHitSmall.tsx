@@ -1,11 +1,11 @@
 import { useMemo } from "react"
-import { Region, Tippy, fetchJson } from "@ourworldindata/utils"
+import { Tippy, fetchJson } from "@ourworldindata/utils"
 import {
     GRAPHER_TAB_NAMES,
     GrapherChartType,
     GrapherValuesJson,
 } from "@ourworldindata/types"
-import { SearchChartHit } from "./searchTypes.js"
+import { SearchChartHitComponentProps } from "./searchTypes.js"
 import {
     constructChartUrl,
     constructChartInfoUrl,
@@ -13,7 +13,6 @@ import {
     toGrapherQueryParams,
     getTimeBoundsForChartUrl,
     buildChartHitDataDisplayProps,
-    constructDownloadUrl,
 } from "./searchUtils.js"
 import { Button, GrapherTabIcon } from "@ourworldindata/components"
 import { useIntersectionObserver } from "usehooks-ts"
@@ -32,13 +31,7 @@ export function SearchChartHitSmall({
     hit,
     searchQueryRegionsMatches,
     onClick,
-}: {
-    hit: SearchChartHit
-    searchQueryRegionsMatches?: Region[] | undefined
-    // Search uses a global onClick handler to track analytics
-    // But the data catalog passes a function to this component explicitly
-    onClick?: () => void
-}) {
+}: SearchChartHitComponentProps) {
     // Intersection observer for lazy loading chart info
     const { ref, isIntersecting: hasBeenVisible } = useIntersectionObserver({
         rootMargin: "400px", // Start loading 400px before visible
@@ -156,7 +149,10 @@ export function SearchChartHitSmall({
                     <Button
                         className="search-chart-hit-small__download-button"
                         theme="solid-light-blue"
-                        href={constructDownloadUrl({ hit })}
+                        href={constructChartUrl({
+                            hit,
+                            overlay: "download-data",
+                        })}
                         icon={faDownload}
                         ariaLabel="Download options"
                     />
