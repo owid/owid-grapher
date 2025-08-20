@@ -318,8 +318,14 @@ export class ScatterPlotChart
         return Math.max(this.bounds.width * 0.2, this.sidebarMinWidth)
     }
 
+    @computed private get showSidebar(): boolean {
+        return !this.manager.hideLegendsOutsideChartArea
+    }
+
     @computed.struct get sidebarWidth(): number {
         const { legendDimensions, sidebarMinWidth, sidebarMaxWidth } = this
+
+        if (!this.showSidebar) return 0
 
         return Math.max(
             Math.min(legendDimensions.width, sidebarMaxWidth),
@@ -529,14 +535,17 @@ export class ScatterPlotChart
         exposeInstanceOnWindow(this)
     }
 
-    renderSidebar(): React.ReactElement {
+    renderSidebar(): React.ReactElement | null {
         const {
             bounds,
             sizeLegend,
             arrowLegend,
             legendDimensions,
             sidebarWidth,
+            showSidebar,
         } = this
+
+        if (!showSidebar) return null
 
         const hasLegendItems = this.legendItems.length > 0
         const verticalLegendHeight = hasLegendItems

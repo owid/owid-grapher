@@ -278,8 +278,15 @@ export class StackedBarChart
         return 100
     }
 
+    @computed private get showLegend(): boolean {
+        return (
+            !!this.manager.showLegend &&
+            !this.manager.hideLegendsOutsideChartArea
+        )
+    }
+
     @computed private get sidebarWidth(): number {
-        if (!this.manager.showLegend) return 0
+        if (!this.showLegend) return 0
         const {
             sidebarMinWidth,
             sidebarMaxWidth,
@@ -301,7 +308,7 @@ export class StackedBarChart
     }
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
-        if (!this.manager.showLegend) {
+        if (!this.showLegend) {
             const categoricalLegendData = this.chartState.unstackedSeries
                 .map(
                     (series, index) =>
@@ -456,10 +463,7 @@ export class StackedBarChart
     }
 
     renderLegend(): React.ReactElement | undefined {
-        const {
-            manager: { showLegend },
-            showHorizontalLegend,
-        } = this
+        const { showLegend, showHorizontalLegend } = this
 
         if (!showLegend) return
 
