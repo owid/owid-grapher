@@ -143,15 +143,18 @@ const getSlackMentionByEmail = _.memoize(
             return response.user?.id ? `<@${response.user.id}>` : undefined
         } catch (error) {
             // Handle users_not_found gracefully - user might not be in Slack workspace
-            if (error && typeof error === 'object' && 'data' in error) {
+            if (error && typeof error === "object" && "data" in error) {
                 const slackError = error as { data?: { error?: string } }
-                if (slackError.data?.error === 'users_not_found') {
+                if (slackError.data?.error === "users_not_found") {
                     console.warn(`User not found in Slack workspace: ${email}`)
                     return undefined
                 }
             }
             // For other Slack API errors, log but don't fail the deploy
-            console.error(`Warning: Could not look up email "${email}" in Slack:`, error)
+            console.error(
+                `Warning: Could not look up email "${email}" in Slack:`,
+                error
+            )
             return undefined
         }
     }
