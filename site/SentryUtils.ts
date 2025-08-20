@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/react"
-import * as cookie from "cookie"
+import Cookies from "js-cookie"
 import { EXPERIMENT_PREFIX } from "@ourworldindata/types"
 import { isInIFrame } from "@ourworldindata/utils"
 import { getPreferenceValue, PreferenceType } from "./cookiePreferences.js"
@@ -78,29 +78,32 @@ export function computeSessionSampleRate(): number {
  *   - If multiple experiments specify rates, returns the maximum value
  */
 export function parseCookieReplaysSessionSampleRate(): number | undefined {
-    const cookies = cookie.parse(document.cookie)
-    const expSentrySampleRates = Object.entries(cookies)
-        .filter(([name]) => name.startsWith(`${EXPERIMENT_PREFIX}-`))
-        .flatMap(([, value]) =>
-            value
-                ? value
-                      .split("&")
-                      .map((item) => item.split(":"))
-                      .filter(([key]) => key === "sentrySampleRate")
-                      .map(([, val]) => {
-                          const num = parseFloat(val)
-                          return !isNaN(num) && num >= 0 && num <= 1
-                              ? num
-                              : undefined
-                      })
-                      .filter((num): num is number => num !== undefined)
-                : []
-        )
-    const replaysSessionSampleRate =
-        expSentrySampleRates.length > 0
-            ? Math.max(...expSentrySampleRates)
-            : undefined
-    return replaysSessionSampleRate
+    const allCookies = Cookies.get()
+    const expSentrySampleRates: number[] = []
+
+    // Find all experiment cookies
+    for (const [cookieName, cookieValue] of Object.entries(allCookies)) {
+        if (!cookieName.startsWith(`${EXPERIMENT_PREFIX}-`) || !cookieValue) {
+            continue
+        }
+
+        // Parse the cookie value (format: param1:value1&param2:value2)
+        const params = cookieValue.split("&")
+        for (const param of params) {
+            const [key, val] = param.split(":")
+            if (key === "sentrySampleRate" && val) {
+                const num = parseFloat(val)
+                if (!isNaN(num) && num >= 0 && num <= 1) {
+                    expSentrySampleRates.push(num)
+                }
+            }
+        }
+    }
+
+    // Return the maximum sample rate if any were found
+    return expSentrySampleRates.length > 0
+        ? Math.max(...expSentrySampleRates)
+        : undefined
 }
 
 export async function rerollReplaySampling(p: number) {
