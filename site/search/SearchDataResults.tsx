@@ -34,7 +34,7 @@ export const SearchDataResults = () => {
                         <ul className="search-data-results__list">
                             {hits.map((hit, i) => {
                                 const isMediumHit = i < 4
-                                const mode = isMediumHit ? "medium" : "small"
+                                const variant = isMediumHit ? "medium" : "small"
 
                                 const onClick = () => {
                                     analytics.logDataCatalogResultClick(
@@ -51,7 +51,7 @@ export const SearchDataResults = () => {
                                     >
                                         <SearchChartHitComponent
                                             hit={hit}
-                                            mode={mode}
+                                            variant={variant}
                                             searchQueryRegionsMatches={
                                                 selectedCountries
                                             }
