@@ -77,6 +77,8 @@ const THUMBNAIL_OPTIONS: Readonly<ImageOptions> = {
 }
 
 export const extractOptions = (params: URLSearchParams): ImageOptions => {
+    const options: Partial<ImageOptions> = {}
+
     const imType = params.get("imType")
     // We have some special images types specified via the `imType` query param:
     if (imType === "twitter") return TWITTER_OPTIONS
@@ -101,9 +103,11 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
             squareOptions.pngHeight = size
         }
         return squareOptions
+    } else if (imType === "chart-area-only") {
+        if (!options.grapherProps) options.grapherProps = {}
+        options.grapherProps.variant = GrapherVariant.Uncaptioned
+        options.grapherProps.hideLegendsOutsideChartArea = true
     }
-
-    const options: Partial<ImageOptions> = {}
 
     // Otherwise, query params can specify the size to be rendered at; and in addition we're doing a
     // bunch of normalization to make sure the image is rendered at a reasonable size and aspect ratio.
