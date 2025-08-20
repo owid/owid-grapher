@@ -885,6 +885,21 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async validate(knex: db.KnexReadonlyTransaction): Promise<void> {
+        const whitespaceErrors: OwidGdocErrorMessage[] = []
+        const documentContainsInvalidWhitespace = this.content
+            ? // match on actual whitespace or the literal string '\u000b'
+              /[\v\t\r]|\\u000b/g.test(JSON.stringify(this.content))
+            : false
+
+        if (documentContainsInvalidWhitespace) {
+            whitespaceErrors.push({
+                property: "body",
+                message:
+                    "The gdoc contains invalid whitespace characters. To find them, try searching the gdoc for '[\\v\\t\\r\\u000b]' in the 'Find and replace' menu with the 'Use regular expressions' option enabled.",
+                type: OwidGdocErrorMessageType.Error,
+            })
+        }
+
         const authorErrors = this.content.authors.reduce(
             (errors: OwidGdocErrorMessage[], name): OwidGdocErrorMessage[] => {
                 if (!this.linkedAuthors.find((a) => a.name === name)) {
@@ -1062,6 +1077,7 @@ export class GdocBase implements OwidGdocBaseInterface {
 
         const subclassErrors = await this._validateSubclass(knex, this)
         this.errors = [
+            ...whitespaceErrors,
             ...authorErrors,
             ...filenameErrors,
             ...linkErrors,
