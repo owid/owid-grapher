@@ -40,6 +40,7 @@ export const entityRegionTypeLabels: Record<EntityRegionType, string> = {
     who: "World Health Organization regions",
     wb: "World Bank regions",
     unsd: "UN Statistics Division regions",
+    unsdg: "UN Sustainable Development Goals regions",
     un: "United Nations regions",
     fao: "FAO regions", // UN's Food and Agriculture Organization
     ei: "Education International regions",
@@ -128,7 +129,7 @@ export function groupEntityNamesByRegionType(
         // Instead, we rely on the convention that non-OWID regions
         // are suffixed with (source) and check the entity name.
         const match = entityName.match(/\(([^)]+)\)$/)
-        const sourceCandidate = match?.[1].toLowerCase()
+        const sourceCandidate = match?.[1].toLowerCase().replaceAll(" ", "")
         if (sourceCandidate && isAggregateSource(sourceCandidate)) {
             if (!entitiesBySource.get(sourceCandidate))
                 entitiesBySource.set(sourceCandidate, [])
