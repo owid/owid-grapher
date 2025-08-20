@@ -1,6 +1,12 @@
 import * as db from "../db/db.js"
 import { DbPlainExplorer } from "@ourworldindata/types"
 import { refreshExplorerViewsForSlug } from "../db/model/ExplorerViews.js"
+import {
+    saveGrapherConfigToR2ByUUID,
+    deleteGrapherConfigFromR2ByUUID,
+} from "../adminSiteServer/chartConfigR2Helpers.js"
+import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
+import pMap from "p-map"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 
@@ -34,7 +40,8 @@ async function fetchPublishedExplorers(
 
 async function prepareGrapherConfigsForExplorerViews(
     knex: db.KnexReadWriteTransaction,
-    slugWildcard?: string
+    slugWildcard?: string,
+    forceR2Refresh?: boolean
 ): Promise<ExplorerProcessingStats[]> {
     // Fetch published explorers and existing explorer slugs
     const publishedExplorers = await fetchPublishedExplorers(knex, slugWildcard)
@@ -88,9 +95,9 @@ async function prepareGrapherConfigsForExplorerViews(
 
         try {
             // Wrap the refresh call with additional error handling
-            await Promise.race([
+            const refreshResult = await Promise.race([
                 refreshExplorerViewsForSlug(knex, explorer.slug, true),
-                new Promise((_, reject) => {
+                new Promise<never>((_, reject) => {
                     setTimeout(
                         () =>
                             reject(
@@ -100,6 +107,78 @@ async function prepareGrapherConfigsForExplorerViews(
                     )
                 }),
             ])
+
+            // Handle R2 deletion for removed chart configs
+            if (refreshResult.removedChartConfigIds.length > 0) {
+                console.log(
+                    `Removing ${refreshResult.removedChartConfigIds.length} obsolete chart configs from R2...`
+                )
+
+                // Delete from R2 in parallel with limited concurrency
+                await pMap(
+                    refreshResult.removedChartConfigIds,
+                    async (configId) => {
+                        try {
+                            await deleteGrapherConfigFromR2ByUUID(configId)
+                        } catch (error) {
+                            void logErrorAndMaybeCaptureInSentry(
+                                new Error(
+                                    `Failed to delete explorer view chart config ${configId} from R2: ${error instanceof Error ? error.message : String(error)}`
+                                )
+                            )
+                        }
+                    },
+                    { concurrency: 20 }
+                )
+
+                console.log(
+                    `Removed ${refreshResult.removedChartConfigIds.length} chart configs from R2`
+                )
+            }
+
+            // Handle R2 sync for updated and optionally unchanged chart configs
+            const chartConfigIdsToSync = [
+                ...refreshResult.updatedChartConfigIds,
+            ]
+            if (forceR2Refresh) {
+                chartConfigIdsToSync.push(
+                    ...refreshResult.unchangedChartConfigIds
+                )
+            }
+
+            if (chartConfigIdsToSync.length > 0) {
+                console.log(
+                    `Syncing ${chartConfigIdsToSync.length} chart configs to R2...`
+                )
+
+                // Batch fetch chart configs for R2 sync
+                const chartConfigs = await knex("chart_configs")
+                    .select("id", "full", "fullMd5")
+                    .whereIn("id", chartConfigIdsToSync)
+
+                // Sync to R2 in parallel with limited concurrency using pMap
+                await pMap(
+                    chartConfigs,
+                    async (config) => {
+                        try {
+                            await saveGrapherConfigToR2ByUUID(
+                                config.id,
+                                config.full,
+                                config.fullMd5
+                            )
+                        } catch (error) {
+                            void logErrorAndMaybeCaptureInSentry(
+                                new Error(
+                                    `Failed to sync explorer view chart config ${config.id} to R2: ${error instanceof Error ? error.message : String(error)}`
+                                )
+                            )
+                        }
+                    },
+                    { concurrency: 20 }
+                )
+
+                console.log(`Synced ${chartConfigs.length} chart configs to R2`)
+            }
 
             // Get the view counts after refreshing
             const [totalViews, successViews, errorViews] = await Promise.all([
@@ -206,10 +285,11 @@ function printStatsTable(stats: ExplorerProcessingStats[]): void {
 interface Options {
     stats: boolean
     slug?: string
+    forceR2Refresh: boolean
 }
 
 const main = async (options: Options): Promise<void> => {
-    const { stats: showStats, slug: slugWildcard } = options
+    const { stats: showStats, slug: slugWildcard, forceR2Refresh } = options
 
     if (slugWildcard) {
         console.log(`Filtering explorers with slug pattern: ${slugWildcard}`)
@@ -217,7 +297,12 @@ const main = async (options: Options): Promise<void> => {
 
     try {
         const stats = await db.knexReadWriteTransaction(
-            (trx) => prepareGrapherConfigsForExplorerViews(trx, slugWildcard),
+            (trx) =>
+                prepareGrapherConfigsForExplorerViews(
+                    trx,
+                    slugWildcard,
+                    forceR2Refresh
+                ),
             db.TransactionCloseMode.Close
         )
 
@@ -247,6 +332,12 @@ void yargs(hideBin(process.argv))
                     description:
                         "Process only explorers matching the SQL LIKE pattern",
                 })
+                .option("force-r2-refresh", {
+                    type: "boolean",
+                    description:
+                        "Force refresh of chart configs to R2, even when database doesn't need updates",
+                    default: false,
+                })
                 .example("$0", "Process all published explorers")
                 .example(
                     "$0 --stats",
@@ -263,6 +354,10 @@ void yargs(hideBin(process.argv))
                 .example(
                     '$0 --slug="%climate%"',
                     "Process explorers containing 'climate'"
+                )
+                .example(
+                    "$0 --force-r2-refresh",
+                    "Process all explorers and force refresh all chart configs to R2"
                 )
         },
         (argv) => {

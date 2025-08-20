@@ -233,11 +233,17 @@ async function iterateExplorerViews(
     return generatedViews
 }
 
+export interface ExplorerViewsRefreshResult {
+    updatedChartConfigIds: string[]
+    unchangedChartConfigIds: string[]
+    removedChartConfigIds: string[]
+}
+
 export async function refreshExplorerViewsForSlug(
     knex: KnexReadWriteTransaction,
     slug: string,
     loadMetadataOnly?: boolean
-): Promise<void> {
+): Promise<ExplorerViewsRefreshResult> {
     const explorer = await knex
         .select("slug", "tsv", "isPublished")
         .from("explorers")
@@ -245,12 +251,24 @@ export async function refreshExplorerViewsForSlug(
         .first()
 
     if (!explorer) {
-        return
+        return {
+            updatedChartConfigIds: [],
+            unchangedChartConfigIds: [],
+            removedChartConfigIds: [],
+        }
     }
 
     if (!explorer.isPublished) {
-        return
+        return {
+            updatedChartConfigIds: [],
+            unchangedChartConfigIds: [],
+            removedChartConfigIds: [],
+        }
     }
+
+    const updatedChartConfigIds: string[] = []
+    const unchangedChartConfigIds: string[] = []
+    const removedChartConfigIds: string[] = []
 
     // Fetch existing explorer views with their chart configs
     type ExistingView = Pick<
@@ -357,6 +375,9 @@ export async function refreshExplorerViewsForSlug(
 
             if (configsEqual) {
                 unchangedViews.push(generatedView.dimensions)
+                if (existingView.chartConfigId) {
+                    unchangedChartConfigIds.push(existingView.chartConfigId)
+                }
             } else {
                 updatedViews.push({
                     existing: existingView,
@@ -385,6 +406,13 @@ export async function refreshExplorerViewsForSlug(
 
     // Remove deleted views first
     if (removedViews.length > 0) {
+        // Track chart config IDs that will be removed
+        for (const removedView of removedViews) {
+            if (removedView.chartConfigId) {
+                removedChartConfigIds.push(removedView.chartConfigId)
+            }
+        }
+
         const removedViewStrings = removedViews.map((v) => v.dimensions)
         await knex("explorer_views")
             .where("explorerSlug", slug)
@@ -398,6 +426,7 @@ export async function refreshExplorerViewsForSlug(
             // Update to error state, remove chart config reference
             // Delete the chart config if it exists before removing the reference
             if (existing.chartConfigId) {
+                removedChartConfigIds.push(existing.chartConfigId)
                 await knex("chart_configs")
                     .where("id", existing.chartConfigId)
                     .delete()
@@ -419,6 +448,8 @@ export async function refreshExplorerViewsForSlug(
                 updatedAt: new Date(),
             })
 
+            updatedChartConfigIds.push(existing.chartConfigId)
+
             // Clear any previous error
             await knex("explorer_views")
                 .where("explorerSlug", slug)
@@ -433,6 +464,8 @@ export async function refreshExplorerViewsForSlug(
                 full: serializeChartConfig(generated.config),
             }
             await insertChartConfig(knex, chartConfig)
+
+            updatedChartConfigIds.push(chartConfigId)
 
             await knex("explorer_views")
                 .where("explorerSlug", slug)
@@ -462,6 +495,8 @@ export async function refreshExplorerViewsForSlug(
                 }
                 await insertChartConfig(knex, chartConfig)
 
+                updatedChartConfigIds.push(chartConfigId)
+
                 const { config: _config, ...insertView } = newView
                 explorerViewsToInsert.push({
                     ...insertView,
@@ -473,5 +508,11 @@ export async function refreshExplorerViewsForSlug(
         if (explorerViewsToInsert.length > 0) {
             await knex.batchInsert("explorer_views", explorerViewsToInsert)
         }
+    }
+
+    return {
+        updatedChartConfigIds,
+        unchangedChartConfigIds,
+        removedChartConfigIds,
     }
 }
