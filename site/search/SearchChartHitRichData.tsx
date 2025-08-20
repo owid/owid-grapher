@@ -427,7 +427,10 @@ function constructChartAndPreviewUrlsForTab({
         GRAPHER_TAB_NAMES.DiscreteBar,
         GRAPHER_TAB_NAMES.StackedDiscreteBar,
     ]
-    const fontSize = tabsWithSmallerFont.includes(tab) ? 12 : undefined
+    const fontSize =
+        previewVariant !== "large" && tabsWithSmallerFont.includes(tab)
+            ? 12
+            : undefined
 
     const previewUrl = constructPreviewUrl({
         hit,
