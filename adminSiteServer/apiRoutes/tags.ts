@@ -118,15 +118,18 @@ export async function getTagById(
         trx,
         `-- sql
                 SELECT ${oldChartFieldList},
-                    round(views_365d / 365, 1) as pageviewsPerDay
+                    round(views_365d / 365, 1) as pageviewsPerDay,
+                    crv.narrativeChartsCount,
+                    crv.referencesCount
                 FROM charts
                 JOIN chart_configs ON chart_configs.id = charts.configId
                 LEFT JOIN chart_tags ct ON ct.chartId=charts.id
                 JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
                 LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
                 LEFT JOIN analytics_pageviews on (analytics_pageviews.url = CONCAT("https://ourworldindata.org/grapher/", chart_configs.slug) AND chart_configs.full ->> '$.isPublished' = "true" )
+                LEFT JOIN chart_references_view crv ON crv.chartId = charts.id
                 WHERE ct.tagId ${tagId === UNCATEGORIZED_TAG_ID ? "IS NULL" : "= ?"}
-                GROUP BY charts.id, views_365d
+                GROUP BY charts.id, views_365d, crv.narrativeChartsCount, crv.referencesCount
                 ORDER BY charts.updatedAt DESC
             `,
         uncategorized ? [] : [tagId]

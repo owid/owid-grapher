@@ -79,8 +79,10 @@ export const getReferencesByChartId = async (
             explorerSlug
         FROM
             explorer_charts
+            join explorers e on explorerSlug = e.slug
         WHERE
-            chartId = ?`,
+            chartId = ?
+            and e.isPublished = 1`,
         [chartId]
     )
     const narrativeChartsPromise = db.knexRaw<NarrativeChartMinimalInformation>(
@@ -499,12 +501,15 @@ export async function getChartsJson(
         trx,
         `-- sql
             SELECT ${oldChartFieldList},
-                round(views_365d / 365, 1) as pageviewsPerDay
+                round(views_365d / 365, 1) as pageviewsPerDay,
+                crv.narrativeChartsCount,
+                crv.referencesCount
             FROM charts
             JOIN chart_configs ON chart_configs.id = charts.configId
             JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
             LEFT JOIN analytics_pageviews on (analytics_pageviews.url = CONCAT("https://ourworldindata.org/grapher/", chart_configs.slug) AND chart_configs.full ->> '$.isPublished' = "true" )
             LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
+            LEFT JOIN chart_references_view crv ON crv.chartId = charts.id
             ORDER BY charts.lastEditedAt DESC LIMIT ?
         `,
         [limit]
