@@ -191,43 +191,10 @@ export async function getDataset(
     const charts = await db.knexRaw<OldChartFieldList>(
         trx,
         `-- sql
-            WITH
-            chart_slug_mapping AS (
-                -- Direct chart slug mappings
-                SELECT c.id as chartId, cc.slug as target_slug
-                FROM charts c
-                JOIN chart_configs cc ON c.configId = cc.id
-                UNION ALL
-                -- Redirect slug mappings
-                SELECT cr.chart_id as chartId, cr.slug as target_slug
-                FROM chart_slug_redirects cr
-            ),
-            narrative_chart_counts AS (
-                SELECT parentChartId, COUNT(*) as narrativeChartsCount
-                FROM narrative_charts
-                GROUP BY parentChartId
-            ),
-            gdocs_refs AS (
-                SELECT csm.chartId, COUNT(DISTINCT pgl.sourceId) as count
-                FROM chart_slug_mapping csm
-                JOIN posts_gdocs_links pgl ON pgl.target = csm.target_slug
-                JOIN posts_gdocs pg ON pg.id = pgl.sourceId
-                WHERE pg.published = true
-                  AND pg.type NOT IN ('fragment', 'about-page')
-                GROUP BY csm.chartId
-            ),
-            explorer_refs AS (
-                SELECT ec.chartId, COUNT(DISTINCT ec.explorerSlug) as count
-                FROM explorer_charts ec
-                JOIN explorers e ON ec.explorerSlug = e.slug
-                WHERE e.isPublished = 1
-                GROUP BY ec.chartId
-            )
             SELECT ${oldChartFieldList},
                 round(views_365d / 365, 1) as pageviewsPerDay,
-                COALESCE(narrative_chart_counts.narrativeChartsCount, 0) as narrativeChartsCount,
-                COALESCE(gdocs_refs.count, 0) +
-                COALESCE(explorer_refs.count, 0) as referencesCount
+                crv.narrativeChartsCount,
+                crv.referencesCount
             FROM charts
             JOIN chart_configs ON chart_configs.id = charts.configId
             JOIN chart_dimensions AS cd ON cd.chartId = charts.id
@@ -235,11 +202,9 @@ export async function getDataset(
             JOIN users lastEditedByUser ON lastEditedByUser.id = charts.lastEditedByUserId
             LEFT JOIN users publishedByUser ON publishedByUser.id = charts.publishedByUserId
             LEFT JOIN analytics_pageviews on (analytics_pageviews.url = CONCAT("https://ourworldindata.org/grapher/", chart_configs.slug) AND chart_configs.full ->> '$.isPublished' = "true" )
-            LEFT JOIN narrative_chart_counts ON narrative_chart_counts.parentChartId = charts.id
-            LEFT JOIN gdocs_refs ON gdocs_refs.chartId = charts.id
-            LEFT JOIN explorer_refs ON explorer_refs.chartId = charts.id
+            LEFT JOIN chart_references_view crv ON crv.chartId = charts.id
             WHERE v.datasetId = ?
-            GROUP BY charts.id, views_365d, narrative_chart_counts.narrativeChartsCount, gdocs_refs.count, explorer_refs.count
+            GROUP BY charts.id, views_365d, crv.narrativeChartsCount, crv.referencesCount
         `,
         [datasetId]
     )
