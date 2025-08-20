@@ -7,6 +7,7 @@ import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { match } from "ts-pattern"
 import {
     GrapherState,
+    makeChartState,
     mapGrapherTabNameToQueryParam,
 } from "@ourworldindata/grapher"
 import {
@@ -59,6 +60,7 @@ import {
     calculateLargePreviewImageDimensions,
     calculateLargeVariantLayout,
 } from "./SearchChartHitRichDataLargeVariantHelpers.js"
+import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable.js"
 
 // Keep in sync with $num-rows-per-column in SearchChartHitRichData.scss
 const NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT = 4
@@ -224,7 +226,10 @@ export function SearchChartHitRichData({
                     const previewVariant = isMediumScreen
                         ? "thumbnail"
                         : getPreviewVariant(variant, {
+                              tab,
                               isPrimaryTab: tabIndex === 0,
+                              grapherState,
+                              layout,
                           })
 
                     const { width: imageWidth, height: imageHeight } =
@@ -364,10 +369,40 @@ function GrapherThumbnailPlaceholder({
 
 function getPreviewVariant(
     variant: SearchChartHitComponentVariant,
-    { isPrimaryTab }: { isPrimaryTab: boolean }
+    {
+        tab,
+        isPrimaryTab,
+        grapherState,
+        layout,
+    }: {
+        tab: GrapherTabName
+        isPrimaryTab: boolean
+        grapherState: GrapherState
+        layout: Layout<GridSlot>
+    }
 ): PreviewVariant {
-    if (isPrimaryTab) return variant === "large" ? "large" : "minimal-thumbnail"
-    return "thumbnail"
+    const { DiscreteBar } = GRAPHER_TAB_NAMES
+
+    if (isPrimaryTab && variant === "large") return "large"
+
+    if (tab === DiscreteBar) {
+        const bars = isPrimaryTab
+            ? (layout.dataTableContent.props as SearchChartHitDataTableProps)
+                  .rows
+            : makeChartState(DiscreteBar, grapherState).series
+
+        if (bars.length <= 1) return "thumbnail"
+
+        // If all bars share the same color, make sure to render the
+        // thumbnail version that includes entity labels
+        const colors = bars.map((bar) => bar.color)
+        const areColorsUnique = R.unique(colors).length === colors.length
+        if (!areColorsUnique) return "thumbnail"
+    }
+
+    // Use the minimal version for the first tab (which is annotated by the table)
+    // and thumbnails for all other tabs
+    return isPrimaryTab ? "minimal-thumbnail" : "thumbnail"
 }
 
 function constructChartAndPreviewUrlsForTab({
