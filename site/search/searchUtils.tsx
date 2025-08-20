@@ -350,7 +350,7 @@ export const constructPreviewUrl = ({
 
     const searchParams = new URLSearchParams(
         omitUndefinedValues({
-            imType: variant !== "large" ? variant : undefined,
+            imType: variant === "large" ? "chart-area-only" : variant,
             imFontSize: fontSize?.toString(),
             imWidth: imageWidth?.toString(),
             imHeight: imageHeight?.toString(),
