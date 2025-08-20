@@ -32,6 +32,7 @@ const main = async () => {
             await runDeployIfQueueIsNotEmpty()
         } catch (error) {
             await logErrorAndMaybeCaptureInSentry(error)
+            throw error // Re-throw to allow process to exit for PM2 restart
         }
         await new Promise((resolve) => setTimeout(resolve, 5 * 1000))
     }
