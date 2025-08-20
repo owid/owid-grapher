@@ -4,7 +4,6 @@ import { HitAttributeHighlightResult } from "instantsearch.js"
 import {
     EntityName,
     GRAPHER_CHART_TYPES,
-    GRAPHER_TAB_NAMES,
     GRAPHER_TAB_QUERY_PARAMS,
     GrapherChartType,
     GrapherQueryParams,
@@ -35,7 +34,6 @@ import {
 import { type GrapherTrendArrowDirection } from "@ourworldindata/components"
 import {
     generateSelectedEntityNamesParam,
-    GrapherState,
     isValidTabQueryParam,
     mapGrapherTabNameToQueryParam,
 } from "@ourworldindata/grapher"
@@ -292,11 +290,17 @@ const generateQueryStrForChartHit = ({
 export const constructChartUrl = ({
     hit,
     grapherParams,
+    overlay,
 }: {
     hit: SearchChartHit
     grapherParams?: GrapherQueryParams
+    overlay?: "sources" | "download-data"
 }): string => {
-    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
+    const viewQueryStr = generateQueryStrForChartHit({ hit, grapherParams })
+    const grapherQueryStr = overlay ? `overlay=${overlay}` : ""
+    const queryStr = viewQueryStr
+        ? `${viewQueryStr}&${grapherQueryStr}`
+        : `?${grapherQueryStr}`
 
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
     const basePath = isExplorerView
@@ -384,27 +388,6 @@ export const constructMdimConfigUrl = ({
     const isMultiDimView = hit.type === ChartRecordType.MultiDimView
     if (!isMultiDimView) return undefined
     return `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${hit.slug}.json`
-}
-
-export const constructDownloadUrl = ({
-    hit,
-}: {
-    hit: SearchChartHit
-}): string => {
-    const viewQueryStr = generateQueryStrForChartHit({ hit })
-    const grapherParams = new URLSearchParams({
-        overlay: "download-data",
-    })
-    const queryStr = viewQueryStr
-        ? `${viewQueryStr}&${grapherParams}`
-        : `?${grapherParams}`
-
-    const isExplorerView = hit.type === ChartRecordType.ExplorerView
-    const basePath = isExplorerView
-        ? `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}`
-        : BAKED_GRAPHER_URL
-
-    return `${basePath}/${hit.slug}${queryStr}`
 }
 
 // Generates time bounds to force line charts to display properly in previews.
@@ -906,54 +889,6 @@ export const getEffectiveResultType = (
         : desiredResultType
 }
 
-export function getSortedGrapherTabsForChartHit(
-    grapherState: GrapherState,
-    maxTabs = 5
-): GrapherTabName[] {
-    const { Table, LineChart, Marimekko, WorldMap } = GRAPHER_TAB_NAMES
-
-    // Original chart config before search customizations
-    // (entity selection, tab switching, etc.)
-    const originalGrapherState = grapherState.authorsVersion
-
-    const {
-        availableTabs,
-        validChartTypes: availableChartTypes,
-        validChartTypeSet: availableChartTypeSet,
-    } = originalGrapherState
-
-    const sortedTabs: GrapherTabName[] = []
-
-    // First position
-    if (availableChartTypeSet.has(LineChart)) {
-        // If a line chart is available, it's always the first tab
-        sortedTabs.push(LineChart)
-    } else if (availableChartTypes.length > 0) {
-        // Otherwise, pick the first valid chart type
-        sortedTabs.push(availableChartTypes[0])
-    } else if (availableTabs.includes(WorldMap)) {
-        // Or a map
-        sortedTabs.push(WorldMap)
-    } else if (availableTabs.includes(Table)) {
-        // Or a table
-        sortedTabs.push(Table)
-    }
-
-    // Second position is always the table
-    // (unless the table is already in the first position)
-    if (sortedTabs[0] !== Table) sortedTabs.push(Table)
-
-    // In the third position, prioritize the Marimekko chart
-    if (sortedTabs[0] === LineChart && availableChartTypeSet.has(Marimekko)) {
-        sortedTabs.push(Marimekko)
-    }
-
-    // Fill up the remaining positions
-    sortedTabs.push(...availableTabs.filter((tab) => !sortedTabs.includes(tab)))
-
-    return sortedTabs.slice(0, maxTabs)
-}
-
 export function buildChartHitDataDisplayProps({
     chartInfo,
     chartType,
@@ -1072,151 +1007,6 @@ export function getColumnUnitForDisplay(
     const strippedUnit = unit?.replace(/(^\(|\)$)/g, "")
 
     return strippedUnit
-}
-
-export enum GridSlot {
-    SingleSlot = "single-slot",
-    DoubleSlot = "double-slot",
-    TripleSlot = "triple-slot",
-    QuadSlot = "quad-slot",
-    SmallSlotLeft = "small-slot-left",
-    SmallSlotRight = "small-slot-right",
-}
-
-type PlacingOptions =
-    | { tableType: "none" }
-    | {
-          tableType: "data-table"
-          numDataTableRows: number
-          numDataTableRowsPerColumn?: number
-      }
-    | {
-          tableType: "data-points"
-          numMaxSlotsForTable: number
-      }
-
-export interface PlacedTab {
-    tab: GrapherTabName
-    slot: GridSlot
-}
-
-export function placeGrapherTabsInGridLayout(
-    tabs: GrapherTabName[],
-    options: { hasDataDisplay: boolean } & PlacingOptions
-): PlacedTab[] {
-    // If there is a data display, then three equally-sized slots are available,
-    // plus two smaller slots below the data display. If there is no data display,
-    // then four equally-sized slots are available.
-
-    if (options.hasDataDisplay) {
-        const placedMainTabs = placeTabsInUniformGrid(tabs, {
-            numAvailableGridSlots: 3,
-            ...options,
-        })
-
-        const remainingTabs = tabs.slice(placedMainTabs.length)
-        const placedRemainingTabs = remainingTabs
-            .slice(0, 2)
-            .map((tab, tabIndex) => ({
-                tab,
-                slot:
-                    tabIndex === 0
-                        ? GridSlot.SmallSlotLeft
-                        : GridSlot.SmallSlotRight,
-            }))
-        return [...placedMainTabs, ...placedRemainingTabs]
-    } else {
-        return placeTabsInUniformGrid(tabs, {
-            numAvailableGridSlots: 4,
-            ...options,
-        })
-    }
-}
-
-/**
- * Place Grapher tabs in a uniform grid layout.
- *
- * Chart tabs always occupy a single slots. The table tab might occupy more
- * than one slot if there is space and enough data to fill it.
- */
-function placeTabsInUniformGrid(
-    tabs: GrapherTabName[],
-    options: { numAvailableGridSlots: number } & PlacingOptions
-) {
-    const maxNumTabs = options.numAvailableGridSlots
-
-    // If none of the tabs display a table, then all tabs trivially take up one slot each
-    if (!tabs.some((tab) => tab === GRAPHER_TAB_NAMES.Table)) {
-        return tabs
-            .slice(0, maxNumTabs)
-            .map((tab) => ({ tab, slot: GridSlot.SingleSlot }))
-    }
-
-    const numTabs = Math.min(tabs.length, maxNumTabs)
-    const numCharts = numTabs - 1 // without the table tab
-
-    const numAvailableSlotsForTable = options.numAvailableGridSlots - numCharts // >= 1
-
-    if (numAvailableSlotsForTable <= 1) {
-        return tabs
-            .slice(0, maxNumTabs)
-            .map((tab) => ({ tab, slot: GridSlot.SingleSlot }))
-    }
-
-    const numSlotsForTable = match(options)
-        .with({ tableType: "none" }, () => 0)
-        .with({ tableType: "data-points" }, ({ numMaxSlotsForTable }) =>
-            numMaxSlotsForTable
-                ? Math.min(numAvailableSlotsForTable, numMaxSlotsForTable)
-                : numAvailableSlotsForTable
-        )
-        .with(
-            { tableType: "data-table" },
-            ({ numDataTableRows, numDataTableRowsPerColumn = 4 }) => {
-                const numNeededSlotsForTable = Math.ceil(
-                    numDataTableRows / numDataTableRowsPerColumn
-                )
-
-                return Math.min(
-                    numAvailableSlotsForTable,
-                    numNeededSlotsForTable
-                )
-            }
-        )
-        .exhaustive()
-
-    const tableSlot = getGridSlotForCount(numSlotsForTable)
-
-    return tabs.map((tab) => ({
-        tab,
-        slot: tab === GRAPHER_TAB_NAMES.Table ? tableSlot : GridSlot.SingleSlot,
-    }))
-}
-
-function getGridSlotForCount(slotCount: number): GridSlot {
-    if (slotCount <= 1) return GridSlot.SingleSlot
-    else if (slotCount === 2) return GridSlot.DoubleSlot
-    else if (slotCount === 3) return GridSlot.TripleSlot
-    else return GridSlot.QuadSlot
-}
-
-export function getColumnCountForGridSlot(slot: GridSlot): number {
-    return match(slot)
-        .with(GridSlot.SingleSlot, () => 1)
-        .with(GridSlot.DoubleSlot, () => 2)
-        .with(GridSlot.TripleSlot, () => 3)
-        .with(GridSlot.QuadSlot, () => 4)
-        .with(GridSlot.SmallSlotLeft, () => 1)
-        .with(GridSlot.SmallSlotRight, () => 1)
-        .exhaustive()
-}
-
-export function getRowCountForGridSlot(
-    slot: GridSlot,
-    numRowsPerColumn: number
-): number {
-    const numColumns = getColumnCountForGridSlot(slot)
-    return numColumns * numRowsPerColumn
 }
 
 export const getUrlParamNameForFilter = (filter: Filter) =>
