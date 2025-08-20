@@ -139,7 +139,6 @@ import {
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
     GrapherModal,
     CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME,
-    GRAPHER_THUMBNAIL_PADDING,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import { ChartDimension } from "../chart/ChartDimension"
@@ -278,6 +277,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideRelatedQuestion?: boolean
     isSocialMediaExport?: boolean
     enableMapSelection?: boolean
+    hideLegendsOutsideChartArea?: boolean
 
     enableKeyboardShortcuts?: boolean
     bindUrlToWindow?: boolean
@@ -397,6 +397,8 @@ export class GrapherState {
     entityYearHighlight: EntityYearHighlight | undefined = undefined
 
     hideFacetControl = true
+
+    hideLegendsOutsideChartArea = false
 
     // the desired faceting strategy, which might not be possible if we change the data
     selectedFacetStrategy: FacetStrategy | undefined = undefined
@@ -608,6 +610,7 @@ export class GrapherState {
             hideShareButton: observable,
             hideExploreTheDataButton: observable,
             hideRelatedQuestion: observable,
+            hideLegendsOutsideChartArea: observable,
         })
         // prefer the manager's selection over the config's selectedEntityNames
         // if both are passed in and the manager's selection is not empty.
@@ -2736,8 +2739,10 @@ export class GrapherState {
 
     /** Bounds of the chart area if no CaptionedChart is rendered */
     @computed get chartAreaBounds(): Bounds {
+        // Choose padding based on chart size, ensuring it's at most 16px
+        const padding = Math.min(16, Math.ceil(0.025 * this.activeBounds.width))
         // 2px accounts for the border
-        return this.activeBounds.pad(GRAPHER_THUMBNAIL_PADDING + 2)
+        return this.activeBounds.pad(padding + 2)
     }
 
     /** Bounds of the entity selector if rendered into the side panel */
