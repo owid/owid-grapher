@@ -218,9 +218,11 @@ export function configureGrapherStateForLayout(
     {
         dataTableContent,
         numAvailableDataTableRows,
+        maxNumEntitiesInStackedDiscreteBarChart,
     }: {
         dataTableContent: SearchChartHitDataTableContent
         numAvailableDataTableRows: number
+        maxNumEntitiesInStackedDiscreteBarChart: number
     }
 ) {
     match(dataTableContent)
@@ -238,15 +240,34 @@ export function configureGrapherStateForLayout(
         .exhaustive()
 
     // For stacked discrete bar charts, we display multiple stacked bars in the
-    // chart but the data table only shows values for one entity. We highlight
-    // the entity whose data is shown in the table
+    // chart but the data table only shows values for one entity
     if (grapherState.isStackedDiscreteBar) {
+        // Find the entity that is displayed in the table
         const chartState =
             grapherState.chartState as StackedDiscreteBarChartState
-        const entity =
+        const tableEntity =
             grapherState.focusArray.seriesNames[0] ??
             chartState.sortedItems?.[0]?.entityName
-        if (entity) grapherState.focusArray.clearAllAndAdd(entity)
+
+        if (tableEntity) {
+            // Limit the number of selected entities to the maximum allowed
+            if (grapherState.addCountryMode !== EntitySelectionMode.Disabled) {
+                const defaultEntities =
+                    grapherState.selection.selectedEntityNames
+                const selectedEntities = defaultEntities.slice(
+                    0,
+                    maxNumEntitiesInStackedDiscreteBarChart
+                )
+                if (!selectedEntities.includes(tableEntity)) {
+                    selectedEntities.pop()
+                    selectedEntities.push(tableEntity)
+                }
+                grapherState.selection.setSelectedEntities(selectedEntities)
+            }
+
+            // Focus the entity that is displayed in the table
+            grapherState.focusArray.clearAllAndAdd(tableEntity)
+        }
     }
 
     // If the selected entities are the same as the authored ones, they won't
