@@ -129,6 +129,8 @@ export function SearchChartHitRichData({
                     tableSlot,
                     numDataTableRowsPerColumn
                 ),
+                maxNumEntitiesInStackedDiscreteBarChart:
+                    variant === "large" ? 12 : 6,
             })
         }
 
