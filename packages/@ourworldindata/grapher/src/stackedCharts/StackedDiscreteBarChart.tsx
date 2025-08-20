@@ -80,7 +80,10 @@ export class StackedDiscreteBarChart
     }
 
     @computed private get showLegend(): boolean {
-        return !!this.manager.showLegend
+        return (
+            !!this.manager.showLegend &&
+            !this.manager.hideLegendsOutsideChartArea
+        )
     }
 
     @computed private get boundsWithoutLegend(): Bounds {
