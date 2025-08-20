@@ -25,14 +25,11 @@ const main = async () => {
         process.exit(1)
     }
 
-    // Listen for file changes
-    fs.watchFile(DEPLOY_QUEUE_FILE_PATH, () => {
-        // Start deploy after 10 seconds in order to avoid the quick successive
-        // deploys triggered by Wordpress.
-        setTimeout(runDeployIfQueueIsNotEmpty, 10 * 1000)
-    })
-
-    void runDeployIfQueueIsNotEmpty()
+    // Poll for changes every 5 seconds
+    while (true) {
+        await runDeployIfQueueIsNotEmpty()
+        await new Promise((resolve) => setTimeout(resolve, 5 * 1000))
+    }
 }
 
 void main()
