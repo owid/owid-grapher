@@ -170,8 +170,15 @@ export class StackedAreaChart
         return Math.min(150, this.bounds.width / 3)
     }
 
+    @computed private get showLegend(): boolean {
+        return (
+            !!this.manager.showLegend &&
+            !this.manager.hideLegendsOutsideChartArea
+        )
+    }
+
     @computed private get lineLegendWidth(): number {
-        if (!this.manager.showLegend) return 0
+        if (!this.showLegend) return 0
 
         // only pass props that are required to calculate
         // the width to avoid circular dependencies
@@ -210,7 +217,7 @@ export class StackedAreaChart
     }
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
-        if (!this.manager.showLegend) {
+        if (!this.showLegend) {
             const categoricalLegendData = this.chartState.unstackedSeries
                 .map(
                     (series, index) =>
@@ -538,7 +545,7 @@ export class StackedAreaChart
     }
 
     renderLegend(): React.ReactElement | undefined {
-        if (!this.manager.showLegend) return
+        if (!this.showLegend) return
         return (
             <LineLegend
                 series={this.lineLegendSeries}
@@ -634,9 +641,7 @@ export class StackedAreaChart
     }
 
     @computed private get lineLegendX(): number {
-        return this.manager.showLegend
-            ? this.bounds.right - this.lineLegendWidth
-            : 0
+        return this.showLegend ? this.bounds.right - this.lineLegendWidth : 0
     }
 
     @computed private get lineLegendY(): [number, number] {
