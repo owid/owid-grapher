@@ -31,7 +31,7 @@ import {
     getIndexName,
     parseIndexName,
 } from "./searchClient.js"
-import { OwidGdocType, queryParamsToStr } from "@ourworldindata/utils"
+import { OwidGdocType, queryParamsToStr, FuzzySearch } from "@ourworldindata/utils"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import Mousetrap from "mousetrap"
 import { match } from "ts-pattern"
@@ -40,6 +40,12 @@ import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 const siteAnalytics = new SiteAnalytics()
 
 type BaseItem = Record<string, unknown>
+
+// Type for unified items with scoring
+type UnifiedItem = BaseItem & {
+    score?: number
+    originalSourceId?: string
+}
 
 const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
     key: "RECENT_SEARCH",
@@ -125,6 +131,169 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
                 .exhaustive()
         })
         .exhaustive()
+}
+
+// Function to calculate fuzzy score for text against query
+function calculateFuzzyScore(text: string, query: string): number {
+    if (!text || !query) return -Infinity
+    
+    const fuzzySearcher = FuzzySearch.withKey([text], (item) => item, {
+        threshold: 0.5,
+        limit: 1
+    })
+    const results = fuzzySearcher.searchResults(query)
+    
+    if (results.length > 0) {
+        const score = results[0].score
+        
+        // Check if this is an exact match by comparing text and query
+        if (text.toLowerCase() === query.toLowerCase()) {
+            return 1000 // Highest score for exact matches
+        }
+        
+        // For partial matches, use the absolute value of the score
+        // FuzzySearch gives us positive scores where higher is better
+        return Math.abs(score)
+    }
+    return 0
+}
+
+// Function to extract text for scoring from different item types
+function getTextForScoring(item: BaseItem, sourceId: string): string {
+    if (sourceId === "filters") {
+        // For filter items, use the filter name or title
+        return (item.filter as any)?.name || (item.title as string) || ""
+    }
+    // For Algolia items, use title
+    return (item.title as string) || ""
+}
+
+// Unified getItemUrl function that handles multiple item types
+const getUnifiedItemUrl = ({ item }: { item: UnifiedItem }): string => {
+    const sourceId = item.originalSourceId
+    
+    if (sourceId === "autocomplete") {
+        return prependSubdirectoryToAlgoliaItemUrl(item)
+    }
+    
+    // For other sources (featured searches, all results, etc.), use the slug
+    return item.slug as string
+}
+
+// Unified onSelect function that handles multiple item types
+const onUnifiedSelect: AutocompleteSource<UnifiedItem>["onSelect"] = ({
+    navigator,
+    item,
+    state,
+}) => {
+    const sourceId = item.originalSourceId
+    
+    if (sourceId === "autocomplete") {
+        const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
+        siteAnalytics.logInstantSearchClick({
+            query: state.query,
+            url: itemUrl,
+            position: String(state.activeItemId),
+        })
+        navigator.navigate({ itemUrl, item, state })
+    } else {
+        // For other sources, use simple navigation
+        const itemUrl = item.slug as string
+        navigator.navigate({ itemUrl, item, state })
+    }
+}
+
+// Unified template for rendering different item types
+const getUnifiedItemTemplate = ({ item, components }: { item: UnifiedItem; components: any }) => {
+    const sourceId = item.originalSourceId
+    
+    if (sourceId === "autocomplete") {
+        // Render Algolia items
+        const index = parseIndexName(item.__autocomplete_indexName as string)
+        const indexLabel =
+            index === SearchIndexName.ExplorerViewsMdimViewsAndCharts
+                ? item.type === ChartRecordType.ExplorerView
+                    ? "Explorer"
+                    : "Chart"
+                : pageTypeDisplayNames[item.type as PageType]
+
+        return (
+            <div
+                className="aa-ItemWrapper"
+                key={item.title as string}
+                translate="no"
+            >
+                <span>
+                    <components.Highlight
+                        hit={item}
+                        attribute={"title"}
+                        tagName="strong"
+                    />
+                </span>
+                <span className="aa-ItemWrapper__contentType">
+                    {indexLabel}
+                </span>
+            </div>
+        )
+    } else if (sourceId === "runSearch") {
+        // Render "All Results" items
+        return (
+            <div className="aa-ItemWrapper">
+                <div className="aa-ItemContent">
+                    <div className="aa-ItemIcon">
+                        <FontAwesomeIcon icon={faSearch} />
+                    </div>
+                    <div className="aa-ItemContentBody">
+                        {item.title as string}
+                    </div>
+                </div>
+            </div>
+        )
+    } else {
+        // Render featured searches and other simple items
+        return (
+            <div>
+                <span>{item.title as string}</span>
+            </div>
+        )
+    }
+}
+
+// Reshape function to unify sources by fuzzy score
+function reshapeSources({ sources, state }: { sources: any[]; state: any }) {
+    // If no query, return sources as-is for featured searches
+    if (!state.query) return sources
+    
+    const allItems: UnifiedItem[] = []
+    
+    // Extract items from all sources and apply fuzzy scoring
+    sources.forEach(source => {
+        source.items.forEach((item: BaseItem) => {
+            const textForScoring = getTextForScoring(item, source.sourceId)
+            const score = calculateFuzzyScore(textForScoring, state.query)
+            
+            allItems.push({
+                ...item,
+                originalSourceId: source.sourceId,
+                score: score
+            })
+        })
+    })
+    
+    // Sort all items by score (descending - higher scores first)
+    const sortedItems = allItems.sort((a, b) => (b.score || 0) - (a.score || 0))
+    
+    // Return a single unified source
+    return [{
+        sourceId: "unified",
+        items: sortedItems,
+        onSelect: onUnifiedSelect,
+        getItemUrl: getUnifiedItemUrl,
+        templates: {
+            header: () => <h5 className="overline-black-caps">Top Results</h5>,
+            item: getUnifiedItemTemplate,
+        }
+    }]
 }
 
 const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
@@ -337,6 +506,7 @@ export function Autocomplete({
                 }
                 return sources
             },
+            reshape: reshapeSources,
             plugins: [recentSearchesPlugin],
         })
 
