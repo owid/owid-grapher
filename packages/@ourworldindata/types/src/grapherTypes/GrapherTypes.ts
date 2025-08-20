@@ -15,6 +15,7 @@ import {
 } from "./GrapherConstants.js"
 import { OwidVariableDataMetadataDimensions } from "../OwidVariable.js"
 import { ArchiveContext } from "../domainTypes/Archive.js"
+import { BinningStrategy } from "./BinningStrategyTypes.js"
 
 // Utility type that marks all properties of T that may be undefined as optional.
 export type UndefinedToOptional<T> = Partial<T> & {
@@ -344,23 +345,6 @@ export enum LogoOption {
     "core+owid" = "core+owid",
     "gv+owid" = "gv+owid",
 }
-
-export type LogBinningStrategy = "log-1-2-5" | "log-1-3" | "log-10" | "log-auto"
-export type EqualSizeBinningStrategy =
-    | "equalSizeBins-few-bins"
-    | "equalSizeBins-normal"
-    | "equalSizeBins-many-bins"
-    | "equalSizeBins-percent"
-
-export type ResolvedLogBinningStrategy = Exclude<LogBinningStrategy, "log-auto">
-
-export type BinningStrategy =
-    | "auto"
-    | EqualSizeBinningStrategy
-    | LogBinningStrategy
-    | "manual"
-
-export type ResolvedBinningStrategy = Exclude<BinningStrategy, "auto">
 
 export interface ProjectionColumnInfo {
     projectedSlug: ColumnSlug

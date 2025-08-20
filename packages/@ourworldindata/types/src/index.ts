@@ -91,11 +91,6 @@ export {
     type TimeBound,
     type TimeBounds,
     type TickFormattingOptions,
-    type LogBinningStrategy,
-    type EqualSizeBinningStrategy,
-    type ResolvedLogBinningStrategy,
-    type BinningStrategy,
-    type ResolvedBinningStrategy,
     type ColorScaleConfigInterface,
     ColorSchemeName,
     type GrapherChartOrMapType,
@@ -838,3 +833,15 @@ export {
     type MultiDimChecksumsObjectWithHash,
 } from "./domainTypes/Archive.js"
 export { type AdditionalGrapherDataFetchFn } from "./grapherTypes/GrapherTypes.js"
+
+export {
+    logBinningStrategies,
+    equalSizeBinningStrategies,
+    automaticBinningStrategies,
+    type LogBinningStrategy,
+    type EqualSizeBinningStrategy,
+    type ResolvedLogBinningStrategy,
+    type BinningStrategy,
+    type ResolvedBinningStrategy,
+    type MidpointMode,
+} from "./grapherTypes/BinningStrategyTypes.js"
