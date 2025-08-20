@@ -13,7 +13,6 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_FONT_SCALE_14,
-    GRAPHER_THUMBNAIL_PADDING,
 } from "../core/GrapherConstants"
 import { MarimekkoBars } from "./MarimekkoBars"
 import { DualAxisComponent } from "../axis/AxisViews"
@@ -46,11 +45,7 @@ export class MarimekkoChartThumbnail
 
     @computed get innerBounds(): Bounds {
         return this.bounds.padTop(
-            this.shouldShowLabels
-                ? this.labelFontSize +
-                      LABEL_PADDING -
-                      0.5 * GRAPHER_THUMBNAIL_PADDING
-                : 0
+            this.shouldShowLabels ? this.labelFontSize + LABEL_PADDING - 6 : 0
         )
     }
 
