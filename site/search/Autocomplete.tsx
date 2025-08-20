@@ -134,6 +134,7 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
 }
 
 // Function to calculate fuzzy score for text against query
+// Uses FuzzySearch to provide consistent scoring across all autocomplete sources
 function calculateFuzzyScore(text: string, query: string): number {
     if (!text || !query) return -Infinity
     
@@ -148,14 +149,14 @@ function calculateFuzzyScore(text: string, query: string): number {
         
         // Check if this is an exact match by comparing text and query
         if (text.toLowerCase() === query.toLowerCase()) {
-            return 1000 // Highest score for exact matches
+            return 1000 // Highest score for exact matches - ensures they appear first
         }
         
         // For partial matches, use the absolute value of the score
         // FuzzySearch gives us positive scores where higher is better
         return Math.abs(score)
     }
-    return 0
+    return 0 // No match found
 }
 
 // Function to extract text for scoring from different item types
@@ -260,6 +261,7 @@ const getUnifiedItemTemplate = ({ item, components }: { item: UnifiedItem; compo
 }
 
 // Reshape function to unify sources by fuzzy score
+// This is the core implementation that addresses issue #5088
 function reshapeSources({ sources, state }: { sources: any[]; state: any }) {
     // If no query, return sources as-is for featured searches
     if (!state.query) return sources
@@ -281,9 +283,12 @@ function reshapeSources({ sources, state }: { sources: any[]; state: any }) {
     })
     
     // Sort all items by score (descending - higher scores first)
+    // This ensures exact matches (score=1000) appear first,
+    // followed by partial matches in order of relevance
     const sortedItems = allItems.sort((a, b) => (b.score || 0) - (a.score || 0))
     
-    // Return a single unified source
+    // Return a single unified source with mixed, sorted results
+    // This replaces the original separate sources structure
     return [{
         sourceId: "unified",
         items: sortedItems,
