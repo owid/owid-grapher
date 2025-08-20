@@ -1,13 +1,24 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
-import { Bounds, PointVector } from "@ourworldindata/utils"
+import {
+    Bounds,
+    ColumnSlug,
+    PointVector,
+    ValueRange,
+} from "@ourworldindata/utils"
 import {
     SCATTER_LABEL_FONT_SIZE_FACTOR_WHEN_HIDDEN_LINES,
+    SCATTER_LINE_DEFAULT_WIDTH,
+    SCATTER_LINE_MAX_WIDTH,
+    SCATTER_POINT_DEFAULT_RADIUS,
+    SCATTER_POINT_MAX_RADIUS,
     ScatterLabel,
     ScatterRenderPoint,
     ScatterRenderSeries,
 } from "./ScatterPlotChartConstants"
 import { BASE_FONT_SIZE } from "../core/GrapherConstants.js"
+import { ScatterPlotChartState } from "./ScatterPlotChartState"
+import { OwidTable } from "@ourworldindata/core-table"
 
 export const labelPriority = (label: ScatterLabel): number => {
     let priority = label.fontSize
@@ -218,4 +229,37 @@ export const makeEndLabel = (
         series,
         isEnd: true,
     }
+}
+
+export function toSizeRange(
+    chartState: ScatterPlotChartState,
+    bounds: Bounds
+): [number, number] {
+    if (chartState.sizeColumn.isMissing) {
+        // if the size column is missing, we want all points/lines to have the same width
+        return chartState.isConnected
+            ? [SCATTER_LINE_DEFAULT_WIDTH, SCATTER_LINE_DEFAULT_WIDTH]
+            : [SCATTER_POINT_DEFAULT_RADIUS, SCATTER_POINT_DEFAULT_RADIUS]
+    }
+
+    const maxLineWidth = SCATTER_LINE_MAX_WIDTH
+    const maxPointRadius = Math.min(
+        SCATTER_POINT_MAX_RADIUS,
+        _.round(Math.min(bounds.width, bounds.height) * 0.06, 1)
+    )
+
+    return chartState.isConnected
+        ? // Note that the scale starts at 0.
+          // When using the scale to plot marks, we need to make sure the minimums
+          // (e.g. `SCATTER_POINT_MIN_RADIUS`) are respected.
+          [0, maxLineWidth]
+        : [0, maxPointRadius]
+}
+
+export function computeSizeDomain(
+    table: OwidTable,
+    slug: ColumnSlug
+): ValueRange {
+    const sizeValues = table.get(slug).values.filter(_.isNumber)
+    return [0, _.max(sizeValues) ?? 1]
 }
