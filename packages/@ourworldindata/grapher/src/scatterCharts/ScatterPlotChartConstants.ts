@@ -22,6 +22,7 @@ import {
 
 import { Bounds, PointVector } from "@ourworldindata/utils"
 import { ChartSeries } from "../chart/ChartInterface"
+import { InteractionState } from "../interaction/InteractionState.js"
 
 export interface ScatterPlotManager extends ChartManager {
     hideConnectedScatterLines?: boolean
@@ -43,6 +44,7 @@ export interface ScatterSeries extends ChartSeries {
     label: string
     points: SeriesPoint[]
     isScaleColor?: boolean
+    focus: InteractionState
 }
 
 export interface SeriesPoint {
@@ -71,6 +73,7 @@ export interface ScatterRenderPoint {
     }
 }
 
+export const SCATTER_POINT_DEFAULT_COLOR = "#932834"
 export const SCATTER_POINT_MIN_RADIUS: number = 2 // only enforced in rendered points, not in scale
 export const SCATTER_POINT_MAX_RADIUS: number = 18
 export const SCATTER_POINT_OPACITY: number = 0.8
@@ -118,24 +121,25 @@ export interface ScatterLabel {
 
 export interface ScatterPointsWithLabelsProps {
     seriesArray: ScatterSeries[]
-    hoveredSeriesNames: SeriesName[]
-    focusedSeriesNames: SeriesName[]
+    hoveredSeriesNames?: SeriesName[]
+    focusedSeriesNames?: SeriesName[]
     tooltipSeriesName?: SeriesName
     dualAxis: DualAxis
     colorScale?: ColorScale
     sizeScale: ScaleLinear<number, number>
-    fontScale: ScaleLinear<number, number>
+    fontScale?: ScaleLinear<number, number>
     baseFontSize: number
-    onMouseEnter: (series: ScatterSeries) => void
-    onMouseLeave: () => void
-    onClick: () => void
+    onMouseEnter?: (series: ScatterSeries) => void
+    onMouseLeave?: () => void
+    onClick?: () => void
     isConnected: boolean
     hideConnectedScatterLines: boolean
     noDataModalManager: NoDataModalManager
     disableIntroAnimation?: boolean
     hideScatterLabels?: boolean
-    quadtree: Quadtree<ScatterPointQuadtreeNode>
+    quadtree?: Quadtree<ScatterPointQuadtreeNode>
     backgroundColor?: Color
+    hideFocusRing?: boolean
 }
 
 export const SCATTER_QUADTREE_SAMPLING_DISTANCE = 10
