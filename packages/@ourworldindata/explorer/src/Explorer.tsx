@@ -372,9 +372,8 @@ export class Explorer
     }
 
     disposers: (() => void)[] = []
-    override componentDidMount() {
+    override async componentDidMount() {
         this.setGrapher(this.grapherRef!.current!)
-        void this.updateGrapherFromExplorer()
 
         let url = Url.fromQueryParams(this.initialQueryParams)
 
@@ -384,9 +383,14 @@ export class Explorer
                 this.props.selection.selectedEntityNames
             )
         }
+        // Run the initializiation for the grapherState but don't await it. The update code
+        // will reset and initialize the grapherState and then the data loading will be awaited inside the function.
+        // We don't want to wait for the data loading to finish as we only care about the non-data loading
+        // part to run (the data loading can finish whenever)
+        void this.updateGrapherFromExplorer()
 
+        // Do the rest of the initialization
         this.grapherState.populateFromQueryParams(url.queryParams)
-
         exposeInstanceOnWindow(this, "explorer")
         this.setUpIntersectionObserver()
         this.attachEventListeners()

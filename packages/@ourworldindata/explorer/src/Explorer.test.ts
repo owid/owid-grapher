@@ -38,12 +38,12 @@ describe(Explorer, () => {
         expect(explorer.queryParams.tab).toEqual(undefined)
     })
 
-    it("recovers country selection from URL params", () => {
+    it("recovers country selection from URL params", async () => {
         const explorer = SampleExplorerOfGraphers({
             queryStr: "?country=IRL",
         })
 
-        explorer.componentDidMount()
+        await explorer.componentDidMount()
 
         expect(explorer.selection.selectedEntityNames).toEqual(["Ireland"])
     })
