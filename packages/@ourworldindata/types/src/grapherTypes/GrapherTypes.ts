@@ -707,6 +707,11 @@ export enum GrapherVariant {
     Default = "default",
 
     /**
+     * Default rendering, chart area only
+     */
+    Uncaptioned = "uncaptioned",
+
+    /**
      * Simplified rendering, suitable for thumbnails.
      * Less noisy visualization, but should be understandable on its own
      */
