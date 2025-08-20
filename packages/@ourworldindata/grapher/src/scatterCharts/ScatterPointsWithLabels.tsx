@@ -39,7 +39,10 @@ import {
 } from "./ScatterUtils"
 import { Triangle } from "./Triangle"
 import { ColorScale } from "../color/ColorScale"
-import { GRAPHER_TEXT_OUTLINE_FACTOR } from "../core/GrapherConstants"
+import {
+    BASE_FONT_SIZE,
+    GRAPHER_TEXT_OUTLINE_FACTOR,
+} from "../core/GrapherConstants"
 
 // This is the component that actually renders the points. The higher level ScatterPlot class renders points, legends, comparison lines, etc.
 @observer
@@ -68,14 +71,16 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
     }
 
     @computed private get focusedSeriesNames(): string[] {
-        return intersection(
-            this.props.focusedSeriesNames || [],
-            this.seriesArray.map((g) => g.seriesName)
+        return (
+            intersection(
+                this.props.focusedSeriesNames || [],
+                this.seriesArray.map((g) => g.seriesName)
+            ) ?? []
         )
     }
 
     @computed private get hoveredSeriesNames(): string[] {
-        return this.props.hoveredSeriesNames
+        return this.props.hoveredSeriesNames ?? []
     }
 
     @computed private get tooltipSeriesName(): string | undefined {
@@ -90,7 +95,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
             this.hoveredSeriesNames.length > 0 ||
             // if the user has selected entities that are not in the chart,
             // we want to move all entities into the background
-            (this.props.focusedSeriesNames.length > 0 &&
+            ((this.props.focusedSeriesNames ?? []).length > 0 &&
                 this.focusedSeriesNames.length === 0)
         )
     }
@@ -115,7 +120,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         return this.props.sizeScale
     }
 
-    @computed private get fontScale(): ScaleLinear<number, number> {
+    @computed private get fontScale(): ScaleLinear<number, number> | undefined {
         return this.props.fontScale
     }
 
@@ -139,6 +144,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
     }
 
     private getLabelFontSize(value: number | undefined): number {
+        if (!this.fontScale) return BASE_FONT_SIZE
         const fontSize =
             value !== undefined
                 ? this.fontScale(value)
@@ -352,12 +358,12 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
         )
         // only select if we're not already close to another point's center
         if (this.overSeries && !this.nearSeries)
-            this.props.onMouseEnter(this.overSeries)
+            this.props.onMouseEnter?.(this.overSeries)
     }
 
     @action.bound onPointMouseLeave(): void {
         this.overSeries = undefined
-        if (!this.nearSeries) this.props.onMouseLeave()
+        if (!this.nearSeries) this.props.onMouseLeave?.()
     }
 
     @action.bound onMouseMove(ev: React.MouseEvent<SVGGElement>): void {
@@ -371,18 +377,18 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                 : SCATTER_POINT_HOVER_TARGET_RANGE
 
             // search for closest point to cursor position within range
-            const nearby = this.props.quadtree.find(x, y, range)?.series
+            const nearby = this.props.quadtree?.find(x, y, range)?.series
             if (nearby) {
                 // only trigger listener if the selection has changed
                 if (nearby.seriesName !== this.nearSeries?.seriesName) {
-                    this.props.onMouseEnter(nearby)
+                    this.props.onMouseEnter?.(nearby)
                 }
             } else if (this.nearSeries) {
                 // if we've just moved out of range of a nearby point, fall back to
                 // the currently hovered-over dot (if there is one)
-                this.props.onMouseLeave()
+                this.props.onMouseLeave?.()
                 if (this.overSeries) {
-                    this.props.onMouseEnter(this.overSeries)
+                    this.props.onMouseEnter?.(this.overSeries)
                 }
             }
             this.nearSeries = nearby
@@ -500,6 +506,7 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             <ScatterPoint
                                 key={series.displayKey}
                                 series={series}
+                                hideFocusRing={this.props.hideFocusRing}
                                 onMouseEnter={this.onPointMouseEnter}
                                 onMouseLeave={this.onPointMouseLeave}
                             />
@@ -538,8 +545,8 @@ export class ScatterPointsWithLabels extends React.Component<ScatterPointsWithLa
                             {(series.isFocus || hideConnectedScatterLines) &&
                                 firstValue && (
                                     <circle
-                                        cx={firstValue.position.x.toFixed(2)}
-                                        cy={firstValue.position.y.toFixed(2)}
+                                        cx={firstValue.position.x}
+                                        cy={firstValue.position.y}
                                         r={radius}
                                         fill={firstValue.color}
                                         opacity={opacity}
