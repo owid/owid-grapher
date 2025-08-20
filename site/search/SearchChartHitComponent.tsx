@@ -19,9 +19,9 @@ export const SearchChartHitComponent = (
 ) => {
     const { variant, ...componentProps } = props
     return match(variant)
-        .with("large", () => <SearchChartHitLarge {...componentProps} />)
+        .with("large", () => <SearchChartHitMedium {...componentProps} />)
         .with("medium", () => <SearchChartHitMedium {...componentProps} />)
-        .with("small", () => <SearchChartHitSmall {...componentProps} />)
+        .with("small", () => <SearchChartHitMedium {...componentProps} />)
         .exhaustive()
 }
 
