@@ -5,6 +5,7 @@ The most important tables are:
 - analytics_pageviews: Pageviews for all our pages. In some environments this table might be empty, but in general this is a useful table to join content with so that you can sort by pageviews descending and show the most viewed content first.
 - charts: stores standalone charts that are published at https://ourworldindata.org/grapher/SLUG. Charts are rendered as data pages on our website.
 - chart_configs: stores the actual JSON configuration for all charts that we have anywhere in our system.
+- chart_references_view: view that aggregates chart reference and usage counts (narrative charts, gdocs references, explorer references) used across admin interfaces.
 - chart_slug_redirects: redirects for charts - this table needs to be taken into account when looking up charts by slug as several slugs can point to one standalone chart
 - dods: Our Detail-on-Demands entry that our website uses to explain many technical terms when hovering over them
 - explorers: Our data explorers (collections of multiple charts with drop-downs to switch between them), published at https://ourworldindata.org/explorers/SLUG

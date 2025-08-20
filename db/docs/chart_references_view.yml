@@ -1,0 +1,9 @@
+metadata:
+    description: Database view that aggregates chart reference and usage counts across the platform. This view consolidates complex calculations for narrative charts counts and total references (from published gdocs and explorers) that are used across multiple admin interfaces. The view includes chart slug mappings to handle both direct chart slugs and redirect aliases, ensuring comprehensive reference tracking. This is a computed view, not a physical table.
+fields:
+    chartId:
+        description: Foreign key to charts table. The chart for which references and usage are being counted.
+    narrativeChartsCount:
+        description: Count of narrative charts that use this chart as their parent. Narrative charts are customized chart views used in articles and storytelling contexts.
+    referencesCount:
+        description: Total count of published references to this chart across the platform. Includes references from published gdocs (articles, data insights, etc.) and published explorers. Excludes unpublished content and system pages like fragments and about pages.
