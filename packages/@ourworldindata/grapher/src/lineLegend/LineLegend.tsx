@@ -19,6 +19,7 @@ import {
 import {
     BASE_FONT_SIZE,
     GRAPHER_FONT_SCALE_12,
+    GRAPHER_OPACITY_MUTE,
     GRAPHER_TEXT_OUTLINE_FACTOR,
 } from "../core/GrapherConstants"
 import { darkenColorForText } from "../color/ColorUtils"
@@ -92,7 +93,18 @@ class LineLabels extends React.Component<LineLabelsProps> {
     }
 
     private textOpacityForSeries(series: PlacedSeries): number {
-        return series.hover?.background || series.focus?.background ? 0.6 : 1
+        const { hover, focus } = series
+
+        if (hover && focus) {
+            const isInForeground =
+                hover.active || focus.active || (focus.idle && hover.idle)
+            return isInForeground ? 1 : GRAPHER_OPACITY_MUTE
+        }
+
+        if (hover) return hover.background ? GRAPHER_OPACITY_MUTE : 1
+        if (focus) return focus.background ? GRAPHER_OPACITY_MUTE : 1
+
+        return 1
     }
 
     @computed private get markers(): {
