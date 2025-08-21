@@ -17,6 +17,7 @@
 
         .search-chart-hit-header__title {
             @include h3-bold;
+            font-weight: 600;
             display: inline-block;
             color: $blue-90;
             margin: 0 8px 0 0;
@@ -37,7 +38,7 @@
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
-                margin-top: 2px;
+                margin-top: 4px;
 
                 @include sm-up {
                     display: none;
@@ -48,7 +49,7 @@
         .search-chart-hit-header__subtitle {
             @include body-3-medium;
             color: $blue-65;
-            margin: 2px 0 0;
+            margin: 3px 0 0;
 
             display: -webkit-box;
             -webkit-box-orient: vertical;
