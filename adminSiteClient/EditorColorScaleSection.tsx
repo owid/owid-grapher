@@ -37,6 +37,7 @@ import {
     ColorSchemeDropdown,
 } from "./ColorSchemeDropdown.js"
 import { match } from "ts-pattern"
+import { ErrorMessages } from "./ChartEditorTypes.js"
 
 interface EditorColorScaleSectionFeatures {
     legendDescription: boolean
@@ -48,6 +49,8 @@ interface EditorColorScaleSectionProps {
     features: EditorColorScaleSectionFeatures
     showLineChartColors: boolean
     onChange?: () => void
+    errorMessages?: ErrorMessages
+    errorMessagesKey?: string
 }
 
 @observer
@@ -60,6 +63,8 @@ export class EditorColorScaleSection extends Component<EditorColorScaleSectionPr
                     onChange={this.props.onChange}
                     chartType={this.props.chartType}
                     showLineChartColors={this.props.showLineChartColors}
+                    errorMessages={this.props.errorMessages}
+                    errorMessagesKey={this.props.errorMessagesKey}
                 />
                 <ColorLegendSection
                     scale={this.props.scale}
@@ -131,6 +136,8 @@ interface ColorsSectionProps {
     chartType: GrapherChartOrMapType
     showLineChartColors: boolean
     onChange?: () => void
+    errorMessages?: ErrorMessages
+    errorMessagesKey?: string
 }
 
 @observer
@@ -219,21 +226,12 @@ class ColorsSection extends Component<ColorsSectionProps> {
         }))
     }
 
-    // TODO Move this to ChartEditorView
-    @computed get binningOptionsError() {
-        const { minValue, maxValue, midpoint } = this.config
-        if (this.config.binningStrategy === "manual") {
+    getErrorMessage(field: string) {
+        if (!this.props.errorMessages || !this.props.errorMessagesKey)
             return undefined
-        }
-
-        const validationResult = hasValidConfigForBinningStrategy(
-            this.config.binningStrategy,
-            { minValue, maxValue, midpoint }
-        )
-
-        if (!validationResult.valid) {
-            return validationResult.reason
-        } else return undefined
+        return this.props.errorMessages[
+            `${this.props.errorMessagesKey}.${field}` as any
+        ]
     }
 
     @computed get currentBinningStrategyOption() {
@@ -301,7 +299,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
                         }}
                         allowDecimal
                         allowNegative
-                        errorMessage={this.binningOptionsError}
+                        errorMessage={this.getErrorMessage("minValue")}
                     />
                     <NumberField
                         label="Max value"
@@ -312,7 +310,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
                         }}
                         allowDecimal
                         allowNegative
-                        errorMessage={this.binningOptionsError}
+                        errorMessage={this.getErrorMessage("maxValue")}
                     />
                 </FieldsRow>
                 <hr />
@@ -326,6 +324,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
                         }}
                         allowDecimal
                         allowNegative
+                        errorMessage={this.getErrorMessage("midpoint")}
                     />
                     <Toggle
                         label="Include bin for midpoint"

@@ -47,7 +47,6 @@ interface BinningStrategyOutput {
     midpoint?: number
 }
 
-const MANY_ZERO_VALUES_THRESHOLD = 0.1
 const AUTO_EQUAL_BINS_MAX_MAGNITUDE_DIFF = 1.2
 
 /**
@@ -61,12 +60,6 @@ export const calcMagnitudeDiff = (
         throw new Error("lowerValue must be less than upperValue")
 
     return Math.log10(upperValue) - Math.log10(lowerValue)
-}
-
-const countValues = (sortedValues: number[], value: number): number => {
-    const firstIndex = R.sortedIndex(sortedValues, value)
-    const lastIndex = R.sortedLastIndex(sortedValues, value)
-    return lastIndex - firstIndex
 }
 
 export const pruneUnusedBins = (
@@ -112,11 +105,6 @@ export const runBinningStrategy = (
 
     conf.midpointMode ??= "none"
 
-    // const midpointCount = countValues(conf.sortedValues, conf.midpoint)
-    // const hasManyMidpointValues =
-    //     midpointCount >= MANY_ZERO_VALUES_THRESHOLD * conf.sortedValues.length
-    // conf.createBinForMidpoint ??= hasManyMidpointValues
-
     let resolvedStrategy: ResolvedBinningStrategy
     if (conf.strategy === "auto") {
         resolvedStrategy = autoChooseBinningStrategy(conf)
@@ -148,7 +136,9 @@ export const runBinningStrategy = (
     }
 }
 
-type MinMaxValueResult = { valid: true } | { valid: false; reason: string }
+type MinMaxValueResult =
+    | { valid: true }
+    | { valid: false; reason: string; field: string }
 
 export const hasValidConfigForBinningStrategy = (
     strategy: BinningStrategy,
@@ -161,7 +151,11 @@ export const hasValidConfigForBinningStrategy = (
         maxValue !== undefined &&
         maxValue < minValue
     ) {
-        return { valid: false, reason: "minValue is greater than maxValue" }
+        return {
+            valid: false,
+            reason: "Binning: minValue is greater than maxValue",
+            field: "minValue",
+        }
     }
 
     return match(strategy)
@@ -172,16 +166,25 @@ export const hasValidConfigForBinningStrategy = (
             return { valid: true } as const
         })
         .when(isLogBinningStrategy, () => {
-            if (minValue <= 0 || maxValue <= 0) {
+            if (minValue !== undefined && minValue <= 0) {
                 return {
                     valid: false,
-                    reason: "Log binning requires non-zero positive values",
+                    reason: "Binning: Logarithmic binning requires non-zero positive minValue",
+                    field: "minValue",
+                } as const
+            }
+            if (maxValue !== undefined && maxValue <= 0) {
+                return {
+                    valid: false,
+                    reason: "Binning: Logarithmic binning requires non-zero positive maxValue",
+                    field: "maxValue",
                 } as const
             }
             if (midpoint !== undefined && midpoint !== 0) {
                 return {
                     valid: false,
-                    reason: "Log binning does not support midpoints other than 0",
+                    reason: "Binning: Logarithmic binning does not support midpoints other than 0",
+                    field: "midpoint",
                 } as const
             }
             return { valid: true } as const

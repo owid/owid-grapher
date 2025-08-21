@@ -6,7 +6,11 @@ export type FieldWithDetailReferences =
     | "axisLabelX"
     | "axisLabelY"
 
-type ErrorMessageFieldName = FieldWithDetailReferences | "focusedSeriesNames"
+type ErrorMessageFieldName =
+    | FieldWithDetailReferences
+    | "focusedSeriesNames"
+    | `map.colorScale.${string}`
+    | `colorScale.${string}`
 
 export type ErrorMessages = Partial<Record<ErrorMessageFieldName, string>>
 
