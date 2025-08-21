@@ -3,11 +3,13 @@ import {
     DeleteObjectCommandInput,
     PutObjectCommand,
     PutObjectCommandInput,
+    PutObjectCommandOutput,
     S3Client,
 } from "@aws-sdk/client-s3"
 import { JsonError } from "@ourworldindata/utils"
 import { Base64String } from "@ourworldindata/types"
 import { R2_REGION } from "../../settings/serverSettings.js"
+import { IS_RUNNING_INSIDE_VITEST } from "../../settings/clientSettings.js"
 
 export interface R2Config {
     endpoint: string
@@ -25,7 +27,7 @@ export interface R2ClientConfig {
     secretAccessKey: string
 }
 
-const createS3Client = ({
+export const createS3Client = ({
     endpoint,
     region = R2_REGION,
     accessKeyId,
@@ -44,10 +46,6 @@ const createS3Client = ({
     })
 }
 
-export const createS3ClientForConfig = (config: R2ClientConfig): S3Client => {
-    return createS3Client(config)
-}
-
 export async function saveObjectToR2(
     content: string | Buffer,
     bucket: string,
@@ -55,8 +53,8 @@ export async function saveObjectToR2(
     contentType: string = "application/json",
     contentMD5?: Base64String,
     s3Client?: S3Client
-) {
-    if (process.env.NODE_ENV === "test") {
+): Promise<PutObjectCommandOutput | void> {
+    if (IS_RUNNING_INSIDE_VITEST) {
         console.log("Skipping saving object to R2 in test environment")
         return
     }
@@ -101,7 +99,7 @@ export async function deleteObjectFromR2(
     key: string,
     s3Client?: S3Client
 ): Promise<void> {
-    if (process.env.NODE_ENV === "test") {
+    if (IS_RUNNING_INSIDE_VITEST) {
         console.log("Skipping deleting object from R2 in test environment")
         return
     }

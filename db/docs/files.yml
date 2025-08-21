@@ -1,7 +1,6 @@
 metadata:
     description: |
         File management system for tracking uploaded assets stored in Cloudflare R2 bucket. Maintains metadata for files including their storage location, identity verification, and ownership. Ensures unique file identification through filename and path combination while providing audit trail for file creation and ownership tracking.
-
 fields:
     id:
         description: Unique auto-incrementing identifier for the file record

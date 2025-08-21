@@ -93,6 +93,12 @@ async function populateFilesTable(dryRun: boolean = false): Promise<void> {
     }
 }
 
+/**
+ * A script intended to be run once in prod. Ensure the OWID_ASSETS_R2_ env variables are set.
+ * Usage:
+ *  yarn tsx --tsconfig tsconfig.tsx.json  devTools/populateFilesFromR2/populateFilesFromR2.ts [--dry-run]
+ **/
+
 async function main() {
     const args = process.argv.slice(2)
     const dryRun = args.includes("--dry-run")

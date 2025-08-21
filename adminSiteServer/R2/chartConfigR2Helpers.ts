@@ -10,12 +10,12 @@ import { lazy } from "@ourworldindata/utils"
 import {
     createR2Key,
     deleteObjectFromR2,
-    createS3ClientForConfig,
+    createS3Client,
     saveObjectToR2,
 } from "./R2Helpers.js"
 
-const getS3Client = lazy(() =>
-    createS3ClientForConfig({
+const getChartConfigS3Client = lazy(() =>
+    createS3Client({
         endpoint: R2_ENDPOINT,
         accessKeyId: R2_ACCESS_KEY_ID,
         secretAccessKey: R2_SECRET_ACCESS_KEY,
@@ -79,7 +79,7 @@ async function saveConfigToR2(
         return
     }
 
-    const s3Client = getS3Client()
+    const s3Client = getChartConfigS3Client()
     const key = createR2Key(GRAPHER_CONFIG_R2_BUCKET_PATH, directory, filename)
 
     await saveObjectToR2(
@@ -101,12 +101,12 @@ export async function deleteGrapherConfigFromR2(
         GRAPHER_CONFIG_R2_BUCKET_PATH === undefined
     ) {
         console.info(
-            "R2 bucket not configured, not deleting grapher config to R2"
+            "R2 bucket not configured, not deleting grapher config from R2"
         )
         return
     }
 
-    const s3Client = getS3Client()
+    const s3Client = getChartConfigS3Client()
     const key = createR2Key(GRAPHER_CONFIG_R2_BUCKET_PATH, directory, filename)
 
     await deleteObjectFromR2(GRAPHER_CONFIG_R2_BUCKET, key, s3Client)

@@ -6,12 +6,17 @@ import { AdminLayout } from "./AdminLayout.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { DbPlainFile } from "@ourworldindata/types"
 import cx from "classnames"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Admin } from "./Admin.js"
 import urlJoin from "url-join"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faCopy, faSpinner, faTimes } from "@fortawesome/free-solid-svg-icons"
 import { copyToClipboard } from "@ourworldindata/utils"
+import {
+    buildSearchWordsFromSearchString,
+    filterFunctionForSearchWords,
+    highlightFunctionForSearchWords,
+} from "../adminShared/search.js"
 
 type FileMap = {
     [key: string]: DbPlainFile | FileMap
@@ -48,12 +53,16 @@ function getFileUrl(file: DbPlainFile): string {
     return urlJoin(OWID_ASSETS_ENDPOINT, file.path, file.filename)
 }
 
+const defaultHighlightFn = (text: string) => text
+
 function FileButton({
     file,
     showPath = false,
+    highlightFn = defaultHighlightFn,
 }: {
     file: DbPlainFile
     showPath?: boolean
+    highlightFn?: (text: string) => React.ReactNode
 }) {
     const fileUrl = getFileUrl(file)
 
@@ -61,7 +70,7 @@ function FileButton({
         <div className="file-viewer__file">
             <div>
                 <a href={fileUrl} target="_blank" rel="noopener">
-                    {file.filename}
+                    {highlightFn(file.filename)}
                 </a>
                 {showPath && (
                     <div
@@ -71,7 +80,7 @@ function FileButton({
                             marginTop: 2,
                         }}
                     >
-                        {file.path}
+                        {highlightFn(file.path)}
                     </div>
                 )}
             </div>
@@ -165,25 +174,23 @@ function SearchResultsViewer({
 
         return flattenFiles(fileMap)
     }, [fileMap])
+    const searchWords = useMemo(
+        () => buildSearchWordsFromSearchString(searchValue),
+        [searchValue]
+    )
 
     const filteredFiles = useMemo(() => {
-        return allFiles.filter(
-            (file) =>
-                file.filename
-                    .toLowerCase()
-                    .includes(searchValue.toLowerCase()) ||
-                file.path.toLowerCase().includes(searchValue.toLowerCase())
+        const filterFn = filterFunctionForSearchWords(
+            searchWords,
+            (file: DbPlainFile) => [file.filename, file.path]
         )
-    }, [allFiles, searchValue])
+        return allFiles.filter(filterFn)
+    }, [allFiles, searchWords])
 
-    // Show search view immediately when user starts typing
-    if (!searchValue.trim()) {
-        return (
-            <div style={{ color: "#666", fontStyle: "italic" }}>
-                Start typing to search files...
-            </div>
-        )
-    }
+    const highlightFn = useMemo(
+        () => highlightFunctionForSearchWords(searchWords),
+        [searchWords]
+    )
 
     return (
         <div>
@@ -193,7 +200,14 @@ function SearchResultsViewer({
             </div>
             {filteredFiles.map((file) => {
                 const fullPath = `${file.path}/${file.filename}`
-                return <FileButton key={fullPath} file={file} showPath={true} />
+                return (
+                    <FileButton
+                        key={fullPath}
+                        file={file}
+                        showPath={true}
+                        highlightFn={highlightFn}
+                    />
+                )
             })}
         </div>
     )
@@ -201,9 +215,9 @@ function SearchResultsViewer({
 
 function PostFileButton({ currentPath }: { currentPath: string }) {
     const { admin } = useContext(AdminAppContext)
-    const [isUploading, setIsUploading] = useState(false)
     const queryClient = useQueryClient()
     const history = useHistory()
+
     const now = new Date()
     const defaultPath = urlJoin(
         "uploads",
@@ -211,17 +225,16 @@ function PostFileButton({ currentPath }: { currentPath: string }) {
         `${now.getMonth() + 1}`.padStart(2, "0")
     )
 
-    const handleFileUpload = async (
-        event: React.ChangeEvent<HTMLInputElement>
-    ) => {
-        const file = event.target.files?.[0]
-        if (!file) return
-
-        setIsUploading(true)
-        try {
+    const uploadFileMutation = useMutation({
+        mutationFn: async ({
+            file,
+            targetPath,
+        }: {
+            file: File
+            targetPath: string
+        }) => {
             const formData = new FormData()
             formData.append("file", file)
-            const targetPath = currentPath || defaultPath
 
             const response = await admin.requestJSON<{
                 success: boolean
@@ -232,14 +245,28 @@ function PostFileButton({ currentPath }: { currentPath: string }) {
                 throw new Error(`Upload failed`)
             }
 
+            return response
+        },
+        onSuccess: async (response) => {
             await queryClient.invalidateQueries({ queryKey: ["files"] })
-            event.target.value = ""
             history.push(`?path=${response.path}`)
-        } catch (error) {
+        },
+        onError: (error) => {
             console.error("File upload error:", error)
-        } finally {
-            setIsUploading(false)
-        }
+        },
+    })
+
+    const handleFileUpload = async (
+        event: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        const file = event.target.files?.[0]
+        if (!file) return
+
+        const targetPath = currentPath || defaultPath
+        uploadFileMutation.mutate({ file, targetPath })
+
+        // Clear the input
+        event.target.value = ""
     }
 
     return (
@@ -247,7 +274,7 @@ function PostFileButton({ currentPath }: { currentPath: string }) {
             <input
                 type="file"
                 onChange={handleFileUpload}
-                disabled={isUploading}
+                disabled={uploadFileMutation.isLoading}
                 style={{ display: "none" }}
                 id="file-upload-input"
             />
@@ -255,10 +282,10 @@ function PostFileButton({ currentPath }: { currentPath: string }) {
                 htmlFor="file-upload-input"
                 className={cx(
                     "file-upload-label",
-                    isUploading && "is-uploading"
+                    uploadFileMutation.isLoading && "is-uploading"
                 )}
             >
-                {isUploading ? (
+                {uploadFileMutation.isLoading ? (
                     <FontAwesomeIcon icon={faSpinner} size="sm" spin />
                 ) : (
                     <span>

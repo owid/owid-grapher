@@ -5,3 +5,5 @@ export const KEBAB_CASE_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 export function isKebabCase(value: string): boolean {
     return KEBAB_CASE_REGEX.test(value)
 }
+
+export const MULTER_UPLOADS_DIRECTORY = "tmp-uploads/"
