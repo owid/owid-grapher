@@ -29,6 +29,7 @@ import {
     SeriesStrategy,
     AxisConfigInterface,
     ChartErrorInfo,
+    GrapherVariant,
 } from "@ourworldindata/types"
 import { ChartComponent, makeChartInstance } from "../chart/ChartTypeMap"
 import { ChartManager } from "../chart/ChartManager"
@@ -625,7 +626,11 @@ export class FacetChart
     @computed private get showLegend(): boolean {
         const { isNumericLegend, categoricalLegendData, numericLegendData } =
             this
-        if (this.manager.hideLegendsOutsideChartArea) return false
+        if (
+            this.manager.hideLegendsOutsideChartArea ||
+            this.manager.variant === GrapherVariant.MinimalThumbnail
+        )
+            return false
         const hasBins =
             categoricalLegendData.length > 0 || numericLegendData.length > 0
         if (!hasBins) return false
