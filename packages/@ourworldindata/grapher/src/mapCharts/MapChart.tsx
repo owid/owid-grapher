@@ -49,12 +49,7 @@ import {
     isProjectedDataBin,
     NumericBin,
 } from "../color/ColorScaleBin"
-import {
-    ColumnSlug,
-    InteractionState,
-    MapRegionName,
-    SeriesName,
-} from "@ourworldindata/types"
+import { ColumnSlug, MapRegionName, SeriesName } from "@ourworldindata/types"
 import { ClipPath, makeClipPath } from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { Component, createRef } from "react"
@@ -67,6 +62,7 @@ import { match } from "ts-pattern"
 import { makeProjectedDataPatternId } from "./MapComponents"
 import { MapChartState } from "./MapChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
+import { InteractionState } from "../interaction/InteractionState"
 
 export type MapChartProps = ChartComponentProps<MapChartState>
 
@@ -305,12 +301,7 @@ export class MapChart
 
     getHoverState(featureId: string): InteractionState {
         const isHovered = this.isHovered(featureId)
-        return {
-            idle: !this.hoverBracket,
-            active: isHovered,
-            background: !!this.hoverBracket && !isHovered,
-            foreground: !!this.hoverBracket || isHovered,
-        }
+        return new InteractionState(isHovered, !!this.hoverBracket)
     }
 
     @computed get fontSize(): number {
