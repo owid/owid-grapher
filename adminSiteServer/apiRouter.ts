@@ -291,6 +291,7 @@ deleteRouteWithRWTransaction(
 
 // File routes
 postFileUploadWithRWTransaction(apiRouter, "/files", uploadFileToR2)
+getRouteWithROTransaction(apiRouter, "/files.json", getFiles)
 
 // Gdoc routes
 getRouteWithROTransaction(apiRouter, "/gdocs", getAllGdocIndexItems)
@@ -327,9 +328,6 @@ putRouteWithRWTransaction(apiRouter, "/images/:id", putImageHandler)
 patchRouteWithRWTransaction(apiRouter, "/images/:id", patchImageHandler)
 deleteRouteWithRWTransaction(apiRouter, "/images/:id", deleteImageHandler)
 getRouteWithROTransaction(apiRouter, "/images/usage", getImageUsageHandler)
-
-// Files routes
-getRouteNonIdempotentWithRWTransaction(apiRouter, "/files.json", getFiles)
 
 // Mdim routes
 getRouteWithROTransaction(apiRouter, "/multi-dims.json", handleGetMultiDims)

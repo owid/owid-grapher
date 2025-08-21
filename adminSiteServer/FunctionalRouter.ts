@@ -1,8 +1,9 @@
 import express, { NextFunction, Router } from "express"
 import { Request, Response } from "./authentication.js"
 import multer from "multer"
+import { MULTER_UPLOADS_DIRECTORY } from "../adminShared/validation.js"
 
-const upload = multer({ dest: "tmp-uploads/" })
+const upload = multer({ dest: MULTER_UPLOADS_DIRECTORY })
 
 // Little wrapper to automatically send returned objects as JSON, makes
 // the API code a bit cleaner

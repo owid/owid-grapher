@@ -10,6 +10,7 @@ import { Request } from "../authentication.js"
 import e from "express"
 import { saveFileToAssetsR2 } from "../R2/assetsR2Helpers.js"
 import path from "path"
+import { MULTER_UPLOADS_DIRECTORY } from "../../adminShared/validation.js"
 
 export async function getFiles(
     _req: Request,
@@ -32,6 +33,12 @@ export async function uploadFileToR2(
     if (!filePath) {
         throw new JsonError("No target path specified", 400)
     }
+    const tmpPath = path.resolve(req.file.path)
+    const targetPath = path.resolve(MULTER_UPLOADS_DIRECTORY)
+
+    if (!tmpPath.startsWith(targetPath + path.sep)) {
+        throw new JsonError("Invalid file upload path", 400)
+    }
 
     const filename = req.file.originalname
 
@@ -50,8 +57,8 @@ export async function uploadFileToR2(
     }
 
     try {
-        // Read the uploaded file from tmp-upload
-        const fileBuffer = await fs.readFile(req.file.path)
+        // Read the uploaded file from tmp-uploads
+        const fileBuffer = await fs.readFile(tmpPath)
         const r2Key = path.join(filePath, filename)
 
         const r2Response = await saveFileToAssetsR2(
@@ -64,10 +71,12 @@ export async function uploadFileToR2(
             throw new JsonError("Failed to upload file to R2", 500)
         }
 
+        const removeEtagQuotes = (etag: string = "") => etag.replace(/"/g, "")
+
         const metadata: DbInsertFile = {
             filename,
             path: filePath,
-            etag: r2Response.ETag?.slice(1, -1) || "",
+            etag: removeEtagQuotes(r2Response.ETag),
             createdBy: res.locals.user.id,
         }
 
@@ -89,7 +98,7 @@ export async function uploadFileToR2(
         )
 
         // Delete the temporary file
-        await fs.unlink(req.file.path)
+        await fs.unlink(tmpPath)
 
         return {
             success: true,
@@ -98,7 +107,7 @@ export async function uploadFileToR2(
     } catch (error) {
         // If upload fails, try to clean up the temp file
         try {
-            await fs.unlink(req.file.path)
+            await fs.unlink(tmpPath)
         } catch (unlinkError) {
             // Log but don't throw - the main error is more important
             console.error("Failed to delete temp file:", unlinkError)
