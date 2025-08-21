@@ -34,6 +34,7 @@ import {
     getAnnotationsForSeries,
     getAnnotationsMap,
     getColorKey,
+    getDisplayName,
     getSeriesName,
 } from "../lineCharts/LineChartHelpers"
 
@@ -198,28 +199,35 @@ export class SlopeChartState implements ChartState {
         column: CoreColumn
     ): RawSlopeChartSeries {
         const { startTime, endTime, seriesStrategy } = this
-        const { canSelectMultipleEntities = false } = this.manager
-
+        const { canSelectMultipleEntities } = this.manager
         const { availableEntityNames } = this.transformedTable
+
         const columnName = column.nonEmptyDisplayName
-        const props = {
+        const hasMultipleEntitiesSelected = availableEntityNames.length > 1
+        const seriesName = getSeriesName({
             entityName,
             columnName,
             seriesStrategy,
-            availableEntityNames,
-            canSelectMultipleEntities,
-        }
-        const seriesName = getSeriesName(props)
-        const displayName = getSeriesName({
-            ...props,
+            hasMultipleEntitiesSelected,
+            allowsMultiEntitySelection: canSelectMultipleEntities,
+        })
+        const displayName = getDisplayName({
             entityName: getShortNameForEntity(entityName) ?? entityName,
+            columnName,
+            seriesStrategy,
+            hasMultipleEntitiesSelected,
         })
 
         const owidRowByTime = column.owidRowByEntityNameAndTime.get(entityName)
         const start = owidRowByTime?.get(startTime)
         const end = owidRowByTime?.get(endTime)
 
-        const colorKey = getColorKey(props)
+        const colorKey = getColorKey({
+            entityName,
+            columnName,
+            seriesStrategy,
+            hasMultipleEntitiesSelected,
+        })
         const color = this.categoricalColorAssigner.assign(colorKey)
 
         const annotation = getAnnotationsForSeries(
