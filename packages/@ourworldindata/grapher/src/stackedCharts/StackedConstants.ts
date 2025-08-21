@@ -1,7 +1,6 @@
 import {
     Color,
     EntityName,
-    InteractionState,
     OwidVariableRow,
     SeriesName,
 } from "@ourworldindata/types"
@@ -12,6 +11,7 @@ import {
     GRAPHER_AREA_OPACITY_MUTE,
 } from "../core/GrapherConstants"
 import { TextWrap } from "@ourworldindata/components"
+import { InteractionState } from "../interaction/InteractionState.js"
 
 export const BAR_OPACITY = {
     DEFAULT: GRAPHER_AREA_OPACITY_DEFAULT,
