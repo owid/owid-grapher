@@ -5,6 +5,7 @@ import { AxisConfig } from "../axis/AxisConfig"
 import { LineLegend } from "./LineLegend"
 import { LEGEND_ITEM_MIN_SPACING } from "./LineLegendConstants"
 import { LineLabelSeries } from "./LineLegendTypes"
+import { InteractionState } from "../interaction/InteractionState"
 
 const makeAxis = ({
     min = 0,
@@ -101,12 +102,7 @@ describe("dropping labels", () => {
     it("prioritises to label focused series", () => {
         const seriesWithFocus = series.map((s) => ({
             ...s,
-            focus: {
-                idle: false,
-                active: s.seriesName === "Mexico",
-                background: s.seriesName !== "Mexico",
-                foreground: s.seriesName === "Mexico",
-            },
+            focus: new InteractionState(s.seriesName === "Mexico", true),
         }))
 
         const lineLegendWithFocus = new LineLegend({

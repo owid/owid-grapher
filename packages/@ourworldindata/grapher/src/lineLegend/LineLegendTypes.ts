@@ -1,6 +1,7 @@
 import { MarkdownTextWrap, TextWrap } from "@ourworldindata/components"
-import { Bounds, InteractionState } from "@ourworldindata/utils"
+import { Bounds } from "@ourworldindata/utils"
 import { ChartSeries } from "../chart/ChartInterface"
+import { InteractionState } from "../interaction/InteractionState"
 
 export interface LineLabelSeries extends ChartSeries {
     label: string
