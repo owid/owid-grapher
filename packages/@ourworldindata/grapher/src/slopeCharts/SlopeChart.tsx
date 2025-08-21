@@ -337,7 +337,7 @@ export class SlopeChart
                     new CategoricalBin({
                         index,
                         value: series.seriesName,
-                        label: series.seriesName,
+                        label: series.displayName,
                         color: series.color,
                     })
             )
@@ -743,7 +743,7 @@ export class SlopeChart
 
         const formatTime = (time: Time) => formatColumn.formatTime(time)
 
-        const title = series.seriesName
+        const title = series.displayName
         const titleAnnotation = series.annotation
 
         const actualStartTime = series.start.originalTime
@@ -1071,7 +1071,7 @@ function Slope({
     outlineWidth = 0.5,
     outlineStroke = "#fff",
 }: SlopeProps) {
-    const { seriesName, startPoint, endPoint } = series
+    const { displayName, startPoint, endPoint } = series
 
     const isInForeground =
         series.hover.active ||
@@ -1087,7 +1087,7 @@ function Slope({
         <>
             {showOutline && (
                 <LineWithDots
-                    id={makeIdForHumanConsumption("outline", seriesName)}
+                    id={makeIdForHumanConsumption("outline", displayName)}
                     startPoint={startPoint}
                     endPoint={endPoint}
                     radius={dotRadius + 2 * outlineWidth}
@@ -1096,7 +1096,7 @@ function Slope({
                 />
             )}
             <LineWithDots
-                id={makeIdForHumanConsumption("slope", seriesName)}
+                id={makeIdForHumanConsumption("slope", displayName)}
                 startPoint={startPoint}
                 endPoint={endPoint}
                 radius={dotRadius}
