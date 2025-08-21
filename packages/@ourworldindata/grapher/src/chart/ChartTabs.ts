@@ -50,9 +50,9 @@ export const LONG_CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
     [GRAPHER_CHART_TYPES.SlopeChart]: "Slope chart",
     [GRAPHER_CHART_TYPES.ScatterPlot]: "Scatter plot",
     [GRAPHER_CHART_TYPES.StackedArea]: "Stacked area chart",
-    [GRAPHER_CHART_TYPES.StackedBar]: "Stacked bar chart",
+    [GRAPHER_CHART_TYPES.StackedBar]: "Bar chart",
     [GRAPHER_CHART_TYPES.DiscreteBar]: "Bar chart",
-    [GRAPHER_CHART_TYPES.StackedDiscreteBar]: "Stacked bar chart",
+    [GRAPHER_CHART_TYPES.StackedDiscreteBar]: "Bar chart",
     [GRAPHER_CHART_TYPES.Marimekko]: "Marimekko chart",
 }
 
