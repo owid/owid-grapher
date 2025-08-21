@@ -17,12 +17,17 @@ import {
     extractDetailsFromSyntax,
     getIndexableKeys,
 } from "@ourworldindata/utils"
-import { GrapherInterface, DimensionProperty } from "@ourworldindata/types"
+import {
+    GrapherInterface,
+    DimensionProperty,
+    automaticBinningStrategies,
+} from "@ourworldindata/types"
 import {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
     Grapher,
     GrapherState,
+    hasValidConfigForBinningStrategy,
 } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
 import { getFullReferencesCount, isChartEditorInstance } from "./ChartEditor.js"
@@ -55,6 +60,7 @@ import {
     ErrorMessagesForDimensions,
     FieldWithDetailReferences,
 } from "./ChartEditorTypes.js"
+import * as R from "remeda"
 
 interface Variable {
     id: number
@@ -282,7 +288,28 @@ export class ChartEditorView<
             errorMessages.focusedSeriesNames = message
         }
 
-        // TODO Add central binning option validation here
+        // Check the two colorScale configs (esp. binning strategies) for any errors
+        const colorScaleKeys = ["colorScale", "map.colorScale"] as const
+        colorScaleKeys.forEach((key) => {
+            const colorScaleConfig = _.get(this.grapherState, key)
+
+            // TODO Do we need this?
+            if (
+                !automaticBinningStrategies.includes(
+                    colorScaleConfig.binningStrategy
+                )
+            )
+                return
+
+            const validationResult = hasValidConfigForBinningStrategy(
+                colorScaleConfig.binningStrategy,
+                colorScaleConfig
+            )
+            if (!validationResult.valid) {
+                errorMessages[`${key}.${validationResult.field}`] =
+                    validationResult.reason
+            }
+        })
 
         return errorMessages
     }
@@ -441,7 +468,10 @@ export class ChartEditorView<
                             <EditorMarimekkoTab grapherState={grapherState} />
                         )}
                         {editor.tab === "map" && (
-                            <EditorMapTab editor={editor} />
+                            <EditorMapTab
+                                editor={editor}
+                                errorMessages={this.errorMessages}
+                            />
                         )}
                         {chartEditor && chartEditor.tab === "revisions" && (
                             <EditorHistoryTab editor={chartEditor} />
