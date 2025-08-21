@@ -107,13 +107,6 @@ export enum DimensionProperty {
     table = "table",
 }
 
-export interface InteractionState {
-    idle: boolean // not actively hovered or focused and no other series is hovered or focused
-    active: boolean // actively hovered or focused
-    foreground: boolean // none of the series are hovered or focused or actively hovered or focused
-    background: boolean // another series is actively hovered or focused
-}
-
 // see CoreTableConstants.ts
 export type ColumnSlug = string // a url friendly name for a column in a table. cannot have spaces
 
