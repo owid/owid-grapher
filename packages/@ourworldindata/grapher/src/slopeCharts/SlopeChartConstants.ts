@@ -1,12 +1,9 @@
 import { PartialBy, PointVector } from "@ourworldindata/utils"
-import {
-    EntityName,
-    InteractionState,
-    OwidVariableRow,
-} from "@ourworldindata/types"
+import { EntityName, OwidVariableRow } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { ChartManager } from "../chart/ChartManager"
+import { InteractionState } from "../interaction/InteractionState"
 
 export interface SlopeChartManager extends ChartManager {
     canSelectMultipleEntities?: boolean // used to pick an appropriate series name
@@ -33,5 +30,4 @@ export interface PlacedSlopeChartSeries extends SlopeChartSeries {
 
 export interface RenderSlopeChartSeries extends PlacedSlopeChartSeries {
     hover: InteractionState
-    focus: InteractionState
 }
