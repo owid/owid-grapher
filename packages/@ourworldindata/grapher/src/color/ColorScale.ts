@@ -171,15 +171,17 @@ export class ColorScale {
 
     // TODO types
     @computed get autoBinThresholds(): number[] {
+        if (this.config.binningStrategy === "manual") {
+            throw new Error(
+                "Cannot compute automatic bin thresholds when binning is set to manual"
+            )
+        }
         return runBinningStrategy({
             sortedValues: this.sortedNumericValues,
             isPercent: this.colorScaleColumn?.shortUnit === "%",
             numDecimalPlaces: this.colorScaleColumn?.numDecimalPlaces,
 
-            strategy:
-                this.config.binningStrategy !== "manual"
-                    ? (this.config.binningStrategy as any)
-                    : "auto",
+            strategy: this.config.binningStrategy,
             createBinForMidpoint: this.config.createBinForMidpoint,
             minValue: this.config.minValue,
             maxValue: this.config.maxValue,
@@ -250,11 +252,11 @@ export class ColorScale {
     }
 
     @computed get numAutoBins(): number {
-        return 10
+        return this.autoBinThresholds.length - 1
     }
 
     @computed get isManualBuckets(): boolean {
-        return false
+        return this.config.binningStrategy === "manual"
     }
 
     @computed get numNumericBins(): number {

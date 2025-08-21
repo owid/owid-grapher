@@ -1,5 +1,5 @@
 import {
-    BinningStrategy,
+    BinningStrategyIncludingManual,
     EqualSizeBinningStrategy,
     ResolvedBinningStrategy,
 } from "@ourworldindata/types"
@@ -14,7 +14,7 @@ import { match, P } from "ts-pattern"
 import { ResolvedBinningStrategyConfig } from "./BinningStrategies.js"
 
 export const isEqualSizeBinningStrategy = (
-    strategy: BinningStrategy | ResolvedBinningStrategy
+    strategy: BinningStrategyIncludingManual | ResolvedBinningStrategy
 ): strategy is EqualSizeBinningStrategy => strategy.startsWith("equalSizeBins-")
 
 export const runEqualSizeBinningStrategy = (

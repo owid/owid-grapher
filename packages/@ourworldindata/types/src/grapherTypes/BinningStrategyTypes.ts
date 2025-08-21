@@ -33,15 +33,23 @@ export const automaticBinningStrategies = [
     ...equalSizeBinningStrategies,
 ] as const
 
+export const binningStrategiesIncludingManual = [
+    "manual",
+    ...automaticBinningStrategies,
+] as const
+
 export type LogBinningStrategy = (typeof logBinningStrategies)[number]
 export type EqualSizeBinningStrategy =
     (typeof equalSizeBinningStrategies)[number]
 
 export type ResolvedLogBinningStrategy = Exclude<LogBinningStrategy, "log-auto">
 
-export type BinningStrategy = (typeof automaticBinningStrategies)[number]
+export type AutomaticBinningStrategy =
+    (typeof automaticBinningStrategies)[number]
 
-export type ResolvedBinningStrategy = Exclude<BinningStrategy, "auto">
+export type ResolvedBinningStrategy = Exclude<AutomaticBinningStrategy, "auto">
+export type BinningStrategyIncludingManual =
+    (typeof binningStrategiesIncludingManual)[number]
 
 /**
  * Sometimes, we do have a midpoint in our data. In many cases, a natural midpoint is zero

@@ -1,6 +1,6 @@
 import { numberMagnitude, RequiredBy } from "@ourworldindata/utils"
 import {
-    BinningStrategy,
+    BinningStrategyIncludingManual,
     LogBinningStrategy,
     ResolvedLogBinningStrategy,
 } from "@ourworldindata/types"
@@ -13,7 +13,7 @@ import * as R from "remeda"
 import { match } from "ts-pattern"
 
 export const isLogBinningStrategy = (
-    strategy: BinningStrategy
+    strategy: BinningStrategyIncludingManual
 ): strategy is LogBinningStrategy => strategy.startsWith("log-")
 
 /**

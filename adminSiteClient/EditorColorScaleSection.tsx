@@ -8,7 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faPlus, faMinus } from "@fortawesome/free-solid-svg-icons"
 import {
     ColorSchemeName,
-    BinningStrategy,
+    BinningStrategyIncludingManual,
     GrapherChartOrMapType,
     Color,
     automaticBinningStrategies,
@@ -38,6 +38,7 @@ import {
 } from "./ColorSchemeDropdown.js"
 import { match } from "ts-pattern"
 import { ErrorMessages } from "./ChartEditorTypes.js"
+import { binningStrategiesIncludingManual } from "@ourworldindata/types/src/grapherTypes/BinningStrategyTypes.js"
 
 interface EditorColorScaleSectionFeatures {
     legendDescription: boolean
@@ -173,7 +174,7 @@ class ColorsSection extends Component<ColorsSectionProps> {
 
     @action.bound onBinningStrategy(
         binningStrategy: {
-            value: BinningStrategy
+            value: BinningStrategyIncludingManual
         } | null
     ) {
         if (binningStrategy) this.config.binningStrategy = binningStrategy.value
@@ -201,9 +202,10 @@ class ColorsSection extends Component<ColorsSectionProps> {
     }
 
     @computed get binningStrategyOptions() {
-        return automaticBinningStrategies.map((strategy) => ({
+        return binningStrategiesIncludingManual.map((strategy) => ({
             value: strategy,
             label: match(strategy)
+                .with("manual", () => "Manual")
                 .with("auto", () => "Automatic")
                 .with("log-auto", () => "Logarithmic (automatic)")
                 .with("log-1-2-5", () => "Logarithmic (1, 2, 5, 10, …)")
