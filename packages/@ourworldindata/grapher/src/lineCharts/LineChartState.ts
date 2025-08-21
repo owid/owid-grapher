@@ -38,7 +38,7 @@ import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
-import { getColorKey, getSeriesName } from "./LineChartHelpers"
+import { getColorKey, getDisplayName, getSeriesName } from "./LineChartHelpers"
 import { FocusArray } from "../focus/FocusArray"
 
 export class LineChartState implements ChartState, ColorScaleManager {
@@ -241,7 +241,7 @@ export class LineChartState implements ChartState, ColorScaleManager {
         column: CoreColumn
     ): LineChartSeries {
         const {
-            manager: { canSelectMultipleEntities = false },
+            manager: { canSelectMultipleEntities },
             transformedTable: { availableEntityNames },
             seriesStrategy,
             hasColorScale,
@@ -276,12 +276,19 @@ export class LineChartState implements ChartState, ColorScaleManager {
 
         // Construct series properties
         const columnName = column.nonEmptyDisplayName
+        const hasMultipleEntitiesSelected = availableEntityNames.length > 1
         const seriesName = getSeriesName({
             entityName,
             columnName,
             seriesStrategy,
-            availableEntityNames,
-            canSelectMultipleEntities,
+            hasMultipleEntitiesSelected,
+            allowsMultiEntitySelection: canSelectMultipleEntities,
+        })
+        const displayName = getDisplayName({
+            entityName,
+            columnName,
+            seriesStrategy,
+            hasMultipleEntitiesSelected,
         })
 
         let seriesColor: Color
@@ -294,7 +301,7 @@ export class LineChartState implements ChartState, ColorScaleManager {
                     entityName,
                     columnName,
                     seriesStrategy,
-                    availableEntityNames,
+                    hasMultipleEntitiesSelected,
                 })
             )
         }
@@ -304,6 +311,7 @@ export class LineChartState implements ChartState, ColorScaleManager {
             seriesName,
             entityName,
             columnName,
+            displayName,
             isProjection: column.isProjection,
             plotMarkersOnly: column.display?.plotMarkersOnlyInLineChart,
             color: seriesColor,
