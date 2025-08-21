@@ -101,7 +101,7 @@ describe("series naming in multi-column mode", () => {
         }
         const chartState = new SlopeChartState({ manager })
         const chart = new SlopeChart({ chartState })
-        expect(chart.series[0].seriesName).not.toContain(" – ")
+        expect(chart.series[0].seriesName).not.toContain(" - ")
     })
 
     it("combines entity and column name if only one entity is selected and multi entity selection is enabled", () => {
@@ -112,7 +112,7 @@ describe("series naming in multi-column mode", () => {
         }
         const chartState = new SlopeChartState({ manager })
         const chart = new SlopeChart({ chartState })
-        expect(chart.series[0].seriesName).toContain(" – ")
+        expect(chart.series[0].seriesName).toContain(" - ")
     })
 
     it("combines entity and column name if multiple entities are selected and multi entity selection is disabled", () => {
@@ -124,7 +124,7 @@ describe("series naming in multi-column mode", () => {
         }
         const chartState = new SlopeChartState({ manager })
         const chart = new SlopeChart({ chartState })
-        expect(chart.series[0].seriesName).toContain(" – ")
+        expect(chart.series[0].seriesName).toContain(" - ")
     })
 })
 
