@@ -29,7 +29,6 @@ import {
     Time,
     SeriesStrategy,
     VerticalAlign,
-    InteractionState,
     HorizontalAlign,
     ScaleType,
 } from "@ourworldindata/types"
@@ -74,6 +73,7 @@ import { LineLabelSeries } from "../lineLegend/LineLegendTypes"
 import { SlopeChartState } from "./SlopeChartState"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
+import { InteractionState } from "../interaction/InteractionState"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
@@ -161,7 +161,7 @@ export class SlopeChart
     }
 
     @computed private get isFocusModeActive(): boolean {
-        return !this.focusArray.isEmpty
+        return this.focusArray.hasFocusedSeries
     }
 
     @computed private get canToggleFocusMode(): boolean {

@@ -1,5 +1,6 @@
-import { SeriesName, InteractionState } from "@ourworldindata/types"
 import { action, computed, observable, makeObservable } from "mobx"
+import { SeriesName } from "@ourworldindata/types"
+import { InteractionState } from "../interaction/InteractionState.js"
 
 export class FocusArray {
     constructor() {
@@ -23,6 +24,10 @@ export class FocusArray {
         return this.store.size === 0
     }
 
+    @computed get hasFocusedSeries(): boolean {
+        return !this.isEmpty
+    }
+
     /**
      * Whether a series is currently focused
      */
@@ -31,36 +36,10 @@ export class FocusArray {
     }
 
     /**
-     * Whether a series is in the foreground, i.e. either
-     * the chart isn't currently in focus mode (in which
-     * all series are in the foreground by default) or the
-     * series itself is currently focused.
-     */
-    private isInForeground(seriesName: SeriesName): boolean {
-        return this.isEmpty || this.has(seriesName)
-    }
-
-    /**
-     * Whether a series is in the background, i.e. the chart
-     * is currently in focus mode but the given series isn't
-     * focused.
-     */
-    private isInBackground(seriesName: SeriesName): boolean {
-        return !this.isEmpty && !this.has(seriesName)
-    }
-
-    /**
-     * Get the interaction state of a series:
-     * - active: true if the series is currently focused
-     * - background: true if another series is currently focused
+     * Get the interaction state of a series
      */
     state(seriesName: SeriesName): InteractionState {
-        return {
-            idle: this.isEmpty,
-            active: this.has(seriesName),
-            foreground: this.isInForeground(seriesName),
-            background: this.isInBackground(seriesName),
-        }
+        return new InteractionState(this.has(seriesName), !this.isEmpty)
     }
 
     @action.bound add(...seriesNames: SeriesName[]): this {

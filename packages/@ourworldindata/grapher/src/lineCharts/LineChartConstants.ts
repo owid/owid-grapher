@@ -4,10 +4,10 @@ import {
     CoreValueType,
     EntityName,
     EntityYearHighlight,
-    InteractionState,
 } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import { Color } from "@ourworldindata/utils"
+import { InteractionState } from "../interaction/InteractionState"
 
 export const LINE_CHART_CLASS_NAME = "LineChart"
 
@@ -44,9 +44,9 @@ export interface LineChartSeries extends ChartSeries {
     isProjection?: boolean
     plotMarkersOnly?: boolean
     points: LinePoint[]
-    focus: InteractionState
     entityName: EntityName
     columnName: string
+    focus: InteractionState
 }
 
 export interface PlacedLineChartSeries extends LineChartSeries {
@@ -55,7 +55,6 @@ export interface PlacedLineChartSeries extends LineChartSeries {
 
 export interface RenderLineChartSeries extends PlacedLineChartSeries {
     hover: InteractionState
-    focus: InteractionState
 }
 
 export interface LinesProps {

@@ -32,7 +32,6 @@ import { extent } from "d3-array"
 import {
     SeriesName,
     VerticalAlign,
-    InteractionState,
     AxisAlign,
     ScaleType,
 } from "@ourworldindata/types"
@@ -87,6 +86,7 @@ import { Lines } from "./Lines"
 import { LineChartState } from "./LineChartState.js"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
+import { InteractionState } from "../interaction/InteractionState"
 
 export type LineChartProps = ChartComponentProps<LineChartState>
 
@@ -485,7 +485,7 @@ export class LineChart
     }
 
     @computed private get isFocusModeActive(): boolean {
-        return !this.chartState.focusArray.isEmpty
+        return this.chartState.focusArray.hasFocusedSeries
     }
 
     @computed private get canToggleFocusMode(): boolean {
@@ -895,7 +895,7 @@ export class LineChart
                 yValue: lastValue,
                 focus: series.focus,
                 hover: this.hoverStateForSeries(series),
-            }
+            } satisfies LineLabelSeries
         })
     }
 
