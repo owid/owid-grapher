@@ -387,11 +387,14 @@ export class LineChart
                 <TooltipTable
                     columns={columns}
                     rows={sortedData.map((series) => {
-                        const { seriesName: name, isProjection: striped } =
-                            series
+                        const {
+                            seriesName,
+                            displayName,
+                            isProjection: striped,
+                        } = series
                         const annotation = getAnnotationsForSeries(
                             this.annotationsMap,
-                            name
+                            seriesName
                         )
 
                         const point = series.points.find(
@@ -419,7 +422,7 @@ export class LineChart
                         ])
 
                         return {
-                            name,
+                            name: displayName,
                             annotation,
                             swatch,
                             blurred,
@@ -881,13 +884,13 @@ export class LineChart
         }
 
         return deduplicatedSeries.map((series) => {
-            const { seriesName, color } = series
+            const { seriesName, displayName, color } = series
             const lastValue = R.last(series.points)!.y
             return {
                 color,
                 seriesName,
                 // E.g. https://ourworldindata.org/grapher/size-poverty-gap-world
-                label: !this.manager.showLegend ? "" : `${seriesName}`,
+                label: !this.manager.showLegend ? "" : displayName,
                 annotation: getAnnotationsForSeries(
                     this.annotationsMap,
                     seriesName
@@ -993,7 +996,7 @@ export class LineChart
                           new CategoricalBin({
                               index,
                               value: series.seriesName,
-                              label: series.seriesName,
+                              label: series.displayName,
                               color: series.color,
                           })
                   )
