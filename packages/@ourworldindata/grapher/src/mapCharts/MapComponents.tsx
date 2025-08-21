@@ -1,8 +1,5 @@
 import React from "react"
-import {
-    InteractionState,
-    makeIdForHumanConsumption,
-} from "@ourworldindata/utils"
+import { makeIdForHumanConsumption } from "@ourworldindata/utils"
 import {
     BLUR_FILL_OPACITY,
     BLUR_STROKE_OPACITY,
@@ -23,6 +20,7 @@ import { getExternalMarkerEndPosition } from "./MapAnnotations"
 import { Patterns } from "../core/GrapherConstants"
 import { calculateLightnessScore, isDarkColor } from "../color/ColorUtils"
 import { Halo } from "@ourworldindata/components"
+import { InteractionState } from "../interaction/InteractionState"
 
 export function BackgroundCountry<Feature extends RenderFeature>({
     feature,

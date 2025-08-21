@@ -1,13 +1,9 @@
 import { ChartManager } from "../chart/ChartManager"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { ChartSeries } from "../chart/ChartInterface"
-import {
-    Color,
-    CoreValueType,
-    InteractionState,
-    Time,
-} from "@ourworldindata/types"
+import { Color, CoreValueType, Time } from "@ourworldindata/types"
 import { TextWrap } from "@ourworldindata/components"
+import { InteractionState } from "../interaction/InteractionState.js"
 
 export interface DiscreteBarSeries extends ChartSeries {
     entityName: string
