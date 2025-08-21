@@ -299,7 +299,8 @@ function configureGrapherStateForDataTable(
         // that can be displayed in the table
         const seriesNames = props.rows
             .slice(0, numAvailableDataTableRows)
-            .map((row) => row.name)
+            .map((row) => row.seriesName)
+            .filter((seriesName) => seriesName !== undefined)
         grapherState.focusArray.clearAllAndAdd(...seriesNames)
     }
 }
