@@ -1,5 +1,5 @@
 import {
-    BinningStrategy,
+    AutomaticBinningStrategy,
     MidpointMode,
     ResolvedBinningStrategy,
 } from "@ourworldindata/types"
@@ -21,7 +21,7 @@ import {
 } from "./BinningStrategyEqualSizeBins.js"
 
 export interface BinningStrategyConfig {
-    strategy: BinningStrategy
+    strategy: AutomaticBinningStrategy
     minValue?: number
     maxValue?: number
     sortedValues: number[] // TODO unsure if needed here
@@ -141,7 +141,7 @@ type MinMaxValueResult =
     | { valid: false; reason: string; field: string }
 
 export const hasValidConfigForBinningStrategy = (
-    strategy: BinningStrategy,
+    strategy: AutomaticBinningStrategy,
     config: { minValue?: number; maxValue?: number; midpoint?: number }
 ): MinMaxValueResult => {
     const { minValue, maxValue, midpoint } = config

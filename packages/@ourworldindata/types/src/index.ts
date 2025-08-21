@@ -838,10 +838,12 @@ export {
     logBinningStrategies,
     equalSizeBinningStrategies,
     automaticBinningStrategies,
+    binningStrategiesIncludingManual,
     type LogBinningStrategy,
     type EqualSizeBinningStrategy,
     type ResolvedLogBinningStrategy,
-    type BinningStrategy,
+    type BinningStrategyIncludingManual,
+    type AutomaticBinningStrategy,
     type ResolvedBinningStrategy,
     type MidpointMode,
 } from "./grapherTypes/BinningStrategyTypes.js"

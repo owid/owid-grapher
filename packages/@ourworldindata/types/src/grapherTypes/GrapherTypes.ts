@@ -15,7 +15,7 @@ import {
 } from "./GrapherConstants.js"
 import { OwidVariableDataMetadataDimensions } from "../OwidVariable.js"
 import { ArchiveContext } from "../domainTypes/Archive.js"
-import { BinningStrategy } from "./BinningStrategyTypes.js"
+import { BinningStrategyIncludingManual } from "./BinningStrategyTypes.js"
 
 // Utility type that marks all properties of T that may be undefined as optional.
 export type UndefinedToOptional<T> = Partial<T> & {
@@ -356,7 +356,7 @@ export interface ProjectionColumnInfo {
 export interface ColorScaleConfigInterface {
     baseColorScheme?: ColorSchemeName
     colorSchemeInvert?: boolean
-    binningStrategy: BinningStrategy
+    binningStrategy: BinningStrategyIncludingManual
     createBinForMidpoint?: boolean
     minValue?: number
     maxValue?: number

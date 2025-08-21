@@ -3,7 +3,7 @@ import { observable, makeObservable } from "mobx"
 import {
     Color,
     ColumnColorScale,
-    BinningStrategy,
+    BinningStrategyIncludingManual,
     ColorSchemeName,
     ColorScaleConfigInterface,
 } from "@ourworldindata/types"
@@ -31,7 +31,7 @@ export class ColorScaleConfigDefaults implements ColorScaleConfigInterface {
     // ============
 
     /** The strategy for generating the bin boundaries */
-    binningStrategy: BinningStrategy = "auto"
+    binningStrategy: BinningStrategyIncludingManual = "auto"
     createBinForMidpoint?: boolean
     minValue?: number
     maxValue?: number
@@ -175,7 +175,7 @@ export class ColorScaleConfig
         // Use user-defined binning strategy, otherwise set to manual if user has
         // defined custom bins
         const binningStrategy = scale.colorScaleBinningStrategy
-            ? (scale.colorScaleBinningStrategy as BinningStrategy)
+            ? (scale.colorScaleBinningStrategy as BinningStrategyIncludingManual)
             : scale.colorScaleNumericBins || scale.colorScaleCategoricalBins
               ? "manual"
               : undefined
