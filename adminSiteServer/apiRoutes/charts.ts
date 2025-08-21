@@ -111,7 +111,14 @@ export const getReferencesByChartId = async (
             ) AS image
         FROM charts c
         JOIN chart_configs cc ON c.configId = cc.id
-        LEFT JOIN posts_gdocs pg ON cc.slug = SUBSTRING_INDEX(SUBSTRING_INDEX(pg.content ->> '$."grapher-url"', '/grapher/', -1), '\\?', 1)
+        LEFT JOIN posts_gdocs pg ON (
+            cc.slug = SUBSTRING_INDEX(SUBSTRING_INDEX(pg.content ->> '$."grapher-url"', '/grapher/', -1), '\\?', 1)
+            OR SUBSTRING_INDEX(SUBSTRING_INDEX(pg.content ->> '$."grapher-url"', '/grapher/', -1), '\\?', 1) IN (
+                SELECT cr.slug
+                FROM chart_slug_redirects cr
+                WHERE cr.chart_id = c.id
+            )
+        )
         -- join the images table by filename (only works for data insights where the image block comes first)
         LEFT JOIN images i ON i.filename = COALESCE(pg.content ->> '$.body[0].smallFilename', pg.content ->> '$.body[0].filename')
         WHERE c.id = ?? AND pg.type = 'data-insight' AND i.replacedBy IS NULL`,
