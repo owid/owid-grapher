@@ -41,6 +41,7 @@ export interface PlacedPoint {
 }
 
 export interface LineChartSeries extends ChartSeries {
+    displayName: string
     isProjection?: boolean
     plotMarkersOnly?: boolean
     points: LinePoint[]
