@@ -112,9 +112,9 @@ describe("buildChartHitDataTableContent for LineChart", () => {
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
-            { name: "Philippines", time: "2009", value: "$682.03 billion" },
-            { name: "Benin", time: "2009", value: "$233.42 billion" },
-            { name: "Eritrea", time: "2009", value: "$63.2 billion" },
+            { label: "Philippines", time: "2009", value: "$682.03 billion" },
+            { label: "Benin", time: "2009", value: "$233.42 billion" },
+            { label: "Eritrea", time: "2009", value: "$63.2 billion" },
         ])
 
         // Check that the colors are unique
@@ -132,8 +132,8 @@ describe("buildChartHitDataTableContent for LineChart", () => {
 
         expect(dataTable.title).toBe("Benin")
         expect(dataTable.rows).toMatchObject([
-            { name: "Fruit", time: "2009", value: "573" },
-            { name: "Vegetables", time: "2009", value: "542" },
+            { label: "Fruit", time: "2009", value: "573" },
+            { label: "Vegetables", time: "2009", value: "542" },
         ])
 
         // Check that the colors are unique
@@ -154,9 +154,9 @@ describe("buildChartHitDataTableContent for LineChart", () => {
         const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.rows).toMatchObject([
-            { name: "Philippines", muted: true },
-            { name: "Benin", muted: false },
-            { name: "Eritrea", muted: true },
+            { label: "Philippines", muted: true },
+            { label: "Benin", muted: false },
+            { label: "Eritrea", muted: true },
         ])
     })
 
@@ -172,9 +172,9 @@ describe("buildChartHitDataTableContent for LineChart", () => {
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
-            { name: "Philippines", time: "2009", value: "$682.03 billion" },
-            { name: "Benin", time: "2009", value: "$233.42 billion" },
-            { name: "Eritrea", time: "2009", value: "$63.2 billion" },
+            { label: "Philippines", time: "2009", value: "$682.03 billion" },
+            { label: "Benin", time: "2009", value: "$233.42 billion" },
+            { label: "Eritrea", time: "2009", value: "$63.2 billion" },
         ])
     })
 
@@ -190,9 +190,9 @@ describe("buildChartHitDataTableContent for LineChart", () => {
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
-            { name: "Philippines", time: "2009", value: "$682.03 billion" },
-            { name: "Benin", time: "2009", value: "$233.42 billion" },
-            { name: "Eritrea", time: "2009", value: "$63.2 billion" },
+            { label: "Philippines", time: "2009", value: "$682.03 billion" },
+            { label: "Benin", time: "2009", value: "$233.42 billion" },
+            { label: "Eritrea", time: "2009", value: "$63.2 billion" },
         ])
 
         // Check that the colors are unique
@@ -215,21 +215,21 @@ describe("buildChartHitDataTableContent for SlopeChart", () => {
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
             {
-                name: "Philippines",
+                label: "Philippines",
                 time: "2000–2009",
                 startValue: "$663.99 billion",
                 value: "$682.03 billion",
                 trend: "up",
             },
             {
-                name: "Benin",
+                label: "Benin",
                 time: "2000–2009",
                 startValue: "$252.54 billion",
                 value: "$233.42 billion",
                 trend: "down",
             },
             {
-                name: "Eritrea",
+                label: "Eritrea",
                 time: "2000–2009",
                 value: "$63.2 billion",
                 startValue: "$69.27 billion",
@@ -255,14 +255,14 @@ describe("buildChartHitDataTableContent for SlopeChart", () => {
         expect(dataTable.title).toBe("Benin")
         expect(dataTable.rows).toMatchObject([
             {
-                name: "Fruit",
+                label: "Fruit",
                 time: "2000–2009",
                 startValue: "603",
                 value: "573",
                 trend: "down",
             },
             {
-                name: "Vegetables",
+                label: "Vegetables",
                 time: "2000–2009",
                 value: "542",
                 startValue: "534",
@@ -293,9 +293,9 @@ describe("buildChartHitDataTableContent for SlopeChart", () => {
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
-            { name: "Philippines", muted: true },
-            { name: "Benin", muted: false },
-            { name: "Eritrea", muted: true },
+            { label: "Philippines", muted: true },
+            { label: "Benin", muted: false },
+            { label: "Eritrea", muted: true },
         ])
     })
 
@@ -313,21 +313,21 @@ describe("buildChartHitDataTableContent for SlopeChart", () => {
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
             {
-                name: "Philippines",
+                label: "Philippines",
                 startValue: "$663.99 billion",
                 value: "$682.03 billion",
                 time: "2000–2009",
                 trend: "up",
             },
             {
-                name: "Benin",
+                label: "Benin",
                 startValue: "$252.54 billion",
                 value: "$233.42 billion",
                 time: "2000–2009",
                 trend: "down",
             },
             {
-                name: "Eritrea",
+                label: "Eritrea",
                 startValue: "$69.27 billion",
                 value: "$63.2 billion",
                 time: "2000–2009",
@@ -350,21 +350,21 @@ describe("buildChartHitDataTableContent for SlopeChart", () => {
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
             {
-                name: "Philippines",
+                label: "Philippines",
                 startValue: "$663.99 billion",
                 value: "$682.03 billion",
                 time: "2000–2009",
                 trend: "up",
             },
             {
-                name: "Benin",
+                label: "Benin",
                 startValue: "$252.54 billion",
                 value: "$233.42 billion",
                 time: "2000–2009",
                 trend: "down",
             },
             {
-                name: "Eritrea",
+                label: "Eritrea",
                 startValue: "$69.27 billion",
                 value: "$63.2 billion",
                 time: "2000–2009",
@@ -391,9 +391,9 @@ describe("buildChartHitDataTableContent for StackedAreaChart", () => {
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
-            { name: "Benin", time: "2009", value: "$233.42 billion" },
-            { name: "Philippines", time: "2009", value: "$682.03 billion" },
-            { name: "Eritrea", time: "2009", value: "$63.2 billion" },
+            { label: "Benin", time: "2009", value: "$233.42 billion" },
+            { label: "Philippines", time: "2009", value: "$682.03 billion" },
+            { label: "Eritrea", time: "2009", value: "$63.2 billion" },
         ])
 
         // Check that the colors are unique
@@ -413,8 +413,8 @@ describe("buildChartHitDataTableContent for StackedAreaChart", () => {
 
         expect(dataTable.title).toBe("Benin")
         expect(dataTable.rows).toMatchObject([
-            { name: "Fruit", time: "2009", value: "573" },
-            { name: "Vegetables", time: "2009", value: "542" },
+            { label: "Fruit", time: "2009", value: "573" },
+            { label: "Vegetables", time: "2009", value: "542" },
         ])
 
         // Check that the colors are unique
@@ -436,9 +436,9 @@ describe("buildChartHitDataTableContent for StackedAreaChart", () => {
         const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.rows).toMatchObject([
-            { name: "Philippines", muted: true },
-            { name: "Benin", muted: false },
-            { name: "Eritrea", muted: true },
+            { label: "Philippines", muted: true },
+            { label: "Benin", muted: false },
+            { label: "Eritrea", muted: true },
         ])
     })
 
@@ -455,9 +455,9 @@ describe("buildChartHitDataTableContent for StackedAreaChart", () => {
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
-            { name: "Benin", time: "2009", value: "$233.42 billion" },
-            { name: "Philippines", time: "2009", value: "$682.03 billion" },
-            { name: "Eritrea", time: "2009", value: "$63.2 billion" },
+            { label: "Benin", time: "2009", value: "$233.42 billion" },
+            { label: "Philippines", time: "2009", value: "$682.03 billion" },
+            { label: "Eritrea", time: "2009", value: "$63.2 billion" },
         ])
     })
 
@@ -474,9 +474,9 @@ describe("buildChartHitDataTableContent for StackedAreaChart", () => {
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
-            { name: "Benin", time: "2009", value: "$233.42 billion" },
-            { name: "Philippines", time: "2009", value: "$682.03 billion" },
-            { name: "Eritrea", time: "2009", value: "$63.2 billion" },
+            { label: "Benin", time: "2009", value: "$233.42 billion" },
+            { label: "Philippines", time: "2009", value: "$682.03 billion" },
+            { label: "Eritrea", time: "2009", value: "$63.2 billion" },
         ])
 
         // Check that the colors are unique
@@ -498,9 +498,9 @@ describe("buildChartHitDataTableContent for DiscreteBar", () => {
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
-            { name: "Philippines", time: "2009", value: "$682.03 billion" },
-            { name: "Benin", time: "2009", value: "$233.42 billion" },
-            { name: "Eritrea", time: "2009", value: "$63.2 billion" },
+            { label: "Philippines", time: "2009", value: "$682.03 billion" },
+            { label: "Benin", time: "2009", value: "$233.42 billion" },
+            { label: "Eritrea", time: "2009", value: "$63.2 billion" },
         ])
     })
 
@@ -516,8 +516,8 @@ describe("buildChartHitDataTableContent for DiscreteBar", () => {
 
         expect(dataTable.title).toBe("Benin")
         expect(dataTable.rows).toMatchObject([
-            { name: "Fruit", time: "2009", value: "573" },
-            { name: "Vegetables", time: "2009", value: "542" },
+            { label: "Fruit", time: "2009", value: "573" },
+            { label: "Vegetables", time: "2009", value: "542" },
         ])
     })
 
@@ -535,9 +535,9 @@ describe("buildChartHitDataTableContent for DiscreteBar", () => {
         const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.rows).toMatchObject([
-            { name: "Philippines", muted: true },
-            { name: "Benin", muted: false },
-            { name: "Eritrea", muted: true },
+            { label: "Philippines", muted: true },
+            { label: "Benin", muted: false },
+            { label: "Eritrea", muted: true },
         ])
     })
 
@@ -554,9 +554,9 @@ describe("buildChartHitDataTableContent for DiscreteBar", () => {
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
-            { name: "Philippines", time: "2009", value: "$682.03 billion" },
-            { name: "Benin", time: "2009", value: "$233.42 billion" },
-            { name: "Eritrea", time: "2009", value: "$63.2 billion" },
+            { label: "Philippines", time: "2009", value: "$682.03 billion" },
+            { label: "Benin", time: "2009", value: "$233.42 billion" },
+            { label: "Eritrea", time: "2009", value: "$63.2 billion" },
         ])
     })
 
@@ -573,9 +573,9 @@ describe("buildChartHitDataTableContent for DiscreteBar", () => {
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
-            { name: "Philippines", time: "2009", value: "$682.03 billion" },
-            { name: "Benin", time: "2009", value: "$233.42 billion" },
-            { name: "Eritrea", time: "2009", value: "$63.2 billion" },
+            { label: "Philippines", time: "2009", value: "$682.03 billion" },
+            { label: "Benin", time: "2009", value: "$233.42 billion" },
+            { label: "Eritrea", time: "2009", value: "$63.2 billion" },
         ])
     })
 })
@@ -606,42 +606,42 @@ describe("buildChartHitDataTableContent for WorldMap", () => {
         expect(dataTable.rows).toMatchObject([
             {
                 color: "#eff3ff",
-                name: "$1 billion-$3 billion",
+                label: "$1 billion-$3 billion",
                 outlined: true,
                 striped: false,
                 time: "2009",
             },
             {
                 color: "#bdd7e7",
-                name: "$3 billion-$5 billion",
+                label: "$3 billion-$5 billion",
                 outlined: true,
                 striped: false,
                 time: "2009",
             },
             {
                 color: "#6baed6",
-                name: "$5 billion-$7 billion",
+                label: "$5 billion-$7 billion",
                 outlined: true,
                 striped: false,
                 time: "2009",
             },
             {
                 color: "#3182bd",
-                name: "$7 billion-$9 billion",
+                label: "$7 billion-$9 billion",
                 outlined: true,
                 striped: false,
                 time: "2009",
             },
             {
                 color: "#08519c",
-                name: ">$9 billion",
+                label: ">$9 billion",
                 outlined: true,
                 striped: false,
                 time: "2009",
             },
             {
                 color: "#6e7581",
-                name: "No data",
+                label: "No data",
                 outlined: true,
                 striped: "no-data",
                 time: "2009",
