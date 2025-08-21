@@ -31,7 +31,11 @@ import {
     faRobot,
     faUpload,
 } from "@fortawesome/free-solid-svg-icons"
-import { type File, fileToBase64 } from "./imagesHelpers.js"
+import {
+    type File,
+    fileToBase64,
+    type ImageUploadResponse,
+} from "./imagesHelpers.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
 import { NotificationInstance } from "antd/es/notification/interface.js"
 import { EditableTextarea } from "./EditableTextarea.js"
@@ -555,34 +559,49 @@ export function ImageIndexPage() {
                 setUsers(_.keyBy(json.users, "id"))
             },
             patchImage: async (image, patch) => {
-                const response = await admin.requestJSON<{
-                    success: true
-                    image: DbEnrichedImageWithUserId
-                }>(`/api/images/${image.id}`, patch, "PATCH")
+                const response = await admin.requestJSON<ImageUploadResponse>(
+                    `/api/images/${image.id}`,
+                    patch,
+                    "PATCH"
+                )
                 if (response.success) {
                     setImages((prevMap) => ({
                         ...prevMap,
                         [image.id]: response.image,
                     }))
+                } else {
+                    notificationApi.error({
+                        message: "Failed to update image",
+                        description: response.errorMessage,
+                        placement: "bottomRight",
+                    })
                 }
             },
             postImage: async (image) => {
-                const response = await admin.requestJSON<{
-                    success: true
-                    image: DbEnrichedImageWithUserId
-                }>(`/api/images`, image, "POST")
+                const response = await admin.requestJSON<ImageUploadResponse>(
+                    `/api/images`,
+                    image,
+                    "POST"
+                )
                 if (response.success) {
                     setImages((prevMap) => ({
                         ...prevMap,
                         [response.image.id]: response.image,
                     }))
+                } else {
+                    notificationApi.error({
+                        message: "Image upload failed",
+                        description: response.errorMessage,
+                        placement: "bottomRight",
+                    })
                 }
             },
             putImage: async (id, payload) => {
-                const response = await admin.requestJSON<{
-                    success: true
-                    image: DbEnrichedImageWithUserId
-                }>(`/api/images/${id}`, payload, "PUT")
+                const response = await admin.requestJSON<ImageUploadResponse>(
+                    `/api/images/${id}`,
+                    payload,
+                    "PUT"
+                )
                 if (response.success) {
                     setImages((prevMap) => {
                         const nextMap = { ...prevMap }
@@ -591,6 +610,12 @@ export function ImageIndexPage() {
                             ...nextMap,
                             [response.image.id]: response.image,
                         }
+                    })
+                } else {
+                    notificationApi.error({
+                        message: "Image update failed",
+                        description: response.errorMessage,
+                        placement: "bottomRight",
                     })
                 }
             },
@@ -621,7 +646,7 @@ export function ImageIndexPage() {
                 }
             },
         }),
-        [admin]
+        [admin, notificationApi]
     )
 
     const filteredImages = useMemo(
