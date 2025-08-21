@@ -29,6 +29,7 @@ import {
     SeriesStrategy,
     AxisConfigInterface,
     ChartErrorInfo,
+    GrapherVariant,
 } from "@ourworldindata/types"
 import { ChartComponent, makeChartInstance } from "../chart/ChartTypeMap"
 import { ChartManager } from "../chart/ChartManager"
