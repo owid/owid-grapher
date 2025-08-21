@@ -6,8 +6,9 @@ import {
 } from "@ourworldindata/components"
 
 interface TableRow {
+    seriesName?: string // useful internally, but not displayed in the UI (not necessarily unique)
+    label: string
     color?: string
-    name: string
     value?: string
     startValue?: string
     time?: string
@@ -49,7 +50,7 @@ export function SearchChartHitDataTable({
             />
             {displayRows.map((row) => (
                 <Row
-                    key={row.name}
+                    key={row.label}
                     row={row}
                     shouldShowSwatch={shouldShowSwatch}
                     shouldSpanBothColumns={displayRows.length <= 4}
@@ -105,7 +106,9 @@ function Row({
                     style={{ backgroundColor: row.color }}
                 />
             )}
-            <span className="search-chart-hit-table-row__name">{row.name}</span>
+            <span className="search-chart-hit-table-row__name">
+                {row.label}
+            </span>
             {row.value !== undefined && (
                 <>
                     <span className="search-chart-hit-table-row__spacer" />

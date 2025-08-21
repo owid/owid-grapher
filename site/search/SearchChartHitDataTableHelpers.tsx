@@ -178,7 +178,8 @@ function buildDataTableContentForLineChart({
             return {
                 series,
                 point,
-                name: series.seriesName,
+                seriesName: series.seriesName,
+                label: series.displayName,
                 color,
                 value:
                     formatValueIfCustom(point.y) ??
@@ -219,7 +220,8 @@ function buildDataTableContentForDiscreteBarChart({
 
     let rows = chartState.series.map((series) => ({
         series,
-        name: series.shortEntityName ?? series.entityName,
+        seriesName: series.seriesName,
+        label: series.shortEntityName ?? series.entityName,
         color: series.color,
         value: formatColumn.formatValueShort(series.value),
         time: formatColumn.formatTime(series.time),
@@ -255,8 +257,9 @@ function buildDataTableContentForSlopeChart({
             ) ?? series.color
 
         return {
+            seriesName: series.seriesName,
+            label: series.displayName,
             endValue: series.end.value,
-            name: series.seriesName,
             color,
             value: formatColumn.formatValueShort(end.value),
             startValue: formatColumn.formatValueShort(start.value),
@@ -299,7 +302,8 @@ function buildDataTableContentForStackedDiscreteBarChart({
                     if (point.fake || point.interpolated) return undefined
                     return {
                         point,
-                        name: point.position,
+                        seriesName: series.seriesName,
+                        label: point.position,
                         color: point.color ?? series.color,
                         value: formatColumn.formatValueShort(point.value),
                         time: formatColumn.formatTime(point.time),
@@ -335,7 +339,8 @@ function buildDataTableContentForStackedDiscreteBarChart({
                     const point = bar.point
                     if (point.fake || point.interpolated) return undefined
                     return {
-                        name: bar.seriesName,
+                        seriesName: bar.seriesName,
+                        label: bar.seriesName,
                         color: bar.color,
                         value: formatColumn.formatValueShort(point.value),
                         time: formatColumn.formatTime(point.time),
@@ -380,7 +385,8 @@ function buildDataTableContentForStackedAreaAndBarChart({
                 : (point.color ?? series.color)
 
             return {
-                name: series.seriesName,
+                seriesName: series.seriesName,
+                label: series.seriesName,
                 color,
                 value: formatColumn.formatValueShort(point.value),
                 time: formatColumn.formatTime(point.time),
@@ -495,7 +501,8 @@ function buildValueTableContentForMarimekko({
             )
             return {
                 point,
-                name: point.position,
+                seriesName: series.seriesName,
+                label: point.position,
                 color: entityColor?.color ?? point.color ?? series.color,
                 value: yColumn.formatValueShort(point.value),
                 time: yColumn.formatTime(point.time),
@@ -578,7 +585,7 @@ function buildLegendTableProps({
     let rows = bins
         .map((bin) => {
             if (bin.isHidden || isNoDataBin(bin)) return undefined
-            return { bin, name: bin.text, color: bin.color }
+            return { bin, label: bin.text, color: bin.color }
         })
         .filter((row) => row !== undefined)
 
@@ -614,7 +621,8 @@ function buildValueTableContentForScatterPlot({
             const yValue = yColumn.formatValueShort(point.y)
             const xValue = xColumn.formatValueShort(point.x)
             return {
-                name: series.seriesName,
+                seriesName: series.seriesName,
+                label: series.seriesName,
                 color: series.color,
                 value: `${yValue} vs. ${xValue}`,
                 time: yColumn.formatTime(point.timeValue),
@@ -729,7 +737,7 @@ function buildDataTableContentForWorldMap({
             return {
                 bin,
                 numSeriesContainedInBin,
-                name: label,
+                label,
                 time: grapherState.endTime
                     ? chartState.mapColumn.formatTime(grapherState.endTime)
                     : undefined,
@@ -786,7 +794,7 @@ function buildDataTableContentForTableTab({
             : sortedOwidRows
 
     const tableRows = filteredOwidRows.map((row) => ({
-        name: row.entityName,
+        label: row.entityName,
         time: yColumn.formatTime(row.originalTime),
         value: yColumn.formatValueShort(row.value),
     }))
