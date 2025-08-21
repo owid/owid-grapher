@@ -111,7 +111,7 @@ export class Lines extends React.Component<LinesProps> {
 
         const outline = (
             <LinePath
-                id={makeIdForHumanConsumption("outline", series.seriesName)}
+                id={makeIdForHumanConsumption("outline", series.displayName)}
                 placedPoints={series.placedPoints}
                 stroke={outlineColor}
                 strokeWidth={outlineWidth.toFixed(1)}
@@ -175,7 +175,7 @@ export class Lines extends React.Component<LinesProps> {
             : undefined
 
         return (
-            <g id={makeIdForHumanConsumption("datapoints", series.seriesName)}>
+            <g id={makeIdForHumanConsumption("datapoints", series.displayName)}>
                 {series.placedPoints.map((value, index) => (
                     <circle
                         id={makeIdForHumanConsumption(
