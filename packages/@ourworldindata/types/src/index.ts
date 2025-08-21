@@ -130,7 +130,6 @@ export {
     GrapherWindowType,
     AxisMinMaxValueStr,
     GrapherTooltipAnchor,
-    type InteractionState,
     type MapConfigInterface,
     type GlobeConfig,
     type ProjectionColumnInfo,
