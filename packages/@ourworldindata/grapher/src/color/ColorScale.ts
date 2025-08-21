@@ -188,40 +188,6 @@ export class ColorScale {
             midpoint: this.config.midpoint,
             midpointMode: this.config.midpointMode as any,
         }).bins
-
-        // const hasNegativeValues = this.sortedNumericValues[0] < 0
-
-        // if (hasNegativeValues) {
-        //     const lower = quantile(this.sortedNumericValues, 0.01)
-        //     const upper = quantile(this.sortedNumericValues, 0.99)
-        //     return equalSizeBinsWithMidpoint({
-        //         minValue: lower ?? 1,
-        //         maxValue: upper ?? 1,
-        //         midpoint: 0,
-        //     })
-        // }
-
-        // const positiveValues = R.dropWhile(
-        //     this.sortedNumericValues,
-        //     (v) => v <= 0
-        // )
-        // const quantileLower = quantile(positiveValues, 0.1)
-        // const quantileUpper = quantile(positiveValues, 0.995)
-        // const magnitudeDiff =
-        //     Math.log10(quantileUpper) - Math.log10(quantileLower)
-
-        // console.log(quantileLower, quantileUpper, magnitudeDiff)
-
-        // if (magnitudeDiff < 1.2) {
-        //     return equalSizeBins({
-        //         minValue: quantileLower ?? 1,
-        //         maxValue: quantileUpper ?? 1,
-        //     })
-        // }
-        // return autoChooseLogBins({
-        //     minValue: quantileLower ?? 1,
-        //     maxValue: quantileUpper ?? 1,
-        // })
     }
 
     @computed private get bucketThresholds(): number[] {
