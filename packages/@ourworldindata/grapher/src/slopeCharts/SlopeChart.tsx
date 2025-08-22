@@ -20,7 +20,6 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_FONT_SCALE_12,
-    GRAPHER_OPACITY_MUTE,
     GRAPHER_TEXT_OUTLINE_FACTOR,
 } from "../core/GrapherConstants"
 import {
@@ -30,7 +29,6 @@ import {
     SeriesStrategy,
     VerticalAlign,
     HorizontalAlign,
-    ScaleType,
 } from "@ourworldindata/types"
 import { ChartInterface } from "../chart/ChartInterface"
 import { scaleLinear, ScaleLinear } from "d3-scale"
@@ -43,10 +41,7 @@ import {
     SlopeChartManager,
 } from "./SlopeChartConstants"
 import { CoreColumn } from "@ourworldindata/core-table"
-import {
-    byHoverThenFocusState,
-    getHoverStateForSeries,
-} from "../chart/ChartUtils"
+import { getHoverStateForSeries } from "../chart/ChartUtils"
 import { VerticalAxis } from "../axis/Axis"
 import { VerticalAxisComponent } from "../axis/AxisViews"
 import { NoDataSection } from "../scatterCharts/NoDataSection"
@@ -64,16 +59,20 @@ import { TooltipFooterIcon } from "../tooltip/TooltipProps"
 import { Halo } from "@ourworldindata/components"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
-import {
-    GRAPHER_BACKGROUND_DEFAULT,
-    GRAPHER_DARK_TEXT,
-} from "../color/ColorConstants"
+import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
 import { FocusArray } from "../focus/FocusArray"
 import { LineLabelSeries } from "../lineLegend/LineLegendTypes"
 import { SlopeChartState } from "./SlopeChartState"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
+import {
+    getYAxisConfigDefaults,
+    toPlacedSlopeChartSeries,
+    toRenderSlopeChartSeries,
+} from "./SlopeChartHelpers"
+import { Slope } from "./Slope"
+import { MarkX } from "./MarkX"
 
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
@@ -160,10 +159,6 @@ export class SlopeChart
         )
     }
 
-    @computed private get isFocusModeActive(): boolean {
-        return this.focusArray.hasFocusedSeries
-    }
-
     @computed private get canToggleFocusMode(): boolean {
         return !isTouchDevice() && this.series.length > 1
     }
@@ -193,16 +188,10 @@ export class SlopeChart
     }
 
     @computed private get placedSeries(): PlacedSlopeChartSeries[] {
-        const { yAxis, startX, endX } = this
-
-        return this.series.map((series) => {
-            const startY = yAxis.place(series.start.value)
-            const endY = yAxis.place(series.end.value)
-
-            const startPoint = new PointVector(startX, startY)
-            const endPoint = new PointVector(endX, endY)
-
-            return { ...series, startPoint, endPoint }
+        return toPlacedSlopeChartSeries(this.series, {
+            yAxis: this.yAxis,
+            startX: this.startX,
+            endX: this.endX,
         })
     }
 
@@ -214,19 +203,11 @@ export class SlopeChart
     }
 
     @computed private get renderSeries(): RenderSlopeChartSeries[] {
-        const series: RenderSlopeChartSeries[] = this.placedSeries.map(
-            (series) => {
-                return { ...series, hover: this.hoverStateForSeries(series) }
-            }
-        )
-
-        // sort by interaction state so that foreground series
-        // are drawn on top of background series
-        if (this.isHoverModeActive || this.isFocusModeActive) {
-            return _.sortBy(series, byHoverThenFocusState)
-        }
-
-        return series
+        return toRenderSlopeChartSeries(this.placedSeries, {
+            isFocusModeActive: this.chartState.isFocusModeActive,
+            isHoverModeActive: this.isHoverModeActive,
+            hoveredSeriesNames: this.hoveredSeriesNames,
+        })
     }
 
     @computed get noDataSeries(): RawSlopeChartSeries[] {
@@ -264,29 +245,19 @@ export class SlopeChart
     }
 
     @computed get yAxisConfig(): AxisConfig {
-        return new AxisConfig(
-            {
-                nice: !this.chartState.isLogScale,
-                ...this.manager.yAxisConfig,
-            },
-            this
-        )
-    }
-
-    @computed get yScaleType(): ScaleType {
-        return this.yAxisConfig.scaleType ?? ScaleType.linear
-    }
-
-    @computed get allYValues(): number[] {
-        return this.series.flatMap((series) => [
-            series.start.value,
-            series.end.value,
-        ])
+        const { yAxisConfig } = this.manager
+        const defaults = getYAxisConfigDefaults(yAxisConfig)
+        return new AxisConfig({ ...defaults, ...yAxisConfig }, this)
     }
 
     @computed get yDomainDefault(): [number, number] {
         const defaultDomain: [number, number] = [Infinity, -Infinity]
-        return domainExtent(this.allYValues, this.yScaleType) ?? defaultDomain
+        return (
+            domainExtent(
+                this.chartState.allYValues,
+                this.chartState.yScaleType
+            ) ?? defaultDomain
+        )
     }
 
     @computed get yDomain(): [number, number] {
@@ -303,12 +274,10 @@ export class SlopeChart
     }
 
     @computed get yAxis(): VerticalAxis {
-        const axis = this.yAxisConfig.toVerticalAxis()
-        axis.domain = this.yDomain
-        axis.range = this.yRange
-        axis.formatColumn = this.chartState.yColumns[0]
-        axis.label = ""
-        return axis
+        return this.chartState.toVerticalAxis(this.yAxisConfig, {
+            yDomain: this.yDomain,
+            yRange: this.yRange,
+        })
     }
 
     @computed private get yAxisWidth(): number {
@@ -316,12 +285,8 @@ export class SlopeChart
     }
 
     @computed private get xScale(): ScaleLinear<number, number> {
-        const { xDomain, xRange } = this
-        return scaleLinear().domain(xDomain).range(xRange)
-    }
-
-    @computed get xDomain(): [number, number] {
-        return [this.startTime, this.endTime]
+        const { xRange } = this
+        return scaleLinear().domain(this.chartState.xDomain).range(xRange)
     }
 
     @computed private get sidebarWidth(): number {
@@ -922,7 +887,8 @@ export class SlopeChart
     }
 
     private renderXAxis() {
-        const { xDomain, startX, endX } = this
+        const { startX, endX } = this
+        const { xDomain } = this.chartState
 
         return (
             <g id={makeIdForHumanConsumption("horizontal-axis")}>
@@ -1052,104 +1018,6 @@ export class SlopeChart
     }
 }
 
-interface SlopeProps {
-    series: RenderSlopeChartSeries
-    dotRadius?: number
-    strokeWidth?: number
-    outlineWidth?: number
-    outlineStroke?: string
-}
-
-function Slope({
-    series,
-    dotRadius = 3.5,
-    strokeWidth = 2,
-    outlineWidth = 0.5,
-    outlineStroke = "#fff",
-}: SlopeProps) {
-    const { displayName, startPoint, endPoint } = series
-
-    const isInForeground =
-        series.hover.active ||
-        series.focus.active ||
-        (series.focus.idle && series.hover.idle)
-
-    const showOutline = isInForeground
-
-    const opacity = isInForeground ? 1 : GRAPHER_OPACITY_MUTE
-    const lineWidth = isInForeground ? strokeWidth : 0.66 * strokeWidth
-
-    return (
-        <>
-            {showOutline && (
-                <LineWithDots
-                    id={makeIdForHumanConsumption("outline", displayName)}
-                    startPoint={startPoint}
-                    endPoint={endPoint}
-                    radius={dotRadius + 2 * outlineWidth}
-                    color={outlineStroke}
-                    lineWidth={lineWidth + 2 * outlineWidth}
-                />
-            )}
-            <LineWithDots
-                id={makeIdForHumanConsumption("slope", displayName)}
-                startPoint={startPoint}
-                endPoint={endPoint}
-                radius={dotRadius}
-                color={series.color}
-                lineWidth={lineWidth}
-                opacity={opacity}
-            />
-        </>
-    )
-}
-
-function LineWithDots({
-    id,
-    startPoint,
-    endPoint,
-    radius,
-    color,
-    lineWidth = 2,
-    opacity = 1,
-}: {
-    id?: string
-    startPoint: PointVector
-    endPoint: PointVector
-    radius: number
-    color: string
-    lineWidth?: number
-    opacity?: number
-}): React.ReactElement {
-    return (
-        <g id={id} opacity={opacity} className="slope">
-            <circle
-                id={makeIdForHumanConsumption("start-point")}
-                cx={startPoint.x}
-                cy={startPoint.y}
-                r={radius}
-                fill={color}
-            />
-            <circle
-                id={makeIdForHumanConsumption("end-point")}
-                cx={endPoint.x}
-                cy={endPoint.y}
-                r={radius}
-                fill={color}
-            />
-            <line
-                id={makeIdForHumanConsumption("line")}
-                x1={startPoint.x}
-                y1={startPoint.y}
-                x2={endPoint.x}
-                y2={endPoint.y}
-                stroke={color}
-                strokeWidth={lineWidth.toFixed(1)}
-            />
-        </g>
-    )
-}
-
 interface GridLinesProps {
     bounds: Bounds
     yAxis: VerticalAxis
@@ -1174,44 +1042,5 @@ function GridLines({ bounds, yAxis }: GridLinesProps) {
                 )
             })}
         </g>
-    )
-}
-
-function MarkX({
-    label,
-    x,
-    top,
-    bottom,
-    labelPadding,
-    fontSize,
-}: {
-    label: string
-    x: number
-    top: number
-    bottom: number
-    labelPadding: number
-    fontSize: number
-}) {
-    return (
-        <>
-            <line
-                id={makeIdForHumanConsumption(label)}
-                x1={x}
-                y1={top}
-                x2={x}
-                y2={bottom}
-                stroke="#999"
-            />
-            <text
-                x={x}
-                y={bottom + labelPadding}
-                dy={dyFromAlign(VerticalAlign.bottom)}
-                textAnchor="middle"
-                fill={GRAPHER_DARK_TEXT}
-                fontSize={fontSize}
-            >
-                {label}
-            </text>
-        </>
     )
 }
