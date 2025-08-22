@@ -1,11 +1,28 @@
+import * as _ from "lodash-es"
 import { OwidTable } from "@ourworldindata/core-table"
 import {
+    AxisAlign,
+    AxisConfigInterface,
     ColumnSlug,
     EntityName,
     PrimitiveType,
+    ScaleType,
     SeriesName,
     SeriesStrategy,
 } from "@ourworldindata/types"
+import {
+    LineChartSeries,
+    PlacedLineChartSeries,
+    PlacedPoint,
+    RenderLineChartSeries,
+} from "./LineChartConstants"
+import { DualAxis } from "../axis/Axis"
+import { LineChartState } from "./LineChartState"
+import { darkenColorForLine } from "../color/ColorUtils"
+import {
+    byHoverThenFocusState,
+    getHoverStateForSeries,
+} from "../chart/ChartUtils"
 
 export type AnnotationsMap = Map<PrimitiveType, Set<PrimitiveType>>
 
@@ -91,4 +108,77 @@ export function getAnnotationsForSeries(
     return Array.from(annotations.values())
         .filter((anno) => anno)
         .join(" & ")
+}
+
+export function getYAxisConfigDefaults(
+    config?: AxisConfigInterface
+): AxisConfigInterface {
+    return {
+        nice: config?.scaleType !== ScaleType.log,
+        // if we only have a single y value (probably 0), we want the
+        // horizontal axis to be at the bottom of the chart.
+        // see https://github.com/owid/owid-grapher/pull/975#issuecomment-890798547
+        singleValueAxisPointAlign: AxisAlign.start,
+        // default to 0 if not set
+        min: 0,
+    }
+}
+
+export function toPlacedLineChartSeries(
+    series: readonly LineChartSeries[],
+    { chartState, dualAxis }: { chartState: LineChartState; dualAxis: DualAxis }
+): PlacedLineChartSeries[] {
+    const { horizontalAxis, verticalAxis } = dualAxis
+
+    return series.toReversed().map((series) => {
+        const placedPoints = series.points.map((point): PlacedPoint => {
+            const color = chartState.hasColorScale
+                ? darkenColorForLine(
+                      chartState.getColorScaleColor(point.colorValue)
+                  )
+                : series.color
+
+            return {
+                time: point.x,
+                x: _.round(horizontalAxis.place(point.x), 1),
+                y: _.round(verticalAxis.place(point.y), 1),
+                color,
+            }
+        })
+        return { ...series, placedPoints }
+    })
+}
+
+export function toRenderLineChartSeries(
+    placedSeries: PlacedLineChartSeries[],
+    {
+        isFocusModeActive = false,
+        isHoverModeActive = false,
+        hoveredSeriesNames = [],
+    }: {
+        isFocusModeActive?: boolean
+        isHoverModeActive?: boolean
+        hoveredSeriesNames?: SeriesName[]
+    }
+): RenderLineChartSeries[] {
+    let series: RenderLineChartSeries[] = placedSeries.map((series) => {
+        return {
+            ...series,
+            hover: getHoverStateForSeries(series, {
+                isHoverModeActive,
+                hoveredSeriesNames,
+            }),
+        }
+    })
+
+    // draw lines on top of markers-only series
+    series = _.sortBy(series, (series) => !series.plotMarkersOnly)
+
+    // sort by interaction state so that foreground series
+    // are drawn on top of background series
+    if (isFocusModeActive || isHoverModeActive) {
+        series = _.sortBy(series, byHoverThenFocusState)
+    }
+
+    return series
 }
