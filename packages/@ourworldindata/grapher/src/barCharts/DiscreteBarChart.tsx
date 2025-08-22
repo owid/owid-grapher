@@ -648,7 +648,7 @@ export class DiscreteBarChart
     @computed private get numericLegend():
         | HorizontalNumericColorLegend
         | undefined {
-        return this.chartState.hasColorScale && this.manager.showLegend
+        return this.manager.showLegend
             ? new HorizontalNumericColorLegend({ manager: this })
             : undefined
     }
