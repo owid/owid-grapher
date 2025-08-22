@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import { match } from "ts-pattern"
 import {
     EntityName,
@@ -16,6 +17,7 @@ import {
     MediumVariantGridSlot,
     PlacedTab,
 } from "./SearchChartHitRichDataTypes.js"
+import { getTableColumnCountForGridSlot } from "./SearchChartHitRichDataHelpers"
 
 type PlacingOptions =
     | { tableType: "none" }
@@ -38,7 +40,7 @@ export function placeGrapherTabsInMediumVariantGridLayout(
     // then four equally-sized slots are available.
 
     if (options.hasDataDisplay) {
-        const placedMainTabs = placeTabsInUniformGrid(tabs, {
+        const placedMainTabs = assignTabsToGridSlots(tabs, {
             numAvailableGridSlots: 3,
             ...options,
         })
@@ -55,11 +57,46 @@ export function placeGrapherTabsInMediumVariantGridLayout(
             }))
         return [...placedMainTabs, ...placedRemainingTabs]
     } else {
-        return placeTabsInUniformGrid(tabs, {
+        return assignTabsToGridSlots(tabs, {
             numAvailableGridSlots: 4,
             ...options,
         })
     }
+}
+
+/**
+ * Assigns Grapher tabs to grid slots with special handling for the DiscreteBar tab.
+ */
+function assignTabsToGridSlots(
+    tabs: GrapherTabName[],
+    options: { numAvailableGridSlots: number } & PlacingOptions
+) {
+    const hasSecondaryDiscreteBarTab =
+        tabs[0] !== GRAPHER_TAB_NAMES.DiscreteBar &&
+        tabs.includes(GRAPHER_TAB_NAMES.DiscreteBar)
+
+    // No need for special handling if there's no DiscreteBar tab
+    if (!hasSecondaryDiscreteBarTab)
+        return placeTabsInUniformGrid(tabs, options)
+
+    // Place tabs without the discrete bar tab
+    const placedMainTabs = placeTabsInUniformGrid(
+        tabs.filter((tab) => tab !== GRAPHER_TAB_NAMES.DiscreteBar),
+        options
+    )
+
+    // Check if there's space for the discrete bar tab
+    const numOccupiedSlots = _.sumBy(placedMainTabs, ({ slot }) =>
+        getTableColumnCountForGridSlot(slot)
+    )
+    if (numOccupiedSlots < options.numAvailableGridSlots) {
+        placedMainTabs.push({
+            tab: GRAPHER_TAB_NAMES.DiscreteBar,
+            slot: MediumVariantGridSlot.Single,
+        })
+    }
+
+    return placedMainTabs
 }
 
 /**
