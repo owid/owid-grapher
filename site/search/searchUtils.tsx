@@ -299,10 +299,12 @@ export const constructChartUrl = ({
     overlay?: "sources" | "download-data"
 }): string => {
     const viewQueryStr = generateQueryStrForChartHit({ hit, grapherParams })
-    const grapherQueryStr = overlay ? `overlay=${overlay}` : ""
-    const queryStr = viewQueryStr
-        ? `${viewQueryStr}&${grapherQueryStr}`
-        : `?${grapherQueryStr}`
+    const overlayQueryStr = overlay ? `overlay=${overlay}` : ""
+    const queryParts = [
+        viewQueryStr?.replace(/^\?/, ""),
+        overlayQueryStr,
+    ].filter((queryStr) => queryStr)
+    const queryStr = queryParts.length > 0 ? `?${queryParts.join("&")}` : ""
 
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
     const basePath = isExplorerView
