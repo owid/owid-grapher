@@ -78,10 +78,7 @@ async function handleThumbnailRequest(
             bounds
         )
         const explorer = new Explorer(explorerProps)
-        explorer.updateGrapherFromExplorer()
-        while (!explorer.grapherState.isReady) {
-            await new Promise((resolve) => setTimeout(resolve, 100))
-        }
+        await explorer.updateGrapherFromExplorer()
         explorer.grapherState.populateFromQueryParams(urlObj.queryParams)
         const svg = explorer.grapherState.generateStaticSvg(
             ReactDOMServer.renderToStaticMarkup

@@ -19,7 +19,8 @@ export async function fetchInputTableForConfig(
         | undefined,
     dataApiUrl: string,
     archivedChartInfo: ArchiveContext | undefined,
-    noCache?: boolean
+    noCache?: boolean,
+    loadMetadataOnly?: boolean
 ): Promise<OwidTable | undefined> {
     if (dimensions.length === 0) return undefined
     const variables = dimensions.map((d) => d.variableId)
@@ -27,7 +28,8 @@ export async function fetchInputTableForConfig(
         variables,
         dataApiUrl,
         archivedChartInfo,
-        noCache
+        noCache,
+        loadMetadataOnly
     )
     const inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
         variablesDataMap,
@@ -41,7 +43,8 @@ export async function fetchInputTableForConfig(
 export function getCachingInputTableFetcher(
     dataApiUrl: string,
     archivedChartInfo: ArchiveContext | undefined,
-    noCache?: boolean
+    noCache?: boolean,
+    loadMetadataOnly?: boolean
 ): (
     dimensions: OwidChartDimensionInterface[],
     selectedEntityColors:
@@ -89,6 +92,7 @@ export function getCachingInputTableFetcher(
                                 ? archivedChartInfo.assets.runtime
                                 : undefined,
                         noCache,
+                        loadMetadataOnly,
                     })
                 )
             )

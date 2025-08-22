@@ -11,6 +11,12 @@ import * as db from "../../db/db.js"
 
 import { upsertExplorer, getExplorerBySlug } from "../../db/model/Explorer.js"
 import { triggerStaticBuild } from "./routeUtils.js"
+import {
+    saveGrapherConfigToR2ByUUID,
+    deleteGrapherConfigFromR2ByUUID,
+} from "../chartConfigR2Helpers.js"
+import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
+import pMap from "p-map"
 
 function validateExplorerSlug(slug: string): void {
     if (!isValidSlug(slug)) {
@@ -79,12 +85,61 @@ export async function handlePutExplorer(
 
     const { tsv, commitMessage } = req.body
 
-    await upsertExplorer(trx, {
+    const { refreshResult } = await upsertExplorer(trx, {
         slug,
         tsv,
         lastEditedByUserId: user.id,
         commitMessage,
     })
+
+    // Remove obsolete chart configs from R2
+    if (refreshResult.removedChartConfigIds.length > 0) {
+        // Delete from R2 in parallel with limited concurrency
+        await pMap(
+            refreshResult.removedChartConfigIds,
+            async (configId) => {
+                try {
+                    await deleteGrapherConfigFromR2ByUUID(configId)
+                } catch (error) {
+                    void logErrorAndMaybeCaptureInSentry(
+                        new Error(
+                            `Failed to delete explorer view chart config ${configId} from R2: ${error instanceof Error ? error.message : String(error)}`
+                        )
+                    )
+                }
+            },
+            { concurrency: 20 }
+        )
+    }
+
+    // Sync updated chart configs to R2
+    if (refreshResult.updatedChartConfigIds.length > 0) {
+        // Batch fetch chart configs for R2 sync
+        const chartConfigs = await trx("chart_configs")
+            .select("id", "full", "fullMd5")
+            .whereIn("id", refreshResult.updatedChartConfigIds)
+
+        // Sync to R2 in parallel with limited concurrency using pMap
+        await pMap(
+            chartConfigs,
+            async (config) => {
+                try {
+                    await saveGrapherConfigToR2ByUUID(
+                        config.id,
+                        config.full,
+                        config.fullMd5
+                    )
+                } catch (error) {
+                    void logErrorAndMaybeCaptureInSentry(
+                        new Error(
+                            `Failed to sync explorer view chart config ${config.id} to R2: ${error instanceof Error ? error.message : String(error)}`
+                        )
+                    )
+                }
+            },
+            { concurrency: 20 }
+        )
+    }
 
     const isPublished = (await getExplorerBySlug(trx, slug))!.isPublished
 
@@ -109,7 +164,26 @@ export async function handleDeleteExplorer(
         throw new JsonError("Explorer not found", 404)
     }
 
+    // Get chart config IDs from explorer views before deletion
+    const explorerViewChartConfigs = await trx("explorer_views")
+        .select("chartConfigId")
+        .where({ explorerSlug: slug })
+        .whereNotNull("chartConfigId")
+
+    const chartConfigIds = explorerViewChartConfigs.map(
+        (row) => row.chartConfigId
+    )
+
     await trx(ExplorersTableName).where({ slug }).delete()
+
+    // Note: explorer_views are automatically cleaned up via ON DELETE CASCADE
+    // foreign key constraint from explorerSlug to explorers.slug
+
+    // Explicitly clean up chart configs that were created for explorer views
+    // (CASCADE constraint should handle this, but explicitly doing it to ensure cleanup)
+    if (chartConfigIds.length > 0) {
+        await trx("chart_configs").whereIn("id", chartConfigIds).delete()
+    }
 
     if (explorer.isPublished) {
         await triggerStaticBuild(user, `Unpublishing explorer ${slug}`)

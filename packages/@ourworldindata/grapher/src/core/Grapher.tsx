@@ -646,7 +646,7 @@ export class GrapherState {
         }
     }
 
-    toObject(): GrapherInterface {
+    toObject(deleteUnchanged: boolean = true): GrapherInterface {
         const obj: GrapherInterface = objectWithPersistablesToObject(
             this,
             grapherKeysToSerialize
@@ -655,7 +655,9 @@ export class GrapherState {
         obj.selectedEntityNames = this.selection.selectedEntityNames
         obj.focusedSeriesNames = this.focusArray.seriesNames
 
-        deleteRuntimeAndUnchangedProps(obj, defaultObject)
+        if (deleteUnchanged) {
+            deleteRuntimeAndUnchangedProps(obj, defaultObject)
+        }
 
         // always include the schema, even if it's the default
         obj.$schema = this.$schema || latestGrapherConfigSchema
@@ -2295,7 +2297,7 @@ export class GrapherState {
             ? this.yColumnsFromDimensions
             : this.table.getColumns(autoDetectYColumnSlugs(this))
     }
-    @computed private get defaultTitle(): string {
+    @computed get defaultTitle(): string {
         const yColumns = this.yColumnsFromDimensionsOrSlugsOrAuto
 
         if (this.isScatter)

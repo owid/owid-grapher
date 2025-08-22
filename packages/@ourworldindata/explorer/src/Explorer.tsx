@@ -90,6 +90,9 @@ export interface ExplorerProps extends SerializedGridProgram {
     dataApiUrl: string
     bounds?: Bounds
     staticBounds?: Bounds
+    loadMetadataOnly?: boolean
+    throwOnMissingGrapher?: boolean
+    setupGrapher?: boolean
 }
 
 const LivePreviewComponent = (props: ExplorerProps) => {
@@ -228,13 +231,18 @@ export class Explorer
             isEmbeddedInAnOwidPage: this.props.isEmbeddedInAnOwidPage,
             adminBaseUrl: this.adminBaseUrl,
             canHideExternalControlsInEmbed: true,
-            additionalDataLoaderFn: (varId: number) =>
+            additionalDataLoaderFn: (
+                varId: number,
+                loadMetadataOnly?: boolean
+            ) =>
                 loadVariableDataAndMetadata(varId, this.dataApiUrl, {
                     noCache: props.isPreview,
+                    loadMetadataOnly,
                 }),
         })
 
-        this.grapher = new Grapher({ grapherState: this.grapherState })
+        if (props.setupGrapher !== false)
+            this.grapher = new Grapher({ grapherState: this.grapherState })
     }
     // caution: do a ctrl+f to find untyped usages
     static renderSingleExplorerOnExplorerPage(
@@ -364,9 +372,8 @@ export class Explorer
     }
 
     disposers: (() => void)[] = []
-    override componentDidMount() {
+    override async componentDidMount() {
         this.setGrapher(this.grapherRef!.current!)
-        this.updateGrapherFromExplorer()
 
         let url = Url.fromQueryParams(this.initialQueryParams)
 
@@ -376,9 +383,14 @@ export class Explorer
                 this.props.selection.selectedEntityNames
             )
         }
+        // Run the initializiation for the grapherState but don't await it. The update code
+        // will reset and initialize the grapherState and then the data loading will be awaited inside the function.
+        // We don't want to wait for the data loading to finish as we only care about the non-data loading
+        // part to run (the data loading can finish whenever)
+        void this.updateGrapherFromExplorer()
 
+        // Do the rest of the initialization
         this.grapherState.populateFromQueryParams(url.queryParams)
-
         exposeInstanceOnWindow(this, "explorer")
         this.setUpIntersectionObserver()
         this.attachEventListeners()
@@ -439,10 +451,9 @@ export class Explorer
     }
 
     private initSlideshow() {
-        const grapher = this.grapher
-        if (!grapher || grapher.grapherState.slideShow) return
+        if (this.grapherState.slideShow) return
 
-        grapher.grapherState.slideShow = new SlideShowController(
+        this.grapherState.slideShow = new SlideShowController(
             this.explorerProgram.decisionMatrix.allDecisionsAsQueryParams(),
             0,
             this
@@ -455,9 +466,10 @@ export class Explorer
     > = new Map()
 
     // todo: break this method up and unit test more. this is pretty ugly right now.
-    @action.bound private reactToUserChangingSelection(oldSelectedRow: number) {
-        if (!this.grapher || !this.explorerProgram.currentlySelectedGrapherRow)
-            return // todo: can we remove this?
+    @action.bound private async reactToUserChangingSelection(
+        oldSelectedRow: number
+    ) {
+        if (!this.explorerProgram.currentlySelectedGrapherRow) return
         this.initSlideshow()
 
         const oldGrapherParams = this.grapherState.changedParams
@@ -477,7 +489,7 @@ export class Explorer
 
         const previousTab = this.grapherState.activeTab
 
-        this.updateGrapherFromExplorer()
+        await this.updateGrapherFromExplorer()
 
         newGrapherParams.tab =
             this.grapherState.mapGrapherTabToQueryParam(previousTab)
@@ -531,17 +543,14 @@ export class Explorer
         this.explorerProgram.constructTable(slug)
     )
 
-    @action.bound updateGrapherFromExplorer() {
+    @action.bound async updateGrapherFromExplorer() {
         switch (this.explorerProgram.chartCreationMode) {
             case ExplorerChartCreationMode.FromGrapherId:
-                void this.updateGrapherFromExplorerUsingGrapherId()
-                break
+                return this.updateGrapherFromExplorerUsingGrapherId()
             case ExplorerChartCreationMode.FromVariableIds:
-                void this.updateGrapherFromExplorerUsingVariableIds()
-                break
+                return this.updateGrapherFromExplorerUsingVariableIds()
             case ExplorerChartCreationMode.FromExplorerTableColumnSlugs:
-                this.updateGrapherFromExplorerUsingColumnSlugs()
-                break
+                return this.updateGrapherFromExplorerUsingColumnSlugs()
         }
     }
 
@@ -595,11 +604,17 @@ export class Explorer
         const grapherState = this.grapherState
 
         const { grapherId } = this.explorerProgram.explorerGrapherConfig
-        const grapherConfig = this.grapherConfigs.get(grapherId!) ?? {}
+        const grapherConfig = this.grapherConfigs.get(grapherId!)
+        if (!grapherConfig) {
+            if (this.props.throwOnMissingGrapher) {
+                throw new Error(`Grapher config not found for ID: ${grapherId}`)
+            }
+        }
+        const finalGrapherConfig = grapherConfig ?? {}
 
         const config: GrapherProgrammaticInterface = {
             ...mergeGrapherConfigs(
-                grapherConfig,
+                finalGrapherConfig,
                 this.explorerProgram.grapherConfig
             ),
             bakedGrapherURL: this.bakedBaseUrl,
@@ -623,7 +638,8 @@ export class Explorer
                 config.selectedEntityColors,
                 this.props.dataApiUrl,
                 undefined,
-                this.props.isPreview
+                this.props.isPreview,
+                this.props.loadMetadataOnly
             )
             if (inputTable)
                 grapherState.inputTable = this.inputTableTransformer(inputTable)
@@ -808,7 +824,8 @@ export class Explorer
                 config.selectedEntityColors,
                 this.props.dataApiUrl,
                 undefined,
-                this.props.isPreview
+                this.props.isPreview,
+                this.props.loadMetadataOnly
             )
             if (inputTable)
                 grapherState.inputTable = this.inputTableTransformer(inputTable)
@@ -857,8 +874,6 @@ export class Explorer
     }
 
     @computed get queryParams(): ExplorerFullQueryParams {
-        if (!this.grapher) return {}
-
         if (
             typeof window !== "undefined" &&
             window.location.href.includes(EXPLORERS_PREVIEW_ROUTE)
@@ -925,11 +940,11 @@ export class Explorer
         )
     }
 
-    onChangeChoice = (choiceTitle: string) => (value: string) => {
+    onChangeChoice = (choiceTitle: string) => async (value: string) => {
         const { currentlySelectedGrapherRow } = this.explorerProgram
         this.explorerProgram.decisionMatrix.setValueCommand(choiceTitle, value)
         if (currentlySelectedGrapherRow)
-            this.reactToUserChangingSelection(currentlySelectedGrapherRow)
+            await this.reactToUserChangingSelection(currentlySelectedGrapherRow)
     }
 
     private renderHeaderElement() {
