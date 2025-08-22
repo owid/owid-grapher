@@ -213,8 +213,9 @@ export function configureGrapherStateFocus(
     if (
         entities.length > 0 &&
         // focusing entities only makes sense when we're plotting entities
-        seriesStrategy === SeriesStrategy.entity &&
-        grapherState.facetStrategy !== FacetStrategy.entity
+        seriesStrategy === SeriesStrategy.entity
+        // TODO: bug where focused entity in faceted stacked bar chart wasn't highlighted
+        // grapherState.facetStrategy !== FacetStrategy.entity
     ) {
         const validEntities = entities.filter((entity) =>
             grapherState.selection.selectedSet.has(entity)
