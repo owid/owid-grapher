@@ -1,6 +1,7 @@
 import * as React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
+import * as R from "remeda"
 import {
     Bounds,
     HorizontalAlign,
@@ -163,6 +164,34 @@ export class HorizontalAxisZeroLine extends React.Component<HorizontalAxisZeroLi
                 y1={bounds.bottom.toFixed(2)}
                 x2={x.toFixed(2)}
                 y2={bounds.top.toFixed(2)}
+                stroke={SOLID_TICK_COLOR}
+                strokeWidth={strokeWidth}
+            />
+        )
+    }
+}
+
+interface VerticalAxisZeroLineProps {
+    verticalAxis: VerticalAxis
+    bounds: Bounds
+    strokeWidth?: number
+}
+
+@observer
+export class VerticalAxisZeroLine extends React.Component<VerticalAxisZeroLineProps> {
+    override render(): React.ReactElement {
+        const { bounds, verticalAxis, strokeWidth = 1 } = this.props
+        const axis = verticalAxis.clone()
+        axis.range = bounds.yRange()
+        const y = axis.place(0)
+
+        return (
+            <line
+                id={makeIdForHumanConsumption("horizontal-zero-line")}
+                x1={bounds.left.toFixed(2)}
+                y1={y.toFixed(2)}
+                x2={bounds.right.toFixed(2)}
+                y2={y.toFixed(2)}
                 stroke={SOLID_TICK_COLOR}
                 strokeWidth={strokeWidth}
             />
@@ -360,6 +389,7 @@ export class HorizontalAxisComponent extends React.Component<{
     tickColor?: string
     tickMarkWidth?: number
     detailsMarker?: DetailsMarker
+    showEndpointsOnly?: boolean
 }> {
     constructor(props: {
         bounds: Bounds
@@ -370,6 +400,7 @@ export class HorizontalAxisComponent extends React.Component<{
         tickColor?: string
         tickMarkWidth?: number
         detailsMarker?: DetailsMarker
+        showEndpointsOnly?: boolean
     }) {
         super(props)
         makeObservable(this)
@@ -401,6 +432,7 @@ export class HorizontalAxisComponent extends React.Component<{
             tickColor,
             tickMarkWidth = 1,
             detailsMarker,
+            showEndpointsOnly,
         } = this.props
         const { tickLabels, labelTextWrap: label, labelOffset, orient } = axis
         const tickSize = 5
@@ -418,6 +450,13 @@ export class HorizontalAxisComponent extends React.Component<{
             : bounds.bottom - labelOffset
 
         const showTickLabels = !axis.config.hideTickLabels
+
+        let visibleTickLabels = tickLabels
+        if (showEndpointsOnly) {
+            visibleTickLabels = pickFirstAndLastElement(
+                R.sortBy(tickLabels, (label) => label.x)
+            )
+        }
 
         return (
             <g
@@ -440,7 +479,7 @@ export class HorizontalAxisComponent extends React.Component<{
                 )}
                 {showTickMarks && (
                     <g id={makeIdForHumanConsumption("tick-marks")}>
-                        {tickLabels.map((label) => (
+                        {visibleTickLabels.map((label) => (
                             <line
                                 key={label.formattedValue}
                                 id={makeIdForHumanConsumption(
@@ -458,7 +497,7 @@ export class HorizontalAxisComponent extends React.Component<{
                 )}
                 {showTickLabels && (
                     <g id={makeIdForHumanConsumption("tick-labels")}>
-                        {tickLabels.map((label) => (
+                        {visibleTickLabels.map((label) => (
                             <text
                                 key={label.formattedValue}
                                 x={label.x}
@@ -503,4 +542,9 @@ export class VerticalAxisTickMark extends React.Component<{
             />
         )
     }
+}
+
+function pickFirstAndLastElement<T>(array: T[]): T[] {
+    if (array.length < 2) return array
+    return [array.at(0), array.at(-1)] as [T, T]
 }
