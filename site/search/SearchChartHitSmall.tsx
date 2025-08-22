@@ -1,31 +1,26 @@
 import { useMemo } from "react"
-import { Tippy, fetchJson } from "@ourworldindata/utils"
-import {
-    GRAPHER_TAB_NAMES,
-    GrapherChartType,
-    GrapherValuesJson,
-} from "@ourworldindata/types"
+import { Tippy } from "@ourworldindata/utils"
+import { GRAPHER_TAB_NAMES, GrapherChartType } from "@ourworldindata/types"
 import { SearchChartHitComponentProps } from "./searchTypes.js"
 import {
     constructChartUrl,
-    constructChartInfoUrl,
     pickEntitiesForChartHit,
     toGrapherQueryParams,
-    getTimeBoundsForChartUrl,
     buildChartHitDataDisplayProps,
 } from "./searchUtils.js"
 import { Button, GrapherTabIcon } from "@ourworldindata/components"
 import { useIntersectionObserver } from "usehooks-ts"
-import { chartHitQueryKeys } from "./queries.js"
-import { useQuery } from "@tanstack/react-query"
 import {
     makeLabelForGrapherTab,
     WORLD_ENTITY_NAME,
-    CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME,
 } from "@ourworldindata/grapher"
 import { SearchChartHitDataDisplay } from "./SearchChartHitDataDisplay.js"
 import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
+import {
+    constructChartAndPreviewUrlsForTab,
+    useQueryChartInfo,
+} from "./SearchChartHitSmallHelpers.js"
 
 export function SearchChartHitSmall({
     hit,
@@ -47,16 +42,9 @@ export function SearchChartHitSmall({
     const hasUserPickedEntities = entities.length > 0
 
     // Fetch chart info and data values
-    const { data: chartInfo } = useQuery({
-        queryKey: chartHitQueryKeys.chartInfo(hit.slug, entities),
-        queryFn: () => {
-            const grapherParams = toGrapherQueryParams({
-                entities: [entityForDisplay],
-            })
-            const url = constructChartInfoUrl({ hit, grapherParams })
-            if (!url) return null
-            return fetchJson<GrapherValuesJson>(url)
-        },
+    const { data: chartInfo } = useQueryChartInfo({
+        hit,
+        entities: [entityForDisplay],
         // Only fetch when the component is visible
         enabled: hasBeenVisible,
     })
@@ -89,26 +77,10 @@ export function SearchChartHitSmall({
                 />
                 <div className="search-chart-hit-small__tabs-container">
                     {hit.availableTabs.map((tab) => {
-                        // Single-time line charts are rendered as bar charts
-                        // by Grapher. Adjusting the time param makes sure
-                        // Grapher actually shows a line chart. This is important
-                        // since we offer separate links for going to the line
-                        // chart view and the bar chart view. If we didn't do
-                        // this, both links would end up going to the bar chart.
-                        const timeParam =
-                            CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME.includes(
-                                tab as any
-                            )
-                                ? getTimeBoundsForChartUrl(chartInfo)
-                                : undefined
+                        const { chartUrl } = constructChartAndPreviewUrlsForTab(
+                            { hit, tab, chartInfo, entities }
+                        )
 
-                        const grapherParams = toGrapherQueryParams({
-                            entities,
-                            tab,
-                            ...timeParam,
-                        })
-
-                        const href = constructChartUrl({ hit, grapherParams })
                         const label = makeLabelForGrapherTab(tab, {
                             format: "long",
                         })
@@ -123,7 +95,7 @@ export function SearchChartHitSmall({
                                 theme="dark"
                             >
                                 <a
-                                    href={href}
+                                    href={chartUrl}
                                     onClick={onClick}
                                     aria-label={label}
                                 >

@@ -3,26 +3,15 @@ import { SearchChartHitComponentProps } from "./searchTypes.js"
 import { useMemo } from "react"
 import {
     buildChartHitDataDisplayProps,
-    constructChartInfoUrl,
     constructChartUrl,
-    constructPreviewUrl,
-    getTimeBoundsForChartUrl,
     pickEntitiesForChartHit,
     toGrapherQueryParams,
 } from "./searchUtils.js"
 import {
-    CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME,
     makeLabelForGrapherTab,
     WORLD_ENTITY_NAME,
 } from "@ourworldindata/grapher"
-import { useQuery } from "@tanstack/react-query"
-import { chartHitQueryKeys } from "./queries.js"
-import {
-    fetchJson,
-    GRAPHER_TAB_NAMES,
-    GrapherChartType,
-    GrapherValuesJson,
-} from "@ourworldindata/utils"
+import { GRAPHER_TAB_NAMES, GrapherChartType } from "@ourworldindata/utils"
 import { placeGrapherTabsInMediumVariantGridLayout } from "./SearchChartHitRichDataMediumVariantHelpers.js"
 import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
 import { Button } from "@ourworldindata/components"
@@ -35,6 +24,10 @@ import {
     makeSlotClassNames,
 } from "./SearchChartHitRichDataHelpers.js"
 import { PreviewVariant } from "./SearchChartHitRichDataTypes.js"
+import {
+    constructChartAndPreviewUrlsForTab,
+    useQueryChartInfo,
+} from "./SearchChartHitSmallHelpers.js"
 
 export function SearchChartHitRichDataFallback({
     hit,
@@ -59,16 +52,9 @@ export function SearchChartHitRichDataFallback({
     const chartUrl = constructChartUrl({ hit, grapherParams: entityParam })
 
     // Fetch chart info and data values
-    const { data: chartInfo } = useQuery({
-        queryKey: chartHitQueryKeys.chartInfo(hit.slug, entities),
-        queryFn: () => {
-            const url = constructChartInfoUrl({
-                hit,
-                grapherParams: entityParam,
-            })
-            if (!url) return null
-            return fetchJson<GrapherValuesJson>(url)
-        },
+    const { data: chartInfo } = useQueryChartInfo({
+        hit,
+        entities,
         // Only fetch when the component is visible
         enabled: hasBeenVisible,
     })
@@ -132,33 +118,13 @@ export function SearchChartHitRichDataFallback({
                         format: "long",
                     })
 
-                    // Single-time line charts are rendered as bar charts
-                    // by Grapher. Adjusting the time param makes sure
-                    // Grapher actually shows a line chart. This is important
-                    // since we offer separate links for going to the line
-                    // chart view and the bar chart view. If we didn't do
-                    // this, both links would end up going to the bar chart.
-                    const timeParam =
-                        CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME.includes(
-                            tab as any
-                        )
-                            ? getTimeBoundsForChartUrl(chartInfo)
-                            : undefined
-                    const grapherParams = toGrapherQueryParams({
-                        entities,
-                        tab,
-                        ...timeParam,
-                    })
-
-                    const chartUrl = constructChartUrl({
-                        hit,
-                        grapherParams,
-                    })
-                    const previewUrl = constructPreviewUrl({
-                        hit,
-                        grapherParams,
-                        variant: PreviewVariant.Thumbnail,
-                    })
+                    const { chartUrl, previewUrl } =
+                        constructChartAndPreviewUrlsForTab({
+                            hit,
+                            tab,
+                            chartInfo,
+                            entities,
+                        })
 
                     const className = makeSlotClassNames("medium", slot)
 
