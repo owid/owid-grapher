@@ -1,34 +1,20 @@
 import { useMemo } from "react"
 import { runInAction } from "mobx"
-import * as R from "remeda"
 import cx from "classnames"
 import { useMediaQuery } from "usehooks-ts"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { match } from "ts-pattern"
-import {
-    GrapherState,
-    mapGrapherTabNameToQueryParam,
-    generateFocusedSeriesNamesParam,
-} from "@ourworldindata/grapher"
+import { GrapherState } from "@ourworldindata/grapher"
 import {
     EntityName,
-    FacetStrategy,
     GRAPHER_TAB_NAMES,
     GrapherTabName,
 } from "@ourworldindata/types"
 import { Button } from "@ourworldindata/components"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
-import {
-    SearchChartHit,
-    SearchChartHitComponentProps,
-    SearchChartHitComponentVariant,
-} from "./searchTypes.js"
+import { SearchChartHitComponentProps } from "./searchTypes.js"
 import { useSearchChartHitData } from "./useSearchChartHitData.js"
-import {
-    constructChartUrl,
-    constructPreviewUrl,
-    pickEntitiesForChartHit,
-} from "./searchUtils.js"
+import { constructChartUrl, pickEntitiesForChartHit } from "./searchUtils.js"
 import {
     configureGrapherStateFocus,
     configureGrapherStateForLayout,
@@ -41,6 +27,8 @@ import {
     getTableRowCountForGridSlot,
     makeSlotClassNames,
     findTableSlot,
+    getPreviewType,
+    constructChartAndPreviewUrlsForTab,
 } from "./SearchChartHitRichDataHelpers.js"
 import { calculateMediumVariantLayout } from "./SearchChartHitRichDataMediumVariantHelpers.js"
 import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
@@ -53,7 +41,6 @@ import {
     LargeVariantGridSlot,
     Layout,
     MediumVariantGridSlot,
-    PreviewType,
     PreviewVariant,
     RichDataComponentVariant,
 } from "./SearchChartHitRichDataTypes.js"
@@ -367,98 +354,6 @@ function GrapherThumbnailPlaceholder({
             <div className="search-chart-hit-rich-data__captioned-link-label" />
         </div>
     )
-}
-
-function getPreviewType(
-    variant: SearchChartHitComponentVariant,
-    { isPrimaryTab }: { isPrimaryTab: boolean }
-): PreviewType {
-    if (isPrimaryTab && variant === "large")
-        return { variant: PreviewVariant.Large, isMinimal: true }
-
-    // Use the minimal version for the first tab (which is annotated by the table)
-    // and the complete version for all other tabs
-    return isPrimaryTab
-        ? { variant: PreviewVariant.Thumbnail, isMinimal: true }
-        : { variant: PreviewVariant.Thumbnail, isMinimal: false }
-}
-
-function constructChartAndPreviewUrlsForTab({
-    hit,
-    grapherState,
-    tab,
-    previewType,
-    imageWidth,
-    imageHeight,
-}: {
-    hit: SearchChartHit
-    grapherState: GrapherState
-    tab: GrapherTabName
-    previewType: PreviewType
-    imageWidth?: number
-    imageHeight?: number
-}): { chartUrl: string; previewUrl: string } {
-    // Use Grapher's changedParams to construct chart and preview URLs.
-    // We override the tab parameter because the GrapherState is currently set to
-    // the first tab of the chart, but we need to generate URLs for the specific
-    // tab being rendered in this preview.
-    const grapherParams = {
-        ...grapherState.changedParams,
-        tab: mapGrapherTabNameToQueryParam(tab),
-    }
-
-    // Instead of showing a single series per facet,
-    // show all series in a single discrete bar chart
-    const hasSingleSeriesPerFacet =
-        grapherState.isFaceted && !grapherState.hasMultipleSeriesPerFacet
-    if (tab === GRAPHER_TAB_NAMES.DiscreteBar && hasSingleSeriesPerFacet) {
-        grapherParams.facet = FacetStrategy.none
-    }
-
-    // If the Marimekko chart has a selection, also set
-    // the focus param, so that the selected entities are
-    // labelled
-    if (
-        tab === GRAPHER_TAB_NAMES.Marimekko &&
-        !grapherParams.focus &&
-        grapherState.selection.hasSelection
-    ) {
-        grapherParams.focus = generateFocusedSeriesNamesParam(
-            grapherState.selection.selectedEntityNames
-        )
-    }
-
-    // Use a smaller font size for chart types where labels or legends would
-    // otherwise be too overpowering in thumbnail previews. Otherwise, rely on
-    // the default
-    const tabsWithSmallerFont: GrapherTabName[] = [
-        GRAPHER_TAB_NAMES.WorldMap,
-        GRAPHER_TAB_NAMES.DiscreteBar,
-        GRAPHER_TAB_NAMES.StackedDiscreteBar,
-    ]
-    const fontSize =
-        previewType.variant === PreviewVariant.Thumbnail &&
-        tabsWithSmallerFont.includes(tab)
-            ? 12
-            : undefined
-
-    const previewUrl = constructPreviewUrl({
-        hit,
-        grapherParams,
-        variant: previewType.variant,
-        isMinimal: previewType.isMinimal,
-        fontSize,
-        imageWidth,
-        imageHeight,
-    })
-
-    const chartUrl = constructChartUrl({
-        hit,
-        // We don't want to link to a chart where entities are highlighted
-        grapherParams: R.omit(grapherParams, ["focus"]),
-    })
-
-    return { chartUrl, previewUrl }
 }
 
 function calculateLayout(
