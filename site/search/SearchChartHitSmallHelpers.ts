@@ -1,17 +1,11 @@
 import { QueryStatus, useQuery } from "@tanstack/react-query"
 import {
     EntityName,
-    GRAPHER_TAB_NAMES,
     GrapherTabName,
     GrapherValuesJson,
 } from "@ourworldindata/types"
 import { fetchJson } from "@ourworldindata/utils"
-import {
-    CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME,
-    generateFocusedSeriesNamesParam,
-    generateSelectedEntityNamesParam,
-    WORLD_ENTITY_NAME,
-} from "@ourworldindata/grapher"
+import { CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME } from "@ourworldindata/grapher"
 import { SearchChartHit } from "./searchTypes"
 import {
     constructChartInfoUrl,
@@ -84,20 +78,6 @@ export function constructChartAndPreviewUrlsForTab({
         tab,
         ...timeParam,
     })
-
-    // If the discrete bar chart renders a single entity, try adding World.
-    // Note that World might not exist in the data, in which case it will be ignored.
-    if (
-        tab === GRAPHER_TAB_NAMES.DiscreteBar &&
-        entities?.length === 1 &&
-        entities[0] !== WORLD_ENTITY_NAME
-    ) {
-        grapherParams.country = generateSelectedEntityNamesParam([
-            ...entities,
-            WORLD_ENTITY_NAME,
-        ])
-        grapherParams.focus = generateFocusedSeriesNamesParam(entities)
-    }
 
     const chartUrl = constructChartUrl({
         hit,
