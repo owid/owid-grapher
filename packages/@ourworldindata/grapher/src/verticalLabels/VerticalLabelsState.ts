@@ -13,6 +13,9 @@ interface VerticalLabelsOptions {
     /** Maximum width for labels (no restriction by default) */
     maxWidth?: number
 
+    /** Labels outside of this range are hidden */
+    yRange?: [number, number]
+
     /** Minimum space between labels in pixels to prevent overlap */
     minSpacing?: number
 
@@ -90,7 +93,7 @@ export class VerticalLabelsState {
     }
 
     @computed get series(): VerticalLabelsSeries[] {
-        const { minSpacing, resolveCollision } = this.options
+        const { minSpacing, resolveCollision, yRange } = this.options
 
         const margin = minSpacing > 0 ? minSpacing / 2 : 0
         const margins = { top: margin, bottom: margin }
@@ -109,6 +112,17 @@ export class VerticalLabelsState {
             const s1 = series[i]
             if (s1.isHidden) continue
 
+            // Check if the label is out of bounds
+            if (
+                yRange &&
+                (s1.collisionBounds.top < yRange[1] ||
+                    s1.collisionBounds.bottom > yRange[0])
+            ) {
+                s1.isHidden = true
+                continue
+            }
+
+            // Check if the label is overlapping with any other label
             for (let j = i + 1; j < series.length; j++) {
                 const s2 = series[j]
                 if (s2.isHidden) continue
