@@ -89,12 +89,19 @@ export class SlopeChartThumbnail
     }
 
     @computed get innerBounds(): Bounds {
+        const rightPadding = Math.max(
+            this.paddedEndLabelsWidth, // width of end labels plus padding
+            0.5 * this.xEndMarkWidth // half the width of the end time label (since it's centered)
+        )
+        const leftPadding = Math.max(
+            this.paddedStartLabelsWidth, // width of start labels plus padding
+            0.5 * this.xStartMarkWidth // half the width of the start time label (since it's centered)
+        )
+
         return this.bounds
             .padBottom(Math.floor(this.xMarkFontSize))
-            .padRight(Math.max(this.paddedEndLabelsWidth, this.xEndMarkWidth))
-            .padLeft(
-                Math.max(this.paddedStartLabelsWidth, this.xStartMarkWidth)
-            )
+            .padRight(rightPadding)
+            .padLeft(leftPadding)
     }
 
     @computed get fontSize(): number {
@@ -104,7 +111,8 @@ export class SlopeChartThumbnail
     @computed get yAxisConfig(): AxisConfig {
         const { yAxisConfig } = this.manager
         const defaults = getYAxisConfigDefaults(yAxisConfig)
-        return new AxisConfig({ ...defaults, ...yAxisConfig }, this)
+        const custom = { hideAxis: true }
+        return new AxisConfig({ ...defaults, ...custom, ...yAxisConfig }, this)
     }
 
     @computed get yDomain(): [number, number] {
@@ -297,6 +305,7 @@ export class SlopeChartThumbnail
                         <Slope
                             key={series.seriesName}
                             series={series}
+                            dotRadius={2.5}
                             strokeWidth={1.5}
                             outlineWidth={0}
                             outlineStroke={this.manager.backgroundColor}
