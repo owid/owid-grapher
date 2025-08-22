@@ -66,7 +66,6 @@ import { Halo } from "@ourworldindata/components"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import {
-    OWID_NON_FOCUSED_GRAY,
     GRAPHER_BACKGROUND_DEFAULT,
     GRAPHER_DARK_TEXT,
 } from "../color/ColorConstants"
@@ -79,8 +78,6 @@ import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
     | React.TouchEvent<SVGGElement>
-
-const NON_FOCUSED_LINE_COLOR = OWID_NON_FOCUSED_GRAY
 
 const TOP_PADDING = 6 // leave room for overflowing dots
 const LINE_LEGEND_PADDING = 4
@@ -1074,17 +1071,17 @@ function Slope({
     outlineWidth = 0.5,
     outlineStroke = "#fff",
 }: SlopeProps) {
-    const { seriesName, startPoint, endPoint, hover, focus } = series
+    const { seriesName, startPoint, endPoint } = series
 
-    const showOutline = !focus.background || hover.active
-    const opacity =
-        hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
-    const color =
-        !focus.background || hover.active
-            ? series.color
-            : NON_FOCUSED_LINE_COLOR
-    const lineWidth =
-        hover.background || focus.background ? 0.66 * strokeWidth : strokeWidth
+    const isInForeground =
+        series.hover.active ||
+        series.focus.active ||
+        (series.focus.idle && series.hover.idle)
+
+    const showOutline = isInForeground
+
+    const opacity = isInForeground ? 1 : GRAPHER_OPACITY_MUTE
+    const lineWidth = isInForeground ? strokeWidth : 0.66 * strokeWidth
 
     return (
         <>
@@ -1103,7 +1100,7 @@ function Slope({
                 startPoint={startPoint}
                 endPoint={endPoint}
                 radius={dotRadius}
-                color={color}
+                color={series.color}
                 lineWidth={lineWidth}
                 opacity={opacity}
             />
