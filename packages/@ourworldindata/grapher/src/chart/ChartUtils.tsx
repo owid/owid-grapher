@@ -176,8 +176,9 @@ export function getHoverStateForSeries(
         props.isHoverModeActive ?? hoveredSeriesNames.length > 0
 
     const active = hoveredSeriesNames.includes(series.seriesName)
+    const foreground = !isHoverModeActive || active
     const background = isHoverModeActive && !active
-    return { active, background }
+    return { idle: !isHoverModeActive, active, foreground, background }
 }
 
 /** Useful for sorting series by their interaction state */
