@@ -138,6 +138,7 @@ describe(placeGrapherTabsInMediumVariantGridLayout, () => {
                 hasDataDisplay: false,
                 numDataTableRows: 6,
                 numDataTableRowsPerColumn: 4,
+                prioritizeTableOverDiscreteBar: true,
             })
 
             expect(result).toEqual([
@@ -219,6 +220,7 @@ describe(placeGrapherTabsInMediumVariantGridLayout, () => {
                 hasDataDisplay: true,
                 numDataTableRows: 6,
                 numDataTableRowsPerColumn: 4,
+                prioritizeTableOverDiscreteBar: true,
             })
 
             expect(result).toEqual([
