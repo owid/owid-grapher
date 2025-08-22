@@ -641,11 +641,7 @@ function buildDataTableContentForScatterPlot({
 
     // Display a table where each row corresponds to an entity and lists x and
     // y-values in this format: '<x-value> vs. <y-value>'.
-    return buildValueTableContentForScatterPlot({
-        grapherState,
-        chartState,
-        maxRows,
-    })
+    return buildValueTableContentForScatterPlot({ chartState, maxRows })
 }
 
 /** Creates a table where each row represents a legend bin from the color scale */
@@ -680,18 +676,18 @@ function buildLegendTableProps({
  * displaying both x and y values in a "y vs x" format for each entity.
  */
 function buildValueTableContentForScatterPlot({
-    grapherState,
     chartState,
     maxRows,
 }: {
-    grapherState: GrapherState
     chartState: ScatterPlotChartState
     maxRows?: number
 }): SearchChartHitDataTableContent {
     const { xColumn, yColumn } = chartState
 
-    const yLabel = grapherState.yAxis.label || getColumnNameForDisplay(yColumn)
-    const xLabel = grapherState.xAxis.label || getColumnNameForDisplay(xColumn)
+    const yLabel =
+        chartState.verticalAxisLabel || getColumnNameForDisplay(yColumn)
+    const xLabel =
+        chartState.horizontalAxisLabel || getColumnNameForDisplay(xColumn)
 
     let rows = chartState.series
         .map((series) => {
@@ -735,8 +731,10 @@ function buildDataPointsContentForScatterPlot({
 }): SearchChartHitDataTableContent {
     const { xColumn, yColumn } = chartState
 
-    const yLabel = grapherState.yAxis.label || getColumnNameForDisplay(yColumn)
-    const xLabel = grapherState.xAxis.label || getColumnNameForDisplay(xColumn)
+    const yLabel =
+        chartState.verticalAxisLabel || getColumnNameForDisplay(yColumn)
+    const xLabel =
+        chartState.horizontalAxisLabel || getColumnNameForDisplay(xColumn)
 
     const series = chartState.series.find(
         (series) => series.seriesName === entityName
