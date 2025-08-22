@@ -17,7 +17,7 @@ import {
 import { transformExplorerProgramToResolveCatalogPaths } from "./ExplorerCatalogResolver.js"
 import { insertChartConfig, updateExistingConfigPair } from "./ChartConfigs.js"
 import { uuidv7 } from "uuidv7"
-import { isEqual, difference } from "lodash-es"
+import * as _ from "lodash-es"
 import { mergeGrapherConfigs } from "@ourworldindata/utils"
 import { stringify } from "safe-stable-stringify"
 import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
@@ -98,7 +98,7 @@ async function fetchExplorerDataForViews(
 
         // check if all required variable IDs exist in the database
         const existingIds = partialGrapherConfigRows.map((row) => row.id)
-        const missingIds = difference(requiredVariableIds, existingIds)
+        const missingIds = _.difference(requiredVariableIds, existingIds)
         if (missingIds.length > 0) {
             void logErrorAndMaybeCaptureInSentry(
                 new Error(
@@ -290,21 +290,20 @@ export async function refreshExplorerViewsForSlug(
 
     for (const view of existingViews) {
         try {
-            const parsedView = JSON.parse(view.dimensions)
-            const deterministicKey = stringify(parsedView as object)
+            const parsedView: Record<string, string> = JSON.parse(
+                view.dimensions
+            )
+            const deterministicKey = stringify(parsedView)
             existingViewsMap.set(deterministicKey, view)
         } catch (ex) {
             // Skip views with invalid JSON - this indicates a data integrity issue
             void logErrorAndMaybeCaptureInSentry(
                 new Error(
-                    `Explorer view contains invalid JSON for explorer ${slug}: ${view.dimensions}`
+                    `Explorer view contains invalid JSON for explorer ${slug}: ${view.dimensions}`,
+                    { cause: ex }
                 )
             )
-            if (ex instanceof Error) {
-                throw new Error(
-                    `Failed to parse explorer view dimensions for explorer ${slug}: ${ex.message}`
-                )
-            }
+            throw ex
         }
     }
 
@@ -343,7 +342,9 @@ export async function refreshExplorerViewsForSlug(
         generatedViewsSet.add(generatedView.dimensions)
 
         // Find existing view using deterministic serialization for O(1) lookup
-        const generatedViewObj = JSON.parse(generatedView.dimensions)
+        const generatedViewObj: Record<string, string> = JSON.parse(
+            generatedView.dimensions
+        )
         const deterministicKey = stringify(generatedViewObj as object)
         const existingView = existingViewsMap.get(deterministicKey)
 
@@ -366,7 +367,10 @@ export async function refreshExplorerViewsForSlug(
                 // Both have successful configs, compare them
                 try {
                     const existingConfig = parseChartConfig(existingView.full)
-                    configsEqual = isEqual(existingConfig, generatedView.config)
+                    configsEqual = _.isEqual(
+                        existingConfig,
+                        generatedView.config
+                    )
                 } catch {
                     configsEqual = false
                 }
@@ -390,8 +394,10 @@ export async function refreshExplorerViewsForSlug(
     // Find views to remove (exist in DB but not in generated views)
     const generatedViewKeys = new Set<string>()
     for (const generatedView of generatedViews) {
-        const generatedViewObj = JSON.parse(generatedView.dimensions)
-        const deterministicKey = stringify(generatedViewObj as object)
+        const generatedViewObj: Record<string, string> = JSON.parse(
+            generatedView.dimensions
+        )
+        const deterministicKey = stringify(generatedViewObj)
         generatedViewKeys.add(deterministicKey)
     }
 
