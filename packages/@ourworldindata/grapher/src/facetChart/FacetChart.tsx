@@ -179,7 +179,7 @@ export class FacetChart
     }
 
     @computed private get facetFontSize(): number {
-        return getFontSize(this.series.length, this.fontSize)
+        return getFontSize(this.bounds.width, this.series.length, this.fontSize)
     }
 
     @computed private get yAxisConfig(): AxisConfig {
@@ -507,20 +507,16 @@ export class FacetChart
                     // hidden. This expands the available area for the chart, which can in turn increase
                     // the number of ticks shown, which can make the size of the axis in the placed
                     // series greater than the one in the intermediate series.
-                    hideTickLabels: shouldHideFacetAxis(
-                        xAxis,
-                        cellEdges,
-                        sharedAxesSizes
-                    ),
+                    hideTickLabels:
+                        xAxis?.hideAxis ||
+                        shouldHideFacetAxis(xAxis, cellEdges, sharedAxesSizes),
                     ...series.manager.xAxisConfig,
                     ...axes.x.config,
                 },
                 yAxisConfig: {
-                    hideAxis: shouldHideFacetAxis(
-                        yAxis,
-                        cellEdges,
-                        sharedAxesSizes
-                    ),
+                    hideAxis:
+                        yAxis?.hideAxis ||
+                        shouldHideFacetAxis(yAxis, cellEdges, sharedAxesSizes),
                     ...series.manager.yAxisConfig,
                     ...axes.y.config,
                 },
