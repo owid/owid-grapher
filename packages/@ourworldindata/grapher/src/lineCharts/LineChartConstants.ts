@@ -8,12 +8,10 @@ import {
 } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import { Color } from "@ourworldindata/utils"
-import { OWID_NON_FOCUSED_GRAY } from "../color/ColorConstants"
 
 export const LINE_CHART_CLASS_NAME = "LineChart"
 
 // line color
-export const NON_FOCUSED_LINE_COLOR = OWID_NON_FOCUSED_GRAY
 export const DEFAULT_LINE_COLOR = "#000"
 // stroke width
 export const DEFAULT_STROKE_WIDTH = 1.5

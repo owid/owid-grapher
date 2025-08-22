@@ -23,7 +23,7 @@ import {
 } from "../core/GrapherConstants"
 import { darkenColorForText } from "../color/ColorUtils"
 import { AxisConfig } from "../axis/AxisConfig.js"
-import { GRAPHER_BACKGROUND_DEFAULT, GRAY_30 } from "../color/ColorConstants"
+import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
 import {
     findImportantSeriesThatFitIntoTheAvailableSpace,
     findSeriesThatFitIntoTheAvailableSpace,
@@ -34,7 +34,6 @@ import {
     DEFAULT_FONT_WEIGHT,
     LEGEND_ITEM_MIN_SPACING,
     MARKER_MARGIN,
-    NON_FOCUSED_TEXT_COLOR,
 } from "./LineLegendConstants.js"
 import { getSeriesKey } from "./LineLegendHelpers"
 import { LineLabelSeries, PlacedSeries, SizedSeries } from "./LineLegendTypes"
@@ -93,7 +92,7 @@ class LineLabels extends React.Component<LineLabelsProps> {
     }
 
     private textOpacityForSeries(series: PlacedSeries): number {
-        return series.hover?.background && !series.focus?.background ? 0.6 : 1
+        return series.hover?.background || series.focus?.background ? 0.6 : 1
     }
 
     @computed private get markers(): {
@@ -129,10 +128,7 @@ class LineLabels extends React.Component<LineLabelsProps> {
         return (
             <g id={makeIdForHumanConsumption("text-labels")}>
                 {this.markers.map(({ series, labelText }, index) => {
-                    const textColor =
-                        !series.focus?.background || series.hover?.active
-                            ? darkenColorForText(series.color)
-                            : NON_FOCUSED_TEXT_COLOR
+                    const textColor = darkenColorForText(series.color)
                     const textProps = {
                         fill: textColor,
                         opacity: this.textOpacityForSeries(series),
@@ -229,11 +225,10 @@ class LineLabels extends React.Component<LineLabelsProps> {
                     const step = (x2 - x1) / (totalLevels + 1)
                     const markerXMid = x1 + step + level * step
                     const d = `M${x1},${leftCenterY} H${markerXMid} V${rightCenterY} H${x2}`
-                    const lineColor = series.hover?.background
-                        ? "#eee"
-                        : series.focus?.background
-                          ? GRAY_30
-                          : "#999"
+                    const lineColor =
+                        series.hover?.background || series.focus?.background
+                            ? "#eee"
+                            : "#999"
 
                     return (
                         <path
