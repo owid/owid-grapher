@@ -26,7 +26,6 @@ import {
     GRAPHER_OPACITY_MUTE,
 } from "../core/GrapherConstants"
 import { darkenColorForLine } from "../color/ColorUtils"
-import { OWID_NON_FOCUSED_GRAY } from "../color/ColorConstants"
 
 export interface PositionedBin {
     x: number
@@ -89,7 +88,7 @@ export interface HorizontalColorLegendManager {
     onLegendMouseLeave?: () => void
     onLegendMouseOver?: (d: ColorScaleBin) => void
     onLegendClick?: (d: ColorScaleBin) => void
-    activeColors?: string[] // inactive colors are grayed out
+    activeColors?: string[] // inactive colors are muted
     focusColors?: string[] // focused colors are bolded
     hoverColors?: string[] // non-hovered colors are muted
     isStatic?: boolean
@@ -747,17 +746,28 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
         return _.max(this.marks.map((mark) => mark.y + mark.rectSize)) ?? 0
     }
 
+    private isInForeground(mark: CategoricalMark): boolean {
+        const { activeColors, hoverColors = [] } = this.manager
+
+        const isIdle = activeColors === undefined && hoverColors.length === 0
+        const isActive = activeColors?.includes(mark.bin.color)
+        const isHovered = hoverColors.includes(mark.bin.color)
+
+        return !!(isIdle || isHovered || isActive)
+    }
+
     renderLabels(): React.ReactElement {
         const { manager, marks } = this
-        const { focusColors, hoverColors = [] } = manager
+        const { focusColors } = manager
 
         return (
             <g id={makeIdForHumanConsumption("labels")}>
                 {marks.map((mark, index) => {
                     const isFocus = focusColors?.includes(mark.bin.color)
-                    const isNotHovered =
-                        hoverColors.length > 0 &&
-                        !hoverColors.includes(mark.bin.color)
+
+                    const opacity = this.isInForeground(mark)
+                        ? manager.legendOpacity
+                        : GRAPHER_OPACITY_MUTE
 
                     return (
                         <text
@@ -770,7 +780,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                             dy={dyFromAlign(VerticalAlign.middle)}
                             fontSize={mark.label.fontSize}
                             fontWeight={isFocus ? "bold" : undefined}
-                            opacity={isNotHovered ? GRAPHER_OPACITY_MUTE : 1}
+                            opacity={opacity}
                         >
                             {mark.label.text}
                         </text>
@@ -782,29 +792,17 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
 
     renderSwatches(): React.ReactElement {
         const { manager, marks } = this
-        const { activeColors, hoverColors = [] } = manager
 
         return (
             <g id={makeIdForHumanConsumption("swatches")}>
                 {marks.map((mark, index) => {
-                    const isActive = activeColors?.includes(mark.bin.color)
-                    const isHovered = hoverColors.includes(mark.bin.color)
-                    const isNotHovered =
-                        hoverColors.length > 0 &&
-                        !hoverColors.includes(mark.bin.color)
-
                     const color = mark.bin.patternRef
                         ? `url(#${mark.bin.patternRef})`
                         : mark.bin.color
 
-                    const fill =
-                        isHovered || isActive || activeColors === undefined
-                            ? color
-                            : OWID_NON_FOCUSED_GRAY
-
-                    const opacity = isNotHovered
-                        ? GRAPHER_OPACITY_MUTE
-                        : manager.legendOpacity
+                    const opacity = this.isInForeground(mark)
+                        ? manager.legendOpacity
+                        : GRAPHER_OPACITY_MUTE
 
                     return (
                         <rect
@@ -814,7 +812,7 @@ export class HorizontalCategoricalColorLegend extends HorizontalColorLegend {
                             y={this.categoryLegendY + mark.y}
                             width={mark.rectSize}
                             height={mark.rectSize}
-                            fill={fill}
+                            fill={color}
                             stroke={manager.categoricalBinStroke}
                             strokeWidth={0.4}
                             opacity={opacity}
