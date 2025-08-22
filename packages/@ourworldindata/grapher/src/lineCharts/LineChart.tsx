@@ -29,12 +29,7 @@ import {
 } from "../tooltip/Tooltip"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { extent } from "d3-array"
-import {
-    SeriesName,
-    VerticalAlign,
-    AxisAlign,
-    ScaleType,
-} from "@ourworldindata/types"
+import { SeriesName, VerticalAlign } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -46,7 +41,6 @@ import {
     LineChartManager,
     LinePoint,
     PlacedLineChartSeries,
-    PlacedPoint,
     RenderLineChartSeries,
     LEGEND_PADDING,
     VARIABLE_COLOR_STROKE_WIDTH,
@@ -61,7 +55,6 @@ import {
 } from "./LineChartConstants"
 import { CoreColumn } from "@ourworldindata/core-table"
 import {
-    byHoverThenFocusState,
     ClipPath,
     getHoverStateForSeries,
     getSeriesKey,
@@ -80,6 +73,9 @@ import {
     AnnotationsMap,
     getAnnotationsForSeries,
     getAnnotationsMap,
+    getYAxisConfigDefaults,
+    toPlacedLineChartSeries,
+    toRenderLineChartSeries,
 } from "./LineChartHelpers"
 import { LineLabelSeries } from "../lineLegend/LineLegendTypes"
 import { Lines } from "./Lines"
@@ -487,10 +483,6 @@ export class LineChart
         )
     }
 
-    @computed private get isFocusModeActive(): boolean {
-        return this.chartState.focusArray.hasFocusedSeries
-    }
-
     @computed private get canToggleFocusMode(): boolean {
         return !isTouchDevice() && this.series.length > 1
     }
@@ -735,7 +727,7 @@ export class LineChart
     }
 
     @computed private get formatColumn(): CoreColumn {
-        return this.chartState.yColumns[0]
+        return this.chartState.formatColumn
     }
 
     @computed private get hasColorScale(): boolean {
@@ -813,27 +805,9 @@ export class LineChart
     }
 
     @computed get placedSeries(): PlacedLineChartSeries[] {
-        const { dualAxis } = this
-        const { horizontalAxis, verticalAxis } = dualAxis
-
-        return this.series.toReversed().map((series) => {
-            return {
-                ...series,
-                placedPoints: series.points.map(
-                    (point): PlacedPoint => ({
-                        time: point.x,
-                        x: _.round(horizontalAxis.place(point.x), 1),
-                        y: _.round(verticalAxis.place(point.y), 1),
-                        color: this.hasColorScale
-                            ? darkenColorForLine(
-                                  this.chartState.getColorScaleColor(
-                                      point.colorValue
-                                  )
-                              )
-                            : series.color,
-                    })
-                ),
-            }
+        return toPlacedLineChartSeries(this.series, {
+            chartState: this.chartState,
+            dualAxis: this.dualAxis,
         })
     }
 
@@ -845,25 +819,11 @@ export class LineChart
     }
 
     @computed private get renderSeries(): RenderLineChartSeries[] {
-        let series: RenderLineChartSeries[] = this.placedSeries.map(
-            (series) => {
-                return {
-                    ...series,
-                    hover: this.hoverStateForSeries(series),
-                }
-            }
-        )
-
-        // draw lines on top of markers-only series
-        series = _.sortBy(series, (series) => !series.plotMarkersOnly)
-
-        // sort by interaction state so that foreground series
-        // are drawn on top of background series
-        if (this.isHoverModeActive || this.isFocusModeActive) {
-            series = _.sortBy(series, byHoverThenFocusState)
-        }
-
-        return series
+        return toRenderLineChartSeries(this.placedSeries, {
+            isFocusModeActive: this.chartState.isFocusModeActive,
+            isHoverModeActive: this.isHoverModeActive,
+            hoveredSeriesNames: this.hoveredSeriesNames,
+        })
     }
 
     // Order of the legend items on a line chart should visually correspond
@@ -902,65 +862,29 @@ export class LineChart
         })
     }
 
-    @computed get yAxisConfig(): AxisConfig {
-        return new AxisConfig(
-            {
-                nice: this.manager.yAxisConfig?.scaleType !== ScaleType.log,
-                // if we only have a single y value (probably 0), we want the
-                // horizontal axis to be at the bottom of the chart.
-                // see https://github.com/owid/owid-grapher/pull/975#issuecomment-890798547
-                singleValueAxisPointAlign: AxisAlign.start,
-                // default to 0 if not set
-                min: 0,
-                ...this.manager.yAxisConfig,
-            },
-            this
-        )
+    @computed private get yAxisConfig(): AxisConfig {
+        const { yAxisConfig } = this.manager
+        const defaults = getYAxisConfigDefaults(yAxisConfig)
+        return new AxisConfig({ ...defaults, ...yAxisConfig }, this)
     }
 
     @computed private get xAxisConfig(): AxisConfig {
-        return new AxisConfig(
-            {
-                hideGridlines: true,
-                ...this.manager.xAxisConfig,
-            },
-            this
-        )
+        const { xAxisConfig } = this.manager
+        const custom = { hideGridlines: true }
+        return new AxisConfig({ ...custom, ...xAxisConfig }, this)
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
-        const axis = this.xAxisConfig.toHorizontalAxis()
-        axis.updateDomainPreservingUserSettings(
-            this.chartState.transformedTable.timeDomainFor(this.yColumnSlugs)
-        )
-        axis.scaleType = ScaleType.linear
-        axis.formatColumn = this.chartState.inputTable.timeColumn
-        axis.hideFractionalTicks = true
-        return axis
+        return this.chartState.toHorizontalAxis(this.xAxisConfig)
     }
 
     @computed private get verticalAxisPart(): VerticalAxis {
-        const axisConfig = this.yAxisConfig
-        const yDomain = this.chartState.transformedTable.domainFor(
-            this.yColumnSlugs
-        )
-        const domain = axisConfig.domain
-        const axis = axisConfig.toVerticalAxis()
-        axis.updateDomainPreservingUserSettings([
-            Math.min(domain[0], yDomain[0]),
-            Math.max(domain[1], yDomain[1]),
-        ])
-        axis.hideFractionalTicks = this.chartState.yColumns.every(
-            (yColumn) => yColumn.isAllIntegers
-        ) // all y axis points are integral, don't show fractional ticks in that case
-        axis.label = ""
-        axis.formatColumn = this.formatColumn
-        return axis
+        return this.chartState.toVerticalAxis(this.yAxisConfig)
     }
 
-    @computed get dualAxis(): DualAxis {
-        return new DualAxis({
-            bounds: this.boundsWithoutColorLegend
+    @computed private get innerBounds(): Bounds {
+        return (
+            this.boundsWithoutColorLegend
                 .padRight(
                     this.manager.showLegend
                         ? this.lineLegendWidth
@@ -969,7 +893,13 @@ export class LineChart
                 // top padding leaves room for tick labels
                 .padTop(6)
                 // bottom padding avoids axis labels to be cut off at some resolutions
-                .padBottom(2),
+                .padBottom(2)
+        )
+    }
+
+    @computed get dualAxis(): DualAxis {
+        return new DualAxis({
+            bounds: this.innerBounds,
             verticalAxis: this.verticalAxisPart,
             horizontalAxis: this.horizontalAxisPart,
             comparisonLines: this.manager.comparisonLines,
