@@ -97,32 +97,47 @@ export const getReferencesByChartId = async (
     const dataInsightsPromise = db.knexRaw<DataInsightMinimalInformation>(
         knex,
         `-- sql
+        WITH chart_slugs AS (
+            SELECT cc.slug as main_slug, c.id as chart_id
+            FROM charts c
+            JOIN chart_configs cc ON c.configId = cc.id
+            WHERE c.id = ?
+            
+            UNION ALL
+            
+            SELECT cr.slug as main_slug, c.id as chart_id
+            FROM charts c
+            JOIN chart_slug_redirects cr ON cr.chart_id = c.id
+            WHERE c.id = ?
+        ),
+        gdoc_grapher_slugs AS (
+            SELECT 
+                pg.id,
+                pg.content ->> '$.title' AS title,
+                pg.published,
+                pg.content ->> '$."narrative-chart"' AS narrativeChart,
+                pg.content ->> '$."figma-url"' AS figmaUrl,
+                SUBSTRING_INDEX(SUBSTRING_INDEX(pg.content ->> '$."grapher-url"', '/grapher/', -1), '\\?', 1) AS extracted_slug,
+                COALESCE(pg.content ->> '$.body[0].smallFilename', pg.content ->> '$.body[0].filename') AS image_filename
+            FROM posts_gdocs pg
+            WHERE pg.type = 'data-insight'
+        )
         SELECT
-            pg.id AS gdocId,
-            pg.content ->> '$.title' AS title,
-            pg.published,
-            content ->> '$."narrative-chart"' AS narrativeChart,
-            content ->> '$."figma-url"' AS figmaUrl,
+            ggs.id AS gdocId,
+            ggs.title,
+            ggs.published,
+            ggs.narrativeChart,
+            ggs.figmaUrl,
             JSON_OBJECT(
                 'id', i.id,
                 'filename', i.filename,
                 'cloudflareId', i.cloudflareId,
                 'originalWidth', i.originalWidth
             ) AS image
-        FROM charts c
-        JOIN chart_configs cc ON c.configId = cc.id
-        LEFT JOIN posts_gdocs pg ON (
-            cc.slug = SUBSTRING_INDEX(SUBSTRING_INDEX(pg.content ->> '$."grapher-url"', '/grapher/', -1), '\\?', 1)
-            OR SUBSTRING_INDEX(SUBSTRING_INDEX(pg.content ->> '$."grapher-url"', '/grapher/', -1), '\\?', 1) IN (
-                SELECT cr.slug
-                FROM chart_slug_redirects cr
-                WHERE cr.chart_id = c.id
-            )
-        )
-        -- join the images table by filename (only works for data insights where the image block comes first)
-        LEFT JOIN images i ON i.filename = COALESCE(pg.content ->> '$.body[0].smallFilename', pg.content ->> '$.body[0].filename')
-        WHERE c.id = ?? AND pg.type = 'data-insight' AND i.replacedBy IS NULL`,
-        [chartId]
+        FROM gdoc_grapher_slugs ggs
+        JOIN chart_slugs cs ON cs.main_slug = ggs.extracted_slug
+        LEFT JOIN images i ON i.filename = ggs.image_filename AND i.replacedBy IS NULL`,
+        [chartId, chartId]
     )
     const [
         postsWordpress,
