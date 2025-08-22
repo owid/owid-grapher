@@ -1,17 +1,22 @@
 import * as R from "remeda"
+import * as _ from "lodash-es"
 import { match } from "ts-pattern"
 import {
     EntityName,
     EntitySelectionMode,
     FacetStrategy,
     GRAPHER_TAB_NAMES,
+    GrapherQueryParams,
     GrapherTabName,
     SeriesStrategy,
 } from "@ourworldindata/types"
 import { SearchChartHitDataTableContent } from "./SearchChartHitDataTableHelpers"
 import {
+    generateFocusedSeriesNamesParam,
+    generateSelectedEntityNamesParam,
     GrapherState,
     mapGrapherTabNameToConfigOption,
+    mapGrapherTabNameToQueryParam,
     StackedDiscreteBarChartState,
 } from "@ourworldindata/grapher"
 import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable"
@@ -22,8 +27,13 @@ import {
     Layout,
     MediumVariantGridSlot,
     PlacedTab,
+    PreviewType,
+    PreviewVariant,
     RichDataComponentVariant,
 } from "./SearchChartHitRichDataTypes.js"
+import { SearchChartHit, SearchChartHitComponentVariant } from "./searchTypes"
+import { excludeUndefined } from "@ourworldindata/utils"
+import { constructChartUrl, constructPreviewUrl } from "./searchUtils"
 
 export function getSortedGrapherTabsForChartHit(
     grapherState: GrapherState
@@ -400,4 +410,141 @@ export function makeSlotClassNames(
 ): string {
     const baseName = `${variant}-variant`
     return `${baseName}__slot ${baseName}__${slot}`
+}
+
+export function getPreviewType(
+    variant: SearchChartHitComponentVariant,
+    { isPrimaryTab }: { isPrimaryTab: boolean }
+): PreviewType {
+    if (isPrimaryTab && variant === "large")
+        return { variant: PreviewVariant.Large, isMinimal: true }
+
+    // Use the minimal version for the first tab (which is annotated by the table)
+    // and the complete version for all other tabs
+    return isPrimaryTab
+        ? { variant: PreviewVariant.Thumbnail, isMinimal: true }
+        : { variant: PreviewVariant.Thumbnail, isMinimal: false }
+}
+
+export function constructChartAndPreviewUrlsForTab({
+    hit,
+    grapherState,
+    tab,
+    previewType,
+    imageWidth,
+    imageHeight,
+}: {
+    hit: SearchChartHit
+    grapherState: GrapherState
+    tab: GrapherTabName
+    previewType: PreviewType
+    imageWidth?: number
+    imageHeight?: number
+}): { chartUrl: string; previewUrl: string } {
+    // Use Grapher's changedParams to construct chart and preview URLs.
+    // We override the tab parameter because the GrapherState is currently set to
+    // the first tab of the chart, but we need to generate URLs for the specific
+    // tab being rendered in this preview.
+    const grapherParams = {
+        ...grapherState.changedParams,
+        tab: mapGrapherTabNameToQueryParam(tab),
+    }
+
+    // Adjust grapher query params for some chart types
+    if (tab === GRAPHER_TAB_NAMES.DiscreteBar) {
+        configureGrapherParamsForDiscreteBarPreview(grapherState, grapherParams)
+    } else if (tab === GRAPHER_TAB_NAMES.Marimekko) {
+        configureGrapherParamsForMarimekkoPreview(grapherState, grapherParams)
+    }
+
+    // Use a smaller font size for chart types where labels or legends would
+    // otherwise be too overpowering in thumbnail previews. Otherwise, rely on
+    // the default
+    const tabsWithSmallerFont: GrapherTabName[] = [
+        GRAPHER_TAB_NAMES.WorldMap,
+        GRAPHER_TAB_NAMES.DiscreteBar,
+        GRAPHER_TAB_NAMES.StackedDiscreteBar,
+    ]
+    const fontSize =
+        previewType.variant === PreviewVariant.Thumbnail &&
+        tabsWithSmallerFont.includes(tab)
+            ? 12
+            : undefined
+
+    const previewUrl = constructPreviewUrl({
+        hit,
+        grapherParams,
+        variant: previewType.variant,
+        isMinimal: previewType.isMinimal,
+        fontSize,
+        imageWidth,
+        imageHeight,
+    })
+
+    const chartUrl = constructChartUrl({
+        hit,
+        // We don't want to link to a chart where entities are highlighted
+        grapherParams: R.omit(grapherParams, ["focus"]),
+    })
+
+    return { chartUrl, previewUrl }
+}
+
+function configureGrapherParamsForMarimekkoPreview(
+    grapherState: GrapherState,
+    grapherParams: GrapherQueryParams
+): void {
+    // If the Marimekko chart has a selection, also set
+    // the focus param, so that the selected entities are
+    // labelled
+    if (!grapherParams.focus && grapherState.selection.hasSelection) {
+        grapherParams.focus = generateFocusedSeriesNamesParam(
+            grapherState.selection.selectedEntityNames
+        )
+    }
+}
+
+function configureGrapherParamsForDiscreteBarPreview(
+    grapherState: GrapherState,
+    grapherParams: GrapherQueryParams
+): void {
+    // Instead of showing a single series per facet,
+    // show all series in a single discrete bar chart
+    const hasSingleSeriesPerFacet =
+        grapherState.isFaceted && !grapherState.hasMultipleSeriesPerFacet
+    if (hasSingleSeriesPerFacet) grapherParams.facet = FacetStrategy.none
+
+    // Add the entities with the minimum and maximim value
+    // for discrete bar charts with a single bar
+    const { seriesStrategy = SeriesStrategy.entity } = grapherState.chartState
+    const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
+    const selectedEntities = grapherState.selection.selectedEntityNames
+    if (
+        !grapherState.isFaceted &&
+        isEntityStrategy &&
+        selectedEntities.length === 1 &&
+        grapherState.endTime !== undefined
+    ) {
+        const selectedEntity = selectedEntities[0]
+        const owidRows = grapherState.table
+            .filterByTargetTimes([grapherState.endTime])
+            .get(grapherState.yColumnSlug).owidRows
+        const minRow = _.minBy(owidRows, (point) => point.value)
+        const maxRow = _.maxBy(owidRows, (point) => point.value)
+        const enrichedSelectedEntities = R.unique(
+            excludeUndefined([
+                selectedEntity,
+                minRow?.entityName,
+                maxRow?.entityName,
+            ])
+        )
+        if (enrichedSelectedEntities.length > 1) {
+            grapherParams.country = generateSelectedEntityNamesParam(
+                enrichedSelectedEntities
+            )
+            grapherParams.focus = generateFocusedSeriesNamesParam([
+                selectedEntity,
+            ])
+        }
+    }
 }
