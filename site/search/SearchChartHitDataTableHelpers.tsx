@@ -49,6 +49,7 @@ export type SearchChartHitDataTableContent =
     | {
           type: "data-table"
           props: SearchChartHitDataTableProps
+          isLegend?: boolean
       }
     | {
           type: "data-points"
@@ -671,7 +672,7 @@ function buildLegendTableProps({
 
     const title = grapherState.colorScale.legendDescription || "Legend"
 
-    return { type: "data-table", props: { rows, title } }
+    return { type: "data-table", props: { rows, title }, isLegend: true }
 }
 
 /**
@@ -836,7 +837,7 @@ function buildDataTableContentForWorldMap({
 
     const title = makeTableTitle(grapherState, chartState)
 
-    return { type: "data-table", props: { rows, title } }
+    return { type: "data-table", props: { rows, title }, isLegend: true }
 }
 
 // Only used to build a data table when Grapher has neither a chart
