@@ -701,7 +701,9 @@ export class FacetChart
     }
 
     @computed get legendAlign(): HorizontalAlign {
-        return HorizontalAlign.left
+        return this.isNumericLegend
+            ? HorizontalAlign.center
+            : HorizontalAlign.left
     }
 
     @computed get legendTitle(): string | undefined {
