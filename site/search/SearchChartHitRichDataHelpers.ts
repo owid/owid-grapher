@@ -528,6 +528,7 @@ function configureGrapherParamsForDiscreteBarPreview(
         !grapherState.isFaceted &&
         isEntityStrategy &&
         selectedEntities.length === 1 &&
+        grapherState.addCountryMode === EntitySelectionMode.MultipleEntities &&
         grapherState.endTime !== undefined
     ) {
         const selectedEntity = selectedEntities[0]
