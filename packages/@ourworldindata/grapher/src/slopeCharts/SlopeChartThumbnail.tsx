@@ -206,6 +206,9 @@ export class SlopeChartThumbnail
 
         return new VerticalLabelsState(series, {
             fontSize: this.labelFontSize,
+            // Expand bounds a little bit, allowing labels to extend slightly
+            // beyond the chart's normal boundaries
+            yRange: this.bounds.expand(6).yRange(),
         })
     }
 
@@ -234,6 +237,9 @@ export class SlopeChartThumbnail
         return new VerticalLabelsState(series, {
             fontSize: this.labelFontSize,
             maxWidth: showEntityNames ? 0.25 * this.bounds.width : undefined,
+            // Expand bounds a little bit, allowing labels to extend slightly
+            // beyond the chart's normal boundaries
+            yRange: this.bounds.expand(6).yRange(),
             resolveCollision: (
                 s1: InitialVerticalLabelsSeries,
                 s2: InitialVerticalLabelsSeries
