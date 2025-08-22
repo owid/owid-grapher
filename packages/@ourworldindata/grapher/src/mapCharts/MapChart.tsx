@@ -306,8 +306,10 @@ export class MapChart
     getHoverState(featureId: string): InteractionState {
         const isHovered = this.isHovered(featureId)
         return {
+            idle: !this.hoverBracket,
             active: isHovered,
             background: !!this.hoverBracket && !isHovered,
+            foreground: !!this.hoverBracket || isHovered,
         }
     }
 
