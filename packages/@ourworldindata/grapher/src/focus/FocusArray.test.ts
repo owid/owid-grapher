@@ -17,7 +17,7 @@ it("an active series is also in the foreground", () => {
     // all series are active and in the foreground
     for (const seriesName of seriesNames) {
         expect(focusArray.has(seriesName)).toEqual(true)
-        expect(focusArray.isInForeground(seriesName)).toEqual(true)
+        expect(focusArray.state(seriesName).foreground).toEqual(true)
     }
 })
 
@@ -27,7 +27,7 @@ it("a foreground series is not necessarily active", () => {
 
     // all series are in the foreground but not active
     for (const seriesName of seriesNames) {
-        expect(focusArray.isInForeground(seriesName)).toEqual(true)
+        expect(focusArray.state(seriesName).foreground).toEqual(true)
         expect(focusArray.has(seriesName)).toEqual(false)
     }
 })
@@ -39,9 +39,8 @@ it("a series can't be in the foreground and background at the same time", () => 
 
     // all series are either in the foreground or background, but not both
     for (const seriesName of seriesNames) {
-        expect(focusArray.isInForeground(seriesName)).not.toEqual(
-            focusArray.isInBackground(seriesName)
-        )
+        const state = focusArray.state(seriesName)
+        expect(state.foreground).not.toEqual(state.background)
     }
 })
 
