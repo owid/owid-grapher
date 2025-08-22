@@ -137,6 +137,7 @@ import {
     latestGrapherConfigSchema,
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
+    GrapherModal,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import { ChartDimension } from "../chart/ChartDimension"
@@ -156,7 +157,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
 import { TooltipContainer } from "../tooltip/Tooltip"
 import { EntitySelectorModal } from "../modal/EntitySelectorModal"
-import { DownloadModal } from "../modal/DownloadModal"
+import { DownloadModal, DownloadModalTabName } from "../modal/DownloadModal"
 import { observer } from "mobx-react"
 import "d3-transition"
 import { SourcesModal } from "../modal/SourcesModal"
@@ -231,6 +232,7 @@ import {
 import * as R from "remeda"
 import { CaptionedOrThumbnailChart } from "../chart/CaptionedOrThumbnailChart.js"
 import { flushSync } from "react-dom"
+import { match } from "ts-pattern"
 
 declare global {
     interface Window {
@@ -579,9 +581,8 @@ export class GrapherState {
             areHandlesOnSameTimeBeforeAnimation: observable.ref,
             timelineDragTarget: observable.ref,
             isEntitySelectorModalOrDrawerOpen: observable.ref,
-            isSourcesModalOpen: observable.ref,
-            isDownloadModalOpen: observable.ref,
-            isEmbedModalOpen: observable.ref,
+            activeModal: observable.ref,
+            activeDownloadModalTab: observable.ref,
             shouldIncludeDetailsInStaticExport: observable,
             _externalBounds: observable,
             slideShow: observable,
@@ -744,9 +745,17 @@ export class GrapherState {
         const overlay = params.overlay
         if (overlay) {
             if (overlay === "sources") {
-                this.isSourcesModalOpen = true
+                this.activeModal = GrapherModal.Sources
+            } else if (overlay === "download-data") {
+                this.activeModal = GrapherModal.Download
+                this.activeDownloadModalTab = DownloadModalTabName.Data
+            } else if (overlay === "download-vis") {
+                this.activeModal = GrapherModal.Download
+                this.activeDownloadModalTab = DownloadModalTabName.Vis
             } else if (overlay === "download") {
-                this.isDownloadModalOpen = true
+                this.activeModal = GrapherModal.Download
+            } else if (overlay === "embed") {
+                this.activeModal = GrapherModal.Embed
             } else {
                 console.error("Unexpected overlay: " + overlay)
             }
@@ -1245,9 +1254,9 @@ export class GrapherState {
     timelineDragTarget: TimelineDragTarget | undefined = undefined
 
     isEntitySelectorModalOrDrawerOpen = false
-    isSourcesModalOpen = false
-    isDownloadModalOpen = false
-    isEmbedModalOpen = false
+
+    activeModal?: GrapherModal
+    activeDownloadModalTab: DownloadModalTabName = DownloadModalTabName.Vis
 
     @computed get isStatic(): boolean {
         return this.isExportingToSvgOrPng
@@ -2943,9 +2952,7 @@ export class GrapherState {
         // if a modal is open, dismiss it instead of exiting full-screen mode
         if (this.isModalOpen || this.isShareMenuActive) {
             this.isEntitySelectorModalOrDrawerOpen = false
-            this.isSourcesModalOpen = false
-            this.isEmbedModalOpen = false
-            this.isDownloadModalOpen = false
+            this.activeModal = undefined
             this.isShareMenuActive = false
         } else {
             this.isInFullScreenMode = false
@@ -2957,12 +2964,7 @@ export class GrapherState {
     }
 
     @computed get isModalOpen(): boolean {
-        return (
-            this.isEntitySelectorModalOpen ||
-            this.isSourcesModalOpen ||
-            this.isEmbedModalOpen ||
-            this.isDownloadModalOpen
-        )
+        return this.isEntitySelectorModalOpen || this.activeModal !== undefined
     }
     // Whether a server-side download is available for the download modal
     @computed get isServerSideDownloadAvailable(): boolean {
@@ -3150,6 +3152,21 @@ export class GrapherState {
     @computed.struct get allParams(): GrapherQueryParams {
         return grapherObjectToQueryParams(this)
     }
+
+    @computed get overlayParam(): string | undefined {
+        if (!this.activeModal) return undefined
+        return match(this.activeModal)
+            .with(GrapherModal.Download, () => {
+                return match(this.activeDownloadModalTab)
+                    .with(DownloadModalTabName.Data, () => "download-data")
+                    .with(DownloadModalTabName.Vis, () => "download-vis")
+                    .exhaustive()
+            })
+            .with(GrapherModal.Embed, () => "embed")
+            .with(GrapherModal.Sources, () => "sources")
+            .exhaustive()
+    }
+
     @computed get areSelectedEntitiesDifferentThanAuthors(): boolean {
         const authoredConfig = this.legacyConfigAsAuthored
         const currentSelectedEntityNames = this.selection.selectedEntityNames
@@ -3778,8 +3795,11 @@ export class Grapher extends React.Component<GrapherProps> {
             {
                 combo: "s",
                 fn: (): void => {
-                    this.grapherState.isSourcesModalOpen =
-                        !this.grapherState.isSourcesModalOpen
+                    const isSourcesModalOpen =
+                        this.grapherState.activeModal === GrapherModal.Sources
+                    this.grapherState.activeModal = isSourcesModalOpen
+                        ? undefined
+                        : GrapherModal.Sources
                 },
                 title: `Toggle sources modal`,
                 category: "Chart",
@@ -3787,8 +3807,11 @@ export class Grapher extends React.Component<GrapherProps> {
             {
                 combo: "d",
                 fn: (): void => {
-                    this.grapherState.isDownloadModalOpen =
-                        !this.grapherState.isDownloadModalOpen
+                    const isDownloadModalOpen =
+                        this.grapherState.activeModal === GrapherModal.Download
+                    this.grapherState.activeModal = isDownloadModalOpen
+                        ? undefined
+                        : GrapherModal.Download
                 },
                 title: "Toggle download modal",
                 category: "Chart",
@@ -3873,9 +3896,7 @@ export class Grapher extends React.Component<GrapherProps> {
             this.grapherState.isShareMenuActive
         ) {
             this.grapherState.isEntitySelectorModalOrDrawerOpen = false
-            this.grapherState.isSourcesModalOpen = false
-            this.grapherState.isEmbedModalOpen = false
-            this.grapherState.isDownloadModalOpen = false
+            this.grapherState.activeModal = undefined
             this.grapherState.isShareMenuActive = false
         } else {
             this.grapherState.isInFullScreenMode = false
@@ -4004,15 +4025,18 @@ export class Grapher extends React.Component<GrapherProps> {
                 </div>
 
                 {/* Modals */}
-                {this.grapherState.isSourcesModalOpen && (
-                    <SourcesModal manager={this.grapherState} />
-                )}
-                {this.grapherState.isDownloadModalOpen && (
-                    <DownloadModal manager={this.grapherState} />
-                )}
-                {this.grapherState.isEmbedModalOpen && (
-                    <EmbedModal manager={this.grapherState} />
-                )}
+                {this.grapherState.activeModal === GrapherModal.Sources &&
+                    this.grapherState.isReady && (
+                        <SourcesModal manager={this.grapherState} />
+                    )}
+                {this.grapherState.activeModal === GrapherModal.Download &&
+                    this.grapherState.isReady && (
+                        <DownloadModal manager={this.grapherState} />
+                    )}
+                {this.grapherState.activeModal === GrapherModal.Embed &&
+                    this.grapherState.isReady && (
+                        <EmbedModal manager={this.grapherState} />
+                    )}
                 {this.grapherState.isEntitySelectorModalOpen && (
                     <EntitySelectorModal manager={this.grapherState} />
                 )}

@@ -1,6 +1,7 @@
 import { TooltipManager } from "../tooltip/TooltipProps"
 import { DetailsMarker } from "@ourworldindata/types"
 import { ActionButtonsManager } from "../controls/ActionButtons"
+import { GrapherModal } from "../core/GrapherConstants"
 
 export interface FooterManager extends TooltipManager, ActionButtonsManager {
     sourcesLine?: string
@@ -9,7 +10,7 @@ export interface FooterManager extends TooltipManager, ActionButtonsManager {
     originUrlWithProtocol?: string
     detailsOrderedByReference?: string[]
     shouldIncludeDetailsInStaticExport?: boolean
-    isSourcesModalOpen?: boolean
+    activeModal?: GrapherModal
     isSmall?: boolean
     isMedium?: boolean
     useBaseFontSize?: boolean

@@ -133,6 +133,7 @@ export const grapherObjectToQueryParams = (
                 : undefined,
         tableFilter: grapher.dataTableConfig.filter,
         tableSearch: grapher.dataTableConfig.search,
+        overlay: grapher.overlayParam,
     }
     return params
 }
