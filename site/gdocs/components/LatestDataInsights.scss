@@ -72,7 +72,6 @@ html:not(.js-enabled) .latest-data-insights__card,
 
     @include md-down {
         flex-direction: column;
-        overflow-y: auto;
     }
 }
 
@@ -92,6 +91,11 @@ html:not(.js-enabled) .latest-data-insights__card,
 
     picture {
         height: 100%;
+
+        @include md-down {
+            max-height: 360px;
+            overflow-y: auto;
+        }
     }
 
     img {
