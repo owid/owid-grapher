@@ -90,10 +90,9 @@ const shouldHideFacetAxis = (
     edges: Set<Position>,
     sharedAxesSizes: PositionMap<number>
 ): boolean => {
-    if (axis) {
-        return axis.orient in sharedAxesSizes && !edges.has(axis.orient)
-    }
-    return false
+    if (!axis) return false
+    if (axis.hideAxis) return true
+    return axis.orient in sharedAxesSizes && !edges.has(axis.orient)
 }
 
 interface AxisInfo {
@@ -179,7 +178,7 @@ export class FacetChart
     }
 
     @computed private get facetFontSize(): number {
-        return getFontSize(this.series.length, this.fontSize)
+        return getFontSize(this.bounds.width, this.series.length, this.fontSize)
     }
 
     @computed private get yAxisConfig(): AxisConfig {
