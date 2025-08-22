@@ -37,6 +37,9 @@ import {
     getDisplayName,
     getSeriesName,
 } from "../lineCharts/LineChartHelpers"
+import { domainExtent } from "@ourworldindata/utils"
+import { AxisConfig } from "../axis/AxisConfig"
+import { VerticalAxis } from "../axis/Axis"
 
 export class SlopeChartState implements ChartState {
     manager: SlopeChartManager
@@ -127,6 +130,10 @@ export class SlopeChartState implements ChartState {
         return this.manager.focusArray ?? new FocusArray()
     }
 
+    @computed get isFocusModeActive(): boolean {
+        return this.focusArray.hasFocusedSeries
+    }
+
     @computed get yColumnSlugs(): ColumnSlug[] {
         return autoDetectYColumnSlugs(this.manager)
     }
@@ -145,6 +152,10 @@ export class SlopeChartState implements ChartState {
 
     @computed get missingDataStrategy(): MissingDataStrategy {
         return this.manager.missingDataStrategy || MissingDataStrategy.auto
+    }
+
+    @computed get yScaleType(): ScaleType {
+        return this.manager.yAxisConfig?.scaleType ?? ScaleType.linear
     }
 
     @computed get colorScheme(): ColorScheme {
@@ -329,6 +340,37 @@ export class SlopeChartState implements ChartState {
         return this.rawSeries.filter((series) =>
             this.shouldSeriesBePlotted(series)
         )
+    }
+
+    @computed get allYValues(): number[] {
+        return this.series.flatMap((series) => [
+            series.start.value,
+            series.end.value,
+        ])
+    }
+
+    @computed get xDomain(): [number, number] {
+        return [this.startTime, this.endTime]
+    }
+
+    @computed get yDomainDefault(): [number, number] {
+        const defaultDomain: [number, number] = [Infinity, -Infinity]
+        return domainExtent(this.allYValues, this.yScaleType) ?? defaultDomain
+    }
+
+    toVerticalAxis(
+        config: AxisConfig,
+        {
+            yDomain,
+            yRange,
+        }: { yDomain: [number, number]; yRange: [number, number] }
+    ): VerticalAxis {
+        const axis = config.toVerticalAxis()
+        axis.domain = yDomain
+        axis.range = yRange
+        axis.formatColumn = this.yColumns[0]
+        axis.label = ""
+        return axis
     }
 
     @computed get errorInfo(): ChartErrorInfo {
