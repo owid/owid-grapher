@@ -5,6 +5,7 @@ import urljoin from "url-join"
 import { useTopicTagGraph, useTagGraphTopics } from "./searchHooks.js"
 import {
     AutocompleteApi,
+    AutocompleteComponents,
     AutocompleteSource,
     autocomplete,
     getAlgoliaResults,
@@ -17,6 +18,7 @@ import {
     Filter,
     FilterType,
     SynonymMap,
+    AutocompleteSourceId,
 } from "./searchTypes.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
@@ -41,14 +43,17 @@ import {
     getItemUrlForFilter,
     getPageTypeNameAndIcon,
     SEARCH_BASE_PATH,
+    calculateFuzzyScoreForAlgoliaItem,
 } from "./searchUtils.js"
 import { buildSynonymMap } from "./synonymUtils.js"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLineChart, faSearch } from "@fortawesome/free-solid-svg-icons"
+import * as R from "remeda"
 
 const siteAnalytics = new SiteAnalytics()
 type BaseItem = Record<string, unknown>
+type UnifiedElement = { item: BaseItem; originalSourceId: string }
 
 const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
     key: "RECENT_SEARCH",
@@ -121,7 +126,7 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
 }
 
 const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
-    sourceId: "suggestedSearch",
+    sourceId: AutocompleteSourceId.FEATURED_SEARCH,
     onSelect,
     getItemUrl,
     getItems() {
@@ -150,7 +155,7 @@ const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
 }
 
 const AlgoliaSource: AutocompleteSource<BaseItem> = {
-    sourceId: "autocomplete",
+    sourceId: AutocompleteSourceId.ALGOLIA,
     onSelect({ navigator, item, state }) {
         const itemUrl = prependSubdirectoryToAlgoliaItemUrl(item)
         siteAnalytics.logInstantSearchClick({
@@ -187,6 +192,15 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     },
                 },
             ],
+            transformResponse({ hits: hitGroups }) {
+                const groups = hitGroups.map((group) => {
+                    return group.map((hit) => ({
+                        ...hit,
+                        score: calculateFuzzyScoreForAlgoliaItem(hit, query),
+                    }))
+                })
+                return groups
+            },
         })
     },
 
@@ -240,7 +254,7 @@ const createFiltersSource = (
     allTopics: string[],
     synonymMap: SynonymMap
 ): AutocompleteSource<BaseItem> => ({
-    sourceId: "filters",
+    sourceId: AutocompleteSourceId.FILTERS,
     onSelect({ navigator, item, state }) {
         const itemUrl = item.slug as string
         siteAnalytics.logInstantSearchClick({
@@ -325,6 +339,18 @@ const createFiltersSource = (
     },
 })
 
+const UnifiedSource: AutocompleteSource<BaseItem> = {
+    sourceId: AutocompleteSourceId.UNIFIED,
+    getItems() {
+        return []
+    },
+    templates: {
+        item: ({ item }) => {
+            return <></>
+        },
+    },
+}
+
 export const AUTOCOMPLETE_CONTAINER_ID = "#autocomplete"
 
 export function Autocomplete({
@@ -400,6 +426,7 @@ export function Autocomplete({
                 const sources: AutocompleteSource<BaseItem>[] = []
                 if (query) {
                     sources.push(
+                        UnifiedSource,
                         createFiltersSource(allTopics, synonymMap),
                         AlgoliaSource
                     )
@@ -407,6 +434,74 @@ export function Autocomplete({
                     sources.push(FeaturedSearchesSource)
                 }
                 return sources
+            },
+            // Reshape function that combines and scores items from all sources
+            reshape: ({ sources, sourcesBySourceId }) => {
+                if (
+                    sources.length === 1 &&
+                    sources[0].sourceId === AutocompleteSourceId.FEATURED_SEARCH
+                )
+                    return sources
+
+                const [unifiedSource, regularSources] = R.partition(
+                    sources,
+                    (source) => source.sourceId === AutocompleteSourceId.UNIFIED
+                )
+
+                return [
+                    {
+                        ...unifiedSource[0],
+                        getItems(): UnifiedElement[] {
+                            const items = regularSources.flatMap((source) =>
+                                source
+                                    .getItems()
+                                    .map((item) => {
+                                        return {
+                                            item,
+                                            originalSourceId: source.sourceId,
+                                            score:
+                                                item.score ?? item.filter.score,
+                                        }
+                                    })
+                                    .sort((a, b) => {
+                                        return b.score - a.score
+                                    })
+                            )
+                            console.log("Reshaped items", items)
+                            return items
+                        },
+                        templates: {
+                            item: ({
+                                item,
+                                components,
+                            }: {
+                                item: UnifiedElement
+                                components: AutocompleteComponents
+                            }) => {
+                                return sourcesBySourceId[
+                                    item.originalSourceId
+                                ].templates.item({
+                                    item: item.item,
+                                    components,
+                                })
+                            },
+                        },
+                        getItemUrl({ item }: { item: UnifiedElement }) {
+                            const source =
+                                sourcesBySourceId[item.originalSourceId]
+                            return source?.getItemUrl?.(item) || "#"
+                        },
+                        onSelect: ({ navigator, item, state }) => {
+                            const source =
+                                sourcesBySourceId[item.originalSourceId]
+                            source?.onSelect?.({
+                                navigator,
+                                item: item.item,
+                                state,
+                            })
+                        },
+                    },
+                ]
             },
             plugins: [recentSearchesPlugin],
         })
