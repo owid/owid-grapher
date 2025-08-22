@@ -741,9 +741,10 @@ function buildDataPointsContentForScatterPlot({
     )
     const points = series?.points ?? []
     const endPoint = R.firstBy(points, [(point) => point.timeValue, "desc"])
-    const startPoint = chartState.isConnected
-        ? R.firstBy(points, [(point) => point.timeValue, "asc"])
-        : undefined
+    const startPoint =
+        points.length > 1
+            ? R.firstBy(points, [(point) => point.timeValue, "asc"])
+            : undefined
 
     const formattedStartTime = startPoint
         ? yColumn.formatTime(startPoint.timeValue)
