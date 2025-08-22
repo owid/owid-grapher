@@ -603,14 +603,16 @@ function buildDataTableContentForScatterPlot({
     chartState,
     maxRows,
 }: Args<ScatterPlotChartState>): SearchChartHitDataTableContent {
-    // If entities are selected, then we display the x and y values for the
-    // first entity. The remaining entities are ignored
+    // If entities are selected, then we display the x and y values for one of
+    // the entities. The remaining entities are ignored
     if (grapherState.selection.hasSelection) {
-        const selectedEntity = grapherState.selection.selectedEntityNames[0]
+        const displayEntity =
+            findEntityToDisplayForScatterPlot(chartState) ??
+            chartState.series[0]?.seriesName
         return buildDataPointsContentForScatterPlot({
             grapherState,
             chartState,
-            entityName: selectedEntity,
+            entityName: displayEntity,
         })
     }
 
@@ -631,17 +633,33 @@ function buildDataTableContentForScatterPlot({
     //   a single table row. That's why we simply display the x- and y-values
     //   of one of the entities.
     if (chartState.series.length === 1 || chartState.isConnected) {
-        const firstEntity = chartState.series[0].seriesName
+        const displayEntity =
+            findEntityToDisplayForScatterPlot(chartState) ??
+            chartState.series[0]?.seriesName
         return buildDataPointsContentForScatterPlot({
             grapherState,
             chartState,
-            entityName: firstEntity,
+            entityName: displayEntity,
         })
     }
 
     // Display a table where each row corresponds to an entity and lists x and
     // y-values in this format: '<x-value> vs. <y-value>'.
     return buildValueTableContentForScatterPlot({ chartState, maxRows })
+}
+
+function findEntityToDisplayForScatterPlot(
+    chartState: ScatterPlotChartState
+): string | undefined {
+    // For non-connected scatter plots, use the first entity
+    if (!chartState.isConnected) return chartState.series[0]?.seriesName
+
+    // For connected scatter plots, prefer an entity with multiple data points
+    // (indicating a connected line) over an entity with just a single point
+    return (
+        chartState.series.find((series) => series.points.length > 1) ??
+        chartState.series[0]
+    )?.seriesName
 }
 
 /** Creates a table where each row represents a legend bin from the color scale */
