@@ -4,7 +4,7 @@ import { refreshExplorerViewsForSlug } from "../db/model/ExplorerViews.js"
 import {
     saveGrapherConfigToR2ByUUID,
     deleteGrapherConfigFromR2ByUUID,
-} from "../adminSiteServer/chartConfigR2Helpers.js"
+} from "../adminSiteServer/R2/chartConfigR2Helpers.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import pMap from "p-map"
 import yargs from "yargs"
