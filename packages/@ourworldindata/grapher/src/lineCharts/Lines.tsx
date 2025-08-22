@@ -15,7 +15,6 @@ import {
     DEFAULT_MARKER_RADIUS,
     DEFAULT_STROKE_WIDTH,
     LinesProps,
-    NON_FOCUSED_LINE_COLOR,
     PlacedLineChartSeries,
     RenderLineChartSeries,
 } from "./LineChartConstants"
@@ -82,28 +81,31 @@ export class Lines extends React.Component<LinesProps> {
         return !series.focus.background || series.hover.active
     }
 
+    private seriesIsInForeground(series: RenderLineChartSeries): boolean {
+        return (
+            series.hover.active ||
+            series.focus.active ||
+            (series.focus.idle && series.hover.idle)
+        )
+    }
+
     private renderLine(
         series: RenderLineChartSeries
     ): React.ReactElement | undefined {
-        const { hover, focus } = series
-
         if (series.plotMarkersOnly) return
+        const { isProjection } = series
 
-        const seriesColor = series.placedPoints[0]?.color ?? DEFAULT_LINE_COLOR
-        const color =
-            !focus.background || hover.active
-                ? seriesColor
-                : NON_FOCUSED_LINE_COLOR
+        const isInForeground = this.seriesIsInForeground(series)
 
-        const strokeDasharray = series.isProjection ? "2,3" : undefined
-        const strokeWidth =
-            hover.background || focus.background
-                ? 0.66 * this.strokeWidth
-                : this.strokeWidth
-        const strokeOpacity =
-            hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
+        const color = series.placedPoints[0]?.color ?? DEFAULT_LINE_COLOR
 
-        const showOutline = !focus.background || hover.active
+        const strokeDasharray = isProjection ? "2,3" : undefined
+        const strokeWidth = isInForeground
+            ? this.strokeWidth
+            : 0.66 * this.strokeWidth
+        const strokeOpacity = isInForeground ? 1 : GRAPHER_OPACITY_MUTE
+
+        const showOutline = isInForeground
         const outlineColor = this.outlineColor
         const outlineWidth = strokeWidth + this.outlineWidth * 2
 
@@ -116,26 +118,25 @@ export class Lines extends React.Component<LinesProps> {
             />
         )
 
-        const line =
-            this.props.multiColor && !focus.background ? (
-                <MultiColorPolyline
-                    id={makeIdForHumanConsumption("line", series.seriesName)}
-                    points={series.placedPoints}
-                    strokeLinejoin="round"
-                    strokeWidth={strokeWidth.toFixed(1)}
-                    strokeDasharray={strokeDasharray}
-                    strokeOpacity={strokeOpacity}
-                />
-            ) : (
-                <LinePath
-                    id={makeIdForHumanConsumption("line", series.seriesName)}
-                    placedPoints={series.placedPoints}
-                    stroke={color}
-                    strokeWidth={strokeWidth.toFixed(1)}
-                    strokeOpacity={strokeOpacity}
-                    strokeDasharray={strokeDasharray}
-                />
-            )
+        const line = this.props.multiColor ? (
+            <MultiColorPolyline
+                id={makeIdForHumanConsumption("line", series.seriesName)}
+                points={series.placedPoints}
+                strokeLinejoin="round"
+                strokeWidth={strokeWidth.toFixed(1)}
+                strokeDasharray={strokeDasharray}
+                strokeOpacity={strokeOpacity}
+            />
+        ) : (
+            <LinePath
+                id={makeIdForHumanConsumption("line", series.seriesName)}
+                placedPoints={series.placedPoints}
+                stroke={color}
+                strokeWidth={strokeWidth.toFixed(1)}
+                strokeOpacity={strokeOpacity}
+                strokeDasharray={strokeDasharray}
+            />
+        )
 
         return (
             <>
@@ -149,7 +150,6 @@ export class Lines extends React.Component<LinesProps> {
         series: RenderLineChartSeries
     ): React.ReactElement | undefined {
         const { horizontalAxis } = this.props.dualAxis
-        const { hover, focus } = series
 
         const forceMarkers =
             // If the series only contains one point, then we will always want to
@@ -163,8 +163,9 @@ export class Lines extends React.Component<LinesProps> {
 
         if (hideMarkers && !forceMarkers) return
 
-        const opacity =
-            hover.background && !focus.background ? GRAPHER_OPACITY_MUTE : 1
+        const opacity = this.seriesIsInForeground(series)
+            ? 1
+            : GRAPHER_OPACITY_MUTE
 
         const outlineColor = series.plotMarkersOnly
             ? this.outlineColor
@@ -175,28 +176,21 @@ export class Lines extends React.Component<LinesProps> {
 
         return (
             <g id={makeIdForHumanConsumption("datapoints", series.seriesName)}>
-                {series.placedPoints.map((value, index) => {
-                    const valueColor = value.color
-                    const color =
-                        !focus.background || hover.active
-                            ? valueColor
-                            : NON_FOCUSED_LINE_COLOR
-                    return (
-                        <circle
-                            id={makeIdForHumanConsumption(
-                                horizontalAxis.formatTick(value.time)
-                            )}
-                            key={index}
-                            cx={value.x}
-                            cy={value.y}
-                            r={this.markerRadius}
-                            fill={color}
-                            stroke={outlineColor}
-                            strokeWidth={outlineWidth}
-                            opacity={opacity}
-                        />
-                    )
-                })}
+                {series.placedPoints.map((value, index) => (
+                    <circle
+                        id={makeIdForHumanConsumption(
+                            horizontalAxis.formatTick(value.time)
+                        )}
+                        key={index}
+                        cx={value.x}
+                        cy={value.y}
+                        r={this.markerRadius}
+                        fill={value.color}
+                        stroke={outlineColor}
+                        strokeWidth={outlineWidth}
+                        opacity={opacity}
+                    />
+                ))}
             </g>
         )
     }
