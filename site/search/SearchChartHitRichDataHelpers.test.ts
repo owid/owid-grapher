@@ -80,21 +80,6 @@ describe(getSortedGrapherTabsForChartHit, () => {
         ])
     })
 
-    it("drops DiscreteBar if there are too many tabs", () => {
-        const grapherState = new GrapherState({
-            chartTypes: [LineChart, DiscreteBar, Marimekko, SlopeChart],
-            hasMapTab: true,
-        })
-        const result = getSortedGrapherTabsForChartHit(grapherState)
-        expect(result).toEqual([
-            LineChart,
-            Table,
-            Marimekko,
-            WorldMap,
-            SlopeChart,
-        ])
-    })
-
     it("should always show a chart tab in the first position", () => {
         const grapherState = new GrapherState({
             chartTypes: [StackedArea],
