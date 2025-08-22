@@ -1,9 +1,15 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
-import { stripHTML, Bounds, FontFamily } from "@ourworldindata/utils"
+import {
+    stripHTML,
+    Bounds,
+    FontFamily,
+    VerticalAlign,
+} from "@ourworldindata/utils"
 import { computed, makeObservable } from "mobx"
 import * as React from "react"
 import { Fragment, joinFragments, splitIntoFragments } from "./TextWrapUtils"
+import { match } from "ts-pattern"
 
 declare type FontSize = number
 
@@ -15,6 +21,7 @@ interface TextWrapProps {
     fontWeight?: number
     separators?: string[]
     rawHtml?: boolean
+    verticalAlign?: VerticalAlign
 }
 
 interface WrapLine {
@@ -81,6 +88,9 @@ export class TextWrap {
     }
     @computed get fontWeight(): number | undefined {
         return this.props.fontWeight
+    }
+    @computed get verticalAlign(): VerticalAlign {
+        return this.props.verticalAlign ?? VerticalAlign.bottom
     }
     @computed get text(): string {
         return this.props.text
@@ -234,7 +244,7 @@ export class TextWrap {
     }
 
     getPositionForSvgRendering(x: number, y: number): [number, number] {
-        const { lines, fontSize, lineHeight } = this
+        const { lines, fontSize, lineHeight, height, verticalAlign } = this
 
         // Magic number set through experimentation.
         // The HTML and SVG renderers need to position lines identically.
@@ -245,10 +255,16 @@ export class TextWrap {
         const textHeight = _.max(lines.map((line) => line.height)) ?? 0
         const correctedTextHeight = textHeight * HEIGHT_CORRECTION_FACTOR
         const containerHeight = lineHeight * fontSize
-        const yOffset =
+        const correctedY =
             y + (containerHeight - (containerHeight - correctedTextHeight) / 2)
 
-        return [x, yOffset]
+        const renderY = match(verticalAlign)
+            .with(VerticalAlign.top, () => correctedY - height)
+            .with(VerticalAlign.middle, () => correctedY - height / 2)
+            .with(VerticalAlign.bottom, () => correctedY)
+            .exhaustive()
+
+        return [x, renderY]
     }
 
     renderHTML(): React.ReactElement | null {
@@ -280,24 +296,24 @@ export class TextWrap {
     }
 
     renderSVG(x: number, y: number, options: SVGRenderProps = {}) {
-        const { props, lines, fontSize, fontWeight, lineHeight } = this
+        const { props, lines, fontSize, fontWeight } = this
 
         if (lines.length === 0) return <></>
 
-        const [correctedX, correctedY] = this.getPositionForSvgRendering(x, y)
+        const [renderX, renderY] = this.getPositionForSvgRendering(x, y)
 
         return (
             <text
                 id={options.id}
                 fontSize={fontSize.toFixed(2)}
                 fontWeight={fontWeight}
-                x={correctedX.toFixed(1)}
-                y={correctedY.toFixed(1)}
+                x={renderX.toFixed(1)}
+                y={renderY.toFixed(1)}
                 {...options.textProps}
             >
                 {lines.map((line, i) => {
-                    const x = correctedX
-                    const y = correctedY + lineHeight * fontSize * i
+                    const x = renderX
+                    const y = renderY + this.singleLineHeight * i
 
                     if (props.rawHtml)
                         return (
