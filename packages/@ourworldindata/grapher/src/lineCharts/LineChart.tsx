@@ -39,6 +39,7 @@ import {
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
+    GRAPHER_OPACITY_MUTE,
 } from "../core/GrapherConstants"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
@@ -57,7 +58,6 @@ import {
     VARIABLE_COLOR_MARKER_RADIUS,
     STATIC_SMALL_MARKER_RADIUS,
     DEFAULT_MARKER_RADIUS,
-    NON_FOCUSED_LINE_COLOR,
     LINE_CHART_CLASS_NAME,
 } from "./LineChartConstants"
 import { CoreColumn } from "@ourworldindata/core-table"
@@ -71,7 +71,7 @@ import {
 } from "../chart/ChartUtils"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
 import { ColorScale } from "../color/ColorScale"
-import { GRAPHER_BACKGROUND_DEFAULT, GRAY_50 } from "../color/ColorConstants"
+import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
 import { darkenColorForLine } from "../color/ColorUtils"
 import {
     HorizontalColorLegendManager,
@@ -252,28 +252,27 @@ export class LineChart
                     stroke="rgba(180,180,180,.4)"
                 />
                 {this.renderSeries.map((series, index) => {
-                    const value = series.points.find(
+                    const point = series.points.find(
                         (point) => point.x === activeX
                     )
-                    if (!value || series.hover.background) return null
+                    if (!point || series.hover.background) return null
 
-                    const valueColor = this.hasColorScale
+                    const color = this.hasColorScale
                         ? darkenColorForLine(
                               this.chartState.getColorScaleColor(
-                                  value.colorValue
+                                  point.colorValue
                               )
                           )
                         : series.color
-                    const color =
-                        !series.focus.background || series.hover.active
-                            ? valueColor
-                            : GRAY_50
+                    const opacity = series.focus?.background
+                        ? GRAPHER_OPACITY_MUTE
+                        : 1
 
                     return (
                         <circle
                             key={getSeriesKey(series, index)}
-                            cx={horizontalAxis.place(value.x)}
-                            cy={verticalAxis.place(value.y)}
+                            cx={horizontalAxis.place(point.x)}
+                            cy={verticalAxis.place(point.y)}
                             r={this.lineStrokeWidth / 2 + 3.5}
                             fill={color}
                             stroke={
@@ -281,6 +280,7 @@ export class LineChart
                                 GRAPHER_BACKGROUND_DEFAULT
                             }
                             strokeWidth={0.5}
+                            opacity={opacity}
                         />
                     )
                 })}
@@ -403,16 +403,15 @@ export class LineChart
                             series.focus.background ||
                             point === undefined
 
-                        const color = blurred
-                            ? NON_FOCUSED_LINE_COLOR
-                            : this.hasColorScale
-                              ? darkenColorForLine(
-                                    this.chartState.getColorScaleColor(
-                                        point?.colorValue
-                                    )
-                                )
-                              : series.color
-                        const swatch = { color }
+                        const color = this.hasColorScale
+                            ? darkenColorForLine(
+                                  this.chartState.getColorScaleColor(
+                                      point?.colorValue
+                                  )
+                              )
+                            : series.color
+                        const opacity = blurred ? GRAPHER_OPACITY_MUTE : 1
+                        const swatch = { color, opacity }
 
                         const values = excludeUndefined([
                             point?.y,

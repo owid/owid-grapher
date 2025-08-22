@@ -36,7 +36,7 @@ export class FocusArray {
      * all series are in the foreground by default) or the
      * series itself is currently focused.
      */
-    isInForeground(seriesName: SeriesName): boolean {
+    private isInForeground(seriesName: SeriesName): boolean {
         return this.isEmpty || this.has(seriesName)
     }
 
@@ -45,7 +45,7 @@ export class FocusArray {
      * is currently in focus mode but the given series isn't
      * focused.
      */
-    isInBackground(seriesName: SeriesName): boolean {
+    private isInBackground(seriesName: SeriesName): boolean {
         return !this.isEmpty && !this.has(seriesName)
     }
 
@@ -56,7 +56,9 @@ export class FocusArray {
      */
     state(seriesName: SeriesName): InteractionState {
         return {
+            idle: this.isEmpty,
             active: this.has(seriesName),
+            foreground: this.isInForeground(seriesName),
             background: this.isInBackground(seriesName),
         }
     }
