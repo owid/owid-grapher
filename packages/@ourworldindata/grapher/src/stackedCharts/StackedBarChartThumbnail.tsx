@@ -138,6 +138,9 @@ export class StackedBarChartThumbnail
         return new VerticalLabelsState(series, {
             fontSize: this.labelFontSize,
             maxWidth: 0.25 * this.bounds.width,
+            // Expand bounds a little bit, allowing labels to extend slightly
+            // beyond the chart's normal boundaries
+            yRange: this.bounds.expand(6).yRange(),
             resolveCollision: (
                 s1: InitialVerticalLabelsSeries,
                 s2: InitialVerticalLabelsSeries
