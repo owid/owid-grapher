@@ -1,7 +1,3 @@
-import { GRAY_70 } from "../color/ColorConstants.js"
-
-// text color for labels of background series
-export const NON_FOCUSED_TEXT_COLOR = GRAY_70
 // Minimum vertical space between two legend items
 export const LEGEND_ITEM_MIN_SPACING = 4
 // Horizontal distance from the end of the chart to the start of the marker

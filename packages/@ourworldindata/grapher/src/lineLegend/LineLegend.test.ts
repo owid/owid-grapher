@@ -102,8 +102,10 @@ describe("dropping labels", () => {
         const seriesWithFocus = series.map((s) => ({
             ...s,
             focus: {
+                idle: false,
                 active: s.seriesName === "Mexico",
                 background: s.seriesName !== "Mexico",
+                foreground: s.seriesName === "Mexico",
             },
         }))
 
