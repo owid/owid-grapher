@@ -130,6 +130,22 @@ describe(placeGrapherTabsInMediumVariantGridLayout, () => {
                 { tab: Table, slot: MediumVariantGridSlot.Quad },
             ])
         })
+
+        it("drops the DiscreteBar tab in favour of a wider table", () => {
+            const tabs = [LineChart, Table, WorldMap, DiscreteBar]
+            const result = placeGrapherTabsInMediumVariantGridLayout(tabs, {
+                tableType: "data-table",
+                hasDataDisplay: false,
+                numDataTableRows: 6,
+                numDataTableRowsPerColumn: 4,
+            })
+
+            expect(result).toEqual([
+                { tab: LineChart, slot: MediumVariantGridSlot.Single },
+                { tab: Table, slot: MediumVariantGridSlot.Double },
+                { tab: WorldMap, slot: MediumVariantGridSlot.Single },
+            ])
+        })
     })
 
     describe("when there is a data display on the right", () => {
@@ -193,6 +209,22 @@ describe(placeGrapherTabsInMediumVariantGridLayout, () => {
             expect(result).toEqual([
                 { tab: LineChart, slot: MediumVariantGridSlot.Single },
                 { tab: Table, slot: MediumVariantGridSlot.Single },
+            ])
+        })
+
+        it("assigns a small slot to the DiscreteBar tab in favour of a wider table", () => {
+            const tabs = [LineChart, Table, DiscreteBar]
+            const result = placeGrapherTabsInMediumVariantGridLayout(tabs, {
+                tableType: "data-table",
+                hasDataDisplay: true,
+                numDataTableRows: 6,
+                numDataTableRowsPerColumn: 4,
+            })
+
+            expect(result).toEqual([
+                { tab: LineChart, slot: MediumVariantGridSlot.Single },
+                { tab: Table, slot: MediumVariantGridSlot.Double },
+                { tab: DiscreteBar, slot: MediumVariantGridSlot.SmallLeft },
             ])
         })
     })
