@@ -26,10 +26,10 @@ import {
 } from "./SearchChartHitRichDataTypes.js"
 
 export function getSortedGrapherTabsForChartHit(
-    grapherState: GrapherState,
-    maxTabs = 5
+    grapherState: GrapherState
 ): GrapherTabName[] {
-    const { Table, LineChart, Marimekko, WorldMap } = GRAPHER_TAB_NAMES
+    const { Table, LineChart, Marimekko, WorldMap, DiscreteBar } =
+        GRAPHER_TAB_NAMES
 
     // Original chart config before search customizations
     // (entity selection, tab switching, etc.)
@@ -67,10 +67,17 @@ export function getSortedGrapherTabsForChartHit(
         sortedTabs.push(Marimekko)
     }
 
-    // Fill up the remaining positions
-    sortedTabs.push(...availableTabs.filter((tab) => !sortedTabs.includes(tab)))
+    // Fill up the remaining positions, with the discrete bar chart last
+    const remainingTabs = availableTabs.filter(
+        (tab) => !sortedTabs.includes(tab)
+    )
+    const remainingTabsExceptDiscreteBar = remainingTabs.filter(
+        (tab) => tab !== DiscreteBar
+    )
+    sortedTabs.push(...remainingTabsExceptDiscreteBar)
+    if (remainingTabs.includes(DiscreteBar)) sortedTabs.push(DiscreteBar)
 
-    return sortedTabs.slice(0, maxTabs)
+    return sortedTabs
 }
 
 export function pickEntitiesForDisplay(
@@ -342,7 +349,7 @@ function configureGrapherStateForDataPoints(
     }
 }
 
-function getTableColumnCountForGridSlot(slot: GridSlot): number {
+export function getTableColumnCountForGridSlot(slot: GridSlot): number {
     return (
         match(slot)
             // medium variant grid slots
