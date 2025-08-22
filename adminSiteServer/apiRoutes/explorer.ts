@@ -14,7 +14,7 @@ import { triggerStaticBuild } from "./routeUtils.js"
 import {
     saveGrapherConfigToR2ByUUID,
     deleteGrapherConfigFromR2ByUUID,
-} from "../chartConfigR2Helpers.js"
+} from "../R2/chartConfigR2Helpers.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 import pMap from "p-map"
 
