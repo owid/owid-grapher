@@ -258,7 +258,10 @@ export function configureGrapherStateForLayout(
 
     // For stacked discrete bar charts, we display multiple stacked bars in the
     // chart but the data table only shows values for one entity
-    if (grapherState.isStackedDiscreteBar) {
+    if (
+        grapherState.isStackedDiscreteBar &&
+        grapherState.yColumnSlugs.length === 1
+    ) {
         // Find the entity that is displayed in the table
         const chartState =
             grapherState.chartState as StackedDiscreteBarChartState
