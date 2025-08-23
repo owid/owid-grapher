@@ -134,13 +134,17 @@ export class MapSparkline extends React.Component<MapSparklineProps> {
                     unit: yAxisUnit,
                     numberAbbreviation: "short",
                 },
-                // Copy min/max from top-level Grapher config if Y column == Map column
-                min: this.manager.mapAndYColumnAreTheSame
-                    ? this.manager.yAxisConfig?.min
-                    : undefined,
-                max: this.manager.mapAndYColumnAreTheSame
-                    ? this.manager.yAxisConfig?.max
-                    : undefined,
+                // Copy min/max from top-level Grapher config if Y column == Map column.
+                // Important: do not set min/max to undefined, otherwise we override
+                // LineChart's default of min: 0 with an explicit undefined.
+                ...(this.manager.mapAndYColumnAreTheSame &&
+                this.manager.yAxisConfig?.min !== undefined
+                    ? { min: this.manager.yAxisConfig.min }
+                    : {}),
+                ...(this.manager.mapAndYColumnAreTheSame &&
+                this.manager.yAxisConfig?.max !== undefined
+                    ? { max: this.manager.yAxisConfig.max }
+                    : {}),
                 ticks: [
                     // Show minimum and zero (maximum is added by hand in render so it's never omitted)
                     { value: -Infinity, priority: 2 },
