@@ -304,7 +304,7 @@ getPlainRouteWithROTransaction(
     "/data-insights{/:pageNumberOrSlug}",
     async (req, res, trx) => {
         const topicName = req.query.topic as string | undefined
-        const topic: TopicTag | undefined = topicName
+        const topicTag: TopicTag | undefined = topicName
             ? {
                   name: topicName,
                   slug: await getSlugForTopicTag(trx, topicName),
@@ -312,20 +312,20 @@ getPlainRouteWithROTransaction(
             : undefined
 
         const totalPageCount = calculateDataInsightIndexPageCount(
-            await db.getPublishedDataInsightCount(trx, topic?.slug)
+            await db.getPublishedDataInsightCount(trx, topicTag?.slug)
         )
 
-        if (topic && topic.slug !== undefined) {
+        if (topicTag && topicTag.slug !== undefined) {
             // if topic slug is not a valid topic, return NotFound page
             const validTopicSlugs = await db.getAllTopicSlugs(trx)
-            if (!validTopicSlugs.includes(topic.slug)) {
+            if (!validTopicSlugs.includes(topicTag.slug)) {
                 return res.status(404).send(renderNotFoundPage())
             }
         }
         async function renderIndexPage(
             pageNumber: number,
             dataInsights: GdocDataInsight[],
-            topic?: TopicTag
+            topicTag?: TopicTag
         ) {
             // calling fetchImageMetadata 20 times makes me sad, would be nice if we could cache this
             await Promise.all(
@@ -336,7 +336,7 @@ getPlainRouteWithROTransaction(
                 pageNumber,
                 totalPageCount,
                 true,
-                topic
+                topicTag
             )
         }
         const pageNumberOrSlug = req.params.pageNumberOrSlug
@@ -344,9 +344,9 @@ getPlainRouteWithROTransaction(
             const dataInsights = await GdocDataInsight.getPublishedDataInsights(
                 trx,
                 0,
-                topic?.slug
+                topicTag?.slug
             )
-            return res.send(await renderIndexPage(0, dataInsights, topic))
+            return res.send(await renderIndexPage(0, dataInsights, topicTag))
         }
 
         // pageNumber is 1-indexed, but DB operations are 0-indexed
@@ -360,14 +360,14 @@ getPlainRouteWithROTransaction(
             const dataInsights = await GdocDataInsight.getPublishedDataInsights(
                 trx,
                 pageNumber,
-                topic?.slug
+                topicTag?.slug
             )
             // if no data insights are found, return NotFound page
             if (dataInsights.length === 0) {
                 return res.status(404).send(renderNotFoundPage())
             }
             return res.send(
-                await renderIndexPage(pageNumber, dataInsights, topic)
+                await renderIndexPage(pageNumber, dataInsights, topicTag)
             )
         }
 

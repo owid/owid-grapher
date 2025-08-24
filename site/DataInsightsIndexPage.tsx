@@ -20,7 +20,7 @@ export interface DataInsightsIndexPageProps {
     pageNumber: number
     totalPageCount: number
     isPreviewing?: boolean
-    topic?: TopicTag
+    topicTag?: TopicTag
 }
 
 export type TopicTag = {

@@ -250,7 +250,7 @@ export const renderDataInsightsIndexPage = (
     page: number = 0,
     totalPageCount: number,
     isPreviewing: boolean = false,
-    topic?: TopicTag
+    topicTag?: TopicTag
 ) => {
     return renderToHtmlPage(
         <DataInsightsIndexPage
@@ -259,7 +259,7 @@ export const renderDataInsightsIndexPage = (
             pageNumber={page}
             totalPageCount={totalPageCount}
             isPreviewing={isPreviewing}
-            topic={topic}
+            topicTag={topicTag}
         />
     )
 }

@@ -94,7 +94,7 @@ const Pagination = (props: {
 export const DataInsightsIndexPageContent = (
     props: DataInsightsIndexPageProps
 ) => {
-    const { pageNumber, dataInsights, isPreviewing = false, topic } = props
+    const { pageNumber, dataInsights, isPreviewing = false, topicTag } = props
     // Extract all attachments from the data insights and supply them to the AttachmentsContext
     const { imageMetadata, linkedAuthors, linkedCharts, linkedDocuments } =
         dataInsights.reduce(
@@ -141,9 +141,9 @@ export const DataInsightsIndexPageContent = (
                         Bite-sized insights on how the world is changing,
                         published every few days.
                     </p>
-                    {topic?.name && (
+                    {topicTag?.name && (
                         <FilterPill
-                            name={topic.name}
+                            name={topicTag.name}
                             className="span-cols-6 col-start-5 col-md-start-4 span-md-cols-8 col-sm-start-2 span-sm-cols-12"
                         />
                     )}
@@ -165,7 +165,7 @@ export const DataInsightsIndexPageContent = (
                 <Pagination
                     totalPageCount={props.totalPageCount}
                     pageNumber={props.pageNumber}
-                    topicName={props.topic?.name}
+                    topicName={props.topicTag?.name}
                 />
                 <DataInsightsNewsletterBanner />
             </AttachmentsContext.Provider>
