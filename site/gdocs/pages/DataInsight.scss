@@ -287,19 +287,22 @@
                 background-color: $blue-10;
                 box-shadow: inset 0 0 0 1px $blue-10;
             }
-            .name {
-                @include note-13-medium;
-                color: $blue-90;
-            }
-            .icon {
-                color: $blue-60;
-                font-size: 12px;
-            }
-            .close {
-                color: $blue-60;
-                font-size: 11px;
-                line-height: 0;
-            }
+        }
+
+        .filter-pill__name {
+            @include note-13-medium;
+            color: $blue-90;
+        }
+
+        .filter-pill__icon {
+            color: $blue-60;
+            font-size: 12px;
+        }
+
+        .filter-pill__close {
+            color: $blue-60;
+            font-size: 11px;
+            line-height: 0;
         }
     }
 }

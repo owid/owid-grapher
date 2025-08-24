@@ -190,9 +190,9 @@ export function FilterPill({
             className={cx("filter-button", className)}
         >
             <span className="filter-pill">
-                <FontAwesomeIcon className="icon" icon={faTag} />
-                <span className="name">{nameLabel}</span>
-                <span className="close">
+                <FontAwesomeIcon className="filter-pill__icon" icon={faTag} />
+                <span className="filter-pill__name">{nameLabel}</span>
+                <span className="filter-pill__close">
                     <FontAwesomeIcon icon={faClose} />
                 </span>
             </span>
