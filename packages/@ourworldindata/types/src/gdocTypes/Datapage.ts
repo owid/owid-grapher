@@ -51,7 +51,7 @@ export interface DataPageDataV2 {
     chartConfig: Record<string, unknown>
     unit?: string
     unitConversionFactor?: number
-    dataInsights?: DataInsightLink[]
+    hasDataInsights?: boolean
 }
 
 export interface DataPageRelatedResearch {

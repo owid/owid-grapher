@@ -6,7 +6,6 @@ import {
     excludeUndefined,
     urlToSlug,
     mergeGrapherConfigs,
-    EnrichedBlockImage,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import {
@@ -48,7 +47,11 @@ import { getDatapageDataV2 } from "../site/dataPage.js"
 import { getAllImages } from "../db/model/Image.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
-import { deleteOldGraphers, getTagToSlugMap } from "./GrapherBakingUtils.js"
+import {
+    deleteOldGraphers,
+    getTagToHasDataInsightsMap,
+    getTagToSlugMap,
+} from "./GrapherBakingUtils.js"
 import { knexRaw } from "../db/db.js"
 import { getRelatedChartsForVariable } from "../db/model/Chart.js"
 import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
@@ -56,7 +59,6 @@ import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
 import { GrapherArchivalManifest } from "../serverUtils/archivalUtils.js"
 import { getLatestChartArchivedVersionsIfEnabled } from "../db/model/archival/archivalDb.js"
-import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -243,42 +245,11 @@ export async function renderDataPageV2(
         )
 
         tagToSlugMap = await getTagToSlugMap(knex)
+        const tagToHasDataInsightsMap = await getTagToHasDataInsightsMap(knex)
 
-        if (datapageData.primaryTopic?.topicTag) {
-            const dataInsights = await GdocDataInsight.getPublishedDataInsights(
-                knex,
-                0,
-                tagToSlugMap[datapageData.primaryTopic?.topicTag]
-            )
-
-            datapageData.dataInsights = dataInsights.map((row) => {
-                const firstImageIndex = row.content.body.findIndex(
-                    (block) => block.type === "image"
-                )
-                const firstImageBlock = row.content.body[firstImageIndex] as
-                    | EnrichedBlockImage
-                    | undefined
-                const imgFilename =
-                    firstImageBlock?.smallFilename || firstImageBlock?.filename
-
-                return {
-                    title: row.content?.title,
-                    slug: row.slug,
-                    imgFilename,
-                }
-            })
-            const dataInsightFilenames = datapageData.dataInsights
-                .map((insight) => insight.imgFilename)
-                .filter((x) => x !== undefined)
-
-            imageMetadata = {
-                ...imageMetadata,
-                ..._.pick(
-                    imageMetadataDictionary,
-                    _.uniq(dataInsightFilenames)
-                ),
-            }
-        }
+        datapageData.hasDataInsights = datapageData.primaryTopic?.topicTag
+            ? tagToHasDataInsightsMap[datapageData.primaryTopic?.topicTag]
+            : false
     }
 
     let canonicalUrl: string

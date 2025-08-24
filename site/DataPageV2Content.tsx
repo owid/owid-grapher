@@ -98,12 +98,10 @@ export const DataPageV2Content = ({
     )
 
     // insight link for when only a single link is shown
-    // note: this is the only place we are currently using datapageData.dataInsights,
-    // but we anticipate using it more for subsequent experiments.
     let insightsHref: string | undefined
     if (datapageData.primaryTopic) {
         const topicSlug = tagToSlugMap[datapageData.primaryTopic.topicTag]
-        if (datapageData.dataInsights?.length) {
+        if (datapageData.hasDataInsights) {
             insightsHref = `/data-insights${queryParamsToStr({ topic: datapageData.primaryTopic.topicTag })}`
         } else {
             insightsHref = `/${topicSlug}`

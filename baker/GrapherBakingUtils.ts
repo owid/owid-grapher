@@ -4,7 +4,12 @@ import { glob } from "glob"
 import * as R from "remeda"
 
 import * as db from "../db/db.js"
-import { DbPlainTag, Url } from "@ourworldindata/utils"
+import {
+    DbPlainTag,
+    Url,
+    PostsGdocsTableName,
+    OwidGdocType,
+} from "@ourworldindata/utils"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 import { hashMd5 } from "../serverUtils/hash.js"
 
@@ -56,6 +61,52 @@ export async function getTagToSlugMap(
     }
 
     return tagsByIdAndName
+}
+
+/**
+ * Returns a map that can resolve Tag names and Tag IDs to whether the tag has any published data insights.
+ * e.g.
+ *   "Women's Rights" -> true
+ *   123 -> true
+ */
+export async function getTagToHasDataInsightsMap(
+    knex: db.KnexReadonlyTransaction
+): Promise<Record<string | number, boolean>> {
+    // Query for tags and whether they have any published data insights
+    const rows = await db.knexRaw<
+        Pick<DbPlainTag, "name" | "id" | "slug"> & { hasDataInsight: boolean }
+    >(
+        knex,
+        `
+        SELECT
+        t.id,
+        t.name,
+        t.slug,
+        EXISTS (
+            SELECT 1
+            FROM ${PostsGdocsTableName} pg
+            JOIN ${PostsGdocsTableName}_x_tags as pgt ON pg.id = pgt.gdocId
+            WHERE
+                pgt.tagId = t.id
+                AND pg.type = "${OwidGdocType.DataInsight}"
+                AND pg.published = 1
+                AND pg.publishedAt <= NOW()
+        ) AS hasDataInsight
+        FROM tags t
+        WHERE t.slug IS NOT NULL
+        `
+    )
+
+    const map: Record<string | number, boolean> = {}
+    for (const row of rows) {
+        const hasDataInsight = !!row.hasDataInsight
+        if (row.slug) {
+            map[row.name] = hasDataInsight
+            map[row.id] = hasDataInsight
+        }
+    }
+
+    return map
 }
 
 /**
