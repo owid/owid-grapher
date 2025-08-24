@@ -19,8 +19,8 @@ import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
 import {
     EXPERIMENT_ARM_SEPARATOR,
     EXPERIMENT_PREFIX,
-} from "@ourworldindata/types"
-import { ServerCookie } from "../experiments/types.js"
+} from "@ourworldindata/utils"
+import { ServerCookie } from "../_common/experiments.js"
 import * as cookie from "cookie"
 
 const { preflight, corsify } = cors({
@@ -160,10 +160,10 @@ async function handleHtmlPageRequest(
         new Set(
             Object.entries(combinedCookies)
                 .filter(([key]) => key.startsWith(`${EXPERIMENT_PREFIX}-`))
-                .map(([key, value]) => {
-                    const armId = value.split("&")[0].split(":")[1] // expects cookie value like "arm:{armId}&replayRate:..."
-                    return `${key}${EXPERIMENT_ARM_SEPARATOR}${armId}`
-                })
+                .map(
+                    ([key, value]) =>
+                        `${key}${EXPERIMENT_ARM_SEPARATOR}${value}`
+                )
         )
     )
 

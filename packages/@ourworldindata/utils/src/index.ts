@@ -315,3 +315,14 @@ export {
     getDateForArchival,
     parseArchivalDate,
 } from "./archival/archivalDate.js"
+
+export { experiments } from "./experiments/config.js"
+export {
+    Experiment,
+    validateUniqueExperimentIds,
+    type ExperimentArm,
+} from "./experiments/Experiment.js"
+export {
+    EXPERIMENT_ARM_SEPARATOR,
+    EXPERIMENT_PREFIX,
+} from "./experiments/constants.js"

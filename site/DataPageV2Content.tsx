@@ -9,9 +9,6 @@ import {
 import {
     EXPERIMENT_ARM_SEPARATOR,
     EXPERIMENT_PREFIX,
-} from "@ourworldindata/types"
-import { RelatedCharts } from "./blocks/RelatedCharts.js"
-import {
     DataPageV2ContentFields,
     GrapherInterface,
     joinTitleFragments,
@@ -19,6 +16,7 @@ import {
     excludeNull,
     queryParamsToStr,
 } from "@ourworldindata/utils"
+import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import StickyNav from "./blocks/StickyNav.js"
 import {
     ADMIN_BASE_URL,

@@ -1,16 +1,5 @@
-import {
-    ExperimentInterface,
-    Arm,
-    CookiePath,
-    makeFraction,
-    makeCookiePath,
-    makeISODateString,
-} from "./types.js"
 import { validateUniqueStrings } from "./utils.js"
-import {
-    EXPERIMENT_ARM_SEPARATOR,
-    EXPERIMENT_PREFIX,
-} from "@ourworldindata/types"
+import { EXPERIMENT_ARM_SEPARATOR, EXPERIMENT_PREFIX } from "./constants.js"
 
 const DEFAULT_COOKIE_EXPIRY = new Date(Date.now() + 7 * (24 * 60 * 60 * 1000)) // cookie expires in 7 days
 
@@ -20,11 +9,10 @@ const DEFAULT_COOKIE_EXPIRY = new Date(Date.now() + 7 * (24 * 60 * 60 * 1000)) /
  * The `Experiment` class provides configuration and validation logic for an experiment,
  * including the experiment's unique identifier, expiration date, arms (variants), and applicable cookie paths.
  *
- * @implements {ExperimentInterface}
  *
  * @property {string} id - Unique identifier for the experiment.
  * @property {Date} expires - The expiration date of the experiment.
- * @property {Arm[]} arms - The list of arms (variants) in the experiment, each with its own fraction.
+ * @property {ExperimentArm[]} arms - The list of arms (variants) in the experiment, each with its own fraction.
  * @property {CookiePath[]} paths - The list of cookie paths where the experiment applies.
  *
  * @method getArmById - Retrieves an arm by its unique identifier.
@@ -33,27 +21,20 @@ const DEFAULT_COOKIE_EXPIRY = new Date(Date.now() + 7 * (24 * 60 * 60 * 1000)) /
  * @throws {Error} If the sum of arm fractions does not equal 1, if arm IDs are not unique, or if
  * any `${experimentId}-${armId}` exceeds 100 characters.
  */
-export class Experiment implements ExperimentInterface {
+export class Experiment {
     id: string
     expires: Date
-    arms: Arm[]
-    paths: CookiePath[]
+    arms: ExperimentArm[]
+    paths: string[]
 
     constructor(data: RawExperiment) {
         this.id = `${EXPERIMENT_PREFIX}-${data.id}`
         this.expires =
             data.expires !== undefined
-                ? new Date(makeISODateString(data.expires))
+                ? new Date(data.expires)
                 : DEFAULT_COOKIE_EXPIRY
-        this.arms = data.arms.map((a) => ({
-            id: a.id,
-            fraction: makeFraction(a.fraction),
-            replaysSessionSampleRate:
-                a.replaysSessionSampleRate !== undefined
-                    ? makeFraction(a.replaysSessionSampleRate)
-                    : undefined,
-        }))
-        this.paths = data.paths.map(makeCookiePath)
+        this.arms = data.arms
+        this.paths = data.paths
 
         this.validate()
     }
@@ -92,7 +73,7 @@ export class Experiment implements ExperimentInterface {
         )
     }
 
-    getArmById(id: string): Arm | undefined {
+    getArmById(id: string): ExperimentArm | undefined {
         return this.arms.find((a) => a.id === id)
     }
 
@@ -126,8 +107,17 @@ export class Experiment implements ExperimentInterface {
             if (url.startsWith(path) && url.charAt(path.length) === "/") {
                 return true
             }
+
+            // If none of the above, return false
+            return false
         })
     }
+}
+
+export type ExperimentArm = {
+    id: string // unique arm id
+    fraction: number // fraction of visitors to assign to this arm
+    replaysSessionSampleRate?: number // session replay sample rate for this arm
 }
 
 type RawArm = {
