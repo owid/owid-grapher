@@ -834,14 +834,6 @@ export class SiteBaker {
             publishedDataInsights.length
         )
 
-        // temporary: bake all data insights to dataInsights.json to allow
-        // for a topic-filtered view of the feed (for the purposes of a data
-        // pages experiment).
-        await this.stageWrite(
-            `${this.bakedSiteDir}/dataInsights.json`,
-            JSON.stringify(publishedDataInsights)
-        )
-
         for (let pageNumber = 0; pageNumber < totalPageCount; pageNumber++) {
             const html = renderDataInsightsIndexPage(
                 publishedDataInsights.slice(
@@ -860,6 +852,24 @@ export class SiteBaker {
             await fs.mkdirp(path.dirname(outPath))
             await this.stageWrite(outPath, html)
         }
+
+        // bake all data insights to dataInsights.json to allow for a topic-filtered
+        // view of the feed (temporary, for the purposes of a data pages experiment).
+        const publishedDataInsightsForJson = publishedDataInsights.map((di) => {
+            // removes fields that are omitted from <DataInsightBody /> props
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { markdown, publicationContext, revisionId, ...rest } = di
+
+            // removes data that isn't need for rendering the feed page (based on comments in DataInsightsIndexPageContent.tsx)
+            // (but we kep tags b/c we need it to filter dataInsights.json)
+            rest.linkedIndicators = {}
+            rest.latestDataInsights = []
+            return rest
+        })
+        await this.stageWrite(
+            `${this.bakedSiteDir}/dataInsights.json`,
+            JSON.stringify(publishedDataInsightsForJson)
+        )
     }
 
     private async bakeAuthors(knex: db.KnexReadonlyTransaction) {

@@ -602,29 +602,32 @@ getPlainRouteWithROTransaction(
     async (req, res, trx) => {
         const publishedDataInsights =
             await GdocDataInsight.getPublishedDataInsights(trx)
-        for (const dataInsight of publishedDataInsights) {
-            // removes data that isn't need for rendering the feed page
-            dataInsight.latestDataInsights = []
-            dataInsight.linkedCharts = {}
-            dataInsight.linkedIndicators = {}
-            dataInsight.linkedDocuments = {}
-            dataInsight.linkedNarrativeCharts = {}
-            const firstImageIndex = dataInsight.content.body.findIndex(
+        const publishedDataInsightsForJson = publishedDataInsights.map((di) => {
+            const firstImageIndex = di.content.body.findIndex(
                 (block) => block.type === "image"
             )
-            const firstImageBlock = dataInsight.content.body[
-                firstImageIndex
-            ] as EnrichedBlockImage | undefined
+            const firstImageBlock = di.content.body[firstImageIndex] as
+                | EnrichedBlockImage
+                | undefined
             const imgFilename =
                 firstImageBlock?.smallFilename || firstImageBlock?.filename
             if (imgFilename) {
-                dataInsight.imageMetadata = {
-                    [imgFilename]: dataInsight.imageMetadata[imgFilename],
+                di.imageMetadata = {
+                    [imgFilename]: di.imageMetadata[imgFilename],
                 }
             }
-        }
-        // const data = db.generateTopicDataInsightsGraph(publishedDataInsights)
-        res.send(publishedDataInsights)
+
+            // removes fields that are omitted from <DataInsightBody /> props
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { markdown, publicationContext, revisionId, ...rest } = di
+            // removes data that isn't need for rendering the feed page (based on comments in DataInsightsIndexPageContent.tsx)
+            // (but we kep tags b/c we need it to filter dataInsights.json)
+            rest.linkedIndicators = {}
+            rest.latestDataInsights = []
+
+            return rest
+        })
+        res.send(publishedDataInsightsForJson)
     }
 )
 
