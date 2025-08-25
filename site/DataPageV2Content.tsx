@@ -4,6 +4,7 @@ import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import {
     REUSE_THIS_WORK_SECTION_ID,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
+    DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
     Button,
 } from "@ourworldindata/components"
 import {
@@ -15,6 +16,8 @@ import {
     ImageMetadata,
     excludeNull,
     queryParamsToStr,
+    getAssignedExperiments,
+    experiments,
 } from "@ourworldindata/utils"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -108,6 +111,21 @@ export const DataPageV2Content = ({
         }
     }
 
+    // note: assignedExperiments and isPageInExperiment should NOT be used to
+    // conditionally render content b/c it will cause a flash of content before js loads.
+    const assignedExperiments = getAssignedExperiments()
+    const isPageInExperiment = useMemo(() => {
+        if (typeof window === "undefined") return false
+
+        const currentPath = window.location.pathname
+        const experimentMap = new Map(experiments.map((exp) => [exp.id, exp]))
+
+        return Object.keys(assignedExperiments).some((expId: string) => {
+            const exp = experimentMap.get(expId)
+            return exp?.isUrlInPaths(currentPath) ?? false
+        })
+    }, [assignedExperiments])
+
     return (
         <AttachmentsContext.Provider
             value={{
@@ -196,11 +214,18 @@ export const DataPageV2Content = ({
                                     "exp-data-page-insight-buttons-basic--treat0--hide",
                                     "exp-data-page-insight-buttons-basic--treat1--hide"
                                 )}
-                                    "exp-data-page-insight-buttons-basic--control1__block",
-                                    "exp-data-page-insight-buttons-basic--treat0__block",
-                                    "exp-data-page-insight-buttons-basic--treat1__block",
-                                    "exp-hide"
-                                )}
+                                id={
+                                    // if visitor is assigned to an arm other than
+                                    // the pure control, don't give this section an id
+                                    isPageInExperiment &&
+                                    ["control1", "treat0", "treat1"].includes(
+                                        assignedExperiments[
+                                            "exp-data-page-insight-buttons-basic"
+                                        ]
+                                    )
+                                        ? ""
+                                        : DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
+                                }
                             />
                         </div>
                     </div>
@@ -236,7 +261,18 @@ export const DataPageV2Content = ({
                                 "exp-data-page-insight-buttons-basic--treat0--show",
                                 "exp-data-page-insight-buttons-basic--treat1--show"
                             )}
-                            id="about-the-data" // this must be slightly different than DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
+                            id={
+                                // if visitor is assigned to an arm other than
+                                // the pure control, give this section an id
+                                isPageInExperiment &&
+                                ["control1", "treat0", "treat1"].includes(
+                                    assignedExperiments[
+                                        "exp-data-page-insight-buttons-basic"
+                                    ]
+                                )
+                                    ? DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
+                                    : ""
+                            }
                         />
                     </div>
                     <MetadataSection
@@ -281,8 +317,8 @@ const InsightLinksInsightButtonsBasic = ({
             >
                 <Button
                     className="insights-link"
-                    href="#about-the-data"
-                    text="Learn about data sources and measurement"
+                    href={`#${DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}`}
+                    text="Learn more about data sources"
                     theme="solid-blue"
                     icon={faArrowDown}
                     dataTrackNote="btn_click__about_the_data"
