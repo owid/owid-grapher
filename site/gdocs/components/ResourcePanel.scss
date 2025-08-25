@@ -65,3 +65,12 @@
         }
     }
 }
+
+// Specifically when the resource panel is used in LTPs, position it explicitly
+// in the first row beneath the header. This means there can only be one
+// resource panel per LTP, but that's currently our only expected usecase.
+.topic-page-header ~ .resource-panel {
+    @include md-up {
+        grid-row: 2 / span 10;
+    }
+}
