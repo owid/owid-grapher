@@ -1,64 +1,161 @@
 import * as Sentry from "@sentry/react"
 import Cookies from "js-cookie"
-import { EXPERIMENT_PREFIX } from "@ourworldindata/types"
-import { isInIFrame } from "@ourworldindata/utils"
+import { getPreferenceValue, PreferenceType } from "./cookiePreferences.js"
+import { experiments, isInIFrame } from "@ourworldindata/utils"
+import {
+    SENTRY_DEFAULT_REPLAYS_SESSION_SAMPLE_RATE,
+    SENTRY_SESSION_STORAGE_KEY,
+    SENTRY_SAMPLED_RATE_KEY,
+} from "@ourworldindata/types"
+import {
+    COMMIT_SHA,
+    ENV,
+    SENTRY_DSN,
+    LOAD_SENTRY,
+} from "../settings/clientSettings.js"
 
-const SENTRY_SAMPLED_RATE_KEY = "sentryReplaySampledRate"
-const SENTRY_SHOULD_RECORD_KEY = "sentryReplayShouldRecord"
-const SENTRY_DEFAULT_REPLAYS_SESSION_SAMPLE_RATE = 0.1
+/** Initializes Sentry for error tracking and session replay
+ *
+ * This function configures Sentry with the appropriate settings and
+ * either samples a session to be recorded (if consent provided) or starts the
+ * recording if sampling has already been conducted this session.
+ *
+ * This function must be called on every page visit in a user session, b/c the session
+ * sample rate can change across pages (e.g. user gets enrolled in an experiment when
+ * visiting a page in the experiment). This change in sample rate should trigger a
+ * resampling of their session for recording (if certain conditions are met).
+ */
+export function initializeSentry(): void {
+    if (!LOAD_SENTRY) return
+
+    const sampleRate = getSessionSampleRate()
+    if (hasSessionBeenSampled()) {
+        // note: if hasSessionBeenSampled() is false, then Sentry.init(...) will do
+        // the initial sampling (if consent provided)
+        maybeSampleSession(sampleRate)
+    }
+
+    Sentry.init({
+        dsn: SENTRY_DSN,
+        environment: ENV,
+        debug: ENV === "development",
+        release: COMMIT_SHA,
+        integrations: [
+            Sentry.replayIntegration({
+                maskAllText: false,
+                maskAllInputs: false,
+                blockAllMedia: false,
+                mask: [".sentry-mask"],
+            }),
+        ],
+        replaysSessionSampleRate: sampleRate,
+        replaysOnErrorSampleRate: 0,
+    })
+}
 
 /**
- * Stop or start a session replay given user's cookie consent.
+ * Checks whether the session should be (re)sampled for recording, and (re)samples
+ * if so.
  *
- * For non-consenting users, we never start replay recording. For consenting users,
- * we sample some non-zero fraction of sessions for recording, where the sampling rate
- * depends on what page the user is on.
- *
- * Logic for sampling replays into recording:
- *
- * On page load, if consent is granted immediately start replay recording if this
- * session has already been sampled into recording. Otherwise, sample this session
- * for possible recording if replay is not already recording and current
- * sampling rate is greater than largest sampled rate of session so far.
- *
- * The reason for this "greater than largest sampled rate of session so far"
- * check is to make sure we re-roll when a visitor encounters a page that
- * has a higher sampling rate. e.g. a visitor lands on home page with
- * sampling rate = 0.1 and their session is not sampled for recording. Then
- * they visit /grapher/population with sampling rate = 0.9. We want to re-roll
- * when they land on /grapher/population.
- *
- * @param isConsentGranted - Whether the user has granted consent for analytics.
- * @returns A Promise that resolves when the replay recording state has been updated.
+ * If recording is not allowed for this session (e.g. user denied consent), stops
+ * the recording immediately.
  */
-export async function stopOrStartReplay(
-    isConsentGranted: boolean
-): Promise<void> {
-    const replay = Sentry.getReplay()
-    if (!replay) return
-
+export function maybeSampleSession(sampleRate: number) {
     try {
-        if (isConsentGranted) {
-            if (sessionStorage.getItem(SENTRY_SHOULD_RECORD_KEY) === "1") {
-                replay.start()
-            } else {
-                const isReplayRecording = !!replay.getReplayId()
-                if (!isReplayRecording) {
-                    const sampledRate = getSessionSampledRate()
-                    const p = computeSessionSampleRate(isConsentGranted)
+        if (!allowRecording()) {
+            console.log("Recording not allowed")
+            void stopSessionRecording()
+            return
+        }
 
-                    if (sampledRate === undefined || p > sampledRate) {
-                        await rerollReplaySampling(p)
-                    }
-                }
+        // no need to do anything if session is already recording
+        if (isSessionRecording()) return
+
+        const lastSampleRate = getSessionLastSampleRate()
+        const shouldResample =
+            sampleRate > 0 &&
+            !hasSessionBeenRecorded() &&
+            (lastSampleRate === undefined || sampleRate > lastSampleRate)
+
+        console.log("has been sampled: ", hasSessionBeenSampled())
+        console.log("has been recorded: ", hasSessionBeenRecorded())
+        console.log("lastSampleRate: ", lastSampleRate)
+        console.log("sampleRate: ", sampleRate)
+
+        if (shouldResample) {
+            console.log("resampling at p = ", sampleRate)
+            setSessionLastSampleRate(sampleRate)
+            if (Math.random() < sampleRate) {
+                console.log("success! Recording this session.")
+                startSessionRecording()
+            } else {
+                console.log("not recording this session.")
             }
         } else {
-            // if consent is denied, stop replay sampling in case it was somehow started
-            await rerollReplaySampling(0)
+            console.log("not sampling")
         }
     } catch {
-        // failed to start or stop replay recording
+        // failed to maybe start session replay
     }
+}
+/**
+ * Checks if the current session has been sampled for Sentry replay recording.
+ *
+ * This does NOT check if the sampling was successful or not (i.e. if the session
+ * was actually recorded or not). It just checks whether sampling was conducted.
+ *
+ * @returns {boolean} True if sampling has been conducted for this session, false otherwise.
+ */
+function hasSessionBeenSampled(): boolean {
+    if (sessionStorage.getItem(SENTRY_SESSION_STORAGE_KEY)) {
+        return true
+    }
+
+    const lastSampleRate = getSessionLastSampleRate()
+    if (lastSampleRate) {
+        return true
+    }
+
+    return false
+}
+
+/**
+ * Checks if the current session was recording (as of the previous page load).
+ *
+ * Usable before Sentry is initialized.
+ *
+ * @returns {boolean} True if sampling was recording, False otherwise.
+ */
+function hasSessionBeenRecorded(): boolean {
+    const replaySession = sessionStorage.getItem(SENTRY_SESSION_STORAGE_KEY)
+    if (!replaySession) return false
+    try {
+        const data = JSON.parse(replaySession)
+        return data.sampled === "session"
+    } catch {
+        return false
+    }
+}
+
+function isSessionRecording(): boolean {
+    const replay = Sentry.getReplay()
+    return !!replay?.getReplayId()
+}
+
+/**
+ * Checks if the current session is allowed to be recorded.
+ *
+ * Returns true if the user has given consent for analytics cookies and the page
+ * is not in an iframe.
+ *
+ * @returns {boolean} True if the session is allowed to be recorded, false otherwise.
+ */
+function allowRecording(): boolean {
+    const analyticsConsent = getPreferenceValue(PreferenceType.Analytics)
+    if (analyticsConsent && !isInIFrame()) {
+        return true
+    }
+    return false
 }
 
 /**
@@ -75,16 +172,16 @@ export async function stopOrStartReplay(
  * @returns {number} The sample rate to use for session replays:
  *   - A number between 0 and 1 representing the probability of recording a session:
  *     - 0 = never record
- *     - 0.1 = record 10% of sessions (default fallback)
+ *     - 0.1 = record 10% of sessions
  *     - 1 = record 100% of sessions
  *   - Uses experiment cookie value if available, otherwise defaults to 0.1
  *
  */
-export function computeSessionSampleRate(isConsentGranted: boolean): number {
+export function getSessionSampleRate(): number {
     let p = 0
-    if (isConsentGranted && !isInIFrame()) {
+    if (allowRecording()) {
         p =
-            parseCookieReplaysSessionSampleRate() ||
+            parseExperimentsSampleRate() ||
             SENTRY_DEFAULT_REPLAYS_SESSION_SAMPLE_RATE
     }
     return p
@@ -96,40 +193,33 @@ export function computeSessionSampleRate(isConsentGranted: boolean): number {
  * This function searches through browser cookies for experiment configurations that contain
  * Sentry replay sample rate overrides.
  *
- * Expected cookie format:
- * - Cookie name: `${EXPERIMENT_PREFIX}-{experimentId}`
- * - Cookie value: `param1:value1&param2:value2&sentrySampleRate:0.5`
- *
  * If multiple experiments specify different sample rates, the highest rate is returned.
  *
  * @returns {number | undefined} The experiment sample rate:
- *   - `undefined` if no experiment cookies contain valid `sentrySampleRate` values
+ *   - `undefined` if no experiment cookie exists or the experiment does not define
+ *      a sample rate.
  *   - A number between 0 and 1 representing the sample rate from experiments:
- *     - 0 = never record replays
+ *     - 0 = never record sessions
  *     - 0.5 = record 50% of sessions
  *     - 1 = record 100% of sessions
  *   - If multiple experiments specify rates, returns the maximum value
  */
-export function parseCookieReplaysSessionSampleRate(): number | undefined {
+function parseExperimentsSampleRate(): number | undefined {
     const allCookies = Cookies.get()
     const expSentrySampleRates: number[] = []
 
-    // Find all experiment cookies
     for (const [cookieName, cookieValue] of Object.entries(allCookies)) {
-        if (!cookieName.startsWith(`${EXPERIMENT_PREFIX}-`) || !cookieValue) {
-            continue
-        }
+        const exp = experiments.find((e) => e.id === cookieName)
+        if (!exp || !cookieValue) continue
 
-        // Parse the cookie value (format: param1:value1&param2:value2)
-        const params = cookieValue.split("&")
-        for (const param of params) {
-            const [key, val] = param.split(":")
-            if (key === "sentrySampleRate" && val) {
-                const num = parseFloat(val)
-                if (!isNaN(num) && num >= 0 && num <= 1) {
-                    expSentrySampleRates.push(num)
-                }
-            }
+        const pathname = window.location.pathname
+        if (!exp.isUrlInPaths(pathname)) continue
+
+        const arm = exp.arms.find((a) => a.id === cookieValue)
+        if (!arm) continue
+
+        if (arm.replaysSessionSampleRate !== undefined) {
+            expSentrySampleRates.push(arm.replaysSessionSampleRate)
         }
     }
 
@@ -139,21 +229,12 @@ export function parseCookieReplaysSessionSampleRate(): number | undefined {
         : undefined
 }
 
-export async function rerollReplaySampling(p: number) {
-    setSessionSampledRate(p)
-    const replay = Sentry.getReplay()
-
-    if (!replay) return
-    if (Math.random() < p) {
-        sessionStorage.setItem(SENTRY_SHOULD_RECORD_KEY, "1")
-        await replay.start()
-    } else {
-        sessionStorage.setItem(SENTRY_SHOULD_RECORD_KEY, "0")
-        await replay.stop()
-    }
-}
-
-export function getSessionSampledRate(): number | undefined {
+/**
+ * Gets the last recorded sample rate for the current session.
+ *
+ * @returns {number | undefined} The last sample rate (or undefined if not set).
+ */
+function getSessionLastSampleRate(): number | undefined {
     const raw = sessionStorage.getItem(SENTRY_SAMPLED_RATE_KEY)
 
     // Return undefined if no value is stored
@@ -165,17 +246,51 @@ export function getSessionSampledRate(): number | undefined {
 
     if (isNaN(num) || num < 0 || num > 1) {
         // Clean up invalid value from sessionStorage
-        setSessionSampledRate(null)
+        setSessionLastSampleRate(null)
         return undefined
     }
 
     return num
 }
 
-export function setSessionSampledRate(p: number | null | undefined) {
+function setSessionLastSampleRate(p: number | null | undefined) {
     if (p === null || p === undefined) {
         sessionStorage.removeItem(SENTRY_SAMPLED_RATE_KEY)
     } else {
         sessionStorage.setItem(SENTRY_SAMPLED_RATE_KEY, p.toString())
     }
+}
+
+/**
+ * Records the user session in Sentry.
+ *
+ * This implementation relies on directly changing sessionStorage managed by Sentry, which is
+ * as an unofficial workaround to ensure recording continues on subsequent page loads.
+ * As of @sentry/react 10.0.0, the official solutions (e.g. using replay.start()) are
+ * not working for our build, b/c they either do not continue the recording across
+ * page loads or do not record page change breadcrumbs in the Sentry session replays UI.
+ */
+function startSessionRecording(): void {
+    const replaySession = sessionStorage.getItem(SENTRY_SESSION_STORAGE_KEY)
+    if (replaySession) {
+        const data = JSON.parse(replaySession)
+        data.sampled = "session"
+        sessionStorage.setItem(SENTRY_SESSION_STORAGE_KEY, JSON.stringify(data))
+    }
+    if (isSentryInitialized() && !isSessionRecording()) {
+        const replay = Sentry.getReplay()
+        replay?.start()
+    }
+}
+
+async function stopSessionRecording(): Promise<void> {
+    setSessionLastSampleRate(null)
+    if (isSentryInitialized() && isSessionRecording()) {
+        const replay = Sentry.getReplay()
+        await replay?.stop()
+    }
+}
+
+function isSentryInitialized(): boolean {
+    return !!Sentry.getClient()
 }

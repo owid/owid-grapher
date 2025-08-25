@@ -15,7 +15,7 @@ import {
     updatePreference,
 } from "./cookiePreferences.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
-import { stopOrStartReplay } from "./SentryUtils.js"
+import { maybeSampleSession, getSessionSampleRate } from "./SentryUtils.js"
 
 const analytics = new SiteAnalytics()
 
@@ -55,7 +55,8 @@ export const CookiePreferencesManager = ({
             analytics_storage: analyticsConsent,
         })
 
-        void stopOrStartReplay(analyticsConsent === "granted")
+        const sampleRate = getSessionSampleRate()
+        maybeSampleSession(sampleRate)
     }, [analyticsConsent])
 
     return (
