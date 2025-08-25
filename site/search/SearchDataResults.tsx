@@ -2,14 +2,22 @@ import { queryCharts, searchQueryKeys } from "./queries.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { useSelectedCountries, useInfiniteSearch } from "./searchHooks.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
-import { SearchChartsResponse, SearchChartHit } from "./searchTypes.js"
+import {
+    SearchChartsResponse,
+    SearchChartHit,
+    SearchChartHitComponentVariant,
+} from "./searchTypes.js"
 import { SearchDataResultsSkeleton } from "./SearchDataResultsSkeleton.js"
 import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
 import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
 
 const analytics = new SiteAnalytics()
 
-export const SearchDataResults = () => {
+export const SearchDataResults = ({
+    isFirstChartLarge,
+}: {
+    isFirstChartLarge: boolean
+}) => {
     const selectedCountries = useSelectedCountries()
 
     const query = useInfiniteSearch<SearchChartsResponse, SearchChartHit>({
@@ -32,14 +40,16 @@ export const SearchDataResults = () => {
                             Data
                         </SearchResultHeader>
                         <ul className="search-data-results__list">
-                            {hits.map((hit, i) => {
-                                const isMediumHit = i < 4
-                                const variant = isMediumHit ? "medium" : "small"
+                            {hits.map((hit, hitIndex) => {
+                                let variant: SearchChartHitComponentVariant =
+                                    hitIndex < 5 ? "medium" : "small"
+                                if (hitIndex === 0 && isFirstChartLarge)
+                                    variant = "large"
 
                                 const onClick = () => {
                                     analytics.logDataCatalogResultClick(
                                         hit,
-                                        i + 1,
+                                        hitIndex + 1,
                                         "search"
                                     )
                                 }

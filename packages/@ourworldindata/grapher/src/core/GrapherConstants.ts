@@ -35,8 +35,8 @@ export const DEFAULT_GRAPHER_WIDTH = 850
 export const DEFAULT_GRAPHER_HEIGHT = 600
 
 // Keep in sync with $grapher-thumbnail-width and $grapher-thumbnail-height in Grapher.scss
-export const GRAPHER_THUMBNAIL_WIDTH = 900
-export const GRAPHER_THUMBNAIL_HEIGHT = 480
+export const GRAPHER_THUMBNAIL_WIDTH = 300
+export const GRAPHER_THUMBNAIL_HEIGHT = 160
 
 export const GRAPHER_SQUARE_SIZE = 540
 
