@@ -26,6 +26,7 @@ import { incomeGroupMap, REAL_FM_INCOME_GROUPS } from "./types.js"
 import { ExpandedFeaturedMetric } from "@ourworldindata/types"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { GRAPHER_ROUTE_FOLDER } from "@ourworldindata/grapher"
+import { MarkdownTextWrap } from "@ourworldindata/components"
 
 const countriesWithVariantNames = new Set(
     countries
@@ -300,4 +301,11 @@ export function maybeAddChangeInPrefix(
     return shouldAddChangeInPrefix
         ? "Change in " + lowerCaseFirstLetterUnlessAbbreviation(title)
         : title
+}
+
+export function toPlaintext(markdown: string): string {
+    return new MarkdownTextWrap({
+        text: markdown,
+        fontSize: 10, // doesn't matter, but is a mandatory field
+    }).plaintext
 }
