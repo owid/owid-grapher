@@ -111,7 +111,7 @@ export class Lines extends React.Component<LinesProps> {
 
         const outline = (
             <LinePath
-                id={makeIdForHumanConsumption("outline", series.seriesName)}
+                id={makeIdForHumanConsumption("outline", series.displayName)}
                 placedPoints={series.placedPoints}
                 stroke={outlineColor}
                 strokeWidth={outlineWidth.toFixed(1)}
@@ -121,7 +121,7 @@ export class Lines extends React.Component<LinesProps> {
         const line =
             this.props.multiColor && !focus.background ? (
                 <MultiColorPolyline
-                    id={makeIdForHumanConsumption("line", series.seriesName)}
+                    id={makeIdForHumanConsumption("line", series.displayName)}
                     points={series.placedPoints}
                     strokeLinejoin="round"
                     strokeWidth={strokeWidth.toFixed(1)}
@@ -130,7 +130,7 @@ export class Lines extends React.Component<LinesProps> {
                 />
             ) : (
                 <LinePath
-                    id={makeIdForHumanConsumption("line", series.seriesName)}
+                    id={makeIdForHumanConsumption("line", series.displayName)}
                     placedPoints={series.placedPoints}
                     stroke={color}
                     strokeWidth={strokeWidth.toFixed(1)}
@@ -176,7 +176,7 @@ export class Lines extends React.Component<LinesProps> {
             : undefined
 
         return (
-            <g id={makeIdForHumanConsumption("datapoints", series.seriesName)}>
+            <g id={makeIdForHumanConsumption("datapoints", series.displayName)}>
                 {series.placedPoints.map((value, index) => (
                     <circle
                         id={makeIdForHumanConsumption(
