@@ -41,6 +41,67 @@ type MultiDim = Omit<ApiMultiDim, "updatedAt"> & {
     updatedAt: Date
 }
 
+function PreviewLink({
+    slug,
+    catalogPath,
+}: {
+    slug: string | null
+    catalogPath: string | null
+}) {
+    const [status, setStatus] = useState<"loading" | "success" | "error">(
+        "loading"
+    )
+
+    const content = (
+        <>
+            {slug ? (
+                <>
+                    {status !== "success" && (
+                        <div className="multi-dim-preview">
+                            {status === "loading"
+                                ? "Loading image..."
+                                : "Error loading image"}
+                        </div>
+                    )}
+                    <img
+                        className="multi-dim-preview-img"
+                        style={{
+                            display: status === "success" ? "block" : "none",
+                        }}
+                        src={urljoin(
+                            GRAPHER_DYNAMIC_THUMBNAIL_URL,
+                            `/${slug}.png?imHeight=400`
+                        )}
+                        alt=""
+                        onLoad={() => setStatus("success")}
+                        onError={() => setStatus("error")}
+                    />
+                </>
+            ) : (
+                <div className="multi-dim-preview">Preview</div>
+            )}
+        </>
+    )
+
+    if (catalogPath) {
+        return (
+            <a
+                className="multi-dim-preview-link"
+                target="_blank"
+                rel="noopener"
+                href={urljoin(
+                    ADMIN_BASE_URL,
+                    `/admin/grapher/${encodeURIComponent(catalogPath)}`
+                )}
+            >
+                {content}
+            </a>
+        )
+    }
+
+    return content
+}
+
 function SlugField({
     id,
     slug,
@@ -98,33 +159,10 @@ function createColumns(
             key: "thumbnail",
             render: (_, record) => {
                 return (
-                    <a
-                        href={
-                            record.catalogPath
-                                ? urljoin(
-                                      ADMIN_BASE_URL,
-                                      `/admin/grapher/${encodeURIComponent(
-                                          record.catalogPath
-                                      )}`
-                                  )
-                                : undefined
-                        }
-                        target="_blank"
-                        rel="noopener"
-                    >
-                        {record.slug ? (
-                            <img
-                                src={urljoin(
-                                    GRAPHER_DYNAMIC_THUMBNAIL_URL,
-                                    `/${record.slug}.png?imHeight=400`
-                                )}
-                                style={{ height: "140px", width: "auto" }}
-                                alt="Preview"
-                            />
-                        ) : (
-                            "Preview"
-                        )}
-                    </a>
+                    <PreviewLink
+                        slug={record.slug}
+                        catalogPath={record.catalogPath}
+                    />
                 )
             },
         },
