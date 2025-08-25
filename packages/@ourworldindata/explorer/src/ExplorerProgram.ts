@@ -11,6 +11,7 @@ import {
     GrapherInterface,
     AxisMinMaxValueStr,
     GrapherChartType,
+    DimensionProperty,
 } from "@ourworldindata/types"
 import {
     CoreTable,
@@ -23,6 +24,7 @@ import {
     SerializedGridProgram,
     trimObject,
     fetchWithRetry,
+    parseIntOrUndefined,
 } from "@ourworldindata/utils"
 import {
     CellDef,
@@ -74,6 +76,10 @@ const ExplorerRootDef: CellDef = {
     ...RootKeywordCellDef,
     grammar: ExplorerGrammar,
 }
+
+type ExplorerDimension =
+    | { type: "slug"; slug: string; property: DimensionProperty }
+    | { type: "variableId"; variableId: number; property: DimensionProperty }
 
 export class ExplorerProgram extends GridProgram {
     constructor(slug: string, tsv: string, lastCommit?: GitCommit) {
@@ -366,18 +372,24 @@ export class ExplorerProgram extends GridProgram {
         return clone
     }
 
-    constructExplorerGrapherConfig(grapherRow: any): ExplorerGrapherInterface {
+    /**
+     * Grapher config for the currently selected row including global settings.
+     * Includes all columns that are part of the GrapherGrammar.
+     */
+    get explorerGrapherConfig(): ExplorerGrapherInterface {
+        const selectedGrapherRow = this.decisionMatrix.selectedRow
+
         const rootObject = trimAndParseObject(this.tuplesObject, GrapherGrammar)
         let config = { ...rootObject }
 
-        if (grapherRow && Object.keys(grapherRow).length) {
+        if (selectedGrapherRow && Object.keys(selectedGrapherRow).length) {
             config = {
                 ...config,
-                ...trimAndParseObject(grapherRow, GrapherGrammar),
+                ...trimAndParseObject(selectedGrapherRow, GrapherGrammar),
             }
         }
 
-        // remove all keys that are not part of the GrapherGrammar
+        // Remove all keys that are not part of the GrapherGrammar
         Object.keys(config).forEach((key) => {
             if (!GrapherGrammar[key]) delete config[key]
         })
@@ -385,11 +397,15 @@ export class ExplorerProgram extends GridProgram {
         return config
     }
 
-    constructGrapherConfig(
-        explorerGrapherConfig: ExplorerGrapherInterface
-    ): GrapherInterface {
+    /**
+     * Grapher config for the currently selected row, with explorer-specific
+     * fields translated to valid GrapherInterface fields.
+     *
+     * For example, `yAxisMin` is translated to `{yAxis: {min: ... }}`
+     */
+    get grapherConfig(): GrapherInterface {
         const partialConfigs: GrapherInterface[] = []
-        const fields = Object.entries(explorerGrapherConfig)
+        const fields = Object.entries(this.explorerGrapherConfig)
 
         for (const [field, value] of fields) {
             const cellDef = GrapherGrammar[field]
@@ -403,7 +419,7 @@ export class ExplorerProgram extends GridProgram {
 
         // TODO: can be removed once relatedQuestions is refactored
         const { relatedQuestionUrl, relatedQuestionText } =
-            explorerGrapherConfig
+            this.explorerGrapherConfig
         if (relatedQuestionUrl && relatedQuestionText) {
             mergedConfig.relatedQuestions = [
                 { url: relatedQuestionUrl, text: relatedQuestionText },
@@ -414,22 +430,89 @@ export class ExplorerProgram extends GridProgram {
     }
 
     /**
-     * Grapher config for the currently selected row including global settings.
-     * Includes all columns that are part of the GrapherGrammar.
-     */
-    get explorerGrapherConfig(): ExplorerGrapherInterface {
-        const selectedGrapherRow = this.decisionMatrix.selectedRow
-        return this.constructExplorerGrapherConfig(selectedGrapherRow)
-    }
-
-    /**
-     * Grapher config for the currently selected row, with explorer-specific
-     * fields translated to valid GrapherInterface fields.
+     * All dimensions (x, y, color, size) for the currently selected Grapher row.
      *
-     * For example, `yAxisMin` is translated to `{yAxis: {min: ... }}`
+     * Dimensions are either specified by a slug or variable id.
      */
-    get grapherConfig(): GrapherInterface {
-        return this.constructGrapherConfig(this.explorerGrapherConfig)
+    get dimensionsOfSelectedRow(): ExplorerDimension[] {
+        const { y, x, color, size } = DimensionProperty
+        const {
+            ySlugs = "",
+            xSlug,
+            colorSlug,
+            sizeSlug,
+            yVariableIds = "",
+            xVariableId,
+            colorVariableId,
+            sizeVariableId,
+        } = this.explorerGrapherConfig
+
+        const dimensions: ExplorerDimension[] = []
+
+        // Add y dimensions by slug
+        const ySlugList = ySlugs.split(" ").filter((slug) => slug)
+        for (const slug of ySlugList) {
+            dimensions.push({ type: "slug", slug, property: y })
+        }
+
+        // Add y dimensions by variable id
+        const yVariableIdsList = yVariableIds
+            .split(" ")
+            .map(parseIntOrUndefined)
+            .filter((item) => item !== undefined)
+        for (const id of yVariableIdsList) {
+            dimensions.push({ type: "variableId", variableId: id, property: y })
+        }
+
+        // Add x dimension by slug
+        if (xSlug) {
+            dimensions.push({ type: "slug", slug: xSlug, property: x })
+        }
+
+        // Add x dimension by variable id
+        if (xVariableId) {
+            const parsedId = parseIntOrUndefined(xVariableId)
+            if (parsedId)
+                dimensions.push({
+                    type: "variableId",
+                    variableId: parsedId,
+                    property: x,
+                })
+        }
+
+        // Add color dimension by slug
+        if (colorSlug) {
+            dimensions.push({ type: "slug", slug: colorSlug, property: color })
+        }
+
+        // Add color dimension by variable id
+        if (colorVariableId) {
+            const parsedId = parseIntOrUndefined(colorVariableId)
+            if (parsedId)
+                dimensions.push({
+                    type: "variableId",
+                    variableId: parsedId,
+                    property: color,
+                })
+        }
+
+        // Add size dimension by slug
+        if (sizeSlug) {
+            dimensions.push({ type: "slug", slug: sizeSlug, property: size })
+        }
+
+        // Add size dimension by variable id
+        if (sizeVariableId) {
+            const parsedId = parseIntOrUndefined(sizeVariableId)
+            if (parsedId)
+                dimensions.push({
+                    type: "variableId",
+                    variableId: parsedId,
+                    property: size,
+                })
+        }
+
+        return dimensions
     }
 
     /**
