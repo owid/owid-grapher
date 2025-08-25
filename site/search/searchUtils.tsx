@@ -347,7 +347,7 @@ export const constructPreviewUrl = ({
 
     const searchParams = new URLSearchParams(
         omitUndefinedValues({
-            imType: variant !== "large" ? variant : undefined,
+            imType: variant === "large" ? "chart-area-only" : variant,
             imWidth: imageWidth?.toString(),
             imHeight: imageHeight?.toString(),
             nocache: "true", // TODO: remove nocache param
