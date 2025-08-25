@@ -47,6 +47,7 @@ import {
 import { BrowserRouter } from "react-router-dom-v5-compat"
 import { REDUCED_TRACKING } from "../settings/clientSettings.js"
 import { SiteHeaderNavigation } from "./SiteHeader.js"
+import { DataInsightsIndexPageProps } from "./DataInsightsIndexPage.js"
 
 function hydrateSearchPage() {
     const elem = document.getElementById("search-page-root")
@@ -57,7 +58,9 @@ function hydrateSearchPage() {
 }
 
 async function hydrateDataInsightsIndexPage() {
-    const props = (window as any)[_OWID_DATA_INSIGHTS_INDEX_PAGE_DATA]
+    const props: DataInsightsIndexPageProps = (window as any)[
+        _OWID_DATA_INSIGHTS_INDEX_PAGE_DATA
+    ]
     const container = document.querySelector(
         `#data-insights-index-page-container`
     )
@@ -87,7 +90,7 @@ async function hydrateDataInsightsIndexPage() {
                 props.totalPageCount = Math.ceil(
                     dataInsights.length / DATA_INSIGHTS_INDEX_PAGE_SIZE
                 )
-                props.topic = { name: tag.name, slug: tag.slug }
+                props.topicTag = { name: tag.name, slug: tag.slug }
                 props.dataInsights = dataInsights.slice(
                     props.pageNumber * DATA_INSIGHTS_INDEX_PAGE_SIZE,
                     (props.pageNumber + 1) * DATA_INSIGHTS_INDEX_PAGE_SIZE
