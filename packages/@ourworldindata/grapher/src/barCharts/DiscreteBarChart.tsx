@@ -18,6 +18,7 @@ import { AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
     BACKGROUND_COLOR,
+    BAR_SPACING_FACTOR,
     DiscreteBarChartManager,
     DiscreteBarSeries,
 } from "./DiscreteBarChartConstants"
@@ -36,9 +37,6 @@ const DEFAULT_PROJECTED_DATA_COLOR_IN_LEGEND = "#787878"
 
 // If an entity name exceeds this width, we use the short name instead (if available)
 const SOFT_MAX_LABEL_WIDTH = 90
-
-// todo: duplicated
-const BAR_SPACING_FACTOR = 0.35
 
 export interface Label {
     valueString: string
