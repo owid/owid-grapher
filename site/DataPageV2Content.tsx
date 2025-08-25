@@ -117,13 +117,18 @@ export const DataPageV2Content = ({
     const isPageInExperiment = useMemo(() => {
         if (typeof window === "undefined") return false
 
-        const currentPath = window.location.pathname
-        const experimentMap = new Map(experiments.map((exp) => [exp.id, exp]))
+        if (assignedExperiments) {
+            const currentPath = window.location.pathname
+            const experimentMap = new Map(
+                experiments.map((exp) => [exp.id, exp])
+            )
 
-        return Object.keys(assignedExperiments).some((expId: string) => {
-            const exp = experimentMap.get(expId)
-            return exp?.isUrlInPaths(currentPath) ?? false
-        })
+            return Object.keys(assignedExperiments).some((expId: string) => {
+                const exp = experimentMap.get(expId)
+                return exp?.isUrlInPaths(currentPath) ?? false
+            })
+        }
+        return false
     }, [assignedExperiments])
 
     return (
@@ -218,6 +223,7 @@ export const DataPageV2Content = ({
                                     // if visitor is assigned to an arm other than
                                     // the pure control, don't give this section an id
                                     isPageInExperiment &&
+                                    assignedExperiments &&
                                     ["control1", "treat0", "treat1"].includes(
                                         assignedExperiments[
                                             "exp-data-page-insight-buttons-basic"
@@ -265,6 +271,7 @@ export const DataPageV2Content = ({
                                 // if visitor is assigned to an arm other than
                                 // the pure control, give this section an id
                                 isPageInExperiment &&
+                                assignedExperiments &&
                                 ["control1", "treat0", "treat1"].includes(
                                     assignedExperiments[
                                         "exp-data-page-insight-buttons-basic"
