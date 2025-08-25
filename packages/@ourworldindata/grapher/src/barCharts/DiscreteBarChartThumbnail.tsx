@@ -33,7 +33,9 @@ export class DiscreteBarChartThumbnail
         return this.manager.variant === GrapherVariant.MinimalThumbnail
     }
 
-    override render(): React.ReactElement {
+    override render(): React.ReactElement | null {
+        if (this.chartState.errorInfo.reason) return null
+
         return this.isMinimal ? (
             <DiscreteBars {...this.props} series={this.chartState.series} />
         ) : (
