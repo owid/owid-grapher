@@ -44,3 +44,4 @@ export interface DiscreteBarItem {
 }
 
 export const BACKGROUND_COLOR = "#fff"
+export const BAR_SPACING_FACTOR = 0.35
