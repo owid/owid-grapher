@@ -63,7 +63,6 @@ export function initializeSentry(): void {
 export function maybeSampleSession(sampleRate: number) {
     try {
         if (!allowRecording()) {
-            console.log("Recording not allowed")
             void stopSessionRecording()
             return
         }
@@ -77,22 +76,11 @@ export function maybeSampleSession(sampleRate: number) {
             !hasSessionBeenRecorded() &&
             (lastSampleRate === undefined || sampleRate > lastSampleRate)
 
-        console.log("has been sampled: ", hasSessionBeenSampled())
-        console.log("has been recorded: ", hasSessionBeenRecorded())
-        console.log("lastSampleRate: ", lastSampleRate)
-        console.log("sampleRate: ", sampleRate)
-
         if (shouldResample) {
-            console.log("resampling at p = ", sampleRate)
             setSessionLastSampleRate(sampleRate)
             if (Math.random() < sampleRate) {
-                console.log("success! Recording this session.")
                 startSessionRecording()
-            } else {
-                console.log("not recording this session.")
             }
-        } else {
-            console.log("not sampling")
         }
     } catch {
         // failed to maybe start session replay
