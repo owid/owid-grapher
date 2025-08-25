@@ -12,6 +12,7 @@ import { Triangle } from "./Triangle"
 
 interface ScatterPointProps {
     series: ScatterRenderSeries
+    hideFocusRing?: boolean
     isLayerMode?: boolean
     onMouseEnter?: (seriesName: string) => void
     onMouseLeave?: () => void
@@ -21,7 +22,13 @@ interface ScatterPointProps {
 @observer
 export class ScatterPoint extends React.Component<ScatterPointProps> {
     override render(): React.ReactElement | null {
-        const { series, isLayerMode, onMouseEnter, onMouseLeave } = this.props
+        const {
+            series,
+            isLayerMode,
+            hideFocusRing,
+            onMouseEnter,
+            onMouseLeave,
+        } = this.props
         const value = R.first(series.points)
         if (value === undefined) return null
 
@@ -45,7 +52,7 @@ export class ScatterPoint extends React.Component<ScatterPointProps> {
                 }
                 onMouseLeave={onMouseLeave}
             >
-                {series.isFocus && (
+                {!hideFocusRing && series.isFocus && (
                     <circle
                         cx={cx}
                         cy={cy}
