@@ -7,7 +7,6 @@ import {
     TableDef,
     ExplorerProgram,
 } from "@ourworldindata/explorer"
-import { MarkdownTextWrap } from "@ourworldindata/components"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import { obtainAvailableEntitiesForGraphers } from "../../updateChartEntities.js"
 import { fetchS3MetadataByPath } from "../../../db/model/Variable.js"
@@ -46,6 +45,7 @@ import {
     maybeAddChangeInPrefix,
     processAvailableEntities as processRecordAvailableEntities,
     scaleRecordScores,
+    toPlaintext,
 } from "./shared.js"
 import {
     ChartRecord,
@@ -582,10 +582,7 @@ function processSubtitles(
     return records.map((record) => {
         // Remove markdown links from text
         const viewSubtitle = record.viewSubtitle
-            ? new MarkdownTextWrap({
-                  text: record.viewSubtitle,
-                  fontSize: 10,
-              }).plaintext
+            ? toPlaintext(record.viewSubtitle)
             : undefined
         return {
             ...record,
