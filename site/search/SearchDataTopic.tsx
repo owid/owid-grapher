@@ -57,7 +57,7 @@ export const SearchDataTopic = ({
                         >
                             <SearchChartHitComponent
                                 hit={hit}
-                                mode={i === 0 ? "medium" : "small"}
+                                variant={i === 0 ? "medium" : "small"}
                                 onClick={() => {
                                     analytics.logDataCatalogResultClick(
                                         hit,

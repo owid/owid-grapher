@@ -1,4 +1,5 @@
 import { GrapherTabName, OwidGdocType } from "@ourworldindata/types"
+import { Region } from "@ourworldindata/utils"
 import { SearchResponse } from "instantsearch.js"
 import {
     BaseHit,
@@ -148,6 +149,14 @@ export type SearchChartHit =
     | SearchChartViewHit
     | SearchExplorerViewHit
     | SearchMultiDimViewHit
+
+export interface SearchChartHitComponentProps {
+    hit: SearchChartHit
+    searchQueryRegionsMatches?: Region[] | undefined
+    // Search uses a global onClick handler to track analytics
+    // But the data catalog passes a function to this component explicitly
+    onClick?: () => void
+}
 
 // SearchResponse adds the extra fields from Algolia: page, nbHits, etc
 export type SearchChartsResponse = SearchResponse<SearchChartHit>
