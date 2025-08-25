@@ -149,6 +149,9 @@ const getSlackMentionByEmail = _.memoize(
     }
 )
 
+/** Whether a deploy is currently running */
+let deploying = false
+
 /**
  * Initiate deploy if no other deploy is currently pending, and there are changes
  * in the queue.
@@ -159,6 +162,9 @@ const getSlackMentionByEmail = _.memoize(
 export const deployIfQueueIsNotEmpty = async (
     knex: KnexReadonlyTransaction
 ) => {
+    if (deploying) return
+    deploying = true
+
     if (!(await deployQueueServer.queueIsEmpty())) {
         const deployContent =
             await deployQueueServer.readQueuedAndPendingFiles()
@@ -192,6 +198,7 @@ export const deployIfQueueIsNotEmpty = async (
         )
         await deployQueueServer.deletePendingFile()
     }
+    deploying = false
 }
 
 const isLightningChange = (item: DeployChange) => item.slug
