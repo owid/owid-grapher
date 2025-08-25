@@ -87,6 +87,7 @@ export interface Item {
     shortEntityName?: string
     bars: Bar[]
     totalValue: number
+    focus: InteractionState
 }
 
 export interface SizedItem extends Item {
