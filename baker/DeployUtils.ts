@@ -160,8 +160,6 @@ const getSlackMentionByEmail = _.memoize(
     }
 )
 
-const MAX_SUCCESSIVE_FAILURES = 2
-
 /** Whether a deploy is currently running */
 let deploying = false
 
@@ -177,11 +175,8 @@ export const deployIfQueueIsNotEmpty = async (
 ) => {
     if (deploying) return
     deploying = true
-    let failures = 0
-    while (
-        !(await deployQueueServer.queueIsEmpty()) &&
-        failures < MAX_SUCCESSIVE_FAILURES
-    ) {
+
+    if (!(await deployQueueServer.queueIsEmpty())) {
         const deployContent =
             await deployQueueServer.readQueuedAndPendingFiles()
         // Truncate file immediately. Ideally this would be an atomic action, otherwise it's
@@ -202,24 +197,17 @@ export const deployIfQueueIsNotEmpty = async (
             )}\n---`
         )
 
-        try {
-            const changesSlackMentions =
-                await getChangesSlackMentions(parsedQueue)
-            await triggerBakeAndDeploy(
-                { title: changesAuthorNames[0], changesSlackMentions },
-                knex,
-                // If every DeployChange is a lightning change, then we can do a
-                // lightning deploy. In the future, we might want to separate
-                // lightning updates from regular deploys so we could prioritize
-                // them, no matter the content of the queue.
-                parsedQueue.every(isLightningChange) ? parsedQueue : undefined
-            )
-            await deployQueueServer.deletePendingFile()
-        } catch {
-            failures++
-            // The error is already sent to Slack inside the deploy() function.
-            // The deploy will be retried unless we've reached MAX_SUCCESSIVE_FAILURES.
-        }
+        const changesSlackMentions = await getChangesSlackMentions(parsedQueue)
+        await triggerBakeAndDeploy(
+            { title: changesAuthorNames[0], changesSlackMentions },
+            knex,
+            // If every DeployChange is a lightning change, then we can do a
+            // lightning deploy. In the future, we might want to separate
+            // lightning updates from regular deploys so we could prioritize
+            // them, no matter the content of the queue.
+            parsedQueue.every(isLightningChange) ? parsedQueue : undefined
+        )
+        await deployQueueServer.deletePendingFile()
     }
     deploying = false
 }

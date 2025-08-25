@@ -9,6 +9,7 @@ import * as db from "../db/db.js"
 // Ensure db is cleaned up on PM2 stop / restart / reload and cmd/ctrl + c
 // by registering listeners on SIGINT.
 import "../db/cleanup.js"
+import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
 const runDeployIfQueueIsNotEmpty = async () =>
     await db.knexReadonlyTransaction(
@@ -25,14 +26,26 @@ const main = async () => {
         process.exit(1)
     }
 
-    // Listen for file changes
-    fs.watchFile(DEPLOY_QUEUE_FILE_PATH, () => {
-        // Start deploy after 10 seconds in order to avoid the quick successive
-        // deploys triggered by Wordpress.
-        setTimeout(runDeployIfQueueIsNotEmpty, 10 * 1000)
+    console.log(`Watching for changes to: ${DEPLOY_QUEUE_FILE_PATH}`)
+
+    // Watch for file changes and run deploy function when file is modified
+    fs.watchFile(DEPLOY_QUEUE_FILE_PATH, async () => {
+        try {
+            console.log(
+                "Deploy queue file changed, checking for deployments..."
+            )
+            await runDeployIfQueueIsNotEmpty()
+        } catch (error) {
+            await logErrorAndMaybeCaptureInSentry(error)
+        }
     })
 
-    void runDeployIfQueueIsNotEmpty()
+    // Run once at startup
+    try {
+        await runDeployIfQueueIsNotEmpty()
+    } catch (error) {
+        await logErrorAndMaybeCaptureInSentry(error)
+    }
 }
 
 void main()
