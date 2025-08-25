@@ -10,7 +10,7 @@ import {
     exposeInstanceOnWindow,
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
-import { InteractionState, SeriesName } from "@ourworldindata/types"
+import { SeriesName } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -44,6 +44,7 @@ import { StackedAreas } from "./StackedAreas"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
+import { InteractionState } from "../interaction/InteractionState"
 
 const STACKED_AREA_CHART_CLASS_NAME = "StackedArea"
 

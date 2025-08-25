@@ -4,16 +4,14 @@ import {
     CoreValueType,
     EntityName,
     EntityYearHighlight,
-    InteractionState,
 } from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import { Color } from "@ourworldindata/utils"
-import { OWID_NON_FOCUSED_GRAY } from "../color/ColorConstants"
+import { InteractionState } from "../interaction/InteractionState"
 
 export const LINE_CHART_CLASS_NAME = "LineChart"
 
 // line color
-export const NON_FOCUSED_LINE_COLOR = OWID_NON_FOCUSED_GRAY
 export const DEFAULT_LINE_COLOR = "#000"
 // stroke width
 export const DEFAULT_STROKE_WIDTH = 1.5
@@ -46,9 +44,9 @@ export interface LineChartSeries extends ChartSeries {
     isProjection?: boolean
     plotMarkersOnly?: boolean
     points: LinePoint[]
-    focus: InteractionState
     entityName: EntityName
     columnName: string
+    focus: InteractionState
 }
 
 export interface PlacedLineChartSeries extends LineChartSeries {
@@ -57,7 +55,6 @@ export interface PlacedLineChartSeries extends LineChartSeries {
 
 export interface RenderLineChartSeries extends PlacedLineChartSeries {
     hover: InteractionState
-    focus: InteractionState
 }
 
 export interface LinesProps {
