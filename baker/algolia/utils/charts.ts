@@ -1,5 +1,4 @@
 import * as _ from "lodash-es"
-import { MarkdownTextWrap } from "@ourworldindata/components"
 import {
     KeyChartLevel,
     ContentGraphLinkType,
@@ -19,7 +18,11 @@ import {
     excludeNullish,
     getUniqueNamesFromTagHierarchies,
 } from "@ourworldindata/utils"
-import { maybeAddChangeInPrefix, processAvailableEntities } from "./shared.js"
+import {
+    maybeAddChangeInPrefix,
+    processAvailableEntities,
+    toPlaintext,
+} from "./shared.js"
 import { GrapherState } from "@ourworldindata/grapher"
 
 const computeChartScore = (record: Omit<ChartRecord, "score">): number => {
@@ -130,10 +133,7 @@ export const getChartsRecords = async (
         )
         const plaintextSubtitle = _.isNil(c.config.subtitle)
             ? undefined
-            : new MarkdownTextWrap({
-                  text: c.config.subtitle,
-                  fontSize: 10, // doesn't matter, but is a mandatory field
-              }).plaintext
+            : toPlaintext(c.config.subtitle)
 
         const topicTags = getUniqueNamesFromTagHierarchies(
             c.tags,
