@@ -757,9 +757,9 @@ export class Explorer
                     (d) => d.variableId === variableId
                 )
                 if (!hasDimension) {
-                    dimensions.push({
+                    dimensions.unshift({
                         variableId: variableId,
-                        property: DimensionProperty.table, // no specific dimension
+                        property: DimensionProperty.y,
                     })
                 }
             })
