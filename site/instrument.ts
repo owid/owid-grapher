@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/react"
-import { isInIFrame } from "@ourworldindata/utils"
+import { isInIFrame, retryPromise } from "@ourworldindata/utils"
+import Cookies from "js-cookie"
 import {
     COMMIT_SHA,
     ENV,
@@ -34,4 +35,39 @@ if (LOAD_SENTRY) {
         release: COMMIT_SHA,
         ...sentryOpts,
     })
+
+    // Set Google Analytics client ID as Sentry user ID for session replays
+    if (analyticsConsent && !isInIFrame()) {
+        // Use retryPromise to poll for GA cookie with exponential backoff
+        // This will keep trying for ~17 minutes total, covering cases where
+        // users accept cookies later in their session
+        retryPromise(
+            () => {
+                return new Promise<string>((resolve, reject) => {
+                    const gaCookie = Cookies.get("_ga")
+                    if (!gaCookie) {
+                        reject(new Error("GA cookie not found yet"))
+                        return
+                    }
+
+                    // Extract client ID from GA cookie (format: GA1.1.clientId.timestamp)
+                    const parts = gaCookie.split(".")
+                    if (parts.length >= 4) {
+                        const clientId = `${parts[2]}.${parts[3]}`
+                        Sentry.setUser({ id: clientId })
+                        resolve(clientId)
+                    } else {
+                        reject(new Error("Invalid GA cookie format"))
+                    }
+                })
+            },
+            {
+                maxRetries: 10,
+                exponentialBackoff: true,
+                initialDelay: 1000,
+            }
+        ).catch((error) => {
+            console.warn("Failed to set GA client ID as Sentry user:", error)
+        })
+    }
 }
