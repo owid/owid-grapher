@@ -30,7 +30,6 @@ import {
     SearchIndexName,
     searchCategoryFilters,
     IPageHit,
-    pageTypeDisplayNames,
     PageRecord,
     checkIsWordpressPageType,
 } from "./searchTypes.js"
@@ -44,8 +43,11 @@ import {
 import { PreferenceType, getPreferenceValue } from "../cookiePreferences.js"
 import type { SearchResults as AlgoliaSearchResultsType } from "algoliasearch-helper"
 import { SiteAnalytics } from "../SiteAnalytics.js"
-import { extractRegionNamesFromSearchQuery } from "./searchUtils.js"
-import { ChartHit } from "./ChartHit.js"
+import {
+    extractRegionNamesFromSearchQuery,
+    getPageTypeNameAndIcon,
+} from "./searchUtils.js"
+import { DEPRECATEDChartHit } from "./_DEPRECATEChartHit.js"
 import DataInsightDateline from "../gdocs/components/DataInsightDateline.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
 
@@ -99,7 +101,7 @@ function PagesHit({ hit }: { hit: IPageHit }) {
                         {hit.title}
                     </h4>
                     <span className="body-3-medium search-results__page-hit-type">
-                        {pageTypeDisplayNames[hit.type]}
+                        {getPageTypeNameAndIcon(hit.type).name}
                     </span>
                 </header>
                 <Snippet
@@ -440,7 +442,7 @@ const SearchResults = (props: SearchResultsProps) => {
                                 item: "list-style-none span-md-cols-2",
                             }}
                             hitComponent={(props) => (
-                                <ChartHit
+                                <DEPRECATEDChartHit
                                     {...props}
                                     searchQueryRegionsMatches={
                                         searchQueryRegionsMatches

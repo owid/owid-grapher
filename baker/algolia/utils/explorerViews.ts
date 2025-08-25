@@ -5,12 +5,13 @@ import {
     GridBoolean,
     DecisionMatrix,
     TableDef,
+    ExplorerProgram,
 } from "@ourworldindata/explorer"
 import { MarkdownTextWrap } from "@ourworldindata/components"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import { obtainAvailableEntitiesForGraphers } from "../../updateChartEntities.js"
 import { fetchS3MetadataByPath } from "../../../db/model/Variable.js"
-import { getVariableMetadataRoute } from "@ourworldindata/grapher"
+import { getVariableMetadataRoute, GrapherState } from "@ourworldindata/grapher"
 import pMap from "p-map"
 import { ExplorerAdminServer } from "../../../explorerAdminServer/ExplorerAdminServer.js"
 import { parseDelimited } from "@ourworldindata/core-table"
@@ -42,12 +43,14 @@ import {
 } from "./types.js"
 import {
     MAX_NON_FM_RECORD_SCORE,
+    maybeAddChangeInPrefix,
     processAvailableEntities as processRecordAvailableEntities,
     scaleRecordScores,
 } from "./shared.js"
 import {
     ChartRecord,
     ChartRecordType,
+    ExplorerType,
 } from "../../../site/search/searchTypes.js"
 
 /**
@@ -344,20 +347,40 @@ const getNonDefaultSettings = (
 
 const createBaseRecord = (
     choice: ExplorerChoiceParams,
-    matrix: DecisionMatrix,
+    program: ExplorerProgram,
     index: number,
     explorerInfo: MinimalExplorerInfo
 ): ExplorerViewBaseRecord => {
+    const matrix = program.decisionMatrix
     matrix.setValuesFromChoiceParams(choice)
+
+    const grapherConfig = program.grapherConfig
+    const grapherState = new GrapherState(grapherConfig)
+    const viewTitle = maybeAddChangeInPrefix(
+        matrix.selectedRow.title,
+        grapherState.shouldAddChangeInPrefixToTitle
+    )
+
     const nonDefaultSettings = getNonDefaultSettings(choice, matrix)
     const yVariableIds = parseYVariableIds(matrix.selectedRow)
 
+    const viewGrapherId = matrix.selectedRow.grapherId
+
+    const explorerType =
+        viewGrapherId !== undefined
+            ? ExplorerType.Grapher
+            : yVariableIds.length > 0
+              ? ExplorerType.Indicator
+              : ExplorerType.Csv
+
     return {
+        explorerType,
         availableEntities: [],
-        viewTitle: matrix.selectedRow.title,
+        viewTitle,
         viewSubtitle: matrix.selectedRow.subtitle,
+        viewAvailableTabs: grapherState.availableTabs,
         viewSettings: explorerChoiceToViewSettings(choice, matrix),
-        viewGrapherId: matrix.selectedRow.grapherId,
+        viewGrapherId,
         yVariableIds,
         viewQueryParams: matrix.toString(),
         viewIndexWithinExplorer: index,
@@ -371,12 +394,12 @@ const createBaseRecord = (
 
 const createBaseRecords = (
     explorerInfo: MinimalExplorerInfo,
-    matrix: DecisionMatrix
+    explorerProgram: ExplorerProgram
 ): ExplorerViewBaseRecord[] => {
-    return matrix
+    return explorerProgram.decisionMatrix
         .allDecisionsAsQueryParams()
         .map((choice: ExplorerChoiceParams, index: number) =>
-            createBaseRecord(choice, matrix, index, explorerInfo)
+            createBaseRecord(choice, explorerProgram, index, explorerInfo)
         )
 }
 
@@ -613,6 +636,7 @@ async function finalizeRecords(
         (record, i) =>
             ({
                 type: ChartRecordType.ExplorerView,
+                explorerType: record.explorerType,
                 chartId: record.viewGrapherId,
                 variantName: record.viewTitle,
                 // remap createdAt -> publishedAt
@@ -625,6 +649,7 @@ async function finalizeRecords(
                 subtitle: record.viewSubtitle!,
                 slug: explorerInfo.slug,
                 queryParams: record.viewQueryParams,
+                availableTabs: record.viewAvailableTabs,
                 tags: explorerInfo.tags,
                 objectID: `${explorerInfo.slug}-${i}`,
                 id: `explorer/${explorerInfo.slug}${record.viewQueryParams}`,
@@ -676,10 +701,7 @@ export const getExplorerViewRecordsForExplorer = async (
         explorerProgram.columnDefsWithoutTableSlug
     )
 
-    const baseRecords = createBaseRecords(
-        explorerInfo,
-        explorerProgram.decisionMatrix
-    )
+    const baseRecords = createBaseRecords(explorerInfo, explorerProgram)
 
     const baseRecordsWithDuplicatedYVariableIdsAdded = addDuplicateYVariableIds(
         baseRecords,
@@ -688,7 +710,7 @@ export const getExplorerViewRecordsForExplorer = async (
 
     const [grapherBaseRecords, nonGrapherBaseRecords] = _.partition(
         baseRecordsWithDuplicatedYVariableIdsAdded,
-        (record) => record.viewGrapherId !== undefined
+        (record) => record.explorerType === ExplorerType.Grapher
     ) as [GrapherUnenrichedExplorerViewRecord[], ExplorerViewBaseRecord[]]
 
     let enrichedGrapherRecords: GrapherEnrichedExplorerViewRecord[] = []
@@ -702,7 +724,7 @@ export const getExplorerViewRecordsForExplorer = async (
 
     const [indicatorBaseRecords, csvBaseRecords] = _.partition(
         nonGrapherBaseRecords,
-        (record) => record.yVariableIds.length > 0
+        (record) => record.explorerType === ExplorerType.Indicator
     ) as [
         IndicatorUnenrichedExplorerViewRecord[],
         CsvUnenrichedExplorerViewRecord[],

@@ -134,7 +134,7 @@ export {
     type MapConfigInterface,
     type GlobeConfig,
     type ProjectionColumnInfo,
-    GrapherRenderMode,
+    GrapherVariant,
     type ChartErrorInfo,
 } from "./grapherTypes/GrapherTypes.js"
 
@@ -834,3 +834,9 @@ export {
     type MultiDimChecksumsObjectWithHash,
 } from "./domainTypes/Archive.js"
 export { type AdditionalGrapherDataFetchFn } from "./grapherTypes/GrapherTypes.js"
+
+export {
+    type GrapherValuesJson,
+    type GrapherValuesJsonDataPoints,
+    type GrapherValuesJsonDataPoint,
+} from "./endpointTypes/GrapherEndpoints.js"

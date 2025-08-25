@@ -1,10 +1,17 @@
-import { OwidVariableRow, SeriesName } from "@ourworldindata/types"
+import {
+    Color,
+    EntityName,
+    InteractionState,
+    OwidVariableRow,
+    SeriesName,
+} from "@ourworldindata/types"
 import { ChartSeries } from "../chart/ChartInterface"
 import {
     GRAPHER_AREA_OPACITY_DEFAULT,
     GRAPHER_AREA_OPACITY_FOCUS,
     GRAPHER_AREA_OPACITY_MUTE,
 } from "../core/GrapherConstants"
+import { TextWrap } from "@ourworldindata/components"
 
 export const BAR_OPACITY = {
     DEFAULT: GRAPHER_AREA_OPACITY_DEFAULT,
@@ -50,6 +57,7 @@ export interface StackedSeries<PositionType extends StackedPointPositionType>
     columnSlug?: string
     isProjection?: boolean
     isAllZeros?: boolean
+    focus?: InteractionState
 }
 
 export interface StackedPlacedSeries<
@@ -64,4 +72,27 @@ export interface StackedRawSeries<
     seriesName: SeriesName
     isProjection?: boolean
     rows: OwidVariableRow<PositionType>[]
+    focus: InteractionState
+}
+
+export interface Bar {
+    color: Color
+    seriesName: string
+    columnSlug: string
+    point: StackedPoint<EntityName>
+}
+
+export interface Item {
+    entityName: string
+    shortEntityName?: string
+    bars: Bar[]
+    totalValue: number
+}
+
+export interface SizedItem extends Item {
+    label: TextWrap
+}
+
+export interface PlacedItem extends SizedItem {
+    yPosition: number
 }

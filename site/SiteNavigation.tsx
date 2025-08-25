@@ -11,13 +11,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { SiteNavigationTopics } from "./SiteNavigationTopics.js"
 import { SiteLogos } from "./SiteLogos.js"
 import { SiteAbout } from "./SiteAbout.js"
-import { flattenNonTopicNodes, TagGraphRoot } from "@ourworldindata/utils"
 import { SiteResources } from "./SiteResources.js"
 import { SiteSearchNavigation } from "./SiteSearchNavigation.js"
 import { SiteMobileMenu } from "./SiteMobileMenu.js"
 import { SiteNavigationToggle } from "./SiteNavigationToggle.js"
 import classnames from "classnames"
 import { useTriggerOnEscape } from "./hooks.js"
+import { useTopicTagGraph } from "./search/searchHooks.js"
 import { AUTOCOMPLETE_CONTAINER_ID } from "./search/Autocomplete.js"
 import { Menu } from "./SiteConstants.js"
 
@@ -34,19 +34,7 @@ export const SiteNavigation = ({
 }) => {
     const [menu, setActiveMenu] = useState<Menu | null>(null)
     const [query, setQuery] = useState<string>("")
-    const [tagGraph, setTagGraph] = useState<TagGraphRoot | null>(null)
-
-    useEffect(() => {
-        const fetchTagGraph = async () => {
-            const response = await fetch("/topicTagGraph.json")
-            const tagGraph = await response.json()
-            setTagGraph(flattenNonTopicNodes(tagGraph))
-        }
-        if (!tagGraph)
-            fetchTagGraph().catch((err) => {
-                throw new Error(`Failed to fetch tag graph: ${err}`)
-            })
-    }, [tagGraph, setTagGraph])
+    const tagGraph = useTopicTagGraph()
 
     const isActiveMobileMenu =
         menu !== null &&

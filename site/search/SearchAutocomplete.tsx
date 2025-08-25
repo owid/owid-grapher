@@ -3,15 +3,17 @@ import { useEffect, useMemo, useCallback } from "react"
 import { match } from "ts-pattern"
 import {
     getAutocompleteSuggestionsWithUnmatchedQuery,
-    useSearchAutocomplete,
     createQueryFilter,
     getSearchAutocompleteId,
     getSearchAutocompleteItemId,
     getFilterAriaLabel,
 } from "./searchUtils.js"
+import { buildSynonymMap } from "./synonymUtils.js"
+import { useSearchAutocomplete } from "./SearchAutocompleteContext.js"
 import { SearchAutocompleteItemContents } from "./SearchAutocompleteItemContents.js"
 import { Filter, FilterType } from "./searchTypes.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
+import { useSearchContext } from "./SearchContext.js"
 
 // Default search suggestions to show when there's no query or filters
 const DEFAULT_SEARCHES = [
@@ -25,21 +27,22 @@ const DEFAULT_SEARCHES = [
 export const SearchAutocomplete = ({
     localQuery,
     allTopics,
-    filters,
     setLocalQuery,
     setQuery,
-    addCountry,
-    addTopic,
 }: {
     localQuery: string
     allTopics: string[]
-    filters: Filter[]
     setLocalQuery: (query: string) => void
     setQuery: (query: string) => void
-    addCountry: (country: string) => void
-    addTopic: (topic: string) => void
 }) => {
+    const {
+        state: { filters },
+        actions: { addCountry, setTopic },
+    } = useSearchContext()
+
     const analytics = useMemo(() => new SiteAnalytics(), [])
+
+    const synonymMap = useMemo(() => buildSynonymMap(), [])
 
     const { suggestions, unmatchedQuery } = useMemo(() => {
         if (!localQuery && !filters.length) {
@@ -51,9 +54,10 @@ export const SearchAutocomplete = ({
         return getAutocompleteSuggestionsWithUnmatchedQuery(
             localQuery,
             allTopics,
-            filters
+            filters,
+            synonymMap
         )
-    }, [localQuery, allTopics, filters])
+    }, [localQuery, allTopics, filters, synonymMap])
 
     const {
         activeIndex,
@@ -111,7 +115,7 @@ export const SearchAutocomplete = ({
                 })
                 .with(FilterType.TOPIC, () => {
                     logSearchAutocompleteClick()
-                    addTopic(filter.name)
+                    setTopic(filter.name)
                     setQueries("")
                 })
                 .with(FilterType.QUERY, () => {
@@ -122,7 +126,7 @@ export const SearchAutocomplete = ({
         },
         [
             addCountry,
-            addTopic,
+            setTopic,
             setShowSuggestions,
             setQueries,
             unmatchedQuery,

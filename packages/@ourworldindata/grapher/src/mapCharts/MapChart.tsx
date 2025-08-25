@@ -5,7 +5,6 @@ import {
     exposeInstanceOnWindow,
     Color,
     HorizontalAlign,
-    PrimitiveType,
 } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -32,11 +31,7 @@ import {
     PROJECTED_DATA_LEGEND_COLOR,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
-import {
-    ColorScale,
-    NO_DATA_LABEL,
-    PROJECTED_DATA_LABEL,
-} from "../color/ColorScale"
+import { ColorScale } from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -48,6 +43,10 @@ import { ChartInterface } from "../chart/ChartInterface"
 import {
     CategoricalBin,
     ColorScaleBin,
+    isCategoricalBin,
+    isNoDataBin,
+    isNumericBin,
+    isProjectedDataBin,
     NumericBin,
 } from "../color/ColorScaleBin"
 import {
@@ -211,21 +210,6 @@ export class MapChart
 
     @action.bound onRegionChange(value: MapRegionName): void {
         this.mapConfig.region = value
-    }
-
-    @computed private get formatTooltipValueIfCustom(): (
-        d: PrimitiveType
-    ) => string | undefined {
-        const { mapConfig, colorScale } = this
-
-        return (d: PrimitiveType): string | undefined => {
-            if (!mapConfig.tooltipUseCustomLabels) return undefined
-            // Find the bin (and its label) that this value belongs to
-            const bin = colorScale.getBinForValue(d)
-            const label = bin?.label
-            if (label !== undefined && label !== "") return label
-            else return undefined
-        }
     }
 
     @computed private get series(): ChoroplethSeries[] {
@@ -614,7 +598,9 @@ export class MapChart
                         position={tooltipState.position}
                         fading={tooltipState.fading}
                         timeSeriesTable={this.chartState.inputTable}
-                        formatValueIfCustom={this.formatTooltipValueIfCustom}
+                        formatValueIfCustom={
+                            this.chartState.formatTooltipValueIfCustom
+                        }
                         manager={this.manager}
                         lineColorScale={this.colorScale}
                         targetTime={this.targetTime}
@@ -642,20 +628,4 @@ export class MapChart
 
         return this.isStatic ? this.renderStatic() : this.renderInteractive()
     }
-}
-
-function isCategoricalBin(bin: ColorScaleBin): bin is CategoricalBin {
-    return bin instanceof CategoricalBin
-}
-
-function isNumericBin(bin: ColorScaleBin): bin is NumericBin {
-    return bin instanceof NumericBin
-}
-
-function isNoDataBin(bin: ColorScaleBin): bin is CategoricalBin {
-    return isCategoricalBin(bin) && bin.value === NO_DATA_LABEL
-}
-
-function isProjectedDataBin(bin: ColorScaleBin): bin is CategoricalBin {
-    return isCategoricalBin(bin) && bin.value === PROJECTED_DATA_LABEL
 }

@@ -22,6 +22,8 @@ import {
     getRelevantVariableIds,
     getRelevantVariableMetadata,
 } from "../../MultiDimBaker.js"
+import { GrapherState } from "@ourworldindata/grapher"
+import { maybeAddChangeInPrefix } from "./shared.js"
 
 async function getChartConfigsByIds(
     knex: db.KnexReadonlyTransaction,
@@ -75,6 +77,7 @@ async function getRecords(
                     `viewId=${viewId} chartConfigId=${view.fullConfigId}`
             )
         }
+        const grapherState = new GrapherState(chartConfig)
         const queryStr = queryParamsToStr(view.dimensions)
         const variableId = view.indicators.y[0].id
         const metadata = _.merge(
@@ -82,12 +85,14 @@ async function getRecords(
             multiDim.config.metadata,
             view.metadata
         )
-        const title =
+        const title = maybeAddChangeInPrefix(
             metadata.presentation?.titlePublic ||
-            chartConfig.title ||
-            metadata.display?.name ||
-            metadata.name ||
-            ""
+                chartConfig.title ||
+                metadata.display?.name ||
+                metadata.name ||
+                "",
+            grapherState.shouldAddChangeInPrefixToTitle
+        )
         const subtitle = metadata.descriptionShort || chartConfig.subtitle || ""
         const availableEntities = metadata.dimensions.entities.values
             .map((entity) => entity.name)
@@ -99,11 +104,13 @@ async function getRecords(
             objectID: `mdim-view-${id}`,
             id: `mdim/${slug}${queryStr}`,
             chartId: -1,
+            chartConfigId: view.fullConfigId,
             slug,
             queryParams: queryStr,
             title,
             subtitle,
             variantName: chartConfig.variantName,
+            availableTabs: grapherState.availableTabs,
             keyChartForTags: [],
             tags,
             availableEntities,

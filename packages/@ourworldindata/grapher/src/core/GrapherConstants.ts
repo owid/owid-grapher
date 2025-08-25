@@ -1,4 +1,8 @@
-import { EntityName } from "@ourworldindata/types"
+import {
+    EntityName,
+    GRAPHER_CHART_TYPES,
+    GrapherChartType,
+} from "@ourworldindata/types"
 import { Bounds } from "@ourworldindata/utils"
 import { defaultGrapherConfig } from "../schema/defaultGrapherConfig.js"
 import type { GrapherProgrammaticInterface } from "./Grapher"
@@ -29,6 +33,10 @@ export const GRAPHER_LOADED_EVENT_NAME = "grapherLoaded"
 
 export const DEFAULT_GRAPHER_WIDTH = 850
 export const DEFAULT_GRAPHER_HEIGHT = 600
+
+// Keep in sync with $grapher-thumbnail-width and $grapher-thumbnail-height in Grapher.scss
+export const GRAPHER_THUMBNAIL_WIDTH = 900
+export const GRAPHER_THUMBNAIL_HEIGHT = 480
 
 export const GRAPHER_SQUARE_SIZE = 540
 
@@ -176,3 +184,6 @@ export enum GrapherModal {
     Download = "download",
     Embed = "embed",
 }
+
+export const CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME: GrapherChartType[] =
+    [GRAPHER_CHART_TYPES.LineChart, GRAPHER_CHART_TYPES.SlopeChart]

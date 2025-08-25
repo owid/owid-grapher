@@ -633,14 +633,13 @@ export class Explorer
         grapherState.inputTable = BlankOwidTable()
         grapherState.updateFromObject(config)
         if (!config.table) {
-            const inputTable = await fetchInputTableForConfig(
-                config.dimensions ?? [],
-                config.selectedEntityColors,
-                this.props.dataApiUrl,
-                undefined,
-                this.props.isPreview,
-                this.props.loadMetadataOnly
-            )
+            const inputTable = await fetchInputTableForConfig({
+                dimensions: config.dimensions,
+                selectedEntityColors: config.selectedEntityColors,
+                dataApiUrl: this.props.dataApiUrl,
+                noCache: this.props.isPreview,
+                loadMetadataOnly: this.props.loadMetadataOnly,
+            })
             if (inputTable)
                 grapherState.inputTable = this.inputTableTransformer(inputTable)
         } else {
@@ -819,14 +818,13 @@ export class Explorer
             // so we don't end up confusingly showing stale data from a previous chart
             grapherState.inputTable = BlankOwidTable()
         } else {
-            const inputTable = await fetchInputTableForConfig(
-                config.dimensions,
-                config.selectedEntityColors,
-                this.props.dataApiUrl,
-                undefined,
-                this.props.isPreview,
-                this.props.loadMetadataOnly
-            )
+            const inputTable = await fetchInputTableForConfig({
+                dimensions: config.dimensions,
+                selectedEntityColors: config.selectedEntityColors,
+                dataApiUrl: this.props.dataApiUrl,
+                noCache: this.props.isPreview,
+                loadMetadataOnly: this.props.loadMetadataOnly,
+            })
             if (inputTable)
                 grapherState.inputTable = this.inputTableTransformer(inputTable)
         }
