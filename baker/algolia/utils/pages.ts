@@ -40,11 +40,9 @@ import {
     getFirstBlockOfType,
     takeConsecutiveBlocksOfType,
 } from "../../../site/gdocs/utils.js"
-import {
-    getPrefixedGdocPath,
-    MarkdownTextWrap,
-} from "@ourworldindata/components"
+import { getPrefixedGdocPath } from "@ourworldindata/components"
 import { stripCustomMarkdownComponents } from "../../../db/model/Gdoc/enrichedToMarkdown.js"
+import { toPlaintext } from "./shared.js"
 
 const computePageScore = (record: Omit<PageRecord, "score">): number => {
     const { importance, views_7d } = record
@@ -203,10 +201,7 @@ function formatGdocMarkdown(content: string): string {
     const simplifiedMarkdown = stripCustomMarkdownComponents(content)
     // We still have some markdown gore that MarkdownTextWrap can't handle. Easier to just remove all asterisks.
     const withoutAsterisks = simplifiedMarkdown.replaceAll("*", "")
-    const withoutMarkdown = new MarkdownTextWrap({
-        text: withoutAsterisks,
-        fontSize: 12,
-    }).plaintext
+    const withoutMarkdown = toPlaintext(withoutAsterisks)
     const withoutNewlines = withoutMarkdown.replaceAll("\n", " ")
 
     // Doing this after removing markdown links because otherwise we need to handle
