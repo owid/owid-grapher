@@ -26,25 +26,15 @@ const main = async () => {
         process.exit(1)
     }
 
-    console.log(`Watching for changes to: ${DEPLOY_QUEUE_FILE_PATH}`)
-
-    // Watch for file changes and run deploy function when file is modified
-    fs.watchFile(DEPLOY_QUEUE_FILE_PATH, async () => {
+    // Poll for changes every 5 seconds
+    while (true) {
         try {
-            console.log(
-                "Deploy queue file changed, checking for deployments..."
-            )
             await runDeployIfQueueIsNotEmpty()
         } catch (error) {
             await logErrorAndMaybeCaptureInSentry(error)
+            throw error
         }
-    })
-
-    // Run once at startup
-    try {
-        await runDeployIfQueueIsNotEmpty()
-    } catch (error) {
-        await logErrorAndMaybeCaptureInSentry(error)
+        await new Promise((resolve) => setTimeout(resolve, 5 * 1000))
     }
 }
 
