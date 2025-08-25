@@ -23,6 +23,7 @@ import { HorizontalAxisZeroLine } from "../axis/AxisViews"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
+    BAR_SPACING_FACTOR,
     DiscreteBarChartManager,
     DiscreteBarSeries,
     PlacedDiscreteBarSeries,
@@ -37,8 +38,6 @@ import { makeProjectedDataPatternId } from "./DiscreteBarChartHelpers"
 
 const labelToTextPadding = 10
 const labelToBarPadding = 5
-
-const BAR_SPACING_FACTOR = 0.35
 
 export interface Label {
     valueString: string
