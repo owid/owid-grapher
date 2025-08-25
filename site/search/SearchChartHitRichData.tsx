@@ -1,35 +1,20 @@
 import { useMemo } from "react"
 import { runInAction } from "mobx"
-import * as R from "remeda"
 import cx from "classnames"
 import { useMediaQuery } from "usehooks-ts"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { match } from "ts-pattern"
-import {
-    GrapherState,
-    makeChartState,
-    mapGrapherTabNameToQueryParam,
-    generateFocusedSeriesNamesParam,
-} from "@ourworldindata/grapher"
+import { GrapherState } from "@ourworldindata/grapher"
 import {
     EntityName,
-    FacetStrategy,
     GRAPHER_TAB_NAMES,
     GrapherTabName,
 } from "@ourworldindata/types"
 import { Button } from "@ourworldindata/components"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
-import {
-    SearchChartHit,
-    SearchChartHitComponentProps,
-    SearchChartHitComponentVariant,
-} from "./searchTypes.js"
+import { SearchChartHitComponentProps } from "./searchTypes.js"
 import { useSearchChartHitData } from "./useSearchChartHitData.js"
-import {
-    constructChartUrl,
-    constructPreviewUrl,
-    pickEntitiesForChartHit,
-} from "./searchUtils.js"
+import { constructChartUrl, pickEntitiesForChartHit } from "./searchUtils.js"
 import {
     configureGrapherStateFocus,
     configureGrapherStateForLayout,
@@ -42,6 +27,8 @@ import {
     getTableRowCountForGridSlot,
     makeSlotClassNames,
     findTableSlot,
+    getPreviewVariant,
+    constructChartAndPreviewUrlsForTab,
 } from "./SearchChartHitRichDataHelpers.js"
 import { calculateMediumVariantLayout } from "./SearchChartHitRichDataMediumVariantHelpers.js"
 import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
@@ -54,14 +41,12 @@ import {
     LargeVariantGridSlot,
     Layout,
     MediumVariantGridSlot,
-    PreviewVariant,
     RichDataComponentVariant,
 } from "./SearchChartHitRichDataTypes.js"
 import {
     calculateLargePreviewImageDimensions,
     calculateLargeVariantLayout,
 } from "./SearchChartHitRichDataLargeVariantHelpers.js"
-import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable.js"
 
 // Keep in sync with $num-rows-per-column in SearchChartHitRichData.scss
 const NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT = 4
@@ -130,6 +115,8 @@ export function SearchChartHitRichData({
                     tableSlot,
                     numDataTableRowsPerColumn
                 ),
+                maxNumEntitiesInStackedDiscreteBarChart:
+                    variant === "large" ? 12 : 6,
             })
         }
 
@@ -366,106 +353,6 @@ function GrapherThumbnailPlaceholder({
             <div className="search-chart-hit-rich-data__captioned-link-label" />
         </div>
     )
-}
-
-function getPreviewVariant(
-    variant: SearchChartHitComponentVariant,
-    {
-        tab,
-        isPrimaryTab,
-        grapherState,
-        layout,
-    }: {
-        tab: GrapherTabName
-        isPrimaryTab: boolean
-        grapherState: GrapherState
-        layout: Layout<GridSlot>
-    }
-): PreviewVariant {
-    const { DiscreteBar } = GRAPHER_TAB_NAMES
-
-    if (isPrimaryTab && variant === "large") return "large"
-
-    if (tab === DiscreteBar) {
-        const bars = isPrimaryTab
-            ? (layout.dataTableContent.props as SearchChartHitDataTableProps)
-                  .rows
-            : makeChartState(DiscreteBar, grapherState).series
-
-        if (bars.length <= 1) return "thumbnail"
-
-        // If all bars share the same color, make sure to render the
-        // thumbnail version that includes entity labels
-        const colors = bars.map((bar) => bar.color)
-        const areColorsUnique = R.unique(colors).length === colors.length
-        if (!areColorsUnique) return "thumbnail"
-    }
-
-    // Use the minimal version for the first tab (which is annotated by the table)
-    // and thumbnails for all other tabs
-    return isPrimaryTab ? "minimal-thumbnail" : "thumbnail"
-}
-
-function constructChartAndPreviewUrlsForTab({
-    hit,
-    grapherState,
-    tab,
-    previewVariant,
-    imageWidth,
-    imageHeight,
-}: {
-    hit: SearchChartHit
-    grapherState: GrapherState
-    tab: GrapherTabName
-    previewVariant: PreviewVariant
-    imageWidth?: number
-    imageHeight?: number
-}): { chartUrl: string; previewUrl: string } {
-    // Use Grapher's changedParams to construct chart and preview URLs.
-    // We override the tab parameter because the GrapherState is currently set to
-    // the first tab of the chart, but we need to generate URLs for the specific
-    // tab being rendered in this preview.
-    const grapherParams = {
-        ...grapherState.changedParams,
-        tab: mapGrapherTabNameToQueryParam(tab),
-    }
-
-    // Instead of showing a single series per facet,
-    // show all series in a single discrete bar chart
-    const hasSingleSeriesPerFacet =
-        grapherState.isFaceted && !grapherState.hasMultipleSeriesPerFacet
-    if (tab === GRAPHER_TAB_NAMES.DiscreteBar && hasSingleSeriesPerFacet) {
-        grapherParams.facet = FacetStrategy.none
-    }
-
-    // If the Marimekko chart has a selection, also set
-    // the focus param, so that the selected entities are
-    // labelled
-    if (
-        tab === GRAPHER_TAB_NAMES.Marimekko &&
-        !grapherParams.focus &&
-        grapherState.selection.hasSelection
-    ) {
-        grapherParams.focus = generateFocusedSeriesNamesParam(
-            grapherState.selection.selectedEntityNames
-        )
-    }
-
-    const previewUrl = constructPreviewUrl({
-        hit,
-        grapherParams,
-        variant: previewVariant,
-        imageWidth,
-        imageHeight,
-    })
-
-    const chartUrl = constructChartUrl({
-        hit,
-        // We don't want to link to a chart where entities are highlighted
-        grapherParams: R.omit(grapherParams, ["focus"]),
-    })
-
-    return { chartUrl, previewUrl }
 }
 
 function calculateLayout(

@@ -49,6 +49,7 @@ export type SearchChartHitDataTableContent =
     | {
           type: "data-table"
           props: SearchChartHitDataTableProps
+          isLegend?: boolean
       }
     | {
           type: "data-points"
@@ -138,6 +139,11 @@ function buildDataTableContentForLineChart({
 }: Args<LineChartState>): SearchChartHitDataTableContent {
     const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
 
+    // Line charts might have a color scale, in which case the lines are colored
+    // according to the scale. In this case, we show a legend as table
+    if (chartState.hasColorScale)
+        return buildLegendTableProps({ grapherState, chartState, maxRows })
+
     // Create a map chart state to access custom label formatting.
     // When `map.tooltipUseCustomLabels` is enabled, this allows us to display
     // custom color scheme labels (e.g. "Low", "Medium", "High") instead of
@@ -156,7 +162,7 @@ function buildDataTableContentForLineChart({
         (series) => series.seriesName
     )
 
-    const rows = Object.values(groupedSeries)
+    let rows = Object.values(groupedSeries)
         .map((seriesList) => {
             // Pick the series with the latest time
             const series = R.firstBy(seriesList, [
@@ -175,6 +181,19 @@ function buildDataTableContentForLineChart({
                     series.columnName
                 ) ?? series.color
 
+            // If the x-axis (that is usually time) has a label,
+            // we append it to the time string in parentheses
+            const xAxisLabel = grapherState.xAxis.label
+            const time = appendInParens(
+                formatColumn.formatTime(point.x),
+                xAxisLabel
+            )
+            const timePreposition = !xAxisLabel
+                ? OwidTable.getPreposition(
+                      chartState.transformedTable.timeColumn
+                  )
+                : ""
+
             return {
                 series,
                 point,
@@ -184,10 +203,8 @@ function buildDataTableContentForLineChart({
                 value:
                     formatValueIfCustom(point.y) ??
                     formatColumn.formatValueShort(point.y),
-                time: formatColumn.formatTime(point.x),
-                timePreposition: OwidTable.getPreposition(
-                    chartState.transformedTable.timeColumn
-                ),
+                time,
+                timePreposition,
                 muted: series.focus.background,
                 striped: series.isProjection,
             }
@@ -196,19 +213,16 @@ function buildDataTableContentForLineChart({
 
     // Only show projected data points if there are any
     const hasProjectedData = rows.some((row) => row.series.isProjection)
-    const filteredRows = hasProjectedData
-        ? rows.filter((row) => row.series.isProjection)
-        : rows
+    if (hasProjectedData) rows = rows.filter((row) => row.series.isProjection)
 
     // Sort by value in descending order
-    const sortedRows = R.sortBy(filteredRows, [(row) => row.point.y, "desc"])
+    rows = R.sortBy(rows, [(row) => row.point.y, "desc"])
 
-    const displayRows =
-        maxRows !== undefined ? sortedRows.slice(0, maxRows) : sortedRows
+    rows = maxRows !== undefined ? rows.slice(0, maxRows) : rows
 
     const title = makeTableTitle(grapherState, chartState)
 
-    return { type: "data-table", props: { rows: displayRows, title } }
+    return { type: "data-table", props: { rows, title } }
 }
 
 function buildDataTableContentForDiscreteBarChart({
@@ -307,6 +321,9 @@ function buildDataTableContentForStackedDiscreteBarChart({
                         color: point.color ?? series.color,
                         value: formatColumn.formatValueShort(point.value),
                         time: formatColumn.formatTime(point.time),
+                        timePreposition: OwidTable.getPreposition(
+                            chartState.transformedTable.timeColumn
+                        ),
                     }
                 })
                 .filter((row) => row !== undefined)
@@ -317,11 +334,12 @@ function buildDataTableContentForStackedDiscreteBarChart({
             ])
 
             const columnName = getColumnNameForDisplay(formatColumn)
-            const unit = formatColumn.unit
+            const unit = getColumnUnitForDisplay(formatColumn)
             const title = unit ? `${columnName} (${unit})` : columnName
 
             return { rows: sortedRows, title }
         })
+
         // In multi-dimensional mode, each row represents a column (for the same entity)
         .with("multi-dimensional", () => {
             // Find the entity to display data for. Prefer focused entities,
@@ -336,22 +354,30 @@ function buildDataTableContentForStackedDiscreteBarChart({
 
             type TableRow = SearchChartHitDataTableProps["rows"][number] & {
                 columnSlug: string
+                sortValue?: number
             }
 
-            const rows: TableRow[] = item?.bars
+            let rows: TableRow[] = item?.bars
                 .map((bar) => {
                     const point = bar.point
                     if (point.fake || point.interpolated) return undefined
                     return {
                         seriesName: bar.seriesName,
                         label: bar.seriesName,
+                        sortValue: point.value,
                         columnSlug: bar.columnSlug,
                         color: bar.color,
                         value: formatColumn.formatValueShort(point.value),
                         time: formatColumn.formatTime(point.time),
+                        timePreposition: OwidTable.getPreposition(
+                            chartState.transformedTable.timeColumn
+                        ),
                     }
                 })
                 .filter((row) => row !== undefined)
+
+            // Sort by value in descending order
+            rows = R.sortBy(rows, [(row) => row.sortValue ?? 0, "desc"])
 
             // If the current entity doesn't have data for some of the columns,
             // we manually add those to the data table with a 'No data' label.
@@ -416,12 +442,26 @@ function buildDataTableContentForStackedAreaAndBarChart({
                 ? undefined // Don't show a color swatch in the table
                 : (point.color ?? series.color)
 
+            // If the x-axis (that is usually time) has a label,
+            // we append it to the time string in parentheses
+            const xAxisLabel = grapherState.xAxis.label
+            const time = appendInParens(
+                formatColumn.formatTime(point.time),
+                xAxisLabel
+            )
+            const timePreposition = !xAxisLabel
+                ? OwidTable.getPreposition(
+                      chartState.transformedTable.timeColumn
+                  )
+                : ""
+
             return {
                 seriesName: series.seriesName,
                 label: series.seriesName,
                 color,
                 value: formatColumn.formatValueShort(point.value),
-                time: formatColumn.formatTime(point.time),
+                time,
+                timePreposition,
                 muted: series.focus?.background,
                 point,
             }
@@ -505,6 +545,9 @@ function buildDataPointsContentForMarimekko({
             unit: getColumnUnitForDisplay(yColumn),
             value,
             time,
+            timePreposition: OwidTable.getPreposition(
+                chartState.transformedTable.timeColumn
+            ),
         }
     })
 
@@ -538,6 +581,9 @@ function buildValueTableContentForMarimekko({
                 color: entityColor?.color ?? point.color ?? series.color,
                 value: yColumn.formatValueShort(point.value),
                 time: yColumn.formatTime(point.time),
+                timePreposition: OwidTable.getPreposition(
+                    chartState.transformedTable.timeColumn
+                ),
             }
         })
         .filter((row) => row !== undefined)
@@ -557,14 +603,16 @@ function buildDataTableContentForScatterPlot({
     chartState,
     maxRows,
 }: Args<ScatterPlotChartState>): SearchChartHitDataTableContent {
-    // If entities are selected, then we display the x and y values for the
-    // first entity. The remaining entities are ignored
+    // If entities are selected, then we display the x and y values for one of
+    // the entities. The remaining entities are ignored
     if (grapherState.selection.hasSelection) {
-        const selectedEntity = grapherState.selection.selectedEntityNames[0]
+        const displayEntity =
+            findEntityToDisplayForScatterPlot(chartState) ??
+            chartState.series[0]?.seriesName
         return buildDataPointsContentForScatterPlot({
             grapherState,
             chartState,
-            entityName: selectedEntity,
+            entityName: displayEntity,
         })
     }
 
@@ -585,21 +633,33 @@ function buildDataTableContentForScatterPlot({
     //   a single table row. That's why we simply display the x- and y-values
     //   of one of the entities.
     if (chartState.series.length === 1 || chartState.isConnected) {
-        const firstEntity = chartState.series[0].seriesName
+        const displayEntity =
+            findEntityToDisplayForScatterPlot(chartState) ??
+            chartState.series[0]?.seriesName
         return buildDataPointsContentForScatterPlot({
             grapherState,
             chartState,
-            entityName: firstEntity,
+            entityName: displayEntity,
         })
     }
 
     // Display a table where each row corresponds to an entity and lists x and
     // y-values in this format: '<x-value> vs. <y-value>'.
-    return buildValueTableContentForScatterPlot({
-        grapherState,
-        chartState,
-        maxRows,
-    })
+    return buildValueTableContentForScatterPlot({ chartState, maxRows })
+}
+
+function findEntityToDisplayForScatterPlot(
+    chartState: ScatterPlotChartState
+): string | undefined {
+    // For non-connected scatter plots, use the first entity
+    if (!chartState.isConnected) return chartState.series[0]?.seriesName
+
+    // For connected scatter plots, prefer an entity with multiple data points
+    // (indicating a connected line) over an entity with just a single point
+    return (
+        chartState.series.find((series) => series.points.length > 1) ??
+        chartState.series[0]
+    )?.seriesName
 }
 
 /** Creates a table where each row represents a legend bin from the color scale */
@@ -617,7 +677,8 @@ function buildLegendTableProps({
     let rows = bins
         .map((bin) => {
             if (bin.isHidden || isNoDataBin(bin)) return undefined
-            return { bin, label: bin.text, color: bin.color }
+            const label = makeLabelForBin(bin)
+            return { label, color: bin.color }
         })
         .filter((row) => row !== undefined)
 
@@ -625,7 +686,7 @@ function buildLegendTableProps({
 
     const title = grapherState.colorScale.legendDescription || "Legend"
 
-    return { type: "data-table", props: { rows, title } }
+    return { type: "data-table", props: { rows, title }, isLegend: true }
 }
 
 /**
@@ -633,18 +694,18 @@ function buildLegendTableProps({
  * displaying both x and y values in a "y vs x" format for each entity.
  */
 function buildValueTableContentForScatterPlot({
-    grapherState,
     chartState,
     maxRows,
 }: {
-    grapherState: GrapherState
     chartState: ScatterPlotChartState
     maxRows?: number
 }): SearchChartHitDataTableContent {
     const { xColumn, yColumn } = chartState
 
-    const yLabel = grapherState.yAxis.label || getColumnNameForDisplay(yColumn)
-    const xLabel = grapherState.xAxis.label || getColumnNameForDisplay(xColumn)
+    const yLabel =
+        chartState.verticalAxisLabel || getColumnNameForDisplay(yColumn)
+    const xLabel =
+        chartState.horizontalAxisLabel || getColumnNameForDisplay(xColumn)
 
     let rows = chartState.series
         .map((series) => {
@@ -658,6 +719,9 @@ function buildValueTableContentForScatterPlot({
                 color: series.color,
                 value: `${yValue} vs. ${xValue}`,
                 time: yColumn.formatTime(point.timeValue),
+                timePreposition: OwidTable.getPreposition(
+                    chartState.transformedTable.timeColumn
+                ),
             }
         })
         .filter((row) => row !== undefined)
@@ -685,17 +749,20 @@ function buildDataPointsContentForScatterPlot({
 }): SearchChartHitDataTableContent {
     const { xColumn, yColumn } = chartState
 
-    const yLabel = grapherState.yAxis.label || getColumnNameForDisplay(yColumn)
-    const xLabel = grapherState.xAxis.label || getColumnNameForDisplay(xColumn)
+    const yLabel =
+        chartState.verticalAxisLabel || getColumnNameForDisplay(yColumn)
+    const xLabel =
+        chartState.horizontalAxisLabel || getColumnNameForDisplay(xColumn)
 
     const series = chartState.series.find(
         (series) => series.seriesName === entityName
     )
     const points = series?.points ?? []
     const endPoint = R.firstBy(points, [(point) => point.timeValue, "desc"])
-    const startPoint = chartState.isConnected
-        ? R.firstBy(points, [(point) => point.timeValue, "asc"])
-        : undefined
+    const startPoint =
+        points.length > 1
+            ? R.firstBy(points, [(point) => point.timeValue, "asc"])
+            : undefined
 
     const formattedStartTime = startPoint
         ? yColumn.formatTime(startPoint.timeValue)
@@ -748,16 +815,6 @@ function buildDataTableContentForWorldMap({
 }: Args<MapChartState>): SearchChartHitDataTableContent {
     const bins = chartState.colorScale.legendBins
 
-    const makeLabelForNumericBin = (bin: NumericBin): string => {
-        if (bin.text) return bin.text
-        if (bin.props.isOpenLeft) return `<${bin.maxText}`
-        if (bin.props.isOpenRight) return `>${bin.minText}`
-        return `${bin.minText}-${bin.maxText}`
-    }
-
-    const makeLabelForBin = (bin: ColorScaleBin): string =>
-        isNumericBin(bin) ? makeLabelForNumericBin(bin) : bin.text
-
     // The table shows a map legend where each row corresponds to a legend bin
     let rows = bins
         .map((bin) => {
@@ -797,7 +854,7 @@ function buildDataTableContentForWorldMap({
 
     const title = makeTableTitle(grapherState, chartState)
 
-    return { type: "data-table", props: { rows, title } }
+    return { type: "data-table", props: { rows, title }, isLegend: true }
 }
 
 // Only used to build a data table when Grapher has neither a chart
@@ -808,7 +865,7 @@ function buildDataTableContentForTableTab({
 }: BaseArgs): SearchChartHitDataTableContent {
     const yColumn = grapherState.tableForDisplay.get(grapherState.yColumnSlug)
     const columnName = getColumnNameForDisplay(yColumn)
-    const unit = yColumn.unit
+    const unit = getColumnUnitForDisplay(yColumn, { allowTrivial: true })
     const title = unit ? `In ${unit}` : columnName
 
     const time = grapherState.endTime ?? grapherState.tableForDisplay.maxTime
@@ -828,6 +885,9 @@ function buildDataTableContentForTableTab({
     const tableRows = filteredOwidRows.map((row) => ({
         label: row.entityName,
         time: yColumn.formatTime(row.originalTime),
+        timePreposition: OwidTable.getPreposition(
+            grapherState.transformedTable.timeColumn
+        ),
         value: yColumn.formatValueShort(row.value),
     }))
 
@@ -897,3 +957,17 @@ function getColorForSeriesIfFaceted(
 
     return series?.color
 }
+
+function appendInParens(text: string, parenthetical?: string): string {
+    return parenthetical ? `${text} (${parenthetical})` : text
+}
+
+const makeLabelForNumericBin = (bin: NumericBin): string => {
+    if (bin.text) return bin.text
+    if (bin.props.isOpenLeft) return `<${bin.maxText}`
+    if (bin.props.isOpenRight) return `>${bin.minText}`
+    return `${bin.minText}-${bin.maxText}`
+}
+
+const makeLabelForBin = (bin: ColorScaleBin): string =>
+    isNumericBin(bin) ? makeLabelForNumericBin(bin) : bin.text
