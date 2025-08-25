@@ -273,13 +273,19 @@ export async function refreshExplorerViewsForSlug(
     // Fetch existing explorer views with their chart configs
     type ExistingView = Pick<
         DbRawExplorerView,
-        "dimensions" | "chartConfigId" | "error"
+        "id" | "dimensions" | "chartConfigId" | "error"
     > & {
         full: string | null
     }
 
     const existingViews: ExistingView[] = await knex
-        .select("ev.dimensions", "ev.chartConfigId", "ev.error", "cc.full")
+        .select(
+            "ev.id",
+            "ev.dimensions",
+            "ev.chartConfigId",
+            "ev.error",
+            "cc.full"
+        )
         .from("explorer_views as ev")
         .leftJoin("chart_configs as cc", "ev.chartConfigId", "cc.id")
         .where("ev.explorerSlug", slug)
@@ -419,11 +425,8 @@ export async function refreshExplorerViewsForSlug(
             }
         }
 
-        const removedViewStrings = removedViews.map((v) => v.dimensions)
-        await knex("explorer_views")
-            .where("explorerSlug", slug)
-            .whereIn("dimensions", removedViewStrings)
-            .delete()
+        const removedViewIds = removedViews.map((v) => v.id)
+        await knex("explorer_views").whereIn("id", removedViewIds).delete()
     }
 
     // Update existing views with changed configs
@@ -438,13 +441,10 @@ export async function refreshExplorerViewsForSlug(
                     .delete()
             }
 
-            await knex("explorer_views")
-                .where("explorerSlug", slug)
-                .where("dimensions", existing.dimensions)
-                .update({
-                    error: generated.error,
-                    chartConfigId: null,
-                })
+            await knex("explorer_views").where("id", existing.id).update({
+                error: generated.error,
+                chartConfigId: null,
+            })
         } else if (generated.config && existing.chartConfigId) {
             // Update existing chart config
             await updateExistingConfigPair(knex, {
@@ -458,8 +458,7 @@ export async function refreshExplorerViewsForSlug(
 
             // Clear any previous error
             await knex("explorer_views")
-                .where("explorerSlug", slug)
-                .where("dimensions", existing.dimensions)
+                .where("id", existing.id)
                 .update({ error: null })
         } else if (generated.config && !existing.chartConfigId) {
             // Create new chart config for previously failed view
@@ -473,13 +472,10 @@ export async function refreshExplorerViewsForSlug(
 
             updatedChartConfigIds.push(chartConfigId)
 
-            await knex("explorer_views")
-                .where("explorerSlug", slug)
-                .where("dimensions", existing.dimensions)
-                .update({
-                    chartConfigId: chartConfigId,
-                    error: null,
-                })
+            await knex("explorer_views").where("id", existing.id).update({
+                chartConfigId: chartConfigId,
+                error: null,
+            })
         }
     }
 
