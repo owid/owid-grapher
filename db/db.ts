@@ -299,17 +299,36 @@ export async function checkIfSlugCollides(
 }
 
 export const getPublishedDataInsightCount = (
-    knex: KnexReadonlyTransaction
+    knex: KnexReadonlyTransaction,
+    topicSlug?: string
 ): Promise<number> => {
-    return knexRawFirst<{ count: number }>(
-        knex,
-        `
-        SELECT COUNT(*) AS count
-        FROM posts_gdocs
-        WHERE type = '${OwidGdocType.DataInsight}'
-            AND published = TRUE
-            AND publishedAt <= NOW()`
-    ).then((res) => res?.count ?? 0)
+    let query
+    if (topicSlug) {
+        query = knexRawFirst<{ count: number }>(
+            knex,
+            `
+            SELECT COUNT(DISTINCT(posts_gdocs.id)) AS count
+            FROM posts_gdocs
+            JOIN posts_gdocs_x_tags as pgt ON posts_gdocs.id = pgt.gdocId
+            JOIN tags ON pgt.tagId = tags.id
+            WHERE type = '${OwidGdocType.DataInsight}'
+                AND published = TRUE
+                AND publishedAt <= NOW()
+                AND tags.slug = ?`,
+            [topicSlug]
+        )
+    } else {
+        query = knexRawFirst<{ count: number }>(
+            knex,
+            `
+            SELECT COUNT(*) AS count
+            FROM posts_gdocs
+            WHERE type = '${OwidGdocType.DataInsight}'
+                AND published = TRUE
+                AND publishedAt <= NOW()`
+        )
+    }
+    return query.then((res) => res?.count ?? 0)
 }
 
 export const getTotalNumberOfCharts = (
@@ -889,6 +908,28 @@ export async function generateTopicTagGraph(
     )
 
     return createTagGraph(tagGraphTopicsOnly, __rootId)
+}
+
+/**
+ * Fetch all topic tags from the database.
+ * Topics are any tags that have a slug.
+ * Returns id, name, and slug of each topic tag.
+ * Note: This does not include area tags, which are the top-level children of the tag
+ * graph root and do not have a slug.
+ */
+export const getAllTopicSlugs = async (
+    trx: KnexReadonlyTransaction
+): Promise<string[]> => {
+    const results = await knexRaw<{ slug: string }>(
+        trx,
+        `-- sql
+        SELECT slug
+        FROM ${TagsTableName}
+        WHERE slug IS NOT NULL
+        `
+    )
+
+    return results.map((row) => row.slug)
 }
 
 /**

@@ -1,17 +1,25 @@
-import { useMemo } from "react"
+import { useMemo, ReactNode } from "react"
+import cx from "classnames"
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import {
     REUSE_THIS_WORK_SECTION_ID,
     DATAPAGE_SOURCES_AND_PROCESSING_SECTION_ID,
+    DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
+    Button,
 } from "@ourworldindata/components"
-import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import {
+    EXPERIMENT_ARM_SEPARATOR,
+    EXPERIMENT_PREFIX,
     DataPageV2ContentFields,
     GrapherInterface,
     joinTitleFragments,
     ImageMetadata,
     excludeNull,
+    queryParamsToStr,
+    getAssignedExperiments,
+    experiments,
 } from "@ourworldindata/utils"
+import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import StickyNav from "./blocks/StickyNav.js"
 import {
     ADMIN_BASE_URL,
@@ -25,6 +33,7 @@ import { processRelatedResearch } from "./dataPage.js"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
+import { faArrowRight, faArrowDown } from "@fortawesome/free-solid-svg-icons"
 
 declare global {
     interface Window {
@@ -90,6 +99,32 @@ export const DataPageV2Content = ({
         datapageData.relatedResearch,
         datapageData.topicTagsLinks ?? []
     )
+
+    // insight link for when only a single link is shown
+    let insightsHref: string | undefined
+    if (datapageData.primaryTopic) {
+        const topicSlug = tagToSlugMap[datapageData.primaryTopic.topicTag]
+        if (datapageData.hasDataInsights) {
+            insightsHref = `/data-insights${queryParamsToStr({ topic: datapageData.primaryTopic.topicTag })}`
+        } else {
+            insightsHref = `/${topicSlug}`
+        }
+    }
+
+    // note: assignedExperiments and isPageInExperiment should NOT be used to
+    // conditionally render content b/c it will cause a flash of content before js loads.
+    const assignedExperiments = getAssignedExperiments()
+    const isPageInExperiment = useMemo(() => {
+        if (typeof window === "undefined") return false
+
+        const currentPath = window.location.pathname
+        const experimentMap = new Map(experiments.map((exp) => [exp.id, exp]))
+
+        return Object.keys(assignedExperiments).some((expId: string) => {
+            const exp = experimentMap.get(expId)
+            return exp?.isUrlInPaths(currentPath) ?? false
+        })
+    }, [assignedExperiments])
 
     return (
         <AttachmentsContext.Provider
@@ -163,9 +198,34 @@ export const DataPageV2Content = ({
                                     isPreviewing={isPreviewing}
                                 />
                             )}
+
+                            {/* A/B experiment: data-page-insight-buttons-basic */}
+                            {insightsHref && (
+                                <InsightLinksInsightButtonsBasic
+                                    insightsHref={insightsHref}
+                                />
+                            )}
+
                             <AboutThisData
                                 datapageData={datapageData}
                                 hasFaq={!!faqEntries?.faqs.length}
+                                className={cx(
+                                    "exp-data-page-insight-buttons-basic--control1--hide",
+                                    "exp-data-page-insight-buttons-basic--treat0--hide",
+                                    "exp-data-page-insight-buttons-basic--treat1--hide"
+                                )}
+                                id={
+                                    // if visitor is assigned to an arm other than
+                                    // the pure control, don't give this section an id
+                                    isPageInExperiment &&
+                                    ["control1", "treat0", "treat1"].includes(
+                                        assignedExperiments[
+                                            "exp-data-page-insight-buttons-basic"
+                                        ]
+                                    )
+                                        ? ""
+                                        : DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
+                                }
                             />
                         </div>
                     </div>
@@ -192,6 +252,29 @@ export const DataPageV2Content = ({
                             </div>
                         ) : null}
                     </div>
+                    <div className="col-start-2 span-cols-12">
+                        <AboutThisData
+                            datapageData={datapageData}
+                            hasFaq={!!faqEntries?.faqs.length}
+                            className={cx(
+                                "exp-data-page-insight-buttons-basic--control1--show",
+                                "exp-data-page-insight-buttons-basic--treat0--show",
+                                "exp-data-page-insight-buttons-basic--treat1--show"
+                            )}
+                            id={
+                                // if visitor is assigned to an arm other than
+                                // the pure control, give this section an id
+                                isPageInExperiment &&
+                                ["control1", "treat0", "treat1"].includes(
+                                    assignedExperiments[
+                                        "exp-data-page-insight-buttons-basic"
+                                    ]
+                                )
+                                    ? DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
+                                    : ""
+                            }
+                        />
+                    </div>
                     <MetadataSection
                         attributionShort={datapageData.attributionShort}
                         attributions={datapageData.attributions}
@@ -211,5 +294,71 @@ export const DataPageV2Content = ({
                 </div>
             </DocumentContext.Provider>
         </AttachmentsContext.Provider>
+    )
+}
+
+/**
+ * A/B experiment: data-page-insight-buttons-basic
+ *
+ * Renders the insight buttons for each experimental arm in the
+ * data-page-insight-buttons-basic experiment.
+ */
+const InsightLinksInsightButtonsBasic = ({
+    insightsHref,
+}: {
+    insightsHref: string
+}) => {
+    const experimentId = "data-page-insight-buttons-basic"
+
+    return (
+        <>
+            <InsightLinks
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat0--show`}
+            >
+                <Button
+                    className="insights-link"
+                    href={`#${DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}`}
+                    text="Learn more about data sources"
+                    theme="solid-blue"
+                    icon={faArrowDown}
+                    dataTrackNote="btn_click__about_the_data"
+                />
+            </InsightLinks>
+            <InsightLinks
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat1--show`}
+            >
+                <Button
+                    className="insights-link"
+                    href={insightsHref}
+                    text="View insights about this data"
+                    theme="solid-blue"
+                    icon={faArrowRight}
+                    dataTrackNote="btn_click__insights"
+                />
+            </InsightLinks>
+        </>
+    )
+}
+
+const InsightLinks = ({
+    className,
+    showHeader = false,
+    children,
+}: {
+    className: string
+    showHeader?: boolean
+    children: ReactNode
+}) => {
+    return (
+        <div className={cx("grid", className)}>
+            {showHeader && (
+                <h2 className={`insights__title span-cols-12`}>
+                    Insights about this data
+                </h2>
+            )}
+            <div className="insight-links span-cols-4 span-lg-cols-4 span-sm-cols-12">
+                {children}
+            </div>
+        </div>
     )
 }

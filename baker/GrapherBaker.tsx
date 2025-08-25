@@ -47,7 +47,11 @@ import { getDatapageDataV2 } from "../site/dataPage.js"
 import { getAllImages } from "../db/model/Image.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
-import { deleteOldGraphers, getTagToSlugMap } from "./GrapherBakingUtils.js"
+import {
+    deleteOldGraphers,
+    getTagToHasDataInsightsMap,
+    getTagToSlugMap,
+} from "./GrapherBakingUtils.js"
 import { knexRaw } from "../db/db.js"
 import { getRelatedChartsForVariable } from "../db/model/Chart.js"
 import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
@@ -241,6 +245,11 @@ export async function renderDataPageV2(
         )
 
         tagToSlugMap = await getTagToSlugMap(knex)
+        const tagToHasDataInsightsMap = await getTagToHasDataInsightsMap(knex)
+
+        datapageData.hasDataInsights = datapageData.primaryTopic?.topicTag
+            ? tagToHasDataInsightsMap[datapageData.primaryTopic?.topicTag]
+            : false
     }
 
     let canonicalUrl: string

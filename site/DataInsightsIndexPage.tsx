@@ -20,6 +20,12 @@ export interface DataInsightsIndexPageProps {
     pageNumber: number
     totalPageCount: number
     isPreviewing?: boolean
+    topicTag?: TopicTag
+}
+
+export type TopicTag = {
+    name: string
+    slug: string
 }
 
 export const DataInsightsIndexPage = (props: DataInsightsIndexPageProps) => {

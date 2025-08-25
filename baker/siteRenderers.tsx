@@ -69,7 +69,10 @@ import {
     ExplorerFullQueryParams,
 } from "@ourworldindata/explorer"
 import { ExplorerPage } from "../site/ExplorerPage.js"
-import { DataInsightsIndexPage } from "../site/DataInsightsIndexPage.js"
+import {
+    DataInsightsIndexPage,
+    TopicTag,
+} from "../site/DataInsightsIndexPage.js"
 import {
     getChartConfigBySlug,
     getEnrichedChartById,
@@ -246,7 +249,8 @@ export const renderDataInsightsIndexPage = (
     dataInsights: OwidGdocDataInsightInterface[],
     page: number = 0,
     totalPageCount: number,
-    isPreviewing: boolean = false
+    isPreviewing: boolean = false,
+    topicTag?: TopicTag
 ) => {
     return renderToHtmlPage(
         <DataInsightsIndexPage
@@ -255,6 +259,7 @@ export const renderDataInsightsIndexPage = (
             pageNumber={page}
             totalPageCount={totalPageCount}
             isPreviewing={isPreviewing}
+            topicTag={topicTag}
         />
     )
 }
