@@ -281,11 +281,4 @@
     .article-block__chart {
         margin-bottom: 32px;
     }
-
-    .article-block__resource-panel {
-        @include md-up {
-            /* Make sure the resource panel spans all the rows that the intro content creates */
-            grid-row-end: span 6;
-        }
-    }
 }

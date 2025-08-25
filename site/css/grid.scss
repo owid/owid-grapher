@@ -29,7 +29,7 @@ $grid-max-colums: 14;
 $grid-col-spans: (2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
 $grid-col-start: (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
 $grid-col-end: (2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
-$grid-row-spans: (1, 2, 3);
+$grid-row-spans: (1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
 // Remapping our breakpoint variables that we prefix with $ so that we can use them in class names
 // e.g. .grid-sm-cols-12
@@ -97,7 +97,7 @@ $grid-responsive: (lg, md, sm);
 // Spans Rows
 @each $span in $grid-row-spans {
     .span-rows-#{$span} {
-        grid-row: span #{$span} / span #{$span};
+        grid-row: span #{$span};
     }
 }
 
@@ -127,7 +127,7 @@ $grid-responsive: (lg, md, sm);
                 }
                 @each $span in $grid-row-spans {
                     .span-#{$breakpoint}-rows-#{$span} {
-                        grid-row: span #{$span} / span #{$span};
+                        grid-row: span #{$span};
                     }
                 }
                 @each $start in $grid-col-start {
