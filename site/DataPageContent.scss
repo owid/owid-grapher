@@ -215,91 +215,65 @@
 }
 
 /*
-CSS for A/B experiments  
+CSS for A/B experiments
 
-CSS pattern for hiding/showing elements based on visitor's assignment to an experiment:
+CSS patterns for hiding/showing elements based on visitor's assignment to an experiment.
+When a visitor is assigned to an experimental arm, the html body is given a class corresponding
+to the experiment+arm assignment: "{experimentId}--{armId}" (e.g. "exp-data-page-insight-links--treat1").
 
-Elements to be shown for an experimental arm should be given a class such as "exp-data-page-insight-links--treat0__block",
-following the format "exp-{experimentId}--{armId}__block". If the visitor is assigned to that arm,
-the html body will contain the "exp-data-page-insight-links--treat0" class, which is how we then
-determine whether to show or hide the elements.
+Then, we conditionally show/hide blocks of content when this class is present on the body.
+Blocks with matching "{experimentId}--{armId}--show" are shown, while blocks with matching
+"{experimentId}--{armId}--hide" are hidden.
 
-To implement this show/hide logic for an experiment, you must add the following css code.
-This will hide all elements associated with the experiment, except for elements
-that match the experimental arm the visitor is assigned to.
-
-The logic is that all elements with "exp-{experimentId}--{armId}__block" classes are hidden, except those
-that match the body's "exp-{experimentId}--{armId1}" class (which indicates the visitor's
-experimental arm assignment).
-
-body {
-    .exp-{experimentId}--{armId1}__block,
-    .exp-{experimentId}--{armId2}__block {
-        display: none;
-    }
-    &.exp-{experimentId}--{armId1} .exp-{experimentId}--{armId1}__block,
-    &.exp-{experimentId}--{armId2} .exp-{experimentId}--{armId2}__block {
-        display: block;
-    }
-}
-
-Note: make sure any additional css you write for experimental elements is scoped
-to the experiment and arm, so that it doesn't unintentionally affect other elements.
-
-Example:
-.exp-{experimentId}--{armId} {
-    .my-btn {
-        padding: 1rem;
-        ...
-    }
-}
+By default when a user is NOT assigned to {armId}, blocks with "{experimentId}--{armId}--show"
+are hidden, while blocks with "{experimentId}--{armId}--hide" are shown.
 */
+$experiments: (
+    exp-data-page-insight-buttons-basic: (
+        control1,
+        treat0,
+        treat1,
+    ),
+);
 
-/* experiment: exp-data-page-insight-buttons-basic */
-body {
-    .exp-data-page-insight-buttons-basic--control1__block,
-    .exp-data-page-insight-buttons-basic--treat0__block,
-    .exp-data-page-insight-buttons-basic--treat1__block {
-        display: none;
+$experimentId: exp-data-page-insight-buttons-basic;
+$armIds: control1, treat0, treat1;
 
-        // add .exp-hide to elements that are shown by default but which you want
-        // to hide for an experimental arm (must also include experimental arm in
-        // the element's class names, e.g. "exp-data-page-insight-buttons-basic--treat0__block exp-hide")
-        &.exp-hide {
-            display: block;
+@each $exp, $arms in $experiments {
+    .#{$exp} {
+        @each $a in $arms {
+            // default state: all --show are hidden
+            &--#{$a}--show {
+                display: none;
+            }
 
-            &.grid {
-                display: grid;
+            // when arm is active, show the matching --show
+            &--#{$a} &--#{$a}--show {
+                display: block;
+
+                &.grid {
+                    display: grid;
+                }
+                margin-bottom: 24px;
+
+                @include sm-up {
+                    margin-bottom: 40px;
+                }
+            }
+
+            // when arm is active, hide the matching --hide
+            &--#{$a} &--#{$a}--hide {
+                display: none;
             }
         }
     }
+}
 
-    &.exp-data-page-insight-buttons-basic--control1
-        .exp-data-page-insight-buttons-basic--control1__block,
-    &.exp-data-page-insight-buttons-basic--treat0
-        .exp-data-page-insight-buttons-basic--treat0__block,
-    &.exp-data-page-insight-buttons-basic--treat1
-        .exp-data-page-insight-buttons-basic--treat1__block {
-        display: block;
-
-        margin-bottom: 24px;
-        @include sm-up {
-            margin-bottom: 40px;
-        }
-
-        &.exp-hide {
-            display: none !important;
-        }
-
-        &.grid {
-            display: grid;
-        }
-    }
-
-    &.exp-data-page-insight-buttons-basic--control1,
-    &.exp-data-page-insight-buttons-basic--treat0,
-    &.exp-data-page-insight-buttons-basic--treat1 {
-        .DataPageContent {
+// styles specific to experiment exp-data-page-insight-buttons-basic
+.exp-data-page-insight-buttons-basic {
+    $arms: map-get($experiments, exp-data-page-insight-buttons-basic);
+    @each $a in $arms {
+        &--#{$a} .DataPageContent {
             .chart-key-info {
                 padding-bottom: 0;
                 @include sm-up {

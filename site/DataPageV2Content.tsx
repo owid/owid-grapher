@@ -192,6 +192,10 @@ export const DataPageV2Content = ({
                                 datapageData={datapageData}
                                 hasFaq={!!faqEntries?.faqs.length}
                                 className={cx(
+                                    "exp-data-page-insight-buttons-basic--control1--hide",
+                                    "exp-data-page-insight-buttons-basic--treat0--hide",
+                                    "exp-data-page-insight-buttons-basic--treat1--hide"
+                                )}
                                     "exp-data-page-insight-buttons-basic--control1__block",
                                     "exp-data-page-insight-buttons-basic--treat0__block",
                                     "exp-data-page-insight-buttons-basic--treat1__block",
@@ -228,9 +232,9 @@ export const DataPageV2Content = ({
                             datapageData={datapageData}
                             hasFaq={!!faqEntries?.faqs.length}
                             className={cx(
-                                "exp-data-page-insight-buttons-basic--control1__block",
-                                "exp-data-page-insight-buttons-basic--treat0__block",
-                                "exp-data-page-insight-buttons-basic--treat1__block"
+                                "exp-data-page-insight-buttons-basic--control1--show",
+                                "exp-data-page-insight-buttons-basic--treat0--show",
+                                "exp-data-page-insight-buttons-basic--treat1--show"
                             )}
                             id="about-the-data" // this must be slightly different than DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
                         />
@@ -273,7 +277,7 @@ const InsightLinksInsightButtonsBasic = ({
     return (
         <>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat0__block`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat0--show`}
             >
                 <Button
                     className="insights-link"
@@ -285,7 +289,7 @@ const InsightLinksInsightButtonsBasic = ({
                 />
             </InsightLinks>
             <InsightLinks
-                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat1__block`}
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat1--show`}
             >
                 <Button
                     className="insights-link"
