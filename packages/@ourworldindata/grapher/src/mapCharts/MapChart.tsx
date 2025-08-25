@@ -22,7 +22,6 @@ import {
     GeoFeature,
     MapBracket,
     MapChartManager,
-    ChoroplethSeries,
     DEFAULT_STROKE_COLOR,
     ChoroplethSeriesByName,
     ChoroplethMapManager,
@@ -49,7 +48,7 @@ import {
     isProjectedDataBin,
     NumericBin,
 } from "../color/ColorScaleBin"
-import { ColumnSlug, MapRegionName, SeriesName } from "@ourworldindata/types"
+import { ColumnSlug, MapRegionName } from "@ourworldindata/types"
 import { ClipPath, makeClipPath } from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { Component, createRef } from "react"
@@ -131,7 +130,7 @@ export class MapChart
     }
 
     @computed get choroplethData(): ChoroplethSeriesByName {
-        return this.seriesMap
+        return this.chartState.seriesMap
     }
 
     base = createRef<SVGGElement>()
@@ -206,18 +205,6 @@ export class MapChart
 
     @action.bound onRegionChange(value: MapRegionName): void {
         this.mapConfig.region = value
-    }
-
-    @computed private get series(): ChoroplethSeries[] {
-        return this.chartState.series
-    }
-
-    @computed private get seriesMap(): ChoroplethSeriesByName {
-        const map = new Map<SeriesName, ChoroplethSeries>()
-        this.series.forEach((series) => {
-            map.set(series.seriesName, series)
-        })
-        return map
     }
 
     @computed private get colorScale(): ColorScale {
@@ -375,10 +362,42 @@ export class MapChart
         return [bins[bins.length - 1], ...bins.slice(0, -1)]
     }
 
+    @computed private get numMembersPerCategoricalBinByIndex(): Map<
+        number,
+        number
+    > {
+        const { chartState, legendData } = this
+        return new Map(
+            legendData
+                .filter((bin) => isCategoricalBin(bin))
+                .map((bin) => {
+                    const memberCount = chartState.series.filter((series) =>
+                        bin.contains(series.value)
+                    ).length
+                    return [bin.index, memberCount]
+                })
+        )
+    }
+
     @computed get categoricalLegendData(): CategoricalBin[] {
-        return this.legendData
+        let categoricalLegendData = this.legendData
             .filter((bin) => isCategoricalBin(bin))
             .map((bin) => this.maybeAddPatternRefToBin(bin))
+
+        // Hide empty bins for static charts
+        if (this.isStatic) {
+            categoricalLegendData = categoricalLegendData.filter((bin) => {
+                const memberCount =
+                    this.numMembersPerCategoricalBinByIndex.get(bin.index) ?? 0
+                return (
+                    isNoDataBin(bin) ||
+                    isProjectedDataBin(bin) ||
+                    memberCount > 0
+                )
+            })
+        }
+
+        return categoricalLegendData
     }
 
     @computed private get hasCategoricalLegendData(): boolean {
@@ -507,6 +526,10 @@ export class MapChart
             renderUid: this.renderUid,
             box: this.choroplethMapBounds,
         })
+    }
+
+    @computed get numericBinSize(): number {
+        return 0.625 * this.fontSize
     }
 
     renderMapLegend(): React.ReactElement {
