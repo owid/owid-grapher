@@ -81,6 +81,7 @@ async function getRecords(
         const queryStr = queryParamsToStr(view.dimensions)
         const variableId = view.indicators.y[0].id
         const metadata = _.merge(
+            {}, // merge mutates the first argument
             relevantVariableMetadata[variableId],
             multiDim.config.metadata,
             view.metadata
