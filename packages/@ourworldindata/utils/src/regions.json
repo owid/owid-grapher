@@ -2796,6 +2796,7 @@
         "slug": "africa-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_1",
+        "translationCodes": ["002"],
         "members": [
             "AGO",
             "ATF",
@@ -2865,6 +2866,7 @@
         "slug": "americas-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_1",
+        "translationCodes": ["019"],
         "members": [
             "ABW",
             "AIA",
@@ -2931,6 +2933,7 @@
         "slug": "australia-and-new-zealand-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_2",
+        "translationCodes": ["053"],
         "members": ["AUS", "CCK", "CXR", "HMD", "NFK", "NZL"]
     },
     {
@@ -2939,6 +2942,7 @@
         "slug": "asia-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_1",
+        "translationCodes": ["142"],
         "members": [
             "AFG",
             "ARE",
@@ -2997,6 +3001,7 @@
         "slug": "central-america-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_3",
+        "translationCodes": ["013"],
         "members": ["BLZ", "CRI", "GTM", "HND", "MEX", "NIC", "PAN", "SLV"]
     },
     {
@@ -3005,6 +3010,7 @@
         "slug": "caribbean-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_3",
+        "translationCodes": ["029"],
         "members": [
             "ABW",
             "AIA",
@@ -3042,6 +3048,7 @@
         "slug": "central-asia-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_2",
+        "translationCodes": ["143"],
         "members": ["KAZ", "KGZ", "TJK", "TKM", "UZB"]
     },
     {
@@ -3050,6 +3057,7 @@
         "slug": "eastern-africa-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_3",
+        "translationCodes": ["014"],
         "members": [
             "ATF",
             "BDI",
@@ -3081,6 +3089,7 @@
         "slug": "eastern-asia-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_2",
+        "translationCodes": ["030"],
         "members": ["CHN", "HKG", "JPN", "KOR", "MAC", "MNG", "PRK"]
     },
     {
@@ -3089,6 +3098,7 @@
         "slug": "eastern-europe-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_2",
+        "translationCodes": ["151"],
         "members": [
             "BGR",
             "BLR",
@@ -3108,6 +3118,7 @@
         "slug": "europe-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_1",
+        "translationCodes": ["150"],
         "members": [
             "ALA",
             "ALB",
@@ -3168,6 +3179,7 @@
         "slug": "latin-america-and-the-caribbean-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_2",
+        "translationCodes": ["419", "029"],
         "members": [
             "ABW",
             "AIA",
@@ -3229,6 +3241,7 @@
         "slug": "middle-africa-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_3",
+        "translationCodes": ["017"],
         "members": [
             "AGO",
             "CAF",
@@ -3247,6 +3260,7 @@
         "slug": "melanesia-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_2",
+        "translationCodes": ["054"],
         "members": ["FJI", "NCL", "PNG", "SLB", "VUT"]
     },
     {
@@ -3255,6 +3269,7 @@
         "slug": "micronesia-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_2",
+        "translationCodes": ["057"],
         "members": ["FSM", "GUM", "KIR", "MHL", "MNP", "NRU", "PLW", "UMI"]
     },
     {
@@ -3263,6 +3278,7 @@
         "slug": "northern-africa-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_2",
+        "translationCodes": ["015"],
         "members": ["DZA", "EGY", "ESH", "LBY", "MAR", "SDN", "TUN"]
     },
     {
@@ -3271,6 +3287,7 @@
         "slug": "northern-america-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_2",
+        "translationCodes": ["003"],
         "members": ["BMU", "CAN", "GRL", "SPM", "USA"]
     },
     {
@@ -3279,6 +3296,7 @@
         "slug": "northern-europe-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_2",
+        "translationCodes": ["154"],
         "members": [
             "ALA",
             "DNK",
@@ -3304,6 +3322,7 @@
         "slug": "oceania-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_1",
+        "translationCodes": ["009"],
         "members": [
             "ASM",
             "AUS",
@@ -3342,6 +3361,7 @@
         "slug": "polynesia-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_2",
+        "translationCodes": ["061"],
         "members": [
             "ASM",
             "COK",
@@ -3361,6 +3381,7 @@
         "slug": "southern-africa-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_3",
+        "translationCodes": ["018"],
         "members": ["BWA", "LSO", "NAM", "SWZ", "ZAF"]
     },
     {
@@ -3369,6 +3390,7 @@
         "slug": "south-america-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_3",
+        "translationCodes": ["005"],
         "members": [
             "ARG",
             "BOL",
@@ -3394,6 +3416,7 @@
         "slug": "southern-asia-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_2",
+        "translationCodes": ["034"],
         "members": [
             "AFG",
             "BGD",
@@ -3412,6 +3435,7 @@
         "slug": "south-eastern-asia-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_2",
+        "translationCodes": ["035"],
         "members": [
             "BRN",
             "IDN",
@@ -3432,6 +3456,7 @@
         "slug": "southern-europe-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_2",
+        "translationCodes": ["039"],
         "members": [
             "ALB",
             "AND",
@@ -3457,6 +3482,7 @@
         "slug": "sub-saharan-africa-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_2",
+        "translationCodes": ["202"],
         "members": [
             "AGO",
             "ATF",
@@ -3519,6 +3545,7 @@
         "slug": "western-africa-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_3",
+        "translationCodes": ["011"],
         "members": [
             "BEN",
             "BFA",
@@ -3545,6 +3572,7 @@
         "slug": "western-asia-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_2",
+        "translationCodes": ["145"],
         "members": [
             "ARE",
             "ARM",
@@ -3571,6 +3599,7 @@
         "slug": "western-europe-un",
         "regionType": "aggregate",
         "definedBy": "un_m49_2",
+        "translationCodes": ["155"],
         "members": [
             "AUT",
             "BEL",
