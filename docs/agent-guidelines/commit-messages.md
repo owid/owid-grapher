@@ -4,8 +4,6 @@ Before you make a commit, run `yarn typecheck`, `yarn testLintChanged` and `yarn
 
 For the message, use an emoji from the table below as the start of the commit and add the 🤖 immediately afterwards to indicate this code was written by an AI. Have a look at the last 10 commit messages to get a sense for the style. If the change is simple, try to fit it into one short line, otherwise use a short first line, then an empty line and then create a terse but complete description of the changes.
 
-Show the user the commit message you are about to use and ask if they want to make any change before committing.
-
 emoji - when to use it
 🎉 new feature for the user
 🐛 bug fix for the user
