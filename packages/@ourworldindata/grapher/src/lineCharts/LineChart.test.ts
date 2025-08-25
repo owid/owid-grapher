@@ -15,7 +15,7 @@ import {
     FacetStrategy,
     ScaleType,
     SeriesStrategy,
-    BinningStrategy,
+    BinningStrategyIncludingManual,
 } from "@ourworldindata/types"
 import { SelectionArray } from "../selection/SelectionArray"
 import { LineChartManager } from "./LineChartConstants"

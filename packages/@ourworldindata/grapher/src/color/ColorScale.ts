@@ -12,17 +12,16 @@ import { ColorSchemes } from "../color/ColorSchemes"
 import { ColorScheme } from "../color/ColorScheme"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
 import { OWID_NO_DATA_GRAY } from "./ColorConstants"
-import { getBinMaximums } from "./BinningStrategies"
 import {
     ColorScaleConfigInterface,
     ColorSchemeName,
-    BinningStrategy,
     Color,
     CoreValueType,
     OwidVariableRoundingMode,
 } from "@ourworldindata/types"
 import { CoreColumn } from "@ourworldindata/core-table"
 import * as R from "remeda"
+import { runBinningStrategy } from "./BinningStrategies.js"
 
 export const NO_DATA_LABEL = "No data"
 export const PROJECTED_DATA_LABEL = "Projected data"
@@ -169,14 +168,26 @@ export class ColorScale {
 
     // When automatic classification is turned on, this takes the numeric map data
     // and works out some discrete ranges to assign colors to
+
+    // TODO types
     @computed get autoBinThresholds(): number[] {
-        const binMaximums = getBinMaximums({
-            binningStrategy: this.config.binningStrategy,
-            sortedValues: this.sortedNumericBinningValues,
-            binCount: this.numAutoBins,
-            minBinValue: this.autoMinBinValue,
-        })
-        return [this.autoMinBinValue, ...binMaximums]
+        if (this.config.binningStrategy === "manual") {
+            throw new Error(
+                "Cannot compute automatic bin thresholds when binning is set to manual"
+            )
+        }
+        return runBinningStrategy({
+            sortedValues: this.sortedNumericValues,
+            isPercent: this.colorScaleColumn?.shortUnit === "%",
+            numDecimalPlaces: this.colorScaleColumn?.numDecimalPlaces,
+
+            strategy: this.config.binningStrategy,
+            createBinForMidpoint: this.config.createBinForMidpoint,
+            minValue: this.config.minValue,
+            maxValue: this.config.maxValue,
+            midpoint: this.config.midpoint,
+            midpointMode: this.config.midpointMode as any,
+        }).bins
     }
 
     @computed private get bucketThresholds(): number[] {
@@ -207,11 +218,11 @@ export class ColorScale {
     }
 
     @computed get numAutoBins(): number {
-        return this.config.binningStrategyBinCount ?? 5
+        return this.autoBinThresholds.length - 1
     }
 
     @computed get isManualBuckets(): boolean {
-        return this.config.binningStrategy === BinningStrategy.manual
+        return this.config.binningStrategy === "manual"
     }
 
     @computed get numNumericBins(): number {
@@ -229,7 +240,7 @@ export class ColorScale {
         const sampleMean = mean(sortedNumericValues) as number
         const sampleDeviation = deviation(sortedNumericValues) ?? 0
         const withoutOutliers = sortedNumericValues.filter(
-            (d) => Math.abs(d - sampleMean) <= sampleDeviation * 2
+            (d) => Math.abs(d - sampleMean) <= sampleDeviation * 3
         )
 
         // d3-array returns a deviation of `undefined` for arrays of length <= 1, so set it to 0 in that case

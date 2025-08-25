@@ -21,10 +21,9 @@ export const defaultGrapherConfig = {
         region: "World",
         hideTimeline: false,
         colorScale: {
-            binningStrategy: "ckmeans",
+            binningStrategy: "auto",
             customNumericColorsActive: false,
             colorSchemeInvert: false,
-            binningStrategyBinCount: 5,
         },
         toleranceStrategy: "closest",
         tooltipUseCustomLabels: false,
@@ -48,10 +47,9 @@ export const defaultGrapherConfig = {
     timelineMinTime: "earliest",
     hideTimeline: false,
     colorScale: {
-        binningStrategy: "ckmeans",
+        binningStrategy: "auto",
         customNumericColorsActive: false,
         colorSchemeInvert: false,
-        binningStrategyBinCount: 5,
     },
     scatterPointLabelStrategy: "year",
     selectedFacetStrategy: "none",

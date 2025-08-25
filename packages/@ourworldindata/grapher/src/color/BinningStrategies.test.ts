@@ -1,136 +1,120 @@
-import { expect, it, describe } from "vitest"
+import { describe, expect, it } from "vitest"
+import {
+    equalSizeBins,
+    fakeLogBins,
+    mirrorBinsAroundMidpoint,
+    pruneUnusedBins,
+} from "./BinningStrategies.js"
 
-import { BinningStrategy } from "@ourworldindata/types"
-import { getBinMaximums } from "./BinningStrategies"
-
-describe(getBinMaximums, () => {
-    it("returns no bins for empty array", () => {
-        expect(
-            getBinMaximums({
-                binningStrategy: BinningStrategy.quantiles,
-                sortedValues: [],
-                binCount: 5,
-            })
-        ).toEqual([])
+describe(fakeLogBins, () => {
+    it("should generate logarithmic 1, 2, 5 bins", () => {
+        const bins = fakeLogBins({
+            minValue: 0.3,
+            maxValue: 1000,
+            logSteps: [1, 2, 5],
+        })
+        expect(bins).toEqual([
+            0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000,
+        ])
     })
 
-    it("returns no bins for zero bins", () => {
-        expect(
-            getBinMaximums({
-                binningStrategy: BinningStrategy.quantiles,
-                sortedValues: [1, 2, 3, 4, 5],
-                binCount: 0,
-            })
-        ).toEqual([])
-    })
-})
-
-describe("ckmeans strategy", () => {
-    it("doesn't duplicate bins for skewed distributions", () => {
-        expect(
-            getBinMaximums({
-                binningStrategy: BinningStrategy.ckmeans,
-                sortedValues: [1, 1, 1, 1, 1, 5],
-                binCount: 5,
-            })
-        ).toEqual([1, 5])
+    it("should generate logarithmic 1, 3 bins", () => {
+        const bins = fakeLogBins({
+            minValue: 1,
+            maxValue: 1000,
+            logSteps: [1, 3],
+        })
+        expect(bins).toEqual([1, 3, 10, 30, 100, 300, 1000])
     })
 
-    it("excludes bins less than minBinValue", () => {
-        expect(
-            getBinMaximums({
-                binningStrategy: BinningStrategy.ckmeans,
-                sortedValues: [1, 1, 1, 1, 1, 5],
-                binCount: 5,
-                minBinValue: 1,
-            })
-        ).toEqual([5])
+    it("should generate logarithmic 1, 3 bins", () => {
+        const bins = fakeLogBins({
+            minValue: 1,
+            maxValue: 4000,
+            logSteps: [1, 3],
+        })
+        expect(bins).toEqual([1, 3, 10, 30, 100, 300, 1000, 3000, 10000])
     })
 
-    it("handles example", () => {
-        expect(
-            getBinMaximums({
-                binningStrategy: BinningStrategy.ckmeans,
-                sortedValues: [1, 2, 4, 5, 12, 43, 52, 123, 234, 1244],
-                binCount: 5,
-            })
-        ).toEqual([12, 52, 123, 234, 1244])
+    it("should generate logarithmic 1, 10 bins", () => {
+        const bins = fakeLogBins({
+            minValue: 0.05,
+            maxValue: 1000,
+            logSteps: [1],
+        })
+        expect(bins).toEqual([0.01, 0.1, 1, 10, 100, 1000])
     })
 
-    it("handles when there are more bins than values", () => {
-        expect(
-            getBinMaximums({
-                binningStrategy: BinningStrategy.ckmeans,
-                sortedValues: [1, 2],
-                binCount: 5,
-            })
-        ).toEqual([1, 2])
+    it("should generate logarithmic 1, 10 bins", () => {
+        const bins = fakeLogBins({
+            minValue: 0.05,
+            maxValue: 1001,
+            logSteps: [1],
+        })
+        expect(bins).toEqual([0.01, 0.1, 1, 10, 100, 1000, 10000])
     })
 })
 
-describe("quantiles strategy", () => {
-    it("doesn't duplicate bins for skewed distributions", () => {
-        expect(
-            getBinMaximums({
-                binningStrategy: BinningStrategy.quantiles,
-                sortedValues: [1, 1, 1, 1, 1, 5],
-                binCount: 5,
-            })
-        ).toEqual([1, 5])
+describe(mirrorBinsAroundMidpoint, () => {
+    it("should mirror positive bins around zero midpoint", () => {
+        const bins = mirrorBinsAroundMidpoint([1, 2, 5, 10], 0)
+        expect(bins).toEqual([-10, -5, -2, -1, 0, 1, 2, 5, 10])
     })
 
-    it("excludes bins less than minBinValue", () => {
-        expect(
-            getBinMaximums({
-                binningStrategy: BinningStrategy.quantiles,
-                sortedValues: [1, 1, 1, 1, 1, 5],
-                binCount: 5,
-                minBinValue: 1,
-            })
-        ).toEqual([5])
+    it("should handle empty arrays", () => {
+        const bins = mirrorBinsAroundMidpoint([], 0)
+        expect(bins).toEqual([0])
     })
 
-    it("handles example", () => {
-        expect(
-            getBinMaximums({
-                binningStrategy: BinningStrategy.quantiles,
-                sortedValues: [1, 10, 20, 50, 100],
-                binCount: 4,
-            })
-        ).toEqual([10, 20, 50, 100])
+    it("should handle single positive value", () => {
+        const bins = mirrorBinsAroundMidpoint([5], 0)
+        expect(bins).toEqual([-5, 0, 5])
+    })
+
+    it("should handle zero", () => {
+        const bins = mirrorBinsAroundMidpoint([0, 1], 0)
+        expect(bins).toEqual([-1, 0, 1])
+    })
+
+    it("should handle non-.zero midpoint", () => {
+        const bins = mirrorBinsAroundMidpoint([1, 2, 5], 105)
+        expect(bins).toEqual([100, 103, 104, 105, 106, 107, 110])
     })
 })
 
-describe("equalInterval strategy", () => {
-    it("starts from minBinValue", () => {
-        expect(
-            getBinMaximums({
-                binningStrategy: BinningStrategy.equalInterval,
-                sortedValues: [300],
-                binCount: 3,
-                minBinValue: 0,
-            })
-        ).toEqual([100, 200, 300])
+describe(equalSizeBins, () => {
+    it("should generate equal width bins", () => {
+        const bins = equalSizeBins({
+            minValue: 0,
+            maxValue: 10,
+            targetBinCount: [5, 9],
+        })
+        expect(bins).toEqual([0, 2, 4, 6, 8, 10])
     })
 
-    it("derives minBinValue if not specified", () => {
-        expect(
-            getBinMaximums({
-                binningStrategy: BinningStrategy.equalInterval,
-                sortedValues: [100, 300],
-                binCount: 2,
-            })
-        ).toEqual([200, 300])
+    it("should handle values", () => {
+        const bins = equalSizeBins({
+            minValue: 0,
+            maxValue: 5,
+            targetBinCount: [5, 9],
+        })
+        expect(bins).toEqual([0, 1, 2, 3, 4, 5])
     })
 
-    it("handles example", () => {
-        expect(
-            getBinMaximums({
-                binningStrategy: BinningStrategy.equalInterval,
-                sortedValues: [1, 1.5, 2, 3, 7.5],
-                binCount: 5,
-                minBinValue: 0,
-            })
-        ).toEqual([2, 4, 6, 8, 10])
+    it("should handle percent scale", () => {
+        const bins = equalSizeBins({
+            minValue: 0,
+            maxValue: 100,
+            targetBinCount: [10, 10],
+        })
+        expect(bins).toEqual([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
+    })
+})
+
+describe(pruneUnusedBins, () => {
+    it("should remove unused bins", () => {
+        const bins = [0, 1, 2, 3, 4, 5]
+        const prunedBins = pruneUnusedBins(bins, { minValue: 1, maxValue: 4.2 })
+        expect(prunedBins).toEqual([1, 2, 3, 4, 5])
     })
 })

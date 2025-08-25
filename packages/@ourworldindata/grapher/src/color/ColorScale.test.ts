@@ -4,7 +4,7 @@ import { CoreTable, ErrorValueTypes } from "@ourworldindata/core-table"
 import { ColorScale } from "./ColorScale"
 import {
     ColorScaleConfigInterface,
-    BinningStrategy,
+    BinningStrategyIncludingManual,
 } from "@ourworldindata/types"
 
 const createColorScaleFromTable = (

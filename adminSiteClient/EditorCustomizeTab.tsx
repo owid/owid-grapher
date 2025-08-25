@@ -885,6 +885,8 @@ export class EditorCustomizeTab<
                         features={{
                             legendDescription: true,
                         }}
+                        errorMessages={this.errorMessages}
+                        errorMessagesKey={"colorScale"}
                     />
                 )}
                 <Section name="Legend">

@@ -19,6 +19,7 @@ import { NumberField, Section, SelectField, Toggle } from "./Forms.js"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLink } from "@fortawesome/free-solid-svg-icons"
+import { ErrorMessages } from "./ChartEditorTypes.js"
 
 interface VariableSectionProps {
     mapConfig: MapConfig
@@ -246,11 +247,16 @@ class InheritanceSection<Editor extends AbstractChartEditor> extends Component<{
     }
 }
 
+interface EditorMapTabProps<Editor> {
+    editor: Editor
+    errorMessages: ErrorMessages
+}
+
 @observer
-export class EditorMapTab<
-    Editor extends AbstractChartEditor,
-> extends Component<{ editor: Editor }> {
-    constructor(props: { editor: Editor }) {
+export class EditorMapTab<Editor extends AbstractChartEditor> extends Component<
+    EditorMapTabProps<Editor>
+> {
+    constructor(props: EditorMapTabProps<Editor>) {
         super(props)
         makeObservable(this)
     }
@@ -285,6 +291,8 @@ export class EditorMapTab<
                             features={{
                                 legendDescription: false,
                             }}
+                            errorMessages={this.props.errorMessages}
+                            errorMessagesKey={"map.colorScale"}
                         />
                         <TooltipSection mapConfig={mapConfig} />
                     </Fragment>
