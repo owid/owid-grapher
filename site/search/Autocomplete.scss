@@ -231,13 +231,10 @@ section[data-autocomplete-source-id="recentSearchesPlugin"] {
     width: 100%; // for ellispses on the query to work
 }
 
-section[data-autocomplete-source-id="filters"] {
+section[data-autocomplete-source-id="unified"] {
     .search-filter-pill {
         flex-shrink: 0;
     }
-}
-
-section[data-autocomplete-source-id="autocomplete"] {
     .autocomplete-item-contents__contentType {
         margin-left: 8px;
         color: $blue-50;
