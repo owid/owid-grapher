@@ -74,61 +74,6 @@ describe(ColorScale, () => {
             expect(scale.getBinForValue(15)).toEqual(bins[2])
         })
 
-        describe("filtering outliers", () => {
-            it("should filter out outliers", () => {
-                const colorValuePairs = [
-                    { value: 1 },
-                    { value: 1.1 },
-                    { value: 1.2 },
-                    { value: 1.3 },
-                    { value: 1.4 },
-                    { value: 1.5 },
-                    { value: 1.6 },
-                    { value: 1.7 },
-                    { value: 100 },
-                ]
-                const scale = createColorScaleFromTable(
-                    colorValuePairs,
-                    colorScaleConfig
-                )
-
-                expect(scale.sortedNumericValuesWithoutOutliers).toEqual([
-                    1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7,
-                ])
-            })
-
-            it("should keep outliers if removing them would result in only one unique value", () => {
-                const colorValuePairs = [
-                    { value: 1 },
-                    { value: 1 },
-                    { value: 1 },
-                    { value: 1 },
-                    { value: 1 },
-                    { value: 1 },
-                    { value: 100 },
-                ]
-                const scale = createColorScaleFromTable(
-                    colorValuePairs,
-                    colorScaleConfig
-                )
-
-                expect(scale.sortedNumericValuesWithoutOutliers).toEqual([
-                    1, 1, 1, 1, 1, 1, 100,
-                ])
-            })
-
-            it("should not filter values if there's only one", () => {
-                const colorValuePairs = [{ value: 1 }]
-                const scale = createColorScaleFromTable(
-                    colorValuePairs,
-                    colorScaleConfig
-                )
-
-                expect(scale.sortedNumericValuesWithoutOutliers).toEqual([1])
-            })
-        })
-    })
-
     it("transforms all colors", () => {
         const colorScaleConfig: ColorScaleConfigInterface = {
             binningStrategy: "manual",

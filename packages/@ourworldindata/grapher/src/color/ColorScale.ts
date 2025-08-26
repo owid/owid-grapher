@@ -1,13 +1,7 @@
 import * as _ from "lodash-es"
 import { computed, toJS, makeObservable } from "mobx"
-import { mean, deviation } from "d3-array"
 import { ColorScaleConfig } from "./ColorScaleConfig"
-import {
-    roundSigFig,
-    mapNullToUndefined,
-    sortNumeric,
-    pairs,
-} from "@ourworldindata/utils"
+import { mapNullToUndefined, sortNumeric, pairs } from "@ourworldindata/utils"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { ColorScheme } from "../color/ColorScheme"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
@@ -150,15 +144,6 @@ export class ColorScale {
         return this.colorScheme.singleColorScale
     }
 
-    @computed get autoMinBinValue(): number {
-        const minValue = Math.min(0, this.sortedNumericValuesWithoutOutliers[0])
-        return isNaN(minValue) ? 0 : roundSigFig(minValue, 1)
-    }
-
-    @computed private get minBinValue(): number {
-        return this.config.customNumericValues?.[0] ?? this.autoMinBinValue
-    }
-
     @computed private get manualBinThresholds(): number[] {
         if (!this.sortedNumericValues.length || this.numNumericBins <= 0)
             return []
@@ -231,33 +216,6 @@ export class ColorScale {
         return this.isManualBuckets
             ? Math.max(this.customNumericValues.length - 1, 0)
             : this.numAutoBins
-    }
-
-    // Exclude any major outliers for legend calculation (they will be relegated to open-ended bins)
-    @computed get sortedNumericValuesWithoutOutliers(): any[] {
-        const { sortedNumericValues } = this
-        if (!sortedNumericValues.length) return []
-        const sampleMean = mean(sortedNumericValues) as number
-        const sampleDeviation = deviation(sortedNumericValues) ?? 0
-        const withoutOutliers = sortedNumericValues.filter(
-            (d) => Math.abs(d - sampleMean) <= sampleDeviation * 3
-        )
-
-        // d3-array returns a deviation of `undefined` for arrays of length <= 1, so set it to 0 in that case
-        const deviationWithoutOutliers = deviation(withoutOutliers) ?? 0
-
-        if (deviationWithoutOutliers === 0) {
-            // if after removing outliers we end up in a state where the std. dev. is 0, i.e. we only
-            // have one distinct value, then we actually want to _keep_ the outliers in
-            return sortedNumericValues
-        } else return withoutOutliers
-    }
-
-    /** Sorted numeric values passed onto the binning algorithms */
-    @computed private get sortedNumericBinningValues(): any[] {
-        return this.sortedNumericValuesWithoutOutliers.filter(
-            (v) => v > this.minBinValue
-        )
     }
 
     @computed private get numericLegendBins(): NumericBin[] {
