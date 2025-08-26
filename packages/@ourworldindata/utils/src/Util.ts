@@ -2206,3 +2206,19 @@ export const getUserNavigatorLanguages = (): readonly string[] => {
 export const getUserNavigatorLanguagesNonEnglish = (): readonly string[] => {
     return getUserNavigatorLanguages().filter((lang) => !lang.startsWith("en"))
 }
+
+/**
+ * Merge multiple objects into a single object.
+ * Arrays are overwritten completely instead of merged.
+ */
+export const merge = <T>(...objects: T[]): T => {
+    return _.mergeWith(
+        {}, // merge mutates the first argument
+        ...objects,
+        // Overwrite arrays completely instead of merging them.
+        // Otherwise fall back to the default merge behavior.
+        (_: unknown, srcValue: unknown) => {
+            return Array.isArray(srcValue) ? srcValue : undefined
+        }
+    )
+}
