@@ -18,11 +18,6 @@ const ETL_REGIONS_URL =
     GRAPHER_ROOT = __dirname.replace(/\/devTools.*/, ""),
     GRAPHER_REGIONS_PATH = `${GRAPHER_ROOT}/packages/@ourworldindata/utils/src/regions.json`,
     GRAPHER_TOPOLOGY_PATH = `${GRAPHER_ROOT}/packages/@ourworldindata/grapher/src/mapCharts/MapTopology.ts`,
-    ADDITIONAL_CONTINENT_MEMBERS = {
-        Africa: ["OWID_SML", "OWID_ZAN"],
-        Asia: ["OWID_ABK", "OWID_AKD", "OWID_NAG", "OWID_SOS"],
-        Europe: ["OWID_CIS", "SJM", "OWID_TRS"],
-    },
     SEARCH_ALIASES = {
         ARE: ["UAE"],
         CZE: ["Czech Republic"],
@@ -286,14 +281,6 @@ async function main() {
             console.log(
                 `⚠️  ${entity.name} (${entity.code}) claims to be mappable but has no geojson data`
             )
-        }
-
-        // add back countries removed from the ETL's continents list
-        if (entity.region_type === "continent") {
-            entity.members = _.uniq([
-                ...(entity.members ?? []),
-                ..._.get(ADDITIONAL_CONTINENT_MEMBERS, entity.name, []),
-            ])
         }
 
         if (entity.members) entity.members = entity.members.toSorted()
