@@ -716,11 +716,6 @@ export enum GrapherVariant {
      * Less noisy visualization, but should be understandable on its own
      */
     Thumbnail = "thumbnail",
-
-    /**
-     * Similar to Thumbnail, but not enough annotations to be understandable on its own
-     */
-    MinimalThumbnail = "minimal-thumbnail",
 }
 
 export interface ChartRedirect {

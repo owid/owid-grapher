@@ -33,12 +33,12 @@ export interface ChartManager {
     transformedTable?: OwidTable
 
     variant?: GrapherVariant
+    isDisplayedAlongsideComplementaryTable?: boolean
 
     isExportingToSvgOrPng?: boolean
     isRelativeMode?: boolean
     comparisonLines?: ComparisonLineConfig[]
     showLegend?: boolean
-    hideLegendsOutsideChartArea?: boolean
     tooltip?: TooltipManager["tooltip"]
     baseColorScheme?: ColorSchemeName
     invertColorScheme?: boolean
