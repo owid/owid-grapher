@@ -53,6 +53,7 @@ import {
     LargeVariantGridSlot,
     Layout,
     MediumVariantGridSlot,
+    PreviewType,
     PreviewVariant,
     RichDataComponentVariant,
 } from "./SearchChartHitRichDataTypes.js"
@@ -220,16 +221,19 @@ export function SearchChartHitRichData({
                 style={contentStyle}
             >
                 {layout?.placedTabs.map(({ tab, slot }, tabIndex) => {
-                    // Always use the thumbnail version on smaller screens since
+                    // Always use the complete version on smaller screens since
                     // the table might not be visible
-                    const previewVariant = isMediumScreen
-                        ? "thumbnail"
-                        : getPreviewVariant(variant, {
+                    const previewType = isMediumScreen
+                        ? {
+                              variant: PreviewVariant.Thumbnail,
+                              isMinimal: false,
+                          }
+                        : getPreviewType(variant, {
                               isPrimaryTab: tabIndex === 0,
                           })
 
                     const { width: imageWidth, height: imageHeight } =
-                        previewVariant === "large"
+                        previewType.variant === PreviewVariant.Large
                             ? calculateLargePreviewImageDimensions(
                                   layout as Layout<LargeVariantGridSlot>
                               )
@@ -240,7 +244,7 @@ export function SearchChartHitRichData({
                             hit,
                             grapherState,
                             tab,
-                            previewVariant,
+                            previewType,
                             imageWidth,
                             imageHeight,
                         })
@@ -363,29 +367,32 @@ function GrapherThumbnailPlaceholder({
     )
 }
 
-function getPreviewVariant(
+function getPreviewType(
     variant: SearchChartHitComponentVariant,
     { isPrimaryTab }: { isPrimaryTab: boolean }
-): PreviewVariant {
-    if (isPrimaryTab && variant === "large") return "large"
+): PreviewType {
+    if (isPrimaryTab && variant === "large")
+        return { variant: PreviewVariant.Large, isMinimal: true }
 
     // Use the minimal version for the first tab (which is annotated by the table)
-    // and thumbnails for all other tabs
-    return isPrimaryTab ? "minimal-thumbnail" : "thumbnail"
+    // and the complete version for all other tabs
+    return isPrimaryTab
+        ? { variant: PreviewVariant.Thumbnail, isMinimal: true }
+        : { variant: PreviewVariant.Thumbnail, isMinimal: false }
 }
 
 function constructChartAndPreviewUrlsForTab({
     hit,
     grapherState,
     tab,
-    previewVariant,
+    previewType,
     imageWidth,
     imageHeight,
 }: {
     hit: SearchChartHit
     grapherState: GrapherState
     tab: GrapherTabName
-    previewVariant: PreviewVariant
+    previewType: PreviewType
     imageWidth?: number
     imageHeight?: number
 }): { chartUrl: string; previewUrl: string } {
@@ -428,14 +435,16 @@ function constructChartAndPreviewUrlsForTab({
         GRAPHER_TAB_NAMES.StackedDiscreteBar,
     ]
     const fontSize =
-        previewVariant !== "large" && tabsWithSmallerFont.includes(tab)
+        previewType.variant === PreviewVariant.Thumbnail &&
+        tabsWithSmallerFont.includes(tab)
             ? 12
             : undefined
 
     const previewUrl = constructPreviewUrl({
         hit,
         grapherParams,
-        variant: previewVariant,
+        variant: previewType.variant,
+        isMinimal: previewType.isMinimal,
         fontSize,
         imageWidth,
         imageHeight,

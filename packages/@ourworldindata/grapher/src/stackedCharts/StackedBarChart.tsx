@@ -281,7 +281,7 @@ export class StackedBarChart
     @computed private get showLegend(): boolean {
         return (
             !!this.manager.showLegend &&
-            !this.manager.hideLegendsOutsideChartArea
+            !this.manager.isDisplayedAlongsideComplementaryTable
         )
     }
 
