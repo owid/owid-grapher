@@ -96,7 +96,7 @@ export const equalSizeBins = ({
     const minValueRounded =
         Math.floor(minValue / actualStepSize) * actualStepSize
 
-    const steps = Math.ceil((maxValue - minValueRounded) / stepSize)
+    const steps = Math.ceil((maxValue - minValueRounded) / actualStepSize)
 
     return R.range(0, steps + 1).map((i) => {
         const value = i * actualStepSize
