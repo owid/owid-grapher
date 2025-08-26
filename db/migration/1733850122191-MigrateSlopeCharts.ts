@@ -2,7 +2,7 @@ import {
     EntitySelectionMode,
     GrapherInterface,
     ScaleType,
-    simpleMerge,
+    merge,
 } from "@ourworldindata/utils"
 import { MigrationInterface, QueryRunner } from "typeorm"
 
@@ -29,8 +29,8 @@ export class MigrateSlopeCharts1733850122191 implements MigrationInterface {
             const patchConfig = JSON.parse(chart.patch)
             const fullConfig = JSON.parse(chart.full)
 
-            const newPatchConfig = simpleMerge(patchConfig, migrationConfig)
-            const newFullConfig = simpleMerge(fullConfig, migrationConfig)
+            const newPatchConfig = merge(patchConfig, migrationConfig)
+            const newFullConfig = merge(fullConfig, migrationConfig)
 
             await queryRunner.query(
                 `
