@@ -96,6 +96,7 @@ export {
     migrateSelectedEntityNamesParam,
     getSelectedEntityNamesParam,
     generateSelectedEntityNamesParam,
+    generateFocusedSeriesNamesParam,
     getEntityNamesParam,
 } from "./core/EntityUrlBuilder"
 export { grapherConfigToQueryParams } from "./core/GrapherUrl.js"

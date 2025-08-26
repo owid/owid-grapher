@@ -6,7 +6,6 @@ import {
     excludeUndefined,
     HorizontalAlign,
     Position,
-    SortBy,
     SortConfig,
     SortOrder,
     getRelativeMouse,
@@ -21,7 +20,6 @@ import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_FONT_SCALE_12,
-    Patterns,
 } from "../core/GrapherConstants"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -29,13 +27,12 @@ import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { ChartInterface } from "../chart/ChartInterface"
 import {
     EntityName,
-    OwidVariableRow,
     VerticalAlign,
     ColorScaleConfigInterface,
 } from "@ourworldindata/types"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
-import { getShortNameForEntity, makeSelectionArray } from "../chart/ChartUtils"
-import { StackedPoint, StackedSeries } from "./StackedConstants"
+import { getShortNameForEntity } from "../chart/ChartUtils"
+import { StackedSeries } from "./StackedConstants"
 import { TooltipFooterIcon } from "../tooltip/TooltipProps.js"
 import {
     Tooltip,
@@ -54,21 +51,17 @@ import { ColorScale } from "../color/ColorScale"
 import { SelectionArray } from "../selection/SelectionArray"
 import {
     MarimekkoChartManager,
-    EntityColorData,
-    SimplePoint,
-    SimpleChartSeries,
-    BarShape,
-    Bar,
     Item,
     PlacedItem,
     EntityWithSize,
     LabelCandidate,
     LabelWithPlacement,
     LabelCandidateWithElement,
-    MarimekkoBarProps,
 } from "./MarimekkoChartConstants"
 import { MarimekkoChartState } from "./MarimekkoChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
+import { MarimekkoBars } from "./MarimekkoBars"
+import { toPlacedMarimekkoItems } from "./MarimekkoChartHelpers"
 
 const MARKER_MARGIN: number = 4
 const MARKER_AREA_HEIGHT: number = 25
@@ -76,156 +69,6 @@ const MAX_LABEL_COUNT: number = 20
 
 // if an entity name exceeds this width, we use the short name instead (if available)
 const SOFT_MAX_LABEL_WIDTH = 60
-
-function MarimekkoBar({
-    bar,
-    barWidth,
-    isHovered,
-    isSelected,
-    isFaint,
-    entityColor,
-    y0,
-    dualAxis,
-}: MarimekkoBarProps): React.ReactElement {
-    const { seriesName } = bar
-    const isPlaceholder = bar.kind === BarShape.BarPlaceholder
-    const barBaseColor =
-        entityColor ?? (bar.kind === BarShape.Bar ? bar.color : "#555")
-
-    const barColor =
-        bar.kind === BarShape.BarPlaceholder ? "#555" : barBaseColor
-    const strokeColor = barColor
-    const strokeWidth = isHovered || isSelected ? 1 : 0.5
-    const strokeOpacity = isPlaceholder ? 0.8 : isFaint ? 0.2 : 1.0
-    const fillOpacity = isHovered
-        ? 0.7
-        : isFaint
-          ? 0.2
-          : isSelected
-            ? isPlaceholder
-                ? 0.3
-                : 0.7
-            : 0.7
-    const overalOpacity = isPlaceholder ? 0.2 : 1.0
-
-    let barY: number = 0
-    let barHeight: number = 0
-    if (bar.kind === BarShape.Bar) {
-        barY = dualAxis.verticalAxis.place(y0 + bar.yPoint.valueOffset)
-        barHeight =
-            dualAxis.verticalAxis.place(y0) -
-            dualAxis.verticalAxis.place(bar.yPoint.value)
-    } else {
-        barY = dualAxis.verticalAxis.place(y0)
-        barHeight = bar.height
-    }
-    const barX = 0
-
-    return (
-        <g key={seriesName}>
-            <rect
-                x={0}
-                y={0}
-                transform={`translate(${barX}, ${barY - barHeight})`}
-                width={barWidth}
-                height={barHeight}
-                fill={barColor}
-                fillOpacity={fillOpacity}
-                stroke={strokeColor}
-                strokeWidth={strokeWidth}
-                strokeOpacity={strokeOpacity}
-                opacity={overalOpacity}
-                style={{ transition: "translate 200ms ease" }}
-            />
-        </g>
-    )
-}
-
-interface MarimekkoBarsProps {
-    entityName: string
-    bars: Bar[]
-    entityColor: EntityColorData | undefined
-    isFaint: boolean
-    isHovered: boolean
-    isSelected: boolean
-    barWidth: number
-    currentX: number
-    onEntityMouseOver: (entityName: string, ev: React.MouseEvent) => void
-    onEntityMouseLeave: () => void
-    onEntityClick: (entityName: string) => void
-    labelYOffset: number
-    y0: number
-    noDataHeight: number
-    dualAxis: DualAxis
-}
-
-function MarimekkoBarsForOneEntity(
-    props: MarimekkoBarsProps
-): React.ReactElement {
-    const {
-        entityName,
-        bars,
-        entityColor,
-        isFaint,
-        isHovered,
-        isSelected,
-        barWidth,
-        currentX,
-        onEntityClick,
-        onEntityMouseLeave,
-        onEntityMouseOver,
-        labelYOffset,
-        y0,
-        noDataHeight,
-        dualAxis,
-    } = props
-
-    const content = bars.length ? (
-        bars.map((bar) => (
-            <MarimekkoBar
-                key={`${entityName}-${bar.seriesName}`}
-                bar={bar}
-                barWidth={barWidth}
-                isHovered={isHovered}
-                isSelected={isSelected}
-                isFaint={isFaint}
-                entityColor={entityColor?.color}
-                y0={y0}
-                dualAxis={dualAxis}
-            />
-        ))
-    ) : (
-        <MarimekkoBar
-            key={`${entityName}-placeholder`}
-            bar={{
-                kind: BarShape.BarPlaceholder,
-                seriesName: entityName,
-                height: noDataHeight,
-            }}
-            barWidth={barWidth}
-            isHovered={isHovered}
-            isSelected={isSelected}
-            isFaint={isFaint}
-            entityColor={entityColor?.color}
-            y0={y0}
-            dualAxis={dualAxis}
-        />
-    )
-
-    return (
-        <g
-            key={entityName}
-            id={makeIdForHumanConsumption("bar", entityName)}
-            className="bar"
-            transform={`translate(${currentX}, ${labelYOffset})`}
-            onMouseOver={(ev): void => onEntityMouseOver(entityName, ev)}
-            onMouseLeave={(): void => onEntityMouseLeave()}
-            onClick={(): void => onEntityClick(entityName)}
-        >
-            {content}
-        </g>
-    )
-}
 
 export type MarimekkoChartProps = ChartComponentProps<MarimekkoChartState>
 
@@ -267,32 +110,8 @@ export class MarimekkoChart
         return this.chartState.inputTable
     }
 
-    //@computed private get rows(): readonly
-
     @computed private get series(): readonly StackedSeries<EntityName>[] {
         return this.chartState.series
-    }
-
-    @computed get xSeries(): SimpleChartSeries | undefined {
-        const createStackedXPoints = (
-            rows: OwidVariableRow<any>[]
-        ): SimplePoint[] => {
-            const points: SimplePoint[] = []
-            for (const row of rows) {
-                points.push({
-                    time: row.originalTime,
-                    value: row.value,
-                    entity: row.entityName,
-                })
-            }
-            return points
-        }
-        if (this.xColumn === undefined) return undefined
-        const column = this.xColumn
-        return {
-            seriesName: column.displayName,
-            points: createStackedXPoints(column.owidRows),
-        }
     }
 
     @computed private get yColumnSlugs(): string[] {
@@ -393,37 +212,8 @@ export class MarimekkoChart
         return this.manager.isStatic ?? false
     }
 
-    @computed private get baseFontSize(): number {
+    @computed get fontSize(): number {
         return this.manager.fontSize ?? BASE_FONT_SIZE
-    }
-
-    @computed private get x0(): number {
-        return 0
-    }
-
-    @computed private get y0(): number {
-        return 0
-    }
-
-    @computed private get allPoints(): StackedPoint<EntityName>[] {
-        return this.series.flatMap((series) => series.points)
-    }
-
-    @computed private get yDomainDefault(): [number, number] {
-        const maxValues = this.allPoints.map(
-            (point) => point.value + point.valueOffset
-        )
-        return [
-            Math.min(this.y0, _.min(maxValues) as number),
-            Math.max(this.y0, _.max(maxValues) as number),
-        ]
-    }
-    @computed private get xDomainDefault(): [number, number] {
-        if (this.xSeries !== undefined) {
-            const sum = _.sumBy(this.xSeries.points, (point) => point.value)
-
-            return [this.x0, sum]
-        } else return [this.x0, this.items.length]
     }
 
     @computed private get xRange(): [number, number] {
@@ -448,55 +238,11 @@ export class MarimekkoChart
     }
 
     @computed private get verticalAxisPart(): VerticalAxis {
-        const config = this.yAxisConfig
-        const axis = config.toVerticalAxis()
-        axis.updateDomainPreservingUserSettings(this.yDomainDefault)
-
-        axis.formatColumn = this.yColumns[0]
-        axis.label = ""
-
-        return axis
-    }
-
-    @computed private get xAxisLabelBase(): string {
-        const xDimName = this.defaultXAxisLabel
-        if (this.manager.xOverrideTime !== undefined)
-            return `${xDimName} in ${this.manager.xOverrideTime}`
-        return xDimName ?? "" // This sets the axis label to emtpy if we don't have an x column - not entirely sure this is what we want
-    }
-
-    @computed private get defaultXAxisLabel(): string | undefined {
-        return this.xColumn?.displayName
-    }
-
-    @computed private get currentHorizontalAxisLabel(): string {
-        const { xAxisLabelBase } = this
-        const config = this.xAxisConfig
-        return config.label || xAxisLabelBase
+        return this.chartState.toVerticalAxis(this.yAxisConfig)
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
-        const { manager, xDomainDefault, xColumn } = this
-        const config = this.xAxisConfig
-        let axis = config.toHorizontalAxis()
-        if (manager.isRelativeMode && xColumn) {
-            // MobX and classes  interact in an annoying way here so we have to construct a new object via
-            // an object copy of the AxisConfig class instance to be able to set a property without
-            // making MobX unhappy about a mutation originating from a computed property
-            axis = new HorizontalAxis(
-                new AxisConfig(
-                    { ...config.toObject(), maxTicks: 10 },
-                    config.axisManager
-                ),
-                config.axisManager
-            )
-            axis.domain = [0, 100]
-        } else axis.updateDomainPreservingUserSettings(xDomainDefault)
-
-        axis.formatColumn = xColumn
-
-        axis.label = this.currentHorizontalAxisLabel
-        return axis
+        return this.chartState.toHorizontalAxis(this.xAxisConfig)
     }
 
     @computed private get dualAxis(): DualAxis {
@@ -509,116 +255,17 @@ export class MarimekkoChart
     }
 
     @computed private get selectionArray(): SelectionArray {
-        return makeSelectionArray(this.manager.selection)
-    }
-
-    @computed private get selectedItems(): Item[] {
-        const selectedSet = this.selectionArray.selectedSet
-        const { sortedItems } = this
-        if (selectedSet.size === 0) return []
-        return sortedItems.filter((item) => selectedSet.has(item.entityName))
+        return this.chartState.selectionArray
     }
 
     @computed private get items(): Item[] {
-        const { xSeries, series } = this
-        const { domainColorForEntityMap, uniqueEntityNames } = this.chartState
-
-        if (uniqueEntityNames === undefined) return []
-
-        const items: Item[] = uniqueEntityNames
-            .map((entityName) => {
-                const xPoint = xSeries
-                    ? xSeries.points.find(
-                          (point) => point.entity === entityName
-                      )
-                    : undefined
-                if (xSeries && !xPoint) return undefined
-
-                const color = domainColorForEntityMap.get(entityName)
-
-                return {
-                    entityName,
-                    xPoint: xPoint,
-                    entityColor: color,
-                    bars: excludeUndefined(
-                        series.map((series): Bar | undefined => {
-                            const point = series.points.find(
-                                (point) => point.position === entityName
-                            )
-                            if (!point) return undefined
-                            return {
-                                kind: BarShape.Bar,
-                                yPoint: point,
-                                color: series.color,
-                                seriesName: series.seriesName,
-                                columnSlug: series.columnSlug,
-                            }
-                        })
-                    ),
-                }
-            })
-            .filter((item) => item) as Item[]
-
-        return items
-    }
-
-    @computed private get sortedItems(): Item[] {
-        const { items, sortConfig } = this
-
-        let sortByFuncs: ((item: Item) => number | string | undefined)[]
-        switch (sortConfig.sortBy) {
-            case SortBy.custom:
-                sortByFuncs = [(): undefined => undefined]
-                break
-            case SortBy.entityName:
-                sortByFuncs = [(item: Item): string => item.entityName]
-                break
-            case SortBy.column: {
-                const sortColumnSlug = sortConfig.sortColumnSlug
-                sortByFuncs = [
-                    (item: Item): number =>
-                        item.bars.find((b) => b.seriesName === sortColumnSlug)
-                            ?.yPoint.value ?? 0,
-                    (item: Item): string => item.entityName,
-                ]
-                break
-            }
-            default:
-            case SortBy.total:
-                sortByFuncs = [
-                    (item: Item): number => {
-                        const lastPoint = R.last(item.bars)?.yPoint
-                        if (!lastPoint) return 0
-                        return lastPoint.valueOffset + lastPoint.value
-                    },
-                    (item: Item): string => item.entityName,
-                ]
-        }
-        const sortedItems = _.sortBy(items, sortByFuncs)
-        const sortOrder = sortConfig.sortOrder ?? SortOrder.desc
-        if (sortOrder === SortOrder.desc) sortedItems.reverse()
-
-        const [itemsWithValues, itemsWithoutValues] = _.partition(
-            sortedItems,
-            (item) => item.bars.length !== 0
-        )
-
-        return [...itemsWithValues, ...itemsWithoutValues]
+        return this.chartState.items
     }
 
     @computed get placedItems(): PlacedItem[] {
-        const { sortedItems, dualAxis, x0 } = this
-        const placedItems: PlacedItem[] = []
-        let currentX = 0
-        for (const item of sortedItems) {
-            placedItems.push({ ...item, xPosition: currentX })
-            const xValue = item.xPoint?.value ?? 1 // one is the default here because if no x dim is given we make all bars the same width
-            const preciseX =
-                dualAxis.horizontalAxis.place(xValue) -
-                dualAxis.horizontalAxis.place(x0)
-            currentX += preciseX
-        }
-        return placedItems
+        return toPlacedMarimekkoItems(this.chartState, {
+            dualAxis: this.dualAxis,
+        })
     }
 
     @computed private get placedItemsMap(): Map<string, PlacedItem> {
@@ -628,7 +275,7 @@ export class MarimekkoChart
     // legend props
 
     @computed private get legendPaddingTop(): number {
-        return this.legend.height > 0 ? this.baseFontSize : 0
+        return this.legend.height > 0 ? this.fontSize : 0
     }
 
     @computed get legendX(): number {
@@ -649,10 +296,6 @@ export class MarimekkoChart
 
     @computed get legendAlign(): HorizontalAlign {
         return HorizontalAlign.left
-    }
-
-    @computed get fontSize(): number {
-        return this.baseFontSize
     }
 
     @computed get detailsOrderedByReference(): string[] {
@@ -867,6 +510,8 @@ export class MarimekkoChart
                     <HorizontalCategoricalColorLegend manager={this} />
                 )}
                 {this.renderBars()}
+                {this.labelLines}
+                {this.placedLabels}
                 {target && (
                     <Tooltip
                         id="marimekkoTooltip"
@@ -905,168 +550,25 @@ export class MarimekkoChart
         )
     }
 
-    private renderBars(): React.ReactElement[] {
-        const normalElements: React.ReactElement[] = []
-        const highlightedElements: React.ReactElement[] = [] // highlighted elements have a thicker stroke and should be drawn last to overlap others
-        const {
-            dualAxis,
-            x0,
-            y0,
-            focusColorBin,
-            placedLabels,
-            labelLines,
-            placedItems,
-            tooltipState,
-            fontSize,
-        } = this
-        const selectionSet = this.selectionArray.selectedSet
-        const labelYOffset = 0
-        const hasSelection = this.selectedItems.length > 0
-        let noDataAreaElement = undefined
-        let noDataLabel = undefined
-        const noDataHeight = Bounds.forText("no data").height + 10 //  dualAxis.verticalAxis.rangeSize
-
-        const firstNanValue = placedItems.findIndex((item) => !item.bars.length)
-        const anyNonNanAfterFirstNan =
-            firstNanValue >= 0
-                ? placedItems
-                      .slice(firstNanValue)
-                      .some((item) => item.bars.length !== 0)
-                : false
-
-        if (anyNonNanAfterFirstNan)
-            console.error("Found Non-NAN values after NAN value!")
-
-        if (firstNanValue !== -1) {
-            const firstNanValueItem = placedItems[firstNanValue]
-            const lastItem = R.last(placedItems)!
-            const noDataRangeStartX =
-                firstNanValueItem.xPosition + dualAxis.horizontalAxis.place(x0)
-            const xValue = lastItem.xPoint?.value ?? 1
-            const noDataRangeEndX =
-                lastItem?.xPosition + dualAxis.horizontalAxis.place(xValue)
-            const yStart = dualAxis.verticalAxis.place(y0)
-
-            const noDataLabelX =
-                noDataRangeStartX + (noDataRangeEndX - noDataRangeStartX) / 2
-            const boundsForNoData = Bounds.forText("no data")
-            const noDataLabelY = yStart - boundsForNoData.width
-            noDataLabel = (
-                <text
-                    key={`noDataArea-label`}
-                    x={0}
-                    transform={`rotate(-90, ${noDataLabelX}, ${noDataLabelY})
-                    translate(${noDataLabelX}, ${noDataLabelY})`}
-                    y={0}
-                    width={noDataRangeEndX - noDataRangeStartX}
-                    height={noDataHeight}
-                    fontWeight={700}
-                    fill="#666"
-                    opacity={1}
-                    fontSize={GRAPHER_FONT_SCALE_12 * fontSize}
-                    textAnchor="middle"
-                    dy={dyFromAlign(VerticalAlign.middle)}
-                    style={{ pointerEvents: "none" }}
-                >
-                    no data
-                </text>
-            )
-
-            noDataAreaElement = (
-                <rect
-                    key="noDataArea"
-                    x={noDataRangeStartX}
-                    y={yStart - noDataHeight}
-                    //transform={`translate(${barX}, ${barY - barHeight})`}
-                    width={noDataRangeEndX - noDataRangeStartX}
-                    height={noDataHeight}
-                    fill={`url(#${Patterns.noDataPattern})`}
-                    // stroke={strokeColor}
-                    // strokeWidth={strokeWidth}
-                    opacity={0.5}
-                ></rect>
-            )
-        }
-
-        for (const item of placedItems) {
-            const { entityName, bars, xPoint, entityColor } = item
-            const currentX = dualAxis.horizontalAxis.place(x0) + item.xPosition
-
-            const xValue = xPoint?.value ?? 1
-            const barWidth =
-                dualAxis.horizontalAxis.place(xValue) -
-                dualAxis.horizontalAxis.place(x0)
-
-            const isSelected = selectionSet.has(entityName)
-            const isHovered =
-                entityName === tooltipState.target?.entityName &&
-                !tooltipState.fading
-            const isFaint =
-                (focusColorBin !== undefined &&
-                    !focusColorBin.contains(entityColor?.colorDomainValue)) ||
-                (hasSelection && !isSelected) ||
-                (!isHovered &&
-                    tooltipState.target !== undefined &&
-                    !tooltipState.fading)
-
-            // figure out what the minimum height in domain space has to be so
-            // that a bar is at least one pixel high in screen space.
-            const yAxisOnePixelDomainEquivalent =
-                this.dualAxis.verticalAxis.invert(
-                    this.dualAxis.verticalAxis.place(y0) - 1
-                ) -
-                this.dualAxis.verticalAxis.invert(
-                    this.dualAxis.verticalAxis.place(y0)
-                )
-            const adjustedBars = []
-            let currentY = 0
-            for (const bar of bars) {
-                const barCopy = _.cloneDeep(bar)
-                // we want to draw bars at least one pixel high so that they are guaranteed to have a
-                // visual representation in our chart (as a 1px line in this case)
-                barCopy.yPoint.value = Math.max(
-                    barCopy.yPoint.value,
-                    yAxisOnePixelDomainEquivalent
-                )
-                barCopy.yPoint.valueOffset = currentY
-                currentY += barCopy.yPoint.value
-                adjustedBars.push(barCopy)
-            }
-
-            const barsProps = {
-                entityName,
-                bars: adjustedBars,
-                xPoint,
-                entityColor,
-                isFaint,
-                isHovered,
-                isSelected,
-                barWidth,
-                currentX,
-                onEntityClick: this.onEntityClick,
-                onEntityMouseLeave: this.onEntityMouseLeave,
-                onEntityMouseOver: this.onEntityMouseOver,
-                labelYOffset,
-                y0,
-                noDataHeight,
-                dualAxis,
-            }
-            const result = (
-                <MarimekkoBarsForOneEntity key={entityName} {...barsProps} />
-            )
-            if (isSelected || isHovered) highlightedElements.push(result)
-            else normalElements.push(result)
-        }
-
-        return ([] as React.ReactElement[]).concat(
-            noDataAreaElement ? [noDataAreaElement] : [],
-            normalElements,
-            placedLabels,
-            labelLines,
-            highlightedElements,
-            noDataLabel ? [noDataLabel] : []
+    private renderBars(): React.ReactElement {
+        return (
+            <MarimekkoBars
+                dualAxis={this.dualAxis}
+                focusColorBin={this.focusColorBin}
+                placedItems={this.placedItems}
+                tooltipState={this.tooltipState}
+                fontSize={this.fontSize}
+                x0={this.chartState.x0}
+                y0={this.chartState.y0}
+                selectionArray={this.selectionArray}
+                selectedItems={this.chartState.selectedItems}
+                onEntityClick={this.onEntityClick}
+                onEntityMouseLeave={this.onEntityMouseLeave}
+                onEntityMouseOver={this.onEntityMouseOver}
+            />
         )
     }
+
     private paddingInPixels = 5
 
     private static labelCandidateFromItem(
@@ -1137,12 +639,12 @@ export class MarimekkoChart
         const {
             xColumnAtLastTimePoint,
             yColumnsAtLastTimePoint,
-            selectedItems,
             xRange,
             sortConfig,
             paddingInPixels,
             items,
         } = this
+        const { selectedItems } = this.chartState
 
         if (yColumnsAtLastTimePoint.length === 0) return []
 
@@ -1168,7 +670,7 @@ export class MarimekkoChart
             ? xColumnAtLastTimePoint
             : yColumnsAtLastTimePoint[0]
 
-        const labelCandidates: LabelCandidate[] =
+        let labelCandidates: LabelCandidate[] =
             labelCandidateSource.owidRows.map((row) =>
                 MarimekkoChart.labelCandidateFromItem(
                     {
@@ -1184,6 +686,15 @@ export class MarimekkoChart
                     selectedItemsSet.has(row.entityName)
                 )
             )
+
+        // If focus mode is active, only label focused series
+        if (this.chartState.focusArray.hasFocusedSeries) {
+            labelCandidates = labelCandidates.filter((candidate) =>
+                this.chartState.focusArray.has(candidate.item.entityName)
+            )
+        }
+
+        if (labelCandidates.length === 0) return []
 
         labelCandidates.sort((a, b) => {
             const yRowsForA = a.item.ySortValue
@@ -1253,13 +764,13 @@ export class MarimekkoChart
     @computed private get labelsWithPlacementInfo(): LabelWithPlacement[] {
         const {
             dualAxis,
-            x0,
             placedItemsMap,
             labels,
             unrotatedLongestLabelWidth,
             unrotatedHighestLabelHeight,
             labelAngleInDegrees,
         } = this
+        const { x0 } = this.chartState
         const labelsYPosition = dualAxis.verticalAxis.place(0)
 
         const labelsWithPlacements: LabelWithPlacement[] = labels
@@ -1373,7 +884,8 @@ export class MarimekkoChart
     }
 
     @computed private get labelLines(): React.ReactElement[] {
-        const { labelsWithPlacementInfo, dualAxis, selectedItems } = this
+        const { labelsWithPlacementInfo, dualAxis } = this
+        const { selectedItems } = this.chartState
         const shiftedGroups: LabelWithPlacement[][] = []
         const unshiftedElements: LabelWithPlacement[] = []
         const selectedItemsKeys = new Set(
