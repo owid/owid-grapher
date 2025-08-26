@@ -59,7 +59,9 @@ export function mergeGrapherConfigs(
         return _.omit(config, KEYS_EXCLUDED_FROM_INHERITANCE)
     })
 
-    return merge(...cleanedConfigs)
+    return merge(
+        ...(cleanedConfigs as [GrapherInterface, ...GrapherInterface[]])
+    )
 }
 
 export function diffGrapherConfigs(
