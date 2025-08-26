@@ -39,9 +39,7 @@ export class ColorScale {
     // Config accessors
 
     @computed get config(): ColorScaleConfigInterface {
-        return this.manager.colorScaleConfig
-            ? this.manager.colorScaleConfig
-            : new ColorScaleConfig()
+        return this.manager.colorScaleConfig ?? new ColorScaleConfig()
     }
 
     @computed get customNumericValues(): number[] {
@@ -53,10 +51,9 @@ export class ColorScale {
     }
 
     @computed get customNumericColors(): (Color | undefined)[] {
-        const colors = this.customNumericColorsActive
+        return this.customNumericColorsActive
             ? mapNullToUndefined(this.config.customNumericColors)
             : []
-        return colors
     }
 
     @computed get customHiddenCategories(): {
@@ -153,8 +150,6 @@ export class ColorScale {
 
     // When automatic classification is turned on, this takes the numeric map data
     // and works out some discrete ranges to assign colors to
-
-    // TODO types
     @computed get autoBinThresholds(): number[] {
         if (this.config.binningStrategy === "manual") {
             throw new Error(
@@ -171,7 +166,7 @@ export class ColorScale {
             minValue: this.config.minValue,
             maxValue: this.config.maxValue,
             midpoint: this.config.midpoint,
-            midpointMode: this.config.midpointMode as any,
+            midpointMode: this.config.midpointMode,
         }).bins
     }
 
@@ -202,10 +197,6 @@ export class ColorScale {
         else return colors
     }
 
-    @computed get numAutoBins(): number {
-        return this.autoBinThresholds.length - 1
-    }
-
     @computed get isManualBuckets(): boolean {
         return this.config.binningStrategy === "manual"
     }
@@ -215,7 +206,7 @@ export class ColorScale {
 
         return this.isManualBuckets
             ? Math.max(this.customNumericValues.length - 1, 0)
-            : this.numAutoBins
+            : this.autoBinThresholds.length - 1
     }
 
     @computed private get numericLegendBins(): NumericBin[] {

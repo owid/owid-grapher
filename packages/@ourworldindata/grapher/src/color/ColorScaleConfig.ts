@@ -6,6 +6,7 @@ import {
     BinningStrategyIncludingManual,
     ColorSchemeName,
     ColorScaleConfigInterface,
+    MidpointMode,
 } from "@ourworldindata/types"
 import {
     trimObject,
@@ -36,7 +37,7 @@ export class ColorScaleConfigDefaults implements ColorScaleConfigInterface {
     minValue?: number
     maxValue?: number
     midpoint?: number
-    midpointMode?: string
+    midpointMode?: MidpointMode
 
     /** Custom maximum brackets for each numeric bin. Only applied when strategy is `manual`. */
     customNumericValues: number[] = []

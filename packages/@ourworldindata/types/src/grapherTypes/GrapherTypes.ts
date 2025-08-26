@@ -15,7 +15,10 @@ import {
 } from "./GrapherConstants.js"
 import { OwidVariableDataMetadataDimensions } from "../OwidVariable.js"
 import { ArchiveContext } from "../domainTypes/Archive.js"
-import { BinningStrategyIncludingManual } from "./BinningStrategyTypes.js"
+import {
+    BinningStrategyIncludingManual,
+    MidpointMode,
+} from "./BinningStrategyTypes.js"
 
 // Utility type that marks all properties of T that may be undefined as optional.
 export type UndefinedToOptional<T> = Partial<T> & {
@@ -361,7 +364,7 @@ export interface ColorScaleConfigInterface {
     minValue?: number
     maxValue?: number
     midpoint?: number
-    midpointMode?: string
+    midpointMode?: MidpointMode
     customNumericValues: number[]
     customNumericLabels: (string | undefined | null)[]
     customNumericColorsActive?: boolean
