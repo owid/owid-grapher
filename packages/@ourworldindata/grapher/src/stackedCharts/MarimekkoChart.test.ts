@@ -17,6 +17,7 @@ import {
     MarimekkoChartManager,
 } from "./MarimekkoChartConstants"
 import { MarimekkoChartState } from "./MarimekkoChartState"
+import { InteractionState } from "../interaction/InteractionState.js"
 
 it("can create a chart", () => {
     const table = SynthesizeGDPTable({
@@ -38,7 +39,7 @@ it("can create a chart", () => {
     expect(chartState.errorInfo.reason).toEqual("")
     expect(chartState.series.length).toEqual(1)
     expect(chartState.series[0].points.length).toEqual(5)
-    expect(chart.xSeries!.points.length).toEqual(5)
+    expect(chartState.xSeries!.points.length).toEqual(5)
     expect(chart.placedItems.length).toEqual(5)
     //expect(chart.placedItems)
 })
@@ -100,7 +101,7 @@ it("can display a Marimekko chart correctly", () => {
         { value: 1000, entity: "small", time: 2001 },
     ]
     expect(chartState.series[0].points).toEqual(expectedYPoints)
-    expect(chart.xSeries!.points).toEqual(expectedXPoints)
+    expect(chartState.xSeries!.points).toEqual(expectedXPoints)
 
     const placedItemsWithoutXPosition = chart.placedItems.map((placedItem) =>
         _.omit(placedItem, "xPosition")
@@ -124,6 +125,8 @@ it("can display a Marimekko chart correctly", () => {
                 },
             ],
             xPoint: expectedXPoints[1],
+            shortEntityName: undefined,
+            focus: new InteractionState(),
         },
         {
             entityName: "medium",
@@ -138,6 +141,8 @@ it("can display a Marimekko chart correctly", () => {
                 },
             ],
             xPoint: expectedXPoints[0],
+            shortEntityName: undefined,
+            focus: new InteractionState(),
         },
         {
             entityName: "small",
@@ -152,6 +157,8 @@ it("can display a Marimekko chart correctly", () => {
                 },
             ],
             xPoint: expectedXPoints[2],
+            shortEntityName: undefined,
+            focus: new InteractionState(),
         },
     ])
 
@@ -240,7 +247,7 @@ it("can display two time series stacked correctly", () => {
     ]
     expect(chartState.series[0].points).toEqual(expectedYPointsFirstSeries)
     expect(chartState.series[1].points).toEqual(expectedYPointsSecondSeries)
-    expect(chart.xSeries!.points).toEqual(expectedXPoints)
+    expect(chartState.xSeries!.points).toEqual(expectedXPoints)
 
     const placedItemsWithoutXPosition = chart.placedItems.map((placedItem) =>
         _.omit(placedItem, "xPosition")
@@ -271,6 +278,8 @@ it("can display two time series stacked correctly", () => {
                 },
             ],
             xPoint: expectedXPoints[1],
+            shortEntityName: undefined,
+            focus: new InteractionState(),
         },
         {
             entityName: "medium",
@@ -292,6 +301,8 @@ it("can display two time series stacked correctly", () => {
                 },
             ],
             xPoint: expectedXPoints[0],
+            shortEntityName: undefined,
+            focus: new InteractionState(),
         },
         {
             entityName: "small",
@@ -313,6 +324,8 @@ it("can display two time series stacked correctly", () => {
                 },
             ],
             xPoint: expectedXPoints[2],
+            shortEntityName: undefined,
+            focus: new InteractionState(),
         },
     ])
 
@@ -349,10 +362,6 @@ it("can do sorting", () => {
             },
         },
     })
-    let chart = new MarimekkoChart({
-        chartState,
-        bounds: new Bounds(0, 0, 1000, 1000),
-    })
 
     expect(chartState.errorInfo.reason).toEqual("")
     expect(chartState.series.length).toEqual(1)
@@ -385,7 +394,7 @@ it("can do sorting", () => {
         { value: 1000, entity: "CC", time: 2001 },
     ]
     expect(chartState.series[0].points).toEqual(expectedYPoints)
-    expect(chart.xSeries!.points).toEqual(expectedXPoints)
+    expect(chartState.xSeries!.points).toEqual(expectedXPoints)
     // placedItems should be in default sort order
     const items = new Map<string, Item>([
         [
@@ -403,6 +412,7 @@ it("can do sorting", () => {
                     },
                 ],
                 xPoint: expectedXPoints[1],
+                focus: new InteractionState(),
             },
         ],
         [
@@ -420,6 +430,7 @@ it("can do sorting", () => {
                     },
                 ],
                 xPoint: expectedXPoints[0],
+                focus: new InteractionState(),
             },
         ],
         [
@@ -437,10 +448,11 @@ it("can do sorting", () => {
                     },
                 ],
                 xPoint: expectedXPoints[2],
+                focus: new InteractionState(),
             },
         ],
     ])
-    expect(chart["sortedItems"]).toEqual([
+    expect(chartState.sortedItems).toEqual([
         items.get("small"),
         items.get("medium"),
         items.get("big"),
@@ -456,11 +468,7 @@ it("can do sorting", () => {
             },
         },
     })
-    chart = new MarimekkoChart({
-        chartState,
-        bounds: new Bounds(0, 0, 1000, 1000),
-    })
-    expect(chart["sortedItems"]).toEqual([
+    expect(chartState.sortedItems).toEqual([
         items.get("small"),
         items.get("medium"),
         items.get("big"),
@@ -475,11 +483,7 @@ it("can do sorting", () => {
             },
         },
     })
-    chart = new MarimekkoChart({
-        chartState,
-        bounds: new Bounds(0, 0, 1000, 1000),
-    })
-    expect(chart["sortedItems"]).toEqual([
+    expect(chartState.sortedItems).toEqual([
         items.get("medium"),
         items.get("big"),
         items.get("small"),
@@ -549,7 +553,7 @@ it("can filter years correctly", () => {
         { value: 1000, entity: "small", time: 2001 },
     ]
     expect(chartState.series[0].points).toEqual(expectedYPoints)
-    expect(chart.xSeries!.points).toEqual(expectedXPoints)
+    expect(chartState.xSeries!.points).toEqual(expectedXPoints)
 
     const placedItemsWithoutXPosition = chart.placedItems.map((placedItem) =>
         _.omit(placedItem, "xPosition")
@@ -573,6 +577,8 @@ it("can filter years correctly", () => {
                 },
             ],
             xPoint: expectedXPoints[1],
+            shortEntityName: undefined,
+            focus: new InteractionState(),
         },
         {
             entityName: "medium",
@@ -587,6 +593,8 @@ it("can filter years correctly", () => {
                 },
             ],
             xPoint: expectedXPoints[0],
+            shortEntityName: undefined,
+            focus: new InteractionState(),
         },
         {
             entityName: "small",
@@ -601,6 +609,8 @@ it("can filter years correctly", () => {
                 },
             ],
             xPoint: expectedXPoints[2],
+            shortEntityName: undefined,
+            focus: new InteractionState(),
         },
     ])
 
@@ -665,7 +675,7 @@ it("shows no data points at the end", () => {
         { value: 1000, entity: "small", time: 2001 },
     ]
     expect(chartState.series[0].points).toEqual(expectedYPoints)
-    expect(chart.xSeries!.points).toEqual(expectedXPoints)
+    expect(chartState.xSeries!.points).toEqual(expectedXPoints)
 
     const placedItemsWithoutXPosition = chart.placedItems.map((placedItem) =>
         _.omit(placedItem, "xPosition")
@@ -689,6 +699,8 @@ it("shows no data points at the end", () => {
                 },
             ],
             xPoint: expectedXPoints[1],
+            shortEntityName: undefined,
+            focus: new InteractionState(),
         },
         {
             entityName: "small",
@@ -703,12 +715,16 @@ it("shows no data points at the end", () => {
                 },
             ],
             xPoint: expectedXPoints[2],
+            shortEntityName: undefined,
+            focus: new InteractionState(),
         },
         {
             entityName: "medium",
             entityColor: undefined,
             bars: [],
             xPoint: expectedXPoints[0],
+            shortEntityName: undefined,
+            focus: new InteractionState(),
         },
     ])
 
@@ -784,7 +800,7 @@ test("interpolation works as expected", () => {
         { value: 1000, entity: "small", time: 2001 },
     ]
     expect(chartState.series[0].points).toEqual(expectedYPoints)
-    expect(chart.xSeries!.points).toEqual(expectedXPoints)
+    expect(chartState.xSeries!.points).toEqual(expectedXPoints)
 
     const placedItemsWithoutXPosition = chart.placedItems.map((placedItem) =>
         _.omit(placedItem, "xPosition")
@@ -808,6 +824,8 @@ test("interpolation works as expected", () => {
                 },
             ],
             xPoint: expectedXPoints[0],
+            shortEntityName: undefined,
+            focus: new InteractionState(),
         },
         {
             entityName: "medium",
@@ -822,6 +840,8 @@ test("interpolation works as expected", () => {
                 },
             ],
             xPoint: expectedXPoints[1],
+            shortEntityName: undefined,
+            focus: new InteractionState(),
         },
         {
             entityName: "small",
@@ -836,6 +856,8 @@ test("interpolation works as expected", () => {
                 },
             ],
             xPoint: expectedXPoints[2],
+            shortEntityName: undefined,
+            focus: new InteractionState(),
         },
     ])
 
@@ -925,7 +947,7 @@ it("can deal with y columns with missing values", () => {
     ]
     expect(chartState.series[0].points).toEqual(expectedYPoints1)
     expect(chartState.series[1].points).toEqual(expectedYPoints2)
-    expect(chart.xSeries!.points).toEqual(expectedXPoints)
+    expect(chartState.xSeries!.points).toEqual(expectedXPoints)
 
     const placedItemsWithoutXPosition = chart.placedItems.map((placedItem) =>
         _.omit(placedItem, "xPosition")
@@ -955,6 +977,8 @@ it("can deal with y columns with missing values", () => {
                 },
             ],
             xPoint: expectedXPoints[0],
+            shortEntityName: undefined,
+            focus: new InteractionState(),
         },
         {
             entityName: "small",
@@ -976,6 +1000,8 @@ it("can deal with y columns with missing values", () => {
                 },
             ],
             xPoint: expectedXPoints[2],
+            shortEntityName: undefined,
+            focus: new InteractionState(),
         },
         {
             entityName: "big",
@@ -990,6 +1016,8 @@ it("can deal with y columns with missing values", () => {
                 },
             ],
             xPoint: expectedXPoints[1],
+            shortEntityName: undefined,
+            focus: new InteractionState(),
         },
     ])
 
