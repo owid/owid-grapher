@@ -11,7 +11,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
-import { Bounds, excludeUndefined, GrapherVariant } from "@ourworldindata/utils"
+import { Bounds, excludeUndefined } from "@ourworldindata/utils"
 import { AxisConfig, AxisManager } from "../axis/AxisConfig"
 import { DualAxis, HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import {
@@ -47,10 +47,6 @@ export class StackedBarChartThumbnail
 
     @computed get manager(): ChartManager {
         return this.chartState.manager
-    }
-
-    @computed private get isMinimal(): boolean {
-        return this.manager.variant === GrapherVariant.MinimalThumbnail
     }
 
     @computed get fontSize(): number {
@@ -117,7 +113,11 @@ export class StackedBarChartThumbnail
     @computed private get verticalLabelsState():
         | VerticalLabelsState
         | undefined {
-        if (!this.manager.showLegend || this.isMinimal) return undefined
+        if (
+            !this.manager.showLegend ||
+            this.manager.isDisplayedAlongsideComplementaryTable
+        )
+            return undefined
 
         const series = excludeUndefined(
             this.chartState.series.map((series, seriesIndex) => {

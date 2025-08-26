@@ -738,7 +738,7 @@ export class LineChart
         return (
             this.hasColorScale &&
             !!this.manager.showLegend &&
-            !this.manager.hideLegendsOutsideChartArea
+            !this.manager.isDisplayedAlongsideComplementaryTable
         )
     }
 
