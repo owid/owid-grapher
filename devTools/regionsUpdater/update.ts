@@ -18,11 +18,6 @@ const ETL_REGIONS_URL =
     GRAPHER_ROOT = __dirname.replace(/\/devTools.*/, ""),
     GRAPHER_REGIONS_PATH = `${GRAPHER_ROOT}/packages/@ourworldindata/utils/src/regions.json`,
     GRAPHER_TOPOLOGY_PATH = `${GRAPHER_ROOT}/packages/@ourworldindata/grapher/src/mapCharts/MapTopology.ts`,
-    ADDITIONAL_CONTINENT_MEMBERS = {
-        Africa: ["OWID_SML", "OWID_ZAN"],
-        Asia: ["OWID_ABK", "OWID_AKD", "OWID_NAG", "OWID_SOS"],
-        Europe: ["OWID_CIS", "SJM", "OWID_TRS"],
-    },
     SEARCH_ALIASES = {
         ARE: ["UAE"],
         CZE: ["Czech Republic"],
@@ -48,29 +43,36 @@ const ETL_REGIONS_URL =
         OWID_PYA: "061",
         OWID_SAM: "005",
 
-        // Regions according to UNSD
-        UNSD_AUS: "053",
-        UNSD_CAM: "013",
-        UNSD_CAR: "029",
-        UNSD_CAS: "143",
-        UNSD_EAF: "014",
-        UNSD_EAS: "030",
-        UNSD_EEU: "151",
-        UNSD_MAF: "017",
-        UNSD_MEL: "054",
-        UNSD_MIC: "057",
-        UNSD_NAF: "015",
-        UNSD_NAM: "003",
-        UNSD_NEU: "154",
-        UNSD_POL: "061",
-        UNSD_SAF: "018",
-        UNSD_SAM: "005",
-        UNSD_SAS: "034",
-        UNSD_SEA: "035",
-        UNSD_SEU: "039",
-        UNSD_WAF: "011",
-        UNSD_WAS: "145",
-        UNSD_WEU: "155",
+        // Regions according to the UN
+        UNM49_AFR: "002",
+        UNM49_AMR: "019",
+        UNM49_ANZ: "053",
+        UNM49_ASI: "142",
+        UNM49_CAM: "013",
+        UNM49_CAR: "029",
+        UNM49_CAS: "143",
+        UNM49_EAF: "014",
+        UNM49_EAS: "030",
+        UNM49_EEU: "151",
+        UNM49_EUR: "150",
+        UNM49_LAC: ["419", "029"],
+        UNM49_MAF: "017",
+        UNM49_MEL: "054",
+        UNM49_MIC: "057",
+        UNM49_NAF: "015",
+        UNM49_NAM: "003",
+        UNM49_NEU: "154",
+        UNM49_OCE: "009",
+        UNM49_POL: "061",
+        UNM49_SAF: "018",
+        UNM49_SAM: "005",
+        UNM49_SAS: "034",
+        UNM49_SEA: "035",
+        UNM49_SEU: "039",
+        UNM49_SSA: "202",
+        UNM49_WAF: "011",
+        UNM49_WAS: "145",
+        UNM49_WEU: "155",
 
         // Regions according to World Bank
         WB_EAP: ["030", "009"], // East Asia; Pacific ≈ Oceania
@@ -279,14 +281,6 @@ async function main() {
             console.log(
                 `⚠️  ${entity.name} (${entity.code}) claims to be mappable but has no geojson data`
             )
-        }
-
-        // add back countries removed from the ETL's continents list
-        if (entity.region_type === "continent") {
-            entity.members = _.uniq([
-                ...(entity.members ?? []),
-                ..._.get(ADDITIONAL_CONTINENT_MEMBERS, entity.name, []),
-            ])
         }
 
         if (entity.members) entity.members = entity.members.toSorted()

@@ -36,12 +36,14 @@ export const entityRegionTypeLabels: Record<EntityRegionType, string> = {
     incomeGroups: "Income groups",
     historicalCountries: "Historical countries and regions", // e.g. USSR, Austria-Hungary
 
-    // Regions defined by an institution
+    // Regions defined by an institution, and where we have region definition about what constitutes these regions in regions.json
     who: "World Health Organization regions",
     wb: "World Bank regions",
-    unsd: "UN Statistics Division regions",
-    unsdg: "UN Sustainable Development Goals regions",
     un: "United Nations regions",
+    unsdg: "UN Sustainable Development Goals regions",
+
+    // Regions defined by an institution, but we don't have region definitions in regions.json for these (we recognize them by their suffix)
+    unsd: "UN Statistics Division regions",
     fao: "FAO regions", // UN's Food and Agriculture Organization
     ei: "Education International regions",
     pip: "PIP regions", // World Bank’s Poverty and Inequality Platform
