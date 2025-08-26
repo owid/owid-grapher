@@ -13,7 +13,11 @@ import {
     OwidVariableMixedData,
     OwidVariableWithSourceAndDimension,
 } from "@ourworldindata/types"
-import { fetchJson, searchParamsToMultiDimView } from "@ourworldindata/utils"
+import {
+    extractMultiDimChoicesFromSearchParams,
+    fetchJson,
+    MultiDimDataPageConfig,
+} from "@ourworldindata/utils"
 import { QueryStatus, useQueries } from "@tanstack/react-query"
 
 /** Fetches relevant data and metadata for a given chart config */
@@ -68,28 +72,28 @@ export function useQueryInputTableForMultiDimView(
     // Return early if data fetching failed or is still in progress
     if (status !== "success" || !variablesDataMap) return { status }
 
-    const mdimConfigView = mdimConfig
-        ? searchParamsToMultiDimView(mdimConfig, mdimSearchParams)
-        : undefined
-    const yVariableId = mdimConfigView?.indicators.y[0]?.id
-    if (yVariableId && variablesDataMap.has(yVariableId)) {
-        const variableData = variablesDataMap.get(yVariableId)!
-        const enrichedMetadata = _.mergeWith(
-            {}, // merge mutates the first argument
-            variableData?.metadata,
-            mdimConfig?.metadata,
-            mdimConfigView?.metadata,
-            // Overwrite arrays completely instead of merging them.
-            // Otherwise fall back to the default merge behavior.
-            (_, srcValue) => {
-                return Array.isArray(srcValue) ? srcValue : undefined
-            }
-        ) as OwidVariableWithSourceAndDimension
+    if (mdimConfig) {
+        const mdimConfigInstance = MultiDimDataPageConfig.fromObject(mdimConfig)
+        const mdimChoices = extractMultiDimChoicesFromSearchParams(
+            mdimSearchParams,
+            mdimConfigInstance
+        )
+        const mdimConfigView =
+            mdimConfigInstance.findViewByDimensions(mdimChoices)
 
-        variablesDataMap.set(yVariableId, {
-            data: variableData.data,
-            metadata: enrichedMetadata,
-        })
+        const yVariableId = mdimConfigView?.indicators.y[0]?.id
+        if (yVariableId && variablesDataMap.has(yVariableId)) {
+            const variableData = variablesDataMap.get(yVariableId)!
+            const enrichedMetadata = mdimConfigInstance.mergeViewMetadata(
+                mdimChoices,
+                variableData.metadata
+            )
+
+            variablesDataMap.set(yVariableId, {
+                data: variableData.data,
+                metadata: enrichedMetadata,
+            })
+        }
     }
 
     // Transform the fetched variable data and metadata into Grapher's input table format
