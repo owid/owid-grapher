@@ -2,10 +2,7 @@ import { expect, it, describe } from "vitest"
 
 import { CoreTable, ErrorValueTypes } from "@ourworldindata/core-table"
 import { ColorScale } from "./ColorScale"
-import {
-    ColorScaleConfigInterface,
-    BinningStrategyIncludingManual,
-} from "@ourworldindata/types"
+import { ColorScaleConfigInterface } from "@ourworldindata/types"
 
 const createColorScaleFromTable = (
     colorValuePairs: { value: number; color?: string }[],
@@ -73,6 +70,7 @@ describe(ColorScale, () => {
             expect(scale.getBinForValue(3)).toEqual(bins[2])
             expect(scale.getBinForValue(15)).toEqual(bins[2])
         })
+    })
 
     it("transforms all colors", () => {
         const colorScaleConfig: ColorScaleConfigInterface = {
