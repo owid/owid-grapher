@@ -23,7 +23,6 @@ import {
     getTotalColumnCount,
     makeSlotClassNames,
 } from "./SearchChartHitRichDataHelpers.js"
-import { PreviewVariant } from "./SearchChartHitRichDataTypes.js"
 import {
     constructChartAndPreviewUrlsForTab,
     useQueryChartInfo,
