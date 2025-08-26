@@ -8,6 +8,7 @@ import { match } from "ts-pattern"
 import {
     GrapherState,
     mapGrapherTabNameToQueryParam,
+    generateFocusedSeriesNamesParam,
 } from "@ourworldindata/grapher"
 import {
     EntityName,
@@ -403,6 +404,19 @@ function constructChartAndPreviewUrlsForTab({
         grapherState.isFaceted && !grapherState.hasMultipleSeriesPerFacet
     if (tab === GRAPHER_TAB_NAMES.DiscreteBar && hasSingleSeriesPerFacet) {
         grapherParams.facet = FacetStrategy.none
+    }
+
+    // If the Marimekko chart has a selection, also set
+    // the focus param, so that the selected entities are
+    // labelled
+    if (
+        tab === GRAPHER_TAB_NAMES.Marimekko &&
+        !grapherParams.focus &&
+        grapherState.selection.hasSelection
+    ) {
+        grapherParams.focus = generateFocusedSeriesNamesParam(
+            grapherState.selection.selectedEntityNames
+        )
     }
 
     // Use a smaller font size for chart types where labels or legends would
