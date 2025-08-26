@@ -165,7 +165,7 @@ export class MultiDimDataPageConfig {
             variableMetadata,
             this.config.metadata ?? {},
             mdimConfigView?.metadata ?? {}
-        ) as OwidVariableWithSourceAndDimension
+        )
     }
 
     static viewToDimensionsConfig(
