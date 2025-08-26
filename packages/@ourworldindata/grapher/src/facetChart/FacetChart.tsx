@@ -61,6 +61,7 @@ import {
     NumericBin,
 } from "../color/ColorScaleBin"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
+import { FocusArray } from "../focus/FocusArray"
 
 const SHARED_X_AXIS_MIN_FACET_COUNT = 12
 
@@ -541,8 +542,12 @@ export class FacetChart
         })
     }
 
-    @computed private get selectionArray(): SelectionArray {
+    @computed get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager.selection)
+    }
+
+    @computed get focusArray(): FocusArray {
+        return this.manager.focusArray ?? new FocusArray()
     }
 
     @computed private get entityFacets(): FacetSeries[] {
@@ -744,14 +749,13 @@ export class FacetChart
     }
 
     @computed get activeColors(): Color[] | undefined {
-        const { focusArray } = this.manager
-        if (!focusArray) return undefined
+        if (!this.focusArray) return undefined
 
         // find colours of all currently focused series
         const activeColors = _.uniq(
             this.intermediateChartInstances.flatMap((chartInstance) =>
                 chartInstance.chartState.series
-                    .filter((series) => focusArray.has(series.seriesName))
+                    .filter((series) => this.focusArray.has(series.seriesName))
                     .map((series) => series.color)
             )
         )
