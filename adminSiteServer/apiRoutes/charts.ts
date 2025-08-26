@@ -54,7 +54,7 @@ import {
     deleteGrapherConfigFromR2ByUUID,
     saveGrapherConfigToR2ByUUID,
 } from "../R2/chartConfigR2Helpers.js"
-import { triggerStaticBuild } from "./routeUtils.js"
+import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import { getLogsByChartId } from "../getLogsByChartId.js"
 import { getPublishedLinksTo } from "../../db/model/Link.js"

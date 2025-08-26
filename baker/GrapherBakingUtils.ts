@@ -4,9 +4,11 @@ import { glob } from "glob"
 import * as R from "remeda"
 
 import * as db from "../db/db.js"
-import { DbPlainTag, Url } from "@ourworldindata/utils"
+import { DbPlainTag, DbPlainUser, Url } from "@ourworldindata/utils"
 import { isPathRedirectedToExplorer } from "../explorerAdminServer/ExplorerRedirects.js"
 import { hashMd5 } from "../serverUtils/hash.js"
+import { BAKE_ON_CHANGE } from "../settings/serverSettings.js"
+import { DeployQueueServer } from "./DeployQueueServer.js"
 
 // Splits a grapher URL like https://ourworldindata.org/grapher/soil-lifespans?tab=chart
 // into its slug (soil-lifespans) and queryStr (?tab=chart)
@@ -99,4 +101,24 @@ export async function deleteOldGraphers(
             if (err) console.error(`Error deleting ${path}`, err)
         })
     }
+}
+// Call this to trigger build and deployment of static charts on change
+
+export const triggerStaticBuild = async (
+    user: DbPlainUser,
+    commitMessage: string
+) => {
+    if (!BAKE_ON_CHANGE) {
+        console.log(
+            "Not triggering static build because BAKE_ON_CHANGE is false"
+        )
+        return
+    }
+
+    return new DeployQueueServer().enqueueChange({
+        timeISOString: new Date().toISOString(),
+        authorName: user.fullName,
+        authorEmail: user.email,
+        message: commitMessage,
+    })
 }

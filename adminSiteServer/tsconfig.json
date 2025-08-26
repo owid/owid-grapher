@@ -15,6 +15,7 @@
         { "path": "../baker" },
         { "path": "../db" },
         { "path": "../explorerAdminServer" },
+        { "path": "../jobQueue" },
         { "path": "../serverUtils" },
         { "path": "../settings" },
         { "path": "../site" }

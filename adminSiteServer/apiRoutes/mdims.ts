@@ -11,7 +11,7 @@ import {
     setMultiDimPublished,
     setMultiDimSlug,
 } from "../multiDim.js"
-import { triggerStaticBuild } from "./routeUtils.js"
+import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import { Request } from "../authentication.js"
 import * as db from "../../db/db.js"
 import {

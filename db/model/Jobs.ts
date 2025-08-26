@@ -34,34 +34,30 @@ export async function claimNextQueuedJob(
     type: JobType,
     _options: JobClaimOptions
 ): Promise<DbPlainJob | null> {
-    // Atomically claim the next queued job by updating its state
-    const result = await knexRaw(
-        knex,
-        `-- sql
-            UPDATE jobs
-            SET state = 'running'
-            WHERE id = (
-                SELECT id FROM (
-                    SELECT id FROM jobs
-                    WHERE type = ? AND state = 'queued'
-                    ORDER BY id ASC
-                    LIMIT 1
-                ) AS subquery
-            )
-        `,
-        [type]
-    )
+    // First, find the next queued job
+    const nextJob = await knex(JobsTableName)
+        .where({ type, state: "queued" })
+        .orderBy("id", "asc")
+        .first()
 
-    // TODO: switch to knexRawInsert and investigate if mysql 8 and knex
-    // will have affectedRows - if so, add that to the signature of knexRawInsert
-    if ((result[0] as any).affectedRows === 0) {
+    if (!nextJob) {
         return null
     }
 
-    // Fetch the claimed job
+    // Atomically claim it by updating its state
+    const result = await knex.raw(
+        `UPDATE jobs SET state = 'running' WHERE id = ? AND state = 'queued'`,
+        [nextJob.id]
+    )
+
+    // Check if we successfully claimed it (someone else might have claimed it first)
+    if (result[0].affectedRows === 0) {
+        return null
+    }
+
+    // Return the claimed job with updated state
     const claimedJob = await knex(JobsTableName)
-        .where({ type, state: "running" })
-        .orderBy("id", "asc")
+        .where({ id: nextJob.id })
         .first()
 
     return claimedJob || null

@@ -6,7 +6,8 @@ import {
     uploadToCloudflare,
     deleteFromCloudflare,
 } from "../imagesHelpers.js"
-import { extractSqlError, triggerStaticBuild } from "./routeUtils.js"
+import { extractSqlError } from "./routeUtils.js"
+import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
 
