@@ -332,12 +332,14 @@ export const constructPreviewUrl = ({
     hit,
     grapherParams,
     variant,
+    fontSize,
     imageWidth,
     imageHeight,
 }: {
     hit: SearchChartHit
     grapherParams?: GrapherQueryParams
     variant: PreviewVariant
+    fontSize?: number
     imageWidth?: number
     imageHeight?: number
 }): string => {
@@ -348,6 +350,7 @@ export const constructPreviewUrl = ({
     const searchParams = new URLSearchParams(
         omitUndefinedValues({
             imType: variant !== "large" ? variant : undefined,
+            imFontSize: fontSize?.toString(),
             imWidth: imageWidth?.toString(),
             imHeight: imageHeight?.toString(),
             nocache: "true", // TODO: remove nocache param
