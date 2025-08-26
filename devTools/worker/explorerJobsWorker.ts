@@ -8,6 +8,8 @@ import { claimNextQueuedJob } from "../../db/model/Jobs.js"
 import { knexReadWriteTransaction } from "../../db/db.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 import { hostname } from "os"
+import yargs from "yargs"
+import { hideBin } from "yargs/helpers"
 
 const POLL_INTERVAL_MS = 2000
 const LOCK_ID = `${hostname()}-${process.pid}-${Date.now()}`
@@ -16,9 +18,52 @@ async function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+async function processOneJobAndExit(): Promise<void> {
+    console.log(
+        `[${new Date().toISOString()}] Explorer jobs worker (single-run mode) started with lock ID: ${LOCK_ID}`
+    )
+
+    try {
+        const job = await knexReadWriteTransaction(async (trx) => {
+            return await claimNextQueuedJob(trx, "refresh_explorer_views", {
+                lockId: LOCK_ID,
+            })
+        })
+
+        if (!job) {
+            console.log(
+                `[${new Date().toISOString()}] No jobs available, exiting`
+            )
+            return
+        }
+
+        try {
+            await processExplorerViewsJob(job)
+            console.log(
+                `[${new Date().toISOString()}] Job ${job.id} completed successfully`
+            )
+        } catch (error) {
+            console.error(
+                `[${new Date().toISOString()}] Failed to process job ${job.id}:`,
+                error
+            )
+            // Job failure handling is done within processExplorerViewsJob
+        }
+    } catch (error) {
+        console.error(
+            `[${new Date().toISOString()}] Error processing job:`,
+            error
+        )
+        void logErrorAndMaybeCaptureInSentry(
+            error instanceof Error ? error : new Error(String(error))
+        )
+        throw error
+    }
+}
+
 async function workerLoop(): Promise<void> {
     console.log(
-        `[${new Date().toISOString()}] Explorer jobs worker started with lock ID: ${LOCK_ID}`
+        `[${new Date().toISOString()}] Explorer jobs worker (loop mode) started with lock ID: ${LOCK_ID}`
     )
     console.log(`Worker configuration:`)
     console.log(`  - Poll interval: ${POLL_INTERVAL_MS}ms`)
@@ -80,16 +125,49 @@ export async function processOneJob(): Promise<boolean> {
     return await processOneExplorerViewsJob()
 }
 
+// Parse command line arguments
+const argv = yargs(hideBin(process.argv))
+    .option("loop", {
+        type: "boolean",
+        default: false,
+        description:
+            "Run in continuous loop mode (default: process one job and exit)",
+    })
+    .help()
+    .parseSync()
+
 // Start the worker
 if (require.main === module) {
-    workerLoop().catch((error) => {
-        console.error(
-            `[${new Date().toISOString()}] Fatal error in worker:`,
-            error
-        )
-        void logErrorAndMaybeCaptureInSentry(
-            error instanceof Error ? error : new Error(String(error))
-        )
-        process.exit(1)
-    })
+    if (argv.loop) {
+        // Continuous loop mode
+        workerLoop().catch((error) => {
+            console.error(
+                `[${new Date().toISOString()}] Fatal error in worker loop:`,
+                error
+            )
+            void logErrorAndMaybeCaptureInSentry(
+                error instanceof Error ? error : new Error(String(error))
+            )
+            process.exit(1)
+        })
+    } else {
+        // Single-run mode (default)
+        processOneJobAndExit()
+            .then(() => {
+                console.log(
+                    `[${new Date().toISOString()}] Single job processing completed, exiting`
+                )
+                process.exit(0)
+            })
+            .catch((error) => {
+                console.error(
+                    `[${new Date().toISOString()}] Fatal error processing job:`,
+                    error
+                )
+                void logErrorAndMaybeCaptureInSentry(
+                    error instanceof Error ? error : new Error(String(error))
+                )
+                process.exit(1)
+            })
+    }
 }
