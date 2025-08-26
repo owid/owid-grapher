@@ -1,4 +1,4 @@
-import { KnexReadWriteTransaction } from "../db.js"
+import { KnexReadWriteTransaction, knexRaw } from "../db.js"
 import {
     DbInsertJob,
     DbPlainJob,
@@ -14,58 +14,54 @@ export async function enqueueJob(
     knex: KnexReadWriteTransaction,
     job: DbInsertJob
 ): Promise<void> {
-    await knex(JobsTableName)
-        .insert({
-            ...job,
-            state: job.state ?? "queued",
-            attempts: job.attempts ?? 0,
-            priority: job.priority ?? 0,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        })
-        .onConflict(["type", "slug"])
-        .merge({
-            state: "queued",
-            explorerUpdatedAt: job.explorerUpdatedAt,
-            updatedAt: new Date(),
-            lastError: null,
-            attempts: 0,
-            lockedAt: null,
-            lockedBy: null,
-        })
+    await knexRaw(
+        knex,
+        `-- sql
+            INSERT INTO jobs (type, slug, state, attempts, explorerUpdatedAt)
+            VALUES (?, ?, 'queued', 0, ?)
+            ON DUPLICATE KEY UPDATE
+                state = 'queued',
+                explorerUpdatedAt = VALUES(explorerUpdatedAt),
+                lastError = NULL,
+                attempts = 0
+        `,
+        [job.type, job.slug, job.explorerUpdatedAt]
+    )
 }
 
 export async function claimNextQueuedJob(
     knex: KnexReadWriteTransaction,
     type: JobType,
-    options: JobClaimOptions
+    _options: JobClaimOptions
 ): Promise<DbPlainJob | null> {
-    // Use a transaction to atomically claim a job
-    const result = await knex.raw(
-        `
-        UPDATE jobs 
-        SET state = 'running', 
-            lockedAt = NOW(), 
-            lockedBy = ?
-        WHERE id = (
-            SELECT id FROM (
-                SELECT id FROM jobs 
-                WHERE type = ? AND state = 'queued' 
-                ORDER BY priority DESC, id ASC 
-                LIMIT 1
-            ) AS subquery
-        )
-    `,
-        [options.lockId, type]
+    // Atomically claim the next queued job by updating its state
+    const result = await knexRaw(
+        knex,
+        `-- sql
+            UPDATE jobs
+            SET state = 'running'
+            WHERE id = (
+                SELECT id FROM (
+                    SELECT id FROM jobs
+                    WHERE type = ? AND state = 'queued'
+                    ORDER BY id ASC
+                    LIMIT 1
+                ) AS subquery
+            )
+        `,
+        [type]
     )
 
-    if (result[0].affectedRows === 0) {
+    // TODO: switch to knexRawInsert and investigate if mysql 8 and knex
+    // will have affectedRows - if so, add that to the signature of knexRawInsert
+    if ((result[0] as any).affectedRows === 0) {
         return null
     }
 
     // Fetch the claimed job
     const claimedJob = await knex(JobsTableName)
-        .where({ type, state: "running", lockedBy: options.lockId })
+        .where({ type, state: "running" })
+        .orderBy("id", "asc")
         .first()
 
     return claimedJob || null
@@ -76,13 +72,15 @@ export async function markJobDone(
     jobId: number,
     message?: string
 ): Promise<void> {
-    await knex(JobsTableName)
-        .where({ id: jobId })
-        .update({
-            state: "done",
-            lastError: message || null,
-            updatedAt: new Date(),
-        })
+    await knexRaw(
+        knex,
+        `-- sql
+            UPDATE jobs
+            SET state = 'done', lastError = ?
+            WHERE id = ?
+        `,
+        [message || null, jobId]
+    )
 }
 
 export async function markJobFailed(
@@ -92,13 +90,15 @@ export async function markJobFailed(
 ): Promise<void> {
     const errorMessage = error instanceof Error ? error.message : error
 
-    await knex(JobsTableName)
-        .where({ id: jobId })
-        .update({
-            state: "failed",
-            lastError: errorMessage.slice(0, 1000), // Limit error message length
-            updatedAt: new Date(),
-        })
+    await knexRaw(
+        knex,
+        `-- sql
+            UPDATE jobs
+            SET state = 'failed', lastError = ?
+            WHERE id = ?
+        `,
+        [errorMessage.slice(0, 1000), jobId]
+    )
 }
 
 export async function requeueJob(
@@ -106,13 +106,15 @@ export async function requeueJob(
     jobId: number,
     attempts: number
 ): Promise<void> {
-    await knex(JobsTableName).where({ id: jobId }).update({
-        state: "queued",
-        attempts: attempts,
-        lockedAt: null,
-        lockedBy: null,
-        updatedAt: new Date(),
-    })
+    await knexRaw(
+        knex,
+        `-- sql
+            UPDATE jobs
+            SET state = 'queued', attempts = ?
+            WHERE id = ?
+        `,
+        [attempts, jobId]
+    )
 }
 
 export async function getJobBySlug(
@@ -129,14 +131,25 @@ export async function updateExplorerRefreshStatus(
     status: "clean" | "queued" | "refreshing" | "failed",
     lastRefreshAt?: Date
 ): Promise<void> {
-    const updateData: any = {
-        viewsRefreshStatus: status,
-        updatedAt: new Date(),
-    }
-
     if (lastRefreshAt) {
-        updateData.lastViewsRefreshAt = lastRefreshAt
+        await knexRaw(
+            knex,
+            `-- sql
+                UPDATE explorers
+                SET viewsRefreshStatus = ?, lastViewsRefreshAt = ?
+                WHERE slug = ?
+            `,
+            [status, lastRefreshAt, slug]
+        )
+    } else {
+        await knexRaw(
+            knex,
+            `-- sql
+                UPDATE explorers
+                SET viewsRefreshStatus = ?
+                WHERE slug = ?
+            `,
+            [status, slug]
+        )
     }
-
-    await knex("explorers").where({ slug }).update(updateData)
 }
