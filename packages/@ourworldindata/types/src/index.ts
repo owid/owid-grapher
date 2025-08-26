@@ -590,6 +590,7 @@ export {
     type DbInsertExplorer,
     ExplorersTableName,
     type MinimalExplorerInfo,
+    type ExplorerViewsRefreshStatus,
 } from "./dbTypes/Explorers.js"
 export {
     type DbPlainExplorerVariable,
@@ -601,6 +602,14 @@ export {
     type DbPlainFile,
     FilesTableName,
 } from "./dbTypes/Files.js"
+export {
+    type DbInsertJob,
+    type DbRawJob,
+    type DbPlainJob,
+    type JobState,
+    type JobType,
+    JobsTableName,
+} from "./dbTypes/Jobs.js"
 export {
     type DbRawImage,
     type DbEnrichedImage,

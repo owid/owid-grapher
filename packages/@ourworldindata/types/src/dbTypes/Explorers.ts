@@ -2,6 +2,12 @@ export const ExplorersTableName = "explorers"
 
 import { JsonString } from "../domainTypes/Various.js"
 
+export type ExplorerViewsRefreshStatus =
+    | "clean"
+    | "queued"
+    | "refreshing"
+    | "failed"
+
 export interface DbInsertExplorer {
     slug: string
     tsv: string
@@ -19,6 +25,9 @@ export type DbPlainExplorer = Required<DbInsertExplorer> & {
     // config is a parsed version of the TSV
     // it is used in getNonGrapherExplorerViewCount or in getPublishedExplorersBySlug
     config: JsonString
+    // Views refresh status for async job processing
+    viewsRefreshStatus: ExplorerViewsRefreshStatus
+    lastViewsRefreshAt: Date | null
 }
 
 /** A sparse set of explorer metadata. Currently used to begin Algolia indexing with */
