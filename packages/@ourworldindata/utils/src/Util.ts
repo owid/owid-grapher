@@ -2211,7 +2211,9 @@ export const getUserNavigatorLanguagesNonEnglish = (): readonly string[] => {
  * Merge multiple objects into a single object.
  * Arrays are overwritten completely instead of merged.
  */
-export const merge = <T>(...objects: T[]): T => {
+export const merge: typeof _.merge = (
+    ...objects: Parameters<typeof _.merge>
+) => {
     return _.mergeWith(
         {}, // merge mutates the first argument
         ...objects,
