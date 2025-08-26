@@ -23,7 +23,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants"
-import { Bounds, GrapherVariant, SeriesName } from "@ourworldindata/utils"
+import { Bounds, SeriesName } from "@ourworldindata/utils"
 import { VerticalAxis } from "../axis/Axis"
 import { Slope } from "./Slope"
 import {
@@ -54,10 +54,6 @@ export class SlopeChartThumbnail
 
     @computed get manager(): SlopeChartManager {
         return this.chartState.manager
-    }
-
-    @computed private get isMinimal(): boolean {
-        return this.manager.variant === GrapherVariant.MinimalThumbnail
     }
 
     @computed get bounds(): Bounds {
@@ -216,7 +212,8 @@ export class SlopeChartThumbnail
     @computed private get startLabelsState(): VerticalLabelsState | undefined {
         if (!this.manager.showLegend) return undefined
 
-        const showEntityNames = !this.isMinimal
+        const showEntityNames =
+            !this.manager.isDisplayedAlongsideComplementaryTable
 
         const series = this.labelCandidateSeries.map((series) => {
             const { seriesName, color } = series

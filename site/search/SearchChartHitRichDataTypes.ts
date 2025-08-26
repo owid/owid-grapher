@@ -8,7 +8,15 @@ export type RichDataComponentVariant = Extract<
     "large" | "medium"
 >
 
-export type PreviewVariant = "thumbnail" | "minimal-thumbnail" | "large"
+export enum PreviewVariant {
+    Thumbnail = "thumbnail",
+    Large = "large",
+}
+
+export interface PreviewType {
+    variant: PreviewVariant
+    isMinimal: boolean
+}
 
 // These values are used as class names. Be careful when changing them.
 export enum MediumVariantGridSlot {
