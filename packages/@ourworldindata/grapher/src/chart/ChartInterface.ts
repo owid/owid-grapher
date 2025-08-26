@@ -9,6 +9,8 @@ import {
 import { ColorScale } from "../color/ColorScale"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
+import { SelectionArray } from "../selection/SelectionArray"
+import { FocusArray } from "../focus/FocusArray"
 
 // The idea of this interface is to try and start reusing more code across our Chart classes and make it easier
 // for a dev to work on a chart type they haven't touched before if they've worked with another that implements
@@ -23,23 +25,39 @@ export type ChartTableTransformer = (inputTable: OwidTable) => OwidTable
 
 /** Interface implemented by all chart state classes */
 export interface ChartState {
-    errorInfo: ChartErrorInfo // We require every chart have some fail message(s) to show to the user if something went wrong
+    /** Fail message(s) to show to the user if something went wrong */
+    errorInfo: ChartErrorInfo
 
-    inputTable: OwidTable // Points to the OwidTable coming into the chart. All charts have an inputTable. Standardized as part of the interface as a development aid.
-    transformedTable: OwidTable // Points to the OwidTable after the chart has transformed the input table. The chart may add a relative transform, for example. Standardized as part of the interface as a development aid.
+    /** OwidTable coming into the chart */
+    inputTable: OwidTable
+    /** OwidTable after the chart has transformed the input table */
+    transformedTable: OwidTable
 
-    series: readonly ChartSeries[] // This points to the marks that the chart will render. They don't have to be placed yet. Standardized as part of the interface as a development aid.
+    /** Array of selected entities for the chart */
+    selectionArray?: SelectionArray
+    /** Array of series that should be highlighted or focused */
+    focusArray?: FocusArray
+
+    /** Marks that the chart will render. Not placed yet */
+    series: readonly ChartSeries[]
+    /** Strategy for handling multiple data series in the chart */
     seriesStrategy?: SeriesStrategy
 
+    /** Function to transform the input table into the format needed by the chart */
     transformTable: ChartTableTransformer
+    /** Optional function to transform the table specifically for the rendered data table */
     transformTableForDisplay?: ChartTableTransformer
+    /** Optional function to transform the table specifically for the entity selector */
     transformTableForSelection?: ChartTableTransformer
 
+    /** Color scale used to assign colors to chart elements */
     colorScale?: ColorScale
 
     /**
-     * Which facet strategies the chart type finds reasonable in its current setting, if any.
-     * Does not necessarily contain FacetStrategy.None -- there are situations where an unfaceted chart doesn't make sense.
+     * Available facet strategies that are supported by this chart type in its
+     * current configuration, if any. Does not necessarily contain
+     * FacetStrategy.None - there are situations where an unfaceted chart
+     * doesn't make sense.
      */
     availableFacetStrategies?: FacetStrategy[]
 }
