@@ -124,7 +124,7 @@ export class ScatterPlotChart
     @computed private get innerBounds(): Bounds {
         return (
             this.bounds
-                .padRight(this.sidebarWidth + 20)
+                .padRight(this.sidebarWidth > 0 ? this.sidebarWidth + 20 : 0)
                 // top padding leaves room for tick labels
                 .padTop(this.chartState.verticalAxisLabel ? 0 : 6)
                 // bottom padding makes sure the x-axis label doesn't overflow
@@ -269,7 +269,8 @@ export class ScatterPlotChart
             this.displayStartTime === this.displayEndTime ||
             this.xColumn instanceof ColumnTypeMap.Time ||
             this.yColumn instanceof ColumnTypeMap.Time ||
-            this.manager.isRelativeMode
+            this.manager.isRelativeMode ||
+            this.manager.isDisplayedAlongsideComplementaryTable
         )
             return undefined
 
@@ -302,7 +303,14 @@ export class ScatterPlotChart
         return this.tooltipState.target?.series
     }
 
-    @computed private get legendDimensions(): VerticalColorLegend {
+    @computed private get verticalColorLegend():
+        | VerticalColorLegend
+        | undefined {
+        if (
+            this.legendItems.length > 0 ||
+            this.manager.isDisplayedAlongsideComplementaryTable
+        )
+            return undefined
         return new VerticalColorLegend({ manager: this })
     }
 
@@ -318,17 +326,19 @@ export class ScatterPlotChart
         return Math.max(this.bounds.width * 0.2, this.sidebarMinWidth)
     }
 
-    @computed private get showSidebar(): boolean {
-        return !this.manager.isDisplayedAlongsideComplementaryTable
-    }
-
     @computed.struct get sidebarWidth(): number {
-        const { legendDimensions, sidebarMinWidth, sidebarMaxWidth } = this
+        const { sidebarMinWidth, sidebarMaxWidth } = this
 
-        if (!this.showSidebar) return 0
+        if (
+            !this.verticalColorLegend &&
+            !this.sizeLegend &&
+            !this.arrowLegend &&
+            !this.hasNoDataSection
+        )
+            return 0
 
         return Math.max(
-            Math.min(legendDimensions.width, sidebarMaxWidth),
+            Math.min(this.verticalColorLegend?.width ?? 0, sidebarMaxWidth),
             sidebarMinWidth
         )
     }
@@ -531,6 +541,10 @@ export class ScatterPlotChart
         )
     }
 
+    @computed private get hasNoDataSection(): boolean {
+        return this.selectedEntitiesWithoutData.length > 0
+    }
+
     override componentDidMount(): void {
         exposeInstanceOnWindow(this)
     }
@@ -540,17 +554,11 @@ export class ScatterPlotChart
             bounds,
             sizeLegend,
             arrowLegend,
-            legendDimensions,
+            verticalColorLegend,
             sidebarWidth,
-            showSidebar,
         } = this
 
-        if (!showSidebar) return null
-
-        const hasLegendItems = this.legendItems.length > 0
-        const verticalLegendHeight = hasLegendItems
-            ? legendDimensions.height
-            : 0
+        const verticalLegendHeight = verticalColorLegend?.height ?? 0
         const sizeLegendHeight = sizeLegend?.height ?? 0
         const arrowLegendHeight = arrowLegend?.height ?? 0
 
@@ -589,7 +597,7 @@ export class ScatterPlotChart
 
         return (
             <>
-                <VerticalColorLegend manager={this} />
+                {verticalColorLegend && <VerticalColorLegend manager={this} />}
                 {sizeLegend && (
                     <>
                         {separatorLine(ySizeLegend)}
@@ -607,7 +615,7 @@ export class ScatterPlotChart
                         </g>
                     </>
                 )}
-                {this.selectedEntitiesWithoutData.length > 0 && (
+                {this.hasNoDataSection && (
                     <>
                         {!this.manager.isStatic &&
                             separatorLine(noDataSectionBounds.top)}
