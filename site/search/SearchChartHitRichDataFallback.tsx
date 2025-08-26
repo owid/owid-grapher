@@ -34,6 +34,7 @@ import {
     getTotalColumnCount,
     makeSlotClassNames,
 } from "./SearchChartHitRichDataHelpers.js"
+import { PreviewVariant } from "./SearchChartHitRichDataTypes.js"
 
 export function SearchChartHitRichDataFallback({
     hit,
@@ -156,7 +157,7 @@ export function SearchChartHitRichDataFallback({
                     const previewUrl = constructPreviewUrl({
                         hit,
                         grapherParams,
-                        variant: "thumbnail",
+                        variant: PreviewVariant.Thumbnail,
                     })
 
                     const className = makeSlotClassNames("medium", slot)

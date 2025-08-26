@@ -581,7 +581,7 @@ export class DiscreteBarChart
         return (
             this.hasColorLegend &&
             !!this.manager.showLegend &&
-            !this.manager.hideLegendsOutsideChartArea
+            !this.manager.isDisplayedAlongsideComplementaryTable
         )
     }
 

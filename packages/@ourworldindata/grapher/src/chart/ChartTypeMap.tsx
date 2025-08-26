@@ -122,13 +122,10 @@ function getChartComponentClass(
                 DefaultChartClass: LineChart,
             })
         )
-        .with(
-            P.union(GrapherVariant.Thumbnail, GrapherVariant.MinimalThumbnail),
-            () => ({
-                ClassMap: ChartThumbnailClassMap,
-                DefaultChartClass: LineChartThumbnail,
-            })
-        )
+        .with(GrapherVariant.Thumbnail, () => ({
+            ClassMap: ChartThumbnailClassMap,
+            DefaultChartClass: LineChartThumbnail,
+        }))
         .exhaustive()
 
     const ChartClass = ClassMap.get(chartType) ?? DefaultChartClass
