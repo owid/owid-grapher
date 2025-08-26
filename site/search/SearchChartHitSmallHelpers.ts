@@ -6,7 +6,7 @@ import {
 } from "@ourworldindata/types"
 import { fetchJson } from "@ourworldindata/utils"
 import { CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME } from "@ourworldindata/grapher"
-import { SearchChartHit } from "./searchTypes"
+import { ChartRecordType, SearchChartHit } from "./searchTypes"
 import {
     constructChartInfoUrl,
     constructChartUrl,
@@ -29,8 +29,14 @@ export function useQueryChartInfo({
     data?: GrapherValuesJson
     status: QueryStatus
 } {
+    const isChartRecord = hit.type === ChartRecordType.Chart
+
     const { data, status } = useQuery({
-        queryKey: chartHitQueryKeys.chartInfo(hit.slug, entities),
+        queryKey: chartHitQueryKeys.chartInfo(
+            hit.slug,
+            entities,
+            isChartRecord ? undefined : hit.queryParams
+        ),
         queryFn: () => {
             const entityParam = toGrapherQueryParams({ entities })
             const url = constructChartInfoUrl({
