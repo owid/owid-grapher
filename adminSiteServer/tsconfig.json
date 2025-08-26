@@ -5,19 +5,47 @@
         "rootDir": "."
     },
     "references": [
-        { "path": "../packages/@ourworldindata/explorer" },
-        { "path": "../packages/@ourworldindata/grapher" },
-        { "path": "../packages/@ourworldindata/types" },
-        { "path": "../packages/@ourworldindata/utils" },
-
-        { "path": "../adminShared" },
-        { "path": "../adminSiteClient" },
-        { "path": "../baker" },
-        { "path": "../db" },
-        { "path": "../explorerAdminServer" },
-        { "path": "../jobQueue" },
-        { "path": "../serverUtils" },
-        { "path": "../settings" },
-        { "path": "../site" }
+        {
+            "path": "../packages/@ourworldindata/explorer"
+        },
+        {
+            "path": "../packages/@ourworldindata/grapher"
+        },
+        {
+            "path": "../packages/@ourworldindata/types"
+        },
+        {
+            "path": "../packages/@ourworldindata/utils"
+        },
+        {
+            "path": "../adminShared"
+        },
+        {
+            "path": "../adminSiteClient"
+        },
+        {
+            "path": "../baker"
+        },
+        {
+            "path": "../db"
+        },
+        {
+            "path": "../explorerAdminServer"
+        },
+        {
+            "path": "../jobQueue"
+        },
+        {
+            "path": "../serverUtils"
+        },
+        {
+            "path": "../settings"
+        },
+        {
+            "path": "../site"
+        },
+        {
+            "path": "../jobQueue"
+        }
     ]
 }

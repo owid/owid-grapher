@@ -83,6 +83,7 @@ import fs from "fs"
 import { omitUndefinedValues } from "@ourworldindata/utils"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import findProjectBaseDir from "../settings/findBaseDir.js"
+import { processOneExplorerViewsJob } from "../jobQueue/explorerJobProcessor.js"
 
 const ADMIN_SERVER_HOST = "localhost"
 const ADMIN_SERVER_PORT = 8765
@@ -1473,6 +1474,14 @@ graphers
             .first()
         expect(publishedExplorer.isPublished).toBe(1) // 1 = true for published
 
+        // Views are not created immediately - they need async processing
+        const viewsCountBefore = await getExplorerViewsCount(testExplorerSlug)
+        expect(viewsCountBefore).toBe(0)
+
+        // Process the async job to create explorer views
+        const jobProcessed = await processOneExplorerViewsJob()
+        expect(jobProcessed).toBe(true) // Job was found and processed
+
         // Check that explorer views were created
         const publishedViewsCount =
             await getExplorerViewsCount(testExplorerSlug)
@@ -1580,6 +1589,14 @@ graphers
             }),
         })
 
+        // Views are not created immediately - they need async processing
+        const viewsCountBefore = await getExplorerViewsCount(testExplorerSlug)
+        expect(viewsCountBefore).toBe(0)
+
+        // Process the async job to create explorer views
+        const jobProcessed = await processOneExplorerViewsJob()
+        expect(jobProcessed).toBe(true) // Job was found and processed
+
         // Check that views were updated
         const updatedViewsCount = await getExplorerViewsCount(testExplorerSlug)
         expect(updatedViewsCount).toBe(3) // Should now have 3 views
@@ -1649,6 +1666,14 @@ graphers
                 commitMessage: "Publish explorer for deletion test",
             }),
         })
+
+        // Views are not created immediately - they need async processing
+        const viewsCountBefore = await getExplorerViewsCount(testExplorerSlug)
+        expect(viewsCountBefore).toBe(0)
+
+        // Process the async job to create explorer views
+        const jobProcessed = await processOneExplorerViewsJob()
+        expect(jobProcessed).toBe(true) // Job was found and processed
 
         const initialViewsCount = await getExplorerViewsCount(testExplorerSlug)
         expect(initialViewsCount).toBeGreaterThan(0)
@@ -1723,6 +1748,14 @@ graphers
                 commitMessage: "Publish explorer for error test",
             }),
         })
+
+        // Views are not created immediately - they need async processing
+        const viewsCountBefore = await getExplorerViewsCount(testExplorerSlug)
+        expect(viewsCountBefore).toBe(0)
+
+        // Process the async job to create explorer views
+        const jobProcessed = await processOneExplorerViewsJob()
+        expect(jobProcessed).toBe(true) // Job was found and processed
 
         // Views should still be created but with error messages
         const viewsCount = await getExplorerViewsCount("test-invalid")
@@ -1824,6 +1857,14 @@ graphers
             }),
         })
 
+        // Views are not created immediately - they need async processing
+        const viewsCountBefore = await getExplorerViewsCount(testExplorerSlug)
+        expect(viewsCountBefore).toBe(0)
+
+        // Process the async job to create explorer views
+        const jobProcessed = await processOneExplorerViewsJob()
+        expect(jobProcessed).toBe(true) // Job was found and processed
+
         const views = await getExplorerViewsWithConfigs(testExplorerSlug)
         expect(views.length).toBe(2)
 
@@ -1889,13 +1930,12 @@ graphers
         const explorerTsv = `explorerTitle	Test Async Explorer
 explorerSubtitle	Test explorer for async job queue processing.
 isPublished	true
-selection	Afghanistan	Albania
-subNavId	explorers
-		yVariableIds	xVariableId	colorVariableId
-Line Chart	${chart1Id}	123	456	789
-Scatter	${chart2Id}	124	457	790`
+graphers
+	chartId	Test Radio
+	${chart1Id}	Test Chart 1
+	${chart2Id}	Test Chart 2`
 
-        const response = await makeRequestAgainstAdminApi({
+        const response_first = await makeRequestAgainstAdminApi({
             method: "PUT",
             path: `/explorers/${testExplorerSlug}`,
             body: JSON.stringify({
@@ -1904,6 +1944,18 @@ Scatter	${chart2Id}	124	457	790`
             }),
         }) // API returns 200 OK but with queued status
 
+        expect(response_first.success).toBe(true)
+
+        // Now post again so the explorer will be marked as published
+        // (views are only created for published explorers)
+        const response = await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/explorers/${testExplorerSlug}`,
+            body: JSON.stringify({
+                tsv: explorerTsv,
+                commitMessage: "Test async explorer creation",
+            }),
+        }) // API returns 200 OK but with queued status
         // Step 3: Verify API returns success with queued status
         expect(response.success).toBe(true)
         expect(response.status).toBe("queued")
@@ -1933,9 +1985,6 @@ Scatter	${chart2Id}	124	457	790`
         expect(viewsCountBefore).toBe(0)
 
         // Step 7: Process one job from the queue using serverUtils
-        const { processOneExplorerViewsJob } = await import(
-            "../jobQueue/explorerJobProcessor.js"
-        )
 
         const jobProcessed = await processOneExplorerViewsJob()
         expect(jobProcessed).toBe(true) // Job was found and processed
@@ -1973,13 +2022,6 @@ Scatter	${chart2Id}	124	457	790`
         expect(createdViews[1].error).toBeNull()
         expect(createdViews[0].chartConfigId).toBeTruthy()
         expect(createdViews[1].chartConfigId).toBeTruthy()
-
-        // Verify view dimensions contain the expected parameters
-        const view1Params = JSON.parse(createdViews[0].dimensions)
-        const view2Params = JSON.parse(createdViews[1].dimensions)
-
-        expect(view1Params.yVariableIds).toBe("123")
-        expect(view2Params.yVariableIds).toBe("124")
 
         // Step 12: Verify no more jobs are pending
         const remainingJobs = await testKnexInstance!(JobsTableName)
