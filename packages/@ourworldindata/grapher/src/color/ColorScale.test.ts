@@ -26,7 +26,7 @@ describe(ColorScale, () => {
     })
     describe("numerical color scale", () => {
         const colorScaleConfig: ColorScaleConfigInterface = {
-            binningStrategy: BinningStrategy.manual,
+            binningStrategy: "manual",
             customNumericValues: [-10, 1, 2, 3],
             customNumericLabels: [],
             customNumericColorsActive: true,
@@ -131,7 +131,7 @@ describe(ColorScale, () => {
 
     it("transforms all colors", () => {
         const colorScaleConfig: ColorScaleConfigInterface = {
-            binningStrategy: BinningStrategy.manual,
+            binningStrategy: "manual",
             customNumericValues: [0, 1, 2, 3],
             customNumericLabels: [],
             customNumericColorsActive: true,

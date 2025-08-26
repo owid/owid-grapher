@@ -1,4 +1,5 @@
 import {
+    automaticBinningStrategies,
     AutomaticBinningStrategy,
     MidpointMode,
     ResolvedBinningStrategy,
@@ -146,6 +147,13 @@ export const hasValidConfigForBinningStrategy = (
 ): MinMaxValueResult => {
     const { minValue, maxValue, midpoint } = config
 
+    if (!automaticBinningStrategies.includes(strategy))
+        return {
+            valid: false,
+            reason: `Binning: Invalid strategy '${strategy}'`,
+            field: "binningStrategy",
+        }
+
     if (
         minValue !== undefined &&
         maxValue !== undefined &&
@@ -195,6 +203,9 @@ export const hasValidConfigForBinningStrategy = (
 /**
  * minValue and maxValue may either be explicitly given, or automatically computed from the data.
  * If auto-computed, they are based on some very much heuristic rules, based on quantiles etc.
+ *
+ * This also means that these lines contain a bunch of magic numbers, which have been chosen like so
+ * because they work well in practice for most cases.
  */
 export const computeMinMaxForStrategy = (
     strategy: ResolvedBinningStrategy,
@@ -237,12 +248,12 @@ export const computeMinMaxForStrategy = (
                 if (minValue > 0)
                     minValue = Math.max(
                         minValue,
-                        Math.pow(10, -conf?.numDecimalPlaces)
+                        Math.pow(10, -conf.numDecimalPlaces)
                     )
                 if (maxValue < 0)
                     maxValue = Math.min(
                         maxValue,
-                        -Math.pow(10, -conf?.numDecimalPlaces)
+                        -Math.pow(10, -conf.numDecimalPlaces)
                     )
             }
         })

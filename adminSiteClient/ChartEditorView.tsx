@@ -293,13 +293,7 @@ export class ChartEditorView<
         colorScaleKeys.forEach((key) => {
             const colorScaleConfig = _.get(this.grapherState, key)
 
-            // TODO Do we need this?
-            if (
-                !automaticBinningStrategies.includes(
-                    colorScaleConfig.binningStrategy
-                )
-            )
-                return
+            if (colorScaleConfig.binningStrategy === "manual") return
 
             const validationResult = hasValidConfigForBinningStrategy(
                 colorScaleConfig.binningStrategy,

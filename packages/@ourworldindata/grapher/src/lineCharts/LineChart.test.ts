@@ -365,7 +365,7 @@ describe("color scale", () => {
             selection: ["usa"],
             seriesStrategy: SeriesStrategy.column,
             colorScale: {
-                binningStrategy: BinningStrategy.manual,
+                binningStrategy: "manual",
                 customCategoryColors: {},
                 customCategoryLabels: {},
                 customHiddenCategories: {},
