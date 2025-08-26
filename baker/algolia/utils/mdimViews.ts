@@ -5,8 +5,10 @@ import {
     DbPlainMultiDimXChartConfig,
     DbRawChartConfig,
     getUniqueNamesFromTagHierarchies,
+    merge,
     multiDimDimensionsToViewId,
     MultiDimXChartConfigsTableName,
+    OwidVariableWithSourceAndDimension,
     parseChartConfig,
     queryParamsToStr,
 } from "@ourworldindata/utils"
@@ -80,12 +82,11 @@ async function getRecords(
         const grapherState = new GrapherState(chartConfig)
         const queryStr = queryParamsToStr(view.dimensions)
         const variableId = view.indicators.y[0].id
-        const metadata = _.merge(
-            {}, // merge mutates the first argument
+        const metadata = merge(
             relevantVariableMetadata[variableId],
-            multiDim.config.metadata,
-            view.metadata
-        )
+            multiDim.config.metadata ?? {},
+            view.metadata ?? {}
+        ) as OwidVariableWithSourceAndDimension
         const title = maybeAddChangeInPrefix(
             metadata.presentation?.titlePublic ||
                 chartConfig.title ||
