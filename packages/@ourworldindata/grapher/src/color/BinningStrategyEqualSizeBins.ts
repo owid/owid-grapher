@@ -90,13 +90,13 @@ export const equalSizeBins = ({
         throw new Error("No valid step size found")
     }
 
-    const steps = Math.ceil(normalisedRange / stepSize)
-
     const actualStepSize = stepSize * factor
 
-    // Round min value to step size
+    // Round min value to step size, e.g. if the step size is 20 then this would round 50 down to 40
     const minValueRounded =
         Math.floor(minValue / actualStepSize) * actualStepSize
+
+    const steps = Math.ceil((maxValue - minValueRounded) / stepSize)
 
     return R.range(0, steps + 1).map((i) => {
         const value = i * actualStepSize
