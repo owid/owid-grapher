@@ -402,10 +402,21 @@ function constructChartAndPreviewUrlsForTab({
         grapherParams.facet = FacetStrategy.none
     }
 
+    // Use a smaller font size for chart types where labels or legends would
+    // otherwise be too overpowering in thumbnail previews. Otherwise, rely on
+    // the default
+    const tabsWithSmallerFont: GrapherTabName[] = [
+        GRAPHER_TAB_NAMES.WorldMap,
+        GRAPHER_TAB_NAMES.DiscreteBar,
+        GRAPHER_TAB_NAMES.StackedDiscreteBar,
+    ]
+    const fontSize = tabsWithSmallerFont.includes(tab) ? 12 : undefined
+
     const previewUrl = constructPreviewUrl({
         hit,
         grapherParams,
         variant: previewVariant,
+        fontSize,
         imageWidth,
         imageHeight,
     })
