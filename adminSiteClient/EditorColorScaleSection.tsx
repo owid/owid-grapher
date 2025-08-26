@@ -11,7 +11,6 @@ import {
     BinningStrategyIncludingManual,
     GrapherChartOrMapType,
     Color,
-    automaticBinningStrategies,
     MidpointMode,
 } from "@ourworldindata/types"
 import {
@@ -19,7 +18,6 @@ import {
     ColorScaleBin,
     NumericBin,
     CategoricalBin,
-    hasValidConfigForBinningStrategy,
 } from "@ourworldindata/grapher"
 import {
     Section,
@@ -241,8 +239,6 @@ class ColorsSection extends Component<ColorsSectionProps> {
             (option) => option.value === (this.config.binningStrategy ?? "auto")
         )
     }
-
-    // TODO add field for midpoint
 
     override render() {
         const { scale, config } = this

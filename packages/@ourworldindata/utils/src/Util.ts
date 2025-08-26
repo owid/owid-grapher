@@ -232,7 +232,7 @@ export const numberMagnitude = (num: number): number => {
 }
 
 // Turns every number except 0 to a number in the range [1, 9.9999]
-// Turns 100 to 1, 0.2 to 2
+// Turns 100 -> 1, 0.2 -> 2, -100 -> -1, 35 -> 3.5
 export const normaliseToSingleDigitNumber = (num: number): number => {
     if (num === 0) return 0
     const magnitude = numberMagnitude(num)
