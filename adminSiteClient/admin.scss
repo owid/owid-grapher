@@ -1477,3 +1477,34 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
     flex-grow: 0;
     flex-basis: 65px;
 }
+
+.multi-dim-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f5;
+    border: 2px dashed #d9d9d9;
+    color: #8c8c8c;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    padding: 8px;
+    text-align: center;
+    height: 140px;
+    width: 200px;
+
+    &:hover {
+        border-color: #40a9ff;
+        background-color: #f0f8ff;
+        color: #40a9ff;
+    }
+}
+
+.multi-dim-preview-link:hover {
+    text-decoration: none;
+}
+
+.multi-dim-preview-img {
+    height: 140px;
+    width: 200px;
+}
