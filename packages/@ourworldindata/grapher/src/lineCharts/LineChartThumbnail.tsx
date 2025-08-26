@@ -2,7 +2,7 @@ import React from "react"
 import { computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import * as _ from "lodash-es"
-import { Bounds, GrapherVariant, SeriesName } from "@ourworldindata/utils"
+import { Bounds, SeriesName } from "@ourworldindata/utils"
 import { ChartInterface } from "../chart/ChartInterface"
 import { LineChartState } from "./LineChartState"
 import { LineChartProps } from "./LineChart.js"
@@ -57,10 +57,6 @@ export class LineChartThumbnail
 
     @computed private get manager(): LineChartManager {
         return this.chartState.manager
-    }
-
-    @computed private get isMinimal(): boolean {
-        return this.manager.variant === GrapherVariant.MinimalThumbnail
     }
 
     @computed private get bounds(): Bounds {
@@ -243,7 +239,8 @@ export class LineChartThumbnail
     @computed private get startLabelsState(): VerticalLabelsState | undefined {
         if (!this.manager.showLegend) return undefined
 
-        const showEntityNames = !this.isMinimal
+        const showEntityNames =
+            !this.manager.isDisplayedAlongsideComplementaryTable
 
         let labelCandidateSeries = this.chartState.series
 
