@@ -94,15 +94,17 @@ export async function handlePutExplorer(
         throw new JsonError(`Explorer not found after update: ${slug}`, 500)
     }
 
-    // Set the explorer's refresh status to "queued"
-    await updateExplorerRefreshStatus(trx, slug, "queued")
+    if (updatedExplorer.isPublished) {
+        // Set the explorer's refresh status to "queued"
+        await updateExplorerRefreshStatus(trx, slug, "queued")
 
-    // Enqueue a job to refresh explorer views asynchronously
-    await enqueueJob(trx, {
-        type: "refresh_explorer_views",
-        slug,
-        explorerUpdatedAt: updatedExplorer.updatedAt,
-    })
+        // Enqueue a job to refresh explorer views asynchronously
+        await enqueueJob(trx, {
+            type: "refresh_explorer_views",
+            slug,
+            explorerUpdatedAt: updatedExplorer.updatedAt,
+        })
+    }
 
     // Return success with queued status to indicate async processing
     return {
