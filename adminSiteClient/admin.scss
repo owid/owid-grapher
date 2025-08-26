@@ -1508,3 +1508,56 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
     height: 140px;
     width: 200px;
 }
+
+.ImageReplaceConfirmModal__content {
+    margin: 16px 0 24px 0;
+}
+
+.ImageReplaceConfirmModal__section {
+    margin-bottom: 20px;
+}
+
+.ImageReplaceConfirmModal__images-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.ImageReplaceConfirmModal__image-wrapper {
+    text-align: center;
+}
+
+.ImageReplaceConfirmModal__image-label {
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #666;
+}
+
+.ImageReplaceConfirmModal__image {
+    max-width: 300px;
+    max-height: 300px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+}
+
+.ImageReplaceConfirmModal__filename {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #999;
+}
+
+.ImageReplaceConfirmModal__placeholder {
+    width: 300px;
+    height: 300px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+}
+
+.ImageReplaceConfirmModal__strong-text {
+    font-weight: bold;
+}
