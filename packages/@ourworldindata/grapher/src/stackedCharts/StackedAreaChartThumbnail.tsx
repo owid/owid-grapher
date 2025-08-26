@@ -5,7 +5,7 @@ import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { StackedAreaChartState } from "./StackedAreaChartState.js"
 import { type StackedAreaChartProps } from "./StackedAreaChart.js"
-import { Bounds, excludeUndefined, GrapherVariant } from "@ourworldindata/utils"
+import { Bounds, excludeUndefined } from "@ourworldindata/utils"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -44,10 +44,6 @@ export class StackedAreaChartThumbnail
 
     @computed get manager(): ChartManager {
         return this.chartState.manager
-    }
-
-    @computed private get isMinimal(): boolean {
-        return this.manager.variant === GrapherVariant.MinimalThumbnail
     }
 
     @computed get fontSize(): number {
@@ -113,7 +109,11 @@ export class StackedAreaChartThumbnail
     @computed private get verticalLabelsState():
         | VerticalLabelsState
         | undefined {
-        if (!this.manager.showLegend || this.isMinimal) return undefined
+        if (
+            !this.manager.showLegend ||
+            this.manager.isDisplayedAlongsideComplementaryTable
+        )
+            return undefined
 
         const series = excludeUndefined(
             this.chartState.series.map((series, seriesIndex) => {
