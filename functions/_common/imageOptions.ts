@@ -87,6 +87,8 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
             thumbnailOptions.grapherProps.variant =
                 GrapherVariant.MinimalThumbnail
         }
+        if (params.has("imFontSize"))
+            thumbnailOptions.fontSize = parseInt(params.get("imFontSize")!)
         return thumbnailOptions
     } else if (imType === "square" || imType === "social-media-square") {
         const squareOptions = _.cloneDeep(SQUARE_OPTIONS) as ImageOptions
