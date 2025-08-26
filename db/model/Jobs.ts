@@ -14,16 +14,23 @@ export async function enqueueJob(
     knex: KnexReadWriteTransaction,
     job: DbInsertJob
 ): Promise<void> {
+    // Mark any existing queued jobs for this slug as done (superseded)
+    await knexRaw(
+        knex,
+        `-- sql
+            UPDATE jobs
+            SET state = 'done', lastError = 'superseded by newer update'
+            WHERE type = ? AND slug = ? AND state = 'queued'
+        `,
+        [job.type, job.slug]
+    )
+
+    // Insert the new job
     await knexRaw(
         knex,
         `-- sql
             INSERT INTO jobs (type, slug, state, attempts, explorerUpdatedAt)
             VALUES (?, ?, 'queued', 0, ?)
-            ON DUPLICATE KEY UPDATE
-                state = 'queued',
-                explorerUpdatedAt = VALUES(explorerUpdatedAt),
-                lastError = NULL,
-                attempts = 0
         `,
         [job.type, job.slug, job.explorerUpdatedAt]
     )
