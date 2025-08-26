@@ -101,7 +101,6 @@ export async function handlePutExplorer(
     await enqueueJob(trx, {
         type: "refresh_explorer_views",
         slug,
-        state: "queued",
         explorerUpdatedAt: updatedExplorer.updatedAt,
     })
 
