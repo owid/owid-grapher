@@ -5,6 +5,8 @@ export class AddJobsTableForExplorerViewsRefresh1756150983619
 {
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Create jobs table for async job queue
+        // Note: No unique constraint on (type, slug) to allow multiple rows and fix coalescing race conditions
+        // Unused fields (priority, lockedAt, lockedBy) removed for cleaner schema
         await queryRunner.query(`
             CREATE TABLE jobs (
                 id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -12,15 +14,12 @@ export class AddJobsTableForExplorerViewsRefresh1756150983619
                 slug VARCHAR(255) NOT NULL,
                 state ENUM('queued', 'running', 'done', 'failed') NOT NULL DEFAULT 'queued',
                 attempts INT NOT NULL DEFAULT 0,
-                priority INT NOT NULL DEFAULT 0, -- unused
                 explorerUpdatedAt DATETIME NOT NULL,
                 lastError TEXT NULL,
-                lockedAt DATETIME NULL, -- unused
-                lockedBy VARCHAR(255) NULL, -- unused
                 createdAt DATETIME NOT NULL DEFAULT NOW(),
                 updatedAt DATETIME NOT NULL DEFAULT NOW() ON UPDATE NOW(),
-                INDEX idx_jobs_type_state_priority_id (type, state, priority, id),
-                UNIQUE INDEX idx_jobs_type_slug (type, slug)
+                INDEX idx_jobs_type_state_id (type, state, id),
+                INDEX idx_jobs_type_slug_id (type, slug, id)
             )
         `)
 

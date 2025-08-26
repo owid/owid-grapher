@@ -9,7 +9,7 @@ import {
     refreshExplorerViewsForSlug,
     ExplorerViewsRefreshResult,
 } from "../db/model/ExplorerViews.js"
-import { knexReadWriteTransaction } from "../db/db.js"
+import { knexReadWriteTransaction, knexReadonlyTransaction } from "../db/db.js"
 import {
     saveGrapherConfigToR2ByUUID,
     deleteGrapherConfigFromR2ByUUID,
@@ -36,7 +36,7 @@ function backoffDelay(attempts: number): number {
 export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
     const { slug, explorerUpdatedAt } = job
 
-    console.log(
+    console.warn(
         `[${new Date().toISOString()}] Processing job ${job.id} for explorer: ${slug}`
     )
 
@@ -52,7 +52,7 @@ export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
                 .first(["updatedAt", "isPublished"])
 
             if (!current) {
-                console.log(
+                console.warn(
                     `Explorer ${slug} no longer exists, marking job as done`
                 )
                 await markJobDone(trx, job.id, "explorer missing")
@@ -63,7 +63,7 @@ export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
 
             // Coalescing/staleness check: if current updatedAt is newer than job's snapshot, skip
             if (current.updatedAt > explorerUpdatedAt) {
-                console.log(
+                console.warn(
                     `Explorer ${slug} has been updated since job was queued (${current.updatedAt} > ${explorerUpdatedAt}), marking as done`
                 )
                 await markJobDone(trx, job.id, "superseded by newer update")
@@ -74,10 +74,10 @@ export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
             await updateExplorerRefreshStatus(trx, slug, "refreshing")
 
             // Perform DB-only refresh operations
-            console.log(`Refreshing explorer views for ${slug} (DB phase)`)
+            console.warn(`Refreshing explorer views for ${slug} (DB phase)`)
             refreshResult = await refreshExplorerViewsForSlug(trx, slug)
 
-            console.log(`Explorer ${slug} refresh result:`, {
+            console.warn(`Explorer ${slug} refresh result:`, {
                 updated: refreshResult.updatedChartConfigIds.length,
                 unchanged: refreshResult.unchangedChartConfigIds.length,
                 removed: refreshResult.removedChartConfigIds.length,
@@ -90,29 +90,17 @@ export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
         }
 
         // Phase 2: R2 sync operations (outside any transaction)
-        console.log(`Syncing R2 configs for explorer ${slug}`)
+        console.warn(`Syncing R2 configs for explorer ${slug}`)
 
         // Delete removed configs from R2 in parallel
         if (refreshResult!.removedChartConfigIds.length > 0) {
-            console.log(
+            console.warn(
                 `Deleting ${refreshResult!.removedChartConfigIds.length} removed configs from R2`
             )
             await pMap(
                 refreshResult!.removedChartConfigIds,
                 async (configId) => {
-                    try {
-                        await deleteGrapherConfigFromR2ByUUID(configId)
-                    } catch (error) {
-                        console.error(
-                            `Failed to delete config ${configId} from R2:`,
-                            error
-                        )
-                        void logErrorAndMaybeCaptureInSentry(
-                            new Error(
-                                `Failed to delete explorer view chart config ${configId} from R2: ${error instanceof Error ? error.message : String(error)}`
-                            )
-                        )
-                    }
+                    await deleteGrapherConfigFromR2ByUUID(configId)
                 },
                 { concurrency: CONCURRENCY }
             )
@@ -120,13 +108,13 @@ export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
 
         // Upsert updated configs to R2 in parallel
         if (refreshResult!.updatedChartConfigIds.length > 0) {
-            console.log(
+            console.warn(
                 `Uploading ${refreshResult!.updatedChartConfigIds.length} updated configs to R2`
             )
 
-            // Fetch chart configs in a separate read-only transaction
-            const chartConfigs = await knexReadWriteTransaction(async (trx) => {
-                return await trx("chart_configs")
+            // Fetch chart configs (simple read, no transaction needed)
+            const chartConfigs = await knexReadonlyTransaction(async (knex) => {
+                return await knex("chart_configs")
                     .select("id", "full", "fullMd5")
                     .whereIn("id", refreshResult!.updatedChartConfigIds)
             })
@@ -134,23 +122,11 @@ export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
             await pMap(
                 chartConfigs,
                 async (config) => {
-                    try {
-                        await saveGrapherConfigToR2ByUUID(
-                            config.id,
-                            config.full,
-                            config.fullMd5
-                        )
-                    } catch (error) {
-                        console.error(
-                            `Failed to sync config ${config.id} to R2:`,
-                            error
-                        )
-                        void logErrorAndMaybeCaptureInSentry(
-                            new Error(
-                                `Failed to sync explorer view chart config ${config.id} to R2: ${error instanceof Error ? error.message : String(error)}`
-                            )
-                        )
-                    }
+                    await saveGrapherConfigToR2ByUUID(
+                        config.id,
+                        config.full,
+                        config.fullMd5
+                    )
                 },
                 { concurrency: CONCURRENCY }
             )
@@ -163,7 +139,7 @@ export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
 
             // Trigger static build if explorer is published
             if (isPublished) {
-                console.log(
+                console.warn(
                     `Triggering static build for published explorer: ${slug}`
                 )
                 // Get the user who last edited this explorer for the build trigger
@@ -186,7 +162,7 @@ export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
             }
         })
 
-        console.log(
+        console.warn(
             `[${new Date().toISOString()}] Successfully completed job ${job.id} for explorer: ${slug}`
         )
     } catch (error) {
@@ -196,22 +172,25 @@ export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
         )
 
         // Handle job failure in a new transaction
+        let shouldApplyBackoff = false
+        let delayMs = 0
+
         await knexReadWriteTransaction(async (trx) => {
             const attempts = job.attempts + 1
 
             if (attempts < MAX_ATTEMPTS) {
-                console.log(
+                console.warn(
                     `Requeueing job ${job.id} for explorer ${slug} (attempt ${attempts}/${MAX_ATTEMPTS})`
                 )
                 await requeueJob(trx, job.id, attempts)
                 await updateExplorerRefreshStatus(trx, slug, "queued")
 
-                // Apply backoff delay before the job will be picked up again
-                const delay = backoffDelay(attempts)
-                console.log(`Will retry after ${delay}ms backoff`)
-                await sleep(delay)
+                // Prepare for backoff delay after transaction completes
+                shouldApplyBackoff = true
+                delayMs = backoffDelay(attempts)
+                console.warn(`Will retry after ${delayMs}ms backoff`)
             } else {
-                console.log(
+                console.warn(
                     `Job ${job.id} for explorer ${slug} has exceeded max attempts, marking as failed`
                 )
                 await markJobFailed(
@@ -222,6 +201,11 @@ export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
                 await updateExplorerRefreshStatus(trx, slug, "failed")
             }
         })
+
+        // Apply backoff delay outside of transaction
+        if (shouldApplyBackoff) {
+            await sleep(delayMs)
+        }
 
         // Re-throw to be caught by the main loop
         throw error
