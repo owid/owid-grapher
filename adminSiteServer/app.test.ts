@@ -75,6 +75,8 @@ import {
     DbInsertPostGdocXTag,
     PostsGdocsXTagsTableName,
     ExplorersTableName,
+    JobsTableName,
+    DbPlainJob,
 } from "@ourworldindata/types"
 import path from "path"
 import fs from "fs"
@@ -1852,5 +1854,137 @@ graphers
             const expectedKeys = Object.keys(expectedParams[i]).sort()
             expect(keys).toEqual(expectedKeys)
         }
+    })
+
+    it("should process explorer views asynchronously via job queue", async () => {
+        const testExplorerSlug = "test-async-explorer"
+
+        // Step 1: Create charts that the explorer will reference
+        const chart1Id = 1
+        const chart2Id = 2
+
+        await makeRequestAgainstAdminApi({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "test-chart-1",
+                title: "Test Chart 1",
+                chartTypes: ["LineChart"],
+            }),
+        })
+
+        await makeRequestAgainstAdminApi({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "test-chart-2",
+                title: "Test Chart 2",
+                chartTypes: ["ScatterPlot"],
+            }),
+        })
+
+        // Step 2: Create explorer via API (should be queued for async processing)
+        const explorerTsv = `explorerTitle	Test Async Explorer
+explorerSubtitle	Test explorer for async job queue processing.
+isPublished	true
+selection	Afghanistan	Albania
+subNavId	explorers
+		yVariableIds	xVariableId	colorVariableId
+Line Chart	${chart1Id}	123	456	789
+Scatter	${chart2Id}	124	457	790`
+
+        const response = await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/explorers/${testExplorerSlug}`,
+            body: JSON.stringify({
+                tsv: explorerTsv,
+                commitMessage: "Test async explorer creation",
+            }),
+        }) // API returns 200 OK but with queued status
+
+        // Step 3: Verify API returns success with queued status
+        expect(response.success).toBe(true)
+        expect(response.status).toBe("queued")
+        expect(response.message).toContain("asynchronously")
+
+        // Step 4: Verify explorer was created with correct refresh status
+        const explorer = await testKnexInstance!(ExplorersTableName)
+            .where({ slug: testExplorerSlug })
+            .first()
+
+        expect(explorer).toBeTruthy()
+        expect(explorer.viewsRefreshStatus).toBe("queued")
+        expect(explorer.lastViewsRefreshAt).toBeNull()
+
+        // Step 5: Verify job was queued
+        const job = await testKnexInstance!(JobsTableName)
+            .where({ type: "refresh_explorer_views", slug: testExplorerSlug })
+            .first()
+
+        expect(job).toBeTruthy()
+        expect(job.state).toBe("queued")
+        expect(job.attempts).toBe(0)
+        expect(job.explorerUpdatedAt).toBeTruthy()
+
+        // Step 6: Verify no explorer views exist yet (async processing not done)
+        const viewsCountBefore = await getCountForTable(ExplorerViewsTableName)
+        expect(viewsCountBefore).toBe(0)
+
+        // Step 7: Process one job from the queue using serverUtils
+        const { processOneExplorerViewsJob } = await import(
+            "../jobQueue/explorerJobProcessor.js"
+        )
+
+        const jobProcessed = await processOneExplorerViewsJob()
+        expect(jobProcessed).toBe(true) // Job was found and processed
+
+        // Step 8: Verify job was marked as completed
+        const completedJob = (await testKnexInstance!(JobsTableName)
+            .where({ id: job.id })
+            .first()) as DbPlainJob
+
+        expect(completedJob.state).toBe("done")
+        expect(completedJob.lastError).toBeNull()
+
+        // Step 9: Verify explorer refresh status was updated
+        const updatedExplorer = await testKnexInstance!(ExplorersTableName)
+            .where({ slug: testExplorerSlug })
+            .first()
+
+        expect(updatedExplorer.viewsRefreshStatus).toBe("clean")
+        expect(updatedExplorer.lastViewsRefreshAt).toBeTruthy()
+
+        // Step 10: Verify explorer views were created correctly
+        const viewsCountAfter = await getCountForTable(ExplorerViewsTableName)
+        expect(viewsCountAfter).toBe(2) // Should have 2 views (LineChart and Scatter)
+
+        // Step 11: Verify the content of the created views
+        const createdViews = await testKnexInstance!(ExplorerViewsTableName)
+            .where({ explorerSlug: testExplorerSlug })
+            .select("dimensions", "chartConfigId", "error")
+            .orderBy("id")
+
+        expect(createdViews).toHaveLength(2)
+
+        // Both views should have valid chart configs (no errors)
+        expect(createdViews[0].error).toBeNull()
+        expect(createdViews[1].error).toBeNull()
+        expect(createdViews[0].chartConfigId).toBeTruthy()
+        expect(createdViews[1].chartConfigId).toBeTruthy()
+
+        // Verify view dimensions contain the expected parameters
+        const view1Params = JSON.parse(createdViews[0].dimensions)
+        const view2Params = JSON.parse(createdViews[1].dimensions)
+
+        expect(view1Params.yVariableIds).toBe("123")
+        expect(view2Params.yVariableIds).toBe("124")
+
+        // Step 12: Verify no more jobs are pending
+        const remainingJobs = await testKnexInstance!(JobsTableName)
+            .where({ state: "queued" })
+            .count()
+        expect(remainingJobs[0]["count(*)"] as number).toBe(0)
     })
 })

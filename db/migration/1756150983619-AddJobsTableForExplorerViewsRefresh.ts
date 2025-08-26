@@ -30,20 +30,9 @@ export class AddJobsTableForExplorerViewsRefresh1756150983619
             ADD COLUMN viewsRefreshStatus ENUM('clean', 'queued', 'refreshing', 'failed') NOT NULL DEFAULT 'clean',
             ADD COLUMN lastViewsRefreshAt DATETIME NULL
         `)
-
-        // Ensure index exists on explorer_views.explorerSlug for performance
-        await queryRunner.query(`
-            CREATE INDEX IF NOT EXISTS idx_explorer_views_slug 
-            ON explorer_views (explorerSlug)
-        `)
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        // Remove the index from explorer_views
-        await queryRunner.query(`
-            DROP INDEX IF EXISTS idx_explorer_views_slug ON explorer_views
-        `)
-
         // Remove columns from explorers table
         await queryRunner.query(`
             ALTER TABLE explorers 

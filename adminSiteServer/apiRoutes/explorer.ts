@@ -11,7 +11,7 @@ import * as db from "../../db/db.js"
 
 import { upsertExplorer, getExplorerBySlug } from "../../db/model/Explorer.js"
 import { enqueueJob, updateExplorerRefreshStatus } from "../../db/model/Jobs.js"
-import { triggerStaticBuild } from "./routeUtils.js"
+import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 
 function validateExplorerSlug(slug: string): void {
     if (!isValidSlug(slug)) {
@@ -104,8 +104,7 @@ export async function handlePutExplorer(
         explorerUpdatedAt: updatedExplorer.updatedAt,
     })
 
-    // Return 202 Accepted to indicate the request was accepted and will be processed asynchronously
-    res.status(202)
+    // Return success with queued status to indicate async processing
     return {
         success: true,
         status: "queued",

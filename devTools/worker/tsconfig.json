@@ -14,10 +14,13 @@
             "path": "../../packages/@ourworldindata/utils"
         },
         {
-            "path": "../../adminSiteServer"
+            "path": "../../jobQueue"
         },
         {
             "path": "../../db"
+        },
+        {
+            "path": "../../serverUtils"
         },
         {
             "path": "../../settings"

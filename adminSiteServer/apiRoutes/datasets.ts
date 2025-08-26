@@ -13,7 +13,7 @@ import {
 } from "../../db/model/Chart.js"
 import { getDatasetById, setTagsForDataset } from "../../db/model/Dataset.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
-import { triggerStaticBuild } from "./routeUtils.js"
+import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import * as lodash from "lodash-es"
 import { Request } from "express"
