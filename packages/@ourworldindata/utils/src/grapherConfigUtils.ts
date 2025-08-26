@@ -5,6 +5,7 @@ import {
     omitUndefinedValuesRecursive,
     omitEmptyObjectsRecursive,
     traverseObjects,
+    merge,
 } from "./Util"
 import * as Sentry from "@sentry/browser"
 
@@ -17,27 +18,6 @@ const KEYS_EXCLUDED_FROM_INHERITANCE = [
     "version",
     "isPublished",
 ]
-
-/**
- * Simple merge function that doesn't do any Grapher-specific checks.
- *
- * You usually want to use `mergeGrapherConfigs` instead that implements the
- * inheritance model correctly. Only use this if you're sure this is what you need.
- */
-export function simpleMerge(
-    ...grapherConfigs: GrapherInterface[]
-): GrapherInterface {
-    return _.mergeWith(
-        {}, // mergeWith mutates the first argument
-        ...grapherConfigs,
-        (_: unknown, childValue: unknown): any => {
-            // don't concat arrays, just use the last one
-            if (Array.isArray(childValue)) {
-                return childValue
-            }
-        }
-    )
-}
 
 export function mergeGrapherConfigs(
     ...grapherConfigs: GrapherInterface[]
@@ -79,7 +59,7 @@ export function mergeGrapherConfigs(
         return _.omit(config, KEYS_EXCLUDED_FROM_INHERITANCE)
     })
 
-    return simpleMerge(...cleanedConfigs)
+    return merge(...cleanedConfigs)
 }
 
 export function diffGrapherConfigs(

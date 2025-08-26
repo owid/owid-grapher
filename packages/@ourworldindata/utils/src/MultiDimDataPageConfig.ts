@@ -9,8 +9,10 @@ import {
     OwidChartDimensionInterface,
     DimensionProperty,
     MultiDimDataPageConfigEnriched,
+    OwidVariableWithSourceAndDimension,
 } from "@ourworldindata/types"
 import * as _ from "lodash-es"
+import { merge } from "./Util"
 
 interface FilterToAvailableResult {
     selectedChoices: MultiDimDimensionChoices
@@ -151,6 +153,19 @@ export class MultiDimDataPageConfig {
             selectedChoices: updatedSelectedChoices,
             dimensionsWithAvailableChoices,
         }
+    }
+
+    mergeViewMetadata(
+        dimensions: MultiDimDimensionChoices,
+        variableMetadata: OwidVariableWithSourceAndDimension
+    ): OwidVariableWithSourceAndDimension {
+        const mdimConfigView = this.findViewByDimensions(dimensions)
+
+        return merge(
+            variableMetadata,
+            this.config.metadata ?? {},
+            mdimConfigView?.metadata ?? {}
+        ) as OwidVariableWithSourceAndDimension
     }
 
     static viewToDimensionsConfig(

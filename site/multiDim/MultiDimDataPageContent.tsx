@@ -171,17 +171,7 @@ export function DataPageContent({
                 Boolean(isPreviewing),
                 assetMap
             ).then((json) => {
-                const mergedMetadata = _.mergeWith(
-                    {}, // merge mutates the first argument
-                    json,
-                    config.config?.metadata,
-                    newView.metadata,
-                    // Overwrite arrays completely instead of merging them.
-                    // Otherwise fall back to the default merge behavior.
-                    (_, srcValue) => {
-                        return Array.isArray(srcValue) ? srcValue : undefined
-                    }
-                )
+                const mergedMetadata = config.mergeViewMetadata(settings, json)
                 return {
                     ...getDatapageDataV2(mergedMetadata, newView.config ?? {}),
                     faqs: mergedMetadata.presentation?.faqs ?? [],
