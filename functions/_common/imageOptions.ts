@@ -83,11 +83,11 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
     // We have some special images types specified via the `imType` query param:
     if (imType === "twitter") return TWITTER_OPTIONS
     else if (imType === "og") return OPEN_GRAPH_OPTIONS
-    else if (imType === "thumbnail" || imType === "minimal-thumbnail") {
+    else if (imType === "thumbnail") {
         const thumbnailOptions = _.cloneDeep(THUMBNAIL_OPTIONS) as ImageOptions
-        if (imType === "minimal-thumbnail") {
-            thumbnailOptions.grapherProps.variant =
-                GrapherVariant.MinimalThumbnail
+        if (params.has("imMinimal")) {
+            thumbnailOptions.grapherProps.isDisplayedAlongsideComplementaryTable =
+                params.get("imMinimal")! === "1"
         }
         if (params.has("imFontSize"))
             thumbnailOptions.fontSize = parseInt(params.get("imFontSize")!)
@@ -103,10 +103,13 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
             squareOptions.pngHeight = size
         }
         return squareOptions
-    } else if (imType === "chart-area-only") {
+    } else if (imType === "uncaptioned") {
         if (!options.grapherProps) options.grapherProps = {}
         options.grapherProps.variant = GrapherVariant.Uncaptioned
-        options.grapherProps.hideLegendsOutsideChartArea = true
+        if (params.has("imMinimal")) {
+            options.grapherProps.isDisplayedAlongsideComplementaryTable =
+                params.get("imMinimal")! === "1"
+        }
     }
 
     // Otherwise, query params can specify the size to be rendered at; and in addition we're doing a

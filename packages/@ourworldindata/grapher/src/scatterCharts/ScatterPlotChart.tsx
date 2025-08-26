@@ -319,7 +319,7 @@ export class ScatterPlotChart
     }
 
     @computed private get showSidebar(): boolean {
-        return !this.manager.hideLegendsOutsideChartArea
+        return !this.manager.isDisplayedAlongsideComplementaryTable
     }
 
     @computed.struct get sidebarWidth(): number {
