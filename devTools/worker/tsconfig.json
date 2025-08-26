@@ -1,0 +1,26 @@
+{
+    "extends": "../tsconfigs/tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "./dist",
+        "rootDir": "."
+    },
+    "include": ["**/*.ts"],
+    "exclude": ["node_modules", "dist"],
+    "references": [
+        {
+            "path": "../../packages/@ourworldindata/types"
+        },
+        {
+            "path": "../../packages/@ourworldindata/utils"
+        },
+        {
+            "path": "../../adminSiteServer"
+        },
+        {
+            "path": "../../db"
+        },
+        {
+            "path": "../../settings"
+        }
+    ]
+}
