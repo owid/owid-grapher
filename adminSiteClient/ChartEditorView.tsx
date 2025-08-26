@@ -17,11 +17,7 @@ import {
     extractDetailsFromSyntax,
     getIndexableKeys,
 } from "@ourworldindata/utils"
-import {
-    GrapherInterface,
-    DimensionProperty,
-    automaticBinningStrategies,
-} from "@ourworldindata/types"
+import { GrapherInterface, DimensionProperty } from "@ourworldindata/types"
 import {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
@@ -60,7 +56,6 @@ import {
     ErrorMessagesForDimensions,
     FieldWithDetailReferences,
 } from "./ChartEditorTypes.js"
-import * as R from "remeda"
 
 interface Variable {
     id: number
