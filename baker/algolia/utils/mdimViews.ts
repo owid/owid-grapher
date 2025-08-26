@@ -8,7 +8,6 @@ import {
     merge,
     multiDimDimensionsToViewId,
     MultiDimXChartConfigsTableName,
-    OwidVariableWithSourceAndDimension,
     parseChartConfig,
     queryParamsToStr,
 } from "@ourworldindata/utils"
@@ -86,7 +85,7 @@ async function getRecords(
             relevantVariableMetadata[variableId],
             multiDim.config.metadata ?? {},
             view.metadata ?? {}
-        ) as OwidVariableWithSourceAndDimension
+        )
         const title = maybeAddChangeInPrefix(
             metadata.presentation?.titlePublic ||
                 chartConfig.title ||
