@@ -256,6 +256,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     baseFontSize?: number
     staticBounds?: Bounds
     variant?: GrapherVariant
+    isDisplayedAlongsideComplementaryTable?: boolean
 
     hideTitle?: boolean
     hideSubtitle?: boolean
@@ -277,7 +278,6 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     hideRelatedQuestion?: boolean
     isSocialMediaExport?: boolean
     enableMapSelection?: boolean
-    hideLegendsOutsideChartArea?: boolean
 
     enableKeyboardShortcuts?: boolean
     bindUrlToWindow?: boolean
@@ -398,7 +398,12 @@ export class GrapherState {
 
     hideFacetControl = true
 
-    hideLegendsOutsideChartArea = false
+    /**
+     * Indicates whether the chart is embedded alongside a complementary table.
+     * If that's the case, the chart can be simplified (e.g. hide legends or
+     * annotations) since the table serves as an additional source of information.
+     */
+    isDisplayedAlongsideComplementaryTable = false
 
     // the desired faceting strategy, which might not be possible if we change the data
     selectedFacetStrategy: FacetStrategy | undefined = undefined
@@ -610,7 +615,7 @@ export class GrapherState {
             hideShareButton: observable,
             hideExploreTheDataButton: observable,
             hideRelatedQuestion: observable,
-            hideLegendsOutsideChartArea: observable,
+            isDisplayedAlongsideComplementaryTable: observable,
         })
         // prefer the manager's selection over the config's selectedEntityNames
         // if both are passed in and the manager's selection is not empty.

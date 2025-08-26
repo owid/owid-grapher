@@ -628,7 +628,7 @@ export class FacetChart
     @computed private get showLegend(): boolean {
         const { isNumericLegend, categoricalLegendData, numericLegendData } =
             this
-        if (this.manager.hideLegendsOutsideChartArea) return false
+        if (this.manager.isDisplayedAlongsideComplementaryTable) return false
         const hasBins =
             categoricalLegendData.length > 0 || numericLegendData.length > 0
         if (!hasBins) return false
