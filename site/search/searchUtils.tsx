@@ -332,6 +332,7 @@ export const constructPreviewUrl = ({
     hit,
     grapherParams,
     variant,
+    isMinimal,
     fontSize,
     imageWidth,
     imageHeight,
@@ -339,6 +340,7 @@ export const constructPreviewUrl = ({
     hit: SearchChartHit
     grapherParams?: GrapherQueryParams
     variant: PreviewVariant
+    isMinimal?: boolean
     fontSize?: number
     imageWidth?: number
     imageHeight?: number
@@ -349,7 +351,8 @@ export const constructPreviewUrl = ({
 
     const searchParams = new URLSearchParams(
         omitUndefinedValues({
-            imType: variant === "large" ? "chart-area-only" : variant,
+            imType: variant === "large" ? "uncaptioned" : variant,
+            imMinimal: isMinimal ? "1" : "0",
             imFontSize: fontSize?.toString(),
             imWidth: imageWidth?.toString(),
             imHeight: imageHeight?.toString(),
