@@ -1980,9 +1980,12 @@ graphers
         expect(job).toBeTruthy()
         expect(job.state).toBe("queued")
         expect(job.attempts).toBe(0)
-        
+
         // Parse the payload to check the explorerUpdatedAt
-        const payload = typeof job.payload === 'string' ? JSON.parse(job.payload) : job.payload
+        const payload =
+            typeof job.payload === "string"
+                ? JSON.parse(job.payload)
+                : job.payload
         expect(payload.slug).toBe(testExplorerSlug)
         expect(payload.explorerUpdatedAt).toBeTruthy()
 
