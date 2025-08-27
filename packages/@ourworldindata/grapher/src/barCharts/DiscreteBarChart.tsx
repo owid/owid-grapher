@@ -242,7 +242,7 @@ export class DiscreteBarChart
         axis.updateDomainPreservingUserSettings(this.xDomainDefault)
 
         axis.scaleType = ScaleType.linear
-        axis.formatColumn = this.chartState.yColumns[0] // todo: does this work for columns as series?
+        axis.formatColumn = this.chartState.formatColumn
         axis.range = this.xRange
         axis.label = ""
         return axis

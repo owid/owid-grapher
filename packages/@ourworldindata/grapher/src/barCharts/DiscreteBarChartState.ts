@@ -112,6 +112,10 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
         return this.transformedTable.getColumns(this.yColumnSlugs)
     }
 
+    @computed get formatColumn(): CoreColumn {
+        return this.yColumns[0]
+    }
+
     @computed get hasProjectedData(): boolean {
         return this.series.some((series) => series.yColumn.isProjection)
     }
