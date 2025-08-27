@@ -6,7 +6,7 @@ import {
     getRedirects,
 } from "../../db/model/Redirect.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
-import { triggerStaticBuild } from "./routeUtils.js"
+import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
 import e from "express"

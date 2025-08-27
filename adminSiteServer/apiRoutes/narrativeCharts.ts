@@ -34,7 +34,7 @@ import {
     saveNewChartConfigInDbAndR2,
     updateChartConfigInDbAndR2,
 } from "../chartConfigHelpers.js"
-import { deleteGrapherConfigFromR2ByUUID } from "../R2/chartConfigR2Helpers.js"
+import { deleteGrapherConfigFromR2ByUUID } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 
 import {
     isKebabCase,
@@ -45,7 +45,7 @@ import { expectChartById } from "./charts.js"
 import { Request } from "../authentication.js"
 import e from "express"
 import { getPublishedLinksTo } from "../../db/model/Link.js"
-import { triggerStaticBuild } from "./routeUtils.js"
+import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import { getChartConfigById as _getChartConfigById } from "../../db/model/ChartConfigs.js"
 import { narrativeChartExists } from "../../db/model/NarrativeChart.js"
 import { getMultiDimDataPageById } from "../../db/model/MultiDimDataPage.js"

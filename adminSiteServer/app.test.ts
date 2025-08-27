@@ -75,12 +75,15 @@ import {
     DbInsertPostGdocXTag,
     PostsGdocsXTagsTableName,
     ExplorersTableName,
+    JobsTableName,
+    DbPlainJob,
 } from "@ourworldindata/types"
 import path from "path"
 import fs from "fs"
 import { omitUndefinedValues } from "@ourworldindata/utils"
 import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
 import findProjectBaseDir from "../settings/findBaseDir.js"
+import { processOneExplorerViewsJob } from "../jobQueue/explorerJobProcessor.js"
 
 const ADMIN_SERVER_HOST = "localhost"
 const ADMIN_SERVER_PORT = 8765
@@ -1471,6 +1474,14 @@ graphers
             .first()
         expect(publishedExplorer.isPublished).toBe(1) // 1 = true for published
 
+        // Views are not created immediately - they need async processing
+        const viewsCountBefore = await getExplorerViewsCount(testExplorerSlug)
+        expect(viewsCountBefore).toBe(0)
+
+        // Process the async job to create explorer views
+        const jobProcessed = await processOneExplorerViewsJob()
+        expect(jobProcessed).toBe(true) // Job was found and processed
+
         // Check that explorer views were created
         const publishedViewsCount =
             await getExplorerViewsCount(testExplorerSlug)
@@ -1578,6 +1589,14 @@ graphers
             }),
         })
 
+        // Views are not created immediately - they need async processing
+        const viewsCountBefore = await getExplorerViewsCount(testExplorerSlug)
+        expect(viewsCountBefore).toBe(0)
+
+        // Process the async job to create explorer views
+        const jobProcessed = await processOneExplorerViewsJob()
+        expect(jobProcessed).toBe(true) // Job was found and processed
+
         // Check that views were updated
         const updatedViewsCount = await getExplorerViewsCount(testExplorerSlug)
         expect(updatedViewsCount).toBe(3) // Should now have 3 views
@@ -1647,6 +1666,14 @@ graphers
                 commitMessage: "Publish explorer for deletion test",
             }),
         })
+
+        // Views are not created immediately - they need async processing
+        const viewsCountBefore = await getExplorerViewsCount(testExplorerSlug)
+        expect(viewsCountBefore).toBe(0)
+
+        // Process the async job to create explorer views
+        const jobProcessed = await processOneExplorerViewsJob()
+        expect(jobProcessed).toBe(true) // Job was found and processed
 
         const initialViewsCount = await getExplorerViewsCount(testExplorerSlug)
         expect(initialViewsCount).toBeGreaterThan(0)
@@ -1721,6 +1748,14 @@ graphers
                 commitMessage: "Publish explorer for error test",
             }),
         })
+
+        // Views are not created immediately - they need async processing
+        const viewsCountBefore = await getExplorerViewsCount(testExplorerSlug)
+        expect(viewsCountBefore).toBe(0)
+
+        // Process the async job to create explorer views
+        const jobProcessed = await processOneExplorerViewsJob()
+        expect(jobProcessed).toBe(true) // Job was found and processed
 
         // Views should still be created but with error messages
         const viewsCount = await getExplorerViewsCount("test-invalid")
@@ -1822,6 +1857,14 @@ graphers
             }),
         })
 
+        // Views are not created immediately - they need async processing
+        const viewsCountBefore = await getExplorerViewsCount(testExplorerSlug)
+        expect(viewsCountBefore).toBe(0)
+
+        // Process the async job to create explorer views
+        const jobProcessed = await processOneExplorerViewsJob()
+        expect(jobProcessed).toBe(true) // Job was found and processed
+
         const views = await getExplorerViewsWithConfigs(testExplorerSlug)
         expect(views.length).toBe(2)
 
@@ -1852,5 +1895,147 @@ graphers
             const expectedKeys = Object.keys(expectedParams[i]).sort()
             expect(keys).toEqual(expectedKeys)
         }
+    })
+
+    it("should process explorer views asynchronously via job queue", async () => {
+        const testExplorerSlug = "test-async-explorer"
+
+        // Step 1: Create charts that the explorer will reference
+        const chart1Id = 1
+        const chart2Id = 2
+
+        await makeRequestAgainstAdminApi({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "test-chart-1",
+                title: "Test Chart 1",
+                chartTypes: ["LineChart"],
+            }),
+        })
+
+        await makeRequestAgainstAdminApi({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "test-chart-2",
+                title: "Test Chart 2",
+                chartTypes: ["ScatterPlot"],
+            }),
+        })
+
+        // Step 2: Create explorer via API (should be queued for async processing)
+        const explorerTsv = `explorerTitle	Test Async Explorer
+explorerSubtitle	Test explorer for async job queue processing.
+isPublished	true
+graphers
+	chartId	Test Radio
+	${chart1Id}	Test Chart 1
+	${chart2Id}	Test Chart 2`
+
+        const response_first = await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/explorers/${testExplorerSlug}`,
+            body: JSON.stringify({
+                tsv: explorerTsv,
+                commitMessage: "Test async explorer creation",
+            }),
+        }) // API returns 200 OK but with queued status
+
+        expect(response_first.success).toBe(true)
+
+        // Now post again so the explorer will be marked as published
+        // (views are only created for published explorers)
+        const response = await makeRequestAgainstAdminApi({
+            method: "PUT",
+            path: `/explorers/${testExplorerSlug}`,
+            body: JSON.stringify({
+                tsv: explorerTsv,
+                commitMessage: "Test async explorer creation",
+            }),
+        }) // API returns 200 OK but with queued status
+        // Step 3: Verify API returns success with queued status
+        expect(response.success).toBe(true)
+        expect(response.status).toBe("queued")
+        expect(response.message).toContain("asynchronously")
+
+        // Step 4: Verify explorer was created with correct refresh status
+        const explorer = await testKnexInstance!(ExplorersTableName)
+            .where({ slug: testExplorerSlug })
+            .first()
+
+        expect(explorer).toBeTruthy()
+        expect(explorer.viewsRefreshStatus).toBe("queued")
+        expect(explorer.lastViewsRefreshAt).toBeNull()
+
+        // Step 5: Verify job was queued
+        const jobRows = await testKnexInstance!.raw(
+            `SELECT * FROM jobs WHERE type = ? AND JSON_EXTRACT(payload, '$.slug') = ?`,
+            ["refresh_explorer_views", testExplorerSlug]
+        )
+        const job = jobRows[0]?.[0] // MySQL returns [rows, fields]
+
+        expect(job).toBeTruthy()
+        expect(job.state).toBe("queued")
+        expect(job.attempts).toBe(0)
+
+        // Parse the payload to check the explorerUpdatedAt
+        const payload =
+            typeof job.payload === "string"
+                ? JSON.parse(job.payload)
+                : job.payload
+        expect(payload.slug).toBe(testExplorerSlug)
+        expect(payload.explorerUpdatedAt).toBeTruthy()
+
+        // Step 6: Verify no explorer views exist yet (async processing not done)
+        const viewsCountBefore = await getCountForTable(ExplorerViewsTableName)
+        expect(viewsCountBefore).toBe(0)
+
+        // Step 7: Process one job from the queue using serverUtils
+
+        const jobProcessed = await processOneExplorerViewsJob()
+        expect(jobProcessed).toBe(true) // Job was found and processed
+
+        // Step 8: Verify job was marked as completed
+        const completedJob = (await testKnexInstance!(JobsTableName)
+            .where({ id: job.id })
+            .first()) as DbPlainJob
+
+        expect(completedJob.state).toBe("done")
+        expect(completedJob.lastError).toBeNull()
+
+        // Step 9: Verify explorer refresh status was updated
+        const updatedExplorer = await testKnexInstance!(ExplorersTableName)
+            .where({ slug: testExplorerSlug })
+            .first()
+
+        expect(updatedExplorer.viewsRefreshStatus).toBe("clean")
+        expect(updatedExplorer.lastViewsRefreshAt).toBeTruthy()
+
+        // Step 10: Verify explorer views were created correctly
+        const viewsCountAfter = await getCountForTable(ExplorerViewsTableName)
+        expect(viewsCountAfter).toBe(2) // Should have 2 views (LineChart and Scatter)
+
+        // Step 11: Verify the content of the created views
+        const createdViews = await testKnexInstance!(ExplorerViewsTableName)
+            .where({ explorerSlug: testExplorerSlug })
+            .select("dimensions", "chartConfigId", "error")
+            .orderBy("id")
+
+        expect(createdViews).toHaveLength(2)
+
+        // Both views should have valid chart configs (no errors)
+        expect(createdViews[0].error).toBeNull()
+        expect(createdViews[1].error).toBeNull()
+        expect(createdViews[0].chartConfigId).toBeTruthy()
+        expect(createdViews[1].chartConfigId).toBeTruthy()
+
+        // Step 12: Verify no more jobs are pending
+        const remainingJobs = await testKnexInstance!(JobsTableName)
+            .where({ state: "queued" })
+            .count()
+        expect(remainingJobs[0]["count(*)"] as number).toBe(0)
     })
 })

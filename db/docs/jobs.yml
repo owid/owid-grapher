@@ -1,0 +1,21 @@
+metadata:
+    description: |
+        Jobs table for tracking asynchronous background jobs, particularly for refreshing explorer views. This table supports a job queue system that processes tasks like rebuilding explorer chart configurations and syncing them to R2 storage. Jobs have states (queued, running, done, failed) and support retry logic with exponential backoff.
+    incoming_foreign_keys: []
+fields:
+    id:
+        description: Primary key, auto-incrementing bigint identifier for the job
+    type:
+        description: Job type identifier (e.g., 'refresh_explorer_views'). Used to route jobs to appropriate processors.
+    payload:
+        description: 'JSON payload containing job-specific parameters. For explorer refresh jobs, contains {"slug": "explorer-slug", "explorerUpdatedAt": "timestamp"} for staleness checking.'
+    state:
+        description: Current state of the job - 'queued' (waiting to be processed), 'running' (being processed), 'done' (completed successfully), 'failed' (exceeded max attempts)
+    attempts:
+        description: Number of times this job has been attempted. Used for retry logic and exponential backoff.
+    lastError:
+        description: Text description of the last error encountered during job processing. NULL if no error occurred.
+    createdAt:
+        description: Timestamp when the job was first created and queued
+    updatedAt:
+        description: Timestamp when the job was last updated (state changes, retry attempts, etc.)

@@ -8,7 +8,7 @@ import fs from "fs/promises"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
 import e from "express"
-import { saveFileToAssetsR2 } from "../R2/assetsR2Helpers.js"
+import { saveFileToAssetsR2 } from "../../serverUtils/r2/assetsR2Helpers.js"
 import path from "path"
 import { MULTER_UPLOADS_DIRECTORY } from "../../adminShared/validation.js"
 

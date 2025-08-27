@@ -6,10 +6,6 @@ import {
 } from "@ourworldindata/types"
 import { areSetsEqual } from "@ourworldindata/utils"
 import { parseExplorer } from "../explorerParser.js"
-import {
-    ExplorerViewsRefreshResult,
-    refreshExplorerViewsForSlug,
-} from "./ExplorerViews.js"
 
 type PlainExplorerWithLastCommit = Required<DbPlainExplorer> & {
     // lastCommit is a relic from our git-CMS days, it should be broken down
@@ -251,7 +247,7 @@ export async function upsertExplorerVariables(
 export async function upsertExplorer(
     knex: KnexReadWriteTransaction,
     data: DbInsertExplorer
-): Promise<{ refreshResult: ExplorerViewsRefreshResult }> {
+): Promise<void> {
     const { slug, tsv, lastEditedByUserId, commitMessage } = data
 
     // Parse the TSV
@@ -296,10 +292,6 @@ export async function upsertExplorer(
 
     await upsertExplorerCharts(knex, slug, JSON.parse(config))
     await upsertExplorerVariables(knex, slug, JSON.parse(config))
-
-    const refreshResult = await refreshExplorerViewsForSlug(knex, slug)
-
-    return { refreshResult }
 }
 
 export async function getExplorerBySlug(
