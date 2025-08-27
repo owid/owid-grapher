@@ -22,6 +22,7 @@ import {
 import { toSizeRange } from "./ScatterUtils"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
+import { NoDataModal } from "../noDataModal/NoDataModal"
 
 @observer
 export class ScatterPlotChartThumbnail
@@ -111,8 +112,15 @@ export class ScatterPlotChartThumbnail
         )
     }
 
-    override render(): React.ReactElement | null {
-        if (this.chartState.errorInfo.reason) return null
+    override render(): React.ReactElement {
+        if (this.chartState.errorInfo.reason)
+            return (
+                <NoDataModal
+                    manager={this.manager}
+                    bounds={this.props.bounds}
+                    message={this.chartState.errorInfo.reason}
+                />
+            )
 
         return (
             <>
