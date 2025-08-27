@@ -101,17 +101,26 @@ export async function handlePutExplorer(
         // Enqueue a job to refresh explorer views asynchronously
         await enqueueJob(trx, {
             type: "refresh_explorer_views",
-            slug,
-            explorerUpdatedAt: updatedExplorer.updatedAt,
+            payload: {
+                slug,
+                explorerUpdatedAt: updatedExplorer.updatedAt,
+            },
         })
-    }
 
-    // Return success with queued status to indicate async processing
-    return {
-        success: true,
-        status: "queued",
-        message:
-            "Explorer updated. Views refresh has been queued and will be processed asynchronously.",
+        // Return success with queued status to indicate async processing
+        return {
+            success: true,
+            status: "queued",
+            message:
+                "Explorer updated. Views refresh has been queued and will be processed asynchronously.",
+        }
+    } else {
+        // Return success without queued status for unpublished explorers
+        return {
+            success: true,
+            status: "updated",
+            message: "Explorer updated successfully.",
+        }
     }
 }
 
