@@ -520,9 +520,7 @@ export class Explorer
     }
 
     @action.bound private setGrapherTable(table: OwidTable) {
-        if (this.grapherState) {
-            this.grapherState.inputTable = this.inputTableTransformer(table)
-        }
+        this.grapherState.inputTable = this.inputTableTransformer(table)
     }
 
     @computed get availableEntityNames(): EntityName[] {
@@ -633,16 +631,18 @@ export class Explorer
         grapherState.inputTable = BlankOwidTable()
         grapherState.updateFromObject(config)
         if (!config.table) {
-            const inputTable = await fetchInputTableForConfig(
+            const inputTable = fetchInputTableForConfig(
                 config.dimensions ?? [],
                 config.selectedEntityColors,
                 this.props.dataApiUrl,
                 undefined,
                 this.props.isPreview,
                 this.props.loadMetadataOnly
-            )
-            if (inputTable)
-                grapherState.inputTable = this.inputTableTransformer(inputTable)
+            ).then((owidTable) => (owidTable ? owidTable : BlankOwidTable()))
+            // We use the PromiseSwitcher here to make sure that only the last
+            // of several user triggered load operations in quick succession
+            // will actually set the table.
+            await this.futureGrapherTable.set(inputTable)
         } else {
             grapherState.inputTable = this.inputTableTransformer(config.table)
         }
@@ -819,20 +819,22 @@ export class Explorer
             // so we don't end up confusingly showing stale data from a previous chart
             grapherState.inputTable = BlankOwidTable()
         } else {
-            const inputTable = await fetchInputTableForConfig(
+            const inputTable = fetchInputTableForConfig(
                 config.dimensions,
                 config.selectedEntityColors,
                 this.props.dataApiUrl,
                 undefined,
                 this.props.isPreview,
                 this.props.loadMetadataOnly
-            )
-            if (inputTable)
-                grapherState.inputTable = this.inputTableTransformer(inputTable)
+            ).then((owidTable) => (owidTable ? owidTable : BlankOwidTable()))
+            // We use the PromiseSwitcher here to make sure that only the last
+            // of several user triggered load operations in quick succession
+            // will actually set the table.
+            await this.futureGrapherTable.set(inputTable)
         }
     }
 
-    @action.bound updateGrapherFromExplorerUsingColumnSlugs() {
+    @action.bound async updateGrapherFromExplorerUsingColumnSlugs() {
         const grapherState = this.grapherState
         const { tableSlug } = this.explorerProgram.explorerGrapherConfig
 
@@ -859,7 +861,10 @@ export class Explorer
         this.setGrapherTable(
             BlankOwidTable(tableSlug, `Loading table '${tableSlug}'`)
         )
-        void this.futureGrapherTable.set(this.tableLoader.get(tableSlug))
+        // We use the PromiseSwitcher here to make sure that only the last
+        // of several user triggered load operations in quick succession
+        // will actually set the table.
+        await this.futureGrapherTable.set(this.tableLoader.get(tableSlug))
     }
 
     @action.bound setSlide(choiceParams: ExplorerFullQueryParams) {
