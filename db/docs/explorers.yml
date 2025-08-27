@@ -27,3 +27,7 @@ fields:
         description: Git-style commit message describing the last change made to the explorer
     isPublished:
         description: Whether the explorer is published and publicly accessible. New explorers default to unpublished.
+    viewsRefreshStatus:
+        description: Status of async explorer views refresh job. Values are clean (no refresh needed), queued (refresh job queued), refreshing (refresh job running), failed (refresh job failed).
+    lastViewsRefreshAt:
+        description: Timestamp when the explorer views were last successfully refreshed. Updated when viewsRefreshStatus is set to "clean".

@@ -6,10 +6,6 @@ import {
     JobType,
 } from "@ourworldindata/types"
 
-interface JobClaimOptions {
-    lockId: string
-}
-
 export async function enqueueJob(
     knex: KnexReadWriteTransaction,
     job: DbInsertJob
@@ -38,8 +34,7 @@ export async function enqueueJob(
 
 export async function claimNextQueuedJob(
     knex: KnexReadWriteTransaction,
-    type: JobType,
-    _options: JobClaimOptions
+    type: JobType
 ): Promise<DbPlainJob | null> {
     // First, find the next queued job
     const nextJob = await knex(JobsTableName)
@@ -72,6 +67,13 @@ export async function claimNextQueuedJob(
     // Parse the JSON payload field
     if (typeof claimedJob.payload === "string") {
         claimedJob.payload = JSON.parse(claimedJob.payload)
+    }
+
+    // Convert explorerUpdatedAt from string to Date for proper comparison
+    if (claimedJob.payload.explorerUpdatedAt) {
+        claimedJob.payload.explorerUpdatedAt = new Date(
+            claimedJob.payload.explorerUpdatedAt
+        )
     }
 
     return claimedJob
@@ -147,6 +149,11 @@ export async function getJobBySlug(
     const job = result[0]
     if (typeof job.payload === "string") {
         job.payload = JSON.parse(job.payload)
+    }
+
+    // Convert explorerUpdatedAt from string to Date for proper comparison
+    if (job.payload.explorerUpdatedAt) {
+        job.payload.explorerUpdatedAt = new Date(job.payload.explorerUpdatedAt)
     }
 
     return job
