@@ -34,6 +34,7 @@ export interface ChartManager {
 
     variant?: GrapherVariant
     isDisplayedAlongsideComplementaryTable?: boolean
+    chartAreaPadding?: number
 
     isExportingToSvgOrPng?: boolean
     isRelativeMode?: boolean
