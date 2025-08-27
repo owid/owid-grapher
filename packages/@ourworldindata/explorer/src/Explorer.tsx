@@ -16,6 +16,7 @@ import {
     OwidTable,
     BlankOwidTable,
     extractPotentialDataSlugsFromTransform,
+    isNotErrorValue,
 } from "@ourworldindata/core-table"
 import {
     EntityPicker,
@@ -757,7 +758,7 @@ export class Explorer
         const uniqueSlugs = _.uniq(slugDimensions.map(({ slug }) => slug))
 
         this.inputTableTransformer = (table: OwidTable) => {
-            // add transformed (and intermediate) columns to the grapher table
+            // Add transformed (and intermediate) columns to the grapher table
             if (uniqueSlugs.length) {
                 const allColumnSlugs = _.uniq(
                     uniqueSlugs.flatMap((slug) => [
@@ -778,23 +779,13 @@ export class Explorer
                 table = table.appendColumns(requiredColumnDefs)
             }
 
-            // update column definitions with manually provided properties
+            // Update column definitions with manually provided properties
             table = table.updateDefs((def: OwidColumnDef) => {
                 const manuallyProvidedDef =
                     this.columnDefsWithoutTableSlugByIdOrSlug[def.slug] ?? {}
-                const mergedDef = { ...def, ...manuallyProvidedDef }
-
-                // update display properties
-                mergedDef.display ??= {}
-                if (manuallyProvidedDef.name)
-                    mergedDef.display.name = manuallyProvidedDef.name
-                if (manuallyProvidedDef.unit)
-                    mergedDef.display.unit = manuallyProvidedDef.unit
-                if (manuallyProvidedDef.shortUnit)
-                    mergedDef.display.shortUnit = manuallyProvidedDef.shortUnit
-
-                return mergedDef
+                return { ...def, ...manuallyProvidedDef }
             })
+
             return table
         }
 
@@ -818,6 +809,25 @@ export class Explorer
             // of several user triggered load operations in quick succession
             // will actually set the table.
             await this.futureGrapherTable.set(inputTable)
+        }
+
+        // Update display properties of the dimensions
+        if (grapherState.dimensions) {
+            grapherState.inputTable.defs.map((def) => {
+                const variableId = def.owidVariableId
+                if (variableId && isNotErrorValue(variableId) && def.display) {
+                    const dimension = grapherState.dimensions.find(
+                        (d) => d.variableId === variableId
+                    )
+                    if (dimension) {
+                        dimension.updateFromObject({
+                            variableId,
+                            property: dimension.property,
+                            display: def.display,
+                        })
+                    }
+                }
+            })
         }
     }
 

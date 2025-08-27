@@ -39,7 +39,7 @@ export interface GrapherCellDef extends CellDef {
 }
 
 export interface ColumnCellDef extends CellDef {
-    display?: boolean
+    isDisplayProperty?: boolean
 }
 
 export interface ParsedCell {

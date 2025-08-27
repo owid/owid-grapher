@@ -17,6 +17,7 @@ import {
     CoreTable,
     OwidTable,
     isNotErrorValue,
+    isNotErrorValueOrEmptyCell,
 } from "@ourworldindata/core-table"
 import {
     GitCommit,
@@ -630,19 +631,22 @@ const parseColumnDefs = (block: string[][]): OwidColumnDef[] => {
             (row) => !!(row.slug || typeof row.owidVariableId === "number"),
             "Keep only column defs with a slug or variable id"
         )
+
     return columnsTable.rows.map((row) => {
-        // ignore slug if a variable id is given
+        // Ignore slug if a variable id is given
         const hasValidVariableId =
             row.owidVariableId && isNotErrorValue(row.owidVariableId)
         if (hasValidVariableId && row.slug) delete row.slug
 
+        // Add display properties to the 'display' object
         for (const field in row) {
             const cellDef = ColumnGrammar[field]
-            if (cellDef?.display) {
-                // move field into 'display' object
+            if (
+                cellDef?.isDisplayProperty &&
+                isNotErrorValueOrEmptyCell(row[field])
+            ) {
                 row.display = row.display || {}
                 row.display[field] = row[field]
-                delete row[field]
             }
         }
 

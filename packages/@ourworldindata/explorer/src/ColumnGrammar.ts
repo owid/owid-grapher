@@ -38,6 +38,7 @@ export const ColumnGrammar: Grammar<ColumnCellDef> = {
         keyword: "name",
         description:
             "This is the name that may appear on the y or x axis of a chart",
+        isDisplayProperty: true,
     },
     type: {
         ...StringCellDef,
@@ -61,6 +62,7 @@ export const ColumnGrammar: Grammar<ColumnCellDef> = {
         keyword: "tolerance",
         description:
             "Set this to interpolate missing values as long as they are within this range of an actual value.",
+        isDisplayProperty: true,
     },
     toleranceStrategy: {
         ...EnumCellDef,
@@ -76,16 +78,19 @@ export const ColumnGrammar: Grammar<ColumnCellDef> = {
         ...StringCellDef,
         keyword: "description",
         description: "Describe the column",
+        isDisplayProperty: true,
     },
     unit: {
         ...StringCellDef,
         keyword: "unit",
         description: "Unit of measurement",
+        isDisplayProperty: true,
     },
     shortUnit: {
         ...StringCellDef,
         keyword: "shortUnit",
         description: "Short (axis) unit",
+        isDisplayProperty: true,
     },
     notes: {
         ...StringCellDef,
@@ -142,6 +147,7 @@ export const ColumnGrammar: Grammar<ColumnCellDef> = {
         ...StringCellDef,
         keyword: "color",
         description: "Default color for column",
+        isDisplayProperty: true,
     },
     colorScaleScheme: {
         ...EnumCellDef,
@@ -206,12 +212,12 @@ export const ColumnGrammar: Grammar<ColumnCellDef> = {
         ...BooleanCellDef,
         keyword: "isProjection",
         description: "Is the time series a forward projection?",
-        display: true,
+        isDisplayProperty: true,
     },
     plotMarkersOnlyInLineChart: {
         ...BooleanCellDef,
         keyword: "plotMarkersOnlyInLineChart",
         description: "Should data points be connected by a line?",
-        display: true,
+        isDisplayProperty: true,
     },
 } as const

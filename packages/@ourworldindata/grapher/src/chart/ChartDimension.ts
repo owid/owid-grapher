@@ -91,7 +91,7 @@ export class ChartDimension
                 {
                     property: this.property,
                     variableId: this.variableId,
-                    display: this.display,
+                    display: this.display.toObject(),
                     targetYear: this.targetYear,
                 },
                 new ChartDimensionDefaults()
