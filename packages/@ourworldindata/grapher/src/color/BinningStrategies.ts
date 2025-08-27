@@ -235,6 +235,14 @@ export const computeMinMaxForStrategy = (
     conf?: Partial<ResolvedBinningStrategyConfig>
 ): { minValue: number; maxValue: number } => {
     let { minValue, maxValue } = conf || {}
+    if (
+        conf?.midpointMode !== "none" &&
+        minValue !== undefined &&
+        conf?.midpoint !== undefined
+    ) {
+        // Ensure that the midpoint is within the min/max range, otherwise we'll get very weird results when mirroring around the midpoint
+        minValue = Math.max(minValue, conf.midpoint)
+    }
     if (minValue !== undefined && maxValue !== undefined) {
         maxValue = Math.max(minValue, maxValue)
         return { minValue, maxValue }
