@@ -19,11 +19,9 @@ import { triggerStaticBuild } from "../baker/GrapherBakingUtils.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import pMap from "p-map"
 import { DbPlainJob } from "@ourworldindata/types"
-import { hostname } from "os"
 
 const MAX_ATTEMPTS = 3
 const CONCURRENCY = 20
-const LOCK_ID = `${hostname()}-${process.pid}-${Date.now()}`
 
 async function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms))
@@ -46,7 +44,7 @@ export async function processExplorerViewsJob(
     const { slug, explorerUpdatedAt } = job.payload
 
     let refreshResult: ExplorerViewsRefreshResult | undefined
-    let isPublished: boolean
+    let isPublished: boolean = false
 
     try {
         // Phase 1: DB operations in a single transaction
@@ -100,6 +98,30 @@ export async function processExplorerViewsJob(
 
         // Phase 2: R2 sync operations (outside any transaction)
 
+        // Late-phase staleness check: re-verify job hasn't been superseded before R2 sync
+        const isStale = await knexReadonlyTransaction(async (knex) => {
+            const current = await knex("explorers")
+                .where({ slug })
+                .first(["updatedAt"])
+
+            if (!current) {
+                return true // Explorer was deleted, consider stale
+            }
+
+            return current.updatedAt > explorerUpdatedAt
+        })
+
+        if (isStale) {
+            await knexReadWriteTransaction(async (trx) => {
+                await markJobDone(
+                    trx,
+                    job.id,
+                    "superseded by newer update before R2 sync"
+                )
+            })
+            return { success: true, shouldRetry: false }
+        }
+
         // Delete removed configs from R2 in parallel
         if (refreshResult!.removedChartConfigIds.length > 0) {
             await pMap(
@@ -138,6 +160,20 @@ export async function processExplorerViewsJob(
             // Final check if job is still running before marking as done
             const stillRunning = await isJobStillRunning(trx, job.id)
             if (!stillRunning) {
+                return false // Job was superseded
+            }
+
+            // Final staleness check: re-verify job hasn't been superseded before completion
+            const current = await trx("explorers")
+                .where({ slug })
+                .first(["updatedAt"])
+
+            if (!current || current.updatedAt > explorerUpdatedAt) {
+                await markJobDone(
+                    trx,
+                    job.id,
+                    "superseded by newer update before completion"
+                )
                 return false // Job was superseded
             }
 
@@ -218,9 +254,7 @@ export async function processExplorerViewsJob(
 export async function processOneExplorerViewsJob(): Promise<boolean> {
     try {
         const job = await knexReadWriteTransaction(async (trx) => {
-            return await claimNextQueuedJob(trx, "refresh_explorer_views", {
-                lockId: LOCK_ID,
-            })
+            return await claimNextQueuedJob(trx, "refresh_explorer_views")
         })
 
         if (!job) {
