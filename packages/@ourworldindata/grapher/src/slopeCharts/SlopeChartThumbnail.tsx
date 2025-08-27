@@ -214,6 +214,7 @@ export class SlopeChartThumbnail
 
         return new VerticalLabelsState(series, {
             fontSize: this.labelFontSize,
+            minSpacing: 2,
             yRange: this.bounds
                 .expand({ top: this.manager.chartAreaPadding ?? 0 })
                 .yRange(),
@@ -245,6 +246,7 @@ export class SlopeChartThumbnail
         return new VerticalLabelsState(series, {
             fontSize: this.labelFontSize,
             maxWidth: showEntityNames ? 0.25 * this.bounds.width : undefined,
+            minSpacing: showEntityNames ? 5 : 2,
             yRange: this.bounds
                 .expand({ top: this.manager.chartAreaPadding ?? 0 })
                 .yRange(),
