@@ -5,7 +5,6 @@ import {
 } from "@ourworldindata/types"
 import {
     normaliseToSingleDigitNumber,
-    numberMagnitude,
     RequiredBy,
     roundSigFig,
 } from "@ourworldindata/utils"
@@ -73,9 +72,8 @@ export const equalSizeBins = ({
     const range = maxValue - minValue
 
     // Normalise the range to be within 1 and 10
-    const normalisedRange = normaliseToSingleDigitNumber(range)
-    // This is the factor used to un-normalise the values back to their original scale
-    const factor = Math.pow(10, numberMagnitude(range) - 1)
+    const { normalised: normalisedRange, factor } =
+        normaliseToSingleDigitNumber(range)
 
     // These are all common and "good" step sizes; find the first one that gives us the target bin count
     const stepSizeCandidates = [1, 0.1, 0.5, 0.2, 2, 3, 0.3, 0.75, 0.25]

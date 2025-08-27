@@ -25,7 +25,7 @@ describe(mirrorBinsAroundMidpoint, () => {
         expect(bins).toEqual([-1, 0, 1])
     })
 
-    it("should handle non-.zero midpoint", () => {
+    it("should handle non-zero midpoint", () => {
         const bins = mirrorBinsAroundMidpoint([1, 2, 5], 105)
         expect(bins).toEqual([100, 103, 104, 105, 106, 107, 110])
     })
