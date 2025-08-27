@@ -304,22 +304,27 @@ getPlainRouteWithROTransaction(
     "/data-insights{/:pageNumberOrSlug}",
     async (req, res, trx) => {
         const topicName = req.query.topic as string | undefined
-        const topicTag: TopicTag | undefined = topicName
-            ? {
-                  name: topicName,
-                  slug: await getSlugForTopicTag(trx, topicName),
-              }
-            : undefined
+        let topicTag: TopicTag | undefined
+        try {
+            topicTag = topicName
+                ? {
+                      name: topicName,
+                      slug: await getSlugForTopicTag(trx, topicName),
+                  }
+                : undefined
+        } catch {
+            topicTag = undefined
+        }
 
         const totalPageCount = calculateDataInsightIndexPageCount(
             await db.getPublishedDataInsightCount(trx, topicTag?.slug)
         )
 
         if (topicTag && topicTag.slug !== undefined) {
-            // if topic slug is not a valid topic, return NotFound page
+            // if topic slug is not a valid topic, render all data insights
             const validTopicSlugs = await db.getAllTopicSlugs(trx)
             if (!validTopicSlugs.includes(topicTag.slug)) {
-                return res.status(404).send(renderNotFoundPage())
+                topicTag = undefined
             }
         }
         async function renderIndexPage(
