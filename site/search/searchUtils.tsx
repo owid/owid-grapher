@@ -724,7 +724,10 @@ export function getAutocompleteSuggestionsWithUnmatchedQuery(
     unmatchedQuery: string
 } {
     const sortOptions = {
-        threshold: 0.5,
+        // we can afford to be more strict with matching due to the presence of
+        // synonyms, in particular country alternatives (e.g. "uk" matches
+        // "united kingdom" without the need for a more permissive fuzzy match)
+        threshold: 0.75,
         limit: limitPerFilter,
     }
     const selectedCountryNames = getFilterNamesOfType(
