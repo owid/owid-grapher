@@ -1,4 +1,4 @@
-import { useMemo, ReactNode, useEffect, useState } from "react"
+import { useMemo, ReactNode } from "react"
 import cx from "classnames"
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import {
@@ -16,8 +16,7 @@ import {
     ImageMetadata,
     excludeNull,
     queryParamsToStr,
-    getAssignedExperiments,
-    experiments,
+    experimentState,
 } from "@ourworldindata/utils"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -113,46 +112,7 @@ export const DataPageV2Content = ({
 
     // note: assignedExperiments and isPageInExperiment should NOT be used to
     // conditionally render content b/c it will cause a flash of content before js loads.
-    const [assignedExperiments, setAssignedExperiments] = useState<
-        Record<string, string>
-    >({})
-    const [isPageInExperiment, setIsPageInExperiment] = useState(false)
-
-    const experimentMap = useMemo(
-        () => new Map(experiments.map((exp) => [exp.id, exp])),
-        []
-    )
-
-    useEffect(() => {
-        // Only get assigned experiments on the client when cookies are available
-        if (typeof window !== "undefined") {
-            const assigned = getAssignedExperiments()
-            if (assigned) {
-                setAssignedExperiments(assigned)
-            }
-        }
-    }, [])
-
-    useEffect(() => {
-        // Calculate isPageInExperiment when assignedExperiments changes
-        if (typeof window === "undefined") {
-            return
-        }
-
-        const experimentIds = Object.keys(assignedExperiments)
-        if (experimentIds.length === 0) {
-            setIsPageInExperiment(false)
-            return
-        }
-
-        const currentPath = window.location.pathname
-        const inExperiment = experimentIds.some((expId: string) => {
-            const experiment = experimentMap.get(expId)
-            return experiment?.isUrlInPaths(currentPath) ?? false
-        })
-
-        setIsPageInExperiment(inExperiment)
-    }, [assignedExperiments, experimentMap])
+    const { isPageInExperiment, assignedExperiments } = experimentState
 
     return (
         <AttachmentsContext.Provider
