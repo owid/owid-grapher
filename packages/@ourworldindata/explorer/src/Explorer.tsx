@@ -534,11 +534,6 @@ export class Explorer
         return !this.isNarrow
     }
 
-    private futureGrapherTable = new PromiseSwitcher<OwidTable>({
-        onResolve: (table) => this.setGrapherTable(table),
-        onReject: (error) => this.grapher?.setError(error),
-    })
-
     tableLoader = new PromiseCache((slug: TableSlug | undefined) =>
         this.explorerProgram.constructTable(slug)
     )
@@ -832,7 +827,7 @@ export class Explorer
         }
     }
 
-    @action.bound updateGrapherFromExplorerUsingColumnSlugs() {
+    @action.bound async updateGrapherFromExplorerUsingColumnSlugs() {
         const grapherState = this.grapherState
         const { tableSlug } = this.explorerProgram.explorerGrapherConfig
 
@@ -859,7 +854,13 @@ export class Explorer
         this.setGrapherTable(
             BlankOwidTable(tableSlug, `Loading table '${tableSlug}'`)
         )
-        void this.futureGrapherTable.set(this.tableLoader.get(tableSlug))
+        try {
+            const table = await this.tableLoader.get(tableSlug)
+            this.setGrapherTable(table)
+        } catch (e: any) {
+            console.error(e)
+            this.grapher?.setError(e)
+        }
     }
 
     @action.bound setSlide(choiceParams: ExplorerFullQueryParams) {
