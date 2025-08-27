@@ -7,51 +7,6 @@ import {
     SENTRY_SESSION_STORAGE_KEY,
     SENTRY_SAMPLED_RATE_KEY,
 } from "@ourworldindata/types"
-import {
-    COMMIT_SHA,
-    ENV,
-    SENTRY_DSN,
-    LOAD_SENTRY,
-} from "../settings/clientSettings.js"
-
-/** Initializes Sentry for error tracking and session replay
- *
- * This function configures Sentry with the appropriate settings and
- * either samples a session to be recorded (if consent provided) or starts the
- * recording if sampling has already been conducted this session.
- *
- * This function must be called on every page visit in a user session, b/c the session
- * sample rate can change across pages (e.g. user gets enrolled in an experiment when
- * visiting a page in the experiment). This change in sample rate should trigger a
- * resampling of their session for recording (if certain conditions are met).
- */
-export function initializeSentry(): void {
-    if (!LOAD_SENTRY) return
-
-    const sampleRate = getSessionSampleRate()
-    if (hasSessionBeenSampled()) {
-        // note: if hasSessionBeenSampled() is false, then Sentry.init(...) will do
-        // the initial sampling (if consent provided)
-        maybeSampleSession(sampleRate)
-    }
-
-    Sentry.init({
-        dsn: SENTRY_DSN,
-        environment: ENV,
-        debug: ENV === "development",
-        release: COMMIT_SHA,
-        integrations: [
-            Sentry.replayIntegration({
-                maskAllText: false,
-                maskAllInputs: false,
-                blockAllMedia: false,
-                mask: [".sentry-mask"],
-            }),
-        ],
-        replaysSessionSampleRate: sampleRate,
-        replaysOnErrorSampleRate: 0,
-    })
-}
 
 /**
  * Checks whether the session should be (re)sampled for recording, and (re)samples
@@ -94,7 +49,7 @@ export function maybeSampleSession(sampleRate: number) {
  *
  * @returns {boolean} True if sampling has been conducted for this session, false otherwise.
  */
-function hasSessionBeenSampled(): boolean {
+export function hasSessionBeenSampled(): boolean {
     if (sessionStorage.getItem(SENTRY_SESSION_STORAGE_KEY)) {
         return true
     }
