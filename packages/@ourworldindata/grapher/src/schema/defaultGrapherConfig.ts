@@ -23,8 +23,6 @@ export const defaultGrapherConfig = {
         hideTimeline: false,
         colorScale: {
             binningStrategy: "auto",
-            midpoint: 0,
-            createBinForMidpoint: false,
             customNumericColorsActive: false,
             colorSchemeInvert: false,
         },
@@ -51,8 +49,6 @@ export const defaultGrapherConfig = {
     hideTimeline: false,
     colorScale: {
         binningStrategy: "auto",
-        midpoint: 0,
-        createBinForMidpoint: false,
         customNumericColorsActive: false,
         colorSchemeInvert: false,
     },
