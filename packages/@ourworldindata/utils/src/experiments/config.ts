@@ -14,7 +14,7 @@ export const experiments: Experiment[] = [
          * Treatment arm treat1: show "view insights about this data" button beneath grapher
          */
         id: "data-page-insight-buttons-basic",
-        expires: "2025-08-31T00:00:00.000Z",
+        expires: "2025-09-04T00:00:00.000Z",
         arms: [
             // control arm
             { id: "control", fraction: 0.7, replaysSessionSampleRate: 0.1 },
