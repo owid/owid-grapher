@@ -75,8 +75,12 @@ columns\ttable1\ttable2\ttable3
             "table3",
         ])
 
-        const columnDef1 = [{ slug: "gdp", name: "GDP" }]
-        const columnDef2 = [{ slug: "banana", name: "Bananas" }]
+        const columnDef1 = [
+            { slug: "gdp", name: "GDP", display: { name: "GDP" } },
+        ]
+        const columnDef2 = [
+            { slug: "banana", name: "Bananas", display: { name: "Bananas" } },
+        ]
 
         expect(program.columnDefsByTableSlug.get(undefined)).toEqual(columnDef1)
         expect(program.columnDefsByTableSlug.get("table1")).toEqual(columnDef2)
