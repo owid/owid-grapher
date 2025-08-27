@@ -140,6 +140,10 @@ export class StackedDiscreteBarChartState implements ChartState {
         return this.transformedTable.getColumns(this.yColumnSlugs)
     }
 
+    @computed get formatColumn(): CoreColumn {
+        return this.yColumns[0]
+    }
+
     @computed get sortColumnSlug(): string | undefined {
         return this.sortConfig.sortColumnSlug
     }
