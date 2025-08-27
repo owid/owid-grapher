@@ -49,7 +49,7 @@ import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
 import {
     deleteOldGraphers,
-    getTagToHasDataInsightsMap,
+    getTagsWithDataInsights,
     getTagToSlugMap,
 } from "./GrapherBakingUtils.js"
 import { knexRaw } from "../db/db.js"
@@ -245,10 +245,10 @@ export async function renderDataPageV2(
         )
 
         tagToSlugMap = await getTagToSlugMap(knex)
-        const tagToHasDataInsightsMap = await getTagToHasDataInsightsMap(knex)
+        const tagsWithDataInsights = await getTagsWithDataInsights(knex)
 
         datapageData.hasDataInsights = datapageData.primaryTopic?.topicTag
-            ? tagToHasDataInsightsMap[datapageData.primaryTopic?.topicTag]
+            ? tagsWithDataInsights.has(datapageData.primaryTopic?.topicTag)
             : false
     }
 

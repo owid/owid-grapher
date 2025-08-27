@@ -64,49 +64,31 @@ export async function getTagToSlugMap(
 }
 
 /**
- * Returns a map that can resolve Tag names and Tag IDs to whether the tag has any published data insights.
+ * Returns a set of tags that have at least one published data insight.
  * e.g.
  *   "Women's Rights" -> true
  *   123 -> true
  */
-export async function getTagToHasDataInsightsMap(
+export async function getTagsWithDataInsights(
     knex: db.KnexReadonlyTransaction
-): Promise<Record<string | number, boolean>> {
-    // Query for tags and whether they have any published data insights
-    const rows = await db.knexRaw<
-        Pick<DbPlainTag, "name" | "id" | "slug"> & { hasDataInsight: boolean }
-    >(
+): Promise<Set<string>> {
+    // Query for tags that have any published data insights
+    const rows = await db.knexRaw<{ name: string }>(
         knex,
         `
-        SELECT
-        t.id,
-        t.name,
-        t.slug,
-        EXISTS (
-            SELECT 1
-            FROM ${PostsGdocsTableName} pg
-            JOIN ${PostsGdocsTableName}_x_tags as pgt ON pg.id = pgt.gdocId
-            WHERE
-                pgt.tagId = t.id
-                AND pg.type = "${OwidGdocType.DataInsight}"
-                AND pg.published = 1
-                AND pg.publishedAt <= NOW()
-        ) AS hasDataInsight
+        SELECT DISTINCT t.name
         FROM tags t
-        WHERE t.slug IS NOT NULL
+        JOIN ${PostsGdocsTableName}_x_tags pgt ON t.id = pgt.tagId
+        JOIN ${PostsGdocsTableName} pg ON pgt.gdocId = pg.id
+        WHERE
+            t.slug IS NOT NULL
+            AND pg.type = "${OwidGdocType.DataInsight}"
+            AND pg.published = 1
+            AND pg.publishedAt <= NOW()
         `
     )
 
-    const map: Record<string | number, boolean> = {}
-    for (const row of rows) {
-        const hasDataInsight = !!row.hasDataInsight
-        if (row.slug) {
-            map[row.name] = hasDataInsight
-            map[row.id] = hasDataInsight
-        }
-    }
-
-    return map
+    return new Set(rows.map((row) => row.name))
 }
 
 /**
