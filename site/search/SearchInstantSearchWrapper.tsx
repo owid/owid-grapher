@@ -11,6 +11,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
+            // In practice, stale queries do not result in another network
+            // request, due to Algolia's caching. React Query's caching
+            // (staleTime) should be considered a second line of defense.
             staleTime: 60 * 1000, // 1 minute
         },
     },
