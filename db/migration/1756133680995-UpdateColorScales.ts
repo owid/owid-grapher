@@ -35,6 +35,10 @@ export class UpdateColorScales1756133680995 implements MigrationInterface {
                 `
                 )
             }
+            await queryRunner.query(
+                `-- sql
+                update ${table} set ${column} = JSON_SET(${column}, "$.$schema", "https://files.ourworldindata.org/schemas/grapher-schema.009.json")`
+            )
         }
     }
 
