@@ -18,6 +18,7 @@ import { MarimekkoBars } from "./MarimekkoBars"
 import { DualAxisComponent } from "../axis/AxisViews"
 import { toPlacedMarimekkoItems } from "./MarimekkoChartHelpers"
 import { MarimekkoInternalLabels } from "./MarimekkoInternalLabels"
+import { NoDataModal } from "../noDataModal/NoDataModal"
 
 const LABEL_PADDING = 4
 
@@ -123,8 +124,15 @@ export class MarimekkoChartThumbnail
             .filter((item) => item !== undefined)
     }
 
-    override render(): React.ReactElement | null {
-        if (this.chartState.errorInfo.reason) return null
+    override render(): React.ReactElement {
+        if (this.chartState.errorInfo.reason)
+            return (
+                <NoDataModal
+                    manager={this.manager}
+                    bounds={this.props.bounds}
+                    message={this.chartState.errorInfo.reason}
+                />
+            )
 
         return (
             <g>
