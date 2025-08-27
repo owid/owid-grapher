@@ -21,8 +21,7 @@ export class StackedDiscreteBarChartThumbnail
         return this.props.chartState
     }
 
-    override render(): React.ReactElement | null {
-        if (this.chartState.errorInfo.reason) return null
+    override render(): React.ReactElement {
         return <StackedDiscreteBars {...this.props} />
     }
 }
