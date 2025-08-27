@@ -28,6 +28,7 @@ import {
     VerticalLabelsState,
 } from "../verticalLabels/VerticalLabelsState"
 import { VerticalLabels } from "../verticalLabels/VerticalLabels"
+import { NoDataModal } from "../noDataModal/NoDataModal"
 
 const LEGEND_PADDING = 4
 
@@ -167,8 +168,15 @@ export class StackedBarChartThumbnail
         return this.labelsWidth ? this.labelsWidth + LEGEND_PADDING : 0
     }
 
-    override render(): React.ReactElement | null {
-        if (this.chartState.errorInfo.reason) return null
+    override render(): React.ReactElement {
+        if (this.chartState.errorInfo.reason)
+            return (
+                <NoDataModal
+                    manager={this.manager}
+                    bounds={this.props.bounds}
+                    message={this.chartState.errorInfo.reason}
+                />
+            )
 
         return (
             <>
