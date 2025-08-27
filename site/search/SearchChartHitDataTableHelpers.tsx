@@ -34,7 +34,7 @@ import {
     getColumnUnitForDisplay,
     calculateTrendDirection,
 } from "./searchUtils.js"
-import { OwidTable } from "@ourworldindata/core-table"
+import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 
 interface BaseArgs {
     grapherState: GrapherState
@@ -137,7 +137,7 @@ function buildDataTableContentForLineChart({
     chartState,
     maxRows,
 }: Args<LineChartState>): SearchChartHitDataTableContent {
-    const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
+    const formatColumn = chartState.formatColumn
 
     // Line charts might have a color scale, in which case the lines are colored
     // according to the scale. In this case, we show a legend as table
@@ -220,7 +220,7 @@ function buildDataTableContentForLineChart({
 
     rows = maxRows !== undefined ? rows.slice(0, maxRows) : rows
 
-    const title = makeTableTitle(grapherState, chartState)
+    const title = makeTableTitle(grapherState, chartState, formatColumn)
 
     return { type: "data-table", props: { rows, title } }
 }
@@ -230,7 +230,7 @@ function buildDataTableContentForDiscreteBarChart({
     chartState,
     maxRows,
 }: Args<DiscreteBarChartState>): SearchChartHitDataTableContent {
-    const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
+    const formatColumn = chartState.formatColumn
 
     let rows = chartState.series.map((series) => ({
         series,
@@ -245,7 +245,7 @@ function buildDataTableContentForDiscreteBarChart({
 
     if (maxRows !== undefined) rows = rows.slice(0, maxRows)
 
-    const title = makeTableTitle(grapherState, chartState)
+    const title = makeTableTitle(grapherState, chartState, formatColumn)
 
     return { type: "data-table", props: { rows, title } }
 }
@@ -289,7 +289,7 @@ function buildDataTableContentForSlopeChart({
 
     if (maxRows !== undefined) rows = rows.slice(0, maxRows)
 
-    const title = makeTableTitle(grapherState, chartState)
+    const title = makeTableTitle(grapherState, chartState, formatColumn)
 
     return { type: "data-table", props: { rows, title } }
 }
@@ -299,7 +299,7 @@ function buildDataTableContentForStackedDiscreteBarChart({
     chartState,
     maxRows,
 }: Args<StackedDiscreteBarChartState>): SearchChartHitDataTableContent {
-    const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
+    const formatColumn = chartState.formatColumn
 
     const mode =
         chartState.yColumnSlugs.length === 1
@@ -422,7 +422,7 @@ function buildDataTableContentForStackedAreaAndBarChart({
 }: Args<
     StackedAreaChartState | StackedBarChartState
 >): SearchChartHitDataTableContent {
-    const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
+    const formatColumn = chartState.formatColumn
 
     const hasSingleSeriesPerFacet =
         grapherState.isFaceted && !grapherState.hasMultipleSeriesPerFacet
@@ -476,7 +476,7 @@ function buildDataTableContentForStackedAreaAndBarChart({
 
     if (maxRows !== undefined) rows = rows.slice(0, maxRows)
 
-    const title = makeTableTitle(grapherState, chartState)
+    const title = makeTableTitle(grapherState, chartState, formatColumn)
 
     return { type: "data-table", props: { rows, title } }
 }
@@ -567,7 +567,7 @@ function buildValueTableContentForMarimekko({
     maxRows?: number
 }): SearchChartHitDataTableContent {
     const series = chartState.series[0]
-    const yColumn = chartState.yColumns[0]
+    const formatColumn = chartState.formatColumn
 
     let rows = series.points
         .map((point) => {
@@ -579,8 +579,8 @@ function buildValueTableContentForMarimekko({
                 seriesName: series.seriesName,
                 label: point.position,
                 color: entityColor?.color ?? point.color ?? series.color,
-                value: yColumn.formatValueShort(point.value),
-                time: yColumn.formatTime(point.time),
+                value: formatColumn.formatValueShort(point.value),
+                time: formatColumn.formatTime(point.time),
                 timePreposition: OwidTable.getPreposition(
                     chartState.transformedTable.timeColumn
                 ),
@@ -593,7 +593,7 @@ function buildValueTableContentForMarimekko({
 
     if (maxRows !== undefined) rows = rows.slice(0, maxRows)
 
-    const title = makeTableTitle(grapherState, chartState)
+    const title = makeTableTitle(grapherState, chartState, formatColumn)
 
     return { type: "data-table", props: { rows, title } }
 }
@@ -813,6 +813,7 @@ function buildDataTableContentForWorldMap({
     chartState,
     maxRows,
 }: Args<MapChartState>): SearchChartHitDataTableContent {
+    const formatColumn = chartState.mapColumn
     const bins = chartState.colorScale.legendBins
 
     // The table shows a map legend where each row corresponds to a legend bin
@@ -828,7 +829,7 @@ function buildDataTableContentForWorldMap({
                 numSeriesContainedInBin,
                 label,
                 time: grapherState.endTime
-                    ? chartState.mapColumn.formatTime(grapherState.endTime)
+                    ? formatColumn.formatTime(grapherState.endTime)
                     : undefined,
                 color: bin.color,
                 muted: !isNoDataBin(bin) && numSeriesContainedInBin === 0,
@@ -852,7 +853,7 @@ function buildDataTableContentForWorldMap({
 
     if (maxRows !== undefined) rows = rows.slice(0, maxRows)
 
-    const title = makeTableTitle(grapherState, chartState)
+    const title = makeTableTitle(grapherState, chartState, formatColumn)
 
     return { type: "data-table", props: { rows, title }, isLegend: true }
 }
@@ -896,14 +897,13 @@ function buildDataTableContentForTableTab({
 
 function makeTableTitle(
     grapherState: GrapherState,
-    chartState: ChartState
+    chartState: ChartState,
+    formatColumn: CoreColumn
 ): string {
     const { seriesStrategy = SeriesStrategy.entity } = chartState
     const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
     const isFacetedByEntity =
         grapherState.facetStrategy === FacetStrategy.entity
-
-    const formatColumn = grapherState.inputTable.get(grapherState.yColumnSlug)
 
     const columnName = getColumnNameForDisplay(formatColumn)
     const unit = getColumnUnitForDisplay(formatColumn, { allowTrivial: true })
