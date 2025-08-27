@@ -28,9 +28,7 @@ export class DiscreteBarChartThumbnail
         return this.props.chartState.manager
     }
 
-    override render(): React.ReactElement | null {
-        if (this.chartState.errorInfo.reason) return null
-
+    override render(): React.ReactElement {
         return <DiscreteBarChart {...this.props} />
     }
 }
