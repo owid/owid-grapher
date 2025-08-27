@@ -20,7 +20,6 @@
         { "path": "./devTools/markdownTest" },
         { "path": "./devTools/regionsUpdater" },
         { "path": "./devTools/schema" },
-        { "path": "./devTools/schemaProcessor" },
         { "path": "./devTools/svgTester" },
         { "path": "./devTools/syncGraphersToR2" },
         { "path": "./settings" },
