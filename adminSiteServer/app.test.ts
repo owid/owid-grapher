@@ -1971,14 +1971,20 @@ graphers
         expect(explorer.lastViewsRefreshAt).toBeNull()
 
         // Step 5: Verify job was queued
-        const job = await testKnexInstance!(JobsTableName)
-            .where({ type: "refresh_explorer_views", slug: testExplorerSlug })
-            .first()
+        const jobRows = await testKnexInstance!.raw(
+            `SELECT * FROM jobs WHERE type = ? AND JSON_EXTRACT(payload, '$.slug') = ?`,
+            ["refresh_explorer_views", testExplorerSlug]
+        )
+        const job = jobRows[0]?.[0] // MySQL returns [rows, fields]
 
         expect(job).toBeTruthy()
         expect(job.state).toBe("queued")
         expect(job.attempts).toBe(0)
-        expect(job.explorerUpdatedAt).toBeTruthy()
+        
+        // Parse the payload to check the explorerUpdatedAt
+        const payload = typeof job.payload === 'string' ? JSON.parse(job.payload) : job.payload
+        expect(payload.slug).toBe(testExplorerSlug)
+        expect(payload.explorerUpdatedAt).toBeTruthy()
 
         // Step 6: Verify no explorer views exist yet (async processing not done)
         const viewsCountBefore = await getCountForTable(ExplorerViewsTableName)

@@ -159,6 +159,7 @@ export default tseslint.config(
             "devTools/**/*",
             "functions/**/*",
             "explorerAdminServer/**/*",
+            "serverUtils/**/*",
             "settings/**/*",
         ],
         rules: {

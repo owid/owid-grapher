@@ -4,6 +4,7 @@ import {
     markJobFailed,
     requeueJob,
     updateExplorerRefreshStatus,
+    isJobStillRunning,
 } from "../db/model/Jobs.js"
 import {
     refreshExplorerViewsForSlug,
@@ -33,19 +34,23 @@ function backoffDelay(attempts: number): number {
     return 5000 * Math.pow(3, attempts - 1)
 }
 
-export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
-    const { slug, explorerUpdatedAt } = job
+export interface JobResult {
+    success: boolean
+    shouldRetry: boolean
+    retryDelayMs?: number
+}
 
-    console.warn(
-        `[${new Date().toISOString()}] Processing job ${job.id} for explorer: ${slug}`
-    )
+export async function processExplorerViewsJob(
+    job: DbPlainJob
+): Promise<JobResult> {
+    const { slug, explorerUpdatedAt } = job.payload
 
     let refreshResult: ExplorerViewsRefreshResult | undefined
     let isPublished: boolean
 
     try {
         // Phase 1: DB operations in a single transaction
-        await knexReadWriteTransaction(async (trx) => {
+        const shouldContinue = await knexReadWriteTransaction(async (trx) => {
             // Check if explorer still exists and get current state
             const current = await trx("explorers")
                 .where({ slug })
@@ -56,7 +61,7 @@ export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
                     `Explorer ${slug} no longer exists, marking job as done`
                 )
                 await markJobDone(trx, job.id, "explorer missing")
-                return
+                return false
             }
 
             isPublished = current.isPublished
@@ -67,36 +72,36 @@ export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
                     `Explorer ${slug} has been updated since job was queued (${current.updatedAt} > ${explorerUpdatedAt}), marking as done`
                 )
                 await markJobDone(trx, job.id, "superseded by newer update")
-                return
+                return false
             }
 
             // Set explorer status to "refreshing"
             await updateExplorerRefreshStatus(trx, slug, "refreshing")
 
             // Perform DB-only refresh operations
-            console.warn(`Refreshing explorer views for ${slug} (DB phase)`)
             refreshResult = await refreshExplorerViewsForSlug(trx, slug)
 
-            console.warn(`Explorer ${slug} refresh result:`, {
-                updated: refreshResult.updatedChartConfigIds.length,
-                unchanged: refreshResult.unchangedChartConfigIds.length,
-                removed: refreshResult.removedChartConfigIds.length,
-            })
+            return true
         })
 
         // If we got here without refreshResult, the job was marked done early
-        if (!refreshResult) {
-            return
+        if (!shouldContinue || !refreshResult) {
+            return { success: true, shouldRetry: false }
+        }
+
+        // Check if job is still running before proceeding to R2 operations
+        const stillRunning = await knexReadWriteTransaction(async (trx) => {
+            return await isJobStillRunning(trx, job.id)
+        })
+
+        if (!stillRunning) {
+            return { success: true, shouldRetry: false } // Job was superseded, abort
         }
 
         // Phase 2: R2 sync operations (outside any transaction)
-        console.warn(`Syncing R2 configs for explorer ${slug}`)
 
         // Delete removed configs from R2 in parallel
         if (refreshResult!.removedChartConfigIds.length > 0) {
-            console.warn(
-                `Deleting ${refreshResult!.removedChartConfigIds.length} removed configs from R2`
-            )
             await pMap(
                 refreshResult!.removedChartConfigIds,
                 async (configId) => {
@@ -108,10 +113,6 @@ export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
 
         // Upsert updated configs to R2 in parallel
         if (refreshResult!.updatedChartConfigIds.length > 0) {
-            console.warn(
-                `Uploading ${refreshResult!.updatedChartConfigIds.length} updated configs to R2`
-            )
-
             // Fetch chart configs (simple read, no transaction needed)
             const chartConfigs = await knexReadonlyTransaction(async (knex) => {
                 return await knex("chart_configs")
@@ -133,15 +134,18 @@ export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
         }
 
         // Phase 3: Final success state update in a new transaction
-        await knexReadWriteTransaction(async (trx) => {
+        const finalResult = await knexReadWriteTransaction(async (trx) => {
+            // Final check if job is still running before marking as done
+            const stillRunning = await isJobStillRunning(trx, job.id)
+            if (!stillRunning) {
+                return false // Job was superseded
+            }
+
             await updateExplorerRefreshStatus(trx, slug, "clean", new Date())
             await markJobDone(trx, job.id)
 
             // Trigger static build if explorer is published
             if (isPublished) {
-                console.warn(
-                    `Triggering static build for published explorer: ${slug}`
-                )
                 // Get the user who last edited this explorer for the build trigger
                 const explorerWithUser = await trx("explorers")
                     .join("users", "explorers.lastEditedByUserId", "users.id")
@@ -160,11 +164,15 @@ export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
                     )
                 }
             }
+
+            return true // Success
         })
 
-        console.warn(
-            `[${new Date().toISOString()}] Successfully completed job ${job.id} for explorer: ${slug}`
-        )
+        if (!finalResult) {
+            return { success: true, shouldRetry: false } // Job was superseded, abort
+        }
+
+        return { success: true, shouldRetry: false }
     } catch (error) {
         console.error(
             `[${new Date().toISOString()}] Error processing job ${job.id} for explorer ${slug}:`,
@@ -172,10 +180,7 @@ export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
         )
 
         // Handle job failure in a new transaction
-        let shouldApplyBackoff = false
-        let delayMs = 0
-
-        await knexReadWriteTransaction(async (trx) => {
+        const retryInfo = await knexReadWriteTransaction(async (trx) => {
             const attempts = job.attempts + 1
 
             if (attempts < MAX_ATTEMPTS) {
@@ -185,10 +190,9 @@ export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
                 await requeueJob(trx, job.id, attempts)
                 await updateExplorerRefreshStatus(trx, slug, "queued")
 
-                // Prepare for backoff delay after transaction completes
-                shouldApplyBackoff = true
-                delayMs = backoffDelay(attempts)
-                console.warn(`Will retry after ${delayMs}ms backoff`)
+                const delayMs = backoffDelay(attempts)
+                console.warn(`Should retry after ${delayMs}ms backoff`)
+                return { shouldRetry: true, delayMs }
             } else {
                 console.warn(
                     `Job ${job.id} for explorer ${slug} has exceeded max attempts, marking as failed`
@@ -199,16 +203,15 @@ export async function processExplorerViewsJob(job: DbPlainJob): Promise<void> {
                     error instanceof Error ? error : new Error(String(error))
                 )
                 await updateExplorerRefreshStatus(trx, slug, "failed")
+                return { shouldRetry: false, delayMs: 0 }
             }
         })
 
-        // Apply backoff delay outside of transaction
-        if (shouldApplyBackoff) {
-            await sleep(delayMs)
+        return {
+            success: false,
+            shouldRetry: retryInfo.shouldRetry,
+            retryDelayMs: retryInfo.delayMs,
         }
-
-        // Re-throw to be caught by the main loop
-        throw error
     }
 }
 
@@ -224,8 +227,14 @@ export async function processOneExplorerViewsJob(): Promise<boolean> {
             return false // No jobs available
         }
 
-        await processExplorerViewsJob(job)
-        return true // Job processed
+        const result = await processExplorerViewsJob(job)
+
+        // Handle retry logic here in the caller
+        if (!result.success && result.shouldRetry && result.retryDelayMs) {
+            await sleep(result.retryDelayMs)
+        }
+
+        return true // Job processed (whether successful or failed)
     } catch (error) {
         console.error(
             `[${new Date().toISOString()}] Error processing single job:`,

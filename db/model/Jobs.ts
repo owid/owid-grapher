@@ -14,25 +14,25 @@ export async function enqueueJob(
     knex: KnexReadWriteTransaction,
     job: DbInsertJob
 ): Promise<void> {
-    // Mark any existing queued jobs for this slug as done (superseded)
+    // Mark any existing queued jobs for this type and slug as done (superseded)
     await knexRaw(
         knex,
         `-- sql
             UPDATE jobs
             SET state = 'done', lastError = 'superseded by newer update'
-            WHERE type = ? AND slug = ? AND state = 'queued'
+            WHERE type = ? AND payload ->> '$.slug' = ? AND state = 'queued'
         `,
-        [job.type, job.slug]
+        [job.type, job.payload.slug]
     )
 
     // Insert the new job
     await knexRaw(
         knex,
         `-- sql
-            INSERT INTO jobs (type, slug, state, attempts, explorerUpdatedAt)
-            VALUES (?, ?, 'queued', 0, ?)
+            INSERT INTO jobs (type, payload, state, attempts)
+            VALUES (?, ?, 'queued', 0)
         `,
-        [job.type, job.slug, job.explorerUpdatedAt]
+        [job.type, JSON.stringify(job.payload)]
     )
 }
 
@@ -67,7 +67,14 @@ export async function claimNextQueuedJob(
         .where({ id: nextJob.id })
         .first()
 
-    return claimedJob || null
+    if (!claimedJob) return null
+
+    // Parse the JSON payload field
+    if (typeof claimedJob.payload === "string") {
+        claimedJob.payload = JSON.parse(claimedJob.payload)
+    }
+
+    return claimedJob
 }
 
 export async function markJobDone(
@@ -125,7 +132,36 @@ export async function getJobBySlug(
     type: JobType,
     slug: string
 ): Promise<DbPlainJob | null> {
-    return await knex(JobsTableName).where({ type, slug }).first()
+    const result = await knexRaw<DbPlainJob>(
+        knex,
+        `-- sql
+            SELECT * FROM jobs 
+            WHERE type = ? AND payload ->> '$.slug' = ?
+            LIMIT 1
+        `,
+        [type, slug]
+    )
+    if (result.length === 0) return null
+
+    // Parse the JSON payload field
+    const job = result[0]
+    if (typeof job.payload === "string") {
+        job.payload = JSON.parse(job.payload)
+    }
+
+    return job
+}
+
+export async function isJobStillRunning(
+    knex: KnexReadWriteTransaction,
+    jobId: number
+): Promise<boolean> {
+    const job = await knex(JobsTableName)
+        .where({ id: jobId })
+        .select("state")
+        .first()
+
+    return job?.state === "running"
 }
 
 export async function updateExplorerRefreshStatus(

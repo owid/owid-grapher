@@ -25,6 +25,7 @@ graph TD;
     site["site"];
     explorerAdminServer["explorerAdminServer"];
 
+    jobQueue["jobQueue"];
     worker["devTools/worker"];
     cf_functions["functions"];
 
@@ -70,11 +71,17 @@ graph TD;
     baker --> settings;
     baker --> site;
 
+    jobQueue --> types;
+    jobQueue --> utils;
+    jobQueue --> db;
+    jobQueue --> serverUtils;
+    jobQueue --> baker;
+
     worker --> types;
     worker --> utils;
-    worker --> adminSiteServer;
     worker --> db;
-    worker --> settings;
+    worker --> jobQueue;
+    worker --> serverUtils;
 
     classDef packageLayer fill:#e1f5fe;
     classDef infraLayer fill:#f3e5f5;
@@ -84,7 +91,7 @@ graph TD;
 
     class types,utils,components,core_table,grapher,explorer packageLayer;
     class settings,serverUtils infraLayer;
-    class db coreLayer;
+    class db,jobQueue coreLayer;
     class adminShared,adminSiteServer,adminSiteClient,baker,site,explorerAdminServer appLayer;
     class worker,cf_functions toolLayer;
 ```
@@ -100,35 +107,32 @@ The current structure shows several problematic patterns:
 3. **db → [many modules]**: DB has many outbound references but should be more foundational
 4. **adminSiteServer → [many modules]**: AdminSiteServer imports from many places including baker
 
-### Root Cause Analysis
+### Recent Improvements
 
-The circular import issue in our job queue implementation occurs because:
+The circular import issues have been resolved through refactoring:
 
-1. `devTools/worker` imports `adminSiteServer/R2/chartConfigR2Helpers.ts`
-2. `devTools/worker` imports `adminSiteServer/apiRoutes/routeUtils.ts`
-3. `db/model/Jobs.ts` tries to import `devTools/worker/explorerJobsWorker.ts`
-4. But `db` TSConfig doesn't include `devTools/worker` in its references
+1. **R2 helpers moved**: `adminSiteServer/R2/*` helpers moved to `serverUtils/r2/*`
+2. **Job queue extracted**: Created dedicated `jobQueue` module for job processing logic
+3. **Worker separation**: `devTools/worker` now imports from `jobQueue` instead of mixing concerns
+4. **Dependency inversion**: Worker calls job processor instead of db models calling worker functions
 
-### Recommended Solutions
+### Current Architecture
 
-1. **Move R2 helpers to shared location**: Move R2 helpers from `adminSiteServer` to `serverUtils` or create new `shared` module
-2. **Extract shared utilities**: Move `triggerStaticBuild` to `serverUtils` or similar shared location
-3. **Keep worker separate**: Don't import worker functions into `db` models - use dependency injection or separate entry points
-4. **Dependency hierarchy**: Follow this order:
-    - **Foundation**: `types` → `utils` → `settings` → `serverUtils`
-    - **Core**: `db` (depends only on foundation + packages)
-    - **Applications**: `adminSiteServer`, `baker`, etc. (can depend on core + foundation)
-    - **Tools**: `devTools/*` (can depend on applications but shouldn't be imported by core)
+The current structure follows a cleaner dependency hierarchy:
 
-## Current Structure Issues
+1. **Foundation**: `types` → `utils` → `settings` → `serverUtils`
+2. **Core**: `db` + `jobQueue` (depends only on foundation + packages)
+3. **Applications**: `adminSiteServer`, `baker`, etc. (can depend on core + foundation)
+4. **Tools**: `devTools/*` (can depend on applications and core but shouldn't be imported by core)
 
-- **db**: Should not depend on `site`, `components`, `explorer` - these should depend on db instead
-- **worker**: Should not be imported by `db` models - creates circular dependency
+## Remaining Structure Issues
+
+- **db**: Still depends on `site`, `components`, `explorer` - these should depend on db instead
 - **adminSiteServer**: Has very broad dependencies - consider splitting into smaller modules
 
-## Recommended Refactoring
+## Recent Completed Refactoring ✅
 
-1. Move shared utilities (R2, deploy queue) to `serverUtils` or new `shared` module
-2. Make `db` more foundational - remove dependencies on higher-level modules
-3. Use dependency injection for worker functionality instead of direct imports
-4. Consider creating `@ourworldindata/shared` package for cross-cutting concerns
+1. ✅ **Moved shared utilities**: R2 helpers moved from `adminSiteServer/R2/` to `serverUtils/r2/`
+2. ✅ **Extracted job queue**: Created dedicated `jobQueue` module for processing logic
+3. ✅ **Fixed circular imports**: Worker now uses dependency injection pattern instead of being imported by db models
+4. ✅ **Cleaner separation**: Each module now has clearer responsibilities and dependencies

@@ -34,7 +34,7 @@ import {
     saveNewChartConfigInDbAndR2,
     updateChartConfigInDbAndR2,
 } from "../chartConfigHelpers.js"
-import { deleteGrapherConfigFromR2ByUUID } from "../R2/chartConfigR2Helpers.js"
+import { deleteGrapherConfigFromR2ByUUID } from "../../serverUtils/r2/chartConfigR2Helpers.js"
 
 import {
     isKebabCase,

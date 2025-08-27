@@ -37,17 +37,22 @@ async function processOneJobAndExit(): Promise<void> {
             return
         }
 
-        try {
-            await processExplorerViewsJob(job)
+        const result = await processExplorerViewsJob(job)
+
+        if (result.success) {
             console.log(
                 `[${new Date().toISOString()}] Job ${job.id} completed successfully`
             )
-        } catch (error) {
-            console.error(
-                `[${new Date().toISOString()}] Failed to process job ${job.id}:`,
-                error
-            )
-            // Job failure handling is done within processExplorerViewsJob
+        } else {
+            console.error(`[${new Date().toISOString()}] Job ${job.id} failed`)
+
+            // Handle retry logic here in the caller
+            if (result.shouldRetry && result.retryDelayMs) {
+                console.log(
+                    `[${new Date().toISOString()}] Sleeping ${result.retryDelayMs}ms before allowing next job`
+                )
+                await sleep(result.retryDelayMs)
+            }
         }
     } catch (error) {
         console.error(
@@ -82,14 +87,20 @@ async function workerLoop(): Promise<void> {
                 continue
             }
 
-            try {
-                await processExplorerViewsJob(job)
-            } catch (error) {
+            const result = await processExplorerViewsJob(job)
+
+            if (!result.success) {
                 console.error(
-                    `[${new Date().toISOString()}] Failed to process job ${job.id}:`,
-                    error
+                    `[${new Date().toISOString()}] Failed to process job ${job.id}`
                 )
-                // Job failure handling is done within processExplorerViewsJob
+
+                // Handle retry logic here in the caller
+                if (result.shouldRetry && result.retryDelayMs) {
+                    console.log(
+                        `[${new Date().toISOString()}] Sleeping ${result.retryDelayMs}ms before next poll`
+                    )
+                    await sleep(result.retryDelayMs)
+                }
             }
         } catch (error) {
             console.error(
