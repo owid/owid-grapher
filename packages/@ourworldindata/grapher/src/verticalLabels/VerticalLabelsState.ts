@@ -51,7 +51,7 @@ export class VerticalLabelsState {
     private defaultOptions = {
         lineHeight: 1,
         maxWidth: Infinity,
-        minSpacing: 2,
+        minSpacing: 5,
         verticalAlign: VerticalAlign.middle,
     } as const satisfies Partial<VerticalLabelsOptions>
 
