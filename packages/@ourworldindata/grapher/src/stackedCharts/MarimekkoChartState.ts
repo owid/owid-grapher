@@ -121,6 +121,10 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         return this.transformedTable.getColumns(this.yColumnSlugs)
     }
 
+    @computed get formatColumn(): CoreColumn {
+        return this.yColumns[0]
+    }
+
     @computed get xColumnSlug(): string | undefined {
         return this.manager.xColumnSlug
     }
@@ -442,7 +446,7 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         const axis = config.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(this.yDomainDefault)
 
-        axis.formatColumn = this.yColumns[0]
+        axis.formatColumn = this.formatColumn
         axis.label = ""
 
         return axis
