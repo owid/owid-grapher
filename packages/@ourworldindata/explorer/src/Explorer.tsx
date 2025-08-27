@@ -36,7 +36,6 @@ import {
 import {
     Bounds,
     ColumnSlug,
-    DimensionProperty,
     excludeUndefined,
     exposeInstanceOnWindow,
     isInIFrame,
@@ -74,6 +73,7 @@ import {
     explorerUrlMigrationsById,
     migrateExplorerUrl,
 } from "./urlMigrations/ExplorerUrlMigrations.js"
+import { match } from "ts-pattern"
 
 export interface ExplorerProps extends SerializedGridProgram {
     grapherConfigs?: GrapherInterface[]
@@ -563,7 +563,7 @@ export class Explorer
         )
     }
 
-    // gets the slugs of all base and intermediate columns that a
+    // Gets the slugs of all base and intermediate columns that a
     // transformed column depends on; for example, if a column's transform
     // is 'divideBy 170775 other_slug' and 'other_slug' is also a transformed
     // column defined by 'multiplyBy 539022 2', then this function
@@ -579,23 +579,26 @@ export class Explorer
         ])
     }
 
-    // gets the IDs of all variables that a transformed column depends on;
+    // Gets the IDs of all variables that a transformed column depends on;
     // for example, if a there are two columns, 'slug' and 'other_slug', that
     // are defined by the transforms 'divideBy 170775 other_slug' and 'multiplyBy 539022 2',
     // respectively, then getBaseVariableIdsForColumnWithTransform('slug')
-    // returns ['539022', '170775'] as these are the IDs of the two variables
+    // returns [539022, 170775] as these are the IDs of the two variables
     // that the 'slug' column depends on
-    private getBaseVariableIdsForColumnWithTransform(slug: string): string[] {
+    private getBaseVariableIdsForColumnWithTransform(slug: string): number[] {
         const { columnDefsWithoutTableSlug } = this.explorerProgram
         const baseVariableIdsAndColumnSlugs =
             this.getBaseColumnsForColumnWithTransform(slug)
         const slugsInColumnBlock: string[] = columnDefsWithoutTableSlug
             .filter((def) => !def.owidVariableId)
             .map((def) => def.slug)
-        return baseVariableIdsAndColumnSlugs.filter(
-            (variableIdOrColumnSlug) =>
-                !slugsInColumnBlock.includes(variableIdOrColumnSlug)
-        )
+        return baseVariableIdsAndColumnSlugs
+            .filter(
+                (variableIdOrColumnSlug) =>
+                    !slugsInColumnBlock.includes(variableIdOrColumnSlug)
+            )
+            .map((id) => parseIntOrUndefined(id))
+            .filter((id) => id !== undefined)
     }
 
     @action.bound async updateGrapherFromExplorerUsingGrapherId() {
@@ -649,30 +652,26 @@ export class Explorer
     }
 
     @action.bound async updateGrapherFromExplorerUsingVariableIds() {
-        const grapherState = this.grapherState
-        const {
-            yVariableIds = "",
-            xVariableId,
-            colorVariableId,
-            sizeVariableId,
-            ySlugs = "",
-            xSlug,
-            colorSlug,
-            sizeSlug,
-        } = this.explorerProgram.explorerGrapherConfig
+        const { grapherState } = this
+        const { dimensionsOfSelectedRow, explorerGrapherConfig } =
+            this.explorerProgram
 
-        const yVariableIdsList = yVariableIds
-            .split(" ")
-            .map(parseIntOrUndefined)
-            .filter((item) => item !== undefined)
-        const ySlugList = ySlugs.split(" ")
+        const variableIdDimensions = dimensionsOfSelectedRow.filter(
+            (dim) => dim.type === "variableId"
+        )
+        const slugDimensions = dimensionsOfSelectedRow.filter(
+            (dim) => dim.type === "slug"
+        )
+
+        const yVariableIds = variableIdDimensions.map((dim) => dim.variableId)
+        const ySlugs = slugDimensions.map((dim) => dim.slug)
 
         const partialGrapherConfig =
-            this.partialGrapherConfigsByVariableId.get(yVariableIdsList[0]) ??
-            // if ySlug references a column that duplicates an indicator via the
+            this.partialGrapherConfigsByVariableId.get(yVariableIds[0]) ??
+            // If ySlug references a column that duplicates an indicator via the
             // `duplicate` transform, make sure the partial grapher config for
             // that indicator is pulled in
-            this.partialGrapherConfigsBySlug.get(ySlugList[0]) ??
+            this.partialGrapherConfigsBySlug.get(ySlugs[0]) ??
             {}
 
         const config: GrapherProgrammaticInterface = {
@@ -686,94 +685,82 @@ export class Explorer
             enableMapSelection: this.enableMapSelection,
         }
 
-        // if not empty, respect the explorer's selection
+        // If not empty, respect the explorer's selection
         if (this.selection.hasSelection) {
             config.selectedEntityNames = this.selection.selectedEntityNames
         }
 
-        // set given variable IDs as dimensions to make Grapher
+        // Indicator-based explorers support two types of dimensions for creating charts:
+        //
+        // 1. Indicator ID-based dimensions: These reference variables by their numeric IDs.
+        //    We simply add these IDs to the config's dimensions array so Grapher can
+        //    download the corresponding data and metadata.
+        //
+        // 2. Slug-based dimensions: These reference transformed columns defined by transform
+        //    operations like 'multiplyBy 539022 2' or 'divideBy 170775 other_slug'.
+        //
+        //    To render charts with slug-based dimensions, we need to:
+        //    1. Identify all base variables that the transformed columns depend on
+        //    2. Add these variables to the config's dimensions array for data fetching
+        //    3. Append the transformed columns to the Grapher table
+        //       (this includes any intermediate columns needed for multi-step transforms)
+
+        // Add the given variable IDs to the dimensions array to make Grapher
         // download the data and metadata for these variables
         const dimensions = config.dimensions?.slice() ?? []
-        yVariableIdsList.forEach((yVariableId) => {
-            dimensions.push({
-                variableId: yVariableId,
-                property: DimensionProperty.y,
-            })
-        })
-
-        if (xVariableId) {
-            const maybeXVariableId = parseIntOrUndefined(xVariableId)
-            if (maybeXVariableId !== undefined)
-                dimensions.push({
-                    variableId: maybeXVariableId,
-                    property: DimensionProperty.x,
+        for (const dimension of dimensionsOfSelectedRow) {
+            match(dimension)
+                .with({ type: "variableId" }, (dimension) => {
+                    dimensions.push(_.omit(dimension, "type"))
                 })
-        }
-        if (colorVariableId) {
-            const maybeColorVariableId = parseIntOrUndefined(colorVariableId)
-            if (maybeColorVariableId !== undefined)
-                dimensions.push({
-                    variableId: maybeColorVariableId,
-                    property: DimensionProperty.color,
+                .with({ type: "slug" }, (dimension) => {
+                    const baseVariableIds =
+                        this.getBaseVariableIdsForColumnWithTransform(
+                            dimension.slug
+                        )
+                    for (const variableId of baseVariableIds) {
+                        const hasDimension = dimensions.some(
+                            (d) => d.variableId === variableId
+                        )
+                        if (!hasDimension) {
+                            // Add the dimension to the beginning of the array
+                            // to ensure that the slug-based dimensions appear
+                            // before the variable id-based dimensions,
+                            // maintaining consistency with the ySlugs ordering
+                            // (see below)
+                            dimensions.unshift({
+                                variableId: variableId,
+                                // For multi-step transforms with intermediate
+                                // columns, we would ideally use DimensionProperty.table
+                                // to prevent intermediate variables from appearing
+                                // as chart dimensions. However, since indicator-based
+                                // explorers currently only use single-step transforms
+                                // (typically 'duplicate'), we can safely use the original
+                                // dimension's property.
+                                property: dimension.property,
+                            })
+                        }
+                    }
                 })
+                .exhaustive()
         }
-        if (sizeVariableId) {
-            const maybeSizeVariableId = parseIntOrUndefined(sizeVariableId)
-            if (maybeSizeVariableId !== undefined)
-                dimensions.push({
-                    variableId: maybeSizeVariableId,
-                    property: DimensionProperty.size,
-                })
-        }
-
-        // Slugs that are used to create a chart refer to columns derived from variables
-        // by a transform string (e.g. 'multiplyBy 539022 2'). To render such a chart, we
-        // need to download the data for all variables the transformed columns depend on
-        // and construct an appropriate Grapher table. This is done in three steps:
-        //   1. find all variables that the transformed columns depend on and add them to
-        //      the config's dimensions array
-        //   2. download data and metadata of the variables
-        //   3. append the transformed columns to the Grapher table (note that this includes
-        //      intermediate columns that are defined for multi-step transforms but are not
-        //      referred to in any Grapher row)
-
-        // all slugs specified by the author in the explorer config
-        const uniqueSlugsInGrapherRow = _.uniq(
-            [...ySlugs.split(" "), xSlug, colorSlug, sizeSlug].filter(
-                _.identity
-            )
-        ) as string[]
-
-        // find all variables that the transformed columns depend on and add them to the dimensions array
-        if (uniqueSlugsInGrapherRow.length) {
-            const baseVariableIds = _.uniq(
-                uniqueSlugsInGrapherRow.flatMap((slug) =>
-                    this.getBaseVariableIdsForColumnWithTransform(slug)
-                )
-            )
-                .map((id) => parseInt(id, 10))
-                .filter((id) => !isNaN(id))
-            baseVariableIds.forEach((variableId) => {
-                const hasDimension = dimensions.some(
-                    (d) => d.variableId === variableId
-                )
-                if (!hasDimension) {
-                    dimensions.push({
-                        variableId: variableId,
-                        property: DimensionProperty.table, // no specific dimension
-                    })
-                }
-            })
-        }
-
         config.dimensions = dimensions
-        if (ySlugs && yVariableIds) config.ySlugs = ySlugs + " " + yVariableIds
+
+        // Slug-based dimensions first, then variable id-based dimensions
+        if (explorerGrapherConfig.ySlugs && explorerGrapherConfig.yVariableIds)
+            config.ySlugs =
+                explorerGrapherConfig.ySlugs +
+                " " +
+                explorerGrapherConfig.yVariableIds
+
+        // All slugs specified by the author in the explorer config
+        const uniqueSlugs = _.uniq(slugDimensions.map(({ slug }) => slug))
 
         this.inputTableTransformer = (table: OwidTable) => {
             // add transformed (and intermediate) columns to the grapher table
-            if (uniqueSlugsInGrapherRow.length) {
+            if (uniqueSlugs.length) {
                 const allColumnSlugs = _.uniq(
-                    uniqueSlugsInGrapherRow.flatMap((slug) => [
+                    uniqueSlugs.flatMap((slug) => [
                         ...this.getBaseColumnsForColumnWithTransform(slug),
                         slug,
                     ])
@@ -991,10 +978,6 @@ export class Explorer
             this.explorerProgram.hideControls ||
             this.initialQueryParams.hideControls === "true"
         )
-    }
-
-    @computed private get downloadDataLink(): string | undefined {
-        return this.explorerProgram.downloadDataLink
     }
 
     private grapherContainerRef = React.createRef<HTMLDivElement>()
