@@ -32,6 +32,7 @@ import {
 } from "../verticalLabels/VerticalLabelsState"
 import { VerticalLabels } from "../verticalLabels/VerticalLabels"
 import { MarkX } from "./MarkX"
+import { NoDataModal } from "../noDataModal/NoDataModal"
 
 const DOT_RADIUS = 4
 const SPACE_BETWEEN_DOT_AND_LABEL = 4
@@ -287,8 +288,15 @@ export class SlopeChartThumbnail
             : 0
     }
 
-    override render(): React.ReactElement | null {
-        if (this.chartState.errorInfo.reason) return null
+    override render(): React.ReactElement {
+        if (this.chartState.errorInfo.reason)
+            return (
+                <NoDataModal
+                    manager={this.manager}
+                    bounds={this.props.bounds}
+                    message={this.chartState.errorInfo.reason}
+                />
+            )
 
         return (
             <>
