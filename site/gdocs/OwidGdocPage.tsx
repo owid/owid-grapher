@@ -52,7 +52,8 @@ function getPageDesc(gdoc: OwidGdocUnionType): string | undefined {
                         OwidGdocType.Article,
                         OwidGdocType.TopicPage,
                         OwidGdocType.LinearTopicPage,
-                        OwidGdocType.AboutPage
+                        OwidGdocType.AboutPage,
+                        OwidGdocType.Announcement
                     ),
                 },
             },

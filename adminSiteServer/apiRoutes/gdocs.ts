@@ -47,6 +47,7 @@ import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
 import e from "express"
+import { GdocAnnouncement } from "../../db/model/Gdoc/GdocAnnouncement.js"
 
 export async function getAllGdocIndexItems(
     req: Request,
@@ -99,8 +100,15 @@ async function indexAndBakeGdocIfNeccesary(
         | GdocDataInsight
         | GdocHomepage
         | GdocAbout
-        | GdocAuthor,
-    nextGdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAbout | GdocAuthor
+        | GdocAuthor
+        | GdocAnnouncement,
+    nextGdoc:
+        | GdocPost
+        | GdocDataInsight
+        | GdocHomepage
+        | GdocAbout
+        | GdocAuthor
+        | GdocAnnouncement
 ) {
     const prevJson = prevGdoc.toJSON()
     const nextJson = nextGdoc.toJSON()
@@ -147,7 +155,13 @@ async function indexAndBakeGdocIfNeccesary(
 
 async function validateSlugCollisionsIfPublishing(
     trx: db.KnexReadonlyTransaction,
-    gdoc: GdocPost | GdocDataInsight | GdocHomepage | GdocAbout | GdocAuthor
+    gdoc:
+        | GdocPost
+        | GdocDataInsight
+        | GdocHomepage
+        | GdocAbout
+        | GdocAuthor
+        | GdocAnnouncement
 ) {
     if (!gdoc.published) return
 

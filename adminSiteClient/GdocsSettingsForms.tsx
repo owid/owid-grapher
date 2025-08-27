@@ -6,6 +6,7 @@ import {
     OwidGdocHomepageInterface,
     OwidGdocAuthorInterface,
     OwidGdocAboutInterface,
+    OwidGdocAnnouncementInterface,
 } from "@ourworldindata/utils"
 import { EXCERPT_MAX_LENGTH } from "./gdocsValidation.js"
 import { GdocsSlug } from "./GdocsSlug.js"
@@ -212,6 +213,45 @@ export const GdocInsightSettings = ({
                 />
                 <GdocsSettingsContentField
                     property="figma-url"
+                    gdoc={gdoc}
+                    errors={errors}
+                />
+            </div>
+        </form>
+    )
+}
+
+export const GdocAnnouncementSettings = ({
+    gdoc,
+    setCurrentGdoc,
+    errors,
+}: {
+    gdoc: OwidGdocAnnouncementInterface
+    setCurrentGdoc: (gdoc: OwidGdocAnnouncementInterface) => void
+    errors?: OwidGdocErrorMessage[]
+}) => {
+    if (!gdoc || !errors) return null
+
+    return (
+        <form className="GdocsSettingsForm">
+            <GdocCommonErrors
+                errors={errors}
+                errorsToFilter={[
+                    "approved-by",
+                    "grapher-url",
+                    "narrative-chart",
+                    "figma-url",
+                ]}
+            />
+            <GdocCommonSettings
+                gdoc={gdoc}
+                setCurrentGdoc={setCurrentGdoc}
+                errors={errors}
+            />
+            <div className="form-group">
+                <h3 className="form-section-heading">Announcement settings</h3>
+                <GdocsSettingsContentField
+                    property="kicker"
                     gdoc={gdoc}
                     errors={errors}
                 />

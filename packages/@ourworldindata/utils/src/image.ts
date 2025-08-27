@@ -115,7 +115,8 @@ export function getFeaturedImageFilename(gdoc: OwidGdoc): string | undefined {
                         OwidGdocType.TopicPage,
                         OwidGdocType.LinearTopicPage,
                         OwidGdocType.AboutPage,
-                        OwidGdocType.Author
+                        OwidGdocType.Author,
+                        OwidGdocType.Announcement
                     ),
                 },
             },

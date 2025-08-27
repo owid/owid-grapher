@@ -1,0 +1,25 @@
+.announcement-page {
+    background-color: $gray-10;
+}
+.announcement-page-content {
+    background-color: #fff;
+    padding: 24px;
+    margin: 48px 0;
+
+    .data-insight-dateline {
+        @include h6-black-caps;
+    }
+}
+
+.announcement-page-header-meta {
+    display: flex;
+    justify-content: space-between;
+}
+
+.announcement-page-kicker {
+    color: $blue-60;
+}
+
+.announcement-page-heading {
+    margin: 8px 0;
+}
