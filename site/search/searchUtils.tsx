@@ -30,6 +30,7 @@ import {
     timeBoundToTimeBoundString,
     queryParamsToStr,
     omitUndefinedValues,
+    getRegionByName,
 } from "@ourworldindata/utils"
 import { type GrapherTrendArrowDirection } from "@ourworldindata/components"
 import {
@@ -955,7 +956,8 @@ export function buildChartHitDataDisplayProps({
         startDatapoint?.value,
         endDatapoint?.value
     )
-    const showLocationIcon = isEntityPickedByUser
+    const showLocationIcon =
+        isEntityPickedByUser && getRegionByName(entity) !== undefined
 
     return {
         entityName: entity,
