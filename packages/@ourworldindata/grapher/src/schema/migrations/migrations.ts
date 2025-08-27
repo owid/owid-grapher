@@ -120,7 +120,7 @@ export const migrateFrom007To008 = (
 }
 
 export const migrateFrom008To009 = (config: AnyConfigWithValidSchema) => {
-    if (config.map?.colorScale?.binningStrategy !== "manual") {
+    if ((config.map?.colorScale?.binningStrategy ?? "manual") !== "manual") {
         config.map.colorScale.binningStrategy = "auto"
     }
 
@@ -128,7 +128,7 @@ export const migrateFrom008To009 = (config: AnyConfigWithValidSchema) => {
         delete config.map.colorScale.binningStrategyBinCount
     }
 
-    if (config.colorScale?.binningStrategy !== "manual") {
+    if ((config.colorScale?.binningStrategy ?? "manual") !== "manual") {
         config.colorScale.binningStrategy = "auto"
     }
 
