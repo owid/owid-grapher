@@ -36,8 +36,11 @@ import type { BaseType, Selection } from "d3-selection"
 import { DiscreteBarChartState } from "./DiscreteBarChartState"
 import { makeProjectedDataPatternId } from "./DiscreteBarChartHelpers"
 
-const labelToTextPadding = 10
-const labelToBarPadding = 5
+/** The gap between the entity label and the bar */
+const GAP__ENTITY_LABEL__BAR = 5
+
+/** The gap between the the entity label and negative value label */
+const GAP__ENTITY_LABEL__VALUE_LABEL = 10
 
 export interface Label {
     valueString: string
@@ -108,33 +111,14 @@ export class DiscreteBars
     }
 
     // The amount of space we need to allocate for bar end labels on the right
-    @computed private get rightValueLabelWidth(): number {
+    @computed private get rightValueLabelsWidth(): number {
         if (!this.hasPositive) return 0
 
-        return (
-            _.max(
-                this.series
-                    .filter((d) => d.value >= 0)
-                    .map((d) => this.formatValue(d).width)
-            ) ?? 0
-        )
-    }
+        const labelsWidths = this.series
+            .filter((series) => series.value >= 0)
+            .map((series) => this.formatValue(series).width)
 
-    // The amount of space we need to allocate for bar end labels on the left
-    // These are only present if there are negative values
-    // We pad this a little so it doesn't run directly up against the bar labels themselves
-    @computed private get leftValueLabelWidth(): number {
-        if (!this.hasNegative) return 0
-
-        const labelAndValueWidths = this.sizedSeries
-            .filter((s) => s.value < 0)
-            .map((s) => {
-                const labelWidth = s.label?.width ?? 0
-                const valueWidth = this.formatValue(s).width
-                return labelWidth + valueWidth + labelToTextPadding
-            })
-
-        return _.max(labelAndValueWidths) ?? 0
+        return _.max(labelsWidths) ?? 0
     }
 
     @computed private get x0(): number {
@@ -151,10 +135,7 @@ export class DiscreteBars
     }
 
     @computed private get xRange(): [number, number] {
-        return [
-            this.bounds.left + this.leftValueLabelWidth,
-            this.bounds.right - this.rightValueLabelWidth,
-        ]
+        return this.innerBounds.xRange()
     }
 
     // NB: y-axis settings are used for the horizontal axis in DiscreteBarChart
@@ -182,10 +163,31 @@ export class DiscreteBars
         return axis
     }
 
+    /**
+     * The maximum width needed for labels positioned on the left side of the chart.
+     *
+     * For positive values, returns the width of entity labels only.
+     * For negative values, returns the entity label width, value label width
+     * and the padding between them.
+     */
+    @computed private get leftLabelsWidth(): number {
+        const labelWidths = this.sizedSeries.map((series) => {
+            const labelWidth = series.label?.width ?? 0
+            if (series.value < 0) {
+                const valueWidth = this.formatValue(series).width
+                return labelWidth + valueWidth + GAP__ENTITY_LABEL__VALUE_LABEL
+            } else {
+                return labelWidth
+            }
+        })
+
+        return _.max(labelWidths) ?? 0
+    }
+
     @computed private get innerBounds(): Bounds {
         return this.bounds
-            .padLeft(this.leftValueLabelWidth)
-            .padRight(this.rightValueLabelWidth)
+            .padLeft(this.leftLabelsWidth)
+            .padRight(this.rightValueLabelsWidth)
     }
 
     @computed private get barCount(): number {
@@ -414,11 +416,11 @@ export class DiscreteBars
                 : this.yAxis.place(series.value) - barX
             const label = this.formatValue(series)
             const entityLabelX = isNegative
-                ? barX - label.width - labelToTextPadding
-                : barX - labelToBarPadding
+                ? barX - label.width - GAP__ENTITY_LABEL__VALUE_LABEL
+                : barX - GAP__ENTITY_LABEL__BAR
             const valueLabelX =
                 this.yAxis.place(series.value) +
-                (isNegative ? -labelToBarPadding : labelToBarPadding)
+                (isNegative ? -GAP__ENTITY_LABEL__BAR : GAP__ENTITY_LABEL__BAR)
 
             return {
                 ...series,
