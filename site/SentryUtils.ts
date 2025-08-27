@@ -50,7 +50,7 @@ export function maybeSampleSession(sampleRate: number) {
  * @returns {boolean} True if sampling has been conducted for this session, false otherwise.
  */
 export function hasSessionBeenSampled(): boolean {
-    if (sessionStorage.getItem(SENTRY_SESSION_STORAGE_KEY)) {
+    if (getSentrySessionStorage() !== undefined) {
         return true
     }
 
@@ -70,14 +70,9 @@ export function hasSessionBeenSampled(): boolean {
  * @returns {boolean} True if sampling was recording, False otherwise.
  */
 function hasSessionBeenRecorded(): boolean {
-    const replaySession = sessionStorage.getItem(SENTRY_SESSION_STORAGE_KEY)
-    if (!replaySession) return false
-    try {
-        const data = JSON.parse(replaySession)
-        return data.sampled === "session"
-    } catch {
-        return false
-    }
+    const replaySession = getSentrySessionStorage()
+    if (replaySession === undefined) return false
+    return replaySession.sampled === "session"
 }
 
 function isSessionRecording(): boolean {
@@ -173,6 +168,20 @@ function parseExperimentsSampleRate(): number | undefined {
 }
 
 /**
+ * Gets the Sentry session storage object from sessionStorage.
+ *
+ * @returns {Record<string, any> | undefined} The Sentry session storage object or undefined if not found.
+ */
+function getSentrySessionStorage(): Record<string, any> | undefined {
+    try {
+        const raw = sessionStorage.getItem(SENTRY_SESSION_STORAGE_KEY)
+        return raw ? JSON.parse(raw) : undefined
+    } catch {
+        return undefined
+    }
+}
+
+/**
  * Gets the last recorded sample rate for the current session.
  *
  * @returns {number | undefined} The last sample rate (or undefined if not set).
@@ -214,11 +223,13 @@ function setSessionLastSampleRate(p: number | null | undefined) {
  * page loads or do not record page change breadcrumbs in the Sentry session replays UI.
  */
 function startSessionRecording(): void {
-    const replaySession = sessionStorage.getItem(SENTRY_SESSION_STORAGE_KEY)
-    if (replaySession) {
-        const data = JSON.parse(replaySession)
-        data.sampled = "session"
-        sessionStorage.setItem(SENTRY_SESSION_STORAGE_KEY, JSON.stringify(data))
+    const replaySession = getSentrySessionStorage()
+    if (replaySession !== undefined) {
+        replaySession.sampled = "session"
+        sessionStorage.setItem(
+            SENTRY_SESSION_STORAGE_KEY,
+            JSON.stringify(replaySession)
+        )
     }
     if (isSentryInitialized() && !isSessionRecording()) {
         const replay = Sentry.getReplay()
