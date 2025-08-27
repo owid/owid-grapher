@@ -89,7 +89,8 @@ export function getPrefixedGdocPath(
                         OwidGdocType.Article,
                         OwidGdocType.TopicPage,
                         OwidGdocType.LinearTopicPage,
-                        OwidGdocType.AboutPage
+                        OwidGdocType.AboutPage,
+                        OwidGdocType.Announcement
                     ),
                 },
             },
@@ -151,7 +152,8 @@ export function getPageTitle(gdoc: OwidGdoc) {
                         OwidGdocType.LinearTopicPage,
                         OwidGdocType.AboutPage,
                         OwidGdocType.DataInsight,
-                        OwidGdocType.Author
+                        OwidGdocType.Author,
+                        OwidGdocType.Announcement
                     ),
                 },
             },

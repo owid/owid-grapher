@@ -8,6 +8,7 @@ import {
     OwidGdocType,
     OwidGdocHomepageContent,
     OwidGdocAuthorContent,
+    OwidGdocAnnouncementContent,
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
 import { GDOC_DIFF_OMITTABLE_PROPERTIES } from "./constants.js"
@@ -116,7 +117,18 @@ export const checkIsLightningUpdate = (
         authors: false, // shouldn't be set, but defaults to "Our World in Data" because it's assumed to exist in the DB
         type: false, // should never be changed
     }
-
+    const announcementLightningPropContentConfigMap: Record<
+        keyof OwidGdocAnnouncementContent,
+        boolean
+    > = {
+        kicker: false,
+        authors: false,
+        title: false,
+        type: false,
+        body: false,
+        excerpt: false,
+        "featured-image": false,
+    }
     const authorLightningPropContentConfigMap: Record<
         keyof OwidGdocAuthorContent,
         boolean
@@ -140,6 +152,7 @@ export const checkIsLightningUpdate = (
         [OwidGdocType.Homepage]: homepageLightningPropContentConfigMap,
         [OwidGdocType.AboutPage]: postlightningPropContentConfigMap,
         [OwidGdocType.Author]: authorLightningPropContentConfigMap,
+        [OwidGdocType.Announcement]: announcementLightningPropContentConfigMap,
     }
 
     const getLightningPropKeys = (configMap: Record<string, boolean>) =>

@@ -7,6 +7,7 @@ import {
     GdocHomepageSettings,
     GdocAuthorSettings,
     GdocAboutPageSettings,
+    GdocAnnouncementSettings,
 } from "./GdocsSettingsForms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
@@ -360,6 +361,22 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                             },
                             (gdoc) => (
                                 <GdocInsightSettings
+                                    gdoc={gdoc}
+                                    setCurrentGdoc={(updatedGdoc) =>
+                                        setCurrentGdoc(() => updatedGdoc)
+                                    }
+                                    errors={errors}
+                                />
+                            )
+                        )
+                        .with(
+                            {
+                                content: {
+                                    type: OwidGdocType.Announcement,
+                                },
+                            },
+                            (gdoc) => (
+                                <GdocAnnouncementSettings
                                     gdoc={gdoc}
                                     setCurrentGdoc={(updatedGdoc) =>
                                         setCurrentGdoc(() => updatedGdoc)

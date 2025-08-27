@@ -13,6 +13,7 @@ import {
     faThList,
     faBuildingNgo,
     faUserPen,
+    faBullhorn,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
@@ -45,6 +46,7 @@ const iconGdocTypeMap = {
     [OwidGdocType.Homepage]: <FontAwesomeIcon icon={faHouse} />,
     [OwidGdocType.AboutPage]: <FontAwesomeIcon icon={faBuildingNgo} />,
     [OwidGdocType.Author]: <FontAwesomeIcon icon={faUserPen} />,
+    [OwidGdocType.Announcement]: <FontAwesomeIcon icon={faBullhorn} />,
 }
 
 enum GdocPublishStatus {
@@ -151,6 +153,7 @@ export class GdocsIndexPage extends React.Component<RouteComponentProps> {
         [OwidGdocType.Homepage]: false,
         [OwidGdocType.AboutPage]: false,
         [OwidGdocType.Author]: false,
+        [OwidGdocType.Announcement]: false,
         publishStatus: GdocPublishStatus.All,
     }
 
