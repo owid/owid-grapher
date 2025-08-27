@@ -29,7 +29,7 @@ export const runEqualSizeBinningStrategy = (
         conf.strategy,
         { hasMidpoint }
     )
-    return equalSizeBins({ minValue, maxValue, targetBinCount })
+    return createEqualSizeBins({ minValue, maxValue, targetBinCount })
 }
 
 /**
@@ -56,7 +56,7 @@ const getTargetBinCountForEqualSizeBinsStrategy = (
         .exhaustive()
 }
 
-export const equalSizeBins = ({
+export const createEqualSizeBins = ({
     minValue,
     maxValue,
     targetBinCount,

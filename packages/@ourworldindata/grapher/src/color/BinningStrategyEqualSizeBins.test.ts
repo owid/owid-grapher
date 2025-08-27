@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
-    equalSizeBins,
+    createEqualSizeBins,
     runEqualSizeBinningStrategy,
 } from "./BinningStrategyEqualSizeBins.js"
 
@@ -175,10 +175,10 @@ describe(runEqualSizeBinningStrategy, () => {
     })
 })
 
-describe(equalSizeBins, () => {
+describe(createEqualSizeBins, () => {
     describe("basic functionality", () => {
         it("should create bins with equal step sizes", () => {
-            const bins = equalSizeBins({
+            const bins = createEqualSizeBins({
                 minValue: 0,
                 maxValue: 10,
                 targetBinCount: [5, 9],
@@ -202,7 +202,7 @@ describe(equalSizeBins, () => {
         })
 
         it("should use nice step sizes", () => {
-            const bins = equalSizeBins({
+            const bins = createEqualSizeBins({
                 minValue: 0,
                 maxValue: 100,
                 targetBinCount: [5, 9],
@@ -235,7 +235,7 @@ describe(equalSizeBins, () => {
     describe("error handling", () => {
         it("should throw error when minValue > maxValue", () => {
             expect(() => {
-                equalSizeBins({
+                createEqualSizeBins({
                     minValue: 10,
                     maxValue: 5,
                     targetBinCount: [5, 9],
@@ -245,7 +245,7 @@ describe(equalSizeBins, () => {
 
         it("should throw error when no valid step size is found", () => {
             expect(() => {
-                equalSizeBins({
+                createEqualSizeBins({
                     minValue: 0,
                     maxValue: 1,
                     targetBinCount: [100, 200], // Impossible to achieve with nice step sizes
@@ -256,7 +256,7 @@ describe(equalSizeBins, () => {
 
     describe("edge cases", () => {
         it("should handle zero range", () => {
-            const bins = equalSizeBins({
+            const bins = createEqualSizeBins({
                 minValue: 5,
                 maxValue: 5,
                 targetBinCount: [2, 5],
@@ -265,7 +265,7 @@ describe(equalSizeBins, () => {
         })
 
         it("should handle very small ranges", () => {
-            const bins = equalSizeBins({
+            const bins = createEqualSizeBins({
                 minValue: 0.0001,
                 maxValue: 0.0002,
                 targetBinCount: [2, 5],
@@ -276,7 +276,7 @@ describe(equalSizeBins, () => {
         })
 
         it("should handle large ranges", () => {
-            const bins = equalSizeBins({
+            const bins = createEqualSizeBins({
                 minValue: 1000000,
                 maxValue: 10000000,
                 targetBinCount: [5, 9],
@@ -287,7 +287,7 @@ describe(equalSizeBins, () => {
         })
 
         it("should handle negative ranges", () => {
-            const bins = equalSizeBins({
+            const bins = createEqualSizeBins({
                 minValue: -100,
                 maxValue: -10,
                 targetBinCount: [5, 9],
@@ -298,7 +298,7 @@ describe(equalSizeBins, () => {
         })
 
         it("should handle ranges crossing zero", () => {
-            const bins = equalSizeBins({
+            const bins = createEqualSizeBins({
                 minValue: -50,
                 maxValue: 50,
                 targetBinCount: [5, 9],
@@ -315,7 +315,7 @@ describe(equalSizeBins, () => {
 
     describe("target bin count behavior", () => {
         it("should respect minimum target bin count", () => {
-            const bins = equalSizeBins({
+            const bins = createEqualSizeBins({
                 minValue: 0,
                 maxValue: 10,
                 targetBinCount: [3, 10],
@@ -325,7 +325,7 @@ describe(equalSizeBins, () => {
         })
 
         it("should respect maximum target bin count", () => {
-            const bins = equalSizeBins({
+            const bins = createEqualSizeBins({
                 minValue: 0,
                 maxValue: 10,
                 targetBinCount: [2, 4],
@@ -335,7 +335,7 @@ describe(equalSizeBins, () => {
         })
 
         it("should handle single target bin count", () => {
-            const bins = equalSizeBins({
+            const bins = createEqualSizeBins({
                 minValue: 0,
                 maxValue: 10,
                 targetBinCount: [5, 5],
@@ -347,7 +347,7 @@ describe(equalSizeBins, () => {
 
     describe("floating point precision", () => {
         it("should handle floating point arithmetic correctly", () => {
-            const bins = equalSizeBins({
+            const bins = createEqualSizeBins({
                 minValue: 0.1,
                 maxValue: 0.9,
                 targetBinCount: [4, 8],
@@ -360,7 +360,7 @@ describe(equalSizeBins, () => {
         })
 
         it("should round values to avoid floating point issues", () => {
-            const bins = equalSizeBins({
+            const bins = createEqualSizeBins({
                 minValue: 0,
                 maxValue: 1,
                 targetBinCount: [5, 9],

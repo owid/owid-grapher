@@ -53,13 +53,13 @@ export const runLogBinningStrategy = (
 
     const bins = match(resolvedStrategy)
         .with("log-10", () =>
-            fakeLogBins({ minValue, maxValue, logSteps: [1] })
+            createLogBins({ minValue, maxValue, logSteps: [1] })
         )
         .with("log-1-3", () =>
-            fakeLogBins({ minValue, maxValue, logSteps: [1, 3] })
+            createLogBins({ minValue, maxValue, logSteps: [1, 3] })
         )
         .with("log-1-2-5", () =>
-            fakeLogBins({ minValue, maxValue, logSteps: [1, 2, 5] })
+            createLogBins({ minValue, maxValue, logSteps: [1, 2, 5] })
         )
         .exhaustive()
 
@@ -67,6 +67,7 @@ export const runLogBinningStrategy = (
     if (
         !hasMidpoint &&
         conf.midpoint !== undefined &&
+        conf.midpointMode !== "none" &&
         bins[0] > conf.midpoint
     ) {
         bins.unshift(conf.midpoint)
@@ -75,7 +76,7 @@ export const runLogBinningStrategy = (
     return bins
 }
 
-const fakeLogBins = ({
+const createLogBins = ({
     minValue,
     maxValue,
     logSteps,
