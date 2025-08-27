@@ -18,6 +18,7 @@ import {
     mapGrapherTabNameToConfigOption,
     mapGrapherTabNameToQueryParam,
     StackedDiscreteBarChartState,
+    DiscreteBarChartState,
 } from "@ourworldindata/grapher"
 import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable"
 import { SearchChartHitDataPointsProps } from "./SearchChartHitDataPoints"
@@ -282,6 +283,20 @@ export function configureGrapherStateForLayout(
                 grapherState.selection.setSelectedEntities(selectedEntities)
             }
 
+            // Focus the entity that is displayed in the table
+            grapherState.focusArray.clearAllAndAdd(tableEntity)
+        }
+    }
+
+    // For faceted discrete bar charts, we display multiple bars in each facet,
+    // but the data table only shows values for one entity
+    if (grapherState.isDiscreteBar && grapherState.hasMultipleSeriesPerFacet) {
+        // Find the entity that is displayed in the table
+        const tableEntity =
+            grapherState.focusArray.seriesNames[0] ??
+            grapherState.selection.selectedEntityNames[0]
+
+        if (tableEntity) {
             // Focus the entity that is displayed in the table
             grapherState.focusArray.clearAllAndAdd(tableEntity)
         }
