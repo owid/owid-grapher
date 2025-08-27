@@ -74,19 +74,10 @@ export class DiscreteBarChart
         return 0.5 * this.legendHeight
     }
 
-    @computed private get boundsWithoutColorLegend(): Bounds {
+    @computed private get innerBounds(): Bounds {
         return this.bounds.padTop(
             this.showColorLegend ? this.legendHeight + this.legendPadding : 0
         )
-    }
-
-    // Account for the width of the legend
-    @computed private get seriesLegendWidth(): number {
-        return _.max(this.sizedSeries.map((s) => s.label?.width ?? 0)) ?? 0
-    }
-
-    @computed private get innerBounds(): Bounds {
-        return this.boundsWithoutColorLegend.padLeft(this.seriesLegendWidth)
     }
 
     @computed get fontSize(): number {
