@@ -2750,12 +2750,14 @@ export class GrapherState {
         )
     }
 
+    @computed get chartAreaPadding(): number {
+        // Choose padding based on chart size, ensuring it's at most 16px
+        return Math.min(16, Math.ceil(0.025 * this.activeBounds.width))
+    }
+
     /** Bounds of the chart area if no CaptionedChart is rendered */
     @computed get chartAreaBounds(): Bounds {
-        // Choose padding based on chart size, ensuring it's at most 16px
-        const padding = Math.min(16, Math.ceil(0.025 * this.activeBounds.width))
-        // 2px accounts for the border
-        return this.activeBounds.pad(padding + 2)
+        return this.activeBounds.pad(this.chartAreaPadding)
     }
 
     /** Bounds of the entity selector if rendered into the side panel */
