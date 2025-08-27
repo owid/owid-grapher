@@ -8,7 +8,9 @@ const tables = [
 
 const fields = ["$.map.colorScale", "$.colorScale"]
 
-export class UpdateColorScales1756133680995 implements MigrationInterface {
+export class UpdateBinningStrategies1756133680995
+    implements MigrationInterface
+{
     public async up(queryRunner: QueryRunner): Promise<void> {
         for (const { table, column } of tables) {
             for (const field of fields) {
