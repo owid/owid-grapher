@@ -1,4 +1,4 @@
-import { useMemo, ReactNode } from "react"
+import { useMemo, useEffect, useState, ReactNode } from "react"
 import cx from "classnames"
 import { GrapherProgrammaticInterface } from "@ourworldindata/grapher"
 import {
@@ -16,7 +16,9 @@ import {
     ImageMetadata,
     excludeNull,
     queryParamsToStr,
-    experimentState,
+    defaultExperimentState,
+    getExperimentState,
+    ExperimentState,
 } from "@ourworldindata/utils"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -110,8 +112,18 @@ export const DataPageV2Content = ({
         }
     }
 
-    // note: assignedExperiments and isPageInExperiment should NOT be used to
-    // conditionally render content b/c it will cause a flash of content before js loads.
+    // note: experimentState should NOT be used to conditionally render content b/c
+    // it will cause a flash of content before js loads.
+    const [experimentState, setExperimentState] = useState<ExperimentState>(
+        defaultExperimentState
+    )
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const s = getExperimentState()
+            setExperimentState(s)
+        }
+    }, [])
+
     const { isPageInExperiment, assignedExperiments } = experimentState
 
     return (

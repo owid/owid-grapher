@@ -322,7 +322,11 @@ export {
     validateUniqueExperimentIds,
     type ExperimentArm,
 } from "./experiments/Experiment.js"
-export { experimentState } from "./experiments/state.js"
+export {
+    getExperimentState,
+    defaultExperimentState,
+    type ExperimentState,
+} from "./experiments/state.js"
 export {
     EXPERIMENT_ARM_SEPARATOR,
     EXPERIMENT_PREFIX,

@@ -3,9 +3,14 @@ import { EXPERIMENT_PREFIX } from "./constants.js"
 import { Experiment } from "./Experiment.js"
 import { experiments } from "./config.js"
 
-type ExperimentState = {
+export type ExperimentState = {
     assignedExperiments: Record<string, string>
     isPageInExperiment: boolean
+}
+
+export const defaultExperimentState: ExperimentState = {
+    assignedExperiments: {},
+    isPageInExperiment: false,
 }
 
 /**
@@ -15,12 +20,9 @@ type ExperimentState = {
  *
  * @returns {ExperimentState} The experiment state for the current page.
  */
-function getExperimentState(): ExperimentState {
+export function getExperimentState(): ExperimentState {
     if (typeof window === "undefined") {
-        return {
-            assignedExperiments: {},
-            isPageInExperiment: false,
-        }
+        return defaultExperimentState
     }
 
     const activeExperiments = experiments.filter((exp) => !exp.isExpired())
@@ -89,5 +91,3 @@ function isPageInExperiment(
         return experiment?.isUrlInPaths(pathname) ?? false
     })
 }
-
-export const experimentState = getExperimentState()
