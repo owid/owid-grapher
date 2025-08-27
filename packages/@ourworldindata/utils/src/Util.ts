@@ -237,7 +237,7 @@ export const numberMagnitude = (num: number): number => {
 export const normaliseToSingleDigitNumber = (
     num: number
 ): { normalised: number; factor: number } => {
-    if (num === 0) return { normalised: 0, factor: 0 }
+    if (num === 0) return { normalised: 0, factor: 1 }
     const magnitude = numberMagnitude(num)
     const factor = Math.pow(10, magnitude - 1)
 

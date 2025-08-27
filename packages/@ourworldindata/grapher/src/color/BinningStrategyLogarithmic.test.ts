@@ -9,7 +9,7 @@ describe(runLogBinningStrategy, () => {
                 minValue: 0.01,
                 maxValue: 10000, // magnitude diff = 6
                 sortedValues: [],
-                midpointMode: "none",
+                midpointMode: undefined,
                 midpoint: 0,
             })
             // Should use log-10 strategy (only powers of 10)
@@ -22,7 +22,7 @@ describe(runLogBinningStrategy, () => {
                 minValue: 1,
                 maxValue: 1000, // magnitude diff = 3
                 sortedValues: [],
-                midpointMode: "none",
+                midpointMode: undefined,
                 midpoint: 0,
             })
             // Should use log-1-3 strategy
@@ -35,7 +35,7 @@ describe(runLogBinningStrategy, () => {
                 minValue: 1,
                 maxValue: 101, // magnitude diff = 2
                 sortedValues: [],
-                midpointMode: "none",
+                midpointMode: undefined,
                 midpoint: 0,
             })
             // Should use log-1-2-5 strategy
@@ -49,7 +49,7 @@ describe(runLogBinningStrategy, () => {
                     minValue: 1,
                     maxValue: 100, // magnitude diff = 2, * 1.8 = 3.6
                     sortedValues: [],
-                    midpointMode: "none",
+                    midpointMode: undefined,
                     midpoint: 0,
                 },
                 { hasMidpoint: true }
@@ -66,7 +66,7 @@ describe(runLogBinningStrategy, () => {
                 minValue: 0.1,
                 maxValue: 1000,
                 sortedValues: [],
-                midpointMode: "none",
+                midpointMode: undefined,
                 midpoint: 0,
             })
             expect(bins).toEqual([0, 0.1, 1, 10, 100, 1000])
@@ -78,7 +78,7 @@ describe(runLogBinningStrategy, () => {
                 minValue: 1,
                 maxValue: 302,
                 sortedValues: [],
-                midpointMode: "none",
+                midpointMode: undefined,
                 midpoint: 0,
             })
             expect(bins).toEqual([0, 1, 3, 10, 30, 100, 300, 1000])
@@ -90,7 +90,7 @@ describe(runLogBinningStrategy, () => {
                 minValue: 0.5,
                 maxValue: 50,
                 sortedValues: [],
-                midpointMode: "none",
+                midpointMode: undefined,
                 midpoint: 0,
             })
             expect(bins).toEqual([0, 0.5, 1, 2, 5, 10, 20, 50])
@@ -104,7 +104,7 @@ describe(runLogBinningStrategy, () => {
                 minValue: 10,
                 maxValue: 1000,
                 sortedValues: [],
-                midpointMode: "none",
+                midpointMode: undefined,
                 midpoint: 0,
             })
             expect(bins).toEqual([0, 10, 100, 1000])
@@ -117,7 +117,7 @@ describe(runLogBinningStrategy, () => {
                     minValue: 10,
                     maxValue: 1000,
                     sortedValues: [],
-                    midpointMode: "none",
+                    midpointMode: undefined,
                     midpoint: 0,
                 },
                 { hasMidpoint: true }
@@ -134,7 +134,7 @@ describe(runLogBinningStrategy, () => {
                     minValue: 0,
                     maxValue: 100,
                     sortedValues: [],
-                    midpointMode: "none",
+                    midpointMode: undefined,
                     midpoint: 0,
                 })
             }).toThrow("Log binning strategy only supports positive values")
@@ -147,7 +147,7 @@ describe(runLogBinningStrategy, () => {
                     minValue: 10,
                     maxValue: -5,
                     sortedValues: [],
-                    midpointMode: "none",
+                    midpointMode: undefined,
                     midpoint: 0,
                 })
             }).toThrow("Log binning strategy only supports positive values")
@@ -160,7 +160,7 @@ describe(runLogBinningStrategy, () => {
                     minValue: -5,
                     maxValue: 100,
                     sortedValues: [],
-                    midpointMode: "none",
+                    midpointMode: undefined,
                     midpoint: 0,
                 })
             }).toThrow("Log binning strategy only supports positive values")
@@ -174,7 +174,7 @@ describe(runLogBinningStrategy, () => {
                 minValue: 0.001,
                 maxValue: 0.1,
                 sortedValues: [],
-                midpointMode: "none",
+                midpointMode: undefined,
                 midpoint: 0,
             })
             expect(bins).toEqual([0, 0.001, 0.01, 0.1])
@@ -186,7 +186,7 @@ describe(runLogBinningStrategy, () => {
                 minValue: 10000,
                 maxValue: 10000000,
                 sortedValues: [],
-                midpointMode: "none",
+                midpointMode: undefined,
                 midpoint: 0,
             })
             expect(bins).toEqual([0, 10000, 100000, 1000000, 10000000])
@@ -198,7 +198,7 @@ describe(runLogBinningStrategy, () => {
                 minValue: 10,
                 maxValue: 10,
                 sortedValues: [],
-                midpointMode: "none",
+                midpointMode: undefined,
                 midpoint: 0,
             })
             expect(bins).toEqual([0, 10])
@@ -210,7 +210,7 @@ describe(runLogBinningStrategy, () => {
                 minValue: 2,
                 maxValue: 8,
                 sortedValues: [],
-                midpointMode: "none",
+                midpointMode: undefined,
                 midpoint: 0,
             })
             expect(bins).toEqual([0, 2, 5, 10])

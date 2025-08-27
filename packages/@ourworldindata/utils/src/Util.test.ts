@@ -356,7 +356,7 @@ describe(normaliseToSingleDigitNumber, () => {
     it("normalises zero", () => {
         expect(normaliseToSingleDigitNumber(0)).toEqual({
             normalised: 0,
-            factor: 0,
+            factor: 1,
         })
     })
 })
