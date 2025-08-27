@@ -13,8 +13,12 @@ import {
 import {
     fetchUnparsedGrapherConfig,
     rewriteMetaTags,
+    addClassNamesToBody,
 } from "../_common/grapherTools.js"
 import { IRequestStrict, Router, StatusError, error, cors } from "itty-router"
+import { EXPERIMENT_ARM_SEPARATOR, experiments } from "@ourworldindata/utils"
+import { ServerCookie } from "../_common/experiments.js"
+import * as cookie from "cookie"
 
 const { preflight, corsify } = cors({
     allowMethods: ["GET", "OPTIONS", "HEAD"],
@@ -83,8 +87,8 @@ router
     )
     .get(
         "/grapher/:slug",
-        async ({ params: { slug } }, { searchParams }, env) =>
-            handleHtmlPageRequest(slug, searchParams, env)
+        async ({ params: { slug } }, { searchParams }, env, etag, ctx) =>
+            handleHtmlPageRequest(slug, searchParams, env, ctx)
     )
     .all("*", () => error(404, "Route not defined"))
 
@@ -122,7 +126,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 async function handleHtmlPageRequest(
     slug: string,
     _searchParams: URLSearchParams,
-    env: Env
+    env: Env,
+    ctx: EventContext<unknown, any, Record<string, unknown>>
 ) {
     const url = env.url
 
@@ -141,6 +146,29 @@ async function handleHtmlPageRequest(
         return handlePageNotFound(env, grapherPageResp)
     }
 
+    const cookies = cookie.parse(ctx.request.headers.get("cookie") || "")
+    const cookiesToSet: ServerCookie[] =
+        (ctx.data.cookiesToSet as ServerCookie[]) || []
+    const combinedCookies = {
+        ...cookies,
+        ...Object.fromEntries(cookiesToSet.map((c) => [c.name, c.value])),
+    }
+    const experimentClassNames = Array.from(
+        new Set(
+            Object.entries(combinedCookies)
+                .filter(([key]) =>
+                    experiments.some(
+                        (exp) =>
+                            key === exp.id && exp.isUrlInPaths(url.pathname)
+                    )
+                )
+                .map(
+                    ([key, value]) =>
+                        `${key}${EXPERIMENT_ARM_SEPARATOR}${value}`
+                )
+        )
+    )
+
     // A non-200 status code is most likely a redirect (301 or 302), all of which we want to pass through as-is.
     // In the case of the redirect, the browser will then request the new URL which will again be handled by this worker.
     if (grapherPageResp.status !== 200) return grapherPageResp
@@ -152,12 +180,37 @@ async function handleHtmlPageRequest(
         url.search ? "&" + url.search.slice(1) : ""
     }`
 
+    let grapherPageWithExperimentClasses = grapherPageResp
+    if (experimentClassNames) {
+        grapherPageWithExperimentClasses = addClassNamesToBody(
+            grapherPageResp,
+            experimentClassNames
+        )
+    }
     const grapherPageWithUpdatedMetaTags = rewriteMetaTags(
         url,
         openGraphThumbnailUrl,
         twitterThumbnailUrl,
-        grapherPageResp
+        grapherPageWithExperimentClasses
     )
+
+    if (cookiesToSet && cookiesToSet.length) {
+        const headers = new Headers(grapherPageWithUpdatedMetaTags.headers)
+        for (const serverCookie of cookiesToSet) {
+            const cookieString = cookie.serialize(
+                serverCookie.name,
+                serverCookie.value,
+                serverCookie.options
+            )
+            headers.append("Set-Cookie", cookieString)
+        }
+        return new Response(grapherPageWithUpdatedMetaTags.body, {
+            status: grapherPageWithUpdatedMetaTags.status,
+            statusText: grapherPageWithUpdatedMetaTags.statusText,
+            headers,
+        })
+    }
+
     return grapherPageWithUpdatedMetaTags
 }
 

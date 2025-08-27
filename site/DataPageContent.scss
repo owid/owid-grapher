@@ -213,3 +213,116 @@
         }
     }
 }
+
+/*
+CSS for A/B experiments
+
+CSS patterns for hiding/showing elements based on visitor's assignment to an experiment.
+When a visitor is assigned to an experimental arm, the html body is given a class corresponding
+to the experiment+arm assignment: "{experimentId}--{armId}" (e.g. "exp-data-page-insight-links--treat1").
+
+Then, we conditionally show/hide blocks of content when this class is present on the body.
+Blocks with matching "{experimentId}--{armId}--show" are shown, while blocks with matching
+"{experimentId}--{armId}--hide" are hidden.
+
+By default when a user is NOT assigned to {armId}, blocks with "{experimentId}--{armId}--show"
+are hidden, while blocks with "{experimentId}--{armId}--hide" are shown.
+*/
+$experiments: (
+    exp-data-page-insight-buttons-basic: (
+        control1,
+        treat0,
+        treat1,
+    ),
+);
+
+$experimentId: exp-data-page-insight-buttons-basic;
+$armIds: control1, treat0, treat1;
+
+@each $exp, $arms in $experiments {
+    .#{$exp} {
+        @each $a in $arms {
+            // default state: all --show are hidden
+            &--#{$a}--show {
+                display: none;
+            }
+
+            // when arm is active, show the matching --show
+            &--#{$a} &--#{$a}--show {
+                display: block;
+
+                &.grid {
+                    display: grid;
+                }
+                margin-bottom: 24px;
+
+                @include sm-up {
+                    margin-bottom: 40px;
+                }
+            }
+
+            // when arm is active, hide the matching --hide
+            &--#{$a} &--#{$a}--hide {
+                display: none;
+            }
+        }
+    }
+}
+
+// styles specific to experiment exp-data-page-insight-buttons-basic
+.exp-data-page-insight-buttons-basic {
+    $arms: map-get($experiments, exp-data-page-insight-buttons-basic);
+    @each $a in $arms {
+        &--#{$a} .DataPageContent {
+            .chart-key-info {
+                padding-bottom: 0;
+                @include sm-up {
+                    padding-bottom: 0;
+                }
+            }
+            .insight-links {
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .insights-link {
+                padding: 12px 24px;
+                &.has-thumbnail {
+                    text-align: left;
+                }
+            }
+
+            .insights__title {
+                @include h2-bold;
+                margin: 24px 0 16px;
+
+                @include sm-up {
+                    margin: 24px 0 24px;
+                }
+            }
+
+            .insight__type {
+                @include h5-black-caps;
+
+                @include md-down {
+                    @include h6-black-caps;
+                }
+
+                margin-bottom: 4px;
+                margin-top: 0;
+                color: $blue-20;
+            }
+
+            .insight__title {
+                margin: 0;
+
+                @include subtitle-2-bold;
+
+                @include md-down {
+                    font-size: 18px;
+                }
+            }
+        }
+    }
+}

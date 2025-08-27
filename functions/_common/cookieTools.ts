@@ -41,3 +41,19 @@ export function extractClientIdFromGACookie(
     }
     return cookieValue // fallback to using the whole value
 }
+
+export function getAnalyticsConsentValue(request) {
+    const parsedCookies = parseCookies(request)
+    const preferencesRaw = parsedCookies["cookie_preferences"]
+    let value = false
+    if (preferencesRaw) {
+        preferencesRaw.split("|").map((p) => {
+            const [pRaw] = p.split("-")
+            const [type, valueRaw] = pRaw.split(":")
+            if (type === "a") {
+                value = valueRaw === "1"
+            }
+        })
+    }
+    return value
+}

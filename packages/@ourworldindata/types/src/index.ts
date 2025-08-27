@@ -381,6 +381,7 @@ export {
     type DataPageDataV2,
     type DataPageRelatedResearch,
     type PrimaryTopic,
+    type DataInsightLink,
     type FaqLink,
     type FaqEntryData,
     type DisplaySource,
@@ -817,6 +818,9 @@ export {
     GRAPHER_PREVIEW_CLASS,
     HIDE_IF_JS_DISABLED_CLASSNAME,
     HIDE_IF_JS_ENABLED_CLASSNAME,
+    SENTRY_DEFAULT_REPLAYS_SESSION_SAMPLE_RATE,
+    SENTRY_SESSION_STORAGE_KEY,
+    SENTRY_SAMPLED_RATE_KEY,
 } from "./siteTypes/SiteConstants.js"
 export {
     ARCHIVE_DATE_TIME_FORMAT,
