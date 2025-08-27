@@ -46,6 +46,7 @@ export interface TooltipValueProps {
     isProjection?: boolean
     notice?: number | string // actual year data was drawn from (when ≠ target year)
     showSignificanceSuperscript?: boolean // show significance-s superscript if applicable
+    labelVariant?: "name+unit" | "unit-only"
 }
 
 export interface TooltipValueRangeProps {
@@ -54,6 +55,7 @@ export interface TooltipValueRangeProps {
     color?: string
     notice?: (number | string | undefined)[] // actual year data was drawn from (when ≠ target year)
     showSignificanceSuperscript?: boolean // show significance-s superscript if applicable
+    labelVariant?: "name+unit" | "unit-only"
 }
 
 export interface TooltipTableProps {
