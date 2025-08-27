@@ -600,13 +600,14 @@ export class ScatterPlotChart
                 {verticalColorLegend && <VerticalColorLegend manager={this} />}
                 {sizeLegend && (
                     <>
-                        {separatorLine(ySizeLegend)}
+                        {verticalColorLegend && separatorLine(ySizeLegend)}
                         {sizeLegend.render(this.legendX, ySizeLegend)}
                     </>
                 )}
                 {arrowLegend && (
                     <>
-                        {separatorLine(yArrowLegend)}
+                        {(verticalColorLegend || sizeLegend) &&
+                            separatorLine(yArrowLegend)}
                         <g
                             className="clickable"
                             onClick={this.onToggleEndpoints}
