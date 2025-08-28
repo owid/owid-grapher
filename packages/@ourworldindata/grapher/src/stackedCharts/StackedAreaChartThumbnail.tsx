@@ -107,6 +107,20 @@ export class StackedAreaChartThumbnail
         return yAxis
     }
 
+    @computed private get labelsRange(): [number, number] {
+        const {
+            horizontalAxisPart,
+            manager: { chartAreaPadding = 0 },
+        } = this
+
+        return this.bounds
+            .expand({
+                top: chartAreaPadding,
+                bottom: chartAreaPadding + horizontalAxisPart.height,
+            })
+            .yRange()
+    }
+
     @computed private get verticalLabelsState():
         | VerticalLabelsState
         | undefined {
@@ -135,9 +149,7 @@ export class StackedAreaChartThumbnail
         return new VerticalLabelsState(series, {
             fontSize: this.labelFontSize,
             maxWidth: 0.25 * this.bounds.width,
-            yRange: this.bounds
-                .expand(this.manager.chartAreaPadding ?? 0)
-                .yRange(),
+            yRange: this.labelsRange,
             resolveCollision: (
                 s1: InitialVerticalLabelsSeries,
                 s2: InitialVerticalLabelsSeries
