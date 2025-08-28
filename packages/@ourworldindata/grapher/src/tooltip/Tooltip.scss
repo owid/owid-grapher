@@ -185,6 +185,36 @@
                             color: $grey;
                         }
                     }
+
+                    // Hide the variable name and use just the unit (if present) as a label
+                    &.variable--no-name .definition {
+                        .name {
+                            display: none;
+                        }
+
+                        // Remove parentheses around unit
+                        .unit {
+                            &::after,
+                            &::before {
+                                content: none;
+                            }
+                        }
+
+                        &:not(:has(.unit)) .projection {
+                            display: inline-block; // Required for ::first-letter pseudo-element to work
+
+                            // Capitalize only the first letter of the projection text
+                            &::first-letter {
+                                text-transform: uppercase;
+                            }
+
+                            // Remove parentheses around unit
+                            &::after,
+                            &::before {
+                                content: none;
+                            }
+                        }
+                    }
                 }
 
                 .variable + .variable {
@@ -447,42 +477,6 @@
                 transition: opacity $fade-time $fade-delay;
                 &.immediate {
                     transition: opacity $fade-time;
-                }
-            }
-
-            //
-            // ‘TEMPORARY’ FIX:
-            // Until the map variable displayNames can be copy-edited, hide the variable name entirely
-            // and use just the unit (if present) as a label
-            //
-            &#mapTooltip {
-                .variable .definition {
-                    .name {
-                        display: none;
-                    }
-
-                    .unit {
-                        &::after,
-                        &::before {
-                            content: none;
-                        }
-                    }
-
-                    &:not(:has(.unit)) .projection {
-                        display: inline-block; // to make ::first-letter work
-
-                        // 'text:transform: capitalize' capitalizes the first
-                        // letter of each word. that's why we're only uppercasing
-                        // the first letter instead
-                        &::first-letter {
-                            text-transform: uppercase;
-                        }
-
-                        &::after,
-                        &::before {
-                            content: none;
-                        }
-                    }
                 }
             }
         }

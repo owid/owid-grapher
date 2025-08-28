@@ -23,6 +23,7 @@ export function TooltipValue({
     color,
     notice,
     isProjection,
+    labelVariant = "name+unit",
     showSignificanceSuperscript,
 }: TooltipValueProps): React.ReactElement | null {
     const displayValue = _.isNumber(value)
@@ -41,6 +42,7 @@ export function TooltipValue({
             color={displayColor}
             isProjection={isProjection}
             notice={notice ? [notice] : undefined}
+            labelVariant={labelVariant}
         >
             <span>
                 {displayValue}
@@ -73,6 +75,7 @@ export function TooltipValueRange({
     values,
     color,
     notice,
+    labelVariant = "name+unit",
     showSignificanceSuperscript,
 }: TooltipValueRangeProps): React.ReactElement | null {
     const [firstValue, lastValue] = values.map((v) =>
@@ -99,7 +102,12 @@ export function TooltipValueRange({
     const superscript = showSuperscript ? <IconCircledS asSup={true} /> : null
 
     return values.length ? (
-        <Variable column={column} color={color} notice={notice}>
+        <Variable
+            column={column}
+            color={color}
+            notice={notice}
+            labelVariant={labelVariant}
+        >
             <span className="range">
                 <span className="term">
                     {firstTerm}
@@ -123,16 +131,18 @@ function Variable({
     color,
     notice,
     isProjection,
+    labelVariant = "name+unit",
 }: {
     column: CoreColumn
     color?: string
     isProjection?: boolean
     notice?: (number | string | undefined)[]
+    labelVariant?: "name+unit" | "unit-only"
     children?: React.ReactNode
 }): React.ReactElement | null {
     if (column.isMissing || column.name === "time") return null
 
-    const { mainLabel: label, unit } = makeAxisLabel({
+    const { mainLabel: columnName, unit } = makeAxisLabel({
         label: column.displayName,
         unit: column.unit,
         shortUnit: column.shortUnit,
@@ -146,9 +156,13 @@ function Variable({
             .join("\u2013") || null
 
     return (
-        <div className="variable">
+        <div
+            className={classnames("variable", {
+                "variable--no-name": labelVariant === "unit-only",
+            })}
+        >
             <div className="definition">
-                {label && <span className="name">{label}</span>}
+                {columnName && <span className="name">{columnName}</span>}
                 {unit && unit.length > 1 && (
                     <span className="unit">{unit}</span>
                 )}

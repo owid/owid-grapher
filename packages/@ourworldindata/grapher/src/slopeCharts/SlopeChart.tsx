@@ -818,7 +818,11 @@ export class SlopeChart
                 footer={footer}
                 dismiss={() => (this.tooltipState.target = null)}
             >
-                <TooltipValueRange column={this.formatColumn} values={values} />
+                <TooltipValueRange
+                    column={series.column}
+                    values={values}
+                    labelVariant="unit-only"
+                />
             </Tooltip>
         )
     }

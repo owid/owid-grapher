@@ -208,6 +208,7 @@ export class MapTooltip
                     value={valueLabel}
                     color={valueColor}
                     isProjection={isProjection}
+                    labelVariant="unit-only"
                     showSignificanceSuperscript={
                         !!roundingNotice &&
                         roundingNotice.icon !== TooltipFooterIcon.none
