@@ -69,7 +69,10 @@ export class MarimekkoChartThumbnail
 
     @computed private get yAxisConfig(): AxisConfig {
         const { yAxisConfig } = this.manager
-        const custom = { hideGridlines: true, hideAxis: true }
+        const custom = {
+            hideGridlines: true,
+            hideAxis: !this.manager.isDisplayedAlongsideComplementaryTable,
+        }
         return new AxisConfig({ ...yAxisConfig, ...custom }, this)
     }
 
