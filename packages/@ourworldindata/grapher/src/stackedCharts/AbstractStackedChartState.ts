@@ -84,6 +84,17 @@ export abstract class AbstractStackedChartState implements ChartState {
         }
 
         if (this.manager.isRelativeMode) {
+            if (this.isEntitySeries) {
+                // If we are dealing with an entity series in relative mode, we
+                // want to drop all rows that are missing data for any column,
+                // because otherwise the displayed data will be misleading in
+                // that it may suggest patterns that are not actually present.
+                // see https://github.com/owid/owid-grapher/issues/2860
+                table = table.dropRowsWithErrorValuesForAnyColumn(
+                    this.yColumnSlugs
+                )
+            }
+
             table = this.isEntitySeries
                 ? table.toPercentageFromEachEntityForEachTime(
                       this.yColumnSlugs[0]
