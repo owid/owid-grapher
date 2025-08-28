@@ -116,11 +116,11 @@ export class DeployStatusPage extends Component {
                     <p>
                         Past deploys can be found in the{" "}
                         <a
-                            href="https://github.com/owid/owid-static/commits/master"
+                            href="https://buildkite.com/our-world-in-data/owid-deploy-content-master/builds?branch=master"
                             target="_blank"
                             rel="noopener noreferrer"
                         >
-                            <strong>owid-static</strong> GitHub repository
+                            Buildkite pipeline
                         </a>
                         .
                     </p>
