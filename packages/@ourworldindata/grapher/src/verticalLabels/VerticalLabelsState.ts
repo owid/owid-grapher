@@ -115,8 +115,7 @@ export class VerticalLabelsState {
             // Check if the label is out of bounds
             if (
                 yRange &&
-                (s1.collisionBounds.top < yRange[1] ||
-                    s1.collisionBounds.bottom > yRange[0])
+                (s1.bounds.top < yRange[1] || s1.bounds.bottom > yRange[0])
             ) {
                 s1.isHidden = true
                 continue

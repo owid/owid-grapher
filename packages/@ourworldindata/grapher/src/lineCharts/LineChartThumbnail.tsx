@@ -172,6 +172,20 @@ export class LineChartThumbnail
         return this.chartState.series.some((series) => !!series.isProjection)
     }
 
+    @computed private get labelsRange(): [number, number] {
+        const {
+            horizontalAxisPart,
+            manager: { chartAreaPadding = 0 },
+        } = this
+
+        return this.bounds
+            .expand({
+                top: chartAreaPadding,
+                bottom: chartAreaPadding + horizontalAxisPart.height,
+            })
+            .yRange()
+    }
+
     @computed private get endLabelsState(): VerticalLabelsState | undefined {
         if (!this.manager.showLegend) return undefined
 
@@ -218,9 +232,7 @@ export class LineChartThumbnail
 
         return new VerticalLabelsState(series, {
             fontSize: this.labelFontSize,
-            yRange: this.bounds
-                .expand(this.manager.chartAreaPadding ?? 0)
-                .yRange(),
+            yRange: this.labelsRange,
             minSpacing: 2,
             resolveCollision: (
                 s1: InitialVerticalLabelsSeries,
@@ -306,9 +318,7 @@ export class LineChartThumbnail
             fontSize: this.labelFontSize,
             maxWidth: showEntityNames ? 0.25 * this.bounds.width : undefined,
             minSpacing: showEntityNames ? 5 : 2,
-            yRange: this.bounds
-                .expand(this.manager.chartAreaPadding ?? 0)
-                .yRange(),
+            yRange: this.labelsRange,
             resolveCollision: (
                 s1: InitialVerticalLabelsSeries,
                 s2: InitialVerticalLabelsSeries
