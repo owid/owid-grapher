@@ -9,7 +9,6 @@ import {
     MissingDataStrategy,
     EntityName,
     SeriesName,
-    OwidChartDimensionInterface,
 } from "@ourworldindata/types"
 import { GrapherState } from "@ourworldindata/grapher"
 import {
@@ -28,22 +27,13 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { AbstractChartEditor } from "./AbstractChartEditor.js"
-import { OwidTable } from "@ourworldindata/core-table"
 import { SortableList } from "./SortableList.js"
 
 interface EntityListItemProps extends React.HTMLProps<HTMLDivElement> {
-    grapherState: GrapherState
+    editor: AbstractChartEditor
     entityName: EntityName
     onRemove?: () => void
     isDndEnabled: boolean
-    cachingGrapherDataLoader: (
-        dimensions: OwidChartDimensionInterface[],
-        selectedEntityColors:
-            | {
-                  [entityName: string]: string | undefined
-              }
-            | undefined
-    ) => Promise<OwidTable | undefined>
 }
 
 interface SeriesListItemProps extends React.HTMLProps<HTMLDivElement> {
@@ -65,7 +55,7 @@ class EntityListItem extends React.Component<EntityListItemProps> {
     }
 
     @computed get table() {
-        return this.props.grapherState.table
+        return this.props.editor.grapherState.table
     }
 
     @computed get color() {
@@ -73,22 +63,15 @@ class EntityListItem extends React.Component<EntityListItemProps> {
     }
 
     @action.bound onColor(color: string | undefined) {
-        const { grapherState } = this.props
+        const { grapherState } = this.props.editor
         grapherState.selectedEntityColors[this.props.entityName] = color
         grapherState.legacyConfigAsAuthored.selectedEntityColors = {
             ...grapherState.legacyConfigAsAuthored.selectedEntityColors,
             [this.props.entityName]: color,
         }
-        void this.props
-            .cachingGrapherDataLoader(
-                this.props.grapherState.dimensions,
-                this.props.grapherState.selectedEntityColors
-            )
-            .then((inputTable) => {
-                if (inputTable) this.props.grapherState.inputTable = inputTable
-            })
+        void this.props.editor.reloadGrapherData()
 
-        this.props.grapherState.seriesColorMap?.clear()
+        this.props.editor.grapherState.seriesColorMap?.clear()
     }
 
     @action.bound onRemove() {
@@ -97,7 +80,7 @@ class EntityListItem extends React.Component<EntityListItemProps> {
 
     override render() {
         const { props, color } = this
-        const { entityName, grapherState } = props
+        const { entityName, editor } = props
         const rest = _.omit(props, [
             "entityName",
             "onRemove",
@@ -116,7 +99,7 @@ class EntityListItem extends React.Component<EntityListItemProps> {
                     <ColorBox
                         color={color}
                         onColor={this.onColor}
-                        showLineChartColors={grapherState.isLineChart}
+                        showLineChartColors={editor.grapherState.isLineChart}
                     />
                     {entityName}
                 </div>
@@ -266,14 +249,11 @@ export class EntitySelectionSection extends React.Component<{
                     renderItem={(item) => (
                         <SortableList.Item id={item.id}>
                             <EntityListItem
-                                grapherState={grapherState}
+                                editor={editor}
                                 entityName={item.entityName}
                                 onRemove={() =>
                                     this.onRemoveKey(item.entityName)
                                 }
-                                cachingGrapherDataLoader={editor.cachingGrapherDataLoader.bind(
-                                    editor
-                                )}
                                 isDndEnabled={isDndEnabled}
                             />
                         </SortableList.Item>

@@ -196,14 +196,7 @@ class DimensionSlotView<
             }
         )
         if (this.grapherState.dimensions.length > 0)
-            void this.editor
-                .cachingGrapherDataLoader(
-                    this.grapherState.dimensions,
-                    this.grapherState.selectedEntityColors
-                )
-                .then((inputTable) => {
-                    if (inputTable) this.grapherState.inputTable = inputTable
-                })
+            void this.editor.reloadGrapherData()
     }
 
     override componentWillUnmount() {
@@ -226,12 +219,7 @@ class DimensionSlotView<
             dimensions: grapherState.dimensions.map((dim) => dim.toObject()),
         })
         grapherState.seriesColorMap?.clear()
-        const inputTable = await this.props.editor.cachingGrapherDataLoader(
-            grapherState.dimensions,
-            grapherState.selectedEntityColors
-        )
-
-        if (inputTable) this.grapherState.inputTable = inputTable
+        await this.editor.reloadGrapherData()
     }
 
     @action.bound private updateParentConfig() {
