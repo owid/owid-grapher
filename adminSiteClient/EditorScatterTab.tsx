@@ -53,6 +53,7 @@ export class EditorScatterTab<
     override componentDidMount() {
         this.xOverrideTimeInputValue = this.grapherState.xOverrideTime
         const debouncedSetValue = _.debounce(this.setXOverrideTime, 300)
+        this.disposers.push(() => debouncedSetValue.cancel())
 
         this.disposers.push(
             reaction(
