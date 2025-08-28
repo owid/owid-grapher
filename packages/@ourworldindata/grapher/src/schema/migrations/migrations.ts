@@ -119,6 +119,27 @@ export const migrateFrom007To008 = (
     return config
 }
 
+export const migrateFrom008To009 = (config: AnyConfigWithValidSchema) => {
+    if ((config.map?.colorScale?.binningStrategy ?? "manual") !== "manual") {
+        config.map.colorScale.binningStrategy = "auto"
+    }
+
+    if (config.map?.colorScale?.binningStrategyBinCount !== undefined) {
+        delete config.map.colorScale.binningStrategyBinCount
+    }
+
+    if ((config.colorScale?.binningStrategy ?? "manual") !== "manual") {
+        config.colorScale.binningStrategy = "auto"
+    }
+
+    if (config.colorScale?.binningStrategyBinCount !== undefined) {
+        delete config.colorScale.binningStrategyBinCount
+    }
+
+    config.$schema = createSchemaForVersion("009")
+    return config
+}
+
 export const runMigration = (
     config: AnyConfigWithValidSchema
 ): AnyConfigWithValidSchema => {
@@ -132,5 +153,6 @@ export const runMigration = (
         .with("005", () => migrateFrom005To006(config))
         .with("006", () => migrateFrom006To007(config))
         .with("007", () => migrateFrom007To008(config))
+        .with("008", () => migrateFrom008To009(config))
         .exhaustive()
 }

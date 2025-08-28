@@ -1,6 +1,6 @@
 import { AvailableTransforms } from "@ourworldindata/core-table"
 import {
-    BinningStrategy,
+    automaticBinningStrategies,
     ColorSchemeName,
     ColumnTypeNames,
 } from "@ourworldindata/types"
@@ -161,7 +161,7 @@ export const ColumnGrammar: Grammar<ColumnCellDef> = {
     colorScaleBinningStrategy: {
         ...EnumCellDef,
         keyword: "colorScaleBinningStrategy",
-        terminalOptions: Object.values(BinningStrategy).map((keyword) => ({
+        terminalOptions: automaticBinningStrategies.map((keyword) => ({
             keyword,
             description: "",
             cssClass: "",

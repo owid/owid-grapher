@@ -3,9 +3,10 @@ import { observable, makeObservable } from "mobx"
 import {
     Color,
     ColumnColorScale,
-    BinningStrategy,
+    BinningStrategyIncludingManual,
     ColorSchemeName,
     ColorScaleConfigInterface,
+    MidpointMode,
 } from "@ourworldindata/types"
 import {
     trimObject,
@@ -31,9 +32,12 @@ export class ColorScaleConfigDefaults implements ColorScaleConfigInterface {
     // ============
 
     /** The strategy for generating the bin boundaries */
-    binningStrategy: BinningStrategy = BinningStrategy.ckmeans
-    /** The *suggested* number of bins for the automatic binning algorithm */
-    binningStrategyBinCount: number | undefined = undefined
+    binningStrategy: BinningStrategyIncludingManual = "auto"
+    createBinForMidpoint?: boolean
+    minValue?: number
+    maxValue?: number
+    midpoint?: number
+    midpointMode?: MidpointMode
 
     /** Custom maximum brackets for each numeric bin. Only applied when strategy is `manual`. */
     customNumericValues: number[] = []
@@ -82,7 +86,6 @@ export class ColorScaleConfigDefaults implements ColorScaleConfigInterface {
             baseColorScheme: observable,
             colorSchemeInvert: observable,
             binningStrategy: observable,
-            binningStrategyBinCount: observable,
             customNumericValues: observable,
             customNumericLabels: observable,
             customNumericColorsActive: observable,
@@ -91,6 +94,11 @@ export class ColorScaleConfigDefaults implements ColorScaleConfigInterface {
             customCategoryLabels: observable.ref,
             customHiddenCategories: observable.ref,
             legendDescription: observable,
+            createBinForMidpoint: observable,
+            minValue: observable,
+            maxValue: observable,
+            midpoint: observable,
+            midpointMode: observable,
         })
     }
 }
@@ -168,9 +176,9 @@ export class ColorScaleConfig
         // Use user-defined binning strategy, otherwise set to manual if user has
         // defined custom bins
         const binningStrategy = scale.colorScaleBinningStrategy
-            ? (scale.colorScaleBinningStrategy as BinningStrategy)
+            ? (scale.colorScaleBinningStrategy as BinningStrategyIncludingManual)
             : scale.colorScaleNumericBins || scale.colorScaleCategoricalBins
-              ? BinningStrategy.manual
+              ? "manual"
               : undefined
 
         const legendDescription = scale.colorScaleLegendDescription

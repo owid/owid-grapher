@@ -15,7 +15,6 @@ import {
     FacetStrategy,
     ScaleType,
     SeriesStrategy,
-    BinningStrategy,
 } from "@ourworldindata/types"
 import { SelectionArray } from "../selection/SelectionArray"
 import { LineChartManager } from "./LineChartConstants"
@@ -365,7 +364,7 @@ describe("color scale", () => {
             selection: ["usa"],
             seriesStrategy: SeriesStrategy.column,
             colorScale: {
-                binningStrategy: BinningStrategy.manual,
+                binningStrategy: "manual",
                 customCategoryColors: {},
                 customCategoryLabels: {},
                 customHiddenCategories: {},

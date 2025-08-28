@@ -1,6 +1,6 @@
 import { expect, it, describe } from "vitest"
 
-import { BinningStrategy, ColorSchemeName } from "@ourworldindata/types"
+import { ColorSchemeName } from "@ourworldindata/types"
 import { NO_DATA_LABEL } from "./ColorScale"
 import { ColorScaleConfig } from "./ColorScaleConfig"
 
@@ -41,16 +41,16 @@ describe("fromDSL", () => {
 
     it("handles a custom binning strategy", () => {
         const colorScale = ColorScaleConfig.fromDSL({
-            colorScaleBinningStrategy: BinningStrategy.quantiles,
+            colorScaleBinningStrategy: "log-1-2-5",
         })
-        expect(colorScale?.binningStrategy).toEqual(BinningStrategy.quantiles)
+        expect(colorScale?.binningStrategy).toEqual("log-1-2-5")
     })
 
     it("automatically infers binningStrategy if custom colors (numeric)", () => {
         const numericScale = ColorScaleConfig.fromDSL({
             colorScaleNumericBins: "1;2;3",
         })!
-        expect(numericScale.binningStrategy).toEqual(BinningStrategy.manual)
+        expect(numericScale.binningStrategy).toEqual("manual")
         expect(numericScale.customNumericValues).toEqual([0, 1, 2, 3])
         expect(numericScale.customNumericColorsActive).toBeTruthy()
     })
@@ -59,7 +59,7 @@ describe("fromDSL", () => {
         const categoricalScale = ColorScaleConfig.fromDSL({
             colorScaleCategoricalBins: "1,,One;2,,Two;3,,Three",
         })!
-        expect(categoricalScale.binningStrategy).toEqual(BinningStrategy.manual)
+        expect(categoricalScale.binningStrategy).toEqual("manual")
         expect(categoricalScale.customCategoryLabels).toEqual({
             1: "One",
             2: "Two",

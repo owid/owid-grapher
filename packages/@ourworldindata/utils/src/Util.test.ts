@@ -31,6 +31,7 @@ import {
     formatInlineList,
     flattenNonTopicNodes,
     imemo,
+    normaliseToSingleDigitNumber,
 } from "./Util.js"
 import {
     BlockImageSize,
@@ -319,6 +320,45 @@ describe(numberMagnitude, () => {
     it("11 has magnitude 2", () => expect(numberMagnitude(11)).toEqual(2))
     it("0.02 has magnitude -1", () => expect(numberMagnitude(0.02)).toEqual(-1))
     it("0.5 has magnitude 0", () => expect(numberMagnitude(0.5)).toEqual(0))
+})
+
+describe(normaliseToSingleDigitNumber, () => {
+    it("normalises positive numbers", () => {
+        expect(normaliseToSingleDigitNumber(100)).toEqual({
+            normalised: 1,
+            factor: 100,
+        })
+        expect(normaliseToSingleDigitNumber(0.2)).toEqual({
+            normalised: 2,
+            factor: 0.1,
+        })
+        expect(normaliseToSingleDigitNumber(9.9999)).toEqual({
+            normalised: 9.9999,
+            factor: 1,
+        })
+        expect(normaliseToSingleDigitNumber(10)).toEqual({
+            normalised: 1,
+            factor: 10,
+        })
+    })
+
+    it("normalises negative numbers", () => {
+        expect(normaliseToSingleDigitNumber(-100)).toEqual({
+            normalised: -1,
+            factor: 100,
+        })
+        expect(normaliseToSingleDigitNumber(-0.2)).toEqual({
+            normalised: -2,
+            factor: 0.1,
+        })
+    })
+
+    it("normalises zero", () => {
+        expect(normaliseToSingleDigitNumber(0)).toEqual({
+            normalised: 0,
+            factor: 1,
+        })
+    })
 })
 
 describe(roundSigFig, () => {
