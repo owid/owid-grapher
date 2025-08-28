@@ -223,6 +223,15 @@ export abstract class AbstractChartEditor<
         )
     }
 
+    @action.bound async reloadGrapherData(): Promise<void> {
+        const { grapherState } = this
+        const inputTable = await this.cachingGrapherDataLoader(
+            grapherState.dimensions,
+            grapherState.selectedEntityColors
+        )
+        if (inputTable) grapherState.inputTable = inputTable
+    }
+
     abstract get isNewGrapher(): boolean
     abstract get availableTabs(): EditorTab[]
 

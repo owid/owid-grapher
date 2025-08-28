@@ -1,44 +1,75 @@
 import * as _ from "lodash-es"
 import { ScatterPointLabelStrategy } from "@ourworldindata/types"
 import { GrapherState } from "@ourworldindata/grapher"
-import { action, makeObservable } from "mobx"
+import { action, computed, makeObservable, observable, reaction } from "mobx"
 import { observer } from "mobx-react"
 import { Component } from "react"
 import { NumberField, Section, SelectField, Toggle } from "./Forms.js"
+import { AbstractChartEditor } from "./AbstractChartEditor.js"
 
 @observer
-export class EditorScatterTab extends Component<{
-    grapherState: GrapherState
+export class EditorScatterTab<
+    Editor extends AbstractChartEditor,
+> extends Component<{
+    editor: Editor
 }> {
-    constructor(props: { grapherState: GrapherState }) {
+    xOverrideTimeInputValue: number | undefined = undefined
+    disposers: (() => void)[] = []
+
+    constructor(props: { editor: Editor }) {
         super(props)
-        makeObservable(this)
+        makeObservable(this, {
+            xOverrideTimeInputValue: observable,
+        })
+    }
+
+    @computed get grapherState(): GrapherState {
+        return this.props.editor.grapherState
     }
 
     @action.bound onToggleHideTimeline(value: boolean) {
-        this.props.grapherState.hideTimeline = value || undefined
+        this.grapherState.hideTimeline = value || undefined
     }
 
     @action.bound onToggleHideScatterLabels(value: boolean) {
-        this.props.grapherState.hideScatterLabels = value || undefined
+        this.grapherState.hideScatterLabels = value || undefined
     }
 
-    @action.bound onXOverrideYear(value: number | undefined) {
-        this.props.grapherState.xOverrideTime = value
+    @action.bound async setXOverrideTime(xOverrideTime: number | undefined) {
+        this.grapherState.xOverrideTime = xOverrideTime
+        await this.props.editor.reloadGrapherData()
     }
 
     @action.bound onToggleConnection(value: boolean) {
-        const { grapherState } = this.props
+        const { grapherState } = this
         grapherState.hideConnectedScatterLines = value
     }
 
     @action.bound onChangeScatterPointLabelStrategy(value: string) {
-        this.props.grapherState.scatterPointLabelStrategy =
+        this.grapherState.scatterPointLabelStrategy =
             value as ScatterPointLabelStrategy
     }
 
+    override componentDidMount() {
+        this.xOverrideTimeInputValue = this.grapherState.xOverrideTime
+        const debouncedSetValue = _.debounce(this.setXOverrideTime, 300)
+        this.disposers.push(() => debouncedSetValue.cancel())
+
+        this.disposers.push(
+            reaction(
+                () => this.xOverrideTimeInputValue,
+                (xOverrideTime) => debouncedSetValue(xOverrideTime),
+                { fireImmediately: false }
+            )
+        )
+    }
+
+    override componentWillUnmount(): void {
+        this.disposers.forEach((dispose) => dispose())
+    }
+
     override render() {
-        const { grapherState } = this.props
+        const { grapherState } = this
 
         return (
             <div className="EditorScatterTab">
@@ -55,8 +86,8 @@ export class EditorScatterTab extends Component<{
                     />
                     <NumberField
                         label="Override X axis target year"
-                        value={grapherState.xOverrideTime}
-                        onValue={_.debounce(this.onXOverrideYear, 300)}
+                        value={this.xOverrideTimeInputValue}
+                        onValue={(val) => (this.xOverrideTimeInputValue = val)}
                         allowNegative
                     />
                 </Section>

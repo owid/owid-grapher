@@ -144,11 +144,7 @@ export class ChartEditorView<
     @action.bound async updateGrapher(): Promise<void> {
         const config = this.manager.editor.originalGrapherConfig
         this.manager.editor.grapherState.updateFromObject(config)
-        const table = await this.manager.editor.cachingGrapherDataLoader(
-            config.dimensions || [],
-            config.selectedEntityColors
-        )
-        if (table) this.manager.editor.grapherState.inputTable = table
+        await this.manager.editor.reloadGrapherData()
         this.grapherState.externalBounds = this.bounds
     }
 
@@ -433,7 +429,7 @@ export class ChartEditorView<
                             />
                         )}
                         {editor.tab === "scatter" && (
-                            <EditorScatterTab grapherState={grapherState} />
+                            <EditorScatterTab editor={editor} />
                         )}
                         {editor.tab === "marimekko" && (
                             <EditorMarimekkoTab grapherState={grapherState} />
