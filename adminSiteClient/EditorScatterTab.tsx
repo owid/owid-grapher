@@ -58,7 +58,8 @@ export class EditorScatterTab<
         this.disposers.push(
             reaction(
                 () => this.xOverrideTimeInputValue,
-                (xOverrideTime) => debouncedSetValue(xOverrideTime)
+                (xOverrideTime) => debouncedSetValue(xOverrideTime),
+                { fireImmediately: false }
             )
         )
     }
