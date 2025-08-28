@@ -37,7 +37,6 @@ import { checkIsStackingEntitiesSensible } from "./StackedUtils.js"
 import { FocusArray } from "../focus/FocusArray.js"
 import { AxisConfig } from "../axis/AxisConfig.js"
 import { HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
-import { InteractionState } from "../interaction/InteractionState.js"
 
 // used in StackedBar charts to color negative and positive bars
 const POSITIVE_COLOR = BinaryMapPaletteE.colorSets[0][0] // orange
@@ -148,24 +147,11 @@ export abstract class AbstractStackedChartState implements ChartState {
     get columnsAsSeries(): readonly StackedRawSeries<number>[] {
         return this.yColumns
             .map((column) => {
-                // If the column isn't currently focused, also check if the
-                // first entity is currently focused (useful in faceted charts
-                // where focusing an entity highlights the entire facet)
-                const columnFocus = this.focusArray.state(column.displayName)
-                const entityFocus = this.focusArray.state(
-                    this.selectionArray.selectedEntityNames[0]
-                )
-                const focus = columnFocus.active
-                    ? columnFocus
-                    : this.selectionArray.numSelectedEntities === 1
-                      ? entityFocus
-                      : new InteractionState()
-
                 return {
                     isProjection: column.isProjection,
                     seriesName: column.displayName,
                     rows: column.owidRows,
-                    focus,
+                    focus: this.focusArray.state(column.displayName),
                 }
             })
             .toReversed() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
@@ -178,22 +164,11 @@ export abstract class AbstractStackedChartState implements ChartState {
         const { isProjection, owidRowsByEntityName } = this.yColumns[0]
         return this.selectionArray.selectedEntityNames
             .map((entityName) => {
-                // If the entity isn't currently focused, also check if the
-                // first column is currently focused (useful in faceted charts
-                // where focusing a column highlights the entire facet)
-                const entityFocus = this.focusArray.state(entityName)
-                const columnFocus = this.focusArray.state(this.yColumnSlugs[0])
-                const focus = entityFocus.active
-                    ? entityFocus
-                    : this.yColumnSlugs.length === 1
-                      ? columnFocus
-                      : new InteractionState()
-
                 return {
                     isProjection,
                     seriesName: entityName,
                     rows: owidRowsByEntityName.get(entityName) || [],
-                    focus,
+                    focus: this.focusArray.state(entityName),
                 }
             })
             .toReversed() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
