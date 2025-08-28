@@ -18,7 +18,8 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_FONT_SCALE_12,
     GRAPHER_AREA_OPACITY_DEFAULT,
-    GRAPHER_THUMBNAIL_OPACITY_MUTE,
+    GRAPHER_OPACITY_MUTE,
+    GRAPHER_AREA_OPACITY_MUTE,
 } from "../core/GrapherConstants"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { HorizontalAxisZeroLine } from "../axis/AxisViews"
@@ -442,7 +443,7 @@ export class DiscreteBarChart
                                         textProps: {
                                             ...style,
                                             opacity: series.focus.background
-                                                ? GRAPHER_THUMBNAIL_OPACITY_MUTE
+                                                ? GRAPHER_OPACITY_MUTE
                                                 : 1,
                                         },
                                     }
@@ -471,7 +472,7 @@ export class DiscreteBarChart
                             textAnchor={series.value < 0 ? "end" : "start"}
                             opacity={
                                 series.focus.background
-                                    ? GRAPHER_THUMBNAIL_OPACITY_MUTE
+                                    ? GRAPHER_OPACITY_MUTE
                                     : 1
                             }
                             {...this.valueLabelStyle}
@@ -510,7 +511,7 @@ export class DiscreteBarChart
                             fill={barColor}
                             opacity={
                                 series.focus.background
-                                    ? GRAPHER_THUMBNAIL_OPACITY_MUTE
+                                    ? GRAPHER_AREA_OPACITY_MUTE
                                     : GRAPHER_AREA_OPACITY_DEFAULT
                             }
                             style={{ transition: "height 200ms ease" }}
