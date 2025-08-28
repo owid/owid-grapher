@@ -70,6 +70,9 @@ interface BinningStrategyOutput {
     midpoint?: number
 }
 
+// If the log10 difference between the min and max values is less than or equal to 1.2,
+// the data is considered to be close enough in magnitude to use equal-size bins.
+// This threshold was chosen empirically.
 const AUTO_EQUAL_BINS_MAX_MAGNITUDE_DIFF = 1.2
 
 /**

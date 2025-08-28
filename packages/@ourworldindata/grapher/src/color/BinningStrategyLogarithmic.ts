@@ -86,7 +86,7 @@ const createLogBins = ({
     logSteps: number[]
 }): number[] => {
     if (minValue <= 0 || maxValue <= 0) {
-        throw new Error("fakeLogBins only supports positive values")
+        throw new Error("createLogBins only supports positive values")
     }
 
     const magnitudeMin = numberMagnitude(minValue) - 1
