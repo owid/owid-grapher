@@ -48,7 +48,11 @@ import {
     isProjectedDataBin,
     NumericBin,
 } from "../color/ColorScaleBin"
-import { ColumnSlug, MapRegionName } from "@ourworldindata/types"
+import {
+    ColumnSlug,
+    GrapherVariant,
+    MapRegionName,
+} from "@ourworldindata/types"
 import { ClipPath, makeClipPath } from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 import { Component, createRef } from "react"
@@ -384,8 +388,11 @@ export class MapChart
             .filter((bin) => isCategoricalBin(bin))
             .map((bin) => this.maybeAddPatternRefToBin(bin))
 
-        // Hide empty bins for static charts
-        if (this.isStatic) {
+        // Hide empty bins in thumbnails
+        if (
+            this.isStatic &&
+            this.manager.variant === GrapherVariant.Thumbnail
+        ) {
             categoricalLegendData = categoricalLegendData.filter((bin) => {
                 const memberCount =
                     this.numMembersPerCategoricalBinByIndex.get(bin.index) ?? 0
