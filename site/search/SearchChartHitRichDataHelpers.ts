@@ -18,7 +18,6 @@ import {
     mapGrapherTabNameToConfigOption,
     mapGrapherTabNameToQueryParam,
     StackedDiscreteBarChartState,
-    DiscreteBarChartState,
 } from "@ourworldindata/grapher"
 import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable"
 import { SearchChartHitDataPointsProps } from "./SearchChartHitDataPoints"
@@ -263,37 +262,45 @@ export function configureGrapherStateForLayout(
         const chartState =
             grapherState.chartState as StackedDiscreteBarChartState
         const tableEntity =
-            grapherState.focusArray.seriesNames[0] ??
-            chartState.sortedItems?.[0]?.entityName
+            chartState.yColumnSlugs.length === 1
+                ? chartState.yColumns[0].displayName
+                : (chartState.focusArray.seriesNames[0] ??
+                  chartState.sortedItems[0].entityName)
 
-        if (tableEntity) {
-            // Limit the number of selected entities to the maximum allowed
-            if (grapherState.addCountryMode !== EntitySelectionMode.Disabled) {
-                const defaultEntities =
-                    grapherState.selection.selectedEntityNames
-                const selectedEntities = defaultEntities.slice(
-                    0,
-                    maxNumEntitiesInStackedDiscreteBarChart
-                )
-                if (!selectedEntities.includes(tableEntity)) {
-                    selectedEntities.pop()
-                    selectedEntities.push(tableEntity)
-                }
-                grapherState.selection.setSelectedEntities(selectedEntities)
+        // Limit the number of selected entities to the maximum allowed
+        if (grapherState.addCountryMode !== EntitySelectionMode.Disabled) {
+            const defaultEntities = grapherState.selection.selectedEntityNames
+            const selectedEntities = defaultEntities.slice(
+                0,
+                maxNumEntitiesInStackedDiscreteBarChart
+            )
+            if (tableEntity && !selectedEntities.includes(tableEntity)) {
+                selectedEntities.pop()
+                selectedEntities.push(tableEntity)
             }
-
-            // Focus the entity that is displayed in the table
-            grapherState.focusArray.clearAllAndAdd(tableEntity)
+            grapherState.selection.setSelectedEntities(selectedEntities)
         }
+
+        // Focus the entity that is displayed in the table
+        if (tableEntity) grapherState.focusArray.clearAllAndAdd(tableEntity)
     }
 
-    // For faceted discrete bar charts, we display multiple bars in each facet,
-    // but the data table only shows values for one entity
-    if (grapherState.isDiscreteBar && grapherState.hasMultipleSeriesPerFacet) {
-        // Find the entity that is displayed in the table
+    // Highlight the facet that is described in the table
+    if (
+        (grapherState.isDiscreteBar ||
+            grapherState.isStackedArea ||
+            grapherState.isStackedBar) &&
+        grapherState.hasMultipleSeriesPerFacet
+    ) {
+        // Find the entity/column that is displayed in the table
+        const { seriesStrategy = SeriesStrategy.entity } =
+            grapherState.chartState
+        const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
+        const defaultTableEntity = isEntityStrategy
+            ? grapherState.selection.selectedEntityNames[0]
+            : grapherState.table.get(grapherState.yColumnSlug).displayName
         const tableEntity =
-            grapherState.focusArray.seriesNames[0] ??
-            grapherState.selection.selectedEntityNames[0]
+            grapherState.focusArray.seriesNames[0] ?? defaultTableEntity
 
         if (tableEntity) {
             // Focus the entity that is displayed in the table
