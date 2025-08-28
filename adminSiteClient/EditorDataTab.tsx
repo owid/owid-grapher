@@ -81,12 +81,7 @@ class EntityListItem extends React.Component<EntityListItemProps> {
     override render() {
         const { props, color } = this
         const { entityName, editor } = props
-        const rest = _.omit(props, [
-            "entityName",
-            "onRemove",
-            "grapherState",
-            "cachingGrapherDataLoader",
-        ])
+        const rest = _.omit(props, ["entityName", "onRemove", "editor"])
 
         return (
             <div
