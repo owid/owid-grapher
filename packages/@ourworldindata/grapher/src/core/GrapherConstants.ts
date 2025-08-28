@@ -84,8 +84,6 @@ export const GRAPHER_FONT_SCALE_14 = 14 / BASE_FONT_SIZE
 // keep in sync with $max-tooltip-width in Tooltip.scss
 export const GRAPHER_MAX_TOOLTIP_WIDTH = 400
 
-export const GRAPHER_THUMBNAIL_OPACITY_MUTE = 0.5
-
 export const latestGrapherConfigSchema = defaultGrapherConfig.$schema
 
 export enum CookieKey {
