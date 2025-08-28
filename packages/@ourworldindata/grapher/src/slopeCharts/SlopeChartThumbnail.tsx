@@ -89,6 +89,10 @@ export class SlopeChartThumbnail
         }).width
     }
 
+    @computed private get xMarksHeight(): number {
+        return this.xMarkFontSize
+    }
+
     @computed get innerBounds(): Bounds {
         const rightPadding = Math.max(
             this.paddedEndLabelsWidth, // width of end labels plus padding
@@ -100,7 +104,7 @@ export class SlopeChartThumbnail
         )
 
         return this.bounds
-            .padBottom(Math.floor(this.xMarkFontSize))
+            .padBottom(this.xMarksHeight)
             .padRight(rightPadding)
             .padLeft(leftPadding)
     }
@@ -191,6 +195,20 @@ export class SlopeChartThumbnail
             : this.chartState.series
     }
 
+    @computed private get labelsRange(): [number, number] {
+        const {
+            xMarksHeight,
+            manager: { chartAreaPadding = 0 },
+        } = this
+
+        return this.bounds
+            .expand({
+                top: chartAreaPadding,
+                bottom: chartAreaPadding + xMarksHeight,
+            })
+            .yRange()
+    }
+
     @computed private get endLabelsState(): VerticalLabelsState | undefined {
         if (!this.manager.showLegend) return undefined
 
@@ -216,9 +234,7 @@ export class SlopeChartThumbnail
         return new VerticalLabelsState(series, {
             fontSize: this.labelFontSize,
             minSpacing: 2,
-            yRange: this.bounds
-                .expand({ top: this.manager.chartAreaPadding ?? 0 })
-                .yRange(),
+            yRange: this.labelsRange,
         })
     }
 
@@ -248,9 +264,7 @@ export class SlopeChartThumbnail
             fontSize: this.labelFontSize,
             maxWidth: showEntityNames ? 0.25 * this.bounds.width : undefined,
             minSpacing: showEntityNames ? 5 : 2,
-            yRange: this.bounds
-                .expand({ top: this.manager.chartAreaPadding ?? 0 })
-                .yRange(),
+            yRange: this.labelsRange,
             resolveCollision: (
                 s1: InitialVerticalLabelsSeries,
                 s2: InitialVerticalLabelsSeries
