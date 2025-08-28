@@ -67,7 +67,6 @@ export const runLogBinningStrategy = (
     if (
         !hasMidpoint &&
         conf.midpoint !== undefined &&
-        conf.midpointMode !== "none" &&
         bins[0] > conf.midpoint
     ) {
         bins.unshift(conf.midpoint)
