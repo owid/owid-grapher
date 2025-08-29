@@ -16,6 +16,7 @@ import {
     getSessionSampleRate,
     hasSessionBeenSampled,
     maybeSampleSession,
+    updateSentryUser,
 } from "./SentryUtils.js"
 
 if (LOAD_SENTRY) {
@@ -45,4 +46,5 @@ if (LOAD_SENTRY) {
         replaysSessionSampleRate: sampleRate,
         replaysOnErrorSampleRate: 0,
     })
+    updateSentryUser()
 }
