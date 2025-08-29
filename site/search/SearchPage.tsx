@@ -22,11 +22,28 @@ export const SearchPage = (props: {
         <Html>
             <Head
                 canonicalUrl={`${baseUrl}${SEARCH_BASE_PATH}`}
-                pageTitle="Data Catalog"
-                pageDesc="Explore Our World in Data's extensive collection of charts. Use the search bar to find specific data visualizations or browse by topic. Filter by country or subject area to discover insights on global issues supported by reliable data."
+                pageTitle="Search"
+                pageDesc="Search articles and charts on Our World in Data. Filter by country or subject area to discover insights on global issues supported by reliable data."
                 baseUrl={baseUrl}
                 imageUrl={`${baseUrl}/data-catalog-thumbnail.png`}
             >
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        // Structured data for google
+                        __html: JSON.stringify({
+                            "@context": "https://schema.org",
+                            "@type": "WebSite",
+                            url: baseUrl,
+                            potentialAction: {
+                                "@type": "SearchAction",
+                                target: `${baseUrl}${SEARCH_BASE_PATH}?q={search_term_string}`,
+                                "query-input":
+                                    "required name=search_term_string",
+                            },
+                        }),
+                    }}
+                />
                 <script
                     dangerouslySetInnerHTML={{
                         __html: `window._OWID_TOPIC_TAG_GRAPH = ${JSON.stringify(
