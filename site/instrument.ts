@@ -17,6 +17,7 @@ import {
     hasSessionBeenSampled,
     maybeSampleSession,
     updateSentryUser,
+    updateSentryExperimentTags,
 } from "./SentryUtils.js"
 
 if (LOAD_SENTRY) {
@@ -46,5 +47,11 @@ if (LOAD_SENTRY) {
         replaysSessionSampleRate: sampleRate,
         replaysOnErrorSampleRate: 0,
     })
+    updateSentryTags()
     updateSentryUser()
 }
+
+function updateSentryTags() {
+    updateSentryExperimentTags()
+}
+
