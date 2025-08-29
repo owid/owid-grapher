@@ -3,6 +3,7 @@ import { computed, makeObservable } from "mobx"
 import { ChartState } from "../chart/ChartInterface"
 import {
     ChoroplethSeries,
+    ChoroplethSeriesByName,
     MapChartManager,
     MapColumnInfo,
 } from "./MapChartConstants"
@@ -18,6 +19,7 @@ import {
     ColorSchemeName,
     ColumnSlug,
     EntityName,
+    PrimitiveType,
     Time,
 } from "@ourworldindata/types"
 import {
@@ -318,6 +320,25 @@ export class MapChartState implements ChartState, ColorScaleManager {
                 } satisfies ChoroplethSeries
             })
             .filter(isPresent)
+    }
+
+    @computed get seriesMap(): ChoroplethSeriesByName {
+        return new Map(this.series.map((series) => [series.seriesName, series]))
+    }
+
+    @computed get formatTooltipValueIfCustom(): (
+        d: PrimitiveType
+    ) => string | undefined {
+        const { mapConfig, colorScale } = this
+
+        return (d: PrimitiveType): string | undefined => {
+            if (!mapConfig.tooltipUseCustomLabels) return undefined
+            // Find the bin (and its label) that this value belongs to
+            const bin = colorScale.getBinForValue(d)
+            const label = bin?.label
+            if (label !== undefined && label !== "") return label
+            else return undefined
+        }
     }
 
     @computed get errorInfo(): ChartErrorInfo {

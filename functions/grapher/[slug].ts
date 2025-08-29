@@ -1,6 +1,7 @@
 import { Env, extensions, Etag } from "../_common/env.js"
 import {
     fetchCsvForGrapher,
+    fetchDataValuesForGrapher,
     fetchMetadataForGrapher,
     fetchReadmeForGrapher,
     fetchZipForGrapher,
@@ -84,6 +85,15 @@ router
         `/grapher/:slug${extensions.zip}`,
         async ({ params: { slug } }, { searchParams }, env) =>
             fetchZipForGrapher({ type: "slug", id: slug }, env, searchParams)
+    )
+    .get(
+        `/grapher/:slug${extensions.values}`,
+        async ({ params: { slug } }, { searchParams }, env) =>
+            fetchDataValuesForGrapher(
+                { type: "slug", id: slug },
+                env,
+                searchParams
+            )
     )
     .get(
         "/grapher/:slug",
