@@ -13,9 +13,7 @@ import algoliasearch from "algoliasearch"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
 import {
     ChartRecordType,
-    PageType,
     SearchIndexName,
-    WordpressPageType,
     Filter,
     FilterType,
     SynonymMap,
@@ -90,12 +88,6 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
             return urljoin(BAKED_GRAPHER_URL, item.slug as string)
         })
         .with(SearchIndexName.Pages, () => {
-            if (
-                item.type === WordpressPageType.Country ||
-                item.type === WordpressPageType.Other
-            ) {
-                return urljoin(BAKED_BASE_URL, item.slug as string)
-            }
             return getCanonicalUrl(BAKED_BASE_URL, {
                 slug: item.slug as string,
                 content: {
@@ -209,12 +201,12 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     ? item.type === ChartRecordType.ExplorerView
                         ? "Explorer"
                         : "Chart"
-                    : getPageTypeNameAndIcon(item.type as PageType).name
+                    : getPageTypeNameAndIcon(item.type as OwidGdocType).name
 
             const indexIcon =
                 index === SearchIndexName.ExplorerViewsMdimViewsAndCharts
                     ? faLineChart
-                    : getPageTypeNameAndIcon(item.type as PageType).icon
+                    : getPageTypeNameAndIcon(item.type as OwidGdocType).icon
 
             return (
                 <span
