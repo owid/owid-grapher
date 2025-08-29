@@ -10,8 +10,9 @@ import {
 } from "../settings/serverSettings.js"
 import { BCryptHasher } from "../db/hashers.js"
 import * as jose from "jose"
-import { DbPlainSession, DbPlainUser, JsonError } from "@ourworldindata/utils"
+import { DbPlainUser, JsonError } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
+import * as _ from "lodash-es"
 
 export type Request = express.Request
 
@@ -130,29 +131,33 @@ export async function authMiddleware(
                     "DELETE FROM sessions WHERE expire_date < NOW()"
                 )
 
-                const row = await db.knexRawFirst<DbPlainSession>(
+                const userAndExpiryDate = await db.knexRawFirst<
+                    DbPlainUser & { expiryDate: Date }
+                >(
                     trx,
-                    `SELECT * FROM sessions WHERE session_key = ?`,
+                    `SELECT u.*, s.expire_date AS expiryDate
+                    FROM sessions s
+                    LEFT JOIN users u ON u.id = s.user_id
+                    WHERE s.session_key = ?`,
                     [sessionid]
                 )
-                if (row) {
-                    const user = await trx
-                        .table("users")
-                        .where({ id: row.user_id })
-                        .first<DbPlainUser>()
-                    if (!user)
+                if (userAndExpiryDate) {
+                    const { expiryDate, ...user } = userAndExpiryDate
+                    if (_.isNil(user.id)) {
                         throw new JsonError(
                             "Invalid session (no such user)",
                             500
                         )
+                    }
+
                     const session = {
                         id: sessionid,
-                        expiryDate: row.expire_date,
+                        expiryDate,
                     }
 
                     await trx
                         .table("users")
-                        .where({ id: user.id })
+                        .where({ id: userAndExpiryDate.id })
                         .update({ lastSeen: new Date() })
                     return { user, session }
                 }
