@@ -298,7 +298,7 @@ export {
     diffGrapherConfigs,
     mergeGrapherConfigs,
     simpleMerge,
-} from "./grapherConfigUtils.js"
+} from "./GrapherConfigUtils.js"
 
 export {
     MultiDimDataPageConfig,

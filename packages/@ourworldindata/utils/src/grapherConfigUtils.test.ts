@@ -7,52 +7,65 @@ import {
     MapRegionName,
     GRAPHER_TAB_CONFIG_OPTIONS,
 } from "@ourworldindata/types"
-import {
-    mergeGrapherConfigs,
-    diffGrapherConfigs,
-} from "./grapherConfigUtils.js"
+import { diffGrapherConfigs, mergeGrapherConfigs } from "./GrapherConfigUtils"
 
 describe(mergeGrapherConfigs, () => {
     it("merges empty configs", () => {
         expect(mergeGrapherConfigs({}, {})).toEqual({})
-        expect(mergeGrapherConfigs({ title: "Parent title" }, {})).toEqual({
+        expect(
+            mergeGrapherConfigs({ $schema: "1", title: "Parent title" }, {})
+        ).toEqual({
+            $schema: "1",
             title: "Parent title",
         })
-        expect(mergeGrapherConfigs({}, { title: "Child title" })).toEqual({
+        expect(
+            mergeGrapherConfigs({}, { $schema: "1", title: "Child title" })
+        ).toEqual({
+            $schema: "1",
             title: "Child title",
         })
     })
 
     it("doesn't mutate input objects", () => {
-        const parentConfig = { title: "Title" }
-        const childConfig = { subtitle: "Subtitle" }
+        const parentConfig = { $schema: "1", title: "Title" }
+        const childConfig = { $schema: "1", subtitle: "Subtitle" }
         mergeGrapherConfigs(parentConfig, childConfig)
-        expect(parentConfig).toEqual({ title: "Title" })
-        expect(childConfig).toEqual({ subtitle: "Subtitle" })
+        expect(parentConfig).toEqual({ $schema: "1", title: "Title" })
+        expect(childConfig).toEqual({ $schema: "1", subtitle: "Subtitle" })
     })
 
     it("merges two objects", () => {
         expect(
             mergeGrapherConfigs(
-                { title: "Parent title" },
-                { subtitle: "Child subtitle" }
+                { $schema: "1", title: "Parent title" },
+                { $schema: "1", subtitle: "Child subtitle" }
             )
         ).toEqual({
+            $schema: "1",
             title: "Parent title",
             subtitle: "Child subtitle",
         })
         expect(
             mergeGrapherConfigs(
-                { title: "Parent title" },
-                { title: "Child title" }
+                { $schema: "1", title: "Parent title" },
+                { $schema: "1", title: "Child title" }
             )
-        ).toEqual({ title: "Child title" })
+        ).toEqual({ $schema: "1", title: "Child title" })
         expect(
             mergeGrapherConfigs(
-                { title: "Parent title", subtitle: "Parent subtitle" },
-                { title: "Child title", hideRelativeToggle: true }
+                {
+                    $schema: "1",
+                    title: "Parent title",
+                    subtitle: "Parent subtitle",
+                },
+                {
+                    $schema: "1",
+                    title: "Child title",
+                    hideRelativeToggle: true,
+                }
             )
         ).toEqual({
+            $schema: "1",
             title: "Child title",
             subtitle: "Parent subtitle",
             hideRelativeToggle: true,
@@ -62,11 +75,12 @@ describe(mergeGrapherConfigs, () => {
     it("merges three objects", () => {
         expect(
             mergeGrapherConfigs(
-                { title: "Parent title" },
-                { subtitle: "Child subtitle" },
-                { note: "Grandchild note" }
+                { $schema: "1", title: "Parent title" },
+                { $schema: "1", subtitle: "Child subtitle" },
+                { $schema: "1", note: "Grandchild note" }
             )
         ).toEqual({
+            $schema: "1",
             title: "Parent title",
             subtitle: "Child subtitle",
             note: "Grandchild note",
@@ -74,14 +88,24 @@ describe(mergeGrapherConfigs, () => {
         expect(
             mergeGrapherConfigs(
                 {
+                    $schema: "1",
                     title: "Parent title",
                     subtitle: "Parent subtitle",
                     sourceDesc: "Parent sources",
                 },
-                { title: "Child title", subtitle: "Child subtitle" },
-                { title: "Grandchild title", note: "Grandchild note" }
+                {
+                    $schema: "1",
+                    title: "Child title",
+                    subtitle: "Child subtitle",
+                },
+                {
+                    $schema: "1",
+                    title: "Grandchild title",
+                    note: "Grandchild note",
+                }
             )
         ).toEqual({
+            $schema: "1",
             title: "Grandchild title",
             subtitle: "Child subtitle",
             note: "Grandchild note",
@@ -93,12 +117,14 @@ describe(mergeGrapherConfigs, () => {
         expect(
             mergeGrapherConfigs(
                 {
+                    $schema: "1",
                     map: {
                         region: MapRegionName.World,
                         time: 2000,
                     },
                 },
                 {
+                    $schema: "1",
                     map: {
                         region: MapRegionName.Africa,
                         hideTimeline: true,
@@ -106,6 +132,7 @@ describe(mergeGrapherConfigs, () => {
                 }
             )
         ).toEqual({
+            $schema: "1",
             map: {
                 region: MapRegionName.Africa,
                 time: 2000,
@@ -117,18 +144,26 @@ describe(mergeGrapherConfigs, () => {
     it("overwrites arrays", () => {
         expect(
             mergeGrapherConfigs(
-                { selectedEntityNames: ["France", "Italy"] },
-                { selectedEntityNames: ["Italy", "Spain"] }
+                { $schema: "1", selectedEntityNames: ["France", "Italy"] },
+                { $schema: "1", selectedEntityNames: ["Italy", "Spain"] }
             )
         ).toEqual({
+            $schema: "1",
             selectedEntityNames: ["Italy", "Spain"],
         })
         expect(
             mergeGrapherConfigs(
-                { colorScale: { customNumericValues: [1, 2] } },
-                { colorScale: { customNumericValues: [3, 4] } }
+                {
+                    $schema: "1",
+                    colorScale: { customNumericValues: [1, 2] },
+                },
+                {
+                    $schema: "1",
+                    colorScale: { customNumericValues: [3, 4] },
+                }
             )
         ).toEqual({
+            $schema: "1",
             colorScale: { customNumericValues: [3, 4] },
         })
     })
@@ -156,27 +191,33 @@ describe(mergeGrapherConfigs, () => {
         expect(
             mergeGrapherConfigs(
                 {
-                    $schema: "004",
+                    $schema: "1",
                     id: 1,
                     slug: "parent-slug",
                     version: 1,
                     title: "Title A",
                 },
-                { title: "Title B" }
+                { $schema: "1", title: "Title B" }
             )
-        ).toEqual({ title: "Title B" })
+        ).toEqual({ $schema: "1", title: "Title B" })
         expect(
             mergeGrapherConfigs(
                 {
-                    $schema: "004",
+                    $schema: "1",
                     id: 1,
                     slug: "parent-slug",
                     version: 1,
                     title: "Title A",
                 },
-                { slug: "child-slug", version: 1, title: "Title B" }
+                {
+                    $schema: "1",
+                    slug: "child-slug",
+                    version: 1,
+                    title: "Title B",
+                }
             )
         ).toEqual({
+            $schema: "1",
             slug: "child-slug",
             version: 1,
             title: "Title B",
@@ -187,11 +228,12 @@ describe(mergeGrapherConfigs, () => {
         expect(
             mergeGrapherConfigs(
                 {
+                    $schema: "1",
                     title: "Parent title",
                     subtitle: "Parent subtitle",
                 },
                 {
-                    $schema: "004",
+                    $schema: "1",
                     id: 1,
                     slug: "parent-slug",
                     version: 1,
@@ -200,7 +242,7 @@ describe(mergeGrapherConfigs, () => {
                 {}
             )
         ).toEqual({
-            $schema: "004",
+            $schema: "1",
             id: 1,
             slug: "parent-slug",
             version: 1,
@@ -212,19 +254,29 @@ describe(mergeGrapherConfigs, () => {
     it("overwrites values with an empty string if requested", () => {
         expect(
             mergeGrapherConfigs(
-                { title: "Parent title", subtitle: "Parent subtitle" },
-                { subtitle: "" }
+                {
+                    $schema: "1",
+                    title: "Parent title",
+                    subtitle: "Parent subtitle",
+                },
+                { $schema: "1", subtitle: "" }
             )
-        ).toEqual({ title: "Parent title", subtitle: "" })
+        ).toEqual({ $schema: "1", title: "Parent title", subtitle: "" })
     })
 
     it("is associative", () => {
         const configA: GrapherInterface = {
+            $schema: "1",
             title: "Title A",
             subtitle: "Subtitle A",
         }
-        const configB: GrapherInterface = { title: "Title B", note: "Note B" }
+        const configB: GrapherInterface = {
+            $schema: "1",
+            title: "Title B",
+            note: "Note B",
+        }
         const configC: GrapherInterface = {
+            $schema: "1",
             title: "Title C",
             subtitle: "Subtitle C",
             sourceDesc: "Source C",
@@ -395,11 +447,13 @@ describe(diffGrapherConfigs, () => {
 describe("diff+merge", () => {
     it("are consistent", () => {
         const config: GrapherInterface = {
+            $schema: "1",
             tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
             title: "Chart",
             subtitle: "Chart subtitle",
         }
         const reference: GrapherInterface = {
+            $schema: "1",
             tab: GRAPHER_TAB_CONFIG_OPTIONS.chart,
             title: "Reference chart",
         }
