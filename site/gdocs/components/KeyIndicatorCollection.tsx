@@ -24,6 +24,7 @@ import KeyIndicator from "./KeyIndicator.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { Button } from "@ourworldindata/components"
 import { useResizeObserver } from "usehooks-ts"
+import { SEARCH_BASE_PATH } from "../../search/searchUtils.js"
 
 // keep in sync with $duration in KeyIndicatorCollection.scss
 const HEIGHT_ANIMATION_DURATION_IN_SECONDS = 0.4
@@ -69,7 +70,7 @@ export default function KeyIndicatorCollection({
                 )}
             </header>
             <Button
-                href="/data"
+                href={SEARCH_BASE_PATH}
                 className="key-indicator-collection__all-charts-button body-3-medium span-cols-4 col-start-9 col-sm-start-1 span-sm-cols-12"
                 text="See all our data"
                 theme="outline-vermillion"
