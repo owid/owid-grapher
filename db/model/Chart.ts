@@ -354,7 +354,8 @@ export async function getParentByChartConfig(
 export async function setChartTags(
     knex: db.KnexReadWriteTransaction,
     chartId: number,
-    tags: DbChartTagJoin[]
+    tags: DbChartTagJoin[],
+    userId?: number
 ): Promise<void> {
     const tagRows = tags.map((tag) => [
         tag.id,
@@ -389,10 +390,18 @@ export async function setChartTags(
     const isIndexable = tags.some((t) => t.name === "Unlisted")
         ? false
         : parentIds.some((t) => PUBLIC_TAG_PARENT_IDS.includes(t.parentId))
+    const updateFields = ["isIndexable = ?", "lastEditedAt = ?"]
+    const updateValues: (boolean | Date | number)[] = [isIndexable, new Date()]
+    
+    if (userId) {
+        updateFields.push("lastEditedByUserId = ?")
+        updateValues.push(userId)
+    }
+    
     await db.knexRaw(
         knex,
-        "update charts set isIndexable = ?, lastEditedAt = ? where id = ?",
-        [isIndexable, new Date(), chartId]
+        `update charts set ${updateFields.join(", ")} where id = ?`,
+        [...updateValues, chartId]
     )
 }
 
