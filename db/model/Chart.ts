@@ -392,12 +392,12 @@ export async function setChartTags(
         : parentIds.some((t) => PUBLIC_TAG_PARENT_IDS.includes(t.parentId))
     const updateFields = ["isIndexable = ?", "lastEditedAt = ?"]
     const updateValues: (boolean | Date | number)[] = [isIndexable, new Date()]
-    
+
     if (userId) {
         updateFields.push("lastEditedByUserId = ?")
         updateValues.push(userId)
     }
-    
+
     await db.knexRaw(
         knex,
         `update charts set ${updateFields.join(", ")} where id = ?`,
