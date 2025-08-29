@@ -1,9 +1,9 @@
 metadata:
-    description: User session management table for the OWID admin interface authentication system. Stores session data for logged-in users to maintain authentication state across requests. Uses Django-style session management with session keys, serialized data, and expiration timestamps.
+    description: User session management table for the OWID admin interface authentication system. Stores session data for logged-in users to maintain authentication state across requests. Uses session management with session keys, expiration timestamps, and a user ID.
 fields:
     session_key:
         description: Primary key. Unique session identifier token (40 characters) that identifies the user session.
-    session_data:
-        description: Serialized session data containing user authentication information and session variables. Stored as longtext to accommodate varying amounts of session data.
+    user_id:
+        description: Foreign key to users table. References the user who owns the session.
     expire_date:
         description: Timestamp when the session expires and should be considered invalid. Sessions past this date are automatically cleaned up.

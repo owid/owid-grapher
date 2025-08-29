@@ -1,7 +1,7 @@
 export const SessionsTableName = "sessions"
 export interface DbInsertSession {
     expire_date: Date
-    session_data: string
+    user_id: number
     session_key: string
 }
 export type DbPlainSession = Required<DbInsertSession>

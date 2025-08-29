@@ -4,15 +4,15 @@ import crypto from "crypto"
 import * as db from "../db/db.js"
 import {
     CLOUDFLARE_AUD,
-    SECRET_KEY,
     SESSION_COOKIE_AGE,
     ADMIN_BASE_URL,
     ENV,
 } from "../settings/serverSettings.js"
 import { BCryptHasher } from "../db/hashers.js"
 import * as jose from "jose"
-import { DbPlainSession, DbPlainUser, JsonError } from "@ourworldindata/utils"
+import { DbPlainUser, JsonError } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
+import * as _ from "lodash-es"
 
 export type Request = express.Request
 
@@ -131,37 +131,33 @@ export async function authMiddleware(
                     "DELETE FROM sessions WHERE expire_date < NOW()"
                 )
 
-                const rows = await db.knexRaw<DbPlainSession>(
+                const userAndExpiryDate = await db.knexRawFirst<
+                    DbPlainUser & { expiryDate: Date }
+                >(
                     trx,
-                    `SELECT * FROM sessions WHERE session_key = ?`,
+                    `SELECT u.*, s.expire_date AS expiryDate
+                    FROM sessions s
+                    LEFT JOIN users u ON u.id = s.user_id
+                    WHERE s.session_key = ?`,
                     [sessionid]
                 )
-                if (rows.length) {
-                    const sessionData = Buffer.from(
-                        rows[0].session_data,
-                        "base64"
-                    ).toString("utf8")
-                    const sessionJson = JSON.parse(
-                        sessionData.split(":").slice(1).join(":")
-                    )
-
-                    const user = await trx
-                        .table("users")
-                        .where({ email: sessionJson.user_email })
-                        .first<DbPlainUser>()
-                    if (!user)
+                if (userAndExpiryDate) {
+                    const { expiryDate, ...user } = userAndExpiryDate
+                    if (_.isNil(user.id)) {
                         throw new JsonError(
                             "Invalid session (no such user)",
                             500
                         )
+                    }
+
                     const session = {
                         id: sessionid,
-                        expiryDate: rows[0].expire_date,
+                        expiryDate,
                     }
 
                     await trx
                         .table("users")
-                        .where({ id: user.id })
+                        .where({ id: userAndExpiryDate.id })
                         .update({ lastSeen: new Date() })
                     return { user, session }
                 }
@@ -191,12 +187,6 @@ export async function authMiddleware(
     return res.redirect(`/admin/login?next=${encodeURIComponent(req.url)}`)
 }
 
-function saltedHmac(salt: string, value: string): string {
-    const hmac = crypto.createHmac("sha1", salt + SECRET_KEY)
-    hmac.update(value)
-    return hmac.digest("hex")
-}
-
 // Prevents redirect to external URLs
 export function getSafeRedirectUrl(nextUrl: string | undefined) {
     if (!nextUrl) return "/admin"
@@ -221,26 +211,15 @@ export async function logInAsUser(user: Pick<DbPlainUser, "email" | "id">) {
         .toString("base64url")
         .substring(0, 32)
 
-    const sessionJson = JSON.stringify({
-        user_email: user.email,
-    })
-    const sessionHash = saltedHmac(
-        "django.contrib.sessions.SessionStore",
-        sessionJson
-    )
-    const sessionData = Buffer.from(`${sessionHash}:${sessionJson}`).toString(
-        "base64"
-    )
-
     const now = new Date()
     const expiryDate = new Date(now.getTime() + 1000 * SESSION_COOKIE_AGE)
 
     await db.knexReadWriteTransaction(async (trx) => {
-        await db.knexRaw(
-            trx,
-            `INSERT INTO sessions (session_key, session_data, expire_date) VALUES (?, ?, ?)`,
-            [sessionId, sessionData, expiryDate]
-        )
+        await trx.table("sessions").insert({
+            session_key: sessionId,
+            user_id: user.id,
+            expire_date: expiryDate,
+        })
 
         await trx
             .table("users")
