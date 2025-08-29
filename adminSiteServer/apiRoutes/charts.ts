@@ -733,7 +733,7 @@ export async function setChartTagsHandler(
 ) {
     const chartId = expectInt(req.params.chartId)
 
-    await setChartTags(trx, chartId, req.body.tags)
+    await setChartTags(trx, chartId, req.body.tags, res.locals.user.id)
 
     return { success: true }
 }
