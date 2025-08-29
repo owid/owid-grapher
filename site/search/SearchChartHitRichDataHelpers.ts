@@ -285,29 +285,6 @@ export function configureGrapherStateForLayout(
         if (tableEntity) grapherState.focusArray.clearAllAndAdd(tableEntity)
     }
 
-    // Highlight the facet that is described in the table
-    if (
-        (grapherState.isDiscreteBar ||
-            grapherState.isStackedArea ||
-            grapherState.isStackedBar) &&
-        grapherState.hasMultipleSeriesPerFacet
-    ) {
-        // Find the entity/column that is displayed in the table
-        const { seriesStrategy = SeriesStrategy.entity } =
-            grapherState.chartState
-        const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
-        const defaultTableEntity = isEntityStrategy
-            ? grapherState.selection.selectedEntityNames[0]
-            : grapherState.table.get(grapherState.yColumnSlug).displayName
-        const tableEntity =
-            grapherState.focusArray.seriesNames[0] ?? defaultTableEntity
-
-        if (tableEntity) {
-            // Focus the entity that is displayed in the table
-            grapherState.focusArray.clearAllAndAdd(tableEntity)
-        }
-    }
-
     // If the selected entities are the same as the authored ones, they won't
     // be persisted in the (thumbnail) URL, so we must update the local grapherState
     // to make sure they're in the same order. The order is of importance in
