@@ -389,11 +389,11 @@ export async function setChartTags(
     const isIndexable = tags.some((t) => t.name === "Unlisted")
         ? false
         : parentIds.some((t) => PUBLIC_TAG_PARENT_IDS.includes(t.parentId))
-    await db.knexRaw(knex, "update charts set isIndexable = ?, lastEditedAt = ? where id = ?", [
-        isIndexable,
-        new Date(),
-        chartId,
-    ])
+    await db.knexRaw(
+        knex,
+        "update charts set isIndexable = ?, lastEditedAt = ? where id = ?",
+        [isIndexable, new Date(), chartId]
+    )
 }
 
 export async function assignTagsForCharts(
