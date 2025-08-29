@@ -7,24 +7,9 @@ import {
     HitHighlightResult,
 } from "instantsearch.js/es/types/results.js"
 
-export enum WordpressPageType {
-    Other = "other",
-    Country = "country",
-}
-
-export function checkIsWordpressPageType(
-    type: string
-): type is WordpressPageType {
-    return (
-        type === WordpressPageType.Country || type === WordpressPageType.Other
-    )
-}
-
-export type PageType = OwidGdocType | WordpressPageType
-
 export interface PageRecord {
     objectID: string
-    type: PageType
+    type: OwidGdocType
     importance: number
     slug: string
     title: string
@@ -41,7 +26,6 @@ export interface PageRecord {
     // GDoc example: https://imagedelivery.net/our-id/image-uuid/w=512
     // Fallback example: https://ourworldindta.org/default-thumbnail.png
     thumbnailUrl: string
-    documentType?: "wordpress" | "gdoc" | "country-page"
 }
 
 export type IPageHit = PageRecord & Hit<BaseHit>
