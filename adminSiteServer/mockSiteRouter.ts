@@ -5,7 +5,6 @@ import {
     renderGdocsPageBySlug,
     renderPageBySlug,
     renderSearchPage,
-    DEPRECATEDrenderSearchPage,
     renderDonatePage,
     makeAtomFeed,
     feedbackPage,
@@ -79,6 +78,7 @@ import { getMultiDimDataPageBySlug } from "../db/model/MultiDimDataPage.js"
 import { getParsedDodsDictionary } from "../db/model/Dod.js"
 import { TopicTag } from "../site/DataInsightsIndexPage.js"
 import { getSlugForTopicTag } from "../baker/GrapherBakingUtils.js"
+import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
 
 // todo: switch to an object literal where the key is the path and the value is the request handler? easier to test, reflect on, and manipulate
 const mockSiteRouter = Router()
@@ -431,8 +431,10 @@ countryProfileSpecs.forEach((spec) =>
     )
 )
 
-mockSiteRouter.get("/search", async (req, res) =>
-    res.send(await DEPRECATEDrenderSearchPage())
+getPlainRouteWithROTransaction(
+    mockSiteRouter,
+    SEARCH_BASE_PATH,
+    async (_, res, trx) => res.send(await renderSearchPage(trx))
 )
 
 getPlainRouteWithROTransaction(
