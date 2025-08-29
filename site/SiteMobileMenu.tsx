@@ -6,6 +6,7 @@ import { Menu } from "./SiteConstants.js"
 import { SiteAbout } from "./SiteAbout.js"
 import { SiteResources } from "./SiteResources.js"
 import { SiteMobileArea } from "./SiteMobileArea.js"
+import { SEARCH_BASE_PATH } from "./search/searchUtils.js"
 
 export const SiteMobileMenu = ({
     tagGraph,
@@ -45,7 +46,7 @@ export const SiteMobileMenu = ({
                     </ul>
                 </li>
                 <li>
-                    <a href="/data" className="section__header">
+                    <a href={SEARCH_BASE_PATH} className="section__header">
                         Data
                     </a>
                 </li>
