@@ -248,3 +248,35 @@ async function stopSessionRecording(): Promise<void> {
 function isSentryInitialized(): boolean {
     return !!Sentry.getClient()
 }
+
+/**
+ * Updates the Sentry user ID from Google Analytics client ID.
+ *
+ * If analytics consent is given, the user ID is set to the Google Analytics 4
+ * client ID. If not, the Sentry user is cleared.
+ */
+export function updateSentryUser(): void {
+    let user: Sentry.User | null = null // by default, clear Sentry user
+    if (allowRecording()) {
+        const clientId = extractGaClientIdFromCookie()
+        if (clientId) {
+            user = { id: clientId }
+        }
+    }
+    Sentry.setUser(user)
+}
+
+function extractGaClientIdFromCookie(): string | undefined {
+    const gaCookie = Cookies.get("_ga")
+    if (!gaCookie) {
+        return
+    }
+
+    // Extract client ID from GA cookie (format: GA1.1.clientId.timestamp)
+    const parts = gaCookie.split(".")
+    if (parts.length >= 4) {
+        const clientId = `${parts[2]}.${parts[3]}`
+        return clientId
+    }
+    return
+}
