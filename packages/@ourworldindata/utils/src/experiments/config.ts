@@ -13,7 +13,7 @@ export const experiments: Experiment[] = [
          * Treatment arm treat0: show placebo button ("Data sources and measurement") beneath grapher
          * Treatment arm treat1: show "view insights about this data" button beneath grapher
          */
-        id: "data-page-insight-buttons-basic",
+        id: "data-page-insight-btns-basic",
         expires: "2025-09-04T00:00:00.000Z",
         arms: [
             // control arm

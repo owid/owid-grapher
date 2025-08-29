@@ -199,7 +199,7 @@ export const DataPageV2Content = ({
                                 />
                             )}
 
-                            {/* A/B experiment: data-page-insight-buttons-basic */}
+                            {/* A/B experiment: data-page-insight-btns-basic */}
                             {insightsHref && (
                                 <InsightLinksInsightButtonsBasic
                                     insightsHref={insightsHref}
@@ -210,9 +210,9 @@ export const DataPageV2Content = ({
                                 datapageData={datapageData}
                                 hasFaq={!!faqEntries?.faqs.length}
                                 className={cx(
-                                    "exp-data-page-insight-buttons-basic--control1--hide",
-                                    "exp-data-page-insight-buttons-basic--treat0--hide",
-                                    "exp-data-page-insight-buttons-basic--treat1--hide"
+                                    "exp-data-page-insight-btns-basic--control1--hide",
+                                    "exp-data-page-insight-btns-basic--treat0--hide",
+                                    "exp-data-page-insight-btns-basic--treat1--hide"
                                 )}
                                 id={
                                     // if visitor is assigned to an arm other than
@@ -221,7 +221,7 @@ export const DataPageV2Content = ({
                                     assignedExperiments &&
                                     ["control1", "treat0", "treat1"].includes(
                                         assignedExperiments[
-                                            "exp-data-page-insight-buttons-basic"
+                                            "exp-data-page-insight-btns-basic"
                                         ]
                                     )
                                         ? ""
@@ -258,9 +258,9 @@ export const DataPageV2Content = ({
                             datapageData={datapageData}
                             hasFaq={!!faqEntries?.faqs.length}
                             className={cx(
-                                "exp-data-page-insight-buttons-basic--control1--show",
-                                "exp-data-page-insight-buttons-basic--treat0--show",
-                                "exp-data-page-insight-buttons-basic--treat1--show"
+                                "exp-data-page-insight-btns-basic--control1--show",
+                                "exp-data-page-insight-btns-basic--treat0--show",
+                                "exp-data-page-insight-btns-basic--treat1--show"
                             )}
                             id={
                                 // if visitor is assigned to an arm other than
@@ -269,7 +269,7 @@ export const DataPageV2Content = ({
                                 assignedExperiments &&
                                 ["control1", "treat0", "treat1"].includes(
                                     assignedExperiments[
-                                        "exp-data-page-insight-buttons-basic"
+                                        "exp-data-page-insight-btns-basic"
                                     ]
                                 )
                                     ? DATAPAGE_ABOUT_THIS_DATA_SECTION_ID
@@ -300,17 +300,17 @@ export const DataPageV2Content = ({
 }
 
 /**
- * A/B experiment: data-page-insight-buttons-basic
+ * A/B experiment: data-page-insight-btns-basic
  *
  * Renders the insight buttons for each experimental arm in the
- * data-page-insight-buttons-basic experiment.
+ * data-page-insight-btns-basic experiment.
  */
 const InsightLinksInsightButtonsBasic = ({
     insightsHref,
 }: {
     insightsHref: string
 }) => {
-    const experimentId = "data-page-insight-buttons-basic"
+    const experimentId = "data-page-insight-btns-basic"
 
     return (
         <>
