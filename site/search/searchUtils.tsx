@@ -1088,4 +1088,4 @@ export function getPageTypeNameAndIcon(pageType: PageType): {
         )
         .exhaustive()
 }
-export const SEARCH_BASE_PATH = "/data"
+export const SEARCH_BASE_PATH = "/search"
