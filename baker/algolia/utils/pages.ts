@@ -3,14 +3,11 @@ import * as db from "../../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../../settings/serverSettings.js"
 import { chunkParagraphs } from "../../chunk.js"
 import {
-    countries,
-    Country,
     OwidGdocType,
     type RawPageview,
     OwidGdocPostInterface,
     ARCHIVED_THUMBNAIL_FILENAME,
     DEFAULT_GDOC_FEATURED_IMAGE,
-    DEFAULT_THUMBNAIL_FILENAME,
     DbEnrichedImage,
     OwidGdocDataInsightInterface,
     OwidGdocAboutInterface,
@@ -23,7 +20,6 @@ import { getAlgoliaClient } from "../configureAlgolia.js"
 import {
     PageRecord,
     SearchIndexName,
-    WordpressPageType,
 } from "../../../site/search/searchTypes.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { getIndexName } from "../../../site/search/searchClient.js"
@@ -47,27 +43,6 @@ import { toPlaintext } from "./shared.js"
 const computePageScore = (record: Omit<PageRecord, "score">): number => {
     const { importance, views_7d } = record
     return importance * 1000 + views_7d
-}
-
-function generateCountryRecords(
-    countries: Country[],
-    pageviews: Record<string, RawPageview>
-): PageRecord[] {
-    return countries.map((country) => {
-        const record = {
-            objectID: country.slug,
-            type: WordpressPageType.Country,
-            importance: -1,
-            slug: `country/${country.slug}`,
-            title: country.name,
-            content: `All available indicators for ${country.name}.`,
-            views_7d: pageviews[`/country/${country.slug}`]?.views_7d ?? 0,
-            documentType: "country-page" as const,
-            thumbnailUrl: `/${DEFAULT_THUMBNAIL_FILENAME}`,
-        }
-        const score = computePageScore(record)
-        return { ...record, score }
-    })
 }
 
 const getThumbnailUrl = (
@@ -292,7 +267,6 @@ async function generateGdocRecords(
                     gdoc.updatedAt ?? gdoc.publishedAt!
                 ).toISOString(),
                 tags: [...topicTags],
-                documentType: "gdoc" as const,
                 authors: gdoc.content.authors,
                 thumbnailUrl,
             }
@@ -304,7 +278,6 @@ async function generateGdocRecords(
     return records
 }
 
-// Generate records for countries, WP posts (not including posts that have been succeeded by Gdocs equivalents), and Gdocs
 export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
     const gdocs = (await db
@@ -320,7 +293,6 @@ export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
         | OwidGdocDataInsightInterface
     )[]
 
-    const countryRecords = generateCountryRecords(countries, pageviews)
     const cloudflareImagesByFilename = await db
         .getCloudflareImages(knex)
         .then((images) => _.keyBy(images, "filename"))
@@ -332,7 +304,7 @@ export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
         knex
     )
 
-    return [...countryRecords, ...gdocsRecords]
+    return gdocsRecords
 }
 
 async function getExistingRecordsForSlug(
