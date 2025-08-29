@@ -22,6 +22,7 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import { getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
+import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
 
 interface SitemapUrl {
     loc: string
@@ -114,7 +115,7 @@ export const makeSitemap = async (
         `
     )
 
-    const STATIC_PAGES = ["/explorers", "/data", "/search", "/donate"]
+    const STATIC_PAGES = ["/explorers", "/data", SEARCH_BASE_PATH, "/donate"]
 
     const explorers = await explorerAdminServer.getAllPublishedExplorers(knex)
     const multiDims = await getPublishedMultiDims(knex)
