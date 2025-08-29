@@ -51,8 +51,6 @@ import {
     SearchChartHit,
     IChartHit,
     SearchUrlParam,
-    PageType,
-    WordpressPageType,
     SynonymMap,
 } from "./searchTypes.js"
 import {
@@ -60,7 +58,6 @@ import {
     faBookmark,
     faBullhorn,
     faFileLines,
-    faGlobe,
     faLightbulb,
     faTag,
     IconDefinition,
@@ -1058,7 +1055,7 @@ export const getItemUrlForFilter = (filter: Filter): string => {
     return `${BAKED_BASE_URL}${SEARCH_BASE_PATH}${queryParamsToStr(queryParams)}`
 }
 
-export function getPageTypeNameAndIcon(pageType: PageType): {
+export function getPageTypeNameAndIcon(pageType: OwidGdocType): {
     name: string
     icon: IconDefinition
 } {
@@ -1080,12 +1077,7 @@ export function getPageTypeNameAndIcon(pageType: PageType): {
             name: "Announcement",
             icon: faBullhorn,
         }))
-        .with(WordpressPageType.Country, () => ({
-            name: "Country",
-            icon: faGlobe,
-        }))
         .with(
-            WordpressPageType.Other,
             OwidGdocType.Author, // Should never be indexed
             OwidGdocType.Fragment, // Should never be indexed
             OwidGdocType.Homepage, // Should never be indexed
