@@ -20,6 +20,7 @@ import { useTriggerOnEscape } from "./hooks.js"
 import { useTopicTagGraph } from "./search/searchHooks.js"
 import { AUTOCOMPLETE_CONTAINER_ID } from "./search/Autocomplete.js"
 import { Menu } from "./SiteConstants.js"
+import { SEARCH_BASE_PATH } from "./search/searchUtils.js"
 
 // Note: tranforming the flag from an env string to a boolean in
 // clientSettings.ts is convoluted due to the two-pass SSR/Vite build process.
@@ -145,7 +146,7 @@ export const SiteNavigation = ({
                                     </SiteNavigationToggle>
                                 </li>
                                 <li>
-                                    <a href="/data">Data</a>
+                                    <a href={SEARCH_BASE_PATH}>Data</a>
                                 </li>
                                 <li>
                                     <a href="/data-insights">Insights</a>
