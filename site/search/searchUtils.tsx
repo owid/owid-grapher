@@ -360,7 +360,6 @@ export const constructPreviewUrl = ({
             imFontSize: fontSize?.toString(),
             imWidth: imageWidth?.toString(),
             imHeight: imageHeight?.toString(),
-            nocache: "true", // TODO: remove nocache param
         })
     )
     const fullQueryStr = queryStr
