@@ -2,6 +2,7 @@ import { useContext } from "react"
 import { Autocomplete } from "../../search/Autocomplete.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { commafyNumber } from "@ourworldindata/utils"
+import { SEARCH_BASE_PATH } from "../../search/searchUtils.js"
 
 export function HomepageSearch(props: { className?: string }) {
     const { homepageMetadata } = useContext(AttachmentsContext)
@@ -10,7 +11,10 @@ export function HomepageSearch(props: { className?: string }) {
     const message =
         chartCount && topicCount ? (
             <>
-                <a href="/data">{commafyNumber(chartCount)} charts</a> across{" "}
+                <a href={SEARCH_BASE_PATH}>
+                    {commafyNumber(chartCount)} charts
+                </a>{" "}
+                across{" "}
                 <a
                     href="#all-topics"
                     className="homepage-search__all-topics-link"
