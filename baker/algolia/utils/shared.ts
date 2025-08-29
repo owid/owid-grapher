@@ -114,19 +114,19 @@ function findMatchingRecordByPathnameAndQueryParams(
 export const MAX_NON_FM_RECORD_SCORE = 10000
 
 /**
- * All featured metrics start at a score of 11000, which places them above all other records
- * in the `explorer-views-and-charts` index.
- * The score is then adjusted based on the ranking of the featured metric within its group.
+ * All featured metrics start at a score of 11000, which places them above all
+ * other records in the `explorer-views-and-charts` index. The score is then
+ * adjusted based on the ranking of the featured metric.
+ *
+ * If there are 3 FMs in the group, rank 1 gets 11000-1=10999, rank 2 gets
+ * 11000-2=10998, etc. This ensures that the score of the top FMs only depends
+ * on the FM's ranking, regardless of group size. We can then sort by
+ * desc(score) in Algolia and FMs will show up according to their rank.
  */
 function calculateFeaturedMetricScore(
-    featuredMetric: DbPlainFeaturedMetricWithParentTagName,
-    group: DbPlainFeaturedMetricWithParentTagName[]
+    featuredMetric: DbPlainFeaturedMetricWithParentTagName
 ): number {
-    let score = MAX_NON_FM_RECORD_SCORE + 1000
-    // If there are 3 FMs in the group, rank 1 gets 3 points, rank 2 gets 2 points, rank 3 gets 1 point.
-    // This means we can sort by desc(score) in Algolia and they'll show up according to their rank.
-    score += group.length - featuredMetric.ranking
-    return score
+    return MAX_NON_FM_RECORD_SCORE + 1000 - featuredMetric.ranking
 }
 
 /**
@@ -172,12 +172,6 @@ function generateObjectID(
     correspondingRecord: ChartRecord
 ): string {
     return `${correspondingRecord.objectID}-fm-${featuredMetric.incomeGroup}-${slugify(featuredMetric.parentTagName)}`
-}
-
-function getGroupKey(
-    featuredMetric: DbPlainFeaturedMetricWithParentTagName
-): string {
-    return `${featuredMetric.parentTagName}-${featuredMetric.incomeGroup}`
 }
 
 /**
@@ -246,11 +240,6 @@ export async function createFeaturedMetricRecords(
         featuredMetricsWithParentTagName
     )
 
-    const expandedFeaturedMetricsGroupedByTagAndIncomeGroup = groupBy(
-        expandedFeaturedMetrics,
-        getGroupKey
-    )
-
     const featuredMetricRecords: ChartRecord[] = []
 
     for (const featuredMetric of expandedFeaturedMetrics) {
@@ -265,12 +254,7 @@ export async function createFeaturedMetricRecords(
             continue
         }
 
-        const score = calculateFeaturedMetricScore(
-            featuredMetric,
-            expandedFeaturedMetricsGroupedByTagAndIncomeGroup[
-                getGroupKey(featuredMetric)
-            ]
-        )
+        const score = calculateFeaturedMetricScore(featuredMetric)
 
         const availableEntities = filterAvailableEntities(
             featuredMetric,
