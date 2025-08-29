@@ -227,6 +227,14 @@ export enum SearchResultType {
 export type Filter = {
     type: FilterType
     name: string
+    score?: number
+}
+
+export enum AutocompleteSourceId {
+    FILTERS = "filters",
+    ALGOLIA = "algolia",
+    FEATURED_SEARCH = "suggestedSearch",
+    UNIFIED = "unified",
 }
 
 export enum SearchUrlParam {
