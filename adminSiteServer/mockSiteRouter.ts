@@ -389,8 +389,8 @@ getPlainRouteWithROTransaction(
 
 getPlainRouteWithROTransaction(
     mockSiteRouter,
-    "/data",
-    async (req, res, trx) => {
+    SEARCH_BASE_PATH,
+    async (_, res, trx) => {
         res.send(await renderSearchPage(trx))
     }
 )
