@@ -115,7 +115,6 @@ export const configureAlgolia = async () => {
             "afterDistinct(type)",
             "afterDistinct(searchable(tags))",
             "afterDistinct(searchable(authors))",
-            "afterDistinct(documentType)",
         ],
 
         // These lines below essentially demote matches in the `content` (i.e. fulltext) field:
