@@ -10,7 +10,7 @@ const DEFAULT_COOKIE_EXPIRY = new Date(Date.now() + 7 * (24 * 60 * 60 * 1000)) /
  * including the experiment's unique identifier, expiration date, arms (variants), and applicable cookie paths.
  *
  *
- * @property {string} id - Unique identifier for the experiment.
+ * @property {ExperimentId} id - Unique identifier for the experiment.
  * @property {Date} expires - The expiration date of the experiment.
  * @property {ExperimentArm[]} arms - The list of arms (variants) in the experiment, each with its own fraction.
  * @property {CookiePath[]} paths - The list of cookie paths where the experiment applies.
@@ -22,18 +22,22 @@ const DEFAULT_COOKIE_EXPIRY = new Date(Date.now() + 7 * (24 * 60 * 60 * 1000)) /
  * any `${experimentId}-${armId}` exceeds 100 characters.
  */
 export class Experiment {
-    id: string
+    id: ExperimentId
     expires: Date
     arms: ExperimentArm[]
     paths: string[]
 
     constructor(data: RawExperiment) {
-        this.id = `${EXPERIMENT_PREFIX}-${data.id}`
+        this.id = asExperimentId(`${EXPERIMENT_PREFIX}-${data.id}`)
         this.expires =
             data.expires !== undefined
                 ? new Date(data.expires)
                 : DEFAULT_COOKIE_EXPIRY
-        this.arms = data.arms
+        this.arms = data.arms.map((a) => ({
+            id: asArmId(a.id),
+            fraction: a.fraction,
+            replaysSessionSampleRate: a.replaysSessionSampleRate,
+        }))
         this.paths = data.paths
 
         this.validate()
@@ -115,7 +119,7 @@ export class Experiment {
 }
 
 export type ExperimentArm = {
-    id: string // unique arm id
+    id: ArmId // unique arm id
     fraction: number // fraction of visitors to assign to this arm
     replaysSessionSampleRate?: number // session replay sample rate for this arm
 }
@@ -131,6 +135,42 @@ type RawExperiment = {
     expires: string
     arms: RawArm[]
     paths: string[]
+}
+
+type ExperimentId = string & { readonly __brand: "ExperimentId" }
+
+function asExperimentId(value: string): ExperimentId {
+    if (value.length > 32) {
+        throw new Error("Experiment ID exceeds maximum length of 32 characters")
+    }
+
+    // Check if the value contains only allowed characters for Sentry tag keys:
+    // https://docs.sentry.io/platforms/javascript/guides/nextjs/enriching-events/tags
+    const allowedPattern = /^[a-zA-Z0-9_.:-]+$/
+    if (!allowedPattern.test(value)) {
+        throw new Error(
+            "Experiment ID contains invalid characters. Only letters (a-zA-Z), numbers (0-9), underscores (_), periods (.), colons (:), and dashes (-) are allowed"
+        )
+    }
+
+    return value as ExperimentId
+}
+
+type ArmId = string & { readonly __brand: "ArmId" }
+
+function asArmId(value: string): ArmId {
+    if (value.length > 200) {
+        throw new Error("Arm ID exceeds maximum length of 200 characters")
+    }
+
+    // Check if the value contains newline characters (not allowed for Sentry tag values)
+    if (value.includes("\n")) {
+        throw new Error(
+            "Arm ID contains invalid characters. Newline characters (\\n) are not allowed"
+        )
+    }
+
+    return value as ArmId
 }
 
 export function validateUniqueExperimentIds(

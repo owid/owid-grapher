@@ -1,7 +1,11 @@
 import * as Sentry from "@sentry/react"
 import Cookies from "js-cookie"
 import { getPreferenceValue, PreferenceType } from "./cookiePreferences.js"
-import { experiments, isInIFrame } from "@ourworldindata/utils"
+import {
+    experiments,
+    isInIFrame,
+    getExperimentState,
+} from "@ourworldindata/utils"
 import {
     SENTRY_DEFAULT_REPLAYS_SESSION_SAMPLE_RATE,
     SENTRY_SESSION_STORAGE_KEY,
@@ -250,12 +254,22 @@ function isSentryInitialized(): boolean {
 }
 
 /**
+ * Updates the Sentry experiment tags from the current experiment state.
+ */
+export function updateSentryExperimentTags() {
+    const { assignedExperiments } = getExperimentState()
+    if (isSentryInitialized() && Object.keys(assignedExperiments).length > 0) {
+        Sentry.setTags(assignedExperiments)
+    }
+}
+
+/**
  * Updates the Sentry user ID from Google Analytics client ID.
  *
  * If analytics consent is given, the user ID is set to the Google Analytics 4
  * client ID. If not, the Sentry user is cleared.
  */
-export function updateSentryUser(): void {
+export function updateSentryUser() {
     let user: Sentry.User | null = null // by default, clear Sentry user
     if (allowRecording()) {
         const clientId = extractGaClientIdFromCookie()
