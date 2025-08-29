@@ -229,14 +229,14 @@ By default when a user is NOT assigned to {armId}, blocks with "{experimentId}--
 are hidden, while blocks with "{experimentId}--{armId}--hide" are shown.
 */
 $experiments: (
-    exp-data-page-insight-buttons-basic: (
+    exp-data-page-insight-btns-basic: (
         control1,
         treat0,
         treat1,
     ),
 );
 
-$experimentId: exp-data-page-insight-buttons-basic;
+$experimentId: exp-data-page-insight-btns-basic;
 $armIds: control1, treat0, treat1;
 
 @each $exp, $arms in $experiments {
@@ -269,9 +269,9 @@ $armIds: control1, treat0, treat1;
     }
 }
 
-// styles specific to experiment exp-data-page-insight-buttons-basic
-.exp-data-page-insight-buttons-basic {
-    $arms: map-get($experiments, exp-data-page-insight-buttons-basic);
+// styles specific to experiment exp-data-page-insight-btns-basic
+.exp-data-page-insight-btns-basic {
+    $arms: map-get($experiments, exp-data-page-insight-btns-basic);
     @each $a in $arms {
         &--#{$a} .DataPageContent {
             .chart-key-info {
