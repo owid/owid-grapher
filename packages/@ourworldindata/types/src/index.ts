@@ -210,6 +210,7 @@ export {
     type RawBlockHtml,
     type RawBlockImage,
     type RawBlockVideo,
+    type RawBlockStaticViz,
     type RawBlockKeyInsights,
     type RawBlockLatestDataInsights,
     type RawBlockList,
@@ -272,6 +273,7 @@ export {
     type EnrichedBlockHtml,
     type EnrichedBlockImage,
     type EnrichedBlockVideo,
+    type EnrichedBlockStaticViz,
     type EnrichedBlockKeyInsights,
     type EnrichedBlockKeyInsightsSlide,
     type EnrichedBlockLatestDataInsights,
@@ -370,6 +372,7 @@ export {
     type OwidGdocIndexItem,
     extractGdocIndexItem,
     type NarrativeChartInfo,
+    type LinkedStaticViz,
     type OwidGdocDataInsightIndexItem,
 } from "./gdocTypes/Gdoc.js"
 
@@ -795,6 +798,16 @@ export {
     type DbEnrichedLatestWork,
     parseLatestWork,
 } from "./domainTypes/Author.js"
+
+export {
+    StaticVizTableName,
+    type DbRawStaticViz,
+    type DbEnrichedStaticViz,
+    type StaticVizInsert,
+    type StaticVizUpdate,
+    StaticVizInsertSchema,
+    StaticVizUpdateSchema,
+} from "./domainTypes/StaticViz.js"
 
 export type {
     IndicatorConfig,
