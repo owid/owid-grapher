@@ -1,0 +1,97 @@
+import { describe, it, expect } from "vitest"
+import { getAdminTestEnv } from "./testEnv.js"
+import {
+    ExplorerViewsTableName,
+    ExplorersTableName,
+    JobsTableName,
+} from "@ourworldindata/types"
+import { latestGrapherConfigSchema } from "@ourworldindata/grapher"
+import { processOneExplorerViewsJob } from "../../jobQueue/explorerJobProcessor.js"
+
+const env = getAdminTestEnv()
+
+describe("Explorer views async queue", { timeout: 20000 }, () => {
+    const testExplorerSlug = "test-async-explorer-views"
+
+    it("queues, processes, and marks job done, creating views", async () => {
+        // Create charts referenced by explorer
+        const chart1 = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "test-chart-1",
+                title: "Test Chart 1",
+                chartTypes: ["LineChart"],
+            }),
+        })
+        const chart2 = await env.request({
+            method: "POST",
+            path: "/charts",
+            body: JSON.stringify({
+                $schema: latestGrapherConfigSchema,
+                slug: "test-chart-2",
+                title: "Test Chart 2",
+                chartTypes: ["ScatterPlot"],
+            }),
+        })
+
+        const explorerTsv = `explorerTitle\tTest Async Explorer
+explorerSubtitle\tTest explorer for async job queue processing.
+isPublished\ttrue
+graphers
+\tchartId\tTest Radio
+\t${chart1.chartId}\tTest Chart 1
+\t${chart2.chartId}\tTest Chart 2`
+
+        // PUT twice to mark as published and ensure queuing
+        await env.request({
+            method: "PUT",
+            path: `/explorers/${testExplorerSlug}`,
+            body: JSON.stringify({ tsv: explorerTsv, commitMessage: "init" }),
+        })
+        const response = await env.request({
+            method: "PUT",
+            path: `/explorers/${testExplorerSlug}`,
+            body: JSON.stringify({
+                tsv: explorerTsv,
+                commitMessage: "publish",
+            }),
+        })
+        expect(response.success).toBe(true)
+        expect(response.status).toBe("queued")
+
+        const explorer = await env.testKnex!(ExplorersTableName)
+            .where({ slug: testExplorerSlug })
+            .first()
+        expect(explorer).toBeTruthy()
+        expect(explorer.viewsRefreshStatus).toBe("queued")
+
+        const jobRows = await env.testKnex!.raw(
+            `SELECT * FROM jobs WHERE type = ? AND JSON_EXTRACT(payload, '$.slug') = ?`,
+            ["refresh_explorer_views", testExplorerSlug]
+        )
+        const job = jobRows[0]?.[0]
+        expect(job).toBeTruthy()
+        expect(job.state).toBe("queued")
+
+        const before = await env.getCount(ExplorerViewsTableName)
+        expect(before).toBe(0)
+
+        const jobProcessed = await processOneExplorerViewsJob()
+        expect(jobProcessed).toBe(true)
+
+        const completedJob = await env.testKnex!(JobsTableName)
+            .where({ id: job.id })
+            .first()
+        expect(completedJob.state).toBe("done")
+
+        const updatedExplorer = await env.testKnex!(ExplorersTableName)
+            .where({ slug: testExplorerSlug })
+            .first()
+        expect(updatedExplorer.viewsRefreshStatus).toBe("clean")
+
+        const afterCount = await env.getCount(ExplorerViewsTableName)
+        expect(afterCount).toBe(2)
+    })
+})
