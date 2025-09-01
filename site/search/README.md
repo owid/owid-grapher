@@ -71,7 +71,7 @@ config:
 flowchart TD
     A["SearchPage"] --> B["SearchInstantSearchWrapper"]
     B --> n3["QueryClientProvider"]
-    C["Search"] --> D["SearchContext.Provider"] & E["SearchDebugProvider"] & F["Searchbar"]
+    C["Search"] --> D["SearchContext.Provider"] & F["Searchbar"]
     F --> J["SearchAutocompleteContextProvider"] & N["SearchCountrySelector"]
     I["Search Templates"] --> O["SearchTemplatesAll"] & P["SearchTemplatesData"] & Q["SearchTemplatesWriting"]
     O --> R["SearchDataResults"] & S["SearchWritingResults"] & T["SearchDataInsightsResults"] & n1["SearchDataTopicsResults"]
