@@ -778,8 +778,8 @@ export function getAutocompleteSuggestionsWithUnmatchedQuery(
     )
 
     const combinedFilters = [
-        ...exactMatches.map((item) => item.filter),
         ...(query ? [createQueryFilter(query)] : []),
+        ...exactMatches.map((item) => item.filter),
         ...sortedPartialMatches.map((item) => item.filter),
     ]
 

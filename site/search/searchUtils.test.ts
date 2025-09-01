@@ -342,8 +342,8 @@ describe("Fuzzy search in search autocomplete", () => {
             ).toBe(true)
         })
 
-        it("should prioritize exact matches", () => {
-            // Mock perfect score
+        it("should prioritize query filter for consistent search behavior", () => {
+            // Query filter should come first to ensure pressing Enter preserves full query
             const result = getAutocompleteSuggestionsWithUnmatchedQuery(
                 "air pollution",
                 mockTopics,
@@ -354,7 +354,41 @@ describe("Fuzzy search in search autocomplete", () => {
             expect(
                 result.suggestions.filter((s) => s.type === FilterType.TOPIC)
             ).toHaveLength(2) // "Air Pollution" and "Indoor Air Pollution"
-            expect(result.suggestions[0].name).toBe("Air Pollution")
+            
+            // Query filter should be first to ensure consistent behavior when Enter is pressed
+            expect(result.suggestions[0].type).toBe(FilterType.QUERY)
+            expect(result.suggestions[0].name).toBe("air pollution")
+            
+            // Exact topic match should be second
+            expect(result.suggestions[1].type).toBe(FilterType.TOPIC)
+            expect(result.suggestions[1].name).toBe("Air Pollution")
+        })
+
+        it("should preserve full query when country and topic filters are detected - issue fix", () => {
+            // This test specifically addresses the reported issue where 
+            // "CO2 emissions India" would have "CO2 emissions" removed from the query
+            const result = getAutocompleteSuggestionsWithUnmatchedQuery(
+                "CO2 emissions India",
+                ["CO2 emissions", "Climate Change"],
+                [],
+                synonymMap,
+                3
+            )
+
+            // Should detect "India" as a country filter
+            const countryFilters = result.suggestions.filter((s) => s.type === FilterType.COUNTRY)
+            expect(countryFilters).toHaveLength(1)
+            expect(countryFilters[0].name).toBe("India")
+
+            // Should have unmatched query "CO2 emissions" 
+            expect(result.unmatchedQuery).toBe("CO2 emissions")
+
+            // But query filter preserving full query should come FIRST
+            expect(result.suggestions[0].type).toBe(FilterType.QUERY)
+            expect(result.suggestions[0].name).toBe("CO2 emissions India")
+
+            // This ensures that pressing Enter on homepage autocomplete preserves the full query
+            // instead of selecting the country filter
         })
 
         it("should include query filter when query is provided", () => {
