@@ -108,7 +108,7 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         expect(done.length).toBeGreaterThanOrEqual(0)
     })
 
-    it.skip("retries on failure and marks failed after max attempts", async () => {
+    it("retries on failure and marks failed after max attempts", async () => {
         const { id1, id2 } = await createTwoCharts()
         const slug = "test-queue-retry"
         await ensureQueued(slug, id1, id2)
@@ -117,14 +117,14 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         vi.spyOn(ExplorerViewsModel, "refreshExplorerViewsForSlug").mockRejectedValue(
             new Error("simulated failure")
         )
-        // Process by repeatedly claiming and running without the wrapper (avoid backoff sleep)
+        // Process by repeatedly claiming and running without backoff sleep
         for (let i = 0; i < 3; i++) {
             const job = await env.testKnex!.transaction(async (trx) => {
                 return await JobsModel.claimNextQueuedJob(trx as any, "refresh_explorer_views")
             })
             expect(job).toBeTruthy()
             if (!job) break
-            await processExplorerViewsJob(job)
+            await processExplorerViewsJob(job, { sleep: async () => {}, maxAttempts: 3 })
         }
 
         const finalJob = await env
@@ -141,25 +141,29 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         expect(explorer.viewsRefreshStatus).toBe("failed")
     })
 
-    it.skip("aborts if job is stale before R2 sync (late-phase staleness)", async () => {
+    it("aborts if job is stale before R2 sync (late-phase staleness)", async () => {
         const { id1, id2 } = await createTwoCharts()
         const slug = "test-queue-stale-before-r2"
         await ensureQueued(slug, id1, id2)
 
-        // Wrap and update explorer.updatedAt after Phase 1 completes to make job stale
-        const original = ExplorerViewsModel.refreshExplorerViewsForSlug
-        vi.spyOn(ExplorerViewsModel, "refreshExplorerViewsForSlug").mockImplementation(
-            async (trx, s) => {
-                const res = await original(trx, s)
+        // Claim a single job and induce staleness after Phase 1 with a hook
+        const job = await env.testKnex!.transaction(async (trx) => {
+            return await JobsModel.claimNextQueuedJob(trx as any, "refresh_explorer_views")
+        })
+        expect(job).toBeTruthy()
+        if (!job) throw new Error("No job claimed")
+        await processExplorerViewsJob(job, {
+            onAfterPhase1: async (j) => {
                 await env
                     .testKnex!(ExplorersTableName)
-                    .where({ slug: s })
-                    .update({ updatedAt: new Date(Date.now() + 2000) })
-                return res
-            }
-        )
-
-        await processUntilNoQueued(slug)
+                    .where({ slug: j.payload.slug })
+                    .update({
+                        updatedAt: new Date(
+                            j.payload.explorerUpdatedAt.getTime() + 1
+                        ),
+                    })
+            },
+        })
 
         const last = await env
             .testKnex!(JobsTableName)

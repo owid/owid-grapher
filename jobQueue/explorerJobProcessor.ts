@@ -20,14 +20,14 @@ import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import pMap from "p-map"
 import { DbPlainJob } from "@ourworldindata/types"
 
-const MAX_ATTEMPTS = 3
+export const MAX_ATTEMPTS = 3
 const CONCURRENCY = 20
 
 async function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-function backoffDelay(attempts: number): number {
+export function backoffDelay(attempts: number): number {
     // Exponential backoff: 5s, 15s, 45s
     return 5000 * Math.pow(3, attempts - 1)
 }
@@ -38,13 +38,25 @@ export interface JobResult {
     retryDelayMs?: number
 }
 
+export interface ProcessExplorerJobOptions {
+    sleep?: (ms: number) => Promise<void>
+    now?: () => Date
+    maxAttempts?: number
+    onAfterPhase1?: (job: DbPlainJob) => Promise<void>
+}
+
 export async function processExplorerViewsJob(
-    job: DbPlainJob
+    job: DbPlainJob,
+    opts: ProcessExplorerJobOptions = {}
 ): Promise<JobResult> {
     const { slug, explorerUpdatedAt } = job.payload
 
     let refreshResult: ExplorerViewsRefreshResult | undefined
     let isPublished: boolean = false
+
+    const doSleep = opts.sleep ?? sleep
+    const getNow = opts.now ?? (() => new Date())
+    const maxAttempts = opts.maxAttempts ?? MAX_ATTEMPTS
 
     try {
         // Phase 1: DB operations in a single transaction
@@ -85,6 +97,11 @@ export async function processExplorerViewsJob(
         // If we got here without refreshResult, the job was marked done early
         if (!shouldContinue || !refreshResult) {
             return { success: true, shouldRetry: false }
+        }
+
+        // Allow tests to mutate state after phase 1 to simulate races/staleness
+        if (opts.onAfterPhase1) {
+            await opts.onAfterPhase1(job)
         }
 
         // Check if job is still running before proceeding to R2 operations
@@ -177,7 +194,7 @@ export async function processExplorerViewsJob(
                 return false // Job was superseded
             }
 
-            await updateExplorerRefreshStatus(trx, slug, "clean", new Date())
+            await updateExplorerRefreshStatus(trx, slug, "clean", getNow())
             await markJobDone(trx, job.id)
 
             // Trigger static build if explorer is published
@@ -219,9 +236,9 @@ export async function processExplorerViewsJob(
         const retryInfo = await knexReadWriteTransaction(async (trx) => {
             const attempts = job.attempts + 1
 
-            if (attempts < MAX_ATTEMPTS) {
+            if (attempts < maxAttempts) {
                 console.warn(
-                    `Requeueing job ${job.id} for explorer ${slug} (attempt ${attempts}/${MAX_ATTEMPTS})`
+                    `Requeueing job ${job.id} for explorer ${slug} (attempt ${attempts}/${maxAttempts})`
                 )
                 await requeueJob(trx, job.id, attempts)
                 await updateExplorerRefreshStatus(trx, slug, "queued")
