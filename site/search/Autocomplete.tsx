@@ -272,7 +272,7 @@ const createFiltersSource = (
             items.push({
                 filter,
                 unmatchedQuery: suggestions.unmatchedQuery,
-                slug: getItemUrlForFilter(filter),
+                slug: getItemUrlForFilter(filter, suggestions.unmatchedQuery),
             })
         })
         return items
