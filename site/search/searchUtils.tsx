@@ -1032,26 +1032,39 @@ export const getUrlParamNameForFilter = (filter: Filter) =>
 /**
  * Builds a fully qualified search URL for the provided autocomplete filter.
  *
- * If the filter type is `COUNTRY` or `TOPIC`, the URL also includes a
- * `resultType=ALL` parameter to broaden the search results. Regular query terms
- * (the only other filter type) do not include this parameter and will default
- * to "resultType=data" (this parameter is assumed but not shown in the URL)
+ * Handles different filter types:
+ * - `COUNTRY` or `TOPIC` filters include a `resultType=ALL` parameter to
+ *   broaden search results beyond the default data-only view, plus any
+ *   unmatched query terms
+ * - `QUERY` filters only include the filter parameter itself (defaults to
+ *   data-only results)
  *
- * When selecting "Kenya" as a country filter, the search query string would be:
- * "?country=Kenya&resultType=all"
- *
- * Non-country/topic filters do not include any extra parameters. For instance,
- * an "outdoor" query would result in the following query string:
- * "?query=outdoor"
+ * Examples:
+ * - Country filter "Kenya" with unmatched query "emissions":
+ *   "?country=Kenya&q=emissions&resultType=all" (shows all content types)
+ * - Topic filter "Health": "?topic=Health&resultType=all" (shows all content
+ *   types)
+ * - Query filter "outdoor": "?q=outdoor" (shows data results only)
  */
-export const getItemUrlForFilter = (filter: Filter): string => {
-    const queryParams = {
+export const getItemUrlForFilter = (
+    filter: Filter,
+    unmatchedQuery: string
+): string => {
+    const filterParam = {
         [getUrlParamNameForFilter(filter)]: filter.name,
-        ...((filter.type === FilterType.COUNTRY ||
-            filter.type === FilterType.TOPIC) && {
-            [SearchUrlParam.RESULT_TYPE]: SearchResultType.ALL,
-        }),
     }
+
+    const queryParams = match(filter.type)
+        .with(FilterType.COUNTRY, FilterType.TOPIC, () => ({
+            ...filterParam,
+            ...(unmatchedQuery && {
+                [SearchUrlParam.QUERY]: unmatchedQuery,
+            }),
+            [SearchUrlParam.RESULT_TYPE]: SearchResultType.ALL,
+        }))
+        .with(FilterType.QUERY, () => filterParam)
+        .exhaustive()
+
     return `${BAKED_BASE_URL}${SEARCH_BASE_PATH}${queryParamsToStr(queryParams)}`
 }
 
