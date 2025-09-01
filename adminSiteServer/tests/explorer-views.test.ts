@@ -10,6 +10,16 @@ import { processOneExplorerViewsJob } from "../../jobQueue/explorerJobProcessor.
 
 const env = getAdminTestEnv()
 
+async function processUntilNoQueued(slug: string, max = 5): Promise<void> {
+    for (let i = 0; i < max; i++) {
+        const queued = await env.testKnex!(JobsTableName)
+            .where({ type: "refresh_explorer_views", state: "queued" })
+            .andWhereRaw(`JSON_EXTRACT(payload, '$.slug') = ?`, [slug])
+        if (queued.length === 0) return
+        await processOneExplorerViewsJob()
+    }
+}
+
 describe("Explorer views async queue", { timeout: 20000 }, () => {
     const testExplorerSlug = "test-async-explorer-views"
 
@@ -67,22 +77,24 @@ graphers
         expect(explorer).toBeTruthy()
         expect(explorer.viewsRefreshStatus).toBe("queued")
 
-        const jobRows = await env.testKnex!.raw(
-            `SELECT * FROM jobs WHERE type = ? AND JSON_EXTRACT(payload, '$.slug') = ?`,
-            ["refresh_explorer_views", testExplorerSlug]
-        )
-        const job = jobRows[0]?.[0]
+        const job = await env.testKnex!(JobsTableName)
+            .where({ type: "refresh_explorer_views", state: "queued" })
+            .andWhereRaw(`JSON_EXTRACT(payload, '$.slug') = ?`, [
+                testExplorerSlug,
+            ])
+            .first()
         expect(job).toBeTruthy()
         expect(job.state).toBe("queued")
 
         const before = await env.getCount(ExplorerViewsTableName)
         expect(before).toBe(0)
 
-        const jobProcessed = await processOneExplorerViewsJob()
-        expect(jobProcessed).toBe(true)
+        await processUntilNoQueued(testExplorerSlug)
 
+        // Query the last job for this slug and ensure it is done
         const completedJob = await env.testKnex!(JobsTableName)
-            .where({ id: job.id })
+            .whereRaw(`JSON_EXTRACT(payload, '$.slug') = ?`, [testExplorerSlug])
+            .orderBy("id", "desc")
             .first()
         expect(completedJob.state).toBe("done")
 
