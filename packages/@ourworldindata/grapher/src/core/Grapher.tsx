@@ -755,7 +755,11 @@ export class GrapherState {
             } else if (overlay === "download") {
                 this.activeModal = GrapherModal.Download
             } else if (overlay === "embed") {
-                this.activeModal = GrapherModal.Embed
+                // We could include the embed modal in the `overlay=` params, but there has been an issue in the past
+                // where we accidentally included that in the Embed dialog's URL, and then embeds would always show
+                // the modal.
+                // So, if it is specified in the query params, we just ignore it.
+                // Linking directly to the modal doesn't have much of a use case, anyway.
             } else {
                 console.error("Unexpected overlay: " + overlay)
             }
@@ -3162,7 +3166,13 @@ export class GrapherState {
                     .with(DownloadModalTabName.Vis, () => "download-vis")
                     .exhaustive()
             })
-            .with(GrapherModal.Embed, () => "embed")
+            .with(GrapherModal.Embed, () => {
+                // We could include the embed modal in the `overlay=` params, but there has been an issue in the past
+                // where we accidentally included that in the Embed dialog's URL, and then embeds would always show
+                // the modal.
+                // Linking directly to the modal doesn't have much of a use case, anyway.
+                return undefined
+            })
             .with(GrapherModal.Sources, () => "sources")
             .exhaustive()
     }
