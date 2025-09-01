@@ -757,12 +757,12 @@ export function getAutocompleteSuggestionsWithUnmatchedQuery(
         .join(" ")
 
     const countryMatches = searchResults.countryResults.map((result) => ({
-        filter: createCountryFilter(result.name),
+        ...createCountryFilter(result.name),
         score: result.score,
     }))
 
     const topicMatches = searchResults.topicResults.map((result) => ({
-        filter: createTopicFilter(result.name),
+        ...createTopicFilter(result.name),
         score: result.score,
     }))
 
@@ -777,16 +777,35 @@ export function getAutocompleteSuggestionsWithUnmatchedQuery(
         (a, b) => b.score - a.score
     )
 
-    const combinedFilters = [
-        ...exactMatches.map((item) => item.filter),
-        ...(query ? [createQueryFilter(query)] : []),
-        ...sortedPartialMatches.map((item) => item.filter),
+    const combinedSuggestions = [
+        ...exactMatches,
+        ...(query ? [{ ...createQueryFilter(query), score: 0.999999 }] : []),
+        ...sortedPartialMatches,
     ]
 
     return {
-        suggestions: combinedFilters,
+        suggestions: combinedSuggestions,
         unmatchedQuery,
     }
+}
+
+/**
+ * Calculates a fuzzy score for Algolia items that don't have existing scores.
+ * Uses the same FuzzySearch algorithm as the filter items for consistency.
+ */
+export function calculateFuzzyScoreForAlgoliaItem(
+    item: any,
+    query: string
+): number {
+    const text = item.title as string
+    if (!text || !query) return 0
+
+    const fuzzySearcher = FuzzySearch.withKey([text], (t) => t, {
+        threshold: 0.5,
+        limit: 1,
+    })
+    const results = fuzzySearcher.searchResults(query)
+    return results[0]?.score ?? 0
 }
 
 export function createFilter(type: FilterType) {
