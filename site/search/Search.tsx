@@ -33,8 +33,6 @@ import { SearchResultTypeToggle } from "./SearchResultTypeToggle.js"
 import { SearchTemplatesAll } from "./SearchTemplatesAll.js"
 import { SearchTemplatesData } from "./SearchTemplatesData.js"
 import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
-import { SearchDebugNavigator } from "./SearchDebugNavigator.js"
-import { SearchDebugProvider } from "./SearchDebugProvider.js"
 import { SearchNoResults } from "./SearchNoResults.js"
 
 export const Search = ({
@@ -76,42 +74,32 @@ export const Search = ({
     }
 
     return (
-        <SearchDebugProvider>
-            <SearchContext.Provider
-                value={{
-                    state,
-                    actions,
-                    searchClient,
-                    templateConfig,
-                    topicTagGraph,
-                }}
-            >
-                <div className="search-controls-container span-cols-12 col-start-2">
-                    <Searchbar allTopics={allTopics} />
-                </div>
-                <SearchDebugNavigator
-                    availableAreas={allAreas}
-                    availableTopics={allTopics}
-                />
-                <div className="search-filters span-cols-12 col-start-2">
-                    <SearchTopicsRefinementList topicType={topicType} />
-                    <SearchResultTypeToggle />
-                </div>
-                <div className="search-template-results col-start-2 span-cols-12">
-                    {!isFetching && <SearchNoResults />}
-                    {match(templateConfig.resultType)
-                        .with(SearchResultType.ALL, () => (
-                            <SearchTemplatesAll />
-                        ))
-                        .with(SearchResultType.DATA, () => (
-                            <SearchTemplatesData />
-                        ))
-                        .with(SearchResultType.WRITING, () => (
-                            <SearchTemplatesWriting />
-                        ))
-                        .exhaustive()}
-                </div>
-            </SearchContext.Provider>
-        </SearchDebugProvider>
+        <SearchContext.Provider
+            value={{
+                state,
+                actions,
+                searchClient,
+                templateConfig,
+                topicTagGraph,
+            }}
+        >
+            <div className="search-controls-container span-cols-12 col-start-2">
+                <Searchbar allTopics={allTopics} />
+            </div>
+            <div className="search-filters span-cols-12 col-start-2">
+                <SearchTopicsRefinementList topicType={topicType} />
+                <SearchResultTypeToggle />
+            </div>
+            <div className="search-template-results col-start-2 span-cols-12">
+                {!isFetching && <SearchNoResults />}
+                {match(templateConfig.resultType)
+                    .with(SearchResultType.ALL, () => <SearchTemplatesAll />)
+                    .with(SearchResultType.DATA, () => <SearchTemplatesData />)
+                    .with(SearchResultType.WRITING, () => (
+                        <SearchTemplatesWriting />
+                    ))
+                    .exhaustive()}
+            </div>
+        </SearchContext.Provider>
     )
 }
