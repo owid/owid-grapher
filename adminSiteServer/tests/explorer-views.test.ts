@@ -21,6 +21,12 @@ async function processUntilNoQueued(slug: string, max = 5): Promise<void> {
 }
 
 describe("Explorer views async queue", { timeout: 20000 }, () => {
+    /*
+     Scenario: Happy path end-to-end processing
+     - Publishes an explorer that references two valid charts, which enqueues a views refresh job.
+     - Runs the worker until no queued jobs remain for this slug.
+     - Validates that the job is marked done, explorer status is clean, and two views are created with configs.
+    */
     const testExplorerSlug = "test-async-explorer-views"
 
     it("queues, processes, and marks job done, creating views", async () => {
