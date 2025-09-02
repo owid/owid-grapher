@@ -88,18 +88,24 @@ const createLogBins = ({
         throw new Error("createLogBins only supports positive values")
     }
 
-    const magnitudeMin = numberMagnitude(minValue) - 1
-    const magnitudeMax = numberMagnitude(maxValue) - 1
+    // We need the -1 here to convert between magnitude and logarithms.
+    // Magnitude is defined such that magnitude(1) = 1, whereas log10(1) = 0.
+    // Because we generate factors as 10^magnitude, we need to adjust the values accordingly.
+    const exponentMin = numberMagnitude(minValue) - 1
+    const exponentMax = numberMagnitude(maxValue) - 1
 
-    const candidates = R.range(magnitudeMin, magnitudeMax + 1).flatMap(
+    const candidates = R.range(exponentMin, exponentMax + 1).flatMap(
         (magnitude) => {
             const factor = Math.pow(10, magnitude)
             return logSteps.map((step) => step * factor)
         }
     )
 
+    // Adding this extra value at the end is useful if we have, for example, maxValue = 99.
+    // Then the candidates above will go up to 50 (if logSteps includes 5), and here we'll then
+    // add 100 to the mix.
     if ((R.last(candidates) ?? 0) < maxValue) {
-        candidates.push(1 * Math.pow(10, magnitudeMax + 1))
+        candidates.push(1 * Math.pow(10, exponentMax + 1))
     }
 
     return pruneUnusedBins(candidates, { minValue, maxValue })

@@ -44,7 +44,7 @@ For the equal-size strategy, we are differentiating between four different strat
 - `equalSizeBins-many-bins`: creates more bins than that
 - `equalSizeBins-percent`: creates bins of size 10% (0-10%, 10-20%, ...)
 
-Note that `equalSizeBins` is chosen automatically when we detect that the data is a percentage that's roughly in the 0-100% range.
+Note that `equalSizeBins-percent` is chosen automatically when we detect that the data is a percentage that's roughly in the 0-100% range.
 
 Once we have resolved the strategy to use, we can then proceed to pick the step size to use. This process is based on a list of "known good" step sizes, which we choose in such a way that we arrive at a reasonable number of bins that is within the target range of bins.
 
