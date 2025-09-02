@@ -275,6 +275,15 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                 () => this.initSortConfig()
             )
         )
+
+        // Mdims and explorers can change the columns available for sorting, and
+        // we need to change the sort config accordingly
+        this.disposers.push(
+            reaction(
+                () => this.sortOptions,
+                () => this.updateSortConfigIfOptionHasBecomeUnavailable()
+            )
+        )
     }
 
     override componentWillUnmount(): void {
@@ -323,6 +332,23 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
         }
 
         return this.sortConfigByName
+    }
+
+    updateSortConfigIfOptionHasBecomeUnavailable() {
+        // We don't want to update the sort config when `sortOptions` are not ready,
+        // because the new chart dimensions are currently loading
+        if (!this.manager.isReady) return
+        if (!this.manager.activeColumnSlugs?.length) return
+
+        // Check whether the current sort option is still available in the newly-updated
+        // sortOptions
+        if (
+            !this.sortOptions.find(
+                (option) => option.slug === this.sortConfig.slug
+            )
+        ) {
+            this.set({ sortConfig: this.getDefaultSortConfig() })
+        }
     }
 
     initSortConfig(): void {
