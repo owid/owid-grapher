@@ -895,7 +895,7 @@ export class GdocBase implements OwidGdocBaseInterface {
             whitespaceErrors.push({
                 property: "body",
                 message:
-                    "The gdoc contains invalid whitespace characters. To find them, try searching the gdoc for '[\\v\\t\\r\\u000b]' in the 'Find and replace' menu with the 'Use regular expressions' option enabled.",
+                    "The gdoc contains invalid whitespace characters. To find them, try searching the gdoc for '[\\v\\t\\r\\u000b]' in the 'Find and replace' menu with the 'Use regular expressions' option enabled. Replace them with newlines (i.e. backspace them then press the enter key) or spaces.",
                 type: OwidGdocErrorMessageType.Error,
             })
         }
