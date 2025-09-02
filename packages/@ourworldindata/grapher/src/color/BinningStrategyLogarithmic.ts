@@ -19,6 +19,15 @@ export const isLogBinningStrategy = (
 /**
  * Automatically chooses a log binning strategy based on the magnitude difference between the min and max values.
  * Very roughly, the resulting number of bins is roughly magnitudeDiff * numberOfLogSteps.
+ *
+ * The threshold numbers in here are chosen empirically by experimentation.
+ * The main idea is that we want to ideally have 5-8 bins, and with the number of resulting bins very roughly
+ * being `magnitudeDiff * numberOfLogSteps`, we arrive roughly at these thresholds:
+ * - for magnitudeDiff < 2.6, and 3 log steps, we'll end up with up to 8 bins
+ * - for magnitudeDiff between 2.6 and 3.6, and 2 log steps, we'll end up with 5 to 8 bins
+ * - for magnitudeDiff >= 3.6, and 1 log step, we'll end up with >=4 bins
+ * - ... there's probably also cases where we can end up with more than 8 bins, but these should be pretty rare
+ *   (and in these case, the authors can still manually choose a different strategy)
  */
 const autoChooseLogBinningStrategy = (
     magnitudeDiff: number
