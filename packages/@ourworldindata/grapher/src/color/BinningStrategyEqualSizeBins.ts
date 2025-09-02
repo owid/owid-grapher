@@ -11,6 +11,7 @@ import {
 import * as R from "remeda"
 import { match, P } from "ts-pattern"
 import { ResolvedBinningStrategyConfig } from "./BinningStrategies.js"
+import * as Sentry from "@sentry/browser"
 
 export const isEqualSizeBinningStrategy = (
     strategy: BinningStrategyIncludingManual | ResolvedBinningStrategy
@@ -75,17 +76,49 @@ export const createEqualSizeBins = ({
     const { normalised: normalisedRange, factor } =
         normaliseToSingleDigitNumber(range)
 
-    // These are all common and "good" step sizes; find the first one that gives us the target bin count
+    // These are all common and "good" step sizes
     const stepSizeCandidates = [1, 0.1, 0.5, 0.2, 2, 3, 0.3, 0.75, 0.25]
-    const stepSize = stepSizeCandidates.find((candidateStepSize) => {
-        if (normalisedRange === 0) return true
+
+    // Compute the number of bins we would get for each candidate step size
+    const stepSizeInfo = stepSizeCandidates.map((candidateStepSize) => {
+        // if (normalisedRange === 0) return true
 
         const numSteps = Math.ceil(normalisedRange / candidateStepSize)
-        return numSteps >= targetBinCount[0] && numSteps <= targetBinCount[1]
+        return { stepSize: candidateStepSize, numSteps }
+        // return numSteps >= targetBinCount[0] && numSteps <= targetBinCount[1]
     })
 
+    // Find the first step size that gives us the target bin count
+    let stepSize = stepSizeInfo.find(
+        (info) =>
+            info.numSteps >= targetBinCount[0] &&
+            info.numSteps <= targetBinCount[1]
+    )?.stepSize
+
     if (stepSize === undefined) {
-        throw new Error("No valid step size found")
+        // It could be interesting to see which charts cause this, so we can further look into them
+        Sentry.captureMessage(
+            "Equal size binning: Couldn't find a step size fitting targetBinCount; instead using next-best candidate",
+            {
+                level: "warning",
+                extra: { targetBinCount, minValue, maxValue },
+            }
+        )
+
+        // prefer too many bins over too few (by weighing "too many" less highly than "too few")
+        const stepSizeDifference = (candidate: number): number =>
+            Math.max(candidate - targetBinCount[1], 0) * 1 + // this is how many more bins there are than targetBinCount specifies
+            Math.max(targetBinCount[0] - candidate, 0) * 2 // and this is how many fewer there are
+
+        // Find the step size that minimizes the distance function, i.e. such that we are not much above/below what targetBinCount requests
+        stepSize = R.firstBy(stepSizeInfo, (info) =>
+            stepSizeDifference(info.numSteps)
+        )?.stepSize
+    }
+
+    if (stepSize === undefined) {
+        // This should never happen
+        throw new Error("Could not find a valid step size")
     }
 
     const actualStepSize = stepSize * factor
