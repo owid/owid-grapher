@@ -7,12 +7,10 @@ import {
 import { claimNextQueuedJob } from "../../db/model/Jobs.js"
 import { knexReadWriteTransaction } from "../../db/db.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
-import { hostname } from "os"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 
 const POLL_INTERVAL_MS = 2000
-const LOCK_ID = `${hostname()}-${process.pid}-${Date.now()}`
 
 async function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms))
@@ -20,14 +18,12 @@ async function sleep(ms: number): Promise<void> {
 
 async function processOneJobAndExit(): Promise<void> {
     console.log(
-        `[${new Date().toISOString()}] Explorer jobs worker (single-run mode) started with lock ID: ${LOCK_ID}`
+        `[${new Date().toISOString()}] Explorer jobs worker (single-run mode) started`
     )
 
     try {
         const job = await knexReadWriteTransaction(async (trx) => {
-            return await claimNextQueuedJob(trx, "refresh_explorer_views", {
-                lockId: LOCK_ID,
-            })
+            return await claimNextQueuedJob(trx, "refresh_explorer_views")
         })
 
         if (!job) {
@@ -68,7 +64,7 @@ async function processOneJobAndExit(): Promise<void> {
 
 async function workerLoop(): Promise<void> {
     console.log(
-        `[${new Date().toISOString()}] Explorer jobs worker (loop mode) started with lock ID: ${LOCK_ID}`
+        `[${new Date().toISOString()}] Explorer jobs worker (loop mode) started`
     )
     console.log(`Worker configuration:`)
     console.log(`  - Poll interval: ${POLL_INTERVAL_MS}ms`)
@@ -76,9 +72,7 @@ async function workerLoop(): Promise<void> {
     while (true) {
         try {
             const job = await knexReadWriteTransaction(async (trx) => {
-                return await claimNextQueuedJob(trx, "refresh_explorer_views", {
-                    lockId: LOCK_ID,
-                })
+                return await claimNextQueuedJob(trx, "refresh_explorer_views")
             })
 
             if (!job) {

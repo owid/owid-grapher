@@ -18,9 +18,5 @@ export default defineConfig({
             "devTools/vitest-setup.ts",
             "adminSiteServer/tests/setupDbTest.ts",
         ],
-        reporter: ["basic"],
-        outputFile: {
-            json: undefined,
-        },
     },
 })

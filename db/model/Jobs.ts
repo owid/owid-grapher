@@ -36,47 +36,43 @@ export async function claimNextQueuedJob(
     knex: KnexReadWriteTransaction,
     type: JobType
 ): Promise<DbPlainJob | null> {
-    // First, find the next queued job
-    const nextJob = await knex(JobsTableName)
-        .where({ type, state: "queued" })
-        .orderBy("id", "asc")
-        .first()
-
-    if (!nextJob) {
-        return null
-    }
-
-    // Atomically claim it by updating its state
+    // Atomically select and lock the next queued job using FOR UPDATE
     const result = await knex.raw(
-        `UPDATE jobs SET state = 'running' WHERE id = ? AND state = 'queued'`,
-        [nextJob.id]
+        `-- sql
+            SELECT * FROM jobs 
+            WHERE type = ? AND state = 'queued' 
+            ORDER BY id ASC 
+            LIMIT 1 
+            FOR UPDATE
+        `,
+        [type]
     )
 
-    // Check if we successfully claimed it (someone else might have claimed it first)
-    if (result[0].affectedRows === 0) {
+    if (result[0].length === 0) {
         return null
     }
 
-    // Return the claimed job with updated state
-    const claimedJob = await knex(JobsTableName)
-        .where({ id: nextJob.id })
-        .first()
+    const job = result[0][0] as DbPlainJob
 
-    if (!claimedJob) return null
+    // Now safely update it (we have exclusive lock on this row)
+    await knex.raw(
+        `UPDATE jobs SET state = 'running' WHERE id = ?`,
+        [job.id]
+    )
 
     // Parse the JSON payload field
-    if (typeof claimedJob.payload === "string") {
-        claimedJob.payload = JSON.parse(claimedJob.payload)
+    if (typeof job.payload === "string") {
+        job.payload = JSON.parse(job.payload)
     }
 
     // Convert explorerUpdatedAt from string to Date for proper comparison
-    if (claimedJob.payload.explorerUpdatedAt) {
-        claimedJob.payload.explorerUpdatedAt = new Date(
-            claimedJob.payload.explorerUpdatedAt
+    if (job.payload.explorerUpdatedAt) {
+        job.payload.explorerUpdatedAt = new Date(
+            job.payload.explorerUpdatedAt
         )
     }
 
-    return claimedJob
+    return job
 }
 
 export async function markJobDone(
