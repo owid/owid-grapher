@@ -72,6 +72,13 @@ export const ALGOLIA_SECRET_KEY: string =
 export const ALGOLIA_INDEXING: boolean =
     serverSettings.ALGOLIA_INDEXING === "true"
 
+export const TYPESENSE_HOST: string = clientSettings.TYPESENSE_HOST
+export const TYPESENSE_PORT: number = clientSettings.TYPESENSE_PORT
+export const TYPESENSE_API_KEY: string =
+    serverSettings.TYPESENSE_API_KEY ?? "xyz"
+export const TYPESENSE_INDEXING: boolean =
+    serverSettings.TYPESENSE_INDEXING === "true"
+
 export const UNCATEGORIZED_TAG_ID: number =
     parseIntOrUndefined(serverSettings.UNCATEGORIZED_TAG_ID) ?? 375
 

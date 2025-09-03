@@ -65,6 +65,12 @@ export const ALGOLIA_SEARCH_KEY: string = process.env.ALGOLIA_SEARCH_KEY ?? ""
 export const ALGOLIA_INDEX_PREFIX: string =
     process.env.ALGOLIA_INDEX_PREFIX ?? ""
 
+export const TYPESENSE_HOST: string = process.env.TYPESENSE_HOST ?? "localhost"
+export const TYPESENSE_PORT: number =
+    parseIntOrUndefined(process.env.TYPESENSE_PORT) ?? 8108
+export const TYPESENSE_SEARCH_KEY: string =
+    process.env.TYPESENSE_SEARCH_KEY ?? ""
+
 export const CLOUDFLARE_IMAGES_URL = process.env.CLOUDFLARE_IMAGES_URL ?? ""
 
 export const DONATE_API_URL: string =
