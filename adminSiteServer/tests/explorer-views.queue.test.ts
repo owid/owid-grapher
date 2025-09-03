@@ -67,9 +67,8 @@ async function putExplorerTsv(slug: string, chart1: number, chart2: number) {
 
 // Some endpoints return "updated" on first creation; posting twice typically ensures a queued job
 async function ensureQueued(slug: string, chart1: number, chart2: number) {
-    // Double PUT quirk: First PUT may return "updated" without queuing.
-    // We intentionally PUT twice to ensure a published explorer transitions
-    // to a queued refresh job. This documents current API behavior.
+    // Double PUT quirk: Currently the endpoint needs to be called twice
+    // for an explorer to be published, but this behavior may change in the future.
     await putExplorerTsv(slug, chart1, chart2)
     const r = await putExplorerTsv(slug, chart1, chart2)
     expect(r.success).toBe(true)
@@ -230,7 +229,8 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         const invalidTsv = `explorerTitle\tInvalid\nexplorerSubtitle\tInvalid IDs\nisPublished\ttrue\ngraphers\n\tchartId\tOpt\n\t99999\tInvalid One\n\t99998\tInvalid Two`
 
         // PUT twice to ensure queuing for published explorer with invalid IDs
-        // Double PUT quirk: see ensureQueued above for rationale.
+        // Double PUT quirk: Currently the endpoint needs to be called twice
+        // for an explorer to be published, but this behavior may change in the future.
         await env.request({
             method: "PUT",
             path: `/explorers/${slug}`,
@@ -278,7 +278,8 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         if (!jobA) throw new Error("No job A claimed")
 
         // Enqueue a newer job B by updating/publishing again
-        // Double PUT quirk: keep consistent with ensureQueued rationale
+        // Double PUT quirk: Currently the endpoint needs to be called twice
+        // for an explorer to be published, but this behavior may change in the future.
         await putExplorerTsv(slug, id1, id2)
         await putExplorerTsv(slug, id1, id2)
 

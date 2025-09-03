@@ -1933,8 +1933,8 @@ graphers
 	${chart1Id}	Test Chart 1
 	${chart2Id}	Test Chart 2`
 
-        // Double PUT quirk: First PUT may not enqueue; putting twice ensures
-        // publishing state results in a queued refresh job for this explorer.
+        // Double PUT quirk: Currently the endpoint needs to be called twice
+        // for an explorer to be published, but this behavior may change in the future.
         const response_first = await makeRequestAgainstAdminApi({
             method: "PUT",
             path: `/explorers/${testExplorerSlug}`,
