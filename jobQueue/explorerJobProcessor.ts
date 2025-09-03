@@ -54,7 +54,6 @@ export async function processExplorerViewsJob(
     let refreshResult: ExplorerViewsRefreshResult | undefined
     let isPublished: boolean = false
 
-    const doSleep = opts.sleep ?? sleep
     const getNow = opts.now ?? (() => new Date())
     const maxAttempts = opts.maxAttempts ?? MAX_ATTEMPTS
 

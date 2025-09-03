@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest"
 import { getAdminTestEnv } from "./testEnv.js"
-import { ChartConfigsTableName } from "@ourworldindata/types"
+import {
+    ChartConfigsTableName,
+    ExplorersTableName,
+} from "@ourworldindata/types"
 import {
     knexReadonlyTransaction,
     TransactionCloseMode,
@@ -28,5 +31,31 @@ describe("validateChartSlug", { timeout: 10000 }, () => {
             TransactionCloseMode.KeepOpen,
             env.testKnex
         )
+    })
+
+    it("returns true for a valid explorer URL", async () => {
+        await env.testKnex!(ExplorersTableName).insert({
+            slug: "migration",
+            config: {
+                isPublished: true,
+            },
+            tsv: "isPublished\ttrue",
+        })
+
+        await knexReadonlyTransaction(
+            async (trx) => {
+                const { isValid } = await validateChartSlug(
+                    trx,
+                    "https://ourworldindata.org/explorers/migration"
+                )
+                expect(isValid).toBe(true)
+            },
+            TransactionCloseMode.KeepOpen,
+            env.testKnex
+        )
+
+        await env.testKnex!(ExplorersTableName)
+            .where({ slug: "migration" })
+            .delete()
     })
 })
