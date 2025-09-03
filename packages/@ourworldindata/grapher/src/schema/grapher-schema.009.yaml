@@ -706,6 +706,7 @@ $defs:
                 description: The strategy for generating the bin boundaries
                 default: auto
                 enum:
+                    - manual
                     - auto
                     - log-auto
                     - log-1-2-5
