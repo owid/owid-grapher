@@ -1901,10 +1901,7 @@ graphers
         const testExplorerSlug = "test-async-explorer"
 
         // Step 1: Create charts that the explorer will reference
-        const chart1Id = 1
-        const chart2Id = 2
-
-        await makeRequestAgainstAdminApi({
+        const chart1Resp = await makeRequestAgainstAdminApi({
             method: "POST",
             path: "/charts",
             body: JSON.stringify({
@@ -1914,8 +1911,7 @@ graphers
                 chartTypes: ["LineChart"],
             }),
         })
-
-        await makeRequestAgainstAdminApi({
+        const chart2Resp = await makeRequestAgainstAdminApi({
             method: "POST",
             path: "/charts",
             body: JSON.stringify({
@@ -1925,6 +1921,8 @@ graphers
                 chartTypes: ["ScatterPlot"],
             }),
         })
+        const chart1Id = chart1Resp.chartId
+        const chart2Id = chart2Resp.chartId
 
         // Step 2: Create explorer via API (should be queued for async processing)
         const explorerTsv = `explorerTitle	Test Async Explorer
@@ -1935,6 +1933,8 @@ graphers
 	${chart1Id}	Test Chart 1
 	${chart2Id}	Test Chart 2`
 
+        // Double PUT quirk: First PUT may not enqueue; putting twice ensures
+        // publishing state results in a queued refresh job for this explorer.
         const response_first = await makeRequestAgainstAdminApi({
             method: "PUT",
             path: `/explorers/${testExplorerSlug}`,

@@ -61,6 +61,8 @@ graphers
 \t${chart2.chartId}\tTest Chart 2`
 
         // PUT twice to mark as published and ensure queuing
+        // Double PUT quirk: First PUT may only set initial state without queuing;
+        // second PUT reliably enqueues the refresh job for published explorers.
         await env.request({
             method: "PUT",
             path: `/explorers/${testExplorerSlug}`,
