@@ -147,6 +147,8 @@ import {
     RawHybridLink,
     ResourcePanelIcon,
     resourcePanelIcons,
+    EnrichedBlockCta,
+    RawBlockCta,
 } from "@ourworldindata/types"
 import {
     traverseEnrichedSpan,
@@ -227,6 +229,7 @@ export function parseRawBlocksToEnrichedBlocks(
         .with({ type: "prominent-link" }, parseProminentLink)
         .with({ type: "topic-page-intro" }, parseTopicPageIntro)
         .with({ type: "cookie-notice" }, parseCookieNotice)
+        .with({ type: "cta" }, parseCta)
         .with({ type: "key-insights" }, parseKeyInsights)
         .with({ type: "research-and-writing" }, parseResearchAndWritingBlock)
         .with(
@@ -1779,6 +1782,36 @@ function parseCookieNotice(_: RawBlockCookieNotice): EnrichedBlockCookieNotice {
     return {
         type: "cookie-notice",
         parseErrors: [],
+    }
+}
+
+function parseCta(raw: RawBlockCta): EnrichedBlockCta {
+    const createError = (error: ParseError): EnrichedBlockCta => ({
+        type: "cta",
+        parseErrors: [error],
+        text: "",
+        url: "",
+    })
+
+    if (!raw.value.text) {
+        return createError({
+            message: "No text given for the CTA",
+        })
+    }
+
+    const url = extractUrl(raw.value.url)
+
+    if (!url) {
+        return createError({
+            message: "No url given for the CTA",
+        })
+    }
+
+    return {
+        type: "cta",
+        parseErrors: [],
+        text: raw.value.text,
+        url,
     }
 }
 

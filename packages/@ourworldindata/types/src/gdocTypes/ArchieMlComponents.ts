@@ -1034,6 +1034,20 @@ export type EnrichedBlockCookieNotice = {
     type: "cookie-notice"
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockCta = {
+    type: "cta"
+    value: {
+        text?: string
+        url?: string
+    }
+}
+
+export type EnrichedBlockCta = {
+    type: "cta"
+    text: string
+    url: string
+} & EnrichedBlockWithParseErrors
+
 export enum SocialLinkType {
     X = "x",
     Facebook = "facebook",
@@ -1122,6 +1136,7 @@ export type OwidRawGdocBlock =
     | RawBlockHomepageIntro
     | RawBlockLatestDataInsights
     | RawBlockCookieNotice
+    | RawBlockCta
     | RawBlockSocials
 
 export type OwidEnrichedGdocBlock =
@@ -1177,6 +1192,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockHomepageIntro
     | EnrichedBlockLatestDataInsights
     | EnrichedBlockCookieNotice
+    | EnrichedBlockCta
     | EnrichedBlockSocials
 
 /**
