@@ -9,7 +9,6 @@ import {
     EntitySelectionMode,
     GRAPHER_CHART_TYPES,
     ColorSchemeName,
-    BinningStrategy,
 } from "@ourworldindata/types"
 import {
     SynthesizeGDPTable,
@@ -588,7 +587,7 @@ describe("buildChartHitDataTableContent for WorldMap", () => {
             map: {
                 colorScale: {
                     baseColorScheme: ColorSchemeName.Blues,
-                    binningStrategy: BinningStrategy.manual,
+                    binningStrategy: "manual",
                     customNumericValues: [
                         1000000000, 3000000000, 5000000000, 7000000000,
                         9000000000, 1000000000,
