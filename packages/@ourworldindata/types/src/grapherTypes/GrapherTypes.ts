@@ -15,6 +15,10 @@ import {
 } from "./GrapherConstants.js"
 import { OwidVariableDataMetadataDimensions } from "../OwidVariable.js"
 import { ArchiveContext } from "../domainTypes/Archive.js"
+import {
+    BinningStrategyIncludingManual,
+    MidpointMode,
+} from "./BinningStrategyTypes.js"
 
 // Utility type that marks all properties of T that may be undefined as optional.
 export type UndefinedToOptional<T> = Partial<T> & {
@@ -345,15 +349,6 @@ export enum LogoOption {
     "gv+owid" = "gv+owid",
 }
 
-export enum BinningStrategy {
-    equalInterval = "equalInterval",
-    quantiles = "quantiles",
-    ckmeans = "ckmeans",
-    // The `manual` option is ignored in the algorithms below,
-    // but it is stored and handled by the chart.
-    manual = "manual",
-}
-
 export interface ProjectionColumnInfo {
     projectedSlug: ColumnSlug
     historicalSlug: ColumnSlug
@@ -364,8 +359,12 @@ export interface ProjectionColumnInfo {
 export interface ColorScaleConfigInterface {
     baseColorScheme?: ColorSchemeName
     colorSchemeInvert?: boolean
-    binningStrategy: BinningStrategy
-    binningStrategyBinCount?: number
+    binningStrategy: BinningStrategyIncludingManual
+    createBinForMidpoint?: boolean
+    minValue?: number
+    maxValue?: number
+    midpoint?: number
+    midpointMode?: MidpointMode
     customNumericValues: number[]
     customNumericLabels: (string | undefined | null)[]
     customNumericColorsActive?: boolean
@@ -378,7 +377,7 @@ export interface ColorScaleConfigInterface {
 }
 
 export const colorScaleConfigDefaults = {
-    binningStrategy: BinningStrategy.ckmeans,
+    binningStrategy: "auto",
     customNumericValues: [],
     customNumericLabels: [],
     customNumericColors: [],

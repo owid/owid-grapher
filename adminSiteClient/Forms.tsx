@@ -289,6 +289,7 @@ interface NumberFieldProps {
     onButtonClick?: () => void
     buttonDisabled?: boolean
     resetButton?: Omit<WithResetButtonProps, "children">
+    errorMessage?: string
 }
 
 interface NumberFieldState {

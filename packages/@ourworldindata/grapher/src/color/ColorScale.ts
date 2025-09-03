@@ -1,28 +1,21 @@
 import * as _ from "lodash-es"
 import { computed, toJS, makeObservable } from "mobx"
-import { mean, deviation } from "d3-array"
 import { ColorScaleConfig } from "./ColorScaleConfig"
-import {
-    roundSigFig,
-    mapNullToUndefined,
-    sortNumeric,
-    pairs,
-} from "@ourworldindata/utils"
+import { mapNullToUndefined, sortNumeric, pairs } from "@ourworldindata/utils"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { ColorScheme } from "../color/ColorScheme"
 import { ColorScaleBin, NumericBin, CategoricalBin } from "./ColorScaleBin"
 import { OWID_NO_DATA_GRAY } from "./ColorConstants"
-import { getBinMaximums } from "./BinningStrategies"
 import {
     ColorScaleConfigInterface,
     ColorSchemeName,
-    BinningStrategy,
     Color,
     CoreValueType,
     OwidVariableRoundingMode,
 } from "@ourworldindata/types"
 import { CoreColumn } from "@ourworldindata/core-table"
 import * as R from "remeda"
+import { runBinningStrategy } from "./BinningStrategies.js"
 
 export const NO_DATA_LABEL = "No data"
 export const PROJECTED_DATA_LABEL = "Projected data"
@@ -46,9 +39,7 @@ export class ColorScale {
     // Config accessors
 
     @computed get config(): ColorScaleConfigInterface {
-        return this.manager.colorScaleConfig
-            ? this.manager.colorScaleConfig
-            : new ColorScaleConfig()
+        return this.manager.colorScaleConfig ?? new ColorScaleConfig()
     }
 
     @computed get customNumericValues(): number[] {
@@ -60,10 +51,9 @@ export class ColorScale {
     }
 
     @computed get customNumericColors(): (Color | undefined)[] {
-        const colors = this.customNumericColorsActive
+        return this.customNumericColorsActive
             ? mapNullToUndefined(this.config.customNumericColors)
             : []
-        return colors
     }
 
     @computed get customHiddenCategories(): {
@@ -151,15 +141,6 @@ export class ColorScale {
         return this.colorScheme.singleColorScale
     }
 
-    @computed get autoMinBinValue(): number {
-        const minValue = Math.min(0, this.sortedNumericValuesWithoutOutliers[0])
-        return isNaN(minValue) ? 0 : roundSigFig(minValue, 1)
-    }
-
-    @computed private get minBinValue(): number {
-        return this.config.customNumericValues?.[0] ?? this.autoMinBinValue
-    }
-
     @computed private get manualBinThresholds(): number[] {
         if (!this.sortedNumericValues.length || this.numNumericBins <= 0)
             return []
@@ -170,13 +151,23 @@ export class ColorScale {
     // When automatic classification is turned on, this takes the numeric map data
     // and works out some discrete ranges to assign colors to
     @computed get autoBinThresholds(): number[] {
-        const binMaximums = getBinMaximums({
-            binningStrategy: this.config.binningStrategy,
-            sortedValues: this.sortedNumericBinningValues,
-            binCount: this.numAutoBins,
-            minBinValue: this.autoMinBinValue,
-        })
-        return [this.autoMinBinValue, ...binMaximums]
+        if (this.config.binningStrategy === "manual") {
+            throw new Error(
+                "Cannot compute automatic bin thresholds when binning is set to manual"
+            )
+        }
+        return runBinningStrategy({
+            sortedValues: this.sortedNumericValues,
+            isPercent: this.colorScaleColumn?.shortUnit === "%",
+            numDecimalPlaces: this.colorScaleColumn?.numDecimalPlaces,
+
+            strategy: this.config.binningStrategy,
+            createBinForMidpoint: this.config.createBinForMidpoint,
+            minValue: this.config.minValue,
+            maxValue: this.config.maxValue,
+            midpoint: this.config.midpoint,
+            midpointMode: this.config.midpointMode,
+        }).bins
     }
 
     @computed private get bucketThresholds(): number[] {
@@ -206,12 +197,8 @@ export class ColorScale {
         else return colors
     }
 
-    @computed get numAutoBins(): number {
-        return this.config.binningStrategyBinCount ?? 5
-    }
-
     @computed get isManualBuckets(): boolean {
-        return this.config.binningStrategy === BinningStrategy.manual
+        return this.config.binningStrategy === "manual"
     }
 
     @computed get numNumericBins(): number {
@@ -219,34 +206,7 @@ export class ColorScale {
 
         return this.isManualBuckets
             ? Math.max(this.customNumericValues.length - 1, 0)
-            : this.numAutoBins
-    }
-
-    // Exclude any major outliers for legend calculation (they will be relegated to open-ended bins)
-    @computed get sortedNumericValuesWithoutOutliers(): any[] {
-        const { sortedNumericValues } = this
-        if (!sortedNumericValues.length) return []
-        const sampleMean = mean(sortedNumericValues) as number
-        const sampleDeviation = deviation(sortedNumericValues) ?? 0
-        const withoutOutliers = sortedNumericValues.filter(
-            (d) => Math.abs(d - sampleMean) <= sampleDeviation * 2
-        )
-
-        // d3-array returns a deviation of `undefined` for arrays of length <= 1, so set it to 0 in that case
-        const deviationWithoutOutliers = deviation(withoutOutliers) ?? 0
-
-        if (deviationWithoutOutliers === 0) {
-            // if after removing outliers we end up in a state where the std. dev. is 0, i.e. we only
-            // have one distinct value, then we actually want to _keep_ the outliers in
-            return sortedNumericValues
-        } else return withoutOutliers
-    }
-
-    /** Sorted numeric values passed onto the binning algorithms */
-    @computed private get sortedNumericBinningValues(): any[] {
-        return this.sortedNumericValuesWithoutOutliers.filter(
-            (v) => v > this.minBinValue
-        )
+            : this.autoBinThresholds.length - 1
     }
 
     @computed private get numericLegendBins(): NumericBin[] {

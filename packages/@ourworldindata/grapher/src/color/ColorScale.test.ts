@@ -2,10 +2,7 @@ import { expect, it, describe } from "vitest"
 
 import { CoreTable, ErrorValueTypes } from "@ourworldindata/core-table"
 import { ColorScale } from "./ColorScale"
-import {
-    ColorScaleConfigInterface,
-    BinningStrategy,
-} from "@ourworldindata/types"
+import { ColorScaleConfigInterface } from "@ourworldindata/types"
 
 const createColorScaleFromTable = (
     colorValuePairs: { value: number; color?: string }[],
@@ -26,7 +23,7 @@ describe(ColorScale, () => {
     })
     describe("numerical color scale", () => {
         const colorScaleConfig: ColorScaleConfigInterface = {
-            binningStrategy: BinningStrategy.manual,
+            binningStrategy: "manual",
             customNumericValues: [-10, 1, 2, 3],
             customNumericLabels: [],
             customNumericColorsActive: true,
@@ -73,65 +70,11 @@ describe(ColorScale, () => {
             expect(scale.getBinForValue(3)).toEqual(bins[2])
             expect(scale.getBinForValue(15)).toEqual(bins[2])
         })
-
-        describe("filtering outliers", () => {
-            it("should filter out outliers", () => {
-                const colorValuePairs = [
-                    { value: 1 },
-                    { value: 1.1 },
-                    { value: 1.2 },
-                    { value: 1.3 },
-                    { value: 1.4 },
-                    { value: 1.5 },
-                    { value: 1.6 },
-                    { value: 1.7 },
-                    { value: 100 },
-                ]
-                const scale = createColorScaleFromTable(
-                    colorValuePairs,
-                    colorScaleConfig
-                )
-
-                expect(scale.sortedNumericValuesWithoutOutliers).toEqual([
-                    1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7,
-                ])
-            })
-
-            it("should keep outliers if removing them would result in only one unique value", () => {
-                const colorValuePairs = [
-                    { value: 1 },
-                    { value: 1 },
-                    { value: 1 },
-                    { value: 1 },
-                    { value: 1 },
-                    { value: 1 },
-                    { value: 100 },
-                ]
-                const scale = createColorScaleFromTable(
-                    colorValuePairs,
-                    colorScaleConfig
-                )
-
-                expect(scale.sortedNumericValuesWithoutOutliers).toEqual([
-                    1, 1, 1, 1, 1, 1, 100,
-                ])
-            })
-
-            it("should not filter values if there's only one", () => {
-                const colorValuePairs = [{ value: 1 }]
-                const scale = createColorScaleFromTable(
-                    colorValuePairs,
-                    colorScaleConfig
-                )
-
-                expect(scale.sortedNumericValuesWithoutOutliers).toEqual([1])
-            })
-        })
     })
 
     it("transforms all colors", () => {
         const colorScaleConfig: ColorScaleConfigInterface = {
-            binningStrategy: BinningStrategy.manual,
+            binningStrategy: "manual",
             customNumericValues: [0, 1, 2, 3],
             customNumericLabels: [],
             customNumericColorsActive: true,

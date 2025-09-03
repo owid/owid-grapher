@@ -1,7 +1,7 @@
 $schema: "http://json-schema.org/draft-07/schema#"
 # if you update the required keys, make sure that the mergeGrapherConfigs and
 # diffGrapherConfigs functions both reflect this change
-$id: "https://files.ourworldindata.org/schemas/grapher-schema.008.json"
+$id: "https://files.ourworldindata.org/schemas/grapher-schema.009.json"
 required:
     - $schema
     - dimensions
@@ -14,12 +14,12 @@ properties:
         type: string
         description: Url of the concrete schema version to use to validate this document
         format: uri
-        default: "https://files.ourworldindata.org/schemas/grapher-schema.008.json"
+        default: "https://files.ourworldindata.org/schemas/grapher-schema.009.json"
         # We restrict the $schema field to a single value since we expect all
         # configs in our database to be valid against the latest schema.
         # If we ever need to validate configs against multiple schema versions,
         # we can remove this constraint.
-        const: "https://files.ourworldindata.org/schemas/grapher-schema.008.json"
+        const: "https://files.ourworldindata.org/schemas/grapher-schema.009.json"
     id:
         type: integer
         description: Internal DB id. Useful internally for OWID but not required if just using grapher directly.
@@ -704,12 +704,39 @@ $defs:
             binningStrategy:
                 type: string
                 description: The strategy for generating the bin boundaries
-                default: ckmeans
+                default: auto
                 enum:
-                    - equalInterval
-                    - quantiles
-                    - ckmeans
-                    - manual
+                    - auto
+                    - log-auto
+                    - log-1-2-5
+                    - log-1-3
+                    - log-10
+                    - equalSizeBins-few-bins
+                    - equalSizeBins-normal
+                    - equalSizeBins-many-bins
+                    - equalSizeBins-percent
+            minValue:
+                type: number
+                description: Minimum value of the color scale, for automated binning.
+            maxValue:
+                type: number
+                description: Maximum value of the color scale, for automated binning.
+            midpoint:
+                type: number
+                default: 0
+                description: Midpoint value for the color scale, for automated binning around the midpoint.
+            midpointMode:
+                type: string
+                description: How to handle the midpoint when generating bins. Undefined means automatically choosing between 'none' and 'symmetric'.
+                enum:
+                    - none
+                    - symmetric
+                    - same-num-bins
+                    - asymmetric
+            createBinForMidpoint:
+                type: boolean
+                default: false
+                description: Whether to create a separate bin that only contains the midpoint value.
             legendDescription:
                 type: string
                 description: A custom legend description. Only used in ScatterPlot legend titles for now.
@@ -742,9 +769,4 @@ $defs:
                 patternProperties:
                     ".*":
                         type: string
-            binningStrategyBinCount:
-                type: integer
-                default: 5
-                description: The *suggested* number of bins for the automatic binning algorithm
-                minimum: 0
         additionalProperties: false

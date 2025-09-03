@@ -4,7 +4,7 @@
 
 import { GrapherInterface } from "@ourworldindata/types"
 
-export const latestSchemaVersion = "008" as const
+export const latestSchemaVersion = "009" as const
 export const outdatedSchemaVersions = [
     "001",
     "002",
@@ -13,18 +13,20 @@ export const outdatedSchemaVersions = [
     "005",
     "006",
     "007",
+    "008",
 ] as const
 
 export const defaultGrapherConfig = {
-    $schema: "https://files.ourworldindata.org/schemas/grapher-schema.008.json",
+    $schema: "https://files.ourworldindata.org/schemas/grapher-schema.009.json",
     map: {
         region: "World",
         hideTimeline: false,
         colorScale: {
-            binningStrategy: "ckmeans",
+            binningStrategy: "auto",
+            midpoint: 0,
+            createBinForMidpoint: false,
             customNumericColorsActive: false,
             colorSchemeInvert: false,
-            binningStrategyBinCount: 5,
         },
         toleranceStrategy: "closest",
         tooltipUseCustomLabels: false,
@@ -48,10 +50,11 @@ export const defaultGrapherConfig = {
     timelineMinTime: "earliest",
     hideTimeline: false,
     colorScale: {
-        binningStrategy: "ckmeans",
+        binningStrategy: "auto",
+        midpoint: 0,
+        createBinForMidpoint: false,
         customNumericColorsActive: false,
         colorSchemeInvert: false,
-        binningStrategyBinCount: 5,
     },
     scatterPointLabelStrategy: "year",
     selectedFacetStrategy: "none",

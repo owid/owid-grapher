@@ -23,6 +23,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
     Grapher,
     GrapherState,
+    hasValidConfigForBinningStrategy,
 } from "@ourworldindata/grapher"
 import { Admin } from "./Admin.js"
 import { getFullReferencesCount, isChartEditorInstance } from "./ChartEditor.js"
@@ -278,6 +279,23 @@ export class ChartEditorView<
             errorMessages.focusedSeriesNames = message
         }
 
+        // Check the two colorScale configs (esp. binning strategies) for any errors
+        const colorScaleKeys = ["colorScale", "map.colorScale"] as const
+        colorScaleKeys.forEach((key) => {
+            const colorScaleConfig = _.get(this.grapherState, key)
+
+            if (colorScaleConfig.binningStrategy === "manual") return
+
+            const validationResult = hasValidConfigForBinningStrategy(
+                colorScaleConfig.binningStrategy,
+                colorScaleConfig
+            )
+            if (!validationResult.valid) {
+                errorMessages[`${key}.${validationResult.field}`] =
+                    validationResult.reason
+            }
+        })
+
         return errorMessages
     }
 
@@ -435,7 +453,10 @@ export class ChartEditorView<
                             <EditorMarimekkoTab grapherState={grapherState} />
                         )}
                         {editor.tab === "map" && (
-                            <EditorMapTab editor={editor} />
+                            <EditorMapTab
+                                editor={editor}
+                                errorMessages={this.errorMessages}
+                            />
                         )}
                         {chartEditor && chartEditor.tab === "revisions" && (
                             <EditorHistoryTab editor={chartEditor} />

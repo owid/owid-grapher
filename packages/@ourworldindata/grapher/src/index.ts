@@ -1,4 +1,3 @@
-export { binningStrategyLabels } from "./color/BinningStrategies"
 export {
     NumericBin,
     CategoricalBin,
@@ -116,3 +115,4 @@ export {
 } from "./core/GrapherUseHelpers.js"
 export { GeoFeatures } from "./mapCharts/GeoFeatures"
 export { isValidVerticalComparisonLineConfig } from "./comparisonLine/ComparisonLineHelpers"
+export { hasValidConfigForBinningStrategy } from "./color/BinningStrategies"

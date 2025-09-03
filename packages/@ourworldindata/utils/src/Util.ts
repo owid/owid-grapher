@@ -231,6 +231,20 @@ export const numberMagnitude = (num: number): number => {
     return Number.isFinite(magnitude) ? magnitude : 0
 }
 
+// Turns every number except 0 to a number in the range [1, 9.9999] or [-9.9999, -1] for negative inputs
+// Also returns the factor needed to un-normalise the value back to its original scale
+// Turns 100 -> 1 (factor 100), 0.2 -> 2 (factor 0.1), -100 -> -1 (factor -100), 35 -> 3.5 (factor 10)
+export const normaliseToSingleDigitNumber = (
+    num: number
+): { normalised: number; factor: number } => {
+    if (num === 0) return { normalised: 0, factor: 1 }
+    const magnitude = numberMagnitude(num)
+    const factor = Math.pow(10, magnitude - 1)
+
+    const normalised = num / factor
+    return { normalised, factor }
+}
+
 export const roundSigFig = (num: number, sigfigs: number = 1): number => {
     if (num === 0) return 0
     const magnitude = numberMagnitude(num)
