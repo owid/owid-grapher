@@ -39,10 +39,10 @@ export async function claimNextQueuedJob(
     // Atomically select and lock the next queued job using FOR UPDATE
     const result = await knex.raw(
         `-- sql
-            SELECT * FROM jobs 
-            WHERE type = ? AND state = 'queued' 
-            ORDER BY id ASC 
-            LIMIT 1 
+            SELECT * FROM jobs
+            WHERE type = ? AND state = 'queued'
+            ORDER BY id ASC
+            LIMIT 1
             FOR UPDATE
         `,
         [type]
@@ -55,10 +55,7 @@ export async function claimNextQueuedJob(
     const job = result[0][0] as DbPlainJob
 
     // Now safely update it (we have exclusive lock on this row)
-    await knex.raw(
-        `UPDATE jobs SET state = 'running' WHERE id = ?`,
-        [job.id]
-    )
+    await knex.raw(`UPDATE jobs SET state = 'running' WHERE id = ?`, [job.id])
 
     // Parse the JSON payload field
     if (typeof job.payload === "string") {
@@ -67,9 +64,7 @@ export async function claimNextQueuedJob(
 
     // Convert explorerUpdatedAt from string to Date for proper comparison
     if (job.payload.explorerUpdatedAt) {
-        job.payload.explorerUpdatedAt = new Date(
-            job.payload.explorerUpdatedAt
-        )
+        job.payload.explorerUpdatedAt = new Date(job.payload.explorerUpdatedAt)
     }
 
     return job
@@ -133,7 +128,7 @@ export async function getJobBySlug(
     const result = await knexRaw<DbPlainJob>(
         knex,
         `-- sql
-            SELECT * FROM jobs 
+            SELECT * FROM jobs
             WHERE type = ? AND payload ->> '$.slug' = ?
             LIMIT 1
         `,
