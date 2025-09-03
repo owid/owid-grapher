@@ -1734,6 +1734,7 @@ export function traverseEnrichedBlock(
                     "narrative-chart",
                     "code",
                     "cookie-notice",
+                    "cta",
                     "donors",
                     "horizontal-rule",
                     "html",

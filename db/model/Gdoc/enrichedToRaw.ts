@@ -55,6 +55,7 @@ import {
     RawBlockExpander,
     EnrichedHybridLink,
     RawBlockResourcePanel,
+    RawBlockCta,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -159,6 +160,16 @@ export function enrichedBlockToRawBlock(
             (b): RawBlockCookieNotice => ({
                 type: b.type,
                 value: {},
+            })
+        )
+        .with(
+            { type: "cta" },
+            (b): RawBlockCta => ({
+                type: b.type,
+                value: {
+                    url: b.url,
+                    text: b.text,
+                },
             })
         )
         .with(

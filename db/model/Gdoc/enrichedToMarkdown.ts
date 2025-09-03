@@ -180,6 +180,7 @@ ${items}
             )
         })
         .with({ type: "cookie-notice" }, () => undefined)
+        .with({ type: "cta" }, (block) => `[${block.text}](${block.url})`)
         .with({ type: "donors" }, (_): string | undefined =>
             markdownComponent("DonorList", {}, exportComponents)
         )

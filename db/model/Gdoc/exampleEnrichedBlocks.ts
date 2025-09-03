@@ -149,6 +149,12 @@ export const enrichedBlockExamples: Record<
         type: "cookie-notice",
         parseErrors: [],
     },
+    cta: {
+        type: "cta",
+        text: "Click me",
+        url: "https://ourworldindata.org",
+        parseErrors: [],
+    },
     donors: {
         type: "donors",
         value: {},
