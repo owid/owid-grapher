@@ -243,14 +243,14 @@ describe(createEqualSizeBins, () => {
             }).toThrow("minValue must be less than maxValue")
         })
 
-        it("should throw error when no valid step size is found", () => {
-            expect(() => {
+        it("should handle cases where targetBinCount cannot be honored", () => {
+            expect(
                 createEqualSizeBins({
                     minValue: 0,
                     maxValue: 1,
-                    targetBinCount: [100, 200], // Impossible to achieve with nice step sizes
+                    targetBinCount: [100, 200], // Impossible to achieve with nice step sizes directly; have to instead create way fewer bins than targetBinCount requests
                 })
-            }).toThrow("No valid step size found")
+            ).toEqual([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1])
         })
     })
 
