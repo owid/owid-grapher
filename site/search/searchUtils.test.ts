@@ -4,6 +4,8 @@ import {
     findMatches,
     getAutocompleteSuggestionsWithUnmatchedQuery,
     createCountryFilter,
+    getPaginationOffsetAndLength,
+    getNbPaginatedItemsRequested,
 } from "./searchUtils"
 
 import { FilterType, SynonymMap } from "./searchTypes.js"
@@ -456,5 +458,28 @@ describe("Fuzzy search in search autocomplete", () => {
         )
 
         expect(result.suggestions.some((s) => s.name === "Germany")).toBe(true)
+    })
+})
+
+describe("offset pagination for useInfiniteSearchOffset hook", () => {
+    it("computes offsets and lengths for first and later pages", () => {
+        expect(getPaginationOffsetAndLength(0, 3, 6)).toEqual({
+            offset: 0,
+            length: 3,
+        })
+        expect(getPaginationOffsetAndLength(1, 3, 6)).toEqual({
+            offset: 3,
+            length: 6,
+        })
+        expect(getPaginationOffsetAndLength(2, 3, 6)).toEqual({
+            offset: 9,
+            length: 6,
+        })
+    })
+
+    it("computes number of requested items correctly", () => {
+        expect(getNbPaginatedItemsRequested(0, 3, 6, 3)).toBe(3)
+        expect(getNbPaginatedItemsRequested(1, 3, 6, 6)).toBe(9)
+        expect(getNbPaginatedItemsRequested(2, 3, 6, 2)).toBe(11)
     })
 })

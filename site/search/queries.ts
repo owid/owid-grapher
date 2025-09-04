@@ -194,8 +194,8 @@ export async function queryDataInsights(
 export async function queryArticles(
     searchClient: SearchClient,
     state: SearchState,
-    page: number = 0,
-    hitsPerPage: number
+    offset: number = 0,
+    length: number
 ): Promise<SearchFlatArticleResponse> {
     const selectedCountryNames = getFilterNamesOfType(
         state.filters,
@@ -238,8 +238,8 @@ export async function queryArticles(
             ],
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
-            hitsPerPage,
-            page,
+            offset,
+            length,
         },
     ]
 
@@ -251,8 +251,8 @@ export async function queryArticles(
 export async function queryTopicPages(
     searchClient: SearchClient,
     state: SearchState,
-    page: number = 0,
-    hitsPerPage: number
+    offset: number = 0,
+    length: number
 ): Promise<SearchTopicPageResponse> {
     const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
 
@@ -269,10 +269,10 @@ export async function queryTopicPages(
                 "excerpt",
                 "excerptLong",
             ],
-            hitsPerPage,
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
-            page,
+            offset,
+            length,
         },
     ]
 
