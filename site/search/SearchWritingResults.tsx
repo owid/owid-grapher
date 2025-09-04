@@ -12,7 +12,7 @@ import {
 } from "./searchTypes.js"
 import { searchQueryKeys, queryArticles, queryTopicPages } from "./queries.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
-import { useInfiniteSearch } from "./searchHooks.js"
+import { useInfiniteSearchOffset } from "./searchHooks.js"
 import { SearchFlatArticleHit } from "./SearchFlatArticleHit.js"
 import { SearchTopicPageHit } from "./SearchTopicPageHit.js"
 import { SearchWritingResultsSkeleton } from "./SearchWritingResultsSkeleton.js"
@@ -124,29 +124,30 @@ export const SearchWritingResults = ({
 }) => {
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const hasLargeTopic = topicType === SearchTopicType.Topic
-    const articlesQuery = useInfiniteSearch<
+    const articlesQuery = useInfiniteSearchOffset<
         SearchFlatArticleResponse,
         FlatArticleHit
     >({
         queryKey: (state) => searchQueryKeys.articles(state),
-        queryFn: (searchClient, state, page) => {
-            const hitsPerPage = page === 0 ? 3 : 6
-            return queryArticles(searchClient, state, page, hitsPerPage)
+        queryFn: (searchClient, state, offset, length) => {
+            return queryArticles(searchClient, state, offset, length)
         },
+        firstPageSize: 3,
+        laterPageSize: 6,
     })
 
-    const topicsQuery = useInfiniteSearch<
+    const noArticles = articlesQuery.totalResults === 0
+
+    const topicsQuery = useInfiniteSearchOffset<
         SearchTopicPageResponse,
         TopicPageHit
     >({
         queryKey: (state) => searchQueryKeys.topicPages(state),
-        queryFn: (searchClient, state, page) => {
-            let hitsPerPage = page === 0 ? 2 : 4
-            if (articlesQuery.totalResults === 0) {
-                hitsPerPage = 6
-            }
-            return queryTopicPages(searchClient, state, page, hitsPerPage)
+        queryFn: (searchClient, state, offset, length) => {
+            return queryTopicPages(searchClient, state, offset, length)
         },
+        firstPageSize: noArticles ? 6 : 2,
+        laterPageSize: noArticles ? 6 : 4,
         enabled: hasTopicPages && !articlesQuery.isInitialLoading,
     })
 
