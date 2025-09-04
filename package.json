@@ -175,6 +175,7 @@
         "typeorm": "^0.3.28",
         "typescript": "~6.0.1-rc",
         "typesense": "^2.1.0",
+        "typesense-ts": "^0.2.3",
         "unist-util-visit": "^5.0.0",
         "url-join": "^5.0.0",
         "url-parse": "^1.5.10",
