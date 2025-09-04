@@ -156,7 +156,7 @@ type QueryKeyState = Pick<
 
 /**
  * Compute Algolia `offset` and `length` so the UI can show a smaller
- * first page (e.g. 3) and larger subsequent pages (e.g. 6) without
+ * first page (e.g. 2) and larger subsequent pages (e.g. 6) without
  * skipping results.
  *
  * Rationale:
@@ -167,10 +167,10 @@ type QueryKeyState = Pick<
  * - To avoid skipped results we request explicit `offset` and `length`:
  *   "start at result N and give me M results".
  *
- * Example (articles: first=3 later=6):
- * - UI page 0 -> offset=0, length=3 -> results 0..2
- * - UI page 1 -> offset=3, length=6 -> results 3..8
- * - UI page 2 -> offset=9, length=6 -> results 9..14
+ * Example (articles: first=2 later=6):
+ * - UI page 0 -> offset=0, length=2 -> results 0..1
+ * - UI page 1 -> offset=2, length=6 -> results 2..7
+ * - UI page 2 -> offset=8, length=6 -> results 8..13
  */
 
 export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
