@@ -64,6 +64,9 @@ export class StackedDiscreteBarChartState implements ChartState {
                 .toPercentageFromEachColumnForEachEntityAndTime(
                     this.yColumnSlugs
                 )
+
+            // Apply missing data strategy _again_ because we might've introduced new error values just now
+            table = this.applyMissingDataStrategy(table)
         }
 
         return table
@@ -81,7 +84,19 @@ export class StackedDiscreteBarChartState implements ChartState {
     }
 
     private applyMissingDataStrategy(table: OwidTable): OwidTable {
-        if (this.missingDataStrategy === MissingDataStrategy.hide) {
+        // We want ot remove missing all rows with missing data for at least one column if:
+        // - MissingDataStrategy is explicitly set to hide, or
+        // - We are in relative mode and MissingDataStrategy is not explicitly set to show:
+        //     If we are showing relative mode, we want to drop all rows that are missing data for
+        //     any column, because otherwise the displayed data will be misleading in that it may
+        //     suggest patterns that are not actually present.
+        //     see https://github.com/owid/owid-grapher/issues/2860
+
+        const shouldRemoveRows =
+            this.missingDataStrategy === MissingDataStrategy.hide ||
+            (this.manager.isRelativeMode &&
+                this.missingDataStrategy !== MissingDataStrategy.show)
+        if (shouldRemoveRows) {
             // If MissingDataStrategy is explicitly set to hide, drop rows (= times) where one of
             // the y columns has no data
             return table.dropRowsWithErrorValuesForAnyColumn(this.yColumnSlugs)
