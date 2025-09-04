@@ -253,6 +253,11 @@ function isSentryInitialized(): boolean {
     return !!Sentry.getClient()
 }
 
+export function updateSentryTags() {
+    updateSentryReferrerTag()
+    updateSentryExperimentTags()
+}
+
 /**
  * Updates the Sentry experiment tags from the current experiment state.
  */
@@ -293,4 +298,11 @@ function extractGaClientIdFromCookie(): string | undefined {
         return clientId
     }
     return
+}
+
+function updateSentryReferrerTag() {
+    if (document.referrer) {
+        const ref = new URL(document.referrer).hostname
+        Sentry.setTag("referrer", ref)
+    }
 }

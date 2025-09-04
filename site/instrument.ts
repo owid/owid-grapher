@@ -17,7 +17,7 @@ import {
     hasSessionBeenSampled,
     maybeSampleSession,
     updateSentryUser,
-    updateSentryExperimentTags,
+    updateSentryTags,
 } from "./SentryUtils.js"
 
 if (LOAD_SENTRY) {
@@ -49,16 +49,4 @@ if (LOAD_SENTRY) {
     })
     updateSentryTags()
     updateSentryUser()
-}
-
-function updateSentryTags() {
-    updateSentryReferrerTag()
-    updateSentryExperimentTags()
-}
-
-function updateSentryReferrerTag() {
-    if (document.referrer) {
-        const ref = new URL(document.referrer).hostname
-        Sentry.setTag("referrer", ref)
-    }
 }
