@@ -5,7 +5,7 @@ import { getCanonicalPath } from "@ourworldindata/components"
 import { TopicPageHit } from "./searchTypes.js"
 
 function truncate(paragraphs: string[]) {
-    const maxWords = 95
+    const maxWords = 35
     let totalWords = 0
     const result = []
 
