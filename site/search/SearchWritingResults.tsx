@@ -132,7 +132,7 @@ export const SearchWritingResults = ({
         queryFn: (searchClient, state, offset, length) => {
             return queryArticles(searchClient, state, offset, length)
         },
-        firstPageSize: 3,
+        firstPageSize: 2,
         laterPageSize: 6,
     })
 
