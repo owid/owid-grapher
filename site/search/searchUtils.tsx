@@ -1099,3 +1099,25 @@ export function getPageTypeNameAndIcon(pageType: OwidGdocType): {
         .exhaustive()
 }
 export const SEARCH_BASE_PATH = "/search"
+
+export const getPaginationOffsetAndLength = (
+    pageParam: number,
+    firstPageSize: number,
+    laterPageSize: number
+) => {
+    const offset =
+        pageParam === 0 ? 0 : firstPageSize + (pageParam - 1) * laterPageSize
+    const length = pageParam === 0 ? firstPageSize : laterPageSize
+    return { offset, length }
+}
+
+export const getNbPaginatedItemsRequested = (
+    currentPageIndex: number,
+    firstPageSize: number,
+    laterPageSize: number,
+    lastPageHits: number
+) => {
+    return currentPageIndex === 0
+        ? firstPageSize
+        : firstPageSize + (currentPageIndex - 1) * laterPageSize + lastPageHits
+}
