@@ -57,6 +57,8 @@ function updateSentryTags() {
 }
 
 function updateSentryReferrerTag() {
-    const ref = document.referrer ? new URL(document.referrer).hostname : "none"
-    Sentry.setTag("referrer", ref)
+    if (document.referrer) {
+        const ref = new URL(document.referrer).hostname
+        Sentry.setTag("referrer", ref)
+    }
 }
