@@ -76,7 +76,10 @@ export async function processExplorerViewsJob(
             isPublished = current.isPublished
 
             // Coalescing/staleness check: if current lastEditedAt is newer than job's snapshot, skip
-            if (current.lastEditedAt && current.lastEditedAt > explorerUpdatedAt) {
+            if (
+                current.lastEditedAt &&
+                current.lastEditedAt > explorerUpdatedAt
+            ) {
                 console.warn(
                     `Explorer ${slug} has been updated since job was queued (${current.lastEditedAt} > ${explorerUpdatedAt}), marking as done`
                 )
@@ -124,7 +127,9 @@ export async function processExplorerViewsJob(
                 return true // Explorer was deleted, consider stale
             }
 
-            return current.lastEditedAt && current.lastEditedAt > explorerUpdatedAt
+            return (
+                current.lastEditedAt && current.lastEditedAt > explorerUpdatedAt
+            )
         })
 
         if (isStale) {
@@ -184,7 +189,11 @@ export async function processExplorerViewsJob(
                 .where({ slug })
                 .first(["lastEditedAt"])
 
-            if (!current || (current.lastEditedAt && current.lastEditedAt > explorerUpdatedAt)) {
+            if (
+                !current ||
+                (current.lastEditedAt &&
+                    current.lastEditedAt > explorerUpdatedAt)
+            ) {
                 await markJobDone(
                     trx,
                     job.id,
