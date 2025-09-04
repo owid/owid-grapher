@@ -33,8 +33,8 @@ export class AddJobsTableForExplorerViewsRefresh1756150983619
         // Remove columns from explorers table
         await queryRunner.query(`
             ALTER TABLE explorers 
-            DROP COLUMN IF EXISTS viewsRefreshStatus,
-            DROP COLUMN IF EXISTS lastViewsRefreshAt
+            DROP COLUMN viewsRefreshStatus,
+            DROP COLUMN lastViewsRefreshAt
         `)
 
         // Drop jobs table
