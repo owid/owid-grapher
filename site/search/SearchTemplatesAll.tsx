@@ -18,9 +18,9 @@ export const SearchTemplatesAll = () => {
             // All + Topic + Country + Query
             .with([SearchTopicType.Topic, true, true], () => (
                 <>
+                    <SearchDataInsightsResults />
                     <SearchDataResults isFirstChartLarge={false} />
                     <SearchWritingResults topicType={SearchTopicType.Topic} />
-                    <SearchDataInsightsResults />
                 </>
             ))
             // All + Topic + Country + No Query
@@ -50,17 +50,17 @@ export const SearchTemplatesAll = () => {
             // All + Area + Country + Query
             .with([SearchTopicType.Area, true, true], () => (
                 <>
+                    <SearchDataInsightsResults />
                     <SearchDataResults isFirstChartLarge={true} />
                     <SearchWritingResults topicType={SearchTopicType.Area} />
-                    <SearchDataInsightsResults />
                 </>
             ))
             // All + Area + Country + No Query
             .with([SearchTopicType.Area, true, false], () => (
                 <>
                     <SearchDataInsightsResults />
-                    <SearchWritingResults topicType={SearchTopicType.Area} />
                     <SearchDataTopicsResults />
+                    <SearchWritingResults topicType={SearchTopicType.Area} />
                 </>
             ))
             // All + Area + No Country + Query
@@ -82,17 +82,17 @@ export const SearchTemplatesAll = () => {
             // All + No Topic + Country + Query
             .with([null, true, true], () => (
                 <>
+                    <SearchDataInsightsResults />
                     <SearchDataResults isFirstChartLarge={true} />
                     <SearchWritingResults />
-                    <SearchDataInsightsResults />
                 </>
             ))
             // All + No Topic + Country + No Query
             .with([null, true, false], () => (
                 <>
                     <SearchDataInsightsResults />
-                    <SearchWritingResults hasTopicPages={false} />
                     <SearchDataTopicsResults />
+                    <SearchWritingResults hasTopicPages={false} />
                 </>
             ))
             // All + No Topic + No Country + Query
