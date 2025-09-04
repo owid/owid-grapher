@@ -44,14 +44,14 @@ The worker can be deployed in multiple ways:
 
 ```bash
 # Process jobs every minute
-pm2 start devTools/worker/explorerJobsWorker.js --name "explorer-jobs-cron" --cron "* * * * *" --no-autorestart
+pm2 start --interpreter="npx" --interpreter-args="tsx --tsconfig tsconfig.tsx.json" devTools/worker/explorerJobsWorker.ts --name "explorer-jobs-cron" --cron "* * * * *" --no-autorestart
 ```
 
 #### Option 2: PM2 Continuous Service
 
 ```bash
 # Long-running service with continuous polling
-pm2 start devTools/worker/explorerJobsWorker.js --name "explorer-jobs-worker" -- --loop
+pm2 start --interpreter="npx" --interpreter-args="tsx --tsconfig tsconfig.tsx.json" devTools/worker/explorerJobsWorker.ts --name "explorer-jobs-worker" -- --loop
 ```
 
 #### Option 3: System Cron
