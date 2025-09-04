@@ -8,6 +8,7 @@ import {
     SearchChartHit,
     SearchDataTopicsResponse,
     SearchDataInsightResponse,
+    DataInsightHit,
     SearchStackedArticleResponse,
     SearchTopicPageResponse,
     SearchWritingTopicsResponse,
@@ -29,8 +30,10 @@ import {
     PAGES_INDEX,
     DATA_CATALOG_ATTRIBUTES,
     formatDisjunctiveFacetFilters,
+    formatTopicFacetFiltersTypesense,
 } from "./searchUtils.js"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
+import { pagesCollection } from "./typesenseCollections.js"
 
 function makeStateForKey(state: SearchState) {
     return R.pick(state, ["query", "filters", "requireAllCountries"])
@@ -190,6 +193,7 @@ export async function queryDataInsights(
     const query = [
         state.query,
         // Use advanced syntax to search for countries as exact phrases
+        // TODO: handle "Indonesia's", which gets filtered out
         ...Array.from(selectedCountryNames).map((c) => `"${c}"`),
     ]
         .filter(Boolean)
@@ -218,7 +222,7 @@ export async function queryDataInsights(
             ],
             highlightPreTag: "<mark>",
             highlightPostTag: "</mark>",
-            hitsPerPage,
+            hitsPerPage: 4,
             page,
         },
     ]

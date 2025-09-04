@@ -28,6 +28,7 @@ import {
 } from "@ourworldindata/types"
 import {
     Url,
+    Region,
     countriesByName,
     FuzzySearch,
     FuzzySearchResult,
@@ -497,6 +498,35 @@ export const formatTopicFacetFilters = (
 ): SearchFacetFilters => {
     return formatDisjunctiveFacetFilters(topics, "tags")
 }
+
+/* Returns a Typesense filter expression for topics in disjunction mode (Topic A
+ * OR Topic B)
+ *
+ * Example: "tags:=[`Topic A`, `Topic B`]"
+ */
+export const formatTopicFacetFiltersTypesense = (
+    topics: Set<string>
+): string | undefined => {
+    if (!topics || topics.size === 0) return
+
+    const escapedTopics = Array.from(topics)
+        // using backticks to escape special characters in topics
+        .map((topic) => "`" + topic + "`")
+        .join(", ")
+
+    // use the ":=" exact operator
+    return `tags:=[${escapedTopics}]`
+}
+
+export function getCountryData(selectedCountries: Set<string>): Region[] {
+    const regionData: Region[] = []
+    const countries = countriesByName()
+    for (const selectedCountry of selectedCountries) {
+        regionData.push(countries[selectedCountry])
+    }
+    return regionData
+}
+
 
 export function serializeSet(set: Set<string>) {
     return set.size ? [...set].join("~") : undefined
