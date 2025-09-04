@@ -34,4 +34,76 @@ export const experiments: Experiment[] = [
             "/grapher/carbon-intensity-electricity",
         ],
     }),
+    // note: the below experiment "data-page-insight-btns-full" is a more elaborate
+    // version of the above "data-page-insight-btns-basic" experiment, but cannot
+    // run at the same time (which is why it has an expiry date in the past, so that
+    // it will not be active).
+    new Experiment({
+        /*
+         * Experiment: data-page-insight-btns-full
+         *
+         * Goal of experiment is to better understand user demand for "insights"
+         * when viewing a data page. Each arm shows the user one or more buttons
+         * beneath the grapher, varying the number of buttons, the type of text in
+         * these buttons, and whether or not a thumbnail is shown.
+         *
+         * Conditions:
+         * - (a) "placebo" vs "generic" vs "specific" text
+         *     - placebo text is button text that does not refer to insights (e.g. "Data sources and measurement")
+         *     - generic text is button text that refers to a generic insights page (e.g. "View insights about this data")
+         *     - specific text is button text that describes a concrete insight (e.g. "Women live longer than men, but how much longer varies widely around the world")
+         * - (b) 1 vs 3 links shown
+         * - (c) no thumbnail vs thumbnail
+         *      - for "placebo" text, we exclude the thumbnail condition
+         *      - for "generic" text, thumbnail is of the latest data insight on the data page's primary {topic}
+         *      - for "specific" text, thumbnail is of the data insight that matches the button text
+         *
+         * Control arm: no changes
+         * Treatment arm treat000: placebo - 1 link - no thumbnail
+         * Treatment arm treat010: placebo - 3 links - no thumbnail
+         * Treatment arm treat100: generic - 1 link - no thumbnail
+         * Treatment arm treat110: generic - 3 links - no thumbnail
+         * Treatment arm treat101: generic - 1 link - thumbnail
+         * Treatment arm treat200: specific - 1 link - no thumbnail
+         * Treatment arm treat210: specific - 3 links - no thumbnail
+         * Treatment arm treat201: specific - 1 link - thumbnail
+         * Treatment arm treat211: specific - 3 links - thumbnail
+         *
+         * Note: a few condition combinations are excluded from the experiment
+         * b/c they are either nonsensical or not useful for our purposes.
+         * e.g. treat001: placebo - 1 link - thumbnail.
+         */
+        id: "data-page-insight-btns-full",
+        expires: "2025-09-30T00:00:00.000Z",
+        arms: [
+            // control arm
+            { id: "control", fraction: 0.55, replaysSessionSampleRate: 0.1 },
+            // Treatment arm treat000: placebo - 1 link - no thumbnail
+            { id: "treat000", fraction: 0.05, replaysSessionSampleRate: 1 },
+            // Treatment arm treat010: placebo - 3 links - no thumbnail
+            { id: "treat010", fraction: 0.05, replaysSessionSampleRate: 1 },
+            // Treatment arm treat100: generic - 1 link - no thumbnail
+            { id: "treat100", fraction: 0.05, replaysSessionSampleRate: 1 },
+            // Treatment arm treat110: generic - 3 links - no thumbnail
+            { id: "treat110", fraction: 0.05, replaysSessionSampleRate: 1 },
+            // Treatment arm treat101: generic - 1 link - thumbnail
+            { id: "treat101", fraction: 0.05, replaysSessionSampleRate: 1 },
+            // Treatment arm treat200: specific - 1 link - no thumbnail
+            { id: "treat200", fraction: 0.05, replaysSessionSampleRate: 1 },
+            // Treatment arm treat210: specific - 3 links - no thumbnail
+            { id: "treat210", fraction: 0.05, replaysSessionSampleRate: 1 },
+            // Treatment arm treat201: specific - 1 link - thumbnail
+            { id: "treat201", fraction: 0.05, replaysSessionSampleRate: 1 },
+            // Treatment arm treat211: specific - 3 links - thumbnail
+            { id: "treat211", fraction: 0.05, replaysSessionSampleRate: 1 },
+        ],
+        paths: [
+            "/grapher/co-emissions-per-capita",
+            "/grapher/life-expectancy",
+            "/grapher/democracy-index-eiu",
+            "/grapher/child-mortality",
+            "/grapher/population",
+            "/grapher/carbon-intensity-electricity",
+        ],
+    }),
 ]

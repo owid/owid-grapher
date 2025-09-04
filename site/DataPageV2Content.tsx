@@ -35,6 +35,9 @@ import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { faArrowRight, faArrowDown } from "@fortawesome/free-solid-svg-icons"
+import Image from "./gdocs/components/Image.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { DataInsightLink } from "@ourworldindata/types"
 
 declare global {
     interface Window {
@@ -111,6 +114,11 @@ export const DataPageV2Content = ({
             insightsHref = `/${topicSlug}`
         }
     }
+
+    // insight links for when multiple links are shown
+    const insightLinks = datapageData.dataInsights?.length
+        ? datapageData.dataInsights?.slice(0, 3)
+        : undefined
 
     // note: experimentState should NOT be used to conditionally render content b/c
     // it will cause a flash of content before js loads.
@@ -206,13 +214,30 @@ export const DataPageV2Content = ({
                                 />
                             )}
 
+                            {/* A/B experiment: data-page-insight-buttons-full */}
+                            {insightsHref && (
+                                <InsightLinksInsightButtonsFull
+                                    insightsHref={insightsHref}
+                                    insightLinks={insightLinks}
+                                />
+                            )}
+
                             <AboutThisData
                                 datapageData={datapageData}
                                 hasFaq={!!faqEntries?.faqs.length}
                                 className={cx(
                                     "exp-data-page-insight-btns-basic--control1--hide",
                                     "exp-data-page-insight-btns-basic--treat0--hide",
-                                    "exp-data-page-insight-btns-basic--treat1--hide"
+                                    "exp-data-page-insight-btns-basic--treat1--hide",
+                                    "exp-data-page-insight-btns-full--treat000--hide",
+                                    "exp-data-page-insight-btns-full--treat010--hide",
+                                    "exp-data-page-insight-btns-full--treat100--hide",
+                                    "exp-data-page-insight-btns-full--treat110--hide",
+                                    "exp-data-page-insight-btns-full--treat101--hide",
+                                    "exp-data-page-insight-btns-full--treat200--hide",
+                                    "exp-data-page-insight-btns-full--treat210--hide",
+                                    "exp-data-page-insight-btns-full--treat201--hide",
+                                    "exp-data-page-insight-btns-full--treat211--hide"
                                 )}
                                 id={
                                     // if visitor is assigned to an arm other than
@@ -260,7 +285,16 @@ export const DataPageV2Content = ({
                             className={cx(
                                 "exp-data-page-insight-btns-basic--control1--show",
                                 "exp-data-page-insight-btns-basic--treat0--show",
-                                "exp-data-page-insight-btns-basic--treat1--show"
+                                "exp-data-page-insight-btns-basic--treat1--show",
+                                "exp-data-page-insight-btns-full--treat000--show",
+                                "exp-data-page-insight-btns-full--treat010--show",
+                                "exp-data-page-insight-btns-full--treat100--show",
+                                "exp-data-page-insight-btns-full--treat110--show",
+                                "exp-data-page-insight-btns-full--treat101--show",
+                                "exp-data-page-insight-btns-full--treat200--show",
+                                "exp-data-page-insight-btns-full--treat210--show",
+                                "exp-data-page-insight-btns-full--treat201--show",
+                                "exp-data-page-insight-btns-full--treat211--show"
                             )}
                             id={
                                 // if visitor is assigned to an arm other than
@@ -362,5 +396,239 @@ const InsightLinks = ({
                 {children}
             </div>
         </div>
+    )
+}
+
+/**
+ * A/B experiment: data-page-insight-buttons-full
+ *
+ * Renders the insight buttons for each experimental arm in the
+ * data-page-insight-buttons-full experiment.
+ */
+const InsightLinksInsightButtonsFull = ({
+    insightsHref,
+    insightLinks,
+}: {
+    insightsHref: string
+    insightLinks?: DataInsightLink[]
+}) => {
+    const experimentId = "data-page-insight-btns-full"
+    const genericTreatmentText = "View insights about this data"
+    return (
+        <>
+            <InsightLinks
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat000--show`}
+            >
+                <Button
+                    className="insights-link insight__title"
+                    text="Learn about data sources and measurement"
+                    href="#about-the-data"
+                    theme="solid-blue"
+                    icon={faArrowDown}
+                    dataTrackNote="btn_click__about_the_data"
+                />
+            </InsightLinks>
+            <InsightLinks
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat010--show`}
+            >
+                <Button
+                    className="insights-link insight__title"
+                    text="Learn about data sources and measurement"
+                    href="#about-the-data"
+                    theme="solid-blue"
+                    icon={faArrowDown}
+                    dataTrackNote="btn_click__about_the_data"
+                />
+                <Button
+                    className="insights-link insight__title"
+                    text="View research and writing"
+                    href="#research-and-writing"
+                    theme="solid-blue"
+                    icon={faArrowDown}
+                    dataTrackNote="btn_click__research_and_writing"
+                />
+                <Button
+                    className="insights-link insight__title"
+                    text="View related charts"
+                    href="#all-charts"
+                    theme="solid-blue"
+                    icon={faArrowDown}
+                    dataTrackNote="btn_click__related_charts"
+                />
+            </InsightLinks>
+            <InsightLinks
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat100--show`}
+            >
+                <Button
+                    className="insights-link insight__title"
+                    text={genericTreatmentText}
+                    href={insightsHref}
+                    theme="solid-blue"
+                    icon={faArrowRight}
+                    dataTrackNote="btn_click__insights"
+                />
+            </InsightLinks>
+            <InsightLinks
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat110--show`}
+            >
+                <Button
+                    className="insights-link insight__title"
+                    text={genericTreatmentText}
+                    href={insightsHref}
+                    theme="solid-blue"
+                    icon={faArrowRight}
+                    dataTrackNote="btn_click__insights"
+                />
+                <Button
+                    className="insights-link insight__title"
+                    text="Learn about data sources and measurement"
+                    href="#about-the-data"
+                    theme="solid-blue"
+                    icon={faArrowDown}
+                    dataTrackNote="btn_click__about_the_data"
+                />
+                <Button
+                    className="insights-link insight__title"
+                    text="View related charts"
+                    href="#all-charts"
+                    theme="solid-blue"
+                    icon={faArrowDown}
+                    dataTrackNote="btn_click__related_charts"
+                />
+            </InsightLinks>
+            <InsightLinks
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat101--show`}
+            >
+                {/* todo: what if no insightLinks? */}
+                {insightLinks && insightLinks?.length && (
+                    <a
+                        href={insightsHref}
+                        className="insights-link has-thumbnail grid grid-cols-12 span-cols-4 span-lg-cols-6 span-sm-cols-12 owid-btn owid-btn--solid-blue"
+                        data-track-note="btn_click__insight"
+                    >
+                        {insightLinks[0].imgFilename && (
+                            <Image
+                                className="span-cols-2"
+                                filename={insightLinks[0].imgFilename}
+                                containerType="thumbnail"
+                                shouldLightbox={false}
+                            />
+                        )}
+                        <div className="span-cols-10">
+                            <h3 className="insight__title">
+                                {genericTreatmentText}
+                                <FontAwesomeIcon
+                                    className="owid-btn--icon-right"
+                                    icon={faArrowRight}
+                                />
+                            </h3>
+                        </div>
+                    </a>
+                )}
+            </InsightLinks>
+            <InsightLinks
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat200--show`}
+            >
+                {/* todo: what if no link? */}
+                {insightLinks && insightLinks?.length && (
+                    <LinkToDataInsight
+                        insightLink={{
+                            title: insightLinks[0].title,
+                            slug: insightLinks[0].slug,
+                        }}
+                        dataTrackNote="btn_click__insight"
+                    />
+                )}
+            </InsightLinks>
+            <InsightLinks
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat210--show`}
+                showHeader={true}
+            >
+                {/* todo: what if no link? */}
+                {insightLinks &&
+                    insightLinks.map((link, i) => (
+                        <LinkToDataInsight
+                            key={link.slug}
+                            insightLink={{
+                                title: link.title,
+                                slug: link.slug,
+                            }}
+                            showContentType={true}
+                            dataTrackNote={`btn_click__insight${i}`}
+                        />
+                    ))}
+            </InsightLinks>
+            <InsightLinks
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat201--show`}
+            >
+                <div className="insight-links col-start-2 col-lg-start-2 span-cols-10 span-lg-cols-10 span-sm-cols-12">
+                    {/* todo: what if no link? */}
+                    {insightLinks && insightLinks?.length && (
+                        <LinkToDataInsight
+                            insightLink={insightLinks[0]}
+                            dataTrackNote="btn_click__insight"
+                        />
+                    )}
+                </div>
+            </InsightLinks>
+            <InsightLinks
+                className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat211--show`}
+                showHeader={true}
+            >
+                {/* todo: what if no link? */}
+                {insightLinks &&
+                    insightLinks.map((link, i) => (
+                        <LinkToDataInsight
+                            key={link.slug}
+                            insightLink={link}
+                            showContentType={true}
+                            dataTrackNote={`btn_click__insight${i}`}
+                        />
+                    ))}
+            </InsightLinks>
+        </>
+    )
+}
+
+const LinkToDataInsight = ({
+    insightLink,
+    showContentType = true,
+    dataTrackNote,
+}: {
+    insightLink: DataInsightLink
+    showContentType?: boolean
+    dataTrackNote?: string
+}) => {
+    const aProps = {
+        href: `/data-insights/${insightLink.slug}`,
+        className:
+            "insights-link has-thumbnail grid grid-cols-12 span-cols-4 span-lg-cols-6 span-sm-cols-12 owid-btn owid-btn--solid-blue",
+        "data-track-note": dataTrackNote,
+    }
+    return (
+        <a {...aProps}>
+            {insightLink.imgFilename && (
+                <Image
+                    className="span-cols-2"
+                    filename={insightLink.imgFilename}
+                    containerType="thumbnail"
+                    shouldLightbox={false}
+                />
+            )}
+            <div className="span-cols-10">
+                {showContentType && (
+                    <p className="insight__type">Data insight</p>
+                )}
+                <h3 className="insight__title">
+                    {insightLink.title}
+                    <FontAwesomeIcon
+                        className={cx({
+                            "owid-btn--icon-right": insightLink.title,
+                        })}
+                        icon={faArrowRight}
+                    />
+                </h3>
+            </div>
+        </a>
     )
 }

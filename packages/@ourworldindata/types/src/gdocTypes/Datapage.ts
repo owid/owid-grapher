@@ -52,6 +52,7 @@ export interface DataPageDataV2 {
     unit?: string
     unitConversionFactor?: number
     hasDataInsights?: boolean
+    dataInsights?: DataInsightLink[]
 }
 
 export interface DataPageRelatedResearch {
