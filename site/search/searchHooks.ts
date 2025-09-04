@@ -3,6 +3,8 @@ import {
     getCountryData,
     getFilterNamesOfType,
     getSelectedTopic,
+    getPaginationOffsetAndLength,
+    getNbPaginatedItemsRequested,
 } from "./searchUtils.js"
 import { useSearchContext } from "./SearchContext.js"
 import { flattenNonTopicNodes, Region, Url } from "@ourworldindata/utils"
@@ -152,6 +154,82 @@ type QueryKeyState = Pick<
     "query" | "filters" | "requireAllCountries"
 >
 
+/**
+ * Compute Algolia `offset` and `length` so the UI can show a smaller
+ * first page (e.g. 3) and larger subsequent pages (e.g. 6) without
+ * skipping results.
+ *
+ * Rationale:
+ * - Using different `hitsPerPage` values together with Algolia's `page`
+ *   parameter creates gaps: Algolia computes start = page * hitsPerPage,
+ *   so switching page sizes means some indices are never requested and thus
+ *   skipped.
+ * - To avoid skipped results we request explicit `offset` and `length`:
+ *   "start at result N and give me M results".
+ *
+ * Example (articles: first=3 later=6):
+ * - UI page 0 -> offset=0, length=3 -> results 0..2
+ * - UI page 1 -> offset=3, length=6 -> results 3..8
+ * - UI page 2 -> offset=9, length=6 -> results 9..14
+ */
+
+export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
+    queryKey,
+    queryFn,
+    firstPageSize,
+    laterPageSize,
+    enabled = true,
+}: {
+    queryKey: (state: SearchState) => readonly (string | QueryKeyState)[]
+    queryFn: (
+        searchClient: SearchClient,
+        state: SearchState,
+        offset: number,
+        length: number
+    ) => Promise<T>
+    firstPageSize: number
+    laterPageSize: number
+    enabled?: boolean
+}) {
+    const { state, searchClient } = useSearchContext()
+    const query = useInfiniteQuery<T, Error>({
+        queryKey: queryKey(state),
+        queryFn: ({ pageParam = 0 }) => {
+            const { offset, length } = getPaginationOffsetAndLength(
+                pageParam,
+                firstPageSize,
+                laterPageSize
+            )
+
+            return queryFn(searchClient, state, offset, length)
+        },
+        getNextPageParam: (lastPage, allPages) => {
+            const currentPageIndex = allPages.length - 1
+
+            const requestedSoFar = getNbPaginatedItemsRequested(
+                currentPageIndex,
+                firstPageSize,
+                laterPageSize,
+                lastPage.hits.length
+            )
+
+            return requestedSoFar < lastPage.nbHits
+                ? currentPageIndex + 1
+                : undefined
+        },
+        enabled,
+    })
+
+    const hits: U[] = query.data?.pages.flatMap((page) => page.hits) || []
+    const totalResults = query.data?.pages[0]?.nbHits || 0
+
+    return {
+        ...query,
+        hits,
+        totalResults,
+    }
+}
+
 export function useInfiniteSearch<T extends SearchResponse<U>, U>({
     queryKey,
     queryFn,
@@ -187,6 +265,7 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
         totalResults,
     }
 }
+
 export const useTopicTagGraph = () => {
     const [tagGraph, setTagGraph] = useState<TagGraphRoot | null>(null)
 
