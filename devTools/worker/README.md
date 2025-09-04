@@ -25,10 +25,10 @@ The worker supports two modes of operation:
 
 ```bash
 # Single-run mode (default) - process one job and exit
-npx ts-node devTools/worker/explorerJobsWorker.ts
+npx tsx --tsconfig tsconfig.tsx.json devTools/worker/explorerJobsWorker.ts
 
 # Loop mode - continuous polling
-npx ts-node devTools/worker/explorerJobsWorker.ts --loop
+npx tsx --tsconfig tsconfig.tsx.json devTools/worker/explorerJobsWorker.ts --loop
 
 # Or compile and run
 yarn tsc --project devTools/worker/tsconfig.json
