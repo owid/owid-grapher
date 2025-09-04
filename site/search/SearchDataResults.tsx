@@ -41,10 +41,16 @@ export const SearchDataResults = ({
                         </SearchResultHeader>
                         <ul className="search-data-results__list">
                             {hits.map((hit, hitIndex) => {
-                                let variant: SearchChartHitComponentVariant =
-                                    hitIndex < 5 ? "medium" : "small"
-                                if (hitIndex === 0 && isFirstChartLarge)
-                                    variant = "large"
+                                const variant: SearchChartHitComponentVariant =
+                                    isFirstChartLarge
+                                        ? hitIndex === 0
+                                            ? "large"
+                                            : hitIndex <= 3
+                                              ? "medium"
+                                              : "small"
+                                        : hitIndex < 4
+                                          ? "medium"
+                                          : "small"
 
                                 const onClick = () => {
                                     analytics.logDataCatalogResultClick(
