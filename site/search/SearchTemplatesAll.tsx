@@ -34,16 +34,16 @@ export const SearchTemplatesAll = () => {
             // All + Topic + No Country + Query
             .with([SearchTopicType.Topic, false, true], () => (
                 <>
-                    <SearchDataResults isFirstChartLarge={false} />
                     <SearchWritingResults topicType={SearchTopicType.Topic} />
+                    <SearchDataResults isFirstChartLarge={false} />
                     <SearchDataInsightsResults />
                 </>
             ))
             // All + Topic + No Country + No Query
             .with([SearchTopicType.Topic, false, false], () => (
                 <>
-                    <SearchDataResults isFirstChartLarge={false} />
                     <SearchWritingResults topicType={SearchTopicType.Topic} />
+                    <SearchDataResults isFirstChartLarge={false} />
                     <SearchDataInsightsResults />
                 </>
             ))
@@ -66,8 +66,8 @@ export const SearchTemplatesAll = () => {
             // All + Area + No Country + Query
             .with([SearchTopicType.Area, false, true], () => (
                 <>
-                    <SearchDataResults isFirstChartLarge={true} />
                     <SearchWritingResults topicType={SearchTopicType.Area} />
+                    <SearchDataResults isFirstChartLarge={true} />
                     <SearchDataInsightsResults />
                 </>
             ))
@@ -75,8 +75,8 @@ export const SearchTemplatesAll = () => {
             .with([SearchTopicType.Area, false, false], () => (
                 <>
                     <SearchWritingResults topicType={SearchTopicType.Area} />
-                    <SearchDataInsightsResults />
                     <SearchDataTopicsResults />
+                    <SearchDataInsightsResults />
                 </>
             ))
             // All + No Topic + Country + Query
@@ -98,8 +98,8 @@ export const SearchTemplatesAll = () => {
             // All + No Topic + No Country + Query
             .with([null, false, true], () => (
                 <>
-                    <SearchDataResults isFirstChartLarge={true} />
                     <SearchWritingResults />
+                    <SearchDataResults isFirstChartLarge={true} />
                     <SearchDataInsightsResults />
                 </>
             ))
