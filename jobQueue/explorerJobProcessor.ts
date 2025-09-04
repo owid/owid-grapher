@@ -63,7 +63,7 @@ export async function processExplorerViewsJob(
             // Check if explorer still exists and get current state
             const current = await trx("explorers")
                 .where({ slug })
-                .first(["updatedAt", "isPublished"])
+                .first(["lastEditedAt", "isPublished"])
 
             if (!current) {
                 console.warn(
@@ -75,10 +75,10 @@ export async function processExplorerViewsJob(
 
             isPublished = current.isPublished
 
-            // Coalescing/staleness check: if current updatedAt is newer than job's snapshot, skip
-            if (current.updatedAt > explorerUpdatedAt) {
+            // Coalescing/staleness check: if current lastEditedAt is newer than job's snapshot, skip
+            if (current.lastEditedAt && current.lastEditedAt > explorerUpdatedAt) {
                 console.warn(
-                    `Explorer ${slug} has been updated since job was queued (${current.updatedAt} > ${explorerUpdatedAt}), marking as done`
+                    `Explorer ${slug} has been updated since job was queued (${current.lastEditedAt} > ${explorerUpdatedAt}), marking as done`
                 )
                 await markJobDone(trx, job.id, "superseded by newer update")
                 return false
@@ -118,13 +118,13 @@ export async function processExplorerViewsJob(
         const isStale = await knexReadonlyTransaction(async (knex) => {
             const current = await knex("explorers")
                 .where({ slug })
-                .first(["updatedAt"])
+                .first(["lastEditedAt"])
 
             if (!current) {
                 return true // Explorer was deleted, consider stale
             }
 
-            return current.updatedAt > explorerUpdatedAt
+            return current.lastEditedAt && current.lastEditedAt > explorerUpdatedAt
         })
 
         if (isStale) {
@@ -182,9 +182,9 @@ export async function processExplorerViewsJob(
             // Final staleness check: re-verify job hasn't been superseded before completion
             const current = await trx("explorers")
                 .where({ slug })
-                .first(["updatedAt"])
+                .first(["lastEditedAt"])
 
-            if (!current || current.updatedAt > explorerUpdatedAt) {
+            if (!current || (current.lastEditedAt && current.lastEditedAt > explorerUpdatedAt)) {
                 await markJobDone(
                     trx,
                     job.id,
