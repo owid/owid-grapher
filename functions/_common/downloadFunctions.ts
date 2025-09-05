@@ -1,15 +1,24 @@
+import * as _ from "lodash-es"
 import {
     fetchInputTableForConfig,
-    Grapher,
     GrapherState,
+    WORLD_ENTITY_NAME,
+    getEntityNamesParam,
+    generateSelectedEntityNamesParam,
+    constructGrapherValuesJson,
 } from "@ourworldindata/grapher"
-import { OwidColumnDef } from "@ourworldindata/types"
+import {
+    OwidColumnDef,
+    GRAPHER_TAB_QUERY_PARAMS,
+    EntityName,
+} from "@ourworldindata/types"
 import { StatusError } from "itty-router"
 import { createZip, File } from "littlezipper"
 import { assembleMetadata, getColumnsForMetadata } from "./metadataTools.js"
 import { Env } from "./env.js"
 import {
     getDataApiUrl,
+    getGrapherTableWithRelevantColumns,
     GrapherIdentifier,
     initGrapher,
 } from "./grapherTools.js"
@@ -29,12 +38,11 @@ export async function fetchMetadataForGrapher(
         env
     )
 
-    const inputTable = await fetchInputTableForConfig(
-        grapher.grapherState.dimensions,
-        grapher.grapherState.selectedEntityColors,
-        getDataApiUrl(env),
-        undefined
-    )
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: grapher.grapherState.dimensions,
+        selectedEntityColors: grapher.grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
     grapher.grapherState.inputTable = inputTable
 
     const fullMetadata = assembleMetadata(
@@ -58,16 +66,15 @@ export async function fetchZipForGrapher(
         searchParams ?? new URLSearchParams(""),
         env
     )
-    const inputTable = await fetchInputTableForConfig(
-        grapher.grapherState.dimensions,
-        grapher.grapherState.selectedEntityColors,
-        getDataApiUrl(env),
-        undefined
-    )
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: grapher.grapherState.dimensions,
+        selectedEntityColors: grapher.grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
     grapher.grapherState.inputTable = inputTable
     ensureDownloadOfDataAllowed(grapher.grapherState)
     const metadata = assembleMetadata(grapher.grapherState, searchParams)
-    const readme = assembleReadme(grapher, searchParams)
+    const readme = assembleReadme(grapher.grapherState, searchParams)
     const csv = assembleCsv(grapher.grapherState, searchParams)
     console.log("Fetched the parts, creating zip file")
 
@@ -87,18 +94,20 @@ export async function fetchZipForGrapher(
         },
     })
 }
-function assembleCsv(
+
+export function assembleCsv(
     grapherState: GrapherState,
     searchParams: URLSearchParams
 ): string {
-    const useShortNames = searchParams.get("useColumnShortNames") === "true"
-    const fullTable = grapherState.inputTable
-    const filteredTable = grapherState.isOnTableTab
-        ? grapherState.tableForDisplay
-        : grapherState.transformedTable
-    const table =
-        searchParams.get("csvType") === "filtered" ? filteredTable : fullTable
-    return table.toPrettyCsv(useShortNames)
+    const shouldUseShortNames =
+        searchParams.get("useColumnShortNames") === "true"
+    const shouldUseFilteredTable = searchParams.get("csvType") === "filtered"
+
+    const table = getGrapherTableWithRelevantColumns(grapherState, {
+        shouldUseFilteredTable,
+    })
+
+    return table.toPrettyCsv(shouldUseShortNames)
 }
 
 export async function fetchCsvForGrapher(
@@ -112,12 +121,11 @@ export async function fetchCsvForGrapher(
         searchParams ?? new URLSearchParams(""),
         env
     )
-    const inputTable = await fetchInputTableForConfig(
-        grapher.grapherState.dimensions,
-        grapher.grapherState.selectedEntityColors,
-        getDataApiUrl(env),
-        undefined
-    )
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: grapher.grapherState.dimensions,
+        selectedEntityColors: grapher.grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
     grapher.grapherState.inputTable = inputTable
     console.log("checking if download is allowed")
     ensureDownloadOfDataAllowed(grapher.grapherState)
@@ -132,7 +140,8 @@ export async function fetchCsvForGrapher(
         },
     })
 }
-function ensureDownloadOfDataAllowed(grapherState: GrapherState) {
+
+export function ensureDownloadOfDataAllowed(grapherState: GrapherState) {
     if (
         grapherState.inputTable.columnsAsArray.some(
             (col) => (col.def as OwidColumnDef).nonRedistributable
@@ -158,16 +167,15 @@ export async function fetchReadmeForGrapher(
         env
     )
 
-    const inputTable = await fetchInputTableForConfig(
-        grapher.grapherState.dimensions,
-        grapher.grapherState.selectedEntityColors,
-        getDataApiUrl(env),
-        undefined
-    )
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: grapher.grapherState.dimensions,
+        selectedEntityColors: grapher.grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
     grapher.grapherState.inputTable = inputTable
 
     const readme = assembleReadme(
-        grapher,
+        grapher.grapherState,
         searchParams,
         multiDimAvailableDimensions
     )
@@ -178,16 +186,82 @@ export async function fetchReadmeForGrapher(
     })
 }
 
-function assembleReadme(
-    grapher: Grapher,
+export function assembleReadme(
+    grapherState: GrapherState,
     searchParams: URLSearchParams,
     multiDimAvailableDimensions?: string[]
 ): string {
-    const metadataCols = getColumnsForMetadata(grapher.grapherState)
+    const metadataCols = getColumnsForMetadata(grapherState)
     return constructReadme(
-        grapher.grapherState,
+        grapherState,
         metadataCols,
         searchParams,
         multiDimAvailableDimensions
     )
+}
+
+export async function fetchDataValuesForGrapher(
+    identifier: GrapherIdentifier,
+    env: Env,
+    searchParams: URLSearchParams
+) {
+    const entityName = findEntityForExtractingDataValues(searchParams)
+    prepareSearchParamsBeforeExtractingDataValues(searchParams, entityName)
+
+    // Initialize Grapher and download its data
+    const { grapher } = await initGrapher(
+        identifier,
+        TWITTER_OPTIONS,
+        searchParams,
+        env
+    )
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: grapher.grapherState.dimensions,
+        selectedEntityColors: grapher.grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
+    grapher.grapherState.inputTable = inputTable
+
+    const dataValues = assembleDataValues(grapher.grapherState, entityName)
+
+    return Response.json(dataValues)
+}
+
+export function assembleDataValues(
+    grapherState: GrapherState,
+    entityName: EntityName
+) {
+    // If the entity is invalid or not included in the chart, we can't return
+    // any data, so we return the source only
+    if (!grapherState.availableEntityNames.includes(entityName))
+        return { source: grapherState.sourcesLine }
+
+    return constructGrapherValuesJson(grapherState, entityName)
+}
+
+export function findEntityForExtractingDataValues(
+    searchParams: URLSearchParams
+): string {
+    // This endpoint returns data for a single entity/country. If the 'country'
+    // query param is provided, the first entity is used. It defaults to 'World'
+    // when no entity is provided.
+    const entityNames = getEntityNamesParam(
+        searchParams.get("country") ?? undefined
+    )
+    const entityName = entityNames?.[0] ?? WORLD_ENTITY_NAME
+    return entityName
+}
+
+export function prepareSearchParamsBeforeExtractingDataValues(
+    searchParams: URLSearchParams,
+    entityName: EntityName
+): void {
+    // We update the search params to ensure the entity is selected, which is
+    // necessary for it to be included in the chart's `transformedTable` that is
+    // later used to retrieve the data.
+    searchParams.set("country", generateSelectedEntityNamesParam([entityName]))
+
+    // If no tab param is specified, default to the chart tab
+    const tab = searchParams.get("tab") ?? GRAPHER_TAB_QUERY_PARAMS.chart
+    searchParams.set("tab", tab)
 }

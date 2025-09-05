@@ -129,11 +129,10 @@ export {
     GrapherWindowType,
     AxisMinMaxValueStr,
     GrapherTooltipAnchor,
-    type InteractionState,
     type MapConfigInterface,
     type GlobeConfig,
     type ProjectionColumnInfo,
-    GrapherRenderMode,
+    GrapherVariant,
     type ChartErrorInfo,
 } from "./grapherTypes/GrapherTypes.js"
 
@@ -851,3 +850,9 @@ export {
     type ResolvedBinningStrategy,
     type MidpointMode,
 } from "./grapherTypes/BinningStrategyTypes.js"
+
+export {
+    type GrapherValuesJson,
+    type GrapherValuesJsonDataPoints,
+    type GrapherValuesJsonDataPoint,
+} from "./endpointTypes/GrapherEndpoints.js"

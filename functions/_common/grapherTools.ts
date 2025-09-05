@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import {
     generateGrapherImageSrcSet,
     Grapher,
@@ -7,16 +8,26 @@ import {
     GrapherInterface,
     MultiDimDataPageConfigEnriched,
     R2GrapherConfigDirectory,
+    OwidTableSlugs,
 } from "@ourworldindata/types"
 import {
     excludeUndefined,
     Bounds,
     searchParamsToMultiDimView,
+    makeAnnotationsSlug,
 } from "@ourworldindata/utils"
+import {
+    OwidTable,
+    makeOriginalTimeSlugFromColumnSlug,
+    makeOriginalValueSlugFromColumnSlug,
+} from "@ourworldindata/core-table"
 import { StatusError } from "itty-router"
 import { Env } from "./env.js"
-import { fetchFromR2, grapherBaseUrl } from "./grapherRenderer.js"
 import { ImageOptions } from "./imageOptions.js"
+
+export const grapherBaseUrl = "https://ourworldindata.org/grapher"
+
+const WORKER_CACHE_TIME_IN_SECONDS = 60
 
 interface FetchGrapherConfigResult {
     grapherConfig: GrapherInterface | null
@@ -57,6 +68,29 @@ export function getDataApiUrl(env: Env) {
     throw new Error(
         "Neither DATA_API_URL_COMPLETE nor DATA_API_URL_PARTIAL_PREFIX and DATA_API_URL_PARTIAL_POSTFIX were declared!"
     )
+}
+
+export async function fetchFromR2(
+    url: URL,
+    etag: string | undefined,
+    fallbackUrl?: URL
+) {
+    const headers = new Headers()
+    if (etag) headers.set("If-None-Match", etag)
+    const init = {
+        cf: {
+            cacheEverything: true,
+            cacheTtl: WORKER_CACHE_TIME_IN_SECONDS,
+        },
+        headers,
+    }
+    const primaryResponse = await fetch(url.toString(), init)
+    // The fallback URL here is used so that on staging or dev we can fallback
+    // to the production bucket if the file is not found in the branch bucket
+    if (primaryResponse.status === 404 && fallbackUrl) {
+        return fetch(fallbackUrl.toString(), init)
+    }
+    return primaryResponse
 }
 
 export async function fetchUnparsedGrapherConfig(
@@ -320,4 +354,54 @@ export function addClassNamesToBody(page: Response, classNames: string[]) {
     })
 
     return rewriter.transform(page)
+}
+
+export function getGrapherTableWithRelevantColumns(
+    grapherState: GrapherState,
+    options?: { shouldUseFilteredTable: boolean }
+): OwidTable {
+    // Extract table from Grapher
+    const fullTable = grapherState.inputTable
+    const filteredTable = grapherState.isOnTableTab
+        ? grapherState.tableForDisplay
+        : grapherState.transformedTable
+    const table = options?.shouldUseFilteredTable ? filteredTable : fullTable
+
+    // Trim table to only include columns that are relevant to the current
+    // grapher view. This filtering is necessary for CSV-based data explorers
+    // because the full table contains columns for all possible views.
+    const entityNameSlugs = [
+        OwidTableSlugs.entityName,
+        OwidTableSlugs.entityCode,
+        OwidTableSlugs.entityId,
+        table.entityNameColumn.slug,
+    ]
+    const timeSlugs = [
+        OwidTableSlugs.time,
+        OwidTableSlugs.year,
+        OwidTableSlugs.date,
+        OwidTableSlugs.day,
+        table.timeColumn.slug,
+    ]
+    const valueSlugs = [
+        ...grapherState.yColumnSlugs,
+        grapherState.xColumnSlug,
+        grapherState.colorColumnSlug,
+        grapherState.sizeColumnSlug,
+    ]
+    const extraSlugs = valueSlugs.flatMap((slug) => [
+        makeAnnotationsSlug(slug),
+        makeOriginalTimeSlugFromColumnSlug(slug),
+        makeOriginalValueSlugFromColumnSlug(slug),
+    ])
+    const slugs = [
+        ...entityNameSlugs,
+        ...timeSlugs,
+        ...valueSlugs,
+        ...extraSlugs,
+    ].filter((slug) => slug && table.has(slug))
+
+    const uniqueSlugs = _.uniq(slugs)
+
+    return table.select(uniqueSlugs)
 }

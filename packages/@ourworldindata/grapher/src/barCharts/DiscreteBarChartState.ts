@@ -33,6 +33,7 @@ import { OWID_ERROR_COLOR, OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { ColorScheme } from "../color/ColorScheme"
 import { ColorSchemes } from "../color/ColorSchemes"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
+import { FocusArray } from "../focus/FocusArray"
 
 export class DiscreteBarChartState implements ChartState, ColorScaleManager {
     manager: DiscreteBarChartManager
@@ -89,6 +90,10 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
         return makeSelectionArray(this.manager.selection)
     }
 
+    @computed get focusArray(): FocusArray {
+        return this.manager.focusArray ?? new FocusArray()
+    }
+
     @computed get yColumnSlugs(): string[] {
         return autoDetectYColumnSlugs(this.manager)
     }
@@ -104,6 +109,10 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
 
     @computed get yColumns(): CoreColumn[] {
         return this.transformedTable.getColumns(this.yColumnSlugs)
+    }
+
+    @computed get formatColumn(): CoreColumn {
+        return this.yColumns[0]
     }
 
     @computed get hasProjectedData(): boolean {
@@ -281,6 +290,7 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
                     color ??
                     this.valuesToColorsMap.get(value) ??
                     OWID_ERROR_COLOR,
+                focus: this.focusArray.state(seriesName),
             }
             return series
         })
