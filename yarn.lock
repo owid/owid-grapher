@@ -12300,7 +12300,6 @@ __metadata:
     typescript: "npm:~6.0.1-rc"
     typescript-eslint: "npm:^8.56.0"
     typesense: "npm:^2.1.0"
-    typesense-ts: "npm:^0.2.3"
     unist-util-visit: "npm:^5.0.0"
     url-join: "npm:^5.0.0"
     url-parse: "npm:^1.5.10"
@@ -18440,13 +18439,6 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10/cd5eac83bb20b383951e7c9bb2dbf985c20e80dfcbc79c584e93bb1d64c48e2972a8009de2c36af3e3b845fbec052b978ecc11d6efd2bad41d15ffc0914569ae
-  languageName: node
-  linkType: hard
-
-"typesense-ts@npm:^0.2.3":
-  version: 0.2.6
-  resolution: "typesense-ts@npm:0.2.6"
-  checksum: 10/0cf5bd965ff5607870d611738e43bfb6f3c1ef8f2508b830a0ee7f6fb552cd5ebcbda915da5b6b2e49c1fe2ebc5f88b5f8d51aad14dd6ed79d8b312bc3ed5e22
   languageName: node
   linkType: hard
 
