@@ -510,6 +510,12 @@ export {
     ArchivedMultiDimVersionsTableName,
 } from "./dbTypes/ArchivedMultiDimVersion.js"
 export {
+    type DbInsertArchivedExplorerVersion,
+    type DbPlainArchivedExplorerVersion,
+    type DbEnrichedArchivedExplorerVersion,
+    ArchivedExplorerVersionsTableName,
+} from "./dbTypes/ArchivedExplorerVersion.js"
+export {
     type DbInsertChartConfig,
     type DbRawChartConfig,
     type DbEnrichedChartConfig,
@@ -849,6 +855,8 @@ export {
     type GrapherChecksumsObjectWithHash,
     type MultiDimChecksums,
     type MultiDimChecksumsObjectWithHash,
+    type ExplorerChecksums,
+    type ExplorerChecksumsObjectWithHash,
 } from "./domainTypes/Archive.js"
 export { type AdditionalGrapherDataFetchFn } from "./grapherTypes/GrapherTypes.js"
 

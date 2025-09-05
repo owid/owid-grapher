@@ -9,7 +9,7 @@ export interface ArchivalTimestamp {
     formattedDate: ArchivalDateString
 }
 
-type DateInput = Date | ArchivalDateString | string | dayjs.Dayjs
+export type DateInput = Date | ArchivalDateString | string | dayjs.Dayjs
 
 export const parseArchivalDate = (dateInput: DateInput): dayjs.Dayjs => {
     if (typeof dateInput === "string") {

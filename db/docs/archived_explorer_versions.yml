@@ -1,0 +1,14 @@
+metadata:
+    description: |
+        Table for keeping track of archived versions of our data explorers at https://archive.ourworldindata.org. On every content publish we create a new archival version of all published explorers (as given in the explorers table) that were updated since the last content publish.
+fields:
+    id:
+        description: Unique identifier for the archived explorer version
+    archivalTimestamp:
+        description: Timestamp when this explorer version was archived
+    explorerSlug:
+        description: Slug of the explorer at the time of archival (not a foreign key as archives are kept even after deletion)
+    hashOfInputs:
+        description: Hash of the inputs used to generate this explorer version, used for deduplication and change detection
+    manifest:
+        description: JSON manifest containing metadata needed for reproducible archive

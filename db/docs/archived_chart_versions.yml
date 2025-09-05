@@ -13,4 +13,4 @@ fields:
     hashOfInputs:
         description: Hash of the inputs used to generate this chart version, used for deduplication and change detection
     manifest:
-        description: JSON manifest containing the full chart configuration and metadata at the time of archival
+        description: JSON manifest containing metadata needed for reproducible archive
