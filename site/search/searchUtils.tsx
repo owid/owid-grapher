@@ -518,6 +518,34 @@ export const formatTopicFacetFiltersTypesense = (
     return `tags:=[${escapedTopics}]`
 }
 
+/* Returns a Typesense filter expression for countries/entities
+ *
+ * Example: "availableEntities:=[`United States`, `China`]" (disjunction mode)
+ * Example: "availableEntities:=`United States` && availableEntities:=`China`" (conjunction mode)
+ */
+export const formatCountryFacetFiltersTypesense = (
+    countries: Set<string>,
+    requireAllCountries: boolean
+): string | undefined => {
+    if (!countries || countries.size === 0) return
+
+    const countriesArray = Array.from(countries)
+    // using backticks to escape special characters in country names
+    const escapedCountries = countriesArray.map(
+        (country) => "`" + country + "`"
+    )
+
+    if (requireAllCountries) {
+        // conjunction mode (A AND B): each country as separate filter joined with &&
+        return escapedCountries
+            .map((country) => `availableEntities:=${country}`)
+            .join(" && ")
+    } else {
+        // disjunction mode (A OR B): use array syntax
+        return `availableEntities:=[${escapedCountries.join(", ")}]`
+    }
+}
+
 export function getCountryData(selectedCountries: Set<string>): Region[] {
     const regionData: Region[] = []
     const countries = countriesByName()

@@ -31,9 +31,11 @@ import {
     DATA_CATALOG_ATTRIBUTES,
     formatDisjunctiveFacetFilters,
     formatTopicFacetFiltersTypesense,
+    formatCountryFacetFiltersTypesense,
 } from "./searchUtils.js"
 import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
-import { pagesCollection } from "./typesenseCollections.js"
+import { ChartDocument } from "./typesenseCollections.js"
+import { getTypesenseClient } from "./typesense/typesenseClient.js"
 
 function makeStateForKey(state: SearchState) {
     return R.pick(state, ["query", "filters", "requireAllCountries"])
@@ -120,60 +122,64 @@ export async function queryDataTopics(
 }
 
 export async function queryCharts(
-    liteSearchClient: LiteClient,
+    _liteSearchClient: LiteClient,
     state: SearchState,
     page: number = 0
 ): Promise<SearchChartsResponse> {
-    const countryFacetFilters = formatCountryFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        state.requireAllCountries
+    const selectedCountryNames = getFilterNamesOfType(
+        state.filters,
+        FilterType.COUNTRY
     )
-    const topicFacetFilters = formatTopicFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.TOPIC)
-    )
-    const datasetProductFacetFilters = formatDisjunctiveFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCT),
-        "datasetProducts"
-    )
-    const datasetNamespaceFacetFilters = formatDisjunctiveFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.DATASET_NAMESPACE),
-        "datasetNamespaces"
-    )
-    const datasetVersionFacetFilters = formatDisjunctiveFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.DATASET_VERSION),
-        "datasetVersions"
-    )
-    const datasetProducerFacetFilters = formatDisjunctiveFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.DATASET_PRODUCER),
-        "datasetProducers"
-    )
-    const fmFacetFilter = formatFeaturedMetricFacetFilter(state.query)
-    const facetFilters = [
-        ...countryFacetFilters,
-        ...topicFacetFilters,
-        ...datasetProductFacetFilters,
-        ...datasetNamespaceFacetFilters,
-        ...datasetVersionFacetFilters,
-        ...datasetProducerFacetFilters,
-        ...fmFacetFilter,
-    ]
+    const selectedTopics = getFilterNamesOfType(state.filters, FilterType.TOPIC)
 
-    const searchParams = [
-        {
-            indexName: CHARTS_INDEX,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            query: state.query,
-            facetFilters,
-            highlightPreTag: "<mark>",
-            highlightPostTag: "</mark>",
-            hitsPerPage: 9,
-            page,
-        },
-    ]
+    const client = getTypesenseClient()
+    const response = await client
+        .collections<ChartDocument>(CHARTS_INDEX)
+        .documents()
+        .search({
+            q: state.query || "*",
+            query_by: "title,subtitle,variantName",
+            filter_by: [
+                formatCountryFacetFiltersTypesense(
+                    selectedCountryNames,
+                    state.requireAllCountries
+                ),
+                formatTopicFacetFiltersTypesense(selectedTopics),
+            ]
+                .filter(Boolean)
+                .join(" && "),
+            include_fields:
+                "title,slug,availableEntities,originalAvailableEntities,variantName,type,queryParams,availableTabs,subtitle,chartConfigId,explorerType,chartId",
+            highlight_start_tag: "<mark>",
+            highlight_end_tag: "</mark>",
+            per_page: 9,
+            page: page + 1, // Typesense pages are 1-indexed
+        })
 
-    return liteSearchClient
-        .search<SearchChartHit>(searchParams)
-        .then((response) => response.results[0] as SearchChartsResponse)
+    // Map hits to match SearchChartHit structure
+    const hits: SearchChartHit[] = (response.hits ?? []).map(
+        (hit, index) => ({
+            ...hit.document,
+            objectID: hit.document?.slug, // Use slug as objectID for compatibility
+            __position: page * 9 + index, // Calculate position based on page and index
+            availableTabs: hit.document?.availableTabs || [],
+            availableEntities: hit.document?.availableEntities || [],
+        })
+    ) as SearchChartHit[]
+
+    // Return structure matching SearchChartsResponse
+    return {
+        hits,
+        nbHits: response.found,
+        page,
+        nbPages: Math.ceil(response.found / 9),
+        hitsPerPage: 9,
+        exhaustiveNbHits: true,
+        exhaustiveTypo: true,
+        query: state.query,
+        params: "",
+        processingTimeMS: response.search_time_ms || 0,
+    } as SearchChartsResponse
 }
 
 export async function queryDataInsights(

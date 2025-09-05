@@ -119,6 +119,8 @@ export const chartsCollectionSchema: CollectionCreateSchema = {
             optional: true,
         },
         { name: "queryParams", type: "string", optional: true },
+        { name: "availableTabs", type: "string[]", optional: true },
+        { name: "explorerType", type: "string", optional: true },
     ],
     default_sorting_field: "score",
 }
