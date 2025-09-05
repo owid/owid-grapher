@@ -74,3 +74,19 @@ export interface MultiDimChecksumsObjectWithHash {
     checksums: MultiDimChecksums
     checksumsHashed: string
 }
+
+export interface ExplorerChecksums {
+    explorerConfigMd5: string
+    chartConfigs: {
+        [id: string]: string // chartId -> chart_configs.fullMd5 for grapher-based explorers
+    }
+    indicators: {
+        [id: string]: { metadataChecksum: string; dataChecksum: string }
+    }
+}
+
+export interface ExplorerChecksumsObjectWithHash {
+    explorerSlug: string
+    checksums: ExplorerChecksums
+    checksumsHashed: string
+}

@@ -9,6 +9,8 @@ import {
     GrapherChecksumsObjectWithHash,
     MultiDimChecksums,
     MultiDimChecksumsObjectWithHash,
+    ExplorerChecksums,
+    ExplorerChecksumsObjectWithHash,
 } from "@ourworldindata/types"
 import { simpleGit } from "simple-git"
 import { ARCHIVE_BASE_URL } from "../settings/serverSettings.js"
@@ -38,6 +40,20 @@ export interface MultiDimArchivalManifest {
     multiDimId: number
     multiDimSlug: string
     checksums: MultiDimChecksums
+    checksumsHashed: string
+    commitShas: {
+        "owid-grapher"?: string
+    }
+}
+
+export interface ExplorerArchivalManifest {
+    assets: {
+        static: AssetMap
+        runtime: AssetMap
+    }
+    archivalDate: string
+    explorerSlug: string
+    checksums: ExplorerChecksums
     checksumsHashed: string
     commitShas: {
         "owid-grapher"?: string
@@ -76,6 +92,48 @@ export const assembleGrapherManifest = async (manifestInfo: {
     archivalDate: string
     chartConfigId: string
 }): Promise<GrapherArchivalManifest> => {
+    const commitShas = { "owid-grapher": await getOwidGrapherCommitSha() }
+
+    const manifest = {
+        ..._.omit(manifestInfo, [
+            "staticAssetMap",
+            "runtimeAssetMap",
+            "checksumsObj",
+        ]),
+        ...manifestInfo.checksumsObj,
+        assets: {
+            static: manifestInfo.staticAssetMap,
+            runtime: manifestInfo.runtimeAssetMap,
+        },
+        commitShas,
+    }
+
+    return manifest
+}
+
+export const assembleExplorerArchivalUrl = (
+    archivalDate: Parameters<typeof convertToArchivalDateStringIfNecessary>[0],
+    explorerSlug: string,
+    { relative }: { relative: boolean }
+) => {
+    const formattedDate = convertToArchivalDateStringIfNecessary(archivalDate)
+
+    const path = `/${formattedDate}/explorers/${explorerSlug}.html`
+    if (relative) return path
+    else {
+        if (!ARCHIVE_BASE_URL) {
+            throw new Error("ARCHIVE_BASE_URL is not defined")
+        }
+        return `${ARCHIVE_BASE_URL}${path}`
+    }
+}
+
+export const assembleExplorerManifest = async (manifestInfo: {
+    staticAssetMap: AssetMap
+    runtimeAssetMap: AssetMap
+    checksumsObj: ExplorerChecksumsObjectWithHash
+    archivalDate: string
+}): Promise<ExplorerArchivalManifest> => {
     const commitShas = { "owid-grapher": await getOwidGrapherCommitSha() }
 
     const manifest = {
