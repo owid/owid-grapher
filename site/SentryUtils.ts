@@ -1,7 +1,11 @@
 import * as Sentry from "@sentry/react"
 import Cookies from "js-cookie"
 import { getPreferenceValue, PreferenceType } from "./cookiePreferences.js"
-import { experiments, isInIFrame } from "@ourworldindata/utils"
+import {
+    experiments,
+    isInIFrame,
+    getExperimentState,
+} from "@ourworldindata/utils"
 import {
     SENTRY_DEFAULT_REPLAYS_SESSION_SAMPLE_RATE,
     SENTRY_SESSION_STORAGE_KEY,
@@ -247,4 +251,58 @@ async function stopSessionRecording(): Promise<void> {
 
 function isSentryInitialized(): boolean {
     return !!Sentry.getClient()
+}
+
+export function updateSentryTags() {
+    updateSentryReferrerTag()
+    updateSentryExperimentTags()
+}
+
+/**
+ * Updates the Sentry experiment tags from the current experiment state.
+ */
+export function updateSentryExperimentTags() {
+    const { assignedExperiments } = getExperimentState()
+    if (isSentryInitialized() && Object.keys(assignedExperiments).length > 0) {
+        Sentry.setTags(assignedExperiments)
+    }
+}
+
+/**
+ * Updates the Sentry user ID from Google Analytics client ID.
+ *
+ * If analytics consent is given, the user ID is set to the Google Analytics 4
+ * client ID. If not, the Sentry user is cleared.
+ */
+export function updateSentryUser() {
+    let user: Sentry.User | null = null // by default, clear Sentry user
+    if (allowRecording()) {
+        const clientId = extractGaClientIdFromCookie()
+        if (clientId) {
+            user = { id: clientId }
+        }
+    }
+    Sentry.setUser(user)
+}
+
+function extractGaClientIdFromCookie(): string | undefined {
+    const gaCookie = Cookies.get("_ga")
+    if (!gaCookie) {
+        return
+    }
+
+    // Extract client ID from GA cookie (format: GA1.1.clientId.timestamp)
+    const parts = gaCookie.split(".")
+    if (parts.length >= 4) {
+        const clientId = `${parts[2]}.${parts[3]}`
+        return clientId
+    }
+    return
+}
+
+function updateSentryReferrerTag() {
+    if (document.referrer) {
+        const ref = new URL(document.referrer).hostname
+        Sentry.setTag("referrer", ref)
+    }
 }

@@ -15,7 +15,12 @@ import {
     updatePreference,
 } from "./cookiePreferences.js"
 import { SiteAnalytics } from "./SiteAnalytics.js"
-import { maybeSampleSession, getSessionSampleRate } from "./SentryUtils.js"
+import {
+    maybeSampleSession,
+    getSessionSampleRate,
+    updateSentryTags,
+    updateSentryUser,
+} from "./SentryUtils.js"
 
 const analytics = new SiteAnalytics()
 
@@ -55,6 +60,8 @@ export const CookiePreferencesManager = ({
             analytics_storage: analyticsConsent,
         })
 
+        updateSentryTags()
+        updateSentryUser()
         const sampleRate = getSessionSampleRate()
         maybeSampleSession(sampleRate)
     }, [analyticsConsent])
