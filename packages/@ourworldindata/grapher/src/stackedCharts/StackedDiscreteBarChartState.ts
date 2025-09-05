@@ -84,7 +84,7 @@ export class StackedDiscreteBarChartState implements ChartState {
     }
 
     private applyMissingDataStrategy(table: OwidTable): OwidTable {
-        // We want ot remove missing all rows with missing data for at least one column if:
+        // We want to remove all rows with missing data for at least one column if:
         // - MissingDataStrategy is explicitly set to hide, or
         // - We are in relative mode and MissingDataStrategy is not explicitly set to show:
         //     If we are showing relative mode, we want to drop all rows that are missing data for
