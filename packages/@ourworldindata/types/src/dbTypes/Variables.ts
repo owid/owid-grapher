@@ -39,6 +39,8 @@ export interface DbInsertVariable {
     updatedAt?: Date | null
     type?: OwidVariableType | null
     sort?: JsonString | null
+    dataChecksum?: string | null
+    metadataChecksum?: string | null
 }
 
 export type DbRawVariable = Required<DbInsertVariable>
