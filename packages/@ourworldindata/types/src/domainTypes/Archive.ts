@@ -3,6 +3,10 @@ export const ARCHIVE_DATE_TIME_FORMAT = "YYYYMMDD-HHmmss" // e.g. 20250414-07433
 
 export type AssetMap = Record<string, string>
 
+export type IndicatorChecksums = {
+    [id: string]: { metadataChecksum: string; dataChecksum: string }
+}
+
 export interface UrlAndMaybeDate {
     url: string
     date?: Date | ArchivalDateString
@@ -46,9 +50,7 @@ export interface ArchiveVersions {
 
 export interface GrapherChecksums {
     chartConfigMd5: string
-    indicators: {
-        [id: string]: { metadataChecksum: string; dataChecksum: string }
-    }
+    indicators: IndicatorChecksums
 }
 
 export interface GrapherChecksumsObjectWithHash {
@@ -63,14 +65,26 @@ export interface MultiDimChecksums {
     chartConfigs: {
         [id: string]: string // chartConfigId -> MD5
     }
-    indicators: {
-        [id: string]: { metadataChecksum: string; dataChecksum: string }
-    }
+    indicators: IndicatorChecksums
 }
 
 export interface MultiDimChecksumsObjectWithHash {
     multiDimId: number
     multiDimSlug: string
     checksums: MultiDimChecksums
+    checksumsHashed: string
+}
+
+export interface ExplorerChecksums {
+    explorerConfigMd5: string
+    chartConfigs: {
+        [id: string]: string // chartId -> chart_configs.fullMd5 of explorer view configs
+    }
+    indicators: IndicatorChecksums
+}
+
+export interface ExplorerChecksumsObjectWithHash {
+    explorerSlug: string
+    checksums: ExplorerChecksums
     checksumsHashed: string
 }

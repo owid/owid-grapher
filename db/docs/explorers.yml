@@ -13,6 +13,8 @@ fields:
         description: URL-friendly identifier for the explorer used in URLs like /explorers/[slug]
     config:
         description: Explorer configuration JSON parsed from the TSV configuration
+    configMd5:
+        description: Generated MD5 hash (base64) of the explorer config, used for change detection and archival deduplication
     createdAt:
         description: Timestamp when the explorer was created
     updatedAt:
