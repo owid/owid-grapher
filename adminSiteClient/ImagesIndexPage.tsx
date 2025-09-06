@@ -12,8 +12,10 @@ import {
     Flex,
     Input,
     Mentions,
+    Modal,
     Popconfirm,
     Popover,
+    Space,
     Table,
     TableColumnsType,
     Upload,
@@ -36,6 +38,7 @@ import {
     fileToBase64,
     type ImageUploadResponse,
 } from "./imagesHelpers.js"
+import { RcFile } from "antd/es/upload/interface.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
 import { NotificationInstance } from "antd/es/notification/interface.js"
 import { EditableTextarea } from "./EditableTextarea.js"
@@ -420,7 +423,7 @@ function createColumns({
                         <PutImageButton
                             putImage={api.putImage}
                             notificationApi={notificationApi}
-                            id={image.id}
+                            image={image}
                         />
                         <Popconfirm
                             title="Are you sure?"
@@ -473,33 +476,228 @@ function PostImageButton({
     )
 }
 
+function ImageReplaceConfirmModal({
+    open,
+    onCancel,
+    onConfirm,
+    currentImage,
+    newImageFile,
+}: {
+    open: boolean
+    onCancel: () => void
+    onConfirm: () => void
+    currentImage: DbEnrichedImageWithUserId
+    newImageFile: RcFile | null
+}) {
+    const currentImageSrc =
+        currentImage.cloudflareId && currentImage.originalWidth
+            ? makeImageSrc(currentImage.cloudflareId, 300)
+            : undefined
+
+    const [newImageSrc, setNewImageSrc] = useState<string | undefined>(
+        undefined
+    )
+
+    useEffect(() => {
+        if (newImageFile) {
+            const reader = new FileReader()
+            reader.onload = (e) => {
+                setNewImageSrc(e.target?.result as string)
+            }
+            reader.readAsDataURL(newImageFile)
+        } else {
+            setNewImageSrc(undefined)
+        }
+
+        return () => {
+            // Clean up object URL to prevent memory leaks
+            if (newImageSrc && newImageSrc.startsWith("blob:")) {
+                URL.revokeObjectURL(newImageSrc)
+            }
+        }
+    }, [newImageFile, newImageSrc])
+
+    return (
+        <Modal
+            title="Confirm Image Replacement"
+            open={open}
+            onCancel={onCancel}
+            onOk={onConfirm}
+            okText="Confirm"
+            cancelText="Cancel"
+            width={800}
+        >
+            <div style={{ margin: "16px 0 24px 0" }}>
+                <p>
+                    <strong>You are about to replace this image</strong>
+                </p>
+
+                <div style={{ marginBottom: "20px" }}>
+                    <Space
+                        size="middle"
+                        style={{ width: "100%", justifyContent: "center" }}
+                    >
+                        {currentImageSrc ? (
+                            <div style={{ textAlign: "center" }}>
+                                <div
+                                    style={{
+                                        marginBottom: "8px",
+                                        fontSize: "14px",
+                                        color: "#666",
+                                    }}
+                                >
+                                    Current image
+                                </div>
+                                <img
+                                    src={currentImageSrc}
+                                    alt={
+                                        currentImage.defaultAlt ||
+                                        "Current image"
+                                    }
+                                    style={{
+                                        maxWidth: "300px",
+                                        maxHeight: "300px",
+                                        border: "1px solid #d9d9d9",
+                                        borderRadius: "4px",
+                                    }}
+                                />
+                                <div
+                                    style={{
+                                        marginTop: "8px",
+                                        fontSize: "12px",
+                                        color: "#999",
+                                    }}
+                                >
+                                    {currentImage.filename}
+                                </div>
+                            </div>
+                        ) : (
+                            <div
+                                style={{
+                                    width: "300px",
+                                    height: "300px",
+                                    border: "1px solid #d9d9d9",
+                                    borderRadius: "4px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    color: "#999",
+                                }}
+                            >
+                                No preview available
+                            </div>
+                        )}
+                    </Space>
+                </div>
+
+                <p>
+                    <strong>with this image</strong>
+                </p>
+
+                <div>
+                    <Space
+                        size="middle"
+                        style={{ width: "100%", justifyContent: "center" }}
+                    >
+                        {newImageSrc ? (
+                            <div style={{ textAlign: "center" }}>
+                                <div
+                                    style={{
+                                        marginBottom: "8px",
+                                        fontSize: "14px",
+                                        color: "#666",
+                                    }}
+                                >
+                                    New image
+                                </div>
+                                <img
+                                    src={newImageSrc}
+                                    alt="New image preview"
+                                    style={{
+                                        maxWidth: "300px",
+                                        maxHeight: "300px",
+                                        border: "1px solid #d9d9d9",
+                                        borderRadius: "4px",
+                                    }}
+                                />
+                                <div
+                                    style={{
+                                        marginTop: "8px",
+                                        fontSize: "12px",
+                                        color: "#999",
+                                    }}
+                                >
+                                    {newImageFile?.name}
+                                </div>
+                            </div>
+                        ) : (
+                            <div
+                                style={{
+                                    width: "300px",
+                                    height: "300px",
+                                    border: "1px solid #d9d9d9",
+                                    borderRadius: "4px",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    color: "#999",
+                                }}
+                            >
+                                Loading preview...
+                            </div>
+                        )}
+                    </Space>
+                </div>
+            </div>
+        </Modal>
+    )
+}
+
 function PutImageButton({
     putImage,
-    id,
+    image,
     notificationApi,
 }: {
     putImage: ImageEditorApi["putImage"]
-    id: number
+    image: DbEnrichedImageWithUserId
     notificationApi: NotificationInstance
 }) {
-    async function uploadImage({ file }: { file: File }) {
-        const result = await fileToBase64(file)
-        if (result) {
-            await putImage(id, result)
-            notificationApi.info({
-                message: "Image replaced!",
-                description:
-                    "Make sure you update the alt text if your revision has substantive changes",
-                placement: "bottomRight",
-            })
+    const [showConfirmModal, setShowConfirmModal] = useState(false)
+    const [selectedFile, setSelectedFile] = useState<RcFile | null>(null)
+
+    const handleFileSelect = (options: any) => {
+        const file = options.file as RcFile
+        setSelectedFile(file)
+        setShowConfirmModal(true)
+    }
+
+    const handleConfirmUpload = async () => {
+        if (selectedFile) {
+            const result = await fileToBase64(selectedFile)
+            if (result) {
+                await putImage(image.id, result)
+                notificationApi.info({
+                    message: "Image replaced!",
+                    description:
+                        "Make sure you update the alt text if your revision has substantive changes",
+                    placement: "bottomRight",
+                })
+            }
         }
+        setShowConfirmModal(false)
+        setSelectedFile(null)
+    }
+
+    const handleCancelUpload = () => {
+        setShowConfirmModal(false)
+        setSelectedFile(null)
     }
     return (
         <>
             <Upload
                 accept="image/*"
                 showUploadList={false}
-                customRequest={uploadImage}
+                customRequest={handleFileSelect}
             >
                 <Button
                     className="ImageIndexPage__update-image-button"
@@ -508,6 +706,13 @@ function PutImageButton({
                     Upload new version
                 </Button>
             </Upload>
+            <ImageReplaceConfirmModal
+                open={showConfirmModal}
+                onCancel={handleCancelUpload}
+                onConfirm={handleConfirmUpload}
+                currentImage={image}
+                newImageFile={selectedFile}
+            />
         </>
     )
 }
