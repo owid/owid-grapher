@@ -93,6 +93,7 @@ export enum OwidGdocType {
     Homepage = "homepage",
     AboutPage = "about-page",
     Author = "author",
+    Announcement = "announcement",
 }
 
 export interface OwidGdocBaseInterface {
@@ -193,6 +194,7 @@ export type OwidGdocDataInsightIndexItem = Pick<
     }
 
 export const DATA_INSIGHTS_INDEX_PAGE_SIZE = 20
+export const LATEST_INDEX_PAGE_SIZE = 20
 
 export interface OwidGdocDataInsightInterface extends OwidGdocBaseInterface {
     content: OwidGdocDataInsightContent
@@ -211,6 +213,20 @@ export type MinimalDataInsightInterface = Pick<
     // We select the 5 most recently published insights
     // We only display 4, but if you're on the DI page for one of them we hide it and show the next most recent
     index: 0 | 1 | 2 | 3 | 4
+}
+
+export interface OwidGdocAnnouncementContent {
+    title: string
+    excerpt: string
+    authors: string[]
+    "featured-image"?: string
+    kicker?: string
+    body: OwidEnrichedGdocBlock[]
+    type: OwidGdocType.Announcement
+}
+
+export interface OwidGdocAnnouncementInterface extends OwidGdocBaseInterface {
+    content: OwidGdocAnnouncementContent
 }
 
 export interface OwidGdocHomepageContent {
@@ -275,6 +291,7 @@ export type OwidGdocContent =
     | OwidGdocHomepageContent
     | OwidGdocAuthorContent
     | OwidGdocAboutContent
+    | OwidGdocAnnouncementContent
 
 export type OwidGdoc =
     | OwidGdocPostInterface
@@ -282,6 +299,7 @@ export type OwidGdoc =
     | OwidGdocHomepageInterface
     | OwidGdocAuthorInterface
     | OwidGdocAboutInterface
+    | OwidGdocAnnouncementInterface
 
 export enum OwidGdocErrorMessageType {
     Error = "error",
@@ -293,6 +311,8 @@ export type OwidGdocProperty =
     | keyof OwidGdocPostContent
     | keyof OwidGdocDataInsightInterface
     | keyof OwidGdocDataInsightContent
+    | keyof OwidGdocAnnouncementInterface
+    | keyof OwidGdocAnnouncementContent
     | keyof OwidGdocAuthorInterface
     | keyof OwidGdocAuthorContent
     | keyof OwidGdocAboutInterface

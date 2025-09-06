@@ -27,6 +27,7 @@ export const pageTypeDisplayNames: Record<PageType, string> = {
     [OwidGdocType.DataInsight]: "Data Insight",
     [OwidGdocType.LinearTopicPage]: "Topic",
     [OwidGdocType.TopicPage]: "Topic",
+    [OwidGdocType.Announcement]: "Announcement",
     [WordpressPageType.Country]: "Country",
     [WordpressPageType.Other]: "",
     [OwidGdocType.Author]: "", // Should never be indexed

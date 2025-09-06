@@ -11,6 +11,7 @@ import { Author } from "./pages/Author.js"
 import AboutPage from "./pages/AboutPage.js"
 import { AttachmentsContext } from "./AttachmentsContext.js"
 import { DocumentContext } from "./DocumentContext.js"
+import { AnnouncementPage } from "./pages/Announcement.js"
 
 function AdminLinks() {
     return (
@@ -52,6 +53,9 @@ export function OwidGdoc({
         ))
         .with({ content: { type: OwidGdocType.DataInsight } }, (props) => (
             <DataInsightPage {...props} />
+        ))
+        .with({ content: { type: OwidGdocType.Announcement } }, (props) => (
+            <AnnouncementPage {...props} />
         ))
         .with({ content: { type: OwidGdocType.Homepage } }, (props) => (
             <Homepage {...props} />
