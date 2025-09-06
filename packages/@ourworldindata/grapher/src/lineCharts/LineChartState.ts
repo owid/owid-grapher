@@ -306,7 +306,6 @@ export class LineChartState implements ChartState, ColorScaleManager {
     @computed get errorInfo(): ChartErrorInfo {
         const message = getDefaultFailMessage(this.manager)
         if (message) return { reason: message }
-        if (!this.series.length) return { reason: "No matching data" }
         if (
             this.manager.startTime !== undefined &&
             this.manager.startTime === this.manager.endTime
@@ -314,6 +313,12 @@ export class LineChartState implements ChartState, ColorScaleManager {
             return {
                 reason: "Two time points needed",
                 help: "Click the timeline to select a second time point",
+            }
+
+        const { entityTypePlural = "entities" } = this.manager
+        if (!this.series.length)
+            return {
+                reason: `No data for the selected ${entityTypePlural}`,
             }
         return { reason: "" }
     }

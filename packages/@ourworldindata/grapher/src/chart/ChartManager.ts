@@ -73,6 +73,7 @@ export interface ChartManager {
 
     selection?: SelectionArray | EntityName[]
     entityType?: string
+    entityTypePlural?: string
 
     focusArray?: FocusArray
 

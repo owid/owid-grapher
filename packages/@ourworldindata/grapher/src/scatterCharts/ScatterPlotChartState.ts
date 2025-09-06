@@ -373,6 +373,7 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
 
         if (this.xColumn.isMissing) return { reason: "Missing X axis variable" }
 
+        const { entityTypePlural = "entities" } = this.manager
         if (_.isEmpty(this.allEntityNamesWithXAndY)) {
             if (
                 this.manager.isRelativeMode &&
@@ -383,10 +384,15 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
                     reason: "Please select a start and end point on the timeline below",
                 }
             }
-            return { reason: "No entities with data for both X and Y" }
+            return {
+                reason: `No ${entityTypePlural} with data for both X and Y`,
+            }
         }
 
-        if (_.isEmpty(this.series)) return { reason: "No matching data" }
+        if (_.isEmpty(this.series))
+            return {
+                reason: `No data for any ${entityTypePlural}`,
+            }
 
         return { reason: "" }
     }

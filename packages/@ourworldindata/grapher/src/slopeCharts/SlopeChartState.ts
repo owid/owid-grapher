@@ -323,7 +323,12 @@ export class SlopeChartState implements ChartState {
     @computed get errorInfo(): ChartErrorInfo {
         const message = getDefaultFailMessage(this.manager)
         if (message) return { reason: message }
-        else if (this.series.length === 0) return { reason: "No matching data" }
+
+        const { entityTypePlural = "entities" } = this.manager
+        if (this.series.length === 0)
+            return {
+                reason: `No data for the selected ${entityTypePlural}`,
+            }
         return { reason: "" }
     }
 }
