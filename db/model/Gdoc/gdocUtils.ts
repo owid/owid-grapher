@@ -232,6 +232,7 @@ export function extractFilenamesFromBlock(
                     "chart",
                     "code",
                     "cookie-notice",
+                    "cta",
                     "donors",
                     "entry-summary",
                     "expandable-paragraph",

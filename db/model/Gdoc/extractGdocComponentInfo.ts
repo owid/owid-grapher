@@ -337,6 +337,7 @@ export function enumerateGdocComponentsWithoutChildren(
                         "chart-story",
                         "chart",
                         "cookie-notice",
+                        "cta",
                         "narrative-chart",
                         "horizontal-rule",
                         "html",

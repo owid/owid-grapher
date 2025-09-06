@@ -476,6 +476,14 @@ export class GdocBase implements OwidGdocBaseInterface {
 
                 return links
             })
+            .with({ type: "cta" }, (block) => [
+                createLinkFromUrl({
+                    url: block.url,
+                    sourceId: this.id,
+                    componentType: block.type,
+                    text: block.text,
+                }),
+            ])
             .with({ type: "chart-story" }, (block) => {
                 const links: DbInsertPostGdocLink[] = []
 

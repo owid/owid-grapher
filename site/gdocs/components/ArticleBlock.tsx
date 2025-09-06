@@ -51,6 +51,7 @@ import { Expander } from "./Expander.js"
 import { ChartConfigType } from "@ourworldindata/types"
 import { useLinkedChart } from "../utils.js"
 import { ResourcePanel } from "./ResourcePanel.js"
+import { Cta } from "./Cta.js"
 
 function ArticleBlockInternal({
     b: block,
@@ -643,6 +644,11 @@ function ArticleBlockInternal({
                         "wp-block-cookie-preferences"
                     )}
                 ></div>
+            )
+        })
+        .with({ type: "cta" }, (block) => {
+            return (
+                <Cta {...block} className={getLayout("cta", containerType)} />
             )
         })
         .with({ type: "key-insights" }, (block) => (

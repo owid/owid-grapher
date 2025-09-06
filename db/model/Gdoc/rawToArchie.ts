@@ -54,6 +54,7 @@ import {
     RawBlockCookieNotice,
     RawBlockExpander,
     RawBlockResourcePanel,
+    RawBlockCta,
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
 
@@ -624,6 +625,15 @@ function* rawBlockCookieNoticeToArchieMLString(
     yield "{}"
 }
 
+function* rawBlockCtaToArchieMLString(
+    raw: RawBlockCta
+): Generator<string, void, undefined> {
+    yield "{.cta}"
+    yield* propertyToArchieMLString("text", raw.value)
+    yield* propertyToArchieMLString("url", raw.value)
+    yield "{}"
+}
+
 function* rawKeyInsightsToArchieMLString(
     block: RawBlockKeyInsights
 ): Generator<string, void, undefined> {
@@ -988,6 +998,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
             rawBlockTopicPageIntroToArchieMLString
         )
         .with({ type: "cookie-notice" }, rawBlockCookieNoticeToArchieMLString)
+        .with({ type: "cta" }, rawBlockCtaToArchieMLString)
         .with({ type: "key-insights" }, rawKeyInsightsToArchieMLString)
         .with(
             { type: "research-and-writing" },

@@ -1134,6 +1134,25 @@ div.raw-html-table__container {
     }
 }
 
+.article-block__cta {
+    @include body-2-semibold;
+    color: $vermillion;
+    margin-bottom: 16px;
+    a {
+        color: inherit;
+        &:hover {
+            span {
+                text-decoration: underline;
+            }
+        }
+    }
+    svg {
+        fill: inherit;
+        margin-left: 4px;
+        height: 14px;
+    }
+}
+
 // A full-width grey section
 .article-block__gray-section {
     background-color: $gray-10;
