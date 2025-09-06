@@ -14,7 +14,6 @@ export const hashAndWriteFile = async (targetPath: string, content: string) => {
         `$1$2${hash}.`
     )
 
-    // eslint-disable-next-line no-console
     console.log(`Writing ${targetPathWithHash}`)
     await fs.mkdirp(path.dirname(targetPathWithHash))
     await fs.writeFile(targetPathWithHash, content)
@@ -28,7 +27,6 @@ export const hashAndCopyFile = async (srcFile: string, targetDir: string) => {
         .replace(/^(.*\/)?([^.]+\.)/, `$1$2${hash}.`)
     const targetFile = path.resolve(targetDir, targetFilename)
 
-    // eslint-disable-next-line no-console
     console.log(`Copying ${srcFile} to ${targetFile}`)
     await fs.copyFile(srcFile, targetFile)
     return targetFile

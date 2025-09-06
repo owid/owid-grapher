@@ -4,11 +4,19 @@ import viteConfig from "./vite.config-site.mts"
 export default defineConfig({
     ...viteConfig,
     test: {
-        include: ["db/tests/**/*.test.js", "adminSiteServer/app.test.ts"],
+        include: [
+            "db/tests/**/*.test.ts",
+            "db/tests/**/*.test.js",
+            "adminSiteServer/tests/**/*.test.ts",
+        ],
         maxConcurrency: 1,
-        reporter: ["basic"],
-        outputFile: {
-            json: undefined,
-        },
+        fileParallelism: false,
+        pool: "threads",
+        poolOptions: { threads: { singleThread: true } },
+        sequence: { concurrent: false },
+        setupFiles: [
+            "devTools/vitest-setup.ts",
+            "adminSiteServer/tests/setupDbTest.ts",
+        ],
     },
 })

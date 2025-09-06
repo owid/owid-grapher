@@ -419,32 +419,43 @@ export async function refreshExplorerViewsForSlug(
     // Remove deleted views first
     if (removedViews.length > 0) {
         // Track chart config IDs that will be removed
+        const removedViewChartConfigIds: string[] = []
         for (const removedView of removedViews) {
             if (removedView.chartConfigId) {
                 removedChartConfigIds.push(removedView.chartConfigId)
+                removedViewChartConfigIds.push(removedView.chartConfigId)
             }
         }
 
         const removedViewIds = removedViews.map((v) => v.id)
+        // Delete explorer_views first, then explicitly delete orphaned chart_configs
         await knex("explorer_views").whereIn("id", removedViewIds).delete()
+
+        // Explicitly delete the corresponding chart_configs to avoid orphans
+        if (removedViewChartConfigIds.length > 0) {
+            await knex("chart_configs")
+                .whereIn("id", removedViewChartConfigIds)
+                .delete()
+        }
     }
 
     // Update existing views with changed configs
     for (const { existing, generated } of updatedViews) {
         if (generated.error) {
             // Update to error state, remove chart config reference
-            // Delete the chart config if it exists before removing the reference
+            // First update the explorer_views row to clear chartConfigId and set error
+            await knex("explorer_views").where("id", existing.id).update({
+                error: generated.error,
+                chartConfigId: null,
+            })
+
+            // Then delete the now-unreferenced chart config
             if (existing.chartConfigId) {
                 removedChartConfigIds.push(existing.chartConfigId)
                 await knex("chart_configs")
                     .where("id", existing.chartConfigId)
                     .delete()
             }
-
-            await knex("explorer_views").where("id", existing.id).update({
-                error: generated.error,
-                chartConfigId: null,
-            })
         } else if (generated.config && existing.chartConfigId) {
             // Update existing chart config
             await updateExistingConfigPair(knex, {

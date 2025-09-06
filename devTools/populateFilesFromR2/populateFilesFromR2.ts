@@ -1,6 +1,6 @@
 import { DbInsertFile, FilesTableName } from "@ourworldindata/types"
 import * as db from "../../db/db.js"
-import { listAllFilesInAssetsR2 } from "../../adminSiteServer/R2/assetsR2Helpers.js"
+import { listAllFilesInAssetsR2 } from "../../serverUtils/r2/assetsR2Helpers.js"
 import { _Object } from "@aws-sdk/client-s3"
 
 async function extractFileMetadata(

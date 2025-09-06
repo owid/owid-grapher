@@ -47,10 +47,10 @@ beforeAll(async () => {
     }
 })
 
-afterAll((done: any) => {
+afterAll(async () => {
     // We leave the user in the database for other tests to use
     // For other cases it is good to drop any rows created in the test
-    void Promise.allSettled([knexInstance?.destroy()]).then(() => done())
+    await Promise.allSettled([knexInstance?.destroy()])
 })
 
 test("it can query a user created in fixture via TypeORM", async () => {
