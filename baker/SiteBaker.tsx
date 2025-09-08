@@ -12,7 +12,7 @@ import { BLOG_POSTS_PER_PAGE, BASE_DIR } from "../settings/serverSettings.js"
 
 import {
     renderFrontPage,
-    renderBlogByPageNum,
+    renderLatestPageByPageNum,
     renderSearchPage,
     DEPRECATEDrenderSearchPage,
     renderDonatePage,
@@ -62,7 +62,7 @@ import {
     bakeAllPublishedExplorers,
 } from "./ExplorerBaker.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
-import { getBlogIndex, postsFlushCache } from "../db/model/Post.js"
+import { getLatestPageItems } from "../db/model/Post.js"
 import { getAllImages } from "../db/model/Image.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
@@ -939,12 +939,12 @@ export class SiteBaker {
     private async bakeBlogIndex(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("blogIndex")) return
         this.progressBar.tick({ name: "Baking blog index" })
-        const allPosts = await getBlogIndex(knex)
+        const allPosts = await getLatestPageItems(knex)
         const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
 
         for (let i = 1; i <= numPages; i++) {
             const slug = i === 1 ? "latest" : `latest/page/${i}`
-            const html = await renderBlogByPageNum(i, knex)
+            const html = await renderLatestPageByPageNum(i, knex)
             await this.stageWrite(`${this.bakedSiteDir}/${slug}.html`, html)
         }
     }
@@ -1123,7 +1123,6 @@ export class SiteBaker {
     private flushCache() {
         this.progressBar.tick({ name: "Flushing cache" })
         // Clear caches to allow garbage collection while waiting for next run
-        postsFlushCache()
         siteBakingFlushCache()
         redirectsFlushCache()
     }
