@@ -176,7 +176,7 @@ export class EditorTextTab<
                     {this.showAnyAnnotationFieldInTitleToggle && <hr />}
                     {this.showChartSlug && (
                         <AutoTextField
-                            label="/grapherState"
+                            label="/grapher/"
                             value={grapherState.displaySlug}
                             onValue={this.onSlug}
                             isAuto={grapherState.slug === undefined}
