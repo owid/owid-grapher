@@ -263,6 +263,14 @@ export const synonyms = [
     ["hydropower", "hydro power", "hydroelectric power"],
     ["geothermal energy", "geothermal power"],
     ["nuclear power", "nuclear energy"],
+    [
+        "self-driving",
+        "driverless",
+        "autonomous car",
+        "autonomous vehicle",
+        "self driving",
+        "robotaxis",
+    ],
 ]
 
 /**
