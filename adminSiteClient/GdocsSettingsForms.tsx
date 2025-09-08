@@ -201,6 +201,10 @@ export const GdocInsightSettings = ({
                     gdoc={gdoc}
                     errors={errors}
                 />
+                <GdocsPublicationContext
+                    gdoc={gdoc}
+                    setCurrentGdoc={setCurrentGdoc}
+                />
                 <GdocsSettingsContentField
                     property="narrative-chart"
                     gdoc={gdoc}
