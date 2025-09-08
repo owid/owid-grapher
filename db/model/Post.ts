@@ -8,8 +8,6 @@ import {
     JsonError,
     PostRestApi,
     RelatedChart,
-    IndexPost,
-    OwidGdocPostInterface,
     snapshotIsPostRestApi,
     snapshotIsBlockGraphQlApi,
     PostReference,
@@ -20,16 +18,18 @@ import {
     parseLatestWork,
     DEFAULT_THUMBNAIL_FILENAME,
     ARCHIVED_THUMBNAIL_FILENAME,
-    DbEnrichedImage,
+    LatestPageItem,
+    PostsGdocsTableName,
 } from "@ourworldindata/types"
-import { LARGEST_IMAGE_WIDTH } from "@ourworldindata/utils"
+import { formatDate } from "@ourworldindata/utils"
 import { Knex } from "knex"
-import {
-    BAKED_BASE_URL,
-    CLOUDFLARE_IMAGES_URL,
-} from "../../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { decodeHTML } from "entities"
-import { getAndLoadListedGdocPosts } from "./Gdoc/GdocFactory.js"
+import { gdocFromJSON } from "./Gdoc/GdocFactory.js"
+import { GdocAnnouncement } from "./Gdoc/GdocAnnouncement.js"
+import { GdocDataInsight } from "./Gdoc/GdocDataInsight.js"
+import { GdocPost } from "./Gdoc/GdocPost.js"
+import { BLOG_POSTS_PER_PAGE } from "../../settings/serverSettings.js"
 
 export const postsTable = "posts"
 
@@ -151,57 +151,86 @@ const getFullPost = async (
             : undefined,
 })
 
-export const getBlogIndex = _.memoize(
-    async (knex: db.KnexReadonlyTransaction): Promise<IndexPost[]> => {
-        const gdocPosts = await getAndLoadListedGdocPosts(knex)
-        const imagesByFilename = await db
-            .getCloudflareImages(knex)
-            .then((images) => _.keyBy(images, "filename"))
-
-        const posts = [...mapGdocsToWordpressPosts(gdocPosts, imagesByFilename)]
-
-        return _.orderBy(posts, (post) => post.date.getTime(), ["desc"])
+function gdocToLatestItem(
+    gdoc: GdocPost | GdocAnnouncement | GdocDataInsight
+): LatestPageItem {
+    if (gdoc instanceof GdocPost) {
+        return {
+            type: OwidGdocType.Article,
+            data: {
+                id: gdoc.id,
+                title: gdoc.content.title ?? "",
+                slug: gdoc.slug,
+                authors: gdoc.content.authors,
+                publishedAt: formatDate(gdoc.publishedAt!),
+                published: gdoc.published,
+                subtitle: gdoc.content.subtitle ?? "",
+                excerpt: gdoc.content.excerpt ?? "",
+                type: OwidGdocType.Article,
+                "featured-image": gdoc.content["featured-image"],
+            },
+        }
+    } else if (gdoc instanceof GdocDataInsight) {
+        return {
+            type: OwidGdocType.DataInsight,
+            data: {
+                id: gdoc.id,
+                slug: gdoc.slug,
+                publishedAt: gdoc.publishedAt,
+                content: gdoc.content,
+            },
+        }
+    } else {
+        return {
+            type: OwidGdocType.Announcement,
+            data: gdoc,
+        }
     }
-)
-
-function getGdocThumbnail(
-    gdoc: OwidGdocPostInterface,
-    imagesByFilename: Record<string, DbEnrichedImage>
-): string {
-    let thumbnailUrl = `${BAKED_BASE_URL}/${DEFAULT_THUMBNAIL_FILENAME}`
-    if (gdoc.content["deprecation-notice"]) {
-        thumbnailUrl = `${BAKED_BASE_URL}/${ARCHIVED_THUMBNAIL_FILENAME}`
-    } else if (
-        gdoc.content["featured-image"] &&
-        imagesByFilename[gdoc.content["featured-image"]]?.cloudflareId
-    ) {
-        const cloudflareId =
-            imagesByFilename[gdoc.content["featured-image"]].cloudflareId
-        thumbnailUrl = `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=${LARGEST_IMAGE_WIDTH}`
-    }
-    return thumbnailUrl
 }
 
-export const mapGdocsToWordpressPosts = (
-    gdocs: OwidGdocPostInterface[],
-    imagesByFilename: Record<string, DbEnrichedImage>
-): IndexPost[] => {
-    return gdocs.map((gdoc) => ({
-        title: gdoc.content["atom-title"] || gdoc.content.title || "Untitled",
-        slug: gdoc.slug,
-        type: gdoc.content.type,
-        date: gdoc.publishedAt as Date,
-        modifiedDate: gdoc.updatedAt
-            ? new Date(gdoc.updatedAt)
-            : new Date(gdoc.publishedAt as Date),
-        authors: gdoc.content.authors,
-        excerpt: gdoc.content["atom-excerpt"] || gdoc.content.excerpt,
-        imageUrl: getGdocThumbnail(gdoc, imagesByFilename),
-    }))
-}
+export const getLatestPageItems = async (
+    knex: db.KnexReadonlyTransaction,
+    pageNum: number = 1
+): Promise<{
+    items: LatestPageItem[]
+    pagination: {
+        pageNum: number
+        totalPages: number
+    }
+}> => {
+    const rawResults = await db.knexRaw<Record<string, any>>(
+        knex,
+        `-- sql
+            SELECT 
+                pg.*,
+                COUNT(*) OVER() as totalRecords            
+            FROM ${PostsGdocsTableName} pg
+            WHERE pg.published = TRUE
+            AND pg.publishedAt <= NOW()
+            AND pg.type IN (:types)
+            ORDER BY pg.publishedAt DESC
+            LIMIT 10 OFFSET :offset
+            `,
+        {
+            types: [
+                OwidGdocType.Article,
+                OwidGdocType.Announcement,
+                OwidGdocType.DataInsight,
+            ],
+            offset: (pageNum - 1) * BLOG_POSTS_PER_PAGE,
+        }
+    )
 
-export const postsFlushCache = (): void => {
-    getBlogIndex.cache.clear?.()
+    const items = rawResults
+        .map(gdocFromJSON)
+        .map((gdoc) =>
+            gdocToLatestItem(
+                gdoc as GdocPost | GdocAnnouncement | GdocDataInsight
+            )
+        )
+    const totalRecords = rawResults.length > 0 ? rawResults[0].totalRecords : 0
+    const totalPages = Math.ceil(totalRecords / BLOG_POSTS_PER_PAGE)
+    return { items, pagination: { pageNum, totalPages } }
 }
 
 export const getBlockContentFromSnapshot = async (

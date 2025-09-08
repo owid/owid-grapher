@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import { LongFormPage, PageOverrides } from "../site/LongFormPage.js"
-import { BlogIndexPage } from "../site/BlogIndexPage.js"
+import { LatestPage } from "../site/LatestPage.js"
 import { SearchPage } from "../site/search/SearchPage.js"
 import { DynamicCollectionPage } from "../site/collections/DynamicCollectionPage.js"
 import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.js"
@@ -39,6 +39,8 @@ import {
     TombstonePageData,
     mergeGrapherConfigs,
     flattenNonTopicNodes,
+    createTagGraph,
+    excludeNullish,
 } from "@ourworldindata/utils"
 import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
 import {
@@ -48,6 +50,7 @@ import {
     DbRawChartConfig,
     FormattingOptions,
     GrapherInterface,
+    OwidGdocMinimalPostInterface,
 } from "@ourworldindata/types"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
@@ -81,7 +84,7 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { resolveInternalRedirect } from "./redirects.js"
 import {
     getBlockContentFromSnapshot,
-    getBlogIndex,
+    getLatestPageItems,
     getFullPostBySlugFromSnapshot,
     isPostSlugCitable,
 } from "../db/model/Post.js"
@@ -100,6 +103,10 @@ import {
 import AtomArticleBlocks from "../site/gdocs/components/AtomArticleBlocks.js"
 import { getLatestExplorerArchivedVersionsIfEnabled } from "../db/model/archival/archivalDb.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
+import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
+import { pipe, unique } from "remeda"
+import { getAllImages } from "../db/model/Image.js"
+import { IncomingMessage } from "http"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToString(element)}`
@@ -268,23 +275,63 @@ export const renderDataInsightsIndexPage = (
     )
 }
 
-export const renderBlogByPageNum = async (
+export const renderLatestPageByPageNum = async (
     pageNum: number,
     knex: KnexReadonlyTransaction
 ) => {
-    const allPosts = await getBlogIndex(knex)
+    const latestPageData = await getLatestPageItems(knex, pageNum)
+    const latestPageArticles = latestPageData.items.filter(
+        (post) => post.type === OwidGdocType.Article
+    )
+    const latestPageDataInsights = latestPageData.items.filter(
+        (post) => post.type === OwidGdocType.DataInsight
+    )
+    const latestPageAnnouncements = latestPageData.items.filter(
+        (post) => post.type === OwidGdocType.Announcement
+    )
 
-    const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
-    const posts = allPosts.slice(
-        (pageNum - 1) * BLOG_POSTS_PER_PAGE,
-        pageNum * BLOG_POSTS_PER_PAGE
+    const linkedAuthors = await getMinimalAuthorsByNames(
+        knex,
+        // We only need to show authors for *articles*
+        unique(latestPageArticles.flatMap((post) => post.data.authors))
+    )
+
+    const articleFeaturedImages = pipe(
+        latestPageArticles.map((post) => post.data["featured-image"]),
+        excludeNullish
+    )
+
+    const dataInsightFeaturedImages = pipe(
+        latestPageDataInsights.map((post) =>
+            post.data.content.body.find((block) => block.type === "image")
+        ),
+        excludeNullish,
+        (images) => images.map((image) => image.filename)
+    )
+
+    const announcementImages = pipe(
+        latestPageAnnouncements.map((post) =>
+            post.data.content.body.filter((block) => block.type === "image")
+        ),
+        excludeNullish,
+        (images) => images.flat().map((image) => image.filename)
+    )
+
+    const imageMetadata = await getAllImages(knex).then((allImages) =>
+        _.pick(_.keyBy(allImages, "filename"), [
+            ...articleFeaturedImages,
+            ...dataInsightFeaturedImages,
+            ...announcementImages,
+        ])
     )
 
     return renderToHtmlPage(
-        <BlogIndexPage
-            posts={posts}
-            pageNum={pageNum}
-            numPages={numPages}
+        <LatestPage
+            posts={latestPageData.items}
+            imageMetadata={imageMetadata}
+            linkedAuthors={linkedAuthors}
+            pageNum={latestPageData.pagination.pageNum}
+            numPages={latestPageData.pagination.totalPages}
             baseUrl={BAKED_BASE_URL}
         />
     )
@@ -294,7 +341,7 @@ export const renderNotFoundPage = () =>
     renderToHtmlPage(<NotFoundPage baseUrl={BAKED_BASE_URL} />)
 
 export async function makeAtomFeed(knex: KnexReadonlyTransaction) {
-    const posts = (await getBlogIndex(knex)).slice(0, 10)
+    const posts = (await getLatestPageItems(knex)).slice(0, 10)
     return makeAtomFeedFromPosts({ posts })
 }
 
@@ -311,7 +358,7 @@ export async function makeDataInsightsAtomFeed(knex: KnexReadonlyTransaction) {
 // by Mailchimp for sending the "immediate update" newsletter. Instead topic
 // pages announcements are sent out manually.
 export async function makeAtomFeedNoTopicPages(knex: KnexReadonlyTransaction) {
-    const posts = (await getBlogIndex(knex))
+    const posts = (await getLatestPageItems(knex))
         .filter((post: IndexPost) => post.type !== OwidGdocType.TopicPage)
         .slice(0, 10)
     return makeAtomFeedFromPosts({ posts })

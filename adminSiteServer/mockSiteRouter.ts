@@ -9,7 +9,7 @@ import {
     makeAtomFeed,
     feedbackPage,
     renderNotFoundPage,
-    renderBlogByPageNum,
+    renderLatestPageByPageNum,
     countryProfileCountryPage,
     renderExplorerPage,
     makeAtomFeedNoTopicPages,
@@ -441,7 +441,7 @@ getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/latest",
     async (_, res, trx) => {
-        const latest = await renderBlogByPageNum(1, trx)
+        const latest = await renderLatestPageByPageNum(1, trx)
         res.send(latest)
     }
 )
@@ -452,7 +452,7 @@ getPlainRouteWithROTransaction(
     async (req, res, trx) => {
         const pagenum = parseInt(req.params.pageno, 10)
         if (!isNaN(pagenum)) {
-            const latestPageNum = await renderBlogByPageNum(
+            const latestPageNum = await renderLatestPageByPageNum(
                 isNaN(pagenum) ? 1 : pagenum,
                 trx
             )
