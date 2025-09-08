@@ -66,7 +66,7 @@ export function gdocFromJSON(
     if (typeof json.content === "string") {
         json.content = JSON.parse(json.content)
     }
-    const type = json.content.type as OwidGdocType | undefined
+    const type = json.content?.type as OwidGdocType | undefined
     const id = json.id as string
     if (!type) {
         throw new Error(
@@ -612,22 +612,22 @@ export async function getAndLoadListedGdocPosts(
     const rows = await knexRaw<DbRawPostGdoc>(
         knex,
         `-- sql
-            SELECT *
-            FROM posts_gdocs
-            WHERE published = 1 AND
-            publicationContext = :publicationContext AND
-            publishedAt <= NOW()
-            ORDER BY publishedAt DESC`,
+             SELECT *
+             FROM posts_gdocs
+             WHERE published = 1 AND
+             publicationContext = :publicationContext AND
+             publishedAt <= NOW()
+             ORDER BY publishedAt DESC`,
         { publicationContext: OwidGdocPublicationContext.listed }
     )
     const ids = rows.map((row) => row.id)
     const tags = await knexRaw<DbPlainTag>(
         knex,
         `-- sql
-                SELECT gt.gdocId as gdocId, tags.*
-                FROM tags
-                JOIN posts_gdocs_x_tags gt ON gt.tagId = tags.id
-                WHERE gt.gdocId in (:ids)`,
+                 SELECT gt.gdocId as gdocId, tags.*
+                 FROM tags
+                 JOIN posts_gdocs_x_tags gt ON gt.tagId = tags.id
+                 WHERE gt.gdocId in (:ids)`,
         { ids: ids }
     )
     const groupedTags = _.groupBy(tags, "gdocId")

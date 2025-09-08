@@ -118,7 +118,6 @@
 @import "./blocks/research-and-writing.scss";
 @import "./blocks/GalleryArrow.scss";
 @import "./blocks/StickyNav.scss";
-@import "./PostCard/PostCard.scss";
 @import "./Breadcrumb/Breadcrumb.scss";
 @import "./gdocs/components/centered-article.scss";
 @import "./gdocs/components/topic-page.scss";
@@ -205,49 +204,6 @@ button:-moz-focusring,
 [type="button"]:focus-visible {
     outline: 2px solid $blue-60;
     outline-offset: 2px;
-}
-
-/* Blog posts and blog index page (on /blog)
---------------------------------------------- */
-
-body.blog ul.posts {
-    @include posts-list;
-}
-
-body.blog main {
-    margin-top: 40px;
-}
-
-h1.entry-title > a {
-    color: #222;
-}
-
-h1.entry-title > a:hover {
-    color: #d10a11;
-}
-
-.pagination {
-    text-align: center;
-    padding-bottom: 30px;
-}
-
-.pagination .page-numbers {
-    background-color: #000;
-    box-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
-    color: #fff;
-    cursor: pointer;
-    display: inline-block;
-    font-family: $sans-serif-font-stack;
-    font-size: 14px;
-    letter-spacing: 1px;
-    padding: 8px 12px;
-    text-transform: uppercase;
-}
-
-.pagination .page-numbers.current,
-.pagination .page-numbers:hover {
-    color: #fff;
-    background: #f04848;
 }
 
 main {
@@ -422,14 +378,6 @@ h6 {
     .authors-byline {
         display: none;
     }
-}
-
-/* Blog post updates listing on front page */
-
-.entry-meta {
-    font-size: 80%;
-    color: rgba(0, 0, 0, 0.5);
-    margin-bottom: 10px;
 }
 
 /* Pages & Posts
