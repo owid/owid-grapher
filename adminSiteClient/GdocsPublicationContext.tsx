@@ -2,15 +2,22 @@ import { Col, Radio, RadioChangeEvent, Row } from "antd"
 import {
     OwidGdocPublicationContext,
     OwidGdocPostInterface,
+    OwidGdocDataInsightInterface,
+    OwidGdocAnnouncementInterface,
 } from "@ourworldindata/utils"
 import { GdocsErrorHelp } from "./GdocsErrorHelp.js"
 
-export const GdocsPublicationContext = ({
+export const GdocsPublicationContext = <
+    T extends
+        | OwidGdocPostInterface
+        | OwidGdocDataInsightInterface
+        | OwidGdocAnnouncementInterface,
+>({
     gdoc,
     setCurrentGdoc,
 }: {
-    gdoc: OwidGdocPostInterface
-    setCurrentGdoc: (gdoc: OwidGdocPostInterface) => void
+    gdoc: T
+    setCurrentGdoc: (gdoc: T) => void
 }) => {
     const { publicationContext } = gdoc
 
