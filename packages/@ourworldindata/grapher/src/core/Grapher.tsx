@@ -1726,10 +1726,19 @@ export class GrapherState {
         return validDimensions
     }
 
-    // todo: do we need this?
     @computed get originUrlWithProtocol(): string {
         if (!this.originUrl) return ""
         let url = this.originUrl
+
+        // If the URL is relative, make it absolute to bakedGrapherUrl
+        if (url.startsWith("/")) {
+            const urlObj = Url.fromURL(
+                this.bakedGrapherURL ?? "http://localhost"
+            ).update({
+                pathname: url,
+            })
+            url = urlObj.fullUrl
+        }
         if (!url.startsWith("http")) url = `https://${url}`
         return url
     }
