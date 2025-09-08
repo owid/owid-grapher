@@ -11,7 +11,7 @@ type AnnouncementProps = {
     "markdown" | "publicationContext" | "revisionId"
 >
 
-const AnnouncementPageContent = (props: AnnouncementProps) => {
+export const AnnouncementPageContent = (props: AnnouncementProps) => {
     const { publishedAt } = props
     return (
         <div className="announcement-page-content span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 span-sm-cols-14 col-sm-start-1">
