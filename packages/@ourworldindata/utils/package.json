@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@types/d3": "^7.4.3",
-    "@types/js-cookie": "^3",
+    "@types/js-cookie": "^3.0.6",
     "@types/lodash-es": "^4",
     "@types/react": "^19.1.8",
     "@types/string-pixel-width": "^1.7.2",

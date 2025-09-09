@@ -3046,7 +3046,7 @@ __metadata:
     "@tippyjs/react": "npm:^4.2.6"
     "@types/colorbrewer": "npm:^1.0.29"
     "@types/d3": "npm:^7.4.3"
-    "@types/js-cookie": "npm:^3.0.2"
+    "@types/js-cookie": "npm:^3.0.6"
     "@types/lodash-es": "npm:^4"
     "@types/mousetrap": "npm:^1.6.9"
     "@types/react": "npm:^19.1.8"
@@ -3058,7 +3058,7 @@ __metadata:
     d3: "npm:^7.9.0"
     eslint: "npm:^9.32.0"
     eslint-plugin-react-hooks: "npm:^5.2.0"
-    js-cookie: "npm:^3.0.1"
+    js-cookie: "npm:^3.0.5"
     mobx: "npm:^6.13.7"
     mobx-react: "npm:^7.6.0"
     mousetrap: "npm:^1.6.5"
@@ -3099,7 +3099,7 @@ __metadata:
     "@types/d3": "npm:^7.4.3"
     "@types/geojson": "npm:^7946.0.10"
     "@types/indefinite": "npm:^2.3.4"
-    "@types/js-cookie": "npm:^3.0.2"
+    "@types/js-cookie": "npm:^3.0.6"
     "@types/lodash-es": "npm:^4"
     "@types/mousetrap": "npm:^1.6.9"
     "@types/react": "npm:^19.1.8"
@@ -3113,7 +3113,7 @@ __metadata:
     eslint-plugin-react-hooks: "npm:^5.2.0"
     fparser: "npm:^3.1.0"
     indefinite: "npm:^2.5.1"
-    js-cookie: "npm:^3.0.1"
+    js-cookie: "npm:^3.0.5"
     mobx: "npm:^6.13.7"
     mobx-react: "npm:^7.6.0"
     mousetrap: "npm:^1.6.5"
@@ -3153,7 +3153,7 @@ __metadata:
     "@sentry/browser": "npm:^10.0.0"
     "@tippyjs/react": "npm:^4.2.6"
     "@types/d3": "npm:^7.4.3"
-    "@types/js-cookie": "npm:^3"
+    "@types/js-cookie": "npm:^3.0.6"
     "@types/lodash-es": "npm:^4"
     "@types/react": "npm:^19.1.8"
     "@types/string-pixel-width": "npm:^1.7.2"
@@ -7154,17 +7154,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/js-cookie@npm:^3":
+"@types/js-cookie@npm:^3.0.6":
   version: 3.0.6
   resolution: "@types/js-cookie@npm:3.0.6"
   checksum: 10/272d551687547445cb210213c73e72e0e5d58ad73e2e444a65d688b8ff9425529779ee0cd6492aaa1f070161916d4254ef2b1a76d64179100437f60749d094ef
-  languageName: node
-  linkType: hard
-
-"@types/js-cookie@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "@types/js-cookie@npm:3.0.2"
-  checksum: 10/7ab964288dd26373e134ed0bcde4a7dbea7e6f5de1805e2d1e48eac847e89a0e7f5fdc9164c37931680ec97c6e6e5a73e3e4039e0d08527c2e21badd7bee62d1
   languageName: node
   linkType: hard
 
@@ -11871,7 +11864,7 @@ __metadata:
     "@types/history": "npm:4"
     "@types/indefinite": "npm:^2.3.4"
     "@types/ini": "npm:^4.1.1"
-    "@types/js-cookie": "npm:^3.0.2"
+    "@types/js-cookie": "npm:^3.0.6"
     "@types/lodash-es": "npm:^4"
     "@types/mdast": "npm:^4.0.4"
     "@types/minimist": "npm:^1.2.2"
@@ -11939,7 +11932,7 @@ __metadata:
     instantsearch.js: "npm:^4.72.1"
     jose: "npm:^6.0.12"
     js-base64: "npm:^3.7.7"
-    js-cookie: "npm:^3.0.1"
+    js-cookie: "npm:^3.0.5"
     jsdom: "npm:^26.1.0"
     json8-pointer: "npm:^1.0.6"
     knex: "npm:^3.1.0"
@@ -13097,13 +13090,6 @@ __metadata:
   version: 3.7.7
   resolution: "js-base64@npm:3.7.7"
   checksum: 10/185e34c536a6b1c4e1ad8bd96d25b49a9ea4e6803e259eaaaca95f1b392a0d590b2933c5ca8580c776f7279507944b81ff1faf889d84baa5e31f026e96d676a5
-  languageName: node
-  linkType: hard
-
-"js-cookie@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "js-cookie@npm:3.0.1"
-  checksum: 10/f1c452f4a53f3a365e559815e971da0bd55764be24b77167c64adfb15cb38cbb05a3e7ecf5c3337cc259cf56382f44bd62acb88d1e1166d46317d5c8fdf91203
   languageName: node
   linkType: hard
 
