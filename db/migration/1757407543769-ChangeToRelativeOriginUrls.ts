@@ -12,7 +12,7 @@ export class ChangeToRelativeOriginUrls1757407543769
     public async up(queryRunner: QueryRunner): Promise<void> {
         for (const { table, column } of tables) {
             await queryRunner.query(`-- sql
-                UPDATE ${table} SET ${column} ->> "$.originUrl" = REGEXP_REPLACE(${column}, '^(https?://)?ourworldindata.org', '', 1, 1, 'i') WHERE ${column} ->> "$.originUrl" IS NOT NULL
+                UPDATE ${table} SET ${column} = JSON_SET(${column}, "$.originUrl", REGEXP_REPLACE(${column} ->> "$.originUrl", '^(https?://)?ourworldindata.org', '', 1, 1, 'i')) WHERE ${column} ->> "$.originUrl" IS NOT NULL
             `)
         }
     }
@@ -20,7 +20,7 @@ export class ChangeToRelativeOriginUrls1757407543769
     public async down(queryRunner: QueryRunner): Promise<void> {
         for (const { table, column } of tables) {
             await queryRunner.query(`-- sql
-                UPDATE ${table} SET ${column} ->> "$.originUrl" = CONCAT('https://ourworldindata.org', ${column} ->> "$.originUrl")
+                UPDATE ${table} SET ${column} = JSON_SET(${column}, "$.originUrl", CONCAT('https://ourworldindata.org', ${column} ->> "$.originUrl"))
                 WHERE ${column} ->> "$.originUrl" LIKE "/%"
             `)
         }
