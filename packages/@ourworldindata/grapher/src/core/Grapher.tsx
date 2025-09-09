@@ -3268,28 +3268,34 @@ export class GrapherState {
         )
     }
 
-    @computed get embedUrl(): string | undefined {
-        const url = this.canonicalUrl
-        if (!url) return
-
+    private makeEmbedUrl(baseUrl: string): string {
+        const url = new URL(baseUrl)
         // We want to preserve the tab in the embed URL so that if we change the
         // default view of the chart, it won't change existing embeds.
         // See https://github.com/owid/owid-grapher/issues/2805
-        let urlObj = Url.fromURL(url)
-        if (!urlObj.queryParams.tab) {
-            urlObj = urlObj.updateQueryParams({ tab: this.allParams.tab })
+        const { tab } = this.allParams
+        if (tab && !url.searchParams.has("tab")) {
+            url.searchParams.set("tab", tab)
         }
         if (this.canHideExternalControlsInEmbed) {
-            urlObj = urlObj.updateQueryParams({
-                hideControls: this.hideExternalControlsInEmbedUrl.toString(),
-            })
+            url.searchParams.set(
+                "hideControls",
+                this.hideExternalControlsInEmbedUrl.toString()
+            )
         }
-        return urlObj.fullUrl
+        return url.toString()
+    }
+
+    @computed get embedUrl(): string | undefined {
+        const baseUrl = this.canonicalUrl
+        if (!baseUrl) return undefined
+        return this.makeEmbedUrl(baseUrl)
     }
 
     @computed get embedArchivedUrl(): string | undefined {
         if (!this.archivedChartInfo) return undefined
-        return this.archivedChartInfo.archiveUrl + this.queryStr
+        const baseUrl = this.archivedChartInfo.archiveUrl + this.queryStr
+        return this.makeEmbedUrl(baseUrl)
     }
 
     @computed get hasUserChangedTimeHandles(): boolean {

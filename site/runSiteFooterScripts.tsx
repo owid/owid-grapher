@@ -296,6 +296,7 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
             void runDetailsOnDemand()
             break
         case SiteFooterContext.grapherPage:
+        case SiteFooterContext.explorerPage:
             runSiteNavigation()
             // runAllGraphersLoadedListener()
             // runSiteTools()
