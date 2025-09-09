@@ -138,6 +138,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS,
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
     GrapherModal,
+    GRAPHER_PROD_URL,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import { ChartDimension } from "../chart/ChartDimension"
@@ -1726,10 +1727,17 @@ export class GrapherState {
         return validDimensions
     }
 
-    // todo: do we need this?
     @computed get originUrlWithProtocol(): string {
         if (!this.originUrl) return ""
         let url = this.originUrl
+
+        // If the URL is relative, make it absolute to ourworldindata.org.
+        // we could also opt to make it relative to bakedGrapherUrl, but then we'd
+        // end up with different URLs than prod on staging servers and in the SVG tester,
+        // which could also affect positioning.
+        if (url.startsWith("/")) {
+            url = new URL(url, GRAPHER_PROD_URL).href
+        }
         if (!url.startsWith("http")) url = `https://${url}`
         return url
     }
