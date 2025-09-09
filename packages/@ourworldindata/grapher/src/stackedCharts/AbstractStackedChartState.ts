@@ -21,6 +21,7 @@ import {
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
+    getDefaultFailMessage,
     makeSelectionArray,
 } from "../chart/ChartUtils.js"
 import { ColorSchemes } from "../color/ColorSchemes.js"
@@ -290,9 +291,17 @@ export abstract class AbstractStackedChartState implements ChartState {
     }
 
     @computed get errorInfo(): ChartErrorInfo {
+        const message = getDefaultFailMessage(this.manager)
+        if (message) return { reason: message }
+
+        const { entityTypePlural = "entities" } = this.manager
+
         const { yColumnSlugs } = this
         if (!yColumnSlugs.length) return { reason: "Missing variable" }
-        if (!this.unstackedSeries.length) return { reason: "No matching data" }
+        if (!this.unstackedSeries.length)
+            return {
+                reason: `No data for the selected ${entityTypePlural}`,
+            }
         if (!this.allStackedPoints.length)
             return { reason: "No matching points" }
         return { reason: "" }

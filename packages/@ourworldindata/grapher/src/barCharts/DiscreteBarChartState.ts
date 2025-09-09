@@ -16,6 +16,7 @@ import { SelectionArray } from "../selection/SelectionArray"
 import {
     autoDetectSeriesStrategy,
     autoDetectYColumnSlugs,
+    getDefaultFailMessage,
     getShortNameForEntity,
     makeSelectionArray,
 } from "../chart/ChartUtils"
@@ -312,15 +313,17 @@ export class DiscreteBarChartState implements ChartState, ColorScaleManager {
 
     @computed get errorInfo(): ChartErrorInfo {
         const column = this.yColumns[0]
-
         if (!column) return { reason: "No column to chart" }
 
-        if (!this.selectionArray.hasSelection)
-            return { reason: "No data selected" }
+        const message = getDefaultFailMessage(this.manager)
+        if (message) return { reason: message }
 
+        const { entityTypePlural = "entities" } = this.manager
         // TODO is it better to use .series for this check?
         return this.yColumns.every((col) => col.isEmpty)
-            ? { reason: "No matching data" }
+            ? {
+                  reason: `No data for the selected ${entityTypePlural}`,
+              }
             : { reason: "" }
     }
 }
