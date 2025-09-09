@@ -9,14 +9,18 @@ import * as db from "../../db/db.js"
 import {
     findChangedGrapherPages,
     findChangedMultiDimPages,
+    findChangedExplorerPages,
     getGrapherChecksumsFromDb,
     getMultiDimChecksumsFromDb,
+    getExplorerChecksumsFromDb,
     insertChartVersions,
     insertMultiDimVersions,
+    insertExplorerVersions,
 } from "../../db/model/archival/archivalDb.js"
 import {
     GrapherChecksumsObjectWithHash,
     MultiDimChecksumsObjectWithHash,
+    ExplorerChecksumsObjectWithHash,
 } from "@ourworldindata/types"
 import {
     getDateForArchival,
@@ -32,9 +36,11 @@ import { getEnrichedChartsByIds } from "../../db/model/Chart.js"
 import {
     bakeArchivalGrapherPagesToFolder,
     bakeArchivalMultiDimPagesToFolder,
+    bakeArchivalExplorerPagesToFolder,
     copyToLatestDir,
     generateChartVersionsFiles,
     generateMultiDimVersionsFiles,
+    generateExplorerVersionsFiles,
     createCommonArchivalContext,
     archiveVariableIds,
     archiveChartConfigs,
@@ -42,6 +48,8 @@ import {
     MinimalMultiDimInfo,
     MinimalChartInfo,
 } from "./ArchivalBaker.js"
+import { ExplorerAdminServer } from "../../explorerAdminServer/ExplorerAdminServer.js"
+import { ExplorerProgram } from "@ourworldindata/explorer"
 
 interface Options {
     dir: string
@@ -49,14 +57,17 @@ interface Options {
     dryRun?: boolean
     chartIds?: number[]
     multiDimIds?: number[]
-    type: "charts" | "multiDims" | "all"
+    explorerSlugs?: string[]
+    type: "charts" | "multiDims" | "explorers" | "all"
 }
 
 interface ArchivalData {
     graphersToArchive: GrapherChecksumsObjectWithHash[]
     multiDimsToArchive: MultiDimChecksumsObjectWithHash[]
+    explorersToArchive: ExplorerChecksumsObjectWithHash[]
     grapherConfigs: MinimalChartInfo[]
     multiDimConfigs: MinimalMultiDimInfo[]
+    explorerPrograms: ExplorerProgram[]
 }
 
 /**
@@ -64,8 +75,11 @@ interface ArchivalData {
  */
 const getMultiDimConfigs = async (
     trx: db.KnexReadonlyTransaction,
-    multiDimIds: number[]
+    multiDimsToArchive: MultiDimChecksumsObjectWithHash[]
 ) => {
+    const multiDimIds = multiDimsToArchive.map(
+        (multiDim) => multiDim.multiDimId
+    )
     const rawMultiDimConfigs = await trx<DbPlainMultiDimDataPage>(
         MultiDimDataPagesTableName
     )
@@ -78,6 +92,52 @@ const getMultiDimConfigs = async (
         slug: row.slug!, // Published multi-dims must have a slug.
         config: JSON.parse(row.config) as MultiDimDataPageConfigEnriched,
     }))
+}
+
+const getExplorerPrograms = async (
+    trx: db.KnexReadonlyTransaction,
+    explorersToArchive: ExplorerChecksumsObjectWithHash[]
+) => {
+    const explorerServer = new ExplorerAdminServer()
+    const bySlug = await explorerServer.getAllPublishedExplorersBySlug(trx)
+    return explorersToArchive.map((exp) => bySlug[exp.explorerSlug])
+}
+
+/**
+ * Determines which explorers need to be archived based on options
+ */
+const getExplorersToArchive = async (
+    trx: db.KnexReadWriteTransaction,
+    opts: Options
+): Promise<ExplorerChecksumsObjectWithHash[]> => {
+    const shouldProcessExplorers =
+        opts.type === "explorers" || opts.type === "all"
+
+    if (!shouldProcessExplorers) {
+        return []
+    }
+
+    if (opts.explorerSlugs?.length) {
+        console.log(
+            "Archiving only the following explorer slugs:",
+            opts.explorerSlugs.join(", ")
+        )
+
+        const allChecksums = await getExplorerChecksumsFromDb(trx)
+        const explorersToArchive = allChecksums.filter((checksum) =>
+            opts.explorerSlugs?.includes(checksum.explorerSlug)
+        )
+
+        if (opts.explorerSlugs.length !== explorersToArchive.length) {
+            throw new Error(
+                `Not all explorer slugs were found in the database. Found ${explorersToArchive.length} out of ${opts.explorerSlugs.length}.`
+            )
+        }
+
+        return explorersToArchive
+    }
+
+    return await findChangedExplorerPages(trx)
 }
 
 /**
@@ -179,7 +239,8 @@ const getGrapherConfigs = async (
  */
 const collectAllVariableIds = (
     grapherConfigs: MinimalChartInfo[],
-    multiDimConfigs: MinimalMultiDimInfo[]
+    multiDimConfigs: MinimalMultiDimInfo[],
+    explorersToArchive: ExplorerChecksumsObjectWithHash[]
 ): Set<number> => {
     const allVariableIds = new Set<number>()
 
@@ -197,6 +258,14 @@ const collectAllVariableIds = (
         ...getAllVariableIds(config.config.views),
     ])
     multiDimVariableIds.forEach((id) => allVariableIds.add(id))
+
+    // Collect variable IDs from explorers via checksums
+    for (const explorer of explorersToArchive) {
+        const ids = Object.keys(explorer.checksums.indicators).map((k) =>
+            parseInt(k, 10)
+        )
+        ids.forEach((id) => allVariableIds.add(id))
+    }
 
     return allVariableIds
 }
@@ -222,8 +291,12 @@ const collectAllChartConfigIds = (
  * Outputs what would be archived in dry run mode
  */
 const outputDryRunResults = (archivalData: ArchivalData): void => {
-    const { graphersToArchive, multiDimsToArchive } = archivalData
-    const totalToArchive = graphersToArchive.length + multiDimsToArchive.length
+    const { graphersToArchive, multiDimsToArchive, explorersToArchive } =
+        archivalData
+    const totalToArchive =
+        graphersToArchive.length +
+        multiDimsToArchive.length +
+        explorersToArchive.length
 
     console.log("Would archive", totalToArchive, "pages:")
 
@@ -238,6 +311,13 @@ const outputDryRunResults = (archivalData: ArchivalData): void => {
         console.log(
             "Multi-dim IDs:",
             multiDimsToArchive.map((multiDim) => multiDim.multiDimId)
+        )
+    }
+
+    if (explorersToArchive.length > 0) {
+        console.log(
+            "Explorer slugs:",
+            explorersToArchive.map((exp) => exp.explorerSlug)
         )
     }
 }
@@ -312,26 +392,68 @@ const archiveMultiDimPages = async (
 }
 
 /**
+ * Archives explorer pages and generates related files
+ */
+const archiveExplorerPages = async (
+    trx: db.KnexReadWriteTransaction,
+    explorersToArchive: ExplorerChecksumsObjectWithHash[],
+    explorerPrograms: ExplorerProgram[],
+    commonCtx: CommonArchivalContext,
+    variableFiles: Record<number, AssetMap>,
+    archivalDate: ArchivalTimestamp,
+    opts: Options
+): Promise<void> => {
+    if (explorersToArchive.length === 0) return
+
+    const { manifests } = await bakeArchivalExplorerPagesToFolder(
+        trx,
+        explorersToArchive,
+        explorerPrograms,
+        commonCtx,
+        variableFiles
+    )
+
+    await insertExplorerVersions(
+        trx,
+        explorersToArchive,
+        archivalDate,
+        manifests
+    )
+
+    await generateExplorerVersionsFiles(
+        trx,
+        opts.dir,
+        explorersToArchive.map((exp) => exp.explorerSlug)
+    )
+}
+
+/**
  * Main function that orchestrates the archival process
  */
 const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
     await db.knexReadWriteTransaction(async (trx) => {
         // Determine what needs to be archived
-        const [graphersToArchive, multiDimsToArchive] = await Promise.all([
-            getGraphersToArchive(trx, opts),
-            getMultiDimsToArchive(trx, opts),
-        ])
+        const [graphersToArchive, multiDimsToArchive, explorersToArchive] =
+            await Promise.all([
+                getGraphersToArchive(trx, opts),
+                getMultiDimsToArchive(trx, opts),
+                getExplorersToArchive(trx, opts),
+            ])
 
         const totalToArchive =
-            graphersToArchive.length + multiDimsToArchive.length
+            graphersToArchive.length +
+            multiDimsToArchive.length +
+            explorersToArchive.length
 
         // Handle dry run mode
         if (opts.dryRun) {
             outputDryRunResults({
                 graphersToArchive,
                 multiDimsToArchive,
+                explorersToArchive,
                 grapherConfigs: [],
                 multiDimConfigs: [],
+                explorerPrograms: [],
             })
             return
         }
@@ -344,19 +466,19 @@ const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
 
         // Fetch configurations for pages to be archived
         const archivalDate = getDateForArchival()
-        const [grapherConfigs, multiDimConfigs, commonCtx] = await Promise.all([
-            getGrapherConfigs(trx, graphersToArchive),
-            getMultiDimConfigs(
-                trx,
-                multiDimsToArchive.map((multiDim) => multiDim.multiDimId)
-            ),
-            createCommonArchivalContext(trx, opts.dir, archivalDate),
-        ])
+        const [grapherConfigs, multiDimConfigs, explorerPrograms, commonCtx] =
+            await Promise.all([
+                getGrapherConfigs(trx, graphersToArchive),
+                getMultiDimConfigs(trx, multiDimsToArchive),
+                getExplorerPrograms(trx, explorersToArchive),
+                createCommonArchivalContext(trx, opts.dir, archivalDate),
+            ])
 
         // Collect all variable IDs and create variable files
         const allVariableIds = collectAllVariableIds(
             grapherConfigs,
-            multiDimConfigs
+            multiDimConfigs,
+            explorersToArchive
         )
         const variableFiles = await archiveVariableIds(
             [...allVariableIds],
@@ -389,6 +511,15 @@ const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
                 commonCtx,
                 variableFiles,
                 chartConfigFiles,
+                archivalDate,
+                opts
+            ),
+            archiveExplorerPages(
+                trx,
+                explorersToArchive,
+                explorerPrograms,
+                commonCtx,
+                variableFiles,
                 archivalDate,
                 opts
             ),
@@ -455,9 +586,23 @@ void yargs(hideBin(process.argv))
                             : splitAndParse(arg)
                     },
                 })
+                .option("explorerSlugs", {
+                    type: "array",
+                    description:
+                        "Only archive these explorer slugs, regardless of whether they've changed",
+                    coerce: (arg) => {
+                        const split = (s: string | number) =>
+                            typeof s === "string"
+                                ? s.split(/\s+|,/)
+                                : [String(s)]
+                        return Array.isArray(arg)
+                            ? arg.flatMap(split)
+                            : split(arg)
+                    },
+                })
                 .option("type", {
                     type: "string",
-                    choices: ["charts", "multiDims", "all"],
+                    choices: ["charts", "multiDims", "explorers", "all"],
                     default: "all",
                     description: "What type of pages to archive",
                 })

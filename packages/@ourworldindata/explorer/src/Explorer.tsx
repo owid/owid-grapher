@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import { faChartLine } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
+    ArchiveContext,
     ColumnTypeNames,
     CoreColumnDef,
     OwidColumnDef,
@@ -93,6 +94,7 @@ export interface ExplorerProps extends SerializedGridProgram {
     loadMetadataOnly?: boolean
     throwOnMissingGrapher?: boolean
     setupGrapher?: boolean
+    archivedChartInfo?: ArchiveContext
 }
 
 const LivePreviewComponent = (props: ExplorerProps) => {
@@ -196,6 +198,7 @@ export class Explorer
 {
     analytics = new GrapherAnalytics()
     grapherState: GrapherState
+    isOnArchivalPage: boolean
     inputTableTransformer = (table: OwidTable) => table
 
     constructor(props: ExplorerProps) {
@@ -223,6 +226,12 @@ export class Explorer
         this.explorerProgram = ExplorerProgram.fromJson(
             props
         ).initDecisionMatrix(this.initialQueryParams)
+        const { archivedChartInfo } = props
+        const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
+        const assetMaps = isOnArchivalPage
+            ? archivedChartInfo?.assets
+            : undefined
+        this.isOnArchivalPage = isOnArchivalPage
         this.grapherState = new GrapherState({
             staticBounds: props.staticBounds,
             bounds: props.bounds,
@@ -231,11 +240,13 @@ export class Explorer
             isEmbeddedInAnOwidPage: this.props.isEmbeddedInAnOwidPage,
             adminBaseUrl: this.adminBaseUrl,
             canHideExternalControlsInEmbed: true,
+            archivedChartInfo: props.archivedChartInfo,
             additionalDataLoaderFn: (
                 varId: number,
                 loadMetadataOnly?: boolean
             ) =>
                 loadVariableDataAndMetadata(varId, this.dataApiUrl, {
+                    assetMap: assetMaps?.runtime,
                     noCache: props.isPreview,
                     loadMetadataOnly,
                 }),
@@ -250,7 +261,8 @@ export class Explorer
         grapherConfigs: GrapherInterface[],
         partialGrapherConfigs: GrapherInterface[],
         explorerConstants: Record<string, string>,
-        urlMigrationSpec?: ExplorerPageUrlMigrationSpec
+        urlMigrationSpec?: ExplorerPageUrlMigrationSpec,
+        archivedChartInfo?: ArchiveContext
     ) {
         const props: ExplorerProps = {
             ...program,
@@ -259,6 +271,7 @@ export class Explorer
             partialGrapherConfigs,
             isEmbeddedInAnOwidPage: false,
             isInStandalonePage: true,
+            archivedChartInfo,
         }
 
         if (window.location.href.includes(EXPLORERS_PREVIEW_ROUTE)) {
@@ -375,7 +388,10 @@ export class Explorer
     override async componentDidMount() {
         this.setGrapher(this.grapherRef!.current!)
 
-        let url = Url.fromQueryParams(this.initialQueryParams)
+        let url = Url.fromQueryParams({
+            ...this.initialQueryParams,
+            ...this.currentChoiceParams, // Needed for Grapher's embedArchivedUrl.
+        })
 
         if (this.props.selection?.hasSelection) {
             url = setSelectedEntityNamesParam(
@@ -479,6 +495,7 @@ export class Explorer
         )
 
         const newGrapherParams = {
+            ...this.currentChoiceParams, // Needed for Grapher's embedArchivedUrl.
             ...this.persistedGrapherQueryParamsBySelectedRow.get(
                 this.explorerProgram.currentlySelectedGrapherRow
             ),
@@ -635,7 +652,7 @@ export class Explorer
                 config.dimensions ?? [],
                 config.selectedEntityColors,
                 this.props.dataApiUrl,
-                undefined,
+                this.props.archivedChartInfo,
                 this.props.isPreview,
                 this.props.loadMetadataOnly
             ).then((owidTable) => (owidTable ? owidTable : BlankOwidTable()))
@@ -823,7 +840,7 @@ export class Explorer
                 config.dimensions,
                 config.selectedEntityColors,
                 this.props.dataApiUrl,
-                undefined,
+                this.props.archivedChartInfo,
                 this.props.isPreview,
                 this.props.loadMetadataOnly
             ).then((owidTable) => (owidTable ? owidTable : BlankOwidTable()))
@@ -911,13 +928,16 @@ export class Explorer
 
     @computed get currentUrl(): Url {
         if (this.props.isPreview) return Url.fromQueryParams(this.queryParams)
-        return Url.fromURL(this.baseUrl).setQueryParams(this.queryParams)
+        return Url.fromURL(window.location.href).setQueryParams(
+            this.queryParams
+        )
     }
 
     private bindToWindow() {
         // There is a surprisingly considerable performance overhead to updating the url
         // while animating, so we debounce to allow e.g. smoother timelines
-        const pushParams = () => setWindowUrl(this.currentUrl)
+        const pushParams = () =>
+            setWindowUrl(Url.fromQueryParams(this.queryParams))
         const debouncedPushParams = _.debounce(pushParams, 100)
 
         this.disposers.push(
@@ -1122,11 +1142,21 @@ export class Explorer
     }
 
     @computed get baseUrl() {
-        return `${this.bakedBaseUrl}/${EXPLORERS_ROUTE_FOLDER}/${this.props.slug}`
+        let archiveUrl = undefined
+        if (this.isOnArchivalPage) {
+            archiveUrl = this.props.archivedChartInfo?.archiveUrl
+        }
+        return (
+            archiveUrl ??
+            `${this.bakedBaseUrl}/${EXPLORERS_ROUTE_FOLDER}/${this.props.slug}`
+        )
     }
 
     @computed get canonicalUrl() {
-        return this.props.canonicalUrl ?? this.currentUrl.fullUrl
+        return (
+            this.props.canonicalUrl ??
+            Url.fromURL(this.baseUrl).setQueryParams(this.queryParams).fullUrl
+        )
     }
 
     @computed get grapherTable() {

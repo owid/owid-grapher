@@ -43,6 +43,7 @@ import {
 } from "@ourworldindata/utils"
 import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
 import {
+    ArchiveContext,
     DEFAULT_THUMBNAIL_FILENAME,
     DbPlainChart,
     DbRawChartConfig,
@@ -98,6 +99,7 @@ import {
     AttachmentsContext,
 } from "../site/gdocs/AttachmentsContext.js"
 import AtomArticleBlocks from "../site/gdocs/components/AtomArticleBlocks.js"
+import { getLatestExplorerArchivedVersionsIfEnabled } from "../db/model/archival/archivalDb.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 
 export const renderToHtmlPage = (element: any) =>
@@ -656,6 +658,7 @@ export const renderExplorerIndexPage = async (
 interface ExplorerRenderOpts {
     urlMigrationSpec?: ExplorerPageUrlMigrationSpec
     isPreviewing?: boolean
+    archivedChartInfo?: ArchiveContext
 }
 
 export const renderExplorerPage = async (
@@ -776,6 +779,15 @@ export const renderExplorerPage = async (
           )
         : undefined
 
+    let archiveContext = opts?.archivedChartInfo
+    if (!archiveContext) {
+        const latestBySlug = await getLatestExplorerArchivedVersionsIfEnabled(
+            knex,
+            [program.slug]
+        )
+        archiveContext = latestBySlug[program.slug]
+    }
+
     return (
         `<!doctype html>` +
         ReactDOMServer.renderToString(
@@ -787,6 +799,7 @@ export const renderExplorerPage = async (
                 baseUrl={BAKED_BASE_URL}
                 urlMigrationSpec={opts?.urlMigrationSpec}
                 isPreviewing={opts?.isPreviewing}
+                archivedChartInfo={archiveContext}
             />
         )
     )
