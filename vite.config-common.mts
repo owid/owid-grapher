@@ -78,6 +78,10 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
         server: {
             port: 8090,
             warmup: { clientFiles: [VITE_ASSET_SITE_ENTRY] },
+            // See Caddyfile.example for context about these settings
+            ...(process.env.VITE_ALLOWED_HOSTS
+                ? { allowedHosts: [process.env.VITE_ALLOWED_HOSTS], cors: true }
+                : {}),
         },
         preview: {
             port: 8090,

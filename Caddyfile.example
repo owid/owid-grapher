@@ -1,0 +1,28 @@
+# Example Caddyfile for remote development setup with vite dev assets served through HTTP/2.
+#
+# Scenario:
+# - Admin server (Express) listens on 127.0.0.1:3030
+# - Vite dev server listens on 127.0.0.1:8090
+# - Caddy terminates TLS (using an internal CA) and reverse proxies both. The local CA cert issued by caddy
+# will require to bypass the security warning in the browser but still gives the performance benefits of HTTP/2.
+#
+# How-to use:
+# 1. Copy to "Caddyfile" to enable the automatic tmux caddy window (Makefile checks for that file)
+# 2. Replace "YOURMACHINE.TAILXXX.ts.net" accordingly (you can find this in Tailscale admin console)
+# 3. Update .env
+#  - ADMIN_BASE_URL=https://YOURMACHINE.TAILXXX.ts.net
+#  - VITE_DEV_URL=https://YOURMACHINE.TAILXXX.ts.net
+#  - VITE_ALLOWED_HOSTS=YOURMACHINE.TAILXXX.ts.net
+# 4. Reload after edits: `make up` (if using tmux) or `caddy reload`
+
+# This makes the admin accessible on https://YOURMACHINE.TAILXXXX.ts.net (without a port, for convenience)
+YOURMACHINE.TAILXXXX.ts.net {
+    reverse_proxy 127.0.0.1:3030
+    tls internal
+}
+
+YOURMACHINE.TAILXXXX.ts.net:8091 {
+    reverse_proxy 127.0.0.1:8090
+    tls internal
+}
+
