@@ -19,7 +19,7 @@ export const SearchTemplatesAll = () => {
             .with([SearchTopicType.Topic, true, true], () => (
                 <>
                     <SearchDataInsightsResults />
-                    <SearchDataResults isFirstChartLarge={false} />
+                    <SearchDataResults isFirstChartLarge={true} />
                     <SearchWritingResults topicType={SearchTopicType.Topic} />
                 </>
             ))
@@ -35,7 +35,7 @@ export const SearchTemplatesAll = () => {
             .with([SearchTopicType.Topic, false, true], () => (
                 <>
                     <SearchWritingResults topicType={SearchTopicType.Topic} />
-                    <SearchDataResults isFirstChartLarge={false} />
+                    <SearchDataResults isFirstChartLarge={true} />
                     <SearchDataInsightsResults />
                 </>
             ))
