@@ -11,6 +11,7 @@ type ErrorMessageFieldName =
     | "focusedSeriesNames"
     | `map.colorScale.${string}`
     | `colorScale.${string}`
+    | "originUrl"
 
 export type ErrorMessages = Partial<Record<ErrorMessageFieldName, string>>
 

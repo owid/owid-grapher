@@ -296,6 +296,21 @@ export class ChartEditorView<
             }
         })
 
+        // The origin url can either be a full URL (with optional https protocol), or a relative
+        // URL starting with /.
+        // We could combine them into one regex, but then it's harder to read.
+        const originUrlRegex = [/^(https?:\/\/)?[^/.]+\.[^/].+$/, /^\/.+$/]
+
+        if (
+            this.grapherState.originUrl &&
+            !originUrlRegex.some((regex) =>
+                regex.test(this.grapherState.originUrl ?? "")
+            )
+        ) {
+            errorMessages.originUrl =
+                "Invalid origin URL. If it's a relative URL, make sure it starts with /"
+        }
+
         return errorMessages
     }
 

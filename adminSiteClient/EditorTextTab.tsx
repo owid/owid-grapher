@@ -252,6 +252,7 @@ export class EditorTextTab<
                         store={grapherState}
                         placeholder={"e.g. /poverty"}
                         helpText="The page containing this chart where more context can be found. Both relative and absolute URLs are accepted."
+                        errorMessage={this.errorMessages.originUrl}
                     />
                     {isChartEditorInstance(editor) &&
                         editor.references &&
