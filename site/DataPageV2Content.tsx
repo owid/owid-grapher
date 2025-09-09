@@ -392,7 +392,7 @@ const InsightLinks = ({
                     Insights about this data
                 </h2>
             )}
-            <div className="insight-links span-cols-4 span-lg-cols-4 span-sm-cols-12">
+            <div className="insight-links span-cols-12 span-lg-cols-12 span-sm-cols-12">
                 {children}
             </div>
         </div>
