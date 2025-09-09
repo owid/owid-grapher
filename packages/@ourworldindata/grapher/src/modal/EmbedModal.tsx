@@ -56,16 +56,16 @@ export class EmbedModal extends React.Component<EmbedModalProps> {
 
         const opts: EmbedOptions[] = []
 
-        // Check that the embedUrl and embedArchivedUrl are the same, disregarding query params
-        const areEmbedUrlAndArchivedUrlSame =
-            Url.fromURL(this.manager.embedUrl ?? "").update({
-                queryStr: undefined,
-            }).fullUrl ===
-            Url.fromURL(this.manager.embedArchivedUrl ?? "").update({
-                queryStr: undefined,
-            }).fullUrl
+        // We only check origins (domain + port) because:
+        // - Query params are not relevant
+        // - We use the /latest/ path prefix as an alias for the latest version
+        //   of the chart, which is not the same as the canonical URL
+        // - Archive and live versions live on a different domain
+        const areEmbedAndArchivedOriginsSame =
+            Url.fromURL(this.manager.embedUrl ?? "").origin ===
+            Url.fromURL(this.manager.embedArchivedUrl ?? "").origin
 
-        if (embedUrl && !areEmbedUrlAndArchivedUrlSame) {
+        if (embedUrl && !areEmbedAndArchivedOriginsSame) {
             opts.push({
                 title: "Chart with data updates",
                 description: (

@@ -523,11 +523,11 @@ describe("urls", () => {
         const grapher = new GrapherState({
             isPublished: true,
             slug: "foo",
-            bakedGrapherURL: "/grapher",
+            bakedGrapherURL: "localhost:3030",
             tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
             hasMapTab: true,
         })
-        expect(grapher.embedUrl).toEqual("/grapher/foo?tab=map")
+        expect(grapher.embedUrl).toEqual("localhost:3030/foo?tab=map")
     })
 
     it("can upgrade legacy urls", () => {
