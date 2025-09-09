@@ -618,7 +618,7 @@ function buildDataTableContentForScatterPlot({
 
     // If the selection is empty and the scatter plot has a legend (which is the
     // case if it has a color dimension), then we display the legend
-    if (!grapherState.selection.hasSelection && grapherState.colorColumnSlug) {
+    if (grapherState.colorColumnSlug) {
         return buildLegendTableProps({ grapherState, chartState, maxRows })
     }
 
@@ -651,6 +651,10 @@ function buildDataTableContentForScatterPlot({
 function findEntityToDisplayForScatterPlot(
     chartState: ScatterPlotChartState
 ): string | undefined {
+    // If entities are selected, use the first selected entity
+    const selectedEntities = chartState.selectionArray.selectedEntityNames
+    if (selectedEntities.length > 0) return selectedEntities[0]
+
     // For non-connected scatter plots, use the first entity
     if (!chartState.isConnected) return chartState.series[0]?.seriesName
 
