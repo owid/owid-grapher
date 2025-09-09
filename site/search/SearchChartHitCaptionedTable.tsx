@@ -1,5 +1,4 @@
 import { GrapherState } from "@ourworldindata/grapher"
-import { EntitySelectionMode } from "@ourworldindata/types"
 import { runInAction } from "mobx"
 import { buildChartHitDataTableContent } from "./SearchChartHitDataTableHelpers"
 import { match } from "ts-pattern"
@@ -21,10 +20,7 @@ export function CaptionedTable({
     onClick?: () => void
 }): React.ReactElement | null {
     // Construct caption
-    const numAvailableEntities =
-        grapherState.addCountryMode === EntitySelectionMode.Disabled
-            ? grapherState.transformedTable.availableEntityNames.length
-            : grapherState.availableEntityNames.length
+    const numAvailableEntities = grapherState.availableEntityNames.length
     const caption =
         numAvailableEntities === 1
             ? `Data available for ${numAvailableEntities} ${grapherState.entityType}`
