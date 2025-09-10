@@ -768,11 +768,13 @@ async function getExplorersWithInheritedTags(trx: db.KnexReadonlyTransaction) {
             })
         }
         const topicTags = new Set<string>(
-            explorer.tags.flatMap((tagName) =>
-                getUniqueNamesFromTagHierarchies(
-                    topicHierarchiesByChildName[tagName]
+            explorer.tags
+                .filter((tag) => tag !== "Unlisted")
+                .flatMap((tagName) =>
+                    getUniqueNamesFromTagHierarchies(
+                        topicHierarchiesByChildName[tagName]
+                    )
                 )
-            )
         )
 
         publishedExplorersWithTags.push({
