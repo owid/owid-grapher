@@ -194,14 +194,16 @@ export function SearchChartHitRichData({
                 {layout?.placedTabs.map(({ tab, slot }, tabIndex) => {
                     // Always use the complete version on smaller screens since
                     // the table might not be visible
+                    const isPrimaryTab = tabIndex === 0
+                    const isSmallSlot =
+                        slot === MediumVariantGridSlot.SmallLeft ||
+                        slot === MediumVariantGridSlot.SmallRight
                     const previewType = isMediumScreen
                         ? {
                               variant: PreviewVariant.Thumbnail,
                               isMinimal: false,
                           }
-                        : getPreviewType(variant, {
-                              isPrimaryTab: tabIndex === 0,
-                          })
+                        : getPreviewType(variant, { isPrimaryTab, isSmallSlot })
 
                     const { width: imageWidth, height: imageHeight } =
                         previewType.variant === PreviewVariant.Large
