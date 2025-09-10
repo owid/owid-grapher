@@ -53,6 +53,8 @@ import {
     SearchUrlParam,
     SynonymMap,
     Ngram,
+    WordPositioned,
+    ScoredFilterPositioned,
 } from "./searchTypes.js"
 import {
     faBook,
@@ -79,6 +81,23 @@ import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { SearchChartHitDataDisplayProps } from "./SearchChartHitDataDisplay.js"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { PreviewVariant } from "./SearchChartHitRichDataTypes.js"
+
+// Common English stop words that should be ignored in search
+const STOP_WORDS = new Set([
+    "the",
+    "in",
+    "of",
+    "and",
+    "a",
+    "an",
+    "to",
+    "for",
+    "with",
+    "on",
+    "at",
+    "by",
+    "from",
+])
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -620,12 +639,14 @@ export function searchWithWords(
 }
 
 /**
- * Cousin of findMatches that uses n-gram approach to find matches
- * for all possible combinations of words in the query, not just left-to-right reduction.
+ * Cousin of findMatches that uses n-gram approach to find matches for all
+ * possible combinations of words in the query, not just left-to-right
+ * reduction.
  *
- * Generates n-grams from 1 to 4 words, prioritizing longer phrases over shorter ones.
- * Uses overlap detection to prevent the same word positions from being matched multiple times.
- * Keeps a single country or filter topic per n-gram then deduplicates overall results by name.
+ * Generates n-grams from 1 to 4 non stop-words, prioritizing longer phrases over shorter
+ * ones. Uses overlap detection to prevent the same word positions from being
+ * matched multiple times. Keeps a single country or filter topic per n-gram
+ * then deduplicates overall results by name.
  *
  * @returns Array of deduplicated scored filters
  */
@@ -637,34 +658,37 @@ export function findMatchesWithNgrams(
     selectedTopics: Set<string>,
     sortOptions: { threshold: number }, // this should be high (> 0.85) to give a chance to single word synonym to match
     synonymMap: SynonymMap
-): ScoredFilter[] {
-    const allFilters: ScoredFilter[] = []
+): ScoredFilterPositioned[] {
+    const allFilters: ScoredFilterPositioned[] = []
     const matchedWordPositions = new Set<number>()
 
+    // Filter out stop words while preserving original positions
+    const tokens: WordPositioned[] = words
+        .map((word, index) => ({ word, position: index }))
+        .filter(({ word }) => !STOP_WORDS.has(word.toLowerCase()))
+
+    if (tokens.length === 0) return []
+
     const ngrams: Ngram[] = []
-    const maxNgramSize = Math.min(words.length, 4) // Topics and countries mostly fit within 4 words
+    const maxNgramSize = Math.min(tokens.length, 4) // Topics and countries mostly fit within 4 words
 
     // Generate n-grams from largest to smallest to prioritize longer phrases
     for (let n = maxNgramSize; n >= 1; n--) {
-        for (let i = 0; i <= words.length - n; i++) {
-            ngrams.push({
-                text: words.slice(i, i + n).join(" "),
-                start: i,
-                length: n,
-            })
+        for (let i = 0; i <= tokens.length - n; i++) {
+            ngrams.push(tokens.slice(i, i + n))
         }
     }
 
     // Search each n-gram and collect results, prioritizing longer phrases
-    for (const { text, start, length } of ngrams) {
-        const ngramWords = text.split(" ")
+    for (const ngram of ngrams) {
+        const ngramWords = R.map(ngram, R.prop("word"))
+        const ngramPositions = R.map(ngram, R.prop("position"))
 
-        // Check if any words in this n-gram are already matched by a longer phrase
-        const ngramPositions = Array.from({ length }, (_, i) => start + i)
-
-        const hasOverlap = ngramPositions.some((pos) =>
-            matchedWordPositions.has(pos)
-        )
+        // Check if any original word positions in this n-gram are already matched by a longer phrase
+        const hasOverlap =
+            ngramPositions.some((pos: number) =>
+                matchedWordPositions.has(pos)
+            ) ?? false
 
         if (hasOverlap) continue // Skip this n-gram if it overlaps with already matched words
 
@@ -680,19 +704,19 @@ export function findMatchesWithNgrams(
 
         if (filters.length > 0) {
             const bestFilter = filters.toSorted((a, b) => b.score - a.score)[0]
-            allFilters.push(bestFilter)
-            // Mark these word positions as matched
-            ngramPositions.forEach((pos) => matchedWordPositions.add(pos))
+            // Store the original positions for later use in replacement logic
+            allFilters.push({
+                ...bestFilter,
+                originalPositions: ngramPositions,
+            })
+            // Mark these original word positions as matched
+            ngramPositions.forEach((pos: number) =>
+                matchedWordPositions.add(pos)
+            )
         }
     }
 
-    // Deduplicate results by name
-    const deduplicatedFilters = R.uniqueBy(
-        allFilters.toSorted((a, b) => b.score - a.score),
-        (filter) => filter.name
-    )
-
-    return deduplicatedFilters
+    return R.uniqueBy(allFilters, (filter) => filter.name)
 }
 
 export function findMatches(
@@ -856,6 +880,42 @@ export function getFilterSuggestionsWithUnmatchedQuery(
         suggestions: combinedFilters,
         unmatchedQuery,
     }
+}
+
+/**
+ * Enhanced version using n-grams with stop word filtering.
+ * Gets filter suggestions and calculates unmatched query using the new n-gram approach.
+ */
+export function getFilterSuggestionsWithUnmatchedQueryNgrams(
+    queryWords: string[],
+    allTopics: string[],
+    filters: Filter[], // currently active filters to exclude from suggestions
+    synonymMap: SynonymMap
+): ScoredFilterPositioned[] {
+    if (!queryWords.length || !queryWords[0]) return []
+
+    const selectedCountryNames = getFilterNamesOfType(
+        filters,
+        FilterType.COUNTRY
+    )
+    const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
+    const allCountries = countriesByName()
+    const allCountryNames = Object.values(allCountries).map(
+        (country) => country.name
+    )
+
+    // Use n-gram matching for better phrase detection
+    const matches = findMatchesWithNgrams(
+        queryWords,
+        allCountryNames,
+        allTopics,
+        selectedCountryNames,
+        selectedTopics,
+        { threshold: 0.85 },
+        synonymMap
+    )
+
+    return matches
 }
 
 export function createFilter(type: FilterType) {
@@ -1188,4 +1248,36 @@ export const getNbPaginatedItemsRequested = (
     return currentPageIndex === 0
         ? firstPageSize
         : firstPageSize + (currentPageIndex - 1) * laterPageSize + lastPageHits
+}
+
+/**
+ * Helper function to remove matched words and preceding stop words from query
+ * when a filter is selected.
+ */
+export function removeMatchedWordsWithStopWords(
+    originalWords: string[],
+    matchedPositions: number[]
+): string {
+    if (!matchedPositions.length) return originalWords.join(" ")
+
+    const wordsToRemove = new Set(matchedPositions)
+
+    // Also remove stop words that immediately precede the matched positions
+    const sortedPositions = [...matchedPositions].sort((a, b) => a - b)
+    const firstMatchedPosition = sortedPositions[0]
+
+    // Look backwards from the first matched position to remove preceding stop words
+    for (let i = firstMatchedPosition - 1; i >= 0; i--) {
+        const word = originalWords[i].toLowerCase()
+        if (STOP_WORDS.has(word)) {
+            wordsToRemove.add(i)
+        } else {
+            // Stop when we hit a non-stop word
+            break
+        }
+    }
+
+    return originalWords
+        .filter((_, index) => !wordsToRemove.has(index))
+        .join(" ")
 }
