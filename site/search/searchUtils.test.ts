@@ -60,12 +60,12 @@ describe("Fuzzy search in search autocomplete", () => {
                 synonymMap
             )
 
-            const countryResults = result.filters.filter(
+            const countryResults = result.filter(
                 (f) => f.type === FilterType.COUNTRY
             )
             expect(countryResults).toHaveLength(1)
             expect(countryResults[0].name).toBe("Germany")
-            expect(result.hasResults).toBe(true)
+            expect(result.length > 0).toBe(true)
         })
 
         it("should combine original and synonym results", () => {
@@ -79,7 +79,7 @@ describe("Fuzzy search in search autocomplete", () => {
                 synonymMap
             )
 
-            const topicResults = result.filters.filter(
+            const topicResults = result.filter(
                 (f) => f.type === FilterType.TOPIC
             )
             expect(topicResults.map((r) => r.name)).toContain(
@@ -115,7 +115,7 @@ describe("Fuzzy search in search autocomplete", () => {
             )
 
             // Should not exceed the limit even with multiple synonym matches
-            const topicResults = result.filters.filter(
+            const topicResults = result.filter(
                 (f) => f.type === FilterType.TOPIC
             )
             expect(topicResults.length).toBeLessThanOrEqual(2)
@@ -138,7 +138,7 @@ describe("Fuzzy search in search autocomplete", () => {
             )
 
             // Should only return "Artificial Intelligence" once, not twice
-            const aiResults = result.filters.filter(
+            const aiResults = result.filter(
                 (r) => r.name === "Artificial Intelligence"
             )
             expect(aiResults).toHaveLength(1)
@@ -155,7 +155,7 @@ describe("Fuzzy search in search autocomplete", () => {
                 synonymMap
             )
 
-            const countryResults = result.filters.filter(
+            const countryResults = result.filter(
                 (f) => f.type === FilterType.COUNTRY
             )
             expect(countryResults).toHaveLength(1)
@@ -176,11 +176,11 @@ describe("Fuzzy search in search autocomplete", () => {
                 synonymMap
             )
 
-            const topicResults = result.filters.filter(
+            const topicResults = result.filter(
                 (f) => f.type === FilterType.TOPIC
             )
             expect(topicResults).toHaveLength(0) // AI should be filtered out
-            expect(result.hasResults).toBe(false)
+            expect(result.length).toBe(0)
         })
 
         it("should not search topics when topics are already selected", () => {
@@ -196,7 +196,7 @@ describe("Fuzzy search in search autocomplete", () => {
                 synonymMap
             )
 
-            const topicResults = result.filters.filter(
+            const topicResults = result.filter(
                 (f) => f.type === FilterType.TOPIC
             )
             expect(topicResults).toHaveLength(0) // No topic search when topics selected
@@ -213,7 +213,7 @@ describe("Fuzzy search in search autocomplete", () => {
                 synonymMap
             )
 
-            const topicResults = result.filters.filter(
+            const topicResults = result.filter(
                 (f) => f.type === FilterType.TOPIC
             )
             expect(topicResults.map((r) => r.name)).toContain(
@@ -233,7 +233,7 @@ describe("Fuzzy search in search autocomplete", () => {
             )
 
             // Should match "CO2 & Greenhouse Gas Emissions" via the synonym
-            const topicResults = result.filters.filter(
+            const topicResults = result.filter(
                 (f) => f.type === FilterType.TOPIC
             )
             expect(
@@ -256,7 +256,7 @@ describe("Fuzzy search in search autocomplete", () => {
                 emptySynonymMap
             )
 
-            expect(result.hasResults).toBe(false)
+            expect(result.length).toBe(0)
         })
     })
 
