@@ -2,6 +2,7 @@ import { expect, it, describe, beforeEach } from "vitest"
 import {
     searchWithWords,
     findMatches,
+    findMatchesWithNgrams,
     getFilterSuggestionsWithUnmatchedQuery,
     createCountryFilter,
     getPaginationOffsetAndLength,
@@ -30,7 +31,8 @@ describe("Fuzzy search in search autocomplete", () => {
         "Population Growth",
         "CO2 & Greenhouse Gas Emissions",
     ]
-    const sortOptions = { threshold: 0.5, limit: 3 }
+    const sortOptions = { threshold: 0.75, limit: 3 }
+    const sortOptionsNgram = { threshold: 0.85 }
 
     beforeEach(() => {
         // Create a mock synonym map with test data
@@ -257,6 +259,125 @@ describe("Fuzzy search in search autocomplete", () => {
             )
 
             expect(result.length).toBe(0)
+        })
+    })
+
+    describe("findMatchesWithNgrams", () => {
+        it("should handle multiple non-overlapping matches", () => {
+            const result = findMatchesWithNgrams(
+                ["united", "states", "climate", "change"],
+                mockCountries,
+                mockTopics,
+                new Set(),
+                new Set(),
+                sortOptions,
+                synonymMap
+            )
+
+            // Should find both "United States" and "Climate Change"
+            expect(result).toHaveLength(2)
+            const names = result.map((r) => r.name).sort()
+            expect(names).toEqual(["Climate Change", "United States"])
+        })
+
+        it("should prevent overlapping n-grams correctly", () => {
+            // Test that when "Indoor Air Pollution" is matched as a 3-gram,
+            // "Air Pollution" is not matched
+            const result = findMatchesWithNgrams(
+                ["indoor", "air", "pollution"],
+                mockCountries,
+                mockTopics,
+                new Set(),
+                new Set(),
+                sortOptions,
+                synonymMap
+            )
+
+            // Should match "Indoor Air Pollution" (3-gram)
+            // Should NOT match "Air Pollution" separately since those positions are already taken
+            expect(result).toHaveLength(1)
+            const names = result.map((r) => r.name)
+            expect(names).toEqual(["Indoor Air Pollution"])
+        })
+
+        it("should deduplicate identical matches", () => {
+            // Create a scenario where the same entity could be matched multiple times
+            // "united sta" (partial match) vs "united states" (exact match)
+            const result = findMatchesWithNgrams(
+                ["united", "sta", "france", "united", "states"], // Adding another country to prevent the whole query to fuzzy match
+                mockCountries,
+                mockTopics,
+                new Set(),
+                new Set(),
+                sortOptions,
+                synonymMap
+            )
+
+            expect(result).toHaveLength(2)
+            expect(result[0].name).toBe("United States")
+            expect(result[1].name).toBe("France")
+        })
+
+        it("should work with synonyms", () => {
+            const result = findMatchesWithNgrams(
+                ["ai", "in", "the", "us"],
+                mockCountries,
+                mockTopics,
+                new Set(),
+                new Set(),
+                sortOptionsNgram,
+                synonymMap
+            )
+
+            expect(result).toHaveLength(2)
+            expect(result[0].name).toBe("Artificial Intelligence")
+            expect(result[1].name).toBe("United States")
+        })
+
+        it("should filter out already selected countries and topics", () => {
+            const selectedCountries = new Set(["United States"])
+            const selectedTopics = new Set(["Artificial Intelligence"])
+
+            const result = findMatchesWithNgrams(
+                ["united", "states", "artificial", "intelligence"],
+                mockCountries,
+                mockTopics,
+                selectedCountries,
+                selectedTopics,
+                sortOptions,
+                synonymMap
+            )
+
+            // Should not return already selected items
+            expect(result).toHaveLength(0)
+        })
+
+        it("should find the longest matches in complex overlapping scenarios", () => {
+            // Create a complex scenario with multiple overlapping possibilities
+            const complexTopics = [
+                "Air",
+                "Pollution",
+                "Air Pollution",
+                "Indoor Air",
+                "Indoor Air Pollution",
+                "Climate",
+                "Climate Change",
+            ]
+
+            const result = findMatchesWithNgrams(
+                ["indoor", "air", "pollution", "climate", "change"],
+                mockCountries,
+                complexTopics,
+                new Set(),
+                new Set(),
+                sortOptions,
+                synonymMap
+            )
+
+            // Should get the longest matches: "Indoor Air Pollution" and "Climate Change"
+            expect(result).toHaveLength(2)
+            const names = result.map((r) => r.name)
+            expect(names).toEqual(["Indoor Air Pollution", "Climate Change"])
         })
     })
 
