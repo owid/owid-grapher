@@ -391,7 +391,7 @@ export class ScatterPlotChartState implements ChartState, ColorScaleManager {
             const series: ScatterSeries = {
                 seriesName: entityName,
                 label: entityName,
-                color: SCATTER_POINT_DEFAULT_COLOR, // Default color, used when no color dimension is present
+                color: SCATTER_POINT_DEFAULT_COLOR,
                 points,
                 focus: this.focusArray.state(entityName),
             }
