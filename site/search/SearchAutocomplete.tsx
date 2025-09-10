@@ -38,11 +38,10 @@ export const SearchAutocomplete = ({
     const {
         state: { filters },
         actions: { addCountry, setTopic },
+        synonymMap,
     } = useSearchContext()
 
     const analytics = useMemo(() => new SiteAnalytics(), [])
-
-    const synonymMap = useMemo(() => buildSynonymMap(), [])
 
     const { suggestions, unmatchedQuery } = useMemo(() => {
         if (!localQuery && !filters.length) {
