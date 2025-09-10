@@ -157,6 +157,10 @@ export type ScoredFilter = Filter & {
     score: number
 }
 
+export type ScoredFilterPositioned = ScoredFilter & {
+    originalPositions: number[]
+}
+
 export type DataInsightHit = {
     title: string
     thumbnailUrl: string
@@ -316,8 +320,9 @@ export type SearchFacetFilters = (string | string[])[]
 
 export type SynonymMap = Map<string, string[]>
 
-export type Ngram = {
-    text: string
-    start: number
-    length: number
+export interface WordPositioned {
+    word: string
+    position: number
 }
+
+export type Ngram = WordPositioned[]
