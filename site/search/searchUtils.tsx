@@ -549,10 +549,7 @@ export function searchWithWords(
     selectedTopics: Set<string>,
     sortOptions: { threshold: number; limit: number },
     synonymMap: SynonymMap
-): {
-    filters: ScoredFilter[]
-    hasResults: boolean
-} {
+): ScoredFilter[] {
     const searchTerm = words.join(" ")
 
     const searchCountryTopics = (term: string) => {
@@ -616,10 +613,7 @@ export function searchWithWords(
         ]
     }
 
-    return {
-        filters,
-        hasResults: filters.length > 0,
-    }
+    return filters
 }
 
 export function findMatches(
@@ -636,7 +630,7 @@ export function findMatches(
     matchStartIndex: number
 } {
     const wordsToSearch = words.slice(wordIndex)
-    const results = searchWithWords(
+    const filters = searchWithWords(
         wordsToSearch,
         allCountryNames,
         allTopics,
@@ -646,9 +640,9 @@ export function findMatches(
         synonymMap
     )
 
-    if (results.hasResults) {
+    if (filters.length > 0) {
         return {
-            filters: results.filters,
+            filters,
             matchStartIndex: wordIndex,
         }
     }
