@@ -43,7 +43,7 @@ import {
     SearchIndexName,
     Filter,
     FilterType,
-    ScoredSearchResult,
+    ScoredFilter,
     SearchResultType,
     SearchTopicType,
     SearchFacetFilters,
@@ -552,14 +552,13 @@ export function searchWithWords(
     sortOptions: { threshold: number; limit: number },
     synonymMap: SynonymMap
 ): {
-    countryResults: ScoredSearchResult[]
-    topicResults: ScoredSearchResult[]
+    filters: ScoredFilter[]
     hasResults: boolean
 } {
     const searchTerm = words.join(" ")
 
     const searchCountryTopics = (term: string) => {
-        const countryResults = FuzzySearch.withKey(
+        const countryFilters: ScoredFilter[] = FuzzySearch.withKey(
             allCountryNames,
             (country) => country,
             sortOptions
@@ -570,27 +569,25 @@ export function searchWithWords(
                     !selectedCountryNames.has(result.target)
             )
             .map((result: FuzzySearchResult) => ({
-                name: result.target,
+                ...createCountryFilter(result.target),
                 score: result.score,
             }))
 
-        const topicResults: ScoredSearchResult[] =
+        const topicFilters: ScoredFilter[] =
             selectedTopics.size === 0
                 ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
                       .searchResults(term)
                       .map((result: FuzzySearchResult) => ({
-                          name: result.target,
+                          ...createTopicFilter(result.target),
                           score: result.score,
                       }))
                 : []
 
-        return { countryResults, topicResults }
+        return [...countryFilters, ...topicFilters]
     }
 
     // 1. Perform original search
-    const originalResults = searchCountryTopics(searchTerm)
-    let allCountryResults = [...originalResults.countryResults]
-    let allTopicResults = [...originalResults.topicResults]
+    let filters = searchCountryTopics(searchTerm)
 
     // 2. Search with synonyms
     const synonyms = synonymMap.get(searchTerm.toLowerCase())
@@ -598,28 +595,32 @@ export function searchWithWords(
     if (synonyms && synonyms.length > 0) {
         // Search with each synonym and combine results
         for (const synonym of synonyms) {
-            const synonymResults = searchCountryTopics(synonym)
-            allCountryResults.push(...synonymResults.countryResults)
-            allTopicResults.push(...synonymResults.topicResults)
+            const filtersFromSynonym = searchCountryTopics(synonym)
+            filters.push(...filtersFromSynonym)
         }
 
         // Deduplicate results by name, keeping the highest score, and enforce
         // the limit given that we are running the search twice and combining
         // result sets, effectively doubling the number of results.
-        const deduplicateResults = (results: ScoredSearchResult[]) =>
+        const deduplicateResultsAndLimit = (results: ScoredFilter[]) =>
             R.uniqueBy(
                 results.sort((a, b) => b.score - a.score),
                 (result) => result.name
             ).slice(0, sortOptions.limit)
 
-        allCountryResults = deduplicateResults(allCountryResults)
-        allTopicResults = deduplicateResults(allTopicResults)
+        filters = [
+            ...deduplicateResultsAndLimit(
+                filters.filter((f) => f.type === FilterType.COUNTRY)
+            ),
+            ...deduplicateResultsAndLimit(
+                filters.filter((f) => f.type === FilterType.TOPIC)
+            ),
+        ]
     }
 
     return {
-        countryResults: allCountryResults,
-        topicResults: allTopicResults,
-        hasResults: allCountryResults.length > 0 || allTopicResults.length > 0,
+        filters,
+        hasResults: filters.length > 0,
     }
 }
 
@@ -633,8 +634,7 @@ export function findMatches(
     synonymMap: SynonymMap,
     wordIndex: number = 0
 ): {
-    countryResults: ScoredSearchResult[]
-    topicResults: ScoredSearchResult[]
+    filters: ScoredFilter[]
     matchStartIndex: number
 } {
     const wordsToSearch = words.slice(wordIndex)
@@ -650,8 +650,7 @@ export function findMatches(
 
     if (results.hasResults) {
         return {
-            countryResults: results.countryResults,
-            topicResults: results.topicResults,
+            filters: results.filters,
             matchStartIndex: wordIndex,
         }
     }
@@ -668,8 +667,7 @@ export function findMatches(
               wordIndex + 1
           )
         : {
-              countryResults: [],
-              topicResults: [],
+              filters: [],
               matchStartIndex: words.length,
           }
 }
@@ -708,7 +706,7 @@ export function findMatches(
  *
  * @returns Object containing suggestion filters and any unmatched query portion
  */
-export function getAutocompleteSuggestionsWithUnmatchedQuery(
+export function getFilterSuggestionsWithUnmatchedQuery(
     query: string,
     allTopics: string[],
     filters: Filter[], // currently active filters to exclude from suggestions
@@ -758,15 +756,13 @@ export function getAutocompleteSuggestionsWithUnmatchedQuery(
         .slice(0, searchResults.matchStartIndex)
         .join(" ")
 
-    const countryMatches = searchResults.countryResults.map((result) => ({
-        filter: createCountryFilter(result.name),
-        score: result.score,
-    }))
+    const countryMatches = searchResults.filters.filter(
+        (f) => f.type === FilterType.COUNTRY
+    )
 
-    const topicMatches = searchResults.topicResults.map((result) => ({
-        filter: createTopicFilter(result.name),
-        score: result.score,
-    }))
+    const topicMatches = searchResults.filters.filter(
+        (f) => f.type === FilterType.TOPIC
+    )
 
     const allMatches = [...countryMatches, ...topicMatches]
 
@@ -780,9 +776,9 @@ export function getAutocompleteSuggestionsWithUnmatchedQuery(
     )
 
     const combinedFilters = [
-        ...exactMatches.map((item) => item.filter),
+        ...exactMatches,
         ...(query ? [createQueryFilter(query)] : []),
-        ...sortedPartialMatches.map((item) => item.filter),
+        ...sortedPartialMatches,
     ]
 
     return {
