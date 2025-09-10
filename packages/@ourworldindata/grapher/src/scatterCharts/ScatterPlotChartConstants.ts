@@ -73,7 +73,7 @@ export interface ScatterRenderPoint {
     }
 }
 
-export const SCATTER_POINT_DEFAULT_COLOR = "#932834"
+export const SCATTER_POINT_DEFAULT_COLOR = "#932834" // used when no color dimension is present
 export const SCATTER_POINT_MIN_RADIUS: number = 2 // only enforced in rendered points, not in scale
 export const SCATTER_POINT_MAX_RADIUS: number = 18
 export const SCATTER_POINT_OPACITY: number = 0.8
