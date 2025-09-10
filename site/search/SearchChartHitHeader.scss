@@ -1,10 +1,8 @@
 .search-chart-hit-header {
     overflow: hidden;
 
-    .search-chart-hit-header__content-wrapper {
-        display: flex;
-        gap: 16px;
-    }
+    display: flex;
+    gap: 16px;
 
     .search-chart-hit-header__logo {
         height: 32px;
@@ -53,6 +51,10 @@
                 @include sm-up {
                     display: none;
                 }
+            }
+
+            &:hover {
+                text-decoration: underline;
             }
         }
 
