@@ -52,6 +52,7 @@ import {
     IChartHit,
     SearchUrlParam,
     SynonymMap,
+    Ngram,
 } from "./searchTypes.js"
 import {
     faBook,
@@ -599,10 +600,10 @@ export function searchWithWords(
         // Deduplicate results by name, keeping the highest score, and enforce
         // the limit given that we are running the search twice and combining
         // result sets, effectively doubling the number of results.
-        const deduplicateResultsAndLimit = (results: ScoredFilter[]) =>
+        const deduplicateResultsAndLimit = (filters: ScoredFilter[]) =>
             R.uniqueBy(
-                results.sort((a, b) => b.score - a.score),
-                (result) => result.name
+                filters.toSorted((a, b) => b.score - a.score),
+                (filter) => filter.name
             ).slice(0, sortOptions.limit)
 
         filters = [
@@ -616,6 +617,82 @@ export function searchWithWords(
     }
 
     return filters
+}
+
+/**
+ * Cousin of findMatches that uses n-gram approach to find matches
+ * for all possible combinations of words in the query, not just left-to-right reduction.
+ *
+ * Generates n-grams from 1 to 4 words, prioritizing longer phrases over shorter ones.
+ * Uses overlap detection to prevent the same word positions from being matched multiple times.
+ * Keeps a single country or filter topic per n-gram then deduplicates overall results by name.
+ *
+ * @returns Array of deduplicated scored filters
+ */
+export function findMatchesWithNgrams(
+    words: string[],
+    allCountryNames: string[],
+    allTopics: string[],
+    selectedCountryNames: Set<string>,
+    selectedTopics: Set<string>,
+    sortOptions: { threshold: number }, // this should be high (> 0.85) to give a chance to single word synonym to match
+    synonymMap: SynonymMap
+): ScoredFilter[] {
+    const allFilters: ScoredFilter[] = []
+    const matchedWordPositions = new Set<number>()
+
+    const ngrams: Ngram[] = []
+    const maxNgramSize = Math.min(words.length, 4) // Topics and countries mostly fit within 4 words
+
+    // Generate n-grams from largest to smallest to prioritize longer phrases
+    for (let n = maxNgramSize; n >= 1; n--) {
+        for (let i = 0; i <= words.length - n; i++) {
+            ngrams.push({
+                text: words.slice(i, i + n).join(" "),
+                start: i,
+                length: n,
+            })
+        }
+    }
+
+    // Search each n-gram and collect results, prioritizing longer phrases
+    for (const { text, start, length } of ngrams) {
+        const ngramWords = text.split(" ")
+
+        // Check if any words in this n-gram are already matched by a longer phrase
+        const ngramPositions = Array.from({ length }, (_, i) => start + i)
+
+        const hasOverlap = ngramPositions.some((pos) =>
+            matchedWordPositions.has(pos)
+        )
+
+        if (hasOverlap) continue // Skip this n-gram if it overlaps with already matched words
+
+        const filters = searchWithWords(
+            ngramWords,
+            allCountryNames,
+            allTopics,
+            selectedCountryNames,
+            selectedTopics,
+            { ...sortOptions, limit: 1 }, // one per filter type
+            synonymMap
+        )
+
+        if (filters.length > 0) {
+            const bestFilter = filters.toSorted((a, b) => b.score - a.score)[0]
+            allFilters.push(bestFilter)
+            // Mark these word positions as matched
+            ngramPositions.forEach((pos) => matchedWordPositions.add(pos))
+        }
+    }
+
+    // Deduplicate results by name
+    const deduplicatedFilters = R.uniqueBy(
+        allFilters.toSorted((a, b) => b.score - a.score),
+        (filter) => filter.name
+    )
+
+    return deduplicatedFilters
 }
 
 export function findMatches(
