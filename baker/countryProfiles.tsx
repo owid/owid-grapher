@@ -136,27 +136,39 @@ export const denormalizeLatestCountryData = async (
         .select("variableId", "entityCode", "year", "value")
         .rename({ variableId: "variable_id", entityCode: "country_code" })
 
-    // Use REPLACE to avoid deadlock issues - it's atomic and handles duplicates
-    if (df.height > 0) {
-        const records = df.toRecords()
-        await trx.raw(
-            `
-            REPLACE INTO country_latest_data (country_code, variable_id, year, value)
-            VALUES ${records.map(() => "(?, ?, ?, ?)").join(", ")}
-        `,
-            records.flatMap((r) => [
-                r.country_code,
-                r.variable_id,
-                r.year,
-                r.value,
-            ])
-        )
-    } else {
-        // Still need to delete if no new data
-        await trx
-            .table("country_latest_data")
-            .whereIn("variable_id", variableIds as number[])
-            .delete()
+    // Retry mechanism for deadlock handling
+    const maxRetries = 3
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+            if (df.height > 0) {
+                const records = df.toRecords()
+                await trx.raw(
+                    `
+                    REPLACE INTO country_latest_data (country_code, variable_id, year, value)
+                    VALUES ${records.map(() => "(?, ?, ?, ?)").join(", ")}
+                `,
+                    records.flatMap((r) => [
+                        r.country_code,
+                        r.variable_id,
+                        r.year,
+                        r.value,
+                    ])
+                )
+            } else {
+                await trx
+                    .table("country_latest_data")
+                    .whereIn("variable_id", variableIds as number[])
+                    .delete()
+            }
+            break // Success
+        } catch (error: any) {
+            if (error.code === "ER_LOCK_DEADLOCK" && attempt < maxRetries - 1) {
+                // Wait with exponential backoff
+                await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, attempt) + Math.random() * 50))
+            } else {
+                throw error
+            }
+        }
     }
 }
 
