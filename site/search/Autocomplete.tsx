@@ -36,7 +36,7 @@ import Mousetrap from "mousetrap"
 import { match } from "ts-pattern"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import {
-    getAutocompleteSuggestionsWithUnmatchedQuery,
+    getFilterSuggestionsWithUnmatchedQuery,
     getFilterIcon,
     getItemUrlForFilter,
     getPageTypeNameAndIcon,
@@ -254,7 +254,7 @@ const createFiltersSource = (
     getItems({ query }) {
         if (!query.trim()) return []
 
-        const suggestions = getAutocompleteSuggestionsWithUnmatchedQuery(
+        const suggestions = getFilterSuggestionsWithUnmatchedQuery(
             query,
             allTopics,
             [], // no selected filters in this context
