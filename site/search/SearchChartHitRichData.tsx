@@ -171,6 +171,7 @@ export function SearchChartHitRichData({
                     hit={hit}
                     url={chartUrl}
                     source={grapherState.sourcesLine}
+                    showLogo={isLargeVariant}
                     onClick={onClick}
                 />
                 <div className="search-chart-hit-rich-data__header-actions">
@@ -191,14 +192,6 @@ export function SearchChartHitRichData({
                         icon={faDownload}
                         iconPosition="left"
                     />
-                    {isLargeVariant && (
-                        <img
-                            src="owid-logo.svg"
-                            alt="Our World in Data logo"
-                            width={104}
-                            height={57}
-                        />
-                    )}
                 </div>
             </div>
 
