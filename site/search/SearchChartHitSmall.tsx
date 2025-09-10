@@ -66,13 +66,23 @@ export function SearchChartHitSmall({
     const grapherParams = toGrapherQueryParams({ entities })
     const chartUrl = constructChartUrl({ hit, grapherParams })
 
+    const sourcesUrl = constructChartUrl({
+        hit,
+        grapherParams,
+        overlay: "sources",
+    })
+
     return (
         <article ref={ref} className="search-chart-hit-small">
             <div className="search-chart-hit-small__content">
                 <SearchChartHitHeader
                     hit={hit}
                     url={chartUrl}
-                    source={chartInfo?.source}
+                    source={
+                        chartInfo?.source
+                            ? { text: chartInfo.source, url: sourcesUrl }
+                            : undefined
+                    }
                     onClick={onClick}
                 />
                 <div className="search-chart-hit-small__tabs-container">
