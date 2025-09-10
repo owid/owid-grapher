@@ -164,7 +164,12 @@ export const denormalizeLatestCountryData = async (
         } catch (error: any) {
             if (error.code === "ER_LOCK_DEADLOCK" && attempt < maxRetries - 1) {
                 // Wait with exponential backoff
-                await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, attempt) + Math.random() * 50))
+                await new Promise((resolve) =>
+                    setTimeout(
+                        resolve,
+                        100 * Math.pow(2, attempt) + Math.random() * 50
+                    )
+                )
             } else {
                 throw error
             }
