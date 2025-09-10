@@ -30,18 +30,27 @@ export default function SpanElement({
                 <LinkedA span={span} />
             ) : (
                 <span>
-                    <SpanElements spans={span.children} />
+                    <SpanElements
+                        spans={span.children}
+                        shouldRenderLinks={shouldRenderLinks}
+                    />
                 </span>
             )
         )
         .with({ spanType: "span-ref" }, (span) =>
             shouldRenderLinks ? (
                 <a href={span.url} className="ref">
-                    <SpanElements spans={span.children} />
+                    <SpanElements
+                        spans={span.children}
+                        shouldRenderLinks={shouldRenderLinks}
+                    />
                 </a>
             ) : (
                 <span className="ref">
-                    <SpanElements spans={span.children} />
+                    <SpanElements
+                        spans={span.children}
+                        shouldRenderLinks={shouldRenderLinks}
+                    />
                 </span>
             )
         )
@@ -49,7 +58,10 @@ export default function SpanElement({
             if (!shouldRenderLinks) {
                 return (
                     <span className="guided-chart-link">
-                        <SpanElements spans={span.children} />
+                        <SpanElements
+                            spans={span.children}
+                            shouldRenderLinks={shouldRenderLinks}
+                        />
                     </span>
                 )
             }
@@ -73,49 +85,76 @@ export default function SpanElement({
                     onClick={handleClick}
                 >
                     <FontAwesomeIcon icon={faEye} />
-                    <SpanElements spans={span.children} />
+                    <SpanElements
+                        spans={span.children}
+                        shouldRenderLinks={shouldRenderLinks}
+                    />
                 </a>
             )
         })
         .with({ spanType: "span-dod" }, (span) => (
             <span className="dod-span" data-id={`${span.id}`} tabIndex={0}>
-                <SpanElements spans={span.children} />
+                <SpanElements
+                    spans={span.children}
+                    shouldRenderLinks={shouldRenderLinks}
+                />
             </span>
         ))
         .with({ spanType: "span-newline" }, () => <br />)
         .with({ spanType: "span-italic" }, (span) => (
             <em>
-                <SpanElements spans={span.children} />
+                <SpanElements
+                    spans={span.children}
+                    shouldRenderLinks={shouldRenderLinks}
+                />
             </em>
         ))
         .with({ spanType: "span-bold" }, (span) => (
             <strong>
-                <SpanElements spans={span.children} />
+                <SpanElements
+                    spans={span.children}
+                    shouldRenderLinks={shouldRenderLinks}
+                />
             </strong>
         ))
         .with({ spanType: "span-underline" }, (span) => (
             <u>
-                <SpanElements spans={span.children} />
+                <SpanElements
+                    spans={span.children}
+                    shouldRenderLinks={shouldRenderLinks}
+                />
             </u>
         ))
         .with({ spanType: "span-subscript" }, (span) => (
             <sub>
-                <SpanElements spans={span.children} />
+                <SpanElements
+                    spans={span.children}
+                    shouldRenderLinks={shouldRenderLinks}
+                />
             </sub>
         ))
         .with({ spanType: "span-superscript" }, (span) => (
             <sup>
-                <SpanElements spans={span.children} />
+                <SpanElements
+                    spans={span.children}
+                    shouldRenderLinks={shouldRenderLinks}
+                />
             </sup>
         ))
         .with({ spanType: "span-quote" }, (span) => (
             <q>
-                <SpanElements spans={span.children} />
+                <SpanElements
+                    spans={span.children}
+                    shouldRenderLinks={shouldRenderLinks}
+                />
             </q>
         ))
         .with({ spanType: "span-fallback" }, (span) => (
             <span>
-                <SpanElements spans={span.children} />
+                <SpanElements
+                    spans={span.children}
+                    shouldRenderLinks={shouldRenderLinks}
+                />
             </span>
         ))
         .exhaustive()
