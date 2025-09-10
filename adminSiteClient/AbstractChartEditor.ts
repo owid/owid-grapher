@@ -18,11 +18,7 @@ import {
 import { NarrativeChartMinimalInformation } from "./ChartEditor.js"
 import { IndicatorChartInfo } from "./IndicatorChartEditor.js"
 import { DataInsightMinimalInformation } from "../adminShared/AdminTypes.js"
-import {
-    ADMIN_BASE_URL,
-    BAKED_GRAPHER_URL,
-    DATA_API_URL,
-} from "../settings/clientSettings.js"
+import { DATA_API_URL } from "../settings/clientSettings.js"
 
 export type EditorTab =
     | "basic"
@@ -61,8 +57,6 @@ export abstract class AbstractChartEditor<
     grapherState = new GrapherState({
         additionalDataLoaderFn: (varId: number) =>
             loadVariableDataAndMetadata(varId, DATA_API_URL, { noCache: true }),
-        bakedGrapherURL: BAKED_GRAPHER_URL,
-        adminBaseUrl: ADMIN_BASE_URL,
     })
     cachingGrapherDataLoader = getCachingInputTableFetcher(
         DATA_API_URL,
