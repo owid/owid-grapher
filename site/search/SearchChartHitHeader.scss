@@ -1,6 +1,16 @@
 .search-chart-hit-header {
     overflow: hidden;
 
+    .search-chart-hit-header__content-wrapper {
+        display: flex;
+        gap: 16px;
+    }
+
+    .search-chart-hit-header__logo {
+        height: 32px;
+        width: auto;
+    }
+
     .search-chart-hit-header__content {
         display: flex;
         flex-direction: column;
