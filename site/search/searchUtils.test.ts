@@ -7,6 +7,7 @@ import {
     createCountryFilter,
     getPaginationOffsetAndLength,
     getNbPaginatedItemsRequested,
+    removeMatchedWordsWithStopWords,
 } from "./searchUtils"
 
 import { FilterType, SynonymMap } from "./searchTypes.js"
@@ -334,6 +335,42 @@ describe("Fuzzy search in search autocomplete", () => {
             expect(result[1].name).toBe("United States")
         })
 
+        it("should filter out stop words from n-grams", () => {
+            const result = findMatchesWithNgrams(
+                ["artificial", "intelligence", "in", "the", "united", "states"],
+                mockCountries,
+                mockTopics,
+                new Set(),
+                new Set(),
+                sortOptionsNgram,
+                synonymMap
+            )
+
+            expect(result).toHaveLength(2)
+            expect(result[0].name).toBe("Artificial Intelligence")
+            expect(result[1].name).toBe("United States")
+            // Check that original positions take stop words into account
+            expect(result[0].originalPositions).toEqual([0, 1])
+            expect(result[1].originalPositions).toEqual([4, 5])
+        })
+
+        it("should handle stop words at beginning and end", () => {
+            const result = findMatchesWithNgrams(
+                ["the", "united", "states", "of", "america"],
+                ["United States", ...mockCountries],
+                mockTopics,
+                new Set(),
+                new Set(),
+                sortOptionsNgram,
+                synonymMap
+            )
+
+            expect(result).toHaveLength(1)
+            expect(result[0].name).toBe("United States")
+            // Should match positions [1, 2] (skipping "the" at start)
+            expect(result[0].originalPositions).toEqual([1, 2])
+        })
+
         it("should filter out already selected countries and topics", () => {
             const selectedCountries = new Set(["United States"])
             const selectedTopics = new Set(["Artificial Intelligence"])
@@ -378,6 +415,55 @@ describe("Fuzzy search in search autocomplete", () => {
             expect(result).toHaveLength(2)
             const names = result.map((r) => r.name)
             expect(names).toEqual(["Indoor Air Pollution", "Climate Change"])
+        })
+    })
+
+    describe("removeMatchedWordsWithStopWords", () => {
+        it("should remove matched words and preceding stop words", () => {
+            const words = [
+                "artificial",
+                "intelligence",
+                "in",
+                "the",
+                "united",
+                "states",
+            ]
+            // Remove "united states" at positions [4, 5]
+            const result = removeMatchedWordsWithStopWords(words, [4, 5])
+
+            // Should remove "united states" and preceding stop words "in the"
+            expect(result).toBe("artificial intelligence")
+        })
+
+        it("should handle multiple stop words before match", () => {
+            const words = ["climate", "change", "in", "the", "united", "states"]
+            // Remove "united states" at positions [4, 5]
+            const result = removeMatchedWordsWithStopWords(words, [4, 5])
+
+            expect(result).toBe("climate change")
+        })
+
+        it("should not remove non-stop words before match", () => {
+            const words = [
+                "climate",
+                "change",
+                "data",
+                "for",
+                "united",
+                "states",
+            ]
+            // Remove "united states" at positions [4, 5]
+            const result = removeMatchedWordsWithStopWords(words, [4, 5])
+
+            // Should only remove "for" (stop word) but keep "data"
+            expect(result).toBe("climate change data")
+        })
+
+        it("should handle empty matched positions", () => {
+            const words = ["climate", "change"]
+            const result = removeMatchedWordsWithStopWords(words, [])
+
+            expect(result).toBe("climate change")
         })
     })
 
