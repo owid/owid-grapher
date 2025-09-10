@@ -136,14 +136,13 @@ export const denormalizeLatestCountryData = async (
         .select("variableId", "entityCode", "year", "value")
         .rename({ variableId: "variable_id", entityCode: "country_code" })
 
-    // Upsert new values to avoid deadlock issues
+    // Use REPLACE to avoid deadlock issues - it's atomic and handles duplicates
     if (df.height > 0) {
         const records = df.toRecords()
         await trx.raw(
             `
-            INSERT INTO country_latest_data (country_code, variable_id, year, value) 
-            VALUES ${records.map(() => "(?, ?, ?, ?)").join(", ")} 
-            ON DUPLICATE KEY UPDATE year = VALUES(year), value = VALUES(value)
+            REPLACE INTO country_latest_data (country_code, variable_id, year, value) 
+            VALUES ${records.map(() => "(?, ?, ?, ?)").join(", ")}
         `,
             records.flatMap((r) => [
                 r.country_code,
