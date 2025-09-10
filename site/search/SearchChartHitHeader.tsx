@@ -33,7 +33,7 @@ export function SearchChartHitHeader({
                     </h3>
                     {source && (
                         <span className="search-chart-hit-header__source search-chart-hit-header__source--desktop">
-                            {source}
+                            Source: {source}
                         </span>
                     )}
                 </div>
@@ -45,7 +45,7 @@ export function SearchChartHitHeader({
                 />
                 {source && (
                     <span className="search-chart-hit-header__source search-chart-hit-header__source--mobile">
-                        {source}
+                        Source: {source}
                     </span>
                 )}
             </header>
