@@ -315,3 +315,9 @@ export interface TemplateConfig {
 export type SearchFacetFilters = (string | string[])[]
 
 export type SynonymMap = Map<string, string[]>
+
+export type Ngram = {
+    text: string
+    start: number
+    length: number
+}
