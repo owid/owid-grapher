@@ -196,6 +196,52 @@ it("can display a chart with missing variable data for some entities, while hidi
     ])
 })
 
+it("can display a chart with missing variable data for some entities, while hiding missing data in relative mode", () => {
+    const csv = `coal,gas,year,entityName
+    20,,2000,France
+    10,30,2000,Italy
+    ,14,2000,Spain`
+    const table = new OwidTable(csv, [
+        { slug: "coal", type: ColumnTypeNames.Numeric },
+        { slug: "gas", type: ColumnTypeNames.Numeric },
+        { slug: "year", type: ColumnTypeNames.Year },
+    ])
+
+    const manager: ChartManager = {
+        table,
+        selection: table.availableEntityNames,
+        yColumnSlugs: ["coal", "gas"],
+        isRelativeMode: true,
+    }
+    const chartState = new StackedDiscreteBarChartState({ manager })
+
+    // Check that our absolute values get properly transformed into percentages
+    expect(chartState.errorInfo.reason).toEqual("")
+    expect(
+        chartState.transformTableForSelection(table).availableEntityNames
+    ).toEqual(["Italy"])
+
+    expect(chartState.series.length).toEqual(2)
+    expect(chartState.series[0].points).toEqual([
+        {
+            position: "Italy",
+            value: 25,
+            valueOffset: 0,
+            time: 2000,
+            fake: false,
+        },
+    ])
+    expect(chartState.series[1].points).toEqual([
+        {
+            position: "Italy",
+            value: 75,
+            valueOffset: 25,
+            time: 2000,
+            fake: false,
+        },
+    ])
+})
+
 it("can display chart with negative values", () => {
     const csv = `coal,gas,year,entityName
 -20,30,2000,France
