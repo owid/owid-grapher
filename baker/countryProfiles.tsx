@@ -141,7 +141,7 @@ export const denormalizeLatestCountryData = async (
         const records = df.toRecords()
         await trx.raw(
             `
-            REPLACE INTO country_latest_data (country_code, variable_id, year, value) 
+            REPLACE INTO country_latest_data (country_code, variable_id, year, value)
             VALUES ${records.map(() => "(?, ?, ?, ?)").join(", ")}
         `,
             records.flatMap((r) => [
