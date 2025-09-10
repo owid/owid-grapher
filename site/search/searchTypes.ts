@@ -152,7 +152,7 @@ export type SearchDataTopicsResponse = {
     charts: SearchResponse<SearchChartHit>
 }
 
-export type ScoredSearchResult = {
+export type ScoredFilter = Filter & {
     name: string
     score: number
 }
