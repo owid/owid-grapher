@@ -139,11 +139,19 @@ export const denormalizeLatestCountryData = async (
     // Upsert new values to avoid deadlock issues
     if (df.height > 0) {
         const records = df.toRecords()
-        await trx.raw(`
+        await trx.raw(
+            `
             INSERT INTO country_latest_data (country_code, variable_id, year, value) 
             VALUES ${records.map(() => "(?, ?, ?, ?)").join(", ")} 
             ON DUPLICATE KEY UPDATE year = VALUES(year), value = VALUES(value)
-        `, records.flatMap(r => [r.country_code, r.variable_id, r.year, r.value]))
+        `,
+            records.flatMap((r) => [
+                r.country_code,
+                r.variable_id,
+                r.year,
+                r.value,
+            ])
+        )
     } else {
         // Still need to delete if no new data
         await trx
