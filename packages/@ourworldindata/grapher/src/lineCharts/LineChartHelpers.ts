@@ -69,7 +69,7 @@ export function getDisplayName({
     // Only prepend the entity name when multiple entities are currently selected
     // (this is different from series names that always include the entity name)
     return hasMultipleEntitiesSelected
-        ? `${entityName} – ${columnName}` // Uses em dash for display
+        ? `${entityName} – ${columnName}` // Uses en dash for display
         : columnName
 }
 
