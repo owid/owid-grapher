@@ -2,7 +2,7 @@ import { expect, it, describe, beforeEach } from "vitest"
 import {
     searchWithWords,
     findMatches,
-    getAutocompleteSuggestionsWithUnmatchedQuery,
+    getFilterSuggestionsWithUnmatchedQuery,
     createCountryFilter,
     getPaginationOffsetAndLength,
     getNbPaginatedItemsRequested,
@@ -60,8 +60,11 @@ describe("Fuzzy search in search autocomplete", () => {
                 synonymMap
             )
 
-            expect(result.countryResults).toHaveLength(1)
-            expect(result.countryResults[0].name).toBe("Germany")
+            const countryResults = result.filters.filter(
+                (f) => f.type === FilterType.COUNTRY
+            )
+            expect(countryResults).toHaveLength(1)
+            expect(countryResults[0].name).toBe("Germany")
             expect(result.hasResults).toBe(true)
         })
 
@@ -76,12 +79,13 @@ describe("Fuzzy search in search autocomplete", () => {
                 synonymMap
             )
 
-            expect(result.topicResults.map((r) => r.name)).toContain(
+            const topicResults = result.filters.filter(
+                (f) => f.type === FilterType.TOPIC
+            )
+            expect(topicResults.map((r) => r.name)).toContain(
                 "Artificial Intelligence"
             )
-            expect(result.topicResults.map((r) => r.name)).toContain(
-                "Air Pollution"
-            )
+            expect(topicResults.map((r) => r.name)).toContain("Air Pollution")
         })
 
         it("should respect the limit parameter when combining results", () => {
@@ -111,7 +115,10 @@ describe("Fuzzy search in search autocomplete", () => {
             )
 
             // Should not exceed the limit even with multiple synonym matches
-            expect(result.topicResults.length).toBeLessThanOrEqual(2)
+            const topicResults = result.filters.filter(
+                (f) => f.type === FilterType.TOPIC
+            )
+            expect(topicResults.length).toBeLessThanOrEqual(2)
         })
 
         it("should deduplicate results and keep highest scores", () => {
@@ -131,7 +138,7 @@ describe("Fuzzy search in search autocomplete", () => {
             )
 
             // Should only return "Artificial Intelligence" once, not twice
-            const aiResults = result.topicResults.filter(
+            const aiResults = result.filters.filter(
                 (r) => r.name === "Artificial Intelligence"
             )
             expect(aiResults).toHaveLength(1)
@@ -148,8 +155,11 @@ describe("Fuzzy search in search autocomplete", () => {
                 synonymMap
             )
 
-            expect(result.countryResults).toHaveLength(1)
-            expect(result.countryResults[0].name).toBe("United States")
+            const countryResults = result.filters.filter(
+                (f) => f.type === FilterType.COUNTRY
+            )
+            expect(countryResults).toHaveLength(1)
+            expect(countryResults[0].name).toBe("United States")
         })
 
         it("should filter out already selected countries and topics", () => {
@@ -166,7 +176,10 @@ describe("Fuzzy search in search autocomplete", () => {
                 synonymMap
             )
 
-            expect(result.topicResults).toHaveLength(0) // AI should be filtered out
+            const topicResults = result.filters.filter(
+                (f) => f.type === FilterType.TOPIC
+            )
+            expect(topicResults).toHaveLength(0) // AI should be filtered out
             expect(result.hasResults).toBe(false)
         })
 
@@ -183,7 +196,10 @@ describe("Fuzzy search in search autocomplete", () => {
                 synonymMap
             )
 
-            expect(result.topicResults).toHaveLength(0) // No topic search when topics selected
+            const topicResults = result.filters.filter(
+                (f) => f.type === FilterType.TOPIC
+            )
+            expect(topicResults).toHaveLength(0) // No topic search when topics selected
         })
 
         it("should handle case-insensitive synonym matching", () => {
@@ -197,7 +213,10 @@ describe("Fuzzy search in search autocomplete", () => {
                 synonymMap
             )
 
-            expect(result.topicResults.map((r) => r.name)).toContain(
+            const topicResults = result.filters.filter(
+                (f) => f.type === FilterType.TOPIC
+            )
+            expect(topicResults.map((r) => r.name)).toContain(
                 "Artificial Intelligence"
             )
         })
@@ -214,8 +233,11 @@ describe("Fuzzy search in search autocomplete", () => {
             )
 
             // Should match "CO2 & Greenhouse Gas Emissions" via the synonym
+            const topicResults = result.filters.filter(
+                (f) => f.type === FilterType.TOPIC
+            )
             expect(
-                result.topicResults.some(
+                topicResults.some(
                     (r) => r.name === "CO2 & Greenhouse Gas Emissions"
                 )
             ).toBe(true)
@@ -251,9 +273,10 @@ describe("Fuzzy search in search autocomplete", () => {
             )
 
             expect(result.matchStartIndex).toBe(0) // Found match at "germany"
-            expect(
-                result.countryResults.some((r) => r.name === "Germany")
-            ).toBe(true)
+            const countryResults = result.filters.filter(
+                (f) => f.type === FilterType.COUNTRY
+            )
+            expect(countryResults.some((r) => r.name === "Germany")).toBe(true)
         })
 
         it("should find matches for existing topics", () => {
@@ -268,9 +291,12 @@ describe("Fuzzy search in search autocomplete", () => {
             )
 
             expect(result.matchStartIndex).toBe(0) // Found match at "climate change"
-            expect(
-                result.topicResults.some((r) => r.name === "Climate Change")
-            ).toBe(true)
+            const topicResults = result.filters.filter(
+                (f) => f.type === FilterType.TOPIC
+            )
+            expect(topicResults.some((r) => r.name === "Climate Change")).toBe(
+                true
+            )
         })
 
         it("should ignore first words if whole query doesn't match", () => {
@@ -285,9 +311,10 @@ describe("Fuzzy search in search autocomplete", () => {
             )
 
             expect(result.matchStartIndex).toBe(2) // Found match at "germany"
-            expect(
-                result.countryResults.some((r) => r.name === "Germany")
-            ).toBe(true)
+            const countryResults = result.filters.filter(
+                (f) => f.type === FilterType.COUNTRY
+            )
+            expect(countryResults.some((r) => r.name === "Germany")).toBe(true)
         })
 
         it("should handle no matches found", () => {
@@ -302,8 +329,14 @@ describe("Fuzzy search in search autocomplete", () => {
             )
 
             expect(result.matchStartIndex).toBe(2) // End of array
-            expect(result.countryResults).toHaveLength(0)
-            expect(result.topicResults).toHaveLength(0)
+            const countryResults = result.filters.filter(
+                (f) => f.type === FilterType.COUNTRY
+            )
+            const topicResults = result.filters.filter(
+                (f) => f.type === FilterType.TOPIC
+            )
+            expect(countryResults).toHaveLength(0)
+            expect(topicResults).toHaveLength(0)
         })
 
         it("should work with synonyms in progressive search", () => {
@@ -318,17 +351,18 @@ describe("Fuzzy search in search autocomplete", () => {
             )
 
             expect(result.matchStartIndex).toBe(2) // Found match at "ai"
+            const topicResults = result.filters.filter(
+                (f) => f.type === FilterType.TOPIC
+            )
             expect(
-                result.topicResults.some(
-                    (r) => r.name === "Artificial Intelligence"
-                )
+                topicResults.some((r) => r.name === "Artificial Intelligence")
             ).toBe(true)
         })
     })
 
     describe("getAutocompleteSuggestionsWithUnmatchedQuery", () => {
         it("should return suggestions with unmatched query", () => {
-            const result = getAutocompleteSuggestionsWithUnmatchedQuery(
+            const result = getFilterSuggestionsWithUnmatchedQuery(
                 "climate change germany",
                 mockTopics,
                 [],
@@ -346,7 +380,7 @@ describe("Fuzzy search in search autocomplete", () => {
 
         it("should prioritize exact matches", () => {
             // Mock perfect score
-            const result = getAutocompleteSuggestionsWithUnmatchedQuery(
+            const result = getFilterSuggestionsWithUnmatchedQuery(
                 "air pollution",
                 mockTopics,
                 [],
@@ -360,7 +394,7 @@ describe("Fuzzy search in search autocomplete", () => {
         })
 
         it("should include query filter when query is provided", () => {
-            const result = getAutocompleteSuggestionsWithUnmatchedQuery(
+            const result = getFilterSuggestionsWithUnmatchedQuery(
                 "some query",
                 mockTopics,
                 [],
@@ -378,7 +412,7 @@ describe("Fuzzy search in search autocomplete", () => {
         it("should exclude already selected filters", () => {
             const existingFilters = [createCountryFilter("Germany")]
 
-            const result = getAutocompleteSuggestionsWithUnmatchedQuery(
+            const result = getFilterSuggestionsWithUnmatchedQuery(
                 "germany",
                 mockTopics,
                 existingFilters,
@@ -393,7 +427,7 @@ describe("Fuzzy search in search autocomplete", () => {
         })
 
         it("should work with synonym-based suggestions", () => {
-            const result = getAutocompleteSuggestionsWithUnmatchedQuery(
+            const result = getFilterSuggestionsWithUnmatchedQuery(
                 "ai",
                 mockTopics,
                 [],
@@ -410,7 +444,7 @@ describe("Fuzzy search in search autocomplete", () => {
         })
 
         it("should stop progressing through the query when finding results", () => {
-            const result = getAutocompleteSuggestionsWithUnmatchedQuery(
+            const result = getFilterSuggestionsWithUnmatchedQuery(
                 "air pollution",
                 mockTopics,
                 [],
@@ -432,7 +466,7 @@ describe("Fuzzy search in search autocomplete", () => {
     })
 
     it("should handle special characters in queries", () => {
-        const result = getAutocompleteSuggestionsWithUnmatchedQuery(
+        const result = getFilterSuggestionsWithUnmatchedQuery(
             "CO₂",
             mockTopics,
             [],
@@ -449,7 +483,7 @@ describe("Fuzzy search in search autocomplete", () => {
     })
 
     it("should handle queries with multiple spaces", () => {
-        const result = getAutocompleteSuggestionsWithUnmatchedQuery(
+        const result = getFilterSuggestionsWithUnmatchedQuery(
             "climate    change     germany",
             mockTopics,
             [],
