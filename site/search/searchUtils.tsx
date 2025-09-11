@@ -978,9 +978,13 @@ export function getFilterSuggestionsWithUnmatchedQuery(
         ...sortedPartialMatches,
     ]
 
+    const unmatchedQueryNoStopWords = unmatchedQuery
+        .split(/\s+/)
+        .filter((word) => !STOP_WORDS.has(word.toLowerCase()))
+
     return {
         suggestions: combinedFilters,
-        unmatchedQuery,
+        unmatchedQuery: unmatchedQueryNoStopWords.join(" "),
     }
 }
 
