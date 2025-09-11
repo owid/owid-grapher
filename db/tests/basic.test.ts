@@ -21,8 +21,12 @@ import {
     DbPlainChart,
     UsersTableName,
     DbInsertChartConfig,
+    DatasetsTableName,
+    VariablesTableName,
+    ChartDimensionsTableName,
 } from "@ourworldindata/types"
 import { cleanTestDb } from "./testHelpers.js"
+import { checkDatasetVariablesInUse } from "../model/Dataset.js"
 
 let knexInstance: Knex<any, unknown[]> | undefined = undefined
 
@@ -30,6 +34,7 @@ beforeAll(async () => {
     const dataSpec = {
         users: [
             {
+                id: 1,
                 email: "admin@example.com",
                 fullName: "Admin",
                 password: "admin",
@@ -229,4 +234,113 @@ test("Write actions in read-only transactions fail", async () => {
             knexInstance
         )
     }).rejects.toThrow()
+})
+
+test("checkDatasetVariablesInUse returns false when no variables exist", async () => {
+    if (!knexInstance) throw new Error("Database not initialized")
+    const result = await knexReadWriteTransaction(
+        async (trx) => {
+            // Create a dataset with no variables
+            const datasetId = await trx(DatasetsTableName)
+                .insert({
+                    name: "Test",
+                    namespace: "test",
+                    description: "A test",
+                    isPrivate: false,
+                    isArchived: false,
+                    nonRedistributable: false,
+                    createdByUserId: 1,
+                    metadataEditedByUserId: 1,
+                    dataEditedByUserId: 1,
+                    metadataEditedAt: new Date(),
+                    dataEditedAt: new Date(),
+                })
+                .then((res) => res[0])
+
+            return checkDatasetVariablesInUse(trx, datasetId)
+        },
+        TransactionCloseMode.KeepOpen,
+        knexInstance
+    )
+
+    expect(result.inUse).toBe(false)
+    expect(result.usageDetails).toEqual({
+        chartsCount: 0,
+        explorersCount: 0,
+        multiDimCount: 0,
+    })
+})
+
+test("checkDatasetVariablesInUse returns true when variables are used in charts", async () => {
+    if (!knexInstance) throw new Error("Database not initialized")
+
+    const result = await knexReadWriteTransaction(
+        async (trx) => {
+            const user = await trx(UsersTableName).first()
+            const userId = user!.id
+            // Create a dataset
+            const datasetId = await trx(DatasetsTableName)
+                .insert({
+                    name: "Test",
+                    namespace: "test",
+                    description: "A test",
+                    isPrivate: false,
+                    isArchived: false,
+                    nonRedistributable: false,
+                    createdByUserId: userId,
+                    metadataEditedByUserId: userId,
+                    dataEditedByUserId: userId,
+                    metadataEditedAt: new Date(),
+                    dataEditedAt: new Date(),
+                })
+                .then((res) => res[0])
+
+            console.log("datasetId", datasetId)
+
+            // Create a variable in that dataset
+            const variableId = await trx(VariablesTableName)
+                .insert({
+                    name: "Test Variable",
+                    unit: "units",
+                    description: "A test variable",
+                    coverage: "Global",
+                    timespan: "2000-2020",
+                    datasetId,
+                    display: JSON.stringify({}),
+                })
+                .then((res) => res[0])
+
+            // Create a chart that uses this variable
+            const configId = uuidv7()
+            await trx(ChartConfigsTableName).insert({
+                id: configId,
+                patch: "{}",
+                full: "{}",
+            })
+            const chartId = await trx(ChartsTableName)
+                .insert({
+                    configId,
+                    lastEditedAt: new Date(),
+                    lastEditedByUserId: 1,
+                })
+                .then((res) => res[0])
+
+            // Link the chart to the variable
+            await trx(ChartDimensionsTableName).insert({
+                chartId,
+                variableId,
+                property: "y",
+                order: 0,
+            })
+
+            return checkDatasetVariablesInUse(trx, datasetId)
+        },
+        TransactionCloseMode.KeepOpen,
+        knexInstance
+    )
+
+    expect(result.inUse).toBe(true)
+    expect(result.usageDetails.chartsCount).toBe(1)
+    expect(result.usageDetails.explorersCount).toBe(0)
+    expect(result.usageDetails.multiDimCount).toBe(0)
 })
