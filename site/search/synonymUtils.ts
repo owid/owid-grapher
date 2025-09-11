@@ -230,7 +230,7 @@ export const synonyms = [
     ["maternal health", "reproductive health"],
     ["productivity", "labor productivity", "labour productivity"],
     ["debt", "public debt", "government debt"],
-    ["consumption", "household spending", "expenditure", "income"],
+    ["salary", "income"],
     ["industrialization", "industrialisation", "manufacturing"],
     ["remittances", "money transfers", "money sent", "money received"],
     ["energy consumption", "energy use", "energy demand"],
