@@ -85,9 +85,9 @@ import { PreviewVariant } from "./SearchChartHitRichDataTypes.js"
 // Common English stop words that should be ignored in search
 const STOP_WORDS = new Set([
     "the",
-    "in",
+    "in", // matches "India"
     "of",
-    "and",
+    "and", // matches "Andorra"
     "a",
     "an",
     "to",
@@ -97,6 +97,7 @@ const STOP_WORDS = new Set([
     "at",
     "by",
     "from",
+    "per", // matches "Peru"
 ])
 
 /**
@@ -635,9 +636,106 @@ export function searchWithWords(
     return filters
 }
 
+/**
+ * Performs contiguous substring search on words against countries and topics.
+ * Each word in the query must match as a prefix of words in the target names.
+ * Handles multi-word queries and synonyms while ensuring contiguous matching.
+ *
+ * @returns Array of scored filters matching the query words (non deduplicated)
+ */
+export function searchWithWordsContiguous(
+    words: string[],
+    allCountryNames: string[],
+    allTopics: string[],
+    selectedCountryNames: Set<string>,
+    selectedTopics: Set<string>,
+    synonymMap: SynonymMap
+): ScoredFilter[] {
+    // Returns true if all query words are prefixes of the target words
+    // Example:
+    // - ["chi", "mortal"] matches "child mortality" -> true
+    // - ["child", "blank"] doesn't match "child mortality" -> false
+    const areAllWordsPrefixes = (
+        queryWords: string[],
+        target: string
+    ): boolean => {
+        const targetWords = target.toLowerCase().split(/\s+/)
+        const queryWordsLower = queryWords.map((word) => word.toLowerCase())
+
+        // Each query word must match as a prefix of some target word
+        return queryWordsLower.every((queryWord) =>
+            targetWords.some((targetWord) => targetWord.startsWith(queryWord))
+        )
+    }
+
+    const searchCountryTopicAsPrefixes = (queryWords: string[]) => {
+        const countryFilters: ScoredFilter[] = allCountryNames
+            .filter((country) => !selectedCountryNames.has(country))
+            .filter((country) => areAllWordsPrefixes(queryWords, country))
+            .map((country) => ({
+                ...createCountryFilter(country),
+                score: calculateScore(queryWords, country),
+            }))
+
+        const topicFilters: ScoredFilter[] =
+            selectedTopics.size === 0
+                ? allTopics
+                      .filter((topic) => areAllWordsPrefixes(queryWords, topic))
+                      .map((topic) => ({
+                          ...createTopicFilter(topic),
+                          score: calculateScore(queryWords, topic),
+                      }))
+                : []
+
+        return [...countryFilters, ...topicFilters]
+    }
+
+    // 1. Perform original search
+    const filters = searchCountryTopicAsPrefixes(words)
+
+    // 2. Search with synonyms
+    const searchTerm = words.join(" ").toLowerCase()
+    const synonyms = synonymMap.get(searchTerm)
+
+    if (synonyms && synonyms.length > 0) {
+        // Search with each synonym and combine results
+        for (const synonym of synonyms) {
+            const synonymWords = synonym.split(/\s+/)
+            const filtersFromSynonym =
+                searchCountryTopicAsPrefixes(synonymWords)
+            filters.push(...filtersFromSynonym)
+        }
     }
 
     return filters
+}
+
+/**
+ * Calculate a simple score based on match quality for contiguous matching.
+ * Higher scores are given to queries that cover more of the target string.
+ *
+ * @returns Normalized score between 0 and 1, where 1 represents perfect matches
+ */
+export function calculateScore(queryWords: string[], target: string): number {
+    const targetWords = target.toLowerCase().split(/\s+/)
+    const queryWordsLower = queryWords.map((word) => word.toLowerCase())
+
+    let totalMatchedChars = 0
+    queryWordsLower.forEach((queryWord) => {
+        const matchingWord = targetWords.find((targetWord) =>
+            targetWord.startsWith(queryWord)
+        )
+        if (matchingWord) {
+            // Count how many characters of the query word match
+            totalMatchedChars += queryWord.length
+        }
+    })
+
+    // Calculate total length of target (excluding spaces)
+    const targetLength = target.replace(/\s+/g, "").length
+
+    // Score is the ratio of matched characters to total target length
+    return totalMatchedChars / targetLength
 }
 
 /**
@@ -658,7 +756,6 @@ export function findMatchesWithNgrams(
     allTopics: string[],
     selectedCountryNames: Set<string>,
     selectedTopics: Set<string>,
-    sortOptions: { threshold: number }, // this should be high (> 0.85) to give a chance to single word synonym to match
     synonymMap: SynonymMap
 ): ScoredFilterPositioned[] {
     const allFilters: ScoredFilterPositioned[] = []
@@ -694,18 +791,17 @@ export function findMatchesWithNgrams(
 
         if (hasOverlap) continue // Skip this n-gram if it overlaps with already matched words
 
-        const filters = searchWithWords(
+        const filters = searchWithWordsContiguous(
             ngramWords,
             allCountryNames,
             allTopics,
             selectedCountryNames,
             selectedTopics,
-            { ...sortOptions, limit: 1 }, // one per filter type
             synonymMap
         )
 
-        if (filters.length > 0) {
-            const bestFilter = filters.toSorted((a, b) => b.score - a.score)[0]
+        const bestFilter = _.maxBy(filters, (f) => f.score)
+        if (bestFilter) {
             // Store the original positions for later use in replacement logic
             allFilters.push({
                 ...bestFilter,
@@ -913,7 +1009,6 @@ export function getFilterSuggestionsWithUnmatchedQueryNgrams(
         allTopics,
         selectedCountryNames,
         selectedTopics,
-        { threshold: 0.85 },
         synonymMap
     )
 
