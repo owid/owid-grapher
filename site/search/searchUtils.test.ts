@@ -8,6 +8,7 @@ import {
     getPaginationOffsetAndLength,
     getNbPaginatedItemsRequested,
     removeMatchedWordsWithStopWords,
+    calculateScore,
 } from "./searchUtils"
 
 import { FilterType, SynonymMap } from "./searchTypes.js"
@@ -32,8 +33,8 @@ describe("Fuzzy search in search autocomplete", () => {
         "Population Growth",
         "CO2 & Greenhouse Gas Emissions",
     ]
+
     const sortOptions = { threshold: 0.75, limit: 3 }
-    const sortOptionsNgram = { threshold: 0.85 }
 
     beforeEach(() => {
         // Create a mock synonym map with test data
@@ -271,7 +272,6 @@ describe("Fuzzy search in search autocomplete", () => {
                 mockTopics,
                 new Set(),
                 new Set(),
-                sortOptions,
                 synonymMap
             )
 
@@ -290,7 +290,6 @@ describe("Fuzzy search in search autocomplete", () => {
                 mockTopics,
                 new Set(),
                 new Set(),
-                sortOptions,
                 synonymMap
             )
 
@@ -310,7 +309,6 @@ describe("Fuzzy search in search autocomplete", () => {
                 mockTopics,
                 new Set(),
                 new Set(),
-                sortOptions,
                 synonymMap
             )
 
@@ -326,7 +324,6 @@ describe("Fuzzy search in search autocomplete", () => {
                 mockTopics,
                 new Set(),
                 new Set(),
-                sortOptionsNgram,
                 synonymMap
             )
 
@@ -342,7 +339,6 @@ describe("Fuzzy search in search autocomplete", () => {
                 mockTopics,
                 new Set(),
                 new Set(),
-                sortOptionsNgram,
                 synonymMap
             )
 
@@ -361,7 +357,6 @@ describe("Fuzzy search in search autocomplete", () => {
                 mockTopics,
                 new Set(),
                 new Set(),
-                sortOptionsNgram,
                 synonymMap
             )
 
@@ -381,12 +376,12 @@ describe("Fuzzy search in search autocomplete", () => {
                 mockTopics,
                 selectedCountries,
                 selectedTopics,
-                sortOptions,
                 synonymMap
             )
 
             // Should not return already selected items
-            expect(result).toHaveLength(0)
+            const names = result.map((r) => r.name)
+            expect(names).toEqual(["United Kingdom"])
         })
 
         it("should find the longest matches in complex overlapping scenarios", () => {
@@ -407,7 +402,6 @@ describe("Fuzzy search in search autocomplete", () => {
                 complexTopics,
                 new Set(),
                 new Set(),
-                sortOptions,
                 synonymMap
             )
 
@@ -415,6 +409,26 @@ describe("Fuzzy search in search autocomplete", () => {
             expect(result).toHaveLength(2)
             const names = result.map((r) => r.name)
             expect(names).toEqual(["Indoor Air Pollution", "Climate Change"])
+        })
+
+        it("should not match non-contiguous partial-word substrings", () => {
+            const testCountries: string[] = []
+            const testTopics = [
+                "Consumption",
+                "Economic Growth",
+                "Climate Change",
+            ]
+
+            // Test that "Coption" doesn't match "Consumption" (partial word match)
+            const result = findMatchesWithNgrams(
+                ["Coption"],
+                testCountries,
+                testTopics,
+                new Set(),
+                new Set(),
+                synonymMap
+            )
+            expect(result).toHaveLength(0)
         })
     })
 
@@ -699,6 +713,78 @@ describe("Fuzzy search in search autocomplete", () => {
         )
 
         expect(result.suggestions.some((s) => s.name === "Germany")).toBe(true)
+    })
+
+    describe("calculateScore function", () => {
+        it("should rank countries by query match quality for 'united'", () => {
+            const query = ["united"]
+            const countries = [
+                "United States",
+                "United Kingdom",
+                "United Arab Emirates",
+            ]
+
+            const scores = countries.map((country) => ({
+                name: country,
+                score: calculateScore(query, country),
+            }))
+
+            // Verify ordering: shorter targets score higher for same query
+            // "united" should score higher for shorter country names since it covers more of the target
+            expect(scores[0].score).toBeGreaterThan(scores[1].score)
+            expect(scores[1].score).toBeGreaterThan(scores[2].score)
+        })
+
+        it("should rank topics by multi-word query match quality for 'child mortality'", () => {
+            const query = ["child", "mortality"]
+            const topics = [
+                "Child and Infant Mortality",
+                "Child Mortality Rate",
+                "Maternal Mortality",
+                "Population Growth",
+            ]
+
+            const scores = topics.map((topic) => ({
+                name: topic,
+                score: calculateScore(query, topic),
+            }))
+
+            expect(scores[1].score).toBeGreaterThan(scores[0].score)
+        })
+
+        it("should handle partial word matches correctly for ranking", () => {
+            const query = ["eco"]
+            const topics = [
+                "Economic Growth",
+                "Economics",
+                "Ecology",
+                "Climate Change",
+            ]
+
+            const scores = topics.map((topic) => ({
+                name: topic,
+                score: calculateScore(query, topic),
+            }))
+
+            expect(scores[2].score).toBeGreaterThan(scores[1].score)
+            expect(scores[1].score).toBeGreaterThan(scores[0].score)
+        })
+
+        it("should handle case-insensitive matching across multiple targets", () => {
+            const query = ["UNITED"]
+            const countries = [
+                "United States",
+                "united kingdom",
+                "UNITED ARAB EMIRATES",
+            ]
+
+            const scores = countries.map((country) =>
+                calculateScore(query, country)
+            )
+
+            expect(scores[0]).toBeGreaterThan(scores[1])
+            expect(scores[1]).toBeGreaterThan(scores[2])
+        })
     })
 })
 
