@@ -968,9 +968,13 @@ export function getFilterSuggestionsWithUnmatchedQuery(
         (a, b) => b.score - a.score
     )
 
-    const combinedFilters = [
-        ...exactMatches,
+    const primaryFilters = [
+        exactMatches,
         ...(query ? [createQueryFilter(query)] : []),
+    ]
+
+    const combinedFilters = [
+        ...(!unmatchedQuery ? primaryFilters : primaryFilters.reverse()).flat(),
         ...sortedPartialMatches,
     ]
 
