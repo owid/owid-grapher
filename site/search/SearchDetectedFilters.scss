@@ -1,0 +1,20 @@
+.search-detected-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    align-items: center;
+}
+
+.search-detected-filters__label {
+    @include note-13-medium;
+    font-style: italic;
+}
+
+.search-detected-filter-button {
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+}
