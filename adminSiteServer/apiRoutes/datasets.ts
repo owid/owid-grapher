@@ -11,7 +11,11 @@ import {
     oldChartFieldList,
     assignTagsForCharts,
 } from "../../db/model/Chart.js"
-import { getDatasetById, setTagsForDataset } from "../../db/model/Dataset.js"
+import {
+    getDatasetById,
+    setTagsForDataset,
+    checkDatasetVariablesInUse,
+} from "../../db/model/Dataset.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
@@ -296,6 +300,26 @@ export async function setArchived(
     const datasetId = expectInt(req.params.datasetId)
     const dataset = await getDatasetById(trx, datasetId)
     if (!dataset) throw new JsonError(`No dataset by id ${datasetId}`, 404)
+
+    const usageCheck = await checkDatasetVariablesInUse(trx, datasetId)
+
+    if (usageCheck.inUse) {
+        const labels: Record<string, string> = {
+            chartsCount: "chart",
+            explorersCount: "explorer",
+            multiDimCount: "multi-dimensional data page",
+        }
+
+        const usageParts = Object.entries(usageCheck.usageDetails)
+            .filter(([_, n]) => !!n)
+            .map(([key, n]) => `${n} ${labels[key]}${n > 1 ? "s" : ""}`)
+
+        throw new JsonError(
+            `Cannot archive dataset: its variables are currently used in ${usageParts.join(", ")}. ` +
+                `Please remove these references before archiving the dataset.`,
+            400
+        )
+    }
 
     await db.knexRaw(trx, `UPDATE datasets SET isArchived = 1 WHERE id=?`, [
         datasetId,

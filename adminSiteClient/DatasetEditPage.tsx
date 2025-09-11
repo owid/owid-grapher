@@ -405,34 +405,27 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                                 <p>
                                     Archive this grapher dataset to remove it
                                     from the main list of active datasets.
+                                    Archiving is only allowed if none of the
+                                    dataset's variables are currently in use.
                                 </p>
                                 {dataset.charts && dataset.charts.length > 0 ? (
                                     <p>
                                         <strong>
                                             This dataset cannot be archived
-                                            because it contains charts.
+                                            because it has charts that directly
+                                            reference it.
                                         </strong>
                                     </p>
                                 ) : (
                                     <p>
-                                        <strong>
-                                            Before archiving, ensure that:
-                                        </strong>
-                                        <ul>
-                                            <li>
-                                                The corresponding ETL grapher
-                                                step has been archived:{" "}
-                                                <code>
-                                                    grapher/{dataset.namespace}/
-                                                    {dataset.version}/
-                                                    {dataset.shortName}
-                                                </code>
-                                            </li>
-                                            <li>
-                                                The dataset is not used in any
-                                                indicator-based explorers.
-                                            </li>
-                                        </ul>
+                                        Before archiving, ensure that the
+                                        corresponding ETL grapher step has been
+                                        archived:{" "}
+                                        <code>
+                                            grapher/{dataset.namespace}/
+                                            {dataset.version}/
+                                            {dataset.shortName}
+                                        </code>
                                     </p>
                                 )}
                                 <button
