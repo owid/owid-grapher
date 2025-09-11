@@ -221,6 +221,8 @@ export {
     getCountryNamesForRegion,
     checkHasMembers,
     getRegionByName,
+    getParentRegions,
+    getSiblingRegions,
 } from "./regions.js"
 
 export { getStylesForTargetHeight } from "./react-select.js"
