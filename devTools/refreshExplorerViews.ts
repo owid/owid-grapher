@@ -1,10 +1,11 @@
 import * as db from "../db/db.js"
 import { DbPlainExplorer } from "@ourworldindata/types"
 import { refreshExplorerViewsForSlug } from "../db/model/ExplorerViews.js"
+import { updateExplorerRefreshStatus } from "../db/model/Jobs.js"
 import {
     saveGrapherConfigToR2ByUUID,
     deleteGrapherConfigFromR2ByUUID,
-} from "../adminSiteServer/R2/chartConfigR2Helpers.js"
+} from "../serverUtils/r2/chartConfigR2Helpers.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import pMap from "p-map"
 import yargs from "yargs"
@@ -179,6 +180,14 @@ async function prepareGrapherConfigsForExplorerViews(
 
                 console.log(`Synced ${chartConfigs.length} chart configs to R2`)
             }
+
+            // Mark explorer views as clean
+            await updateExplorerRefreshStatus(
+                knex,
+                explorer.slug,
+                "clean",
+                new Date()
+            )
 
             // Get the view counts after refreshing
             const [totalViews, successViews, errorViews] = await Promise.all([

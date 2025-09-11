@@ -40,7 +40,7 @@ import {
     deleteGrapherConfigFromR2,
     deleteGrapherConfigFromR2ByUUID,
     saveMultiDimConfigToR2,
-} from "./R2/chartConfigR2Helpers.js"
+} from "../serverUtils/r2/chartConfigR2Helpers.js"
 import {
     saveNewChartConfigInDbAndR2,
     updateChartConfigInDbAndR2,

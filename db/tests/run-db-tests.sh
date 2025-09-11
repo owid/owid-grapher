@@ -18,6 +18,12 @@ fi
 # Create log directory
 mkdir -p tmp-logs
 
+# Always try to stop the compose stack when exiting (success or failure)
+cleanup() {
+    docker compose -f docker-compose.dbtests.yml stop >/dev/null 2>&1 || true
+}
+trap cleanup EXIT
+
 # Function to show last 100 lines of a log file on error
 show_log_on_error() {
     local log_file="$1"
@@ -36,6 +42,8 @@ echo 'test database started'
 
 if ! docker compose -f docker-compose.dbtests.yml up -d >tmp-logs/docker-startup.log 2>&1; then
     show_log_on_error "tmp-logs/docker-startup.log" "Docker startup"
+    # In case the stack was partially created, ensure it's torn down
+    docker compose -f docker-compose.dbtests.yml down >/dev/null 2>&1 || true
     exit 1
 fi
 

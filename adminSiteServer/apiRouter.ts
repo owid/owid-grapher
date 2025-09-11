@@ -65,7 +65,7 @@ import {
     handlePostNewChartRedirect,
     handleDeleteChartRedirect,
 } from "./apiRoutes/redirects.js"
-import { triggerStaticBuild } from "./apiRoutes/routeUtils.js"
+import { triggerStaticBuild } from "../baker/GrapherBakingUtils.js"
 import {
     suggestGptTopics,
     suggestGptAltTextForCloudflareImage,

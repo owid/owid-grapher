@@ -1,15 +1,26 @@
 {
     "extends": "../devTools/tsconfigs/tsconfig.base.json",
     "compilerOptions": {
-        "outDir": "../itsJustJavascript/serverUtils",
+        "outDir": "../itsJustJavascript/jobQueue",
         "rootDir": "."
     },
+    "include": ["**/*.ts"],
+    "exclude": ["node_modules", "dist"],
     "references": [
         {
             "path": "../packages/@ourworldindata/types"
         },
         {
             "path": "../packages/@ourworldindata/utils"
+        },
+        {
+            "path": "../baker"
+        },
+        {
+            "path": "../db"
+        },
+        {
+            "path": "../serverUtils"
         },
         {
             "path": "../settings"

@@ -12,7 +12,7 @@ import * as db from "../db/db.js"
 import {
     saveGrapherConfigToR2,
     saveGrapherConfigToR2ByUUID,
-} from "./R2/chartConfigR2Helpers.js"
+} from "../serverUtils/r2/chartConfigR2Helpers.js"
 
 /**
  * One particular detail of of MySQL's JSON support is that MySQL _normalizes_ JSON when storing it.

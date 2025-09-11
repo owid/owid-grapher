@@ -39,7 +39,7 @@ import {
 } from "../../db/model/Chart.js"
 import { updateExistingFullConfig } from "../../db/model/ChartConfigs.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
-import { triggerStaticBuild } from "./routeUtils.js"
+import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import { updateGrapherConfigsInR2 } from "./charts.js"
 import { Request } from "../authentication.js"
 import e from "express"
