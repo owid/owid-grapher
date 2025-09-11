@@ -10,7 +10,6 @@ import * as Sentry from "@sentry/react"
 import {
     getCachingInputTableFetcher,
     Grapher,
-    GrapherAnalytics,
     GrapherProgrammaticInterface,
     loadVariableDataAndMetadata,
     useMaybeGlobalGrapherStateRef,
@@ -27,10 +26,8 @@ import { ArchiveContext } from "@ourworldindata/types"
 import { useElementBounds } from "../hooks.js"
 import { cachedGetGrapherConfigByUuid } from "./api.js"
 import MultiDimEmbedSettingsPanel from "./MultiDimEmbedSettingsPanel.js"
-import { useBaseGrapherConfig } from "./hooks.js"
+import { useBaseGrapherConfig, useMultiDimAnalytics } from "./hooks.js"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
-
-const analytics = new GrapherAnalytics()
 
 export default function MultiDim({
     config,
@@ -87,10 +84,11 @@ export default function MultiDim({
             const { selectedChoices } =
                 config.filterToAvailableChoices(settings)
             setSettings(selectedChoices)
-            if (slug) analytics.logGrapherView(slug, { view: selectedChoices })
         },
-        [config, slug]
+        [config]
     )
+
+    useMultiDimAnalytics(slug, config, settings)
 
     // Register with GuidedChartContext for guided chart link support
     const guidedChartContext = useContext(GuidedChartContext)
@@ -128,7 +126,7 @@ export default function MultiDim({
                 : undefined
         const analyticsContext = {
             mdimSlug: slug ?? undefined,
-            mdimView: settings,
+            mdimViewConfigId: newView.fullConfigId,
         }
         manager.current.adminEditPath = adminEditPath
         manager.current.analyticsContext = analyticsContext

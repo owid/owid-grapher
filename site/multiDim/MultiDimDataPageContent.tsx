@@ -5,7 +5,6 @@ import { useSearchParams } from "react-router-dom-v5-compat"
 import * as Sentry from "@sentry/react"
 import {
     Grapher,
-    GrapherAnalytics,
     GrapherState,
     getCachingInputTableFetcher,
     GrapherManager,
@@ -43,7 +42,7 @@ import {
     cachedGetVariableMetadata,
 } from "./api.js"
 import MultiDim from "./MultiDim.js"
-import { useBaseGrapherConfig } from "./hooks.js"
+import { useBaseGrapherConfig, useMultiDimAnalytics } from "./hooks.js"
 import {
     DATA_API_URL,
     BAKED_GRAPHER_URL,
@@ -60,8 +59,6 @@ const useTitleFragments = (config: MultiDimDataPageConfig) => {
         [title]
     )
 }
-
-const analytics = new GrapherAnalytics()
 
 export type MultiDimDataPageContentProps = {
     canonicalUrl: string
@@ -199,7 +196,10 @@ export function DataPageContent({
                 variables?.length === 1
                     ? `variables/${variables[0].id}/config`
                     : undefined
-            const analyticsContext = { mdimSlug: slug!, mdimView: settings }
+            const analyticsContext = {
+                mdimSlug: slug!,
+                mdimViewConfigId: grapherConfigUuid,
+            }
             managerRef.current.adminEditPath = adminEditPath
             managerRef.current.analyticsContext = analyticsContext
             managerRef.current.adminCreateNarrativeChartPath = `narrative-charts/create?type=multiDim&chartConfigId=${grapherConfigUuid}`
@@ -299,11 +299,12 @@ export function DataPageContent({
             }
 
             setSearchParams(newSearchParams, { replace: true })
-            if (slug) analytics.logGrapherView(slug, { view: selectedChoices })
             updateGrapher(grapher, selectedChoices, newGrapherParams)
         },
-        [config, setSearchParams, slug, updateGrapher]
+        [config, setSearchParams, updateGrapher]
     )
+
+    useMultiDimAnalytics(slug, config, settings)
 
     // Set state from query params on page load.
     useEffect(() => {

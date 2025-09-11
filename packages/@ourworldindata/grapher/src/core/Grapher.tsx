@@ -299,7 +299,7 @@ type MinimalNarrativeChartInfo = Pick<
 
 interface AnalyticsContext {
     mdimSlug?: string
-    mdimView?: Record<string, string>
+    mdimViewConfigId?: string
 }
 
 export interface GrapherManager {
@@ -2758,7 +2758,7 @@ export class GrapherState {
         const ctx = this.manager?.analyticsContext
         return {
             slug: ctx?.mdimSlug ?? this.slug,
-            mdimView: ctx?.mdimView,
+            viewConfigId: ctx?.mdimViewConfigId,
             narrativeChartName: this.narrativeChartInfo?.name,
         }
     }
