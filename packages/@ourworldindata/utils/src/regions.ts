@@ -1,3 +1,4 @@
+import * as _ from "lodash-es"
 import entities from "./regions.json"
 import { lazy } from "./Util.js"
 
@@ -163,6 +164,59 @@ export const incomeGroupsByName = lazy(
 const countriesBySlug = lazy(() =>
     Object.fromEntries(countries.map((country) => [country.slug, country]))
 )
+
+/**
+ * Lazy-loaded map of region names to their parent regions.
+ *
+ * This creates a reverse lookup from child regions to all the parent regions
+ * that contain them. For example, if "France" is a member of both "Europe"
+ * and "European Union", then parentRegions.get("France") would return
+ * both regions.
+ */
+const parentRegions = lazy(() => {
+    const parentRegions = new Map<string, Region[]>()
+    for (const region of regions) {
+        // Only process regions that can contain other regions
+        if (!checkHasMembers(region)) continue
+
+        for (const memberCode of region.members) {
+            const subRegion = getRegionByCode(memberCode)
+            if (!subRegion) continue
+            if (!parentRegions.has(subRegion.name))
+                parentRegions.set(subRegion.name, [])
+            parentRegions.get(subRegion.name)!.push(region)
+        }
+    }
+    return parentRegions
+})
+
+/**
+ * Get all parent regions that contain the specified region as a member.
+ *
+ * For example, France's parent regions are 'Europe', 'European Union',
+ * 'High-income countries', etc.
+ */
+export const getParentRegions = (regionName: string): Region[] => {
+    return parentRegions().get(regionName) ?? []
+}
+
+/**
+ * Get all sibling regions that share the same parent(s) as the specified region.
+ *
+ * For example, returns other European countries for 'Germany' or other
+ * continents for 'Europe'.
+ */
+export const getSiblingRegions = (regionName: string): Region[] => {
+    const parentRegions = getParentRegions(regionName)
+    const siblingCodes = _.uniq(
+        parentRegions.flatMap((region) =>
+            checkHasMembers(region) ? region.members : []
+        )
+    )
+    return siblingCodes
+        .map(getRegionByCode)
+        .filter((region) => region && region.name !== regionName) as Region[]
+}
 
 const getCountryNamesForRegionRecursive = (region: Region): string[] => {
     if (!checkHasMembers(region)) return [region.name]
