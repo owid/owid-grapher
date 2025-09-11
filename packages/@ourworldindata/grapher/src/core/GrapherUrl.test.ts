@@ -6,7 +6,7 @@ import {
     grapherObjectToQueryParams,
 } from "./GrapherUrl.js"
 import { MapConfig } from "../mapCharts/MapConfig.js"
-import { GrapherState } from "./Grapher.js"
+import { GrapherState } from "./GrapherState.js"
 
 describe(grapherConfigToQueryParams, () => {
     it("should convert an empty grapher config to an empty object", () => {

@@ -38,7 +38,8 @@ import {
 } from "../color/CustomSchemes"
 import { latestGrapherConfigSchema } from "./GrapherConstants.js"
 import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable.js"
-import { GrapherProgrammaticInterface, GrapherState } from "./Grapher.js"
+import { GrapherProgrammaticInterface } from "./Grapher.js"
+import { GrapherState } from "./GrapherState"
 
 const TestGrapherConfig = (): {
     table: OwidTable

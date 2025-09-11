@@ -5,7 +5,8 @@ import {
     SynthesizeGDPTable,
     SampleColumnSlugs,
 } from "@ourworldindata/core-table"
-import { GrapherProgrammaticInterface, GrapherState } from "../core/Grapher"
+import { GrapherProgrammaticInterface } from "../core/Grapher"
+import { GrapherState } from "./GrapherState"
 import {
     legacyMapGrapher,
     legacyMapGrapherData,

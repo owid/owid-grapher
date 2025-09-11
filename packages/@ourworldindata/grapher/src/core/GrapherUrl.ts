@@ -9,7 +9,7 @@ import {
     generateSelectedEntityNamesParam,
 } from "./EntityUrlBuilder.js"
 import { match } from "ts-pattern"
-import { GrapherState } from "./Grapher.js"
+import { GrapherState } from "./GrapherState.js"
 import * as R from "remeda"
 import {
     DEFAULT_GLOBE_ROTATION,

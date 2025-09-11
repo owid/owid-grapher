@@ -1,5 +1,6 @@
 import * as React from "react"
-import { GrapherProgrammaticInterface, GrapherState } from "../core/Grapher.js"
+import { GrapherProgrammaticInterface } from "../core/Grapher.js"
+import { GrapherState } from "../core/GrapherState.js"
 import { MultiDimDataPageConfig } from "@ourworldindata/utils"
 import { MultiDimDimensionChoices } from "@ourworldindata/types"
 
