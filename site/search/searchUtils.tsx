@@ -615,24 +615,26 @@ export function searchWithWords(
             const filtersFromSynonym = searchCountryTopics(synonym)
             filters.push(...filtersFromSynonym)
         }
+    }
 
-        // Deduplicate results by name, keeping the highest score, and enforce
-        // the limit given that we are running the search twice and combining
-        // result sets, effectively doubling the number of results.
-        const deduplicateResultsAndLimit = (filters: ScoredFilter[]) =>
-            R.uniqueBy(
-                filters.toSorted((a, b) => b.score - a.score),
-                (filter) => filter.name
-            ).slice(0, sortOptions.limit)
+    // For each filter type, keep only the top results then recombine into a single array
+    filters = R.pipe(
+        filters,
+        R.groupBy((filter) => filter.type),
+        R.values,
+        R.flatMap((filtersOfType: ScoredFilter[]) =>
+            R.pipe(
+                filtersOfType,
+                R.sortBy((filter) => -filter.score), // Sort by score descending
+                R.uniqueBy((filter) => filter.name),
+                R.take(sortOptions.limit)
+            )
+        )
+    )
 
-        filters = [
-            ...deduplicateResultsAndLimit(
-                filters.filter((f) => f.type === FilterType.COUNTRY)
-            ),
-            ...deduplicateResultsAndLimit(
-                filters.filter((f) => f.type === FilterType.TOPIC)
-            ),
-        ]
+    return filters
+}
+
     }
 
     return filters
