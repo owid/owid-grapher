@@ -58,24 +58,24 @@ export const SearchDetectedFilters = ({
     if (!matchedFilters.length) return null
 
     return (
-        <div>
-            <div>
-                <div>
-                    {matchedFilters.map((filter, i) => (
-                        <div key={i}>
-                            <button
-                                type="button"
-                                onClick={() => handleFilterClick(filter)}
-                            >
-                                <SearchFilterPill
-                                    icon={getFilterIcon(filter)}
-                                    name={filter.name}
-                                />
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            </div>
+        <div className="search-detected-filters">
+            <span className="search-detected-filters__label">
+                Did you mean?
+            </span>
+            {matchedFilters.map((filter, i) => (
+                <button
+                    type="button"
+                    onClick={() => handleFilterClick(filter)}
+                    key={i}
+                    className="search-detected-filter-button"
+                >
+                    <SearchFilterPill
+                        icon={getFilterIcon(filter)}
+                        name={filter.name}
+                        interactive={true}
+                    />
+                </button>
+            ))}
         </div>
     )
 }
