@@ -118,6 +118,31 @@ export function searchReducer(
                 }
             }
         )
+        .with(
+            // Remove multiple filters and add query text in one atomic operation
+            { type: "replaceFiltersWithQuery" },
+            ({ filtersToRemove, queryToAdd }) => {
+                // Remove the specified filters
+                const newFilters = state.filters.filter(
+                    (filter) =>
+                        !filtersToRemove.some(
+                            (removeFilter) =>
+                                removeFilter.type === filter.type &&
+                                removeFilter.name === filter.name
+                        )
+                )
+
+                const newQuery = state.query.trim()
+                    ? `${state.query} ${queryToAdd}`
+                    : `${queryToAdd}`
+
+                return {
+                    ...state,
+                    query: newQuery.trim(),
+                    filters: newFilters,
+                }
+            }
+        )
         .exhaustive()
 }
 
@@ -135,6 +160,7 @@ export function createActions(dispatch: (action: SearchAction) => void) {
         toggleRequireAllCountries: () => dispatch({ type: "toggleRequireAllCountries" }),
         setResultType: (resultType: SearchResultType) => dispatch({ type: "setResultType", resultType }),
         replaceQueryWithFilters: (filters: Filter[], matchedPositions: number[]) => dispatch({ type: "replaceQueryWithFilters", filters, matchedPositions }),
+        replaceFiltersWithQuery: (filtersToRemove: Filter[], queryToAdd: string) => dispatch({ type: "replaceFiltersWithQuery", filtersToRemove, queryToAdd }),
         reset: () => dispatch({ type: "reset" }),
     }
 }
