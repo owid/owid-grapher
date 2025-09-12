@@ -761,7 +761,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                         chart.config,
                         originalSlug,
                         {
-                            archivedChartInfo:
+                            archivedPageVersion:
                                 archivedChartVersions[chartId] || undefined,
                         }
                     )
@@ -777,7 +777,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                         multiDim.config,
                         originalSlug,
                         {
-                            archivedChartInfo:
+                            archivedPageVersion:
                                 archivedMultiDimVersions[multiDim.id] ||
                                 undefined,
                         }
@@ -1195,7 +1195,7 @@ export async function makeGrapherLinkedChart(
     knex: db.KnexReadonlyTransaction,
     config: GrapherInterface,
     originalSlug: string,
-    { archivedChartInfo }: { archivedChartInfo?: ArchivedPageVersion } = {}
+    { archivedPageVersion }: { archivedPageVersion?: ArchivedPageVersion } = {}
 ): Promise<LinkedChart> {
     const resolvedSlug = config.slug ?? ""
     const resolvedTitle = config.title ?? ""
@@ -1216,7 +1216,7 @@ export async function makeGrapherLinkedChart(
         thumbnail: `${GRAPHER_DYNAMIC_THUMBNAIL_URL}/${resolvedSlug}.png`,
         tags: [],
         indicatorId,
-        archivedChartInfo,
+        archivedPageVersion,
     }
 }
 
@@ -1247,7 +1247,7 @@ export function makeExplorerLinkedChart(
 export function makeMultiDimLinkedChart(
     config: MultiDimDataPageConfigEnriched,
     slug: string,
-    { archivedChartInfo }: { archivedChartInfo?: ArchivedPageVersion } = {}
+    { archivedPageVersion }: { archivedPageVersion?: ArchivedPageVersion } = {}
 ): LinkedChart {
     let title = config.title.title
     const titleVariant = config.title.titleVariant
@@ -1261,6 +1261,6 @@ export function makeMultiDimLinkedChart(
         dimensionSlugs: config.dimensions.map((d) => d.slug),
         resolvedUrl: `${BAKED_GRAPHER_URL}/${slug}`,
         tags: [],
-        archivedChartInfo,
+        archivedPageVersion,
     }
 }

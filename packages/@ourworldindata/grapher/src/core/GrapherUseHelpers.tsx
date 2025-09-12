@@ -16,9 +16,9 @@ export function renderGrapherIntoContainer(
     containerNode: Element,
     dataApiUrl: string,
     {
-        archivedChartInfo,
+        archiveContext,
         noCache,
-    }: { archivedChartInfo?: ArchiveContext; noCache?: boolean } = {}
+    }: { archiveContext?: ArchiveContext; noCache?: boolean } = {}
 ): void {
     const setBoundsFromContainerAndRender = (
         entries: ResizeObserverEntry[]
@@ -47,7 +47,7 @@ export function renderGrapherIntoContainer(
                 <FetchingGrapher
                     config={grapherConfigWithBounds}
                     dataApiUrl={dataApiUrl}
-                    archivedChartInfo={archivedChartInfo}
+                    archiveContext={archiveContext}
                     externalBounds={Bounds.fromRect(entry.contentRect)}
                     queryStr={grapherConfigWithBounds.queryStr}
                     noCache={noCache}
@@ -80,9 +80,9 @@ export function renderSingleGrapherOnGrapherPage(
     jsonConfig: GrapherProgrammaticInterface,
     dataApiUrl: string,
     {
-        archivedChartInfo,
+        archiveContext,
         noCache,
-    }: { archivedChartInfo?: ArchiveContext; noCache?: boolean } = {}
+    }: { archiveContext?: ArchiveContext; noCache?: boolean } = {}
 ): void {
     const container = document.getElementsByTagName("figure")[0]
     try {
@@ -92,11 +92,11 @@ export function renderSingleGrapherOnGrapherPage(
                 bindUrlToWindow: true,
                 enableKeyboardShortcuts: true,
                 queryStr: window.location.search,
-                archivedChartInfo,
+                archiveContext,
             },
             container,
             dataApiUrl,
-            { archivedChartInfo, noCache }
+            { archiveContext, noCache }
         )
     } catch (err) {
         container.innerHTML = `<p>Unable to load interactive visualization</p>`
