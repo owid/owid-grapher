@@ -97,7 +97,7 @@ export interface BasicChartInformation {
 export interface RelatedChart extends BasicChartInformation {
     chartId: number
     keyChartLevel?: KeyChartLevel
-    archivedChartInfo?: ArchiveContext | undefined
+    archiveContext?: ArchiveContext | undefined
 }
 export enum DimensionProperty {
     y = "y",

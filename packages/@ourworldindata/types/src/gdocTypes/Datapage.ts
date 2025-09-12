@@ -137,7 +137,7 @@ export interface DataPageV2ContentFields {
     canonicalUrl: string
     tagToSlugMap: Record<string, string>
     imageMetadata: Record<string, ImageMetadata>
-    archivedChartInfo?: ArchiveContext
+    archiveContext?: ArchiveContext
 }
 
 export interface DisplaySource {
