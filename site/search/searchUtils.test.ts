@@ -380,9 +380,23 @@ describe("Fuzzy search in search autocomplete", () => {
             )
 
             // Should not return already selected items
-            const names = result.map((r) => r.name)
-            expect(names).toEqual(["United Kingdom"])
+            expect(result).toHaveLength(0)
         })
+        ;(it("should only return covering matches for countries"),
+            () => {
+                const result = findMatchesWithNgrams(
+                    ["east", "germany"],
+                    ["East Timor", "Germany"],
+                    mockTopics,
+                    new Set(),
+                    new Set(),
+                    synonymMap
+                )
+
+                // Should only return "Germany", since "east" doesn't cover "East Timor"
+                expect(result).toHaveLength(1)
+                expect(result[0].name).toBe("Germany")
+            })
 
         it("should find the longest matches in complex overlapping scenarios", () => {
             // Create a complex scenario with multiple overlapping possibilities
