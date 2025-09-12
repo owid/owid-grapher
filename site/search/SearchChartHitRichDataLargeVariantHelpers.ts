@@ -147,9 +147,9 @@ export function calculateLargePreviewImageDimensions(
     }
 
     // The large chart must be a little taller to match the combined height of
-    // both thumbnails plus the vertical spacing and caption text between them.
+    // both thumbnails plus the vertical spacing between them
     return {
         width: 4 * GRAPHER_THUMBNAIL_WIDTH,
-        height: 4 * GRAPHER_THUMBNAIL_HEIGHT + 4 * 16, // Magic number
+        height: 4 * GRAPHER_THUMBNAIL_HEIGHT + 16, // 16px gap between thumbnails
     }
 }

@@ -113,6 +113,7 @@
     .search-chart-hit-table-wrapper {
         background: #fff;
         width: 100%;
+        height: 100%;
 
         .search-chart-hit-table-wrapper-content {
             height: 100%;
@@ -223,7 +224,8 @@
                 grid-row: span 2;
             }
 
-            .chart-hit-img-error {
+            .search-chart-hit-captioned-link__overlay,
+            .search-chart-hit-thumbnail__error {
                 font-size: 0.6em;
             }
         }
@@ -238,7 +240,8 @@
                 grid-row: span 2;
             }
 
-            .chart-hit-img-error {
+            .search-chart-hit-captioned-link__overlay,
+            .search-chart-hit-thumbnail__error {
                 font-size: 0.6em;
             }
         }
@@ -282,10 +285,6 @@
             grid-row: 2;
 
             height: 100%;
-
-            .search-chart-hit-table-wrapper {
-                height: calc(100% - 24px);
-            }
         }
 
         .large-variant__right-quad-left-column {
@@ -293,10 +292,6 @@
             grid-row: 1 / -1;
 
             height: 100%;
-
-            .search-chart-hit-table-wrapper {
-                height: calc(100% - 24px);
-            }
 
             .search-chart-hit-table {
                 grid-template-columns: repeat(1, 1fr);
@@ -308,10 +303,6 @@
             grid-row: 1 / -1;
 
             height: 100%;
-
-            .search-chart-hit-table-wrapper {
-                height: calc(100% - 24px);
-            }
 
             .search-chart-hit-table {
                 grid-template-columns: repeat(2, 1fr);
@@ -330,14 +321,9 @@
             height: 100%;
 
             .search-chart-hit-thumbnail {
-                height: calc(100% - 24px);
                 background-color: #fff;
                 display: flex;
                 align-items: center;
-            }
-
-            .search-chart-hit-table-wrapper {
-                height: calc(100% - 24px);
             }
 
             .search-chart-hit-table {
@@ -350,10 +336,6 @@
             grid-row: 1 / -1;
 
             height: 330px;
-
-            .search-chart-hit-table-wrapper {
-                height: calc(100% - 24px);
-            }
 
             .search-chart-hit-table {
                 grid-template-columns: repeat(4, 1fr);

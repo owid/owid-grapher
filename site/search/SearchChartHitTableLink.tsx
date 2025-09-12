@@ -4,9 +4,9 @@ import { buildChartHitDataTableContent } from "./SearchChartHitDataTableHelpers"
 import { match } from "ts-pattern"
 import { SearchChartHitDataTable } from "./SearchChartHitDataTable"
 import { SearchChartHitDataPoints } from "./SearchChartHitDataPoints"
-import { CaptionedLink } from "./SearchChartHitCaptionedLink"
+import { SearchChartHitOverlayLink } from "./SearchChartHitOverlayLink"
 
-export function CaptionedTable({
+export function SearchChartHitTableLink({
     chartUrl,
     grapherState,
     maxRows,
@@ -21,24 +21,24 @@ export function CaptionedTable({
     className?: string
     onClick?: () => void
 }): React.ReactElement | null {
-    // Construct caption
-    const numAvailableEntities = grapherState.availableEntityNames.length
-    const caption =
-        numAvailableEntities === 1
-            ? `Data available for ${numAvailableEntities} ${grapherState.entityType}`
-            : `Data available for ${numAvailableEntities} ${grapherState.entityTypePlural}`
-
     const dataTableContent = runInAction(() =>
         buildChartHitDataTableContent({ grapherState, maxRows })
     )
 
     if (!dataTableContent) return null
 
+    // Construct overlay text
+    const numAvailableEntities = grapherState.availableEntityNames.length
+    const overlay =
+        numAvailableEntities === 1
+            ? `Explore data for ${numAvailableEntities} ${grapherState.entityType}`
+            : `Explore data for ${numAvailableEntities} ${grapherState.entityTypePlural}`
+
     return (
-        <CaptionedLink
-            caption={caption}
-            url={chartUrl}
+        <SearchChartHitOverlayLink
             className={className}
+            url={chartUrl}
+            overlay={overlay}
             onClick={onClick}
         >
             <div className="search-chart-hit-table-wrapper">
@@ -56,6 +56,6 @@ export function CaptionedTable({
                         .exhaustive()}
                 </div>
             </div>
-        </CaptionedLink>
+        </SearchChartHitOverlayLink>
     )
 }

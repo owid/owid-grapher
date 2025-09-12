@@ -35,8 +35,8 @@ import {
 } from "./SearchChartHitRichDataHelpers.js"
 import { calculateMediumVariantLayout } from "./SearchChartHitRichDataMediumVariantHelpers.js"
 import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
-import { CaptionedTable } from "./SearchChartHitCaptionedTable.js"
-import { CaptionedThumbnail } from "./SearchChartHitCaptionedThumbnail.js"
+import { SearchChartHitTableLink } from "./SearchChartHitTableLink.js"
+import { SearchChartHitThumbnailLink } from "./SearchChartHitThumbnailLink.js"
 import { SearchChartHitDataDisplay } from "./SearchChartHitDataDisplay.js"
 import { SearchChartHitRichDataFallback } from "./SearchChartHitRichDataFallback.js"
 import {
@@ -240,7 +240,7 @@ export function SearchChartHitRichData({
                     const className = makeSlotClassNames(variant, slot)
 
                     return tab === GRAPHER_TAB_NAMES.Table ? (
-                        <CaptionedTable
+                        <SearchChartHitTableLink
                             key={tab}
                             chartUrl={chartUrl}
                             grapherState={grapherState}
@@ -250,12 +250,11 @@ export function SearchChartHitRichData({
                             onClick={onClick}
                         />
                     ) : (
-                        <CaptionedThumbnail
+                        <SearchChartHitThumbnailLink
                             key={tab}
                             chartType={tab}
                             chartUrl={chartUrl}
                             previewUrl={previewUrl}
-                            grapherState={grapherState}
                             imageWidth={imageWidth}
                             imageHeight={imageHeight}
                             className={className}
