@@ -132,13 +132,9 @@ export function searchReducer(
                         )
                 )
 
-                const newQuery = state.query.trim()
-                    ? `${state.query} ${queryToAdd}`
-                    : `${queryToAdd}`
-
                 return {
                     ...state,
-                    query: newQuery.trim(),
+                    query: queryToAdd.trim(),
                     filters: newFilters,
                 }
             }
