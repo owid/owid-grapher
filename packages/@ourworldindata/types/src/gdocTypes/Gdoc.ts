@@ -96,6 +96,45 @@ export enum OwidGdocType {
     Announcement = "announcement",
 }
 
+export type OwidPostType =
+    | OwidGdocType.Article
+    | OwidGdocType.TopicPage
+    | OwidGdocType.LinearTopicPage
+    // TODO: Fragments need their own OwidGdocFragment interface and flow in the UI
+    // Historically they were treated the same as GdocPosts but not baked
+    // In reality, they have multiple possible data structures in their content (details, faqs, etc)
+    // We should be able to render these in the preview before publishing
+    // We're keeping them in this union until we have time to sort this out
+    | OwidGdocType.Fragment
+
+export type OwidGdocTypeMap = {
+    [OwidGdocType.Article]: OwidGdocPostInterface
+    [OwidGdocType.TopicPage]: OwidGdocPostInterface
+    [OwidGdocType.Fragment]: OwidGdocPostInterface
+    [OwidGdocType.LinearTopicPage]: OwidGdocPostInterface
+    [OwidGdocType.DataInsight]: OwidGdocDataInsightInterface
+    [OwidGdocType.Homepage]: OwidGdocHomepageInterface
+    [OwidGdocType.AboutPage]: OwidGdocAboutInterface
+    [OwidGdocType.Author]: OwidGdocAuthorInterface
+    [OwidGdocType.Announcement]: OwidGdocAnnouncementInterface
+}
+
+export type OwidGdocContent =
+    | OwidGdocPostContent
+    | OwidGdocDataInsightContent
+    | OwidGdocHomepageContent
+    | OwidGdocAuthorContent
+    | OwidGdocAboutContent
+    | OwidGdocAnnouncementContent
+
+export type OwidGdoc =
+    | OwidGdocPostInterface
+    | OwidGdocDataInsightInterface
+    | OwidGdocHomepageInterface
+    | OwidGdocAuthorInterface
+    | OwidGdocAboutInterface
+    | OwidGdocAnnouncementInterface
+
 export interface OwidGdocBaseInterface {
     id: string
     slug: string
@@ -121,8 +160,9 @@ export interface OwidGdocBaseInterface {
     markdown: string | null
 }
 
-export interface OwidGdocPostInterface extends OwidGdocBaseInterface {
-    content: OwidGdocPostContent
+export interface OwidGdocPostInterface<T extends OwidPostType = OwidPostType>
+    extends OwidGdocBaseInterface {
+    content: OwidGdocPostContent<T>
 }
 
 // Used for linkedDocuments attachments, instead of attaching the entire gdoc model
@@ -285,22 +325,6 @@ export interface OwidGdocAboutInterface extends OwidGdocBaseInterface {
     donors?: string[]
 }
 
-export type OwidGdocContent =
-    | OwidGdocPostContent
-    | OwidGdocDataInsightContent
-    | OwidGdocHomepageContent
-    | OwidGdocAuthorContent
-    | OwidGdocAboutContent
-    | OwidGdocAnnouncementContent
-
-export type OwidGdoc =
-    | OwidGdocPostInterface
-    | OwidGdocDataInsightInterface
-    | OwidGdocHomepageInterface
-    | OwidGdocAuthorInterface
-    | OwidGdocAboutInterface
-    | OwidGdocAnnouncementInterface
-
 export enum OwidGdocErrorMessageType {
     Error = "error",
     Warning = "warning",
@@ -338,18 +362,9 @@ export interface OwidGdocJSON
     updatedAt: string | null
 }
 
-export interface OwidGdocPostContent {
+export interface OwidGdocPostContent<T extends OwidPostType = OwidPostType> {
     body?: OwidEnrichedGdocBlock[]
-    type?:
-        | OwidGdocType.Article
-        | OwidGdocType.TopicPage
-        | OwidGdocType.LinearTopicPage
-        // TODO: Fragments need their own OwidGdocFragment interface and flow in the UI
-        // Historically they were treated the same as GdocPosts but not baked
-        // In reality, they have multiple possible data structures in their content (details, faqs, etc)
-        // We should be able to render these in the preview before publishing
-        // We're keeping them in this union until we have time to sort this out
-        | OwidGdocType.Fragment
+    type?: T
     title?: string
     supertitle?: string
     subtitle?: string
