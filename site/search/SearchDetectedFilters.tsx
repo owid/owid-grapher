@@ -1,13 +1,8 @@
-import { useCallback, useMemo } from "react"
+import { useCallback, useMemo, useEffect } from "react"
 import { useSearchContext } from "./SearchContext.js"
-import {
-    getFilterIcon,
-    getFilterSuggestionsWithUnmatchedQueryNgrams,
-    removeMatchedWordsWithStopWords,
-} from "./searchUtils.js"
+import { getFilterIcon, getFilterSuggestionsNgrams } from "./searchUtils.js"
 import { FilterType, ScoredFilterPositioned } from "./searchTypes.js"
 import { SearchFilterPill } from "./SearchFilterPill.js"
-import { match } from "ts-pattern"
 
 export const SearchDetectedFilters = ({
     allTopics,
@@ -16,53 +11,68 @@ export const SearchDetectedFilters = ({
 }) => {
     const {
         state: { query, filters },
-        actions: { setQuery, addCountry, setTopic },
+        actions: { replaceQueryWithFilters },
         synonymMap,
     } = useSearchContext()
 
-    const queryWords = query.trim().split(/\s+/)
+    const queryWords = useMemo(() => query.trim().split(/\s+/), [query])
 
-    // Handler to remove matched words from query when clicking on a filter pill
+    // Helper function to process filters and update query
+    const applyFilters = useCallback(
+        (filtersToProcess: ScoredFilterPositioned[]) => {
+            if (filtersToProcess.length === 0) return
+
+            // Collect all positions that need to be removed from the query
+            const allPositions = filtersToProcess.flatMap(
+                (filter) => filter.originalPositions
+            )
+
+            // Apply all filters at once, passing positions to let reducer handle word removal
+            replaceQueryWithFilters(filtersToProcess, allPositions)
+        },
+        [replaceQueryWithFilters]
+    )
+
+    // Handler to apply filter when clicking on a filter pill
     const handleFilterClick = useCallback(
         (filter: ScoredFilterPositioned) => {
-            const newQuery = removeMatchedWordsWithStopWords(
-                queryWords,
-                filter.originalPositions
-            )
-            setQuery(newQuery)
-
-            match(filter.type)
-                .with(FilterType.COUNTRY, () => {
-                    addCountry(filter.name)
-                })
-                .with(FilterType.TOPIC, () => {
-                    setTopic(filter.name)
-                })
-                .with(FilterType.QUERY, () => {
-                    // no-op
-                })
-                .exhaustive()
+            applyFilters([filter])
         },
-        [queryWords, setQuery, addCountry, setTopic]
+        [applyFilters]
     )
 
     const matchedFilters = useMemo(() => {
-        return getFilterSuggestionsWithUnmatchedQueryNgrams(
+        return getFilterSuggestionsNgrams(
             queryWords,
             allTopics,
             filters,
             synonymMap
         )
-    }, [query, allTopics, filters, synonymMap])
+    }, [queryWords, allTopics, filters, synonymMap])
 
-    if (!matchedFilters.length) return null
+    // Auto-apply country filters
+    useEffect(() => {
+        const countryFilters = matchedFilters.filter(
+            (filter) => filter.type === FilterType.COUNTRY
+        )
+
+        if (countryFilters.length === 0) return
+
+        applyFilters(countryFilters)
+    }, [matchedFilters, applyFilters])
+
+    const visibleFilters = matchedFilters.filter(
+        (filter) => filter.type !== FilterType.COUNTRY
+    )
+
+    if (!visibleFilters.length) return null
 
     return (
         <div className="search-detected-filters">
             <span className="search-detected-filters__label">
                 Did you mean?
             </span>
-            {matchedFilters.map((filter, i) => (
+            {visibleFilters.map((filter, i) => (
                 <button
                     type="button"
                     onClick={() => handleFilterClick(filter)}
