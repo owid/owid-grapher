@@ -24,7 +24,7 @@ export const SearchDetectedFilters = ({
     const queryWords = useMemo(() => query.trim().split(/\s+/), [query])
 
     const [automaticFiltersWithWords, setAutomaticFiltersWithWords] = useState<
-        { filter: ScoredFilterPositioned; originalWords: string }[]
+        { filter: ScoredFilterPositioned; originalQuery: string }[]
     >([])
 
     const allMatchedFilters = useMemo(() => {
@@ -73,7 +73,7 @@ export const SearchDetectedFilters = ({
         }))
 
         const allOriginalWords = automaticFiltersWithWords
-            .map((item) => item.originalWords)
+            .map((item) => item.originalQuery)
             .join(" ")
 
         // Use atomic operation to remove filters and add query text.
@@ -84,21 +84,19 @@ export const SearchDetectedFilters = ({
         setAutomaticFiltersWithWords([])
     }, [automaticFiltersWithWords, replaceFiltersWithQuery])
 
-    // Auto-apply country filters and store them with original words
+    // Auto-apply country filters and store them with original query
     useEffect(() => {
         if (automaticFilters.length === 0) return
 
-        // Store the country filters with their original words before applying them
+        // Store the country filters with the entire original query before applying them
         const filtersWithWords = automaticFilters.map((filter) => ({
             filter,
-            originalWords: filter.originalPositions
-                .map((pos) => queryWords[pos])
-                .join(" "),
+            originalQuery: query, // Store the entire query instead of just matched words
         }))
 
         setAutomaticFiltersWithWords(filtersWithWords)
         applyFilters(automaticFilters)
-    }, [automaticFilters, applyFilters, queryWords])
+    }, [automaticFilters, applyFilters, query])
 
     if (!manualFilters.length && !automaticFiltersWithWords.length) return null
 
@@ -118,7 +116,7 @@ export const SearchDetectedFilters = ({
                         "
                         <span className="search-quoted-phrase__underlined">
                             {automaticFiltersWithWords
-                                .map((item) => item.originalWords)
+                                .map((item) => item.originalQuery)
                                 .join(" ")}
                         </span>
                         "
