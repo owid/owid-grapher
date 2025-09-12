@@ -130,7 +130,9 @@ export class SlopeChartThumbnail
     }
 
     @computed private get yRange(): [number, number] {
-        return this.innerBounds.yRange()
+        // Add vertical padding to prevent dots from being rendered at the edges
+        // and to ensure labels don't overlap with the x-axis time marks below
+        return this.innerBounds.padHeight(6).yRange()
     }
 
     @computed private get xRange(): [number, number] {

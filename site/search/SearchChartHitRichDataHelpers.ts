@@ -412,16 +412,21 @@ export function makeSlotClassNames(
 
 export function getPreviewType(
     variant: SearchChartHitComponentVariant,
-    { isPrimaryTab }: { isPrimaryTab: boolean }
+    {
+        isPrimaryTab,
+        isSmallSlot,
+    }: { isPrimaryTab: boolean; isSmallSlot: boolean }
 ): PreviewType {
+    // Use the large thumbnail for the primary tab in the large variant
     if (isPrimaryTab && variant === "large")
         return { variant: PreviewVariant.Large, isMinimal: true }
 
     // Use the minimal version for the first tab (which is annotated by the table)
-    // and the complete version for all other tabs
-    return isPrimaryTab
-        ? { variant: PreviewVariant.Thumbnail, isMinimal: true }
-        : { variant: PreviewVariant.Thumbnail, isMinimal: false }
+    // and the small slot (which is too small to read any labels) and the complete
+    // version for all other tabs
+    const isMinimal = isSmallSlot || isPrimaryTab
+
+    return { variant: PreviewVariant.Thumbnail, isMinimal }
 }
 
 export function constructChartAndPreviewUrlsForTab({

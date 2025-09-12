@@ -170,36 +170,18 @@ export function SearchChartHitRichData({
                 <SearchChartHitHeader
                     hit={hit}
                     url={chartUrl}
-                    source={grapherState.sourcesLine}
+                    source={{ text: grapherState.sourcesLine, url: sourcesUrl }}
+                    showLogo={isLargeVariant}
                     onClick={onClick}
                 />
-                <div className="search-chart-hit-rich-data__header-actions">
-                    {isLargeVariant && (
-                        <Button
-                            text="Learn more about this data"
-                            className="search-chart-hit-rich-data__button"
-                            theme="outline-light-blue"
-                            href={sourcesUrl}
-                            icon={null}
-                        />
-                    )}
-                    <Button
-                        text="Download options"
-                        className="search-chart-hit-rich-data__button"
-                        theme="solid-light-blue"
-                        href={downloadUrl}
-                        icon={faDownload}
-                        iconPosition="left"
-                    />
-                    {isLargeVariant && (
-                        <img
-                            src="owid-logo.svg"
-                            alt="Our World in Data logo"
-                            width={104}
-                            height={57}
-                        />
-                    )}
-                </div>
+                <Button
+                    text="Download options"
+                    className="search-chart-hit-rich-data__button"
+                    theme="solid-light-blue"
+                    href={downloadUrl}
+                    icon={faDownload}
+                    iconPosition="left"
+                />
             </div>
 
             <div
@@ -212,14 +194,16 @@ export function SearchChartHitRichData({
                 {layout?.placedTabs.map(({ tab, slot }, tabIndex) => {
                     // Always use the complete version on smaller screens since
                     // the table might not be visible
+                    const isPrimaryTab = tabIndex === 0
+                    const isSmallSlot =
+                        slot === MediumVariantGridSlot.SmallLeft ||
+                        slot === MediumVariantGridSlot.SmallRight
                     const previewType = isMediumScreen
                         ? {
                               variant: PreviewVariant.Thumbnail,
                               isMinimal: false,
                           }
-                        : getPreviewType(variant, {
-                              isPrimaryTab: tabIndex === 0,
-                          })
+                        : getPreviewType(variant, { isPrimaryTab, isSmallSlot })
 
                     const { width: imageWidth, height: imageHeight } =
                         previewType.variant === PreviewVariant.Large
