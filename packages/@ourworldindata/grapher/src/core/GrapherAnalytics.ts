@@ -61,7 +61,7 @@ export type GrapherInteractionEvent =
 
 export interface GrapherAnalyticsContext {
     slug?: string
-    mdimView?: Record<string, string>
+    viewConfigId?: string
     narrativeChartName?: string
 }
 
@@ -71,7 +71,7 @@ interface GAEvent {
     eventContext?: string
     eventTarget?: string
     grapherPath?: string
-    grapherView?: string // specifies a view in a multi-dim data page
+    viewConfigId?: string // specifies a view in a multi-dim data page
     narrativeChartName?: string // specifies the name of a narrative chart
     explorerPath?: string
     explorerView?: string
@@ -107,12 +107,12 @@ export class GrapherAnalytics {
 
     logGrapherView(
         slug: string,
-        ctx?: { view?: Record<string, string>; narrativeChartName?: string }
+        ctx?: { viewConfigId?: string; narrativeChartName?: string }
     ): void {
         this.logToGA({
             event: EventCategory.GrapherView,
             grapherPath: `/grapher/${slug}`,
-            grapherView: ctx?.view ? JSON.stringify(ctx.view) : undefined,
+            viewConfigId: ctx?.viewConfigId,
             narrativeChartName: ctx?.narrativeChartName,
         })
     }
@@ -328,7 +328,7 @@ function grapherAnalyticsContextToGAEventFields(
 ): Partial<GAEvent> {
     return {
         grapherPath: ctx.slug ? `/grapher/${ctx.slug}` : undefined,
-        grapherView: ctx.mdimView ? JSON.stringify(ctx.mdimView) : undefined,
+        viewConfigId: ctx.viewConfigId,
         narrativeChartName: ctx.narrativeChartName,
     }
 }
