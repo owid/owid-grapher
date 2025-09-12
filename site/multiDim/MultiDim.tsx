@@ -34,14 +34,14 @@ export default function MultiDim({
     localGrapherConfig,
     slug,
     queryStr,
-    archivedChartInfo,
+    archiveContext,
     isPreviewing,
 }: {
     config: MultiDimDataPageConfig
     localGrapherConfig?: GrapherProgrammaticInterface
     slug: string | null
     queryStr: string
-    archivedChartInfo?: ArchiveContext
+    archiveContext?: ArchiveContext
     isPreviewing?: boolean
 }) {
     const manager = useRef(localGrapherConfig?.manager ?? {})
@@ -61,8 +61,8 @@ export default function MultiDim({
     const grapherContainerRef = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(grapherContainerRef)
     const additionalConfig = useMemo(
-        () => ({ archivedChartInfo, isEmbeddedInAnOwidPage: true }),
-        [archivedChartInfo]
+        () => ({ archiveContext, isEmbeddedInAnOwidPage: true }),
+        [archiveContext]
     )
     const baseGrapherConfig = useBaseGrapherConfig(additionalConfig)
     const searchParams = useMemo(
@@ -149,8 +149,8 @@ export default function MultiDim({
         }
 
         const assetMap =
-            archivedChartInfo?.type === "archive-page"
-                ? archivedChartInfo.assets.runtime
+            archiveContext?.type === "archive-page"
+                ? archiveContext.assets.runtime
                 : undefined
 
         const previousTab = grapher.activeTab
@@ -208,7 +208,7 @@ export default function MultiDim({
         searchParams,
         settings,
         slug,
-        archivedChartInfo,
+        archiveContext,
         baseGrapherConfig,
         manager,
         grapherRef,

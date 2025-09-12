@@ -59,7 +59,7 @@ export interface LinkedChart {
     tags: string[]
     tab?: GrapherTabConfigOption
     indicatorId?: number // in case of a datapage
-    archivedChartInfo?: ArchivedPageVersion | undefined
+    archivedPageVersion?: ArchivedPageVersion | undefined
     dimensionSlugs?: string[] // for validating mdim links, to make sure the query params are correct
 }
 

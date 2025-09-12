@@ -47,7 +47,7 @@ export const Head = (props: {
         href: string
     }
     staticAssetMap?: AssetMap
-    archivedChartInfo?: ArchiveContext
+    archiveContext?: ArchiveContext
 }) => {
     const { canonicalUrl, baseUrl } = props
     const pageTitle = props.pageTitle || `Our World in Data`
@@ -69,10 +69,8 @@ export const Head = (props: {
     }).forHeader
 
     let archivalDateStr = undefined
-    if (props.archivedChartInfo?.archivalDate) {
-        archivalDateStr = parseArchivalDate(
-            props.archivedChartInfo?.archivalDate
-        )
+    if (props.archiveContext?.archivalDate) {
+        archivalDateStr = parseArchivalDate(props.archiveContext?.archivalDate)
             .utc()
             .format("YYYY-MM-DD")
     }
@@ -92,12 +90,12 @@ export const Head = (props: {
                 href={atom.href}
                 title={atom.title}
             />
-            {props.archivedChartInfo && (
+            {props.archiveContext && (
                 <link
                     rel="archives"
-                    href={props.archivedChartInfo.archiveUrl}
+                    href={props.archiveContext.archiveUrl}
                     title={`Archived version of this chart as of ${archivalDateStr}`}
-                    data-archival-date={props.archivedChartInfo.archivalDate}
+                    data-archival-date={props.archiveContext.archivalDate}
                 />
             )}
             <link
