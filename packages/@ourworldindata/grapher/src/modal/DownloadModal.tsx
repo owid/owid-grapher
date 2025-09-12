@@ -47,7 +47,7 @@ import {
 
 export interface DownloadModalManager {
     displaySlug: string
-    rasterize: (bounds?: Bounds) => Promise<GrapherExport>
+    rasterize: () => Promise<GrapherExport>
     staticBounds?: Bounds
     staticBoundsWithDetails?: Bounds
     baseUrl?: string
