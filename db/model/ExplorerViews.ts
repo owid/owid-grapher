@@ -195,7 +195,7 @@ async function iterateExplorerViews(
             await explorer.updateGrapherFromExplorer()
 
             // Extract the generated config from the explorer's grapher state
-            const config = explorer.grapherState.toObject(false)
+            const config = explorer.grapherState.toObject()
 
             // Grapher uses an internal fallback chain for some important properties.
             // For explorer views we want to have a config that materializes as much
