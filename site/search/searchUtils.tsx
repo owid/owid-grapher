@@ -668,10 +668,20 @@ export function searchWithWordsContiguous(
         )
     }
 
+    // For countries, require exact covering matches where all query words are covered
+    // Example: "east" or "east ti" should NOT match "east timor"
+    const isExactCoveringMatch = (
+        queryWords: string[],
+        target: string
+    ): boolean => {
+        const query = queryWords.join(" ").toLowerCase()
+        return target.toLowerCase() === query
+    }
+
     const searchCountryTopicAsPrefixes = (queryWords: string[]) => {
         const countryFilters: ScoredFilter[] = allCountryNames
             .filter((country) => !selectedCountryNames.has(country))
-            .filter((country) => areAllWordsPrefixes(queryWords, country))
+            .filter((country) => isExactCoveringMatch(queryWords, country))
             .map((country) => ({
                 ...createCountryFilter(country),
                 score: calculateScore(queryWords, country),
