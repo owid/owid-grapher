@@ -290,6 +290,11 @@ type SetResultTypeAction = {
     type: "setResultType"
     resultType: SearchResultType
 }
+type ReplaceQueryWithFiltersAction = {
+    type: "replaceQueryWithFilters"
+    filters: Filter[]
+    matchedPositions: number[]
+}
 
 export type SearchAction =
     | AddFilterAction
@@ -303,6 +308,7 @@ export type SearchAction =
     | ToggleRequireAllCountriesAction
     | ResetAction
     | SetResultTypeAction
+    | ReplaceQueryWithFiltersAction
 
 export enum SearchTopicType {
     Topic = "topic",
