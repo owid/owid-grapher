@@ -18,7 +18,7 @@ export interface FetchingGrapherProps {
     config?: GrapherProgrammaticInterface
     configUrl?: string
     dataApiUrl: string
-    archivedChartInfo: ArchiveContext | undefined
+    archiveContext: ArchiveContext | undefined
     queryStr?: string
     externalBounds?: Bounds
     noCache?: boolean
@@ -122,7 +122,7 @@ export function FetchingGrapher(
                 downloadedConfig?.selectedEntityColors ??
                     props.config?.selectedEntityColors,
                 props.dataApiUrl,
-                props.archivedChartInfo,
+                props.archiveContext,
                 props.noCache
             )
 
@@ -141,7 +141,7 @@ export function FetchingGrapher(
         downloadedConfig?.dimensions,
         downloadedConfig?.selectedEntityColors,
         props.config?.selectedEntityColors,
-        props.archivedChartInfo,
+        props.archiveContext,
         props.noCache,
         grapherState,
     ])

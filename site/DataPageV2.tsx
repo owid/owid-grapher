@@ -43,7 +43,7 @@ export const DataPageV2 = (props: {
     faqEntries?: FaqEntryData
     imageMetadata: Record<string, ImageMetadata>
     tagToSlugMap: Record<string | number, string>
-    archivedChartInfo?: ArchiveContext
+    archiveContext?: ArchiveContext
     dataApiUrl?: string
 }) => {
     const {
@@ -55,7 +55,7 @@ export const DataPageV2 = (props: {
         faqEntries,
         tagToSlugMap,
         imageMetadata,
-        archivedChartInfo,
+        archiveContext,
     } = props
     const pageTitle = grapher?.title ?? datapageData.title.title
     const dataApiOrigin = Url.fromURL(DATA_API_URL).origin
@@ -101,8 +101,8 @@ export const DataPageV2 = (props: {
         datapageData.topicTagsLinks || []
     )
 
-    const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
-    const assetMaps = isOnArchivalPage ? archivedChartInfo.assets : undefined
+    const isOnArchivalPage = archiveContext?.type === "archive-page"
+    const assetMaps = isOnArchivalPage ? archiveContext.assets : undefined
 
     return (
         <Html>
@@ -113,7 +113,7 @@ export const DataPageV2 = (props: {
                 imageUrl={imageUrl}
                 baseUrl={baseUrl}
                 staticAssetMap={assetMaps?.static}
-                archivedChartInfo={archivedChartInfo}
+                archiveContext={archiveContext}
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
@@ -147,9 +147,7 @@ export const DataPageV2 = (props: {
             </Head>
             <body className="DataPage">
                 <SiteHeader
-                    archiveInfo={
-                        isOnArchivalPage ? archivedChartInfo : undefined
-                    }
+                    archiveInfo={isOnArchivalPage ? archiveContext : undefined}
                 />
                 <main>
                     <script
@@ -159,7 +157,7 @@ export const DataPageV2 = (props: {
                                     datapageData,
                                     faqEntries,
                                     canonicalUrl,
-                                    archivedChartInfo,
+                                    archiveContext,
                                     tagToSlugMap: minimalTagToSlugMap,
                                     imageMetadata,
                                 }
@@ -176,7 +174,7 @@ export const DataPageV2 = (props: {
                                 faqEntries={faqEntries}
                                 canonicalUrl={canonicalUrl}
                                 tagToSlugMap={tagToSlugMap}
-                                archivedChartInfo={archivedChartInfo}
+                                archiveContext={archiveContext}
                             />
                         </DebugProvider>
                     </div>
@@ -184,9 +182,7 @@ export const DataPageV2 = (props: {
                 <SiteFooter
                     context={SiteFooterContext.dataPageV2}
                     isPreviewing={isPreviewing}
-                    archiveInfo={
-                        isOnArchivalPage ? archivedChartInfo : undefined
-                    }
+                    archiveInfo={isOnArchivalPage ? archiveContext : undefined}
                 />
                 <script
                     dangerouslySetInnerHTML={{

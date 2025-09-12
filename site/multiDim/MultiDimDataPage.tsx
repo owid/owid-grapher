@@ -20,7 +20,7 @@ export function MultiDimDataPage({
     relatedResearchCandidates,
     imageMetadata,
     isPreviewing,
-    archivedChartInfo,
+    archiveContext,
     canonicalUrl,
 }: MultiDimDataPageProps) {
     if (!slug && !isPreviewing) {
@@ -41,7 +41,7 @@ export function MultiDimDataPage({
         imageMetadata,
         tagToSlugMap,
         isPreviewing,
-        archivedChartInfo,
+        archiveContext,
     }
     const imageUrl: string = urljoin(
         baseUrl || "/",
@@ -50,8 +50,8 @@ export function MultiDimDataPage({
     const imageWidth = "1200"
     const imageHeight = "628"
 
-    const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
-    const assetMaps = isOnArchivalPage ? archivedChartInfo.assets : undefined
+    const isOnArchivalPage = archiveContext?.type === "archive-page"
+    const assetMaps = isOnArchivalPage ? archiveContext.assets : undefined
 
     return (
         <Html>
@@ -62,7 +62,7 @@ export function MultiDimDataPage({
                 imageUrl={imageUrl}
                 baseUrl={baseUrl}
                 staticAssetMap={assetMaps?.static}
-                archivedChartInfo={archivedChartInfo}
+                archiveContext={archiveContext}
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
@@ -82,9 +82,7 @@ export function MultiDimDataPage({
             </Head>
             <body className="DataPage MultiDimDataPage">
                 <SiteHeader
-                    archiveInfo={
-                        isOnArchivalPage ? archivedChartInfo : undefined
-                    }
+                    archiveInfo={isOnArchivalPage ? archiveContext : undefined}
                 />
                 <main>
                     <script
@@ -111,9 +109,7 @@ export function MultiDimDataPage({
                 <SiteFooter
                     context={SiteFooterContext.multiDimDataPage}
                     isPreviewing={isPreviewing}
-                    archiveInfo={
-                        isOnArchivalPage ? archivedChartInfo : undefined
-                    }
+                    archiveInfo={isOnArchivalPage ? archiveContext : undefined}
                 />
             </body>
         </Html>
