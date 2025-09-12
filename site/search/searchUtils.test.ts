@@ -449,34 +449,71 @@ describe("Fuzzy search in search autocomplete", () => {
             expect(result).toBe("artificial intelligence")
         })
 
-        it("should handle multiple stop words before match", () => {
-            const words = ["climate", "change", "in", "the", "united", "states"]
-            // Remove "united states" at positions [4, 5]
-            const result = removeMatchedWordsWithStopWords(words, [4, 5])
+        it("should handle repeated consecutive stop words", () => {
+            const words = [
+                "climate",
+                "change",
+                "the",
+                "the",
+                "in",
+                "in",
+                "united",
+                "states",
+            ]
+            // Remove "united states" at positions [6, 7]
+            const result = removeMatchedWordsWithStopWords(words, [6, 7])
 
             expect(result).toBe("climate change")
         })
 
-        it("should not remove non-stop words before match", () => {
+        it("should handle repeated groups of matched positions and stop words", () => {
             const words = [
                 "climate",
                 "change",
-                "data",
-                "for",
+                "in",
+                "the",
                 "united",
                 "states",
+                "and",
+                "the",
+                "uk",
             ]
-            // Remove "united states" at positions [4, 5]
-            const result = removeMatchedWordsWithStopWords(words, [4, 5])
 
-            // Should only remove "for" (stop word) but keep "data"
-            expect(result).toBe("climate change data")
+            const result = removeMatchedWordsWithStopWords(words, [4, 5, 8])
+            expect(result).toBe("climate change")
+        })
+
+        it("should not remove stop words that are not preceding the match", () => {
+            const words = [
+                "of",
+                "climate",
+                "change",
+                "in",
+                "the",
+                "united",
+                "states",
+                "and",
+            ]
+            // Remove "united states" at positions [5, 6]
+            const result = removeMatchedWordsWithStopWords(words, [5, 6])
+
+            // Should NOT remove stop words at beginning or after the match
+            expect(result).toBe("of climate change and")
         })
 
         it("should handle empty matched positions", () => {
             const words = ["climate", "change"]
             const result = removeMatchedWordsWithStopWords(words, [])
 
+            expect(result).toBe("climate change")
+        })
+
+        it("should handle match at beginning of array", () => {
+            const words = ["united", "states", "climate", "change"]
+            // Remove "united states" at positions [0, 1]
+            const result = removeMatchedWordsWithStopWords(words, [0, 1])
+
+            // No preceding stop words to remove
             expect(result).toBe("climate change")
         })
     })
