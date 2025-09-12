@@ -992,7 +992,7 @@ export function getFilterSuggestionsWithUnmatchedQuery(
  * Enhanced version using n-grams with stop word filtering.
  * Gets filter suggestions and calculates unmatched query using the new n-gram approach.
  */
-export function getFilterSuggestionsWithUnmatchedQueryNgrams(
+export function getFilterSuggestionsNgrams(
     queryWords: string[],
     allTopics: string[],
     filters: Filter[], // currently active filters to exclude from suggestions
@@ -1367,18 +1367,17 @@ export function removeMatchedWordsWithStopWords(
 
     const wordsToRemove = new Set(matchedPositions)
 
-    // Also remove stop words that immediately precede the matched positions
-    const sortedPositions = [...matchedPositions].sort((a, b) => a - b)
-    const firstMatchedPosition = sortedPositions[0]
-
-    // Look backwards from the first matched position to remove preceding stop words
-    for (let i = firstMatchedPosition - 1; i >= 0; i--) {
-        const word = originalWords[i].toLowerCase()
-        if (STOP_WORDS.has(word)) {
-            wordsToRemove.add(i)
-        } else {
-            // Stop when we hit a non-stop word
-            break
+    // For each matched position, remove any consecutive stop words that immediately precede it
+    for (const matchedPos of matchedPositions) {
+        // Look backwards from this matched position to remove consecutive preceding stop words
+        for (let i = matchedPos - 1; i >= 0; i--) {
+            const word = originalWords[i].toLowerCase()
+            if (STOP_WORDS.has(word)) {
+                wordsToRemove.add(i)
+            } else {
+                // Stop when we hit a non-stop word
+                break
+            }
         }
     }
 
