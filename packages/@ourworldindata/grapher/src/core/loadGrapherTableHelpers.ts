@@ -18,7 +18,7 @@ export async function fetchInputTableForConfig(
         | { [entityName: string]: string | undefined }
         | undefined,
     dataApiUrl: string,
-    archivedChartInfo: ArchiveContext | undefined,
+    archiveContext: ArchiveContext | undefined,
     noCache?: boolean,
     loadMetadataOnly?: boolean
 ): Promise<OwidTable | undefined> {
@@ -27,7 +27,7 @@ export async function fetchInputTableForConfig(
     const variablesDataMap = await loadVariablesDataSite(
         variables,
         dataApiUrl,
-        archivedChartInfo,
+        archiveContext,
         noCache,
         loadMetadataOnly
     )
@@ -42,7 +42,7 @@ export async function fetchInputTableForConfig(
 
 export function getCachingInputTableFetcher(
     dataApiUrl: string,
-    archivedChartInfo: ArchiveContext | undefined,
+    archiveContext: ArchiveContext | undefined,
     noCache?: boolean,
     loadMetadataOnly?: boolean
 ): (
@@ -88,8 +88,8 @@ export function getCachingInputTableFetcher(
                 variablesToFetch.map((variableId) =>
                     loadVariableDataAndMetadata(variableId, dataApiUrl, {
                         assetMap:
-                            archivedChartInfo?.type === "archive-page"
-                                ? archivedChartInfo.assets.runtime
+                            archiveContext?.type === "archive-page"
+                                ? archiveContext.assets.runtime
                                 : undefined,
                         noCache,
                         loadMetadataOnly,

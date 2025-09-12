@@ -120,5 +120,5 @@ export interface MultiDimDataPageProps {
     relatedResearchCandidates: DataPageRelatedResearch[]
     imageMetadata: Record<string, ImageMetadata>
     isPreviewing?: boolean
-    archivedChartInfo?: ArchiveContext
+    archiveContext?: ArchiveContext
 }

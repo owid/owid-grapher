@@ -41,7 +41,7 @@ const bakeExplorersToDir = async (
         await write(
             `${directory}/${explorer.slug}.html`,
             await renderExplorerPage(explorer, knex, {
-                archivedChartInfo: latestArchivedBySlug[explorer.slug],
+                archiveContext: latestArchivedBySlug[explorer.slug],
             })
         )
     }
@@ -104,7 +104,7 @@ export const bakeSingleExplorerPageForArchival = async (
     await fs.writeFile(
         outPathHtml,
         await renderExplorerPage(program, knex, {
-            archivedChartInfo: archiveInfo,
+            archiveContext: archiveInfo,
         })
     )
     const outPathManifest = `${bakedSiteDir}/explorers/${program.slug}.manifest.json`

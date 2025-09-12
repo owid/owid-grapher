@@ -113,10 +113,10 @@ export default function Chart({
 
     const chartConfig = useMemo(
         () => ({
-            archivedChartInfo: linkedChart?.archivedChartInfo,
+            archiveContext: linkedChart?.archivedPageVersion,
             ...customizedChartConfig,
         }),
-        [linkedChart?.archivedChartInfo, customizedChartConfig]
+        [linkedChart?.archivedPageVersion, customizedChartConfig]
     )
 
     if (!linkedChart) return null

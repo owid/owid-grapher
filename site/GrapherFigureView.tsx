@@ -72,7 +72,7 @@ export function GrapherFigureView(
                     config={config}
                     configUrl={configUrl}
                     dataApiUrl={DATA_API_URL}
-                    archivedChartInfo={config.archivedChartInfo}
+                    archiveContext={config.archiveContext}
                     queryStr={props.queryStr}
                     externalBounds={bounds}
                     noCache={props.isPreviewing}

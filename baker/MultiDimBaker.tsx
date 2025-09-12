@@ -118,14 +118,14 @@ export async function renderMultiDimDataPageFromConfig({
     config,
     imageMetadataDictionary,
     isPreviewing = false,
-    archiveInfo,
+    archiveContext,
 }: {
     knex: db.KnexReadonlyTransaction
     slug: string | null
     config: MultiDimDataPageConfigEnriched
     imageMetadataDictionary?: Record<string, ImageMetadata>
     isPreviewing?: boolean
-    archiveInfo?: ArchiveContext
+    archiveContext?: ArchiveContext
 }) {
     const pageConfig = MultiDimDataPageConfig.fromObject(config)
     const variableIds = getRelevantVariableIds(config)
@@ -144,7 +144,7 @@ export async function renderMultiDimDataPageFromConfig({
 
     // If we're baking to an archival page, then we want to skip a bunch of sections
     // where the links would break
-    if (archiveInfo?.type !== "archive-page") {
+    if (archiveContext?.type !== "archive-page") {
         // TAGS
         const fullTagToSlugMap = await getTagToSlugMap(knex)
         // Only embed the tags that are actually used by the datapage, instead of the complete JSON object with ~240 properties
@@ -177,8 +177,8 @@ export async function renderMultiDimDataPageFromConfig({
     }
 
     let canonicalUrl: string
-    if (archiveInfo?.type === "archive-page") {
-        canonicalUrl = archiveInfo.archiveUrl
+    if (archiveContext?.type === "archive-page") {
+        canonicalUrl = archiveContext.archiveUrl
     } else {
         canonicalUrl = slug ? `${BAKED_GRAPHER_URL}/${slug}` : ""
     }
@@ -194,7 +194,7 @@ export async function renderMultiDimDataPageFromConfig({
         relatedResearchCandidates,
         imageMetadata,
         isPreviewing,
-        archivedChartInfo: archiveInfo,
+        archiveContext,
     }
 
     return renderMultiDimDataPageFromProps(props)
@@ -217,7 +217,7 @@ export const renderMultiDimDataPageBySlug = async (
         knex,
         slug,
         config: dbRow.config,
-        archiveInfo: archivedVersion[dbRow.id],
+        archiveContext: archivedVersion[dbRow.id],
     })
 }
 
@@ -240,7 +240,7 @@ export async function renderMultiDimDataPageByCatalogPath(
         knex,
         slug: dbRow.slug,
         config: dbRow.config,
-        archiveInfo: archivedVersion[dbRow.id],
+        archiveContext: archivedVersion[dbRow.id],
     })
 }
 
@@ -263,7 +263,7 @@ export const bakeMultiDimDataPage = async (
         slug,
         config,
         imageMetadataDictionary: imageMetadata,
-        archiveInfo: archivedVersion,
+        archiveContext: archivedVersion,
     })
     const outPath = path.join(bakedSiteDir, `grapher/${slug}.html`)
     await fs.writeFile(outPath, renderedHtml)
@@ -336,7 +336,7 @@ export const bakeSingleMultiDimDataPageForArchival = async (
             config,
             imageMetadataDictionary,
             isPreviewing: false,
-            archiveInfo,
+            archiveContext: archiveInfo,
         })
     )
     const outPathManifest = `${bakedSiteDir}/grapher/${slug}.manifest.json`

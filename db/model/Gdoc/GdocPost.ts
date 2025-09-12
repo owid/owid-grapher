@@ -181,7 +181,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
 
         this.relatedCharts = relatedCharts.map((chart) => ({
             ...chart,
-            archivedChartInfo: archivedVersions[chart.chartId] || undefined,
+            archiveContext: archivedVersions[chart.chartId] || undefined,
         }))
     }
 }
