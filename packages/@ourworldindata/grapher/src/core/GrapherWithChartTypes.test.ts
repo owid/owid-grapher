@@ -13,6 +13,7 @@ import {
 import { GRAPHER_CHART_TYPES } from "@ourworldindata/types"
 import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "./LegacyToOwidTable.js"
 import { MapChartState } from "../mapCharts/MapChartState"
+import { defaultGrapherConfig } from "../schema/defaultGrapherConfig.js"
 
 describe("grapher and map charts", () => {
     describe("map time tolerance plus query string works with a map chart", () => {
@@ -55,6 +56,7 @@ describe("grapher and map charts", () => {
 
 const table = SynthesizeGDPTable({ entityCount: 10 })
 const basicGrapherConfig: GrapherProgrammaticInterface = {
+    $schema: defaultGrapherConfig.$schema,
     table,
     selectedEntityNames: table.sampleEntityName(5),
     dimensions: [

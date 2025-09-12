@@ -1,6 +1,7 @@
 import { DimensionProperty } from "@ourworldindata/utils"
 import { GRAPHER_TAB_CONFIG_OPTIONS } from "@ourworldindata/types"
 import {
+    defaultGrapherConfig,
     GrapherProgrammaticInterface,
     legacyToOwidTableAndDimensionsWithMandatorySlug,
 } from "@ourworldindata/grapher"
@@ -98,6 +99,7 @@ export const SampleExplorerOfGraphers = (props?: Partial<ExplorerProps>) => {
         },
     ]
     const first: GrapherProgrammaticInterface = {
+        $schema: defaultGrapherConfig.$schema,
         id: 488,
         title,
         dimensions,
