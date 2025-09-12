@@ -307,7 +307,7 @@ export class ScatterPlotChart
         | VerticalColorLegend
         | undefined {
         if (
-            this.legendItems.length > 0 ||
+            this.legendItems.length === 0 ||
             this.manager.isDisplayedAlongsideComplementaryTable
         )
             return undefined
