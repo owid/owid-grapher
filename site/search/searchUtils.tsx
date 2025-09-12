@@ -739,6 +739,34 @@ export function calculateScore(queryWords: string[], target: string): number {
 }
 
 /**
+ * Detects words that are inside quoted phrases and should be excluded from filter matching.
+ * Returns a set of word positions that should be ignored.
+ */
+function getQuotedWordPositions(words: string[]): Set<number> {
+    const quotedPositions = new Set<number>()
+    const parts = words
+        .join(" ")
+        .split(/("[^"]*"|\S+)/)
+        .filter(Boolean)
+
+    let wordIndex = 0
+    for (const part of parts) {
+        if (part.startsWith('"') && part.endsWith('"')) {
+            // Count words in the quoted phrase
+            const wordCount = part.split(/\s+/).filter(Boolean).length
+            for (let i = 0; i < wordCount; i++) {
+                quotedPositions.add(wordIndex + i)
+            }
+            wordIndex += wordCount
+        } else if (part.trim()) {
+            wordIndex++
+        }
+    }
+
+    return quotedPositions
+}
+
+/**
  * Cousin of findMatches that uses n-gram approach to find matches for all
  * possible combinations of words in the query, not just left-to-right
  * reduction.
@@ -761,10 +789,14 @@ export function findMatchesWithNgrams(
     const allFilters: ScoredFilterPositioned[] = []
     const matchedWordPositions = new Set<number>()
 
-    // Filter out stop words while preserving original positions
+    // Get positions of words inside quoted phrases
+    const quotedWordPositions = getQuotedWordPositions(words)
+
+    // Filter out stop words and quoted words while preserving original positions
     const tokens: WordPositioned[] = words
         .map((word, index) => ({ word, position: index }))
         .filter(({ word }) => !STOP_WORDS.has(word.toLowerCase()))
+        .filter(({ position }) => !quotedWordPositions.has(position))
 
     if (tokens.length === 0) return []
 
