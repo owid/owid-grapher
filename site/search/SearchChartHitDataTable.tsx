@@ -48,6 +48,7 @@ export function SearchChartHitDataTable({
             <Header
                 title={title}
                 time={shouldShowTimeInTitle ? mainTime : undefined}
+                timePreposition={rows[0]?.timePreposition}
             />
             {displayRows.map((row) => (
                 <Row
@@ -64,16 +65,22 @@ export function SearchChartHitDataTable({
 function Header({
     title,
     time,
+    timePreposition = "in",
 }: {
     title: string
     time?: string
+    timePreposition?: string
 }): React.ReactElement {
     return (
         <div className="search-chart-hit-table-header search-chart-hit-table-row col-span">
             <span className="search-chart-hit-table-header__title">
                 {title}
             </span>
-            {time && <span>, {time}</span>}
+            {time && (
+                <span>
+                    , {timePreposition} {time}
+                </span>
+            )}
         </div>
     )
 }
