@@ -22,14 +22,17 @@ export const SearchChartHitThumbnail = ({
     return (
         <div className="search-chart-hit-thumbnail">
             {imgError && (
-                <div className="chart-hit-img-error">
+                <div className="search-chart-hit-thumbnail__error">
                     <FontAwesomeIcon icon={faHeartBroken} />
                     <span>Chart preview not available</span>
                 </div>
             )}
             <img
                 key={previewUrl}
-                className={cx({ loaded: imgLoaded, error: imgError })}
+                className={cx("search-chart-hit-thumbnail__image", {
+                    loaded: imgLoaded,
+                    error: imgError,
+                })}
                 loading="lazy"
                 width={imageWidth}
                 height={imageHeight}

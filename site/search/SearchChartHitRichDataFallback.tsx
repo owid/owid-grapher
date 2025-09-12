@@ -16,7 +16,7 @@ import { placeGrapherTabsInMediumVariantGridLayout } from "./SearchChartHitRichD
 import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
 import { Button } from "@ourworldindata/components"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
-import { CaptionedLink } from "./SearchChartHitCaptionedLink.js"
+import { SearchChartHitOverlayLink } from "./SearchChartHitOverlayLink.js"
 import { SearchChartHitThumbnail } from "./SearchChartHitThumbnail.js"
 import { SearchChartHitDataDisplay } from "./SearchChartHitDataDisplay.js"
 import {
@@ -115,10 +115,6 @@ export function SearchChartHitRichDataFallback({
                 style={contentStyle}
             >
                 {placedTabs.map(({ tab, slot }) => {
-                    const caption = makeLabelForGrapherTab(tab, {
-                        format: "long",
-                    })
-
                     const { chartUrl, previewUrl } =
                         constructChartAndPreviewUrlsForTab({
                             hit,
@@ -129,16 +125,24 @@ export function SearchChartHitRichDataFallback({
 
                     const className = makeSlotClassNames("medium", slot)
 
+                    const chartTypeLabel = makeLabelForGrapherTab(tab, {
+                        format: "long",
+                    })
+                    const lowerCaseChartTypeLabel =
+                        chartType === GRAPHER_TAB_NAMES.Marimekko
+                            ? chartTypeLabel
+                            : chartTypeLabel.toLowerCase()
+
                     return (
-                        <CaptionedLink
+                        <SearchChartHitOverlayLink
                             key={tab}
-                            caption={caption}
+                            overlay={`Explore interactive ${lowerCaseChartTypeLabel}`}
                             url={chartUrl}
                             className={className}
                             onClick={onClick}
                         >
                             <SearchChartHitThumbnail previewUrl={previewUrl} />
-                        </CaptionedLink>
+                        </SearchChartHitOverlayLink>
                     )
                 })}
 

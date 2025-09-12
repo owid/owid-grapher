@@ -1,17 +1,19 @@
 import cx from "classnames"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
 
-export function CaptionedLink({
+export function SearchChartHitOverlayLink({
     url,
     className,
     onClick,
     children,
-    caption,
+    overlay,
 }: {
     url: string
     className?: string
     onClick?: () => void
     children: React.ReactNode
-    caption: string
+    overlay: string
 }): React.ReactElement {
     return (
         <a
@@ -20,8 +22,10 @@ export function CaptionedLink({
             onClick={onClick}
         >
             {children}
-            <div className="search-chart-hit-captioned-link__label">
-                {caption}
+            <div className="search-chart-hit-captioned-link__overlay">
+                <div>
+                    {overlay} <FontAwesomeIcon icon={faArrowRight} size="sm" />
+                </div>
             </div>
         </a>
     )

@@ -4,7 +4,7 @@
     width: 100%;
     background-color: $gray-10;
 
-    img {
+    .search-chart-hit-thumbnail__image {
         display: block; // Remove the space below the image
         width: 100%;
         height: auto;
@@ -18,7 +18,7 @@
         }
     }
 
-    .chart-hit-img-error {
+    .search-chart-hit-thumbnail__error {
         display: flex;
         height: 100%;
         flex-direction: column;
