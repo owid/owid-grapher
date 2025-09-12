@@ -7,7 +7,7 @@
 }
 
 .search-detected-filters__label {
-    @include note-13-medium;
+    @include body-3-medium;
     font-style: italic;
 }
 
@@ -17,4 +17,12 @@
     padding: 0;
     cursor: pointer;
     text-align: left;
+}
+
+.search-quoted-phrase {
+    @include body-3-medium;
+    font-style: italic;
+    .search-quoted-phrase__underlined {
+        @include owid-link-90;
+    }
 }
