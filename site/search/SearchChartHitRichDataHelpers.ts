@@ -18,6 +18,7 @@ import {
     mapGrapherTabNameToConfigOption,
     mapGrapherTabNameToQueryParam,
     StackedDiscreteBarChartState,
+    WORLD_ENTITY_NAME,
 } from "@ourworldindata/grapher"
 import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable"
 import { SearchChartHitDataPointsProps } from "./SearchChartHitDataPoints"
@@ -32,7 +33,16 @@ import {
     RichDataComponentVariant,
 } from "./SearchChartHitRichDataTypes.js"
 import { SearchChartHit, SearchChartHitComponentVariant } from "./searchTypes"
-import { excludeUndefined } from "@ourworldindata/utils"
+import {
+    excludeUndefined,
+    checkIsCountry,
+    getRegionByName,
+    getParentRegions,
+    getSiblingRegions,
+    getAggregates,
+    getContinents,
+    getIncomeGroups,
+} from "@ourworldindata/utils"
 import { constructChartUrl, constructPreviewUrl } from "./searchUtils"
 
 export function getSortedGrapherTabsForChartHit(
@@ -103,6 +113,7 @@ export function pickEntitiesForDisplay(
         (entityName) =>
             grapherState.table.availableEntityNameSet.has(entityName)
     )
+    const availableEntities = new Set(grapherState.availableEntityNames)
 
     return match(originalGrapherState.addCountryMode)
         .with(EntitySelectionMode.Disabled, () => {
@@ -138,11 +149,13 @@ export function pickEntitiesForDisplay(
             const isFaceted = facetStrategy !== FacetStrategy.none
 
             // When multiple entities can be selected, the basic strategy is to
-            // combine the user-picked entities with the chart's default entities,
-            // but we make exceptions for certain cases where doing so would
-            // create crowded or unreadable charts.
+            // pick entities for comparison based on the first picked entity.
+            // If no entities for comparison can be found, we rely on the default
+            // selection. Those entities are then combined with the user-picked
+            // entities, but we make exceptions for certain cases where doing so
+            // would create crowded or unreadable charts.
 
-            // Don't combine picked and default entities if the chart is
+            // Don't combine picked and comparison entities if the chart is
             // faceted because many facets are hard to read in thumbnails
             if (isFaceted) {
                 // Choose the user-picked entities if there are any
@@ -164,7 +177,7 @@ export function pickEntitiesForDisplay(
                 return defaultEntities
             }
 
-            // Don't combine picked and default entities if columns are
+            // Don't combine picked and comparison entities if columns are
             // plotted since Grapher would switch to faceting mode
             if (!isEntityStrategy) {
                 return pickedEntities.length > 0
@@ -172,12 +185,69 @@ export function pickEntitiesForDisplay(
                     : defaultEntities
             }
 
-            // Combine the picked entities with the default ones.
-            // It's important to prepend the picked entities because we later
-            // take the first N entities to render if there are space constraints
-            return R.unique([...pickedEntities, ...defaultEntities])
+            // Find entities for comparison and combine them with the picked entities
+            if (pickedEntities.length > 0) {
+                const potentialComparisonEntities = pickComparisonEntities(
+                    pickedEntities[0],
+                    availableEntities
+                )
+                const comparisonEntities =
+                    potentialComparisonEntities.length > 0
+                        ? potentialComparisonEntities
+                        : defaultEntities
+
+                // It's important to prepend the picked entities because we later
+                // take the first N entities to render if there are space constraints
+                return R.unique([...pickedEntities, ...comparisonEntities])
+            }
+
+            return defaultEntities
         })
         .exhaustive()
+}
+
+/**
+ * Selects relevant comparison entities for a given entity to provide meaningful
+ * contextual comparisons in search results.
+ */
+export function pickComparisonEntities(
+    entity: EntityName,
+    availableEntities: Set<EntityName>
+): EntityName[] {
+    const comparisonEntities = new Set<EntityName>()
+
+    // Can't determine comparison entities for non-geographical entities
+    const region = getRegionByName(entity)
+    if (!region) return []
+
+    // Compare World to any other aggregate entity (e.g. continents or income groups)
+    if (entity === WORLD_ENTITY_NAME)
+        return [...getContinents(), ...getIncomeGroups(), ...getAggregates()]
+            .filter((aggregate) => availableEntities.has(aggregate.name))
+            .map((aggregate) => aggregate.name)
+
+    // Always include World as a comparison if available
+    if (availableEntities.has(WORLD_ENTITY_NAME))
+        comparisonEntities.add(WORLD_ENTITY_NAME)
+
+    if (checkIsCountry(region)) {
+        // For countries: add their parent regions (continent, income group, etc.)
+        // Example: Germany -> Europe, Europe (WHO), High income countries
+        const regions = getParentRegions(region.name)
+        for (const region of regions)
+            if (availableEntities.has(region.name))
+                comparisonEntities.add(region.name)
+    } else {
+        // For aggregate regions: add sibling regions at the same hierarchical level
+        // Example: Europe -> Asia, Africa, North America (other continents)
+        const siblings = getSiblingRegions(region.name)
+        for (const sibling of siblings) {
+            if (availableEntities.has(sibling.name))
+                comparisonEntities.add(sibling.name)
+        }
+    }
+
+    return Array.from(comparisonEntities)
 }
 
 export function configureGrapherStateTab(
