@@ -34,7 +34,7 @@ import {
     getColumnUnitForDisplay,
     calculateTrendDirection,
 } from "./searchUtils.js"
-import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
+import { CoreColumn, OwidTable, TimeColumn } from "@ourworldindata/core-table"
 
 interface BaseArgs {
     grapherState: GrapherState
@@ -138,11 +138,6 @@ function buildDataTableContentForLineChart({
     maxRows,
 }: Args<LineChartState>): SearchChartHitDataTableContent {
     const formatColumn = chartState.formatColumn
-
-    // Line charts might have a color scale, in which case the lines are colored
-    // according to the scale. In this case, we show a legend as table
-    if (chartState.hasColorScale)
-        return buildLegendTableProps({ grapherState, chartState, maxRows })
 
     // Create a map chart state to access custom label formatting.
     // When `map.tooltipUseCustomLabels` is enabled, this allows us to display
@@ -486,21 +481,15 @@ function buildDataTableContentForMarimekkoChart({
     chartState,
     maxRows,
 }: Args<MarimekkoChartState>): SearchChartHitDataTableContent {
-    // If at least one entity is selected, then we display the values
-    // for the first two entities. The remaining selected entities are ignored
-    if (grapherState.selection.hasSelection) {
-        const { selectedEntityNames } = grapherState.selection
+    const selectedEntities = grapherState.selection.selectedEntityNames
+
+    // If one or two entities are selected, then display the x and y values for those entities
+    if (selectedEntities.length > 0 && selectedEntities.length <= 2) {
         return buildDataPointsContentForMarimekko({
             grapherState,
             chartState,
-            entityNames: selectedEntityNames.slice(0, 2),
+            entityNames: selectedEntities,
         })
-    }
-
-    // If the selection is empty and the chart has a legend (which is the
-    // case if it has a color dimension), then we display the legend
-    if (grapherState.colorColumnSlug) {
-        return buildLegendTableProps({ grapherState, chartState, maxRows })
     }
 
     // Display a table where each row corresponds to an entity
@@ -566,10 +555,17 @@ function buildValueTableContentForMarimekko({
     chartState: MarimekkoChartState
     maxRows?: number
 }): SearchChartHitDataTableContent {
-    const series = chartState.series[0]
     const formatColumn = chartState.formatColumn
+    const series = chartState.series[0]
 
-    let rows = series.points
+    let points = series.points
+    if (chartState.selectionArray.hasSelection) {
+        points = points.filter((point) =>
+            chartState.selectionArray.selectedSet.has(point.position)
+        )
+    }
+
+    let rows = points
         .map((point) => {
             const entityColor = chartState.domainColorForEntityMap.get(
                 point.position
@@ -603,26 +599,27 @@ function buildDataTableContentForScatterPlot({
     chartState,
     maxRows,
 }: Args<ScatterPlotChartState>): SearchChartHitDataTableContent {
-    // If entities are selected, then we display the x and y values for one of
-    // the entities. The remaining entities are ignored
-    if (grapherState.selection.hasSelection) {
-        const displayEntity =
-            findEntityToDisplayForScatterPlot(chartState) ??
-            chartState.series[0]?.seriesName
+    // TODO: The unique call shouldn't be necessary
+    const selectedEntities = R.unique(
+        grapherState.selection.selectedEntityNames
+    )
+
+    // If exactly one entity is selected, then display the x and y values for that entity
+    if (selectedEntities.length === 1) {
         return buildDataPointsContentForScatterPlot({
             grapherState,
             chartState,
-            entityName: displayEntity,
+            entityName: selectedEntities[0],
         })
     }
 
-    // If the selection is empty and the scatter plot has a legend (which is the
-    // case if it has a color dimension), then we display the legend
-    if (grapherState.colorColumnSlug) {
-        return buildLegendTableProps({ grapherState, chartState, maxRows })
+    // If more than one entity is selected, then build a table where each row
+    // represents an entity
+    if (selectedEntities.length > 0) {
+        return buildValueTableContentForScatterPlot({ chartState, maxRows })
     }
 
-    // Special handling for two cases:
+    // Special handling for two cases (if the selection is empty):
     // Case 1:
     //   The scatter plot has exactly one entity. In this case, displaying
     //   the x-and y-value of that entity in a large format is nicer than
@@ -666,33 +663,6 @@ function findEntityToDisplayForScatterPlot(
     )?.seriesName
 }
 
-/** Creates a table where each row represents a legend bin from the color scale */
-function buildLegendTableProps({
-    grapherState,
-    chartState,
-    maxRows,
-}: {
-    grapherState: GrapherState
-    chartState: ChartState
-    maxRows?: number
-}): SearchChartHitDataTableContent {
-    const bins = chartState.colorScale?.legendBins ?? []
-
-    let rows = bins
-        .map((bin) => {
-            if (bin.isHidden || isNoDataBin(bin)) return undefined
-            const label = makeLabelForBin(bin)
-            return { label, color: bin.color }
-        })
-        .filter((row) => row !== undefined)
-
-    if (maxRows !== undefined) rows = rows.slice(0, maxRows)
-
-    const title = grapherState.colorScale.legendDescription || "Legend"
-
-    return { type: "data-table", props: { rows, title }, isLegend: true }
-}
-
 /**
  * Creates a table where each row represents an entity in a scatter plot,
  * displaying both x and y values in a "y vs x" format for each entity.
@@ -711,28 +681,42 @@ function buildValueTableContentForScatterPlot({
     const xLabel =
         chartState.horizontalAxisLabel || getColumnNameForDisplay(xColumn)
 
-    let rows = chartState.series
+    let series = chartState.series
+    if (chartState.selectionArray.hasSelection) {
+        series = series.filter((series) =>
+            chartState.selectionArray.selectedSet.has(series.seriesName)
+        )
+    }
+
+    const isTimeScatter = xColumn instanceof TimeColumn
+
+    let rows = series
         .map((series) => {
             const point = series.points[0]
             if (!point) return undefined
             const yValue = yColumn.formatValueShort(point.y)
             const xValue = xColumn.formatValueShort(point.x)
+            const value = isTimeScatter ? yValue : `${yValue} vs. ${xValue}`
             return {
                 seriesName: series.seriesName,
                 label: series.seriesName,
                 color: series.color,
-                value: `${yValue} vs. ${xValue}`,
+                value,
                 time: yColumn.formatTime(point.timeValue),
                 timePreposition: OwidTable.getPreposition(
                     chartState.transformedTable.timeColumn
                 ),
+                yValue: point.y,
             }
         })
         .filter((row) => row !== undefined)
 
+    // Sort by y-value in descending order
+    rows = R.sortBy(rows, [(row) => row.yValue, "desc"])
+
     if (maxRows !== undefined) rows = rows.slice(0, maxRows)
 
-    const title = `${yLabel} vs. ${xLabel}`
+    const title = isTimeScatter ? yLabel : `${yLabel} vs. ${xLabel}`
 
     return { type: "data-table", props: { rows, title } }
 }

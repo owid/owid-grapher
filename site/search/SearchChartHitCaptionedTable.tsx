@@ -10,12 +10,14 @@ export function CaptionedTable({
     chartUrl,
     grapherState,
     maxRows,
+    numRowsPerColumn,
     className,
     onClick,
 }: {
     chartUrl: string
     grapherState: GrapherState
     maxRows?: number
+    numRowsPerColumn?: number
     className?: string
     onClick?: () => void
 }): React.ReactElement | null {
@@ -43,7 +45,10 @@ export function CaptionedTable({
                 <div className="search-chart-hit-table-wrapper-content">
                     {match(dataTableContent)
                         .with({ type: "data-table" }, (content) => (
-                            <SearchChartHitDataTable {...content.props} />
+                            <SearchChartHitDataTable
+                                {...content.props}
+                                numRowsPerColumn={numRowsPerColumn}
+                            />
                         ))
                         .with({ type: "data-points" }, (content) => (
                             <SearchChartHitDataPoints {...content.props} />

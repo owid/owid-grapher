@@ -6,6 +6,7 @@ import {
     legacyToOwidTableAndDimensionsWithMandatorySlug,
 } from "@ourworldindata/grapher"
 import {
+    DimensionProperty,
     GrapherInterface,
     MultiDimDataPageConfigEnriched,
     MultipleOwidVariableDataDimensionsMap,
@@ -168,3 +169,25 @@ const useQueryVariablesData = (
             enabled,
         })),
     })
+
+/** Fetches data and metadata for a single variable and returns it as an OwidTable */
+export function useQueryVariableTable(
+    variableId: number,
+    options: { enabled?: boolean; dataApiUrl: string }
+): { data?: OwidTable; status: QueryStatus } {
+    const { data: variablesDataMap, status } = useQueryVariablesDataAndMetadata(
+        [variableId],
+        options
+    )
+
+    if (status !== "success" || !variablesDataMap) return { status }
+
+    // Construct an OwidTable for a single variable
+    const table = legacyToOwidTableAndDimensionsWithMandatorySlug(
+        variablesDataMap,
+        [{ variableId: variableId, property: DimensionProperty.table }],
+        {}
+    )
+
+    return { data: table, status }
+}
