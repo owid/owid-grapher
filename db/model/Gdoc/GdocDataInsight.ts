@@ -55,7 +55,6 @@ export class GdocDataInsight
     override _loadSubclassAttachments = async (
         knex: db.KnexReadWriteTransaction
     ): Promise<void> => {
-        // TODO: refactor these classes to properly use knex - not going to start it now
         const { dataInsights, imageMetadata } =
             await getLatestDataInsights(knex)
         this.latestDataInsights = dataInsights
@@ -66,7 +65,7 @@ export class GdocDataInsight
         knex: db.KnexReadonlyTransaction,
         page?: number,
         topicSlug?: string
-    ): Promise<GdocDataInsight[]> {
+    ): Promise<OwidGdocDataInsightInterface[]> {
         return getAndLoadPublishedDataInsightsPage(knex, page, topicSlug)
     }
 }

@@ -14,10 +14,9 @@ import {
     OwidEnrichedGdocBlock,
     OwidGdoc,
     OwidGdocBaseInterface,
-    OwidGdocDataInsightContent,
+    OwidGdocDataInsightInterface,
     OwidGdocIndexItem,
     OwidGdocMinimalPostInterface,
-    OwidGdocPublicationContext,
     OwidGdocType,
     PostsGdocsComponentsTableName,
     PostsGdocsLinksTableName,
@@ -25,12 +24,8 @@ import {
     PostsGdocsXImagesTableName,
     PostsGdocsXTagsTableName,
     checkIsOwidGdocType,
-    extractGdocIndexItem,
-    formatDate,
-    parsePostGdocContent,
     parsePostsGdocsRow,
     serializePostsGdocsRow,
-    traverseEnrichedBlock,
 } from "@ourworldindata/utils"
 
 import { GdocBase } from "./GdocBase.js"
@@ -43,16 +38,15 @@ import {
     knexRaw,
     KnexReadWriteTransaction,
     getImageMetadataByFilenames,
-    getPublishedGdocsWithTags,
     getTagHierarchiesByChildName,
     getBestBreadcrumbs,
 } from "../../db.js"
 import { enrichedBlocksToMarkdown } from "./enrichedToMarkdown.js"
 import { GdocAbout } from "./GdocAbout.js"
 import { GdocAuthor } from "./GdocAuthor.js"
-import { extractFilenamesFromBlock } from "./gdocUtils.js"
 import { getGdocComponentsWithoutChildren } from "./extractGdocComponentInfo.js"
 import { GdocAnnouncement } from "./GdocAnnouncement.js"
+import { fetchGdocs, GdocQuery } from "./GdocQuery.js"
 
 export function gdocFromJSON(
     json: Record<string, any>
@@ -241,53 +235,8 @@ export async function getGdocBaseObjectById(
 export async function getAllMinimalGdocBaseObjects(
     knex: KnexReadonlyTransaction
 ): Promise<OwidGdocMinimalPostInterface[]> {
-    const rows = await knexRaw<{
-        id: string
-        title: string
-        slug: string
-        authors: string
-        publishedAt: Date
-        published: number
-        subtitle: string
-        excerpt: string
-        type: string
-        "featured-image": string
-    }>(
-        knex,
-        `-- sql
-            SELECT
-                id,
-                content ->> '$.title' as title,
-                slug,
-                authors,
-                publishedAt,
-                published,
-                content ->> '$.subtitle' as subtitle,
-                content ->> '$.excerpt' as excerpt,
-                type,
-                CASE
-                    WHEN content ->> '$."deprecation-notice"' IS NOT NULL THEN '${ARCHIVED_THUMBNAIL_FILENAME}'
-                    ELSE content ->> '$."featured-image"'
-                END as "featured-image"
-            FROM posts_gdocs
-            WHERE published = 1
-            AND publishedAt <= NOW()`,
-        {}
-    )
-    return rows.map((row) => {
-        return {
-            id: row.id,
-            title: row.title,
-            slug: row.slug,
-            authors: JSON.parse(row.authors) as string[],
-            publishedAt: formatDate(row.publishedAt),
-            published: !!row.published,
-            subtitle: row.subtitle,
-            excerpt: row.excerpt,
-            type: row.type as OwidGdocType,
-            "featured-image": row["featured-image"],
-        } satisfies OwidGdocMinimalPostInterface
-    })
+    const result = await GdocQuery.allPublishedMinimal(knex).execute()
+    return result.data
 }
 
 export async function getPublishedGdocBaseObjectBySlug(
@@ -437,87 +386,21 @@ export async function loadGdocFromGdocBase(
     return gdoc
 }
 
-async function getAndLoadPublishedGdocs<T extends GdocBase>(
-    knex: KnexReadonlyTransaction,
-    type: T["content"]["type"],
-    options?: { limit: number; offset?: number; topicSlug?: string }
-): Promise<T[]> {
-    let query = knex<DbRawPostGdoc>(PostsGdocsTableName)
-        .where("type", type)
-        .where("published", 1)
-        .where("publishedAt", "<=", knex.fn.now())
-        .orderBy("publishedAt", "desc")
-
-    if (options?.topicSlug) {
-        query = query
-            .join("posts_gdocs_x_tags as pgt", "posts_gdocs.id", "pgt.gdocId")
-            .join("tags", "pgt.tagId", "tags.id")
-            .where("tags.slug", options.topicSlug)
-            .distinct()
-    }
-
-    if (options?.limit) query = query.limit(options.limit)
-    if (options?.offset) query = query.offset(options.offset)
-
-    const rows = await query.select(`${PostsGdocsTableName}.*`)
-    const ids = rows.map((row) => row.id)
-
-    let gdocs: T[] = []
-
-    if (ids.length) {
-        const tags = await knexRaw<DbPlainTag>(
-            knex,
-            `-- sql
-      SELECT gt.gdocId as gdocId, tags.*
-      FROM tags
-      JOIN posts_gdocs_x_tags gt ON gt.tagId = tags.id
-      WHERE gt.gdocId in (:ids)`,
-            { ids: ids }
-        )
-
-        const groupedTags = _.groupBy(tags, "gdocId")
-
-        const enrichedRows = rows.map((row) => {
-            return {
-                ...parsePostsGdocsRow(row),
-                tags: groupedTags[row.id] ? groupedTags[row.id] : null,
-            } satisfies OwidGdocBaseInterface
-        })
-
-        gdocs = (await Promise.all(
-            enrichedRows.map(async (row) => loadGdocFromGdocBase(knex, row))
-        )) as T[]
-    }
-
-    return gdocs
-}
-
 export async function getAndLoadPublishedDataInsightsPage(
     knex: KnexReadonlyTransaction,
     page?: number,
     topicSlug?: string
-): Promise<GdocDataInsight[]> {
-    let options:
-        | { limit: number; offset?: number; topicSlug?: string }
-        | undefined
-    if (page !== undefined) {
-        options = {
+): Promise<OwidGdocDataInsightInterface[]> {
+    const result = await fetchGdocs(knex, {
+        topicSlug,
+        outputFormat: "index",
+        pagination: {
             limit: DATA_INSIGHTS_INDEX_PAGE_SIZE,
-            offset: page * DATA_INSIGHTS_INDEX_PAGE_SIZE,
-        }
-    }
-    if (topicSlug !== undefined) {
-        options = {
-            limit: options?.limit ?? DATA_INSIGHTS_INDEX_PAGE_SIZE,
-            offset: options?.offset,
-            topicSlug,
-        }
-    }
-    return await getAndLoadPublishedGdocs<GdocDataInsight>(
-        knex,
-        OwidGdocType.DataInsight,
-        options
-    )
+            offset: page ? (page - 1) * DATA_INSIGHTS_INDEX_PAGE_SIZE : 0,
+        },
+        types: [OwidGdocType.DataInsight],
+    })
+    return result
 }
 
 export async function getLatestDataInsights(
@@ -526,113 +409,32 @@ export async function getLatestDataInsights(
     dataInsights: LatestDataInsight[]
     imageMetadata: Record<string, ImageMetadata>
 }> {
-    const rows = await knexRaw<DbRawPostGdoc>(
-        knex,
-        `SELECT id, slug, publishedAt, content
-         FROM posts_gdocs
-         WHERE type = :type
-         AND published = 1
-         AND publishedAt <= NOW()
-         ORDER BY publishedAt DESC
-         LIMIT 7`,
-        { type: OwidGdocType.DataInsight }
-    )
-    const dataInsights = rows.map((row) => {
-        return {
-            ...row,
-            content: parsePostGdocContent(
-                row.content
-            ) as OwidGdocDataInsightContent,
-        }
-    })
-    const filenames = new Set<string>()
-    for (const dataInsight of dataInsights) {
-        for (const block of dataInsight.content.body) {
-            traverseEnrichedBlock(block, (block) => {
-                for (const filename of extractFilenamesFromBlock(block)) {
-                    filenames.add(filename)
-                }
-            })
-        }
-    }
-    return {
-        dataInsights,
-        imageMetadata: await getImageMetadataByFilenames(knex, [...filenames]),
-    }
+    return await GdocQuery.latestDataInsights(knex, 7).toLatestInsights()
 }
 
 export async function getAndLoadPublishedGdocPosts(
     knex: KnexReadonlyTransaction
 ): Promise<GdocPost[]> {
-    const rows = await getPublishedGdocsWithTags(knex)
-    const gdocs = await Promise.all(
-        rows.map(async (row) => loadGdocFromGdocBase(knex, row))
-    )
-    return gdocs as GdocPost[]
+    const result = await GdocQuery.publishedPosts(knex).execute()
+    return result.data as GdocPost[]
 }
 
 export async function loadPublishedGdocAuthors(
     knex: KnexReadonlyTransaction
 ): Promise<GdocAuthor[]> {
-    const rows = await knexRaw<DbRawPostGdoc>(
-        knex,
-        `-- sql
-            SELECT *
-            FROM posts_gdocs
-            WHERE published = 1
-            AND type IN (:types)`,
-        {
-            types: [OwidGdocType.Author],
-        }
-    )
-
-    const enrichedRows = rows.map((row) => {
-        return {
-            ...parsePostsGdocsRow(row),
-        } satisfies OwidGdocBaseInterface
-    })
-    const gdocs = await Promise.all(
-        enrichedRows.map((row) => loadGdocFromGdocBase(knex, row))
-    )
-    return gdocs as GdocAuthor[]
+    const result = await GdocQuery.publishedAuthors(knex, {
+        outputFormat: "full",
+    }).execute()
+    return result.data as GdocAuthor[]
 }
 
 export async function getAndLoadListedGdocPosts(
     knex: KnexReadonlyTransaction
 ): Promise<GdocPost[]> {
-    // TODO: Check if we shouldn't also restrict the types of gdocs here
-    const rows = await knexRaw<DbRawPostGdoc>(
-        knex,
-        `-- sql
-            SELECT *
-            FROM posts_gdocs
-            WHERE published = 1 AND
-            publicationContext = :publicationContext AND
-            publishedAt <= NOW()
-            ORDER BY publishedAt DESC`,
-        { publicationContext: OwidGdocPublicationContext.listed }
-    )
-    const ids = rows.map((row) => row.id)
-    const tags = await knexRaw<DbPlainTag>(
-        knex,
-        `-- sql
-                SELECT gt.gdocId as gdocId, tags.*
-                FROM tags
-                JOIN posts_gdocs_x_tags gt ON gt.tagId = tags.id
-                WHERE gt.gdocId in (:ids)`,
-        { ids: ids }
-    )
-    const groupedTags = _.groupBy(tags, "gdocId")
-    const enrichedRows = rows.map((row) => {
-        return {
-            ...parsePostsGdocsRow(row),
-            tags: groupedTags[row.id] ? groupedTags[row.id] : null,
-        } satisfies OwidGdocBaseInterface
-    })
-    const gdocs = await Promise.all(
-        enrichedRows.map(async (row) => loadGdocFromGdocBase(knex, row))
-    )
-    return gdocs as GdocPost[]
+    const result = await GdocQuery.listedPosts(knex, {
+        outputFormat: "full",
+    }).execute()
+    return result.data as GdocPost[]
 }
 
 export async function setTagsForGdoc(
@@ -726,22 +528,8 @@ export async function getTagsGroupedByGdocId(
 export async function getAllGdocIndexItemsOrderedByUpdatedAt(
     knex: KnexReadonlyTransaction
 ): Promise<OwidGdocIndexItem[]> {
-    // Old note from Ike for somewhat different code that might still be relevant:
-    // orderBy was leading to a sort buffer overflow (ER_OUT_OF_SORTMEMORY) with MySQL's default sort_buffer_size
-    // when the posts_gdocs table got larger than 9MB, so we sort in memory
-    const gdocs: DbRawPostGdoc[] = await knex
-        .table<DbRawPostGdoc>(PostsGdocsTableName)
-        .orderBy("updatedAt", "desc")
-    const groupedTags = await getTagsGroupedByGdocId(
-        knex,
-        gdocs.map((gdoc) => gdoc.id)
-    )
-    return gdocs.map((gdoc) =>
-        extractGdocIndexItem({
-            ...parsePostsGdocsRow(gdoc),
-            tags: groupedTags[gdoc.id] ? groupedTags[gdoc.id] : null,
-        })
-    )
+    const result = await GdocQuery.adminIndex(knex).execute()
+    return result.data
 }
 
 export async function setImagesInContentGraph(

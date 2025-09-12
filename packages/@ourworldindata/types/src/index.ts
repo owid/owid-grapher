@@ -357,6 +357,8 @@ export {
     LATEST_INDEX_PAGE_SIZE,
     type OwidGdoc,
     OwidGdocType,
+    type OwidGdocTypeMap,
+    type OwidPostType,
     type OwidGdocStickyNavItem,
     type OwidGdocJSON,
     type FaqDictionary,
