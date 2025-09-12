@@ -4,7 +4,10 @@ import cx from "classnames"
 import { useMediaQuery } from "usehooks-ts"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { match } from "ts-pattern"
-import { GrapherState } from "@ourworldindata/grapher"
+import {
+    GrapherState,
+    POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
+} from "@ourworldindata/grapher"
 import {
     EntityName,
     GRAPHER_TAB_NAMES,
@@ -22,7 +25,7 @@ import {
     configureGrapherStateTab,
     getSortedGrapherTabsForChartHit,
     getTotalColumnCount,
-    pickEntitiesForDisplay,
+    pickDisplayEntities,
     resetGrapherColors,
     getTableRowCountForGridSlot,
     makeSlotClassNames,
@@ -48,6 +51,8 @@ import {
     calculateLargePreviewImageDimensions,
     calculateLargeVariantLayout,
 } from "./SearchChartHitRichDataLargeVariantHelpers.js"
+import { useQueryVariableTable } from "../loadChartData.js"
+import { DATA_API_URL } from "../../settings/clientSettings.js"
 
 // Keep in sync with $num-rows-per-column in SearchChartHitRichData.scss
 const NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT = 4
@@ -70,6 +75,8 @@ export function SearchChartHitRichData({
 
     const { ref, grapherState, status } = useSearchChartHitData(hit)
 
+    const populationByEntityName = useLatestPopulationData()
+
     // Entities selected by the user
     const pickedEntities = useMemo(
         () => pickEntitiesForChartHit(hit, searchQueryRegionsMatches),
@@ -85,16 +92,19 @@ export function SearchChartHitRichData({
         // Find Grapher tabs to display and bring them in the right order
         const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
 
+        // Set the tab to the leftmost tab in the sorted list
+        configureGrapherStateTab(grapherState, { tab: sortedTabs[0] })
+
         // Choose the entities to display
-        const displayEntities = pickEntitiesForDisplay(grapherState, {
+        const displayEntities = pickDisplayEntities(grapherState, {
             pickedEntities,
+            numDataTableRowsPerColumn,
+            populationByEntityName,
         })
 
         // Bring Grapher into the right state for this search result:
-        // - Set the tab to the leftmost tab in the sorted list
         // - Select the entities determined for this search result
         // - Highlight the entity (or entities) the user picked
-        configureGrapherStateTab(grapherState, { tab: sortedTabs[0] })
         configureGrapherStateSelection(grapherState, {
             entities: displayEntities,
         })
@@ -234,6 +244,7 @@ export function SearchChartHitRichData({
                             key={tab}
                             chartUrl={chartUrl}
                             grapherState={grapherState}
+                            numRowsPerColumn={numDataTableRowsPerColumn}
                             maxRows={maxRows}
                             className={className}
                             onClick={onClick}
@@ -353,4 +364,35 @@ function calculateLayout(
         .with("large", () => calculateLargeVariantLayout(grapherState, args))
         .with("medium", () => calculateMediumVariantLayout(grapherState, args))
         .exhaustive()
+}
+
+let _populationDataCache: Map<EntityName, number> | undefined
+function useLatestPopulationData(): Map<EntityName, number> | undefined {
+    const { data: table, status } = useQueryVariableTable(
+        POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR,
+        { dataApiUrl: DATA_API_URL }
+    )
+    if (status !== "success" || !table) return undefined
+
+    // Return cached population data if available to avoid reprocessing the table
+    if (_populationDataCache) return _populationDataCache
+
+    // Filter to the most recent year
+    const maxTime = table.maxTime ?? 0
+    const populationColumn = table
+        .filterByTargetTimes([maxTime])
+        .get(POPULATION_INDICATOR_ID_USED_IN_ENTITY_SELECTOR.toString())
+
+    if (populationColumn.isMissing) return undefined
+
+    // Create a map from entity name to population value
+    const data = new Map<EntityName, number>()
+    for (const [entityName, rows] of populationColumn.owidRowsByEntityName) {
+        if (rows.length > 0) data.set(entityName, rows[0].value)
+    }
+
+    // Update cache
+    _populationDataCache = data
+
+    return data
 }

@@ -356,6 +356,7 @@ export const constructPreviewUrl = ({
             imFontSize: fontSize?.toString(),
             imWidth: imageWidth?.toString(),
             imHeight: imageHeight?.toString(),
+            nocache: "1",
         })
     )
     const fullQueryStr = queryStr

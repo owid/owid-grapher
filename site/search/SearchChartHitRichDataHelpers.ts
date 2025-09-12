@@ -17,6 +17,8 @@ import {
     GrapherState,
     mapGrapherTabNameToConfigOption,
     mapGrapherTabNameToQueryParam,
+    MarimekkoChartState,
+    ScatterPlotChartState,
     StackedDiscreteBarChartState,
     WORLD_ENTITY_NAME,
 } from "@ourworldindata/grapher"
@@ -100,13 +102,40 @@ export function getSortedGrapherTabsForChartHit(
     return sortedTabs
 }
 
-export function pickEntitiesForDisplay(
+export function pickDisplayEntities(
     grapherState: GrapherState,
-    { pickedEntities }: { pickedEntities: EntityName[] }
+    {
+        pickedEntities,
+        numDataTableRowsPerColumn,
+        populationByEntityName,
+    }: {
+        pickedEntities: EntityName[]
+        numDataTableRowsPerColumn: number
+        populationByEntityName?: Map<EntityName, number>
+    }
 ): EntityName[] {
     // Original chart config before search customizations
     // (entity selection, tab switching, etc.)
     const originalGrapherState = grapherState.authorsVersion
+
+    const { addCountryMode } = originalGrapherState
+    const { seriesStrategy = SeriesStrategy.entity } =
+        originalGrapherState.chartState
+
+    // Use the author's explicitly selected facet strategy if available,
+    // otherwise fall back to the computed one. This is necessary because
+    // the authorsVersion state we're working with here lacks the data table
+    // that facetStrategy computation requires, so the computed value may be
+    // incorrect.
+    const facetStrategy =
+        originalGrapherState.selectedFacetStrategy ??
+        originalGrapherState.facetStrategy
+
+    const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
+    const isFaceted = facetStrategy !== FacetStrategy.none
+
+    const isScatterOrMarimekko =
+        grapherState.isScatter || grapherState.isMarimekko
 
     // Make sure the default entities actually exist in the chart
     const defaultEntities = originalGrapherState.selectedEntityNames.filter(
@@ -115,95 +144,222 @@ export function pickEntitiesForDisplay(
     )
     const availableEntities = new Set(grapherState.availableEntityNames)
 
-    return match(originalGrapherState.addCountryMode)
-        .with(EntitySelectionMode.Disabled, () => {
-            // Entity selection is disabled, so the default entities are the
-            // only valid choice, unless we're dealing with a chart type where
-            // all entities are plotted by default. In that case _highlighting_
-            // an entity is valid even when entity _selection_ is disabled
-            return originalGrapherState.isScatter ||
-                originalGrapherState.isMarimekko
-                ? pickedEntities
+    // Entity selection is disabled, so the default entities are the only valid
+    // choice unless we're dealing with a chart type where all entities are
+    // plotted by default. In that case _highlighting_ an entity is valid even
+    // when entity _selection_ is disabled
+    if (
+        addCountryMode === EntitySelectionMode.Disabled &&
+        !isScatterOrMarimekko
+    )
+        return defaultEntities
+
+    // Only a single entity can be selected at a time, so pick the first one,
+    // or rely on the default selection if none is picked
+    if (addCountryMode === EntitySelectionMode.SingleEntity)
+        return pickedEntities.length > 0 ? [pickedEntities[0]] : defaultEntities
+
+    // Scatter plots and Marimekko charts are special because they display
+    // all entities at once, unlike other chart types where only a subset of
+    // entities are plotted
+    if (isScatterOrMarimekko) {
+        if (pickedEntities.length > 0) return pickedEntities
+        if (defaultEntities.length > 0) return defaultEntities
+
+        return grapherState.isScatter
+            ? pickDisplayEntitiesForScatter(
+                  grapherState.chartState as ScatterPlotChartState,
+                  availableEntities,
+                  numDataTableRowsPerColumn,
+                  populationByEntityName
+              )
+            : pickDisplayEntitiesForMarimekko(
+                  grapherState.chartState as MarimekkoChartState,
+                  availableEntities,
+                  numDataTableRowsPerColumn,
+                  populationByEntityName
+              )
+    }
+
+    // When multiple entities can be selected, the basic strategy is to
+    // pick entities for comparison based on the first picked entity.
+    // If no entities for comparison can be found, we rely on the default
+    // selection. Those entities are then combined with the user-picked
+    // entities, but we make exceptions for certain cases where doing so
+    // would create crowded or unreadable charts.
+
+    // Don't combine picked and comparison entities if the chart is
+    // faceted because many facets are hard to read in thumbnails
+    if (isFaceted) {
+        // Choose the user-picked entities if there are any
+        if (pickedEntities.length > 0) return pickedEntities
+
+        if (defaultEntities.length === 0) return [] // Shouldn't happen
+
+        // If no entities were picked by the user and the chart is
+        // faceted by entity, check if the chart has multiple series
+        // per facet. If so, simplify the display by showing only
+        // the first default entity (effectively un-faceting the chart)
+        if (
+            facetStrategy === FacetStrategy.entity &&
+            originalGrapherState.hasMultipleSeriesPerFacet
+        )
+            return [defaultEntities[0]]
+
+        // Otherwise, rely on the default selection
+        return defaultEntities
+    }
+
+    // Don't combine picked and comparison entities if columns are
+    // plotted since Grapher would switch to faceting mode
+    if (!isEntityStrategy) {
+        return pickedEntities.length > 0 ? pickedEntities : defaultEntities
+    }
+
+    // Find entities for comparison and combine them with the picked entities
+    if (pickedEntities.length > 0) {
+        const potentialComparisonEntities = pickComparisonEntities(
+            pickedEntities[0],
+            availableEntities
+        )
+        const comparisonEntities =
+            potentialComparisonEntities.length > 0
+                ? potentialComparisonEntities
                 : defaultEntities
-        })
-        .with(EntitySelectionMode.SingleEntity, () => {
-            // Only a single entity can be selected at a time, so pick the first one,
-            // or rely on the default selection if none is picked
-            return pickedEntities.length > 0
-                ? [pickedEntities[0]]
-                : defaultEntities
-        })
-        .with(EntitySelectionMode.MultipleEntities, () => {
-            const { seriesStrategy = SeriesStrategy.entity } =
-                originalGrapherState.chartState
-            const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
 
-            // Use the author's explicitly selected facet strategy if available,
-            // otherwise fall back to the computed one. This is necessary because
-            // the authorsVersion state we're working with here lacks the data table
-            // that facetStrategy computation requires, so the computed value may be
-            // incorrect.
-            const facetStrategy =
-                originalGrapherState.selectedFacetStrategy ??
-                originalGrapherState.facetStrategy
-            const isFaceted = facetStrategy !== FacetStrategy.none
+        // It's important to prepend the picked entities because we later
+        // take the first N entities to render if there are space constraints
+        return R.unique([...pickedEntities, ...comparisonEntities])
+    }
 
-            // When multiple entities can be selected, the basic strategy is to
-            // pick entities for comparison based on the first picked entity.
-            // If no entities for comparison can be found, we rely on the default
-            // selection. Those entities are then combined with the user-picked
-            // entities, but we make exceptions for certain cases where doing so
-            // would create crowded or unreadable charts.
+    return defaultEntities
+}
 
-            // Don't combine picked and comparison entities if the chart is
-            // faceted because many facets are hard to read in thumbnails
-            if (isFaceted) {
-                // Choose the user-picked entities if there are any
-                if (pickedEntities.length > 0) return pickedEntities
+export function pickDisplayEntitiesForScatter(
+    chartState: ScatterPlotChartState,
+    availableEntities: Set<EntityName>,
+    numDataTableRowsPerColumn: number,
+    populationByEntityName?: Map<EntityName, number>
+): EntityName[] {
+    const { series, colorColumnSlug, sizeColumnSlug, isConnected } = chartState
 
-                if (defaultEntities.length === 0) return [] // Shouldn't happen
+    if (isConnected) return []
 
-                // If no entities were picked by the user and the chart is
-                // faceted by entity, check if the chart has multiple series
-                // per facet. If so, simplify the display by showing only
-                // the first default entity (effectively un-faceting the chart)
-                if (
-                    facetStrategy === FacetStrategy.entity &&
-                    originalGrapherState.hasMultipleSeriesPerFacet
-                )
-                    return [defaultEntities[0]]
+    // Check for income groups and continents
+    const regions = findBestAvailableRegions(availableEntities)
+    if (regions.length > 0) return regions
 
-                // Otherwise, rely on the default selection
-                return defaultEntities
+    // Helper functions
+    type ScatterSeries = ScatterPlotChartState["series"][number]
+    const getName = (series: ScatterSeries) => series.seriesName
+    const getColor = (series: ScatterSeries) => series.points.at(0)?.color ?? ""
+    const getSize = (series: ScatterSeries) => series.points.at(0)?.size ?? 0
+    const getPopulation = (series: ScatterSeries) =>
+        populationByEntityName?.get(series.seriesName) ?? 0
+
+    // When both color and size dimensions are available, select the entity
+    // with the largest size from each color group
+    if (colorColumnSlug && sizeColumnSlug) {
+        return maxByGroup(series, getColor, getSize).map(getName)
+    }
+
+    // When only the color dimension is available, select the entity with the
+    // largest population from each color group
+    if (colorColumnSlug) {
+        if (!populationByEntityName) return []
+        return maxByGroup(series, getColor, getPopulation).map(getName)
+    }
+
+    // When only the size dimension is available, select the entities
+    // with the largest size
+    if (sizeColumnSlug) {
+        return R.pipe(
+            series,
+            R.sortBy((series) => -getSize(series)),
+            R.take(numDataTableRowsPerColumn),
+            R.map(getName)
+        )
+    }
+
+    // Otherwise, just take the first x entities
+    return R.pipe(series, R.take(numDataTableRowsPerColumn), R.map(getName))
+}
+
+export function pickDisplayEntitiesForMarimekko(
+    chartState: MarimekkoChartState,
+    availableEntities: Set<EntityName>,
+    numDataTableRowsPerColumn: number,
+    populationByEntityName?: Map<EntityName, number>
+): EntityName[] {
+    const { items, colorColumnSlug, xColumnSlug } = chartState
+
+    // Check for income groups and continents
+    const regions = findBestAvailableRegions(availableEntities)
+    if (regions.length > 0) return regions
+
+    // Helper functions
+    type MarimekkoItem = MarimekkoChartState["items"][number]
+    const getName = (item: MarimekkoItem) => item.entityName
+    const getColor = (item: MarimekkoItem) =>
+        item.entityColor?.colorDomainValue ?? ""
+    const getX = (item: MarimekkoItem) => item.xPoint?.value ?? 0
+    const getPopulation = (item: MarimekkoItem) =>
+        populationByEntityName?.get(item.entityName) ?? 0
+
+    // When both color and x dimensions are available, select the entity
+    // with the largest x from each color group
+    if (colorColumnSlug && xColumnSlug) {
+        return maxByGroup(items, getColor, getX).map(getName)
+    }
+
+    // When only the color dimension is available, select the entity with the
+    // largest population from each color group
+    if (colorColumnSlug) {
+        if (!populationByEntityName) return []
+        return maxByGroup(items, getColor, getPopulation).map(getName)
+    }
+
+    // When only the x dimension is available, select the entities
+    // with the largest x
+    if (xColumnSlug) {
+        return R.pipe(
+            items,
+            R.sortBy((item) => -getX(item)),
+            R.take(numDataTableRowsPerColumn),
+            R.map(getName)
+        )
+    }
+
+    // Otherwise, just take the first x entities
+    return R.pipe(
+        items,
+        R.take(numDataTableRowsPerColumn),
+        R.map(getName),
+        R.unique()
+    )
+}
+
+/**
+ * Finds the best available regions from a set of available entities,
+ * prioritizing income groups, then continents, then other aggregates.
+ */
+function findBestAvailableRegions(availableEntities: Set<EntityName>) {
+    const regionGroups = [getIncomeGroups(), getContinents(), getAggregates()]
+    for (const regions of regionGroups) {
+        const availableRegions: EntityName[] = regions
+            .filter((region) => availableEntities.has(region.name))
+            .map((region) => region.name)
+
+        if (availableRegions.length > 0) {
+            // Also add the World entity if it's available
+            if (availableEntities.has(WORLD_ENTITY_NAME)) {
+                availableRegions.push(WORLD_ENTITY_NAME)
             }
 
-            // Don't combine picked and comparison entities if columns are
-            // plotted since Grapher would switch to faceting mode
-            if (!isEntityStrategy) {
-                return pickedEntities.length > 0
-                    ? pickedEntities
-                    : defaultEntities
-            }
-
-            // Find entities for comparison and combine them with the picked entities
-            if (pickedEntities.length > 0) {
-                const potentialComparisonEntities = pickComparisonEntities(
-                    pickedEntities[0],
-                    availableEntities
-                )
-                const comparisonEntities =
-                    potentialComparisonEntities.length > 0
-                        ? potentialComparisonEntities
-                        : defaultEntities
-
-                // It's important to prepend the picked entities because we later
-                // take the first N entities to render if there are space constraints
-                return R.unique([...pickedEntities, ...comparisonEntities])
-            }
-
-            return defaultEntities
-        })
-        .exhaustive()
+            return availableRegions
+        }
+    }
+    return []
 }
 
 /**
@@ -514,6 +670,14 @@ export function constructChartAndPreviewUrlsForTab({
     imageWidth?: number
     imageHeight?: number
 }): { chartUrl: string; previewUrl: string } {
+    const {
+        DiscreteBar,
+        Marimekko,
+        WorldMap,
+        StackedDiscreteBar,
+        ScatterPlot,
+    } = GRAPHER_TAB_NAMES
+
     // Use Grapher's changedParams to construct chart and preview URLs.
     // We override the tab parameter because the GrapherState is currently set to
     // the first tab of the chart, but we need to generate URLs for the specific
@@ -524,9 +688,9 @@ export function constructChartAndPreviewUrlsForTab({
     }
 
     // Adjust grapher query params for some chart types
-    if (tab === GRAPHER_TAB_NAMES.DiscreteBar) {
+    if (tab === DiscreteBar) {
         configureGrapherParamsForDiscreteBarPreview(grapherState, grapherParams)
-    } else if (tab === GRAPHER_TAB_NAMES.Marimekko) {
+    } else if (tab === Marimekko) {
         configureGrapherParamsForMarimekkoPreview(grapherState, grapherParams)
     }
 
@@ -534,9 +698,9 @@ export function constructChartAndPreviewUrlsForTab({
     // otherwise be too overpowering in thumbnail previews. Otherwise, rely on
     // the default
     const tabsWithSmallerFont: GrapherTabName[] = [
-        GRAPHER_TAB_NAMES.WorldMap,
-        GRAPHER_TAB_NAMES.DiscreteBar,
-        GRAPHER_TAB_NAMES.StackedDiscreteBar,
+        WorldMap,
+        DiscreteBar,
+        StackedDiscreteBar,
     ]
     const fontSize =
         previewType.variant === PreviewVariant.Thumbnail &&
@@ -554,10 +718,17 @@ export function constructChartAndPreviewUrlsForTab({
         imageHeight,
     })
 
+    // We don't want to link to a chart where entities are highlighted.
+    // In case of scatters and Marimekkos, we also ignore the current
+    // entity selection so that we always link to a chart with the default
+    // selection.
+    const omitParams: (keyof GrapherQueryParams)[] = ["focus"]
+    if (tab === ScatterPlot || tab === Marimekko) omitParams.push("country")
+    const grapherParamsForChartUrl = R.omit(grapherParams, omitParams)
+
     const chartUrl = constructChartUrl({
         hit,
-        // We don't want to link to a chart where entities are highlighted
-        grapherParams: R.omit(grapherParams, ["focus"]),
+        grapherParams: grapherParamsForChartUrl,
     })
 
     return { chartUrl, previewUrl }
@@ -621,4 +792,21 @@ function configureGrapherParamsForDiscreteBarPreview(
             ])
         }
     }
+}
+
+/**
+ * Groups an array of items by a key function and returns the item with the
+ * maximum value (according to sortFn) from each group.
+ */
+export function maxByGroup<T>(
+    arr: ReadonlyArray<T>,
+    groupFn: (item: T) => string | number,
+    sortFn: (item: T) => number
+) {
+    return R.pipe(
+        arr,
+        R.groupBy(groupFn),
+        R.mapValues((item) => R.firstBy(item, [sortFn, "desc"])),
+        R.values()
+    )
 }
