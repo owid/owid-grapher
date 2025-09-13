@@ -267,7 +267,7 @@ describe("Fuzzy search in search autocomplete", () => {
     describe("findMatchesWithNgrams", () => {
         it("should handle multiple non-overlapping matches", () => {
             const result = findMatchesWithNgrams(
-                ["united", "states", "climate", "change"],
+                "united states climate change",
                 mockCountries,
                 mockTopics,
                 new Set(),
@@ -285,7 +285,7 @@ describe("Fuzzy search in search autocomplete", () => {
             // Test that when "Indoor Air Pollution" is matched as a 3-gram,
             // "Air Pollution" is not matched
             const result = findMatchesWithNgrams(
-                ["indoor", "air", "pollution"],
+                "indoor air pollution",
                 mockCountries,
                 mockTopics,
                 new Set(),
@@ -304,7 +304,7 @@ describe("Fuzzy search in search autocomplete", () => {
             // Create a scenario where the same entity could be matched multiple times
             // "united sta" (partial match) vs "united states" (exact match)
             const result = findMatchesWithNgrams(
-                ["united", "sta", "france", "united", "states"], // Adding another country to prevent the whole query to fuzzy match
+                "united sta france united states", // Adding another country to prevent the whole query to fuzzy match
                 mockCountries,
                 mockTopics,
                 new Set(),
@@ -319,7 +319,7 @@ describe("Fuzzy search in search autocomplete", () => {
 
         it("should work with synonyms", () => {
             const result = findMatchesWithNgrams(
-                ["ai", "in", "the", "us"],
+                "ai in the us",
                 mockCountries,
                 mockTopics,
                 new Set(),
@@ -334,7 +334,7 @@ describe("Fuzzy search in search autocomplete", () => {
 
         it("should filter out stop words from n-grams", () => {
             const result = findMatchesWithNgrams(
-                ["artificial", "intelligence", "in", "the", "united", "states"],
+                "artificial intelligence in the united states",
                 mockCountries,
                 mockTopics,
                 new Set(),
@@ -352,7 +352,7 @@ describe("Fuzzy search in search autocomplete", () => {
 
         it("should handle stop words at beginning and end", () => {
             const result = findMatchesWithNgrams(
-                ["the", "united", "states", "of", "america"],
+                "the united states of america",
                 ["United States", ...mockCountries],
                 mockTopics,
                 new Set(),
@@ -371,7 +371,7 @@ describe("Fuzzy search in search autocomplete", () => {
             const selectedTopics = new Set(["Artificial Intelligence"])
 
             const result = findMatchesWithNgrams(
-                ["united", "states", "artificial", "intelligence"],
+                "united states artificial intelligence",
                 mockCountries,
                 mockTopics,
                 selectedCountries,
@@ -385,7 +385,7 @@ describe("Fuzzy search in search autocomplete", () => {
         ;(it("should only return covering matches for countries"),
             () => {
                 const result = findMatchesWithNgrams(
-                    ["east", "germany"],
+                    "east germany",
                     ["East Timor", "Germany"],
                     mockTopics,
                     new Set(),
@@ -411,7 +411,7 @@ describe("Fuzzy search in search autocomplete", () => {
             ]
 
             const result = findMatchesWithNgrams(
-                ["indoor", "air", "pollution", "climate", "change"],
+                "indoor air pollution climate change",
                 mockCountries,
                 complexTopics,
                 new Set(),
@@ -435,7 +435,7 @@ describe("Fuzzy search in search autocomplete", () => {
 
             // Test that "Coption" doesn't match "Consumption" (partial word match)
             const result = findMatchesWithNgrams(
-                ["Coption"],
+                "Coption",
                 testCountries,
                 testTopics,
                 new Set(),
