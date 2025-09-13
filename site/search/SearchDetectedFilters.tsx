@@ -23,9 +23,10 @@ export const SearchDetectedFilters = ({
 
     const queryWords = useMemo(() => query.trim().split(/\s+/), [query])
 
-    const [automaticFiltersWithWords, setAutomaticFiltersWithWords] = useState<
-        { filter: ScoredFilterPositioned; originalQuery: string }[]
-    >([])
+    const [appliedFilters, setAppliedFilters] = useState<{
+        filters: ScoredFilterPositioned[]
+        originalQuery: string
+    } | null>(null)
 
     const allMatchedFilters = useMemo(() => {
         return getFilterSuggestionsNgrams(
@@ -65,40 +66,33 @@ export const SearchDetectedFilters = ({
         [applyFilters]
     )
 
-    const handleRemoveAllAppliedFilters = useCallback(() => {
-        // Get all the filters to remove
-        const filtersToRemove = automaticFiltersWithWords.map((item) => ({
-            type: item.filter.type,
-            name: item.filter.name,
-        }))
-
-        const allOriginalWords = automaticFiltersWithWords
-            .map((item) => item.originalQuery)
-            .join(" ")
+    const handleRevertAppliedFilters = useCallback(() => {
+        if (!appliedFilters) return
 
         // Use atomic operation to remove filters and add query text.
         // Append the query as a quoted string to trigger Algolia's
         // phrase matching.
-        replaceFiltersWithQuery(filtersToRemove, `"${allOriginalWords}"`)
+        replaceFiltersWithQuery(
+            appliedFilters.filters,
+            `"${appliedFilters.originalQuery}"`
+        )
 
-        setAutomaticFiltersWithWords([])
-    }, [automaticFiltersWithWords, replaceFiltersWithQuery])
+        setAppliedFilters(null)
+    }, [appliedFilters, replaceFiltersWithQuery])
 
     // Auto-apply country filters and store them with original query
     useEffect(() => {
         if (automaticFilters.length === 0) return
 
-        // Store the country filters with the entire original query before applying them
-        const filtersWithWords = automaticFilters.map((filter) => ({
-            filter,
-            originalQuery: query, // Store the entire query instead of just matched words
-        }))
-
-        setAutomaticFiltersWithWords(filtersWithWords)
+        // Store all the country filters with the entire original query (once)
+        setAppliedFilters({
+            filters: automaticFilters,
+            originalQuery: query,
+        })
         applyFilters(automaticFilters)
     }, [automaticFilters, applyFilters, query])
 
-    if (!manualFilters.length && !automaticFiltersWithWords.length) return null
+    if (!manualFilters.length && !appliedFilters) return null
 
     return (
         <div className="search-detected-filters">
@@ -106,18 +100,16 @@ export const SearchDetectedFilters = ({
                 Did you mean?
             </span>
 
-            {automaticFiltersWithWords.length > 0 && (
+            {appliedFilters && (
                 <button
                     type="button"
-                    onClick={handleRemoveAllAppliedFilters}
+                    onClick={handleRevertAppliedFilters}
                     className="search-detected-filter-button"
                 >
                     <span className="search-quoted-phrase">
                         "
                         <span className="search-quoted-phrase__underlined">
-                            {automaticFiltersWithWords
-                                .map((item) => item.originalQuery)
-                                .join(" ")}
+                            {appliedFilters.originalQuery}
                         </span>
                         "
                     </span>
