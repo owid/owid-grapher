@@ -75,8 +75,7 @@ it("can filter points with negative values when using a log scale", () => {
         selection: table.availableEntityNames,
     }
     const chartState = new SlopeChartState({ manager })
-    const chart = new SlopeChart({ chartState })
-    expect(chart.allYValues.length).toEqual(4)
+    expect(chartState.allYValues.length).toEqual(4)
 
     const logScaleManager = {
         ...manager,
@@ -87,7 +86,7 @@ it("can filter points with negative values when using a log scale", () => {
     const logChartState = new SlopeChartState({ manager: logScaleManager })
     const logChart = new SlopeChart({ chartState: logChartState })
     expect(logChart.yAxis.domain[0]).toBeGreaterThan(0)
-    expect(logChart.allYValues.length).toEqual(2)
+    expect(logChartState.allYValues.length).toEqual(2)
 })
 
 describe("series naming in multi-column mode", () => {
@@ -101,7 +100,7 @@ describe("series naming in multi-column mode", () => {
         }
         const chartState = new SlopeChartState({ manager })
         const chart = new SlopeChart({ chartState })
-        expect(chart.series[0].seriesName).not.toContain(" – ")
+        expect(chart.series[0].seriesName).not.toContain(" - ")
     })
 
     it("combines entity and column name if only one entity is selected and multi entity selection is enabled", () => {
@@ -112,7 +111,7 @@ describe("series naming in multi-column mode", () => {
         }
         const chartState = new SlopeChartState({ manager })
         const chart = new SlopeChart({ chartState })
-        expect(chart.series[0].seriesName).toContain(" – ")
+        expect(chart.series[0].seriesName).toContain(" - ")
     })
 
     it("combines entity and column name if multiple entities are selected and multi entity selection is disabled", () => {
@@ -124,7 +123,7 @@ describe("series naming in multi-column mode", () => {
         }
         const chartState = new SlopeChartState({ manager })
         const chart = new SlopeChart({ chartState })
-        expect(chart.series[0].seriesName).toContain(" – ")
+        expect(chart.series[0].seriesName).toContain(" - ")
     })
 })
 

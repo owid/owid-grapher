@@ -5,6 +5,7 @@ import {
     DbPlainMultiDimXChartConfig,
     DbRawChartConfig,
     getUniqueNamesFromTagHierarchies,
+    merge,
     multiDimDimensionsToViewId,
     MultiDimXChartConfigsTableName,
     parseChartConfig,
@@ -22,6 +23,8 @@ import {
     getRelevantVariableIds,
     getRelevantVariableMetadata,
 } from "../../MultiDimBaker.js"
+import { GrapherState } from "@ourworldindata/grapher"
+import { maybeAddChangeInPrefix, toPlaintext } from "./shared.js"
 
 async function getChartConfigsByIds(
     knex: db.KnexReadonlyTransaction,
@@ -75,20 +78,25 @@ async function getRecords(
                     `viewId=${viewId} chartConfigId=${view.fullConfigId}`
             )
         }
+        const grapherState = new GrapherState(chartConfig)
         const queryStr = queryParamsToStr(view.dimensions)
         const variableId = view.indicators.y[0].id
-        const metadata = _.merge(
+        const metadata = merge(
             relevantVariableMetadata[variableId],
-            multiDim.config.metadata,
-            view.metadata
+            multiDim.config.metadata ?? {},
+            view.metadata ?? {}
         )
-        const title =
+        const title = maybeAddChangeInPrefix(
             metadata.presentation?.titlePublic ||
-            chartConfig.title ||
-            metadata.display?.name ||
-            metadata.name ||
-            ""
-        const subtitle = metadata.descriptionShort || chartConfig.subtitle || ""
+                chartConfig.title ||
+                metadata.display?.name ||
+                metadata.name ||
+                "",
+            grapherState.shouldAddChangeInPrefixToTitle
+        )
+        const subtitle = toPlaintext(
+            metadata.descriptionShort || chartConfig.subtitle || ""
+        )
         const availableEntities = metadata.dimensions.entities.values
             .map((entity) => entity.name)
             .filter(Boolean)
@@ -99,11 +107,13 @@ async function getRecords(
             objectID: `mdim-view-${id}`,
             id: `mdim/${slug}${queryStr}`,
             chartId: -1,
+            chartConfigId: view.fullConfigId,
             slug,
             queryParams: queryStr,
             title,
             subtitle,
             variantName: chartConfig.variantName,
+            availableTabs: grapherState.availableTabs,
             keyChartForTags: [],
             tags,
             availableEntities,

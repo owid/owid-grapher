@@ -1,10 +1,20 @@
 import * as _ from "lodash-es"
-import { HitAttributeHighlightResult, SearchResponse } from "instantsearch.js"
+import * as R from "remeda"
+import { HitAttributeHighlightResult } from "instantsearch.js"
 import {
     EntityName,
+    GRAPHER_CHART_TYPES,
+    GRAPHER_TAB_QUERY_PARAMS,
+    GrapherChartType,
     GrapherQueryParams,
-    TagGraphNode,
+    GrapherTabName,
+    GrapherTabQueryParam,
+    GrapherValuesJson,
+    GrapherValuesJsonDataPoint,
+    OwidGdocType,
+    PrimitiveType,
     TagGraphRoot,
+    TimeBounds,
 } from "@ourworldindata/types"
 import {
     Region,
@@ -16,26 +26,57 @@ import {
     countriesByName,
     FuzzySearch,
     FuzzySearchResult,
+    getAllChildrenOfArea,
+    timeBoundToTimeBoundString,
+    queryParamsToStr,
+    omitUndefinedValues,
+    getRegionByName,
 } from "@ourworldindata/utils"
-import { partition } from "remeda"
-import { generateSelectedEntityNamesParam } from "@ourworldindata/grapher"
-import { getIndexName } from "./searchClient.js"
-import { SearchClient } from "algoliasearch"
+import { type GrapherTrendArrowDirection } from "@ourworldindata/components"
 import {
-    IDataCatalogHit,
-    DataCatalogRibbonResult,
-    DataCatalogSearchResult,
+    generateSelectedEntityNamesParam,
+    isValidTabQueryParam,
+    mapGrapherTabNameToQueryParam,
+} from "@ourworldindata/grapher"
+import { getIndexName } from "./searchClient.js"
+import {
     SearchIndexName,
-    SearchState,
     Filter,
     FilterType,
-    SearchAutocompleteContextType,
     ScoredSearchResult,
+    SearchResultType,
+    SearchTopicType,
+    SearchFacetFilters,
+    ChartRecordType,
+    SearchChartHit,
+    IChartHit,
+    SearchUrlParam,
+    SynonymMap,
 } from "./searchTypes.js"
-import { faTag } from "@fortawesome/free-solid-svg-icons"
+import {
+    faBook,
+    faBookmark,
+    faFileLines,
+    faLightbulb,
+    faTag,
+    IconDefinition,
+} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { match, P } from "ts-pattern"
-import { createContext, ForwardedRef, useContext } from "react"
+import { ForwardedRef } from "react"
+import {
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_URL,
+    EXPLORER_DYNAMIC_CONFIG_URL,
+    EXPLORER_DYNAMIC_THUMBNAIL_URL,
+    GRAPHER_DYNAMIC_CONFIG_URL,
+    GRAPHER_DYNAMIC_THUMBNAIL_URL,
+    MULTI_DIM_DYNAMIC_CONFIG_URL,
+} from "../../settings/clientSettings.js"
+import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
+import { SearchChartHitDataDisplayProps } from "./SearchChartHitDataDisplay.js"
+import { CoreColumn } from "@ourworldindata/core-table"
+import { PreviewVariant } from "./SearchChartHitRichDataTypes.js"
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -84,11 +125,18 @@ const removeHighlightTags = (text: string) =>
     text.replace(/<\/?(mark|strong)>/g, "")
 
 export function pickEntitiesForChartHit(
-    availableEntitiesHighlighted: HitAttributeHighlightResult[] | undefined,
-    availableEntities: EntityName[] | undefined,
+    hit: IChartHit | SearchChartHit,
     searchQueryRegionsMatches: Region[] | undefined
 ): EntityName[] {
+    const availableEntities =
+        hit.originalAvailableEntities ?? hit.availableEntities
     if (!availableEntities) return []
+
+    const availableEntitiesHighlighted = (hit._highlightResult
+        ?.originalAvailableEntities ||
+        hit._highlightResult?.availableEntities) as
+        | HitAttributeHighlightResult[]
+        | undefined
 
     const pickedEntities = new Set(
         searchQueryRegionsMatches?.map((r) => r.name)
@@ -104,6 +152,8 @@ export function pickEntitiesForChartHit(
         }
     }
 
+    // Add entities to the list of picked entities if they're typed in the search bar
+    // even if a user hasn't selected them from the autocomplete dropdown
     if (availableEntitiesHighlighted) {
         for (const highlightEntry of availableEntitiesHighlighted) {
             if (highlightEntry.matchLevel === "none") continue
@@ -140,17 +190,243 @@ export function pickEntitiesForChartHit(
     return sortedEntities ?? []
 }
 
+const generateGrapherTabQueryParam = ({
+    tab,
+    hasEntities,
+}: {
+    tab?: GrapherTabName | GrapherTabQueryParam
+    hasEntities: boolean
+}) => {
+    if (tab) {
+        return isValidTabQueryParam(tab)
+            ? tab
+            : mapGrapherTabNameToQueryParam(tab)
+    }
+
+    // If we have any entities pre-selected, we want to show the chart tab
+    if (hasEntities) return GRAPHER_TAB_QUERY_PARAMS.chart
+
+    return undefined
+}
+
+const generateGrapherTimeQueryParam = ({
+    timeBounds,
+    timeMode = "year",
+}: {
+    timeBounds: TimeBounds
+    timeMode?: "year" | "day"
+}) => {
+    return timeBounds
+        .map((time) => timeBoundToTimeBoundString(time, timeMode === "day"))
+        .join("..")
+}
+
 export const getEntityQueryStr = (
-    entities: EntityName[] | null | undefined,
-    existingQueryStr: string = ""
-) => {
-    if (!entities?.length) return existingQueryStr
-    else {
-        return Url.fromQueryStr(existingQueryStr).updateQueryParams({
-            // If we have any entities pre-selected, we want to show the chart tab
-            tab: "chart",
-            country: generateSelectedEntityNamesParam(entities),
-        } satisfies GrapherQueryParams).queryStr
+    entities: EntityName[] | null | undefined
+): string => {
+    const hasEntities = !!entities?.length
+
+    const countryParam = hasEntities
+        ? generateSelectedEntityNamesParam(entities)
+        : undefined
+
+    const queryParams = { country: countryParam } satisfies GrapherQueryParams
+
+    const url = Url.fromQueryParams(queryParams)
+
+    return url.queryStr
+}
+
+export const toGrapherQueryParams = ({
+    entities = [],
+    tab,
+    timeBounds,
+    timeMode = "year",
+}: {
+    entities?: EntityName[]
+    tab?: GrapherTabName
+    timeBounds?: TimeBounds
+    timeMode?: "year" | "day"
+}): GrapherQueryParams => {
+    const hasEntities = entities.length > 0
+    return {
+        tab: generateGrapherTabQueryParam({ tab, hasEntities }),
+        country: hasEntities
+            ? generateSelectedEntityNamesParam(entities)
+            : undefined,
+        time: timeBounds
+            ? generateGrapherTimeQueryParam({ timeBounds, timeMode })
+            : undefined,
+    }
+}
+
+const generateQueryStrForChartHit = ({
+    hit,
+    grapherParams,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+}): string => {
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    const isMultiDimView = hit.type === ChartRecordType.MultiDimView
+
+    const viewQueryStr =
+        isExplorerView || isMultiDimView ? hit.queryParams : undefined
+    const grapherQueryStr = grapherParams
+        ? queryParamsToStr(grapherParams)
+        : undefined
+
+    // Remove leading '?' from query strings
+    const queryStrList = [viewQueryStr, grapherQueryStr]
+        .map((queryStr) => queryStr?.replace(/^\?/, ""))
+        .filter((queryStr) => queryStr)
+
+    const queryStr = queryStrList.length > 0 ? "?" + queryStrList.join("&") : ""
+
+    return queryStr
+}
+
+export const constructChartUrl = ({
+    hit,
+    grapherParams,
+    overlay,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+    overlay?: "sources" | "download-data"
+}): string => {
+    const viewQueryStr = generateQueryStrForChartHit({ hit, grapherParams })
+    const overlayQueryStr = overlay ? `overlay=${overlay}` : ""
+    const queryParts = [
+        viewQueryStr?.replace(/^\?/, ""),
+        overlayQueryStr,
+    ].filter((queryStr) => queryStr)
+    const queryStr = queryParts.length > 0 ? `?${queryParts.join("&")}` : ""
+
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    const basePath = isExplorerView
+        ? `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}`
+        : BAKED_GRAPHER_URL
+
+    return `${basePath}/${hit.slug}${queryStr}`
+}
+
+export const constructChartInfoUrl = ({
+    hit,
+    grapherParams,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+}): string | undefined => {
+    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
+
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    const basePath = isExplorerView
+        ? EXPLORER_DYNAMIC_THUMBNAIL_URL
+        : GRAPHER_DYNAMIC_THUMBNAIL_URL
+
+    return `${basePath}/${hit.slug}.values.json${queryStr}`
+}
+
+export const constructPreviewUrl = ({
+    hit,
+    grapherParams,
+    variant,
+    isMinimal,
+    fontSize,
+    imageWidth,
+    imageHeight,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+    variant: PreviewVariant
+    isMinimal?: boolean
+    fontSize?: number
+    imageWidth?: number
+    imageHeight?: number
+}): string => {
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+
+    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
+
+    const searchParams = new URLSearchParams(
+        omitUndefinedValues({
+            imType: variant === "large" ? "uncaptioned" : variant,
+            imMinimal: isMinimal ? "1" : "0",
+            imFontSize: fontSize?.toString(),
+            imWidth: imageWidth?.toString(),
+            imHeight: imageHeight?.toString(),
+        })
+    )
+    const fullQueryStr = queryStr
+        ? `${queryStr}&${searchParams}`
+        : `?${searchParams}`
+
+    const basePath = isExplorerView
+        ? EXPLORER_DYNAMIC_THUMBNAIL_URL
+        : GRAPHER_DYNAMIC_THUMBNAIL_URL
+
+    return `${basePath}/${hit.slug}.png${fullQueryStr}`
+}
+
+export const constructConfigUrl = ({
+    hit,
+}: {
+    hit: SearchChartHit
+}): string | undefined => {
+    return match(hit)
+        .with(
+            { type: ChartRecordType.Chart },
+            (hit) => `${GRAPHER_DYNAMIC_CONFIG_URL}/${hit.slug}.config.json`
+        )
+        .with(
+            { type: ChartRecordType.MultiDimView },
+            (hit) =>
+                `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${hit.chartConfigId}.config.json`
+        )
+        .with({ type: ChartRecordType.ExplorerView }, () => {
+            const queryStr = generateQueryStrForChartHit({ hit })
+            return `${EXPLORER_DYNAMIC_CONFIG_URL}/${hit.slug}.config.json${queryStr}`
+        })
+        .exhaustive()
+}
+
+export const constructMdimConfigUrl = ({
+    hit,
+}: {
+    hit: SearchChartHit
+}): string | undefined => {
+    const isMultiDimView = hit.type === ChartRecordType.MultiDimView
+    if (!isMultiDimView) return undefined
+    return `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${hit.slug}.json`
+}
+
+// Generates time bounds to force line charts to display properly in previews.
+// When start and end times are the same (single time point), line charts
+// automatically switch to discrete bar charts. To prevent that, we set the start
+// time to -Infinity, which refers to the earliest available data.
+export function getTimeBoundsForChartUrl(
+    chartInfo?: GrapherValuesJson | null
+): { timeBounds: TimeBounds; timeMode: "year" | "day" } | undefined {
+    if (!chartInfo) return undefined
+
+    const { startTime, endTime } = chartInfo
+
+    // When a chart has different start and end times, we don't need to adjust
+    // the time parameter because the chart will naturally display as a line chart.
+    // Note: `chartInfo` is fetched for the _default_ view. If startTime equals
+    // endTime here, it doesn't necessarily mean that the line chart is actually
+    // single-time, since we're looking at the default tab rather than the specific
+    // line chart tab. However, false positives are generally harmless because most
+    // charts don't customize their start time.
+    if (startTime && startTime !== endTime) return undefined
+
+    const columnSlug = chartInfo.endTimeValues?.y[0].columnSlug ?? ""
+    const columnInfo = chartInfo.columns?.[columnSlug]
+
+    return {
+        timeBounds: [-Infinity, endTime ?? Infinity],
+        timeMode: columnInfo?.yearIsDay ? "day" : "year",
     }
 }
 
@@ -165,40 +441,11 @@ export const DATA_CATALOG_ATTRIBUTES = [
     "variantName",
     "type",
     "queryParams",
+    "availableTabs",
+    "subtitle",
+    "chartConfigId",
+    "explorerType",
 ]
-
-function checkIfNoTopicsOrOneAreaTopicApplied(
-    topics: Set<string>,
-    areas: string[]
-) {
-    if (topics.size === 0) return true
-    if (topics.size > 1) return false
-
-    const [tag] = topics.values()
-    return areas.includes(tag)
-}
-
-export function checkShouldShowRibbonView(
-    query: string,
-    topics: Set<string>,
-    areaNames: string[]
-): boolean {
-    return (
-        query === "" && checkIfNoTopicsOrOneAreaTopicApplied(topics, areaNames)
-    )
-}
-
-/**
- * Set url if it's different from the current url.
- * When the user navigates back, we derive the state from the url and set it
- * so the url is already identical to the state - we don't need to push it again (otherwise we'd get an infinite loop)
- */
-export function syncDataCatalogURL(stateAsUrl: string) {
-    const currentUrl = window.location.href
-    if (currentUrl !== stateAsUrl) {
-        window.history.pushState({}, "", stateAsUrl)
-    }
-}
 
 export function setToFacetFilters(
     facetSet: Set<string>,
@@ -206,34 +453,26 @@ export function setToFacetFilters(
 ) {
     return Array.from(facetSet).map((facet) => `${attribute}:${facet}`)
 }
-function getAllTagsInArea(area: TagGraphNode): string[] {
-    const topics = area.children.reduce((tags, child) => {
-        tags.push(child.name)
-        if (child.children.length > 0) {
-            tags.push(...getAllTagsInArea(child))
-        }
-        return tags
-    }, [] as string[])
-    return Array.from(new Set(topics))
-}
 
-export function getTopicsForRibbons(
-    topics: Set<string>,
-    tagGraph: TagGraphRoot
-) {
-    if (topics.size === 0) return tagGraph.children.map((child) => child.name)
-    if (topics.size === 1) {
-        const area = tagGraph.children.find((child) => topics.has(child.name))
-        if (area) return getAllTagsInArea(area)
-    }
-    return []
+export function getSelectableTopics(
+    tagGraph: TagGraphRoot,
+    selectedTopic: string | undefined
+): Set<string> {
+    if (!selectedTopic)
+        return new Set(tagGraph.children.map((child) => child.name))
+
+    const area = tagGraph.children.find((child) => child.name === selectedTopic)
+    if (area)
+        return new Set(getAllChildrenOfArea(area).map((node) => node.name))
+
+    return new Set()
 }
 
 export function formatCountryFacetFilters(
     countries: Set<string>,
     requireAllCountries: boolean
 ) {
-    const facetFilters: (string | string[])[] = []
+    const facetFilters: SearchFacetFilters = []
     if (requireAllCountries) {
         // conjunction mode (A AND B): [attribute:"A", attribute:"B"]
         facetFilters.push(...setToFacetFilters(countries, "availableEntities"))
@@ -246,6 +485,13 @@ export function formatCountryFacetFilters(
         facetFilters.push("isIncomeGroupSpecificFM:false")
     }
     return facetFilters
+}
+
+export const formatTopicFacetFilters = (
+    topics: Set<string>
+): SearchFacetFilters => {
+    // disjunction mode (A OR B): [[attribute:"A", attribute:"B"]]
+    return [setToFacetFilters(topics, "tags")]
 }
 
 export function getCountryData(selectedCountries: Set<string>): Region[] {
@@ -295,85 +541,14 @@ export const getFilterIcon = (filter: Filter) => {
         .otherwise(() => null)
 }
 
-export async function queryDataCatalogRibbons(
-    searchClient: SearchClient,
-    state: SearchState,
-    tagGraph: TagGraphRoot
-): Promise<DataCatalogRibbonResult[]> {
-    const topicsForRibbons = getTopicsForRibbons(
-        getFilterNamesOfType(state.filters, FilterType.TOPIC),
-        tagGraph
-    )
-
-    const countryFacetFilters = formatCountryFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        state.requireAllCountries
-    )
-    const searchParams = topicsForRibbons.map((topic) => {
-        const facetFilters = [[`tags:${topic}`], ...countryFacetFilters]
-        return {
-            indexName: CHARTS_INDEX,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            query: state.query,
-            facetFilters: facetFilters,
-            hitsPerPage: 4,
-            facets: ["tags"],
-            page: state.page < 0 ? 0 : state.page,
-        }
-    })
-
-    return searchClient.search<IDataCatalogHit>(searchParams).then((response) =>
-        response.results.map((res, i: number) => ({
-            ...(res as SearchResponse<IDataCatalogHit>),
-            title: topicsForRibbons[i],
-        }))
-    )
-}
-
-export async function queryDataCatalogSearch(
-    searchClient: SearchClient,
-    state: SearchState
-): Promise<DataCatalogSearchResult> {
-    const facetFilters = formatCountryFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        state.requireAllCountries
-    )
-    facetFilters.push(
-        ...setToFacetFilters(
-            getFilterNamesOfType(state.filters, FilterType.TOPIC),
-            "tags"
-        )
-    )
-
-    const searchParams = [
-        {
-            indexName: CHARTS_INDEX,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            query: state.query,
-            facetFilters: facetFilters,
-            highlightPostTag: "</mark>",
-            highlightPreTag: "<mark>",
-            facets: ["tags"],
-            maxValuesPerFacet: 15,
-            hitsPerPage: 60,
-            page: state.page < 0 ? 0 : state.page,
-        },
-    ]
-
-    return searchClient
-        .search<IDataCatalogHit>(searchParams)
-        .then(
-            (response) => response.results[0] as SearchResponse<IDataCatalogHit>
-        )
-}
-
 export function searchWithWords(
     words: string[],
     allCountryNames: string[],
     allTopics: string[],
     selectedCountryNames: Set<string>,
     selectedTopics: Set<string>,
-    sortOptions: { threshold: number; limit: number }
+    sortOptions: { threshold: number; limit: number },
+    synonymMap: SynonymMap
 ): {
     countryResults: ScoredSearchResult[]
     topicResults: ScoredSearchResult[]
@@ -381,35 +556,68 @@ export function searchWithWords(
 } {
     const searchTerm = words.join(" ")
 
-    const countryResults = FuzzySearch.withKey(
-        allCountryNames,
-        (country) => country,
-        sortOptions
-    )
-        .searchResults(searchTerm)
-        .filter(
-            (result: FuzzySearchResult) =>
-                !selectedCountryNames.has(result.target)
+    const searchCountryTopics = (term: string) => {
+        const countryResults = FuzzySearch.withKey(
+            allCountryNames,
+            (country) => country,
+            sortOptions
         )
-        .map((result: FuzzySearchResult) => ({
-            name: result.target,
-            score: result.score,
-        }))
+            .searchResults(term)
+            .filter(
+                (result: FuzzySearchResult) =>
+                    !selectedCountryNames.has(result.target)
+            )
+            .map((result: FuzzySearchResult) => ({
+                name: result.target,
+                score: result.score,
+            }))
 
-    const topicResults: ScoredSearchResult[] =
-        selectedTopics.size === 0
-            ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
-                  .searchResults(searchTerm)
-                  .map((result: FuzzySearchResult) => ({
-                      name: result.target,
-                      score: result.score,
-                  }))
-            : []
+        const topicResults: ScoredSearchResult[] =
+            selectedTopics.size === 0
+                ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
+                      .searchResults(term)
+                      .map((result: FuzzySearchResult) => ({
+                          name: result.target,
+                          score: result.score,
+                      }))
+                : []
+
+        return { countryResults, topicResults }
+    }
+
+    // 1. Perform original search
+    const originalResults = searchCountryTopics(searchTerm)
+    let allCountryResults = [...originalResults.countryResults]
+    let allTopicResults = [...originalResults.topicResults]
+
+    // 2. Search with synonyms
+    const synonyms = synonymMap.get(searchTerm.toLowerCase())
+
+    if (synonyms && synonyms.length > 0) {
+        // Search with each synonym and combine results
+        for (const synonym of synonyms) {
+            const synonymResults = searchCountryTopics(synonym)
+            allCountryResults.push(...synonymResults.countryResults)
+            allTopicResults.push(...synonymResults.topicResults)
+        }
+
+        // Deduplicate results by name, keeping the highest score, and enforce
+        // the limit given that we are running the search twice and combining
+        // result sets, effectively doubling the number of results.
+        const deduplicateResults = (results: ScoredSearchResult[]) =>
+            R.uniqueBy(
+                results.sort((a, b) => b.score - a.score),
+                (result) => result.name
+            ).slice(0, sortOptions.limit)
+
+        allCountryResults = deduplicateResults(allCountryResults)
+        allTopicResults = deduplicateResults(allTopicResults)
+    }
 
     return {
-        countryResults,
-        topicResults,
-        hasResults: countryResults.length > 0 || topicResults.length > 0,
+        countryResults: allCountryResults,
+        topicResults: allTopicResults,
+        hasResults: allCountryResults.length > 0 || allTopicResults.length > 0,
     }
 }
 
@@ -420,6 +628,7 @@ export function findMatches(
     selectedCountryNames: Set<string>,
     selectedTopics: Set<string>,
     sortOptions: { threshold: number; limit: number },
+    synonymMap: SynonymMap,
     wordIndex: number = 0
 ): {
     countryResults: ScoredSearchResult[]
@@ -433,7 +642,8 @@ export function findMatches(
         allTopics,
         selectedCountryNames,
         selectedTopics,
-        sortOptions
+        sortOptions,
+        synonymMap
     )
 
     if (results.hasResults) {
@@ -452,6 +662,7 @@ export function findMatches(
               selectedCountryNames,
               selectedTopics,
               sortOptions,
+              synonymMap,
               wordIndex + 1
           )
         : {
@@ -464,13 +675,7 @@ export function findMatches(
 /**
  * Generates autocomplete suggestions for a search query and identifies any unmatched portion of the query.
  *
- * This function takes a search query and finds possible country and topic suggestions by:
- * 1. Splitting the query into words
- * 2. Finding the earliest word index where country and/or topic matches can be found using fuzzy search
- * 3. Returning the found matches as Filter objects, sorted with exact matches first
- * 4. Also returning the unmatched portion of the query (words before the match point)
- *
- * The function uses fuzzy search to match partial query words against country names and topics,
+ * This function uses fuzzy search to match partial query words against country names and topics,
  * filtering out any countries or topics that have already been selected as filters.
  * It progressively tries to match from increasing starting points in the query until it finds matches
  * or reaches the end of the query. This prioritizes matching whole phrases from the beginning, while still
@@ -478,21 +683,45 @@ export function findMatches(
  * "Indoor Air Pollution" and "Outdoor Air Pollution" and prevent the "pollution" query from being run;
  * thus not returning "Lead Pollution" as a suggestion).
  *
- * Exact matches (score = 1) are prioritized in the returned suggestions array, followed by
- * the original query (as a query filter), and then partial matches sorted by score.
+ * **Search Process:**
+ * 1. Splitting the query into words
+ * 2. Finding the earliest word index where country and/or topic matches can be found using fuzzy search
+ * 3. Returning the found matches as Filter objects, sorted with exact matches first
+ * 4. Also returning the unmatched portion of the query (words before the match point)
  *
+ * The search utilizes the same synonym definitions as Algolia to ensure consistent experiences
+ * between Algolia-powered search (homepage autocomplete, nav bar autocomplete, search results) and local fuzzy search (filter autocomplete).
+ * This includes bidirectional synonyms from synonym groups (e.g., "ai" ↔ "artificial intelligence")
+ * and unidirectional country alternatives (e.g., "us" → "united states"). Results from both original
+ * and synonym searches are combined, with duplicates removed while preserving the highest scores.
+ *
+ * **Result Prioritization:**
+ * Exact matches (score = 1) are prioritized in the returned suggestions array, followed by
+ * the original query (as a query filter), and then partial matches sorted by score descending.
+ *
+ * **Examples:**
+ * - Query "artificial intelligence" → also searches for synonyms like "ai", "machine learning"
+ * - Query "co2 emissions" → also searches for "carbon dioxide", "c02"
+ * - Query "us" → "us" gets expanded to "united states" for better country matching
+ *
+ * @returns Object containing suggestion filters and any unmatched query portion
  */
 export function getAutocompleteSuggestionsWithUnmatchedQuery(
     query: string,
     allTopics: string[],
-    filters: Filter[]
+    filters: Filter[], // currently active filters to exclude from suggestions
+    synonymMap: SynonymMap,
+    limitPerFilter: number = 3
 ): {
     suggestions: Filter[]
     unmatchedQuery: string
 } {
     const sortOptions = {
-        threshold: 0.5,
-        limit: 3,
+        // we can afford to be more strict with matching due to the presence of
+        // synonyms, in particular country alternatives (e.g. "uk" matches
+        // "united kingdom" without the need for a more permissive fuzzy match)
+        threshold: 0.75,
+        limit: limitPerFilter,
     }
     const selectedCountryNames = getFilterNamesOfType(
         filters,
@@ -519,7 +748,8 @@ export function getAutocompleteSuggestionsWithUnmatchedQuery(
         allTopics,
         selectedCountryNames,
         selectedTopics,
-        sortOptions
+        sortOptions,
+        synonymMap
     )
 
     const unmatchedQuery = queryWords
@@ -538,7 +768,7 @@ export function getAutocompleteSuggestionsWithUnmatchedQuery(
 
     const allMatches = [...countryMatches, ...topicMatches]
 
-    const [exactMatches, partialMatches] = partition(
+    const [exactMatches, partialMatches] = R.partition(
         allMatches,
         (item) => item.score === 1
     )
@@ -566,20 +796,6 @@ export function createFilter(type: FilterType) {
 export const createCountryFilter = createFilter(FilterType.COUNTRY)
 export const createTopicFilter = createFilter(FilterType.TOPIC)
 export const createQueryFilter = createFilter(FilterType.QUERY)
-
-export const SearchAutocompleteContext = createContext<
-    SearchAutocompleteContextType | undefined
->(undefined)
-
-export function useSearchAutocomplete() {
-    const context = useContext(SearchAutocompleteContext)
-    if (context === undefined) {
-        throw new Error(
-            "useSearchAutocomplete must be used within a SearchAutocompleteContextProvider"
-        )
-    }
-    return context
-}
 
 /**
  * Returns a click handler that focuses an input element when clicking on the
@@ -635,4 +851,268 @@ export const getFilterAriaLabel = (
             () => `${actionName} ${filter.name} ${filter.type} filter`
         )
         .exhaustive()
+}
+
+export const isValidResultType = (
+    value: string | undefined
+): value is SearchResultType => {
+    return Object.values(SearchResultType).includes(value as SearchResultType)
+}
+
+export const getSelectedTopic = (filters: Filter[]): string | undefined => {
+    const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
+    return selectedTopics.size > 0 ? [...selectedTopics][0] : undefined
+}
+
+export function getSelectedTopicType(
+    filters: Filter[],
+    areaNames: string[]
+): SearchTopicType | null {
+    const selectedTopic = getSelectedTopic(filters)
+    if (!selectedTopic) return null
+
+    return areaNames.includes(selectedTopic)
+        ? SearchTopicType.Area
+        : SearchTopicType.Topic
+}
+
+/**
+ * Checks if the search is in browsing mode, which is defined as having no query
+ * and no filters applied.
+ */
+export const isBrowsing = (filters: Filter[], query: string) => {
+    return query.trim() === "" && filters.length === 0
+}
+
+/**
+ * Computes the effective result type that should be displayed/used in the UI.
+ * This respects constraints (e.g., "all" is not allowed when browsing) while
+ * preserving the user's desired result type in the state.
+ */
+export const getEffectiveResultType = (
+    filters: Filter[],
+    query: string,
+    desiredResultType: SearchResultType
+): SearchResultType => {
+    return isBrowsing(filters, query) &&
+        desiredResultType === SearchResultType.ALL
+        ? SearchResultType.DATA
+        : desiredResultType
+}
+
+export function buildChartHitDataDisplayProps({
+    chartInfo,
+    chartType,
+    entity,
+    isEntityPickedByUser,
+}: {
+    chartInfo?: GrapherValuesJson | null
+    chartType?: GrapherChartType
+    entity: EntityName
+    isEntityPickedByUser?: boolean
+}): SearchChartHitDataDisplayProps | undefined {
+    if (!chartInfo) return undefined
+
+    // Showing a time range only makes sense for slope charts and connected scatter plots
+    const showTimeRange =
+        chartType === GRAPHER_CHART_TYPES.SlopeChart ||
+        chartType === GRAPHER_CHART_TYPES.ScatterPlot
+
+    const endDatapoint = findDatapoint(chartInfo, "end")
+    const startDatapoint = showTimeRange
+        ? findDatapoint(chartInfo, "start")
+        : undefined
+    const columnInfo = endDatapoint?.columnSlug
+        ? chartInfo?.columns?.[endDatapoint?.columnSlug]
+        : undefined
+
+    if (!endDatapoint?.formattedValueShort || !endDatapoint?.formattedTime)
+        return undefined
+
+    // For scatter plots, displaying a single data value is ambiguous since
+    // they have two dimensions. But we do show a data value if the x axis
+    // is GDP since then it's sufficiently clear
+    const xSlug = chartInfo?.endTimeValues?.x?.columnSlug
+    const xColumnInfo = chartInfo?.columns?.[xSlug ?? ""]
+    const hasDataDisplay =
+        chartType !== GRAPHER_CHART_TYPES.ScatterPlot ||
+        /GDP/.test(xColumnInfo?.name ?? "")
+
+    if (!hasDataDisplay) return undefined
+
+    const endValue = endDatapoint.valueLabel ?? endDatapoint.formattedValueShort
+    const startValue =
+        startDatapoint?.valueLabel ?? startDatapoint?.formattedValueShort
+    const unit = columnInfo ? getColumnUnitForDisplay(columnInfo) : undefined
+    const time = startDatapoint?.formattedTime
+        ? `${startDatapoint?.formattedTime}–${endDatapoint.formattedTime}`
+        : endDatapoint.formattedTime
+    const trend = calculateTrendDirection(
+        startDatapoint?.value,
+        endDatapoint?.value
+    )
+    const showLocationIcon =
+        isEntityPickedByUser && getRegionByName(entity) !== undefined
+
+    return {
+        entityName: entity,
+        endValue,
+        startValue,
+        time,
+        unit,
+        trend,
+        showLocationIcon,
+    }
+}
+
+export function calculateTrendDirection(
+    startValue?: PrimitiveType,
+    endValue?: PrimitiveType
+): GrapherTrendArrowDirection | undefined {
+    if (typeof startValue !== "number" || typeof endValue !== "number")
+        return undefined
+    return endValue > startValue
+        ? "up"
+        : endValue < startValue
+          ? "down"
+          : "right"
+}
+
+function findDatapoint(
+    chartInfo: GrapherValuesJson | undefined,
+    time: "end" | "start" = "end"
+): GrapherValuesJsonDataPoint | undefined {
+    if (!chartInfo) return undefined
+
+    const yDims = match(time)
+        .with("end", () => chartInfo.endTimeValues?.y)
+        .with("start", () => chartInfo.startTimeValues?.y)
+        .exhaustive()
+    if (!yDims) return undefined
+
+    // Make sure we're not showing a projected data point
+    const historicalDims = yDims.filter(
+        (dim) => !chartInfo.columns?.[dim.columnSlug]?.isProjection
+    )
+
+    // Don't show a data value for charts with multiple y-indicators
+    if (historicalDims.length > 1) return undefined
+
+    return historicalDims[0]
+}
+
+export function getColumnNameForDisplay(column: CoreColumn): string {
+    return column.titlePublicOrDisplayName.title ?? column.nonEmptyDisplayName
+}
+
+export function getColumnUnitForDisplay(
+    column: CoreColumn | { unit?: string; shortUnit?: string },
+    { allowTrivial = false }: { allowTrivial?: boolean } = {}
+): string | undefined {
+    if (!column.unit) return undefined
+
+    // The unit is considered trivial if it is the same as the short unit
+    const isTrivial = column.unit === column.shortUnit
+    const unit = allowTrivial || !isTrivial ? column.unit : undefined
+
+    // Remove parentheses from the beginning and end of the unit
+    const strippedUnit = unit?.replace(/(^\(|\)$)/g, "")
+
+    return strippedUnit
+}
+
+export const getUrlParamNameForFilter = (filter: Filter) =>
+    match(filter.type)
+        .with(FilterType.COUNTRY, () => SearchUrlParam.COUNTRY)
+        .with(FilterType.TOPIC, () => SearchUrlParam.TOPIC)
+        .with(FilterType.QUERY, () => SearchUrlParam.QUERY)
+        .exhaustive()
+
+/**
+ * Builds a fully qualified search URL for the provided autocomplete filter.
+ *
+ * Handles different filter types:
+ * - `COUNTRY` or `TOPIC` filters include a `resultType=ALL` parameter to
+ *   broaden search results beyond the default data-only view, plus any
+ *   unmatched query terms
+ * - `QUERY` filters only include the filter parameter itself (defaults to
+ *   data-only results)
+ *
+ * Examples:
+ * - Country filter "Kenya" with unmatched query "emissions":
+ *   "?country=Kenya&q=emissions&resultType=all" (shows all content types)
+ * - Topic filter "Health": "?topic=Health&resultType=all" (shows all content
+ *   types)
+ * - Query filter "outdoor": "?q=outdoor" (shows data results only)
+ */
+export const getItemUrlForFilter = (
+    filter: Filter,
+    unmatchedQuery: string
+): string => {
+    const filterParam = {
+        [getUrlParamNameForFilter(filter)]: filter.name,
+    }
+
+    const queryParams = match(filter.type)
+        .with(FilterType.COUNTRY, FilterType.TOPIC, () => ({
+            ...filterParam,
+            ...(unmatchedQuery && {
+                [SearchUrlParam.QUERY]: unmatchedQuery,
+            }),
+            [SearchUrlParam.RESULT_TYPE]: SearchResultType.ALL,
+        }))
+        .with(FilterType.QUERY, () => filterParam)
+        .exhaustive()
+
+    return `${BAKED_BASE_URL}${SEARCH_BASE_PATH}${queryParamsToStr(queryParams)}`
+}
+
+export function getPageTypeNameAndIcon(pageType: OwidGdocType): {
+    name: string
+    icon: IconDefinition
+} {
+    return match(pageType)
+        .with(OwidGdocType.AboutPage, () => ({
+            name: "About",
+            icon: faFileLines,
+        }))
+        .with(OwidGdocType.Article, () => ({ name: "Article", icon: faBook }))
+        .with(OwidGdocType.DataInsight, () => ({
+            name: "Data Insight",
+            icon: faLightbulb,
+        }))
+        .with(OwidGdocType.LinearTopicPage, OwidGdocType.TopicPage, () => ({
+            name: "Topic page",
+            icon: faBookmark,
+        }))
+        .with(
+            OwidGdocType.Author, // Should never be indexed
+            OwidGdocType.Fragment, // Should never be indexed
+            OwidGdocType.Homepage, // Should never be indexed
+            () => ({ name: "", icon: faFileLines })
+        )
+        .exhaustive()
+}
+export const SEARCH_BASE_PATH = "/search"
+
+export const getPaginationOffsetAndLength = (
+    pageParam: number,
+    firstPageSize: number,
+    laterPageSize: number
+) => {
+    const offset =
+        pageParam === 0 ? 0 : firstPageSize + (pageParam - 1) * laterPageSize
+    const length = pageParam === 0 ? firstPageSize : laterPageSize
+    return { offset, length }
+}
+
+export const getNbPaginatedItemsRequested = (
+    currentPageIndex: number,
+    firstPageSize: number,
+    laterPageSize: number,
+    lastPageHits: number
+) => {
+    return currentPageIndex === 0
+        ? firstPageSize
+        : firstPageSize + (currentPageIndex - 1) * laterPageSize + lastPageHits
 }

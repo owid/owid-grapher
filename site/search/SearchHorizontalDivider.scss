@@ -1,0 +1,30 @@
+.search-horizontal-divider {
+    display: flex;
+    justify-content: center;
+    position: relative;
+    min-height: 24px;
+    margin: 16px 0;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background-color: $blue-20;
+        z-index: -1;
+    }
+}
+
+.search-horizontal-divider:last-child:not(
+        .search-horizontal-divider--has-button
+    ) {
+    display: none;
+}
+
+.search-horizontal-divider__button {
+    width: 124px; // Don't make the button smaller when the text changes.
+    border-left: 2px solid $white;
+    border-right: 2px solid $white;
+}

@@ -94,7 +94,7 @@ export class ChartAreaContent extends React.Component<ChartAreaContentProps> {
                 manager={manager}
                 chartType={activeChartOrMapType}
                 chartState={chartState}
-                renderMode={manager.renderMode}
+                variant={manager.variant}
                 bounds={bounds}
             />
         )

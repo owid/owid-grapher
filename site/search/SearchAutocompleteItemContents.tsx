@@ -17,13 +17,13 @@ export function SearchAutocompleteItemContents({
     unmatchedQuery?: string
 }) {
     return (
-        <span className="search-autocomplete-item-contents">
+        <div className="search-autocomplete-item-contents">
             {match(filter.type)
                 // keep in sync with setQueries logic in SearchAutocomplete
                 .with(FilterType.QUERY, () => (
                     <>
                         <FontAwesomeIcon
-                            className="search-autocomplete-item-contents__search-icon"
+                            className="search-autocomplete-item-contents__type-icon"
                             icon={faSearch}
                         />
                         {renderActiveFilters(activeFilters)}
@@ -56,7 +56,7 @@ export function SearchAutocompleteItemContents({
                     </>
                 ))
                 .exhaustive()}
-        </span>
+        </div>
     )
 }
 

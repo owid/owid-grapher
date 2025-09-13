@@ -4,7 +4,7 @@ import { observer } from "mobx-react"
 import { ChartInterface } from "../chart/ChartInterface"
 import { StackedDiscreteBarChartState } from "./StackedDiscreteBarChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
-import { StackedDiscreteBarChart } from "./StackedDiscreteBarChart"
+import { StackedDiscreteBars } from "./StackedDiscreteBars"
 
 @observer
 export class StackedDiscreteBarChartThumbnail
@@ -22,6 +22,6 @@ export class StackedDiscreteBarChartThumbnail
     }
 
     override render(): React.ReactElement {
-        return <StackedDiscreteBarChart {...this.props} />
+        return <StackedDiscreteBars {...this.props} />
     }
 }

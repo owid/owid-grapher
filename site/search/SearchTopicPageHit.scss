@@ -1,0 +1,52 @@
+.search-topic-page-hit {
+    display: block;
+    text-decoration: none;
+    background-color: $blue-5;
+    padding: 16px;
+
+    &:hover {
+        background-color: $blue-10;
+
+        .search-topic-page-hit__title-text {
+            text-decoration: underline;
+        }
+    }
+}
+
+.search-topic-page-hit__tag {
+    @include h6-black-caps;
+    color: $blue-60;
+    margin-bottom: 4px;
+}
+
+.search-topic-page-hit__title {
+    @include h3-bold;
+    margin: 0;
+    color: $blue-90;
+    margin-bottom: 8px;
+
+    @include sm-only {
+        font-size: 16px;
+    }
+}
+
+.search-topic-page-hit__icon {
+    font-size: 16px;
+
+    @include sm-only {
+        font-size: 14px;
+    }
+}
+
+.search-topic-page-hit__excerpt {
+    @include body-3-regular;
+    color: $blue-60;
+}
+
+.search-topic-page-hit__excerpt-paragraph {
+    margin: 0 0 16px;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
