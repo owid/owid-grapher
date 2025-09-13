@@ -136,15 +136,48 @@ export const denormalizeLatestCountryData = async (
         .select("variableId", "entityCode", "year", "value")
         .rename({ variableId: "variable_id", entityCode: "country_code" })
 
-    // Remove existing values
-    await trx
-        .table("country_latest_data")
-        .whereIn("variable_id", variableIds as number[])
-        .delete()
+    // Use application-level advisory lock to prevent concurrent updates
+    const lockId = 12345 // Arbitrary but consistent lock ID for country_latest_data
 
-    // Insert new ones
-    if (df.height > 0) {
-        await trx.table("country_latest_data").insert(df.toRecords())
+    try {
+        // Acquire advisory lock with 30 second timeout
+        const lockResult = await trx.raw(
+            "SELECT GET_LOCK(?, 30) as lock_acquired",
+            [`country_latest_data_${lockId}`]
+        )
+        const lockAcquired = lockResult[0][0].lock_acquired === 1
+
+        if (!lockAcquired) {
+            console.warn(
+                "Could not acquire advisory lock for country_latest_data update, skipping"
+            )
+            return
+        }
+
+        // Perform the update with the lock held
+        if (df.height > 0) {
+            const records = df.toRecords()
+            await trx.raw(
+                `REPLACE INTO country_latest_data (country_code, variable_id, year, value)
+                VALUES ${records.map(() => "(?, ?, ?, ?)").join(", ")}`,
+                records.flatMap((r) => [
+                    r.country_code,
+                    r.variable_id,
+                    r.year,
+                    r.value,
+                ])
+            )
+        } else {
+            await trx
+                .table("country_latest_data")
+                .whereIn("variable_id", variableIds as number[])
+                .delete()
+        }
+    } finally {
+        // Always release the lock
+        await trx.raw("SELECT RELEASE_LOCK(?)", [
+            `country_latest_data_${lockId}`,
+        ])
     }
 }
 
