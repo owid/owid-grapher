@@ -115,7 +115,9 @@ export const SearchDetectedFilters = ({
                     </span>
                 </button>
             )}
-
+            {automaticFiltersApplied && manualFilters.length > 0 && (
+                <span className="search-detected-filters__label">or</span>
+            )}
             {manualFilters.map((filter, i) => (
                 <button
                     type="button"
