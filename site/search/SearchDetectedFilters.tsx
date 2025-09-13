@@ -21,8 +21,6 @@ export const SearchDetectedFilters = ({
         synonymMap,
     } = useSearchContext()
 
-    const queryWords = useMemo(() => query.trim().split(/\s+/), [query])
-
     const [automaticFiltersApplied, setAutomaticFiltersApplied] = useState<{
         filters: ScoredFilterPositioned[]
         originalQuery: string
@@ -33,13 +31,8 @@ export const SearchDetectedFilters = ({
     const previousQueryRef = useRef(query)
 
     const allMatchedFilters = useMemo(() => {
-        return getFilterSuggestionsNgrams(
-            queryWords,
-            allTopics,
-            filters,
-            synonymMap
-        )
-    }, [queryWords, allTopics, filters, synonymMap])
+        return getFilterSuggestionsNgrams(query, allTopics, filters, synonymMap)
+    }, [query, allTopics, filters, synonymMap])
 
     const [automaticFilters, manualFilters] = useMemo(() => {
         return R.partition(
