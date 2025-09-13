@@ -789,7 +789,7 @@ function getQuotedWordPositions(words: string[]): Set<number> {
  * @returns Array of deduplicated scored filters
  */
 export function findMatchesWithNgrams(
-    words: string[],
+    query: string,
     allCountryNames: string[],
     allTopics: string[],
     selectedCountryNames: Set<string>,
@@ -798,6 +798,8 @@ export function findMatchesWithNgrams(
 ): ScoredFilterPositioned[] {
     const allFilters: ScoredFilterPositioned[] = []
     const matchedWordPositions = new Set<number>()
+
+    const words = query.trim().split(/\s+/)
 
     // Get positions of words inside quoted phrases
     const quotedWordPositions = getQuotedWordPositions(words)
@@ -1035,12 +1037,12 @@ export function getFilterSuggestionsWithUnmatchedQuery(
  * Gets filter suggestions and calculates unmatched query using the new n-gram approach.
  */
 export function getFilterSuggestionsNgrams(
-    queryWords: string[],
+    query: string,
     allTopics: string[],
     filters: Filter[], // currently active filters to exclude from suggestions
     synonymMap: SynonymMap
 ): ScoredFilterPositioned[] {
-    if (!queryWords.length || !queryWords[0]) return []
+    if (!query) return []
 
     const selectedCountryNames = getFilterNamesOfType(
         filters,
@@ -1054,7 +1056,7 @@ export function getFilterSuggestionsNgrams(
 
     // Use n-gram matching for better phrase detection
     const matches = findMatchesWithNgrams(
-        queryWords,
+        query,
         allCountryNames,
         allTopics,
         selectedCountryNames,
