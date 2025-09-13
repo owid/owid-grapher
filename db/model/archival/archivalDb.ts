@@ -1,20 +1,33 @@
 import * as _ from "lodash-es"
+import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
 import {
     ArchivedChartVersionsTableName,
     ArchivedMultiDimVersionsTableName,
+    ArchivedExplorerVersionsTableName,
     ArchivedPageVersion,
     DbInsertArchivedChartVersion,
     DbInsertArchivedMultiDimVersion,
+    DbInsertArchivedExplorerVersion,
     DbPlainArchivedChartVersion,
     DbPlainMultiDimDataPage,
     DbPlainArchivedMultiDimVersion,
+    DbPlainArchivedExplorerVersion,
+    DbPlainExplorer,
     JsonString,
     MultiDimDataPagesTableName,
     MultiDimDataPageConfigEnriched,
+    ExplorersTableName,
     GrapherChecksumsObjectWithHash,
     GrapherChecksums,
     MultiDimChecksums,
     MultiDimChecksumsObjectWithHash,
+    ExplorerChecksums,
+    ExplorerChecksumsObjectWithHash,
+    ExplorerVariablesTableName,
+    DbPlainExplorerVariable,
+    VariablesTableName,
+    DbRawVariable,
+    parseChartConfig,
 } from "@ourworldindata/types"
 import * as db from "../../db.js"
 import { stringify } from "safe-stable-stringify"
@@ -27,10 +40,18 @@ import {
 import {
     assembleGrapherArchivalUrl,
     assembleMultiDimArchivalUrl,
+    assembleExplorerArchivalUrl,
     GrapherArchivalManifest,
     MultiDimArchivalManifest,
+    ExplorerArchivalManifest,
 } from "../../../serverUtils/archivalUtils.js"
 import { ARCHIVE_BASE_URL } from "../../../settings/serverSettings.js"
+
+type VariableChecksums = Pick<DbRawVariable, "id"> & {
+    // All variables used in production should have checksums.
+    metadataChecksum: string
+    dataChecksum: string
+}
 
 // Fetches checksum/hash information about all published charts from the database
 export const getGrapherChecksumsFromDb = async (
@@ -219,6 +240,14 @@ const hashMultiDimChecksumsObj = (checksums: MultiDimChecksums): string => {
     return hashed
 }
 
+const hashExplorerChecksumsObj = (checksums: ExplorerChecksums): string => {
+    const stringified = stringify(
+        _.pick(checksums, "explorerConfigMd5", "chartConfigs", "indicators")
+    )
+    const hashed = hashHex(stringified, null)
+    return hashed
+}
+
 const findGrapherHashesInDb = async (
     knex: db.KnexReadonlyTransaction,
     hashes: string[]
@@ -237,6 +266,18 @@ const findMultiDimHashesInDb = async (
 ): Promise<Set<string>> => {
     const rows = await knex<DbPlainArchivedMultiDimVersion>(
         ArchivedMultiDimVersionsTableName
+    )
+        .select("hashOfInputs")
+        .whereIn("hashOfInputs", hashes)
+    return new Set(rows.map((r) => r.hashOfInputs))
+}
+
+const findExplorerHashesInDb = async (
+    knex: db.KnexReadonlyTransaction,
+    hashes: string[]
+): Promise<Set<string>> => {
+    const rows = await knex<DbPlainArchivedExplorerVersion>(
+        ArchivedExplorerVersionsTableName
     )
         .select("hashOfInputs")
         .whereIn("hashOfInputs", hashes)
@@ -396,7 +437,7 @@ export const getMultiDimChecksumsFromDb = async (
     }
 
     // Get variable checksums
-    const variableChecksums = await knex("variables")
+    const variableChecksums = await knex<VariableChecksums>(VariablesTableName)
         .select("id", "metadataChecksum", "dataChecksum")
         .whereIn("id", Array.from(allVariableIds))
 
@@ -411,36 +452,44 @@ export const getMultiDimChecksumsFromDb = async (
     )
 
     // Build result
-    return multiDimPages.map((page) => {
-        const config = configsByMultiDimId.get(page.id)!
-        const chartConfigs = chartConfigsByMultiDimId.get(page.id) || {}
+    return await Promise.all(
+        multiDimPages.map(async (page) => {
+            const config = configsByMultiDimId.get(page.id)!
+            const chartConfigs = chartConfigsByMultiDimId.get(page.id) || {}
 
-        // Get indicators used in this multi-dim page
-        const usedVariableIds = getAllVariableIds(config.views)
+            // Get indicators used in this multi-dim page
+            const usedVariableIds = getAllVariableIds(config.views)
 
-        const indicators: {
-            [id: string]: { metadataChecksum: string; dataChecksum: string }
-        } = {}
-        for (const variableId of usedVariableIds) {
-            const checksum = variableChecksumsMap.get(variableId.toString())
-            if (checksum) {
-                indicators[variableId.toString()] = checksum
+            const indicators: {
+                [id: string]: { metadataChecksum: string; dataChecksum: string }
+            } = {}
+            for (const variableId of usedVariableIds) {
+                const checksum = variableChecksumsMap.get(variableId.toString())
+                if (checksum) {
+                    indicators[variableId.toString()] = checksum
+                } else {
+                    await logErrorAndMaybeCaptureInSentry(
+                        new Error(
+                            `Variable ${variableId} is missing a checksum`
+                        )
+                    )
+                }
             }
-        }
 
-        const checksums: MultiDimChecksums = {
-            multiDimConfigMd5: page.configMd5,
-            chartConfigs,
-            indicators,
-        }
+            const checksums: MultiDimChecksums = {
+                multiDimConfigMd5: page.configMd5,
+                chartConfigs,
+                indicators,
+            }
 
-        return {
-            multiDimId: page.id,
-            multiDimSlug: page.slug || "",
-            checksums,
-            checksumsHashed: hashMultiDimChecksumsObj(checksums),
-        }
-    })
+            return {
+                multiDimId: page.id,
+                multiDimSlug: page.slug || "",
+                checksums,
+                checksumsHashed: hashMultiDimChecksumsObj(checksums),
+            }
+        })
+    )
 }
 
 export const getAllMultiDimVersionsForId = async (
@@ -456,4 +505,259 @@ export const getAllMultiDimVersionsForId = async (
         .where("multiDimId", multiDimId)
         .orderBy("archivalTimestamp", "asc")
     return rows
+}
+
+export const getExplorerChecksumsFromDb = async (
+    knex: db.KnexReadonlyTransaction
+): Promise<ExplorerChecksumsObjectWithHash[]> => {
+    // Get all published explorers that are either indicator-based or grapher-based
+    // (excludes CSV-based explorers that have no variables or charts)
+    const explorers = await knex<DbPlainExplorer>(ExplorersTableName)
+        .select("slug", "config", "configMd5")
+        .where("isPublished", true)
+        .where(function () {
+            this.whereExists(function () {
+                this.select("*")
+                    .from(ExplorerVariablesTableName)
+                    .whereRaw("explorerSlug = explorers.slug")
+            }).orWhereExists(function () {
+                this.select("*")
+                    .from("explorer_charts")
+                    .whereRaw("explorerSlug = explorers.slug")
+            })
+        })
+        .orderBy("slug")
+
+    if (explorers.length === 0) return []
+
+    type ViewConfigResult = {
+        explorerSlug: string
+        chartConfigId: string
+        chartConfigMd5: string
+        chartConfigFull: string
+    }
+
+    const viewConfigRows = await db.knexRaw<ViewConfigResult>(
+        knex,
+        `-- sql
+        SELECT
+            ev.explorerSlug,
+            ev.chartConfigId,
+            cc.fullMd5 AS chartConfigMd5,
+            cc.full AS chartConfigFull
+        FROM explorer_views ev
+        JOIN chart_configs cc ON ev.chartConfigId = cc.id
+        WHERE ev.chartConfigId IS NOT NULL
+          AND ev.explorerSlug IN (${explorers.map(() => "?").join(",")})`,
+        explorers.map((e) => e.slug)
+    )
+
+    // Group per-view chart configs by explorerSlug (chartConfigId -> MD5)
+    const chartConfigsByExplorerSlug = new Map<string, Record<string, string>>()
+    for (const row of viewConfigRows) {
+        if (!chartConfigsByExplorerSlug.has(row.explorerSlug)) {
+            chartConfigsByExplorerSlug.set(row.explorerSlug, {})
+        }
+        chartConfigsByExplorerSlug.get(row.explorerSlug)![row.chartConfigId] =
+            row.chartConfigMd5
+    }
+
+    // Get variable IDs used by explorers
+    // 1) From explorer_variables (indicator-based references captured by config)
+    const allVariableIds = new Set<number>()
+    const variablesByExplorerSlug = new Map<string, Set<number>>()
+
+    const explorerVariableRows = await knex<DbPlainExplorerVariable>(
+        ExplorerVariablesTableName
+    )
+        .select("explorerSlug", "variableId")
+        .whereIn(
+            "explorerSlug",
+            explorers.map((e) => e.slug)
+        )
+
+    for (const row of explorerVariableRows) {
+        if (!variablesByExplorerSlug.has(row.explorerSlug)) {
+            variablesByExplorerSlug.set(row.explorerSlug, new Set<number>())
+        }
+        variablesByExplorerSlug.get(row.explorerSlug)!.add(row.variableId)
+        allVariableIds.add(row.variableId)
+    }
+
+    // 2) From generated explorer view configs (both grapher- and indicator-based)
+    for (const row of viewConfigRows) {
+        const slug = row.explorerSlug
+        if (!variablesByExplorerSlug.has(slug)) {
+            variablesByExplorerSlug.set(slug, new Set<number>())
+        }
+        const config = parseChartConfig(row.chartConfigFull)
+        if (config.dimensions) {
+            for (const dimension of config.dimensions) {
+                const variableId = dimension.variableId
+                variablesByExplorerSlug.get(slug)?.add(variableId)
+                allVariableIds.add(variableId)
+            }
+        }
+    }
+
+    // Get variable checksums
+    const variableChecksums = await knex<VariableChecksums>(VariablesTableName)
+        .select("id", "metadataChecksum", "dataChecksum")
+        .whereIn("id", Array.from(allVariableIds))
+
+    const variableChecksumsMap = new Map(
+        variableChecksums.map((v) => [
+            v.id.toString(),
+            {
+                metadataChecksum: v.metadataChecksum,
+                dataChecksum: v.dataChecksum,
+            },
+        ])
+    )
+
+    return await Promise.all(
+        explorers.map(async (explorer) => {
+            const chartConfigs =
+                chartConfigsByExplorerSlug.get(explorer.slug) || {}
+            const usedVariableIds = Array.from(
+                variablesByExplorerSlug.get(explorer.slug) || []
+            )
+
+            const indicators: {
+                [id: string]: { metadataChecksum: string; dataChecksum: string }
+            } = {}
+            for (const variableId of usedVariableIds) {
+                const checksum = variableChecksumsMap.get(variableId.toString())
+                if (checksum) {
+                    indicators[variableId.toString()] = checksum
+                } else {
+                    await logErrorAndMaybeCaptureInSentry(
+                        new Error(
+                            `Variable ${variableId} is missing a checksum`
+                        )
+                    )
+                }
+            }
+
+            const checksums: ExplorerChecksums = {
+                explorerConfigMd5: explorer.configMd5,
+                chartConfigs,
+                indicators,
+            }
+
+            return {
+                explorerSlug: explorer.slug,
+                checksums,
+                checksumsHashed: hashExplorerChecksumsObj(checksums),
+            }
+        })
+    )
+}
+
+export const findChangedExplorerPages = async (
+    knex: db.KnexReadonlyTransaction
+): Promise<ExplorerChecksumsObjectWithHash[]> => {
+    const allExplorerChecksums = await getExplorerChecksumsFromDb(knex)
+
+    // We're gonna find the hashes of all the explorers that are already archived and up-to-date
+    const hashesFoundInDb = await findExplorerHashesInDb(
+        knex,
+        allExplorerChecksums.map((c) => c.checksumsHashed)
+    )
+    const [alreadyArchived, needToBeArchived] = _.partition(
+        allExplorerChecksums,
+        (c) => hashesFoundInDb.has(c.checksumsHashed)
+    )
+
+    console.log("total published explorers", allExplorerChecksums.length)
+    console.log("already archived", alreadyArchived.length)
+    console.log("need archived", needToBeArchived.length)
+
+    return needToBeArchived
+}
+
+export const insertExplorerVersions = async (
+    knex: db.KnexReadWriteTransaction,
+    versions: ExplorerChecksumsObjectWithHash[],
+    date: ArchivalTimestamp,
+    manifests: Record<string, ExplorerArchivalManifest>
+): Promise<void> => {
+    const rows: DbInsertArchivedExplorerVersion[] = versions.map((v) => ({
+        explorerSlug: v.explorerSlug,
+        archivalTimestamp: date.date,
+        hashOfInputs: v.checksumsHashed,
+        manifest: stringify(manifests[v.explorerSlug], undefined, 2),
+    }))
+
+    if (rows.length)
+        await knex.batchInsert(ArchivedExplorerVersionsTableName, rows)
+}
+
+export const getLatestExplorerArchivedVersionsFromDb = async (
+    knex: db.KnexReadonlyTransaction,
+    slugs?: string[]
+): Promise<
+    Pick<DbPlainArchivedExplorerVersion, "explorerSlug" | "archivalTimestamp">[]
+> => {
+    const queryBuilder = knex<DbPlainArchivedExplorerVersion>(
+        ArchivedExplorerVersionsTableName
+    )
+        .select("explorerSlug", "archivalTimestamp")
+        .whereRaw(
+            `(explorerSlug, archivalTimestamp) IN (SELECT explorerSlug, MAX(archivalTimestamp) FROM archived_explorer_versions a2 GROUP BY explorerSlug)`
+        )
+
+    if (slugs) {
+        queryBuilder.whereIn("explorerSlug", slugs)
+    }
+
+    return await queryBuilder
+}
+
+export const getAllExplorerVersionsForSlug = async (
+    knex: db.KnexReadonlyTransaction,
+    explorerSlug: string
+): Promise<
+    Pick<DbPlainArchivedExplorerVersion, "archivalTimestamp" | "explorerSlug">[]
+> => {
+    const rows = await knex<DbPlainArchivedExplorerVersion>(
+        ArchivedExplorerVersionsTableName
+    )
+        .select("archivalTimestamp", "explorerSlug")
+        .where("explorerSlug", explorerSlug)
+        .orderBy("archivalTimestamp", "asc")
+    return rows
+}
+
+export const getLatestExplorerArchivedVersions = async (
+    knex: db.KnexReadonlyTransaction,
+    slugs?: string[]
+): Promise<Record<string, ArchivedPageVersion>> => {
+    const rows = await getLatestExplorerArchivedVersionsFromDb(knex, slugs)
+
+    return Object.fromEntries(
+        rows.map((r) => [
+            r.explorerSlug,
+            {
+                archivalDate: convertToArchivalDateStringIfNecessary(
+                    r.archivalTimestamp
+                ),
+                archiveUrl: assembleExplorerArchivalUrl(
+                    r.archivalTimestamp,
+                    r.explorerSlug,
+                    { relative: false }
+                ),
+                type: "archived-page-version",
+            },
+        ])
+    )
+}
+
+export const getLatestExplorerArchivedVersionsIfEnabled = async (
+    knex: db.KnexReadonlyTransaction,
+    slugs?: string[]
+): Promise<Record<string, ArchivedPageVersion>> => {
+    if (!ARCHIVE_BASE_URL) return {}
+
+    return await getLatestExplorerArchivedVersions(knex, slugs)
 }

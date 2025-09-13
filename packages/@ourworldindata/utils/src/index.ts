@@ -311,6 +311,7 @@ export { FuzzySearch, type FuzzySearchResult } from "./FuzzySearch.js"
 
 export {
     type ArchivalTimestamp,
+    type DateInput,
     convertToArchivalDateStringIfNecessary,
     formatAsArchivalDate,
     getDateForArchival,
