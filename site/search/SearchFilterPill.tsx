@@ -6,11 +6,13 @@ import cx from "classnames"
 export function SearchFilterPill({
     name,
     selected = false,
+    interactive = false,
     icon,
     className,
 }: {
     name: string
     selected?: boolean
+    interactive?: boolean
     icon: ReactNode
     className?: string
 }) {
@@ -21,6 +23,7 @@ export function SearchFilterPill({
                 "search-filter-pill",
                 {
                     "search-filter-pill--selected": selected,
+                    "search-filter-pill--interactive": interactive,
                 },
                 className
             )}

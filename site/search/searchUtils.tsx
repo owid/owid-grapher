@@ -43,7 +43,7 @@ import {
     SearchIndexName,
     Filter,
     FilterType,
-    ScoredSearchResult,
+    ScoredFilter,
     SearchResultType,
     SearchTopicType,
     SearchFacetFilters,
@@ -52,6 +52,9 @@ import {
     IChartHit,
     SearchUrlParam,
     SynonymMap,
+    Ngram,
+    WordPositioned,
+    ScoredFilterPositioned,
 } from "./searchTypes.js"
 import {
     faBook,
@@ -77,6 +80,24 @@ import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { SearchChartHitDataDisplayProps } from "./SearchChartHitDataDisplay.js"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { PreviewVariant } from "./SearchChartHitRichDataTypes.js"
+
+// Common English stop words that should be ignored in search
+const STOP_WORDS = new Set([
+    "the",
+    "in", // matches "India"
+    "of",
+    "and", // matches "Andorra"
+    "a",
+    "an",
+    "to",
+    "for",
+    "with",
+    "on",
+    "at",
+    "by",
+    "from",
+    "per", // matches "Peru"
+])
 
 /**
  * The below code is used to search for entities we can highlight in charts and explorer results.
@@ -549,15 +570,11 @@ export function searchWithWords(
     selectedTopics: Set<string>,
     sortOptions: { threshold: number; limit: number },
     synonymMap: SynonymMap
-): {
-    countryResults: ScoredSearchResult[]
-    topicResults: ScoredSearchResult[]
-    hasResults: boolean
-} {
+): ScoredFilter[] {
     const searchTerm = words.join(" ")
 
     const searchCountryTopics = (term: string) => {
-        const countryResults = FuzzySearch.withKey(
+        const countryFilters: ScoredFilter[] = FuzzySearch.withKey(
             allCountryNames,
             (country) => country,
             sortOptions
@@ -568,27 +585,25 @@ export function searchWithWords(
                     !selectedCountryNames.has(result.target)
             )
             .map((result: FuzzySearchResult) => ({
-                name: result.target,
+                ...createCountryFilter(result.target),
                 score: result.score,
             }))
 
-        const topicResults: ScoredSearchResult[] =
+        const topicFilters: ScoredFilter[] =
             selectedTopics.size === 0
                 ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
                       .searchResults(term)
                       .map((result: FuzzySearchResult) => ({
-                          name: result.target,
+                          ...createTopicFilter(result.target),
                           score: result.score,
                       }))
                 : []
 
-        return { countryResults, topicResults }
+        return [...countryFilters, ...topicFilters]
     }
 
     // 1. Perform original search
-    const originalResults = searchCountryTopics(searchTerm)
-    let allCountryResults = [...originalResults.countryResults]
-    let allTopicResults = [...originalResults.topicResults]
+    let filters = searchCountryTopics(searchTerm)
 
     // 2. Search with synonyms
     const synonyms = synonymMap.get(searchTerm.toLowerCase())
@@ -596,29 +611,252 @@ export function searchWithWords(
     if (synonyms && synonyms.length > 0) {
         // Search with each synonym and combine results
         for (const synonym of synonyms) {
-            const synonymResults = searchCountryTopics(synonym)
-            allCountryResults.push(...synonymResults.countryResults)
-            allTopicResults.push(...synonymResults.topicResults)
+            const filtersFromSynonym = searchCountryTopics(synonym)
+            filters.push(...filtersFromSynonym)
         }
-
-        // Deduplicate results by name, keeping the highest score, and enforce
-        // the limit given that we are running the search twice and combining
-        // result sets, effectively doubling the number of results.
-        const deduplicateResults = (results: ScoredSearchResult[]) =>
-            R.uniqueBy(
-                results.sort((a, b) => b.score - a.score),
-                (result) => result.name
-            ).slice(0, sortOptions.limit)
-
-        allCountryResults = deduplicateResults(allCountryResults)
-        allTopicResults = deduplicateResults(allTopicResults)
     }
 
-    return {
-        countryResults: allCountryResults,
-        topicResults: allTopicResults,
-        hasResults: allCountryResults.length > 0 || allTopicResults.length > 0,
+    // For each filter type, keep only the top results then recombine into a single array
+    filters = R.pipe(
+        filters,
+        R.groupBy((filter) => filter.type),
+        R.values,
+        R.flatMap((filtersOfType: ScoredFilter[]) =>
+            R.pipe(
+                filtersOfType,
+                R.sortBy((filter) => -filter.score), // Sort by score descending
+                R.uniqueBy((filter) => filter.name),
+                R.take(sortOptions.limit)
+            )
+        )
+    )
+
+    return filters
+}
+
+/**
+ * Performs contiguous substring search on words against countries and topics.
+ * Each word in the query must match as a prefix of words in the target names.
+ * Handles multi-word queries and synonyms while ensuring contiguous matching.
+ *
+ * @returns Array of scored filters matching the query words (non deduplicated)
+ */
+export function searchWithWordsContiguous(
+    words: string[],
+    allCountryNames: string[],
+    allTopics: string[],
+    selectedCountryNames: Set<string>,
+    selectedTopics: Set<string>,
+    synonymMap: SynonymMap
+): ScoredFilter[] {
+    // Returns true if all query words are prefixes of the target words
+    // Example:
+    // - ["chi", "mortal"] matches "child mortality" -> true
+    // - ["child", "blank"] doesn't match "child mortality" -> false
+    const areAllWordsPrefixes = (
+        queryWords: string[],
+        target: string
+    ): boolean => {
+        const targetWords = target.toLowerCase().split(/\s+/)
+        const queryWordsLower = queryWords.map((word) => word.toLowerCase())
+
+        // Each query word must match as a prefix of some target word
+        return queryWordsLower.every((queryWord) =>
+            targetWords.some((targetWord) => targetWord.startsWith(queryWord))
+        )
     }
+
+    // For countries, require exact covering matches where all query words are covered
+    // Example: "east" or "east ti" should NOT match "east timor"
+    const isExactCoveringMatch = (
+        queryWords: string[],
+        target: string
+    ): boolean => {
+        const query = queryWords.join(" ").toLowerCase()
+        return target.toLowerCase() === query
+    }
+
+    const searchCountryTopicAsPrefixes = (queryWords: string[]) => {
+        const countryFilters: ScoredFilter[] = allCountryNames
+            .filter((country) => !selectedCountryNames.has(country))
+            .filter((country) => isExactCoveringMatch(queryWords, country))
+            .map((country) => ({
+                ...createCountryFilter(country),
+                score: calculateScore(queryWords, country),
+            }))
+
+        const topicFilters: ScoredFilter[] =
+            selectedTopics.size === 0
+                ? allTopics
+                      .filter((topic) => areAllWordsPrefixes(queryWords, topic))
+                      .map((topic) => ({
+                          ...createTopicFilter(topic),
+                          score: calculateScore(queryWords, topic),
+                      }))
+                : []
+
+        return [...countryFilters, ...topicFilters]
+    }
+
+    // 1. Perform original search
+    let filters = searchCountryTopicAsPrefixes(words)
+
+    // 2. Search with synonyms
+    const searchTerm = words.join(" ").toLowerCase()
+    const synonyms = synonymMap.get(searchTerm)
+
+    if (synonyms && synonyms.length > 0) {
+        // Search with each synonym and combine results
+        for (const synonym of synonyms) {
+            const synonymWords = synonym.split(/\s+/)
+            const filtersFromSynonym =
+                searchCountryTopicAsPrefixes(synonymWords)
+            filters.push(...filtersFromSynonym)
+        }
+    }
+
+    return filters
+}
+
+/**
+ * Calculate a simple score based on match quality for contiguous matching.
+ * Higher scores are given to queries that cover more of the target string.
+ *
+ * @returns Normalized score between 0 and 1, where 1 represents perfect matches
+ */
+export function calculateScore(queryWords: string[], target: string): number {
+    const targetWords = target.toLowerCase().split(/\s+/)
+    const queryWordsLower = queryWords.map((word) => word.toLowerCase())
+
+    let totalMatchedChars = 0
+    queryWordsLower.forEach((queryWord) => {
+        const matchingWord = targetWords.find((targetWord) =>
+            targetWord.startsWith(queryWord)
+        )
+        if (matchingWord) {
+            // Count how many characters of the query word match
+            totalMatchedChars += queryWord.length
+        }
+    })
+
+    // Calculate total length of target (excluding spaces)
+    const targetLength = target.replace(/\s+/g, "").length
+
+    // Score is the ratio of matched characters to total target length
+    return totalMatchedChars / targetLength
+}
+
+/**
+ * Detects words that are inside quoted phrases and should be excluded from filter matching.
+ * Returns a set of word positions that should be ignored.
+ */
+function getQuotedWordPositions(words: string[]): Set<number> {
+    const quotedPositions = new Set<number>()
+    const parts = words
+        .join(" ")
+        .split(/("[^"]*"|\S+)/)
+        .filter(Boolean)
+
+    let wordIndex = 0
+    for (const part of parts) {
+        if (part.startsWith('"') && part.endsWith('"')) {
+            // Count words in the quoted phrase
+            const wordCount = part.split(/\s+/).filter(Boolean).length
+            for (let i = 0; i < wordCount; i++) {
+                quotedPositions.add(wordIndex + i)
+            }
+            wordIndex += wordCount
+        } else if (part.trim()) {
+            wordIndex++
+        }
+    }
+
+    return quotedPositions
+}
+
+/**
+ * Cousin of findMatches that uses n-gram approach to find matches for all
+ * possible combinations of words in the query, not just left-to-right
+ * reduction.
+ *
+ * Generates n-grams from 1 to 4 non stop-words, prioritizing longer phrases over shorter
+ * ones. Uses overlap detection to prevent the same word positions from being
+ * matched multiple times. Keeps a single country or filter topic per n-gram
+ * then deduplicates overall results by name.
+ *
+ * @returns Array of deduplicated scored filters
+ */
+export function findMatchesWithNgrams(
+    query: string,
+    allCountryNames: string[],
+    allTopics: string[],
+    selectedCountryNames: Set<string>,
+    selectedTopics: Set<string>,
+    synonymMap: SynonymMap
+): ScoredFilterPositioned[] {
+    const allFilters: ScoredFilterPositioned[] = []
+    const matchedWordPositions = new Set<number>()
+
+    const words = query.trim().split(/\s+/)
+
+    // Get positions of words inside quoted phrases
+    const quotedWordPositions = getQuotedWordPositions(words)
+
+    // Filter out stop words and quoted words while preserving original positions
+    const tokens: WordPositioned[] = words
+        .map((word, index) => ({ word, position: index }))
+        .filter(({ word }) => !STOP_WORDS.has(word.toLowerCase()))
+        .filter(({ position }) => !quotedWordPositions.has(position))
+
+    if (tokens.length === 0) return []
+
+    const ngrams: Ngram[] = []
+    const maxNgramSize = Math.min(tokens.length, 4) // Topics and countries mostly fit within 4 words
+
+    // Generate n-grams from largest to smallest to prioritize longer phrases
+    for (let n = maxNgramSize; n >= 1; n--) {
+        for (let i = 0; i <= tokens.length - n; i++) {
+            ngrams.push(tokens.slice(i, i + n))
+        }
+    }
+
+    // Search each n-gram and collect results, prioritizing longer phrases
+    for (const ngram of ngrams) {
+        const ngramWords = R.map(ngram, R.prop("word"))
+        const ngramPositions = R.map(ngram, R.prop("position"))
+
+        // Check if any original word positions in this n-gram are already matched by a longer phrase
+        const hasOverlap =
+            ngramPositions.some((pos: number) =>
+                matchedWordPositions.has(pos)
+            ) ?? false
+
+        if (hasOverlap) continue // Skip this n-gram if it overlaps with already matched words
+
+        const filters = searchWithWordsContiguous(
+            ngramWords,
+            allCountryNames,
+            allTopics,
+            selectedCountryNames,
+            selectedTopics,
+            synonymMap
+        )
+
+        const bestFilter = _.maxBy(filters, (f) => f.score)
+        if (bestFilter) {
+            // Store the original positions for later use in replacement logic
+            allFilters.push({
+                ...bestFilter,
+                originalPositions: ngramPositions,
+            })
+            // Mark these original word positions as matched
+            ngramPositions.forEach((pos: number) =>
+                matchedWordPositions.add(pos)
+            )
+        }
+    }
+
+    return R.uniqueBy(allFilters, (filter) => filter.name)
 }
 
 export function findMatches(
@@ -631,12 +869,11 @@ export function findMatches(
     synonymMap: SynonymMap,
     wordIndex: number = 0
 ): {
-    countryResults: ScoredSearchResult[]
-    topicResults: ScoredSearchResult[]
+    filters: ScoredFilter[]
     matchStartIndex: number
 } {
     const wordsToSearch = words.slice(wordIndex)
-    const results = searchWithWords(
+    const filters = searchWithWords(
         wordsToSearch,
         allCountryNames,
         allTopics,
@@ -646,10 +883,9 @@ export function findMatches(
         synonymMap
     )
 
-    if (results.hasResults) {
+    if (filters.length > 0) {
         return {
-            countryResults: results.countryResults,
-            topicResults: results.topicResults,
+            filters,
             matchStartIndex: wordIndex,
         }
     }
@@ -666,8 +902,7 @@ export function findMatches(
               wordIndex + 1
           )
         : {
-              countryResults: [],
-              topicResults: [],
+              filters: [],
               matchStartIndex: words.length,
           }
 }
@@ -706,7 +941,7 @@ export function findMatches(
  *
  * @returns Object containing suggestion filters and any unmatched query portion
  */
-export function getAutocompleteSuggestionsWithUnmatchedQuery(
+export function getFilterSuggestionsWithUnmatchedQuery(
     query: string,
     allTopics: string[],
     filters: Filter[], // currently active filters to exclude from suggestions
@@ -756,15 +991,13 @@ export function getAutocompleteSuggestionsWithUnmatchedQuery(
         .slice(0, searchResults.matchStartIndex)
         .join(" ")
 
-    const countryMatches = searchResults.countryResults.map((result) => ({
-        filter: createCountryFilter(result.name),
-        score: result.score,
-    }))
+    const countryMatches = searchResults.filters.filter(
+        (f) => f.type === FilterType.COUNTRY
+    )
 
-    const topicMatches = searchResults.topicResults.map((result) => ({
-        filter: createTopicFilter(result.name),
-        score: result.score,
-    }))
+    const topicMatches = searchResults.filters.filter(
+        (f) => f.type === FilterType.TOPIC
+    )
 
     const allMatches = [...countryMatches, ...topicMatches]
 
@@ -777,16 +1010,59 @@ export function getAutocompleteSuggestionsWithUnmatchedQuery(
         (a, b) => b.score - a.score
     )
 
-    const combinedFilters = [
-        ...exactMatches.map((item) => item.filter),
+    const primaryFilters = [
+        exactMatches,
         ...(query ? [createQueryFilter(query)] : []),
-        ...sortedPartialMatches.map((item) => item.filter),
     ]
+
+    const combinedFilters = [
+        ...(!unmatchedQuery ? primaryFilters : primaryFilters.reverse()).flat(),
+        ...sortedPartialMatches,
+    ]
+
+    const unmatchedQueryNoStopWords = unmatchedQuery
+        .split(/\s+/)
+        .filter((word) => !STOP_WORDS.has(word.toLowerCase()))
 
     return {
         suggestions: combinedFilters,
-        unmatchedQuery,
+        unmatchedQuery: unmatchedQueryNoStopWords.join(" "),
     }
+}
+
+/**
+ * Enhanced version using n-grams with stop word filtering.
+ * Gets filter suggestions and calculates unmatched query using the new n-gram approach.
+ */
+export function getFilterSuggestionsNgrams(
+    query: string,
+    allTopics: string[],
+    filters: Filter[], // currently active filters to exclude from suggestions
+    synonymMap: SynonymMap
+): ScoredFilterPositioned[] {
+    if (!query) return []
+
+    const selectedCountryNames = getFilterNamesOfType(
+        filters,
+        FilterType.COUNTRY
+    )
+    const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
+    const allCountries = countriesByName()
+    const allCountryNames = Object.values(allCountries).map(
+        (country) => country.name
+    )
+
+    // Use n-gram matching for better phrase detection
+    const matches = findMatchesWithNgrams(
+        query,
+        allCountryNames,
+        allTopics,
+        selectedCountryNames,
+        selectedTopics,
+        synonymMap
+    )
+
+    return matches
 }
 
 export function createFilter(type: FilterType) {
@@ -1115,4 +1391,35 @@ export const getNbPaginatedItemsRequested = (
     return currentPageIndex === 0
         ? firstPageSize
         : firstPageSize + (currentPageIndex - 1) * laterPageSize + lastPageHits
+}
+
+/**
+ * Helper function to remove matched words and preceding stop words from query
+ * when a filter is selected.
+ */
+export function removeMatchedWordsWithStopWords(
+    originalWords: string[],
+    matchedPositions: number[]
+): string {
+    if (!matchedPositions.length) return originalWords.join(" ")
+
+    const wordsToRemove = new Set(matchedPositions)
+
+    // For each matched position, remove any consecutive stop words that immediately precede it
+    for (const matchedPos of matchedPositions) {
+        // Look backwards from this matched position to remove consecutive preceding stop words
+        for (let i = matchedPos - 1; i >= 0; i--) {
+            const word = originalWords[i].toLowerCase()
+            if (STOP_WORDS.has(word)) {
+                wordsToRemove.add(i)
+            } else {
+                // Stop when we hit a non-stop word
+                break
+            }
+        }
+    }
+
+    return originalWords
+        .filter((_, index) => !wordsToRemove.has(index))
+        .join(" ")
 }

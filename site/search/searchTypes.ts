@@ -152,9 +152,13 @@ export type SearchDataTopicsResponse = {
     charts: SearchResponse<SearchChartHit>
 }
 
-export type ScoredSearchResult = {
+export type ScoredFilter = Filter & {
     name: string
     score: number
+}
+
+export type ScoredFilterPositioned = ScoredFilter & {
+    originalPositions: number[]
 }
 
 export type DataInsightHit = {
@@ -286,6 +290,16 @@ type SetResultTypeAction = {
     type: "setResultType"
     resultType: SearchResultType
 }
+type ReplaceQueryWithFiltersAction = {
+    type: "replaceQueryWithFilters"
+    filters: Filter[]
+    matchedPositions: number[]
+}
+type ReplaceFiltersWithQueryAction = {
+    type: "replaceFiltersWithQuery"
+    filtersToRemove: Filter[]
+    queryToAdd: string
+}
 
 export type SearchAction =
     | AddFilterAction
@@ -299,6 +313,8 @@ export type SearchAction =
     | ToggleRequireAllCountriesAction
     | ResetAction
     | SetResultTypeAction
+    | ReplaceQueryWithFiltersAction
+    | ReplaceFiltersWithQueryAction
 
 export enum SearchTopicType {
     Topic = "topic",
@@ -315,3 +331,10 @@ export interface TemplateConfig {
 export type SearchFacetFilters = (string | string[])[]
 
 export type SynonymMap = Map<string, string[]>
+
+export interface WordPositioned {
+    word: string
+    position: number
+}
+
+export type Ngram = WordPositioned[]

@@ -2,7 +2,7 @@ import cx from "classnames"
 import { useEffect, useMemo, useCallback } from "react"
 import { match } from "ts-pattern"
 import {
-    getAutocompleteSuggestionsWithUnmatchedQuery,
+    getFilterSuggestionsWithUnmatchedQuery,
     createQueryFilter,
     getSearchAutocompleteId,
     getSearchAutocompleteItemId,
@@ -38,11 +38,10 @@ export const SearchAutocomplete = ({
     const {
         state: { filters },
         actions: { addCountry, setTopic },
+        synonymMap,
     } = useSearchContext()
 
     const analytics = useMemo(() => new SiteAnalytics(), [])
-
-    const synonymMap = useMemo(() => buildSynonymMap(), [])
 
     const { suggestions, unmatchedQuery } = useMemo(() => {
         if (!localQuery && !filters.length) {
@@ -51,7 +50,7 @@ export const SearchAutocomplete = ({
                 unmatchedQuery: "",
             }
         }
-        return getAutocompleteSuggestionsWithUnmatchedQuery(
+        return getFilterSuggestionsWithUnmatchedQuery(
             localQuery,
             allTopics,
             filters,
