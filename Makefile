@@ -64,6 +64,7 @@ up: require create-if-missing.env tmp-downloads/owid_metadata.sql.gz node_module
 			set remain-on-exit on \; \
 		new-window -n vite 'yarn run startSiteFront' \; \
 			set remain-on-exit on \; \
+		$(if $(wildcard Caddyfile),new-window -n caddy 'sudo caddy run' \; ) \
 		new-window -n welcome 'devTools/docker/banner.sh; exec $(LOGIN_SHELL)' \; \
 		bind R respawn-pane -k \; \
 		bind X kill-pane \; \
@@ -104,6 +105,7 @@ up.full: require create-if-missing.env.full tmp-downloads/owid_metadata.sql.gz n
 		-n docker 'docker compose -f docker-compose.grapher.yml up' \; \
 			set remain-on-exit on \; \
 		set-option -g default-shell $(SCRIPT_SHELL) \; \
+		$(if $(wildcard Caddyfile),new-window -n caddy 'sudo -E caddy run' \; ) \
 		new-window -n admin \
 			'devTools/docker/wait-for-mysql.sh && yarn startAdminDevServer' \; \
 			set remain-on-exit on \; \
