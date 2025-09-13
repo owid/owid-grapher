@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useEffect, useState } from "react"
+import { useCallback, useMemo, useEffect, useState, useRef } from "react"
 import * as R from "remeda"
 import { useSearchContext } from "./SearchContext.js"
 import { getFilterIcon, getFilterSuggestionsNgrams } from "./searchUtils.js"
@@ -23,10 +23,14 @@ export const SearchDetectedFilters = ({
 
     const queryWords = useMemo(() => query.trim().split(/\s+/), [query])
 
-    const [appliedFilters, setAppliedFilters] = useState<{
+    const [automaticFiltersApplied, setAutomaticFiltersApplied] = useState<{
         filters: ScoredFilterPositioned[]
         originalQuery: string
     } | null>(null)
+
+    // Track when query changes are system-initiated vs user-initiated
+    const isQueryModifiedBySystem = useRef(false)
+    const previousQueryRef = useRef(query)
 
     const allMatchedFilters = useMemo(() => {
         return getFilterSuggestionsNgrams(
@@ -67,32 +71,55 @@ export const SearchDetectedFilters = ({
     )
 
     const handleRevertAppliedFilters = useCallback(() => {
-        if (!appliedFilters) return
+        if (!automaticFiltersApplied) return
+
+        // Mark this as a system-initiated query change
+        isQueryModifiedBySystem.current = true
 
         // Use atomic operation to remove filters and add query text.
         // Append the query as a quoted string to trigger Algolia's
         // phrase matching.
         replaceFiltersWithQuery(
-            appliedFilters.filters,
-            `"${appliedFilters.originalQuery}"`
+            automaticFiltersApplied.filters,
+            `"${automaticFiltersApplied.originalQuery}"`
         )
 
-        setAppliedFilters(null)
-    }, [appliedFilters, replaceFiltersWithQuery])
+        setAutomaticFiltersApplied(null)
+    }, [automaticFiltersApplied, replaceFiltersWithQuery])
 
-    // Auto-apply country filters and store them with original query
+    // Auto-apply country filters and store them with original query.
+    // Handle all query-related changes in a single effect to avoid race conditions.
     useEffect(() => {
-        if (automaticFilters.length === 0) return
+        const currentQuery = query
+        const previousQuery = previousQueryRef.current
 
-        // Store all the country filters with the entire original query (once)
-        setAppliedFilters({
-            filters: automaticFilters,
-            originalQuery: query,
-        })
-        applyFilters(automaticFilters)
-    }, [automaticFilters, applyFilters, query])
+        // Update ref for next comparison
+        previousQueryRef.current = currentQuery
 
-    if (!manualFilters.length && !appliedFilters) return null
+        // If system is modifying the query, reset flag and don't interfere
+        if (isQueryModifiedBySystem.current) {
+            isQueryModifiedBySystem.current = false
+            return
+        }
+
+        // User-initiated query change: clear any existing applied filters
+        if (previousQuery !== currentQuery && automaticFiltersApplied) {
+            setAutomaticFiltersApplied(null)
+        }
+
+        // Check if we should auto-apply new automatic filters
+        if (automaticFilters.length > 0) {
+            isQueryModifiedBySystem.current = true
+
+            setAutomaticFiltersApplied({
+                filters: automaticFilters,
+                originalQuery: currentQuery,
+            })
+            applyFilters(automaticFilters)
+        }
+    }, [query, automaticFilters, automaticFiltersApplied, applyFilters])
+
+    if (!automaticFiltersApplied && !manualFilters.length) return null
 
     return (
         <div className="search-detected-filters">
@@ -100,7 +127,7 @@ export const SearchDetectedFilters = ({
                 Did you mean?
             </span>
 
-            {appliedFilters && (
+            {automaticFiltersApplied && (
                 <button
                     type="button"
                     onClick={handleRevertAppliedFilters}
@@ -109,7 +136,7 @@ export const SearchDetectedFilters = ({
                     <span className="search-quoted-phrase">
                         "
                         <span className="search-quoted-phrase__underlined">
-                            {appliedFilters.originalQuery}
+                            {automaticFiltersApplied.originalQuery}
                         </span>
                         "
                     </span>
