@@ -1,0 +1,114 @@
+.latest-page {
+    background-color: $gray-5;
+    gap: 32px 0;
+    padding-bottom: 56px;
+}
+
+.latest-page-header {
+    background-color: #fff;
+    padding-top: 48px;
+    padding-bottom: 32px;
+    h1 {
+        margin: 0;
+        margin-bottom: 4px;
+        color: $blue-90;
+    }
+    p {
+        margin: 0;
+        color: $blue-60;
+    }
+}
+
+/* Common */
+.latest-page__item-dateline {
+    color: $blue-60;
+    margin-bottom: 16px;
+}
+
+.latest-page__item-type {
+    text-align: right;
+    color: $blue-60;
+    margin: 0;
+    margin-bottom: 16px;
+}
+
+/* Data Insight */
+.latest-page__data-insight {
+    h2 {
+        margin: 0;
+        margin-bottom: 8px;
+    }
+}
+
+.latest-page__data-insight-link {
+    background-color: $blue-20;
+    color: $blue-90;
+    padding: 16px;
+    &:hover {
+        background-color: $accent-pale-blue;
+        .latest-page__data-insight-blocks:before {
+            background: linear-gradient(
+                180deg,
+                rgba(231, 242, 255, 0) 50%,
+                $accent-pale-blue 100%
+            );
+        }
+    }
+}
+
+.latest-page__data-insight-blocks {
+    max-height: 120px;
+    position: relative;
+    overflow: hidden;
+
+    &:before {
+        content: "";
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+        background: linear-gradient(
+            180deg,
+            rgba(219, 229, 240, 0) 50%,
+            $blue-20 100%
+        );
+    }
+
+    @include text-block-override {
+        @include note-12-medium;
+    }
+}
+
+/* Article */
+.latest-page__article-link {
+    background-color: $blue-10;
+    padding: 16px;
+    color: $blue-90;
+    &:hover {
+        h2 {
+            text-decoration: underline;
+        }
+    }
+    h2 {
+        margin: 0;
+        margin-bottom: 4px;
+    }
+    p {
+        margin: 0;
+    }
+}
+
+.latest-page__article-authors {
+    color: $blue-50;
+    font-style: italic;
+    font-size: 0.875rem;
+    font-family: $sans-serif-font-stack;
+}
+
+/* Announcement */
+.latest-page__announcement {
+    .announcement-page-content {
+        margin: 0;
+    }
+}
