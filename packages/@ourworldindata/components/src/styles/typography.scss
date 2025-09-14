@@ -537,6 +537,10 @@ body {
     letter-spacing: 0.0075rem;
 }
 
+.note-12-medium {
+    @include note-12-medium;
+}
+
 @mixin note-13-medium {
     font-family: $sans-serif-font-stack;
     font-size: 0.8125rem;
