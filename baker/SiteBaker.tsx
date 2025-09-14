@@ -833,17 +833,17 @@ export class SiteBaker {
             publishedDataInsights.length
         )
 
-        for (let pageNumber = 0; pageNumber < totalPageCount; pageNumber++) {
+        for (let pageNumber = 1; pageNumber <= totalPageCount; pageNumber++) {
             const html = renderDataInsightsIndexPage(
                 publishedDataInsights.slice(
-                    pageNumber * DATA_INSIGHTS_INDEX_PAGE_SIZE,
-                    (pageNumber + 1) * DATA_INSIGHTS_INDEX_PAGE_SIZE
+                    (pageNumber - 1) * DATA_INSIGHTS_INDEX_PAGE_SIZE,
+                    pageNumber * DATA_INSIGHTS_INDEX_PAGE_SIZE
                 ),
                 pageNumber,
                 totalPageCount
             )
-            // Page 0 is data-insights.html, page 1 is data-insights/2.html, etc.
-            const filename = pageNumber === 0 ? "" : `/${pageNumber + 1}`
+            // Page 1 is data-insights.html, page 2 is data-insights/2.html, etc.
+            const filename = pageNumber === 1 ? "" : `/${pageNumber}`
             const outPath = path.join(
                 this.bakedSiteDir,
                 `data-insights${filename}.html`

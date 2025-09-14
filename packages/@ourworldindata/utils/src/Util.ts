@@ -2157,21 +2157,20 @@ export function extractLinksFromMarkdown(markdown: string): [string, string][] {
     ])
 }
 
-// Page numbers are 0-indexed - you'll have to +1 to them when rendering
 export function getPaginationPageNumbers(
     currentPageNumber: number,
     totalPageCount: number,
     size: number = 5
 ): number[] {
-    let start = Math.max(0, currentPageNumber - Math.floor(size / 2))
+    let start = Math.max(1, currentPageNumber - Math.floor(size / 2))
 
     if (start + size > totalPageCount) {
-        start = Math.max(0, totalPageCount - size)
+        start = Math.max(1, totalPageCount - size + 1)
     }
 
     const pageNumbers = []
 
-    for (let i = start; i < Math.min(start + size, totalPageCount); i++) {
+    for (let i = start; i <= Math.min(start + size - 1, totalPageCount); i++) {
         pageNumbers.push(i)
     }
 

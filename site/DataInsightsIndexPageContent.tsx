@@ -5,8 +5,6 @@ import {
     LinkedChart,
     OwidGdocMinimalPostInterface,
     LinkedAuthor,
-    getPaginationPageNumbers,
-    queryParamsToStr,
 } from "@ourworldindata/utils"
 import { DataInsightBody } from "./gdocs/pages/DataInsight.js"
 import { dataInsightIndexToIdMap } from "./SiteConstants.js"
@@ -14,82 +12,9 @@ import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DataInsightsIndexPageProps } from "./DataInsightsIndexPage.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import {
-    faArrowLeft,
-    faArrowRight,
-    faClose,
-    faTag,
-} from "@fortawesome/free-solid-svg-icons"
+import { faClose, faTag } from "@fortawesome/free-solid-svg-icons"
 import DataInsightsNewsletterBanner from "./DataInsightsNewsletterBanner.js"
-
-const Pagination = (props: {
-    pageNumber: number
-    totalPageCount: number
-    topicName?: string
-}) => {
-    const { pageNumber, totalPageCount, topicName } = props
-    if (totalPageCount <= 1) return null
-
-    const queryParamsString = topicName
-        ? queryParamsToStr({ topic: topicName })
-        : ""
-
-    // pageNumber is 0-indexed, even though the page routes are 1-indexed. Also pageNumber === 0 is a special case.
-    // e.g. /data-insights, /data-insights/2, /data-insights/3
-    const prevTarget =
-        pageNumber === 1
-            ? `/data-insights${queryParamsString}`
-            : // pageNumber is already "one less" than the page route we're on
-              `/data-insights/${pageNumber}${queryParamsString}`
-    const isLeftArrowDisabled = pageNumber === 0
-
-    const nextTarget =
-        // pageNumber + 1 is the same as the route we're on, hence pageNumber + 2
-        pageNumber < totalPageCount - 1
-            ? `/data-insights/${pageNumber + 2}${queryParamsString}`
-            : ""
-    const isRightArrowDisabled = pageNumber === totalPageCount - 1
-
-    // Select 5 values around the current page number
-    const pageNumbers = getPaginationPageNumbers(pageNumber, totalPageCount)
-
-    return (
-        <div className="data-insights-index-page__pagination span-cols-8 col-start-4 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2">
-            <a
-                href={prevTarget}
-                aria-disabled={isLeftArrowDisabled}
-                className={cx("data-insights-index-page__pagination-link", {
-                    "data-insights-index-page__pagination-link--disabled":
-                        isLeftArrowDisabled,
-                })}
-            >
-                <FontAwesomeIcon icon={faArrowLeft} />
-            </a>
-            {pageNumbers.map((i) => (
-                <a
-                    href={`/data-insights${i === 0 ? "" : `/${i + 1}`}${queryParamsString}`}
-                    key={i}
-                    className={cx("data-insights-index-page__pagination-link", {
-                        "data-insights-index-page__pagination-link--active":
-                            i === pageNumber,
-                    })}
-                >
-                    {i + 1}
-                </a>
-            ))}
-            <a
-                href={nextTarget}
-                aria-disabled={isRightArrowDisabled}
-                className={cx("data-insights-index-page__pagination-link", {
-                    "data-insights-index-page__pagination-link--disabled":
-                        isRightArrowDisabled,
-                })}
-            >
-                <FontAwesomeIcon icon={faArrowRight} />
-            </a>
-        </div>
-    )
-}
+import { Pagination } from "./Pagination.js"
 
 export const DataInsightsIndexPageContent = (
     props: DataInsightsIndexPageProps
@@ -165,7 +90,13 @@ export const DataInsightsIndexPageContent = (
                 <Pagination
                     totalPageCount={props.totalPageCount}
                     pageNumber={props.pageNumber}
-                    topicName={props.topicTag?.name}
+                    basePath="/data-insights"
+                    queryParams={
+                        props.topicTag?.name
+                            ? { topic: props.topicTag.name }
+                            : undefined
+                    }
+                    className="span-cols-8 col-start-4 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"
                 />
                 <DataInsightsNewsletterBanner />
             </AttachmentsContext.Provider>
