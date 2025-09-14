@@ -3,6 +3,7 @@ import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
 import {
+    formatAuthors,
     ImageMetadata,
     LatestDataInsight,
     LatestPageItem,
@@ -14,33 +15,122 @@ import {
 import { Html } from "./Html.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { AnnouncementPageContent } from "./gdocs/pages/Announcement.js"
+import { getPrefixedGdocPath } from "@ourworldindata/components"
+import Image from "./gdocs/components/Image.js"
+import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
+import DataInsightDateline from "./gdocs/components/DataInsightDateline.js"
+import cx from "classnames"
+
+const COMMON_CLASSES =
+    "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"
 
 const LatestPageDataInsight = (props: { data: LatestDataInsight }) => {
-    return <article>data insight</article>
+    const href = getPrefixedGdocPath("", {
+        slug: props.data.slug,
+        content: { type: OwidGdocType.DataInsight },
+    })
+    const firstImage = props.data.content.body.find(
+        (block) => block.type === "image"
+    )
+    const otherBlocks = props.data.content.body.filter(
+        (block) => block !== firstImage
+    )
+
+    return (
+        <article className={cx("latest-page__data-insight", COMMON_CLASSES)}>
+            <DataInsightDateline
+                publishedAt={props.data.publishedAt}
+                className="latest-page__item-dateline h6-black-caps span-cols-4"
+            />
+            <p className="latest-page__item-type h6-black-caps span-cols-2 col-start-5">
+                Data Insight
+            </p>
+            <a
+                href={href}
+                className="latest-page__data-insight-link grid grid-cols-6 span-cols-6"
+            >
+                {firstImage && (
+                    <Image
+                        className="span-cols-2"
+                        filename={firstImage.filename}
+                        containerType="span-5"
+                        shouldLightbox={false}
+                    />
+                )}
+                <div className="span-cols-4 col-start-3">
+                    <h2 className="body-1-bold">{props.data.content.title}</h2>
+                    <div className="latest-page__data-insight-blocks">
+                        <ArticleBlocks
+                            blocks={otherBlocks}
+                            shouldRenderLinks={false}
+                        />
+                    </div>
+                </div>
+            </a>
+        </article>
+    )
 }
 
 const LatestPageArticle = (props: { data: OwidGdocMinimalPostInterface }) => {
-    return <article>article</article>
+    const featuredImage = props.data["featured-image"]
+    const href = getPrefixedGdocPath("", {
+        slug: props.data.slug,
+        content: { type: OwidGdocType.Article },
+    })
+    return (
+        <article className={cx("latest-page__article", COMMON_CLASSES)}>
+            <DataInsightDateline
+                publishedAt={new Date(props.data.publishedAt!)}
+                className="latest-page__item-dateline h6-black-caps span-cols-4"
+            />
+            <p className="latest-page__item-type h6-black-caps span-cols-2 col-start-5">
+                Article
+            </p>
+            <a
+                href={href}
+                className="latest-page__article-link grid grid-cols-6 span-cols-6"
+            >
+                {featuredImage && (
+                    <Image
+                        filename={featuredImage}
+                        className="span-cols-1"
+                        shouldLightbox={false}
+                    />
+                )}
+                <div className="span-cols-5 col-start-2">
+                    <h2 className="h3-bold">{props.data.title}</h2>
+                    <p className="body-3-medium">{props.data.excerpt}</p>
+                    <p className="latest-page__article-authors">
+                        {formatAuthors(props.data.authors)}
+                    </p>
+                </div>
+            </a>
+        </article>
+    )
 }
 
 const LatestPageAnnouncement = (props: {
     data: OwidGdocAnnouncementInterface
 }) => {
     return (
-        <article>
+        <article
+            className={cx(
+                "latest-page__announcement span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"
+            )}
+        >
             <AnnouncementPageContent {...props.data} />
         </article>
     )
 }
 
-const LatestPageItemComponent = (item: LatestPageItem) => {
-    switch (item.type) {
+const LatestPageItemComponent = (props: { item: LatestPageItem }) => {
+    switch (props.item.type) {
         case OwidGdocType.Article:
-            return <LatestPageArticle data={item.data} />
+            return <LatestPageArticle data={props.item.data} />
         case OwidGdocType.DataInsight:
-            return <LatestPageDataInsight data={item.data} />
+            return <LatestPageDataInsight data={props.item.data} />
         case OwidGdocType.Announcement:
-            return <LatestPageAnnouncement data={item.data} />
+            return <LatestPageAnnouncement data={props.item.data} />
     }
 }
 
@@ -65,7 +155,7 @@ export const LatestPage = (props: {
                 pageTitle={pageTitle}
                 baseUrl={baseUrl}
             />
-            <body className="blog">
+            <body>
                 <SiteHeader />
                 <AttachmentsContext.Provider
                     value={{
@@ -78,11 +168,18 @@ export const LatestPage = (props: {
                         tags: [],
                     }}
                 >
-                    <main className="wrapper">
-                        {posts.map((post) => (
+                    <main className="latest-page grid grid-cols-12-full-width">
+                        <header className="latest-page-header span-cols-14 grid grid-cols-12-full-width">
+                            <h1 className="span-cols-6 col-start-5">Latest</h1>
+                            <p className="span-cols-6 col-start-5">
+                                Our latest articles, data updates, and
+                                announcements
+                            </p>
+                        </header>
+                        {posts.map((item) => (
                             <LatestPageItemComponent
-                                key={post.data.id}
-                                {...post}
+                                key={item.data.id}
+                                item={item}
                             />
                         ))}
                     </main>
