@@ -252,7 +252,7 @@ export const renderThankYouPage = async () => {
 
 export const renderDataInsightsIndexPage = (
     dataInsights: OwidGdocDataInsightInterface[],
-    page: number = 0,
+    page: number = 1,
     totalPageCount: number,
     isPreviewing: boolean = false,
     topicTag?: TopicTag
