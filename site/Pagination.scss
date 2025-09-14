@@ -1,0 +1,29 @@
+.pagination {
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: center;
+    a {
+        color: $blue-60;
+        min-width: 40px;
+        min-height: 40px;
+        text-align: center;
+        line-height: 40px;
+        transition: 200ms;
+    }
+    a.pagination__link {
+        &:hover {
+            background-color: $blue-10;
+        }
+    }
+    a.pagination__link--disabled {
+        pointer-events: none;
+        svg {
+            color: $blue-30;
+        }
+    }
+    a.pagination__link--active {
+        background-color: $blue-20;
+        color: $blue-90;
+        pointer-events: none;
+    }
+}

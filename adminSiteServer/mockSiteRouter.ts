@@ -353,16 +353,15 @@ getPlainRouteWithROTransaction(
         if (!pageNumberOrSlug) {
             const dataInsights = await GdocDataInsight.getPublishedDataInsights(
                 trx,
-                0,
+                1,
                 topicTag?.slug
             )
-            return res.send(await renderIndexPage(0, dataInsights, topicTag))
+            return res.send(await renderIndexPage(1, dataInsights, topicTag))
         }
 
-        // pageNumber is 1-indexed, but DB operations are 0-indexed
-        const pageNumber = parseInt(pageNumberOrSlug) - 1
+        const pageNumber = parseInt(pageNumberOrSlug)
         if (!isNaN(pageNumber)) {
-            if (pageNumber <= 0 || pageNumber >= totalPageCount) {
+            if (pageNumber < 1 || pageNumber > totalPageCount) {
                 return res.redirect(
                     `/data-insights${topicName ? queryParamsToStr({ topic: topicName }) : ""}`
                 )
