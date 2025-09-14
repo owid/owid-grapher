@@ -256,7 +256,7 @@ export const renderThankYouPage = async () => {
 
 export const renderDataInsightsIndexPage = (
     dataInsights: OwidGdocDataInsightInterface[],
-    page: number = 0,
+    page: number = 1,
     totalPageCount: number,
     isPreviewing: boolean = false,
     topicTag?: TopicTag
@@ -314,7 +314,7 @@ export async function makeAtomFeed(knex: KnexReadonlyTransaction) {
 }
 
 export async function makeDataInsightsAtomFeed(knex: KnexReadonlyTransaction) {
-    const dataInsights = await getAndLoadPublishedDataInsightsPage(knex, 0)
+    const dataInsights = await getAndLoadPublishedDataInsightsPage(knex, 1)
     return makeAtomFeedFromDataInsights({
         dataInsights,
         htmlUrl: `${BAKED_BASE_URL}/data-insights`,

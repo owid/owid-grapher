@@ -505,7 +505,7 @@ async function getAndLoadPublishedGdocs<T extends GdocBase>(
 
 export async function getAndLoadPublishedDataInsightsPage(
     knex: KnexReadonlyTransaction,
-    page?: number,
+    page?: number, // 1-indexed
     topicSlug?: string
 ): Promise<GdocDataInsight[]> {
     let options:
@@ -514,7 +514,7 @@ export async function getAndLoadPublishedDataInsightsPage(
     if (page !== undefined) {
         options = {
             limit: DATA_INSIGHTS_INDEX_PAGE_SIZE,
-            offset: page * DATA_INSIGHTS_INDEX_PAGE_SIZE,
+            offset: (page - 1) * DATA_INSIGHTS_INDEX_PAGE_SIZE,
         }
     }
     if (topicSlug !== undefined) {
