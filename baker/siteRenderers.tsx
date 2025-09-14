@@ -15,7 +15,6 @@ import { formatCountryProfile, isCanonicalInternalUrl } from "./formatting.js"
 import * as cheerio from "cheerio"
 import {
     BAKED_BASE_URL,
-    BLOG_POSTS_PER_PAGE,
     GDOCS_DONATE_FAQS_DOCUMENT_ID,
 } from "../settings/serverSettings.js"
 import {
@@ -50,7 +49,6 @@ import {
     DbRawChartConfig,
     FormattingOptions,
     GrapherInterface,
-    OwidGdocMinimalPostInterface,
 } from "@ourworldindata/types"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
@@ -106,7 +104,6 @@ import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
 import { pipe, unique } from "remeda"
 import { getAllImages } from "../db/model/Image.js"
-import { IncomingMessage } from "http"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToString(element)}`
