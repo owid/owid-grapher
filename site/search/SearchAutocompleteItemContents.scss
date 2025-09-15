@@ -15,6 +15,7 @@
         @include sm-only {
             display: none;
         }
+        visibility: hidden;
     }
     > span:last-child,
     > span.search-filter-pill--more-filters {
@@ -22,8 +23,13 @@
     }
 }
 
+.search-autocomplete-item-contents__ellipsis {
+    margin-left: -17px;
+}
+
 .search-autocomplete-item-contents__type-icon {
     @include autocomplete-item-icon;
+    visibility: hidden;
 }
 
 .search-autocomplete-item-contents__query {

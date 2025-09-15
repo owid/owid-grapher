@@ -8,7 +8,6 @@ import {
     getSearchAutocompleteItemId,
     getFilterAriaLabel,
 } from "./searchUtils.js"
-import { buildSynonymMap } from "./synonymUtils.js"
 import { useSearchAutocomplete } from "./SearchAutocompleteContext.js"
 import { SearchAutocompleteItemContents } from "./SearchAutocompleteItemContents.js"
 import { Filter, FilterType } from "./searchTypes.js"
