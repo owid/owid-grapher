@@ -16,6 +16,7 @@
         "bakeGdocPosts": "tsx --tsconfig tsconfig.tsx.json baker/bakeGdocPosts.ts",
         "cleanTsc": "rm -rf itsJustJavascript && tsc -b -clean",
         "createDbMigration": "tsx --tsconfig tsconfig.tsx.json node_modules/typeorm/cli.js migration:create",
+        "deleteExpiredRedirects": "tsx --tsconfig tsconfig.tsx.json devTools/deleteExpiredRedirects/deleteExpiredRedirects.ts",
         "fetchServerStatus": "tsx --tsconfig tsconfig.tsx.json baker/liveCommit.ts",
         "fixLint": "eslint . --fix",
         "fixLintChanged": "bash -c 'files=$((git diff --name-only --diff-filter=ACMRTUXB && git diff --name-only --cached --diff-filter=ACMRTUXB) | sort -u | grep -E \"\\.(tsx?|jsx?|ts|js)$\" | tr \"\\n\" \" \"); if [ -n \"$files\" ]; then eslint --fix $files; else echo \"No uncommitted files to fix with eslint\"; fi'",

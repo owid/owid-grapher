@@ -3,10 +3,7 @@ import { Url } from "@ourworldindata/utils"
 import { isCanonicalInternalUrl } from "./formatting.js"
 import { resolveExplorerRedirect } from "./replaceExplorerRedirects.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
-import {
-    // deleteExpiredRedirects,
-    getRedirectsFromDb,
-} from "../db/model/Redirect.js"
+import { getRedirectsFromDb } from "../db/model/Redirect.js"
 import {
     getGrapherAndWordpressRedirectsMap,
     getRecentGrapherRedirects,
@@ -73,8 +70,6 @@ export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
         "/grapher/exports/* https://ourworldindata.org/grapher/:splat 301",
     ]
 
-    // TODO: Fix this transaction locking up the DB for too long.
-    // await deleteExpiredRedirects(knex)
     // Get redirects from the database (exported from the Wordpress DB)
     // Redirects are assumed to be trailing-slash-free (see syncRedirectsToGrapher.ts)
     const redirectsFromDb = (await getRedirectsFromDb(knex)).map(
