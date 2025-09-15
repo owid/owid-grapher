@@ -835,12 +835,13 @@ export function findMatchesWithNgrams(
 
         if (hasOverlap) continue // Skip this n-gram if it overlaps with already matched words
 
-        const filters = searchWithWordsContiguous(
+        const filters = searchWithWords(
             ngramWords,
             allCountryNames,
             allTopics,
             selectedCountryNames,
             selectedTopics,
+            { threshold: 0.75, limit: 1 },
             synonymMap
         )
 
