@@ -78,6 +78,13 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
         server: {
             port: 8090,
             warmup: { clientFiles: [VITE_ASSET_SITE_ENTRY] },
+            // remote dev setup
+            ...(process.env.VITE_HOST
+                ? {
+                      host: process.env.VITE_HOST,
+                      cors: true,
+                  }
+                : {}),
         },
         preview: {
             port: 8090,
