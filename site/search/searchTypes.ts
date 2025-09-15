@@ -295,11 +295,6 @@ type ReplaceQueryWithFiltersAction = {
     filters: Filter[]
     matchedPositions: number[]
 }
-type ReplaceFiltersWithQueryAction = {
-    type: "replaceFiltersWithQuery"
-    filtersToRemove: Filter[]
-    queryToAdd: string
-}
 
 export type SearchAction =
     | AddFilterAction
@@ -314,7 +309,6 @@ export type SearchAction =
     | ResetAction
     | SetResultTypeAction
     | ReplaceQueryWithFiltersAction
-    | ReplaceFiltersWithQueryAction
 
 export enum SearchTopicType {
     Topic = "topic",
