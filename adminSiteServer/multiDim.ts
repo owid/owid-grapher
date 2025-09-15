@@ -245,6 +245,13 @@ export async function upsertMultiDim(
         knex,
         _.uniq(config.views.map((view) => view.indicators.y[0].id))
     )
+    const existingMultiDim = await knex<DbPlainMultiDimDataPage>(
+        MultiDimDataPagesTableName
+    )
+        .select("published")
+        .where({ catalogPath })
+        .first()
+    const existingIsPublished = existingMultiDim?.published
     const existingViewIdsToChartConfigIds = await getViewIdToChartConfigIdMap(
         knex,
         catalogPath
@@ -277,6 +284,9 @@ export async function upsertMultiDim(
                 viewGrapherConfig,
                 mainGrapherConfig
             )
+            if (existingIsPublished !== undefined) {
+                patchGrapherConfig.isPublished = Boolean(existingIsPublished)
+            }
             const fullGrapherConfig = mergeGrapherConfigs(
                 variableConfigs.get(variableId) ?? {},
                 patchGrapherConfig
