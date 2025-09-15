@@ -37,7 +37,10 @@ export const SearchDetectedFilters = ({
     const [automaticFilters, manualFilters] = useMemo(() => {
         return R.partition(
             allMatchedFilters,
-            (filter) => filter.type === FilterType.COUNTRY
+            // only auto-apply exact country matches. Exact topic matches can be
+            // ambiguous, e.g. matching the "Energy" topic for a "solar energy"
+            // query might not be what the user intended.
+            (filter) => filter.type === FilterType.COUNTRY && filter.score === 1
         )
     }, [allMatchedFilters])
 
