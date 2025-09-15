@@ -136,15 +136,33 @@ export const denormalizeLatestCountryData = async (
         .select("variableId", "entityCode", "year", "value")
         .rename({ variableId: "variable_id", entityCode: "country_code" })
 
-    // Remove existing values
-    await trx
-        .table("country_latest_data")
-        .whereIn("variable_id", variableIds as number[])
-        .delete()
+    try {
+        // Acquire advisory lock with 30 second timeout
+        const lockResult = await trx.raw(
+            "SELECT GET_LOCK(?, 30) as lock_acquired",
+            [`country_latest_data`]
+        )
+        const lockAcquired = lockResult[0][0].lock_acquired === 1
 
-    // Insert new ones
-    if (df.height > 0) {
-        await trx.table("country_latest_data").insert(df.toRecords())
+        if (!lockAcquired) {
+            console.warn(
+                "Could not acquire advisory lock for country_latest_data update, skipping"
+            )
+            return
+        }
+
+        await trx
+            .table("country_latest_data")
+            .whereIn("variable_id", variableIds as number[])
+            .delete()
+
+        // Insert new ones
+        if (df.height > 0) {
+            await trx.table("country_latest_data").insert(df.toRecords())
+        }
+    } finally {
+        // Always release the lock
+        await trx.raw("SELECT RELEASE_LOCK(?)", [`country_latest_data`])
     }
 }
 
