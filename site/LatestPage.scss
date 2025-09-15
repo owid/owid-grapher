@@ -1,6 +1,5 @@
 .latest-page {
     background-color: $gray-5;
-    gap: 32px 0;
     padding-bottom: 56px;
 }
 
@@ -8,6 +7,7 @@
     background-color: #fff;
     padding-top: 48px;
     padding-bottom: 32px;
+    margin-bottom: 32px;
     h1 {
         margin: 0;
         margin-bottom: 4px;
@@ -17,9 +17,24 @@
         margin: 0;
         color: $blue-60;
     }
+    @include sm-only {
+        padding: 24px 0;
+        margin-bottom: 0;
+        background-color: $gray-5;
+        h1 {
+            font-size: 2rem;
+        }
+        p {
+            font-size: 1rem;
+        }
+    }
 }
 
 /* Common */
+.latest-page article {
+    margin-bottom: 32px;
+}
+
 .latest-page__item-dateline {
     color: $blue-60;
     margin-bottom: 16px;
@@ -38,6 +53,10 @@
         margin: 0;
         margin-bottom: 8px;
     }
+    @include sm-only {
+        margin-left: 16px;
+        margin-right: 16px;
+    }
 }
 
 .latest-page__data-insight-link {
@@ -52,6 +71,15 @@
                 rgba(231, 242, 255, 0) 50%,
                 $accent-pale-blue 100%
             );
+        }
+    }
+}
+
+.latest-page__data-insight-image {
+    @include sm-only {
+        margin-bottom: 16px;
+        picture {
+            display: flex;
         }
     }
 }
@@ -81,6 +109,13 @@
 }
 
 /* Article */
+.latest-page__article {
+    @include sm-only {
+        margin-left: 16px;
+        margin-right: 16px;
+    }
+}
+
 .latest-page__article-link {
     background-color: $blue-10;
     padding: 16px;
@@ -91,11 +126,24 @@
         }
     }
     h2 {
+        @include h3-bold;
         margin: 0;
         margin-bottom: 4px;
     }
     p {
+        @include body-3-medium;
         margin: 0;
+    }
+    @include sm-only {
+        h2 {
+            @include h4-semibold;
+            margin: 0;
+            margin-bottom: 4px;
+        }
+        p {
+            @include note-12-medium;
+            margin: 0;
+        }
     }
 }
 
@@ -110,5 +158,9 @@
 .latest-page__announcement {
     .announcement-page-content {
         margin: 0;
+        @include sm-only {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
     }
 }
