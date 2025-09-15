@@ -19,11 +19,3 @@
     cursor: pointer;
     text-align: left;
 }
-
-.search-quoted-phrase {
-    @include body-3-medium;
-    font-style: italic;
-    .search-quoted-phrase__underlined {
-        @include owid-link-90;
-    }
-}
