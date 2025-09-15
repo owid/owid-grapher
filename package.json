@@ -238,7 +238,6 @@
         "prettier": "^3.6.0",
         "sass": "^1.89.2",
         "schema-dts": "^1.1.5",
-        "tmex": "^1.0.8",
         "topojson-server": "^3.0.1",
         "tsx": "^4.19.3",
         "typescript-eslint": "^8.39.0",

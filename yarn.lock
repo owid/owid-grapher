@@ -11988,7 +11988,6 @@ __metadata:
     striptags: "npm:^3.2.0"
     timezone-mock: "npm:^1.0.18"
     tinyexec: "npm:^1.0.1"
-    tmex: "npm:^1.0.8"
     topojson-client: "npm:^3.1.0"
     topojson-server: "npm:^3.0.1"
     ts-pattern: "npm:^5.0.5"
@@ -18073,15 +18072,6 @@ __metadata:
   bin:
     tldts: bin/cli.js
   checksum: 10/c0119f944924dfcc94eb3bd827dfeb5b0c3f81b1fbe8fd8081d3e61ca08b691f9c4f5c1c3ce17dc22fa557990aeef50769ddfe0f7ceca8577141f3dfaa8ffb3e
-  languageName: node
-  linkType: hard
-
-"tmex@npm:^1.0.8":
-  version: 1.0.8
-  resolution: "tmex@npm:1.0.8"
-  bin:
-    tmex: tmex
-  checksum: 10/55995e51bde611c3b5ff5cbc30723320b58834cce67b0bc19eb826f2e0c9753282c5f4b5da70ced1cd424fbee7ef9585614ad74ba915dfbb0b82441f960563ce
   languageName: node
   linkType: hard
 
