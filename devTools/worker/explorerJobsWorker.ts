@@ -63,7 +63,13 @@ async function processJob(): Promise<boolean> {
         if (currentJob) {
             try {
                 await knexReadWriteTransaction(async (trx) => {
-                    await markJobFailed(trx, currentJob!.id, error instanceof Error ? error : new Error(String(error)))
+                    await markJobFailed(
+                        trx,
+                        currentJob!.id,
+                        error instanceof Error
+                            ? error
+                            : new Error(String(error))
+                    )
                 })
                 console.log(
                     `[${new Date().toISOString()}] Marked job ${currentJob!.id} as failed after worker error`
@@ -89,9 +95,7 @@ async function processOneJobAndExit(): Promise<void> {
     const jobProcessed = await processJob()
 
     if (!jobProcessed) {
-        console.log(
-            `[${new Date().toISOString()}] No jobs available, exiting`
-        )
+        console.log(`[${new Date().toISOString()}] No jobs available, exiting`)
     }
 }
 
