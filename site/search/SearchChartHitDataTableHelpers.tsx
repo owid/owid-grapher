@@ -139,11 +139,6 @@ function buildDataTableContentForLineChart({
 }: Args<LineChartState>): SearchChartHitDataTableContent {
     const formatColumn = chartState.formatColumn
 
-    // Line charts might have a color scale, in which case the lines are colored
-    // according to the scale. In this case, we show a legend as table
-    if (chartState.hasColorScale)
-        return buildLegendTableProps({ grapherState, chartState, maxRows })
-
     // Create a map chart state to access custom label formatting.
     // When `map.tooltipUseCustomLabels` is enabled, this allows us to display
     // custom color scheme labels (e.g. "Low", "Medium", "High") instead of
