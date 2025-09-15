@@ -332,3 +332,14 @@ export {
     EXPERIMENT_ARM_SEPARATOR,
     EXPERIMENT_PREFIX,
 } from "./experiments/constants.js"
+
+export { surveys } from "./surveys/config.js"
+export type {
+    SurveyQuestion,
+    MultipleChoiceQuestion,
+    MultiSelectQuestion,
+    OpenEndedQuestion,
+    LinkQuestion,
+} from "./surveys/Survey.js"
+export { SurveyQuestionType } from "./surveys/Survey.js"
+export { getSurveyState, type SurveyState } from "./surveys/state.js"
