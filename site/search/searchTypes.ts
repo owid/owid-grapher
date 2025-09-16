@@ -158,7 +158,7 @@ export type ScoredFilter = Filter & {
 }
 
 export type ScoredFilterPositioned = ScoredFilter & {
-    originalPositions: number[]
+    positions: number[]
 }
 
 export type DataInsightHit = {
