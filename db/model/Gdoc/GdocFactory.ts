@@ -238,8 +238,11 @@ export async function getGdocBaseObjectById(
     return gdoc
 }
 
-export async function getAllMinimalGdocBaseObjects(
-    knex: KnexReadonlyTransaction
+export async function getMinimalGdocBaseObjects(
+    knex: KnexReadonlyTransaction,
+    limit?: number,
+    publicationContext?: OwidGdocPublicationContext,
+    postTypes?: OwidGdocType[]
 ): Promise<OwidGdocMinimalPostInterface[]> {
     const rows = await knexRaw<{
         id: string
@@ -271,8 +274,16 @@ export async function getAllMinimalGdocBaseObjects(
                 END as "featured-image"
             FROM posts_gdocs
             WHERE published = 1
-            AND publishedAt <= NOW()`,
-        {}
+            ${publicationContext ? `AND publicationContext = :publicationContext` : ""}
+            AND publishedAt <= NOW()
+            ${postTypes?.length ? `AND type IN (:postTypes)` : ""}
+            ORDER BY publishedAt DESC
+            ${limit ? `LIMIT :limit` : ""}`,
+        {
+            publicationContext,
+            limit,
+            postTypes,
+        }
     )
     return rows.map((row) => {
         return {
