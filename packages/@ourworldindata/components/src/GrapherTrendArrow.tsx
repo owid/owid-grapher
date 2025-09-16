@@ -1,6 +1,5 @@
 import cx from "classnames"
-
-export type GrapherTrendArrowDirection = "up" | "right" | "down"
+import { GrapherTrendArrowDirection } from "@ourworldindata/types"
 
 const ARROW_PATHS = {
     up: "m14,0H5c-.552,0-1,.448-1,1s.448,1,1,1h6.586L.29303,13.29297l1.41394,1.414L13,3.41394v6.58606c0,.552.448,1,1,1s1-.448,1-1V1c0-.552-.448-1-1-1Z",
