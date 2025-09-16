@@ -142,16 +142,18 @@ export function SearchChartHitRichData({
         configureGrapherStateFocus(grapherState, { entities: pickedEntities })
     })
 
-    // Fetch the data table's content
-    const { data: fullDataTableContent, status: loadingStatusTableContent } =
-        useQueryDataTableContent(hit, grapherState.changedParams, {
-            enabled: grapherState.isConfigReady,
-        })
+    // Fetch the data table's content to determine the layout
+    // (this isn't necessarily the data that will be displayed in the end)
+    const initialDataTableContent = useQueryDataTableContent(
+        hit,
+        grapherState.changedParams,
+        { enabled: grapherState.isConfigReady }
+    )
 
     // Place Grapher tabs into grid layout and calculate info for data display
     const layout = calculateLayout(variant, grapherState, {
         chartInfo,
-        dataTableContent: fullDataTableContent,
+        dataTableContent: initialDataTableContent.data,
         sortedTabs,
         entityForDataDisplay,
         numDataTableRowsPerColumn,
@@ -172,11 +174,11 @@ export function SearchChartHitRichData({
             })
         })
 
-    // Filter the data table content to only show rows for entities visible in the thumbnail
-    const dataTableContent = filterDataTableContent(
-        grapherState,
-        fullDataTableContent
-    )
+    // Fetch the data table's content using the updated grapher state
+    const { data: dataTableContent, status: loadingStatusTableContent } =
+        useQueryDataTableContent(hit, grapherState.changedParams, {
+            enabled: initialDataTableContent.status === "success",
+        })
 
     const status = combineStatuses(
         loadingStatusConfig,
@@ -487,29 +489,4 @@ function useQueryDataTableContent(
     if (dataTableContent === null) return { status: "error" }
 
     return { data: dataTableContent, status }
-}
-
-function filterDataTableContent(
-    grapherState: GrapherState,
-    dataTableContent?: SearchChartHitDataTableContent
-): SearchChartHitDataTableContent | undefined {
-    if (!dataTableContent) return undefined
-    if (dataTableContent.type === "data-points") return dataTableContent
-
-    const selectedSet = grapherState.selection.selectedSet
-    if (selectedSet.size === 0) return dataTableContent
-
-    const filteredRows = dataTableContent.props.rows.filter((row) =>
-        selectedSet.has(row.seriesName ?? "")
-    )
-
-    if (filteredRows.length === 0) return dataTableContent
-
-    return {
-        ...dataTableContent,
-        props: {
-            ...dataTableContent.props,
-            rows: filteredRows,
-        },
-    }
 }
