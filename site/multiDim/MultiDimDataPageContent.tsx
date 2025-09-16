@@ -310,7 +310,13 @@ export function DataPageContent({
     useEffect(() => {
         const grapher = grapherStateRef.current
         if (!grapher) return
-        const queryParams = Object.fromEntries(searchParams.entries())
+        const queryParams = {
+            // On first page load, query params may be empty but settings are
+            // already correctly computed, so include them (e.g. for embed
+            // URLs).
+            ...Object.fromEntries(searchParams.entries()),
+            ...settings,
+        }
         // this is not taking into account what used to be passed as "manager"
         grapher.externalBounds = bounds
         grapher.bakedGrapherURL = BAKED_GRAPHER_URL
