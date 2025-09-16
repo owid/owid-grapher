@@ -188,6 +188,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     id!: string
     slug: string = ""
     declare content: OwidGdocContent
+    contentMd5 = ""
     published: boolean = false
     createdAt: Date = new Date()
     publishedAt: Date | null = null
