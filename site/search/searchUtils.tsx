@@ -259,27 +259,18 @@ export const constructChartInfoUrl = ({
 export const constructSearchTableUrl = ({
     hit,
     grapherParams,
-    maxRows,
 }: {
     hit: SearchChartHit
     grapherParams?: GrapherQueryParams
-    maxRows?: number
 }): string | undefined => {
     const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
-
-    const searchParams = new URLSearchParams(
-        omitUndefinedValues({ tableMaxRows: maxRows?.toString() })
-    )
-    const fullQueryStr = queryStr
-        ? `${queryStr}&${searchParams}`
-        : `?${searchParams}`
 
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
     const basePath = isExplorerView
         ? EXPLORER_DYNAMIC_THUMBNAIL_URL
         : GRAPHER_DYNAMIC_THUMBNAIL_URL
 
-    return `${basePath}/${hit.slug}.search-results-table.json${fullQueryStr}`
+    return `${basePath}/${hit.slug}.search-results-table.json${queryStr}`
 }
 
 export const constructPreviewUrl = ({

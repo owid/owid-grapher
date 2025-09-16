@@ -259,13 +259,7 @@ export async function fetchSearchResultsTableForGrapher(
     })
     grapher.grapherState.inputTable = inputTable
 
-    const maxRows = searchParams.has("tableMaxRows")
-        ? parseInt(searchParams.get("tableMaxRows"))
-        : undefined
-    const searchResultsTable = assembleSearchResultsTable(
-        grapher.grapherState,
-        maxRows
-    )
+    const searchResultsTable = assembleSearchResultsTable(grapher.grapherState)
 
     if (searchResultsTable === undefined)
         return error(500, "Unable to generate search results table")
@@ -273,11 +267,8 @@ export async function fetchSearchResultsTableForGrapher(
     return Response.json(searchResultsTable)
 }
 
-export function assembleSearchResultsTable(
-    grapherState: GrapherState,
-    maxRows?: number
-) {
-    return constructSearchResultsTable({ grapherState, maxRows })
+export function assembleSearchResultsTable(grapherState: GrapherState) {
+    return constructSearchResultsTable({ grapherState })
 }
 
 export function findEntityForExtractingDataValues(

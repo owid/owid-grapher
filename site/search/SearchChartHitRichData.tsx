@@ -146,7 +146,6 @@ export function SearchChartHitRichData({
     const initialDataTableContentResponse = useQueryDataTableContent(
         hit,
         grapherState.changedParams,
-        undefined,
         { enabled: grapherState.isConfigReady }
     )
 
@@ -175,13 +174,18 @@ export function SearchChartHitRichData({
         })
 
     // Fetch the data table's content
+    const { data: fullDataTableContent, status: loadingStatusTableContent } =
+        useQueryDataTableContent(hit, grapherState.changedParams, {
+            enabled: initialDataTableContentResponse.status === "success",
+        })
+
     const maxRows = tableSlot
         ? getTableRowCountForGridSlot(tableSlot, numDataTableRowsPerColumn)
         : undefined
-    const { data: dataTableContent, status: loadingStatusTableContent } =
-        useQueryDataTableContent(hit, grapherState.changedParams, maxRows, {
-            enabled: initialDataTableContentResponse.status === "success",
-        })
+    const dataTableContent = filterDataTableContent(
+        fullDataTableContent,
+        maxRows
+    )
 
     const status = combineStatuses(
         loadingStatusConfig,
@@ -464,7 +468,6 @@ function useQueryChartConfig(
 function useQueryDataTableContent(
     hit: SearchChartHit,
     grapherParams: GrapherQueryParams,
-    maxRows: number | undefined,
     { enabled }: { enabled?: boolean }
 ): {
     data?: SearchChartHitDataTableContent
@@ -474,14 +477,12 @@ function useQueryDataTableContent(
         queryKey: chartHitQueryKeys.tableContent(
             hit.slug,
             hit.type === ChartRecordType.Chart ? undefined : hit.queryParams,
-            grapherParams,
-            maxRows
+            grapherParams
         ),
         queryFn: () => {
             const configUrl = constructSearchTableUrl({
                 hit,
                 grapherParams,
-                maxRows,
             })
             if (!configUrl) return null
             return fetchJson<SearchChartHitDataTableContent>(configUrl)
@@ -494,4 +495,23 @@ function useQueryDataTableContent(
     if (dataTableContent === null) return { status: "error" }
 
     return { data: dataTableContent, status }
+}
+
+function filterDataTableContent(
+    dataTableContent?: SearchChartHitDataTableContent,
+    maxRows?: number
+): SearchChartHitDataTableContent | undefined {
+    if (!dataTableContent) return undefined
+    if (dataTableContent.type === "data-points" || !maxRows)
+        return dataTableContent
+
+    const filteredRows = dataTableContent.props.rows.slice(0, maxRows)
+
+    return {
+        ...dataTableContent,
+        props: {
+            ...dataTableContent.props,
+            rows: filteredRows,
+        },
+    }
 }
