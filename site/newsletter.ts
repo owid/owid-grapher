@@ -3,4 +3,5 @@ export enum NewsletterSubscriptionContext {
     Floating = "floating",
     HomepageDataInsights = "homepageDataInsights",
     FloatingDataInsights = "floatingDataInsights",
+    Latest = "latest",
 }
