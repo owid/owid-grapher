@@ -18,18 +18,10 @@ import {
     parseLatestWork,
     DEFAULT_THUMBNAIL_FILENAME,
     ARCHVED_THUMBNAIL_FILENAME,
-    LatestPageItem,
-    PostsGdocsTableName,
 } from "@ourworldindata/types"
-import { formatDate } from "@ourworldindata/utils"
 import { Knex } from "knex"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { decodeHTML } from "entities"
-import { gdocFromJSON } from "./Gdoc/GdocFactory.js"
-import { GdocAnnouncement } from "./Gdoc/GdocAnnouncement.js"
-import { GdocDataInsight } from "./Gdoc/GdocDataInsight.js"
-import { GdocPost } from "./Gdoc/GdocPost.js"
-import { BLOG_POSTS_PER_PAGE } from "../../settings/serverSettings.js"
 
 export const postsTable = "posts"
 
@@ -150,88 +142,6 @@ const getFullPost = async (
             ? await getPostRelatedCharts(knex, postApi.id)
             : undefined,
 })
-
-function gdocToLatestItem(
-    gdoc: GdocPost | GdocAnnouncement | GdocDataInsight
-): LatestPageItem {
-    if (gdoc instanceof GdocPost) {
-        return {
-            type: OwidGdocType.Article,
-            data: {
-                id: gdoc.id,
-                title: gdoc.content.title ?? "",
-                slug: gdoc.slug,
-                authors: gdoc.content.authors,
-                publishedAt: formatDate(gdoc.publishedAt!),
-                published: gdoc.published,
-                subtitle: gdoc.content.subtitle ?? "",
-                excerpt: gdoc.content.excerpt ?? "",
-                type: OwidGdocType.Article,
-                "featured-image": gdoc.content["featured-image"],
-            },
-        }
-    } else if (gdoc instanceof GdocDataInsight) {
-        return {
-            type: OwidGdocType.DataInsight,
-            data: {
-                id: gdoc.id,
-                slug: gdoc.slug,
-                publishedAt: gdoc.publishedAt,
-                content: gdoc.content,
-            },
-        }
-    } else {
-        return {
-            type: OwidGdocType.Announcement,
-            data: gdoc,
-        }
-    }
-}
-
-export const getLatestPageItems = async (
-    knex: db.KnexReadonlyTransaction,
-    pageNum: number = 1
-): Promise<{
-    items: LatestPageItem[]
-    pagination: {
-        pageNum: number
-        totalPages: number
-    }
-}> => {
-    const rawResults = await db.knexRaw<Record<string, any>>(
-        knex,
-        `-- sql
-            SELECT 
-                pg.*,
-                COUNT(*) OVER() as totalRecords            
-            FROM ${PostsGdocsTableName} pg
-            WHERE pg.published = TRUE
-            AND pg.publishedAt <= NOW()
-            AND pg.type IN (:types)
-            ORDER BY pg.publishedAt DESC
-            LIMIT 10 OFFSET :offset
-            `,
-        {
-            types: [
-                OwidGdocType.Article,
-                OwidGdocType.Announcement,
-                OwidGdocType.DataInsight,
-            ],
-            offset: (pageNum - 1) * BLOG_POSTS_PER_PAGE,
-        }
-    )
-
-    const items = rawResults
-        .map(gdocFromJSON)
-        .map((gdoc) =>
-            gdocToLatestItem(
-                gdoc as GdocPost | GdocAnnouncement | GdocDataInsight
-            )
-        )
-    const totalRecords = rawResults.length > 0 ? rawResults[0].totalRecords : 0
-    const totalPages = Math.ceil(totalRecords / BLOG_POSTS_PER_PAGE)
-    return { items, pagination: { pageNum, totalPages } }
-}
 
 export const getBlockContentFromSnapshot = async (
     trx: db.KnexReadonlyTransaction,
