@@ -19,7 +19,6 @@ import {
     GrapherState,
     mapGrapherTabNameToConfigOption,
     mapGrapherTabNameToQueryParam,
-    StackedDiscreteBarChartState,
     WORLD_ENTITY_NAME,
 } from "@ourworldindata/grapher"
 import {
@@ -309,6 +308,7 @@ export function configureGrapherStateForLayout(
             configureGrapherStateForDataTable(grapherState, {
                 props: dataTableContent.props,
                 numAvailableDataTableRows,
+                maxNumEntitiesInStackedDiscreteBarChart,
             })
         )
         .with({ type: "data-points" }, (dataTableContent) =>
@@ -317,36 +317,6 @@ export function configureGrapherStateForLayout(
             })
         )
         .exhaustive()
-
-    // For stacked discrete bar charts, we display multiple stacked bars in the
-    // chart but the data table only shows values for one entity
-    if (grapherState.isStackedDiscreteBar) {
-        // Find the entity that is displayed in the table
-        const chartState =
-            grapherState.chartState as StackedDiscreteBarChartState
-        const tableEntity =
-            chartState.yColumnSlugs.length === 1
-                ? chartState.yColumns[0].displayName
-                : (chartState.focusArray.seriesNames[0] ??
-                  chartState.sortedItems[0].entityName)
-
-        // Limit the number of selected entities to the maximum allowed
-        if (grapherState.addCountryMode !== EntitySelectionMode.Disabled) {
-            const defaultEntities = grapherState.selection.selectedEntityNames
-            const selectedEntities = defaultEntities.slice(
-                0,
-                maxNumEntitiesInStackedDiscreteBarChart
-            )
-            if (tableEntity && !selectedEntities.includes(tableEntity)) {
-                selectedEntities.pop()
-                selectedEntities.push(tableEntity)
-            }
-            grapherState.selection.setSelectedEntities(selectedEntities)
-        }
-
-        // Focus the entity that is displayed in the table
-        if (tableEntity) grapherState.focusArray.clearAllAndAdd(tableEntity)
-    }
 
     // If the selected entities are the same as the authored ones, they won't
     // be persisted in the (thumbnail) URL, so we must update the local grapherState
@@ -363,6 +333,26 @@ export function configureGrapherStateForLayout(
 }
 
 function configureGrapherStateForDataTable(
+    grapherState: GrapherState,
+    args: {
+        props: SearchChartHitDataTableProps
+        numAvailableDataTableRows: number
+        maxNumEntitiesInStackedDiscreteBarChart: number
+    }
+): void {
+    limitSelectionToAvailableTableRows(grapherState, args)
+
+    // For stacked discrete bar charts, we display multiple stacked bars in the
+    // chart but the data table only shows values for one entity
+    if (grapherState.isStackedDiscreteBar) {
+        configureGrapherStateForStackedDiscreteBarChart(grapherState, {
+            props: args.props,
+            maxNumEntities: args.maxNumEntitiesInStackedDiscreteBarChart,
+        })
+    }
+}
+
+function limitSelectionToAvailableTableRows(
     grapherState: GrapherState,
     {
         props,
@@ -404,6 +394,32 @@ function configureGrapherStateForDataTable(
             .filter((seriesName) => seriesName !== undefined)
         grapherState.focusArray.clearAllAndAdd(...seriesNames)
     }
+}
+
+function configureGrapherStateForStackedDiscreteBarChart(
+    grapherState: GrapherState,
+    {
+        props,
+        maxNumEntities,
+    }: { props: SearchChartHitDataTableProps; maxNumEntities: number }
+): void {
+    // Find the entity that is displayed in the table
+    const tableEntity =
+        grapherState.yColumnSlugs.length > 1 ? props.title : undefined
+
+    // Limit the number of selected entities to the maximum allowed
+    if (grapherState.addCountryMode !== EntitySelectionMode.Disabled) {
+        const defaultEntities = grapherState.selection.selectedEntityNames
+        const selectedEntities = defaultEntities.slice(0, maxNumEntities)
+        if (tableEntity && !selectedEntities.includes(tableEntity)) {
+            selectedEntities.pop()
+            selectedEntities.push(tableEntity)
+        }
+        grapherState.selection.setSelectedEntities(selectedEntities)
+    }
+
+    // Focus the entity that is displayed in the table
+    if (tableEntity) grapherState.focusArray.clearAllAndAdd(tableEntity)
 }
 
 function configureGrapherStateForDataPoints(
