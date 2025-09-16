@@ -20,6 +20,11 @@ import Image from "./gdocs/components/Image.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import DataInsightDateline from "./gdocs/components/DataInsightDateline.js"
 import cx from "classnames"
+import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
+import { NewsletterSubscriptionContext } from "./newsletter.js"
+import { NewsletterIcon } from "./gdocs/components/NewsletterIcon.js"
+import { SOCIALS } from "./SiteConstants.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 const COMMON_CLASSES =
     "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1"
@@ -134,6 +139,40 @@ const LatestPageItemComponent = (props: { item: LatestPageItem }) => {
     }
 }
 
+const LatestPageNewsletterSignup = () => (
+    <div className="latest-page__newsletter-signup col-start-11 span-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-14">
+        <NewsletterIcon />
+        <p className="latest-page__newsletter-signup-header">
+            Subscribe to our newsletters
+        </p>
+        <NewsletterSubscriptionForm
+            key="signup"
+            className="latest-page__newsletter-signup-form"
+            context={NewsletterSubscriptionContext.Latest}
+        />
+        <p className="latest-page__newsletter-signup-social-cta">Follow us</p>
+        <ul className="latest-page__newsletter-signup-socials">
+            {SOCIALS.map(({ title, url, icon }) => (
+                <li key={title}>
+                    <a
+                        href={url}
+                        className="list-item"
+                        title={title}
+                        target="_blank"
+                        rel="noopener"
+                        data-track-note="latest_page_follow_us"
+                    >
+                        <span className="icon">
+                            <FontAwesomeIcon icon={icon} />
+                        </span>
+                        <span className="label">{title}</span>
+                    </a>
+                </li>
+            ))}
+        </ul>
+    </div>
+)
+
 export const LatestPage = (props: {
     posts: LatestPageItem[]
     imageMetadata: Record<string, ImageMetadata>
@@ -143,7 +182,12 @@ export const LatestPage = (props: {
     baseUrl: string
 }) => {
     const { pageNum, baseUrl, posts } = props
+
     const pageTitle = "Latest"
+
+    const renderLatestPageItem = (item: LatestPageItem) => (
+        <LatestPageItemComponent key={item.data.id} item={item} />
+    )
 
     return (
         <Html>
@@ -178,12 +222,9 @@ export const LatestPage = (props: {
                                 announcements
                             </p>
                         </header>
-                        {posts.map((item) => (
-                            <LatestPageItemComponent
-                                key={item.data.id}
-                                item={item}
-                            />
-                        ))}
+                        {posts.slice(0, 2).map(renderLatestPageItem)}
+                        <LatestPageNewsletterSignup />
+                        {posts.slice(2).map(renderLatestPageItem)}
                     </main>
                 </AttachmentsContext.Provider>
                 <SiteFooter />
