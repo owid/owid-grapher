@@ -357,6 +357,17 @@ body {
 .body-2-regular {
     @include body-2-regular;
 }
+@mixin body-2-bold {
+    font-family: $sans-serif-font-stack;
+    font-size: 1rem;
+    line-height: 1.5;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.body-2-bold {
+    @include body-2-bold;
+}
 
 @mixin body-2-regular-underlined {
     @include body-2-regular;

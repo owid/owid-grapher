@@ -30,9 +30,102 @@
     }
 }
 
+/* Newsletter signup */
+.latest-page__newsletter-signup {
+    padding: 24px;
+    background-color: $blue-10;
+    margin-bottom: 24px;
+
+    @include md-up {
+        grid-row-start: 2;
+        align-self: start;
+        grid-row-end: span 10;
+    }
+
+    .latest-page__newsletter-signup-form {
+        padding-bottom: 16px;
+        border-bottom: 1px solid $blue-20;
+    }
+
+    .latest-page__newsletter-signup-header {
+        @include h3-bold;
+        color: $blue-90;
+        margin: 0;
+    }
+
+    .NewsletterSubscriptionForm__header {
+        margin-bottom: 16px;
+        display: block;
+    }
+
+    .owid-checkbox-block {
+        margin-bottom: 16px;
+    }
+
+    .label-title {
+        @include body-2-bold;
+    }
+
+    .label-text {
+        @include body-3-medium;
+    }
+
+    .NewsletterSubscription__email-submit {
+        @include md-up {
+            flex-wrap: wrap;
+            gap: 8px;
+            height: auto;
+            input,
+            button {
+                flex-basis: 100%;
+                height: 40px;
+                margin: 0;
+            }
+        }
+    }
+
+    .NewsletterSubscription__privacy {
+        @include body-3-regular;
+    }
+
+    .latest-page__newsletter-signup-social-cta {
+        @include h3-bold;
+        margin: 16px 0;
+    }
+
+    .latest-page__newsletter-signup-socials {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 16px;
+
+        a {
+            color: $blue-60;
+            .label {
+                height: 0;
+                width: 0;
+                display: block;
+                position: absolute;
+                overflow: hidden;
+            }
+            svg {
+                width: 16px;
+                height: 16px;
+                display: block;
+            }
+        }
+    }
+}
+
 /* Common */
 .latest-page article {
     margin-bottom: 32px;
+    @include md-down {
+        margin-bottom: 24px;
+    }
 }
 
 .latest-page__item-dateline {
