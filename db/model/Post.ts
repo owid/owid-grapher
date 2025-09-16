@@ -26,9 +26,9 @@ import { Knex } from "knex"
 import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { decodeHTML } from "entities"
 import { gdocFromJSON } from "./Gdoc/GdocFactory.js"
+import { GdocPost } from "./Gdoc/GdocPost.js"
 import { GdocAnnouncement } from "./Gdoc/GdocAnnouncement.js"
 import { GdocDataInsight } from "./Gdoc/GdocDataInsight.js"
-import { GdocPost } from "./Gdoc/GdocPost.js"
 import { BLOG_POSTS_PER_PAGE } from "../../settings/serverSettings.js"
 
 export const postsTable = "posts"
@@ -201,16 +201,16 @@ export const getLatestPageItems = async (
     const rawResults = await db.knexRaw<Record<string, any>>(
         knex,
         `-- sql
-            SELECT 
-                pg.*,
-                COUNT(*) OVER() as totalRecords            
-            FROM ${PostsGdocsTableName} pg
-            WHERE pg.published = TRUE
-            AND pg.publishedAt <= NOW()
-            AND pg.type IN (:types)
-            ORDER BY pg.publishedAt DESC
-            LIMIT 10 OFFSET :offset
-            `,
+             SELECT 
+                 pg.*,
+                 COUNT(*) OVER() as totalRecords            
+             FROM ${PostsGdocsTableName} pg
+             WHERE pg.published = TRUE
+             AND pg.publishedAt <= NOW()
+             AND pg.type IN (:types)
+             ORDER BY pg.publishedAt DESC
+             LIMIT 10 OFFSET :offset
+             `,
         {
             types: [
                 OwidGdocType.Article,

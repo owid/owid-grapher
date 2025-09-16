@@ -22,6 +22,7 @@ import {
     BAKED_GRAPHER_URL,
     RECAPTCHA_SITE_KEY,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
+    CLOUDFLARE_IMAGES_URL,
 } from "../settings/clientSettings.js"
 import { FeedbackPage } from "../site/FeedbackPage.js"
 import {
@@ -31,7 +32,6 @@ import {
     FullPost,
     JsonError,
     Url,
-    IndexPost,
     OwidGdocType,
     OwidGdoc,
     OwidGdocDataInsightInterface,
@@ -45,10 +45,13 @@ import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
 import {
     ArchiveContext,
     DEFAULT_THUMBNAIL_FILENAME,
+    DbEnrichedImage,
     DbPlainChart,
     DbRawChartConfig,
     FormattingOptions,
     GrapherInterface,
+    OwidGdocMinimalPostInterface,
+    OwidGdocPublicationContext,
 } from "@ourworldindata/types"
 import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
@@ -82,16 +85,16 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { resolveInternalRedirect } from "./redirects.js"
 import {
     getBlockContentFromSnapshot,
-    getLatestPageItems,
     getFullPostBySlugFromSnapshot,
     isPostSlugCitable,
 } from "../db/model/Post.js"
-import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
+import { GdocPost, getLatestPageItems } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import {
     getAndLoadGdocBySlug,
     getAndLoadGdocById,
     getAndLoadPublishedDataInsightsPage,
+    getMinimalGdocBaseObjects,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { transformExplorerProgramToResolveCatalogPaths } from "../db/model/ExplorerCatalogResolver.js"
 import {
@@ -103,7 +106,8 @@ import { getLatestExplorerArchivedVersionsIfEnabled } from "../db/model/archival
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
 import { pipe, unique } from "remeda"
-import { getAllImages } from "../db/model/Image.js"
+import { getAllImages, getImagesByFilenames } from "../db/model/Image.js"
+import { getCanonicalUrl } from "@ourworldindata/components"
 
 export const renderToHtmlPage = (element: any) =>
     `<!doctype html>${ReactDOMServer.renderToString(element)}`
@@ -276,7 +280,11 @@ export const renderLatestPageByPageNum = async (
     pageNum: number,
     knex: KnexReadonlyTransaction
 ) => {
-    const latestPageData = await getLatestPageItems(knex, pageNum)
+    const latestPageData = await getLatestPageItems(knex, pageNum, [
+        OwidGdocType.Article,
+        OwidGdocType.DataInsight,
+        OwidGdocType.Announcement,
+    ])
     const latestPageArticles = latestPageData.items.filter(
         (post) => post.type === OwidGdocType.Article
     )
@@ -338,8 +346,21 @@ export const renderNotFoundPage = () =>
     renderToHtmlPage(<NotFoundPage baseUrl={BAKED_BASE_URL} />)
 
 export async function makeAtomFeed(knex: KnexReadonlyTransaction) {
-    const posts = (await getLatestPageItems(knex)).slice(0, 10)
-    return makeAtomFeedFromPosts({ posts })
+    const posts = await getMinimalGdocBaseObjects(
+        knex,
+        10,
+        OwidGdocPublicationContext.listed,
+        [
+            OwidGdocType.Article,
+            OwidGdocType.TopicPage,
+            OwidGdocType.LinearTopicPage,
+        ]
+    )
+    const images = await getImagesByFilenames(
+        knex,
+        posts.map((post) => post["featured-image"]).filter(Boolean) as string[]
+    ).then((images) => _.keyBy(images, "filename"))
+    return makeAtomFeedFromPosts({ posts, images })
 }
 
 export async function makeDataInsightsAtomFeed(knex: KnexReadonlyTransaction) {
@@ -355,25 +376,35 @@ export async function makeDataInsightsAtomFeed(knex: KnexReadonlyTransaction) {
 // by Mailchimp for sending the "immediate update" newsletter. Instead topic
 // pages announcements are sent out manually.
 export async function makeAtomFeedNoTopicPages(knex: KnexReadonlyTransaction) {
-    const posts = (await getLatestPageItems(knex))
-        .filter((post: IndexPost) => post.type !== OwidGdocType.TopicPage)
-        .slice(0, 10)
-    return makeAtomFeedFromPosts({ posts })
+    const posts = await getMinimalGdocBaseObjects(
+        knex,
+        10,
+        OwidGdocPublicationContext.listed,
+        [OwidGdocType.Article]
+    )
+    const images = await getImagesByFilenames(
+        knex,
+        posts.map((post) => post["featured-image"]).filter(Boolean) as string[]
+    ).then((images) => _.keyBy(images, "filename"))
+    return makeAtomFeedFromPosts({ posts, images })
 }
 
 export async function makeAtomFeedFromPosts({
     posts,
+    images,
     title = "Our World in Data",
     subtitle = "Research and data to make progress against the world’s largest problems",
     htmlUrl = BAKED_BASE_URL,
     feedUrl = `${BAKED_BASE_URL}/atom.xml`,
 }: {
-    posts: IndexPost[]
+    posts: OwidGdocMinimalPostInterface[]
+    images: Record<string, DbEnrichedImage>
     title?: string
     subtitle?: string
     htmlUrl?: string
     feedUrl?: string
 }) {
+    const updated = new Date(posts[0].publishedAt!).toISOString()
     const feed = `<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 <title>${title}</title>
@@ -381,18 +412,20 @@ export async function makeAtomFeedFromPosts({
 <id>${htmlUrl}/</id>
 <link type="text/html" rel="alternate" href="${htmlUrl}"/>
 <link type="application/atom+xml" rel="self" href="${feedUrl}"/>
-<updated>${posts[0].date.toISOString()}</updated>
+<updated>${updated}</updated>
 ${posts
     .map((post) => {
-        const postUrl =
-            post.type === OwidGdocType.DataInsight
-                ? `${BAKED_BASE_URL}/data-insights/${post.slug}`
-                : `${BAKED_BASE_URL}/${post.slug}`
-        const image = post.imageUrl
-            ? `<br><br><a href="${postUrl}" target="_blank"><img src="${encodeURI(
-                  formatUrls(post.imageUrl)
-              )}"/></a>`
-            : ""
+        const postUrl = getCanonicalUrl(BAKED_BASE_URL, {
+            slug: post.slug,
+            content: { type: post.type },
+        })
+        const cloudflareId = images[post["featured-image"] || ""]?.cloudflareId
+        const imageUrl = cloudflareId
+            ? `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=1024`
+            : `${BAKED_GRAPHER_URL}/${DEFAULT_THUMBNAIL_FILENAME}`
+        const image = `<br><br><a href="${postUrl}" target="_blank"><img src="${encodeURI(
+            imageUrl
+        )}"/></a>`
         const summary = post.excerpt
             ? `<summary><![CDATA[${post.excerpt}${image}]]></summary>`
             : ``
@@ -401,8 +434,7 @@ ${posts
             <title><![CDATA[${post.title}]]></title>
             <id>${postUrl}</id>
             <link rel="alternate" href="${postUrl}"/>
-            <published>${post.date.toISOString()}</published>
-            <updated>${post.modifiedDate.toISOString()}</updated>
+            <published>${new Date(post.publishedAt!).toISOString()}</published>
             ${post.authors
                 .map(
                     (author: string) =>
