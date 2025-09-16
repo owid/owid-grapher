@@ -26,6 +26,7 @@ import { DebugProvider } from "./DebugProvider.js"
 import { match, P } from "ts-pattern"
 import {
     ARCHIVED_THUMBNAIL_FILENAME,
+    ArchiveContext,
     EnrichedBlockText,
     OwidGdocPostInterface,
     OwidGdocAuthorInterface,
@@ -226,11 +227,13 @@ export default function OwidGdocPage({
     gdoc,
     debug,
     isPreviewing = false,
+    archiveContext,
 }: {
     baseUrl: string
     gdoc: OwidGdocUnionType
     debug?: boolean
     isPreviewing?: boolean
+    archiveContext?: ArchiveContext
 }) {
     const { content, createdAt, publishedAt } = gdoc
 
@@ -238,6 +241,8 @@ export default function OwidGdocPage({
     const featuredImageFilename = getFeaturedImageFilename(gdoc)
     const canonicalUrl = getCanonicalUrl(baseUrl, gdoc)
     const pageTitle = getPageTitle(gdoc)
+    const isOnArchivalPage = archiveContext?.type === "archive-page"
+    const assetMaps = isOnArchivalPage ? archiveContext.assets : undefined
     const isDataInsight = gdoc.content.type === OwidGdocType.DataInsight
     const isAuthor = checkIsAuthor(gdoc)
     const isPost = isPostPredicate(gdoc)
@@ -273,6 +278,8 @@ export default function OwidGdocPage({
                 imageUrl={imageUrl} // uriEncoding is taken care of inside the Head component
                 atom={isDataInsight ? DATA_INSIGHT_ATOM_FEED_PROPS : undefined}
                 baseUrl={baseUrl}
+                staticAssetMap={assetMaps?.static}
+                archiveContext={archiveContext}
             >
                 {!isAuthor && !isDataInsight && (
                     <CitationMeta
@@ -307,6 +314,7 @@ export default function OwidGdocPage({
             <body>
                 <SiteHeader
                     isOnHomepage={gdoc.content.type === OwidGdocType.Homepage}
+                    archiveInfo={isOnArchivalPage ? archiveContext : undefined}
                 />
                 <div id="owid-document-root">
                     <AriaAnnouncerProvider>
@@ -320,6 +328,7 @@ export default function OwidGdocPage({
                     context={SiteFooterContext.gdocsDocument}
                     debug={debug}
                     isPreviewing={isPreviewing}
+                    archiveInfo={isOnArchivalPage ? archiveContext : undefined}
                 />
             </body>
         </Html>
