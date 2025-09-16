@@ -11,6 +11,7 @@ import { error, png } from "itty-router"
 import { createZip, File } from "littlezipper"
 import { Bounds, Url } from "@ourworldindata/utils"
 import {
+    getEntityNamesParam,
     getSelectedEntityNamesParam,
     GrapherState,
     migrateSelectedEntityNamesParam,
@@ -259,7 +260,17 @@ export async function fetchDataValuesForExplorerView(
 
     try {
         const { grapherState } = await initGrapherForExplorerView(env, options)
+
+        // Make sure the country query param is respected since Grapher ignores
+        // the country param if entity selection is disabled
+        const entityNames = getEntityNamesParam(
+            searchParams.get("country") ?? undefined
+        )
+        if (entityNames?.length > 0)
+            grapherState.selection.setSelectedEntities(entityNames)
+
         const dataValues = assembleDataValues(grapherState, entityName)
+
         return Response.json(dataValues)
     } catch (e) {
         console.error(e)
@@ -278,9 +289,20 @@ export async function fetchSearchResultsTableForExplorerView(
 
     try {
         const { grapherState } = await initGrapherForExplorerView(env, options)
+
+        // Make sure the country query param is respected since Grapher ignores
+        // the country param if entity selection is disabled
+        const entityNames = getEntityNamesParam(
+            searchParams.get("country") ?? undefined
+        )
+        if (entityNames?.length > 0)
+            grapherState.selection.setSelectedEntities(entityNames)
+
         const searchResultsTable = assembleSearchResultsTable(grapherState)
+
         if (searchResultsTable === undefined)
             return error(500, "Unable to generate search results table")
+
         return Response.json(searchResultsTable)
     } catch (e) {
         console.error(e)
