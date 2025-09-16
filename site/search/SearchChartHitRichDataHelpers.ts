@@ -15,7 +15,6 @@ import {
 } from "@ourworldindata/types"
 import {
     generateFocusedSeriesNamesParam,
-    generateSelectedEntityNamesParam,
     GrapherState,
     mapGrapherTabNameToConfigOption,
     mapGrapherTabNameToQueryParam,
@@ -33,7 +32,6 @@ import {
 } from "./SearchChartHitRichDataTypes.js"
 import { SearchChartHit, SearchChartHitComponentVariant } from "./searchTypes"
 import {
-    excludeUndefined,
     checkIsCountry,
     getRegionByName,
     getParentRegions,
@@ -595,39 +593,4 @@ function configureGrapherParamsForDiscreteBarPreview(
     const hasSingleSeriesPerFacet =
         grapherState.isFaceted && !grapherState.hasMultipleSeriesPerFacet
     if (hasSingleSeriesPerFacet) grapherParams.facet = FacetStrategy.none
-
-    // Add the entities with the minimum and maximim value
-    // for discrete bar charts with a single bar
-    const { seriesStrategy = SeriesStrategy.entity } = grapherState.chartState
-    const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
-    const selectedEntities = grapherState.selection.selectedEntityNames
-    if (
-        !grapherState.isFaceted &&
-        isEntityStrategy &&
-        selectedEntities.length === 1 &&
-        grapherState.addCountryMode === EntitySelectionMode.MultipleEntities &&
-        grapherState.endTime !== undefined
-    ) {
-        const selectedEntity = selectedEntities[0]
-        const owidRows = grapherState.table
-            .filterByTargetTimes([grapherState.endTime])
-            .get(grapherState.yColumnSlug).owidRows
-        const minRow = _.minBy(owidRows, (point) => point.value)
-        const maxRow = _.maxBy(owidRows, (point) => point.value)
-        const enrichedSelectedEntities = R.unique(
-            excludeUndefined([
-                selectedEntity,
-                minRow?.entityName,
-                maxRow?.entityName,
-            ])
-        )
-        if (enrichedSelectedEntities.length > 1) {
-            grapherParams.country = generateSelectedEntityNamesParam(
-                enrichedSelectedEntities
-            )
-            grapherParams.focus = generateFocusedSeriesNamesParam([
-                selectedEntity,
-            ])
-        }
-    }
 }
