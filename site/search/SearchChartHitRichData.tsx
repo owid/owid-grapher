@@ -302,7 +302,6 @@ export function SearchChartHitRichData({
                             chartType={tab}
                             chartUrl={chartUrl}
                             previewUrl={previewUrl}
-                            grapherState={grapherState}
                             imageWidth={imageWidth}
                             imageHeight={imageHeight}
                             className={className}
