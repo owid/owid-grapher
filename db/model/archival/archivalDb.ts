@@ -4,29 +4,37 @@ import {
     ArchivedChartVersionsTableName,
     ArchivedMultiDimVersionsTableName,
     ArchivedExplorerVersionsTableName,
+    ArchivedPostVersionsTableName,
     ArchivedPageVersion,
     DbInsertArchivedChartVersion,
     DbInsertArchivedMultiDimVersion,
     DbInsertArchivedExplorerVersion,
+    DbInsertArchivedPostVersion,
     DbPlainArchivedChartVersion,
     DbPlainMultiDimDataPage,
     DbPlainArchivedMultiDimVersion,
     DbPlainArchivedExplorerVersion,
+    DbPlainArchivedPostVersion,
     DbPlainExplorer,
     JsonString,
     MultiDimDataPagesTableName,
     MultiDimDataPageConfigEnriched,
     ExplorersTableName,
+    PostsGdocsTableName,
     GrapherChecksumsObjectWithHash,
     GrapherChecksums,
     MultiDimChecksums,
     MultiDimChecksumsObjectWithHash,
     ExplorerChecksums,
     ExplorerChecksumsObjectWithHash,
+    PostChecksums,
+    PostChecksumsObjectWithHash,
     ExplorerVariablesTableName,
     DbPlainExplorerVariable,
     VariablesTableName,
     DbRawVariable,
+    DbRawPostGdoc,
+    OwidGdocType,
     parseChartConfig,
 } from "@ourworldindata/types"
 import * as db from "../../db.js"
@@ -41,9 +49,11 @@ import {
     assembleGrapherArchivalUrl,
     assembleMultiDimArchivalUrl,
     assembleExplorerArchivalUrl,
+    assemblePostArchivalUrl,
     GrapherArchivalManifest,
     MultiDimArchivalManifest,
     ExplorerArchivalManifest,
+    PostArchivalManifest,
 } from "../../../serverUtils/archivalUtils.js"
 import { ARCHIVE_BASE_URL } from "../../../settings/serverSettings.js"
 
@@ -244,6 +254,12 @@ const hashExplorerChecksumsObj = (checksums: ExplorerChecksums): string => {
     const stringified = stringify(
         _.pick(checksums, "explorerConfigMd5", "chartConfigs", "indicators")
     )
+    const hashed = hashHex(stringified, null)
+    return hashed
+}
+
+const hashPostChecksumsObj = (checksums: PostChecksums): string => {
+    const stringified = stringify(_.pick(checksums, "postContentMd5"))
     const hashed = hashHex(stringified, null)
     return hashed
 }
@@ -760,4 +776,157 @@ export const getLatestExplorerArchivedVersionsIfEnabled = async (
     if (!ARCHIVE_BASE_URL) return {}
 
     return await getLatestExplorerArchivedVersions(knex, slugs)
+}
+
+export const getPostChecksumsFromDb = async (
+    knex: db.KnexReadonlyTransaction
+): Promise<PostChecksumsObjectWithHash[]> => {
+    const posts = await knex<DbRawPostGdoc>(PostsGdocsTableName)
+        .select("id", "slug", "contentMd5")
+        .where("published", true)
+        .where("type", OwidGdocType.Article)
+
+    if (posts.length === 0) return []
+
+    // Build result with checksums and hashed checksums
+    return posts.map((post) => {
+        const checksums: PostChecksums = {
+            postContentMd5: post.contentMd5,
+        }
+
+        return {
+            postId: post.id,
+            postSlug: post.slug,
+            checksums,
+            checksumsHashed: hashPostChecksumsObj(checksums),
+        }
+    })
+}
+
+const findPostHashesInDb = async (
+    knex: db.KnexReadonlyTransaction,
+    hashes: string[]
+): Promise<Set<string>> => {
+    const rows = await knex<DbPlainArchivedPostVersion>(
+        ArchivedPostVersionsTableName
+    )
+        .select("hashOfInputs")
+        .whereIn("hashOfInputs", hashes)
+    return new Set(rows.map((r) => r.hashOfInputs))
+}
+
+export const findChangedPostPages = async (
+    knex: db.KnexReadonlyTransaction
+): Promise<PostChecksumsObjectWithHash[]> => {
+    const allPostChecksums = await getPostChecksumsFromDb(knex)
+
+    // We're gonna find the hashes of all the posts that are already archived and up-to-date
+    const hashesFoundInDb = await findPostHashesInDb(
+        knex,
+        allPostChecksums.map((c) => c.checksumsHashed)
+    )
+    const [alreadyArchived, needToBeArchived] = _.partition(
+        allPostChecksums,
+        (c) => hashesFoundInDb.has(c.checksumsHashed)
+    )
+
+    console.log("total published articles", allPostChecksums.length)
+    console.log("already archived", alreadyArchived.length)
+    console.log("need archived", needToBeArchived.length)
+
+    return needToBeArchived
+}
+
+export const insertPostVersions = async (
+    knex: db.KnexReadWriteTransaction,
+    versions: PostChecksumsObjectWithHash[],
+    date: ArchivalTimestamp,
+    manifests: Record<string, PostArchivalManifest>
+): Promise<void> => {
+    const rows: DbInsertArchivedPostVersion[] = versions.map((v) => ({
+        postId: v.postId,
+        postSlug: v.postSlug,
+        archivalTimestamp: date.date,
+        hashOfInputs: v.checksumsHashed,
+        manifest: stringify(manifests[v.postSlug], undefined, 2),
+    }))
+
+    if (rows.length) await knex.batchInsert(ArchivedPostVersionsTableName, rows)
+}
+
+export const getLatestArchivedPostVersionsFromDb = async (
+    knex: db.KnexReadonlyTransaction,
+    postIds?: string[]
+): Promise<
+    Pick<
+        DbPlainArchivedPostVersion,
+        "postId" | "postSlug" | "archivalTimestamp"
+    >[]
+> => {
+    const queryBuilder = knex<DbPlainArchivedPostVersion>(
+        ArchivedPostVersionsTableName
+    )
+        .select("postId", "postSlug", "archivalTimestamp")
+        .whereRaw(
+            `(postId, archivalTimestamp) IN (SELECT postId, MAX(archivalTimestamp) FROM archived_post_versions a2 GROUP BY postId)`
+        )
+
+    if (postIds) {
+        queryBuilder.whereIn("postId", postIds)
+    }
+
+    return await queryBuilder
+}
+
+export const getAllPostVersionsForId = async (
+    knex: db.KnexReadonlyTransaction,
+    postId: string
+): Promise<
+    Pick<
+        DbPlainArchivedPostVersion,
+        "postId" | "postSlug" | "archivalTimestamp"
+    >[]
+> => {
+    const rows = await knex<DbPlainArchivedPostVersion>(
+        ArchivedPostVersionsTableName
+    )
+        .select("postId", "postSlug", "archivalTimestamp")
+        .where("postId", postId)
+        .orderBy("archivalTimestamp", "asc")
+    return rows
+}
+
+export const getLatestArchivedPostVersions = async (
+    knex: db.KnexReadonlyTransaction,
+    postIds?: string[]
+): Promise<Record<string, ArchivedPageVersion>> => {
+    const rows = await getLatestArchivedPostVersionsFromDb(knex, postIds)
+
+    return Object.fromEntries(
+        rows.map((r) => [
+            r.postId,
+            {
+                archivalDate: convertToArchivalDateStringIfNecessary(
+                    r.archivalTimestamp
+                ),
+                archiveUrl: assemblePostArchivalUrl(
+                    r.archivalTimestamp,
+                    r.postSlug,
+                    {
+                        relative: false,
+                    }
+                ),
+                type: "archived-page-version",
+            },
+        ])
+    )
+}
+
+export const getLatestArchivedPostVersionsIfEnabled = async (
+    knex: db.KnexReadonlyTransaction,
+    postIds?: string[]
+): Promise<Record<string, ArchivedPageVersion>> => {
+    if (!ARCHIVE_BASE_URL) return {}
+
+    return await getLatestArchivedPostVersions(knex, postIds)
 }
