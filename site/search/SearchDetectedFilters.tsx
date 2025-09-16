@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useEffect } from "react"
-import * as R from "remeda"
 import { useSearchContext } from "./SearchContext.js"
 import { getFilterIcon, getFilterSuggestionsNgrams } from "./searchUtils.js"
 import { FilterType, ScoredFilterPositioned } from "./searchTypes.js"
@@ -20,19 +19,32 @@ export const SearchDetectedFilters = ({
         synonymMap,
     } = useSearchContext()
 
-    const allMatchedFilters = useMemo(() => {
-        return getFilterSuggestionsNgrams(query, allTopics, filters, synonymMap)
+    const automaticFilters = useMemo(() => {
+        const matches = getFilterSuggestionsNgrams(
+            query,
+            allTopics,
+            filters,
+            { threshold: 1, limit: 1 },
+            synonymMap
+        )
+
+        // Only auto-apply exact country matches
+        return matches.filter((match) => match.type === FilterType.COUNTRY)
     }, [query, allTopics, filters, synonymMap])
 
-    const [automaticFilters, manualFilters] = useMemo(() => {
-        return R.partition(
-            allMatchedFilters,
-            // only auto-apply exact country matches. Exact topic matches can be
-            // ambiguous, e.g. matching the "Energy" topic for a "solar energy"
-            // query might not be what the user intended.
-            (filter) => filter.type === FilterType.COUNTRY && filter.score === 1
+    // Manual filter suggestions are parsed independently to give shorter exact
+    // matches priority. Otherwise, a query like "north korea south korea" would
+    // greedily match "south korea" on "korea south korea", leaving "north"
+    // orphan.
+    const manualFilters = useMemo(() => {
+        return getFilterSuggestionsNgrams(
+            query,
+            allTopics,
+            filters,
+            { threshold: 0.75, limit: 1 },
+            synonymMap
         )
-    }, [allMatchedFilters])
+    }, [query, allTopics, filters, synonymMap])
 
     const applyFilters = useCallback(
         (filtersToProcess: ScoredFilterPositioned[]) => {
@@ -40,7 +52,7 @@ export const SearchDetectedFilters = ({
 
             // Collect all positions that need to be removed from the query
             const allPositions = filtersToProcess.flatMap(
-                (filter) => filter.originalPositions
+                (filter) => filter.positions
             )
 
             // Apply all filters at once, passing positions to let reducer handle word removal
@@ -56,7 +68,6 @@ export const SearchDetectedFilters = ({
         [applyFilters]
     )
 
-    // Auto-apply country filters
     useEffect(() => {
         if (automaticFilters.length > 0) {
             applyFilters(automaticFilters)

@@ -86,6 +86,7 @@ import { PreviewVariant } from "./SearchChartHitRichDataTypes.js"
 const STOP_WORDS = new Set([
     "the",
     "in", // matches "India"
+    "is", // matches "Israel"
     "of",
     "and", // matches "Andorra"
     "a",
@@ -98,6 +99,7 @@ const STOP_WORDS = new Set([
     "by",
     "from",
     "per", // matches "Peru"
+    "vs",
 ])
 
 /**
@@ -794,12 +796,13 @@ export function findMatchesWithNgrams(
     allTopics: string[],
     selectedCountryNames: Set<string>,
     selectedTopics: Set<string>,
+    sortOptions: { threshold: number; limit: number },
     synonymMap: SynonymMap
 ): ScoredFilterPositioned[] {
     const allFilters: ScoredFilterPositioned[] = []
     const matchedWordPositions = new Set<number>()
 
-    const words = query.trim().split(/\s+/)
+    const words = splitIntoWords(query)
 
     // Get positions of words inside quoted phrases
     const quotedWordPositions = getQuotedWordPositions(words)
@@ -807,7 +810,7 @@ export function findMatchesWithNgrams(
     // Filter out stop words and quoted words while preserving original positions
     const tokens: WordPositioned[] = words
         .map((word, index) => ({ word, position: index }))
-        .filter(({ word }) => !STOP_WORDS.has(word.toLowerCase()))
+        .filter(({ word }) => isNotStopWord(word))
         .filter(({ position }) => !quotedWordPositions.has(position))
 
     if (tokens.length === 0) return []
@@ -841,7 +844,7 @@ export function findMatchesWithNgrams(
             allTopics,
             selectedCountryNames,
             selectedTopics,
-            { threshold: 0.75, limit: 1 },
+            sortOptions,
             synonymMap
         )
 
@@ -850,9 +853,9 @@ export function findMatchesWithNgrams(
             // Store the original positions for later use in replacement logic
             allFilters.push({
                 ...bestFilter,
-                originalPositions: ngramPositions,
+                positions: ngramPositions,
             })
-            // Mark these original word positions as matched
+            // Mark these word positions as matched to prevent overlaps
             ngramPositions.forEach((pos: number) =>
                 matchedWordPositions.add(pos)
             )
@@ -971,7 +974,7 @@ export function getFilterSuggestionsWithUnmatchedQuery(
         (country) => country.name
     )
 
-    const queryWords = query.trim().split(/\s+/)
+    const queryWords = splitIntoWords(query)
 
     if (!queryWords.length || queryWords[0] === "") {
         return {
@@ -1023,24 +1026,20 @@ export function getFilterSuggestionsWithUnmatchedQuery(
         ...sortedPartialMatches,
     ]
 
-    const unmatchedQueryNoStopWords = unmatchedQuery
-        .split(/\s+/)
-        .filter((word) => !STOP_WORDS.has(word.toLowerCase()))
-
     return {
         suggestions: combinedFilters,
-        unmatchedQuery: unmatchedQueryNoStopWords.join(" "),
+        unmatchedQuery,
     }
 }
 
 /**
- * Enhanced version using n-grams with stop word filtering.
- * Gets filter suggestions and calculates unmatched query using the new n-gram approach.
+ * Gets filter suggestions using ngrams for more robust multi-entity matching.
  */
 export function getFilterSuggestionsNgrams(
     query: string,
     allTopics: string[],
     filters: Filter[], // currently active filters to exclude from suggestions
+    sortOptions: { threshold: number; limit: number },
     synonymMap: SynonymMap
 ): ScoredFilterPositioned[] {
     if (!query) return []
@@ -1062,6 +1061,7 @@ export function getFilterSuggestionsNgrams(
         allTopics,
         selectedCountryNames,
         selectedTopics,
+        sortOptions,
         synonymMap
     )
 
@@ -1430,3 +1430,8 @@ export function removeMatchedWordsWithStopWords(
         .filter((_, index) => !wordsToRemove.has(index))
         .join(" ")
 }
+
+export const splitIntoWords = (text: string) => text.trim().split(/\s+/)
+
+export const isNotStopWord = (word: string) =>
+    !STOP_WORDS.has(word.toLowerCase())

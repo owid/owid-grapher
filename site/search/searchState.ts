@@ -17,6 +17,7 @@ import {
     isValidResultType,
     serializeSet,
     removeMatchedWordsWithStopWords,
+    splitIntoWords,
 } from "./searchUtils.js"
 
 function handleAddFilter(state: SearchState, filter: Filter): SearchState {
@@ -99,7 +100,7 @@ export function searchReducer(
             // Apply multiple filters and update query in one atomic operation
             { type: "replaceQueryWithFilters" },
             ({ filters, matchedPositions }) => {
-                const queryWords = state.query.trim().split(/\s+/)
+                const queryWords = splitIntoWords(state.query)
                 const newQuery = removeMatchedWordsWithStopWords(
                     queryWords,
                     matchedPositions
