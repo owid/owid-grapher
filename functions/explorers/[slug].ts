@@ -7,6 +7,7 @@ import {
     fetchDataValuesForExplorerView,
     fetchMetadataForExplorerView,
     fetchReadmeForExplorerView,
+    fetchSearchResultsTableForExplorerView,
     fetchZipForExplorerView,
     handleConfigRequestForExplorerView,
     handleThumbnailRequestForExplorerView,
@@ -86,6 +87,13 @@ router
         async (_, { searchParams }, env) => {
             console.log("Handling explorer values request")
             return fetchDataValuesForExplorerView(searchParams, env)
+        }
+    )
+    .get(
+        `/explorers/:slug${extensions.searchResultsTable}`,
+        async (_, { searchParams }, env) => {
+            console.log("Handling explorer search results table request")
+            return fetchSearchResultsTableForExplorerView(searchParams, env)
         }
     )
     .get(

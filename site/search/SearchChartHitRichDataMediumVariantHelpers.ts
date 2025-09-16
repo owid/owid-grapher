@@ -4,14 +4,11 @@ import {
     EntityName,
     GRAPHER_TAB_NAMES,
     GrapherTabName,
+    GrapherValuesJson,
+    SearchChartHitDataTableContent,
     SeriesStrategy,
 } from "@ourworldindata/types"
-import { buildChartHitDataTableContent } from "./SearchChartHitDataTableHelpers"
-import {
-    constructGrapherValuesJson,
-    GrapherState,
-    WORLD_ENTITY_NAME,
-} from "@ourworldindata/grapher"
+import { GrapherState, WORLD_ENTITY_NAME } from "@ourworldindata/grapher"
 import { buildChartHitDataDisplayProps } from "./searchUtils"
 import {
     Layout,
@@ -183,30 +180,32 @@ function getGridSlotForCount(slotCount: number): MediumVariantGridSlot {
 export function calculateMediumVariantLayout(
     grapherState: GrapherState,
     {
+        chartInfo,
+        dataTableContent,
         sortedTabs,
         entityForDataDisplay = WORLD_ENTITY_NAME,
         numDataTableRowsPerColumn,
     }: {
+        chartInfo?: GrapherValuesJson
+        dataTableContent?: SearchChartHitDataTableContent
         sortedTabs: GrapherTabName[]
         entityForDataDisplay?: EntityName
         numDataTableRowsPerColumn: number
     }
 ): Layout<MediumVariantGridSlot> | undefined {
     // Build the data table props
-    const dataTableContent = buildChartHitDataTableContent({ grapherState })
     if (!dataTableContent) return undefined
 
     // Prepare rendering the data display
     const hasDataDisplayProps = dataTableContent.type !== "data-points"
-    const chartInfo = hasDataDisplayProps
-        ? constructGrapherValuesJson(grapherState, entityForDataDisplay)
+    const dataDisplayProps = hasDataDisplayProps
+        ? buildChartHitDataDisplayProps({
+              chartInfo,
+              chartType: grapherState.chartType,
+              entity: entityForDataDisplay,
+              isEntityPickedByUser: entityForDataDisplay !== WORLD_ENTITY_NAME,
+          })
         : undefined
-    const dataDisplayProps = buildChartHitDataDisplayProps({
-        chartInfo,
-        chartType: grapherState.chartType,
-        entity: entityForDataDisplay,
-        isEntityPickedByUser: entityForDataDisplay !== WORLD_ENTITY_NAME,
-    })
 
     // Figure out the layout by assigning each Grapher tab to grid slots.
     // The table tab can optionally span two or more slots (instead of just one)

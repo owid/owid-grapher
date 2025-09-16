@@ -14288,6 +14288,7 @@ __metadata:
     react: "npm:^19.1.0"
     react-dom: "npm:^19.1.0"
     stripe: "npm:^14.20.0"
+    ts-pattern: "npm:^5.8.0"
     uuidv7: "npm:^1.0.1"
     vitest: "npm:^3.2.4"
     zod: "npm:^4.1.11"

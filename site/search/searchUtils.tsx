@@ -8,6 +8,7 @@ import {
     GrapherQueryParams,
     GrapherTabName,
     GrapherTabQueryParam,
+    GrapherTrendArrowDirection,
     GrapherValuesJson,
     GrapherValuesJsonDataPoint,
     OwidGdocType,
@@ -26,7 +27,6 @@ import {
     omitUndefinedValues,
     getRegionByName,
 } from "@ourworldindata/utils"
-import { type GrapherTrendArrowDirection } from "@ourworldindata/components"
 import {
     generateSelectedEntityNamesParam,
     isValidTabQueryParam,
@@ -69,7 +69,6 @@ import {
     EXPLORER_DYNAMIC_THUMBNAIL_URL,
     GRAPHER_DYNAMIC_CONFIG_URL,
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
-    MULTI_DIM_DYNAMIC_CONFIG_URL,
 } from "../../settings/clientSettings.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import { SearchChartHitDataDisplayProps } from "./SearchChartHitDataDisplay.js"
@@ -257,6 +256,32 @@ export const constructChartInfoUrl = ({
     return `${basePath}/${hit.slug}.values.json${queryStr}`
 }
 
+export const constructSearchTableUrl = ({
+    hit,
+    grapherParams,
+    maxRows,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+    maxRows?: number
+}): string | undefined => {
+    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
+
+    const searchParams = new URLSearchParams(
+        omitUndefinedValues({ tableMaxRows: maxRows?.toString() })
+    )
+    const fullQueryStr = queryStr
+        ? `${queryStr}&${searchParams}`
+        : `?${searchParams}`
+
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    const basePath = isExplorerView
+        ? EXPLORER_DYNAMIC_THUMBNAIL_URL
+        : GRAPHER_DYNAMIC_THUMBNAIL_URL
+
+    return `${basePath}/${hit.slug}.search-results-table.json${fullQueryStr}`
+}
+
 export const constructPreviewUrl = ({
     hit,
     grapherParams,
@@ -318,16 +343,6 @@ export const constructConfigUrl = ({
             return `${EXPLORER_DYNAMIC_CONFIG_URL}/${hit.slug}.config.json${queryStr}`
         })
         .exhaustive()
-}
-
-export const constructMdimConfigUrl = ({
-    hit,
-}: {
-    hit: SearchChartHit
-}): string | undefined => {
-    const isMultiDimView = hit.type === ChartRecordType.MultiDimView
-    if (!isMultiDimView) return undefined
-    return `${MULTI_DIM_DYNAMIC_CONFIG_URL}/${hit.slug}.json`
 }
 
 // Generates time bounds to force line charts to display properly in previews.
@@ -1032,10 +1047,6 @@ function findDatapoint(
     if (historicalDims.length > 1) return undefined
 
     return historicalDims[0]
-}
-
-export function getColumnNameForDisplay(column: CoreColumn): string {
-    return column.titlePublicOrDisplayName.title ?? column.nonEmptyDisplayName
 }
 
 export function getColumnUnitForDisplay(
