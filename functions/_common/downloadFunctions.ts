@@ -223,6 +223,14 @@ export async function fetchDataValuesForGrapher(
     })
     grapher.grapherState.inputTable = inputTable
 
+    // Make sure the country query param is respected since Grapher ignores
+    // the country param if entity selection is disabled
+    const entityNames = getEntityNamesParam(
+        searchParams.get("country") ?? undefined
+    )
+    if (entityNames?.length > 0)
+        grapher.grapherState.selection.setSelectedEntities(entityNames)
+
     const dataValues = assembleDataValues(grapher.grapherState, entityName)
 
     return Response.json(dataValues)
@@ -258,6 +266,14 @@ export async function fetchSearchResultsTableForGrapher(
         dataApiUrl: getDataApiUrl(env),
     })
     grapher.grapherState.inputTable = inputTable
+
+    // Make sure the country query param is respected since Grapher ignores
+    // the country param if entity selection is disabled
+    const entityNames = getEntityNamesParam(
+        searchParams.get("country") ?? undefined
+    )
+    if (entityNames?.length > 0)
+        grapher.grapherState.selection.setSelectedEntities(entityNames)
 
     const searchResultsTable = assembleSearchResultsTable(grapher.grapherState)
 
