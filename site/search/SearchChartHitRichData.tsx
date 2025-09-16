@@ -115,7 +115,7 @@ export function SearchChartHitRichData({
         enabled: hasBeenVisible,
     })
 
-    // Init the grapher state and update its data
+    // Init the grapher state
     const grapherState = useMemo(
         () => new GrapherState(chartConfig ?? { isConfigReady: false }),
         [chartConfig]
@@ -143,16 +143,15 @@ export function SearchChartHitRichData({
     })
 
     // Fetch the data table's content
-    const initialDataTableContentResponse = useQueryDataTableContent(
-        hit,
-        grapherState.changedParams,
-        { enabled: grapherState.isConfigReady }
-    )
+    const { data: fullDataTableContent, status: loadingStatusTableContent } =
+        useQueryDataTableContent(hit, grapherState.changedParams, {
+            enabled: grapherState.isConfigReady,
+        })
 
     // Place Grapher tabs into grid layout and calculate info for data display
     const layout = calculateLayout(variant, grapherState, {
         chartInfo,
-        dataTableContent: initialDataTableContentResponse.data,
+        dataTableContent: fullDataTableContent,
         sortedTabs,
         entityForDataDisplay,
         numDataTableRowsPerColumn,
@@ -173,18 +172,10 @@ export function SearchChartHitRichData({
             })
         })
 
-    // Fetch the data table's content
-    const { data: fullDataTableContent, status: loadingStatusTableContent } =
-        useQueryDataTableContent(hit, grapherState.changedParams, {
-            enabled: initialDataTableContentResponse.status === "success",
-        })
-
-    const maxRows = tableSlot
-        ? getTableRowCountForGridSlot(tableSlot, numDataTableRowsPerColumn)
-        : undefined
+    // Filter the data table content to only show rows for entities visible in the thumbnail
     const dataTableContent = filterDataTableContent(
-        fullDataTableContent,
-        maxRows
+        grapherState,
+        fullDataTableContent
     )
 
     const status = combineStatuses(
@@ -261,17 +252,19 @@ export function SearchChartHitRichData({
                 style={contentStyle}
             >
                 {layout?.placedTabs.map(({ tab, slot }, tabIndex) => {
-                    // Always use the complete version on smaller screens since
-                    // the table might not be visible
                     const isPrimaryTab = tabIndex === 0
                     const isSmallSlot =
                         slot === MediumVariantGridSlot.SmallLeft ||
                         slot === MediumVariantGridSlot.SmallRight
+
+                    // Always use the complete version on smaller screens since
+                    // the table might not be visible
+                    const minimalThumbnail = {
+                        variant: PreviewVariant.Thumbnail,
+                        isMinimal: false,
+                    }
                     const previewType = isMediumScreen
-                        ? {
-                              variant: PreviewVariant.Thumbnail,
-                              isMinimal: false,
-                          }
+                        ? minimalThumbnail
                         : getPreviewType(variant, { isPrimaryTab, isSmallSlot })
 
                     const { width: imageWidth, height: imageHeight } =
@@ -498,14 +491,20 @@ function useQueryDataTableContent(
 }
 
 function filterDataTableContent(
-    dataTableContent?: SearchChartHitDataTableContent,
-    maxRows?: number
+    grapherState: GrapherState,
+    dataTableContent?: SearchChartHitDataTableContent
 ): SearchChartHitDataTableContent | undefined {
     if (!dataTableContent) return undefined
-    if (dataTableContent.type === "data-points" || !maxRows)
-        return dataTableContent
+    if (dataTableContent.type === "data-points") return dataTableContent
 
-    const filteredRows = dataTableContent.props.rows.slice(0, maxRows)
+    const selectedSet = grapherState.selection.selectedSet
+    if (selectedSet.size === 0) return dataTableContent
+
+    const filteredRows = dataTableContent.props.rows.filter((row) =>
+        selectedSet.has(row.seriesName ?? "")
+    )
+
+    if (filteredRows.length === 0) return dataTableContent
 
     return {
         ...dataTableContent,
