@@ -44,7 +44,7 @@ const citationDescriptionsByArticleType: Record<
 
 type GdocPostProps = Omit<
     OwidGdocPostInterface,
-    "markdown" | "publicationContext" | "revisionId"
+    "contentMd5" | "markdown" | "publicationContext" | "revisionId"
 > & {
     isPreviewing?: boolean
 }

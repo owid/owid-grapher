@@ -9,7 +9,7 @@ import Footnotes from "../components/Footnotes.js"
 
 type AboutPageProps = Omit<
     OwidGdocAboutInterface,
-    "markdown" | "publicationContext" | "revisionId"
+    "contentMd5" | "markdown" | "publicationContext" | "revisionId"
 >
 
 export default function AboutPage({ content, slug }: AboutPageProps) {

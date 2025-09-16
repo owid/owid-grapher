@@ -280,7 +280,7 @@ interface SiteFooterScriptsArgs {
 }
 
 export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
-    const { context, isPreviewing } = args || {}
+    const { debug, context, isPreviewing } = args || {}
 
     switch (context) {
         case SiteFooterContext.dataPageV2:
@@ -306,6 +306,15 @@ export const runSiteFooterScriptsForArchive = (args: SiteFooterScriptsArgs) => {
             // runSiteTools()
             // runCookiePreferencesManager()
             void runDetailsOnDemand()
+            break
+        case SiteFooterContext.gdocsDocument:
+            hydrateOwidGdoc(debug, isPreviewing)
+            // runAllGraphersLoadedListener()
+            runSiteNavigation()
+            runFootnotes()
+            void runDetailsOnDemand()
+            // runSiteTools()
+            // runCookiePreferencesManager()
             break
         default:
             console.error(
