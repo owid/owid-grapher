@@ -7,6 +7,7 @@ import fs from "fs-extra"
 import path from "path"
 import { glob } from "glob"
 import ProgressBar from "progress"
+import { stringify } from "safe-stable-stringify"
 import * as db from "../db/db.js"
 import { BASE_DIR } from "../settings/serverSettings.js"
 
@@ -73,6 +74,7 @@ import {
     gdocFromJSON,
     getMinimalGdocBaseObjects,
     getLatestDataInsights,
+    getAndLoadGdocBySlug,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { getBakePath } from "@ourworldindata/components"
 import { GdocAuthor, getMinimalAuthors } from "../db/model/Gdoc/GdocAuthor.js"
@@ -100,6 +102,7 @@ import {
     getLatestPageItems,
     enrichLatestPageItems,
 } from "../db/model/Gdoc/GdocPost.js"
+import { PostArchivalManifest } from "../serverUtils/archivalUtils.js"
 
 type PrefetchedAttachments = {
     donors: string[]
@@ -1176,4 +1179,28 @@ export class SiteBaker {
         siteBakingFlushCache()
         redirectsFlushCache()
     }
+}
+
+export const bakeSinglePostPageForArchival = async (
+    bakedSiteDir: string,
+    slug: string,
+    knex: db.KnexReadonlyTransaction,
+    {
+        archiveContext,
+        manifest,
+    }: {
+        archiveContext: ArchiveContext
+        manifest: PostArchivalManifest
+    }
+) => {
+    const gdoc = await getAndLoadGdocBySlug(knex, slug)
+    await gdoc.loadState(knex)
+
+    const outPathHtml = `${bakedSiteDir}/${slug}.html`
+    await fs.mkdirp(path.dirname(outPathHtml))
+    await fs.writeFile(outPathHtml, renderGdoc(gdoc, false, archiveContext))
+
+    const outPathManifest = `${bakedSiteDir}/${slug}.manifest.json`
+    await fs.mkdirp(path.dirname(outPathManifest))
+    await fs.writeFile(outPathManifest, stringify(manifest, undefined, 2))
 }

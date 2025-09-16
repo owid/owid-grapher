@@ -304,7 +304,7 @@ local-bake: node_modules
 	yarn buildLocalBake
 
 archive: node_modules
-	@echo '==> Creating an archived version of our charts'
+	@echo '==> Creating archived page versions'
 	PRIMARY_ENV_FILE=.env.archive yarn buildViteArchive
 	PRIMARY_ENV_FILE=.env.archive yarn tsx --tsconfig tsconfig.tsx.json ./baker/archival/archiveChangedPages.ts --latestDir
 

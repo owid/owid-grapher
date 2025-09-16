@@ -8,6 +8,7 @@ import {
     DbEnrichedImage,
     DbPlainArchivedChartVersion,
     DbPlainArchivedMultiDimVersion,
+    DbPlainArchivedPostVersion,
     DbRawChartConfig,
     GrapherInterface,
     MultiDimDataPageConfigEnriched,
@@ -15,6 +16,7 @@ import {
     GrapherChecksumsObjectWithHash,
     MultiDimChecksumsObjectWithHash,
     ExplorerChecksumsObjectWithHash,
+    PostChecksumsObjectWithHash,
 } from "@ourworldindata/types"
 import fs from "fs-extra"
 import path from "path"
@@ -25,6 +27,7 @@ import findProjectBaseDir from "../../settings/findBaseDir.js"
 import { bakeSingleGrapherPageForArchival } from "../GrapherBaker.js"
 import { bakeSingleMultiDimDataPageForArchival } from "../MultiDimBaker.js"
 import { bakeSingleExplorerPageForArchival } from "../ExplorerBaker.js"
+import { bakeSinglePostPageForArchival } from "../SiteBaker.js"
 import {
     hashAndCopyFile,
     hashAndWriteFile,
@@ -33,21 +36,26 @@ import {
     GrapherArchivalManifest,
     MultiDimArchivalManifest,
     ExplorerArchivalManifest,
+    PostArchivalManifest,
     assembleGrapherArchivalUrl,
     assembleGrapherManifest,
     assembleExplorerArchivalUrl,
     assembleMultiDimArchivalUrl,
     assembleMultiDimManifest,
     assembleExplorerManifest,
+    assemblePostArchivalUrl,
+    assemblePostManifest,
 } from "../../serverUtils/archivalUtils.js"
 import pMap from "p-map"
 import {
     getAllChartVersionsForChartId,
     getAllMultiDimVersionsForId,
     getAllExplorerVersionsForSlug,
+    getAllPostVersionsForId,
     getLatestGrapherArchivedVersionsFromDb,
     getLatestMultiDimArchivedVersionsFromDb,
     getLatestExplorerArchivedVersionsFromDb,
+    getLatestArchivedPostVersionsFromDb,
 } from "../../db/model/archival/archivalDb.js"
 import { ARCHIVE_BASE_URL } from "../../settings/serverSettings.js"
 import {
@@ -66,7 +74,6 @@ const IGNORED_FILES_PATTERNS = [
     /^_headers$/,
     /\.DS_Store$/,
     /^images(\/.*)?$/,
-    /^sdg.*$/,
     /^identifyadmin.html$/,
 ]
 export const copyPublicDir = async (archiveDir: string) => {
@@ -292,6 +299,11 @@ export interface MinimalChartInfo {
     chartId: number
     chartConfigId: string
     config: GrapherInterface
+}
+
+export interface MinimalPostInfo {
+    postId: string
+    postSlug: string
 }
 
 export interface MinimalMultiDimInfo {
@@ -539,6 +551,50 @@ export const bakeArchivalExplorerPagesToFolder = async (
     return { manifests }
 }
 
+export const bakeArchivalPostPagesToFolder = async (
+    knex: db.KnexReadonlyTransaction,
+    postChecksumsObjsToBeArchived: PostChecksumsObjectWithHash[],
+    postInfos: MinimalPostInfo[],
+    commonCtx: CommonArchivalContext
+) => {
+    await fs.mkdirp(path.join(commonCtx.archiveDir))
+    console.log(`Baking post pages locally to dir '${commonCtx.archiveDir}'`)
+
+    const manifests: Record<string, PostArchivalManifest> = {}
+
+    const postIds = postChecksumsObjsToBeArchived.map((c) => c.postId)
+    const latestArchivalVersions = await getLatestArchivedPostVersionsFromDb(
+        knex,
+        postIds
+    ).then((rows) => _.keyBy(rows, (v) => v.postId))
+
+    let i = 0
+    for (const postInfo of postInfos) {
+        i++
+
+        const checksumsObj = postChecksumsObjsToBeArchived.find(
+            (c) => c.postId === postInfo.postId
+        )
+        if (!checksumsObj)
+            throw new Error(
+                `Could not find checksums for post '${postInfo.postSlug}', this shouldn't happen`
+            )
+
+        await bakePostPageForArchival(knex, commonCtx.archiveDir, postInfo, {
+            ...commonCtx,
+            checksumsObj,
+            latestArchivalVersions,
+        }).then((manifest) => {
+            manifests[postInfo.postSlug] = manifest
+        })
+
+        console.log(`${i}/${postInfos.length} ${postInfo.postSlug}`)
+    }
+    console.log(`Baked ${postInfos.length} post pages`)
+
+    return { manifests }
+}
+
 export interface CommonArchivalContext {
     date: ArchivalTimestamp
     baseArchiveDir: string
@@ -569,6 +625,17 @@ interface MultiDimBakeContext extends CommonArchivalContext {
         Pick<
             DbPlainArchivedMultiDimVersion,
             "multiDimId" | "multiDimSlug" | "archivalTimestamp"
+        >
+    >
+}
+
+interface PostBakeContext extends CommonArchivalContext {
+    checksumsObj: PostChecksumsObjectWithHash
+    latestArchivalVersions: Record<
+        string,
+        Pick<
+            DbPlainArchivedPostVersion,
+            "postId" | "postSlug" | "archivalTimestamp"
         >
     >
 }
@@ -650,6 +717,74 @@ async function bakeGrapherPageForArchival(
         manifest,
         archiveInfo,
     })
+    return manifest
+}
+
+async function bakePostPageForArchival(
+    trx: db.KnexReadonlyTransaction,
+    dir: string,
+    postInfo: MinimalPostInfo,
+    ctx: PostBakeContext
+) {
+    const { postId, postSlug } = postInfo
+    const {
+        commonRuntimeFiles,
+        staticAssetMap,
+        checksumsObj,
+        date,
+        latestArchivalVersions,
+    } = ctx
+
+    if (!ARCHIVE_BASE_URL) throw new Error("ARCHIVE_BASE_URL is missing")
+
+    const runtimeFiles = { ...commonRuntimeFiles }
+
+    const manifest = await assemblePostManifest({
+        staticAssetMap,
+        runtimeAssetMap: runtimeFiles,
+        checksumsObj,
+        archivalDate: date.formattedDate,
+        postId,
+    })
+
+    const previousVersionInfo = latestArchivalVersions[postId] ?? undefined
+    const previousVersion: UrlAndMaybeDate | undefined = previousVersionInfo
+        ? {
+              date: previousVersionInfo.archivalTimestamp,
+              url: assemblePostArchivalUrl(
+                  previousVersionInfo.archivalTimestamp,
+                  previousVersionInfo.postSlug,
+                  { relative: true }
+              ),
+          }
+        : undefined
+
+    const archiveNavigation: ArchiveSiteNavigationInfo = {
+        liveUrl: `${PROD_URL}/${postSlug}`,
+        previousVersion,
+        versionsFileUrl: `/versions/posts/${postId}.json`,
+    }
+
+    const fullUrl = assemblePostArchivalUrl(date.formattedDate, postSlug, {
+        relative: false,
+    })
+
+    const archiveInfo: ArchiveMetaInformation = {
+        archivalDate: date.formattedDate,
+        archiveNavigation,
+        archiveUrl: fullUrl,
+        assets: {
+            runtime: runtimeFiles,
+            static: staticAssetMap,
+        },
+        type: "archive-page",
+    }
+
+    await bakeSinglePostPageForArchival(dir, postSlug, trx, {
+        manifest,
+        archiveContext: archiveInfo,
+    })
+
     return manifest
 }
 
@@ -923,5 +1058,55 @@ export async function generateExplorerVersionsFiles(
     )
     console.log(
         `Finished generating explorer versions files for ${explorerSlugs.length} explorers`
+    )
+}
+
+export async function generatePostVersionsFiles(
+    knex: db.KnexReadWriteTransaction,
+    dir: string,
+    postIds: string[]
+) {
+    console.log(`Generating post versions files for ${postIds.length} posts`)
+    const targetPath = path.join(dir, "versions", "posts")
+    await fs.mkdirp(targetPath)
+
+    await pMap(
+        postIds,
+        async (postId) => {
+            const postVersions = await getAllPostVersionsForId(
+                knex,
+                postId
+            ).then((rows) =>
+                rows.map((r) => ({
+                    archivalDate: convertToArchivalDateStringIfNecessary(
+                        r.archivalTimestamp
+                    ),
+                    url: assemblePostArchivalUrl(
+                        r.archivalTimestamp,
+                        r.postSlug,
+                        { relative: true }
+                    ),
+                    slug: r.postSlug,
+                }))
+            )
+
+            const fileContent = {
+                postId,
+                versions: postVersions,
+            }
+
+            await fs.writeFile(
+                path.join(targetPath, `${postId}.json`),
+                JSON.stringify(fileContent, undefined, 2),
+                {
+                    encoding: "utf8",
+                }
+            )
+        },
+        { concurrency: 10 }
+    )
+
+    console.log(
+        `Finished generating post versions files for ${postIds.length} posts`
     )
 }

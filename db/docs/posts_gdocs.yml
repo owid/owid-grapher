@@ -32,6 +32,8 @@ fields:
             - excerpt
             - subtitle
             - dateline
+    contentMd5:
+        description: Generated MD5 hash (base64) of the post content, used for change detection and archival deduplication
     authors:
         description: JSON array of post authors
     published:
