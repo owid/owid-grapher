@@ -140,10 +140,8 @@ export function getFeaturedImageFilename(gdoc: OwidGdoc): string | undefined {
         .with(
             {
                 content: {
-                    type: P.union(
-                        OwidGdocType.Fragment,
-                        OwidGdocType.Homepage,
-                        undefined
+                    type: P.optional(
+                        P.union(OwidGdocType.Fragment, OwidGdocType.Homepage)
                     ),
                 },
             },

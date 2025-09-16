@@ -81,10 +81,12 @@ function getPageDesc(gdoc: OwidGdocUnionType): string | undefined {
                 : undefined
         })
         .with(
-            { content: { type: P.union(OwidGdocType.Fragment, undefined) } },
-            () => {
-                return ""
-            }
+            {
+                content: {
+                    type: P.optional(P.union(OwidGdocType.Fragment)),
+                },
+            },
+            () => ""
         )
         .exhaustive()
 }

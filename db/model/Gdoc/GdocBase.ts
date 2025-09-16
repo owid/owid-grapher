@@ -1050,10 +1050,8 @@ export class GdocBase implements OwidGdocBaseInterface {
                 })
                 .with(
                     {
-                        linkType: P.union(
-                            ContentGraphLinkType.Url,
-                            undefined,
-                            null
+                        linkType: P.optional(
+                            P.union(ContentGraphLinkType.Url, null)
                         ),
                     },
                     () => {

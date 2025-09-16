@@ -110,7 +110,9 @@ export function getPrefixedGdocPath(
         )
         .with(
             {
-                content: { type: P.union(OwidGdocType.Fragment, undefined) },
+                content: {
+                    type: P.optional(P.union(OwidGdocType.Fragment)),
+                },
             },
             () => ""
         )
@@ -162,7 +164,7 @@ export function getPageTitle(gdoc: OwidGdoc) {
         .with(
             {
                 content: {
-                    type: P.union(OwidGdocType.Fragment, undefined),
+                    type: P.optional(P.union(OwidGdocType.Fragment, undefined)),
                 },
             },
             () => undefined
