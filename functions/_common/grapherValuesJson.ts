@@ -11,9 +11,11 @@ import {
 } from "@ourworldindata/types"
 import { excludeUndefined, omitUndefinedValues } from "@ourworldindata/utils"
 import { CoreColumn } from "@ourworldindata/core-table"
-import { GrapherState } from "./core/Grapher.js"
-import { makeChartState } from "./chart/ChartTypeMap.js"
-import { MapChartState } from "./mapCharts/MapChartState.js"
+import {
+    GrapherState,
+    makeChartState,
+    MapChartState,
+} from "@ourworldindata/grapher"
 
 export function constructGrapherValuesJson(
     grapherState: GrapherState,

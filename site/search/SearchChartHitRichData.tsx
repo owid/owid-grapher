@@ -1,20 +1,36 @@
 import { useMemo } from "react"
 import { runInAction } from "mobx"
 import cx from "classnames"
-import { useMediaQuery } from "usehooks-ts"
+import { useIntersectionObserver, useMediaQuery } from "usehooks-ts"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { match } from "ts-pattern"
-import { GrapherState } from "@ourworldindata/grapher"
+import {
+    GrapherState,
+    migrateGrapherConfigToLatestVersion,
+    WORLD_ENTITY_NAME,
+} from "@ourworldindata/grapher"
 import {
     EntityName,
     GRAPHER_TAB_NAMES,
+    GrapherInterface,
+    GrapherQueryParams,
     GrapherTabName,
+    GrapherValuesJson,
+    SearchChartHitDataTableContent,
 } from "@ourworldindata/types"
 import { Button } from "@ourworldindata/components"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
-import { SearchChartHitComponentProps } from "./searchTypes.js"
-import { useSearchChartHitData } from "./useSearchChartHitData.js"
-import { constructChartUrl, pickEntitiesForChartHit } from "./searchUtils.js"
+import {
+    ChartRecordType,
+    SearchChartHit,
+    SearchChartHitComponentProps,
+} from "./searchTypes.js"
+import {
+    constructChartUrl,
+    constructConfigUrl,
+    constructSearchTableUrl,
+    pickEntitiesForChartHit,
+} from "./searchUtils.js"
 import {
     configureGrapherStateFocus,
     configureGrapherStateForLayout,
@@ -23,7 +39,6 @@ import {
     getSortedGrapherTabsForChartHit,
     getTotalColumnCount,
     pickEntitiesForDisplay,
-    resetGrapherColors,
     getTableRowCountForGridSlot,
     makeSlotClassNames,
     findTableSlot,
@@ -48,6 +63,10 @@ import {
     calculateLargePreviewImageDimensions,
     calculateLargeVariantLayout,
 } from "./SearchChartHitRichDataLargeVariantHelpers.js"
+import { QueryStatus, useQuery } from "@tanstack/react-query"
+import { chartHitQueryKeys } from "./queries.js"
+import { fetchJson } from "@ourworldindata/utils"
+import { useQueryChartInfo } from "./SearchChartHitSmallHelpers.js"
 
 // Keep in sync with $num-rows-per-column in SearchChartHitRichData.scss
 const NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT = 4
@@ -68,7 +87,9 @@ export function SearchChartHitRichData({
 
     const isMediumScreen = useMediaQuery(MEDIUM_BREAKPOINT_MEDIA_QUERY)
 
-    const { ref, grapherState, status } = useSearchChartHitData(hit)
+    // Entities available for the chart
+    const availableEntities =
+        hit.originalAvailableEntities ?? hit.availableEntities
 
     // Entities selected by the user
     const pickedEntities = useMemo(
@@ -76,40 +97,72 @@ export function SearchChartHitRichData({
         [hit, selectedRegionNames]
     )
 
-    // The grapherState contains MobX observables. When observable values are modified,
-    // MobX automatically triggers reactions and recomputes derived values. To improve
-    // performance, we wrap all state modifications in runInAction() so that MobX
-    // batches all changes and only runs expensive computations (like transformTable)
-    // once at the end, rather than after each individual state change.
-    const layout = runInAction(() => {
-        // Find Grapher tabs to display and bring them in the right order
-        const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
+    // Intersection observer for lazy loading config and data
+    const { ref, isIntersecting: hasBeenVisible } = useIntersectionObserver({
+        rootMargin: "400px", // Start loading 400px before visible
+        freezeOnceVisible: true, // Only trigger once
+    })
 
-        // Choose the entities to display
-        const displayEntities = pickEntitiesForDisplay(grapherState, {
-            pickedEntities,
-        })
+    // Fetch the grapher config
+    const { data: chartConfig, status: loadingStatusConfig } =
+        useQueryChartConfig(hit, { enabled: hasBeenVisible })
 
-        // Bring Grapher into the right state for this search result:
-        // - Set the tab to the leftmost tab in the sorted list
-        // - Select the entities determined for this search result
-        // - Highlight the entity (or entities) the user picked
+    // Fetch chart info and data values
+    const entityForDataDisplay = pickedEntities[0] ?? WORLD_ENTITY_NAME
+    const { data: chartInfo } = useQueryChartInfo({
+        hit,
+        entities: [entityForDataDisplay],
+        enabled: hasBeenVisible,
+    })
+
+    // Init the grapher state and update its data
+    const grapherState = useMemo(
+        () => new GrapherState(chartConfig ?? { isConfigReady: false }),
+        [chartConfig]
+    )
+
+    // Choose the entities to display
+    const displayEntities = pickEntitiesForDisplay(grapherState, {
+        pickedEntities,
+        availableEntities,
+    })
+
+    // Find Grapher tabs to display and bring them in the right order
+    const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
+
+    // Bring Grapher into the right state for this search result:
+    // - Set the tab to the leftmost tab in the sorted list
+    // - Select the entities determined for this search result
+    // - Highlight the entity (or entities) the user picked
+    runInAction(() => {
         configureGrapherStateTab(grapherState, { tab: sortedTabs[0] })
         configureGrapherStateSelection(grapherState, {
             entities: displayEntities,
         })
         configureGrapherStateFocus(grapherState, { entities: pickedEntities })
+    })
 
-        // Place Grapher tabs into grid layout and calculate info for data display
-        const layout = calculateLayout(variant, grapherState, {
-            sortedTabs,
-            entityForDataDisplay: pickedEntities[0],
-            numDataTableRowsPerColumn,
-        })
+    // Fetch the data table's content
+    const initialDataTableContentResponse = useQueryDataTableContent(
+        hit,
+        grapherState.changedParams,
+        undefined,
+        { enabled: grapherState.isConfigReady }
+    )
 
-        // We might need to adjust entity selection and focus according to the chosen layout
-        const tableSlot = findTableSlot(layout)
-        if (layout && tableSlot) {
+    // Place Grapher tabs into grid layout and calculate info for data display
+    const layout = calculateLayout(variant, grapherState, {
+        chartInfo,
+        dataTableContent: initialDataTableContentResponse.data,
+        sortedTabs,
+        entityForDataDisplay,
+        numDataTableRowsPerColumn,
+    })
+    const tableSlot = findTableSlot(layout)
+
+    // We might need to adjust entity selection and focus according to the chosen layout
+    if (layout && tableSlot)
+        runInAction(() => {
             configureGrapherStateForLayout(grapherState, {
                 dataTableContent: layout.dataTableContent,
                 numAvailableDataTableRows: getTableRowCountForGridSlot(
@@ -119,14 +172,21 @@ export function SearchChartHitRichData({
                 maxNumEntitiesInStackedDiscreteBarChart:
                     variant === "large" ? 12 : 6,
             })
-        }
+        })
 
-        // Reset the persisted color map to make sure the data table
-        // and thumbnails use the some colors for the same entities
-        resetGrapherColors(grapherState)
+    // Fetch the data table's content
+    const maxRows = tableSlot
+        ? getTableRowCountForGridSlot(tableSlot, numDataTableRowsPerColumn)
+        : undefined
+    const { data: dataTableContent, status: loadingStatusTableContent } =
+        useQueryDataTableContent(hit, grapherState.changedParams, maxRows, {
+            enabled: initialDataTableContentResponse.status === "success",
+        })
 
-        return layout
-    })
+    const status = combineStatuses(
+        loadingStatusConfig,
+        loadingStatusTableContent
+    )
 
     // Render the fallback component if config or data loading failed
     if (status === "error") {
@@ -164,13 +224,17 @@ export function SearchChartHitRichData({
     const sourcesUrl = constructChartUrl({ hit, overlay: "sources" })
     const downloadUrl = constructChartUrl({ hit, overlay: "download-data" })
 
+    const source = chartInfo
+        ? { text: chartInfo.source, url: sourcesUrl }
+        : undefined
+
     return (
         <div ref={ref} className="search-chart-hit-rich-data">
             <div className="search-chart-hit-rich-data__header">
                 <SearchChartHitHeader
                     hit={hit}
                     url={chartUrl}
-                    source={{ text: grapherState.sourcesLine, url: sourcesUrl }}
+                    source={source}
                     showLogo={isLargeVariant}
                     onClick={onClick}
                 />
@@ -223,19 +287,16 @@ export function SearchChartHitRichData({
                             imageHeight,
                         })
 
-                    const maxRows = getTableRowCountForGridSlot(
-                        slot,
-                        numDataTableRowsPerColumn
-                    )
-
                     const className = makeSlotClassNames(variant, slot)
 
                     return tab === GRAPHER_TAB_NAMES.Table ? (
                         <CaptionedTable
                             key={tab}
                             chartUrl={chartUrl}
-                            grapherState={grapherState}
-                            maxRows={maxRows}
+                            dataTableContent={dataTableContent}
+                            numAvailableEntities={availableEntities.length}
+                            entityType={grapherState.entityType}
+                            entityTypePlural={grapherState.entityTypePlural}
                             className={className}
                             onClick={() => onClick(tab)}
                         />
@@ -341,10 +402,20 @@ function GrapherThumbnailPlaceholder({
     )
 }
 
+function combineStatuses(...statuses: QueryStatus[]): QueryStatus {
+    return statuses.includes("error")
+        ? "error"
+        : statuses.includes("loading")
+          ? "loading"
+          : "success"
+}
+
 function calculateLayout(
     variant: RichDataComponentVariant,
     grapherState: GrapherState,
     args: {
+        chartInfo?: GrapherValuesJson
+        dataTableContent?: SearchChartHitDataTableContent
         sortedTabs: GrapherTabName[]
         entityForDataDisplay?: EntityName
         numDataTableRowsPerColumn: number
@@ -354,4 +425,73 @@ function calculateLayout(
         .with("large", () => calculateLargeVariantLayout(grapherState, args))
         .with("medium", () => calculateMediumVariantLayout(grapherState, args))
         .exhaustive()
+}
+
+/** Fetches the Grapher config for a given chart hit */
+function useQueryChartConfig(
+    hit: SearchChartHit,
+    { enabled }: { enabled?: boolean } = {}
+): {
+    data?: GrapherInterface
+    status: QueryStatus
+} {
+    const isChartRecord = hit.type === ChartRecordType.Chart
+
+    const { data: fetchedChartConfig, status } = useQuery({
+        queryKey: chartHitQueryKeys.chartConfig(
+            hit.slug,
+            isChartRecord ? undefined : hit.queryParams
+        ),
+        queryFn: () => {
+            const configUrl = constructConfigUrl({ hit })
+            if (!configUrl) return null
+            return fetchJson<GrapherInterface>(configUrl)
+        },
+        enabled,
+    })
+
+    // If the result is null, the query URL couldn't be constructed. In this
+    // case, return an error status instead of a success status with null data
+    if (fetchedChartConfig === null) return { status: "error" }
+
+    const chartConfig = fetchedChartConfig
+        ? migrateGrapherConfigToLatestVersion(fetchedChartConfig)
+        : undefined
+
+    return { data: chartConfig, status }
+}
+
+function useQueryDataTableContent(
+    hit: SearchChartHit,
+    grapherParams: GrapherQueryParams,
+    maxRows: number | undefined,
+    { enabled }: { enabled?: boolean }
+): {
+    data?: SearchChartHitDataTableContent
+    status: QueryStatus
+} {
+    const { data: dataTableContent, status } = useQuery({
+        queryKey: chartHitQueryKeys.tableContent(
+            hit.slug,
+            hit.type === ChartRecordType.Chart ? undefined : hit.queryParams,
+            grapherParams,
+            maxRows
+        ),
+        queryFn: () => {
+            const configUrl = constructSearchTableUrl({
+                hit,
+                grapherParams,
+                maxRows,
+            })
+            if (!configUrl) return null
+            return fetchJson<SearchChartHitDataTableContent>(configUrl)
+        },
+        enabled,
+    })
+
+    // If the result is null, the query URL couldn't be constructed. In this
+    // case, return an error status instead of a success status with null data
+    if (dataTableContent === null) return { status: "error" }
+
+    return { data: dataTableContent, status }
 }
