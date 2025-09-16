@@ -142,7 +142,7 @@ export const LatestPage = (props: {
     numPages: number
     baseUrl: string
 }) => {
-    const { pageNum, numPages, baseUrl, posts } = props
+    const { pageNum, baseUrl, posts } = props
     const pageTitle = "Latest"
 
     return (
