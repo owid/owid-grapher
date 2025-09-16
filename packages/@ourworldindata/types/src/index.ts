@@ -857,7 +857,10 @@ export {
     type ExplorerChecksums,
     type ExplorerChecksumsObjectWithHash,
 } from "./domainTypes/Archive.js"
-export { type AdditionalGrapherDataFetchFn } from "./grapherTypes/GrapherTypes.js"
+export {
+    type AdditionalGrapherDataFetchFn,
+    type GrapherTrendArrowDirection,
+} from "./grapherTypes/GrapherTypes.js"
 
 export {
     logBinningStrategies,
@@ -877,4 +880,10 @@ export {
     type GrapherValuesJson,
     type GrapherValuesJsonDataPoints,
     type GrapherValuesJsonDataPoint,
-} from "./endpointTypes/GrapherEndpoints.js"
+} from "./endpointTypes/GrapherValuesJson.js"
+
+export {
+    type SearchChartHitDataTableContent,
+    type SearchChartHitDataTableProps,
+    type SearchChartHitDataPointsProps,
+} from "./endpointTypes/SearchResultsTableJson.js"

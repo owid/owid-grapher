@@ -20,6 +20,7 @@ import {
     assembleCsv,
     assembleDataValues,
     assembleReadme,
+    assembleSearchResultsTable,
     ensureDownloadOfDataAllowed,
     findEntityForExtractingDataValues,
     prepareSearchParamsBeforeExtractingDataValues,
@@ -260,6 +261,34 @@ export async function fetchDataValuesForExplorerView(
         const { grapherState } = await initGrapherForExplorerView(env, options)
         const dataValues = assembleDataValues(grapherState, entityName)
         return Response.json(dataValues)
+    } catch (e) {
+        console.error(e)
+        return error(500, e)
+    }
+}
+
+export async function fetchSearchResultsTableForExplorerView(
+    searchParams: URLSearchParams,
+    env: Env
+) {
+    const options = extractOptions(searchParams)
+
+    const url = env.url
+    url.href = url.href.replace(extensions.searchResultsTable, "")
+
+    const maxRows = searchParams.has("tableMaxRows")
+        ? parseInt(searchParams.get("tableMaxRows"))
+        : undefined
+
+    try {
+        const { grapherState } = await initGrapherForExplorerView(env, options)
+        const searchResultsTable = assembleSearchResultsTable(
+            grapherState,
+            maxRows
+        )
+        if (searchResultsTable === undefined)
+            return error(500, "Unable to generate search results table")
+        return Response.json(searchResultsTable)
     } catch (e) {
         console.error(e)
         return error(500, e)

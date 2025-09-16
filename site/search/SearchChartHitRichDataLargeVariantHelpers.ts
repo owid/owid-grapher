@@ -1,6 +1,9 @@
 import { match } from "ts-pattern"
-import { GRAPHER_TAB_NAMES, GrapherTabName } from "@ourworldindata/types"
-import { buildChartHitDataTableContent } from "./SearchChartHitDataTableHelpers"
+import {
+    GRAPHER_TAB_NAMES,
+    GrapherTabName,
+    SearchChartHitDataTableContent,
+} from "@ourworldindata/types"
 import {
     GRAPHER_THUMBNAIL_HEIGHT,
     GRAPHER_THUMBNAIL_WIDTH,
@@ -13,14 +16,17 @@ import {
 } from "./SearchChartHitRichDataTypes.js"
 
 export function calculateLargeVariantLayout(
-    grapherState: GrapherState,
+    _grapherState: GrapherState,
     {
+        dataTableContent,
         sortedTabs,
         numDataTableRowsPerColumn,
-    }: { sortedTabs: GrapherTabName[]; numDataTableRowsPerColumn: number }
+    }: {
+        dataTableContent?: SearchChartHitDataTableContent
+        sortedTabs: GrapherTabName[]
+        numDataTableRowsPerColumn: number
+    }
 ): Layout<LargeVariantGridSlot> | undefined {
-    // Build the data table props
-    const dataTableContent = buildChartHitDataTableContent({ grapherState })
     if (!dataTableContent) return undefined
 
     // Figure out the layout by assigning each Grapher tab to grid slots
