@@ -27,6 +27,7 @@ import {
     GrapherTrendArrowDirection,
     PrimitiveType,
     SearchChartHitDataTableContent,
+    SearchChartHitDataTableProps,
     SeriesStrategy,
 } from "@ourworldindata/types"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
@@ -195,9 +196,13 @@ function buildDataTableContentForLineChart({
     // Sort by value in descending order
     rows = _.orderBy(rows, [(row) => row.point.y], "desc")
 
-    const title = makeTableTitle(grapherState, chartState, formatColumn)
-
-    return { type: "data-table", props: { rows, title } }
+    return {
+        type: "data-table",
+        props: {
+            rows: rows.map((row) => _.omit(row, ["series", "point"])),
+            title: makeTableTitle(grapherState, chartState, formatColumn),
+        },
+    }
 }
 
 function buildDataTableContentForDiscreteBarChart({
@@ -217,9 +222,13 @@ function buildDataTableContentForDiscreteBarChart({
         muted: series.focus.background,
     }))
 
-    const title = makeTableTitle(grapherState, chartState, formatColumn)
-
-    return { type: "data-table", props: { rows, title } }
+    return {
+        type: "data-table",
+        props: {
+            rows: rows.map((row) => _.omit(row, ["series"])),
+            title: makeTableTitle(grapherState, chartState, formatColumn),
+        },
+    }
 }
 
 function buildDataTableContentForSlopeChart({
@@ -279,7 +288,7 @@ function buildDataTableContentForStackedDiscreteBarChart({
         .with("single-dimensional", () => {
             const series = chartState.series[0]
 
-            const rows = series.points
+            let rows = series.points
                 .map((point) => {
                     if (point.fake || point.interpolated) return undefined
                     return {
@@ -296,17 +305,16 @@ function buildDataTableContentForStackedDiscreteBarChart({
                 })
                 .filter((row) => row !== undefined)
 
-            const sortedRows = _.orderBy(
-                rows,
-                [(row) => row.point.value],
-                ["desc"]
-            )
+            rows = _.orderBy(rows, [(row) => row.point.value], ["desc"])
 
             const columnName = getColumnNameForDisplay(formatColumn)
             const unit = getColumnUnitForDisplay(formatColumn)
             const title = unit ? `${columnName} (${unit})` : columnName
 
-            return { rows: sortedRows, title }
+            return {
+                rows: rows.map((row) => _.omit(row, ["point"])),
+                title,
+            }
         })
 
         // In multi-dimensional mode, each row represents a column (for the same entity)
@@ -321,7 +329,12 @@ function buildDataTableContentForStackedDiscreteBarChart({
                 : undefined
             const item = focusedItem ?? chartState.sortedItems[0]
 
-            let rows = item?.bars
+            type TableRow = SearchChartHitDataTableProps["rows"][number] & {
+                columnSlug: string
+                sortValue?: number
+            }
+
+            let rows: TableRow[] = item?.bars
                 .map((bar) => {
                     const point = bar.point
                     if (point.fake || point.interpolated) return undefined
@@ -365,12 +378,17 @@ function buildDataTableContentForStackedDiscreteBarChart({
                                 column.displayName
                             ),
                             value: "No data",
-                        } as any // TODO: fix type
+                        }
                     })
                 )
             }
 
-            return { rows, title: item.entityName }
+            return {
+                rows: rows.map((row) =>
+                    _.omit(row, ["columnSlug", "sortValue"])
+                ),
+                title: item.entityName,
+            }
         })
         .exhaustive()
 
@@ -543,9 +561,13 @@ function buildValueTableContentForMarimekko({
     // Sort by value in descending order
     rows = _.orderBy(rows, [(row) => row.point.value], "desc")
 
-    const title = makeTableTitle(grapherState, chartState, formatColumn)
-
-    return { type: "data-table", props: { rows, title } }
+    return {
+        type: "data-table",
+        props: {
+            rows: rows.map((row) => _.omit(row, ["point"])),
+            title: makeTableTitle(grapherState, chartState, formatColumn),
+        },
+    }
 }
 
 function buildDataTableContentForScatterPlot({
@@ -796,9 +818,16 @@ function buildDataTableContentForWorldMap({
         )
     }
 
-    const title = makeTableTitle(grapherState, chartState, formatColumn)
-
-    return { type: "data-table", props: { rows, title }, isLegend: true }
+    return {
+        type: "data-table",
+        props: {
+            rows: rows.map((row) =>
+                _.omit(row, ["bin", "numSeriesContainedInBin"])
+            ),
+            title: makeTableTitle(grapherState, chartState, formatColumn),
+        },
+        isLegend: true,
+    }
 }
 
 // Only used to build a data table when Grapher has neither a chart
