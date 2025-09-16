@@ -8,9 +8,11 @@ import {
     GRAPHER_TAB_NAMES,
     GrapherQueryParams,
     GrapherTabName,
+    SearchChartHitDataPointsProps,
+    SearchChartHitDataTableContent,
+    SearchChartHitDataTableProps,
     SeriesStrategy,
 } from "@ourworldindata/types"
-import { SearchChartHitDataTableContent } from "./SearchChartHitDataTableHelpers"
 import {
     generateFocusedSeriesNamesParam,
     generateSelectedEntityNamesParam,
@@ -20,8 +22,6 @@ import {
     StackedDiscreteBarChartState,
     WORLD_ENTITY_NAME,
 } from "@ourworldindata/grapher"
-import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable"
-import { SearchChartHitDataPointsProps } from "./SearchChartHitDataPoints"
 import {
     GridSlot,
     LargeVariantGridSlot,
@@ -102,18 +102,15 @@ export function getSortedGrapherTabsForChartHit(
 
 export function pickEntitiesForDisplay(
     grapherState: GrapherState,
-    { pickedEntities }: { pickedEntities: EntityName[] }
+    {
+        pickedEntities,
+        availableEntities,
+    }: { pickedEntities: EntityName[]; availableEntities: EntityName[] }
 ): EntityName[] {
     // Original chart config before search customizations
     // (entity selection, tab switching, etc.)
     const originalGrapherState = grapherState.authorsVersion
-
-    // Make sure the default entities actually exist in the chart
-    const defaultEntities = originalGrapherState.selectedEntityNames.filter(
-        (entityName) =>
-            grapherState.table.availableEntityNameSet.has(entityName)
-    )
-    const availableEntities = new Set(grapherState.availableEntityNames)
+    const defaultEntities = originalGrapherState.selectedEntityNames
 
     return match(originalGrapherState.addCountryMode)
         .with(EntitySelectionMode.Disabled, () => {
@@ -137,12 +134,6 @@ export function pickEntitiesForDisplay(
             const { seriesStrategy = SeriesStrategy.entity } =
                 originalGrapherState.chartState
             const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
-
-            // Use the author's explicitly selected facet strategy if available,
-            // otherwise fall back to the computed one. This is necessary because
-            // the authorsVersion state we're working with here lacks the data table
-            // that facetStrategy computation requires, so the computed value may be
-            // incorrect.
             const facetStrategy =
                 originalGrapherState.selectedFacetStrategy ??
                 originalGrapherState.facetStrategy
@@ -212,8 +203,10 @@ export function pickEntitiesForDisplay(
  */
 export function pickComparisonEntities(
     entity: EntityName,
-    availableEntities: Set<EntityName>
+    availableEntities: EntityName[]
 ): EntityName[] {
+    const availableEntitySet = new Set(availableEntities)
+
     const comparisonEntities = new Set<EntityName>()
 
     // Can't determine comparison entities for non-geographical entities
@@ -223,11 +216,11 @@ export function pickComparisonEntities(
     // Compare World to any other aggregate entity (e.g. continents or income groups)
     if (entity === WORLD_ENTITY_NAME)
         return [...getContinents(), ...getIncomeGroups(), ...getAggregates()]
-            .filter((aggregate) => availableEntities.has(aggregate.name))
+            .filter((aggregate) => availableEntitySet.has(aggregate.name))
             .map((aggregate) => aggregate.name)
 
     // Always include World as a comparison if available
-    if (availableEntities.has(WORLD_ENTITY_NAME))
+    if (availableEntitySet.has(WORLD_ENTITY_NAME))
         comparisonEntities.add(WORLD_ENTITY_NAME)
 
     if (checkIsCountry(region)) {
@@ -235,14 +228,14 @@ export function pickComparisonEntities(
         // Example: Germany -> Europe, Europe (WHO), High income countries
         const regions = getParentRegions(region.name)
         for (const region of regions)
-            if (availableEntities.has(region.name))
+            if (availableEntitySet.has(region.name))
                 comparisonEntities.add(region.name)
     } else {
         // For aggregate regions: add sibling regions at the same hierarchical level
         // Example: Europe -> Asia, Africa, North America (other continents)
         const siblings = getSiblingRegions(region.name)
         for (const sibling of siblings) {
-            if (availableEntities.has(sibling.name))
+            if (availableEntitySet.has(sibling.name))
                 comparisonEntities.add(sibling.name)
         }
     }

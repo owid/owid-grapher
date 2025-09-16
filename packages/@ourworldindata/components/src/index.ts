@@ -68,7 +68,4 @@ export { LoadingIndicator } from "./loadingIndicator/LoadingIndicator.js"
 export { reactRenderToStringClientOnly } from "./reactUtil.js"
 
 export { GrapherTabIcon } from "./GrapherTabIcon.js"
-export {
-    GrapherTrendArrow,
-    type GrapherTrendArrowDirection,
-} from "./GrapherTrendArrow.js"
+export { GrapherTrendArrow } from "./GrapherTrendArrow.js"

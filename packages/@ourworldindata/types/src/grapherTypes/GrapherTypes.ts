@@ -733,3 +733,5 @@ export type AdditionalGrapherDataFetchFn = (
     varId: OwidVariableId,
     loadMetadataOnly?: boolean
 ) => Promise<OwidVariableDataMetadataDimensions>
+
+export type GrapherTrendArrowDirection = "up" | "right" | "down"

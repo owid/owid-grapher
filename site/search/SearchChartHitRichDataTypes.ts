@@ -1,6 +1,8 @@
-import { GrapherTabName } from "@ourworldindata/types"
+import {
+    GrapherTabName,
+    SearchChartHitDataTableContent,
+} from "@ourworldindata/types"
 import { SearchChartHitDataDisplayProps } from "./SearchChartHitDataDisplay.js"
-import { SearchChartHitDataTableContent } from "./SearchChartHitDataTableHelpers.js"
 import { SearchChartHitComponentVariant } from "./searchTypes.js"
 
 export type RichDataComponentVariant = Extract<

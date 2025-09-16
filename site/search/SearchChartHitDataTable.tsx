@@ -1,28 +1,7 @@
 import cx from "classnames"
 import * as R from "remeda"
-import {
-    GrapherTrendArrow,
-    GrapherTrendArrowDirection,
-} from "@ourworldindata/components"
-
-interface TableRow {
-    seriesName?: string // useful internally, but not displayed in the UI (not necessarily unique)
-    label: string
-    color?: string
-    value?: string
-    startValue?: string
-    time?: string
-    timePreposition?: string // defaults to 'in'
-    muted?: boolean
-    striped?: boolean | "no-data"
-    outlined?: boolean
-    trend?: GrapherTrendArrowDirection // only relevant if startValue is given
-}
-
-export interface SearchChartHitDataTableProps {
-    rows: TableRow[]
-    title: string
-}
+import { SearchChartHitDataTableProps } from "@ourworldindata/types"
+import { GrapherTrendArrow } from "@ourworldindata/components"
 
 export function SearchChartHitDataTable({
     rows,
@@ -90,7 +69,7 @@ function Row({
     shouldShowSwatch = true,
     shouldSpanBothColumns,
 }: {
-    row: TableRow
+    row: SearchChartHitDataTableProps["rows"][number]
     shouldShowSwatch?: boolean
     shouldSpanBothColumns: boolean
 }): React.ReactElement {

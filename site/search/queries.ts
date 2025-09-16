@@ -1,5 +1,9 @@
 import * as R from "remeda"
-import { OwidGdocType, TagGraphRoot } from "@ourworldindata/types"
+import {
+    GrapherQueryParams,
+    OwidGdocType,
+    TagGraphRoot,
+} from "@ourworldindata/types"
 import { SearchClient } from "algoliasearch"
 import {
     SearchState,
@@ -66,9 +70,12 @@ export const chartHitQueryKeys = {
         ["chart-info", slug, entities, queryParams] as const,
     chartConfig: (slug: string, queryParams?: string) =>
         ["chart-config", slug, queryParams] as const,
-    chartData: (slug: string, queryParams?: string) =>
-        ["chart-data", slug, queryParams] as const,
-    mdimConfig: (slug: string) => ["mdim-config", slug] as const,
+    tableContent: (
+        slug: string,
+        queryParams?: string,
+        grapherParams?: GrapherQueryParams,
+        maxRows?: number
+    ) => ["table-content", slug, queryParams, grapherParams, maxRows] as const,
 } as const
 
 export async function queryDataTopics(
