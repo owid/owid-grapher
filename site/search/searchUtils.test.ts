@@ -35,6 +35,7 @@ describe("Fuzzy search in search autocomplete", () => {
     ]
 
     const sortOptions = { threshold: 0.75, limit: 3 }
+    const sortOptionsNgrams = { threshold: 0.75, limit: 1 }
 
     beforeEach(() => {
         // Create a mock synonym map with test data
@@ -272,6 +273,7 @@ describe("Fuzzy search in search autocomplete", () => {
                 mockTopics,
                 new Set(),
                 new Set(),
+                sortOptionsNgrams,
                 synonymMap
             )
 
@@ -290,6 +292,7 @@ describe("Fuzzy search in search autocomplete", () => {
                 mockTopics,
                 new Set(),
                 new Set(),
+                sortOptionsNgrams,
                 synonymMap
             )
 
@@ -309,6 +312,7 @@ describe("Fuzzy search in search autocomplete", () => {
                 mockTopics,
                 new Set(),
                 new Set(),
+                sortOptionsNgrams,
                 synonymMap
             )
 
@@ -324,6 +328,7 @@ describe("Fuzzy search in search autocomplete", () => {
                 mockTopics,
                 new Set(),
                 new Set(),
+                sortOptionsNgrams,
                 synonymMap
             )
 
@@ -339,6 +344,7 @@ describe("Fuzzy search in search autocomplete", () => {
                 mockTopics,
                 new Set(),
                 new Set(),
+                sortOptionsNgrams,
                 synonymMap
             )
 
@@ -346,8 +352,8 @@ describe("Fuzzy search in search autocomplete", () => {
             expect(result[0].name).toBe("Artificial Intelligence")
             expect(result[1].name).toBe("United States")
             // Check that original positions take stop words into account
-            expect(result[0].originalPositions).toEqual([0, 1])
-            expect(result[1].originalPositions).toEqual([4, 5])
+            expect(result[0].positions).toEqual([0, 1])
+            expect(result[1].positions).toEqual([4, 5])
         })
 
         it("should handle stop words at beginning and end", () => {
@@ -357,13 +363,14 @@ describe("Fuzzy search in search autocomplete", () => {
                 mockTopics,
                 new Set(),
                 new Set(),
+                sortOptionsNgrams,
                 synonymMap
             )
 
             expect(result).toHaveLength(1)
             expect(result[0].name).toBe("United States")
             // Should match positions [1, 2] (skipping "the" at start)
-            expect(result[0].originalPositions).toEqual([1, 2])
+            expect(result[0].positions).toEqual([1, 2])
         })
 
         it("should filter out already selected countries and topics", () => {
@@ -376,27 +383,29 @@ describe("Fuzzy search in search autocomplete", () => {
                 mockTopics,
                 selectedCountries,
                 selectedTopics,
+                sortOptionsNgrams,
                 synonymMap
             )
 
             // Should not return already selected items
             expect(result).toHaveLength(0)
         })
-        ;(it("should only return covering matches for countries"),
-            () => {
-                const result = findMatchesWithNgrams(
-                    "east germany",
-                    ["East Timor", "Germany"],
-                    mockTopics,
-                    new Set(),
-                    new Set(),
-                    synonymMap
-                )
 
-                // Should only return "Germany", since "east" doesn't cover "East Timor"
-                expect(result).toHaveLength(1)
-                expect(result[0].name).toBe("Germany")
-            })
+        it("should only return exact matches when asked", () => {
+            const result = findMatchesWithNgrams(
+                "east germany",
+                ["East Timor", "Germany"],
+                mockTopics,
+                new Set(),
+                new Set(),
+                { threshold: 1, limit: 1 },
+                synonymMap
+            )
+
+            // Should only return "Germany", since "east" doesn't exactly match "East Timor"
+            expect(result).toHaveLength(1)
+            expect(result[0].name).toBe("Germany")
+        })
 
         it("should find the longest matches in complex overlapping scenarios", () => {
             // Create a complex scenario with multiple overlapping possibilities
@@ -416,6 +425,7 @@ describe("Fuzzy search in search autocomplete", () => {
                 complexTopics,
                 new Set(),
                 new Set(),
+                sortOptionsNgrams,
                 synonymMap
             )
 
@@ -440,6 +450,7 @@ describe("Fuzzy search in search autocomplete", () => {
                 testTopics,
                 new Set(),
                 new Set(),
+                sortOptionsNgrams,
                 synonymMap
             )
             expect(result).toHaveLength(0)

@@ -7,6 +7,8 @@ import {
     getSearchAutocompleteId,
     getSearchAutocompleteItemId,
     getFilterAriaLabel,
+    splitIntoWords,
+    isNotStopWord,
 } from "./searchUtils.js"
 import { useSearchAutocomplete } from "./SearchAutocompleteContext.js"
 import { SearchAutocompleteItemContents } from "./SearchAutocompleteItemContents.js"
@@ -88,6 +90,10 @@ export const SearchAutocomplete = ({
                 })
             }
 
+            const unmatchedQueryNoStopWords = splitIntoWords(unmatchedQuery)
+                .filter(isNotStopWord)
+                .join(" ")
+
             match(filter.type)
                 // What readers see in each autocomplete suggestion is decoupled
                 // from what happens when they click on one:
@@ -109,7 +115,7 @@ export const SearchAutocomplete = ({
                 .with(FilterType.COUNTRY, () => {
                     logSearchAutocompleteClick()
                     addCountry(filter.name)
-                    setQueries(unmatchedQuery)
+                    setQueries(unmatchedQueryNoStopWords)
                 })
                 .with(FilterType.TOPIC, () => {
                     logSearchAutocompleteClick()
