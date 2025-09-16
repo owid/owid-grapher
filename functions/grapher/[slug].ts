@@ -4,6 +4,7 @@ import {
     fetchDataValuesForGrapher,
     fetchMetadataForGrapher,
     fetchReadmeForGrapher,
+    fetchSearchResultsTableForGrapher,
     fetchZipForGrapher,
 } from "../_common/downloadFunctions.js"
 import { handleThumbnailRequest } from "../_common/reusableHandlers.js"
@@ -90,6 +91,15 @@ router
         `/grapher/:slug${extensions.values}`,
         async ({ params: { slug } }, { searchParams }, env) =>
             fetchDataValuesForGrapher(
+                { type: "slug", id: slug },
+                env,
+                searchParams
+            )
+    )
+    .get(
+        `/grapher/:slug${extensions.searchResultsTable}`,
+        async ({ params: { slug } }, { searchParams }, env) =>
+            fetchSearchResultsTableForGrapher(
                 { type: "slug", id: slug },
                 env,
                 searchParams

@@ -165,6 +165,7 @@ describe(pickEntitiesForDisplay, () => {
 
             const displayEntities = pickEntitiesForDisplay(grapherState, {
                 pickedEntities,
+                availableEntities: grapherState.availableEntityNames,
             })
 
             expect(displayEntities).toEqual(defaultEntities)
@@ -183,6 +184,7 @@ describe(pickEntitiesForDisplay, () => {
 
                 const displayEntities = pickEntitiesForDisplay(grapherState, {
                     pickedEntities,
+                    availableEntities: grapherState.availableEntityNames,
                 })
 
                 expect(displayEntities).toEqual(pickedEntities)
@@ -199,6 +201,7 @@ describe(pickEntitiesForDisplay, () => {
 
             const displayEntities = pickEntitiesForDisplay(grapherState, {
                 pickedEntities,
+                availableEntities: grapherState.availableEntityNames,
             })
 
             expect(displayEntities).toEqual([pickedEntities[0]])
@@ -212,6 +215,7 @@ describe(pickEntitiesForDisplay, () => {
 
             const displayEntities = pickEntitiesForDisplay(grapherState, {
                 pickedEntities: [],
+                availableEntities: grapherState.availableEntityNames,
             })
 
             expect(displayEntities).toEqual([defaultEntities[0]])
@@ -228,6 +232,7 @@ describe(pickEntitiesForDisplay, () => {
 
             const displayEntities = pickEntitiesForDisplay(grapherState, {
                 pickedEntities,
+                availableEntities: grapherState.availableEntityNames,
             })
 
             expect(displayEntities).toEqual(pickedEntities)
@@ -242,6 +247,7 @@ describe(pickEntitiesForDisplay, () => {
 
             const displayEntities = pickEntitiesForDisplay(grapherState, {
                 pickedEntities: [],
+                availableEntities: grapherState.availableEntityNames,
             })
 
             expect(displayEntities).toEqual([defaultEntities[0]])
@@ -260,6 +266,7 @@ describe(pickEntitiesForDisplay, () => {
 
             const displayEntities = pickEntitiesForDisplay(grapherState, {
                 pickedEntities,
+                availableEntities: grapherState.availableEntityNames,
             })
 
             expect(displayEntities).toEqual(pickedEntities)
@@ -273,6 +280,7 @@ describe(pickEntitiesForDisplay, () => {
 
             const displayEntities = pickEntitiesForDisplay(grapherState, {
                 pickedEntities,
+                availableEntities: grapherState.availableEntityNames,
             })
 
             expect(displayEntities).toEqual([
@@ -289,6 +297,7 @@ describe(pickEntitiesForDisplay, () => {
 
             const displayEntities = pickEntitiesForDisplay(grapherState, {
                 pickedEntities,
+                availableEntities: grapherState.availableEntityNames,
             })
 
             expect(displayEntities).toEqual([
