@@ -4,29 +4,37 @@ import {
     ArchivedChartVersionsTableName,
     ArchivedMultiDimVersionsTableName,
     ArchivedExplorerVersionsTableName,
+    ArchivedPostsGdocsVersionsTableName,
     ArchivedPageVersion,
     DbInsertArchivedChartVersion,
     DbInsertArchivedMultiDimVersion,
     DbInsertArchivedExplorerVersion,
+    DbInsertArchivedPostsGdocsVersion,
     DbPlainArchivedChartVersion,
     DbPlainMultiDimDataPage,
     DbPlainArchivedMultiDimVersion,
     DbPlainArchivedExplorerVersion,
+    DbPlainArchivedPostsGdocsVersion,
     DbPlainExplorer,
     JsonString,
     MultiDimDataPagesTableName,
     MultiDimDataPageConfigEnriched,
     ExplorersTableName,
+    PostsGdocsTableName,
     GrapherChecksumsObjectWithHash,
     GrapherChecksums,
     MultiDimChecksums,
     MultiDimChecksumsObjectWithHash,
     ExplorerChecksums,
     ExplorerChecksumsObjectWithHash,
+    GdocPostChecksums,
+    GdocPostChecksumsObjectWithHash,
     ExplorerVariablesTableName,
     DbPlainExplorerVariable,
     VariablesTableName,
     DbRawVariable,
+    DbRawPostGdoc,
+    OwidGdocType,
     parseChartConfig,
 } from "@ourworldindata/types"
 import * as db from "../../db.js"
@@ -41,9 +49,11 @@ import {
     assembleGrapherArchivalUrl,
     assembleMultiDimArchivalUrl,
     assembleExplorerArchivalUrl,
+    assembleGdocPostArchivalUrl,
     GrapherArchivalManifest,
     MultiDimArchivalManifest,
     ExplorerArchivalManifest,
+    GdocPostArchivalManifest,
 } from "../../../serverUtils/archivalUtils.js"
 import { ARCHIVE_BASE_URL } from "../../../settings/serverSettings.js"
 
@@ -244,6 +254,12 @@ const hashExplorerChecksumsObj = (checksums: ExplorerChecksums): string => {
     const stringified = stringify(
         _.pick(checksums, "explorerConfigMd5", "chartConfigs", "indicators")
     )
+    const hashed = hashHex(stringified, null)
+    return hashed
+}
+
+const hashGdocPostChecksumsObj = (checksums: GdocPostChecksums): string => {
+    const stringified = stringify(_.pick(checksums, "postContentMd5"))
     const hashed = hashHex(stringified, null)
     return hashed
 }
@@ -760,4 +776,158 @@ export const getLatestExplorerArchivedVersionsIfEnabled = async (
     if (!ARCHIVE_BASE_URL) return {}
 
     return await getLatestExplorerArchivedVersions(knex, slugs)
+}
+
+export const getGdocPostChecksumsFromDb = async (
+    knex: db.KnexReadonlyTransaction
+): Promise<GdocPostChecksumsObjectWithHash[]> => {
+    const gdocPosts = await knex<DbRawPostGdoc>(PostsGdocsTableName)
+        .select("id", "slug", "contentMd5")
+        .where("published", true)
+        .where("type", OwidGdocType.Article)
+
+    if (gdocPosts.length === 0) return []
+
+    // Build result with checksums and hashed checksums
+    return gdocPosts.map((post) => {
+        const checksums: GdocPostChecksums = {
+            postContentMd5: post.contentMd5,
+        }
+
+        return {
+            postId: post.id,
+            postSlug: post.slug,
+            checksums,
+            checksumsHashed: hashGdocPostChecksumsObj(checksums),
+        }
+    })
+}
+
+const findGdocPostHashesInDb = async (
+    knex: db.KnexReadonlyTransaction,
+    hashes: string[]
+): Promise<Set<string>> => {
+    const rows = await knex<DbPlainArchivedPostsGdocsVersion>(
+        ArchivedPostsGdocsVersionsTableName
+    )
+        .select("hashOfInputs")
+        .whereIn("hashOfInputs", hashes)
+    return new Set(rows.map((r) => r.hashOfInputs))
+}
+
+export const findChangedGdocPostPages = async (
+    knex: db.KnexReadonlyTransaction
+): Promise<GdocPostChecksumsObjectWithHash[]> => {
+    const allGdocPostChecksums = await getGdocPostChecksumsFromDb(knex)
+
+    // We're gonna find the hashes of all the gdoc posts that are already archived and up-to-date
+    const hashesFoundInDb = await findGdocPostHashesInDb(
+        knex,
+        allGdocPostChecksums.map((c) => c.checksumsHashed)
+    )
+    const [alreadyArchived, needToBeArchived] = _.partition(
+        allGdocPostChecksums,
+        (c) => hashesFoundInDb.has(c.checksumsHashed)
+    )
+
+    console.log("total published gdoc articles", allGdocPostChecksums.length)
+    console.log("already archived", alreadyArchived.length)
+    console.log("need archived", needToBeArchived.length)
+
+    return needToBeArchived
+}
+
+export const insertGdocPostVersions = async (
+    knex: db.KnexReadWriteTransaction,
+    versions: GdocPostChecksumsObjectWithHash[],
+    date: ArchivalTimestamp,
+    manifests: Record<string, GdocPostArchivalManifest>
+): Promise<void> => {
+    const rows: DbInsertArchivedPostsGdocsVersion[] = versions.map((v) => ({
+        postId: v.postId,
+        postSlug: v.postSlug,
+        archivalTimestamp: date.date,
+        hashOfInputs: v.checksumsHashed,
+        manifest: stringify(manifests[v.postSlug], undefined, 2),
+    }))
+
+    if (rows.length)
+        await knex.batchInsert(ArchivedPostsGdocsVersionsTableName, rows)
+}
+
+export const getLatestGdocPostArchivedVersionsFromDb = async (
+    knex: db.KnexReadonlyTransaction,
+    postIds?: string[]
+): Promise<
+    Pick<
+        DbPlainArchivedPostsGdocsVersion,
+        "postId" | "postSlug" | "archivalTimestamp"
+    >[]
+> => {
+    const queryBuilder = knex<DbPlainArchivedPostsGdocsVersion>(
+        ArchivedPostsGdocsVersionsTableName
+    )
+        .select("postId", "postSlug", "archivalTimestamp")
+        .whereRaw(
+            `(postId, archivalTimestamp) IN (SELECT postId, MAX(archivalTimestamp) FROM archived_posts_gdocs_versions a2 GROUP BY postId)`
+        )
+
+    if (postIds) {
+        queryBuilder.whereIn("postId", postIds)
+    }
+
+    return await queryBuilder
+}
+
+export const getAllGdocPostVersionsForId = async (
+    knex: db.KnexReadonlyTransaction,
+    postId: string
+): Promise<
+    Pick<
+        DbPlainArchivedPostsGdocsVersion,
+        "postId" | "postSlug" | "archivalTimestamp"
+    >[]
+> => {
+    const rows = await knex<DbPlainArchivedPostsGdocsVersion>(
+        ArchivedPostsGdocsVersionsTableName
+    )
+        .select("postId", "postSlug", "archivalTimestamp")
+        .where("postId", postId)
+        .orderBy("archivalTimestamp", "asc")
+    return rows
+}
+
+export const getLatestGdocPostArchivedVersions = async (
+    knex: db.KnexReadonlyTransaction,
+    postIds?: string[]
+): Promise<Record<string, ArchivedPageVersion>> => {
+    const rows = await getLatestGdocPostArchivedVersionsFromDb(knex, postIds)
+
+    return Object.fromEntries(
+        rows.map((r) => [
+            r.postId,
+            {
+                archivalDate: convertToArchivalDateStringIfNecessary(
+                    r.archivalTimestamp
+                ),
+                archiveUrl: assembleGdocPostArchivalUrl(
+                    r.archivalTimestamp,
+                    r.postSlug,
+                    {
+                        relative: false,
+                    }
+                ),
+                type: "archived-page-version",
+            },
+        ])
+    )
+}
+
+export const getLatestGdocPostArchivedVersionsIfEnabled = async (
+    knex: db.KnexReadonlyTransaction,
+    postIds?: string[]
+): Promise<Record<string, ArchivedPageVersion>> => {
+    if (!ARCHIVE_BASE_URL) return {}
+
+    return await getLatestGdocPostArchivedVersions(knex, postIds)
 }

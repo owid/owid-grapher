@@ -8,6 +8,7 @@ import {
     DbEnrichedImage,
     DbPlainArchivedChartVersion,
     DbPlainArchivedMultiDimVersion,
+    DbPlainArchivedPostsGdocsVersion,
     DbRawChartConfig,
     GrapherInterface,
     MultiDimDataPageConfigEnriched,
@@ -15,6 +16,7 @@ import {
     GrapherChecksumsObjectWithHash,
     MultiDimChecksumsObjectWithHash,
     ExplorerChecksumsObjectWithHash,
+    GdocPostChecksumsObjectWithHash,
 } from "@ourworldindata/types"
 import fs from "fs-extra"
 import path from "path"
@@ -25,6 +27,7 @@ import findProjectBaseDir from "../../settings/findBaseDir.js"
 import { bakeSingleGrapherPageForArchival } from "../GrapherBaker.js"
 import { bakeSingleMultiDimDataPageForArchival } from "../MultiDimBaker.js"
 import { bakeSingleExplorerPageForArchival } from "../ExplorerBaker.js"
+import { bakeSingleGdocPostPageForArchival } from "../SiteBaker.js"
 import {
     hashAndCopyFile,
     hashAndWriteFile,
@@ -33,21 +36,26 @@ import {
     GrapherArchivalManifest,
     MultiDimArchivalManifest,
     ExplorerArchivalManifest,
+    GdocPostArchivalManifest,
     assembleGrapherArchivalUrl,
     assembleGrapherManifest,
     assembleExplorerArchivalUrl,
     assembleMultiDimArchivalUrl,
     assembleMultiDimManifest,
     assembleExplorerManifest,
+    assembleGdocPostArchivalUrl,
+    assembleGdocPostManifest,
 } from "../../serverUtils/archivalUtils.js"
 import pMap from "p-map"
 import {
     getAllChartVersionsForChartId,
     getAllMultiDimVersionsForId,
     getAllExplorerVersionsForSlug,
+    getAllGdocPostVersionsForId,
     getLatestGrapherArchivedVersionsFromDb,
     getLatestMultiDimArchivedVersionsFromDb,
     getLatestExplorerArchivedVersionsFromDb,
+    getLatestGdocPostArchivedVersionsFromDb,
 } from "../../db/model/archival/archivalDb.js"
 import { ARCHIVE_BASE_URL } from "../../settings/serverSettings.js"
 import {
@@ -66,7 +74,6 @@ const IGNORED_FILES_PATTERNS = [
     /^_headers$/,
     /\.DS_Store$/,
     /^images(\/.*)?$/,
-    /^sdg.*$/,
     /^identifyadmin.html$/,
 ]
 export const copyPublicDir = async (archiveDir: string) => {
@@ -292,6 +299,11 @@ export interface MinimalChartInfo {
     chartId: number
     chartConfigId: string
     config: GrapherInterface
+}
+
+export interface MinimalGdocPostInfo {
+    postId: string
+    postSlug: string
 }
 
 export interface MinimalMultiDimInfo {
@@ -539,6 +551,57 @@ export const bakeArchivalExplorerPagesToFolder = async (
     return { manifests }
 }
 
+export const bakeArchivalGdocPostPagesToFolder = async (
+    knex: db.KnexReadonlyTransaction,
+    gdocPostChecksumsObjsToBeArchived: GdocPostChecksumsObjectWithHash[],
+    gdocPostInfos: MinimalGdocPostInfo[],
+    commonCtx: CommonArchivalContext
+) => {
+    await fs.mkdirp(path.join(commonCtx.archiveDir))
+    console.log(
+        `Baking gdoc post pages locally to dir '${commonCtx.archiveDir}'`
+    )
+
+    const manifests: Record<string, GdocPostArchivalManifest> = {}
+
+    const postIds = gdocPostChecksumsObjsToBeArchived.map((c) => c.postId)
+    const latestArchivalVersions =
+        await getLatestGdocPostArchivedVersionsFromDb(knex, postIds).then(
+            (rows) => _.keyBy(rows, (v) => v.postId)
+        )
+
+    let i = 0
+    for (const gdocPostInfo of gdocPostInfos) {
+        i++
+
+        const checksumsObj = gdocPostChecksumsObjsToBeArchived.find(
+            (c) => c.postId === gdocPostInfo.postId
+        )
+        if (!checksumsObj)
+            throw new Error(
+                `Could not find checksums for gdoc post '${gdocPostInfo.postSlug}', this shouldn't happen`
+            )
+
+        await bakeGdocPostPageForArchival(
+            knex,
+            commonCtx.archiveDir,
+            gdocPostInfo,
+            {
+                ...commonCtx,
+                checksumsObj,
+                latestArchivalVersions,
+            }
+        ).then((manifest) => {
+            manifests[gdocPostInfo.postSlug] = manifest
+        })
+
+        console.log(`${i}/${gdocPostInfos.length} ${gdocPostInfo.postSlug}`)
+    }
+    console.log(`Baked ${gdocPostInfos.length} gdoc post pages`)
+
+    return { manifests }
+}
+
 export interface CommonArchivalContext {
     date: ArchivalTimestamp
     baseArchiveDir: string
@@ -569,6 +632,17 @@ interface MultiDimBakeContext extends CommonArchivalContext {
         Pick<
             DbPlainArchivedMultiDimVersion,
             "multiDimId" | "multiDimSlug" | "archivalTimestamp"
+        >
+    >
+}
+
+interface GdocPostBakeContext extends CommonArchivalContext {
+    checksumsObj: GdocPostChecksumsObjectWithHash
+    latestArchivalVersions: Record<
+        string,
+        Pick<
+            DbPlainArchivedPostsGdocsVersion,
+            "postId" | "postSlug" | "archivalTimestamp"
         >
     >
 }
@@ -650,6 +724,74 @@ async function bakeGrapherPageForArchival(
         manifest,
         archiveInfo,
     })
+    return manifest
+}
+
+async function bakeGdocPostPageForArchival(
+    trx: db.KnexReadonlyTransaction,
+    dir: string,
+    gdocPostInfo: MinimalGdocPostInfo,
+    ctx: GdocPostBakeContext
+) {
+    const { postId, postSlug } = gdocPostInfo
+    const {
+        commonRuntimeFiles,
+        staticAssetMap,
+        checksumsObj,
+        date,
+        latestArchivalVersions,
+    } = ctx
+
+    if (!ARCHIVE_BASE_URL) throw new Error("ARCHIVE_BASE_URL is missing")
+
+    const runtimeFiles = { ...commonRuntimeFiles }
+
+    const manifest = await assembleGdocPostManifest({
+        staticAssetMap,
+        runtimeAssetMap: runtimeFiles,
+        checksumsObj,
+        archivalDate: date.formattedDate,
+        postId,
+    })
+
+    const previousVersionInfo = latestArchivalVersions[postId] ?? undefined
+    const previousVersion: UrlAndMaybeDate | undefined = previousVersionInfo
+        ? {
+              date: previousVersionInfo.archivalTimestamp,
+              url: assembleGdocPostArchivalUrl(
+                  previousVersionInfo.archivalTimestamp,
+                  previousVersionInfo.postSlug,
+                  { relative: true }
+              ),
+          }
+        : undefined
+
+    const archiveNavigation: ArchiveSiteNavigationInfo = {
+        liveUrl: `${PROD_URL}/${postSlug}`,
+        previousVersion,
+        versionsFileUrl: `/versions/posts/${postId}.json`,
+    }
+
+    const fullUrl = assembleGdocPostArchivalUrl(date.formattedDate, postSlug, {
+        relative: false,
+    })
+
+    const archiveInfo: ArchiveMetaInformation = {
+        archivalDate: date.formattedDate,
+        archiveNavigation,
+        archiveUrl: fullUrl,
+        assets: {
+            runtime: runtimeFiles,
+            static: staticAssetMap,
+        },
+        type: "archive-page",
+    }
+
+    await bakeSingleGdocPostPageForArchival(dir, postSlug, trx, {
+        manifest,
+        archiveContext: archiveInfo,
+    })
+
     return manifest
 }
 
@@ -923,5 +1065,57 @@ export async function generateExplorerVersionsFiles(
     )
     console.log(
         `Finished generating explorer versions files for ${explorerSlugs.length} explorers`
+    )
+}
+
+export async function generateGdocPostVersionsFiles(
+    knex: db.KnexReadWriteTransaction,
+    dir: string,
+    postIds: string[]
+) {
+    console.log(
+        `Generating gdoc post versions files for ${postIds.length} posts`
+    )
+    const targetPath = path.join(dir, "versions", "posts")
+    await fs.mkdirp(targetPath)
+
+    await pMap(
+        postIds,
+        async (postId) => {
+            const postVersions = await getAllGdocPostVersionsForId(
+                knex,
+                postId
+            ).then((rows) =>
+                rows.map((r) => ({
+                    archivalDate: convertToArchivalDateStringIfNecessary(
+                        r.archivalTimestamp
+                    ),
+                    url: assembleGdocPostArchivalUrl(
+                        r.archivalTimestamp,
+                        r.postSlug,
+                        { relative: true }
+                    ),
+                    slug: r.postSlug,
+                }))
+            )
+
+            const fileContent = {
+                postId,
+                versions: postVersions,
+            }
+
+            await fs.writeFile(
+                path.join(targetPath, `${postId}.json`),
+                JSON.stringify(fileContent, undefined, 2),
+                {
+                    encoding: "utf8",
+                }
+            )
+        },
+        { concurrency: 10 }
+    )
+
+    console.log(
+        `Finished generating gdoc post versions files for ${postIds.length} posts`
     )
 }
