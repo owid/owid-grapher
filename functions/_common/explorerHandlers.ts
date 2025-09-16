@@ -276,16 +276,9 @@ export async function fetchSearchResultsTableForExplorerView(
     const url = env.url
     url.href = url.href.replace(extensions.searchResultsTable, "")
 
-    const maxRows = searchParams.has("tableMaxRows")
-        ? parseInt(searchParams.get("tableMaxRows"))
-        : undefined
-
     try {
         const { grapherState } = await initGrapherForExplorerView(env, options)
-        const searchResultsTable = assembleSearchResultsTable(
-            grapherState,
-            maxRows
-        )
+        const searchResultsTable = assembleSearchResultsTable(grapherState)
         if (searchResultsTable === undefined)
             return error(500, "Unable to generate search results table")
         return Response.json(searchResultsTable)
