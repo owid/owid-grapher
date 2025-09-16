@@ -166,7 +166,7 @@
         "timezone-mock": "^1.0.18",
         "tinyexec": "^1.0.1",
         "topojson-client": "^3.1.0",
-        "ts-pattern": "^5.0.5",
+        "ts-pattern": "^5.8.0",
         "typeorm": "^0.3.21",
         "typescript": "~5.9.2",
         "unist-util-visit": "^5.0.0",

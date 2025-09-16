@@ -31,7 +31,7 @@
     "string-pixel-width": "^1.10.0",
     "striptags": "^3.2.0",
     "timezone-mock": "^1.0.18",
-    "ts-pattern": "^5.0.5",
+    "ts-pattern": "^5.8.0",
     "url-parse": "^1.5.10",
     "uuidv7": "^1.0.1"
   },

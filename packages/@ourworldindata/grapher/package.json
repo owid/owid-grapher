@@ -45,7 +45,7 @@
     "remeda": "^2.23.3",
     "simple-statistics": "^7.3.2",
     "topojson-client": "^3.1.0",
-    "ts-pattern": "^5.0.5",
+    "ts-pattern": "^5.8.0",
     "url-join": "^5.0.0",
     "url-parse": "^1.5.10",
     "versor": "^0.2.0"

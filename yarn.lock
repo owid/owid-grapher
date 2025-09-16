@@ -3002,7 +3002,7 @@ __metadata:
     react-dom: "npm:^19.1.0"
     react-markdown: "npm:^10.1.0"
     remeda: "npm:^2.23.3"
-    ts-pattern: "npm:^5.0.5"
+    ts-pattern: "npm:^5.8.0"
     typescript: "npm:~5.9.2"
     unist-util-visit: "npm:^5.0.0"
     url-slug: "npm:^4.0.1"
@@ -3070,7 +3070,7 @@ __metadata:
     remeda: "npm:^2.23.3"
     simple-statistics: "npm:^7.3.2"
     topojson-client: "npm:^3.1.0"
-    ts-pattern: "npm:^5.0.5"
+    ts-pattern: "npm:^5.8.0"
     typescript: "npm:~5.9.2"
     url-parse: "npm:^1.5.10"
     vitest: "npm:^3.2.4"
@@ -3125,7 +3125,7 @@ __metadata:
     remeda: "npm:^2.23.3"
     simple-statistics: "npm:^7.3.2"
     topojson-client: "npm:^3.1.0"
-    ts-pattern: "npm:^5.0.5"
+    ts-pattern: "npm:^5.8.0"
     typescript: "npm:~5.9.2"
     url-join: "npm:^5.0.0"
     url-parse: "npm:^1.5.10"
@@ -3173,7 +3173,7 @@ __metadata:
     string-pixel-width: "npm:^1.10.0"
     striptags: "npm:^3.2.0"
     timezone-mock: "npm:^1.0.18"
-    ts-pattern: "npm:^5.0.5"
+    ts-pattern: "npm:^5.8.0"
     typescript: "npm:~5.9.2"
     url-parse: "npm:^1.5.10"
     uuidv7: "npm:^1.0.1"
@@ -11990,7 +11990,7 @@ __metadata:
     tinyexec: "npm:^1.0.1"
     topojson-client: "npm:^3.1.0"
     topojson-server: "npm:^3.0.1"
-    ts-pattern: "npm:^5.0.5"
+    ts-pattern: "npm:^5.8.0"
     tsx: "npm:^4.19.3"
     typeorm: "npm:^0.3.21"
     typescript: "npm:~5.9.2"
@@ -18197,10 +18197,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-pattern@npm:^5.0.5":
-  version: 5.0.5
-  resolution: "ts-pattern@npm:5.0.5"
-  checksum: 10/63b1f652beb1066650db80d41806f16f8b804d577a36091640371cd4bfe5c3a6ee330e02470487d9eac56d6dc2acf969df8bf1081f615672c7ea8e645f8008b5
+"ts-pattern@npm:^5.8.0":
+  version: 5.8.0
+  resolution: "ts-pattern@npm:5.8.0"
+  checksum: 10/fdfa0ea99463c4bb91fee6ade4c31dd93af6760759c302c04dfacab29e556025d656a65f5e855e77015e3fcfc627dd05662d5fc89eb02df024708b2b96d6e00e
   languageName: node
   linkType: hard
 
