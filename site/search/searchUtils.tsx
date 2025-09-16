@@ -186,7 +186,8 @@ export function pickEntitiesForChartHit(
         }
     }
 
-    const sortedEntities = [...pickedEntities].sort()
+    // Reverse the order so that the last picked entity is first
+    const sortedEntities = [...pickedEntities].reverse()
 
     return sortedEntities ?? []
 }
