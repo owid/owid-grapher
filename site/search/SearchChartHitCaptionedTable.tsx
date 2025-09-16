@@ -1,36 +1,32 @@
-import { GrapherState } from "@ourworldindata/grapher"
-import { runInAction } from "mobx"
-import { buildChartHitDataTableContent } from "./SearchChartHitDataTableHelpers"
 import { match } from "ts-pattern"
 import { SearchChartHitDataTable } from "./SearchChartHitDataTable"
 import { SearchChartHitDataPoints } from "./SearchChartHitDataPoints"
 import { CaptionedLink } from "./SearchChartHitCaptionedLink"
+import { SearchChartHitDataTableContent } from "@ourworldindata/types"
 
 export function CaptionedTable({
     chartUrl,
-    grapherState,
-    maxRows,
+    dataTableContent,
+    numAvailableEntities,
+    entityType,
+    entityTypePlural,
     className,
     onClick,
 }: {
     chartUrl: string
-    grapherState: GrapherState
-    maxRows?: number
+    dataTableContent?: SearchChartHitDataTableContent
+    numAvailableEntities: number
+    entityType: string
+    entityTypePlural: string
     className?: string
     onClick?: () => void
 }): React.ReactElement | null {
-    // Construct caption
-    const numAvailableEntities = grapherState.availableEntityNames.length
+    if (!dataTableContent) return null
+
     const caption =
         numAvailableEntities === 1
-            ? `Data available for ${numAvailableEntities} ${grapherState.entityType}`
-            : `Data available for ${numAvailableEntities} ${grapherState.entityTypePlural}`
-
-    const dataTableContent = runInAction(() =>
-        buildChartHitDataTableContent({ grapherState, maxRows })
-    )
-
-    if (!dataTableContent) return null
+            ? `Data available for ${numAvailableEntities} ${entityType}`
+            : `Data available for ${numAvailableEntities} ${entityTypePlural}`
 
     return (
         <CaptionedLink

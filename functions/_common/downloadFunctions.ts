@@ -5,14 +5,13 @@ import {
     WORLD_ENTITY_NAME,
     getEntityNamesParam,
     generateSelectedEntityNamesParam,
-    constructGrapherValuesJson,
 } from "@ourworldindata/grapher"
 import {
     OwidColumnDef,
     GRAPHER_TAB_QUERY_PARAMS,
     EntityName,
 } from "@ourworldindata/types"
-import { StatusError } from "itty-router"
+import { error, StatusError } from "itty-router"
 import { createZip, File } from "littlezipper"
 import { assembleMetadata, getColumnsForMetadata } from "./metadataTools.js"
 import { Env } from "./env.js"
@@ -24,6 +23,8 @@ import {
 } from "./grapherTools.js"
 import { TWITTER_OPTIONS } from "./imageOptions.js"
 import { constructReadme } from "./readmeTools.js"
+import { constructSearchResultsTable } from "./searchResultsTable.js"
+import { constructGrapherValuesJson } from "./grapherValuesJson.js"
 
 export async function fetchMetadataForGrapher(
     identifier: GrapherIdentifier,
@@ -222,6 +223,14 @@ export async function fetchDataValuesForGrapher(
     })
     grapher.grapherState.inputTable = inputTable
 
+    // Make sure the country query param is respected since Grapher ignores
+    // the country param if entity selection is disabled
+    const entityNames = getEntityNamesParam(
+        searchParams.get("country") ?? undefined
+    )
+    if (entityNames?.length > 0)
+        grapher.grapherState.selection.setSelectedEntities(entityNames)
+
     const dataValues = assembleDataValues(grapher.grapherState, entityName)
 
     return Response.json(dataValues)
@@ -237,6 +246,45 @@ export function assembleDataValues(
         return { source: grapherState.sourcesLine }
 
     return constructGrapherValuesJson(grapherState, entityName)
+}
+
+export async function fetchSearchResultsTableForGrapher(
+    identifier: GrapherIdentifier,
+    env: Env,
+    searchParams: URLSearchParams
+) {
+    // Initialize Grapher and download its data
+    const { grapher } = await initGrapher(
+        identifier,
+        TWITTER_OPTIONS,
+        searchParams,
+        env
+    )
+    const inputTable = await fetchInputTableForConfig({
+        dimensions: grapher.grapherState.dimensions,
+        selectedEntityColors: grapher.grapherState.selectedEntityColors,
+        dataApiUrl: getDataApiUrl(env),
+    })
+    grapher.grapherState.inputTable = inputTable
+
+    // Make sure the country query param is respected since Grapher ignores
+    // the country param if entity selection is disabled
+    const entityNames = getEntityNamesParam(
+        searchParams.get("country") ?? undefined
+    )
+    if (entityNames?.length > 0)
+        grapher.grapherState.selection.setSelectedEntities(entityNames)
+
+    const searchResultsTable = assembleSearchResultsTable(grapher.grapherState)
+
+    if (searchResultsTable === undefined)
+        return error(500, "Unable to generate search results table")
+
+    return Response.json(searchResultsTable)
+}
+
+export function assembleSearchResultsTable(grapherState: GrapherState) {
+    return constructSearchResultsTable({ grapherState })
 }
 
 export function findEntityForExtractingDataValues(

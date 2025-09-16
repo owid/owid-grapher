@@ -1,23 +1,7 @@
 import React from "react"
 import cx from "classnames"
-import {
-    GrapherTrendArrow,
-    GrapherTrendArrowDirection,
-} from "@ourworldindata/components"
-
-interface DataPoint {
-    columnName: string
-    unit?: string
-    time: string
-    entityName: string
-    value: string
-    startValue?: string
-    trend?: GrapherTrendArrowDirection // only relevant if startValue is given
-}
-
-export interface SearchChartHitDataPointsProps {
-    dataPoints: DataPoint[]
-}
+import { SearchChartHitDataPointsProps } from "@ourworldindata/types"
+import { GrapherTrendArrow } from "@ourworldindata/components"
 
 export function SearchChartHitDataPoints({
     dataPoints,
@@ -44,7 +28,7 @@ export function SearchChartHitDataPoints({
 function DataPoint({
     dataPoint,
 }: {
-    dataPoint: DataPoint
+    dataPoint: SearchChartHitDataPointsProps["dataPoints"][number]
 }): React.ReactElement {
     return (
         <div className="search-chart-hit-data-point">

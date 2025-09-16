@@ -8,20 +8,18 @@ import {
     GRAPHER_TAB_NAMES,
     GrapherQueryParams,
     GrapherTabName,
+    SearchChartHitDataPointsProps,
+    SearchChartHitDataTableContent,
+    SearchChartHitDataTableProps,
     SeriesStrategy,
 } from "@ourworldindata/types"
-import { SearchChartHitDataTableContent } from "./SearchChartHitDataTableHelpers"
 import {
     generateFocusedSeriesNamesParam,
-    generateSelectedEntityNamesParam,
     GrapherState,
     mapGrapherTabNameToConfigOption,
     mapGrapherTabNameToQueryParam,
-    StackedDiscreteBarChartState,
     WORLD_ENTITY_NAME,
 } from "@ourworldindata/grapher"
-import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable"
-import { SearchChartHitDataPointsProps } from "./SearchChartHitDataPoints"
 import {
     GridSlot,
     LargeVariantGridSlot,
@@ -34,7 +32,6 @@ import {
 } from "./SearchChartHitRichDataTypes.js"
 import { SearchChartHit, SearchChartHitComponentVariant } from "./searchTypes"
 import {
-    excludeUndefined,
     checkIsCountry,
     getRegionByName,
     getParentRegions,
@@ -102,18 +99,15 @@ export function getSortedGrapherTabsForChartHit(
 
 export function pickEntitiesForDisplay(
     grapherState: GrapherState,
-    { pickedEntities }: { pickedEntities: EntityName[] }
+    {
+        pickedEntities,
+        availableEntities,
+    }: { pickedEntities: EntityName[]; availableEntities: EntityName[] }
 ): EntityName[] {
     // Original chart config before search customizations
     // (entity selection, tab switching, etc.)
     const originalGrapherState = grapherState.authorsVersion
-
-    // Make sure the default entities actually exist in the chart
-    const defaultEntities = originalGrapherState.selectedEntityNames.filter(
-        (entityName) =>
-            grapherState.table.availableEntityNameSet.has(entityName)
-    )
-    const availableEntities = new Set(grapherState.availableEntityNames)
+    const defaultEntities = originalGrapherState.selectedEntityNames
 
     return match(originalGrapherState.addCountryMode)
         .with(EntitySelectionMode.Disabled, () => {
@@ -137,12 +131,6 @@ export function pickEntitiesForDisplay(
             const { seriesStrategy = SeriesStrategy.entity } =
                 originalGrapherState.chartState
             const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
-
-            // Use the author's explicitly selected facet strategy if available,
-            // otherwise fall back to the computed one. This is necessary because
-            // the authorsVersion state we're working with here lacks the data table
-            // that facetStrategy computation requires, so the computed value may be
-            // incorrect.
             const facetStrategy =
                 originalGrapherState.selectedFacetStrategy ??
                 originalGrapherState.facetStrategy
@@ -212,8 +200,10 @@ export function pickEntitiesForDisplay(
  */
 export function pickComparisonEntities(
     entity: EntityName,
-    availableEntities: Set<EntityName>
+    availableEntities: EntityName[]
 ): EntityName[] {
+    const availableEntitySet = new Set(availableEntities)
+
     const comparisonEntities = new Set<EntityName>()
 
     // Can't determine comparison entities for non-geographical entities
@@ -223,11 +213,11 @@ export function pickComparisonEntities(
     // Compare World to any other aggregate entity (e.g. continents or income groups)
     if (entity === WORLD_ENTITY_NAME)
         return [...getContinents(), ...getIncomeGroups(), ...getAggregates()]
-            .filter((aggregate) => availableEntities.has(aggregate.name))
+            .filter((aggregate) => availableEntitySet.has(aggregate.name))
             .map((aggregate) => aggregate.name)
 
     // Always include World as a comparison if available
-    if (availableEntities.has(WORLD_ENTITY_NAME))
+    if (availableEntitySet.has(WORLD_ENTITY_NAME))
         comparisonEntities.add(WORLD_ENTITY_NAME)
 
     if (checkIsCountry(region)) {
@@ -235,14 +225,14 @@ export function pickComparisonEntities(
         // Example: Germany -> Europe, Europe (WHO), High income countries
         const regions = getParentRegions(region.name)
         for (const region of regions)
-            if (availableEntities.has(region.name))
+            if (availableEntitySet.has(region.name))
                 comparisonEntities.add(region.name)
     } else {
         // For aggregate regions: add sibling regions at the same hierarchical level
         // Example: Europe -> Asia, Africa, North America (other continents)
         const siblings = getSiblingRegions(region.name)
         for (const sibling of siblings) {
-            if (availableEntities.has(sibling.name))
+            if (availableEntitySet.has(sibling.name))
                 comparisonEntities.add(sibling.name)
         }
     }
@@ -316,6 +306,7 @@ export function configureGrapherStateForLayout(
             configureGrapherStateForDataTable(grapherState, {
                 props: dataTableContent.props,
                 numAvailableDataTableRows,
+                maxNumEntitiesInStackedDiscreteBarChart,
             })
         )
         .with({ type: "data-points" }, (dataTableContent) =>
@@ -324,52 +315,29 @@ export function configureGrapherStateForLayout(
             })
         )
         .exhaustive()
+}
+
+function configureGrapherStateForDataTable(
+    grapherState: GrapherState,
+    args: {
+        props: SearchChartHitDataTableProps
+        numAvailableDataTableRows: number
+        maxNumEntitiesInStackedDiscreteBarChart: number
+    }
+): void {
+    limitSelectionToAvailableTableRows(grapherState, args)
 
     // For stacked discrete bar charts, we display multiple stacked bars in the
     // chart but the data table only shows values for one entity
     if (grapherState.isStackedDiscreteBar) {
-        // Find the entity that is displayed in the table
-        const chartState =
-            grapherState.chartState as StackedDiscreteBarChartState
-        const tableEntity =
-            chartState.yColumnSlugs.length === 1
-                ? chartState.yColumns[0].displayName
-                : (chartState.focusArray.seriesNames[0] ??
-                  chartState.sortedItems[0].entityName)
-
-        // Limit the number of selected entities to the maximum allowed
-        if (grapherState.addCountryMode !== EntitySelectionMode.Disabled) {
-            const defaultEntities = grapherState.selection.selectedEntityNames
-            const selectedEntities = defaultEntities.slice(
-                0,
-                maxNumEntitiesInStackedDiscreteBarChart
-            )
-            if (tableEntity && !selectedEntities.includes(tableEntity)) {
-                selectedEntities.pop()
-                selectedEntities.push(tableEntity)
-            }
-            grapherState.selection.setSelectedEntities(selectedEntities)
-        }
-
-        // Focus the entity that is displayed in the table
-        if (tableEntity) grapherState.focusArray.clearAllAndAdd(tableEntity)
-    }
-
-    // If the selected entities are the same as the authored ones, they won't
-    // be persisted in the (thumbnail) URL, so we must update the local grapherState
-    // to make sure they're in the same order. The order is of importance in
-    // stacked area charts for example.
-    if (
-        grapherState.selection.hasSelection &&
-        !grapherState.areSelectedEntitiesDifferentThanAuthors
-    ) {
-        grapherState.selection.setSelectedEntities(
-            grapherState.legacyConfigAsAuthored.selectedEntityNames ?? []
-        )
+        configureGrapherStateForStackedDiscreteBarChart(grapherState, {
+            props: args.props,
+            maxNumEntities: args.maxNumEntitiesInStackedDiscreteBarChart,
+        })
     }
 }
 
-function configureGrapherStateForDataTable(
+function limitSelectionToAvailableTableRows(
     grapherState: GrapherState,
     {
         props,
@@ -411,6 +379,32 @@ function configureGrapherStateForDataTable(
             .filter((seriesName) => seriesName !== undefined)
         grapherState.focusArray.clearAllAndAdd(...seriesNames)
     }
+}
+
+function configureGrapherStateForStackedDiscreteBarChart(
+    grapherState: GrapherState,
+    {
+        props,
+        maxNumEntities,
+    }: { props: SearchChartHitDataTableProps; maxNumEntities: number }
+): void {
+    // Find the entity that is displayed in the table
+    const tableEntity =
+        grapherState.yColumnSlugs.length > 1 ? props.title : undefined
+
+    // Limit the number of selected entities to the maximum allowed
+    if (grapherState.addCountryMode !== EntitySelectionMode.Disabled) {
+        const defaultEntities = grapherState.selection.selectedEntityNames
+        const selectedEntities = defaultEntities.slice(0, maxNumEntities)
+        if (tableEntity && !selectedEntities.includes(tableEntity)) {
+            selectedEntities.pop()
+            selectedEntities.push(tableEntity)
+        }
+        grapherState.selection.setSelectedEntities(selectedEntities)
+    }
+
+    // Focus the entity that is displayed in the table
+    if (tableEntity) grapherState.focusArray.clearAllAndAdd(tableEntity)
 }
 
 function configureGrapherStateForDataPoints(
@@ -586,39 +580,4 @@ function configureGrapherParamsForDiscreteBarPreview(
     const hasSingleSeriesPerFacet =
         grapherState.isFaceted && !grapherState.hasMultipleSeriesPerFacet
     if (hasSingleSeriesPerFacet) grapherParams.facet = FacetStrategy.none
-
-    // Add the entities with the minimum and maximim value
-    // for discrete bar charts with a single bar
-    const { seriesStrategy = SeriesStrategy.entity } = grapherState.chartState
-    const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
-    const selectedEntities = grapherState.selection.selectedEntityNames
-    if (
-        !grapherState.isFaceted &&
-        isEntityStrategy &&
-        selectedEntities.length === 1 &&
-        grapherState.addCountryMode === EntitySelectionMode.MultipleEntities &&
-        grapherState.endTime !== undefined
-    ) {
-        const selectedEntity = selectedEntities[0]
-        const owidRows = grapherState.table
-            .filterByTargetTimes([grapherState.endTime])
-            .get(grapherState.yColumnSlug).owidRows
-        const minRow = _.minBy(owidRows, (point) => point.value)
-        const maxRow = _.maxBy(owidRows, (point) => point.value)
-        const enrichedSelectedEntities = R.unique(
-            excludeUndefined([
-                selectedEntity,
-                minRow?.entityName,
-                maxRow?.entityName,
-            ])
-        )
-        if (enrichedSelectedEntities.length > 1) {
-            grapherParams.country = generateSelectedEntityNamesParam(
-                enrichedSelectedEntities
-            )
-            grapherParams.focus = generateFocusedSeriesNamesParam([
-                selectedEntity,
-            ])
-        }
-    }
 }

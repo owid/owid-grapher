@@ -1,4 +1,4 @@
-import * as R from "remeda"
+import * as _ from "lodash-es"
 import { match } from "ts-pattern"
 import {
     GrapherState,
@@ -24,39 +24,22 @@ import {
     FacetStrategy,
     GRAPHER_MAP_TYPE,
     GRAPHER_TAB_NAMES,
+    GrapherTrendArrowDirection,
     PrimitiveType,
+    SearchChartHitDataTableContent,
     SeriesStrategy,
 } from "@ourworldindata/types"
-import { SearchChartHitDataTableProps } from "./SearchChartHitDataTable"
-import { SearchChartHitDataPointsProps } from "./SearchChartHitDataPoints"
-import {
-    getColumnNameForDisplay,
-    getColumnUnitForDisplay,
-    calculateTrendDirection,
-} from "./searchUtils.js"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 
 interface BaseArgs {
     grapherState: GrapherState
-    maxRows?: number
 }
 
 interface Args<State extends ChartState = ChartState> extends BaseArgs {
     chartState: State
 }
 
-export type SearchChartHitDataTableContent =
-    | {
-          type: "data-table"
-          props: SearchChartHitDataTableProps
-          isLegend?: boolean
-      }
-    | {
-          type: "data-points"
-          props: SearchChartHitDataPointsProps
-      }
-
-export function buildChartHitDataTableContent(
+export function constructSearchResultsTable(
     props: BaseArgs
 ): SearchChartHitDataTableContent | undefined {
     if (!props.grapherState.isReady) return undefined
@@ -135,7 +118,6 @@ export function buildChartHitDataTableContent(
 function buildDataTableContentForLineChart({
     grapherState,
     chartState,
-    maxRows,
 }: Args<LineChartState>): SearchChartHitDataTableContent {
     const formatColumn = chartState.formatColumn
 
@@ -152,7 +134,7 @@ function buildDataTableContentForLineChart({
 
     // Group series by name to handle cases where multiple series share the same name,
     // which can happen when projections are included alongside historical data
-    const groupedSeries = R.groupBy(
+    const groupedSeries = _.groupBy(
         chartState.series,
         (series) => series.seriesName
     )
@@ -160,13 +142,13 @@ function buildDataTableContentForLineChart({
     let rows = Object.values(groupedSeries)
         .map((seriesList) => {
             // Pick the series with the latest time
-            const series = R.firstBy(seriesList, [
-                (series) => R.last(series.points)?.x ?? 0,
-                "desc",
-            ])
+            const series = _.maxBy(
+                seriesList,
+                (series) => _.last(series.points)?.x ?? 0
+            )
 
             // Pick the data point with the latest time
-            const point = R.firstBy(series.points, [(point) => point.x, "desc"])
+            const point = _.maxBy(series.points, (point) => point.x)
             if (!point) return undefined
 
             const color =
@@ -211,9 +193,7 @@ function buildDataTableContentForLineChart({
     if (hasProjectedData) rows = rows.filter((row) => row.series.isProjection)
 
     // Sort by value in descending order
-    rows = R.sortBy(rows, [(row) => row.point.y, "desc"])
-
-    rows = maxRows !== undefined ? rows.slice(0, maxRows) : rows
+    rows = _.orderBy(rows, [(row) => row.point.y], "desc")
 
     const title = makeTableTitle(grapherState, chartState, formatColumn)
 
@@ -223,11 +203,10 @@ function buildDataTableContentForLineChart({
 function buildDataTableContentForDiscreteBarChart({
     grapherState,
     chartState,
-    maxRows,
 }: Args<DiscreteBarChartState>): SearchChartHitDataTableContent {
     const formatColumn = chartState.formatColumn
 
-    let rows = chartState.series.map((series) => ({
+    const rows = chartState.series.map((series) => ({
         series,
         seriesName: series.seriesName,
         label: series.shortEntityName ?? series.entityName,
@@ -238,8 +217,6 @@ function buildDataTableContentForDiscreteBarChart({
         muted: series.focus.background,
     }))
 
-    if (maxRows !== undefined) rows = rows.slice(0, maxRows)
-
     const title = makeTableTitle(grapherState, chartState, formatColumn)
 
     return { type: "data-table", props: { rows, title } }
@@ -248,7 +225,6 @@ function buildDataTableContentForDiscreteBarChart({
 function buildDataTableContentForSlopeChart({
     grapherState,
     chartState,
-    maxRows,
 }: Args<SlopeChartState>): SearchChartHitDataTableContent {
     const formatColumn = chartState.formatColumn
 
@@ -280,9 +256,7 @@ function buildDataTableContentForSlopeChart({
     })
 
     // Sort by value in descending order
-    rows = R.sortBy(rows, [(row) => row.endValue, "desc"])
-
-    if (maxRows !== undefined) rows = rows.slice(0, maxRows)
+    rows = _.orderBy(rows, [(row) => row.endValue], "desc")
 
     const title = makeTableTitle(grapherState, chartState, formatColumn)
 
@@ -292,7 +266,6 @@ function buildDataTableContentForSlopeChart({
 function buildDataTableContentForStackedDiscreteBarChart({
     grapherState,
     chartState,
-    maxRows,
 }: Args<StackedDiscreteBarChartState>): SearchChartHitDataTableContent {
     const formatColumn = chartState.formatColumn
 
@@ -301,7 +274,7 @@ function buildDataTableContentForStackedDiscreteBarChart({
             ? "single-dimensional"
             : "multi-dimensional"
 
-    let { rows, title } = match(mode)
+    const { rows, title } = match(mode)
         // In single-dimensional mode, each row represents an entity
         .with("single-dimensional", () => {
             const series = chartState.series[0]
@@ -323,10 +296,11 @@ function buildDataTableContentForStackedDiscreteBarChart({
                 })
                 .filter((row) => row !== undefined)
 
-            const sortedRows = R.sortBy(rows, [
-                (row) => row.point.value,
-                "desc",
-            ])
+            const sortedRows = _.orderBy(
+                rows,
+                [(row) => row.point.value],
+                ["desc"]
+            )
 
             const columnName = getColumnNameForDisplay(formatColumn)
             const unit = getColumnUnitForDisplay(formatColumn)
@@ -347,12 +321,7 @@ function buildDataTableContentForStackedDiscreteBarChart({
                 : undefined
             const item = focusedItem ?? chartState.sortedItems[0]
 
-            type TableRow = SearchChartHitDataTableProps["rows"][number] & {
-                columnSlug: string
-                sortValue?: number
-            }
-
-            let rows: TableRow[] = item?.bars
+            let rows = item?.bars
                 .map((bar) => {
                     const point = bar.point
                     if (point.fake || point.interpolated) return undefined
@@ -372,7 +341,7 @@ function buildDataTableContentForStackedDiscreteBarChart({
                 .filter((row) => row !== undefined)
 
             // Sort by value in descending order
-            rows = R.sortBy(rows, [(row) => row.sortValue ?? 0, "desc"])
+            rows = _.orderBy(rows, [(row) => row.sortValue ?? 0], "desc")
 
             // If the current entity doesn't have data for some of the columns,
             // we manually add those to the data table with a 'No data' label.
@@ -396,7 +365,7 @@ function buildDataTableContentForStackedDiscreteBarChart({
                                 column.displayName
                             ),
                             value: "No data",
-                        }
+                        } as any // TODO: fix type
                     })
                 )
             }
@@ -405,15 +374,12 @@ function buildDataTableContentForStackedDiscreteBarChart({
         })
         .exhaustive()
 
-    if (maxRows !== undefined) rows = rows.slice(0, maxRows)
-
     return { type: "data-table", props: { rows, title } }
 }
 
 function buildDataTableContentForStackedAreaAndBarChart({
     grapherState,
     chartState,
-    maxRows,
 }: Args<
     StackedAreaChartState | StackedBarChartState
 >): SearchChartHitDataTableContent {
@@ -424,10 +390,7 @@ function buildDataTableContentForStackedAreaAndBarChart({
     let rows = chartState.series
         .map((series) => {
             // Pick the data point at the latest time
-            const point = R.firstBy(series.points, [
-                (point) => point.time,
-                "desc",
-            ])
+            const point = _.maxBy(series.points, (point) => point.time)
             if (!point) return undefined
 
             // Hacky way to fix a bug where `useValueBasedColorScheme` isn't
@@ -467,9 +430,7 @@ function buildDataTableContentForStackedAreaAndBarChart({
     // original order, so that the first selected series appears on top.
     // We reverse the order again here, so that the first selected entity
     // (which is on top of the chart) is also on top of the table.
-    rows = R.reverse(rows)
-
-    if (maxRows !== undefined) rows = rows.slice(0, maxRows)
+    rows = _.reverse(rows)
 
     const title = makeTableTitle(grapherState, chartState, formatColumn)
 
@@ -479,7 +440,6 @@ function buildDataTableContentForStackedAreaAndBarChart({
 function buildDataTableContentForMarimekkoChart({
     grapherState,
     chartState,
-    maxRows,
 }: Args<MarimekkoChartState>): SearchChartHitDataTableContent {
     // If at least one entity is selected, then we display the values
     // for the first two entities. The remaining selected entities are ignored
@@ -495,14 +455,13 @@ function buildDataTableContentForMarimekkoChart({
     // If the selection is empty and the chart has a legend (which is the
     // case if it has a color dimension), then we display the legend
     if (grapherState.colorColumnSlug) {
-        return buildLegendTableProps({ grapherState, chartState, maxRows })
+        return buildLegendTableProps({ grapherState, chartState })
     }
 
     // Display a table where each row corresponds to an entity
     return buildValueTableContentForMarimekko({
         grapherState,
         chartState,
-        maxRows,
     })
 }
 
@@ -555,11 +514,9 @@ function buildDataPointsContentForMarimekko({
 function buildValueTableContentForMarimekko({
     grapherState,
     chartState,
-    maxRows,
 }: {
     grapherState: GrapherState
     chartState: MarimekkoChartState
-    maxRows?: number
 }): SearchChartHitDataTableContent {
     const series = chartState.series[0]
     const formatColumn = chartState.formatColumn
@@ -584,9 +541,7 @@ function buildValueTableContentForMarimekko({
         .filter((row) => row !== undefined)
 
     // Sort by value in descending order
-    rows = R.sortBy(rows, [(row) => row.point.value, "desc"])
-
-    if (maxRows !== undefined) rows = rows.slice(0, maxRows)
+    rows = _.orderBy(rows, [(row) => row.point.value], "desc")
 
     const title = makeTableTitle(grapherState, chartState, formatColumn)
 
@@ -596,7 +551,6 @@ function buildValueTableContentForMarimekko({
 function buildDataTableContentForScatterPlot({
     grapherState,
     chartState,
-    maxRows,
 }: Args<ScatterPlotChartState>): SearchChartHitDataTableContent {
     // If entities are selected, then we display the x and y values for one of
     // the entities. The remaining entities are ignored
@@ -614,7 +568,7 @@ function buildDataTableContentForScatterPlot({
     // If the selection is empty and the scatter plot has a legend (which is the
     // case if it has a color dimension), then we display the legend
     if (grapherState.colorColumnSlug) {
-        return buildLegendTableProps({ grapherState, chartState, maxRows })
+        return buildLegendTableProps({ grapherState, chartState })
     }
 
     // Special handling for two cases:
@@ -640,7 +594,7 @@ function buildDataTableContentForScatterPlot({
 
     // Display a table where each row corresponds to an entity and lists x and
     // y-values in this format: '<x-value> vs. <y-value>'.
-    return buildValueTableContentForScatterPlot({ chartState, maxRows })
+    return buildValueTableContentForScatterPlot({ chartState })
 }
 
 function findEntityToDisplayForScatterPlot(
@@ -665,23 +619,19 @@ function findEntityToDisplayForScatterPlot(
 function buildLegendTableProps({
     grapherState,
     chartState,
-    maxRows,
 }: {
     grapherState: GrapherState
     chartState: ChartState
-    maxRows?: number
 }): SearchChartHitDataTableContent {
     const bins = chartState.colorScale?.legendBins ?? []
 
-    let rows = bins
+    const rows = bins
         .map((bin) => {
             if (bin.isHidden || isNoDataBin(bin)) return undefined
             const label = makeLabelForBin(bin)
             return { label, color: bin.color }
         })
         .filter((row) => row !== undefined)
-
-    if (maxRows !== undefined) rows = rows.slice(0, maxRows)
 
     const title = grapherState.colorScale.legendDescription || "Legend"
 
@@ -694,10 +644,8 @@ function buildLegendTableProps({
  */
 function buildValueTableContentForScatterPlot({
     chartState,
-    maxRows,
 }: {
     chartState: ScatterPlotChartState
-    maxRows?: number
 }): SearchChartHitDataTableContent {
     const { xColumn, yColumn } = chartState
 
@@ -706,7 +654,7 @@ function buildValueTableContentForScatterPlot({
     const xLabel =
         chartState.horizontalAxisLabel || getColumnNameForDisplay(xColumn)
 
-    let rows = chartState.series
+    const rows = chartState.series
         .map((series) => {
             const point = series.points[0]
             if (!point) return undefined
@@ -724,8 +672,6 @@ function buildValueTableContentForScatterPlot({
             }
         })
         .filter((row) => row !== undefined)
-
-    if (maxRows !== undefined) rows = rows.slice(0, maxRows)
 
     const title = `${yLabel} vs. ${xLabel}`
 
@@ -757,10 +703,10 @@ function buildDataPointsContentForScatterPlot({
         (series) => series.seriesName === entityName
     )
     const points = series?.points ?? []
-    const endPoint = R.firstBy(points, [(point) => point.timeValue, "desc"])
+    const endPoint = _.maxBy(points, (point) => point.timeValue)
     const startPoint =
         points.length > 1
-            ? R.firstBy(points, [(point) => point.timeValue, "asc"])
+            ? _.minBy(points, (point) => point.timeValue)
             : undefined
 
     const formattedStartTime = startPoint
@@ -810,7 +756,6 @@ function buildDataPointsContentForScatterPlot({
 function buildDataTableContentForWorldMap({
     grapherState,
     chartState,
-    maxRows,
 }: Args<MapChartState>): SearchChartHitDataTableContent {
     const formatColumn = chartState.mapColumn
     const bins = chartState.colorScale.legendBins
@@ -841,16 +786,15 @@ function buildDataTableContentForWorldMap({
     // Sort bins by the number of countries it contains, with the No Data bin at the bottom
     const hasNumericBins = bins.some((bin) => isNumericBin(bin))
     if (!hasNumericBins) {
-        rows = R.sortBy(rows, [
+        rows = _.orderBy(
+            rows,
             (row) =>
                 isNoDataBin(row.bin)
                     ? -Infinity // sort No Data bin to the bottom
                     : row.numSeriesContainedInBin,
-            "desc",
-        ])
+            "desc"
+        )
     }
-
-    if (maxRows !== undefined) rows = rows.slice(0, maxRows)
 
     const title = makeTableTitle(grapherState, chartState, formatColumn)
 
@@ -861,7 +805,6 @@ function buildDataTableContentForWorldMap({
 // nor a map tab which should never (or very rarely) happen
 function buildDataTableContentForTableTab({
     grapherState,
-    maxRows,
 }: BaseArgs): SearchChartHitDataTableContent {
     const yColumn = grapherState.tableForDisplay.get(grapherState.yColumnSlug)
     const columnName = getColumnNameForDisplay(yColumn)
@@ -872,17 +815,12 @@ function buildDataTableContentForTableTab({
 
     if (!time) return { type: "data-table", props: { rows: [], title } }
 
-    const owidRows = grapherState.tableForDisplay
+    let owidRows = grapherState.tableForDisplay
         .filterByTargetTimes([time])
         .get(grapherState.yColumnSlug).owidRows
-    const sortedOwidRows = R.sortBy(owidRows, [(row) => row.value, "desc"])
+    owidRows = _.orderBy(owidRows, [(row) => row.value], "desc")
 
-    const filteredOwidRows =
-        maxRows !== undefined
-            ? sortedOwidRows.slice(0, maxRows)
-            : sortedOwidRows
-
-    const tableRows = filteredOwidRows.map((row) => ({
+    const tableRows = owidRows.map((row) => ({
         label: row.entityName,
         time: yColumn.formatTime(row.originalTime),
         timePreposition: OwidTable.getPreposition(
@@ -943,7 +881,7 @@ function getColorForSeriesIfFaceted(
 
     // Find the chart instance that renders the given series
     const facetSeriesIndex = facetChartInstance.series.findIndex(
-        (s) => s.seriesName === facetName
+        (series) => series.seriesName === facetName
     )
 
     if (facetSeriesIndex < 0) return undefined
@@ -970,3 +908,36 @@ const makeLabelForNumericBin = (bin: NumericBin): string => {
 
 const makeLabelForBin = (bin: ColorScaleBin): string =>
     isNumericBin(bin) ? makeLabelForNumericBin(bin) : bin.text
+
+function getColumnNameForDisplay(column: CoreColumn): string {
+    return column.titlePublicOrDisplayName.title ?? column.nonEmptyDisplayName
+}
+
+function getColumnUnitForDisplay(
+    column: CoreColumn | { unit?: string; shortUnit?: string },
+    { allowTrivial = false }: { allowTrivial?: boolean } = {}
+): string | undefined {
+    if (!column.unit) return undefined
+
+    // The unit is considered trivial if it is the same as the short unit
+    const isTrivial = column.unit === column.shortUnit
+    const unit = allowTrivial || !isTrivial ? column.unit : undefined
+
+    // Remove parentheses from the beginning and end of the unit
+    const strippedUnit = unit?.replace(/(^\(|\)$)/g, "")
+
+    return strippedUnit
+}
+
+function calculateTrendDirection(
+    startValue?: PrimitiveType,
+    endValue?: PrimitiveType
+): GrapherTrendArrowDirection | undefined {
+    if (typeof startValue !== "number" || typeof endValue !== "number")
+        return undefined
+    return endValue > startValue
+        ? "up"
+        : endValue < startValue
+          ? "down"
+          : "right"
+}
