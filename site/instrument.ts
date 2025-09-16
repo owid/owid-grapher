@@ -44,6 +44,10 @@ if (LOAD_SENTRY) {
                 minReplayDuration: 1000,
                 mask: [".sentry-mask"],
             }),
+            Sentry.feedbackIntegration({
+                autoInject: false,
+                enableScreenshot: true,
+            }),
         ],
         replaysSessionSampleRate: sampleRate,
         replaysOnErrorSampleRate: 0,

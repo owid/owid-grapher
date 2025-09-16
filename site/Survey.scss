@@ -1,0 +1,249 @@
+/* Survey Form Styles */
+
+.survey-form {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 2rem;
+    margin: 2rem 0;
+    max-width: 600px;
+}
+
+.survey-form__title {
+    color: #333;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    margin-top: 0;
+}
+
+.survey-form__description {
+    color: #666;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+}
+
+.survey-form__questions {
+    margin-bottom: 2rem;
+}
+
+.survey-question {
+    margin-bottom: 2rem;
+}
+
+.survey-question__label {
+    display: block;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+.survey-question__label .required {
+    color: #e74c3c;
+    margin-left: 0.25rem;
+}
+
+.survey-question__options {
+    display: flex;
+    flex-direction: column;
+    gap: 0rem;
+}
+
+.survey-question__options--horizontal {
+    display: flex;
+    flex-direction: row;
+    gap: 0rem;
+}
+
+.survey-question__textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 0.75rem;
+    border: 1px solid #d0d0d0;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.4;
+    resize: vertical;
+    background: #ffffff;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.survey-question__textarea:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.survey-question__textarea::placeholder {
+    color: #999;
+}
+
+/* Radio button and checkbox styling to match existing owid styles */
+.owid-radio-block,
+.owid-checkbox-block {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.owid-radio-block input[type="radio"],
+.owid-checkbox-block input[type="checkbox"] {
+    margin-top: 0.2rem;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.owid-radio-block label,
+.owid-checkbox-block label {
+    cursor: pointer;
+    line-height: 1.4;
+    font-weight: normal;
+    margin: 0;
+}
+
+/* Multi-select options for scales */
+.survey-question__options.scale {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.survey-question__options.scale .owid-radio-block {
+    min-width: 3rem;
+    justify-content: center;
+    text-align: center;
+}
+
+/* Error and success states */
+.survey-form__error {
+    background: #fdf2f2;
+    border: 1px solid #f8d7da;
+    color: #721c24;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.survey-form__submit {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 2rem;
+}
+
+.survey-form__submit button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.survey-form--submitted {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.survey-form__success h3 {
+    color: #27ae60;
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    margin-top: 0;
+}
+
+.survey-form__success p {
+    color: #666;
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .survey-form {
+        padding: 1.5rem;
+        margin: 1rem 0;
+    }
+
+    .survey-question__options.scale {
+        gap: 0.25rem;
+    }
+
+    .survey-question__options.scale .owid-radio-block {
+        min-width: 2.5rem;
+    }
+}
+
+// $radio-min-height: 44px;
+$radio-padding: 0.4rem 1rem;
+$radio-radius: 0px;
+$radio-gap: 0px;
+$radio-border: #d0d5dd;
+$radio-border-selected: #111827;
+$radio-bg: #fff;
+$radio-bg-hover: #f3f4f6;
+$radio-bg-selected: #eef2ff;
+$radio-text: #111827;
+
+// Radio button styling
+.owid-radio-block {
+    position: relative;
+}
+
+/* Visually hide the radio but keep it accessible */
+.owid-radio-block input[type="radio"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none; /* clicks go to the label */
+}
+
+.owid-radio-block label {
+    display: grid;
+    place-items: center;
+    text-align: center;
+    height: 100%;
+    width: 100%;
+    padding: $radio-padding;
+    border: 1px solid $radio-border;
+    border-radius: $radio-radius;
+    background: $radio-bg;
+    color: $radio-text;
+    font-weight: 600;
+    user-select: none;
+    cursor: pointer;
+    transition:
+        background 120ms,
+        border-color 120ms,
+        box-shadow 120ms,
+        transform 50ms;
+}
+
+/* Hover / active affordances */
+.owid-radio-block label:hover {
+    background: $radio-bg-hover;
+}
+
+.owid-radio-block label:active {
+    transform: translateY(1px);
+}
+
+/* Focus ring when tabbing to the hidden radio */
+.owid-radio-block input[type="radio"]:focus-visible + label {
+    outline: 2px solid transparent;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+/* Selected state */
+.owid-radio-block input[type="radio"]:checked + label {
+    border-color: $radio-border-selected;
+    background: $radio-bg-selected;
+}
+
+/* Disabled example support (if you ever disable one) */
+.owid-radio-block input[type="radio"]:disabled + label {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
