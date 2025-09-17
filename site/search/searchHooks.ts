@@ -1,13 +1,12 @@
 import { FilterType, SearchState } from "./searchTypes.js"
 import {
-    getCountryData,
     getFilterNamesOfType,
     getSelectedTopic,
     getPaginationOffsetAndLength,
     getNbPaginatedItemsRequested,
 } from "./searchUtils.js"
 import { useSearchContext } from "./SearchContext.js"
-import { flattenNonTopicNodes, Region, Url } from "@ourworldindata/utils"
+import { flattenNonTopicNodes, Url } from "@ourworldindata/utils"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { SearchClient } from "algoliasearch"
 import { SearchResponse } from "instantsearch.js"
@@ -16,19 +15,14 @@ import { urlToSearchState, searchStateToUrl } from "./searchState.js"
 import { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 
-export const useSelectedCountries = (): Region[] => {
-    const selectedCountryNames = useSelectedCountryNames()
-    return getCountryData(selectedCountryNames)
-}
-
 export const useSelectedTopic = (): string | undefined => {
     const { state } = useSearchContext()
     return getSelectedTopic(state.filters)
 }
 
-export const useSelectedCountryNames = (): Set<string> => {
+export const useSelectedRegionNames = (): string[] => {
     const { state } = useSearchContext()
-    return getFilterNamesOfType(state.filters, FilterType.COUNTRY)
+    return Array.from(getFilterNamesOfType(state.filters, FilterType.COUNTRY))
 }
 
 /**

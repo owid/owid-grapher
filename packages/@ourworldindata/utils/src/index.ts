@@ -195,6 +195,7 @@ export {
     regions,
     type Region,
     countries,
+    listedRegionsNames,
     type Country,
     type IncomeGroup,
     type OwidIncomeGroupName,

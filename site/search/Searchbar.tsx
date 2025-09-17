@@ -10,7 +10,7 @@ import { createFocusInputOnClickHandler } from "./searchUtils.js"
 import { SearchAutocompleteContextProvider } from "./SearchAutocompleteContextProvider.js"
 import { SearchResetButton } from "./SearchResetButton.js"
 import { useSearchContext } from "./SearchContext.js"
-import { useSelectedCountryNames } from "./searchHooks.js"
+import { useSelectedRegionNames } from "./searchHooks.js"
 
 export const Searchbar = ({ allTopics }: { allTopics: string[] }) => {
     const {
@@ -25,7 +25,7 @@ export const Searchbar = ({ allTopics }: { allTopics: string[] }) => {
         },
     } = useSearchContext()
 
-    const selectedCountryNames = useSelectedCountryNames()
+    const selectedRegionNames = useSelectedRegionNames()
     // Storing this in local state so that query params don't update during typing
     const [localQuery, setLocalQuery] = useState(query)
     // sync local query with global query when browser navigation occurs
@@ -91,7 +91,7 @@ export const Searchbar = ({ allTopics }: { allTopics: string[] }) => {
                 <SearchCountrySelector
                     requireAllCountries={requireAllCountries}
                     toggleRequireAllCountries={toggleRequireAllCountries}
-                    selectedCountryNames={selectedCountryNames}
+                    selectedRegionNames={selectedRegionNames}
                     addCountry={addCountry}
                     removeCountry={removeCountry}
                 />
