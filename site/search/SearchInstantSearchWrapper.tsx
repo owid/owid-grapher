@@ -6,6 +6,18 @@ import {
 import { Search } from "./Search.js"
 import { getInitialSearchState } from "./searchState.js"
 import algoliasearch from "algoliasearch"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            // In practice, stale queries do not result in another network
+            // request, due to Algolia's caching. React Query's caching
+            // (staleTime) should be considered a second line of defense.
+            staleTime: 60 * 1000, // 1 minute
+        },
+    },
+})
 
 export const SearchInstantSearchWrapper = ({
     tagGraph,
@@ -16,10 +28,12 @@ export const SearchInstantSearchWrapper = ({
     const initialState = getInitialSearchState()
 
     return (
-        <Search
-            initialState={initialState}
-            tagGraph={tagGraph}
-            searchClient={searchClient}
-        />
+        <QueryClientProvider client={queryClient}>
+            <Search
+                initialState={initialState}
+                tagGraph={tagGraph}
+                searchClient={searchClient}
+            />
+        </QueryClientProvider>
     )
 }
