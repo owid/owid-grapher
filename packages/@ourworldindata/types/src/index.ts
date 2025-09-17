@@ -158,8 +158,6 @@ export {
     type TagGraphRoot,
     type DbInsertTagGraphNode,
     type DbPlainTagGraphNode,
-    type DbPlainContentGraphLink,
-    type DbInsertContentGraphLink,
     ContentGraphLinkType,
 } from "./domainTypes/ContentGraph.js"
 export {

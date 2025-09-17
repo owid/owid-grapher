@@ -3,7 +3,8 @@ import { Url } from "@ourworldindata/utils"
 import { formatUrls } from "../../site/formatting.js"
 import {
     ContentGraphLinkType,
-    DbInsertContentGraphLink,
+    DbInsertDodLink,
+    DbInsertPostGdocLink,
     DbPlainPostGdocLink,
 } from "@ourworldindata/types"
 import { KnexReadonlyTransaction, knexRaw } from "../db.js"
@@ -59,10 +60,10 @@ export function createLinkFromUrl({
     componentType = "",
 }: {
     url: string
-    sourceId: string | number
+    sourceId: string
     text?: string
     componentType?: string
-}): DbInsertContentGraphLink {
+}): DbInsertPostGdocLink {
     const formattedUrl = formatUrls(url)
     const urlObject = Url.fromURL(formattedUrl)
     const linkType = getLinkType(formattedUrl)
@@ -77,7 +78,35 @@ export function createLinkFromUrl({
         text,
         componentType,
         sourceId,
-    } satisfies DbInsertContentGraphLink
+    }
+}
+
+export function createDodLinkFromUrl({
+    url,
+    text,
+    sourceId,
+    componentType,
+}: {
+    url: string
+    text: string
+    sourceId: number
+    componentType: string
+}): DbInsertDodLink {
+    const formattedUrl = formatUrls(url)
+    const urlObject = Url.fromURL(formattedUrl)
+    const linkType = getLinkType(formattedUrl)
+    const target = getUrlTarget(formattedUrl)
+    const queryString = urlObject.queryStr
+    const hash = urlObject.hash
+    return {
+        target,
+        linkType,
+        queryString,
+        hash,
+        text,
+        componentType,
+        sourceId,
+    }
 }
 
 export function createLinkForNarrativeChart({
@@ -88,7 +117,7 @@ export function createLinkForNarrativeChart({
     name: string
     sourceId: string
     componentType: string
-}): DbInsertContentGraphLink {
+}): DbInsertPostGdocLink {
     return {
         target: name,
         linkType: ContentGraphLinkType.NarrativeChart,
@@ -97,5 +126,5 @@ export function createLinkForNarrativeChart({
         text: "",
         componentType,
         sourceId,
-    } satisfies DbInsertContentGraphLink
+    }
 }

@@ -1,15 +1,11 @@
 import { triggerStaticBuild } from "../../baker/GrapherBakingUtils.js"
 import * as db from "../../db/db.js"
 import * as dodDb from "../../db/model/Dod.js"
+import { createDodLinkFromUrl } from "../../db/model/Link.js"
 import { Request } from "../authentication.js"
 import e from "express"
-import {
-    DbInsertDodLink,
-    DodLinksTableName,
-    DodsTableName,
-} from "@ourworldindata/types"
-import { extractLinksFromMarkdown, Url } from "@ourworldindata/utils"
-import { getLinkType } from "@ourworldindata/components"
+import { DodLinksTableName, DodsTableName } from "@ourworldindata/types"
+import { extractLinksFromMarkdown } from "@ourworldindata/utils"
 
 async function updateLinksFromInsertedDod(
     trx: db.KnexReadWriteTransaction,
@@ -24,19 +20,13 @@ async function updateLinksFromInsertedDod(
 
     // Insert new links
     const links = extractLinksFromMarkdown(dod.content)
-    for (const link of links) {
-        const [text] = link
-        const url = Url.fromURL(link[1])
-        const linkType = getLinkType(url.fullUrl)
-        const dodLink: DbInsertDodLink = {
-            sourceId: dod.id,
-            target: url.fullUrl,
-            queryString: url.queryStr,
-            hash: url.hash,
+    for (const [text, url] of links) {
+        const dodLink = createDodLinkFromUrl({
+            url,
             text,
-            linkType,
+            sourceId: dod.id,
             componentType: "dod",
-        }
+        })
         await trx(DodLinksTableName).insert(dodLink)
     }
 }

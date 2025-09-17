@@ -71,17 +71,3 @@ export enum ContentGraphLinkType {
     Dod = "dod",
     GuidedChart = "guided-chart",
 }
-
-export interface DbInsertContentGraphLink {
-    componentType: string
-    hash: string
-    id?: number
-    linkType?: ContentGraphLinkType | null
-    queryString: string
-    // string for gdocs, number for dods
-    sourceId?: string | number | null
-    target: string
-    text: string
-}
-
-export type DbPlainContentGraphLink = Required<DbInsertContentGraphLink>

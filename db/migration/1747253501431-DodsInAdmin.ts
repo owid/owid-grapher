@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from "typeorm"
 import { enrichedBlocksToMarkdown } from "../model/Gdoc/enrichedToMarkdown.js"
-import { createLinkFromUrl } from "../model/Link.js"
+import { createDodLinkFromUrl } from "../model/Link.js"
 import {
     EnrichedBlockText,
     extractLinksFromMarkdown,
@@ -150,7 +150,7 @@ async function migrateDodGdocToDb(queryRunner: QueryRunner): Promise<void> {
 
         const plaintextLinks = extractLinksFromMarkdown(asMarkdown)
         for (const [text, url] of plaintextLinks) {
-            const link = createLinkFromUrl({
+            const link = createDodLinkFromUrl({
                 url,
                 sourceId: id,
                 text,
