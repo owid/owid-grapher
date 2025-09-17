@@ -20,11 +20,13 @@ export const ArticleBlocks = ({
     containerType = "default",
     toc,
     shouldRenderLinks = true,
+    interactiveImages = true,
 }: {
     blocks: OwidEnrichedGdocBlock[]
     containerType?: Container
     toc?: TocHeadingWithTitleSupertitle[]
     shouldRenderLinks?: boolean
+    interactiveImages?: boolean
 }) => (
     <>
         {blocks.map((block: OwidEnrichedGdocBlock, i: number) => {
@@ -35,6 +37,7 @@ export const ArticleBlocks = ({
                     containerType={containerType}
                     toc={toc}
                     shouldRenderLinks={shouldRenderLinks}
+                    interactiveImages={interactiveImages}
                 />
             )
         })}
