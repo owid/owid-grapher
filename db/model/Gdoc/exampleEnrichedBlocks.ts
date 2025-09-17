@@ -366,6 +366,11 @@ export const enrichedBlockExamples: Record<
         value: "<p>This is a paragraph</p>",
         parseErrors: [],
     },
+    script: {
+        type: "script",
+        value: "import { Chart } from 'chart.js'; document.body.append(Chart);",
+        parseErrors: [],
+    },
     heading: {
         type: "heading",
         level: 1,

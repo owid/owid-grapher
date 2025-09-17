@@ -486,6 +486,17 @@ export type EnrichedBlockHtml = {
     type: "html"
     value: string
 } & EnrichedBlockWithParseErrors
+
+export type RawBlockScript = {
+    type: "script"
+    value: string
+}
+
+export type EnrichedBlockScript = {
+    type: "script"
+    value: string
+} & EnrichedBlockWithParseErrors
+
 export type RawBlockUrl = {
     type: "url"
     value: string
@@ -1111,6 +1122,7 @@ export type OwidRawGdocBlock =
     | RawBlockPosition
     | RawBlockHeading
     | RawBlockHtml
+    | RawBlockScript
     | RawBlockHorizontalRule
     | RawBlockSDGGrid
     | RawBlockStickyRightContainer
@@ -1164,6 +1176,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockResearchAndWriting
     | EnrichedBlockHeading
     | EnrichedBlockHtml
+    | EnrichedBlockScript
     | EnrichedBlockHorizontalRule
     | EnrichedBlockSDGGrid
     | EnrichedBlockStickyRightContainer

@@ -173,6 +173,10 @@ import {
 } from "./htmlToEnriched.js"
 import { P, match } from "ts-pattern"
 import * as R from "remeda"
+import {
+    EnrichedBlockScript,
+    RawBlockScript,
+} from "@ourworldindata/types/src/gdocTypes/ArchieMlComponents.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
@@ -214,6 +218,14 @@ export function parseRawBlocksToEnrichedBlocks(
             { type: "html" },
             (block: RawBlockHtml): EnrichedBlockHtml => ({
                 type: "html",
+                value: block.value,
+                parseErrors: [],
+            })
+        )
+        .with(
+            { type: "script" },
+            (block: RawBlockScript): EnrichedBlockScript => ({
+                type: "script",
                 value: block.value,
                 parseErrors: [],
             })

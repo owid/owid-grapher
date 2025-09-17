@@ -265,6 +265,11 @@ ${items}
         .with({ type: "html" }, (b): string | undefined =>
             exportComponents ? b.value : undefined
         )
+        .with({ type: "script" }, (b): string | undefined =>
+            exportComponents
+                ? `<script type="module">${b.value}</script>`
+                : undefined
+        )
         .with({ type: "heading" }, (b): string | undefined => {
             const prefix = "#".repeat(b.level)
             const text = b.supertitle

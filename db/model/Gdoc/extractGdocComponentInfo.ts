@@ -341,6 +341,7 @@ export function enumerateGdocComponentsWithoutChildren(
                         "narrative-chart",
                         "horizontal-rule",
                         "html",
+                        "script",
                         "image",
                         "video",
                         "missing-data",

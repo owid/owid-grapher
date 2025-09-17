@@ -55,6 +55,7 @@ import {
     RawBlockExpander,
     RawBlockResourcePanel,
     RawBlockCta,
+    RawBlockScript,
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
 
@@ -412,6 +413,11 @@ function* rawBlockHtmlToArchieMLString(
         yield `html: ${escapeRawText(block.value)}`
         yield `:end`
     }
+}
+function* rawBlockScriptToArchieMLString(
+    block: RawBlockScript
+): Generator<string, void, undefined> {
+    yield keyValueToArchieMlString("script", block.value)
 }
 
 function* rawBlockUrlToArchieMLString(
@@ -969,6 +975,7 @@ export function* OwidRawGdocBlockToArchieMLStringGenerator(
         .with({ type: "resource-panel" }, rawBlockResourcePanelToArchieMLString)
         .with({ type: "text" }, rawBlockTextToArchieMLString)
         .with({ type: "html" }, rawBlockHtmlToArchieMLString)
+        .with({ type: "script" }, rawBlockScriptToArchieMLString)
         .with({ type: "url" }, rawBlockUrlToArchieMLString)
         .with({ type: "position" }, rawBlockPositionToArchieMLString)
         .with({ type: "heading" }, RawBlockHeadingToArchieMLString)

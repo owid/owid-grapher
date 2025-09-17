@@ -411,6 +411,14 @@ function ArticleBlockInternal({
                 dangerouslySetInnerHTML={{ __html: block.value }}
             />
         ))
+        .with({ type: "script" }, (block) => (
+            <div
+                className={getLayout("script", containerType)}
+                dangerouslySetInnerHTML={{
+                    __html: `<script type="module">${block.value.value}</script>`,
+                }}
+            />
+        ))
         .with({ type: "horizontal-rule" }, () => (
             <hr className={getLayout("horizontal-rule", containerType)} />
         ))
