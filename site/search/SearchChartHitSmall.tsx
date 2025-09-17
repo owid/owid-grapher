@@ -24,7 +24,7 @@ import {
 
 export function SearchChartHitSmall({
     hit,
-    searchQueryRegionsMatches,
+    selectedRegionNames,
     onClick,
 }: SearchChartHitComponentProps) {
     // Intersection observer for lazy loading chart info
@@ -34,8 +34,8 @@ export function SearchChartHitSmall({
     })
 
     const entities = useMemo(
-        () => pickEntitiesForChartHit(hit, searchQueryRegionsMatches),
-        [hit, searchQueryRegionsMatches]
+        () => pickEntitiesForChartHit(hit, selectedRegionNames),
+        [hit, selectedRegionNames]
     )
 
     const entityForDisplay = entities[0] ?? WORLD_ENTITY_NAME

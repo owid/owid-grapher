@@ -26,13 +26,13 @@ const alphabetizedCountriesByName = Object.values(countriesByName()).sort(
 )
 
 export const SearchCountrySelector = ({
-    selectedCountryNames,
+    selectedRegionNames,
     requireAllCountries,
     addCountry,
     removeCountry,
     toggleRequireAllCountries,
 }: {
-    selectedCountryNames: Set<string>
+    selectedRegionNames: string[]
     requireAllCountries: boolean
     addCountry: (country: string) => void
     removeCountry: (country: string) => void
@@ -44,7 +44,7 @@ export const SearchCountrySelector = ({
     const listContainerRef = useRef<HTMLDivElement>(null)
 
     const toggleCountry = (country: string) => {
-        if (selectedCountryNames.has(country)) {
+        if (selectedRegionNames.includes(country)) {
             removeCountry(country)
         } else {
             addCountry(country)
@@ -71,12 +71,12 @@ export const SearchCountrySelector = ({
     const filteredCountriesByName = useMemo(() => {
         return alphabetizedCountriesByName.filter(
             (country) =>
-                selectedCountryNames.has(country.name) ||
+                selectedRegionNames.includes(country.name) ||
                 country.name
                     .toLowerCase()
                     .includes(countrySearchQuery.toLowerCase())
         )
-    }, [countrySearchQuery, selectedCountryNames])
+    }, [countrySearchQuery, selectedRegionNames])
 
     return (
         <div className="search-country-selector">
@@ -121,7 +121,7 @@ export const SearchCountrySelector = ({
                     <LabeledSwitch
                         className="search-country-selector-switch"
                         value={requireAllCountries}
-                        disabled={selectedCountryNames.size === 0}
+                        disabled={selectedRegionNames.length === 0}
                         onToggle={toggleRequireAllCountries}
                         label="Only show charts with data for all selected countries"
                     />
@@ -161,7 +161,7 @@ export const SearchCountrySelector = ({
                                     "search-country-selector-list__item",
                                     {
                                         "search-country-selector-list__item--selected":
-                                            selectedCountryNames.has(
+                                            selectedRegionNames.includes(
                                                 country.name
                                             ),
                                     }
@@ -180,7 +180,7 @@ export const SearchCountrySelector = ({
                                 {country.name}
                                 <input
                                     type="checkbox"
-                                    checked={selectedCountryNames.has(
+                                    checked={selectedRegionNames.includes(
                                         country.name
                                     )}
                                     readOnly

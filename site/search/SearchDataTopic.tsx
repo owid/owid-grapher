@@ -5,7 +5,7 @@ import * as React from "react"
 import { SearchDataTopicsResponse } from "./searchTypes.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { useSearchContext } from "./SearchContext.js"
-import { useSelectedCountries } from "./searchHooks.js"
+import { useSelectedRegionNames } from "./searchHooks.js"
 import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
 
 const analytics = new SiteAnalytics()
@@ -19,7 +19,7 @@ export const SearchDataTopic = ({
         actions: { setTopic },
     } = useSearchContext()
 
-    const selectedCountries = useSelectedCountries()
+    const selectedRegionNames = useSelectedRegionNames()
 
     if (charts.nbHits === 0) return null
     const titleLabel = title.replaceAll(" and ", " & ")
@@ -66,7 +66,7 @@ export const SearchDataTopic = ({
                                         title
                                     )
                                 }}
-                                searchQueryRegionsMatches={selectedCountries}
+                                selectedRegionNames={selectedRegionNames}
                             />
                         </li>
                     ))}
