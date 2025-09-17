@@ -1,6 +1,5 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
-import { HitAttributeHighlightResult } from "instantsearch.js"
 import {
     EntityName,
     GRAPHER_CHART_TYPES,
@@ -17,11 +16,6 @@ import {
     TimeBounds,
 } from "@ourworldindata/types"
 import {
-    Region,
-    getRegionByNameOrVariantName,
-    regions,
-    removeTrailingParenthetical,
-    lazy,
     Url,
     countriesByName,
     FuzzySearch,
@@ -102,117 +96,27 @@ const STOP_WORDS = new Set([
     "vs",
 ])
 
-/**
- * The below code is used to search for entities we can highlight in charts and explorer results.
- *
- * There are two main functions here:
- * - `extractRegionNamesFromSearchQuery` looks at the search query (e.g. "covid cases us china asia") and extracts anything
- *   that looks like a country, region or variant name (e.g. "US"), case-insensitive.
- *   It doesn't have any knowledge of what entities are actually available.
- * - `pickEntitiesForChartHit` gets information about the entities available in a chart.
- *    It also receives the result of `extractRegionNamesFromSearchQuery`, i.e. a list of regions that are mentioned in the search query.
- *    This is useful because Algolia removes stop words like "the" and "and", which makes it difficult to match entities like
- *    "Trinidad and Tobago".
- *    - It then reduces this list to the entities that are actually available in the chart.
- *    - Afterwards, it uses the highlighted entities from Algolia to pick any other entities that are fully contained in the
- *      search query - this now adds any entities _not_ in the `regions` list, like "high-income countries" or "Salmon (farmed)".
- *
- * In practice, we use `pickEntitiesForChartHit` for explorers, since there we don't have any entity information available,
- * and can only act based on the fact that most explorers are country-based and have data for most countries and regions.
- * For charts, we use the more accurate `pickEntitiesForChartHit` function, since entity information is available.
- *
- * -- @marcelgerber, 2024-06-18
- */
-const getRegionNameRegex = lazy(() => {
-    const allCountryNamesAndVariants = lazy(() =>
-        regions.flatMap((c) => [
-            c.name,
-            ...(("variantNames" in c && c.variantNames) || []),
-        ])
-    )
-
-    // A RegExp that matches any country, region and variant name. Case-independent.
-    return new RegExp(
-        `\\b(${allCountryNamesAndVariants().map(_.escapeRegExp).join("|")})\\b`,
-        "gi"
-    )
-})
-
-export const extractRegionNamesFromSearchQuery = (query: string) => {
-    const matches = query.matchAll(getRegionNameRegex())
-    const regionNames = Array.from(matches, (match) => match[0])
-    if (regionNames.length === 0) return null
-    return regionNames.map(getRegionByNameOrVariantName) as Region[]
-}
-
-const removeHighlightTags = (text: string) =>
-    text.replace(/<\/?(mark|strong)>/g, "")
-
 export function pickEntitiesForChartHit(
     hit: IChartHit | SearchChartHit,
-    searchQueryRegionsMatches: Region[] | undefined
+    selectedRegionNames: string[] | undefined
 ): EntityName[] {
+    if (!selectedRegionNames) return []
+
     const availableEntities =
         hit.originalAvailableEntities ?? hit.availableEntities
     if (!availableEntities) return []
 
-    const availableEntitiesHighlighted = (hit._highlightResult
-        ?.originalAvailableEntities ||
-        hit._highlightResult?.availableEntities) as
-        | HitAttributeHighlightResult[]
-        | undefined
-
-    const pickedEntities = new Set(
-        searchQueryRegionsMatches?.map((r) => r.name)
+    // Build intersection of selectedRegionNames and availableEntities, so we
+    // only select entities that are actually present in the chart
+    const filteredEntities = R.intersection(
+        selectedRegionNames,
+        availableEntities
     )
 
-    // Build intersection of searchQueryRegionsMatches and availableEntities, so we only select entities that are actually present in the chart
-    if (pickedEntities.size > 0) {
-        const availableEntitiesSet = new Set(availableEntities)
-        for (const entity of pickedEntities) {
-            if (!availableEntitiesSet.has(entity)) {
-                pickedEntities.delete(entity)
-            }
-        }
-    }
-
-    // Add entities to the list of picked entities if they're typed in the search bar
-    // even if a user hasn't selected them from the autocomplete dropdown
-    if (availableEntitiesHighlighted) {
-        for (const highlightEntry of availableEntitiesHighlighted) {
-            if (highlightEntry.matchLevel === "none") continue
-
-            const withoutHighlightTags = removeHighlightTags(
-                highlightEntry.value
-            )
-            if (pickedEntities.has(withoutHighlightTags)) continue
-
-            // Remove any trailing parentheses, e.g. "Africa (UN)" -> "Africa"
-            const withoutTrailingParens =
-                removeTrailingParenthetical(withoutHighlightTags)
-
-            // The sequence of words that Algolia matched; could be something like ["arab", "united", "republic"]
-            // which we want to check against the entity name
-            const matchedSequenceLowerCase = highlightEntry.matchedWords
-                .join(" ")
-                .toLowerCase()
-
-            // Pick entity if the matched sequence contains the full entity name
-            if (
-                matchedSequenceLowerCase.startsWith(
-                    withoutTrailingParens
-                        .replaceAll("-", " ") // makes "high-income countries" into "high income countries", enabling a match
-                        .toLowerCase()
-                )
-            )
-                pickedEntities.add(withoutHighlightTags)
-        }
-    }
-
     // Reverse the order so that the last picked entity is first
-    const sortedEntities = [...pickedEntities].reverse()
+    const sortedEntities = [...filteredEntities].reverse()
 
-    return sortedEntities ?? []
+    return sortedEntities
 }
 
 const generateGrapherTabQueryParam = ({
@@ -519,15 +423,6 @@ export const formatTopicFacetFilters = (
     return [setToFacetFilters(topics, "tags")]
 }
 
-export function getCountryData(selectedCountries: Set<string>): Region[] {
-    const regionData: Region[] = []
-    const countries = countriesByName()
-    for (const selectedCountry of selectedCountries) {
-        regionData.push(countries[selectedCountry])
-    }
-    return regionData
-}
-
 export function serializeSet(set: Set<string>) {
     return set.size ? [...set].join("~") : undefined
 }
@@ -549,21 +444,29 @@ export function getFilterNamesOfType(
 
 export const getFilterIcon = (filter: Filter) => {
     return match(filter.type)
-        .with(FilterType.COUNTRY, () => (
-            <img
-                className="flag"
-                aria-hidden={true}
-                height={12}
-                width={16}
-                src={`/images/flags/${countriesByName()[filter.name].code}.svg`}
-            />
-        ))
+        .with(FilterType.COUNTRY, () => {
+            // Some countries filters might be regions or historical countries,
+            // for which we don't show a flag. By looking for potential region
+            // names in the countries list, we're effectively filtering out
+            // non-country regions.
+            const countryCode = countriesByName()[filter.name]?.code
+            return countryCode ? (
+                <img
+                    className="flag"
+                    aria-hidden={true}
+                    height={12}
+                    width={16}
+                    src={`/images/flags/${countryCode}.svg`}
+                />
+            ) : null
+        })
         .with(FilterType.TOPIC, () => (
             <span className="icon">
                 <FontAwesomeIcon icon={faTag} />
             </span>
         ))
-        .otherwise(() => null)
+        .with(FilterType.QUERY, () => null)
+        .exhaustive()
 }
 
 export function searchWithWords(
@@ -1037,6 +940,7 @@ export function getFilterSuggestionsWithUnmatchedQuery(
  */
 export function getFilterSuggestionsNgrams(
     query: string,
+    allRegionNames: string[],
     allTopics: string[],
     filters: Filter[], // currently active filters to exclude from suggestions
     sortOptions: { threshold: number; limit: number },
@@ -1049,15 +953,11 @@ export function getFilterSuggestionsNgrams(
         FilterType.COUNTRY
     )
     const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
-    const allCountries = countriesByName()
-    const allCountryNames = Object.values(allCountries).map(
-        (country) => country.name
-    )
 
     // Use n-gram matching for better phrase detection
     const matches = findMatchesWithNgrams(
         query,
-        allCountryNames,
+        allRegionNames,
         allTopics,
         selectedCountryNames,
         selectedTopics,

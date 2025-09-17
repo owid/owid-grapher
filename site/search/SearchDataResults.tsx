@@ -1,6 +1,6 @@
 import { queryCharts, searchQueryKeys } from "./queries.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
-import { useSelectedCountries, useInfiniteSearch } from "./searchHooks.js"
+import { useSelectedRegionNames, useInfiniteSearch } from "./searchHooks.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 import {
     SearchChartsResponse,
@@ -18,7 +18,7 @@ export const SearchDataResults = ({
 }: {
     isFirstChartLarge: boolean
 }) => {
-    const selectedCountries = useSelectedCountries()
+    const selectedRegionNames = useSelectedRegionNames()
 
     const query = useInfiniteSearch<SearchChartsResponse, SearchChartHit>({
         queryKey: (state) => searchQueryKeys.charts(state),
@@ -68,8 +68,8 @@ export const SearchDataResults = ({
                                         <SearchChartHitComponent
                                             hit={hit}
                                             variant={variant}
-                                            searchQueryRegionsMatches={
-                                                selectedCountries
+                                            selectedRegionNames={
+                                                selectedRegionNames
                                             }
                                             onClick={onClick}
                                         />
