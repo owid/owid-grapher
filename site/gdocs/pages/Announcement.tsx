@@ -45,7 +45,10 @@ export const AnnouncementPageContent = (props: AnnouncementProps) => {
                     </div>
                 )}
             </header>
-            <ArticleBlocks blocks={props.content.body} />
+            <ArticleBlocks
+                blocks={props.content.body}
+                interactiveImages={false}
+            />
         </div>
     )
 }
