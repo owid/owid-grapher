@@ -417,7 +417,11 @@ function* rawBlockHtmlToArchieMLString(
 function* rawBlockScriptToArchieMLString(
     block: RawBlockScript
 ): Generator<string, void, undefined> {
-    yield keyValueToArchieMlString("script", block.value)
+    yield "[.+script]"
+    for (const text of block.value) {
+        yield* rawBlockTextToArchieMLString(text)
+    }
+    yield "[]"
 }
 
 function* rawBlockUrlToArchieMLString(

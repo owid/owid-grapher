@@ -415,7 +415,9 @@ function ArticleBlockInternal({
             <div
                 className={getLayout("script", containerType)}
                 dangerouslySetInnerHTML={{
-                    __html: `<script type="module">${block.value.value}</script>`,
+                    __html: `<script type="module">
+                    ${block.lines.join("\n")}
+                    </script>`,
                 }}
             />
         ))

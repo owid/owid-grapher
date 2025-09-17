@@ -340,7 +340,10 @@ export function enrichedBlockToRawBlock(
             { type: "script" },
             (b): RawBlockScript => ({
                 type: b.type,
-                value: b.value,
+                value: b.lines.map((line) => ({
+                    type: "text",
+                    value: line,
+                })),
             })
         )
         .with(

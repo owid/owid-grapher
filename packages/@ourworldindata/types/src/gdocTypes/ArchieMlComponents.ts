@@ -489,12 +489,12 @@ export type EnrichedBlockHtml = {
 
 export type RawBlockScript = {
     type: "script"
-    value: string
+    value: RawBlockText[]
 }
 
 export type EnrichedBlockScript = {
     type: "script"
-    value: string
+    lines: string[]
 } & EnrichedBlockWithParseErrors
 
 export type RawBlockUrl = {

@@ -267,7 +267,7 @@ ${items}
         )
         .with({ type: "script" }, (b): string | undefined =>
             exportComponents
-                ? `<script type="module">${b.value}</script>`
+                ? `<script type="module">${b.lines.join("\n")}</script>`
                 : undefined
         )
         .with({ type: "heading" }, (b): string | undefined => {

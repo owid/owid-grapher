@@ -368,7 +368,10 @@ export const enrichedBlockExamples: Record<
     },
     script: {
         type: "script",
-        value: "import { Chart } from 'chart.js'; document.body.append(Chart);",
+        lines: [
+            "import { Chart } from 'chart.js';",
+            "document.body.append(Chart);",
+        ],
         parseErrors: [],
     },
     heading: {
