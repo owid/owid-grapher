@@ -242,8 +242,6 @@ export { PointVector } from "./PointVector.js"
 export { OwidVariableDisplayConfig } from "./OwidVariable.js"
 
 export {
-    getQueryParams,
-    getWindowQueryParams,
     strToQueryParams,
     queryParamsToStr,
     getWindowQueryStr,
