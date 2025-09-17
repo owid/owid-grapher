@@ -55,7 +55,7 @@ const NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_LARGE_VARIANT = 10
 
 export function SearchChartHitRichData({
     hit,
-    searchQueryRegionsMatches,
+    selectedRegionNames,
     onClick,
     variant,
 }: SearchChartHitComponentProps & {
@@ -72,8 +72,8 @@ export function SearchChartHitRichData({
 
     // Entities selected by the user
     const pickedEntities = useMemo(
-        () => pickEntitiesForChartHit(hit, searchQueryRegionsMatches),
-        [hit, searchQueryRegionsMatches]
+        () => pickEntitiesForChartHit(hit, selectedRegionNames),
+        [hit, selectedRegionNames]
     )
 
     // The grapherState contains MobX observables. When observable values are modified,
@@ -133,7 +133,7 @@ export function SearchChartHitRichData({
         return (
             <SearchChartHitRichDataFallback
                 hit={hit}
-                searchQueryRegionsMatches={searchQueryRegionsMatches}
+                selectedRegionNames={selectedRegionNames}
                 onClick={onClick}
             />
         )
