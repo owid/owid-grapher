@@ -28,23 +28,6 @@ export const SearchPage = (props: {
                 imageUrl={`${baseUrl}/data-catalog-thumbnail.png`}
             >
                 <script
-                    type="application/ld+json"
-                    dangerouslySetInnerHTML={{
-                        // Structured data for google
-                        __html: JSON.stringify({
-                            "@context": "https://schema.org",
-                            "@type": "WebSite",
-                            url: baseUrl,
-                            potentialAction: {
-                                "@type": "SearchAction",
-                                target: `${baseUrl}${SEARCH_BASE_PATH}?q={search_term_string}`,
-                                "query-input":
-                                    "required name=search_term_string",
-                            },
-                        }),
-                    }}
-                />
-                <script
                     dangerouslySetInnerHTML={{
                         __html: `window._OWID_TOPIC_TAG_GRAPH = ${JSON.stringify(
                             topicTagGraph
