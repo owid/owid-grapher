@@ -3,6 +3,7 @@ import { useSearchContext } from "./SearchContext.js"
 import { getFilterIcon, getFilterSuggestionsNgrams } from "./searchUtils.js"
 import { FilterType, ScoredFilterPositioned } from "./searchTypes.js"
 import { SearchFilterPill } from "./SearchFilterPill.js"
+import { listedRegionsNames } from "@ourworldindata/utils"
 
 /**
  * Detects potential country and topic filters from the search query using n-gram matching.
@@ -19,9 +20,12 @@ export const SearchDetectedFilters = ({
         synonymMap,
     } = useSearchContext()
 
+    const allRegionNames = listedRegionsNames()
+
     const automaticFilters = useMemo(() => {
         const matches = getFilterSuggestionsNgrams(
             query,
+            allRegionNames,
             allTopics,
             filters,
             { threshold: 1, limit: 1 },
@@ -39,6 +43,7 @@ export const SearchDetectedFilters = ({
     const manualFilters = useMemo(() => {
         return getFilterSuggestionsNgrams(
             query,
+            allRegionNames,
             allTopics,
             filters,
             { threshold: 0.75, limit: 1 },

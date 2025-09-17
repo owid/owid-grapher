@@ -1,5 +1,4 @@
 import { GrapherTabName, OwidGdocType } from "@ourworldindata/types"
-import { Region } from "@ourworldindata/utils"
 import { SearchResponse } from "instantsearch.js"
 import {
     BaseHit,
@@ -136,7 +135,7 @@ export type SearchChartHit =
 
 export interface SearchChartHitComponentProps {
     hit: SearchChartHit
-    searchQueryRegionsMatches?: Region[] | undefined
+    selectedRegionNames?: string[] | undefined
     // Search uses a global onClick handler to track analytics
     // But the data catalog passes a function to this component explicitly
     onClick?: () => void
