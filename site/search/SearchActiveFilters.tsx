@@ -43,9 +43,8 @@ export const SearchActiveFilters = () => {
                             />
                         </button>
                     ))
-                    .otherwise(() => {
-                        return null
-                    })
+                    .with({ type: FilterType.QUERY }, (_filter) => null)
+                    .exhaustive()
             )}
         </>
     )
