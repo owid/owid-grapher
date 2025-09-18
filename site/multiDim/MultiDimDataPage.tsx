@@ -53,10 +53,16 @@ export function MultiDimDataPage({
     const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
     const assetMaps = isOnArchivalPage ? archivedChartInfo.assets : undefined
 
+    const liveUrlIfIsArchive =
+        archivedChartInfo?.type === "archive-page"
+            ? archivedChartInfo.archiveNavigation.liveUrl
+            : undefined
+    const canonicalUrlForHead = liveUrlIfIsArchive ?? canonicalUrl
+
     return (
         <Html>
             <Head
-                canonicalUrl={canonicalUrl}
+                canonicalUrl={canonicalUrlForHead}
                 pageTitle={pageTitle}
                 pageDesc={pageDesc}
                 imageUrl={imageUrl}
