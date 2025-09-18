@@ -25,6 +25,7 @@ import {
     queryParamsToStr,
     omitUndefinedValues,
     getRegionByName,
+    listedRegionsNames,
 } from "@ourworldindata/utils"
 import { type GrapherTrendArrowDirection } from "@ourworldindata/components"
 import {
@@ -471,9 +472,9 @@ export const getFilterIcon = (filter: Filter) => {
 
 export function searchWithWords(
     words: string[],
-    allCountryNames: string[],
+    allRegionsNames: string[],
     allTopics: string[],
-    selectedCountryNames: Set<string>,
+    selectedRegionNames: Set<string>,
     selectedTopics: Set<string>,
     sortOptions: { threshold: number; limit: number },
     synonymMap: SynonymMap
@@ -482,14 +483,14 @@ export function searchWithWords(
 
     const searchCountryTopics = (term: string) => {
         const countryFilters: ScoredFilter[] = FuzzySearch.withKey(
-            allCountryNames,
+            allRegionsNames,
             (country) => country,
             sortOptions
         )
             .searchResults(term)
             .filter(
                 (result: FuzzySearchResult) =>
-                    !selectedCountryNames.has(result.target)
+                    !selectedRegionNames.has(result.target)
             )
             .map((result: FuzzySearchResult) => ({
                 ...createCountryFilter(result.target),
@@ -695,9 +696,9 @@ function getQuotedWordPositions(words: string[]): Set<number> {
  */
 export function findMatchesWithNgrams(
     query: string,
-    allCountryNames: string[],
+    allRegionsNames: string[],
     allTopics: string[],
-    selectedCountryNames: Set<string>,
+    selectedRegionNames: Set<string>,
     selectedTopics: Set<string>,
     sortOptions: { threshold: number; limit: number },
     synonymMap: SynonymMap
@@ -743,9 +744,9 @@ export function findMatchesWithNgrams(
 
         const filters = searchWithWords(
             ngramWords,
-            allCountryNames,
+            allRegionsNames,
             allTopics,
-            selectedCountryNames,
+            selectedRegionNames,
             selectedTopics,
             sortOptions,
             synonymMap
@@ -770,7 +771,7 @@ export function findMatchesWithNgrams(
 
 export function findMatches(
     words: string[],
-    allCountryNames: string[],
+    allRegionsNames: string[],
     allTopics: string[],
     selectedCountryNames: Set<string>,
     selectedTopics: Set<string>,
@@ -784,7 +785,7 @@ export function findMatches(
     const wordsToSearch = words.slice(wordIndex)
     const filters = searchWithWords(
         wordsToSearch,
-        allCountryNames,
+        allRegionsNames,
         allTopics,
         selectedCountryNames,
         selectedTopics,
@@ -802,7 +803,7 @@ export function findMatches(
     return wordIndex < words.length - 1
         ? findMatches(
               words,
-              allCountryNames,
+              allRegionsNames,
               allTopics,
               selectedCountryNames,
               selectedTopics,
@@ -872,10 +873,7 @@ export function getFilterSuggestionsWithUnmatchedQuery(
         FilterType.COUNTRY
     )
     const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
-    const allCountries = countriesByName()
-    const allCountryNames = Object.values(allCountries).map(
-        (country) => country.name
-    )
+    const allRegionNames = listedRegionsNames()
 
     const queryWords = splitIntoWords(query)
 
@@ -888,7 +886,7 @@ export function getFilterSuggestionsWithUnmatchedQuery(
 
     const searchResults = findMatches(
         queryWords,
-        allCountryNames,
+        allRegionNames,
         allTopics,
         selectedCountryNames,
         selectedTopics,
