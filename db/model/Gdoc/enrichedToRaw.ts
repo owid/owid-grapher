@@ -56,6 +56,7 @@ import {
     EnrichedHybridLink,
     RawBlockResourcePanel,
     RawBlockCta,
+    RawBlockScript,
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
@@ -333,6 +334,16 @@ export function enrichedBlockToRawBlock(
             (b): RawBlockHtml => ({
                 type: b.type,
                 value: b.value,
+            })
+        )
+        .with(
+            { type: "script" },
+            (b): RawBlockScript => ({
+                type: b.type,
+                value: b.lines.map((line) => ({
+                    type: "text",
+                    value: line,
+                })),
             })
         )
         .with(

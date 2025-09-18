@@ -173,6 +173,10 @@ import {
 } from "./htmlToEnriched.js"
 import { P, match } from "ts-pattern"
 import * as R from "remeda"
+import {
+    EnrichedBlockScript,
+    RawBlockScript,
+} from "@ourworldindata/types/src/gdocTypes/ArchieMlComponents.js"
 
 export function parseRawBlocksToEnrichedBlocks(
     block: OwidRawGdocBlock
@@ -218,6 +222,7 @@ export function parseRawBlocksToEnrichedBlocks(
                 parseErrors: [],
             })
         )
+        .with({ type: "script" }, parseScript)
         .with({ type: "url" }, () => null) // url blocks should only occur inside of chart stories etc
         .with({ type: "position" }, () => null) // position blocks should only occur inside of chart stories etc
         .with({ type: "heading" }, parseHeading)
@@ -2773,6 +2778,41 @@ export const parseSocials = (raw: RawBlockSocials): EnrichedBlockSocials => {
     return {
         type: "socials",
         links: raw.value.map(parseSocialLink),
+        parseErrors: [],
+    }
+}
+
+export const parseScript = (raw: RawBlockScript): EnrichedBlockScript => {
+    const createError = (error: ParseError): EnrichedBlockScript => ({
+        type: "script",
+        lines: [],
+        parseErrors: [error],
+    })
+
+    const rawLines = raw.value
+    if (!R.isArray(rawLines)) {
+        return createError({
+            message: `Script block must be written as an array e.g. [.+script]`,
+        })
+    }
+
+    const enrichedText = rawLines.map(parseText)
+    const [goodText, badText] = _.partition(
+        enrichedText,
+        (enrichedLine) =>
+            enrichedLine.value.length === 1 &&
+            enrichedLine.value[0].spanType === "span-simple-text"
+    )
+
+    if (badText.length) {
+        return createError({
+            message: `Script block contains invalid lines: "${badText.map((text) => spansToSimpleString(text.value)).join(", ")}". Each line must be simple text without formatting.`,
+        })
+    }
+
+    return {
+        type: "script",
+        lines: goodText.map((text) => spansToSimpleString(text.value)),
         parseErrors: [],
     }
 }
