@@ -12,7 +12,6 @@ import { BASE_DIR } from "../settings/serverSettings.js"
 
 import {
     renderFrontPage,
-    renderLatestPageByPageNum,
     renderSearchPage,
     renderDonatePage,
     makeAtomFeed,
@@ -30,6 +29,7 @@ import {
     makeDataInsightsAtomFeed,
     renderGdocTombstone,
     renderExplorerIndexPage,
+    renderLatestPage,
 } from "../baker/siteRenderers.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import { bakeCountries } from "../baker/countryProfiles.js"
@@ -50,6 +50,7 @@ import {
     gdocUrlRegex,
     NarrativeChartInfo,
     ArchiveContext,
+    OwidGdocType,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
@@ -94,7 +95,10 @@ import {
     getLatestMultiDimArchivedVersionsIfEnabled,
 } from "../db/model/archival/archivalDb.js"
 import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
-import { getLatestPageItems } from "../db/model/Gdoc/GdocPost.js"
+import {
+    getLatestPageItems,
+    enrichLatestPageItems,
+} from "../db/model/Gdoc/GdocPost.js"
 
 type PrefetchedAttachments = {
     donors: string[]
@@ -933,13 +937,51 @@ export class SiteBaker {
     private async bakeBlogIndex(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("blogIndex")) return
         this.progressBar.tick({ name: "Baking blog index" })
-        const indexPageData = await getLatestPageItems(knex, 1)
-        const indexPageHtml = await renderLatestPageByPageNum(1, knex)
+
+        // Fetch and render page 1
+        const indexPageData = await getLatestPageItems(knex, 1, [
+            OwidGdocType.Article,
+            OwidGdocType.DataInsight,
+            OwidGdocType.Announcement,
+        ])
+
+        const { linkedAuthors, imageMetadata } = await enrichLatestPageItems(
+            knex,
+            indexPageData.items
+        )
+
+        const indexPageHtml = renderLatestPage(
+            indexPageData.items,
+            imageMetadata,
+            linkedAuthors,
+            indexPageData.pagination.pageNum,
+            indexPageData.pagination.totalPages
+        )
+
         await this.stageWrite(`${this.bakedSiteDir}/latest.html`, indexPageHtml)
 
+        // Render remaining pages
         const totalPages = indexPageData.pagination.totalPages
         for (let pageNum = 2; pageNum <= totalPages; pageNum++) {
-            const pageHtml = await renderLatestPageByPageNum(pageNum, knex)
+            const pageData = await getLatestPageItems(knex, pageNum, [
+                OwidGdocType.Article,
+                OwidGdocType.DataInsight,
+                OwidGdocType.Announcement,
+            ])
+
+            const enrichedData = await enrichLatestPageItems(
+                knex,
+                pageData.items
+            )
+
+            const pageHtml = renderLatestPage(
+                pageData.items,
+                enrichedData.imageMetadata,
+                enrichedData.linkedAuthors,
+                pageData.pagination.pageNum,
+                pageData.pagination.totalPages
+            )
+
             const outPath = path.join(
                 this.bakedSiteDir,
                 `latest/page/${pageNum}.html`
