@@ -53,7 +53,14 @@ export const GrapherPage = (props: {
         isPreviewing,
     } = props
     const pageTitle = grapher.title
-    const canonicalUrl = urljoin(baseGrapherUrl, grapher.slug as string)
+
+    const liveUrlIfIsArchive =
+        archivedChartInfo?.type === "archive-page"
+            ? archivedChartInfo.archiveNavigation.liveUrl
+            : undefined
+
+    const canonicalUrl =
+        liveUrlIfIsArchive ?? urljoin(baseGrapherUrl, grapher.slug as string)
     const dataApiOrigin = Url.fromURL(DATA_API_URL).origin
     let pageDesc: string
     if (grapher.subtitle?.length) {
