@@ -10,7 +10,7 @@ import {
     makeAtomFeed,
     feedbackPage,
     renderNotFoundPage,
-    renderLatestPageByPageNum,
+    renderLatestPage,
     countryProfileCountryPage,
     renderExplorerPage,
     makeAtomFeedNoTopicPages,
@@ -49,6 +49,7 @@ import {
     ImageMetadata,
     queryParamsToStr,
     EnrichedBlockImage,
+    OwidGdocType,
 } from "@ourworldindata/utils"
 import {
     EXPLORERS_ROUTE_FOLDER,
@@ -79,6 +80,10 @@ import { getMultiDimDataPageBySlug } from "../db/model/MultiDimDataPage.js"
 import { getParsedDodsDictionary } from "../db/model/Dod.js"
 import { TopicTag } from "../site/DataInsightsIndexPage.js"
 import { getSlugForTopicTag } from "../baker/GrapherBakingUtils.js"
+import {
+    enrichLatestPageItems,
+    getLatestPageItems,
+} from "../db/model/Gdoc/GdocPost.js"
 
 // todo: switch to an object literal where the key is the path and the value is the request handler? easier to test, reflect on, and manipulate
 const mockSiteRouter = Router()
@@ -435,11 +440,35 @@ mockSiteRouter.get("/search", async (req, res) =>
     res.send(await DEPRECATEDrenderSearchPage())
 )
 
+const handleLatestPageRequest = async (
+    trx: KnexReadonlyTransaction,
+    pageNum: number
+) => {
+    const pageData = await getLatestPageItems(trx, pageNum, [
+        OwidGdocType.Article,
+        OwidGdocType.DataInsight,
+        OwidGdocType.Announcement,
+    ])
+
+    const { linkedAuthors, imageMetadata } = await enrichLatestPageItems(
+        trx,
+        pageData.items
+    )
+
+    return renderLatestPage(
+        pageData.items,
+        imageMetadata,
+        linkedAuthors,
+        pageData.pagination.pageNum,
+        pageData.pagination.totalPages
+    )
+}
+
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/latest",
     async (_, res, trx) => {
-        const latest = await renderLatestPageByPageNum(1, trx)
+        const latest = await handleLatestPageRequest(trx, 1)
         res.send(latest)
     }
 )
@@ -449,13 +478,12 @@ getPlainRouteWithROTransaction(
     "/latest/page/:pageno",
     async (req, res, trx) => {
         const pagenum = parseInt(req.params.pageno, 10)
-        if (!isNaN(pagenum)) {
-            const latestPageNum = await renderLatestPageByPageNum(
-                isNaN(pagenum) ? 1 : pagenum,
-                trx
-            )
-            res.send(latestPageNum)
-        } else throw new Error("invalid page number")
+        if (isNaN(pagenum) || pagenum < 1) {
+            throw new Error("invalid page number")
+        }
+
+        const html = await handleLatestPageRequest(trx, pagenum)
+        res.send(html)
     }
 )
 
