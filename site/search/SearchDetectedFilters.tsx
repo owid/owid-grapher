@@ -41,7 +41,7 @@ export const SearchDetectedFilters = ({
     // greedily match "south korea" on "korea south korea", leaving "north"
     // orphan.
     const manualFilters = useMemo(() => {
-        return getFilterSuggestionsNgrams(
+        const matches = getFilterSuggestionsNgrams(
             query,
             allRegionNames,
             allTopics,
@@ -49,6 +49,8 @@ export const SearchDetectedFilters = ({
             { threshold: 0.75, limit: 1 },
             synonymMap
         )
+        // Only show non-exact country matches as suggestions
+        return matches.filter((match) => match.type === FilterType.COUNTRY)
     }, [query, allTopics, filters, synonymMap])
 
     const applyFilters = useCallback(
