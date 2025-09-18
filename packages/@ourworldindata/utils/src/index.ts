@@ -41,6 +41,7 @@ export {
     urlToSlug,
     trimObject,
     fetchText,
+    fetchJson,
     getUserCountryInformation,
     stripHTML,
     getRandomNumberGenerator,
@@ -140,6 +141,7 @@ export {
     extractDetailsFromSyntax,
     parseFloatOrUndefined,
     bind,
+    merge,
 } from "./Util.js"
 
 export {
@@ -219,6 +221,8 @@ export {
     getCountryNamesForRegion,
     checkHasMembers,
     getRegionByName,
+    getParentRegions,
+    getSiblingRegions,
 } from "./regions.js"
 
 export { getStylesForTargetHeight } from "./react-select.js"
@@ -298,7 +302,6 @@ export { isAndroid, isIOS } from "./BrowserUtils.js"
 export {
     diffGrapherConfigs,
     mergeGrapherConfigs,
-    simpleMerge,
 } from "./grapherConfigUtils.js"
 
 export {

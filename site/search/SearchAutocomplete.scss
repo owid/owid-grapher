@@ -2,11 +2,14 @@
     position: absolute;
     background-color: white;
     padding: 8px;
-    border-top: 2px solid $blue-5;
-    width: 100%;
-    top: 100%;
-    left: 0;
+    top: 102%;
+
+    // Account for the border of the input.
+    left: -1px;
+    right: -1px;
+
     box-shadow: $box-shadow-xl;
+    z-index: $zindex-search-overlay;
 
     li {
         list-style: none;

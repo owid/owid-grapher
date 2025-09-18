@@ -1,8 +1,5 @@
 import React from "react"
-import {
-    InteractionState,
-    makeIdForHumanConsumption,
-} from "@ourworldindata/utils"
+import { makeIdForHumanConsumption } from "@ourworldindata/utils"
 import {
     BLUR_FILL_OPACITY,
     BLUR_STROKE_OPACITY,
@@ -23,6 +20,7 @@ import { getExternalMarkerEndPosition } from "./MapAnnotations"
 import { Patterns } from "../core/GrapherConstants"
 import { calculateLightnessScore, isDarkColor } from "../color/ColorUtils"
 import { Halo } from "@ourworldindata/components"
+import { InteractionState } from "../interaction/InteractionState"
 
 export function BackgroundCountry<Feature extends RenderFeature>({
     feature,
@@ -48,7 +46,7 @@ export function CountryWithData<Feature extends RenderFeature>({
     feature,
     series,
     path,
-    isSelected,
+    isSelected = false,
     hover,
     strokeScale = 1,
     onClick,
@@ -59,8 +57,8 @@ export function CountryWithData<Feature extends RenderFeature>({
     feature: Feature
     series: ChoroplethSeries
     path?: string
-    isSelected: boolean
-    hover: InteractionState
+    isSelected?: boolean
+    hover?: InteractionState
     strokeScale?: number
     onClick?: (event: SVGMouseEvent) => void
     onTouchStart?: (event: React.TouchEvent<SVGElement>) => void
@@ -68,17 +66,17 @@ export function CountryWithData<Feature extends RenderFeature>({
     onMouseLeave?: () => void
 }): React.ReactElement {
     const isProjection = series.isProjection
-    const isHovered = hover.active
+    const isHovered = hover?.active ?? false
 
     const stroke =
         isHovered || isSelected ? HOVER_STROKE_COLOR : DEFAULT_STROKE_COLOR
     const strokeWidth = getStrokeWidth({ isHovered, isSelected }) / strokeScale
-    const strokeOpacity = hover.background ? BLUR_STROKE_OPACITY : 1
+    const strokeOpacity = hover?.background ? BLUR_STROKE_OPACITY : 1
 
     const fill = isProjection
         ? `url(#${makeProjectedDataPatternId(series.color)})`
         : series.color
-    const fillOpacity = hover.background ? BLUR_FILL_OPACITY : 1
+    const fillOpacity = hover?.background ? BLUR_FILL_OPACITY : 1
 
     return (
         <path
@@ -105,7 +103,7 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     feature,
     path,
     patternId,
-    isSelected,
+    isSelected = false,
     hover,
     strokeScale = 1,
     onClick,
@@ -116,21 +114,21 @@ export function CountryWithNoData<Feature extends RenderFeature>({
     feature: Feature
     path?: string
     patternId: string
-    isSelected: boolean
-    hover: InteractionState
+    isSelected?: boolean
+    hover?: InteractionState
     strokeScale?: number
     onClick?: (event: SVGMouseEvent) => void
     onTouchStart?: (event: React.TouchEvent<SVGElement>) => void
     onMouseEnter?: (feature: Feature, event: MouseEvent) => void
     onMouseLeave?: () => void
 }): React.ReactElement {
-    const isHovered = hover.active
+    const isHovered = hover?.active ?? false
 
     const stroke = isHovered || isSelected ? HOVER_STROKE_COLOR : "#aaa"
     const strokeWidth = getStrokeWidth({ isHovered, isSelected }) / strokeScale
-    const strokeOpacity = hover.background ? BLUR_STROKE_OPACITY : 1
+    const strokeOpacity = hover?.background ? BLUR_STROKE_OPACITY : 1
 
-    const fillOpacity = hover.background ? BLUR_FILL_OPACITY : 1
+    const fillOpacity = hover?.background ? BLUR_FILL_OPACITY : 1
 
     return (
         <path

@@ -1,0 +1,21 @@
+.search-result-header {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 16px;
+    color: $blue-60;
+}
+
+.search-result-header__title {
+    @include h2-bold;
+    margin: 0;
+}
+
+.search-result-header__count {
+    @include note-13-medium;
+    font-style: italic;
+
+    @include sm-only {
+        @include note-12-medium;
+    }
+}

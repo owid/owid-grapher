@@ -3,24 +3,23 @@ import * as db from "../../../db/db.js"
 import { ALGOLIA_INDEXING } from "../../../settings/serverSettings.js"
 import { chunkParagraphs } from "../../chunk.js"
 import {
-    countries,
-    Country,
     OwidGdocType,
     type RawPageview,
     OwidGdocPostInterface,
     ARCHVED_THUMBNAIL_FILENAME,
     DEFAULT_GDOC_FEATURED_IMAGE,
-    DEFAULT_THUMBNAIL_FILENAME,
     DbEnrichedImage,
     OwidGdocDataInsightInterface,
     OwidGdocAboutInterface,
     getUniqueNamesFromTagHierarchies,
+    spansToUnformattedPlainText,
+    EnrichedBlockText,
+    Span,
 } from "@ourworldindata/utils"
 import { getAlgoliaClient } from "../configureAlgolia.js"
 import {
     PageRecord,
     SearchIndexName,
-    WordpressPageType,
 } from "../../../site/search/searchTypes.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { getIndexName } from "../../../site/search/searchClient.js"
@@ -33,37 +32,17 @@ import {
     CLOUDFLARE_IMAGES_URL,
 } from "../../../settings/clientSettings.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../../serverUtils/errorLog.js"
-import { getFirstBlockOfType } from "../../../site/gdocs/utils.js"
 import {
-    getPrefixedGdocPath,
-    MarkdownTextWrap,
-} from "@ourworldindata/components"
+    getFirstBlockOfType,
+    takeConsecutiveBlocksOfType,
+} from "../../../site/gdocs/utils.js"
+import { getPrefixedGdocPath } from "@ourworldindata/components"
 import { stripCustomMarkdownComponents } from "../../../db/model/Gdoc/enrichedToMarkdown.js"
+import { toPlaintext } from "./shared.js"
 
 const computePageScore = (record: Omit<PageRecord, "score">): number => {
     const { importance, views_7d } = record
     return importance * 1000 + views_7d
-}
-
-function generateCountryRecords(
-    countries: Country[],
-    pageviews: Record<string, RawPageview>
-): PageRecord[] {
-    return countries.map((country) => {
-        const record = {
-            objectID: country.slug,
-            type: WordpressPageType.Country,
-            importance: -1,
-            slug: `country/${country.slug}`,
-            title: country.name,
-            content: `All available indicators for ${country.name}.`,
-            views_7d: pageviews[`/country/${country.slug}`]?.views_7d ?? 0,
-            documentType: "country-page" as const,
-            thumbnailUrl: `/${DEFAULT_THUMBNAIL_FILENAME}`,
-        }
-        const score = computePageScore(record)
-        return { ...record, score }
-    })
 }
 
 const getThumbnailUrl = (
@@ -74,7 +53,7 @@ const getThumbnailUrl = (
         const firstImage = getFirstBlockOfType(gdoc, "image")
         const filename = firstImage?.smallFilename || firstImage?.filename
         return filename && cloudflareImages[filename]
-            ? `${CLOUDFLARE_IMAGES_URL}/${cloudflareImages[filename].cloudflareId}/w=512`
+            ? `${CLOUDFLARE_IMAGES_URL}/${cloudflareImages[filename].cloudflareId}/w=608`
             : `${BAKED_BASE_URL}/${DEFAULT_GDOC_FEATURED_IMAGE}`
     }
 
@@ -112,14 +91,92 @@ function getExcerptFromGdoc(
     }
 }
 
+function filterSpansForExcerptLong(span: Span): Span | null {
+    // Remove span-subscript and span-superscript spans
+    if (
+        span.spanType === "span-subscript" ||
+        span.spanType === "span-superscript"
+    ) {
+        return null
+    }
+
+    // For spans with children, recursively filter the children
+    if ("children" in span && span.children) {
+        const filteredChildren = span.children
+            .map(filterSpansForExcerptLong)
+            .filter((child): child is Span => child !== null)
+
+        return {
+            ...span,
+            children: filteredChildren,
+        }
+    }
+
+    // For spans without children, return as-is
+    return span
+}
+
+function getExcerptLongFromGdoc(
+    gdoc: OwidGdocPostInterface | OwidGdocDataInsightInterface
+): string[] | undefined {
+    if (
+        gdoc.content.type !== OwidGdocType.TopicPage &&
+        // Most (all?) linear topic pages currently don't have an intro block,
+        // but we try to get it just in case.
+        gdoc.content.type !== OwidGdocType.LinearTopicPage
+    ) {
+        return
+    }
+
+    let textBlocks: EnrichedBlockText[]
+    const topicPageIntroBlock = getFirstBlockOfType(gdoc, "topic-page-intro")
+    const maxParagraphs = 3
+    if (topicPageIntroBlock) {
+        textBlocks = topicPageIntroBlock.content.slice(0, maxParagraphs)
+    } else {
+        textBlocks = takeConsecutiveBlocksOfType(
+            gdoc,
+            "text",
+            maxParagraphs
+        ).filter((block) => {
+            if (
+                // Filter out blocks whose only child is a link or some other
+                // special span to prevent paragraphs such as "See all
+                // interactive charts on age structure ↓".
+                block.value.length === 1 &&
+                [
+                    "span-link",
+                    "span-bold",
+                    "span-italic",
+                    "span-underline",
+                    "span-subscript",
+                    "span-superscript",
+                ].includes(block.value[0].spanType)
+            ) {
+                return false
+            }
+            return true
+        })
+    }
+    return (
+        textBlocks
+            .map((block) => {
+                const filteredValue = block.value
+                    .map(filterSpansForExcerptLong)
+                    .filter((span) => span !== null)
+                return spansToUnformattedPlainText(filteredValue).trim()
+            })
+            // Filter out empty blocks and blocks that end with a colon, e.g.
+            // "... you can read the following essay:".
+            .filter((block) => block.length > 0 && !block.endsWith(":"))
+    )
+}
+
 function formatGdocMarkdown(content: string): string {
     const simplifiedMarkdown = stripCustomMarkdownComponents(content)
     // We still have some markdown gore that MarkdownTextWrap can't handle. Easier to just remove all asterisks.
     const withoutAsterisks = simplifiedMarkdown.replaceAll("*", "")
-    const withoutMarkdown = new MarkdownTextWrap({
-        text: withoutAsterisks,
-        fontSize: 12,
-    }).plaintext
+    const withoutMarkdown = toPlaintext(withoutAsterisks)
     const withoutNewlines = withoutMarkdown.replaceAll("\n", " ")
 
     // Doing this after removing markdown links because otherwise we need to handle
@@ -204,12 +261,12 @@ async function generateGdocRecords(
                 views_7d:
                     pageviews[getPrefixedGdocPath("", gdoc)]?.views_7d ?? 0,
                 excerpt: getExcerptFromGdoc(gdoc),
+                excerptLong: getExcerptLongFromGdoc(gdoc),
                 date: gdoc.publishedAt!.toISOString(),
                 modifiedDate: (
                     gdoc.updatedAt ?? gdoc.publishedAt!
                 ).toISOString(),
                 tags: [...topicTags],
-                documentType: "gdoc" as const,
                 authors: gdoc.content.authors,
                 thumbnailUrl,
             }
@@ -221,7 +278,6 @@ async function generateGdocRecords(
     return records
 }
 
-// Generate records for countries, WP posts (not including posts that have been succeeded by Gdocs equivalents), and Gdocs
 export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
     const gdocs = (await db
@@ -237,7 +293,6 @@ export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
         | OwidGdocDataInsightInterface
     )[]
 
-    const countryRecords = generateCountryRecords(countries, pageviews)
     const cloudflareImagesByFilename = await db
         .getCloudflareImages(knex)
         .then((images) => _.keyBy(images, "filename"))
@@ -249,7 +304,7 @@ export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
         knex
     )
 
-    return [...countryRecords, ...gdocsRecords]
+    return gdocsRecords
 }
 
 async function getExistingRecordsForSlug(

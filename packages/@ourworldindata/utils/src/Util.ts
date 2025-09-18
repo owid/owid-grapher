@@ -495,6 +495,14 @@ export const fetchText = async (url: string): Promise<string> => {
     })
 }
 
+export async function fetchJson<TResult>(url: string): Promise<TResult> {
+    const response = await fetch(url)
+    if (!response.ok) {
+        throw new Error(`Failed to fetch ${url}: ${response.statusText}`)
+    }
+    return response.json()
+}
+
 const _getUserCountryInformation = async (): Promise<
     UserCountryInformation | undefined
 > =>
@@ -2196,4 +2204,22 @@ export const getUserNavigatorLanguages = (): readonly string[] => {
 
 export const getUserNavigatorLanguagesNonEnglish = (): readonly string[] => {
     return getUserNavigatorLanguages().filter((lang) => !lang.startsWith("en"))
+}
+
+/**
+ * Merge multiple objects into a single object.
+ * Arrays are overwritten completely instead of merged.
+ */
+export const merge: typeof _.merge = (
+    ...objects: Parameters<typeof _.merge>
+) => {
+    return _.mergeWith(
+        {}, // merge mutates the first argument
+        ...objects,
+        // Overwrite arrays completely instead of merging them.
+        // Otherwise fall back to the default merge behavior.
+        (_: unknown, srcValue: unknown) => {
+            return Array.isArray(srcValue) ? srcValue : undefined
+        }
+    )
 }
