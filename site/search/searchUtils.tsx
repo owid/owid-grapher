@@ -901,7 +901,9 @@ export function getFilterSuggestionsWithUnmatchedQuery(
         .join(" ")
 
     const countryMatches = searchResults.filters.filter(
-        (f) => f.type === FilterType.COUNTRY
+        // remove exact matches from country suggestions, as exact matches are
+        // already handled by automatic filters (see SearchDetectedFilters)
+        (f) => f.type === FilterType.COUNTRY && f.score !== 1
     )
 
     const topicMatches = searchResults.filters.filter(
