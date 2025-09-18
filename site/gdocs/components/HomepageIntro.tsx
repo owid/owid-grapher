@@ -1,19 +1,21 @@
-import * as _ from "lodash-es"
 import { useContext } from "react"
 import cx from "classnames"
 import {
     EnrichedBlockHomepageIntro,
     EnrichedBlockHomepageIntroPost,
 } from "@ourworldindata/types"
-import { formatAuthors } from "@ourworldindata/utils"
-import { Button } from "@ourworldindata/components"
+import { dayjs, formatAuthors } from "@ourworldindata/utils"
 import { useLinkedDocument } from "../utils.js"
 import { DocumentContext } from "../DocumentContext.js"
 import Image, { ImageParentContainer } from "./Image.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
+import { sortBy, take, prop } from "remeda"
+import { NewsletterWithSocials } from "../../NewsletterSubscription.js"
+import { AttachmentsContext } from "../AttachmentsContext.js"
+import { Button } from "@ourworldindata/components"
+import { AnnouncementsIcon } from "./AnnouncementsIcon.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons"
-import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
+import { faArrowRight, faHeart } from "@fortawesome/free-solid-svg-icons"
 
 type FeaturedWorkTileProps = EnrichedBlockHomepageIntroPost & {
     isTertiary?: boolean
@@ -90,15 +92,17 @@ function FeaturedWorkTile({
                 </span>
             )}
             {title && (
-                <p className="homepage-intro__featured-work-title">{title}</p>
+                <p className="homepage-intro__featured-work-title h3-bold">
+                    {title}
+                </p>
             )}
             {description && (
-                <p className="homepage-intro__featured-work-description">
+                <p className="homepage-intro__featured-work-description body-3-medium">
                     {description}
                 </p>
             )}
             {authors && (
-                <p className="body-3-medium-italic homepage-intro__featured-work-authors">
+                <p className="homepage-intro__featured-work-authors body-3-medium-italic">
                     {formatAuthors(authors)}
                 </p>
             )}
@@ -106,124 +110,110 @@ function FeaturedWorkTile({
     )
 }
 
+function HomepageAnnouncements() {
+    const { homepageMetadata = {} } = useContext(AttachmentsContext)
+    const announcements = prop(homepageMetadata, "announcements")
+    if (!announcements || announcements.length === 0) return null
+    return (
+        <div className="homepage-intro__announcements span-cols-3 col-start-8">
+            <div className="homepage-intro__announcements-header">
+                <AnnouncementsIcon />
+                <h4 className="h2-bold">Updates and Announcements</h4>
+            </div>
+            <ul>
+                {announcements.map((announcement, i) => (
+                    <li
+                        className="homepage-intro__announcement"
+                        key={announcement.id}
+                    >
+                        <a
+                            className="homepage-intro__announcement-link"
+                            tabIndex={i === 2 ? -1 : undefined}
+                            href={`/${announcement.slug}`}
+                        >
+                            <span className="homepage-intro__announcement-meta h6-black-caps">
+                                {announcement.kicker} -{" "}
+                                {dayjs(announcement.publishedAt).fromNow()}{" "}
+                            </span>
+                            <h3 className="homepage-intro__announcement-title body-2-bold">
+                                {announcement.title}
+                            </h3>
+                            <p className="homepage-intro__excerpt body-3-medium">
+                                {announcement.excerpt}
+                            </p>
+                            <span className="homepage-intro__announcement-read-more body-3-medium">
+                                Read more{" "}
+                                <FontAwesomeIcon icon={faArrowRight} />
+                            </span>
+                        </a>
+                    </li>
+                ))}
+            </ul>
+            <Button
+                href="/latest"
+                text="See all updates"
+                theme="outline-vermillion"
+            />
+        </div>
+    )
+}
+
+function DonationCta() {
+    return (
+        <div className="homepage-intro__donation-cta">
+            <FontAwesomeIcon icon={faHeart} />
+            <div>
+                <p className="body-3-bold">
+                    We are a non-profit — all our work is free to use and open
+                    source.
+                </p>
+                <a href="/donate" className="body-3-bold">
+                    Donate to support us
+                </a>
+            </div>
+        </div>
+    )
+}
+
+// Featured work used to be set in a way that explicitly defined where it would render,
+// but now the new homepage design only supports 2 items with thumbnails and 2 without.
+// This function sorts the items by type and takes the top 4 to display.
+function getSortedFeaturedWork(featuredWork: EnrichedBlockHomepageIntroPost[]) {
+    const ranking = ["primary", "secondary", "tertiary"]
+    return take(
+        sortBy(featuredWork, (work) => ranking.indexOf(work.type)),
+        4
+    ) as [
+        EnrichedBlockHomepageIntroPost,
+        EnrichedBlockHomepageIntroPost,
+        EnrichedBlockHomepageIntroPost,
+        EnrichedBlockHomepageIntroPost,
+    ]
+}
+
 export type HomepageIntroProps = {
     className?: string
 } & EnrichedBlockHomepageIntro
 
 export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
-    const { primary, secondary, tertiary } = _.groupBy(
-        featuredWork,
-        (work) => work.type
-    )
+    const [w1, w2, w3, w4] = getSortedFeaturedWork(featuredWork)
     return (
-        <section className={className}>
-            <section className="span-cols-3 col-start-2 homepage-intro__our-mission-container">
-                <h2 className="h5-black-caps homepage-intro__our-mission-heading">
-                    Our Mission
-                </h2>
-                <div className="homepage-intro__mission-wrapper">
-                    <p className="homepage-intro__our-mission-lead">
-                        What do we need to know to make the world a better
-                        place?
-                    </p>
-                    <p className="homepage-intro__mission-answer">
-                        To make progress against the pressing problems the world
-                        faces, we need to be informed by the best research and
-                        data.
-                    </p>
-                    <p className="homepage-intro__mission-answer">
-                        Our World in Data makes this knowledge accessible and
-                        understandable, to empower those working to build a
-                        better world.
-                    </p>
-                    <a
-                        className="homepage-intro__mission-link body-2-semibold"
-                        href="/problems-and-progress"
-                    >
-                        Read about our mission{" "}
-                        <FontAwesomeIcon icon={faArrowRight} />
-                    </a>
-                    <Button
-                        href="#subscribe"
-                        className="homepage-intro__subscribe-button body-3-medium"
-                        text="Subscribe to our newsletters"
-                        theme="outline-vermillion"
-                        icon={null}
-                    />
+        <section className={cx("homepage-intro", className)}>
+            <div className="homepage-intro__featured-work grid grid-cols-2 span-cols-6 col-start-2">
+                <div className="homepage-intro__featured-work-column">
+                    <FeaturedWorkTile {...w1} />
+                    <FeaturedWorkTile {...w3} />
                 </div>
-                <div className="homepage-intro__mission-wrapper body-3-medium">
-                    <p>
-                        <strong>
-                            We are a non-profit — all our work is free to use
-                            and open source.
-                        </strong>{" "}
-                        Consider supporting us if you find our work valuable.
-                    </p>
-                    <Button
-                        className="homepage-intro__donate-button"
-                        href="/donate"
-                        text="Donate to support us"
-                        theme="solid-vermillion"
-                        icon={null}
-                    />
+                <div className="homepage-intro__featured-work-column">
+                    <FeaturedWorkTile isTertiary {...w2} />
+                    <FeaturedWorkTile isTertiary {...w4} />
                 </div>
-                <div className="h6-black-caps">As seen on</div>
-                <img
-                    className="homepage-intro__media-logos"
-                    src={`${BAKED_BASE_URL}/media-logos.svg`}
-                    alt="Logos of the publications that have used our content. From left to right: Science, Nature, PNAS, BBC, Financial Times, The New York Times, The Guardian, The Atlantic, and The Washington Post"
-                    width={230}
-                    height={75}
-                    loading="lazy"
-                />
-            </section>
-            <section className="grid grid-cols-9 span-cols-9 col-start-5 span-md-cols-12 col-md-start-2 homepage-intro__right-section">
-                <h2 className="span-cols-9 span-md-cols-12 h5-black-caps homepage-intro__featured-work-heading">
-                    Featured work
-                </h2>
-                <div className="grid grid-cols-9 span-cols-9 span-md-cols-12 homepage-intro__featured-work-container">
-                    <div className="homepage-intro__primary-tiles span-cols-6">
-                        {primary.map((work, i) => (
-                            <FeaturedWorkTile
-                                thumbnailSize="span-6"
-                                key={i}
-                                {...work}
-                            />
-                        ))}
-                    </div>
-                    <div className="homepage-intro__secondary-tiles span-cols-3 col-start-7">
-                        {secondary.map((work, i) => (
-                            <FeaturedWorkTile key={i} {...work} />
-                        ))}
-                    </div>
-                    <div className="homepage-intro__tertiary-tiles span-cols-6 grid grid-cols-6">
-                        {tertiary.map((work, i) => (
-                            <FeaturedWorkTile
-                                key={i}
-                                className="span-cols-3"
-                                isTertiary
-                                {...work}
-                            />
-                        ))}
-                    </div>
-                    <div className="span-cols-6 homepage-intro__see-all-work-button-container">
-                        <Button
-                            href="/latest"
-                            className="body-3-medium homepage-intro__see-all-work-button"
-                            text="See all our latest work"
-                            theme="outline-vermillion"
-                        />
-                    </div>
-                </div>
-                <div className="span-cols-6 span-sm-cols-12">
-                    <Button
-                        href="/latest"
-                        className="body-3-medium homepage-intro__see-all-work-button homepage-intro__see-all-work-button--mobile"
-                        text="See all our latest work"
-                        theme="outline-vermillion"
-                    />
-                </div>
-            </section>
+            </div>
+            <HomepageAnnouncements />
+            <div className="span-cols-3 col-start-11">
+                <NewsletterWithSocials className="homepage-intro__newsletter-signup" />
+                <DonationCta />
+            </div>
         </section>
     )
 }

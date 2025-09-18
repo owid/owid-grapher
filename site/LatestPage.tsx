@@ -20,12 +20,16 @@ import Image from "./gdocs/components/Image.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import DataInsightDateline from "./gdocs/components/DataInsightDateline.js"
 import cx from "classnames"
-import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
+import {
+    NewsletterSubscriptionForm,
+    NewsletterWithSocials,
+} from "./NewsletterSubscription.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { NewsletterIcon } from "./gdocs/components/NewsletterIcon.js"
 import { SOCIALS } from "./SiteConstants.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Pagination } from "./Pagination.js"
+import * as React from "react"
 
 const COMMON_CLASSES =
     "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1"
@@ -131,7 +135,7 @@ const LatestPageAnnouncement = (props: {
     )
 }
 
-const LatestPageItemComponent = (props: { item: LatestPageItem }) => {
+export const LatestPageItemComponent = (props: { item: LatestPageItem }) => {
     switch (props.item.type) {
         case OwidGdocType.Article:
             return <LatestPageArticle data={props.item.data} />
@@ -141,40 +145,6 @@ const LatestPageItemComponent = (props: { item: LatestPageItem }) => {
             return <LatestPageAnnouncement data={props.item.data} />
     }
 }
-
-const LatestPageNewsletterSignup = () => (
-    <div className="latest-page__newsletter-signup col-start-11 span-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-14">
-        <NewsletterIcon className="latest-page__newsletter-signup-icon" />
-        <p className="latest-page__newsletter-signup-header">
-            Subscribe to our newsletters
-        </p>
-        <NewsletterSubscriptionForm
-            key="signup"
-            className="latest-page__newsletter-signup-form"
-            context={NewsletterSubscriptionContext.Latest}
-        />
-        <p className="latest-page__newsletter-signup-social-cta">Follow us</p>
-        <ul className="latest-page__newsletter-signup-socials">
-            {SOCIALS.map(({ title, url, icon }) => (
-                <li key={title}>
-                    <a
-                        href={url}
-                        className="list-item"
-                        title={title}
-                        target="_blank"
-                        rel="noopener"
-                        data-track-note="latest_page_follow_us"
-                    >
-                        <span className="icon">
-                            <FontAwesomeIcon icon={icon} />
-                        </span>
-                        <span className="label">{title}</span>
-                    </a>
-                </li>
-            ))}
-        </ul>
-    </div>
-)
 
 export const LatestPage = (props: {
     posts: LatestPageItem[]
@@ -226,7 +196,7 @@ export const LatestPage = (props: {
                         </header>
 
                         {posts.slice(0, 2).map(renderLatestPageItem)}
-                        <LatestPageNewsletterSignup />
+                        <NewsletterWithSocials className="latest-page__newsletter-signup col-start-11 span-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-14" />
                         {posts.slice(2).map(renderLatestPageItem)}
                         <Pagination
                             pageNumber={pageNum}
