@@ -4,11 +4,11 @@ import {
     findMatches,
     findMatchesWithNgrams,
     getFilterSuggestionsWithUnmatchedQuery,
-    createCountryFilter,
     getPaginationOffsetAndLength,
     getNbPaginatedItemsRequested,
     removeMatchedWordsWithStopWords,
     calculateScore,
+    createTopicFilter,
 } from "./searchUtils"
 
 import { FilterType, SynonymMap } from "./searchTypes.js"
@@ -646,7 +646,7 @@ describe("Fuzzy search in search autocomplete", () => {
     describe("getAutocompleteSuggestionsWithUnmatchedQuery", () => {
         it("should return suggestions with unmatched query", () => {
             const result = getFilterSuggestionsWithUnmatchedQuery(
-                "climate change germany",
+                "climate change pollution",
                 mockTopics,
                 [],
                 synonymMap,
@@ -656,7 +656,9 @@ describe("Fuzzy search in search autocomplete", () => {
             expect(result.unmatchedQuery).toBe("climate change")
             expect(
                 result.suggestions.some(
-                    (s) => s.type === FilterType.COUNTRY && s.name === "Germany"
+                    (s) =>
+                        s.type === FilterType.TOPIC &&
+                        s.name === "Air Pollution"
                 )
             ).toBe(true)
         })
@@ -693,19 +695,49 @@ describe("Fuzzy search in search autocomplete", () => {
         })
 
         it("should exclude already selected filters", () => {
-            const existingFilters = [createCountryFilter("Germany")]
+            const existingFilters = [createTopicFilter("Air Pollution")]
 
             const result = getFilterSuggestionsWithUnmatchedQuery(
-                "germany",
+                "air pollution",
                 mockTopics,
                 existingFilters,
                 synonymMap,
                 3
             )
 
-            // Should not suggest Germany or Climate Change again
-            expect(result.suggestions.some((s) => s.name === "Germany")).toBe(
+            // Should not suggest Air Pollution
+            expect(
+                result.suggestions.some((s) => s.name === "Air Pollution")
+            ).toBe(false)
+        })
+
+        it("should not suggest exact country matches", () => {
+            const result = getFilterSuggestionsWithUnmatchedQuery(
+                "france",
+                mockTopics,
+                [],
+                synonymMap,
+                3
+            )
+
+            // Should not suggest France as it's an exact match and handled by automatic filters
+            expect(result.suggestions.some((s) => s.name === "France")).toBe(
                 false
+            )
+        })
+
+        it("should not suggest partial country matches", () => {
+            const result = getFilterSuggestionsWithUnmatchedQuery(
+                "franc", //missing final "e"
+                mockTopics,
+                [],
+                synonymMap,
+                3
+            )
+
+            // Should not suggest France as it's an exact match and handled by automatic filters
+            expect(result.suggestions.some((s) => s.name === "France")).toBe(
+                true
             )
         })
 
@@ -767,14 +799,16 @@ describe("Fuzzy search in search autocomplete", () => {
 
     it("should handle queries with multiple spaces", () => {
         const result = getFilterSuggestionsWithUnmatchedQuery(
-            "climate    change     germany",
+            "climate    change     air pollution",
             mockTopics,
             [],
             synonymMap,
             3
         )
 
-        expect(result.suggestions.some((s) => s.name === "Germany")).toBe(true)
+        expect(result.suggestions.some((s) => s.name === "Air Pollution")).toBe(
+            true
+        )
     })
 
     describe("calculateScore function", () => {
