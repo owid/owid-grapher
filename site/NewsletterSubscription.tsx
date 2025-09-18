@@ -61,8 +61,10 @@ export const NewsletterSubscription = ({
 
 export const NewsletterSubscriptionForm = ({
     context,
+    className = "",
 }: {
     context?: NewsletterSubscriptionContext
+    className?: string
 }) => {
     const DATA_INSIGHTS = "16"
     const BIWEEKLY = "2"
@@ -86,6 +88,7 @@ export const NewsletterSubscriptionForm = ({
 
     return (
         <form
+            className={className}
             action="https://ourworldindata.us8.list-manage.com/subscribe/post?u=18058af086319ba6afad752ec&id=2e166c1fc1"
             method="post"
             id="mc-embedded-subscribe-form"
