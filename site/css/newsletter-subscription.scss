@@ -62,3 +62,127 @@
 .site-tools .newsletter-subscription form {
     padding: 32px 40px;
 }
+
+.newsletter-with-socials {
+    padding: 24px;
+    background-color: $blue-10;
+    margin-bottom: 24px;
+
+    @include md-up {
+        grid-row-start: 2;
+        align-self: start;
+        grid-row-end: span 10;
+    }
+
+    .newsletter-with-socials__icon {
+        @include md-down {
+            display: none;
+        }
+    }
+
+    .newsletter-with-socials__form {
+        @include lg-up {
+            padding-bottom: 16px;
+            border-bottom: 1px solid $blue-20;
+        }
+    }
+
+    .newsletter-with-socials__header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 8px 16px;
+        margin-bottom: 8px;
+        svg {
+            height: 3rem;
+            flex-shrink: 0;
+        }
+
+        h4 {
+            font-size: 1.25rem;
+            color: $blue-90;
+            margin: 0;
+            flex: 0 0 70%;
+        }
+    }
+
+    .newsletter-with-socials__heading {
+        @include h3-bold;
+        color: $blue-90;
+        margin: 0;
+    }
+
+    .NewsletterSubscriptionForm__header {
+        margin-bottom: 16px;
+        display: block;
+    }
+
+    .owid-checkbox-block {
+        margin-bottom: 16px;
+    }
+
+    .label-title {
+        @include body-2-bold;
+    }
+
+    .label-text {
+        @include body-3-medium;
+    }
+
+    .NewsletterSubscription__email-submit {
+        @include md-up {
+            flex-wrap: wrap;
+            gap: 8px;
+            height: auto;
+            input,
+            button {
+                flex-basis: 100%;
+                height: 40px;
+                margin: 0;
+            }
+        }
+    }
+
+    .NewsletterSubscription__privacy {
+        @include body-3-regular;
+    }
+
+    .newsletter-with-socials__social-cta {
+        @include h3-bold;
+        margin: 16px 0;
+
+        @include md-down {
+            display: none;
+        }
+    }
+
+    .newsletter-with-socials__socials {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 16px;
+
+        @include md-down {
+            display: none;
+        }
+
+        a {
+            color: $blue-60;
+            .label {
+                height: 0;
+                width: 0;
+                display: block;
+                position: absolute;
+                overflow: hidden;
+            }
+            svg {
+                width: 16px;
+                height: 16px;
+                display: block;
+            }
+        }
+    }
+}
