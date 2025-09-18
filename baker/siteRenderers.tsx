@@ -38,8 +38,6 @@ import {
     TombstonePageData,
     mergeGrapherConfigs,
     flattenNonTopicNodes,
-    createTagGraph,
-    excludeNullish,
 } from "@ourworldindata/utils"
 import { extractFormattingOptions } from "../serverUtils/wordpressUtils.js"
 import {
@@ -50,6 +48,7 @@ import {
     DbRawChartConfig,
     FormattingOptions,
     GrapherInterface,
+    LatestPageItem,
     OwidGdocMinimalPostInterface,
     OwidGdocPublicationContext,
 } from "@ourworldindata/types"
@@ -88,7 +87,7 @@ import {
     getFullPostBySlugFromSnapshot,
     isPostSlugCitable,
 } from "../db/model/Post.js"
-import { GdocPost, getLatestPageItems } from "../db/model/Gdoc/GdocPost.js"
+import { GdocPost } from "../db/model/Gdoc/GdocPost.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 import {
     getAndLoadGdocBySlug,
@@ -104,9 +103,7 @@ import {
 import AtomArticleBlocks from "../site/gdocs/components/AtomArticleBlocks.js"
 import { getLatestExplorerArchivedVersionsIfEnabled } from "../db/model/archival/archivalDb.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
-import { getMinimalAuthorsByNames } from "../db/model/Gdoc/GdocBase.js"
-import { pipe, unique } from "remeda"
-import { getAllImages, getImagesByFilenames } from "../db/model/Image.js"
+import { getImagesByFilenames } from "../db/model/Image.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
 
 export const renderToHtmlPage = (element: any) =>
@@ -276,67 +273,20 @@ export const renderDataInsightsIndexPage = (
     )
 }
 
-export const renderLatestPageByPageNum = async (
+export const renderLatestPage = (
+    posts: LatestPageItem[],
+    imageMetadata: any,
+    linkedAuthors: any,
     pageNum: number,
-    knex: KnexReadonlyTransaction
+    totalPages: number
 ) => {
-    const latestPageData = await getLatestPageItems(knex, pageNum, [
-        OwidGdocType.Article,
-        OwidGdocType.DataInsight,
-        OwidGdocType.Announcement,
-    ])
-    const latestPageArticles = latestPageData.items.filter(
-        (post) => post.type === OwidGdocType.Article
-    )
-    const latestPageDataInsights = latestPageData.items.filter(
-        (post) => post.type === OwidGdocType.DataInsight
-    )
-    const latestPageAnnouncements = latestPageData.items.filter(
-        (post) => post.type === OwidGdocType.Announcement
-    )
-
-    const linkedAuthors = await getMinimalAuthorsByNames(
-        knex,
-        // We only need to show authors for *articles*
-        unique(latestPageArticles.flatMap((post) => post.data.authors))
-    )
-
-    const articleFeaturedImages = pipe(
-        latestPageArticles.map((post) => post.data["featured-image"]),
-        excludeNullish
-    )
-
-    const dataInsightFeaturedImages = pipe(
-        latestPageDataInsights.map((post) =>
-            post.data.content.body.find((block) => block.type === "image")
-        ),
-        excludeNullish,
-        (images) => images.map((image) => image.filename)
-    )
-
-    const announcementImages = pipe(
-        latestPageAnnouncements.map((post) =>
-            post.data.content.body.filter((block) => block.type === "image")
-        ),
-        excludeNullish,
-        (images) => images.flat().map((image) => image.filename)
-    )
-
-    const imageMetadata = await getAllImages(knex).then((allImages) =>
-        _.pick(_.keyBy(allImages, "filename"), [
-            ...articleFeaturedImages,
-            ...dataInsightFeaturedImages,
-            ...announcementImages,
-        ])
-    )
-
     return renderToHtmlPage(
         <LatestPage
-            posts={latestPageData.items}
+            posts={posts}
             imageMetadata={imageMetadata}
             linkedAuthors={linkedAuthors}
-            pageNum={latestPageData.pagination.pageNum}
-            numPages={latestPageData.pagination.totalPages}
+            pageNum={pageNum}
+            numPages={totalPages}
             baseUrl={BAKED_BASE_URL}
         />
     )
