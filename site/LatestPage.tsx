@@ -25,6 +25,7 @@ import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { NewsletterIcon } from "./gdocs/components/NewsletterIcon.js"
 import { SOCIALS } from "./SiteConstants.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { Pagination } from "./Pagination.js"
 
 const COMMON_CLASSES =
     "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1"
@@ -141,7 +142,7 @@ const LatestPageItemComponent = (props: { item: LatestPageItem }) => {
 
 const LatestPageNewsletterSignup = () => (
     <div className="latest-page__newsletter-signup col-start-11 span-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-14">
-        <NewsletterIcon />
+        <NewsletterIcon className="latest-page__newsletter-signup-icon" />
         <p className="latest-page__newsletter-signup-header">
             Subscribe to our newsletters
         </p>
@@ -181,8 +182,7 @@ export const LatestPage = (props: {
     numPages: number
     baseUrl: string
 }) => {
-    const { pageNum, baseUrl, posts } = props
-
+    const { pageNum, baseUrl, numPages, posts } = props
     const pageTitle = "Latest"
 
     const renderLatestPageItem = (item: LatestPageItem) => (
@@ -222,9 +222,17 @@ export const LatestPage = (props: {
                                 announcements
                             </p>
                         </header>
+
                         {posts.slice(0, 2).map(renderLatestPageItem)}
                         <LatestPageNewsletterSignup />
                         {posts.slice(2).map(renderLatestPageItem)}
+                        <Pagination
+                            pageNumber={pageNum}
+                            totalPageCount={numPages}
+                            basePath="/latest"
+                            usePagePrefix={true}
+                            className="span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"
+                        />
                     </main>
                 </AttachmentsContext.Provider>
                 <SiteFooter />
