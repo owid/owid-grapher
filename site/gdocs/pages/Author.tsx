@@ -12,7 +12,7 @@ import cx from "classnames"
 
 type AuthorProps = Omit<
     OwidGdocAuthorInterface,
-    "markdown" | "publicationContext" | "revisionId"
+    "contentMd5" | "markdown" | "publicationContext" | "revisionId"
 > & {
     content: OwidGdocAuthorContent
 }

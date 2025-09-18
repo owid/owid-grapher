@@ -10,17 +10,21 @@ import {
     findChangedGrapherPages,
     findChangedMultiDimPages,
     findChangedExplorerPages,
+    findChangedGdocPostPages,
     getGrapherChecksumsFromDb,
     getMultiDimChecksumsFromDb,
     getExplorerChecksumsFromDb,
+    getGdocPostChecksumsFromDb,
     insertChartVersions,
     insertMultiDimVersions,
     insertExplorerVersions,
+    insertGdocPostVersions,
 } from "../../db/model/archival/archivalDb.js"
 import {
     GrapherChecksumsObjectWithHash,
     MultiDimChecksumsObjectWithHash,
     ExplorerChecksumsObjectWithHash,
+    GdocPostChecksumsObjectWithHash,
 } from "@ourworldindata/types"
 import {
     getDateForArchival,
@@ -37,16 +41,19 @@ import {
     bakeArchivalGrapherPagesToFolder,
     bakeArchivalMultiDimPagesToFolder,
     bakeArchivalExplorerPagesToFolder,
+    bakeArchivalGdocPostPagesToFolder,
     copyToLatestDir,
     generateChartVersionsFiles,
     generateMultiDimVersionsFiles,
     generateExplorerVersionsFiles,
+    generateGdocPostVersionsFiles,
     createCommonArchivalContext,
     archiveVariableIds,
     archiveChartConfigs,
     CommonArchivalContext,
     MinimalMultiDimInfo,
     MinimalChartInfo,
+    MinimalGdocPostInfo,
 } from "./ArchivalBaker.js"
 import { ExplorerAdminServer } from "../../explorerAdminServer/ExplorerAdminServer.js"
 import { ExplorerProgram } from "@ourworldindata/explorer"
@@ -58,16 +65,19 @@ interface Options {
     chartIds?: number[]
     multiDimIds?: number[]
     explorerSlugs?: string[]
-    type: "charts" | "multiDims" | "explorers" | "all"
+    gdocPostSlugs?: string[]
+    type: "charts" | "multiDims" | "explorers" | "gdocPosts" | "all"
 }
 
 interface ArchivalData {
     graphersToArchive: GrapherChecksumsObjectWithHash[]
     multiDimsToArchive: MultiDimChecksumsObjectWithHash[]
     explorersToArchive: ExplorerChecksumsObjectWithHash[]
+    gdocPostsToArchive: GdocPostChecksumsObjectWithHash[]
     grapherConfigs: MinimalChartInfo[]
     multiDimConfigs: MinimalMultiDimInfo[]
     explorerPrograms: ExplorerProgram[]
+    gdocPostInfos: MinimalGdocPostInfo[]
 }
 
 /**
@@ -138,6 +148,40 @@ const getExplorersToArchive = async (
     }
 
     return await findChangedExplorerPages(trx)
+}
+
+const getGdocPostsToArchive = async (
+    trx: db.KnexReadWriteTransaction,
+    opts: Options
+): Promise<GdocPostChecksumsObjectWithHash[]> => {
+    const shouldProcessGdocPosts =
+        opts.type === "gdocPosts" || opts.type === "all"
+
+    if (!shouldProcessGdocPosts) {
+        return []
+    }
+
+    if (opts.gdocPostSlugs?.length) {
+        console.log(
+            "Archiving only the following gdoc post slugs:",
+            opts.gdocPostSlugs.join(", ")
+        )
+
+        const allChecksums = await getGdocPostChecksumsFromDb(trx)
+        const gdocPostsToArchive = allChecksums.filter((checksum) =>
+            opts.gdocPostSlugs?.includes(checksum.postSlug)
+        )
+
+        if (opts.gdocPostSlugs.length !== gdocPostsToArchive.length) {
+            throw new Error(
+                `Not all gdoc post slugs were found in the database. Found ${gdocPostsToArchive.length} out of ${opts.gdocPostSlugs.length}.`
+            )
+        }
+
+        return gdocPostsToArchive
+    }
+
+    return await findChangedGdocPostPages(trx)
 }
 
 /**
@@ -234,6 +278,14 @@ const getGrapherConfigs = async (
     }))
 }
 
+const getGdocPostInfos = (
+    gdocPostsToArchive: GdocPostChecksumsObjectWithHash[]
+): MinimalGdocPostInfo[] =>
+    gdocPostsToArchive.map((post) => ({
+        postId: post.postId,
+        postSlug: post.postSlug,
+    }))
+
 /**
  * Collects all variable IDs from both grapher and multi-dimensional configurations
  */
@@ -291,12 +343,17 @@ const collectAllChartConfigIds = (
  * Outputs what would be archived in dry run mode
  */
 const outputDryRunResults = (archivalData: ArchivalData): void => {
-    const { graphersToArchive, multiDimsToArchive, explorersToArchive } =
-        archivalData
+    const {
+        graphersToArchive,
+        multiDimsToArchive,
+        explorersToArchive,
+        gdocPostsToArchive,
+    } = archivalData
     const totalToArchive =
         graphersToArchive.length +
         multiDimsToArchive.length +
-        explorersToArchive.length
+        explorersToArchive.length +
+        gdocPostsToArchive.length
 
     console.log("Would archive", totalToArchive, "pages:")
 
@@ -318,6 +375,13 @@ const outputDryRunResults = (archivalData: ArchivalData): void => {
         console.log(
             "Explorer slugs:",
             explorersToArchive.map((exp) => exp.explorerSlug)
+        )
+    }
+
+    if (gdocPostsToArchive.length > 0) {
+        console.log(
+            "Gdoc post slugs:",
+            gdocPostsToArchive.map((post) => post.postSlug)
         )
     }
 }
@@ -427,23 +491,60 @@ const archiveExplorerPages = async (
     )
 }
 
+const archiveGdocPostPages = async (
+    trx: db.KnexReadWriteTransaction,
+    gdocPostsToArchive: GdocPostChecksumsObjectWithHash[],
+    gdocPostInfos: MinimalGdocPostInfo[],
+    commonCtx: CommonArchivalContext,
+    archivalDate: ArchivalTimestamp,
+    opts: Options
+): Promise<void> => {
+    if (gdocPostsToArchive.length === 0) return
+
+    const { manifests } = await bakeArchivalGdocPostPagesToFolder(
+        trx,
+        gdocPostsToArchive,
+        gdocPostInfos,
+        commonCtx
+    )
+
+    await insertGdocPostVersions(
+        trx,
+        gdocPostsToArchive,
+        archivalDate,
+        manifests
+    )
+
+    await generateGdocPostVersionsFiles(
+        trx,
+        opts.dir,
+        gdocPostsToArchive.map((post) => post.postId)
+    )
+}
+
 /**
  * Main function that orchestrates the archival process
  */
 const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
     await db.knexReadWriteTransaction(async (trx) => {
         // Determine what needs to be archived
-        const [graphersToArchive, multiDimsToArchive, explorersToArchive] =
-            await Promise.all([
-                getGraphersToArchive(trx, opts),
-                getMultiDimsToArchive(trx, opts),
-                getExplorersToArchive(trx, opts),
-            ])
+        const [
+            graphersToArchive,
+            multiDimsToArchive,
+            explorersToArchive,
+            gdocPostsToArchive,
+        ] = await Promise.all([
+            getGraphersToArchive(trx, opts),
+            getMultiDimsToArchive(trx, opts),
+            getExplorersToArchive(trx, opts),
+            getGdocPostsToArchive(trx, opts),
+        ])
 
         const totalToArchive =
             graphersToArchive.length +
             multiDimsToArchive.length +
-            explorersToArchive.length
+            explorersToArchive.length +
+            gdocPostsToArchive.length
 
         // Handle dry run mode
         if (opts.dryRun) {
@@ -451,9 +552,11 @@ const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
                 graphersToArchive,
                 multiDimsToArchive,
                 explorersToArchive,
+                gdocPostsToArchive,
                 grapherConfigs: [],
                 multiDimConfigs: [],
                 explorerPrograms: [],
+                gdocPostInfos: [],
             })
             return
         }
@@ -473,6 +576,7 @@ const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
                 getExplorerPrograms(trx, explorersToArchive),
                 createCommonArchivalContext(trx, opts.dir, archivalDate),
             ])
+        const gdocPostInfos = getGdocPostInfos(gdocPostsToArchive)
 
         // Collect all variable IDs and create variable files
         const allVariableIds = collectAllVariableIds(
@@ -520,6 +624,14 @@ const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
                 explorerPrograms,
                 commonCtx,
                 variableFiles,
+                archivalDate,
+                opts
+            ),
+            archiveGdocPostPages(
+                trx,
+                gdocPostsToArchive,
+                gdocPostInfos,
+                commonCtx,
                 archivalDate,
                 opts
             ),
@@ -600,9 +712,29 @@ void yargs(hideBin(process.argv))
                             : split(arg)
                     },
                 })
+                .option("gdocPostSlugs", {
+                    type: "array",
+                    description:
+                        "Only archive these gdoc post slugs, regardless of whether they've changed",
+                    coerce: (arg) => {
+                        const split = (s: string | number) =>
+                            typeof s === "string"
+                                ? s.split(/\s+|,/)
+                                : [String(s)]
+                        return Array.isArray(arg)
+                            ? arg.flatMap(split)
+                            : split(arg)
+                    },
+                })
                 .option("type", {
                     type: "string",
-                    choices: ["charts", "multiDims", "explorers", "all"],
+                    choices: [
+                        "charts",
+                        "multiDims",
+                        "explorers",
+                        "gdocPosts",
+                        "all",
+                    ],
                     default: "all",
                     description: "What type of pages to archive",
                 })

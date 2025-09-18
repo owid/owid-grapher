@@ -88,3 +88,14 @@ export interface ExplorerChecksumsObjectWithHash {
     checksums: ExplorerChecksums
     checksumsHashed: string
 }
+
+export interface GdocPostChecksums {
+    postContentMd5: string
+}
+
+export interface GdocPostChecksumsObjectWithHash {
+    postId: string
+    postSlug: string
+    checksums: GdocPostChecksums
+    checksumsHashed: string
+}

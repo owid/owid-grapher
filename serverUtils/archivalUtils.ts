@@ -12,6 +12,8 @@ import {
     MultiDimChecksumsObjectWithHash,
     ExplorerChecksums,
     ExplorerChecksumsObjectWithHash,
+    GdocPostChecksums,
+    GdocPostChecksumsObjectWithHash,
 } from "@ourworldindata/types"
 import { simpleGit } from "simple-git"
 import { ARCHIVE_BASE_URL } from "../settings/serverSettings.js"
@@ -44,6 +46,12 @@ export interface MultiDimArchivalManifest extends BaseArchivalManifest {
 export interface ExplorerArchivalManifest extends BaseArchivalManifest {
     explorerSlug: string
     checksums: ExplorerChecksums
+}
+
+export interface GdocPostArchivalManifest extends BaseArchivalManifest {
+    postId: string
+    postSlug: string
+    checksums: GdocPostChecksums
 }
 
 const getOwidGrapherCommitSha = lazy(async () => {
@@ -162,6 +170,49 @@ export const assembleMultiDimManifest = async (manifestInfo: {
     checksumsObj: MultiDimChecksumsObjectWithHash
     archivalDate: string
 }): Promise<MultiDimArchivalManifest> => {
+    const commitShas = { "owid-grapher": await getOwidGrapherCommitSha() }
+
+    const manifest = {
+        ..._.omit(manifestInfo, [
+            "staticAssetMap",
+            "runtimeAssetMap",
+            "checksumsObj",
+        ]),
+        ...manifestInfo.checksumsObj,
+        assets: {
+            static: manifestInfo.staticAssetMap,
+            runtime: manifestInfo.runtimeAssetMap,
+        },
+        commitShas,
+    }
+
+    return manifest
+}
+
+export const assembleGdocPostArchivalUrl = (
+    archivalDate: DateInput,
+    postSlug: string,
+    { relative }: { relative: boolean }
+) => {
+    const formattedDate = convertToArchivalDateStringIfNecessary(archivalDate)
+
+    const path = `/${formattedDate}/${postSlug}.html`
+    if (relative) return path
+    else {
+        if (!ARCHIVE_BASE_URL) {
+            throw new Error("ARCHIVE_BASE_URL is not defined")
+        }
+        return `${ARCHIVE_BASE_URL}${path}`
+    }
+}
+
+export const assembleGdocPostManifest = async (manifestInfo: {
+    staticAssetMap: AssetMap
+    runtimeAssetMap: AssetMap
+    checksumsObj: GdocPostChecksumsObjectWithHash
+    archivalDate: string
+    postId: string
+}): Promise<GdocPostArchivalManifest> => {
     const commitShas = { "owid-grapher": await getOwidGrapherCommitSha() }
 
     const manifest = {
