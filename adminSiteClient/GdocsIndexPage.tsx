@@ -77,6 +77,7 @@ class GdocsIndexPageSearch extends React.Component<GdocsIndexPageSearchProps> {
             OwidGdocType.DataInsight,
             OwidGdocType.AboutPage,
             OwidGdocType.Author,
+            OwidGdocType.Announcement,
         ]
         return (
             <div className="d-flex flex-grow-1 flex-wrap">

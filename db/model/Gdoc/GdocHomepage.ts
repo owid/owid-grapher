@@ -70,6 +70,7 @@ export class GdocHomepage
             chartCount: grapherCount + nonGrapherExplorerViewCount,
             topicCount: await db.getUniqueTopicCount(knex),
             tagGraph: await db.generateTopicTagGraph(knex),
+            announcements: await db.getHomepageAnnouncements(knex),
         }
 
         const { dataInsights, imageMetadata } =

@@ -137,6 +137,7 @@ export interface OwidGdocMinimalPostInterface {
     excerpt: string // used in prominent links
     type: OwidGdocType // used in useLinkedDocument to prepend /data-insights/ to the slug
     "featured-image"?: string // used in prominent links and research & writing block
+    kicker?: string // used in homepage announcements
 }
 
 export type OwidGdocIndexItem = Pick<
@@ -240,6 +241,7 @@ export interface OwidGdocHomepageMetadata {
     chartCount?: number
     topicCount?: number
     tagGraph?: TagGraphRoot
+    announcements?: OwidGdocMinimalPostInterface[]
 }
 
 export interface OwidGdocHomepageInterface extends OwidGdocBaseInterface {

@@ -41,9 +41,12 @@ import {
     TagsTableName,
     TagGraphTableName,
     ExplorersTableName,
+    OwidGdocMinimalPostInterface,
+    DbRawPostGdoc,
 } from "@ourworldindata/types"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
+import { rawGdocToMinimalPost } from "./model/Gdoc/GdocBase.js"
 
 // Return the first match from a mysql query
 export const closeTypeOrmAndKnexConnections = async (): Promise<void> => {
@@ -377,6 +380,25 @@ export const getHomepageId = (
             type = '${OwidGdocType.Homepage}'
             AND published = TRUE`
     ).then((result) => result?.id)
+}
+
+export const getHomepageAnnouncements = (
+    knex: KnexReadonlyTransaction
+): Promise<OwidGdocMinimalPostInterface[]> => {
+    return knexRaw<DbRawPostGdoc>(
+        knex,
+        `-- sql
+        SELECT
+            pg.*
+        FROM ${PostsGdocsTableName} pg
+        WHERE pg.published = TRUE
+        AND pg.publishedAt <= NOW()
+        AND pg.type = '${OwidGdocType.Announcement}'
+        AND pg.publicationContext = 'listed'
+        ORDER BY pg.publishedAt DESC
+        LIMIT 3
+        `
+    ).then((rows) => rows.map(rawGdocToMinimalPost))
 }
 
 export async function checkIsImageInDB(

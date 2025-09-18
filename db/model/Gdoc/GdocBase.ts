@@ -68,6 +68,8 @@ import {
     parseVariableDisplayConfig,
     joinTitleFragments,
     ArchivedPageVersion,
+    DbRawPostGdoc,
+    PostsGdocsTableName,
 } from "@ourworldindata/types"
 import {
     getAllNarrativeChartNames,
@@ -1122,58 +1124,47 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 }
 
+export function rawGdocToMinimalPost(
+    row: DbRawPostGdoc
+): OwidGdocMinimalPostInterface {
+    const content = JSON.parse(row.content)
+
+    // Handle the featured image with deprecation notice check
+    const featuredImage = content["deprecation-notice"]
+        ? ARCHIVED_THUMBNAIL_FILENAME
+        : content["featured-image"]
+
+    return {
+        id: row.id,
+        title: content.title,
+        slug: row.slug,
+        authors: row.authors ? JSON.parse(row.authors) : [],
+        publishedAt: row.publishedAt ? formatDate(row.publishedAt) : null,
+        published: !!row.published,
+        subtitle: content.subtitle,
+        excerpt: content.excerpt,
+        type: row.type as OwidGdocType,
+        "featured-image": featuredImage,
+        kicker: content.kicker,
+    }
+}
+
 // This function would naturally live in GdocFactory but that would create a circular dependency
 export async function getMinimalGdocPostsByIds(
     knex: db.KnexReadonlyTransaction,
     ids: string[]
 ): Promise<OwidGdocMinimalPostInterface[]> {
     if (ids.length === 0) return []
-    const rows = await db.knexRaw<{
-        id: string
-        title: string
-        slug: string
-        authors: string
-        publishedAt: Date | null
-        published: number
-        subtitle: string
-        excerpt: string
-        type: string
-        "featured-image": string
-    }>(
+    const rows = await db.knexRaw<DbRawPostGdoc>(
         knex,
         `-- sql
             SELECT
-                id,
-                content ->> '$.title' as title,
-                slug,
-                authors,
-                publishedAt,
-                published,
-                content ->> '$.subtitle' as subtitle,
-                content ->> '$.excerpt' as excerpt,
-                type,
-                CASE
-                    WHEN content ->> '$."deprecation-notice"' IS NOT NULL THEN '${ARCHIVED_THUMBNAIL_FILENAME}'
-                    ELSE content ->> '$."featured-image"'
-                END as "featured-image"
-            FROM posts_gdocs
+                pg.*
+            FROM ${PostsGdocsTableName} pg
             WHERE id in (:ids)`,
         { ids }
     )
-    return rows.map((row) => {
-        return {
-            id: row.id,
-            title: row.title,
-            slug: row.slug,
-            authors: JSON.parse(row.authors) as string[],
-            publishedAt: row.publishedAt ? formatDate(row.publishedAt) : null,
-            published: !!row.published,
-            subtitle: row.subtitle,
-            excerpt: row.excerpt,
-            type: row.type as OwidGdocType,
-            "featured-image": row["featured-image"],
-        } satisfies OwidGdocMinimalPostInterface
-    })
+    return rows.map(rawGdocToMinimalPost)
 }
 
 export async function getMinimalAuthorsByNames(
