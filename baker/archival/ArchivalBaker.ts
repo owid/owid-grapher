@@ -14,6 +14,7 @@ import {
     UrlAndMaybeDate,
     GrapherChecksumsObjectWithHash,
     MultiDimChecksumsObjectWithHash,
+    ExplorerChecksumsObjectWithHash,
 } from "@ourworldindata/types"
 import fs from "fs-extra"
 import path from "path"
@@ -23,6 +24,7 @@ import { getVariableData } from "../../db/model/Variable.js"
 import findProjectBaseDir from "../../settings/findBaseDir.js"
 import { bakeSingleGrapherPageForArchival } from "../GrapherBaker.js"
 import { bakeSingleMultiDimDataPageForArchival } from "../MultiDimBaker.js"
+import { bakeSingleExplorerPageForArchival } from "../ExplorerBaker.js"
 import {
     hashAndCopyFile,
     hashAndWriteFile,
@@ -30,17 +32,22 @@ import {
 import {
     GrapherArchivalManifest,
     MultiDimArchivalManifest,
+    ExplorerArchivalManifest,
     assembleGrapherArchivalUrl,
     assembleGrapherManifest,
+    assembleExplorerArchivalUrl,
     assembleMultiDimArchivalUrl,
     assembleMultiDimManifest,
+    assembleExplorerManifest,
 } from "../../serverUtils/archivalUtils.js"
 import pMap from "p-map"
 import {
     getAllChartVersionsForChartId,
     getAllMultiDimVersionsForId,
+    getAllExplorerVersionsForSlug,
     getLatestGrapherArchivedVersionsFromDb,
     getLatestMultiDimArchivedVersionsFromDb,
+    getLatestExplorerArchivedVersionsFromDb,
 } from "../../db/model/archival/archivalDb.js"
 import { ARCHIVE_BASE_URL } from "../../settings/serverSettings.js"
 import {
@@ -50,6 +57,7 @@ import {
 } from "@ourworldindata/utils"
 import { PROD_URL } from "../../site/SiteConstants.js"
 import { getParsedDodsDictionary } from "../../db/model/Dod.js"
+import { ExplorerProgram } from "@ourworldindata/explorer"
 
 export const projBaseDir = findProjectBaseDir(__dirname)
 if (!projBaseDir) throw new Error("Could not find project base directory")
@@ -427,6 +435,110 @@ export const bakeArchivalMultiDimPagesToFolder = async (
     return { manifests }
 }
 
+export const bakeArchivalExplorerPagesToFolder = async (
+    knex: db.KnexReadonlyTransaction,
+    explorerChecksumsObjsToBeArchived: ExplorerChecksumsObjectWithHash[],
+    explorerPrograms: ExplorerProgram[],
+    commonCtx: CommonArchivalContext,
+    variableFiles: Record<number, AssetMap>
+) => {
+    await fs.mkdirp(path.join(commonCtx.archiveDir, "explorers"))
+    console.log(
+        `Baking explorer pages locally to dir '${commonCtx.archiveDir}'`
+    )
+
+    const manifests: Record<string, ExplorerArchivalManifest> = {}
+
+    const slugs = explorerChecksumsObjsToBeArchived.map((c) => c.explorerSlug)
+    const latestArchivalVersions =
+        await getLatestExplorerArchivedVersionsFromDb(knex, slugs).then(
+            (rows) => _.keyBy(rows, (v) => v.explorerSlug)
+        )
+
+    let i = 0
+    for (const program of explorerPrograms) {
+        i++
+
+        const checksumsObj = explorerChecksumsObjsToBeArchived.find(
+            (c) => c.explorerSlug === program.slug
+        )
+        if (!checksumsObj)
+            throw new Error(
+                `Could not find checksums for explorer '${program.slug}', this shouldn't happen`
+            )
+
+        const runtimeFiles: AssetMap = { ...commonCtx.commonRuntimeFiles }
+        const indicatorIds = Object.keys(checksumsObj.checksums.indicators).map(
+            (k) => parseInt(k, 10)
+        )
+        for (const variableId of indicatorIds) {
+            if (!variableFiles[variableId])
+                throw new Error(
+                    `Could not find variable info for variableId ${variableId}`
+                )
+            Object.assign(runtimeFiles, variableFiles[variableId])
+        }
+
+        const manifest = await assembleExplorerManifest({
+            staticAssetMap: commonCtx.staticAssetMap,
+            runtimeAssetMap: runtimeFiles,
+            checksumsObj,
+            archivalDate: commonCtx.date.formattedDate,
+        })
+
+        // Create archive navigation for explorer
+        const previousVersionInfo =
+            latestArchivalVersions[program.slug] ?? undefined
+        const previousVersion: UrlAndMaybeDate | undefined = previousVersionInfo
+            ? {
+                  date: previousVersionInfo.archivalTimestamp,
+                  url: assembleExplorerArchivalUrl(
+                      previousVersionInfo.archivalTimestamp,
+                      previousVersionInfo.explorerSlug,
+                      { relative: true }
+                  ),
+              }
+            : undefined
+
+        const archiveNavigation: ArchiveSiteNavigationInfo = {
+            liveUrl: `${PROD_URL}/explorers/${program.slug}`,
+            previousVersion,
+            versionsFileUrl: `/versions/explorers/${program.slug}.json`,
+        }
+
+        const fullUrl = assembleExplorerArchivalUrl(
+            commonCtx.date.formattedDate,
+            program.slug,
+            { relative: false }
+        )
+
+        const archiveInfo: ArchiveMetaInformation = {
+            archivalDate: commonCtx.date.formattedDate,
+            archiveNavigation,
+            archiveUrl: fullUrl,
+            assets: {
+                runtime: runtimeFiles,
+                static: commonCtx.staticAssetMap,
+            },
+            type: "archive-page",
+        }
+
+        await bakeSingleExplorerPageForArchival(
+            commonCtx.archiveDir,
+            program,
+            knex,
+            { manifest, archiveInfo }
+        )
+
+        manifests[program.slug] = manifest
+
+        console.log(`${i}/${explorerPrograms.length} ${program.slug}`)
+    }
+    console.log(`Baked ${explorerPrograms.length} explorer pages`)
+
+    return { manifests }
+}
+
 export interface CommonArchivalContext {
     date: ArchivalTimestamp
     baseArchiveDir: string
@@ -761,5 +873,55 @@ export async function generateMultiDimVersionsFiles(
     )
     console.log(
         `Finished generating multi-dim versions files for ${multiDimIds.length} multi-dim pages`
+    )
+}
+
+export async function generateExplorerVersionsFiles(
+    knex: db.KnexReadWriteTransaction,
+    dir: string,
+    explorerSlugs: string[]
+) {
+    console.log(
+        `Generating explorer versions files for ${explorerSlugs.length} explorers`
+    )
+    const targetPath = path.join(dir, "versions", "explorers")
+    await fs.mkdirp(targetPath)
+
+    await pMap(
+        explorerSlugs,
+        async (slug) => {
+            const explorerVersions = await getAllExplorerVersionsForSlug(
+                knex,
+                slug
+            ).then((rows) =>
+                rows.map((r) => ({
+                    archivalDate: convertToArchivalDateStringIfNecessary(
+                        r.archivalTimestamp
+                    ),
+                    url: assembleExplorerArchivalUrl(
+                        r.archivalTimestamp,
+                        r.explorerSlug,
+                        { relative: true }
+                    ),
+                    slug: r.explorerSlug,
+                }))
+            )
+
+            const fileContent = {
+                explorerSlug: slug,
+                versions: explorerVersions,
+            }
+            await fs.writeFile(
+                path.join(targetPath, `${slug}.json`),
+                JSON.stringify(fileContent, undefined, 2),
+                {
+                    encoding: "utf8",
+                }
+            )
+        },
+        { concurrency: 10 }
+    )
+    console.log(
+        `Finished generating explorer versions files for ${explorerSlugs.length} explorers`
     )
 }
