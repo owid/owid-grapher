@@ -37,7 +37,7 @@ interface ExplorerPageSettings {
     baseUrl: string
     urlMigrationSpec?: ExplorerPageUrlMigrationSpec
     isPreviewing?: boolean
-    archivedChartInfo?: ArchiveContext
+    archiveContext?: ArchiveContext
 }
 
 const ExplorerContent = ({ content }: { content: string }) => {
@@ -69,7 +69,7 @@ export const ExplorerPage = (props: ExplorerPageSettings) => {
         partialGrapherConfigs,
         baseUrl,
         urlMigrationSpec,
-        archivedChartInfo,
+        archiveContext,
     } = props
     const {
         subNavId,
@@ -81,8 +81,8 @@ export const ExplorerPage = (props: ExplorerPageSettings) => {
         hideAlertBanner,
     } = program
 
-    const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
-    const assetMaps = isOnArchivalPage ? archivedChartInfo.assets : undefined
+    const isOnArchivalPage = archiveContext?.type === "archive-page"
+    const assetMaps = isOnArchivalPage ? archiveContext.assets : undefined
 
     const subNav = subNavId ? (
         <SiteSubnavigation
@@ -115,14 +115,14 @@ const explorerConstants = ${serializeJSONForHTML(
         },
         EXPLORER_CONSTANTS_DELIMITER
     )}
-const archivedChartInfo = ${JSON.stringify(archivedChartInfo)};
+const archiveContext = ${JSON.stringify(archiveContext)};
 window.Explorer.renderSingleExplorerOnExplorerPage(
     explorerProgram,
     grapherConfigs,
     partialGrapherConfigs,
     explorerConstants,
     urlMigrationSpec,
-    archivedChartInfo
+    archiveContext
 );`
 
     return (
@@ -134,16 +134,14 @@ window.Explorer.renderSingleExplorerOnExplorerPage(
                 imageUrl={thumbnail}
                 baseUrl={baseUrl}
                 staticAssetMap={assetMaps?.static}
-                archivedChartInfo={archivedChartInfo}
+                archiveContext={archiveContext}
             >
                 <IFrameDetector />
             </Head>
             <body className={GRAPHER_PAGE_BODY_CLASS}>
                 <SiteHeader
                     hideAlertBanner={hideAlertBanner || false}
-                    archiveInfo={
-                        isOnArchivalPage ? archivedChartInfo : undefined
-                    }
+                    archiveInfo={isOnArchivalPage ? archiveContext : undefined}
                 />
                 {subNav}
                 <main id={ExplorerContainerId}>
@@ -154,9 +152,7 @@ window.Explorer.renderSingleExplorerOnExplorerPage(
                 <SiteFooter
                     context={SiteFooterContext.explorerPage}
                     isPreviewing={props.isPreviewing}
-                    archiveInfo={
-                        isOnArchivalPage ? archivedChartInfo : undefined
-                    }
+                    archiveInfo={isOnArchivalPage ? archiveContext : undefined}
                 />
                 <script
                     type="module"

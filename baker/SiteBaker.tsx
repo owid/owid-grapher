@@ -368,7 +368,7 @@ export class SiteBaker {
                                 chart.config,
                                 chart.slug,
                                 {
-                                    archivedChartInfo:
+                                    archivedPageVersion:
                                         archivedVersions.charts[chart.id] ||
                                         undefined,
                                 }
@@ -382,7 +382,7 @@ export class SiteBaker {
             for (const { id, slug, config } of multiDims) {
                 publishedCharts.push(
                     makeMultiDimLinkedChart(config, slug, {
-                        archivedChartInfo:
+                        archivedPageVersion:
                             archivedVersions.multiDims[id] || undefined,
                     })
                 )

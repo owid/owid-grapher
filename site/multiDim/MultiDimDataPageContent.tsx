@@ -70,7 +70,7 @@ export type MultiDimDataPageContentProps = {
     relatedResearchCandidates: DataPageRelatedResearch[]
     imageMetadata: Record<string, ImageMetadata>
     isPreviewing?: boolean
-    archivedChartInfo?: ArchiveContext
+    archiveContext?: ArchiveContext
 }
 
 export type MultiDimDataPageData = Omit<
@@ -100,11 +100,11 @@ export function DataPageContent({
     relatedResearchCandidates,
     tagToSlugMap,
     imageMetadata,
-    archivedChartInfo,
+    archiveContext,
 }: MultiDimDataPageContentProps) {
     const assetMap =
-        archivedChartInfo?.type === "archive-page"
-            ? archivedChartInfo.assets.runtime
+        archiveContext?.type === "archive-page"
+            ? archiveContext.assets.runtime
             : undefined
     // A non-empty manager is used in the size calculations
     // within grapher, so we have to initialize it early with
@@ -118,7 +118,7 @@ export function DataPageContent({
                     noCache: isPreviewing,
                 }),
             manager: managerRef.current,
-            archivedChartInfo,
+            archiveContext,
             isConfigReady: false,
         })
     )
@@ -130,16 +130,16 @@ export function DataPageContent({
         () =>
             getCachingInputTableFetcher(
                 DATA_API_URL,
-                archivedChartInfo,
+                archiveContext,
                 isPreviewing
             ),
-        [archivedChartInfo, isPreviewing]
+        [archiveContext, isPreviewing]
     )
 
     const titleFragments = useTitleFragments(config)
     const additionalConfig = useMemo(
-        () => ({ archivedChartInfo }),
-        [archivedChartInfo]
+        () => ({ archiveContext }),
+        [archiveContext]
     )
     const baseGrapherConfig = useBaseGrapherConfig(additionalConfig)
 
@@ -466,7 +466,7 @@ export function DataPageContent({
                         source={varDatapageData.source}
                         title={varDatapageData.title}
                         titleVariant={varDatapageData.titleVariant}
-                        archivedChartInfo={archivedChartInfo}
+                        archiveContext={archiveContext}
                     />
                 )}
             </div>
@@ -484,14 +484,14 @@ export function MultiDimDataPageContent({
     relatedResearchCandidates,
     tagToSlugMap,
     imageMetadata,
-    archivedChartInfo,
+    archiveContext,
 }: MultiDimDataPageContentProps) {
     return isIframe ? (
         <MultiDim
             config={config}
             slug={slug}
             queryStr={location.search}
-            archivedChartInfo={archivedChartInfo}
+            archiveContext={archiveContext}
             isPreviewing={isPreviewing}
         />
     ) : (
@@ -505,7 +505,7 @@ export function MultiDimDataPageContent({
             relatedResearchCandidates={relatedResearchCandidates}
             tagToSlugMap={tagToSlugMap}
             imageMetadata={imageMetadata}
-            archivedChartInfo={archivedChartInfo}
+            archiveContext={archiveContext}
         />
     )
 }

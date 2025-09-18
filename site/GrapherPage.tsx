@@ -40,7 +40,7 @@ export const GrapherPage = (props: {
     relatedArticles?: PostReference[]
     baseUrl: string
     baseGrapherUrl: string
-    archivedChartInfo?: ArchiveContext
+    archiveContext?: ArchiveContext
     isPreviewing?: boolean
 }) => {
     const {
@@ -49,15 +49,17 @@ export const GrapherPage = (props: {
         relatedArticles,
         baseGrapherUrl,
         baseUrl,
-        archivedChartInfo,
+        archiveContext,
         isPreviewing,
     } = props
     const pageTitle = grapher.title
 
-    const liveUrlIfIsArchive =
-        archivedChartInfo?.type === "archive-page"
-            ? archivedChartInfo.archiveNavigation.liveUrl
-            : undefined
+    const isOnArchivalPage = archiveContext?.type === "archive-page"
+    const assetMaps = isOnArchivalPage ? archiveContext.assets : undefined
+
+    const liveUrlIfIsArchive = isOnArchivalPage
+        ? archiveContext.archiveNavigation.liveUrl
+        : undefined
 
     const canonicalUrl =
         liveUrlIfIsArchive ?? urljoin(baseGrapherUrl, grapher.slug as string)
@@ -92,14 +94,11 @@ export const GrapherPage = (props: {
         adminBaseUrl: ADMIN_BASE_URL,
         bakedGrapherURL: BAKED_GRAPHER_URL,
     })}
-const archivedChartInfo = ${JSON.stringify(archivedChartInfo || undefined)}
+const archiveContext = ${JSON.stringify(archiveContext || undefined)}
 const isPreviewing = ${isPreviewing}
-window.renderSingleGrapherOnGrapherPage(jsonConfig, "${DATA_API_URL}", { archivedChartInfo, isPreviewing })`
+window.renderSingleGrapherOnGrapherPage(jsonConfig, "${DATA_API_URL}", { archiveContext, isPreviewing })`
 
     const variableIds = _.uniq(grapher.dimensions!.map((d) => d.variableId))
-
-    const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
-    const assetMaps = isOnArchivalPage ? archivedChartInfo.assets : undefined
 
     return (
         <Html>
@@ -110,7 +109,7 @@ window.renderSingleGrapherOnGrapherPage(jsonConfig, "${DATA_API_URL}", { archive
                 imageUrl={imageUrl}
                 baseUrl={baseUrl}
                 staticAssetMap={assetMaps?.static}
-                archivedChartInfo={archivedChartInfo}
+                archiveContext={archiveContext}
             >
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
@@ -146,9 +145,7 @@ window.renderSingleGrapherOnGrapherPage(jsonConfig, "${DATA_API_URL}", { archive
             </Head>
             <body className={GRAPHER_PAGE_BODY_CLASS}>
                 <SiteHeader
-                    archiveInfo={
-                        isOnArchivalPage ? archivedChartInfo : undefined
-                    }
+                    archiveInfo={isOnArchivalPage ? archiveContext : undefined}
                 />
                 <main>
                     <figure
@@ -202,9 +199,7 @@ window.renderSingleGrapherOnGrapherPage(jsonConfig, "${DATA_API_URL}", { archive
                 </main>
                 <SiteFooter
                     context={SiteFooterContext.grapherPage}
-                    archiveInfo={
-                        isOnArchivalPage ? archivedChartInfo : undefined
-                    }
+                    archiveInfo={isOnArchivalPage ? archiveContext : undefined}
                     isPreviewing={isPreviewing}
                 />
                 <script
