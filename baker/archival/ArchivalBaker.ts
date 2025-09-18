@@ -60,7 +60,6 @@ const IGNORED_FILES_PATTERNS = [
     /^images(\/.*)?$/,
     /^sdg.*$/,
     /^identifyadmin.html$/,
-    /^robots.txt$/,
 ]
 export const copyPublicDir = async (archiveDir: string) => {
     const publicDir = path.join(projBaseDir, "public")
