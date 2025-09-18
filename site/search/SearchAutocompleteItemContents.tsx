@@ -39,15 +39,9 @@ export function SearchAutocompleteItemContents({
                 ))
                 .with(FilterType.COUNTRY, () => (
                     <>
-                        {unmatchedQuery && (
-                            <span className="search-autocomplete-item-contents__query">
-                                {unmatchedQuery}
-                            </span>
-                        )}
-                        <SearchFilterPill
-                            name={filter.name}
-                            icon={getFilterIcon(filter)}
-                        />
+                        <span className="search-autocomplete-item-contents__query">
+                            {unmatchedQuery} {filter.name.toLowerCase()}
+                        </span>
                     </>
                 ))
                 .with(FilterType.TOPIC, () => (
