@@ -12,6 +12,8 @@ import {
     ArchiveContext,
     LatestPageItem,
     PostsGdocsTableName,
+    DbEnrichedImage,
+    LinkedAuthor,
 } from "@ourworldindata/types"
 import { excludeNullish, formatDate } from "@ourworldindata/utils"
 import {
@@ -21,7 +23,7 @@ import {
 } from "./archieToEnriched.js"
 import { parseFaqs } from "./rawToEnriched.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
-import { GdocBase } from "./GdocBase.js"
+import { GdocBase, getMinimalAuthorsByNames } from "./GdocBase.js"
 import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
 import { getLatestChartArchivedVersionsIfEnabled } from "../archival/archivalDb.js"
 import * as db from "../../db.js"
@@ -29,6 +31,9 @@ import { BLOG_POSTS_PER_PAGE } from "../../../settings/serverSettings.js"
 import { GdocAnnouncement } from "./GdocAnnouncement.js"
 import { GdocDataInsight } from "./GdocDataInsight.js"
 import { gdocFromJSON } from "./GdocFactory.js"
+import { pipe, unique } from "remeda"
+import { getAllImages } from "../Image.js"
+import { keyBy, pick } from "lodash-es"
 
 export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     declare content: OwidGdocPostContent
@@ -227,6 +232,64 @@ function gdocToLatestItem(
             type: OwidGdocType.Announcement,
             data: gdoc,
         }
+    }
+}
+
+export const enrichLatestPageItems = async (
+    knex: KnexReadonlyTransaction,
+    items: LatestPageItem[]
+): Promise<{
+    linkedAuthors: LinkedAuthor[]
+    imageMetadata: Record<string, DbEnrichedImage>
+}> => {
+    const articles = items.filter((post) => post.type === OwidGdocType.Article)
+    const dataInsights = items.filter(
+        (post) => post.type === OwidGdocType.DataInsight
+    )
+    const announcements = items.filter(
+        (post) => post.type === OwidGdocType.Announcement
+    )
+
+    // Fetch authors (only for articles)
+    const linkedAuthors = await getMinimalAuthorsByNames(
+        knex,
+        unique(articles.flatMap((post) => post.data.authors))
+    )
+
+    // Gather all image filenames
+    const articleFeaturedImages = pipe(
+        articles.map((post) => post.data["featured-image"]),
+        excludeNullish
+    )
+
+    const dataInsightFeaturedImages = pipe(
+        dataInsights.map((post) =>
+            post.data.content.body.find((block) => block.type === "image")
+        ),
+        excludeNullish,
+        (images) => images.map((image) => image.filename)
+    )
+
+    const announcementImages = pipe(
+        announcements.map((post) =>
+            post.data.content.body.filter((block) => block.type === "image")
+        ),
+        excludeNullish,
+        (images) => images.flat().map((image) => image.filename)
+    )
+
+    // Fetch image metadata
+    const imageMetadata = await getAllImages(knex).then((allImages) =>
+        pick(keyBy(allImages, "filename"), [
+            ...articleFeaturedImages,
+            ...dataInsightFeaturedImages,
+            ...announcementImages,
+        ])
+    )
+
+    return {
+        linkedAuthors,
+        imageMetadata,
     }
 }
 
