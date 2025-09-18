@@ -78,7 +78,7 @@ const ETL_REGIONS_URL =
         WB_EAP: ["030", "009"], // East Asia; Pacific ≈ Oceania
         WB_ECA: ["143", "150"],
         WB_LAC: ["419", "029"],
-        WB_MENA: ["145", "015"], // Middle East ≈ Western Asia; Northern Africa
+        WB_MENAP: ["145", "015"], // Middle East ≈ Western Asia; Northern Africa
         WB_NA: "003",
         WB_SA: "034",
         WB_SSA: "202",

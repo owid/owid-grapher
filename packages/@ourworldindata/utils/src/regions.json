@@ -4222,6 +4222,7 @@
         "slug": "middle-east-north-africa-afghanistan-and-pakistan-wb",
         "regionType": "aggregate",
         "definedBy": "wb",
+        "translationCodes": ["145", "015"],
         "members": [
             "AFG",
             "ARE",
