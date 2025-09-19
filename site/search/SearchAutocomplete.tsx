@@ -2,7 +2,7 @@ import cx from "classnames"
 import { useEffect, useMemo, useCallback } from "react"
 import { match } from "ts-pattern"
 import {
-    getFilterSuggestionsWithUnmatchedQuery,
+    suggestFiltersFromQuerySuffix,
     createQueryFilter,
     getSearchAutocompleteId,
     getSearchAutocompleteItemId,
@@ -15,6 +15,7 @@ import { SearchAutocompleteItemContents } from "./SearchAutocompleteItemContents
 import { Filter, FilterType } from "./searchTypes.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { useSearchContext } from "./SearchContext.js"
+import { listedRegionsNames } from "@ourworldindata/utils"
 
 // Default search suggestions to show when there's no query or filters
 const DEFAULT_SEARCHES = [
@@ -51,8 +52,9 @@ export const SearchAutocomplete = ({
                 unmatchedQuery: "",
             }
         }
-        return getFilterSuggestionsWithUnmatchedQuery(
+        return suggestFiltersFromQuerySuffix(
             localQuery,
+            listedRegionsNames(),
             allTopics,
             filters,
             synonymMap
