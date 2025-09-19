@@ -91,6 +91,30 @@ export interface ExplorerChecksumsObjectWithHash {
 
 export interface PostChecksums {
     postContentMd5: string
+    indicators: IndicatorChecksums // Shared across all chart types
+    graphers: {
+        [chartId: string]: {
+            slug: string
+            chartConfigMd5: string
+        }
+    }
+    explorers: {
+        [slug: string]: {
+            explorerConfigMd5: string
+            chartConfigs: {
+                [id: string]: string // chartConfigId -> MD5
+            }
+        }
+    }
+    multiDims: {
+        [multiDimId: string]: {
+            slug: string
+            multiDimConfigMd5: string
+            chartConfigs: {
+                [id: string]: string // chartConfigId -> MD5
+            }
+        }
+    }
 }
 
 export interface PostChecksumsObjectWithHash {
