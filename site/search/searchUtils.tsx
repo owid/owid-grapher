@@ -25,7 +25,6 @@ import {
     queryParamsToStr,
     omitUndefinedValues,
     getRegionByName,
-    listedRegionsNames,
 } from "@ourworldindata/utils"
 import { type GrapherTrendArrowDirection } from "@ourworldindata/components"
 import {
@@ -470,21 +469,21 @@ export const getFilterIcon = (filter: Filter) => {
         .exhaustive()
 }
 
-export function searchWithWords(
+export function findTopicAndRegionFilters(
     words: string[],
     allRegionsNames: string[],
     allTopics: string[],
     selectedRegionNames: Set<string>,
     selectedTopics: Set<string>,
-    sortOptions: { threshold: number; limit: number },
-    synonymMap: SynonymMap
+    synonymMap: SynonymMap,
+    sortOptions: { threshold: number; limit: number }
 ): ScoredFilter[] {
     const searchTerm = words.join(" ")
 
     const searchCountryTopics = (term: string) => {
         const countryFilters: ScoredFilter[] = FuzzySearch.withKey(
             allRegionsNames,
-            (country) => country,
+            _.identity,
             sortOptions
         )
             .searchResults(term)
@@ -532,7 +531,7 @@ export function searchWithWords(
         R.flatMap((filtersOfType: ScoredFilter[]) =>
             R.pipe(
                 filtersOfType,
-                R.sortBy((filter) => -filter.score), // Sort by score descending
+                R.sortBy([R.prop("score"), "desc"]),
                 R.uniqueBy((filter) => filter.name),
                 R.take(sortOptions.limit)
             )
@@ -540,118 +539,6 @@ export function searchWithWords(
     )
 
     return filters
-}
-
-/**
- * Performs contiguous substring search on words against countries and topics.
- * Each word in the query must match as a prefix of words in the target names.
- * Handles multi-word queries and synonyms while ensuring contiguous matching.
- *
- * @returns Array of scored filters matching the query words (non deduplicated)
- */
-export function searchWithWordsContiguous(
-    words: string[],
-    allCountryNames: string[],
-    allTopics: string[],
-    selectedCountryNames: Set<string>,
-    selectedTopics: Set<string>,
-    synonymMap: SynonymMap
-): ScoredFilter[] {
-    // Returns true if all query words are prefixes of the target words
-    // Example:
-    // - ["chi", "mortal"] matches "child mortality" -> true
-    // - ["child", "blank"] doesn't match "child mortality" -> false
-    const areAllWordsPrefixes = (
-        queryWords: string[],
-        target: string
-    ): boolean => {
-        const targetWords = target.toLowerCase().split(/\s+/)
-        const queryWordsLower = queryWords.map((word) => word.toLowerCase())
-
-        // Each query word must match as a prefix of some target word
-        return queryWordsLower.every((queryWord) =>
-            targetWords.some((targetWord) => targetWord.startsWith(queryWord))
-        )
-    }
-
-    // For countries, require exact covering matches where all query words are covered
-    // Example: "east" or "east ti" should NOT match "east timor"
-    const isExactCoveringMatch = (
-        queryWords: string[],
-        target: string
-    ): boolean => {
-        const query = queryWords.join(" ").toLowerCase()
-        return target.toLowerCase() === query
-    }
-
-    const searchCountryTopicAsPrefixes = (queryWords: string[]) => {
-        const countryFilters: ScoredFilter[] = allCountryNames
-            .filter((country) => !selectedCountryNames.has(country))
-            .filter((country) => isExactCoveringMatch(queryWords, country))
-            .map((country) => ({
-                ...createCountryFilter(country),
-                score: calculateScore(queryWords, country),
-            }))
-
-        const topicFilters: ScoredFilter[] =
-            selectedTopics.size === 0
-                ? allTopics
-                      .filter((topic) => areAllWordsPrefixes(queryWords, topic))
-                      .map((topic) => ({
-                          ...createTopicFilter(topic),
-                          score: calculateScore(queryWords, topic),
-                      }))
-                : []
-
-        return [...countryFilters, ...topicFilters]
-    }
-
-    // 1. Perform original search
-    const filters = searchCountryTopicAsPrefixes(words)
-
-    // 2. Search with synonyms
-    const searchTerm = words.join(" ").toLowerCase()
-    const synonyms = synonymMap.get(searchTerm)
-
-    if (synonyms && synonyms.length > 0) {
-        // Search with each synonym and combine results
-        for (const synonym of synonyms) {
-            const synonymWords = synonym.split(/\s+/)
-            const filtersFromSynonym =
-                searchCountryTopicAsPrefixes(synonymWords)
-            filters.push(...filtersFromSynonym)
-        }
-    }
-
-    return filters
-}
-
-/**
- * Calculate a simple score based on match quality for contiguous matching.
- * Higher scores are given to queries that cover more of the target string.
- *
- * @returns Normalized score between 0 and 1, where 1 represents perfect matches
- */
-export function calculateScore(queryWords: string[], target: string): number {
-    const targetWords = target.toLowerCase().split(/\s+/)
-    const queryWordsLower = queryWords.map((word) => word.toLowerCase())
-
-    let totalMatchedChars = 0
-    queryWordsLower.forEach((queryWord) => {
-        const matchingWord = targetWords.find((targetWord) =>
-            targetWord.startsWith(queryWord)
-        )
-        if (matchingWord) {
-            // Count how many characters of the query word match
-            totalMatchedChars += queryWord.length
-        }
-    })
-
-    // Calculate total length of target (excluding spaces)
-    const targetLength = target.replace(/\s+/g, "").length
-
-    // Score is the ratio of matched characters to total target length
-    return totalMatchedChars / targetLength
 }
 
 /**
@@ -680,141 +567,6 @@ function getQuotedWordPositions(words: string[]): Set<number> {
     }
 
     return quotedPositions
-}
-
-/**
- * Cousin of findMatches that uses n-gram approach to find matches for all
- * possible combinations of words in the query, not just left-to-right
- * reduction.
- *
- * Generates n-grams from 1 to 4 non stop-words, prioritizing longer phrases over shorter
- * ones. Uses overlap detection to prevent the same word positions from being
- * matched multiple times. Keeps a single country or filter topic per n-gram
- * then deduplicates overall results by name.
- *
- * @returns Array of deduplicated scored filters
- */
-export function findMatchesWithNgrams(
-    query: string,
-    allRegionsNames: string[],
-    allTopics: string[],
-    selectedRegionNames: Set<string>,
-    selectedTopics: Set<string>,
-    sortOptions: { threshold: number; limit: number },
-    synonymMap: SynonymMap
-): ScoredFilterPositioned[] {
-    const allFilters: ScoredFilterPositioned[] = []
-    const matchedWordPositions = new Set<number>()
-
-    const words = splitIntoWords(query)
-
-    // Get positions of words inside quoted phrases
-    const quotedWordPositions = getQuotedWordPositions(words)
-
-    // Filter out stop words and quoted words while preserving original positions
-    const tokens: WordPositioned[] = words
-        .map((word, index) => ({ word, position: index }))
-        .filter(({ word }) => isNotStopWord(word))
-        .filter(({ position }) => !quotedWordPositions.has(position))
-
-    if (tokens.length === 0) return []
-
-    const ngrams: Ngram[] = []
-    const maxNgramSize = Math.min(tokens.length, 4) // Topics and countries mostly fit within 4 words
-
-    // Generate n-grams from largest to smallest to prioritize longer phrases
-    for (let n = maxNgramSize; n >= 1; n--) {
-        for (let i = 0; i <= tokens.length - n; i++) {
-            ngrams.push(tokens.slice(i, i + n))
-        }
-    }
-
-    // Search each n-gram and collect results, prioritizing longer phrases
-    for (const ngram of ngrams) {
-        const ngramWords = R.map(ngram, R.prop("word"))
-        const ngramPositions = R.map(ngram, R.prop("position"))
-
-        // Check if any original word positions in this n-gram are already matched by a longer phrase
-        const hasOverlap =
-            ngramPositions.some((pos: number) =>
-                matchedWordPositions.has(pos)
-            ) ?? false
-
-        if (hasOverlap) continue // Skip this n-gram if it overlaps with already matched words
-
-        const filters = searchWithWords(
-            ngramWords,
-            allRegionsNames,
-            allTopics,
-            selectedRegionNames,
-            selectedTopics,
-            sortOptions,
-            synonymMap
-        )
-
-        const bestFilter = _.maxBy(filters, (f) => f.score)
-        if (bestFilter) {
-            // Store the original positions for later use in replacement logic
-            allFilters.push({
-                ...bestFilter,
-                positions: ngramPositions,
-            })
-            // Mark these word positions as matched to prevent overlaps
-            ngramPositions.forEach((pos: number) =>
-                matchedWordPositions.add(pos)
-            )
-        }
-    }
-
-    return R.uniqueBy(allFilters, (filter) => filter.name)
-}
-
-export function findMatches(
-    words: string[],
-    allRegionsNames: string[],
-    allTopics: string[],
-    selectedCountryNames: Set<string>,
-    selectedTopics: Set<string>,
-    sortOptions: { threshold: number; limit: number },
-    synonymMap: SynonymMap,
-    wordIndex: number = 0
-): {
-    filters: ScoredFilter[]
-    matchStartIndex: number
-} {
-    const wordsToSearch = words.slice(wordIndex)
-    const filters = searchWithWords(
-        wordsToSearch,
-        allRegionsNames,
-        allTopics,
-        selectedCountryNames,
-        selectedTopics,
-        sortOptions,
-        synonymMap
-    )
-
-    if (filters.length > 0) {
-        return {
-            filters,
-            matchStartIndex: wordIndex,
-        }
-    }
-
-    return wordIndex < words.length - 1
-        ? findMatches(
-              words,
-              allRegionsNames,
-              allTopics,
-              selectedCountryNames,
-              selectedTopics,
-              sortOptions,
-              synonymMap,
-              wordIndex + 1
-          )
-        : {
-              filters: [],
-              matchStartIndex: words.length,
-          }
 }
 
 /**
@@ -851,29 +603,25 @@ export function findMatches(
  *
  * @returns Object containing suggestion filters and any unmatched query portion
  */
-export function getFilterSuggestionsWithUnmatchedQuery(
+export function suggestFiltersFromQuerySuffix(
     query: string,
+    allRegionNames: string[],
     allTopics: string[],
     filters: Filter[], // currently active filters to exclude from suggestions
     synonymMap: SynonymMap,
-    limitPerFilter: number = 3
+    sortOptions: { threshold: number; limit: number } = {
+        threshold: 0.75,
+        limit: 3,
+    }
 ): {
     suggestions: Filter[]
     unmatchedQuery: string
 } {
-    const sortOptions = {
-        // we can afford to be more strict with matching due to the presence of
-        // synonyms, in particular country alternatives (e.g. "uk" matches
-        // "united kingdom" without the need for a more permissive fuzzy match)
-        threshold: 0.75,
-        limit: limitPerFilter,
-    }
     const selectedCountryNames = getFilterNamesOfType(
         filters,
         FilterType.COUNTRY
     )
     const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
-    const allRegionNames = listedRegionsNames()
 
     const queryWords = splitIntoWords(query)
 
@@ -884,21 +632,31 @@ export function getFilterSuggestionsWithUnmatchedQuery(
         }
     }
 
-    const searchResults = findMatches(
-        queryWords,
-        allRegionNames,
-        allTopics,
-        selectedCountryNames,
-        selectedTopics,
-        sortOptions,
-        synonymMap
-    )
+    let matchedFilters: ScoredFilter[] = []
+    let matchStartIndex = queryWords.length
 
-    const unmatchedQuery = queryWords
-        .slice(0, searchResults.matchStartIndex)
-        .join(" ")
+    for (let i = 0; i < queryWords.length; i++) {
+        const wordsToSearch = queryWords.slice(i)
+        const filters = findTopicAndRegionFilters(
+            wordsToSearch,
+            allRegionNames,
+            allTopics,
+            selectedCountryNames,
+            selectedTopics,
+            synonymMap,
+            sortOptions
+        )
 
-    const countryMatches = searchResults.filters.filter(
+        if (filters.length > 0) {
+            matchedFilters = filters
+            matchStartIndex = i
+            break
+        }
+    }
+
+    const unmatchedQuery = queryWords.slice(0, matchStartIndex).join(" ")
+
+    const countryMatches = matchedFilters.filter(
         (f) =>
             // remove exact matches from country suggestions, as exact matches are
             // already handled by automatic filters (see SearchDetectedFilters).
@@ -913,7 +671,7 @@ export function getFilterSuggestionsWithUnmatchedQuery(
             countriesByName()[f.name]
     )
 
-    const topicMatches = searchResults.filters.filter(
+    const topicMatches = matchedFilters.filter(
         (f) => f.type === FilterType.TOPIC
     )
 
@@ -945,9 +703,24 @@ export function getFilterSuggestionsWithUnmatchedQuery(
 }
 
 /**
- * Gets filter suggestions using ngrams for more robust multi-entity matching.
+ * Gets filter suggestions using contiguous sequence of words (n-grams) for
+ * multi-entity matching in a given query.
+ *
+ * Where `suggestFiltersFromQuerySuffix` progressively tries to match
+ * from increasing starting points in the query and returns a list of possible
+ * matches for that position (1 position, multiple matches), this function tries
+ * to find the best match for all possible contiguous sequences of words
+ * (n-grams) in the query (multiple positions, 1 match per position).
+ *
+ * Generates n-grams from 1 to 4 non stop-words, non quotes phrases,
+ * prioritizing longer phrases over shorter ones. Uses overlap detection to
+ * prevent the same word positions from being matched multiple times. Keeps a
+ * single country or filter topic per n-gram then deduplicates overall results
+ * by name.
+ *
+ * @returns Array of deduplicated scored filters
  */
-export function getFilterSuggestionsNgrams(
+export function extractFiltersFromQuery(
     query: string,
     allRegionNames: string[],
     allTopics: string[],
@@ -963,18 +736,69 @@ export function getFilterSuggestionsNgrams(
     )
     const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
 
-    // Use n-gram matching for better phrase detection
-    const matches = findMatchesWithNgrams(
-        query,
-        allRegionNames,
-        allTopics,
-        selectedCountryNames,
-        selectedTopics,
-        sortOptions,
-        synonymMap
-    )
+    const allFilters: ScoredFilterPositioned[] = []
+    const matchedWordPositions = new Set<number>()
 
-    return matches
+    const words = splitIntoWords(query)
+
+    // Get positions of words inside quoted phrases
+    const quotedWordPositions = getQuotedWordPositions(words)
+
+    // Filter out stop words and quoted words while preserving original positions
+    const tokens: WordPositioned[] = words
+        .map((word, index) => ({ word, position: index }))
+        .filter(({ word }) => isNotStopWord(word))
+        .filter(({ position }) => !quotedWordPositions.has(position))
+
+    if (tokens.length === 0) return []
+
+    const ngrams: Ngram[] = []
+    const maxNgramSize = Math.min(tokens.length, 4) // Topics and countries mostly fit within 4 words
+
+    // Generate n-grams from largest to smallest to prioritize longer phrases
+    for (let n = maxNgramSize; n >= 1; n--) {
+        for (let i = 0; i <= tokens.length - n; i++) {
+            ngrams.push(tokens.slice(i, i + n))
+        }
+    }
+
+    // Search each n-gram and collect results, prioritizing longer phrases
+    for (const ngram of ngrams) {
+        const ngramWords = R.map(ngram, R.prop("word"))
+        const ngramPositions = R.map(ngram, R.prop("position"))
+
+        // Check if any original word positions in this n-gram are already matched by a longer phrase
+        const hasOverlap = ngramPositions.some((pos: number) =>
+            matchedWordPositions.has(pos)
+        )
+
+        if (hasOverlap) continue // Skip this n-gram if it overlaps with already matched words
+
+        const filtersFromNgram = findTopicAndRegionFilters(
+            ngramWords,
+            allRegionNames,
+            allTopics,
+            selectedCountryNames,
+            selectedTopics,
+            synonymMap,
+            sortOptions
+        )
+
+        const bestFilter = _.maxBy(filtersFromNgram, (f) => f.score)
+        if (bestFilter) {
+            // Store the original positions for later use in replacement logic
+            allFilters.push({
+                ...bestFilter,
+                positions: ngramPositions,
+            })
+            // Mark these word positions as matched to prevent overlaps
+            ngramPositions.forEach((pos: number) =>
+                matchedWordPositions.add(pos)
+            )
+        }
+    }
+
+    return R.uniqueBy(allFilters, (filter) => filter.name)
 }
 
 export function createFilter(type: FilterType) {
