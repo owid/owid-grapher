@@ -319,7 +319,11 @@ export default function OwidGdocPage({
                 <div id="owid-document-root">
                     <AriaAnnouncerProvider>
                         <DebugProvider debug={debug}>
-                            <OwidGdoc {...gdoc} isPreviewing={isPreviewing} />
+                            <OwidGdoc
+                                {...gdoc}
+                                isPreviewing={isPreviewing}
+                                archiveContext={archiveContext}
+                            />
                         </DebugProvider>
                         <AriaAnnouncer />
                     </AriaAnnouncerProvider>
