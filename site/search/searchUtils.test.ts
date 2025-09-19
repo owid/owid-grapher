@@ -778,6 +778,34 @@ describe("Fuzzy search in search autocomplete", () => {
             expect(airPollutionMatches.length).toBeGreaterThan(0)
             expect(leadPollutionMatches).toHaveLength(0)
         })
+
+        it("should filter out historical regions while preventing contained country suggestions", () => {
+            const result = getFilterSuggestionsWithUnmatchedQuery(
+                "east germany",
+                mockTopics,
+                [],
+                synonymMap,
+                3
+            )
+
+            // Should not suggest "East Germany" (historical region filtered out)
+            expect(
+                result.suggestions.some((s) => s.name === "East Germany")
+            ).toBe(false)
+
+            // Should not suggest "Germany" either (iteration stopped when "East Germany" was found)
+            expect(result.suggestions.some((s) => s.name === "Germany")).toBe(
+                false
+            )
+
+            // Should include the query as a search filter since no valid country suggestions were found
+            expect(
+                result.suggestions.some(
+                    (s) =>
+                        s.type === FilterType.QUERY && s.name === "east germany"
+                )
+            ).toBe(true)
+        })
     })
 
     it("should handle special characters in queries", () => {
