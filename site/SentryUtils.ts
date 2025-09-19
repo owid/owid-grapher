@@ -151,7 +151,9 @@ function parseExperimentsSampleRate(): number | undefined {
     const expSentrySampleRates: number[] = []
 
     for (const [cookieName, cookieValue] of Object.entries(allCookies)) {
-        const exp = experiments.find((e) => e.id === cookieName)
+        const exp = experiments
+            .filter((e) => !e.isExpired())
+            .find((e) => e.id === cookieName)
         if (!exp || !cookieValue) continue
 
         const pathname = window.location.pathname
