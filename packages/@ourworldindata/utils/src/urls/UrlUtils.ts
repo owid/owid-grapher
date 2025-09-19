@@ -1,14 +1,6 @@
 import { QueryParams } from "@ourworldindata/types"
 import { omitUndefinedValues } from "../Util.js"
 
-// Deprecated. Use getWindowQueryParams() to get the params from the global URL,
-// or strToQueryParams(str) to parse an arbtirary query string.
-export const getQueryParams = (queryStr?: string): QueryParams =>
-    strToQueryParams(queryStr || getWindowQueryStr())
-
-export const getWindowQueryParams = (): QueryParams =>
-    strToQueryParams(getWindowQueryStr())
-
 /**
  * Converts a query string into an object of key-value pairs.
  * Handles URI-decoding of the values.

@@ -1,5 +1,6 @@
 import { Url } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
+import { uniqueBy } from "remeda"
 import {
     SearchState,
     SearchAction,
@@ -15,6 +16,8 @@ import {
     getFilterNamesOfType,
     isValidResultType,
     serializeSet,
+    removeMatchedWordsWithStopWords,
+    splitIntoWords,
 } from "./searchUtils.js"
 
 function handleAddFilter(state: SearchState, filter: Filter): SearchState {
@@ -93,6 +96,29 @@ export function searchReducer(
             ...state,
             resultType,
         }))
+        .with(
+            // Apply multiple filters and update query in one atomic operation
+            { type: "replaceQueryWithFilters" },
+            ({ filters, matchedPositions }) => {
+                const queryWords = splitIntoWords(state.query)
+                const newQuery = removeMatchedWordsWithStopWords(
+                    queryWords,
+                    matchedPositions
+                )
+
+                // Deduplicate filters by type and name
+                const allFilters = [...state.filters, ...filters]
+                const uniqueFilters = uniqueBy(
+                    allFilters,
+                    (filter) => `${filter.type}:${filter.name}`
+                )
+                return {
+                    ...state,
+                    query: newQuery.trim(),
+                    filters: uniqueFilters,
+                }
+            }
+        )
         .exhaustive()
 }
 
@@ -109,6 +135,7 @@ export function createActions(dispatch: (action: SearchAction) => void) {
         setState: (state: SearchState) => dispatch({ type: "setState", state }),
         toggleRequireAllCountries: () => dispatch({ type: "toggleRequireAllCountries" }),
         setResultType: (resultType: SearchResultType) => dispatch({ type: "setResultType", resultType }),
+        replaceQueryWithFilters: (filters: Filter[], matchedPositions: number[]) => dispatch({ type: "replaceQueryWithFilters", filters, matchedPositions }),
         reset: () => dispatch({ type: "reset" }),
     }
 }

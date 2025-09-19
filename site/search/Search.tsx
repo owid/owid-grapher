@@ -34,6 +34,8 @@ import { SearchTemplatesAll } from "./SearchTemplatesAll.js"
 import { SearchTemplatesData } from "./SearchTemplatesData.js"
 import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
 import { SearchNoResults } from "./SearchNoResults.js"
+import { SearchDetectedFilters } from "./SearchDetectedFilters.js"
+import { buildSynonymMap } from "./synonymUtils.js"
 
 export const Search = ({
     initialState,
@@ -50,6 +52,8 @@ export const Search = ({
 
     // Extract topic and area data from the graph
     const { allAreas, allTopics } = useTagGraphTopics(topicTagGraph)
+
+    const synonymMap = useMemo(() => buildSynonymMap(), [])
 
     // Bidirectional URL synchronization
     const isInitialUrlStateLoaded = useUrlSync(state, actions.setState)
@@ -81,10 +85,12 @@ export const Search = ({
                 searchClient,
                 templateConfig,
                 topicTagGraph,
+                synonymMap,
             }}
         >
             <div className="search-controls-container span-cols-12 col-start-2">
                 <Searchbar allTopics={allTopics} />
+                <SearchDetectedFilters allTopics={allTopics} />
             </div>
             <div className="search-filters span-cols-12 col-start-2">
                 <SearchTopicsRefinementList topicType={topicType} />

@@ -195,6 +195,7 @@ export {
     regions,
     type Region,
     countries,
+    listedRegionsNames,
     type Country,
     type IncomeGroup,
     type OwidIncomeGroupName,
@@ -241,8 +242,6 @@ export { PointVector } from "./PointVector.js"
 export { OwidVariableDisplayConfig } from "./OwidVariable.js"
 
 export {
-    getQueryParams,
-    getWindowQueryParams,
     strToQueryParams,
     queryParamsToStr,
     getWindowQueryStr,

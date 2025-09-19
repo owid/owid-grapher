@@ -1,6 +1,5 @@
 import * as _ from "lodash-es"
 import * as R from "remeda"
-import { HitAttributeHighlightResult } from "instantsearch.js"
 import {
     EntityName,
     GRAPHER_CHART_TYPES,
@@ -17,11 +16,6 @@ import {
     TimeBounds,
 } from "@ourworldindata/types"
 import {
-    Region,
-    getRegionByNameOrVariantName,
-    regions,
-    removeTrailingParenthetical,
-    lazy,
     Url,
     countriesByName,
     FuzzySearch,
@@ -43,7 +37,7 @@ import {
     SearchIndexName,
     Filter,
     FilterType,
-    ScoredSearchResult,
+    ScoredFilter,
     SearchResultType,
     SearchTopicType,
     SearchFacetFilters,
@@ -52,6 +46,9 @@ import {
     IChartHit,
     SearchUrlParam,
     SynonymMap,
+    Ngram,
+    WordPositioned,
+    ScoredFilterPositioned,
 } from "./searchTypes.js"
 import {
     faBook,
@@ -79,117 +76,47 @@ import { SearchChartHitDataDisplayProps } from "./SearchChartHitDataDisplay.js"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { PreviewVariant } from "./SearchChartHitRichDataTypes.js"
 
-/**
- * The below code is used to search for entities we can highlight in charts and explorer results.
- *
- * There are two main functions here:
- * - `extractRegionNamesFromSearchQuery` looks at the search query (e.g. "covid cases us china asia") and extracts anything
- *   that looks like a country, region or variant name (e.g. "US"), case-insensitive.
- *   It doesn't have any knowledge of what entities are actually available.
- * - `pickEntitiesForChartHit` gets information about the entities available in a chart.
- *    It also receives the result of `extractRegionNamesFromSearchQuery`, i.e. a list of regions that are mentioned in the search query.
- *    This is useful because Algolia removes stop words like "the" and "and", which makes it difficult to match entities like
- *    "Trinidad and Tobago".
- *    - It then reduces this list to the entities that are actually available in the chart.
- *    - Afterwards, it uses the highlighted entities from Algolia to pick any other entities that are fully contained in the
- *      search query - this now adds any entities _not_ in the `regions` list, like "high-income countries" or "Salmon (farmed)".
- *
- * In practice, we use `pickEntitiesForChartHit` for explorers, since there we don't have any entity information available,
- * and can only act based on the fact that most explorers are country-based and have data for most countries and regions.
- * For charts, we use the more accurate `pickEntitiesForChartHit` function, since entity information is available.
- *
- * -- @marcelgerber, 2024-06-18
- */
-const getRegionNameRegex = lazy(() => {
-    const allCountryNamesAndVariants = lazy(() =>
-        regions.flatMap((c) => [
-            c.name,
-            ...(("variantNames" in c && c.variantNames) || []),
-        ])
-    )
-
-    // A RegExp that matches any country, region and variant name. Case-independent.
-    return new RegExp(
-        `\\b(${allCountryNamesAndVariants().map(_.escapeRegExp).join("|")})\\b`,
-        "gi"
-    )
-})
-
-export const extractRegionNamesFromSearchQuery = (query: string) => {
-    const matches = query.matchAll(getRegionNameRegex())
-    const regionNames = Array.from(matches, (match) => match[0])
-    if (regionNames.length === 0) return null
-    return regionNames.map(getRegionByNameOrVariantName) as Region[]
-}
-
-const removeHighlightTags = (text: string) =>
-    text.replace(/<\/?(mark|strong)>/g, "")
+// Common English stop words that should be ignored in search
+const STOP_WORDS = new Set([
+    "the",
+    "in", // matches "India"
+    "is", // matches "Israel"
+    "of",
+    "and", // matches "Andorra"
+    "a",
+    "an",
+    "to",
+    "for",
+    "with",
+    "on",
+    "at",
+    "by",
+    "from",
+    "per", // matches "Peru"
+    "vs",
+])
 
 export function pickEntitiesForChartHit(
     hit: IChartHit | SearchChartHit,
-    searchQueryRegionsMatches: Region[] | undefined
+    selectedRegionNames: string[] | undefined
 ): EntityName[] {
+    if (!selectedRegionNames) return []
+
     const availableEntities =
         hit.originalAvailableEntities ?? hit.availableEntities
     if (!availableEntities) return []
 
-    const availableEntitiesHighlighted = (hit._highlightResult
-        ?.originalAvailableEntities ||
-        hit._highlightResult?.availableEntities) as
-        | HitAttributeHighlightResult[]
-        | undefined
-
-    const pickedEntities = new Set(
-        searchQueryRegionsMatches?.map((r) => r.name)
+    // Build intersection of selectedRegionNames and availableEntities, so we
+    // only select entities that are actually present in the chart
+    const filteredEntities = R.intersection(
+        selectedRegionNames,
+        availableEntities
     )
 
-    // Build intersection of searchQueryRegionsMatches and availableEntities, so we only select entities that are actually present in the chart
-    if (pickedEntities.size > 0) {
-        const availableEntitiesSet = new Set(availableEntities)
-        for (const entity of pickedEntities) {
-            if (!availableEntitiesSet.has(entity)) {
-                pickedEntities.delete(entity)
-            }
-        }
-    }
-
-    // Add entities to the list of picked entities if they're typed in the search bar
-    // even if a user hasn't selected them from the autocomplete dropdown
-    if (availableEntitiesHighlighted) {
-        for (const highlightEntry of availableEntitiesHighlighted) {
-            if (highlightEntry.matchLevel === "none") continue
-
-            const withoutHighlightTags = removeHighlightTags(
-                highlightEntry.value
-            )
-            if (pickedEntities.has(withoutHighlightTags)) continue
-
-            // Remove any trailing parentheses, e.g. "Africa (UN)" -> "Africa"
-            const withoutTrailingParens =
-                removeTrailingParenthetical(withoutHighlightTags)
-
-            // The sequence of words that Algolia matched; could be something like ["arab", "united", "republic"]
-            // which we want to check against the entity name
-            const matchedSequenceLowerCase = highlightEntry.matchedWords
-                .join(" ")
-                .toLowerCase()
-
-            // Pick entity if the matched sequence contains the full entity name
-            if (
-                matchedSequenceLowerCase.startsWith(
-                    withoutTrailingParens
-                        .replaceAll("-", " ") // makes "high-income countries" into "high income countries", enabling a match
-                        .toLowerCase()
-                )
-            )
-                pickedEntities.add(withoutHighlightTags)
-        }
-    }
-
     // Reverse the order so that the last picked entity is first
-    const sortedEntities = [...pickedEntities].reverse()
+    const sortedEntities = [...filteredEntities].reverse()
 
-    return sortedEntities ?? []
+    return sortedEntities
 }
 
 const generateGrapherTabQueryParam = ({
@@ -496,15 +423,6 @@ export const formatTopicFacetFilters = (
     return [setToFacetFilters(topics, "tags")]
 }
 
-export function getCountryData(selectedCountries: Set<string>): Region[] {
-    const regionData: Region[] = []
-    const countries = countriesByName()
-    for (const selectedCountry of selectedCountries) {
-        regionData.push(countries[selectedCountry])
-    }
-    return regionData
-}
-
 export function serializeSet(set: Set<string>) {
     return set.size ? [...set].join("~") : undefined
 }
@@ -526,71 +444,73 @@ export function getFilterNamesOfType(
 
 export const getFilterIcon = (filter: Filter) => {
     return match(filter.type)
-        .with(FilterType.COUNTRY, () => (
-            <img
-                className="flag"
-                aria-hidden={true}
-                height={12}
-                width={16}
-                src={`/images/flags/${countriesByName()[filter.name].code}.svg`}
-            />
-        ))
+        .with(FilterType.COUNTRY, () => {
+            // Some countries filters might be regions or historical countries,
+            // for which we don't show a flag. By looking for potential region
+            // names in the countries list, we're effectively filtering out
+            // non-country regions.
+            const countryCode = countriesByName()[filter.name]?.code
+            return countryCode ? (
+                <img
+                    className="flag"
+                    aria-hidden={true}
+                    height={12}
+                    width={16}
+                    src={`/images/flags/${countryCode}.svg`}
+                />
+            ) : null
+        })
         .with(FilterType.TOPIC, () => (
             <span className="icon">
                 <FontAwesomeIcon icon={faTag} />
             </span>
         ))
-        .otherwise(() => null)
+        .with(FilterType.QUERY, () => null)
+        .exhaustive()
 }
 
-export function searchWithWords(
+export function findTopicAndRegionFilters(
     words: string[],
-    allCountryNames: string[],
+    allRegionsNames: string[],
     allTopics: string[],
-    selectedCountryNames: Set<string>,
+    selectedRegionNames: Set<string>,
     selectedTopics: Set<string>,
-    sortOptions: { threshold: number; limit: number },
-    synonymMap: SynonymMap
-): {
-    countryResults: ScoredSearchResult[]
-    topicResults: ScoredSearchResult[]
-    hasResults: boolean
-} {
+    synonymMap: SynonymMap,
+    sortOptions: { threshold: number; limit: number }
+): ScoredFilter[] {
     const searchTerm = words.join(" ")
 
     const searchCountryTopics = (term: string) => {
-        const countryResults = FuzzySearch.withKey(
-            allCountryNames,
-            (country) => country,
+        const countryFilters: ScoredFilter[] = FuzzySearch.withKey(
+            allRegionsNames,
+            _.identity,
             sortOptions
         )
             .searchResults(term)
             .filter(
                 (result: FuzzySearchResult) =>
-                    !selectedCountryNames.has(result.target)
+                    !selectedRegionNames.has(result.target)
             )
             .map((result: FuzzySearchResult) => ({
-                name: result.target,
+                ...createCountryFilter(result.target),
                 score: result.score,
             }))
 
-        const topicResults: ScoredSearchResult[] =
+        const topicFilters: ScoredFilter[] =
             selectedTopics.size === 0
                 ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
                       .searchResults(term)
                       .map((result: FuzzySearchResult) => ({
-                          name: result.target,
+                          ...createTopicFilter(result.target),
                           score: result.score,
                       }))
                 : []
 
-        return { countryResults, topicResults }
+        return [...countryFilters, ...topicFilters]
     }
 
     // 1. Perform original search
-    const originalResults = searchCountryTopics(searchTerm)
-    let allCountryResults = [...originalResults.countryResults]
-    let allTopicResults = [...originalResults.topicResults]
+    let filters = searchCountryTopics(searchTerm)
 
     // 2. Search with synonyms
     const synonyms = synonymMap.get(searchTerm.toLowerCase())
@@ -598,80 +518,55 @@ export function searchWithWords(
     if (synonyms && synonyms.length > 0) {
         // Search with each synonym and combine results
         for (const synonym of synonyms) {
-            const synonymResults = searchCountryTopics(synonym)
-            allCountryResults.push(...synonymResults.countryResults)
-            allTopicResults.push(...synonymResults.topicResults)
+            const filtersFromSynonym = searchCountryTopics(synonym)
+            filters.push(...filtersFromSynonym)
         }
-
-        // Deduplicate results by name, keeping the highest score, and enforce
-        // the limit given that we are running the search twice and combining
-        // result sets, effectively doubling the number of results.
-        const deduplicateResults = (results: ScoredSearchResult[]) =>
-            R.uniqueBy(
-                results.sort((a, b) => b.score - a.score),
-                (result) => result.name
-            ).slice(0, sortOptions.limit)
-
-        allCountryResults = deduplicateResults(allCountryResults)
-        allTopicResults = deduplicateResults(allTopicResults)
     }
 
-    return {
-        countryResults: allCountryResults,
-        topicResults: allTopicResults,
-        hasResults: allCountryResults.length > 0 || allTopicResults.length > 0,
-    }
-}
-
-export function findMatches(
-    words: string[],
-    allCountryNames: string[],
-    allTopics: string[],
-    selectedCountryNames: Set<string>,
-    selectedTopics: Set<string>,
-    sortOptions: { threshold: number; limit: number },
-    synonymMap: SynonymMap,
-    wordIndex: number = 0
-): {
-    countryResults: ScoredSearchResult[]
-    topicResults: ScoredSearchResult[]
-    matchStartIndex: number
-} {
-    const wordsToSearch = words.slice(wordIndex)
-    const results = searchWithWords(
-        wordsToSearch,
-        allCountryNames,
-        allTopics,
-        selectedCountryNames,
-        selectedTopics,
-        sortOptions,
-        synonymMap
+    // For each filter type, keep only the top results then recombine into a single array
+    filters = R.pipe(
+        filters,
+        R.groupBy((filter) => filter.type),
+        R.values,
+        R.flatMap((filtersOfType: ScoredFilter[]) =>
+            R.pipe(
+                filtersOfType,
+                R.sortBy([R.prop("score"), "desc"]),
+                R.uniqueBy((filter) => filter.name),
+                R.take(sortOptions.limit)
+            )
+        )
     )
 
-    if (results.hasResults) {
-        return {
-            countryResults: results.countryResults,
-            topicResults: results.topicResults,
-            matchStartIndex: wordIndex,
+    return filters
+}
+
+/**
+ * Detects words that are inside quoted phrases and should be excluded from filter matching.
+ * Returns a set of word positions that should be ignored.
+ */
+function getQuotedWordPositions(words: string[]): Set<number> {
+    const quotedPositions = new Set<number>()
+    const parts = words
+        .join(" ")
+        .split(/("[^"]*"|\S+)/)
+        .filter(Boolean)
+
+    let wordIndex = 0
+    for (const part of parts) {
+        if (part.startsWith('"') && part.endsWith('"')) {
+            // Count words in the quoted phrase
+            const wordCount = part.split(/\s+/).filter(Boolean).length
+            for (let i = 0; i < wordCount; i++) {
+                quotedPositions.add(wordIndex + i)
+            }
+            wordIndex += wordCount
+        } else if (part.trim()) {
+            wordIndex++
         }
     }
 
-    return wordIndex < words.length - 1
-        ? findMatches(
-              words,
-              allCountryNames,
-              allTopics,
-              selectedCountryNames,
-              selectedTopics,
-              sortOptions,
-              synonymMap,
-              wordIndex + 1
-          )
-        : {
-              countryResults: [],
-              topicResults: [],
-              matchStartIndex: words.length,
-          }
+    return quotedPositions
 }
 
 /**
@@ -708,34 +603,27 @@ export function findMatches(
  *
  * @returns Object containing suggestion filters and any unmatched query portion
  */
-export function getAutocompleteSuggestionsWithUnmatchedQuery(
+export function suggestFiltersFromQuerySuffix(
     query: string,
+    allRegionNames: string[],
     allTopics: string[],
     filters: Filter[], // currently active filters to exclude from suggestions
     synonymMap: SynonymMap,
-    limitPerFilter: number = 3
+    sortOptions: { threshold: number; limit: number } = {
+        threshold: 0.75,
+        limit: 3,
+    }
 ): {
     suggestions: Filter[]
     unmatchedQuery: string
 } {
-    const sortOptions = {
-        // we can afford to be more strict with matching due to the presence of
-        // synonyms, in particular country alternatives (e.g. "uk" matches
-        // "united kingdom" without the need for a more permissive fuzzy match)
-        threshold: 0.75,
-        limit: limitPerFilter,
-    }
     const selectedCountryNames = getFilterNamesOfType(
         filters,
         FilterType.COUNTRY
     )
     const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
-    const allCountries = countriesByName()
-    const allCountryNames = Object.values(allCountries).map(
-        (country) => country.name
-    )
 
-    const queryWords = query.trim().split(/\s+/)
+    const queryWords = splitIntoWords(query)
 
     if (!queryWords.length || queryWords[0] === "") {
         return {
@@ -744,29 +632,48 @@ export function getAutocompleteSuggestionsWithUnmatchedQuery(
         }
     }
 
-    const searchResults = findMatches(
-        queryWords,
-        allCountryNames,
-        allTopics,
-        selectedCountryNames,
-        selectedTopics,
-        sortOptions,
-        synonymMap
+    let matchedFilters: ScoredFilter[] = []
+    let matchStartIndex = queryWords.length
+
+    for (let i = 0; i < queryWords.length; i++) {
+        const wordsToSearch = queryWords.slice(i)
+        const filters = findTopicAndRegionFilters(
+            wordsToSearch,
+            allRegionNames,
+            allTopics,
+            selectedCountryNames,
+            selectedTopics,
+            synonymMap,
+            sortOptions
+        )
+
+        if (filters.length > 0) {
+            matchedFilters = filters
+            matchStartIndex = i
+            break
+        }
+    }
+
+    const unmatchedQuery = queryWords.slice(0, matchStartIndex).join(" ")
+
+    const countryMatches = matchedFilters.filter(
+        (f) =>
+            // remove exact matches from country suggestions, as exact matches are
+            // already handled by automatic filters (see SearchDetectedFilters).
+            f.type === FilterType.COUNTRY &&
+            f.score !== 1 &&
+            // we matched on all regions to stop the iteration when a region is
+            // found, and avoid suggesting countries contained in that region's
+            // name (e.g. if "East Germany" is found, stop the iteration to
+            // prevent finding "Germany"). However, we don't want to pollute the
+            // autocomplete results with historical regions or aggregates, so we
+            // filter them out of the suggestions.
+            countriesByName()[f.name]
     )
 
-    const unmatchedQuery = queryWords
-        .slice(0, searchResults.matchStartIndex)
-        .join(" ")
-
-    const countryMatches = searchResults.countryResults.map((result) => ({
-        filter: createCountryFilter(result.name),
-        score: result.score,
-    }))
-
-    const topicMatches = searchResults.topicResults.map((result) => ({
-        filter: createTopicFilter(result.name),
-        score: result.score,
-    }))
+    const topicMatches = matchedFilters.filter(
+        (f) => f.type === FilterType.TOPIC
+    )
 
     const allMatches = [...countryMatches, ...topicMatches]
 
@@ -779,16 +686,120 @@ export function getAutocompleteSuggestionsWithUnmatchedQuery(
         (a, b) => b.score - a.score
     )
 
-    const combinedFilters = [
-        ...exactMatches.map((item) => item.filter),
+    const primaryFilters = [
+        exactMatches,
         ...(query ? [createQueryFilter(query)] : []),
-        ...sortedPartialMatches.map((item) => item.filter),
+    ]
+
+    const combinedFilters = [
+        ...(!unmatchedQuery ? primaryFilters : primaryFilters.reverse()).flat(),
+        ...sortedPartialMatches,
     ]
 
     return {
         suggestions: combinedFilters,
         unmatchedQuery,
     }
+}
+
+/**
+ * Gets filter suggestions using contiguous sequence of words (n-grams) for
+ * multi-entity matching in a given query.
+ *
+ * Where `suggestFiltersFromQuerySuffix` progressively tries to match
+ * from increasing starting points in the query and returns a list of possible
+ * matches for that position (1 position, multiple matches), this function tries
+ * to find the best match for all possible contiguous sequences of words
+ * (n-grams) in the query (multiple positions, 1 match per position).
+ *
+ * Generates n-grams from 1 to 4 non stop-words, non quotes phrases,
+ * prioritizing longer phrases over shorter ones. Uses overlap detection to
+ * prevent the same word positions from being matched multiple times. Keeps a
+ * single country or filter topic per n-gram then deduplicates overall results
+ * by name.
+ *
+ * @returns Array of deduplicated scored filters
+ */
+export function extractFiltersFromQuery(
+    query: string,
+    allRegionNames: string[],
+    allTopics: string[],
+    filters: Filter[], // currently active filters to exclude from suggestions
+    sortOptions: { threshold: number; limit: number },
+    synonymMap: SynonymMap
+): ScoredFilterPositioned[] {
+    if (!query) return []
+
+    const selectedCountryNames = getFilterNamesOfType(
+        filters,
+        FilterType.COUNTRY
+    )
+    const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
+
+    const allFilters: ScoredFilterPositioned[] = []
+    const matchedWordPositions = new Set<number>()
+
+    const words = splitIntoWords(query)
+
+    // Get positions of words inside quoted phrases
+    const quotedWordPositions = getQuotedWordPositions(words)
+
+    // Filter out stop words and quoted words while preserving original positions
+    const tokens: WordPositioned[] = words
+        .map((word, index) => ({ word, position: index }))
+        .filter(({ word }) => isNotStopWord(word))
+        .filter(({ position }) => !quotedWordPositions.has(position))
+
+    if (tokens.length === 0) return []
+
+    const ngrams: Ngram[] = []
+    const maxNgramSize = Math.min(tokens.length, 4) // Topics and countries mostly fit within 4 words
+
+    // Generate n-grams from largest to smallest to prioritize longer phrases
+    for (let n = maxNgramSize; n >= 1; n--) {
+        for (let i = 0; i <= tokens.length - n; i++) {
+            ngrams.push(tokens.slice(i, i + n))
+        }
+    }
+
+    // Search each n-gram and collect results, prioritizing longer phrases
+    for (const ngram of ngrams) {
+        const ngramWords = R.map(ngram, R.prop("word"))
+        const ngramPositions = R.map(ngram, R.prop("position"))
+
+        // Check if any original word positions in this n-gram are already matched by a longer phrase
+        const hasOverlap =
+            ngramPositions.some((pos: number) =>
+                matchedWordPositions.has(pos)
+            ) ?? false
+
+        if (hasOverlap) continue // Skip this n-gram if it overlaps with already matched words
+
+        const filtersFromNgram = findTopicAndRegionFilters(
+            ngramWords,
+            allRegionNames,
+            allTopics,
+            selectedCountryNames,
+            selectedTopics,
+            synonymMap,
+            sortOptions
+        )
+
+        const bestFilter = _.maxBy(filtersFromNgram, (f) => f.score)
+        if (bestFilter) {
+            // Store the original positions for later use in replacement logic
+            allFilters.push({
+                ...bestFilter,
+                positions: ngramPositions,
+            })
+            // Mark these word positions as matched to prevent overlaps
+            ngramPositions.forEach((pos: number) =>
+                matchedWordPositions.add(pos)
+            )
+        }
+    }
+
+    return R.uniqueBy(allFilters, (filter) => filter.name)
 }
 
 export function createFilter(type: FilterType) {
@@ -1122,3 +1133,39 @@ export const getNbPaginatedItemsRequested = (
         ? firstPageSize
         : firstPageSize + (currentPageIndex - 1) * laterPageSize + lastPageHits
 }
+
+/**
+ * Helper function to remove matched words and preceding stop words from query
+ * when a filter is selected.
+ */
+export function removeMatchedWordsWithStopWords(
+    originalWords: string[],
+    matchedPositions: number[]
+): string {
+    if (!matchedPositions.length) return originalWords.join(" ")
+
+    const wordsToRemove = new Set(matchedPositions)
+
+    // For each matched position, remove any consecutive stop words that immediately precede it
+    for (const matchedPos of matchedPositions) {
+        // Look backwards from this matched position to remove consecutive preceding stop words
+        for (let i = matchedPos - 1; i >= 0; i--) {
+            const word = originalWords[i].toLowerCase()
+            if (STOP_WORDS.has(word)) {
+                wordsToRemove.add(i)
+            } else {
+                // Stop when we hit a non-stop word
+                break
+            }
+        }
+    }
+
+    return originalWords
+        .filter((_, index) => !wordsToRemove.has(index))
+        .join(" ")
+}
+
+export const splitIntoWords = (text: string) => text.trim().split(/\s+/)
+
+export const isNotStopWord = (word: string) =>
+    !STOP_WORDS.has(word.toLowerCase())

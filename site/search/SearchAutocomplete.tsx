@@ -2,18 +2,20 @@ import cx from "classnames"
 import { useEffect, useMemo, useCallback } from "react"
 import { match } from "ts-pattern"
 import {
-    getAutocompleteSuggestionsWithUnmatchedQuery,
+    suggestFiltersFromQuerySuffix,
     createQueryFilter,
     getSearchAutocompleteId,
     getSearchAutocompleteItemId,
     getFilterAriaLabel,
+    splitIntoWords,
+    isNotStopWord,
 } from "./searchUtils.js"
-import { buildSynonymMap } from "./synonymUtils.js"
 import { useSearchAutocomplete } from "./SearchAutocompleteContext.js"
 import { SearchAutocompleteItemContents } from "./SearchAutocompleteItemContents.js"
 import { Filter, FilterType } from "./searchTypes.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { useSearchContext } from "./SearchContext.js"
+import { listedRegionsNames } from "@ourworldindata/utils"
 
 // Default search suggestions to show when there's no query or filters
 const DEFAULT_SEARCHES = [
@@ -38,11 +40,10 @@ export const SearchAutocomplete = ({
     const {
         state: { filters },
         actions: { addCountry, setTopic },
+        synonymMap,
     } = useSearchContext()
 
     const analytics = useMemo(() => new SiteAnalytics(), [])
-
-    const synonymMap = useMemo(() => buildSynonymMap(), [])
 
     const { suggestions, unmatchedQuery } = useMemo(() => {
         if (!localQuery && !filters.length) {
@@ -51,8 +52,9 @@ export const SearchAutocomplete = ({
                 unmatchedQuery: "",
             }
         }
-        return getAutocompleteSuggestionsWithUnmatchedQuery(
+        return suggestFiltersFromQuerySuffix(
             localQuery,
+            listedRegionsNames(),
             allTopics,
             filters,
             synonymMap
@@ -90,6 +92,10 @@ export const SearchAutocomplete = ({
                 })
             }
 
+            const unmatchedQueryNoStopWords = splitIntoWords(unmatchedQuery)
+                .filter(isNotStopWord)
+                .join(" ")
+
             match(filter.type)
                 // What readers see in each autocomplete suggestion is decoupled
                 // from what happens when they click on one:
@@ -111,7 +117,7 @@ export const SearchAutocomplete = ({
                 .with(FilterType.COUNTRY, () => {
                     logSearchAutocompleteClick()
                     addCountry(filter.name)
-                    setQueries(unmatchedQuery)
+                    setQueries(unmatchedQueryNoStopWords)
                 })
                 .with(FilterType.TOPIC, () => {
                     logSearchAutocompleteClick()
