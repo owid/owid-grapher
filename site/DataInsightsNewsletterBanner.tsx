@@ -19,7 +19,7 @@ export default function DataInsightsNewsletterBanner() {
         if (keepHidden) return
         const timeoutId = setTimeout(() => {
             setIsVisible(true)
-        }, 3000)
+        }, 20000)
         return () => clearTimeout(timeoutId)
     }, [])
 
