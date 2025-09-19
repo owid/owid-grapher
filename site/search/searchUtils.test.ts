@@ -1,28 +1,21 @@
 import { expect, it, describe, beforeEach } from "vitest"
 import {
-    searchWithWords,
-    findMatches,
-    findMatchesWithNgrams,
-    getFilterSuggestionsWithUnmatchedQuery,
+    findTopicAndRegionFilters,
+    suggestFiltersFromQuerySuffix,
     getPaginationOffsetAndLength,
     getNbPaginatedItemsRequested,
     removeMatchedWordsWithStopWords,
-    calculateScore,
     createTopicFilter,
+    extractFiltersFromQuery,
+    createCountryFilter,
 } from "./searchUtils"
 
 import { FilterType, SynonymMap } from "./searchTypes.js"
+import { listedRegionsNames } from "@ourworldindata/utils"
 
 describe("Fuzzy search in search autocomplete", () => {
     let synonymMap: SynonymMap
-    const mockCountries = [
-        "United States",
-        "United Kingdom",
-        "Germany",
-        "France",
-        "China",
-        "Japan",
-    ]
+    const regions = listedRegionsNames()
     const mockTopics = [
         "Artificial Intelligence",
         "Climate Change",
@@ -34,8 +27,8 @@ describe("Fuzzy search in search autocomplete", () => {
         "CO2 & Greenhouse Gas Emissions",
     ]
 
-    const sortOptions = { threshold: 0.75, limit: 3 }
-    const sortOptionsNgrams = { threshold: 0.75, limit: 1 }
+    const sortOptionsMultiple = { threshold: 0.75, limit: 3 }
+    const sortOptionsSingle = { threshold: 0.75, limit: 1 }
 
     beforeEach(() => {
         // Create a mock synonym map with test data
@@ -53,35 +46,34 @@ describe("Fuzzy search in search autocomplete", () => {
         ])
     })
 
-    describe("searchWithWords", () => {
+    describe("findTopicAndRegionFilters", () => {
         it("should return original results when no synonyms exist", () => {
-            const result = searchWithWords(
-                ["germany"],
-                mockCountries,
+            const result = findTopicAndRegionFilters(
+                ["france"],
+                regions,
                 mockTopics,
                 new Set(),
                 new Set(),
-                sortOptions,
-                synonymMap
+                synonymMap,
+                sortOptionsMultiple
             )
 
             const countryResults = result.filter(
                 (f) => f.type === FilterType.COUNTRY
             )
             expect(countryResults).toHaveLength(1)
-            expect(countryResults[0].name).toBe("Germany")
-            expect(result.length > 0).toBe(true)
+            expect(countryResults[0].name).toBe("France")
         })
 
         it("should combine original and synonym results", () => {
-            const result = searchWithWords(
+            const result = findTopicAndRegionFilters(
                 ["ai"],
-                mockCountries,
+                regions,
                 mockTopics,
                 new Set(),
                 new Set(),
-                sortOptions,
-                synonymMap
+                synonymMap,
+                sortOptionsMultiple
             )
 
             const topicResults = result.filter(
@@ -109,14 +101,14 @@ describe("Fuzzy search in search autocomplete", () => {
             ])
             const limitedSortOptions = { threshold: 0.1, limit: 2 }
 
-            const result = searchWithWords(
+            const result = findTopicAndRegionFilters(
                 ["test"],
-                mockCountries,
+                regions,
                 mockTopics,
                 new Set(),
                 new Set(),
-                limitedSortOptions,
-                largeSynonymMap
+                largeSynonymMap,
+                limitedSortOptions
             )
 
             // Should not exceed the limit even with multiple synonym matches
@@ -132,14 +124,14 @@ describe("Fuzzy search in search autocomplete", () => {
                 ["artificial", ["artificial intelligence"]],
             ])
 
-            const result = searchWithWords(
+            const result = findTopicAndRegionFilters(
                 ["artificial"],
-                mockCountries,
+                regions,
                 mockTopics,
                 new Set(),
                 new Set(),
-                sortOptions,
-                duplicateSynonymMap
+                duplicateSynonymMap,
+                sortOptionsMultiple
             )
 
             // Should only return "Artificial Intelligence" once, not twice
@@ -149,21 +141,20 @@ describe("Fuzzy search in search autocomplete", () => {
             expect(aiResults).toHaveLength(1)
         })
 
-        it("should handle country synonyms correctly", () => {
-            const result = searchWithWords(
+        it("should expand country synonyms (variant names)", () => {
+            const result = findTopicAndRegionFilters(
                 ["us"],
-                mockCountries,
+                regions,
                 mockTopics,
                 new Set(),
                 new Set(),
-                sortOptions,
-                synonymMap
+                synonymMap,
+                sortOptionsMultiple
             )
 
             const countryResults = result.filter(
                 (f) => f.type === FilterType.COUNTRY
             )
-            expect(countryResults).toHaveLength(1)
             expect(countryResults[0].name).toBe("United States")
         })
 
@@ -171,51 +162,47 @@ describe("Fuzzy search in search autocomplete", () => {
             const selectedCountries = new Set(["United States"])
             const selectedTopics = new Set(["Artificial Intelligence"])
 
-            const result = searchWithWords(
+            const topicResults = findTopicAndRegionFilters(
                 ["ai"],
-                mockCountries,
+                regions,
                 mockTopics,
                 selectedCountries,
                 selectedTopics,
-                sortOptions,
-                synonymMap
+                synonymMap,
+                sortOptionsMultiple
             )
 
-            const topicResults = result.filter(
-                (f) => f.type === FilterType.TOPIC
-            )
-            expect(topicResults).toHaveLength(0) // AI should be filtered out
-            expect(result.length).toBe(0)
-        })
+            expect(
+                topicResults
+                    .map((r) => r.name)
+                    .some((name) => name === "Artificial Intelligence")
+            ).toBe(false) // AI should be filtered out
 
-        it("should not search topics when topics are already selected", () => {
-            const selectedTopics = new Set(["Climate Change"])
-
-            const result = searchWithWords(
-                ["artificial"],
-                mockCountries,
+            const countryResults = findTopicAndRegionFilters(
+                ["us"],
+                regions,
                 mockTopics,
-                new Set(),
+                selectedCountries,
                 selectedTopics,
-                sortOptions,
-                synonymMap
+                synonymMap,
+                sortOptionsMultiple
             )
-
-            const topicResults = result.filter(
-                (f) => f.type === FilterType.TOPIC
-            )
-            expect(topicResults).toHaveLength(0) // No topic search when topics selected
+            expect(
+                countryResults
+                    .map((r) => r.name)
+                    .some((name) => name === "United States")
+            ).toBe(false) // US should be excluded
         })
 
         it("should handle case-insensitive synonym matching", () => {
-            const result = searchWithWords(
+            const result = findTopicAndRegionFilters(
                 ["AI"], // Uppercase
-                mockCountries,
+                regions,
                 mockTopics,
                 new Set(),
                 new Set(),
-                sortOptions,
-                synonymMap
+                synonymMap,
+                sortOptionsMultiple
             )
 
             const topicResults = result.filter(
@@ -227,14 +214,14 @@ describe("Fuzzy search in search autocomplete", () => {
         })
 
         it("should handle multi-word synonyms", () => {
-            const result = searchWithWords(
+            const result = findTopicAndRegionFilters(
                 ["carbon", "dioxide"],
-                mockCountries,
+                regions,
                 mockTopics,
                 new Set(),
                 new Set(),
-                sortOptions,
-                synonymMap
+                synonymMap,
+                sortOptionsMultiple
             )
 
             // Should match "CO2 & Greenhouse Gas Emissions" via the synonym
@@ -251,29 +238,28 @@ describe("Fuzzy search in search autocomplete", () => {
         it("should handle empty synonym arrays", () => {
             const emptySynonymMap = new Map([["test", []]])
 
-            const result = searchWithWords(
+            const result = findTopicAndRegionFilters(
                 ["test"],
-                mockCountries,
+                regions,
                 mockTopics,
                 new Set(),
                 new Set(),
-                sortOptions,
-                emptySynonymMap
+                emptySynonymMap,
+                sortOptionsMultiple
             )
 
             expect(result.length).toBe(0)
         })
     })
 
-    describe("findMatchesWithNgrams", () => {
+    describe("extractFiltersFromQuery", () => {
         it("should handle multiple non-overlapping matches", () => {
-            const result = findMatchesWithNgrams(
+            const result = extractFiltersFromQuery(
                 "united states climate change",
-                mockCountries,
+                regions,
                 mockTopics,
-                new Set(),
-                new Set(),
-                sortOptionsNgrams,
+                [],
+                sortOptionsSingle,
                 synonymMap
             )
 
@@ -283,131 +269,7 @@ describe("Fuzzy search in search autocomplete", () => {
             expect(names).toEqual(["Climate Change", "United States"])
         })
 
-        it("should prevent overlapping n-grams correctly", () => {
-            // Test that when "Indoor Air Pollution" is matched as a 3-gram,
-            // "Air Pollution" is not matched
-            const result = findMatchesWithNgrams(
-                "indoor air pollution",
-                mockCountries,
-                mockTopics,
-                new Set(),
-                new Set(),
-                sortOptionsNgrams,
-                synonymMap
-            )
-
-            // Should match "Indoor Air Pollution" (3-gram)
-            // Should NOT match "Air Pollution" separately since those positions are already taken
-            expect(result).toHaveLength(1)
-            const names = result.map((r) => r.name)
-            expect(names).toEqual(["Indoor Air Pollution"])
-        })
-
-        it("should deduplicate identical matches", () => {
-            // Create a scenario where the same entity could be matched multiple times
-            // "united sta" (partial match) vs "united states" (exact match)
-            const result = findMatchesWithNgrams(
-                "united sta france united states", // Adding another country to prevent the whole query to fuzzy match
-                mockCountries,
-                mockTopics,
-                new Set(),
-                new Set(),
-                sortOptionsNgrams,
-                synonymMap
-            )
-
-            expect(result).toHaveLength(2)
-            expect(result[0].name).toBe("United States")
-            expect(result[1].name).toBe("France")
-        })
-
-        it("should work with synonyms", () => {
-            const result = findMatchesWithNgrams(
-                "ai in the us",
-                mockCountries,
-                mockTopics,
-                new Set(),
-                new Set(),
-                sortOptionsNgrams,
-                synonymMap
-            )
-
-            expect(result).toHaveLength(2)
-            expect(result[0].name).toBe("Artificial Intelligence")
-            expect(result[1].name).toBe("United States")
-        })
-
-        it("should filter out stop words from n-grams", () => {
-            const result = findMatchesWithNgrams(
-                "artificial intelligence in the united states",
-                mockCountries,
-                mockTopics,
-                new Set(),
-                new Set(),
-                sortOptionsNgrams,
-                synonymMap
-            )
-
-            expect(result).toHaveLength(2)
-            expect(result[0].name).toBe("Artificial Intelligence")
-            expect(result[1].name).toBe("United States")
-            // Check that original positions take stop words into account
-            expect(result[0].positions).toEqual([0, 1])
-            expect(result[1].positions).toEqual([4, 5])
-        })
-
-        it("should handle stop words at beginning and end", () => {
-            const result = findMatchesWithNgrams(
-                "the united states of america",
-                ["United States", ...mockCountries],
-                mockTopics,
-                new Set(),
-                new Set(),
-                sortOptionsNgrams,
-                synonymMap
-            )
-
-            expect(result).toHaveLength(1)
-            expect(result[0].name).toBe("United States")
-            // Should match positions [1, 2] (skipping "the" at start)
-            expect(result[0].positions).toEqual([1, 2])
-        })
-
-        it("should filter out already selected countries and topics", () => {
-            const selectedCountries = new Set(["United States"])
-            const selectedTopics = new Set(["Artificial Intelligence"])
-
-            const result = findMatchesWithNgrams(
-                "united states artificial intelligence",
-                mockCountries,
-                mockTopics,
-                selectedCountries,
-                selectedTopics,
-                sortOptionsNgrams,
-                synonymMap
-            )
-
-            // Should not return already selected items
-            expect(result).toHaveLength(0)
-        })
-
-        it("should only return exact matches when asked", () => {
-            const result = findMatchesWithNgrams(
-                "east germany",
-                ["East Timor", "Germany"],
-                mockTopics,
-                new Set(),
-                new Set(),
-                { threshold: 1, limit: 1 },
-                synonymMap
-            )
-
-            // Should only return "Germany", since "east" doesn't exactly match "East Timor"
-            expect(result).toHaveLength(1)
-            expect(result[0].name).toBe("Germany")
-        })
-
-        it("should find the longest matches in complex overlapping scenarios", () => {
+        it("should find the longest matches in overlapping scenarios", () => {
             // Create a complex scenario with multiple overlapping possibilities
             const complexTopics = [
                 "Air",
@@ -419,13 +281,12 @@ describe("Fuzzy search in search autocomplete", () => {
                 "Climate Change",
             ]
 
-            const result = findMatchesWithNgrams(
+            const result = extractFiltersFromQuery(
                 "indoor air pollution climate change",
-                mockCountries,
+                regions,
                 complexTopics,
-                new Set(),
-                new Set(),
-                sortOptionsNgrams,
+                [],
+                sortOptionsSingle,
                 synonymMap
             )
 
@@ -435,7 +296,106 @@ describe("Fuzzy search in search autocomplete", () => {
             expect(names).toEqual(["Indoor Air Pollution", "Climate Change"])
         })
 
-        it("should not match non-contiguous partial-word substrings", () => {
+        it("should deduplicate identical matches", () => {
+            // Create a scenario where the same entity could be matched multiple times
+            // "united sta" (partial match) vs "united states" (exact match)
+            const result = extractFiltersFromQuery(
+                "united sta france united states", // Adding another country to prevent the whole query to fuzzy match
+                regions,
+                mockTopics,
+                [],
+                sortOptionsSingle,
+                synonymMap
+            )
+
+            expect(result).toHaveLength(2)
+            expect(result[0].name).toBe("United States")
+            expect(result[1].name).toBe("France")
+        })
+
+        it("should work with synonyms", () => {
+            const result = extractFiltersFromQuery(
+                "ai in the us",
+                regions,
+                mockTopics,
+                [],
+                sortOptionsSingle,
+                synonymMap
+            )
+
+            expect(result).toHaveLength(2)
+            expect(result[0].name).toBe("Artificial Intelligence")
+            expect(result[1].name).toBe("United States")
+        })
+
+        it("should filter out stop words from n-grams", () => {
+            const result = extractFiltersFromQuery(
+                "artificial intelligence in the united states",
+                regions,
+                mockTopics,
+                [],
+                sortOptionsSingle,
+                synonymMap
+            )
+
+            expect(result).toHaveLength(2)
+            expect(result[0].name).toBe("Artificial Intelligence")
+            expect(result[1].name).toBe("United States")
+            // Check that original positions take stop words into account
+            expect(result[0].positions).toEqual([0, 1])
+            expect(result[1].positions).toEqual([4, 5])
+        })
+
+        it("should handle stop words at beginning of the query", () => {
+            const result = extractFiltersFromQuery(
+                "the united states of america",
+                regions,
+                mockTopics,
+                [],
+                sortOptionsSingle,
+                synonymMap
+            )
+
+            const usResult = result.find((r) => r.name === "United States")
+
+            expect(usResult).toBeDefined()
+            // Should match positions [1, 2] (skipping "the" at start)
+            expect(usResult?.positions).toEqual([1, 2])
+        })
+
+        it("should filter out already selected countries and topics", () => {
+            const result = extractFiltersFromQuery(
+                "united states artificial intelligence",
+                regions,
+                mockTopics,
+                [
+                    createCountryFilter("United States"),
+                    createTopicFilter("Artificial Intelligence"),
+                ],
+                sortOptionsSingle,
+                synonymMap
+            )
+
+            // Should not return already selected items
+            expect(result).toHaveLength(0)
+        })
+
+        it("should only return exact matches when asked", () => {
+            const result = extractFiltersFromQuery(
+                "east germany",
+                ["East Timor", "Germany"],
+                mockTopics,
+                [],
+                { threshold: 1, limit: 1 },
+                synonymMap
+            )
+
+            // Should only return "Germany", since "east" doesn't exactly match "East Timor"
+            expect(result).toHaveLength(1)
+            expect(result[0].name).toBe("Germany")
+        })
+
+        it("should return partial matches", () => {
             const testCountries: string[] = []
             const testTopics = [
                 "Consumption",
@@ -444,16 +404,15 @@ describe("Fuzzy search in search autocomplete", () => {
             ]
 
             // Test that "Coption" doesn't match "Consumption" (partial word match)
-            const result = findMatchesWithNgrams(
-                "Coption",
+            const result = extractFiltersFromQuery(
+                "Economic",
                 testCountries,
                 testTopics,
-                new Set(),
-                new Set(),
-                sortOptionsNgrams,
+                [],
+                sortOptionsSingle,
                 synonymMap
             )
-            expect(result).toHaveLength(0)
+            expect(result.map((r) => r.name)).toEqual(["Economic Growth"])
         })
     })
 
@@ -543,114 +502,27 @@ describe("Fuzzy search in search autocomplete", () => {
         })
     })
 
-    describe("findMatches", () => {
-        it("should find matches for existing countries", () => {
-            const result = findMatches(
-                ["germany"],
-                mockCountries,
-                mockTopics,
-                new Set(),
-                new Set(),
-                sortOptions,
-                synonymMap
-            )
-
-            expect(result.matchStartIndex).toBe(0) // Found match at "germany"
-            const countryResults = result.filters.filter(
-                (f) => f.type === FilterType.COUNTRY
-            )
-            expect(countryResults.some((r) => r.name === "Germany")).toBe(true)
-        })
-
+    describe("suggestFiltersFromQuerySuffix", () => {
         it("should find matches for existing topics", () => {
-            const result = findMatches(
-                ["climate", "change"],
-                mockCountries,
-                mockTopics,
-                new Set(),
-                new Set(),
-                sortOptions,
-                synonymMap
-            )
-
-            expect(result.matchStartIndex).toBe(0) // Found match at "climate change"
-            const topicResults = result.filters.filter(
-                (f) => f.type === FilterType.TOPIC
-            )
-            expect(topicResults.some((r) => r.name === "Climate Change")).toBe(
-                true
-            )
-        })
-
-        it("should ignore first words if whole query doesn't match", () => {
-            const result = findMatches(
-                ["climate", "change", "germany"],
-                mockCountries,
-                mockTopics,
-                new Set(),
-                new Set(),
-                sortOptions,
-                synonymMap
-            )
-
-            expect(result.matchStartIndex).toBe(2) // Found match at "germany"
-            const countryResults = result.filters.filter(
-                (f) => f.type === FilterType.COUNTRY
-            )
-            expect(countryResults.some((r) => r.name === "Germany")).toBe(true)
-        })
-
-        it("should handle no matches found", () => {
-            const result = findMatches(
-                ["nonexistent", "country"],
-                mockCountries,
-                mockTopics,
-                new Set(),
-                new Set(),
-                sortOptions,
-                synonymMap
-            )
-
-            expect(result.matchStartIndex).toBe(2) // End of array
-            const countryResults = result.filters.filter(
-                (f) => f.type === FilterType.COUNTRY
-            )
-            const topicResults = result.filters.filter(
-                (f) => f.type === FilterType.TOPIC
-            )
-            expect(countryResults).toHaveLength(0)
-            expect(topicResults).toHaveLength(0)
-        })
-
-        it("should work with synonyms in progressive search", () => {
-            const result = findMatches(
-                ["climate", "change", "ai"],
-                mockCountries,
-                mockTopics,
-                new Set(),
-                new Set(),
-                sortOptions,
-                synonymMap
-            )
-
-            expect(result.matchStartIndex).toBe(2) // Found match at "ai"
-            const topicResults = result.filters.filter(
-                (f) => f.type === FilterType.TOPIC
-            )
-            expect(
-                topicResults.some((r) => r.name === "Artificial Intelligence")
-            ).toBe(true)
-        })
-    })
-
-    describe("getAutocompleteSuggestionsWithUnmatchedQuery", () => {
-        it("should return suggestions with unmatched query", () => {
-            const result = getFilterSuggestionsWithUnmatchedQuery(
-                "climate change pollution",
+            const result = suggestFiltersFromQuerySuffix(
+                "pollution",
+                regions,
                 mockTopics,
                 [],
-                synonymMap,
-                3
+                synonymMap
+            )
+            expect(
+                result.suggestions.some((s) => s.name === "Air Pollution")
+            ).toBe(true)
+        })
+
+        it("should return suggestions with unmatched query", () => {
+            const result = suggestFiltersFromQuerySuffix(
+                "climate change pollution",
+                regions,
+                mockTopics,
+                [],
+                synonymMap
             )
 
             expect(result.unmatchedQuery).toBe("climate change")
@@ -665,12 +537,12 @@ describe("Fuzzy search in search autocomplete", () => {
 
         it("should prioritize exact matches", () => {
             // Mock perfect score
-            const result = getFilterSuggestionsWithUnmatchedQuery(
+            const result = suggestFiltersFromQuerySuffix(
                 "air pollution",
+                regions,
                 mockTopics,
                 [],
-                synonymMap,
-                3
+                synonymMap
             )
             expect(
                 result.suggestions.filter((s) => s.type === FilterType.TOPIC)
@@ -679,12 +551,12 @@ describe("Fuzzy search in search autocomplete", () => {
         })
 
         it("should include query filter when query is provided", () => {
-            const result = getFilterSuggestionsWithUnmatchedQuery(
+            const result = suggestFiltersFromQuerySuffix(
                 "some query",
+                regions,
                 mockTopics,
                 [],
-                synonymMap,
-                3
+                synonymMap
             )
 
             const queryFilters = result.suggestions.filter(
@@ -697,12 +569,12 @@ describe("Fuzzy search in search autocomplete", () => {
         it("should exclude already selected filters", () => {
             const existingFilters = [createTopicFilter("Air Pollution")]
 
-            const result = getFilterSuggestionsWithUnmatchedQuery(
+            const result = suggestFiltersFromQuerySuffix(
                 "air pollution",
+                regions,
                 mockTopics,
                 existingFilters,
-                synonymMap,
-                3
+                synonymMap
             )
 
             // Should not suggest Air Pollution
@@ -712,12 +584,12 @@ describe("Fuzzy search in search autocomplete", () => {
         })
 
         it("should not suggest exact country matches", () => {
-            const result = getFilterSuggestionsWithUnmatchedQuery(
+            const result = suggestFiltersFromQuerySuffix(
                 "france",
+                regions,
                 mockTopics,
                 [],
-                synonymMap,
-                3
+                synonymMap
             )
 
             // Should not suggest France as it's an exact match and handled by automatic filters
@@ -726,28 +598,27 @@ describe("Fuzzy search in search autocomplete", () => {
             )
         })
 
-        it("should not suggest partial country matches", () => {
-            const result = getFilterSuggestionsWithUnmatchedQuery(
+        it("should suggest partial country matches", () => {
+            const result = suggestFiltersFromQuerySuffix(
                 "franc", //missing final "e"
+                regions,
                 mockTopics,
                 [],
-                synonymMap,
-                3
+                synonymMap
             )
 
-            // Should not suggest France as it's an exact match and handled by automatic filters
             expect(result.suggestions.some((s) => s.name === "France")).toBe(
                 true
             )
         })
 
-        it("should work with synonym-based suggestions", () => {
-            const result = getFilterSuggestionsWithUnmatchedQuery(
-                "ai",
+        it("should surface synonym-based suggestions", () => {
+            const result = suggestFiltersFromQuerySuffix(
+                "climate change ai",
+                regions,
                 mockTopics,
                 [],
-                synonymMap,
-                3
+                synonymMap
             )
 
             // Should suggest "Artificial Intelligence" via the "ai" synonym
@@ -759,12 +630,12 @@ describe("Fuzzy search in search autocomplete", () => {
         })
 
         it("should stop progressing through the query when finding results", () => {
-            const result = getFilterSuggestionsWithUnmatchedQuery(
+            const result = suggestFiltersFromQuerySuffix(
                 "air pollution",
+                regions,
                 mockTopics,
                 [],
-                synonymMap,
-                5
+                synonymMap
             )
 
             // Should match "Air Pollution", "Indoor Air Pollution" but not "Lead Pollution"
@@ -780,12 +651,12 @@ describe("Fuzzy search in search autocomplete", () => {
         })
 
         it("should filter out historical regions while preventing contained country suggestions", () => {
-            const result = getFilterSuggestionsWithUnmatchedQuery(
+            const result = suggestFiltersFromQuerySuffix(
                 "east germany",
+                regions,
                 mockTopics,
                 [],
-                synonymMap,
-                3
+                synonymMap
             )
 
             // Should not suggest "East Germany" (historical region filtered out)
@@ -806,108 +677,50 @@ describe("Fuzzy search in search autocomplete", () => {
                 )
             ).toBe(true)
         })
-    })
 
-    it("should handle special characters in queries", () => {
-        const result = getFilterSuggestionsWithUnmatchedQuery(
-            "CO₂",
-            mockTopics,
-            [],
-            synonymMap,
-            3
-        )
-
-        // Should handle the unicode character gracefully
-        expect(
-            result.suggestions.some(
-                (s) => s.name === "CO2 & Greenhouse Gas Emissions"
-            )
-        ).toBe(true)
-    })
-
-    it("should handle queries with multiple spaces", () => {
-        const result = getFilterSuggestionsWithUnmatchedQuery(
-            "climate    change     air pollution",
-            mockTopics,
-            [],
-            synonymMap,
-            3
-        )
-
-        expect(result.suggestions.some((s) => s.name === "Air Pollution")).toBe(
-            true
-        )
-    })
-
-    describe("calculateScore function", () => {
-        it("should rank countries by query match quality for 'united'", () => {
-            const query = ["united"]
-            const countries = [
-                "United States",
-                "United Kingdom",
-                "United Arab Emirates",
-            ]
-
-            const scores = countries.map((country) => ({
-                name: country,
-                score: calculateScore(query, country),
-            }))
-
-            // Verify ordering: shorter targets score higher for same query
-            // "united" should score higher for shorter country names since it covers more of the target
-            expect(scores[0].score).toBeGreaterThan(scores[1].score)
-            expect(scores[1].score).toBeGreaterThan(scores[2].score)
-        })
-
-        it("should rank topics by multi-word query match quality for 'child mortality'", () => {
-            const query = ["child", "mortality"]
-            const topics = [
-                "Child and Infant Mortality",
-                "Child Mortality Rate",
-                "Maternal Mortality",
-                "Population Growth",
-            ]
-
-            const scores = topics.map((topic) => ({
-                name: topic,
-                score: calculateScore(query, topic),
-            }))
-
-            expect(scores[1].score).toBeGreaterThan(scores[0].score)
-        })
-
-        it("should handle partial word matches correctly for ranking", () => {
-            const query = ["eco"]
-            const topics = [
-                "Economic Growth",
-                "Economics",
-                "Ecology",
-                "Climate Change",
-            ]
-
-            const scores = topics.map((topic) => ({
-                name: topic,
-                score: calculateScore(query, topic),
-            }))
-
-            expect(scores[2].score).toBeGreaterThan(scores[1].score)
-            expect(scores[1].score).toBeGreaterThan(scores[0].score)
-        })
-
-        it("should handle case-insensitive matching across multiple targets", () => {
-            const query = ["UNITED"]
-            const countries = [
-                "United States",
-                "united kingdom",
-                "UNITED ARAB EMIRATES",
-            ]
-
-            const scores = countries.map((country) =>
-                calculateScore(query, country)
+        it("should handle special characters in queries", () => {
+            const result = suggestFiltersFromQuerySuffix(
+                "CO₂",
+                regions,
+                mockTopics,
+                [],
+                synonymMap
             )
 
-            expect(scores[0]).toBeGreaterThan(scores[1])
-            expect(scores[1]).toBeGreaterThan(scores[2])
+            // Should handle the unicode character gracefully
+            expect(
+                result.suggestions.some(
+                    (s) => s.name === "CO2 & Greenhouse Gas Emissions"
+                )
+            ).toBe(true)
+        })
+
+        it("should handle queries with multiple spaces, including leading and trailing", () => {
+            const result = suggestFiltersFromQuerySuffix(
+                "  climate    change     air pollution  ",
+                regions,
+                mockTopics,
+                [],
+                synonymMap
+            )
+
+            expect(
+                result.suggestions.some((s) => s.name === "Air Pollution")
+            ).toBe(true)
+        })
+
+        it("should handle queries returning no matches", () => {
+            const result = suggestFiltersFromQuerySuffix(
+                "nonexistenttopic",
+                regions,
+                mockTopics,
+                [],
+                synonymMap
+            )
+
+            expect(result.suggestions).toHaveLength(1) // Only the query filter
+            expect(result.suggestions[0].type).toBe(FilterType.QUERY)
+            expect(result.unmatchedQuery).toBe("nonexistenttopic")
         })
     })
 })
