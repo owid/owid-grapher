@@ -899,9 +899,18 @@ export function getFilterSuggestionsWithUnmatchedQuery(
         .join(" ")
 
     const countryMatches = searchResults.filters.filter(
-        // remove exact matches from country suggestions, as exact matches are
-        // already handled by automatic filters (see SearchDetectedFilters)
-        (f) => f.type === FilterType.COUNTRY && f.score !== 1
+        (f) =>
+            // remove exact matches from country suggestions, as exact matches are
+            // already handled by automatic filters (see SearchDetectedFilters).
+            f.type === FilterType.COUNTRY &&
+            f.score !== 1 &&
+            // we matched on all regions to stop the iteration when a region is
+            // found, and avoid suggesting countries contained in that region's
+            // name (e.g. if "East Germany" is found, stop the iteration to
+            // prevent finding "Germany"). However, we don't want to pollute the
+            // autocomplete results with historical regions or aggregates, so we
+            // filter them out of the suggestions.
+            countriesByName()[f.name]
     )
 
     const topicMatches = searchResults.filters.filter(
