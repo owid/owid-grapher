@@ -1,3 +1,15 @@
+/**
+ * This script fetches all images from Cloudflare, computes their SHA-256 hashes,
+ * and updates the database if the hash is missing or incorrect.
+ *
+ * There are some cases where the hash in the DB cannot be reproduced, and for
+ * these ones we (Marcel and Ike) are not entirely sure why. It might be that
+ * Cloudflare doesn't give us back the original image as-is for some reason.
+ *
+ * This script runs in dry-run mode by default. Use the --fix flag to actually
+ * update the database.
+ */
+
 import { createHash } from "crypto"
 import * as db from "../db/db.js"
 import { CLOUDFLARE_IMAGES_URL } from "../settings/clientSettings.js"
@@ -88,7 +100,3 @@ const main = async ({ shouldFix }: { shouldFix: boolean }) => {
 const shouldFix = process.argv.includes("--fix")
 
 void main({ shouldFix }).then(() => process.exit())
-
-// TODO:
-// Run in dry-run mode by default
-// Add --fix flag to actually update the DB
