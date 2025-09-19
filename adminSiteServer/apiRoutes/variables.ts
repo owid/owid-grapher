@@ -26,6 +26,7 @@ import {
     updateGrapherConfigAdminOfVariable,
     updateGrapherConfigETLOfVariable,
 } from "../../db/model/Variable.js"
+import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
 import { DATA_API_URL } from "../../settings/clientSettings.js"
 import * as db from "../../db/db.js"
 import {
@@ -341,6 +342,17 @@ export async function putVariablesVariableIdGrapherConfigETL(
         await updateGrapherConfigETLOfVariable(trx, variable, validConfig)
 
     await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
+    const chartIdsForRefresh = Array.from(
+        new Set(
+            updatedCharts
+                .map((chart) => chart.chartId)
+                .filter((id): id is number => typeof id === "number")
+        )
+    )
+    await enqueueExplorerRefreshJobsForDependencies(trx, {
+        chartIds: chartIdsForRefresh,
+        variableIds: [variableId],
+    })
     const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
 
     if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
@@ -416,6 +428,17 @@ export async function deleteVariablesVariableIdGrapherConfigETL(
             updates
         )
     await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
+    const chartIdsForRefresh = Array.from(
+        new Set(
+            updatedCharts
+                .map((chart) => chart.chartId)
+                .filter((id): id is number => typeof id === "number")
+        )
+    )
+    await enqueueExplorerRefreshJobsForDependencies(trx, {
+        chartIds: chartIdsForRefresh,
+        variableIds: [variableId],
+    })
     const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
 
     if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
@@ -456,6 +479,17 @@ export async function putVariablesVariableIdGrapherConfigAdmin(
         await updateGrapherConfigAdminOfVariable(trx, variable, validConfig)
 
     await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
+    const chartIdsForRefresh = Array.from(
+        new Set(
+            updatedCharts
+                .map((chart) => chart.chartId)
+                .filter((id): id is number => typeof id === "number")
+        )
+    )
+    await enqueueExplorerRefreshJobsForDependencies(trx, {
+        chartIds: chartIdsForRefresh,
+        variableIds: [variableId],
+    })
     const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
 
     if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {
@@ -522,6 +556,17 @@ export async function deleteVariablesVariableIdGrapherConfigAdmin(
             updates
         )
     await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
+    const chartIdsForRefresh = Array.from(
+        new Set(
+            updatedCharts
+                .map((chart) => chart.chartId)
+                .filter((id): id is number => typeof id === "number")
+        )
+    )
+    await enqueueExplorerRefreshJobsForDependencies(trx, {
+        chartIds: chartIdsForRefresh,
+        variableIds: [variableId],
+    })
     const allUpdatedConfigs = [...updatedCharts, ...updatedMultiDimViews]
 
     if (allUpdatedConfigs.some(({ isPublished }) => isPublished)) {

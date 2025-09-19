@@ -40,6 +40,8 @@ import {
     getWordpressPostReferencesByChartId,
     getGdocsPostReferencesByChartId,
 } from "../../db/model/Post.js"
+import { UpdatedChartInheritanceRecord } from "../../db/model/Variable.js"
+import { enqueueExplorerRefreshJobsForDependencies } from "../../db/model/Explorer.js"
 import { expectInt } from "../../serverUtils/serverUtil.js"
 import {
     BAKED_BASE_URL,
@@ -468,6 +470,10 @@ export const saveGrapher = async (
     } else if (fullConfig.isPublished)
         await triggerStaticBuild(user, `Updating chart ${fullConfig.slug}`)
 
+    await enqueueExplorerRefreshJobsForDependencies(knex, {
+        chartIds: [chartId],
+    })
+
     return {
         chartId,
         savedPatch: patchConfig,
@@ -476,7 +482,7 @@ export const saveGrapher = async (
 
 export async function updateGrapherConfigsInR2(
     knex: db.KnexReadonlyTransaction,
-    updatedCharts: { chartConfigId: string; isPublished: boolean }[],
+    updatedCharts: UpdatedChartInheritanceRecord[],
     updatedMultiDimViews: { chartConfigId: string; isPublished: boolean }[]
 ) {
     const idsToUpdate = [
