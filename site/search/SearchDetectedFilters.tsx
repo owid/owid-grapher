@@ -34,7 +34,7 @@ export const SearchDetectedFilters = ({
 
         // Only auto-apply exact country matches
         return matches.filter((match) => match.type === FilterType.COUNTRY)
-    }, [query, allTopics, filters, synonymMap])
+    }, [query, allRegionNames, allTopics, filters, synonymMap])
 
     // Manual filter suggestions are parsed independently to give shorter exact
     // matches priority. Otherwise, a query like "north korea south korea" would
@@ -51,7 +51,7 @@ export const SearchDetectedFilters = ({
         )
         // Only show non-exact country matches as suggestions
         return matches.filter((match) => match.type === FilterType.COUNTRY)
-    }, [query, allTopics, filters, synonymMap])
+    }, [query, allRegionNames, allTopics, filters, synonymMap])
 
     const applyFilters = useCallback(
         (filtersToProcess: ScoredFilterPositioned[]) => {
