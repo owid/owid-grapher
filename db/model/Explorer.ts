@@ -24,12 +24,12 @@ interface ExplorerWithUserInfo extends DbPlainExplorer {
 type ExplorerConfig = {
     blocks?: {
         type: string
-            block?: {
-                grapherId?: string | number
-                chartId?: string | number
-                yVariableIds?: string
-                ySlugs?: string
-                xVariableId?: string
+        block?: {
+            grapherId?: string | number
+            chartId?: string | number
+            yVariableIds?: string
+            ySlugs?: string
+            xVariableId?: string
             colorVariableId?: string
             sizeVariableId?: string
             transform?: string
