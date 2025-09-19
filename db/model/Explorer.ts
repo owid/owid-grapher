@@ -6,6 +6,7 @@ import {
 } from "@ourworldindata/types"
 import { areSetsEqual } from "@ourworldindata/utils"
 import { parseExplorer } from "../explorerParser.js"
+import { enqueueJob, updateExplorerRefreshStatus } from "./Jobs.js"
 
 type PlainExplorerWithLastCommit = Required<DbPlainExplorer> & {
     // lastCommit is a relic from our git-CMS days, it should be broken down
@@ -23,11 +24,12 @@ interface ExplorerWithUserInfo extends DbPlainExplorer {
 type ExplorerConfig = {
     blocks?: {
         type: string
-        block?: {
-            grapherId?: string | number
-            yVariableIds?: string
-            ySlugs?: string
-            xVariableId?: string
+            block?: {
+                grapherId?: string | number
+                chartId?: string | number
+                yVariableIds?: string
+                ySlugs?: string
+                xVariableId?: string
             colorVariableId?: string
             sizeVariableId?: string
             transform?: string
@@ -56,8 +58,9 @@ function detectChartIds(config: ExplorerConfig): number[] {
         for (const block of config.blocks) {
             if (block.type === "graphers" && Array.isArray(block.block)) {
                 for (const row of block.block) {
-                    if (row.grapherId) {
-                        chartIds.push(Number(row.grapherId))
+                    const grapherId = row.grapherId ?? row.chartId
+                    if (grapherId) {
+                        chartIds.push(Number(grapherId))
                     }
                 }
             }
@@ -292,6 +295,61 @@ export async function upsertExplorer(
 
     await upsertExplorerCharts(knex, slug, JSON.parse(config))
     await upsertExplorerVariables(knex, slug, JSON.parse(config))
+}
+
+export async function enqueueExplorerRefreshJobsForDependencies(
+    knex: KnexReadWriteTransaction,
+    {
+        chartIds = [],
+        variableIds = [],
+    }: { chartIds?: number[]; variableIds?: number[] }
+): Promise<void> {
+    const slugSet = new Set<string>()
+
+    if (chartIds.length > 0) {
+        const chartSlugRows = await knex("explorer_charts as ec")
+            .distinct("ec.explorerSlug as slug")
+            .join("explorers as e", "e.slug", "ec.explorerSlug")
+            .whereIn("ec.chartId", chartIds)
+            .andWhere("e.isPublished", 1)
+
+        for (const row of chartSlugRows) {
+            if (row.slug) slugSet.add(row.slug)
+        }
+    }
+
+    if (variableIds.length > 0) {
+        const variableSlugRows = await knex("explorer_variables as ev")
+            .distinct("ev.explorerSlug as slug")
+            .join("explorers as e", "e.slug", "ev.explorerSlug")
+            .whereIn("ev.variableId", variableIds)
+            .andWhere("e.isPublished", 1)
+
+        for (const row of variableSlugRows) {
+            if (row.slug) slugSet.add(row.slug)
+        }
+    }
+
+    if (slugSet.size === 0) return
+
+    const slugs = [...slugSet]
+    const explorers = await knex<Pick<DbPlainExplorer, "slug" | "updatedAt">>(
+        ExplorersTableName
+    )
+        .select("slug", "updatedAt")
+        .whereIn("slug", slugs)
+
+    for (const explorer of explorers) {
+        if (!explorer.updatedAt) continue
+        await updateExplorerRefreshStatus(knex, explorer.slug, "queued")
+        await enqueueJob(knex, {
+            type: "refresh_explorer_views",
+            payload: {
+                slug: explorer.slug,
+                explorerUpdatedAt: explorer.updatedAt,
+            },
+        })
+    }
 }
 
 export async function getExplorerBySlug(

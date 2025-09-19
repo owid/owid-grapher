@@ -213,17 +213,19 @@ function makeConfigValidForIndicator({
     return updatedConfig
 }
 
+export interface UpdatedChartInheritanceRecord {
+    chartId: number
+    chartConfigId: string
+    patchConfig: GrapherInterface
+    isPublished: boolean
+}
+
 async function findAllChartsThatInheritFromIndicator(
     trx: db.KnexReadonlyTransaction,
     variableId: number
-): Promise<
-    {
-        chartConfigId: string
-        patchConfig: GrapherInterface
-        isPublished: boolean
-    }[]
-> {
+): Promise<UpdatedChartInheritanceRecord[]> {
     const charts = await db.knexRaw<{
+        chartId: DbPlainChart["id"]
         chartConfigId: DbRawChartConfig["id"]
         patchConfig: DbRawChartConfig["patch"]
         isPublished: boolean
@@ -231,6 +233,7 @@ async function findAllChartsThatInheritFromIndicator(
         trx,
         `-- sql
             SELECT
+                c.id as chartId,
                 cc.id as chartConfigId,
                 cc.patch as patchConfig,
                 cc.full ->> "$.isPublished" as isPublished
@@ -244,8 +247,10 @@ async function findAllChartsThatInheritFromIndicator(
         [variableId]
     )
     return charts.map((chart) => ({
-        ...chart,
+        chartId: chart.chartId,
+        chartConfigId: chart.chartConfigId,
         patchConfig: parseChartConfig(chart.patchConfig),
+        isPublished: chart.isPublished,
     }))
 }
 
@@ -261,7 +266,7 @@ export async function updateAllChartsThatInheritFromIndicator(
         patchConfigETL?: GrapherInterface
         patchConfigAdmin?: GrapherInterface
     }
-): Promise<{ chartConfigId: string; isPublished: boolean }[]> {
+): Promise<UpdatedChartInheritanceRecord[]> {
     const inheritingCharts = await findAllChartsThatInheritFromIndicator(
         trx,
         variableId
@@ -384,7 +389,7 @@ export async function updateGrapherConfigETLOfVariable(
     config: GrapherInterface
 ): Promise<{
     savedPatch: GrapherInterface
-    updatedCharts: { chartConfigId: string; isPublished: boolean }[]
+    updatedCharts: UpdatedChartInheritanceRecord[]
     updatedMultiDimViews: { chartConfigId: string; isPublished: boolean }[]
 }> {
     const { variableId } = variable
@@ -458,7 +463,7 @@ export async function updateGrapherConfigAdminOfVariable(
     config: GrapherInterface
 ): Promise<{
     savedPatch: GrapherInterface
-    updatedCharts: { chartConfigId: string; isPublished: boolean }[]
+    updatedCharts: UpdatedChartInheritanceRecord[]
     updatedMultiDimViews: { chartConfigId: string; isPublished: boolean }[]
 }> {
     const { variableId } = variable
