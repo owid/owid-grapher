@@ -10,7 +10,13 @@ const counters = {
     mismatches: 0,
 }
 
-const main = async () => {
+const main = async ({ shouldFix }: { shouldFix: boolean }) => {
+    console.log("Starting image hash update...")
+    if (!shouldFix)
+        console.log(
+            "Running in dry-run mode. Use --fix to update the database."
+        )
+
     await db.knexReadWriteTransaction(async (trx) => {
         const images = await db.knexRaw<DbEnrichedImage>(
             trx,
@@ -51,17 +57,38 @@ const main = async () => {
                         })
                     }
 
-                    // await trx("images").update({ hash }).where({ id: image.id })
+                    if (shouldFix) {
+                        await trx("images")
+                            .update({ hash })
+                            .where({ id: image.id })
+                    } else {
+                        // dry-run: do not update DB
+                    }
                 }
             },
             { concurrency: 20 }
         )
 
         console.log("Done!")
-        console.log("Newly hashed:", counters.newHash)
-        console.log("Unchanged:", counters.unchanged)
-        console.log("Updated mismatches:", counters.mismatches)
+        console.log(
+            "Images that didn't previously have a hash:",
+            counters.newHash
+        )
+        console.log("Images where the hash matched:", counters.unchanged)
+        console.log("Images where the hash didn't match:", counters.mismatches)
+
+        if (!shouldFix)
+            console.log(
+                "Didn't actually update the database. Run again with --fix to do so."
+            )
+        else console.log("Hashes in the database have been updated.")
     })
 }
 
-void main().then(() => process.exit())
+const shouldFix = process.argv.includes("--fix")
+
+void main({ shouldFix }).then(() => process.exit())
+
+// TODO:
+// Run in dry-run mode by default
+// Add --fix flag to actually update the DB
