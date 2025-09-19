@@ -2,6 +2,7 @@ import * as _ from "lodash-es"
 import {
     lazy,
     convertToArchivalDateStringIfNecessary,
+    DateInput,
 } from "@ourworldindata/utils"
 import {
     AssetMap,
@@ -9,39 +10,40 @@ import {
     GrapherChecksumsObjectWithHash,
     MultiDimChecksums,
     MultiDimChecksumsObjectWithHash,
+    ExplorerChecksums,
+    ExplorerChecksumsObjectWithHash,
 } from "@ourworldindata/types"
 import { simpleGit } from "simple-git"
 import { ARCHIVE_BASE_URL } from "../settings/serverSettings.js"
 
-export interface GrapherArchivalManifest {
+export interface BaseArchivalManifest {
     assets: {
         static: AssetMap
         runtime: AssetMap
     }
     archivalDate: string
-    chartId: number
-    chartConfigId: string
-    chartSlug: string
-    checksums: GrapherChecksums
     checksumsHashed: string
     commitShas: {
         "owid-grapher"?: string
     }
 }
 
-export interface MultiDimArchivalManifest {
-    assets: {
-        static: AssetMap
-        runtime: AssetMap
-    }
-    archivalDate: string
+export interface GrapherArchivalManifest extends BaseArchivalManifest {
+    chartId: number
+    chartConfigId: string
+    chartSlug: string
+    checksums: GrapherChecksums
+}
+
+export interface MultiDimArchivalManifest extends BaseArchivalManifest {
     multiDimId: number
     multiDimSlug: string
     checksums: MultiDimChecksums
-    checksumsHashed: string
-    commitShas: {
-        "owid-grapher"?: string
-    }
+}
+
+export interface ExplorerArchivalManifest extends BaseArchivalManifest {
+    explorerSlug: string
+    checksums: ExplorerChecksums
 }
 
 const getOwidGrapherCommitSha = lazy(async () => {
@@ -53,7 +55,7 @@ const getOwidGrapherCommitSha = lazy(async () => {
 })
 
 export const assembleGrapherArchivalUrl = (
-    archivalDate: Parameters<typeof convertToArchivalDateStringIfNecessary>[0],
+    archivalDate: DateInput,
     chartSlug: string,
     { relative }: { relative: boolean }
 ) => {
@@ -95,8 +97,50 @@ export const assembleGrapherManifest = async (manifestInfo: {
     return manifest
 }
 
+export const assembleExplorerArchivalUrl = (
+    archivalDate: DateInput,
+    explorerSlug: string,
+    { relative }: { relative: boolean }
+) => {
+    const formattedDate = convertToArchivalDateStringIfNecessary(archivalDate)
+
+    const path = `/${formattedDate}/explorers/${explorerSlug}.html`
+    if (relative) return path
+    else {
+        if (!ARCHIVE_BASE_URL) {
+            throw new Error("ARCHIVE_BASE_URL is not defined")
+        }
+        return `${ARCHIVE_BASE_URL}${path}`
+    }
+}
+
+export const assembleExplorerManifest = async (manifestInfo: {
+    staticAssetMap: AssetMap
+    runtimeAssetMap: AssetMap
+    checksumsObj: ExplorerChecksumsObjectWithHash
+    archivalDate: string
+}): Promise<ExplorerArchivalManifest> => {
+    const commitShas = { "owid-grapher": await getOwidGrapherCommitSha() }
+
+    const manifest = {
+        ..._.omit(manifestInfo, [
+            "staticAssetMap",
+            "runtimeAssetMap",
+            "checksumsObj",
+        ]),
+        ...manifestInfo.checksumsObj,
+        assets: {
+            static: manifestInfo.staticAssetMap,
+            runtime: manifestInfo.runtimeAssetMap,
+        },
+        commitShas,
+    }
+
+    return manifest
+}
+
 export const assembleMultiDimArchivalUrl = (
-    archivalDate: Parameters<typeof convertToArchivalDateStringIfNecessary>[0],
+    archivalDate: DateInput,
     slug: string,
     { relative }: { relative: boolean }
 ) => {
