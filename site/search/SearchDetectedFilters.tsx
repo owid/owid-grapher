@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useEffect } from "react"
 import { useSearchContext } from "./SearchContext.js"
-import { getFilterIcon, getFilterSuggestionsNgrams } from "./searchUtils.js"
+import { getFilterIcon, extractFiltersFromQuery } from "./searchUtils.js"
 import { FilterType, ScoredFilterPositioned } from "./searchTypes.js"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 import { listedRegionsNames } from "@ourworldindata/utils"
@@ -23,7 +23,7 @@ export const SearchDetectedFilters = ({
     const allRegionNames = listedRegionsNames()
 
     const automaticFilters = useMemo(() => {
-        const matches = getFilterSuggestionsNgrams(
+        const matches = extractFiltersFromQuery(
             query,
             allRegionNames,
             allTopics,
@@ -41,7 +41,7 @@ export const SearchDetectedFilters = ({
     // greedily match "south korea" on "korea south korea", leaving "north"
     // orphan.
     const manualFilters = useMemo(() => {
-        const matches = getFilterSuggestionsNgrams(
+        const matches = extractFiltersFromQuery(
             query,
             allRegionNames,
             allTopics,

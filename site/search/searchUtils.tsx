@@ -25,7 +25,6 @@ import {
     queryParamsToStr,
     omitUndefinedValues,
     getRegionByName,
-    listedRegionsNames,
 } from "@ourworldindata/utils"
 import { type GrapherTrendArrowDirection } from "@ourworldindata/components"
 import {
@@ -470,21 +469,21 @@ export const getFilterIcon = (filter: Filter) => {
         .exhaustive()
 }
 
-export function searchWithWords(
+export function findTopicAndRegionFilters(
     words: string[],
     allRegionsNames: string[],
     allTopics: string[],
     selectedRegionNames: Set<string>,
     selectedTopics: Set<string>,
-    sortOptions: { threshold: number; limit: number },
-    synonymMap: SynonymMap
+    synonymMap: SynonymMap,
+    sortOptions: { threshold: number; limit: number }
 ): ScoredFilter[] {
     const searchTerm = words.join(" ")
 
     const searchCountryTopics = (term: string) => {
         const countryFilters: ScoredFilter[] = FuzzySearch.withKey(
             allRegionsNames,
-            (country) => country,
+            _.identity,
             sortOptions
         )
             .searchResults(term)
@@ -532,7 +531,7 @@ export function searchWithWords(
         R.flatMap((filtersOfType: ScoredFilter[]) =>
             R.pipe(
                 filtersOfType,
-                R.sortBy((filter) => -filter.score), // Sort by score descending
+                R.sortBy([R.prop("score"), "desc"]),
                 R.uniqueBy((filter) => filter.name),
                 R.take(sortOptions.limit)
             )
@@ -540,118 +539,6 @@ export function searchWithWords(
     )
 
     return filters
-}
-
-/**
- * Performs contiguous substring search on words against countries and topics.
- * Each word in the query must match as a prefix of words in the target names.
- * Handles multi-word queries and synonyms while ensuring contiguous matching.
- *
- * @returns Array of scored filters matching the query words (non deduplicated)
- */
-export function searchWithWordsContiguous(
-    words: string[],
-    allCountryNames: string[],
-    allTopics: string[],
-    selectedCountryNames: Set<string>,
-    selectedTopics: Set<string>,
-    synonymMap: SynonymMap
-): ScoredFilter[] {
-    // Returns true if all query words are prefixes of the target words
-    // Example:
-    // - ["chi", "mortal"] matches "child mortality" -> true
-    // - ["child", "blank"] doesn't match "child mortality" -> false
-    const areAllWordsPrefixes = (
-        queryWords: string[],
-        target: string
-    ): boolean => {
-        const targetWords = target.toLowerCase().split(/\s+/)
-        const queryWordsLower = queryWords.map((word) => word.toLowerCase())
-
-        // Each query word must match as a prefix of some target word
-        return queryWordsLower.every((queryWord) =>
-            targetWords.some((targetWord) => targetWord.startsWith(queryWord))
-        )
-    }
-
-    // For countries, require exact covering matches where all query words are covered
-    // Example: "east" or "east ti" should NOT match "east timor"
-    const isExactCoveringMatch = (
-        queryWords: string[],
-        target: string
-    ): boolean => {
-        const query = queryWords.join(" ").toLowerCase()
-        return target.toLowerCase() === query
-    }
-
-    const searchCountryTopicAsPrefixes = (queryWords: string[]) => {
-        const countryFilters: ScoredFilter[] = allCountryNames
-            .filter((country) => !selectedCountryNames.has(country))
-            .filter((country) => isExactCoveringMatch(queryWords, country))
-            .map((country) => ({
-                ...createCountryFilter(country),
-                score: calculateScore(queryWords, country),
-            }))
-
-        const topicFilters: ScoredFilter[] =
-            selectedTopics.size === 0
-                ? allTopics
-                      .filter((topic) => areAllWordsPrefixes(queryWords, topic))
-                      .map((topic) => ({
-                          ...createTopicFilter(topic),
-                          score: calculateScore(queryWords, topic),
-                      }))
-                : []
-
-        return [...countryFilters, ...topicFilters]
-    }
-
-    // 1. Perform original search
-    const filters = searchCountryTopicAsPrefixes(words)
-
-    // 2. Search with synonyms
-    const searchTerm = words.join(" ").toLowerCase()
-    const synonyms = synonymMap.get(searchTerm)
-
-    if (synonyms && synonyms.length > 0) {
-        // Search with each synonym and combine results
-        for (const synonym of synonyms) {
-            const synonymWords = synonym.split(/\s+/)
-            const filtersFromSynonym =
-                searchCountryTopicAsPrefixes(synonymWords)
-            filters.push(...filtersFromSynonym)
-        }
-    }
-
-    return filters
-}
-
-/**
- * Calculate a simple score based on match quality for contiguous matching.
- * Higher scores are given to queries that cover more of the target string.
- *
- * @returns Normalized score between 0 and 1, where 1 represents perfect matches
- */
-export function calculateScore(queryWords: string[], target: string): number {
-    const targetWords = target.toLowerCase().split(/\s+/)
-    const queryWordsLower = queryWords.map((word) => word.toLowerCase())
-
-    let totalMatchedChars = 0
-    queryWordsLower.forEach((queryWord) => {
-        const matchingWord = targetWords.find((targetWord) =>
-            targetWord.startsWith(queryWord)
-        )
-        if (matchingWord) {
-            // Count how many characters of the query word match
-            totalMatchedChars += queryWord.length
-        }
-    })
-
-    // Calculate total length of target (excluding spaces)
-    const targetLength = target.replace(/\s+/g, "").length
-
-    // Score is the ratio of matched characters to total target length
-    return totalMatchedChars / targetLength
 }
 
 /**
@@ -683,26 +570,172 @@ function getQuotedWordPositions(words: string[]): Set<number> {
 }
 
 /**
- * Cousin of findMatches that uses n-gram approach to find matches for all
- * possible combinations of words in the query, not just left-to-right
- * reduction.
+ * Generates autocomplete suggestions for a search query and identifies any unmatched portion of the query.
  *
- * Generates n-grams from 1 to 4 non stop-words, prioritizing longer phrases over shorter
- * ones. Uses overlap detection to prevent the same word positions from being
- * matched multiple times. Keeps a single country or filter topic per n-gram
- * then deduplicates overall results by name.
+ * This function uses fuzzy search to match partial query words against country names and topics,
+ * filtering out any countries or topics that have already been selected as filters.
+ * It progressively tries to match from increasing starting points in the query until it finds matches
+ * or reaches the end of the query. This prioritizes matching whole phrases from the beginning, while still
+ * allowing for matching just the latter parts of the query if necessary (e.g. "air pollution" would match "Air Pollution",
+ * "Indoor Air Pollution" and "Outdoor Air Pollution" and prevent the "pollution" query from being run;
+ * thus not returning "Lead Pollution" as a suggestion).
+ *
+ * **Search Process:**
+ * 1. Splitting the query into words
+ * 2. Finding the earliest word index where country and/or topic matches can be found using fuzzy search
+ * 3. Returning the found matches as Filter objects, sorted with exact matches first
+ * 4. Also returning the unmatched portion of the query (words before the match point)
+ *
+ * The search utilizes the same synonym definitions as Algolia to ensure consistent experiences
+ * between Algolia-powered search (homepage autocomplete, nav bar autocomplete, search results) and local fuzzy search (filter autocomplete).
+ * This includes bidirectional synonyms from synonym groups (e.g., "ai" ↔ "artificial intelligence")
+ * and unidirectional country alternatives (e.g., "us" → "united states"). Results from both original
+ * and synonym searches are combined, with duplicates removed while preserving the highest scores.
+ *
+ * **Result Prioritization:**
+ * Exact matches (score = 1) are prioritized in the returned suggestions array, followed by
+ * the original query (as a query filter), and then partial matches sorted by score descending.
+ *
+ * **Examples:**
+ * - Query "artificial intelligence" → also searches for synonyms like "ai", "machine learning"
+ * - Query "co2 emissions" → also searches for "carbon dioxide", "c02"
+ * - Query "us" → "us" gets expanded to "united states" for better country matching
+ *
+ * @returns Object containing suggestion filters and any unmatched query portion
+ */
+export function suggestFiltersFromQuerySuffix(
+    query: string,
+    allRegionNames: string[],
+    allTopics: string[],
+    filters: Filter[], // currently active filters to exclude from suggestions
+    synonymMap: SynonymMap,
+    sortOptions: { threshold: number; limit: number } = {
+        threshold: 0.75,
+        limit: 3,
+    }
+): {
+    suggestions: Filter[]
+    unmatchedQuery: string
+} {
+    const selectedCountryNames = getFilterNamesOfType(
+        filters,
+        FilterType.COUNTRY
+    )
+    const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
+
+    const queryWords = splitIntoWords(query)
+
+    if (!queryWords.length || queryWords[0] === "") {
+        return {
+            suggestions: [],
+            unmatchedQuery: "",
+        }
+    }
+
+    let matchedFilters: ScoredFilter[] = []
+    let matchStartIndex = queryWords.length
+
+    for (let i = 0; i < queryWords.length; i++) {
+        const wordsToSearch = queryWords.slice(i)
+        const filters = findTopicAndRegionFilters(
+            wordsToSearch,
+            allRegionNames,
+            allTopics,
+            selectedCountryNames,
+            selectedTopics,
+            synonymMap,
+            sortOptions
+        )
+
+        if (filters.length > 0) {
+            matchedFilters = filters
+            matchStartIndex = i
+            break
+        }
+    }
+
+    const unmatchedQuery = queryWords.slice(0, matchStartIndex).join(" ")
+
+    const countryMatches = matchedFilters.filter(
+        (f) =>
+            // remove exact matches from country suggestions, as exact matches are
+            // already handled by automatic filters (see SearchDetectedFilters).
+            f.type === FilterType.COUNTRY &&
+            f.score !== 1 &&
+            // we matched on all regions to stop the iteration when a region is
+            // found, and avoid suggesting countries contained in that region's
+            // name (e.g. if "East Germany" is found, stop the iteration to
+            // prevent finding "Germany"). However, we don't want to pollute the
+            // autocomplete results with historical regions or aggregates, so we
+            // filter them out of the suggestions.
+            countriesByName()[f.name]
+    )
+
+    const topicMatches = matchedFilters.filter(
+        (f) => f.type === FilterType.TOPIC
+    )
+
+    const allMatches = [...countryMatches, ...topicMatches]
+
+    const [exactMatches, partialMatches] = R.partition(
+        allMatches,
+        (item) => item.score === 1
+    )
+
+    const sortedPartialMatches = partialMatches.sort(
+        (a, b) => b.score - a.score
+    )
+
+    const primaryFilters = [
+        exactMatches,
+        ...(query ? [createQueryFilter(query)] : []),
+    ]
+
+    const combinedFilters = [
+        ...(!unmatchedQuery ? primaryFilters : primaryFilters.reverse()).flat(),
+        ...sortedPartialMatches,
+    ]
+
+    return {
+        suggestions: combinedFilters,
+        unmatchedQuery,
+    }
+}
+
+/**
+ * Gets filter suggestions using contiguous sequence of words (n-grams) for
+ * multi-entity matching in a given query.
+ *
+ * Where `suggestFiltersFromQuerySuffix` progressively tries to match
+ * from increasing starting points in the query and returns a list of possible
+ * matches for that position (1 position, multiple matches), this function tries
+ * to find the best match for all possible contiguous sequences of words
+ * (n-grams) in the query (multiple positions, 1 match per position).
+ *
+ * Generates n-grams from 1 to 4 non stop-words, non quotes phrases,
+ * prioritizing longer phrases over shorter ones. Uses overlap detection to
+ * prevent the same word positions from being matched multiple times. Keeps a
+ * single country or filter topic per n-gram then deduplicates overall results
+ * by name.
  *
  * @returns Array of deduplicated scored filters
  */
-export function findMatchesWithNgrams(
+export function extractFiltersFromQuery(
     query: string,
-    allRegionsNames: string[],
+    allRegionNames: string[],
     allTopics: string[],
-    selectedRegionNames: Set<string>,
-    selectedTopics: Set<string>,
+    filters: Filter[], // currently active filters to exclude from suggestions
     sortOptions: { threshold: number; limit: number },
     synonymMap: SynonymMap
 ): ScoredFilterPositioned[] {
+    if (!query) return []
+
+    const selectedCountryNames = getFilterNamesOfType(
+        filters,
+        FilterType.COUNTRY
+    )
+    const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
+
     const allFilters: ScoredFilterPositioned[] = []
     const matchedWordPositions = new Set<number>()
 
@@ -742,17 +775,17 @@ export function findMatchesWithNgrams(
 
         if (hasOverlap) continue // Skip this n-gram if it overlaps with already matched words
 
-        const filters = searchWithWords(
+        const filtersFromNgram = findTopicAndRegionFilters(
             ngramWords,
-            allRegionsNames,
+            allRegionNames,
             allTopics,
-            selectedRegionNames,
+            selectedCountryNames,
             selectedTopics,
-            sortOptions,
-            synonymMap
+            synonymMap,
+            sortOptions
         )
 
-        const bestFilter = _.maxBy(filters, (f) => f.score)
+        const bestFilter = _.maxBy(filtersFromNgram, (f) => f.score)
         if (bestFilter) {
             // Store the original positions for later use in replacement logic
             allFilters.push({
@@ -767,214 +800,6 @@ export function findMatchesWithNgrams(
     }
 
     return R.uniqueBy(allFilters, (filter) => filter.name)
-}
-
-export function findMatches(
-    words: string[],
-    allRegionsNames: string[],
-    allTopics: string[],
-    selectedCountryNames: Set<string>,
-    selectedTopics: Set<string>,
-    sortOptions: { threshold: number; limit: number },
-    synonymMap: SynonymMap,
-    wordIndex: number = 0
-): {
-    filters: ScoredFilter[]
-    matchStartIndex: number
-} {
-    const wordsToSearch = words.slice(wordIndex)
-    const filters = searchWithWords(
-        wordsToSearch,
-        allRegionsNames,
-        allTopics,
-        selectedCountryNames,
-        selectedTopics,
-        sortOptions,
-        synonymMap
-    )
-
-    if (filters.length > 0) {
-        return {
-            filters,
-            matchStartIndex: wordIndex,
-        }
-    }
-
-    return wordIndex < words.length - 1
-        ? findMatches(
-              words,
-              allRegionsNames,
-              allTopics,
-              selectedCountryNames,
-              selectedTopics,
-              sortOptions,
-              synonymMap,
-              wordIndex + 1
-          )
-        : {
-              filters: [],
-              matchStartIndex: words.length,
-          }
-}
-
-/**
- * Generates autocomplete suggestions for a search query and identifies any unmatched portion of the query.
- *
- * This function uses fuzzy search to match partial query words against country names and topics,
- * filtering out any countries or topics that have already been selected as filters.
- * It progressively tries to match from increasing starting points in the query until it finds matches
- * or reaches the end of the query. This prioritizes matching whole phrases from the beginning, while still
- * allowing for matching just the latter parts of the query if necessary (e.g. "air pollution" would match "Air Pollution",
- * "Indoor Air Pollution" and "Outdoor Air Pollution" and prevent the "pollution" query from being run;
- * thus not returning "Lead Pollution" as a suggestion).
- *
- * **Search Process:**
- * 1. Splitting the query into words
- * 2. Finding the earliest word index where country and/or topic matches can be found using fuzzy search
- * 3. Returning the found matches as Filter objects, sorted with exact matches first
- * 4. Also returning the unmatched portion of the query (words before the match point)
- *
- * The search utilizes the same synonym definitions as Algolia to ensure consistent experiences
- * between Algolia-powered search (homepage autocomplete, nav bar autocomplete, search results) and local fuzzy search (filter autocomplete).
- * This includes bidirectional synonyms from synonym groups (e.g., "ai" ↔ "artificial intelligence")
- * and unidirectional country alternatives (e.g., "us" → "united states"). Results from both original
- * and synonym searches are combined, with duplicates removed while preserving the highest scores.
- *
- * **Result Prioritization:**
- * Exact matches (score = 1) are prioritized in the returned suggestions array, followed by
- * the original query (as a query filter), and then partial matches sorted by score descending.
- *
- * **Examples:**
- * - Query "artificial intelligence" → also searches for synonyms like "ai", "machine learning"
- * - Query "co2 emissions" → also searches for "carbon dioxide", "c02"
- * - Query "us" → "us" gets expanded to "united states" for better country matching
- *
- * @returns Object containing suggestion filters and any unmatched query portion
- */
-export function getFilterSuggestionsWithUnmatchedQuery(
-    query: string,
-    allTopics: string[],
-    filters: Filter[], // currently active filters to exclude from suggestions
-    synonymMap: SynonymMap,
-    limitPerFilter: number = 3
-): {
-    suggestions: Filter[]
-    unmatchedQuery: string
-} {
-    const sortOptions = {
-        // we can afford to be more strict with matching due to the presence of
-        // synonyms, in particular country alternatives (e.g. "uk" matches
-        // "united kingdom" without the need for a more permissive fuzzy match)
-        threshold: 0.75,
-        limit: limitPerFilter,
-    }
-    const selectedCountryNames = getFilterNamesOfType(
-        filters,
-        FilterType.COUNTRY
-    )
-    const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
-    const allRegionNames = listedRegionsNames()
-
-    const queryWords = splitIntoWords(query)
-
-    if (!queryWords.length || queryWords[0] === "") {
-        return {
-            suggestions: [],
-            unmatchedQuery: "",
-        }
-    }
-
-    const searchResults = findMatches(
-        queryWords,
-        allRegionNames,
-        allTopics,
-        selectedCountryNames,
-        selectedTopics,
-        sortOptions,
-        synonymMap
-    )
-
-    const unmatchedQuery = queryWords
-        .slice(0, searchResults.matchStartIndex)
-        .join(" ")
-
-    const countryMatches = searchResults.filters.filter(
-        (f) =>
-            // remove exact matches from country suggestions, as exact matches are
-            // already handled by automatic filters (see SearchDetectedFilters).
-            f.type === FilterType.COUNTRY &&
-            f.score !== 1 &&
-            // we matched on all regions to stop the iteration when a region is
-            // found, and avoid suggesting countries contained in that region's
-            // name (e.g. if "East Germany" is found, stop the iteration to
-            // prevent finding "Germany"). However, we don't want to pollute the
-            // autocomplete results with historical regions or aggregates, so we
-            // filter them out of the suggestions.
-            countriesByName()[f.name]
-    )
-
-    const topicMatches = searchResults.filters.filter(
-        (f) => f.type === FilterType.TOPIC
-    )
-
-    const allMatches = [...countryMatches, ...topicMatches]
-
-    const [exactMatches, partialMatches] = R.partition(
-        allMatches,
-        (item) => item.score === 1
-    )
-
-    const sortedPartialMatches = partialMatches.sort(
-        (a, b) => b.score - a.score
-    )
-
-    const primaryFilters = [
-        exactMatches,
-        ...(query ? [createQueryFilter(query)] : []),
-    ]
-
-    const combinedFilters = [
-        ...(!unmatchedQuery ? primaryFilters : primaryFilters.reverse()).flat(),
-        ...sortedPartialMatches,
-    ]
-
-    return {
-        suggestions: combinedFilters,
-        unmatchedQuery,
-    }
-}
-
-/**
- * Gets filter suggestions using ngrams for more robust multi-entity matching.
- */
-export function getFilterSuggestionsNgrams(
-    query: string,
-    allRegionNames: string[],
-    allTopics: string[],
-    filters: Filter[], // currently active filters to exclude from suggestions
-    sortOptions: { threshold: number; limit: number },
-    synonymMap: SynonymMap
-): ScoredFilterPositioned[] {
-    if (!query) return []
-
-    const selectedCountryNames = getFilterNamesOfType(
-        filters,
-        FilterType.COUNTRY
-    )
-    const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
-
-    // Use n-gram matching for better phrase detection
-    const matches = findMatchesWithNgrams(
-        query,
-        allRegionNames,
-        allTopics,
-        selectedCountryNames,
-        selectedTopics,
-        sortOptions,
-        synonymMap
-    )
-
-    return matches
 }
 
 export function createFilter(type: FilterType) {

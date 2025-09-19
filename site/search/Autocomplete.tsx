@@ -30,13 +30,17 @@ import {
     getIndexName,
     parseIndexName,
 } from "./searchClient.js"
-import { OwidGdocType, queryParamsToStr } from "@ourworldindata/utils"
+import {
+    listedRegionsNames,
+    OwidGdocType,
+    queryParamsToStr,
+} from "@ourworldindata/utils"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import Mousetrap from "mousetrap"
 import { match } from "ts-pattern"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
 import {
-    getFilterSuggestionsWithUnmatchedQuery,
+    suggestFiltersFromQuerySuffix,
     getFilterIcon,
     getItemUrlForFilter,
     getPageTypeNameAndIcon,
@@ -254,12 +258,12 @@ const createFiltersSource = (
     getItems({ query }) {
         if (!query.trim()) return []
 
-        const suggestions = getFilterSuggestionsWithUnmatchedQuery(
+        const suggestions = suggestFiltersFromQuerySuffix(
             query,
+            listedRegionsNames(),
             allTopics,
             [], // no selected filters in this context
-            synonymMap,
-            1
+            synonymMap
         )
 
         const items: {
