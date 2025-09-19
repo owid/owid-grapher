@@ -20,7 +20,7 @@ export default function Chart({
     className?: string
     fullWidthOnMobile?: boolean
 }) {
-    const { isPreviewing } = useContext(DocumentContext)
+    const { isPreviewing, archiveContext } = useContext(DocumentContext)
     const refChartContainer = useRef<HTMLDivElement>(null)
     useEmbedChart(0, refChartContainer, isPreviewing)
 
@@ -58,6 +58,44 @@ export default function Chart({
     )
 
     if (!linkedChart) return null
+
+    if (
+        archiveContext?.type === "archive-page" &&
+        linkedChart.archivedPageVersion
+    ) {
+        const archiveUrl = Url.fromURL(
+            linkedChart.archivedPageVersion.archiveUrl
+        ).updateQueryParams(resolvedUrlParsed.queryParams)
+        const defaultHeight =
+            isMultiDimWithControls || isExplorerWithControls ? "680px" : "600px"
+        return (
+            <div
+                className={cx(d.position, className, {
+                    "full-width-on-mobile":
+                        !isExplorerWithControls && fullWidthOnMobile,
+                })}
+                style={{ gridRow: d.row, gridColumn: d.column }}
+            >
+                <iframe
+                    src={archiveUrl.fullUrl}
+                    width="100%"
+                    height={d.height || defaultHeight}
+                    style={{
+                        border: "0px none",
+                        display: "block",
+                    }}
+                    loading="lazy"
+                    title={linkedChart.title}
+                />
+                {d.caption ? (
+                    <figcaption>
+                        <SpanElements spans={d.caption} />
+                    </figcaption>
+                ) : null}
+            </div>
+        )
+    }
+
     return (
         <div
             className={cx(d.position, className, {
