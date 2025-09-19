@@ -78,6 +78,7 @@ import { getDods } from "../Dod.js"
 import {
     getLatestChartArchivedVersionsIfEnabled,
     getLatestMultiDimArchivedVersionsIfEnabled,
+    getLatestExplorerArchivedVersionsIfEnabled,
 } from "../archival/archivalDb.js"
 
 export async function getLinkedIndicatorsForCharts(
@@ -745,18 +746,25 @@ export class GdocBase implements OwidGdocBaseInterface {
     async loadLinkedCharts(knex: db.KnexReadonlyTransaction): Promise<void> {
         const slugToIdMap = await mapSlugsToIds(knex)
 
-        const [archivedChartVersions, archivedMultiDimVersions] =
-            await Promise.all([
-                getLatestChartArchivedVersionsIfEnabled(
-                    knex,
-                    excludeUndefined(
-                        this.linkedChartSlugs.grapher.map(
-                            (slug) => slugToIdMap[slug]
-                        )
+        const [
+            archivedChartVersions,
+            archivedMultiDimVersions,
+            archivedExplorerVersions,
+        ] = await Promise.all([
+            getLatestChartArchivedVersionsIfEnabled(
+                knex,
+                excludeUndefined(
+                    this.linkedChartSlugs.grapher.map(
+                        (slug) => slugToIdMap[slug]
                     )
-                ),
-                getLatestMultiDimArchivedVersionsIfEnabled(knex),
-            ])
+                )
+            ),
+            getLatestMultiDimArchivedVersionsIfEnabled(knex),
+            getLatestExplorerArchivedVersionsIfEnabled(
+                knex,
+                this.linkedChartSlugs.explorer
+            ),
+        ])
 
         // Note: I tried converting this to a batch query, but it wasn't any faster
         const linkedGrapherCharts = await Promise.all(
@@ -803,7 +811,10 @@ export class GdocBase implements OwidGdocBaseInterface {
             this.linkedChartSlugs.explorer.map((originalSlug) => {
                 const explorer = publishedExplorersBySlug[originalSlug]
                 if (!explorer) return
-                return makeExplorerLinkedChart(explorer, originalSlug)
+                return makeExplorerLinkedChart(explorer, originalSlug, {
+                    archivedPageVersion:
+                        archivedExplorerVersions[originalSlug] || undefined,
+                })
             })
         )
 
@@ -1236,7 +1247,10 @@ export function makeExplorerLinkedChart(
         thumbnail?: string
         tags?: string[]
     },
-    originalSlug: string
+    originalSlug: string,
+    options?: {
+        archivedPageVersion?: ArchivedPageVersion
+    }
 ): LinkedChart {
     return {
         configType: ChartConfigType.Explorer,
@@ -1249,6 +1263,7 @@ export function makeExplorerLinkedChart(
             explorer.thumbnail ||
             `${BAKED_BASE_URL}/${DEFAULT_THUMBNAIL_FILENAME}`,
         tags: explorer.tags ?? [],
+        archivedPageVersion: options?.archivedPageVersion,
     }
 }
 
