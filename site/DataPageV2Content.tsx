@@ -19,6 +19,8 @@ import {
     defaultExperimentState,
     getExperimentState,
     ExperimentState,
+    getSurveyState,
+    SurveyState,
 } from "@ourworldindata/utils"
 import { RelatedCharts } from "./blocks/RelatedCharts.js"
 import StickyNav from "./blocks/StickyNav.js"
@@ -35,6 +37,7 @@ import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { faArrowRight, faArrowDown } from "@fortawesome/free-solid-svg-icons"
+import { SurveyForm } from "./Survey.js"
 
 declare global {
     interface Window {
@@ -126,6 +129,14 @@ export const DataPageV2Content = ({
 
     const { isPageInExperiment, assignedExperiments } = experimentState
 
+    const [surveyState, setSurveyState] = useState<SurveyState | null>(null)
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const s = getSurveyState()
+            setSurveyState(s)
+        }
+    }, [])
+
     return (
         <AttachmentsContext.Provider
             value={{
@@ -205,6 +216,13 @@ export const DataPageV2Content = ({
                                     insightsHref={insightsHref}
                                 />
                             )}
+
+                            {surveyState &&
+                                surveyState.activeSurveysOnPage.length > 0 && (
+                                    <SurveyForm
+                                        {...surveyState.activeSurveysOnPage[0]}
+                                    />
+                                )}
 
                             <AboutThisData
                                 datapageData={datapageData}
