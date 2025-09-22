@@ -170,4 +170,12 @@ export class SiteAnalytics extends GrapherAnalytics {
             eventTarget: url,
         })
     }
+
+    logChartPreviewMouseover(chartUrl: string) {
+        this.logToGA({
+            event: EventCategory.SiteChartPreviewMouseover,
+            eventAction: "mouseover",
+            eventTarget: chartUrl,
+        })
+    }
 }
