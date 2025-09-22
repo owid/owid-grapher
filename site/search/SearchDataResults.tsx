@@ -1,5 +1,4 @@
 import { queryCharts, searchQueryKeys } from "./queries.js"
-import { SiteAnalytics } from "../SiteAnalytics.js"
 import { useSelectedRegionNames, useInfiniteSearch } from "./searchHooks.js"
 import { SearchResultHeader } from "./SearchResultHeader.js"
 import {
@@ -10,14 +9,14 @@ import {
 import { SearchDataResultsSkeleton } from "./SearchDataResultsSkeleton.js"
 import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
 import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
-
-const analytics = new SiteAnalytics()
+import { useSearchContext } from "./SearchContext.js"
 
 export const SearchDataResults = ({
     isFirstChartLarge,
 }: {
     isFirstChartLarge: boolean
 }) => {
+    const { analytics } = useSearchContext()
     const selectedRegionNames = useSelectedRegionNames(true)
 
     const query = useInfiniteSearch<SearchChartsResponse, SearchChartHit>({
