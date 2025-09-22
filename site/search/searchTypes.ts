@@ -165,6 +165,7 @@ export type DataInsightHit = {
     thumbnailUrl: string
     date: string
     slug: string
+    type: OwidGdocType.DataInsight
     objectID: string
     __position: number
 }

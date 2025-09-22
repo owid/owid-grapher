@@ -13,6 +13,7 @@ export const SearchWritingTopic = ({
 }) => {
     const {
         actions: { setTopic },
+        analytics,
     } = useSearchContext()
 
     if (result.totalCount === 0) return null
@@ -49,10 +50,18 @@ export const SearchWritingTopic = ({
                             Featured articles
                         </h3>
                         <div className="search-writing-featured-articles__list">
-                            {result.articles.hits.map((hit) => (
+                            {result.articles.hits.map((hit, index) => (
                                 <SearchStackedArticleHit
                                     key={hit.objectID}
                                     hit={hit}
+                                    onClick={() => {
+                                        analytics.logSiteSearchResultClick(
+                                            hit,
+                                            index + 1,
+                                            "ribbon",
+                                            result.title
+                                        )
+                                    }}
                                 />
                             ))}
                         </div>
@@ -65,7 +74,7 @@ export const SearchWritingTopic = ({
                             Featured topic pages
                         </h3>
                         <ul className="search-writing-featured-topics__list">
-                            {result.topicPages.hits.map((hit) => (
+                            {result.topicPages.hits.map((hit, index) => (
                                 <li
                                     key={hit.objectID}
                                     className="search-writing-featured-topics__list-item"
@@ -76,6 +85,14 @@ export const SearchWritingTopic = ({
                                             hit.slug,
                                             hit.type
                                         )}
+                                        onClick={() => {
+                                            analytics.logSiteSearchResultClick(
+                                                hit,
+                                                index + 1,
+                                                "ribbon",
+                                                result.title
+                                            )
+                                        }}
                                     >
                                         {hit.title}
                                         <FontAwesomeIcon

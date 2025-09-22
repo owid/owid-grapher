@@ -33,14 +33,17 @@ export const SearchTopicPageHit = ({
     className,
     hit,
     variant = "small",
+    onClick,
 }: {
     className?: string
     hit: TopicPageHit
     variant?: "small" | "large"
+    onClick: VoidFunction
 }) => (
     <a
         className={cx("search-topic-page-hit", className)}
         href={getCanonicalPath(hit.slug, hit.type)}
+        onClick={onClick}
     >
         <div className="search-topic-page-hit__tag">Topic page</div>
         <h3 className="search-topic-page-hit__title">

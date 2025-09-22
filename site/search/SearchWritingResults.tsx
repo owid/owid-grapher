@@ -17,6 +17,7 @@ import { SearchFlatArticleHit } from "./SearchFlatArticleHit.js"
 import { SearchTopicPageHit } from "./SearchTopicPageHit.js"
 import { SearchWritingResultsSkeleton } from "./SearchWritingResultsSkeleton.js"
 import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
+import { useSearchContext } from "./SearchContext.js"
 
 function SingleColumnResults({
     articlePages,
@@ -27,6 +28,8 @@ function SingleColumnResults({
     topicPages: SearchTopicPageResponse[]
     hasLargeTopic: boolean
 }) {
+    const { analytics } = useSearchContext()
+
     const allHits = _.zip(articlePages, topicPages).flatMap(
         ([articlePage, topicPage]) => [
             ...(articlePage?.hits || []),
@@ -35,7 +38,7 @@ function SingleColumnResults({
     )
     return (
         <div className="search-writing-results__single-column">
-            {allHits.map((hit) => {
+            {allHits.map((hit, index) => {
                 if (
                     hit.type === OwidGdocType.TopicPage ||
                     hit.type === OwidGdocType.LinearTopicPage
@@ -45,6 +48,13 @@ function SingleColumnResults({
                             key={hit.objectID}
                             hit={hit}
                             variant={hasLargeTopic ? "large" : undefined}
+                            onClick={() => {
+                                analytics.logSiteSearchResultClick(
+                                    hit,
+                                    index + 1,
+                                    "search"
+                                )
+                            }}
                         />
                     )
                 } else {
@@ -52,6 +62,13 @@ function SingleColumnResults({
                         <SearchFlatArticleHit
                             key={hit.objectID}
                             hit={hit as FlatArticleHit}
+                            onClick={() => {
+                                analytics.logSiteSearchResultClick(
+                                    hit,
+                                    index + 1,
+                                    "search"
+                                )
+                            }}
                         />
                     )
                 }
@@ -69,6 +86,7 @@ function MultiColumnResults({
     topics: TopicPageHit[]
     hasLargeTopic: boolean
 }) {
+    const { analytics } = useSearchContext()
     // Calculate interleaved layout: 4 topics for every 5 articles (ratio
     // maintained proportionally).
     const interleavedTopicsCount = Math.round((articles.length * 4) / 5)
@@ -78,8 +96,18 @@ function MultiColumnResults({
         <div className="search-writing-results__grid">
             {articles.length > 0 && (
                 <div className="search-writing-results__articles">
-                    {articles.map((hit) => (
-                        <SearchFlatArticleHit key={hit.objectID} hit={hit} />
+                    {articles.map((hit, index) => (
+                        <SearchFlatArticleHit
+                            key={hit.objectID}
+                            hit={hit}
+                            onClick={() => {
+                                analytics.logSiteSearchResultClick(
+                                    hit,
+                                    index + 1,
+                                    "search"
+                                )
+                            }}
+                        />
                     ))}
                 </div>
             )}
@@ -89,10 +117,27 @@ function MultiColumnResults({
                         <SearchTopicPageHit
                             hit={interleavedTopics[0]}
                             variant="large"
+                            onClick={() => {
+                                analytics.logSiteSearchResultClick(
+                                    interleavedTopics[0],
+                                    1,
+                                    "search"
+                                )
+                            }}
                         />
                     ) : (
-                        interleavedTopics.map((hit) => (
-                            <SearchTopicPageHit key={hit.objectID} hit={hit} />
+                        interleavedTopics.map((hit, index) => (
+                            <SearchTopicPageHit
+                                key={hit.objectID}
+                                hit={hit}
+                                onClick={() => {
+                                    analytics.logSiteSearchResultClick(
+                                        hit,
+                                        index + 1,
+                                        "search"
+                                    )
+                                }}
+                            />
                         ))
                     )}
                 </div>
@@ -103,10 +148,27 @@ function MultiColumnResults({
                         <SearchTopicPageHit
                             hit={remainingTopics[0]}
                             variant="large"
+                            onClick={() => {
+                                analytics.logSiteSearchResultClick(
+                                    remainingTopics[0],
+                                    interleavedTopics.length + 1,
+                                    "search"
+                                )
+                            }}
                         />
                     ) : (
-                        remainingTopics.map((hit) => (
-                            <SearchTopicPageHit key={hit.objectID} hit={hit} />
+                        remainingTopics.map((hit, index) => (
+                            <SearchTopicPageHit
+                                key={hit.objectID}
+                                hit={hit}
+                                onClick={() => {
+                                    analytics.logSiteSearchResultClick(
+                                        hit,
+                                        interleavedTopics.length + index + 1,
+                                        "search"
+                                    )
+                                }}
+                            />
                         ))
                     )}
                 </div>
