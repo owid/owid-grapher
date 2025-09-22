@@ -2,12 +2,25 @@
 
 .homepage-intro {
     margin-top: 24px;
+    @include md-down {
+        margin-top: 16px;
+    }
 }
 
 /* Featured work */
+.homepage-intro__featured-work {
+    overflow: scroll;
+    @include md-down {
+        margin: 0 16px 24px 16px;
+    }
+}
+
 .homepage-intro__featured-work-column {
     display: flex;
     flex-direction: column;
+    @include md-down {
+        flex-direction: row;
+    }
 }
 
 .homepage-intro__featured-tile {
@@ -27,8 +40,18 @@
     }
 
     &:not(:first-child) {
-        .homepage-intro__featured-work-description {
-            display: none;
+        @include md-up {
+            .homepage-intro__featured-work-description {
+                display: none;
+            }
+        }
+    }
+
+    @include md-down {
+        width: 302px;
+        height: 100%;
+        &:first-child {
+            margin-right: 24px;
         }
     }
 }
@@ -65,6 +88,10 @@
     background-color: $gray-5;
     padding: 16px;
     align-self: start;
+
+    @include md-down {
+        padding-top: 24px;
+    }
 }
 
 .homepage-intro__announcements-header {
@@ -82,6 +109,10 @@
         color: $blue-90;
         margin: 0;
         flex: 0 0 75%;
+    }
+
+    @include md-down {
+        align-items: center;
     }
 }
 
@@ -109,6 +140,10 @@
             rgba(219, 229, 240, 0) 50%,
             $gray-5 100%
         );
+    }
+
+    @include md-down {
+        display: none;
     }
 }
 
@@ -141,12 +176,32 @@
     color: $blue-90;
 }
 
+.homepage-intro__subscribe-button {
+    display: none;
+    @include md-down {
+        display: block;
+        margin-top: 16px;
+    }
+}
+
 /* Newsletter */
 .homepage-intro__newsletter-signup {
     background-color: $accent-pale-blue;
 
     .NewsletterSubscriptionForm__header {
         font-weight: bold;
+    }
+
+    @include md-down {
+        background-color: $gray-5;
+        padding-top: 8px;
+        .newsletter-with-socials__header,
+        .newsletter-with-socials__form {
+            display: none;
+        }
+        .newsletter-with-socials__social-cta {
+            margin-top: 0;
+        }
     }
 }
 
@@ -169,5 +224,10 @@
     a {
         color: $vermillion;
         text-decoration: underline;
+    }
+
+    @include md-down {
+        margin: 16px;
+        margin-bottom: 0;
     }
 }
