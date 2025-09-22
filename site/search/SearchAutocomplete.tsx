@@ -13,7 +13,6 @@ import {
 import { useSearchAutocomplete } from "./SearchAutocompleteContext.js"
 import { SearchAutocompleteItemContents } from "./SearchAutocompleteItemContents.js"
 import { Filter, FilterType } from "./searchTypes.js"
-import { SiteAnalytics } from "../SiteAnalytics.js"
 import { useSearchContext } from "./SearchContext.js"
 import { listedRegionsNames } from "@ourworldindata/utils"
 
@@ -41,9 +40,8 @@ export const SearchAutocomplete = ({
         state: { filters },
         actions: { addCountry, setTopic },
         synonymMap,
+        analytics,
     } = useSearchContext()
-
-    const analytics = useMemo(() => new SiteAnalytics(), [])
 
     const { suggestions, unmatchedQuery } = useMemo(() => {
         if (!localQuery && !filters.length) {
