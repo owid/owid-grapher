@@ -1,7 +1,6 @@
 import * as _ from "lodash-es"
 import { GrapherAnalytics, EventCategory } from "@ourworldindata/grapher"
 import {
-    type SearchCategoryFilter,
     type SearchChartHit,
     type SearchState,
     type FlatArticleHit,
@@ -29,38 +28,6 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logSearchClick({
-        query,
-        position,
-        url,
-        positionInSection,
-        cardPosition,
-        positionWithinCard,
-        filter,
-    }: {
-        query: string
-        position: string
-        positionInSection: string
-        cardPosition?: string
-        positionWithinCard?: string
-        url: string
-        filter: SearchCategoryFilter
-    }) {
-        this.logToGA({
-            event: EventCategory.SiteSearchClick,
-            eventAction: "click",
-            eventContext: JSON.stringify({
-                query,
-                position,
-                positionInSection,
-                cardPosition,
-                positionWithinCard,
-                filter,
-            }),
-            eventTarget: url,
-        })
-    }
-
     logInstantSearchClick({
         query,
         url,
@@ -78,14 +45,6 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logSearchFilterClick({ key }: { key: string }) {
-        this.logToGA({
-            event: EventCategory.SiteSearchFilterClick,
-            eventAction: "click",
-            eventContext: key,
-        })
-    }
-
     logDodShown(id: string) {
         this.logToGA({
             event: EventCategory.DetailOnDemand,
@@ -96,7 +55,7 @@ export class SiteAnalytics extends GrapherAnalytics {
 
     logSearch(state: SearchState) {
         this.logToGA({
-            event: EventCategory.DataCatalogSearch,
+            event: EventCategory.SiteSearch,
             eventAction: "search",
             eventContext: JSON.stringify({
                 ...state,
@@ -111,7 +70,12 @@ export class SiteAnalytics extends GrapherAnalytics {
     }
 
     logSiteSearchResultClick(
-        hit: SearchChartHit | FlatArticleHit | TopicPageHit | DataInsightHit | StackedArticleHit,
+        hit:
+            | SearchChartHit
+            | FlatArticleHit
+            | TopicPageHit
+            | DataInsightHit
+            | StackedArticleHit,
         position: number,
         source: "ribbon" | "search", // "ribbons" are the per-area overview components present on the unparametrized browse pages for writing and data.
         ribbonTag?: string
