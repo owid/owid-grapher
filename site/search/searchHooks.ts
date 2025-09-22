@@ -68,8 +68,9 @@ export function useTagGraphTopics(topicTagGraph: TagGraphRoot | null): {
 /**
  * Handles analytics tracking for search state changes
  */
-export function useSearchAnalytics(
+export function useSearchStateAnalytics(
     state: SearchState,
+    analytics: SiteAnalytics,
     isInitialUrlStateLoaded: boolean
 ): void {
     const stateAsUrl = searchStateToUrl(state)
@@ -81,9 +82,8 @@ export function useSearchAnalytics(
         // `state` dependency in this effect, which would cause it to run on
         // every state change (even no-ops)
         const state = urlToSearchState(Url.fromURL(stateAsUrl))
-        const analytics = new SiteAnalytics()
         analytics.logSearch(state)
-    }, [stateAsUrl, isInitialUrlStateLoaded])
+    }, [stateAsUrl, isInitialUrlStateLoaded, analytics])
 }
 
 /**
