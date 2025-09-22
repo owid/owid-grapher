@@ -1,4 +1,9 @@
-import { KnexReadonlyTransaction, KnexReadWriteTransaction } from "../db.js"
+import {
+    KnexReadonlyTransaction,
+    KnexReadWriteTransaction,
+    knexRaw,
+    knexRawFirst,
+} from "../db.js"
 import {
     DbInsertExplorer,
     DbPlainExplorer,
@@ -7,6 +12,10 @@ import {
 import { areSetsEqual } from "@ourworldindata/utils"
 import { parseExplorer } from "../explorerParser.js"
 import { enqueueJob, updateExplorerRefreshStatus } from "./Jobs.js"
+
+function placeholders(count: number): string {
+    return new Array(count).fill("?").join(", ")
+}
 
 type PlainExplorerWithLastCommit = Required<DbPlainExplorer> & {
     // lastCommit is a relic from our git-CMS days, it should be broken down
@@ -114,7 +123,7 @@ async function validateChartIds(
 ): Promise<number[]> {
     if (!proposed.length) return []
     const foundRows = await knex("charts").whereIn("id", proposed).select("id")
-    const found = foundRows.map((row: any) => row.id)
+    const found = foundRows.map((row) => row.id)
     const missing = proposed.filter((id) => !found.includes(id))
     if (missing.length > 0) {
         console.warn("Missing charts in db:", missing)
@@ -132,18 +141,26 @@ export async function upsertExplorerCharts(
     const existingRows = await knex("explorer_charts").where({
         explorerSlug: slug,
     })
-    const existing = new Set<number>(
-        existingRows.map((row: any) => row.chartId)
-    )
+    const existing = new Set<number>(existingRows.map((row) => row.chartId))
 
-    console.log(`Upserting chart links for explorer [${slug}]`)
     if (!areSetsEqual(validChartIds, existing)) {
-        await knex("explorer_charts").where({ explorerSlug: slug }).delete()
+        await knexRaw(
+            knex,
+            `-- sql
+                DELETE FROM explorer_charts
+                WHERE explorerSlug = ?
+            `,
+            [slug]
+        )
         for (const chartId of validChartIds) {
-            await knex("explorer_charts").insert({
-                explorerSlug: slug,
-                chartId,
-            })
+            await knexRaw(
+                knex,
+                `-- sql
+                    INSERT INTO explorer_charts (explorerSlug, chartId)
+                    VALUES (?, ?)
+                `,
+                [slug, chartId]
+            )
         }
     }
 }
@@ -157,7 +174,7 @@ async function validateVariableIds(
     const foundRows = await knex("variables")
         .whereIn("id", proposed)
         .select("id")
-    const found = foundRows.map((row: any) => row.id)
+    const found = foundRows.map((row) => row.id)
     const missing = proposed.filter((id) => !found.includes(id))
     if (missing.length > 0) {
         console.error("missing variables in db", {
@@ -224,9 +241,7 @@ export async function upsertExplorerVariables(
     const existingRows = await knex("explorer_variables").where({
         explorerSlug: slug,
     })
-    const existing = new Set<number>(
-        existingRows.map((row: any) => row.variableId)
-    )
+    const existing = new Set<number>(existingRows.map((row) => row.variableId))
 
     if (!areSetsEqual(proposedUnion, existing)) {
         console.log("Linking explorer to variables", {
@@ -257,23 +272,44 @@ export async function upsertExplorer(
     const config = JSON.stringify(parseExplorer(slug, tsv))
 
     // Check if explorer with this catalog path already exists
-    const existingExplorer = await knex<DbPlainExplorer>(ExplorersTableName)
-        .where({ slug })
-        .first()
+    const existingExplorer = await knexRawFirst<DbPlainExplorer>(
+        knex,
+        `-- sql
+            SELECT *
+            FROM ${ExplorersTableName}
+            WHERE slug = ?
+            LIMIT 1
+        `,
+        [slug]
+    )
 
     // NOTE: We could do an actual upsert on the DB level here (see e.g. upsertMultiDimDataPage)
     if (existingExplorer) {
         // Update existing explorer
-        await knex<DbPlainExplorer>(ExplorersTableName)
-            .where({ slug: existingExplorer.slug })
-            .update({
+        const now = new Date()
+        await knexRaw(
+            knex,
+            `-- sql
+                UPDATE ${ExplorersTableName}
+                SET
+                    tsv = ?,
+                    config = ?,
+                    commitMessage = ?,
+                    lastEditedByUserId = ?,
+                    lastEditedAt = ?,
+                    updatedAt = ?
+                WHERE slug = ?
+            `,
+            [
                 tsv,
                 config,
                 commitMessage,
                 lastEditedByUserId,
-                lastEditedAt: new Date(),
-                updatedAt: new Date(),
-            })
+                now,
+                now,
+                existingExplorer.slug,
+            ]
+        )
     } else {
         // Create new explorer
         // isPublished is currently set in the
@@ -283,14 +319,27 @@ export async function upsertExplorer(
             "isPublished\tfalse"
         )
 
-        await knex<DbPlainExplorer>(ExplorersTableName).insert({
-            tsv: unpublishedTSV,
-            slug,
-            lastEditedByUserId,
-            lastEditedAt: new Date(),
-            commitMessage,
-            config,
-        })
+        await knexRaw(
+            knex,
+            `-- sql
+                INSERT INTO ${ExplorersTableName} (
+                    tsv,
+                    slug,
+                    lastEditedByUserId,
+                    lastEditedAt,
+                    commitMessage,
+                    config
+                ) VALUES (?, ?, ?, ?, ?, ?)
+            `,
+            [
+                unpublishedTSV,
+                slug,
+                lastEditedByUserId,
+                new Date(),
+                commitMessage,
+                config,
+            ]
+        )
     }
 
     await upsertExplorerCharts(knex, slug, JSON.parse(config))
@@ -307,11 +356,19 @@ export async function enqueueExplorerRefreshJobsForDependencies(
     const slugSet = new Set<string>()
 
     if (chartIds.length > 0) {
-        const chartSlugRows = await knex("explorer_charts as ec")
-            .distinct("ec.explorerSlug as slug")
-            .join("explorers as e", "e.slug", "ec.explorerSlug")
-            .whereIn("ec.chartId", chartIds)
-            .andWhere("e.isPublished", 1)
+        const chartSlugRows = await knexRaw<{ slug: string }>(
+            knex,
+            `-- sql
+                SELECT DISTINCT ec.explorerSlug AS slug
+                FROM explorer_charts ec
+                JOIN ${ExplorersTableName} e ON e.slug = ec.explorerSlug
+                WHERE ec.chartId IN (?)
+                    AND e.isPublished = 1
+            `,
+            [chartIds]
+        )
+
+        console.log("chart dependency rows", { chartIds, chartSlugRows })
 
         for (const row of chartSlugRows) {
             if (row.slug) slugSet.add(row.slug)
@@ -319,11 +376,22 @@ export async function enqueueExplorerRefreshJobsForDependencies(
     }
 
     if (variableIds.length > 0) {
-        const variableSlugRows = await knex("explorer_variables as ev")
-            .distinct("ev.explorerSlug as slug")
-            .join("explorers as e", "e.slug", "ev.explorerSlug")
-            .whereIn("ev.variableId", variableIds)
-            .andWhere("e.isPublished", 1)
+        const variableSlugRows = await knexRaw<{ slug: string }>(
+            knex,
+            `-- sql
+                SELECT DISTINCT ev.explorerSlug AS slug
+                FROM explorer_variables ev
+                JOIN ${ExplorersTableName} e ON e.slug = ev.explorerSlug
+                WHERE ev.variableId IN (?)
+                    AND e.isPublished = 1
+            `,
+            [variableIds]
+        )
+
+        console.log("variable dependency rows", {
+            variableIds,
+            variableSlugRows,
+        })
 
         for (const row of variableSlugRows) {
             if (row.slug) slugSet.add(row.slug)
@@ -333,11 +401,17 @@ export async function enqueueExplorerRefreshJobsForDependencies(
     if (slugSet.size === 0) return
 
     const slugs = [...slugSet]
-    const explorers = await knex<Pick<DbPlainExplorer, "slug" | "updatedAt">>(
-        ExplorersTableName
+    const explorers = await knexRaw<
+        Pick<DbPlainExplorer, "slug" | "updatedAt">
+    >(
+        knex,
+        `-- sql
+            SELECT slug, updatedAt
+            FROM ${ExplorersTableName}
+            WHERE slug IN (?)
+        `,
+        [slugs]
     )
-        .select("slug", "updatedAt")
-        .whereIn("slug", slugs)
 
     for (const explorer of explorers) {
         if (!explorer.updatedAt) continue
@@ -356,37 +430,43 @@ export async function getExplorerBySlug(
     knex: KnexReadonlyTransaction,
     slug: string
 ): Promise<PlainExplorerWithLastCommit | undefined> {
-    const row = await knex<ExplorerWithUserInfo>(ExplorersTableName)
-        .leftJoin(
-            "users",
-            `${ExplorersTableName}.lastEditedByUserId`,
-            "users.id"
-        )
-        .select(`${ExplorersTableName}.*`, "users.fullName", "users.email")
-        .where({ slug })
-        .first()
+    const row = await knexRawFirst<ExplorerWithUserInfo>(
+        knex,
+        `-- sql
+            SELECT e.*, u.fullName, u.email
+            FROM ${ExplorersTableName} e
+            LEFT JOIN users u ON e.lastEditedByUserId = u.id
+            WHERE e.slug = ?
+            LIMIT 1
+        `,
+        [slug]
+    )
 
-    if (row) {
-        row.lastCommit = createLastCommit(row, row.fullName, row.email)
+    if (!row) return undefined
+
+    const withCommit: PlainExplorerWithLastCommit = {
+        ...row,
+        lastCommit: createLastCommit(row, row.fullName, row.email),
     }
 
-    return row
+    return withCommit
 }
 
 export async function getAllExplorers(
     knex: KnexReadonlyTransaction
 ): Promise<PlainExplorerWithLastCommit[]> {
     // Use left join to fetch users in one query
-    const rows = await knex<ExplorerWithUserInfo>(ExplorersTableName)
-        .leftJoin(
-            "users",
-            `${ExplorersTableName}.lastEditedByUserId`,
-            "users.id"
-        )
-        .select(`${ExplorersTableName}.*`, "users.fullName", "users.email")
+    const rows = await knexRaw<ExplorerWithUserInfo>(
+        knex,
+        `-- sql
+            SELECT e.*, u.fullName, u.email
+            FROM ${ExplorersTableName} e
+            LEFT JOIN users u ON e.lastEditedByUserId = u.id
+        `
+    )
 
-    rows.forEach((row) => {
-        row.lastCommit = createLastCommit(row, row.fullName, row.email)
-    })
-    return rows
+    return rows.map((row) => ({
+        ...row,
+        lastCommit: createLastCommit(row, row.fullName, row.email),
+    }))
 }
