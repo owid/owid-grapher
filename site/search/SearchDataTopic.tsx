@@ -3,12 +3,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { commafyNumber } from "@ourworldindata/utils"
 import * as React from "react"
 import { SearchDataTopicsResponse } from "./searchTypes.js"
-import { SiteAnalytics } from "../SiteAnalytics.js"
 import { useSearchContext } from "./SearchContext.js"
 import { useSelectedRegionNames } from "./searchHooks.js"
 import { SearchChartHitComponent } from "./SearchChartHitComponent.js"
-
-const analytics = new SiteAnalytics()
 
 export const SearchDataTopic = ({
     result: { title, charts },
@@ -17,6 +14,7 @@ export const SearchDataTopic = ({
 }) => {
     const {
         actions: { setTopic },
+        analytics,
     } = useSearchContext()
 
     const selectedRegionNames = useSelectedRegionNames(true)
