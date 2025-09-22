@@ -3,9 +3,7 @@ import cx from "classnames"
 
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { Button } from "@ourworldindata/components"
-import { NewsletterSubscriptionContext } from "../../newsletter.js"
 import LatestDataInsights from "./LatestDataInsights.js"
-import DataInsightsNewsletter from "./DataInsightsNewsletter.js"
 
 export default function LatestDataInsightsBlock({
     className,
@@ -33,9 +31,6 @@ export default function LatestDataInsightsBlock({
             <LatestDataInsights
                 className="span-cols-12 col-start-2"
                 latestDataInsights={latestDataInsights}
-            />
-            <DataInsightsNewsletter
-                context={NewsletterSubscriptionContext.HomepageDataInsights}
             />
         </section>
     )
