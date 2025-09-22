@@ -218,18 +218,6 @@ function runSiteTools() {
         const root = createRoot(siteToolsElem)
         root.render(<SiteTools />)
     }
-
-    const newsletterSubscriptionFormRootHomepage = document.querySelector(
-        ".homepage-social-ribbon #newsletter-subscription-root"
-    )
-    if (newsletterSubscriptionFormRootHomepage) {
-        hydrateRoot(
-            newsletterSubscriptionFormRootHomepage,
-            <NewsletterSubscriptionForm
-                context={NewsletterSubscriptionContext.Homepage}
-            />
-        )
-    }
 }
 
 const hydrateOwidGdoc = (debug?: boolean, isPreviewing?: boolean) => {
