@@ -4,6 +4,10 @@ import {
     type SearchCategoryFilter,
     type SearchChartHit,
     type SearchState,
+    type FlatArticleHit,
+    type TopicPageHit,
+    type DataInsightHit,
+    type StackedArticleHit,
     FilterType,
 } from "./search/searchTypes.js"
 import { getFilterNamesOfType } from "./search/searchUtils.js"
@@ -106,19 +110,20 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logDataCatalogResultClick(
-        hit: SearchChartHit,
+    logSiteSearchResultClick(
+        hit: SearchChartHit | FlatArticleHit | TopicPageHit | DataInsightHit | StackedArticleHit,
         position: number,
-        source: "ribbon" | "search",
+        source: "ribbon" | "search", // "ribbons" are the per-area overview components present on the unparametrized browse pages for writing and data.
         ribbonTag?: string
     ) {
         const eventContext = {
             position,
             source,
+            type: hit.type,
         }
         if (ribbonTag) _.set(eventContext, "ribbonTag", ribbonTag)
         this.logToGA({
-            event: EventCategory.DataCatalogResultClick,
+            event: EventCategory.SiteSearchResultClick,
             eventAction: "click",
             eventContext: JSON.stringify(eventContext),
             eventTarget: hit.slug,

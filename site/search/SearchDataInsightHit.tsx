@@ -7,9 +7,11 @@ import { DataInsightHit } from "./searchTypes.js"
 export const SearchDataInsightHit = ({
     hit,
     className,
+    onClick,
 }: {
     hit: DataInsightHit
     className?: string
+    onClick: VoidFunction
 }) => {
     const href = getCanonicalUrl("", {
         slug: hit.slug,
@@ -17,7 +19,11 @@ export const SearchDataInsightHit = ({
     })
 
     return (
-        <a className={cx("search-data-insight-hit", className)} href={href}>
+        <a
+            className={cx("search-data-insight-hit", className)}
+            href={href}
+            onClick={onClick}
+        >
             <article>
                 {hit.thumbnailUrl && (
                     <div className="search-data-insight-hit__image-container">
