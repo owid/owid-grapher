@@ -27,11 +27,11 @@ export enum EventCategory {
     SiteSearchClick = "owid.site_search_click",
     SiteSearchFilterClick = "owid.site_search_filter_click",
     SiteInstantSearchClick = "owid.site_instantsearch_click",
+    SiteSearchResultClick = "owid.site_search_result_click",
     SiteSearchAutocompleteClick = "owid.site_search_autocomplete_click",
     SiteFormSubmit = "owid.site_form_submit",
     DetailOnDemand = "owid.detail_on_demand",
     DataCatalogSearch = "owid.data_catalog_search",
-    DataCatalogResultClick = "owid.data_catalog_result_click",
     SiteGuidedChartLinkClick = "owid.site_guided_chart_link_click",
     SiteChartPreviewMouseover = "owid.site_chart_preview_mouseover",
 }

@@ -52,7 +52,7 @@ export const SearchDataResults = ({
                                           : "small"
 
                                 const onClick = () => {
-                                    analytics.logDataCatalogResultClick(
+                                    analytics.logSiteSearchResultClick(
                                         hit,
                                         hitIndex + 1,
                                         "search"

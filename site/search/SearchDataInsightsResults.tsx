@@ -9,8 +9,10 @@ import { SearchResultHeader } from "./SearchResultHeader.js"
 import { useInfiniteSearch } from "./searchHooks.js"
 import { SearchDataInsightsResultsSkeleton } from "./SearchDataInsightsResultsSkeleton.js"
 import { SearchHorizontalDivider } from "./SearchHorizontalDivider.js"
+import { useSearchContext } from "./SearchContext.js"
 
 export function SearchDataInsightsResults() {
+    const { analytics } = useSearchContext()
     const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const query = useInfiniteSearch<SearchDataInsightResponse, DataInsightHit>({
         queryKey: (state) => searchQueryKeys.dataInsights(state),
@@ -48,10 +50,17 @@ export function SearchDataInsightsResults() {
                             ref={container}
                             className="search-data-insights-results__hits"
                         >
-                            {hits.map((hit: DataInsightHit) => (
+                            {hits.map((hit: DataInsightHit, index) => (
                                 <SearchDataInsightHit
                                     key={hit.objectID}
                                     hit={hit}
+                                    onClick={() => {
+                                        analytics.logSiteSearchResultClick(
+                                            hit,
+                                            index + 1,
+                                            "search"
+                                        )
+                                    }}
                                 />
                             ))}
                             {query.hasNextPage && (
