@@ -50,6 +50,18 @@
     margin-bottom: 16px;
 }
 
+.latest-page .newsletter-with-socials {
+    @include md-down {
+        display: none;
+    }
+}
+
+.latest-page .newsletter-with-socials__social-cta {
+    @include md-down {
+        display: none;
+    }
+}
+
 /* Data Insight */
 .latest-page__data-insight {
     h2 {
