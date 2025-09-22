@@ -115,7 +115,7 @@ function HomepageAnnouncements() {
     const announcements = prop(homepageMetadata, "announcements")
     if (!announcements || announcements.length === 0) return null
     return (
-        <div className="homepage-intro__announcements span-cols-3 col-start-8">
+        <div className="homepage-intro__announcements span-cols-3 col-start-8 span-md-cols-14 col-md-start-1">
             <div className="homepage-intro__announcements-header">
                 <AnnouncementsIcon />
                 <h4 className="h2-bold">Updates and Announcements</h4>
@@ -153,6 +153,12 @@ function HomepageAnnouncements() {
                 href="/latest"
                 text="See all updates"
                 theme="outline-vermillion"
+            />
+            <Button
+                className="homepage-intro__subscribe-button"
+                href="/subscribe"
+                text="Subscribe to our newsletters"
+                theme="solid-vermillion"
             />
         </div>
     )
@@ -199,7 +205,7 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
     const [w1, w2, w3, w4] = getSortedFeaturedWork(featuredWork)
     return (
         <section className={cx("homepage-intro", className)}>
-            <div className="homepage-intro__featured-work grid grid-cols-2 span-cols-6 col-start-2">
+            <div className="homepage-intro__featured-work grid grid-cols-2 span-cols-6 col-start-2 span-md-cols-14">
                 <div className="homepage-intro__featured-work-column">
                     <FeaturedWorkTile {...w1} />
                     <FeaturedWorkTile {...w3} />
@@ -210,7 +216,7 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                 </div>
             </div>
             <HomepageAnnouncements />
-            <div className="span-cols-3 col-start-11">
+            <div className="span-cols-3 col-start-11 span-md-cols-14 col-md-start-1">
                 <NewsletterWithSocials className="homepage-intro__newsletter-signup" />
                 <DonationCta />
             </div>
