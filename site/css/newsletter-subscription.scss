@@ -150,10 +150,6 @@
     .newsletter-with-socials__social-cta {
         @include h3-bold;
         margin: 16px 0;
-
-        @include md-down {
-            display: none;
-        }
     }
 
     .newsletter-with-socials__socials {
@@ -164,10 +160,6 @@
         flex-wrap: wrap;
         justify-content: space-between;
         gap: 16px;
-
-        @include md-down {
-            display: none;
-        }
 
         a {
             color: $blue-60;
