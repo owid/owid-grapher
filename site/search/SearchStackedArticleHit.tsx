@@ -2,11 +2,18 @@ import { getCanonicalPath } from "@ourworldindata/components"
 import { Snippet } from "react-instantsearch"
 import { StackedArticleHit } from "./searchTypes.js"
 
-export function SearchStackedArticleHit({ hit }: { hit: StackedArticleHit }) {
+export function SearchStackedArticleHit({
+    hit,
+    onClick,
+}: {
+    hit: StackedArticleHit
+    onClick: VoidFunction
+}) {
     return (
         <a
             className="search-stacked-article-hit"
             href={getCanonicalPath(hit.slug, hit.type)}
+            onClick={onClick}
         >
             <article>
                 {hit.thumbnailUrl && (
