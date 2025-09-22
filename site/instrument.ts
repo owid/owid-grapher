@@ -34,7 +34,6 @@ if (LOAD_SENTRY) {
     Sentry.init({
         dsn: SENTRY_DSN,
         environment: ENV,
-        debug: ENV === "development",
         release: COMMIT_SHA,
         integrations: [
             Sentry.replayIntegration({
