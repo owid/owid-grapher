@@ -23,47 +23,6 @@
     }
 }
 
-.homepage-subscribe--social-media {
-    margin-top: var(--grid-gap);
-    padding: 24px;
-    h2 {
-        margin: 0;
-    }
-    .shaded-box {
-        flex: 1;
-        padding: 2rem;
-        background-color: $blue-10;
-        color: $text-color;
-    }
-
-    .list-item {
-        color: #1d3d63;
-        display: flex;
-        align-items: center;
-        transition: opacity 0.2s ease;
-        .icon {
-            font-size: 1.375rem;
-            flex: 0;
-            min-width: 2.1rem;
-        }
-    }
-
-    .label {
-        font-size: 1rem;
-        font-weight: 700;
-        flex: 1;
-    }
-}
-
-.homepage-social-ribbon__social-media {
-    margin-top: var(--grid-gap);
-    padding: 24px;
-    background-color: $blue-20;
-    h2 {
-        margin: 0;
-    }
-}
-
 .NewsletterSubscription__email {
     flex: 1;
     margin-right: 8px;
@@ -95,51 +54,13 @@
     }
 }
 
-.homepage-social-ribbon__social-list {
-    grid-template-columns: 1fr; // fallback for browsers that don't support `max()` below.
-
-    // A bunch of magic CSS! Let me explain.
-    // The goal here is to span the social links over 1 or 2 columns, ensuring that each column is at least 120px wide.
-
-    // The width of a column if there are precisely 2 columns - we don't want to have more than 2 columns here.
-    --half-width: calc(50% - var(--grid-gap) / 2);
-    // A column should be at least 128px wide, but can grow to fill the available space to ensure we don't create more than 2 columns.
-    --min-column-width: max(var(--half-width), 128px);
-    // We want to fit 1 or 2 columns into the available space, depending on available width.
-    grid-template-columns: repeat(
-        auto-fit,
-        minmax(var(--min-column-width), 1fr)
-    );
-
-    margin-top: 16px;
-    li {
-        list-style: none;
-        margin-bottom: 8px;
-        &:hover {
-            a {
-                color: $blue-60;
-            }
-        }
-        a {
-            color: $blue-90;
-            font-weight: bold;
-
-            .icon {
-                display: inline-block;
-                width: 25px;
-            }
-        }
-        svg {
-            margin-right: 8px;
-        }
-    }
-}
 .homepage-topics-section {
+    background-color: $gray-5;
     @include sm-only {
         display: none;
     }
     > h2 {
-        margin-top: 40px;
+        margin-top: 32px;
         margin-bottom: 0;
         & + p {
             margin-bottom: 8px;
