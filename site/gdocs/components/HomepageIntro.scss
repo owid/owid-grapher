@@ -140,8 +140,8 @@
             opacity: 0;
         }
         &:after {
-            content: "";
             pointer-events: none;
+            content: "";
             width: 100%;
             height: 100%;
             position: absolute;
@@ -153,10 +153,10 @@
                 $gray-5 100%
             );
         }
-    }
 
-    @include md-down {
-        display: none;
+        @include md-down {
+            display: none;
+        }
     }
 }
 
