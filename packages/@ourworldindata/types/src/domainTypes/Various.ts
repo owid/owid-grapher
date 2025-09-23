@@ -38,6 +38,7 @@ export enum SiteFooterContext {
     default = "default",
     dataInsightsIndexPage = "data-insights-index-page",
     searchPage = "search-page",
+    subscribePage = "subscribe-page",
 }
 
 export interface GitCommit {
