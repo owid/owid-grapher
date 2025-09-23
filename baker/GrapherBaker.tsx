@@ -277,7 +277,7 @@ export async function renderDataPageV2(
             )
             datapageData.dataInsights = dataInsights.slice(0, 3).map((row) => {
                 return {
-                    title: row.content?.title,
+                    title: row.content.title,
                     slug: row.slug,
                 }
             })
