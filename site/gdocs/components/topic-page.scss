@@ -213,6 +213,11 @@
     .article-block__sticky-right-left-column h2:first-child {
         margin-top: 0;
     }
+
+    // Override grid-margin-overrides for the prominent link below the explorer on the migration topic page.
+    .article-block__prominent-link:first-child {
+        margin-top: 32px !important;
+    }
 }
 
 .centered-article-container--topic-page #article-citation h3 {
