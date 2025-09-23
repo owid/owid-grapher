@@ -1399,27 +1399,6 @@ div.raw-html-table__container {
         }
     }
 
-    .homepage-search__all-topics-link {
-        // We hide the all topics section on mobile, so we don't want users to be able to click this
-        @include sm-only {
-            pointer-events: none;
-            text-decoration: none;
-        }
-    }
-
-    .homepage-search__open-source-notice {
-        &:before {
-            content: " — ";
-        }
-
-        @include sm-only {
-            display: block;
-            &:before {
-                content: none;
-            }
-        }
-    }
-
     #autocomplete {
         height: 56px;
         background-color: #fff;
@@ -1479,16 +1458,58 @@ div.raw-html-table__container {
         color: $blue-30;
     }
 
-    p {
+    .homepage-search__links-and-tagline {
         color: $blue-30;
         display: inline-block;
-        margin: 8px 0 32px;
+        margin: 16px 0 24px;
+        @include sm-only {
+            margin: 16px;
+        }
+    }
+
+    .homepage-search__links {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        @include sm-only {
+            display: none;
+        }
+    }
+
+    .homepage-search__links--mobile {
+        display: none;
         a {
             @include owid-link-60;
             color: $blue-30;
             &:visited {
                 color: $blue-30;
             }
+        }
+        @include sm-only {
+            display: block;
+        }
+    }
+
+    .homepage-search__link {
+        @include owid-link-60;
+        color: $blue-30;
+        text-decoration: none;
+        border: 1px solid $blue-40;
+        border-radius: 32px;
+        padding: 4.5px 12px;
+        &:visited {
+            color: $blue-30;
+        }
+        &:hover {
+            color: $blue-20;
+            border-color: $blue-20;
+        }
+    }
+
+    .homepage-search__tagline {
+        margin-bottom: 0;
+        @include sm-only {
+            margin-top: 0;
         }
     }
 }
