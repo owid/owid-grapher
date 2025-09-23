@@ -254,7 +254,6 @@ export async function renderDataPageV2(
             ? tagsWithDataInsights.has(datapageData.primaryTopic.topicTag)
             : false
 
-        console.log(grapher.slug)
         const isInExperiment =
             grapher.slug !== undefined
                 ? experiments.some(
