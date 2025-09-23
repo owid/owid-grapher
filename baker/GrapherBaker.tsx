@@ -254,19 +254,21 @@ export async function renderDataPageV2(
             ? tagsWithDataInsights.has(datapageData.primaryTopic.topicTag)
             : false
 
-        const isInExperiment =
+        const isInInsightsExperiment =
             grapher.slug !== undefined
                 ? experiments.some(
                       (exp) =>
+                          exp.id === "exp-data-page-insight-btns-2" &&
                           !exp.isExpired() &&
                           exp.isUrlInPaths(`/grapher/${grapher.slug}`)
                   )
                 : false
-        // only retrieve data insights if topic has data insights and grapher is
-        // in path of at least one active experiment
+
+        // only retrieve data insights and add to datapageData if topic has data
+        // insights and grapher is in path of the exp-data-page-insight-btns-2 experiment
         if (
             datapageData.hasDataInsights &&
-            isInExperiment &&
+            isInInsightsExperiment &&
             datapageData.primaryTopic?.topicTag
         ) {
             const dataInsights = await GdocDataInsight.getPublishedDataInsights(
