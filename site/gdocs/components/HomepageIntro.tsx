@@ -11,13 +11,17 @@ import { DocumentContext } from "../DocumentContext.js"
 import Image, { ImageParentContainer } from "./Image.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import * as R from "remeda"
-import { NewsletterWithSocials } from "../../NewsletterSubscription.js"
+import {
+    NewsletterSubscriptionForm,
+    NewsletterSubscriptionHeader,
+} from "../../NewsletterSubscription.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { Button } from "@ourworldindata/components"
 import { AnnouncementsIcon } from "./AnnouncementsIcon.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faHeart } from "@fortawesome/free-solid-svg-icons"
 import { useResizeObserver } from "usehooks-ts"
+import { OwidSocials } from "../../OwidSocials.js"
 
 type FeaturedWorkTileProps = EnrichedBlockHomepageIntroPost & {
     isTertiary?: boolean
@@ -285,7 +289,11 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
             </div>
             <HomepageAnnouncements />
             <div className="span-cols-3 col-start-11 span-md-cols-14 col-md-start-1">
-                <NewsletterWithSocials className="homepage-intro__newsletter-signup" />
+                <div className="homepage-intro__newsletter-signup">
+                    <NewsletterSubscriptionHeader />
+                    <NewsletterSubscriptionForm />
+                    <OwidSocials />
+                </div>
                 <DonationCta />
             </div>
         </section>
