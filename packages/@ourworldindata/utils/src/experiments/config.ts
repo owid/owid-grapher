@@ -1,3 +1,4 @@
+import { SENTRY_DEFAULT_REPLAYS_SESSION_SAMPLE_RATE } from "@ourworldindata/types"
 import { Experiment } from "./Experiment.js"
 
 /*
@@ -6,41 +7,7 @@ import { Experiment } from "./Experiment.js"
 export const experiments: Experiment[] = [
     new Experiment({
         /*
-         * Experiment: data-page-insight-butons-basic
-         *
-         * Control arm: no changes
-         * Control arm control1: "what you should know about this data" block is moved down the page (also the case in arms treat0 and treat1)
-         * Treatment arm treat0: show placebo button ("Data sources and measurement") beneath grapher
-         * Treatment arm treat1: show "view insights about this data" button beneath grapher
-         */
-        id: "data-page-insight-btns-basic",
-        expires: "2025-09-04T00:00:00.000Z",
-        arms: [
-            // control arm
-            { id: "control", fraction: 0.7, replaysSessionSampleRate: 0.1 },
-            // control arm, with "what you should know about this data" block moved down
-            { id: "control1", fraction: 0.1, replaysSessionSampleRate: 1 },
-            // experimental arm: placebo button ("Data sources and measurement")
-            { id: "treat0", fraction: 0.1, replaysSessionSampleRate: 1 },
-            // experimental arm: "View insights about this data" button
-            { id: "treat1", fraction: 0.1, replaysSessionSampleRate: 1 },
-        ],
-        paths: [
-            "/grapher/co-emissions-per-capita",
-            "/grapher/life-expectancy",
-            "/grapher/democracy-index-eiu",
-            "/grapher/child-mortality",
-            "/grapher/population",
-            "/grapher/carbon-intensity-electricity",
-        ],
-    }),
-    // note: the below experiment "data-page-insight-btns-full" is a more elaborate
-    // version of the above "data-page-insight-btns-basic" experiment, but cannot
-    // run at the same time (which is why it has an expiry date in the past, so that
-    // it will not be active).
-    new Experiment({
-        /*
-         * Experiment: data-page-insight-btns-full
+         * Experiment: data-page-insight-btns-2
          *
          * Goal of experiment is to better understand user demand for "insights"
          * when viewing a data page. Each arm shows the user one or more buttons
@@ -59,51 +26,40 @@ export const experiments: Experiment[] = [
          *      - for "specific" text, thumbnail is of the data insight that matches the button text
          *
          * Control arm: no changes
-         * Treatment arm treat000: placebo - 1 link - no thumbnail
-         * Treatment arm treat010: placebo - 3 links - no thumbnail
-         * Treatment arm treat100: generic - 1 link - no thumbnail
-         * Treatment arm treat110: generic - 3 links - no thumbnail
-         * Treatment arm treat101: generic - 1 link - thumbnail
-         * Treatment arm treat200: specific - 1 link - no thumbnail
-         * Treatment arm treat210: specific - 3 links - no thumbnail
-         * Treatment arm treat201: specific - 1 link - thumbnail
-         * Treatment arm treat211: specific - 3 links - thumbnail
-         *
-         * Note: a few condition combinations are excluded from the experiment
-         * b/c they are either nonsensical or not useful for our purposes.
-         * e.g. treat001: placebo - 1 link - thumbnail.
+         * Control arm control1: "what you should know about this data" block is moved down the page (also the case in all treatment arms)
+         * Treatment arm treat00: placebo - 1 link
+         * Treatment arm treat10: generic - 1 link
+         * Treatment arm treat01: placebo - 3 links
+         * Treatment arm treat11: generic - 3 links
+         * Treatment arm treat20: specific - 1 link
+         * Treatment arm treat21: specific - 3 links
          */
-        id: "data-page-insight-btns-full",
+        id: "data-page-insight-btns-2",
         expires: "2025-09-30T00:00:00.000Z",
         arms: [
-            // control arm
-            { id: "control", fraction: 0.55, replaysSessionSampleRate: 0.1 },
-            // Treatment arm treat000: placebo - 1 link - no thumbnail
-            { id: "treat000", fraction: 0.05, replaysSessionSampleRate: 1 },
-            // Treatment arm treat010: placebo - 3 links - no thumbnail
-            { id: "treat010", fraction: 0.05, replaysSessionSampleRate: 1 },
-            // Treatment arm treat100: generic - 1 link - no thumbnail
-            { id: "treat100", fraction: 0.05, replaysSessionSampleRate: 1 },
-            // Treatment arm treat110: generic - 3 links - no thumbnail
-            { id: "treat110", fraction: 0.05, replaysSessionSampleRate: 1 },
-            // Treatment arm treat101: generic - 1 link - thumbnail
-            { id: "treat101", fraction: 0.05, replaysSessionSampleRate: 1 },
-            // Treatment arm treat200: specific - 1 link - no thumbnail
-            { id: "treat200", fraction: 0.05, replaysSessionSampleRate: 1 },
-            // Treatment arm treat210: specific - 3 links - no thumbnail
-            { id: "treat210", fraction: 0.05, replaysSessionSampleRate: 1 },
-            // Treatment arm treat201: specific - 1 link - thumbnail
-            { id: "treat201", fraction: 0.05, replaysSessionSampleRate: 1 },
-            // Treatment arm treat211: specific - 3 links - thumbnail
-            { id: "treat211", fraction: 0.05, replaysSessionSampleRate: 1 },
+            {
+                id: "control",
+                fraction: 0.51,
+                replaysSessionSampleRate:
+                    SENTRY_DEFAULT_REPLAYS_SESSION_SAMPLE_RATE,
+            },
+            { id: "control1", fraction: 0.07, replaysSessionSampleRate: 1 },
+            { id: "treat00", fraction: 0.07, replaysSessionSampleRate: 1 },
+            { id: "treat10", fraction: 0.07, replaysSessionSampleRate: 1 },
+            { id: "treat01", fraction: 0.07, replaysSessionSampleRate: 1 },
+            { id: "treat11", fraction: 0.07, replaysSessionSampleRate: 1 },
+            { id: "treat20", fraction: 0.07, replaysSessionSampleRate: 1 },
+            { id: "treat21", fraction: 0.07, replaysSessionSampleRate: 1 },
         ],
         paths: [
             "/grapher/co-emissions-per-capita",
             "/grapher/life-expectancy",
-            "/grapher/democracy-index-eiu",
             "/grapher/child-mortality",
             "/grapher/population",
             "/grapher/carbon-intensity-electricity",
+            "/grapher/human-rights-index-vdem",
+            "/grapher/share-of-population-in-extreme-poverty",
+            "/grapher/economic-inequality-gini-index",
         ],
     }),
 ]

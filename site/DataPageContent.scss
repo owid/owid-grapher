@@ -229,27 +229,16 @@ By default when a user is NOT assigned to {armId}, blocks with "{experimentId}--
 are hidden, while blocks with "{experimentId}--{armId}--hide" are shown.
 */
 $experiments: (
-    exp-data-page-insight-btns-basic: (
+    exp-data-page-insight-btns-2: (
         control1,
-        treat0,
-        treat1,
-    ),
-    exp-data-page-insight-btns-full: (
-        control1,
-        treat000,
-        treat010,
-        treat100,
-        treat110,
-        treat101,
-        treat200,
-        treat210,
-        treat201,
-        treat211,
+        treat00,
+        treat10,
+        treat01,
+        treat11,
+        treat20,
+        treat21,
     ),
 );
-
-$experimentId: exp-data-page-insight-btns-basic;
-$armIds: control1, treat0, treat1;
 
 @each $exp, $arms in $experiments {
     .#{$exp} {
@@ -281,9 +270,9 @@ $armIds: control1, treat0, treat1;
     }
 }
 
-// styles specific to experiment exp-data-page-insight-btns-basic
-.exp-data-page-insight-btns-basic {
-    $arms: map-get($experiments, exp-data-page-insight-btns-basic);
+// styles specific to experiment exp-data-page-insight-btns-2
+.exp-data-page-insight-btns-2 {
+    $arms: map-get($experiments, exp-data-page-insight-btns-2);
     @each $a in $arms {
         &--#{$a} .DataPageContent {
             .chart-key-info {
@@ -292,20 +281,8 @@ $armIds: control1, treat0, treat1;
                     padding-bottom: 0;
                 }
             }
-            .insight-links {
-                display: flex;
-                flex-direction: column;
-                gap: 16px;
-            }
 
-            .insights-link {
-                padding: 12px 24px;
-                &.has-thumbnail {
-                    text-align: left;
-                }
-            }
-
-            .insights__title {
+            .insight-links__title {
                 @include h2-bold;
                 margin: 24px 0 16px;
 
@@ -314,83 +291,37 @@ $armIds: control1, treat0, treat1;
                 }
             }
 
-            .insight__type {
-                @include h5-black-caps;
-
-                @include md-down {
-                    @include h6-black-caps;
-                }
-
-                margin-bottom: 4px;
-                margin-top: 0;
-                color: $blue-20;
-            }
-
-            .insight__title {
-                margin: 0;
-
-                @include subtitle-2-bold;
-
-                @include md-down {
-                    font-size: 18px;
-                }
-            }
-        }
-    }
-}
-
-// styles specific to experiment exp-data-page-insight-btns-full
-.exp-data-page-insight-btns-full {
-    $arms: map-get($experiments, exp-data-page-insight-btns-full);
-    @each $a in $arms {
-        &--#{$a} .DataPageContent {
-            .chart-key-info {
-                padding-bottom: 0;
-                @include sm-up {
-                    padding-bottom: 0;
-                }
-            }
-            .insight-links {
+            .insight-links__items,
+            .insight-links__items--left {
                 display: flex;
                 flex-direction: column;
                 gap: 16px;
-            }
 
-            .insights-link {
-                padding: 12px 24px;
-                &.has-thumbnail {
-                    text-align: left;
+                > * {
+                    padding: 12px 24px;
                 }
-            }
 
-            .insights__title {
-                @include h2-bold;
-                margin: 24px 0 16px;
-
-                @include sm-up {
-                    margin: 24px 0 24px;
-                }
-            }
-
-            .insight__type {
-                @include h5-black-caps;
-
-                @include md-down {
+                .item__type {
                     @include h6-black-caps;
+
+                    margin-bottom: 4px;
+                    margin-top: 0;
+                    color: $blue-30;
                 }
 
-                margin-bottom: 4px;
-                margin-top: 0;
-                color: $blue-20;
+                .item__title {
+                    font-size: 16px;
+                    margin: 0;
+
+                    .icon {
+                        vertical-align: middle;
+                    }
+                }
             }
 
-            .insight__title {
-                margin: 0;
-
-                @include subtitle-2-bold;
-
-                @include md-down {
-                    font-size: 18px;
+            .insight-links__items--left {
+                > * {
+                    text-align: left;
                 }
             }
         }
