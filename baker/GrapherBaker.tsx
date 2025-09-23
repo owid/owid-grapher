@@ -6,6 +6,7 @@ import {
     excludeUndefined,
     urlToSlug,
     mergeGrapherConfigs,
+    experiments,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
 import {
@@ -59,6 +60,7 @@ import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
 import { GrapherArchivalManifest } from "../serverUtils/archivalUtils.js"
 import { getLatestChartArchivedVersionsIfEnabled } from "../db/model/archival/archivalDb.js"
+import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -248,8 +250,38 @@ export async function renderDataPageV2(
         const tagsWithDataInsights = await getTagsWithDataInsights(knex)
 
         datapageData.hasDataInsights = datapageData.primaryTopic?.topicTag
-            ? tagsWithDataInsights.has(datapageData.primaryTopic?.topicTag)
+            ? tagsWithDataInsights.has(datapageData.primaryTopic.topicTag)
             : false
+
+        const isInInsightsExperiment =
+            grapher.slug !== undefined
+                ? experiments.some(
+                      (exp) =>
+                          exp.id === "exp-data-page-insight-btns-2" &&
+                          !exp.isExpired() &&
+                          exp.isUrlInPaths(`/grapher/${grapher.slug}`)
+                  )
+                : false
+
+        // only retrieve data insights and add to datapageData if topic has data
+        // insights and grapher is in path of the exp-data-page-insight-btns-2 experiment
+        if (
+            datapageData.hasDataInsights &&
+            isInInsightsExperiment &&
+            datapageData.primaryTopic?.topicTag
+        ) {
+            const dataInsights = await GdocDataInsight.getPublishedDataInsights(
+                knex,
+                0,
+                tagToSlugMap[datapageData.primaryTopic.topicTag]
+            )
+            datapageData.dataInsights = dataInsights.slice(0, 3).map((row) => {
+                return {
+                    title: row.content.title,
+                    slug: row.slug,
+                }
+            })
+        }
     }
 
     let canonicalUrl: string

@@ -24,7 +24,6 @@ export interface PrimaryTopic {
 export interface DataInsightLink {
     title: string
     slug: string
-    imgFilename?: string
 }
 
 export interface DataPageDataV2 {
@@ -52,6 +51,7 @@ export interface DataPageDataV2 {
     unit?: string
     unitConversionFactor?: number
     hasDataInsights?: boolean
+    dataInsights?: DataInsightLink[]
 }
 
 export interface DataPageRelatedResearch {
