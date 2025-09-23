@@ -29,6 +29,7 @@ describe("Fuzzy search in search autocomplete", () => {
 
     const sortOptionsMultiple = { threshold: 0.75, limit: 3 }
     const sortOptionsSingle = { threshold: 0.75, limit: 1 }
+    const sortOptionsSingleExact = { threshold: 1, limit: 1 }
 
     beforeEach(() => {
         // Create a mock synonym map with test data
@@ -386,13 +387,27 @@ describe("Fuzzy search in search autocomplete", () => {
                 ["East Timor", "Germany"],
                 mockTopics,
                 [],
-                { threshold: 1, limit: 1 },
+                sortOptionsSingleExact,
                 synonymMap
             )
 
             // Should only return "Germany", since "east" doesn't exactly match "East Timor"
             expect(result).toHaveLength(1)
             expect(result[0].name).toBe("Germany")
+        })
+
+        it("should exactly match countries containing stop words", () => {
+            const result = extractFiltersFromQuery(
+                "trinidad and tobago",
+                regions,
+                mockTopics,
+                [],
+                sortOptionsSingleExact,
+                synonymMap
+            )
+
+            expect(result).toHaveLength(1)
+            expect(result[0].name).toBe("Trinidad and Tobago")
         })
 
         it("should return partial matches", () => {
