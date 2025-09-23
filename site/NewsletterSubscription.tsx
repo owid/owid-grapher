@@ -1,13 +1,12 @@
 import { useState } from "react"
 import * as React from "react"
+import cx from "classnames"
 import { faTimes, faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { TextInput } from "@ourworldindata/components"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
-import cx from "classnames"
 import { NewsletterIcon } from "./gdocs/components/NewsletterIcon.js"
-import { SOCIALS } from "./SiteConstants.js"
 
 const analytics = new SiteAnalytics()
 
@@ -62,6 +61,17 @@ export const NewsletterSubscription = ({
     )
 }
 
+export const NewsletterSubscriptionHeader = () => {
+    return (
+        <div className="newsletter-subscription-header">
+            <NewsletterIcon className="newsletter-subscription-header__icon" />
+            <h4 className="newsletter-subscription-header__heading h3-bold">
+                Subscribe to our newsletters
+            </h4>
+        </div>
+    )
+}
+
 export const NewsletterSubscriptionForm = ({
     context,
     className = "",
@@ -91,7 +101,7 @@ export const NewsletterSubscriptionForm = ({
 
     return (
         <form
-            className={className}
+            className={cx("newsletter-subscription-form", className)}
             action="https://ourworldindata.us8.list-manage.com/subscribe/post?u=18058af086319ba6afad752ec&id=2e166c1fc1"
             method="post"
             id="mc-embedded-subscribe-form"
@@ -104,10 +114,16 @@ export const NewsletterSubscriptionForm = ({
                 )
             }
         >
-            <span className="NewsletterSubscriptionForm__header">
+            <span className="newsletter-subscription-form__subheader">
                 Receive our latest work by email.
             </span>
-            <div className="owid-checkbox-block">
+            <img
+                className="newsletter-subscription-form__checkbox-image"
+                src="/images/data-insights.webp"
+                width={1200}
+                height={630}
+            />
+            <div className="newsletter-subscription-form__checkbox">
                 <input
                     type="checkbox"
                     value={DATA_INSIGHTS}
@@ -117,14 +133,33 @@ export const NewsletterSubscriptionForm = ({
                     onChange={updateFrequencies}
                 />
                 <label htmlFor={idDataInsights}>
-                    <div className="label-title">Data Insights</div>
-                    <div className="label-text">
+                    <span className="newsletter-subscription-form__label-title">
+                        Data Insights
+                    </span>
+                    <span className="newsletter-subscription-form__label-frequency note-12-medium">
+                        Every few days
+                    </span>
+                    <div className="newsletter-subscription-form__label-text">
                         Receive our bite-sized insights on how the world is
                         changing, every few days.
                     </div>
                 </label>
+                <a
+                    className="newsletter-subscription-form__example-link note-12-medium"
+                    href="https://us8.campaign-archive.com/?u=18058af086319ba6afad752ec&id=fdf16136e1"
+                    target="_blank"
+                    rel="noopener"
+                >
+                    Example Data Insights newsletter
+                </a>
             </div>
-            <div className="owid-checkbox-block">
+            <img
+                className="newsletter-subscription-form__checkbox-image"
+                src="/images/biweekly-newsletter.webp"
+                width={1200}
+                height={630}
+            />
+            <div className="newsletter-subscription-form__checkbox">
                 <input
                     type="checkbox"
                     value={BIWEEKLY}
@@ -134,21 +169,36 @@ export const NewsletterSubscriptionForm = ({
                     onChange={updateFrequencies}
                 />
                 <label htmlFor={idBiweekly}>
-                    <div className="label-title">Biweekly Digest</div>
-                    <div className="label-text">
+                    <span className="newsletter-subscription-form__label-title">
+                        Biweekly Digest
+                    </span>
+                    <span className="newsletter-subscription-form__label-frequency note-12-medium">
+                        Every two weeks
+                    </span>
+                    <div className="newsletter-subscription-form__label-text">
                         Receive an overview of our recent work and highlights of
                         our other work every two weeks.
                     </div>
                 </label>
+                <a
+                    className="newsletter-subscription-form__example-link note-12-medium"
+                    href="https://us8.campaign-archive.com/?u=18058af086319ba6afad752ec&id=53877b47f3"
+                    target="_blank"
+                    rel="noopener"
+                >
+                    Example Biweekly Digest newsletter
+                </a>
             </div>
             {frequencies.length === 0 && (
-                <div className="alert">Please select at least one option.</div>
+                <div className="newsletter-subscription-form__alert">
+                    Please select at least one option.
+                </div>
             )}
-            <div className="NewsletterSubscription__email-submit">
+            <div className="newsletter-subscription-form__email-submit">
                 <TextInput
                     placeholder="Your email address"
                     type="email"
-                    className="NewsletterSubscription__email sentry-mask"
+                    className="newsletter-subscription-form__email sentry-mask"
                     name="EMAIL"
                     required={true}
                 />
@@ -161,7 +211,7 @@ export const NewsletterSubscriptionForm = ({
                             `Subscribe [${context ?? "other-contexts"}]`
                         )
                     }
-                    className="NewsletterSubscription__submit"
+                    className="newsletter-subscription-form__submit"
                 >
                     Subscribe
                 </button>
@@ -175,50 +225,10 @@ export const NewsletterSubscriptionForm = ({
                 name="b_18058af086319ba6afad752ec_2e166c1fc1"
                 tabIndex={-1}
             />
-            <div className="NewsletterSubscription__privacy">
+            <div className="newsletter-subscription-form__privacy-notice">
                 By subscribing you are agreeing to the terms of our{" "}
                 <a href="/privacy-policy">privacy policy</a>.
             </div>
         </form>
     )
 }
-
-export const NewsletterWithSocials = ({
-    className,
-}: {
-    className?: string
-}) => (
-    <div className={cx(className, "newsletter-with-socials")}>
-        <div className="newsletter-with-socials__header">
-            <NewsletterIcon className="newsletter-with-socials__icon" />
-            <h4 className="newsletter-with-socials__heading">
-                Subscribe to our newsletters
-            </h4>
-        </div>
-        <NewsletterSubscriptionForm
-            key="signup"
-            className="newsletter-with-socials__form"
-            context={NewsletterSubscriptionContext.Latest}
-        />
-        <p className="newsletter-with-socials__social-cta">Follow us</p>
-        <ul className="newsletter-with-socials__socials">
-            {SOCIALS.map(({ title, url, icon }) => (
-                <li key={title}>
-                    <a
-                        href={url}
-                        className="list-item"
-                        title={title}
-                        target="_blank"
-                        rel="noopener"
-                        data-track-note="latest_page_follow_us"
-                    >
-                        <span className="icon">
-                            <FontAwesomeIcon icon={icon} />
-                        </span>
-                        <span className="label">{title}</span>
-                    </a>
-                </li>
-            ))}
-        </ul>
-    </div>
-)

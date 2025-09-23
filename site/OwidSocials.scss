@@ -1,0 +1,35 @@
+.owid-socials__heading {
+    @include h3-bold;
+    margin: 16px 0;
+}
+
+.owid-socials__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.owid-socials__link {
+    color: $blue-60;
+    &:hover {
+        color: $blue-90;
+    }
+}
+
+.owid-socials__label-icon {
+    width: 16px;
+    height: 16px;
+    display: block;
+}
+
+.owid-socials__label {
+    height: 0;
+    width: 0;
+    display: block;
+    position: absolute;
+    overflow: hidden;
+}
