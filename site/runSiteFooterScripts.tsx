@@ -36,8 +36,6 @@ import { getInitialState } from "./cookiePreferences.js"
 import { CookiePreferencesManager } from "./CookiePreferencesManager.js"
 import { SearchWrapper } from "./search/SearchWrapper.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
-import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
-import { NewsletterSubscriptionContext } from "./newsletter.js"
 import { AriaAnnouncerProvider } from "./AriaAnnouncerContext.js"
 import { AriaAnnouncer } from "./AriaAnnouncer.js"
 import {
