@@ -46,12 +46,30 @@ import { BrowserRouter } from "react-router-dom-v5-compat"
 import { REDUCED_TRACKING } from "../settings/clientSettings.js"
 import { SiteHeaderNavigation } from "./SiteHeader.js"
 import { DataInsightsIndexPageProps } from "./DataInsightsIndexPage.js"
+import { NewsletterSubscriptionForm } from "./NewsletterSubscription.js"
+import { NewsletterSubscriptionContext } from "./newsletter.js"
+import { SUBSCRIBE_PAGE_FORM_CONTAINER_ID } from "@ourworldindata/types"
 
 function hydrateSearchPage() {
     const root = document.getElementById("search-page-root")
     const topicTagGraph = window._OWID_TOPIC_TAG_GRAPH as TagGraphRoot
     if (root) {
         hydrateRoot(root, <SearchWrapper topicTagGraph={topicTagGraph} />)
+    }
+}
+
+function hydrateSubscribePage() {
+    const newsletterContainer = document.getElementById(
+        SUBSCRIBE_PAGE_FORM_CONTAINER_ID
+    )
+
+    if (newsletterContainer) {
+        hydrateRoot(
+            newsletterContainer,
+            <NewsletterSubscriptionForm
+                context={NewsletterSubscriptionContext.SubscribePage}
+            />
+        )
     }
 }
 
@@ -355,6 +373,9 @@ export const runSiteFooterScripts = async (
         // falls through
         case SiteFooterContext.searchPage:
             hydrateSearchPage()
+        // falls through
+        case SiteFooterContext.subscribePage:
+            hydrateSubscribePage()
         // falls through
         default:
             // Features that were not ported over to gdocs, are only being run on WP pages:
