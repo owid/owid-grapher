@@ -1,25 +1,5 @@
-import {
-    ALGOLIA_ID,
-    ALGOLIA_INDEX_PREFIX,
-    ALGOLIA_SEARCH_KEY,
-} from "../../settings/clientSettings.js"
-import insightsClient, { InsightsClient } from "search-insights"
-import type { InsightsSearchClickEvent } from "search-insights/dist/click.js"
-import { getPreferenceValue, PreferenceType } from "../cookiePreferences.js"
+import { ALGOLIA_INDEX_PREFIX } from "../../settings/clientSettings.js"
 import { SearchIndexName } from "./searchTypes.js"
-
-let insightsInitialized = false
-const getInsightsClient = (): InsightsClient => {
-    if (!insightsInitialized) {
-        insightsClient("init", {
-            appId: ALGOLIA_ID,
-            apiKey: ALGOLIA_SEARCH_KEY,
-            useCookie: getPreferenceValue(PreferenceType.Analytics),
-        })
-        insightsInitialized = true
-    }
-    return insightsClient
-}
 
 export const getIndexName = (index: SearchIndexName | string): string => {
     if (ALGOLIA_INDEX_PREFIX !== "") {
@@ -36,15 +16,6 @@ export const parseIndexName = (index: string): SearchIndexName => {
     } else {
         return index as SearchIndexName
     }
-}
-
-export const logSiteSearchClickToAlgoliaInsights = (
-    event: InsightsSearchClickEvent
-) => {
-    const client = getInsightsClient()
-    void client("clickedObjectIDsAfterSearch", {
-        ...event,
-    })
 }
 
 export const DEFAULT_SEARCH_PLACEHOLDER =

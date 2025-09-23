@@ -117,7 +117,6 @@ export {
     checkIsAuthor,
     cartesian,
     removeTrailingParenthetical,
-    isElementHidden,
     commafyNumber,
     isFiniteWithGuard,
     createTagGraph,
