@@ -332,7 +332,7 @@ const InsightLinksInsightButtonsFull = ({
                 className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat00--show`}
             >
                 <Button
-                    text="Details about data sources"
+                    text="Data sources and processing"
                     href={`#${DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}`}
                     theme="solid-blue"
                     icon={faArrowDown}
@@ -354,14 +354,14 @@ const InsightLinksInsightButtonsFull = ({
                 className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat01--show`}
             >
                 <Button
-                    text="Details about data sources"
+                    text="Data sources and processing"
                     href={`#${DATAPAGE_ABOUT_THIS_DATA_SECTION_ID}`}
                     theme="solid-blue"
                     icon={faArrowDown}
                     dataTrackNote="btn_click__about_the_data"
                 />
                 <Button
-                    text="Research and writing"
+                    text="Related articles"
                     href="#research-and-writing"
                     theme="solid-blue"
                     icon={faArrowDown}
@@ -386,7 +386,7 @@ const InsightLinksInsightButtonsFull = ({
                     dataTrackNote="btn_click__insights"
                 />
                 <Button
-                    text="Research and writing"
+                    text="Related articles"
                     href="#research-and-writing"
                     theme="solid-blue"
                     icon={faArrowDown}
