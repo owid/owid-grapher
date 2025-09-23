@@ -465,14 +465,12 @@ const LinkToDataInsight = ({
     insightLink: DataInsightLink
     dataTrackNote?: string
 }) => {
-    const aProps = {
-        href: `/data-insights/${insightLink.slug}`,
-        className:
-            "grid grid-cols-12 span-cols-4 span-lg-cols-6 span-sm-cols-12 owid-btn owid-btn--solid-blue",
-        "data-track-note": dataTrackNote,
-    }
     return (
-        <a {...aProps}>
+        <a
+            href={`/data-insights/${insightLink.slug}`}
+            className="grid grid-cols-12 span-cols-4 span-lg-cols-6 span-sm-cols-12 owid-btn owid-btn--solid-blue"
+            data-track-note={dataTrackNote}
+        >
             <div className="span-cols-12">
                 <p className="item__type">Data insight</p>
                 <span className="item__title">
