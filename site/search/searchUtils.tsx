@@ -703,6 +703,41 @@ export function suggestFiltersFromQuerySuffix(
 }
 
 /**
+ * Validates whether an n-gram should be used for filter matching.
+ * Filters out n-grams that:
+ * - Overlap with already matched word positions
+ * - Contain quoted words
+ * - Start or end with stop words
+ */
+const isNotValidNgram = (
+    ngram: Ngram,
+    quotedWordPositions: Set<number>,
+    matchedWordPositions: Set<number>
+): boolean => {
+    return (
+        ngram.some(
+            ({ position }) =>
+                matchedWordPositions.has(position) ||
+                quotedWordPositions.has(position)
+        ) || hasLeadingTrailingStopWords(ngram)
+    )
+}
+
+/**
+ * Generator function that yields n-grams from largest to smallest.)
+ */
+function* generateNgrams(
+    tokens: WordPositioned[],
+    maxSize: number
+): Generator<Ngram> {
+    for (let n = maxSize; n >= 1; n--) {
+        for (let i = 0; i <= tokens.length - n; i++) {
+            yield tokens.slice(i, i + n)
+        }
+    }
+}
+
+/**
  * Gets filter suggestions using contiguous sequence of words (n-grams) for
  * multi-entity matching in a given query.
  *
@@ -744,35 +779,21 @@ export function extractFiltersFromQuery(
     // Get positions of words inside quoted phrases
     const quotedWordPositions = getQuotedWordPositions(words)
 
-    // Filter out stop words and quoted words while preserving original positions
-    const tokens: WordPositioned[] = words
-        .map((word, index) => ({ word, position: index }))
-        .filter(({ word }) => isNotStopWord(word))
-        .filter(({ position }) => !quotedWordPositions.has(position))
+    const tokens: WordPositioned[] = words.map((word, index) => ({
+        word,
+        position: index,
+    }))
 
-    if (tokens.length === 0) return []
-
-    const ngrams: Ngram[] = []
     const maxNgramSize = Math.min(tokens.length, 4) // Topics and countries mostly fit within 4 words
 
-    // Generate n-grams from largest to smallest to prioritize longer phrases
-    for (let n = maxNgramSize; n >= 1; n--) {
-        for (let i = 0; i <= tokens.length - n; i++) {
-            ngrams.push(tokens.slice(i, i + n))
+    // Generate and process n-grams on-the-fly, prioritizing longer phrases
+    for (const ngram of generateNgrams(tokens, maxNgramSize)) {
+        if (isNotValidNgram(ngram, quotedWordPositions, matchedWordPositions)) {
+            continue
         }
-    }
 
-    // Search each n-gram and collect results, prioritizing longer phrases
-    for (const ngram of ngrams) {
         const ngramWords = R.map(ngram, R.prop("word"))
         const ngramPositions = R.map(ngram, R.prop("position"))
-
-        // Check if any original word positions in this n-gram are already matched by a longer phrase
-        const hasOverlap = ngramPositions.some((pos: number) =>
-            matchedWordPositions.has(pos)
-        )
-
-        if (hasOverlap) continue // Skip this n-gram if it overlaps with already matched words
 
         const filtersFromNgram = findTopicAndRegionFilters(
             ngramWords,
@@ -1168,3 +1189,10 @@ export const splitIntoWords = (text: string) => text.trim().split(/\s+/)
 
 export const isNotStopWord = (word: string) =>
     !STOP_WORDS.has(word.toLowerCase())
+
+const hasLeadingTrailingStopWords = (ngram: Ngram) => {
+    if (ngram.length === 0) return false
+    const firstWord = ngram[0].word.toLowerCase()
+    const lastWord = ngram[ngram.length - 1].word.toLowerCase()
+    return STOP_WORDS.has(firstWord) || STOP_WORDS.has(lastWord)
+}
