@@ -224,6 +224,9 @@
     a {
         color: $vermillion;
         text-decoration: underline;
+        &:hover {
+            text-decoration: none;
+        }
     }
 
     @include md-down {

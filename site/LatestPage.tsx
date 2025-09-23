@@ -1,4 +1,3 @@
-import * as _ from "lodash-es"
 import { Head } from "./Head.js"
 import { SiteHeader } from "./SiteHeader.js"
 import { SiteFooter } from "./SiteFooter.js"
@@ -20,16 +19,8 @@ import Image from "./gdocs/components/Image.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import DataInsightDateline from "./gdocs/components/DataInsightDateline.js"
 import cx from "classnames"
-import {
-    NewsletterSubscriptionForm,
-    NewsletterWithSocials,
-} from "./NewsletterSubscription.js"
-import { NewsletterSubscriptionContext } from "./newsletter.js"
-import { NewsletterIcon } from "./gdocs/components/NewsletterIcon.js"
-import { SOCIALS } from "./SiteConstants.js"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { NewsletterWithSocials } from "./NewsletterSubscription.js"
 import { Pagination } from "./Pagination.js"
-import * as React from "react"
 
 const COMMON_CLASSES =
     "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1"
