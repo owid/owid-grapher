@@ -51,10 +51,12 @@ export const experiments: Experiment[] = [
             "/grapher/life-expectancy",
             "/grapher/child-mortality",
             "/grapher/population",
+            "/grapher/population-density",
             "/grapher/carbon-intensity-electricity",
             "/grapher/human-rights-index-vdem",
             "/grapher/share-of-population-in-extreme-poverty",
             "/grapher/economic-inequality-gini-index",
+            "/grapher/per-capita-energy-use",
         ],
     }),
 ]
