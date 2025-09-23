@@ -1,0 +1,118 @@
+.subscribe-page {
+    background-color: $gray-5;
+    padding-top: 48px;
+
+    @include sm-only {
+        padding-top: 24px;
+    }
+
+    .subscribe-page__heading {
+        margin-top: 0;
+        margin-bottom: 4px;
+        @include sm-only {
+            font-size: 2rem;
+        }
+    }
+
+    .newsletter-subscription-form {
+        padding-bottom: 24px;
+        border-bottom: 1px solid $blue-20;
+        @include sm-only {
+            border-bottom: none;
+        }
+    }
+
+    .newsletter-subscription-form__header {
+        @include body-1-regular;
+        color: $blue-60;
+    }
+    .newsletter-subscription-form__subheader {
+        width: 100%;
+    }
+
+    .newsletter-subscription-form__checkbox-image {
+        display: block;
+        width: 84px;
+        align-self: start;
+        margin-right: 16px;
+        &:first-of-type {
+            margin-top: 24px;
+        }
+        @include sm-only {
+            display: none;
+        }
+    }
+
+    .newsletter-subscription-form__checkbox {
+        flex: 1 1 calc(100% - 84px - 16px);
+        &:first-of-type {
+            margin-top: 24px;
+            margin-bottom: 32px !important;
+        }
+        @include sm-only {
+            &:first-of-type {
+                margin-top: 8px;
+                margin-bottom: 16px !important;
+            }
+        }
+    }
+
+    .newsletter-subscription-form__label-frequency {
+        display: inline;
+    }
+
+    .newsletter-subscription-form__example-link {
+        display: inline;
+    }
+
+    .newsletter-subscription-form__email-submit {
+        margin-top: 24px;
+        margin-bottom: 8px !important;
+        @include sm-only {
+            margin-top: 8px;
+        }
+    }
+
+    .newsletter-subscription-form__privacy-notice {
+        @include note-12-medium;
+        color: $blue-60;
+    }
+
+    .owid-socials {
+        margin-top: 24px;
+        margin-bottom: 64px;
+        @include sm-only {
+            display: none;
+        }
+    }
+
+    .owid-socials__list {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .owid-socials__link {
+        color: $blue-90;
+        &:hover {
+            color: $blue-60;
+        }
+    }
+
+    .owid-socials__item {
+        white-space: nowrap;
+    }
+
+    .owid-socials__label-icon {
+        color: $blue-60;
+    }
+
+    .owid-socials__label {
+        @include body-2-bold;
+        display: inline-block;
+        margin-left: 8px;
+        height: unset;
+        width: unset;
+        position: relative;
+        overflow: unset;
+    }
+}

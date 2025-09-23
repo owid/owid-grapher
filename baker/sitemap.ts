@@ -115,7 +115,12 @@ export const makeSitemap = async (
         `
     )
 
-    const STATIC_PAGES = ["/explorers", SEARCH_BASE_PATH, "/donate"]
+    const STATIC_PAGES = [
+        "/explorers",
+        SEARCH_BASE_PATH,
+        "/donate",
+        "/subscribe",
+    ]
 
     const explorers = await explorerAdminServer.getAllPublishedExplorers(knex)
     const multiDims = await getPublishedMultiDims(knex)
