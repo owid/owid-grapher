@@ -35,7 +35,6 @@ import { GrapherWithFallback } from "./GrapherWithFallback.js"
 import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DocumentContext } from "./gdocs/DocumentContext.js"
 import { faArrowRight, faArrowDown } from "@fortawesome/free-solid-svg-icons"
-import Image from "./gdocs/components/Image.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { DataInsightLink } from "@ourworldindata/types"
 
@@ -413,10 +412,7 @@ const InsightLinksInsightButtonsFull = ({
                     textAlignLeft={true}
                 >
                     <LinkToDataInsight
-                        insightLink={{
-                            title: insightLinks[0].title,
-                            slug: insightLinks[0].slug,
-                        }}
+                        insightLink={insightLinks[0]}
                         dataTrackNote="btn_click__insight"
                     />
                 </InsightLinks>
@@ -426,16 +422,11 @@ const InsightLinksInsightButtonsFull = ({
                     className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat21--show`}
                     itemClassName="col-start-3 col-lg-start-3 span-cols-8 span-lg-cols-8 span-sm-cols-12"
                     textAlignLeft={true}
-                    showHeader={false}
                 >
                     {insightLinks.map((link, i) => (
                         <LinkToDataInsight
                             key={link.slug}
-                            insightLink={{
-                                title: link.title,
-                                slug: link.slug,
-                            }}
-                            showContentType={true}
+                            insightLink={link}
                             dataTrackNote={`btn_click__insight${i}`}
                         />
                     ))}
@@ -448,23 +439,16 @@ const InsightLinksInsightButtonsFull = ({
 const InsightLinks = ({
     className,
     itemClassName = "span-cols-4 span-lg-cols-4 span-sm-cols-12",
-    showHeader = false,
     textAlignLeft = false,
     children,
 }: {
     className: string
     itemClassName?: string
-    showHeader?: boolean
     textAlignLeft?: boolean
     children: ReactNode
 }) => {
     return (
         <div className={cx("grid", className)}>
-            {showHeader && (
-                <h2 className={`insight-links__title span-cols-12`}>
-                    Insights about this data
-                </h2>
-            )}
             <div
                 className={cx(
                     textAlignLeft
@@ -481,11 +465,9 @@ const InsightLinks = ({
 
 const LinkToDataInsight = ({
     insightLink,
-    showContentType = true,
     dataTrackNote,
 }: {
     insightLink: DataInsightLink
-    showContentType?: boolean
     dataTrackNote?: string
 }) => {
     const aProps = {
@@ -496,20 +478,8 @@ const LinkToDataInsight = ({
     }
     return (
         <a {...aProps}>
-            {insightLink.imgFilename && (
-                <Image
-                    className="span-cols-2"
-                    filename={insightLink.imgFilename}
-                    containerType="thumbnail"
-                    shouldLightbox={false}
-                />
-            )}
-            <div
-                className={
-                    insightLink.imgFilename ? "span-cols-10" : "span-cols-12"
-                }
-            >
-                {showContentType && <p className="item__type">Data insight</p>}
+            <div className="span-cols-12">
+                <p className="item__type">Data insight</p>
                 <span className="item__title">
                     {insightLink.title}
                     <FontAwesomeIcon

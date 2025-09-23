@@ -6,7 +6,6 @@ import {
     excludeUndefined,
     urlToSlug,
     mergeGrapherConfigs,
-    EnrichedBlockImage,
     experiments,
 } from "@ourworldindata/utils"
 import fs from "fs-extra"
@@ -276,34 +275,12 @@ export async function renderDataPageV2(
                 0,
                 tagToSlugMap[datapageData.primaryTopic.topicTag]
             )
-            // todo: rename to "latestDataInsights"?
             datapageData.dataInsights = dataInsights.slice(0, 3).map((row) => {
-                const firstImageIndex = row.content.body.findIndex(
-                    (block) => block.type === "image"
-                )
-                const firstImageBlock = row.content.body[firstImageIndex] as
-                    | EnrichedBlockImage
-                    | undefined
-                const imgFilename =
-                    firstImageBlock?.smallFilename || firstImageBlock?.filename
-
                 return {
                     title: row.content?.title,
                     slug: row.slug,
-                    imgFilename,
                 }
             })
-            const dataInsightFilenames = datapageData.dataInsights
-                .map((insight) => insight.imgFilename)
-                .filter((x) => x !== undefined)
-
-            imageMetadata = {
-                ...imageMetadata,
-                ..._.pick(
-                    imageMetadataDictionary,
-                    _.uniq(dataInsightFilenames)
-                ),
-            }
         }
     }
 
