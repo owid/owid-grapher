@@ -213,7 +213,8 @@ export const getExplorerTags = async (
 }
 
 export const getPublishedExplorersBySlug = async (
-    knex: KnexReadonlyTransaction
+    knex: KnexReadonlyTransaction,
+    includeUnlisted: boolean = true
 ): Promise<Record<string, MinimalExplorerInfo>> => {
     const tags = await getExplorerTags(knex)
     const tagsBySlug = _.keyBy(tags, "slug")
@@ -231,7 +232,7 @@ export const getPublishedExplorersBySlug = async (
         WHERE
             e.isPublished = TRUE`
     ).then((rows) => {
-        const processed = rows.map((row: any) => {
+        let processed = rows.map((row: any) => {
             const tagsForExplorer = tagsBySlug[row.slug]
             return {
                 slug: row.slug,
@@ -244,6 +245,11 @@ export const getPublishedExplorersBySlug = async (
                 updatedAt: row.updatedAt,
             }
         })
+        if (!includeUnlisted) {
+            processed = processed.filter(
+                (row) => !row.tags.includes("Unlisted")
+            )
+        }
         return _.keyBy(processed, "slug")
     })
 }

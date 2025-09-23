@@ -1,8 +1,6 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import * as React from "react"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import { OwidGdocHomepageContent } from "@ourworldindata/types"
-import { RSS_FEEDS, SOCIALS } from "../../SiteConstants.js"
 import { getAllChildrenOfArea } from "@ourworldindata/utils"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 
