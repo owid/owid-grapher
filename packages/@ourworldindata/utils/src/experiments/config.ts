@@ -30,7 +30,7 @@ export const experiments: Experiment[] = [
          * Treatment arm treat21: specific - 3 links
          */
         id: "data-page-insight-btns-2",
-        expires: "2025-09-30T00:00:00.000Z",
+        expires: "2025-10-01T00:00:00.000Z",
         arms: [
             {
                 id: "control",
