@@ -240,6 +240,7 @@ export interface OwidGdocHomepageContent {
 export interface OwidGdocHomepageMetadata {
     chartCount?: number
     topicCount?: number
+    explorerCount?: number
     tagGraph?: TagGraphRoot
     announcements?: OwidGdocMinimalPostInterface[]
 }
