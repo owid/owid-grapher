@@ -114,11 +114,6 @@ export const DataPageV2Content = ({
         }
     }
 
-    // insight links for when multiple links are shown
-    const insightLinks = datapageData.dataInsights?.length
-        ? datapageData.dataInsights?.slice(0, 3)
-        : undefined
-
     // note: experimentState should NOT be used to conditionally render content b/c
     // it will cause a flash of content before js loads.
     const [experimentState, setExperimentState] = useState<ExperimentState>(
@@ -210,7 +205,7 @@ export const DataPageV2Content = ({
                             {insightsHref && (
                                 <InsightLinksInsightButtonsFull
                                     insightsHref={insightsHref}
-                                    insightLinks={insightLinks}
+                                    dataInsights={datapageData.dataInsights}
                                 />
                             )}
 
@@ -325,10 +320,10 @@ export const DataPageV2Content = ({
  */
 const InsightLinksInsightButtonsFull = ({
     insightsHref,
-    insightLinks,
+    dataInsights,
 }: {
     insightsHref: string
-    insightLinks?: DataInsightLink[]
+    dataInsights?: DataInsightLink[]
 }) => {
     const experimentId = "data-page-insight-btns-2"
     return (
@@ -405,25 +400,25 @@ const InsightLinksInsightButtonsFull = ({
                     dataTrackNote="btn_click__related_charts"
                 />
             </InsightLinks>
-            {insightLinks && insightLinks?.length && (
+            {dataInsights?.length && (
                 <InsightLinks
                     className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat20--show`}
                     itemClassName="col-start-3 col-lg-start-3 span-cols-8 span-lg-cols-8 span-sm-cols-12"
                     textAlignLeft={true}
                 >
                     <LinkToDataInsight
-                        insightLink={insightLinks[0]}
+                        insightLink={dataInsights[0]}
                         dataTrackNote="btn_click__insight"
                     />
                 </InsightLinks>
             )}
-            {insightLinks && (
+            {dataInsights && (
                 <InsightLinks
                     className={`${EXPERIMENT_PREFIX}-${experimentId}${EXPERIMENT_ARM_SEPARATOR}treat21--show`}
                     itemClassName="col-start-3 col-lg-start-3 span-cols-8 span-lg-cols-8 span-sm-cols-12"
                     textAlignLeft={true}
                 >
-                    {insightLinks.map((link, i) => (
+                    {dataInsights.map((link, i) => (
                         <LinkToDataInsight
                             key={link.slug}
                             insightLink={link}
