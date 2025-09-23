@@ -1,5 +1,4 @@
 import { GrapherTabName, OwidGdocType } from "@ourworldindata/types"
-import { Region } from "@ourworldindata/utils"
 import { SearchResponse } from "instantsearch.js"
 import {
     BaseHit,
@@ -136,7 +135,7 @@ export type SearchChartHit =
 
 export interface SearchChartHitComponentProps {
     hit: SearchChartHit
-    searchQueryRegionsMatches?: Region[] | undefined
+    selectedRegionNames?: string[] | undefined
     // Search uses a global onClick handler to track analytics
     // But the data catalog passes a function to this component explicitly
     onClick?: () => void
@@ -152,9 +151,13 @@ export type SearchDataTopicsResponse = {
     charts: SearchResponse<SearchChartHit>
 }
 
-export type ScoredSearchResult = {
+export type ScoredFilter = Filter & {
     name: string
     score: number
+}
+
+export type ScoredFilterPositioned = ScoredFilter & {
+    positions: number[]
 }
 
 export type DataInsightHit = {
@@ -286,6 +289,11 @@ type SetResultTypeAction = {
     type: "setResultType"
     resultType: SearchResultType
 }
+type ReplaceQueryWithFiltersAction = {
+    type: "replaceQueryWithFilters"
+    filters: Filter[]
+    matchedPositions: number[]
+}
 
 export type SearchAction =
     | AddFilterAction
@@ -299,6 +307,7 @@ export type SearchAction =
     | ToggleRequireAllCountriesAction
     | ResetAction
     | SetResultTypeAction
+    | ReplaceQueryWithFiltersAction
 
 export enum SearchTopicType {
     Topic = "topic",
@@ -315,3 +324,10 @@ export interface TemplateConfig {
 export type SearchFacetFilters = (string | string[])[]
 
 export type SynonymMap = Map<string, string[]>
+
+export interface WordPositioned {
+    word: string
+    position: number
+}
+
+export type Ngram = WordPositioned[]

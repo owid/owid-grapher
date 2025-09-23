@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react"
-import { SearchState, TemplateConfig } from "./searchTypes.js"
+import { SearchState, SynonymMap, TemplateConfig } from "./searchTypes.js"
 import { createActions } from "./searchState.js"
 import { TagGraphRoot } from "@ourworldindata/types"
 import { SearchClient } from "algoliasearch"
@@ -12,6 +12,7 @@ interface SearchContextType {
     searchClient: SearchClient
     templateConfig: TemplateConfig
     topicTagGraph: TagGraphRoot
+    synonymMap: SynonymMap
 }
 
 export const SearchContext = createContext<SearchContextType | null>(null)
