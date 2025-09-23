@@ -248,26 +248,24 @@ function Filename({
     originalWidth,
 }: {
     filename: string
-    cloudflareId: string | null
-    originalWidth: number | null
+    cloudflareId: string
+    originalWidth: number
 }) {
     return (
         <>
             {filename}
-            {cloudflareId && originalWidth && (
-                <Button
-                    type="link"
-                    size="small"
-                    icon={<FontAwesomeIcon icon={faDownload} />}
-                    aria-label="Download"
-                    onClick={() => {
-                        void downloadImage(
-                            makeImageSrc(cloudflareId, originalWidth),
-                            filename
-                        )
-                    }}
-                />
-            )}
+            <Button
+                type="link"
+                size="small"
+                icon={<FontAwesomeIcon icon={faDownload} />}
+                aria-label="Download"
+                onClick={() => {
+                    void downloadImage(
+                        makeImageSrc(cloudflareId, originalWidth),
+                        filename
+                    )
+                }}
+            />
         </>
     )
 }
