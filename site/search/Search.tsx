@@ -22,7 +22,7 @@ import {
 import {
     useUrlSync,
     useTagGraphTopics,
-    useSearchAnalytics,
+    useSearchStateAnalytics,
 } from "./searchHooks.js"
 
 // Components
@@ -36,6 +36,7 @@ import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
 import { SearchNoResults } from "./SearchNoResults.js"
 import { SearchDetectedFilters } from "./SearchDetectedFilters.js"
 import { buildSynonymMap } from "./synonymUtils.js"
+import { SiteAnalytics } from "../SiteAnalytics.js"
 
 export const Search = ({
     initialState,
@@ -55,11 +56,13 @@ export const Search = ({
 
     const synonymMap = useMemo(() => buildSynonymMap(), [])
 
+    const analytics = useMemo(() => new SiteAnalytics(), [])
+
     // Bidirectional URL synchronization
     const isInitialUrlStateLoaded = useUrlSync(state, actions.setState)
 
     // Handle analytics tracking
-    useSearchAnalytics(state, isInitialUrlStateLoaded)
+    useSearchStateAnalytics(state, analytics, isInitialUrlStateLoaded)
 
     const isFetching = useIsFetching()
 
@@ -86,6 +89,7 @@ export const Search = ({
                 templateConfig,
                 topicTagGraph,
                 synonymMap,
+                analytics,
             }}
         >
             <div className="search-controls-container span-cols-12 col-start-2">
