@@ -9,6 +9,7 @@
 
 /* Featured work */
 .homepage-intro__featured-work {
+    overflow-x: auto;
     @include md-down {
         margin: 0 16px 24px 16px;
         overflow-x: auto;
@@ -199,8 +200,15 @@
 /* Newsletter */
 .homepage-intro__newsletter-signup {
     background-color: $accent-pale-blue;
+    padding: 16px;
+    margin-bottom: 24px;
 
-    .NewsletterSubscriptionForm__header {
+    .newsletter-subscription-form {
+        border-bottom: 1px solid #bdd4f7;
+        padding-bottom: 16px;
+    }
+
+    .newsletter-subscription-form__subheader {
         font-weight: bold;
     }
 
@@ -211,7 +219,7 @@
         .newsletter-with-socials__form {
             display: none;
         }
-        .newsletter-with-socials__social-cta {
+        .socials__cta {
             margin-top: 0;
         }
     }
