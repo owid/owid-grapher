@@ -1948,17 +1948,6 @@ export function removeTrailingParenthetical(str: string): string {
     return str.replace(/\s*\(.*\)$/, "")
 }
 
-export function isElementHidden(element: Element | null): boolean {
-    if (!element) return false
-    const computedStyle = window.getComputedStyle(element)
-    if (
-        computedStyle.display === "none" ||
-        computedStyle.visibility === "hidden"
-    )
-        return true
-    return isElementHidden(element.parentElement)
-}
-
 const commafyFormatter = lazy(() => new Intl.NumberFormat("en-US"))
 /**
  * Example: 12000 -> "12,000"
