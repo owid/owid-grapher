@@ -30,6 +30,7 @@ import {
     renderGdocTombstone,
     renderExplorerIndexPage,
     renderLatestPage,
+    renderSubscribePage,
 } from "../baker/siteRenderers.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import { bakeCountries } from "../baker/countryProfiles.js"
@@ -679,6 +680,10 @@ export class SiteBaker {
         await this.stageWrite(
             `${this.bakedSiteDir}/explorers.html`,
             await renderExplorerIndexPage(knex)
+        )
+        await this.stageWrite(
+            `${this.bakedSiteDir}/subscribe.html`,
+            await renderSubscribePage()
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/collection/custom.html`,
