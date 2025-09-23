@@ -31,7 +31,6 @@ type ExplorerConfig = {
         type: string
         block?: {
             grapherId?: string | number
-            chartId?: string | number
             yVariableIds?: string
             ySlugs?: string
             xVariableId?: string
@@ -63,7 +62,7 @@ function detectChartIds(config: ExplorerConfig): number[] {
         for (const block of config.blocks) {
             if (block.type === "graphers" && Array.isArray(block.block)) {
                 for (const row of block.block) {
-                    const grapherId = row.grapherId ?? row.chartId
+                    const grapherId = row.grapherId
                     if (grapherId) {
                         chartIds.push(Number(grapherId))
                     }

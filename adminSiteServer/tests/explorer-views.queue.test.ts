@@ -58,7 +58,7 @@ async function createTwoCharts(): Promise<{ id1: number; id2: number }> {
 }
 
 async function putExplorerTsv(slug: string, chart1: number, chart2: number) {
-    const tsv = `explorerTitle\tQueue Test\nexplorerSubtitle\tQueue semantics\nisPublished\ttrue\ngraphers\n\tchartId\tTest Radio\n\t${chart1}\tChart1\n\t${chart2}\tChart2`
+    const tsv = `explorerTitle\tQueue Test\nexplorerSubtitle\tQueue semantics\nisPublished\ttrue\ngraphers\n\tgrapherId\tTest Radio\n\t${chart1}\tChart1\n\t${chart2}\tChart2`
     return env.request({
         method: "PUT",
         path: `/explorers/${slug}`,
@@ -120,7 +120,7 @@ describe("Explorer views async queue", { timeout: 20000 }, () => {
 explorerSubtitle\tTest explorer for async job queue processing.
 isPublished\ttrue
 graphers
-\tchartId\tTest Radio
+\tgrapherId\tTest Radio
 \t${chart1.chartId}\tTest Chart 1
 \t${chart2.chartId}\tTest Chart 2`
 
