@@ -13,10 +13,6 @@ import { areSetsEqual } from "@ourworldindata/utils"
 import { parseExplorer } from "../explorerParser.js"
 import { enqueueJob, updateExplorerRefreshStatus } from "./Jobs.js"
 
-function placeholders(count: number): string {
-    return new Array(count).fill("?").join(", ")
-}
-
 type PlainExplorerWithLastCommit = Required<DbPlainExplorer> & {
     // lastCommit is a relic from our git-CMS days, it should be broken down
     // to individual fields in the future
@@ -368,8 +364,6 @@ export async function enqueueExplorerRefreshJobsForDependencies(
             [chartIds]
         )
 
-        console.log("chart dependency rows", { chartIds, chartSlugRows })
-
         for (const row of chartSlugRows) {
             if (row.slug) slugSet.add(row.slug)
         }
@@ -387,11 +381,6 @@ export async function enqueueExplorerRefreshJobsForDependencies(
             `,
             [variableIds]
         )
-
-        console.log("variable dependency rows", {
-            variableIds,
-            variableSlugRows,
-        })
 
         for (const row of variableSlugRows) {
             if (row.slug) slugSet.add(row.slug)
