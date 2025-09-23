@@ -20,6 +20,7 @@ import {
     makeDataInsightsAtomFeed,
     renderGdocTombstone,
     renderExplorerIndexPage,
+    renderSubscribePage,
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
@@ -302,6 +303,10 @@ getPlainRouteWithROTransaction(mockSiteRouter, "/donate", async (_, res, trx) =>
 
 mockSiteRouter.get("/thank-you", async (req, res) =>
     res.send(await renderThankYouPage())
+)
+
+mockSiteRouter.get("/subscribe", async (req, res) =>
+    res.send(await renderSubscribePage())
 )
 
 getPlainRouteWithROTransaction(

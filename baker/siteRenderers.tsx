@@ -7,6 +7,7 @@ import { StaticCollectionPage } from "../site/collections/StaticCollectionPage.j
 import NotFoundPage from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
 import { ExplorerIndexPage } from "../site/ExplorerIndexPage.js"
+import { SubscribePage } from "../site/SubscribePage.js"
 import { ThankYouPage } from "../site/ThankYouPage.js"
 import TombstonePage from "../site/TombstonePage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
@@ -688,6 +689,10 @@ export const renderExplorerIndexPage = async (
     return renderToHtmlPage(
         <ExplorerIndexPage baseUrl={BAKED_BASE_URL} explorers={explorers} />
     )
+}
+
+export const renderSubscribePage = async (): Promise<string> => {
+    return renderToHtmlPage(<SubscribePage baseUrl={BAKED_BASE_URL} />)
 }
 
 interface ExplorerRenderOpts {
