@@ -476,9 +476,7 @@ const LinkToDataInsight = ({
                 <span className="item__title">
                     {insightLink.title}
                     <FontAwesomeIcon
-                        className={cx("icon", {
-                            "owid-btn--icon-right": insightLink.title,
-                        })}
+                        className="item__icon"
                         icon={faArrowRight}
                     />
                 </span>

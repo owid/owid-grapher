@@ -312,10 +312,9 @@ $experiments: (
                 .item__title {
                     font-size: 16px;
                     margin: 0;
-
-                    .icon {
-                        vertical-align: middle;
-                    }
+                }
+                .item__icon {
+                    margin-left: 0.5rem;
                 }
             }
 
