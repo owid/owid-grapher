@@ -94,7 +94,7 @@ export interface ExplorerProps extends SerializedGridProgram {
     loadMetadataOnly?: boolean
     throwOnMissingGrapher?: boolean
     setupGrapher?: boolean
-    archivedChartInfo?: ArchiveContext
+    archiveContext?: ArchiveContext
 }
 
 const LivePreviewComponent = (props: ExplorerProps) => {
@@ -226,11 +226,9 @@ export class Explorer
         this.explorerProgram = ExplorerProgram.fromJson(
             props
         ).initDecisionMatrix(this.initialQueryParams)
-        const { archivedChartInfo } = props
-        const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
-        const assetMaps = isOnArchivalPage
-            ? archivedChartInfo?.assets
-            : undefined
+        const { archiveContext } = props
+        const isOnArchivalPage = archiveContext?.type === "archive-page"
+        const assetMaps = isOnArchivalPage ? archiveContext?.assets : undefined
         this.isOnArchivalPage = isOnArchivalPage
         this.grapherState = new GrapherState({
             staticBounds: props.staticBounds,
@@ -240,7 +238,7 @@ export class Explorer
             isEmbeddedInAnOwidPage: this.props.isEmbeddedInAnOwidPage,
             adminBaseUrl: this.adminBaseUrl,
             canHideExternalControlsInEmbed: true,
-            archivedChartInfo: props.archivedChartInfo,
+            archiveContext: props.archiveContext,
             additionalDataLoaderFn: (
                 varId: number,
                 loadMetadataOnly?: boolean
@@ -262,7 +260,7 @@ export class Explorer
         partialGrapherConfigs: GrapherInterface[],
         explorerConstants: Record<string, string>,
         urlMigrationSpec?: ExplorerPageUrlMigrationSpec,
-        archivedChartInfo?: ArchiveContext
+        archiveContext?: ArchiveContext
     ) {
         const props: ExplorerProps = {
             ...program,
@@ -271,7 +269,7 @@ export class Explorer
             partialGrapherConfigs,
             isEmbeddedInAnOwidPage: false,
             isInStandalonePage: true,
-            archivedChartInfo,
+            archiveContext,
         }
 
         if (window.location.href.includes(EXPLORERS_PREVIEW_ROUTE)) {
@@ -652,7 +650,7 @@ export class Explorer
                 config.dimensions ?? [],
                 config.selectedEntityColors,
                 this.props.dataApiUrl,
-                this.props.archivedChartInfo,
+                this.props.archiveContext,
                 this.props.isPreview,
                 this.props.loadMetadataOnly
             ).then((owidTable) => (owidTable ? owidTable : BlankOwidTable()))
@@ -840,7 +838,7 @@ export class Explorer
                 config.dimensions,
                 config.selectedEntityColors,
                 this.props.dataApiUrl,
-                this.props.archivedChartInfo,
+                this.props.archiveContext,
                 this.props.isPreview,
                 this.props.loadMetadataOnly
             ).then((owidTable) => (owidTable ? owidTable : BlankOwidTable()))
@@ -1144,7 +1142,7 @@ export class Explorer
     @computed get baseUrl() {
         let archiveUrl = undefined
         if (this.isOnArchivalPage) {
-            archiveUrl = this.props.archivedChartInfo?.archiveUrl
+            archiveUrl = this.props.archiveContext?.archiveUrl
         }
         return (
             archiveUrl ??
