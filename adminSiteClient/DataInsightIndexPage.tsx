@@ -429,7 +429,7 @@ export function DataInsightIndexPage() {
                                     ...dataInsight.image,
                                     id: uploadedImage.id,
                                     filename: uploadedImage.filename,
-                                    cloudflareId: uploadedImage.cloudflareId!,
+                                    cloudflareId: uploadedImage.cloudflareId,
                                     originalWidth: uploadedImage.originalWidth,
                                 }
                               : undefined,

@@ -19,6 +19,14 @@ export type ImageUploadResponse =
     | { success: true; image: DbEnrichedImageWithUserId }
     | { success: false; errorMessage: string }
 
+export const ACCEPTED_IMG_TYPES = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/avif",
+    "image/gif",
+]
+
 /**
  * Uploading as base64, because otherwise we'd need multipart/form-data parsing middleware in the server.
  * This seems easier as a one-off.

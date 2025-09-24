@@ -33,6 +33,7 @@ import {
     faUpload,
 } from "@fortawesome/free-solid-svg-icons"
 import {
+    ACCEPTED_IMG_TYPES,
     type File,
     fileToBase64,
     type ImageUploadResponse,
@@ -248,26 +249,24 @@ function Filename({
     originalWidth,
 }: {
     filename: string
-    cloudflareId: string | null
-    originalWidth: number | null
+    cloudflareId: string
+    originalWidth: number
 }) {
     return (
         <>
             {filename}
-            {cloudflareId && originalWidth && (
-                <Button
-                    type="link"
-                    size="small"
-                    icon={<FontAwesomeIcon icon={faDownload} />}
-                    aria-label="Download"
-                    onClick={() => {
-                        void downloadImage(
-                            makeImageSrc(cloudflareId, originalWidth),
-                            filename
-                        )
-                    }}
-                />
-            )}
+            <Button
+                type="link"
+                size="small"
+                icon={<FontAwesomeIcon icon={faDownload} />}
+                aria-label="Download"
+                onClick={() => {
+                    void downloadImage(
+                        makeImageSrc(cloudflareId, originalWidth),
+                        filename
+                    )
+                }}
+            />
         </>
     )
 }
@@ -464,7 +463,7 @@ function PostImageButton({
     }
     return (
         <Upload
-            accept="image/*"
+            accept={ACCEPTED_IMG_TYPES.join(",")}
             showUploadList={false}
             customRequest={uploadImage}
         >
