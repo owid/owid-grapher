@@ -56,6 +56,7 @@ export const checkIsLightningUpdate = (
         revisionId: true,
         updatedAt: true,
         markdown: true,
+        contentMd5: true,
         createdAt: false, // weird case - can't be updated
         id: false, // weird case - can't be updated
         tags: false, // could require updating datapages, though it's currently not possible to have a difference between prevGdoc.tags and nextGdoc.tags

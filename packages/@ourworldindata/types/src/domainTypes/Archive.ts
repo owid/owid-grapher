@@ -88,3 +88,14 @@ export interface ExplorerChecksumsObjectWithHash {
     checksums: ExplorerChecksums
     checksumsHashed: string
 }
+
+export interface PostChecksums {
+    postContentMd5: string
+}
+
+export interface PostChecksumsObjectWithHash {
+    postId: string
+    postSlug: string
+    checksums: PostChecksums
+    checksumsHashed: string
+}
