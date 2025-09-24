@@ -44,19 +44,29 @@ export default function MultiDim({
     archivedChartInfo?: ArchiveContext
     isPreviewing?: boolean
 }) {
+    const assetMap =
+        archivedChartInfo?.type === "archive-page"
+            ? archivedChartInfo.assets.runtime
+            : undefined
     const manager = useRef(localGrapherConfig?.manager ?? {})
     const grapherRef = useMaybeGlobalGrapherStateRef({
         manager: manager.current,
         queryStr,
         additionalDataLoaderFn: (varId: number) =>
             loadVariableDataAndMetadata(varId, DATA_API_URL, {
+                assetMap,
                 noCache: isPreviewing,
             }),
+        archivedChartInfo,
         isConfigReady: false,
     })
 
     const grapherDataLoader = useRef(
-        getCachingInputTableFetcher(DATA_API_URL, undefined, isPreviewing)
+        getCachingInputTableFetcher(
+            DATA_API_URL,
+            archivedChartInfo,
+            isPreviewing
+        )
     )
     const grapherContainerRef = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(grapherContainerRef)
@@ -148,11 +158,6 @@ export default function MultiDim({
             newGrapherParams.mapSelect = ""
         }
 
-        const assetMap =
-            archivedChartInfo?.type === "archive-page"
-                ? archivedChartInfo.assets.runtime
-                : undefined
-
         const previousTab = grapher.activeTab
 
         cachedGetGrapherConfigByUuid(
@@ -202,13 +207,13 @@ export default function MultiDim({
             ignoreFetchedData = true
         }
     }, [
+        assetMap,
         config,
         isPreviewing,
         localGrapherConfig,
         searchParams,
         settings,
         slug,
-        archivedChartInfo,
         baseGrapherConfig,
         manager,
         grapherRef,

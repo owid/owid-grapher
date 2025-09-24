@@ -14,7 +14,12 @@ html.IsInIframe {
     }
 
     .multi-dim-grapher-container {
-        min-height: auto !important;
+        // Martin: min-height must be zero to allow the grapher to grow to the
+        // height of the container, but not higher. Not even sure if this answer
+        // applies to height the same as to width, but it's what helped me
+        // figure it out:
+        // https://stackoverflow.com/a/66689926/9846837
+        min-height: 0;
         max-height: none;
     }
 }
