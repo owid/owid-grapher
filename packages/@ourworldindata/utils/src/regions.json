@@ -4240,6 +4240,7 @@
             "MAR",
             "MLT",
             "OMN",
+            "OWID_FPK",
             "PAK",
             "PSE",
             "QAT",
@@ -4265,18 +4266,7 @@
         "regionType": "aggregate",
         "definedBy": "wb",
         "translationCodes": ["034"],
-        "members": [
-            "AFG",
-            "BGD",
-            "BTN",
-            "IND",
-            "IOT",
-            "LKA",
-            "MDV",
-            "NPL",
-            "OWID_FPK",
-            "PAK"
-        ]
+        "members": ["BGD", "BTN", "IND", "IOT", "LKA", "MDV", "NPL"]
     },
     {
         "code": "WB_SSA",
