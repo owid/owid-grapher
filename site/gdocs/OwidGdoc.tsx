@@ -1,6 +1,6 @@
 import * as _ from "lodash-es"
 import * as React from "react"
-import { OwidGdocType } from "@ourworldindata/types"
+import { OwidGdocType, ArchiveContext } from "@ourworldindata/types"
 import { OwidGdocPageProps } from "@ourworldindata/utils"
 import { match, P } from "ts-pattern"
 import { GdocPost } from "./pages/GdocPost.js"
@@ -29,10 +29,12 @@ function AdminLinks() {
 
 type OwidGdocProps = OwidGdocPageProps & {
     isPreviewing?: boolean
+    archiveContext?: ArchiveContext
 }
 
 export function OwidGdoc({
     isPreviewing = false,
+    archiveContext,
     ...props
 }: OwidGdocProps): React.ReactElement {
     const content = match(props)
@@ -103,7 +105,7 @@ export function OwidGdoc({
                 tags: props.tags ?? [],
             }}
         >
-            <DocumentContext.Provider value={{ isPreviewing }}>
+            <DocumentContext.Provider value={{ isPreviewing, archiveContext }}>
                 <AdminLinks />
                 {content}
             </DocumentContext.Provider>
