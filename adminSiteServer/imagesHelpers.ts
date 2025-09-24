@@ -7,6 +7,7 @@ import {
     OPENAI_API_KEY,
 } from "../settings/serverSettings.js"
 import { OpenAI } from "openai"
+import { ACCEPTED_IMG_TYPES } from "../adminSiteClient/imagesHelpers.js"
 
 export function validateImagePayload(body: any): {
     filename: string
@@ -23,6 +24,9 @@ export function validateImagePayload(body: any): {
         typeof content !== "string"
     ) {
         throw new JsonError("Invalid field types", 400)
+    }
+    if (!ACCEPTED_IMG_TYPES.includes(type)) {
+        throw new JsonError(`Unsupported image type: ${type}`, 400)
     }
     return { filename, type, content }
 }

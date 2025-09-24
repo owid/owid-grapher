@@ -33,6 +33,7 @@ import {
     faUpload,
 } from "@fortawesome/free-solid-svg-icons"
 import {
+    ACCEPTED_IMG_TYPES,
     type File,
     fileToBase64,
     type ImageUploadResponse,
@@ -462,7 +463,7 @@ function PostImageButton({
     }
     return (
         <Upload
-            accept="image/*"
+            accept={ACCEPTED_IMG_TYPES.join(",")}
             showUploadList={false}
             customRequest={uploadImage}
         >
