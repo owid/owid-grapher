@@ -8,6 +8,10 @@ import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.
 import { explorerRedirectTable } from "../explorerAdminServer/ExplorerRedirects.js"
 import { renderExplorerPage } from "./siteRenderers.js"
 import * as db from "../db/db.js"
+import { stringify } from "safe-stable-stringify"
+import { ExplorerArchivalManifest } from "../serverUtils/archivalUtils.js"
+import { ArchiveMetaInformation } from "@ourworldindata/types"
+import { getLatestExplorerArchivedVersionsIfEnabled } from "../db/model/archival/archivalDb.js"
 
 export const bakeAllPublishedExplorers = async (
     outputFolder: string,
@@ -27,10 +31,18 @@ const bakeExplorersToDir = async (
     explorers: ExplorerProgram[] = [],
     knex: db.KnexReadonlyTransaction
 ) => {
+    const latestArchivedBySlug =
+        await getLatestExplorerArchivedVersionsIfEnabled(
+            knex,
+            explorers.map((e) => e.slug)
+        )
+
     for (const explorer of explorers) {
         await write(
             `${directory}/${explorer.slug}.html`,
-            await renderExplorerPage(explorer, knex)
+            await renderExplorerPage(explorer, knex, {
+                archivedChartInfo: latestArchivedBySlug[explorer.slug],
+            })
         )
     }
 }
@@ -74,4 +86,27 @@ const write = async (outPath: string, content: string) => {
     await fs.mkdirp(path.dirname(outPath))
     await fs.writeFile(outPath, content)
     console.log(outPath)
+}
+
+export const bakeSingleExplorerPageForArchival = async (
+    bakedSiteDir: string,
+    program: ExplorerProgram,
+    knex: db.KnexReadonlyTransaction,
+    {
+        manifest,
+        archiveInfo,
+    }: {
+        manifest: ExplorerArchivalManifest
+        archiveInfo: ArchiveMetaInformation
+    }
+) => {
+    const outPathHtml = `${bakedSiteDir}/explorers/${program.slug}.html`
+    await fs.writeFile(
+        outPathHtml,
+        await renderExplorerPage(program, knex, {
+            archivedChartInfo: archiveInfo,
+        })
+    )
+    const outPathManifest = `${bakedSiteDir}/explorers/${program.slug}.manifest.json`
+    await fs.writeFile(outPathManifest, stringify(manifest, undefined, 2))
 }
