@@ -7,6 +7,7 @@ import { useGuidedChartLinkHandler } from "@ourworldindata/grapher"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEye } from "@fortawesome/free-solid-svg-icons"
 import { spansToUnformattedPlainText } from "@ourworldindata/utils"
+import cx from "classnames"
 
 export default function SpanElement({
     span,
@@ -23,7 +24,14 @@ export default function SpanElement({
 
     return match(span)
         .with({ spanType: "span-simple-text" }, (span) => (
-            <span>{span.text}</span>
+            <span
+                // A fix for the legacy way we did CTAs for data insights
+                // If/once we've migrated them all to use the {.cta} component, this won't be necessary
+                // TODO: https://github.com/owid/owid-grapher/issues/5437
+                className={cx({ "span-plain-arrow": span.text.trim() === "→" })}
+            >
+                {span.text}
+            </span>
         ))
         .with({ spanType: "span-link" }, (span) =>
             shouldRenderLinks ? (
