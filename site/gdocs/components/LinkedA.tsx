@@ -56,7 +56,10 @@ export default function LinkedA({ span }: { span: SpanLink }) {
                     className="span-link span-linked-chart"
                 >
                     <SpanElements spans={span.children} />
-                    <FontAwesomeIcon icon={faChartLine} />
+                    <FontAwesomeIcon
+                        className="span-linked-chart-icon"
+                        icon={faChartLine}
+                    />
                 </a>
             </Tippy>
         )
