@@ -14,6 +14,7 @@ import {
     OwidChartDimensionInterface,
     Time,
     OwidChartDimensionInterfaceWithMandatorySlug,
+    objectWithPersistablesToObject,
 } from "@ourworldindata/utils"
 import { OwidTable, CoreColumn } from "@ourworldindata/core-table"
 
@@ -86,17 +87,20 @@ export class ChartDimension
     }
 
     toObject(): OwidChartDimensionInterface {
-        return trimObject(
-            deleteRuntimeAndUnchangedProps(
-                {
-                    property: this.property,
-                    variableId: this.variableId,
-                    display: this.display,
-                    targetYear: this.targetYear,
-                },
-                new ChartDimensionDefaults()
-            )
+        const keysToSerialize = [
+            "variableId",
+            "property",
+            "display",
+            "targetYear",
+        ]
+        const obj: OwidChartDimensionInterface = objectWithPersistablesToObject(
+            this,
+            keysToSerialize
         )
+
+        deleteRuntimeAndUnchangedProps(obj, new ChartDimensionDefaults())
+
+        return trimObject(obj)
     }
 
     // Do not persist yet, until we migrate off VariableIds
