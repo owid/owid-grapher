@@ -52,6 +52,7 @@ const LatestPageDataInsight = (props: { data: LatestDataInsight }) => {
             </p>
             <a
                 href={href}
+                aria-label={props.data.content.title}
                 className="latest-page__data-insight-link grid grid-cols-6 span-cols-6"
             >
                 {firstImage && (
@@ -93,6 +94,7 @@ const LatestPageArticle = (props: { data: OwidGdocMinimalPostInterface }) => {
             </p>
             <a
                 href={href}
+                aria-label={props.data.title}
                 className="latest-page__article-link grid grid-cols-6 span-cols-6"
             >
                 {featuredImage && (

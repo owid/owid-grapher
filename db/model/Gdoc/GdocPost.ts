@@ -316,7 +316,7 @@ export const getLatestPageItems = async (
             ${includeTypes.length ? `AND pg.type IN (:types)` : ""}
             AND pg.publicationContext = 'listed'
             ORDER BY pg.publishedAt DESC
-            LIMIT 10 OFFSET :offset
+            LIMIT ${BLOG_POSTS_PER_PAGE} OFFSET :offset
             `,
         {
             types: includeTypes,
