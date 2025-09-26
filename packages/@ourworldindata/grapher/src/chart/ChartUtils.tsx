@@ -232,8 +232,8 @@ export function makeAxisLabel({
 
 /**
  * Given a URL for a CF function grapher thumbnail, generate a srcSet for the image at different widths
- * @param defaultSrc - `https://ourworldindata.org/grapher/thumbnail/life-expectancy.png?tab=chart`
- * @returns srcSet - `https://ourworldindata.org/grapher/thumbnail/life-expectancy.png?tab=chart&imWidth=850 850w, https://ourworldindata.org/grapher/thumbnail/life-expectancy.png?tab=chart&imWidth=1700 1700w`
+ * @param defaultSrc - `https://ourworldindata.org/grapher/life-expectancy.png?tab=chart`
+ * @returns srcSet - `https://ourworldindata.org/grapher/life-expectancy.png?tab=chart&imWidth=850 850w, https://ourworldindata.org/grapher/life-expectancy.png?tab=chart&imWidth=1700 1700w`
  */
 export function generateGrapherImageSrcSet(defaultSrc: string): string {
     const url = Url.fromURL(defaultSrc)
