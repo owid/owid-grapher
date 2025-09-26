@@ -225,6 +225,18 @@ export const getWordpressPostReferencesByChartId = async (
     const relatedWordpressPosts: PostReference[] = await db.knexRaw(
         knex,
         `-- sql
+            WITH chart_slug_mapping AS (
+                -- Direct chart slug mapping
+                SELECT c.id as chartId, cc.slug as target_slug
+                FROM charts c
+                JOIN chart_configs cc ON c.configId = cc.id
+                WHERE c.id = ?
+                UNION ALL
+                -- Redirect slug mappings
+                SELECT cr.chart_id as chartId, cr.slug as target_slug
+                FROM chart_slug_redirects cr
+                WHERE cr.chart_id = ?
+            )
             SELECT DISTINCT
                 p.title,
                 p.slug,
@@ -233,19 +245,9 @@ export const getWordpressPostReferencesByChartId = async (
             FROM
                 posts p
                 JOIN posts_links pl ON p.id = pl.sourceId
-                JOIN chart_configs cc ON pl.target = cc.slug
-                JOIN charts c ON c.configId = cc.id
-                OR pl.target IN (
-                    SELECT
-                        cr.slug
-                    FROM
-                        chart_slug_redirects cr
-                    WHERE
-                        cr.chart_id = c.id
-                )
+                JOIN chart_slug_mapping csm ON pl.target = csm.target_slug
             WHERE
-                c.id = ?
-                AND p.status = 'publish'
+                p.status = 'publish'
                 AND p.type != 'wp_block'
                 AND pl.linkType = 'grapher'
                 AND p.slug NOT IN (
@@ -261,7 +263,7 @@ export const getWordpressPostReferencesByChartId = async (
             ORDER BY
                 p.title ASC
         `,
-        [chartId]
+        [chartId, chartId]
     )
 
     return relatedWordpressPosts
@@ -274,6 +276,18 @@ export const getGdocsPostReferencesByChartId = async (
     const relatedGdocsPosts: PostReference[] = await db.knexRaw(
         knex,
         `-- sql
+            WITH chart_slug_mapping AS (
+                -- Direct chart slug mapping
+                SELECT c.id as chartId, cc.slug as target_slug
+                FROM charts c
+                JOIN chart_configs cc ON c.configId = cc.id
+                WHERE c.id = ?
+                UNION ALL
+                -- Redirect slug mappings
+                SELECT cr.chart_id as chartId, cr.slug as target_slug
+                FROM chart_slug_redirects cr
+                WHERE cr.chart_id = ?
+            )
             SELECT DISTINCT
                 pg.content ->> '$.title' AS title,
                 pg.slug AS slug,
@@ -282,19 +296,9 @@ export const getGdocsPostReferencesByChartId = async (
             FROM
                 posts_gdocs pg
                 JOIN posts_gdocs_links pgl ON pg.id = pgl.sourceId
-                JOIN chart_configs cc ON pgl.target = cc.slug
-                JOIN charts c ON c.configId = cc.id
-                OR pgl.target IN (
-                    SELECT
-                        cr.slug
-                    FROM
-                        chart_slug_redirects cr
-                    WHERE
-                        cr.chart_id = c.id
-                )
+                JOIN chart_slug_mapping csm ON pgl.target = csm.target_slug
             WHERE
-                c.id = ?
-                AND pg.type NOT IN (
+                pg.type NOT IN (
                     '${OwidGdocType.Fragment}',
                     '${OwidGdocType.AboutPage}',
                     '${OwidGdocType.DataInsight}'
@@ -303,7 +307,7 @@ export const getGdocsPostReferencesByChartId = async (
             ORDER BY
                 pg.content ->> '$.title' ASC
         `,
-        [chartId]
+        [chartId, chartId]
     )
 
     return relatedGdocsPosts
