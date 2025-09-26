@@ -20,6 +20,7 @@ import { faArrowRight, faHeart } from "@fortawesome/free-solid-svg-icons"
 type FeaturedWorkTileProps = EnrichedBlockHomepageIntroPost & {
     isTertiary?: boolean
     className?: string
+    id: string
     thumbnailSize?: ImageParentContainer
 }
 
@@ -34,6 +35,7 @@ function FeaturedWorkTile({
     className = "",
     thumbnailSize = "thumbnail",
     isNew,
+    id,
 }: FeaturedWorkTileProps) {
     const { linkedDocument, errorMessage } = useLinkedDocument(url)
     const { isPreviewing } = useContext(DocumentContext)
@@ -71,6 +73,7 @@ function FeaturedWorkTile({
     return (
         <a
             href={href}
+            aria-labelledby={id}
             className={cx("homepage-intro__featured-tile", className, {
                 "homepage-intro__featured-tile--missing-image":
                     !thumbnailFilename,
@@ -92,9 +95,12 @@ function FeaturedWorkTile({
                 </span>
             )}
             {title && (
-                <p className="homepage-intro__featured-work-title h3-bold">
+                <h3
+                    id={id}
+                    className="homepage-intro__featured-work-title h3-bold"
+                >
                     {title}
-                </p>
+                </h3>
             )}
             {description && (
                 <p className="homepage-intro__featured-work-description body-3-medium">
@@ -128,6 +134,7 @@ function HomepageAnnouncements() {
                     >
                         <a
                             className="homepage-intro__announcement-link"
+                            aria-labelledby={`announcement-${announcement.id}`}
                             tabIndex={i === 2 ? -1 : undefined}
                             href={`/${announcement.slug}`}
                         >
@@ -135,7 +142,10 @@ function HomepageAnnouncements() {
                                 {announcement.kicker} -{" "}
                                 {dayjs(announcement.publishedAt).fromNow()}{" "}
                             </span>
-                            <h3 className="homepage-intro__announcement-title body-2-bold">
+                            <h3
+                                id={`announcement-${announcement.id}`}
+                                className="homepage-intro__announcement-title body-2-bold"
+                            >
                                 {announcement.title}
                             </h3>
                             <p className="homepage-intro__excerpt body-3-medium">
@@ -207,12 +217,12 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
         <section className={cx("homepage-intro", className)}>
             <div className="homepage-intro__featured-work grid grid-cols-2 span-cols-6 col-start-2 span-md-cols-14">
                 <div className="homepage-intro__featured-work-column">
-                    <FeaturedWorkTile {...w1} />
-                    <FeaturedWorkTile {...w3} />
+                    <FeaturedWorkTile id={"fw1"} {...w1} />
+                    <FeaturedWorkTile id={"fw3"} {...w3} />
                 </div>
                 <div className="homepage-intro__featured-work-column">
-                    <FeaturedWorkTile isTertiary {...w2} />
-                    <FeaturedWorkTile isTertiary {...w4} />
+                    <FeaturedWorkTile id={"fw2"} isTertiary {...w2} />
+                    <FeaturedWorkTile id={"fw4"} isTertiary {...w4} />
                 </div>
             </div>
             <HomepageAnnouncements />
