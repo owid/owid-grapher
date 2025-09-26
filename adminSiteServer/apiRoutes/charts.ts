@@ -102,22 +102,23 @@ export const getReferencesByChartId = async (
             FROM charts c
             JOIN chart_configs cc ON c.configId = cc.id
             WHERE c.id = ?
-            
+
             UNION ALL
-            
+
             SELECT cr.slug as main_slug, c.id as chart_id
             FROM charts c
             JOIN chart_slug_redirects cr ON cr.chart_id = c.id
             WHERE c.id = ?
         ),
         gdoc_grapher_slugs AS (
-            SELECT 
+            SELECT
                 pg.id,
                 pg.content ->> '$.title' AS title,
                 pg.published,
                 pg.content ->> '$."narrative-chart"' AS narrativeChart,
                 pg.content ->> '$."figma-url"' AS figmaUrl,
                 SUBSTRING_INDEX(SUBSTRING_INDEX(pg.content ->> '$."grapher-url"', '/grapher/', -1), '\\?', 1) AS extracted_slug,
+                -- prepare for a join on the images table by filename (only works for data insights where the image block comes first)
                 COALESCE(pg.content ->> '$.body[0].smallFilename', pg.content ->> '$.body[0].filename') AS image_filename
             FROM posts_gdocs pg
             WHERE pg.type = 'data-insight'
