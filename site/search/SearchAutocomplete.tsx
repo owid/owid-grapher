@@ -132,7 +132,7 @@ export const SearchAutocomplete = ({
                     setQueries("")
                 })
                 .with(FilterType.QUERY, () => {
-                    setQueries(filter.name)
+                    setQueries(localQuery || filter.name) // only use filter.name for default searches, as it may be lagging
                 })
                 .exhaustive()
             setShowSuggestions(false)
