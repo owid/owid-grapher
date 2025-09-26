@@ -15,14 +15,21 @@ import { urlToSearchState, searchStateToUrl } from "./searchState.js"
 import { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 
-export const useSelectedTopic = (): string | undefined => {
-    const { state } = useSearchContext()
-    return getSelectedTopic(state.filters)
+export const useSelectedTopic = (
+    deferred: boolean = false
+): string | undefined => {
+    const { state, deferredState } = useSearchContext()
+    return getSelectedTopic(deferred ? deferredState.filters : state.filters)
 }
 
-export const useSelectedRegionNames = (): string[] => {
-    const { state } = useSearchContext()
-    return Array.from(getFilterNamesOfType(state.filters, FilterType.COUNTRY))
+export const useSelectedRegionNames = (deferred: boolean = false): string[] => {
+    const { state, deferredState } = useSearchContext()
+    return Array.from(
+        getFilterNamesOfType(
+            deferred ? deferredState.filters : state.filters,
+            FilterType.COUNTRY
+        )
+    )
 }
 
 /**
@@ -237,7 +244,7 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
     ) => Promise<T>
     enabled?: boolean
 }) {
-    const { state, searchClient } = useSearchContext()
+    const { deferredState: state, searchClient } = useSearchContext()
 
     const query = useInfiniteQuery<T, Error>({
         // All paginated subqueries share the same query key
