@@ -103,7 +103,13 @@ export const makeSitemap = async (
         `
     )
 
-    const STATIC_PAGES = ["/explorers", "/data", "/search", "/donate"]
+    const STATIC_PAGES = [
+        "/explorers",
+        "/data",
+        "/search",
+        "/donate",
+        "/subscribe",
+    ]
 
     const explorers = await explorerAdminServer.getAllPublishedExplorers(knex)
 

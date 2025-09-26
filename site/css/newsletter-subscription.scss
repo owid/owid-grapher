@@ -1,57 +1,95 @@
-.newsletter-subscription form {
+.newsletter-subscription-form {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     @include row-gap(16px);
     @include body-3-medium;
+}
 
-    button[type="submit"] {
-        border-width: 1px;
-        @include button-disabled;
+// hidden by default, shown on the /subscribe page
+.newsletter-subscription-form__checkbox-image {
+    display: none;
+}
+
+.newsletter-subscription-form__label-title {
+    @include body-2-semibold;
+}
+
+// hidden by default, shown on the /subscribe page
+.newsletter-subscription-form__label-frequency {
+    display: none;
+    color: $blue-60;
+    margin-left: 8px;
+}
+
+.newsletter-subscription-form__label-text {
+    color: $blue-60;
+}
+
+// hidden by default, shown on the /subscribe page
+.newsletter-subscription-form__example-link {
+    @include owid-link-60;
+    display: none;
+    padding: 0 0.5rem;
+}
+
+.newsletter-subscription-form__alert {
+    color: $error-text-color;
+}
+
+.newsletter-subscription-form__checkbox {
+    margin: 0;
+    flex: 1 1 100%;
+}
+
+.newsletter-subscription-form__email-submit {
+    flex: 1 1 100%;
+    display: flex;
+    justify-content: space-between;
+    @include column-gap(8px);
+}
+
+.newsletter-subscription-form__email {
+    flex: 1;
+    width: 100%;
+}
+
+.newsletter-subscription-form__submit {
+    padding: 0 24px;
+    color: $white;
+    border: none;
+    background-color: $vermillion;
+    cursor: pointer;
+    border-width: 1px;
+    &:hover {
+        background-color: #b40000;
+    }
+    @include button-disabled;
+}
+
+.newsletter-subscription-form__privacy-notice {
+    a {
+        @include owid-link-60;
+    }
+}
+
+.newsletter-subscription-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px 16px;
+    margin-bottom: 8px;
+    .newsletter-subscription-header__icon {
+        height: 3rem;
+        flex-shrink: 0;
     }
 
-    .label-title {
-        @include body-2-semibold;
-    }
-
-    .label-text {
-        color: $blue-60;
-    }
-
-    .alert {
-        color: $error-text-color;
-    }
-
-    .owid-checkbox-block {
+    .newsletter-subscription-header__heading {
+        font-size: 1.25rem;
+        color: $blue-90;
         margin: 0;
-    }
-
-    .NewsletterSubscription__email-submit {
-        height: 40px;
-        display: flex;
-        justify-content: space-between;
-        @include column-gap(8px);
-    }
-
-    .NewsletterSubscription__email {
-        flex: 1;
-        width: 100%;
-    }
-
-    .NewsletterSubscription__submit {
-        padding: 0 24px;
-        color: $white;
-        border: none;
-        background-color: $vermillion;
-        cursor: pointer;
-        &:hover {
-            background-color: #b40000;
-        }
-    }
-
-    .NewsletterSubscription__privacy {
-        a {
-            @include owid-link-60;
-        }
+        // magic number to sit flush with svg when there's room,
+        // and wrap when there isn't
+        flex: 0 0 184px;
     }
 }
 
@@ -61,120 +99,4 @@
 
 .site-tools .newsletter-subscription form {
     padding: 32px 40px;
-}
-
-.newsletter-with-socials {
-    padding: 24px;
-    background-color: $blue-10;
-    margin-bottom: 24px;
-
-    @include md-up {
-        grid-row-start: 2;
-        align-self: start;
-        grid-row-end: span 10;
-    }
-
-    .newsletter-with-socials__icon {
-        @include md-down {
-            display: none;
-        }
-    }
-
-    .newsletter-with-socials__form {
-        @include lg-up {
-            padding-bottom: 16px;
-            border-bottom: 1px solid $blue-20;
-        }
-    }
-
-    .newsletter-with-socials__header {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: flex-start;
-        gap: 8px 16px;
-        margin-bottom: 8px;
-        svg {
-            height: 3rem;
-            flex-shrink: 0;
-        }
-
-        h4 {
-            font-size: 1.25rem;
-            color: $blue-90;
-            margin: 0;
-            flex: 0 0 70%;
-        }
-    }
-
-    .newsletter-with-socials__heading {
-        @include h3-bold;
-        color: $blue-90;
-        margin: 0;
-    }
-
-    .NewsletterSubscriptionForm__header {
-        margin-bottom: 16px;
-        display: block;
-    }
-
-    .owid-checkbox-block {
-        margin-bottom: 16px;
-    }
-
-    .label-title {
-        @include body-2-bold;
-    }
-
-    .label-text {
-        @include body-3-medium;
-    }
-
-    .NewsletterSubscription__email-submit {
-        @include md-up {
-            flex-wrap: wrap;
-            gap: 8px;
-            height: auto;
-            input,
-            button {
-                flex-basis: 100%;
-                height: 40px;
-                margin: 0;
-            }
-        }
-    }
-
-    .NewsletterSubscription__privacy {
-        @include body-3-regular;
-    }
-
-    .newsletter-with-socials__social-cta {
-        @include h3-bold;
-        margin: 16px 0;
-    }
-
-    .newsletter-with-socials__socials {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 16px;
-
-        a {
-            color: $blue-60;
-            .label {
-                height: 0;
-                width: 0;
-                display: block;
-                position: absolute;
-                overflow: hidden;
-            }
-            svg {
-                width: 16px;
-                height: 16px;
-                display: block;
-            }
-        }
-    }
 }
