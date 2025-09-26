@@ -30,9 +30,7 @@
     align-self: start;
     margin-bottom: 24px;
     &:hover {
-        .homepage-intro__featured-work-title {
-            text-decoration: underline;
-        }
+        border-color: $blue-30;
     }
 
     &:last-child {
