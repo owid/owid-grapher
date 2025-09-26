@@ -8,6 +8,7 @@ type SearchActions = ReturnType<typeof createActions>
 
 interface SearchContextType {
     state: SearchState
+    deferredState: SearchState
     actions: SearchActions
     searchClient: SearchClient
     templateConfig: TemplateConfig
