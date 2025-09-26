@@ -1,6 +1,6 @@
 import { TagGraphRoot } from "@ourworldindata/types"
 import { SearchClient } from "algoliasearch"
-import { useReducer, useMemo } from "react"
+import { useReducer, useMemo, useDeferredValue } from "react"
 import { match } from "ts-pattern"
 import { useIsFetching } from "@tanstack/react-query"
 
@@ -55,32 +55,36 @@ export const Search = ({
 
     const synonymMap = useMemo(() => buildSynonymMap(), [])
 
+    const deferredState = useDeferredValue(state)
+
     // Bidirectional URL synchronization
-    const isInitialUrlStateLoaded = useUrlSync(state, actions.setState)
+    const isInitialUrlStateLoaded = useUrlSync(deferredState, actions.setState)
 
     // Handle analytics tracking
-    useSearchAnalytics(state, isInitialUrlStateLoaded)
+    useSearchAnalytics(deferredState, isInitialUrlStateLoaded)
 
     const isFetching = useIsFetching()
 
     // Derived state for template configuration
-    const topicType = getSelectedTopicType(state.filters, allAreas)
+    const topicType = getSelectedTopicType(deferredState.filters, allAreas)
     const templateConfig: TemplateConfig = {
         resultType: getEffectiveResultType(
-            state.filters,
-            state.query,
-            state.resultType
+            deferredState.filters,
+            deferredState.query,
+            deferredState.resultType
         ),
         topicType,
         hasCountry:
-            getFilterNamesOfType(state.filters, FilterType.COUNTRY).size > 0,
-        hasQuery: state.query.length > 0,
+            getFilterNamesOfType(deferredState.filters, FilterType.COUNTRY)
+                .size > 0,
+        hasQuery: deferredState.query.length > 0,
     }
 
     return (
         <SearchContext.Provider
             value={{
                 state,
+                deferredState,
                 actions,
                 searchClient,
                 templateConfig,
