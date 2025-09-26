@@ -3,13 +3,14 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../settings/serverSettings.js"
+import { dayjs, countries } from "@ourworldindata/utils"
 import {
-    dayjs,
-    countries,
     DbPlainChart,
+    DbPlainMultiDimDataPage,
     DbRawPostGdoc,
+    MultiDimDataPagesTableName,
     OwidGdocType,
-} from "@ourworldindata/utils"
+} from "@ourworldindata/types"
 import {
     EXPLORERS_ROUTE_FOLDER,
     ExplorerProgram,
@@ -78,6 +79,16 @@ async function getPublishedGdocPosts(knex: db.KnexReadonlyTransaction) {
     )
 }
 
+async function getPublishedMultiDims(knex: db.KnexReadonlyTransaction) {
+    // Published multi-dims must have a slug.
+    return knex<DbPlainMultiDimDataPage & { slug: string }>(
+        MultiDimDataPagesTableName
+    )
+        .select("slug", "updatedAt")
+        .where("published", true)
+        .orderBy("updatedAt", "desc")
+}
+
 export const makeSitemap = async (
     explorerAdminServer: ExplorerAdminServer,
     knex: db.KnexReadonlyTransaction
@@ -106,6 +117,7 @@ export const makeSitemap = async (
     const STATIC_PAGES = ["/explorers", "/data", "/search", "/donate"]
 
     const explorers = await explorerAdminServer.getAllPublishedExplorers(knex)
+    const multiDims = await getPublishedMultiDims(knex)
 
     let urls = countries.map((c) => ({
         loc: urljoin(BAKED_BASE_URL, "country", c.slug),
@@ -156,6 +168,12 @@ export const makeSitemap = async (
             }))
         )
         .concat(explorers.map(explorerToSitemapUrl))
+        .concat(
+            multiDims.map((multiDim) => ({
+                loc: urljoin(BAKED_GRAPHER_URL, multiDim.slug),
+                lastmod: dayjs(multiDim.updatedAt).format("YYYY-MM-DD"),
+            }))
+        )
         .concat(
             authorPages.map((a) => ({
                 loc: urljoin(BAKED_BASE_URL, "team", a.slug),
