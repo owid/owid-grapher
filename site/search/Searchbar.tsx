@@ -25,7 +25,8 @@ export const Searchbar = ({ allTopics }: { allTopics: string[] }) => {
         },
     } = useSearchContext()
 
-    const selectedRegionNames = useSelectedRegionNames()
+    //
+    const selectedRegionNames = useSelectedRegionNames(true)
     // Storing this in local state so that query params don't update during typing
     const [localQuery, setLocalQuery] = useState(query)
     // sync local query with global query when browser navigation occurs
