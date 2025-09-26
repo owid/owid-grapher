@@ -99,6 +99,7 @@ export function OwidGdoc({
                     "linkedNarrativeCharts",
                     {}
                 ),
+                linkedStaticViz: _.get(props, "linkedStaticViz", {}),
                 // lodash doesn't use fallback when value is null
                 tags: props.tags ?? [],
             }}
