@@ -232,25 +232,25 @@ There is however a [Cloudflare Access rule restricting access to \*.owid.pages.d
 Our grapher pages are (slightly) dynamic!
 They're still driven by a statically rendered page, but to make dynamic thumbnails work, we need to inject the query params into the `<meta property="og:image">` [^1] and `<meta property="twitter:image">` [^2] tags.
 
-So, for example, if a request is coming in for `/grapher/population?tab=chart&time=1999..2023`, then we need to reflect these query params in the tags for social media preview images, too, and would put something like `<meta property="og:image" content="/grapher/thumbnail/population?tab=chart&time=1999..2023>` so that social media posts will then show the preview for the exact chart configuration.
+So, for example, if a request is coming in for `/grapher/population?tab=chart&time=1999..2023`, then we need to reflect these query params in the tags for social media preview images, too, and would put something like `<meta property="og:image" content="/grapher/population.png?tab=chart&time=1999..2023>` so that social media posts will then show the preview for the exact chart configuration.
 
-## `/grapher/thumbnail/:slug`
+## Thumbnail Generation
 
-This route is where the actual thumbnail magic happens 🙌🏻✨
+Thumbnail generation happens directly through the `/grapher/:slug.png` and `/grapher/:slug.svg` routes (handled in `/grapher/[slug].ts`).
 
-It can:
+This route can:
 
 - Generate _png_ and _svg_ previews
 - Render _png_ exports using our custom fonts, Lato and Playfair
 - Render a preview according to all its query parameters
 - Customize the image output a bunch using various options (see below)
 
-We (plan to) use these for social media previews, such that the social media user will see the exact chart that is shared, for example with a `?tab=chart&country=IND~CHN&time=2000`.
+We use these for social media previews, such that the social media user will see the exact chart that is shared, for example with a `?tab=chart&country=IND~CHN&time=2000`.
 We cannot possibly create static previews for all possible combinations, but we can generate them dynamically on the fly as they are being shared.
 
 ### How it works
 
-When a request to `/grapher/thumbnail/:slug` comes in, the following steps are performed:
+When a request to `/grapher/:slug.png` or `/grapher/:slug.svg` comes in, the following steps are performed:
 
 1. Fetch the grapher page `/grapher/:slug` and extract the grapher config using the `// EMBEDDED_JSON` trickery.
 2. Instantiate the grapher (the whole `@ourworldindata/grapher` module is bundled together with the worker).
