@@ -1,5 +1,5 @@
 import cx from "classnames"
-import { useEffect, useMemo, useCallback } from "react"
+import { useEffect, useCallback, useState, useMemo } from "react"
 import { match } from "ts-pattern"
 import {
     suggestFiltersFromQuerySuffix,
@@ -16,6 +16,7 @@ import { Filter, FilterType } from "./searchTypes.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import { useSearchContext } from "./SearchContext.js"
 import { listedRegionsNames } from "@ourworldindata/utils"
+import { useDebounceValue } from "usehooks-ts"
 
 // Default search suggestions to show when there's no query or filters
 const DEFAULT_SEARCHES = [
@@ -44,22 +45,8 @@ export const SearchAutocomplete = ({
     } = useSearchContext()
 
     const analytics = useMemo(() => new SiteAnalytics(), [])
-
-    const { suggestions, unmatchedQuery } = useMemo(() => {
-        if (!localQuery && !filters.length) {
-            return {
-                suggestions: DEFAULT_SEARCHES.map(createQueryFilter),
-                unmatchedQuery: "",
-            }
-        }
-        return suggestFiltersFromQuerySuffix(
-            localQuery,
-            listedRegionsNames(),
-            allTopics,
-            filters,
-            synonymMap
-        )
-    }, [localQuery, allTopics, filters, synonymMap])
+    const [debouncedLocalQuery] = useDebounceValue(localQuery, 200)
+    const [unmatchedQuery, setUnmatchedQuery] = useState("")
 
     const {
         activeIndex,
@@ -68,7 +55,27 @@ export const SearchAutocomplete = ({
         showSuggestions,
         setShowSuggestions,
         registerSelectionHandler,
+        suggestions,
     } = useSearchAutocomplete()
+
+    useEffect(() => {
+        if (!debouncedLocalQuery && !filters.length) {
+            setSuggestions(DEFAULT_SEARCHES.map(createQueryFilter))
+            setUnmatchedQuery("")
+            return
+        }
+
+        const result = suggestFiltersFromQuerySuffix(
+            debouncedLocalQuery,
+            listedRegionsNames(),
+            allTopics,
+            filters,
+            synonymMap
+        )
+
+        setSuggestions(result.suggestions)
+        setUnmatchedQuery(result.unmatchedQuery)
+    }, [debouncedLocalQuery, allTopics, filters, synonymMap, setSuggestions])
 
     const setQueries = useCallback(
         (query: string) => {
@@ -141,10 +148,6 @@ export const SearchAutocomplete = ({
             suggestions,
         ]
     )
-
-    useEffect(() => {
-        setSuggestions(suggestions)
-    }, [suggestions, setSuggestions])
 
     // Register the selection handler with the context
     useEffect(() => {
