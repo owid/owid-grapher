@@ -16,6 +16,7 @@ export const SearchDetectedFilters = ({
 }) => {
     const {
         state: { query, filters },
+        deferredState: { filters: deferredFilters, query: deferredQuery },
         actions: { replaceQueryWithFilters },
         synonymMap,
     } = useSearchContext()
@@ -39,19 +40,20 @@ export const SearchDetectedFilters = ({
     // Manual filter suggestions are parsed independently to give shorter exact
     // matches priority. Otherwise, a query like "north korea south korea" would
     // greedily match "south korea" on "korea south korea", leaving "north"
-    // orphan.
+    // orphan. Use deferred state to avoid showing suggestions while automatic
+    // filters are applied.
     const manualFilters = useMemo(() => {
         const matches = extractFiltersFromQuery(
-            query,
+            deferredQuery,
             allRegionNames,
             allTopics,
-            filters,
+            deferredFilters,
             { threshold: 0.75, limit: 1 },
             synonymMap
         )
         // Only show non-exact country matches as suggestions
         return matches.filter((match) => match.type === FilterType.COUNTRY)
-    }, [query, allRegionNames, allTopics, filters, synonymMap])
+    }, [deferredQuery, allRegionNames, allTopics, deferredFilters, synonymMap])
 
     const applyFilters = useCallback(
         (filtersToProcess: ScoredFilterPositioned[]) => {
