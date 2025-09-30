@@ -8423,13 +8423,13 @@ __metadata:
   linkType: hard
 
 "axios@npm:^0.30.0":
-  version: 0.30.0
-  resolution: "axios@npm:0.30.0"
+  version: 0.30.2
+  resolution: "axios@npm:0.30.2"
   dependencies:
     follow-redirects: "npm:^1.15.4"
-    form-data: "npm:^4.0.0"
+    form-data: "npm:^4.0.4"
     proxy-from-env: "npm:^1.1.0"
-  checksum: 10/55f4fc3b009d335e25c68b8a26efe2cd6a7f33e632894e304804f6d31863661b9667c92a4ad3489f57358cfa1e5fefaa2e10bb4089f2fa600b0b3e2cfa8f0954
+  checksum: 10/2547fd334631da265ad36b41d0f74a54467c3e83371b901466cca59f976d4c04de84a03d0f6c44ee1b16cd69a4ede79e1e2b846905a32557ef83c328c5167105
   languageName: node
   linkType: hard
 
@@ -10986,7 +10986,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"form-data@npm:^4.0.0":
+"form-data@npm:^4.0.0, form-data@npm:^4.0.4":
   version: 4.0.4
   resolution: "form-data@npm:4.0.4"
   dependencies:
