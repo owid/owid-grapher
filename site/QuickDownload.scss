@@ -1,0 +1,121 @@
+.quick-download {
+    margin-top: 24px;
+    padding: 24px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+
+    &__title {
+        margin: 0 0 8px 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+
+    &__description {
+        margin: 0 0 20px 0;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #5a5a5a;
+    }
+
+    &__buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    &__button {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        background: white;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-align: left;
+        width: 100%;
+
+        &:hover {
+            background: #fafafa;
+            border-color: #1865f2;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        &:active {
+            transform: translateY(1px);
+        }
+    }
+
+    &__button-icon {
+        flex-shrink: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #1865f2;
+
+        svg {
+            display: block;
+        }
+    }
+
+    &__button-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    &__button-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 4px;
+    }
+
+    &__button-description {
+        font-size: 13px;
+        color: #6b7280;
+        line-height: 1.4;
+    }
+
+    &__button-arrow {
+        flex-shrink: 0;
+        color: #9ca3af;
+        font-size: 16px;
+        transition: color 0.15s ease;
+
+        .quick-download__button:hover & {
+            color: #1865f2;
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .quick-download {
+        padding: 20px;
+
+        &__title {
+            font-size: 16px;
+        }
+
+        &__description {
+            font-size: 13px;
+        }
+
+        &__button {
+            padding: 14px;
+            gap: 12px;
+        }
+
+        &__button-title {
+            font-size: 14px;
+        }
+
+        &__button-description {
+            font-size: 12px;
+        }
+    }
+}

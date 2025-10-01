@@ -212,6 +212,7 @@ export const DataPageV2Content = ({
                             <AboutThisData
                                 datapageData={datapageData}
                                 hasFaq={!!faqEntries?.faqs.length}
+                                slug={grapherConfig.slug}
                                 className={cx(
                                     "exp-data-page-insight-btns-2--control1--hide",
                                     "exp-data-page-insight-btns-2--treat00--hide",
@@ -265,6 +266,7 @@ export const DataPageV2Content = ({
                         <AboutThisData
                             datapageData={datapageData}
                             hasFaq={!!faqEntries?.faqs.length}
+                            slug={grapherConfig.slug}
                             className={cx(
                                 "exp-data-page-insight-btns-2--control1--show",
                                 "exp-data-page-insight-btns-2--treat00--show",
