@@ -16,7 +16,9 @@ import {
     IndicatorTitleWithFragments,
     OwidProcessingLevel,
     ArchiveContext,
+    DataPageDataV2,
 } from "@ourworldindata/types"
+import { GrapherInterface } from "@ourworldindata/utils"
 import {
     prepareSourcesForDisplay,
     getCitationShort,
@@ -25,6 +27,7 @@ import {
     getPhraseForArchivalDate,
 } from "@ourworldindata/utils"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
+import DownloadSection from "./DownloadSection.js"
 
 export default function MetadataSection({
     attributionShort,
@@ -39,6 +42,8 @@ export default function MetadataSection({
     title,
     titleVariant,
     archivedChartInfo,
+    grapherConfig,
+    datapageData,
 }: {
     attributionShort?: string
     attributions: string[]
@@ -52,6 +57,8 @@ export default function MetadataSection({
     title: IndicatorTitleWithFragments
     titleVariant?: string
     archivedChartInfo?: ArchiveContext
+    grapherConfig?: GrapherInterface
+    datapageData?: DataPageDataV2
 }) {
     const sourcesForDisplay = prepareSourcesForDisplay({ origins, source })
     const citationUrl = archivedChartInfo?.archiveUrl ?? canonicalUrl
@@ -138,6 +145,13 @@ export default function MetadataSection({
                         </div>
                     </div>
                 </div>
+                {grapherConfig?.slug && datapageData && (
+                    <DownloadSection
+                        slug={grapherConfig.slug}
+                        grapherConfig={grapherConfig}
+                        datapageData={datapageData}
+                    />
+                )}
                 <div className="section-wrapper grid">
                     <h2
                         className="reuse__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12"

@@ -12,7 +12,6 @@ import {
 } from "@ourworldindata/components"
 import { DataPageDataV2, OwidOrigin } from "@ourworldindata/types"
 import KeyDataTable from "./KeyDataTable.js"
-import QuickDownload from "./QuickDownload.js"
 
 function getYearSuffixFromOrigin(origin: OwidOrigin) {
     const year = origin.dateAccessed
@@ -29,13 +28,11 @@ export default function AboutThisData({
     hasFaq,
     className,
     id,
-    slug,
 }: {
     datapageData: DataPageDataV2
     hasFaq: boolean
     className?: string
     id?: string
-    slug?: string
 }) {
     const hasDescriptionKey =
         datapageData.descriptionKey && datapageData.descriptionKey.length > 0
@@ -144,12 +141,6 @@ export default function AboutThisData({
                             datapageData={datapageData}
                             attribution={attributionUnshortened}
                         />
-                        {slug && (
-                            <QuickDownload
-                                datapageData={datapageData}
-                                slug={slug}
-                            />
-                        )}
                     </div>
                 </>
             ) : (

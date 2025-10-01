@@ -1,0 +1,113 @@
+.download__title {
+    @include datapage-section-title;
+}
+
+.download__subsection {
+    margin-top: 32px;
+
+    &:first-child {
+        margin-top: 0;
+    }
+}
+
+.download__subsection-title {
+    @include h3-bold;
+    margin: 0 0 24px;
+}
+
+.download__description {
+    @include body-3-medium;
+    color: $blue-60;
+    margin: 0 0 16px;
+
+    a {
+        @include owid-link-60;
+    }
+}
+
+.download__buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.download__button {
+    @include body-3-medium;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0;
+    margin-bottom: 16px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    color: inherit;
+
+    &:hover {
+        .download__button-title {
+            text-decoration: underline;
+        }
+
+        svg {
+            color: $blue-90;
+        }
+    }
+
+    svg {
+        color: $blue-60;
+        font-size: 14px;
+        flex-shrink: 0;
+        transition: color 0.2s ease;
+    }
+}
+
+.download__button-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.download__button-title {
+    @include body-3-medium;
+    color: $blue-90;
+    margin-bottom: 4px;
+    @include owid-link-90;
+}
+
+.download__button-description {
+    @include body-3-regular;
+    color: $blue-60;
+}
+
+.download__api-urls {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.download__api-url-title {
+    @include body-3-medium;
+    color: $blue-90;
+    margin: 0 0 8px 0;
+}
+
+.download__api-url {
+    @include body-3-regular;
+    display: block;
+    padding: 12px;
+    background: $blue-10;
+    border: 1px solid $blue-20;
+    color: $blue-60;
+    word-break: break-all;
+    font-family: $monospace-font-stack;
+    font-size: 0.8125rem;
+}
+
+@include sm-only {
+    .download__api-url {
+        font-size: 0.75rem;
+        padding: 8px;
+    }
+}
