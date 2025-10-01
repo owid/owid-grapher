@@ -1,4 +1,9 @@
-import type { Dataset, WithContext, SearchAction, PropertyValue } from "schema-dts"
+import type {
+    Dataset,
+    WithContext,
+    SearchAction,
+    PropertyValue,
+} from "schema-dts"
 import { GrapherInterface } from "@ourworldindata/utils"
 import { OwidVariableWithSource } from "@ourworldindata/types"
 
