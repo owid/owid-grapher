@@ -185,9 +185,9 @@ export default function MetadataSection({
                             <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
                                 {citationDatapage && (
                                     <div className="citations-section">
-                                        <h5 className="citation__how-to-header">
+                                        <h4 className="citation__how-to-header">
                                             How to cite this page
-                                        </h5>
+                                        </h4>
                                         <p className="citation__paragraph">
                                             To cite this page overall, including
                                             any descriptions, FAQs or
@@ -203,9 +203,9 @@ export default function MetadataSection({
                                     </div>
                                 )}
                                 <div className="citations-section">
-                                    <h5 className="citation__how-to-header citation__how-to-header--data">
+                                    <h4 className="citation__how-to-header citation__how-to-header--data">
                                         How to cite this data
-                                    </h5>
+                                    </h4>
                                     {(citationShort || citationLong) && (
                                         <DataCitation
                                             citationLong={citationLong}
