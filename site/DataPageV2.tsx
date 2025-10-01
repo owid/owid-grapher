@@ -31,7 +31,7 @@ import { SiteHeader } from "./SiteHeader.js"
 import { IFrameDetector } from "./IframeDetector.js"
 import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
-import { ArchiveContext } from "@ourworldindata/types"
+import { ArchiveContext, OwidVariableWithSource } from "@ourworldindata/types"
 import { DEFAULT_PAGE_DESCRIPTION } from "./dataPage.js"
 import { JsonLdDataset } from "./JsonLdDataset.js"
 
@@ -46,6 +46,7 @@ export const DataPageV2 = (props: {
     tagToSlugMap: Record<string | number, string>
     archivedChartInfo?: ArchiveContext
     dataApiUrl?: string
+    variableMetadata?: OwidVariableWithSource
 }) => {
     const {
         grapher,
@@ -57,6 +58,7 @@ export const DataPageV2 = (props: {
         tagToSlugMap,
         imageMetadata,
         archivedChartInfo,
+        variableMetadata,
     } = props
     const pageTitle = grapher?.title ?? datapageData.title.title
     const dataApiOrigin = Url.fromURL(DATA_API_URL).origin
@@ -129,6 +131,7 @@ export const DataPageV2 = (props: {
                     grapher={grapher}
                     canonicalUrl={canonicalUrlForHead}
                     pageDesc={pageDesc}
+                    variableMetadata={variableMetadata}
                 />
                 <link rel="preconnect" href={dataApiOrigin} />
                 {variableIds.flatMap((variableId) =>

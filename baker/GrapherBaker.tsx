@@ -304,6 +304,7 @@ export async function renderDataPageV2(
             faqEntries={faqEntries}
             tagToSlugMap={tagToSlugMap}
             archivedChartInfo={archivedChartInfo}
+            variableMetadata={variableMetadata}
         />
     )
 }
