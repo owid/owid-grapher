@@ -14,38 +14,15 @@ export default function DownloadSection({
     grapherConfig,
     datapageData,
 }: DownloadSectionProps) {
-    const handleDownloadPng = () => {
-        const url = `/grapher/${slug}.png`
-        const link = document.createElement("a")
-        link.href = url
-        link.download = `${slug}.png`
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-    }
+    // Sample alt text - in production this would come from the chart metadata
+    const altText = `A line chart showing ${datapageData.title.title} over time`
 
-    const handleDownloadSvg = () => {
-        const url = `/grapher/${slug}.svg`
-        const link = document.createElement("a")
-        link.href = url
-        link.download = `${slug}.svg`
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-    }
-
-    const handleDownloadFullData = () => {
-        const url = `/grapher/${slug}.zip?v=1&csvType=full&useColumnShortNames=false`
-        window.location.href = url
-    }
-
-    const handleDownloadDisplayedData = () => {
-        const url = `/grapher/${slug}.zip?v=1&csvType=filtered&useColumnShortNames=false`
-        window.location.href = url
-    }
-
+    const pngUrl = `/grapher/${slug}.png`
+    const svgUrl = `/grapher/${slug}.svg`
     const csvUrl = `/grapher/${slug}.csv?v=1&csvType=full&useColumnShortNames=false`
     const metadataUrl = `/grapher/${slug}.metadata.json?v=1&csvType=full&useColumnShortNames=false`
+    const fullDataUrl = `/grapher/${slug}.zip?v=1&csvType=full&useColumnShortNames=false`
+    const displayedDataUrl = `/grapher/${slug}.zip?v=1&csvType=filtered&useColumnShortNames=false`
 
     return (
         <div className="section-wrapper grid">
@@ -62,9 +39,11 @@ export default function DownloadSection({
                         Download chart as image
                     </h3>
                     <div className="download__buttons">
-                        <button
+                        <a
                             className="download__button"
-                            onClick={handleDownloadPng}
+                            href={pngUrl}
+                            download={`${slug}.png`}
+                            title={altText}
                             data-track-note="data_page_download_png"
                         >
                             <div className="download__button-content">
@@ -76,10 +55,11 @@ export default function DownloadSection({
                                 </div>
                             </div>
                             <FontAwesomeIcon icon={faDownload} />
-                        </button>
-                        <button
+                        </a>
+                        <a
                             className="download__button"
-                            onClick={handleDownloadSvg}
+                            href={svgUrl}
+                            download={`${slug}.svg`}
                             data-track-note="data_page_download_svg"
                         >
                             <div className="download__button-content">
@@ -92,7 +72,7 @@ export default function DownloadSection({
                                 </div>
                             </div>
                             <FontAwesomeIcon icon={faDownload} />
-                        </button>
+                        </a>
                     </div>
                 </div>
 
@@ -107,9 +87,9 @@ export default function DownloadSection({
                         README.
                     </p>
                     <div className="download__buttons">
-                        <button
+                        <a
                             className="download__button"
-                            onClick={handleDownloadFullData}
+                            href={fullDataUrl}
                             data-track-note="data_page_download_full_data"
                         >
                             <div className="download__button-content">
@@ -121,10 +101,10 @@ export default function DownloadSection({
                                 </div>
                             </div>
                             <FontAwesomeIcon icon={faDownload} />
-                        </button>
-                        <button
+                        </a>
+                        <a
                             className="download__button"
-                            onClick={handleDownloadDisplayedData}
+                            href={displayedDataUrl}
                             data-track-note="data_page_download_displayed_data"
                         >
                             <div className="download__button-content">
@@ -137,7 +117,7 @@ export default function DownloadSection({
                                 </div>
                             </div>
                             <FontAwesomeIcon icon={faDownload} />
-                        </button>
+                        </a>
                     </div>
                 </div>
 
