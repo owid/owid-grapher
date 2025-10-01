@@ -145,6 +145,8 @@
             color: $gray-70;
             padding: 2px 4px;
             font-family: $monospace-font-stack;
+            // Fix broken "fi" ligature in Menlo.
+            font-feature-settings: "liga" 0;
 
             white-space: normal;
 

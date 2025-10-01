@@ -27,6 +27,7 @@
 
     .wp-code-snippet__code {
         font-family: $monospace-font-stack;
+        font-feature-settings: "liga" 0; // Fix broken "fi" ligature in Menlo.
         word-break: break-word;
     }
 
