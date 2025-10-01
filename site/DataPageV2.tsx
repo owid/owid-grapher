@@ -1,4 +1,5 @@
 import * as _ from "lodash-es"
+import type { Dataset, WithContext } from "schema-dts"
 import {
     getVariableDataRoute,
     getVariableMetadataRoute,
@@ -33,6 +34,58 @@ import { DebugProvider } from "./gdocs/DebugProvider.js"
 import { Html } from "./Html.js"
 import { ArchiveContext } from "@ourworldindata/types"
 import { DEFAULT_PAGE_DESCRIPTION } from "./dataPage.js"
+
+function JsonLdDataset({
+    grapher,
+    canonicalUrl,
+    pageDesc,
+}: {
+    grapher: GrapherInterface | undefined
+    canonicalUrl: string
+    pageDesc: string
+}) {
+    if (!grapher) return null
+
+    const data: WithContext<Dataset> = {
+        "@context": "https://schema.org",
+        "@type": "Dataset",
+        name: grapher.title ?? "Our World in Data Chart",
+        description: pageDesc,
+        url: canonicalUrl,
+        license: "https://creativecommons.org/licenses/by/4.0/",
+        creator: {
+            "@type": "Organization",
+            name: "Our World in Data",
+            url: "https://ourworldindata.org/",
+        },
+        distribution: [
+            {
+                "@type": "DataDownload",
+                encodingFormat: "text/csv",
+                contentUrl: `${canonicalUrl}.csv`,
+            },
+            {
+                "@type": "DataDownload",
+                encodingFormat: "application/json",
+                contentUrl: `${canonicalUrl}.json`,
+            },
+            {
+                "@type": "DataDownload",
+                encodingFormat: "application/json",
+                contentUrl: `${canonicalUrl}.metadata.json`,
+            },
+        ],
+    }
+
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+                __html: JSON.stringify(data),
+            }}
+        />
+    )
+}
 
 export const DataPageV2 = (props: {
     grapher: GrapherInterface | undefined
@@ -124,6 +177,11 @@ export const DataPageV2 = (props: {
                 <meta property="og:image:width" content={imageWidth} />
                 <meta property="og:image:height" content={imageHeight} />
                 <IFrameDetector />
+                <JsonLdDataset
+                    grapher={grapher}
+                    canonicalUrl={canonicalUrlForHead}
+                    pageDesc={pageDesc}
+                />
                 <link rel="preconnect" href={dataApiOrigin} />
                 {variableIds.flatMap((variableId) =>
                     [
