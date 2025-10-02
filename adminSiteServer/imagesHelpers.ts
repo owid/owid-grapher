@@ -4,9 +4,7 @@ import sharp from "sharp"
 import {
     CLOUDFLARE_IMAGES_ACCOUNT_ID,
     CLOUDFLARE_IMAGES_API_KEY,
-    OPENAI_API_KEY,
 } from "../settings/serverSettings.js"
-import { OpenAI } from "openai"
 import { ACCEPTED_IMG_TYPES } from "../adminSiteClient/imagesHelpers.js"
 
 export function validateImagePayload(body: any): {
@@ -111,40 +109,5 @@ export async function deleteFromCloudflare(cloudflareId: string) {
     }
 }
 
-export async function fetchGptGeneratedAltText(url: string) {
-    const openai = new OpenAI({
-        apiKey: OPENAI_API_KEY,
-    })
-
-    const completion = await openai.chat.completions.create({
-        messages: [
-            {
-                role: "user",
-                content: `Generate alt text for this image, describing it for a vision impaired person using a screen reader.
-Do not say "alt text:".
-Do not say "The image...".
-Do not use markdown in the text.
-If the image is a data visualization and there are data sources in the footer, describe them exhaustively.`,
-            },
-            {
-                role: "user",
-                content: [
-                    {
-                        type: "image_url",
-                        image_url: {
-                            url,
-                        },
-                    },
-                ],
-            },
-        ],
-        model: "gpt-4o-mini",
-    })
-
-    const content = completion.choices[0].message.content
-    if (content) {
-        // Sometimes the model still uses markdown bold even when told not to.
-        return content.replaceAll("**", "")
-    }
-    return null
-}
+// Re-export from shared location
+export { fetchGptGeneratedAltText } from "../serverUtils/openAiUtils.js"

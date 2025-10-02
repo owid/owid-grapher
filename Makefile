@@ -17,7 +17,7 @@ ifneq (,$(wildcard ./.env))
 	include .env
 endif
 
-.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest
+.PHONY: help up up.full down refresh refresh.wp refresh.full migrate svgtest check
 
 help:
 	@echo 'Available commands:'
@@ -238,6 +238,19 @@ check-formatting: node_modules
 format: node_modules
 	@echo '==> Fixing formatting'
 	yarn fixPrettierAll
+
+check: node_modules
+	@echo '==> Formatting changed files'
+	@git fetch -q origin master
+	@CHANGED_FILES=$$(git diff --name-only origin/master HEAD && git diff --name-only && git ls-files --others --exclude-standard); \
+	CHANGED_FILES=$$(echo "$$CHANGED_FILES" | grep -E '\.(ts|tsx|js|jsx|json|css|md)$$' | xargs -I {} sh -c 'test -f {} && echo {}' | grep -v '{}'); \
+	if [ -n "$$CHANGED_FILES" ]; then \
+		echo "$$CHANGED_FILES" | xargs yarn prettier --write; \
+	else \
+		echo "No changed files to format"; \
+	fi
+	@echo '==> Running typecheck'
+	@yarn typecheck
 
 unittest: node_modules
 	@echo '==> Running tests'

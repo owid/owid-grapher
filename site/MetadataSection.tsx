@@ -12,6 +12,7 @@ import {
     DownloadIconSelected,
     RadioButton,
     ExpandableToggle,
+    AboutDataPage,
 } from "@ourworldindata/components"
 import {
     FaqEntryData,
@@ -412,6 +413,8 @@ export default function MetadataSection({
     titleVariant,
     archivedChartInfo,
     downloadProps,
+    chartDescription,
+    showChartDescription,
 }: {
     attributionShort?: string
     attributions: string[]
@@ -426,6 +429,8 @@ export default function MetadataSection({
     titleVariant?: string
     archivedChartInfo?: ArchiveContext
     downloadProps?: DownloadSectionProps
+    chartDescription?: string
+    showChartDescription?: boolean
 }) {
     const sourcesForDisplay = prepareSourcesForDisplay({ origins, source })
     const citationUrl = archivedChartInfo?.archiveUrl ?? canonicalUrl
@@ -592,6 +597,23 @@ export default function MetadataSection({
                     )}
                     {downloadProps && <DownloadSection {...downloadProps} />}
                 </div>
+                {chartDescription && (
+                    <div
+                        className="section-wrapper grid"
+                        style={{
+                            display: showChartDescription ? undefined : "none",
+                        }}
+                    >
+                        <h2 className="reuse__title span-cols-2 span-lg-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                            About this page
+                        </h2>
+                        <div className="col-start-4 span-cols-6 col-lg-start-5 span-lg-cols-7 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                            <AboutDataPage
+                                chartDescription={chartDescription}
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     )

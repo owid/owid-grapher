@@ -45,6 +45,8 @@ export const DataPageV2 = (props: {
     tagToSlugMap: Record<string | number, string>
     archivedChartInfo?: ArchiveContext
     dataApiUrl?: string
+    chartDescription?: string
+    showChartDescription?: boolean
 }) => {
     const {
         grapher,
@@ -56,6 +58,8 @@ export const DataPageV2 = (props: {
         tagToSlugMap,
         imageMetadata,
         archivedChartInfo,
+        chartDescription,
+        showChartDescription,
     } = props
     const pageTitle = grapher?.title ?? datapageData.title.title
     const dataApiOrigin = Url.fromURL(DATA_API_URL).origin
@@ -168,6 +172,8 @@ export const DataPageV2 = (props: {
                                     archivedChartInfo,
                                     tagToSlugMap: minimalTagToSlugMap,
                                     imageMetadata,
+                                    chartDescription,
+                                    showChartDescription,
                                 }
                             )}`,
                         }}
@@ -183,6 +189,8 @@ export const DataPageV2 = (props: {
                                 canonicalUrl={canonicalUrl}
                                 tagToSlugMap={tagToSlugMap}
                                 archivedChartInfo={archivedChartInfo}
+                                chartDescription={chartDescription}
+                                showChartDescription={showChartDescription}
                             />
                         </DebugProvider>
                     </div>

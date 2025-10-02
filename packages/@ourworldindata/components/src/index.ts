@@ -32,6 +32,7 @@ export {
     makeLinks,
 } from "./IndicatorKeyData/IndicatorKeyData.js"
 export { IndicatorProcessing } from "./IndicatorProcessing/IndicatorProcessing.js"
+export { AboutDataPage } from "./AboutDataPage/AboutDataPage.js"
 
 export { LabeledSwitch } from "./LabeledSwitch/LabeledSwitch.js"
 export { Checkbox } from "./Checkbox.js"

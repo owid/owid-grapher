@@ -61,6 +61,11 @@ import { stringify } from "safe-stable-stringify"
 import { GrapherArchivalManifest } from "../serverUtils/archivalUtils.js"
 import { getLatestChartArchivedVersionsIfEnabled } from "../db/model/archival/archivalDb.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
+import { fetchGptGeneratedAltText } from "../serverUtils/openAiUtils.js"
+import {
+    shouldFetchChartDescription,
+    shouldShowChartDescription,
+} from "../serverUtils/chartDescriptionAbTest.js"
 
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
@@ -293,6 +298,14 @@ export async function renderDataPageV2(
             : ""
     }
 
+    // Fetch chart description from GPT for A/B test
+    let chartDescription: string | undefined
+    if (shouldFetchChartDescription(grapher?.slug)) {
+        const chartImageUrl = `https://ourworldindata.org/grapher/${grapher.slug}.png`
+        chartDescription =
+            (await fetchGptGeneratedAltText(chartImageUrl)) ?? undefined
+    }
+
     return renderToHtmlPage(
         <DataPageV2
             grapher={grapher}
@@ -304,6 +317,8 @@ export async function renderDataPageV2(
             faqEntries={faqEntries}
             tagToSlugMap={tagToSlugMap}
             archivedChartInfo={archivedChartInfo}
+            chartDescription={chartDescription}
+            showChartDescription={shouldShowChartDescription(grapher?.slug)}
         />
     )
 }
