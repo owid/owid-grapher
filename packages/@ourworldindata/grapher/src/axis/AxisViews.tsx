@@ -170,6 +170,43 @@ export class HorizontalAxisZeroLine extends React.Component<HorizontalAxisZeroLi
     }
 }
 
+interface VerticalAxisZeroLineProps {
+    verticalAxis: VerticalAxis
+    bounds: Bounds
+    strokeWidth?: number
+    strokeDasharray?: string
+}
+
+@observer
+export class VerticalAxisZeroLine extends React.Component<VerticalAxisZeroLineProps> {
+    override render(): React.ReactElement {
+        const {
+            bounds,
+            verticalAxis,
+            strokeWidth = 1,
+            strokeDasharray,
+        } = this.props
+
+        const axis = verticalAxis.clone()
+        axis.range = bounds.yRange()
+
+        const y = axis.place(0)
+
+        return (
+            <line
+                id={makeIdForHumanConsumption("horizontal-zero-line")}
+                x1={bounds.left.toFixed(2)}
+                y1={y.toFixed(2)}
+                x2={bounds.right.toFixed(2)}
+                y2={y.toFixed(2)}
+                stroke={TICK_COLOR}
+                strokeWidth={strokeWidth}
+                strokeDasharray={strokeDasharray}
+            />
+        )
+    }
+}
+
 interface DualAxisViewProps {
     dualAxis: DualAxis
     highlightValue?: { x: number; y: number }
