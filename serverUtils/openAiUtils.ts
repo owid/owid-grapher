@@ -33,6 +33,17 @@ export function zodResponseFormat<ZodInput extends z.ZodType>(
     )
 }
 
+// TODO: replace /x by slug
+// TODO: use newer prompt
+// Write a concise, neutral description for an interactive visualization. Follow these rules:
+// - Begin with a statement of what the visualization shows.
+// - If the visualization depicts change over time, specify the time span on the horizontal axis and the unit of measurement on the vertical axis.
+// - If the visualization is a map, state the year shown and the unit of measurement represented.
+// - Do not mention a specific chart type (e.g., line, bar, map).
+// - Provide a brief overview of what the visualization represents without interpreting or analyzing patterns.
+// - Include a short explanation of why the metric is significant or relevant.
+// - Do not reference specific countries, regions, or entities, since these may vary depending on the chart view.
+// - Conclude with an attribution in the format: "Source: OurWorldInData.org/x"
 const GPT_PROMPT = `
 Write a concise description for an interactive visualization. The description should:
 - Start with a neutral statement of what the visualization displays.
