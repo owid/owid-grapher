@@ -3,10 +3,10 @@ import path from "path"
 
 // A/B test configuration for chart descriptions
 // Groups:
-// - no_change: Don't generate or show the description
+// - no_change: Don't generate or show the description, don't show download section
 // - hidden_alt_text: Generate and include in HTML but hide from user (for measuring impact on SEO/accessibility)
 // - visible_alt_text: Generate and show to user
-// - download_button: (for future use, treated as no_change for now)
+// - download_button: Show download section on data page
 
 export type ChartDescriptionExperimentGroup =
     | "no_change"
@@ -58,4 +58,9 @@ export function shouldFetchChartDescription(slug: string | undefined): boolean {
 export function shouldShowChartDescription(slug: string | undefined): boolean {
     const group = getChartDescriptionExperimentGroup(slug)
     return group === "visible_alt_text"
+}
+
+export function shouldShowDownloadSection(slug: string | undefined): boolean {
+    const group = getChartDescriptionExperimentGroup(slug)
+    return group === "download_button"
 }

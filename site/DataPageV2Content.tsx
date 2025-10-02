@@ -57,10 +57,12 @@ export const DataPageV2Content = ({
     archivedChartInfo,
     chartDescription,
     showChartDescription,
+    showDownloadSection = true,
 }: DataPageV2ContentFields & {
     grapherConfig: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>
     showChartDescription?: boolean
+    showDownloadSection?: boolean
 }) => {
     const titleFragments = joinTitleFragments(
         datapageData.attributionShort,
@@ -325,6 +327,7 @@ export const DataPageV2Content = ({
                         downloadProps={downloadProps}
                         chartDescription={chartDescription}
                         showChartDescription={showChartDescription}
+                        showDownloadSection={showDownloadSection}
                     />
                 </div>
             </DocumentContext.Provider>

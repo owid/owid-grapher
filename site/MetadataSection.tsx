@@ -415,6 +415,7 @@ export default function MetadataSection({
     downloadProps,
     chartDescription,
     showChartDescription,
+    showDownloadSection = true,
 }: {
     attributionShort?: string
     attributions: string[]
@@ -431,6 +432,7 @@ export default function MetadataSection({
     downloadProps?: DownloadSectionProps
     chartDescription?: string
     showChartDescription?: boolean
+    showDownloadSection?: boolean
 }) {
     const sourcesForDisplay = prepareSourcesForDisplay({ origins, source })
     const citationUrl = archivedChartInfo?.archiveUrl ?? canonicalUrl
@@ -595,7 +597,9 @@ export default function MetadataSection({
                             </div>
                         </div>
                     )}
-                    {downloadProps && <DownloadSection {...downloadProps} />}
+                    {downloadProps && showDownloadSection && (
+                        <DownloadSection {...downloadProps} />
+                    )}
                 </div>
                 {chartDescription && (
                     <div

@@ -65,6 +65,7 @@ import { fetchGptGeneratedAltText } from "../serverUtils/openAiUtils.js"
 import {
     shouldFetchChartDescription,
     shouldShowChartDescription,
+    shouldShowDownloadSection,
 } from "../serverUtils/chartDescriptionAbTest.js"
 
 const renderDatapageIfApplicable = async (
@@ -319,6 +320,7 @@ export async function renderDataPageV2(
             archivedChartInfo={archivedChartInfo}
             chartDescription={chartDescription}
             showChartDescription={shouldShowChartDescription(grapher?.slug)}
+            showDownloadSection={shouldShowDownloadSection(grapher?.slug)}
         />
     )
 }

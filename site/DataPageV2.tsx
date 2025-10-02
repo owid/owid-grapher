@@ -47,6 +47,7 @@ export const DataPageV2 = (props: {
     dataApiUrl?: string
     chartDescription?: string
     showChartDescription?: boolean
+    showDownloadSection?: boolean
 }) => {
     const {
         grapher,
@@ -60,6 +61,7 @@ export const DataPageV2 = (props: {
         archivedChartInfo,
         chartDescription,
         showChartDescription,
+        showDownloadSection,
     } = props
     const pageTitle = grapher?.title ?? datapageData.title.title
     const dataApiOrigin = Url.fromURL(DATA_API_URL).origin
@@ -191,6 +193,7 @@ export const DataPageV2 = (props: {
                                 archivedChartInfo={archivedChartInfo}
                                 chartDescription={chartDescription}
                                 showChartDescription={showChartDescription}
+                                showDownloadSection={showDownloadSection}
                             />
                         </DebugProvider>
                     </div>
