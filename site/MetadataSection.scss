@@ -44,7 +44,8 @@
 
     .data-sources__heading,
     .data-processing__heading,
-    .citations__heading {
+    .citations__heading,
+    .downloads__heading {
         @include h3-bold;
         margin: 0 0 24px;
     }
@@ -105,5 +106,124 @@
     .citation__type {
         display: block;
         color: $blue-90;
+    }
+
+    .downloads {
+        margin-top: 16px;
+    }
+
+    .downloads-section {
+        &:first-child {
+            margin-bottom: 32px;
+        }
+    }
+
+    .downloads__download-button {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        color: $blue-90;
+        background-color: $blue-5;
+        width: 100%;
+        padding: 16px;
+        text-align: left;
+        cursor: pointer;
+        border: none;
+        border-radius: 0;
+
+        &:hover {
+            background-color: $accent-pale-blue;
+        }
+
+        &:active {
+            background-color: $blue-20;
+        }
+
+        + .downloads__download-button {
+            margin-top: 2px;
+        }
+
+        .downloads__option-icon {
+            margin-right: 12px;
+            display: flex;
+            color: $blue-90;
+
+            svg {
+                width: 24px;
+                height: 24px;
+            }
+        }
+
+        .downloads__download-button-content {
+            flex: 1;
+
+            h4 {
+                @include body-2-regular;
+                margin: 0 0 4px;
+            }
+        }
+
+        .downloads__download-button-description {
+            @include label-2-regular;
+            color: $blue-60;
+            margin: 0;
+        }
+
+        .downloads__download-icon {
+            padding: 0 8px 0 16px;
+            font-size: 16px;
+            color: $blue-60;
+        }
+    }
+
+    .downloads__config-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-bottom: 8px;
+        margin-top: 8px;
+
+        .label {
+            color: $blue-60;
+        }
+
+        + .downloads__config-list {
+            border-top: 1px solid $blue-20;
+            padding-top: 16px;
+        }
+
+        p {
+            margin-top: 4px;
+            margin-bottom: 0;
+            margin-left: 24px;
+            font-size: 13px;
+            line-height: 1.3;
+            color: $blue-60;
+        }
+    }
+
+    .downloads__api-urls {
+        border-top: 1px solid $blue-20;
+        padding-top: 16px;
+        margin-top: 8px;
+
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .downloads__code-blocks {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .downloads__code-label {
+        margin: 0 0 8px;
+        color: $blue-90;
+    }
+
+    .downloads__buttons {
+        margin-top: 8px;
     }
 }

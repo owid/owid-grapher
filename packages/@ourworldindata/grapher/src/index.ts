@@ -116,3 +116,15 @@ export {
 export { GeoFeatures } from "./mapCharts/GeoFeatures"
 export { isValidVerticalComparisonLineConfig } from "./comparisonLine/ComparisonLineHelpers"
 export { hasValidConfigForBinningStrategy } from "./color/BinningStrategies"
+export {
+    CsvDownloadType,
+    createCsvBlobLocally,
+    getDownloadSearchParams,
+    getDownloadUrl,
+    getNonRedistributableInfo,
+} from "./modal/DownloadHelpers.js"
+export type {
+    DataDownloadContextBase,
+    DataDownloadContextClientSide,
+    DataDownloadContextServerSide,
+} from "./modal/DownloadHelpers.js"

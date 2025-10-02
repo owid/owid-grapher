@@ -2,7 +2,7 @@ import { expect, it } from "vitest"
 
 import { ColumnTypeNames } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
-import { getNonRedistributableInfo } from "./DownloadModal"
+import { getNonRedistributableInfo } from "./DownloadHelpers.js"
 
 const getTable = (options: { nonRedistributable: boolean }): OwidTable => {
     return new OwidTable(

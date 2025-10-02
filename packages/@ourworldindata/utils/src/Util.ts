@@ -1164,28 +1164,6 @@ export function checkIsTouchEvent(
     return false
 }
 
-export const triggerDownloadFromBlob = (filename: string, blob: Blob): void => {
-    const objectUrl = URL.createObjectURL(blob)
-    triggerDownloadFromUrl(filename, objectUrl)
-    URL.revokeObjectURL(objectUrl)
-}
-
-export const triggerDownloadFromUrl = (filename: string, url: string): void => {
-    const downloadLink = document.createElement("a")
-    downloadLink.setAttribute("href", url)
-    downloadLink.setAttribute("download", filename)
-    downloadLink.click()
-}
-
-export async function downloadImage(
-    url: string,
-    filename: string
-): Promise<void> {
-    const response = await fetch(url)
-    const blob = await response.blob()
-    triggerDownloadFromBlob(filename, blob)
-}
-
 export const removeAllWhitespace = (text: string): string => {
     return text.replace(/\s+|\n/g, "")
 }

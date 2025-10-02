@@ -49,6 +49,8 @@ export { CodeSnippet } from "./CodeSnippet/CodeSnippet.js"
 export { hydrateCodeSnippets } from "./CodeSnippet/hydrateCodeSnippets.js"
 
 export { DataCitation } from "./DataCitation/DataCitation.js"
+export { DownloadIconFullDataset } from "./icons/DownloadIconFullDataset.js"
+export { DownloadIconSelected } from "./icons/DownloadIconSelected.js"
 
 export {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,
