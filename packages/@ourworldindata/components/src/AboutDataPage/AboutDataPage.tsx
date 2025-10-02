@@ -201,8 +201,8 @@ export const AboutDataPage = ({ chartDescription }: AboutDataPageProps) => {
                                 </li>
                                 <li>
                                     <strong>tab=</strong> the chart type, e.g.
-                                    map, table, or discrete-bar (omit for the
-                                    default time-series view).
+                                    map, line, table, or discrete-bar (omit for
+                                    the default time-series view).
                                 </li>
                             </ul>
                             <p>
