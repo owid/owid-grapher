@@ -176,6 +176,7 @@ export const DataPageV2 = (props: {
                                     imageMetadata,
                                     chartDescription,
                                     showChartDescription,
+                                    showDownloadSection,
                                 }
                             )}`,
                         }}

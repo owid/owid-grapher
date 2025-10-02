@@ -140,6 +140,7 @@ export interface DataPageV2ContentFields {
     archivedChartInfo?: ArchiveContext
     chartDescription?: string
     showChartDescription?: boolean
+    showDownloadSection?: boolean
 }
 
 export interface DisplaySource {

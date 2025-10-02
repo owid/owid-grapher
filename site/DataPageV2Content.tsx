@@ -56,8 +56,8 @@ export const DataPageV2Content = ({
     imageMetadata,
     archivedChartInfo,
     chartDescription,
-    showChartDescription,
-    showDownloadSection = true,
+    showChartDescription = false,
+    showDownloadSection = false,
 }: DataPageV2ContentFields & {
     grapherConfig: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>

@@ -62,5 +62,11 @@ export function shouldShowChartDescription(slug: string | undefined): boolean {
 
 export function shouldShowDownloadSection(slug: string | undefined): boolean {
     const group = getChartDescriptionExperimentGroup(slug)
-    return group === "download_button"
+    // Show download section by default, unless chart is in A/B test and not in download_button group
+    // - no_change: Don't show download section
+    // - hidden_alt_text: Don't show download section (only chart description)
+    // - visible_alt_text: Don't show download section (only chart description)
+    // - download_button: Show download section
+    // - undefined (not in test): Show download section (default behavior)
+    return group === "download_button" || group === undefined
 }
