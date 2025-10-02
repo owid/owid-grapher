@@ -80,3 +80,5 @@ The following is an excerpt explaining the origin of this repo and what the alte
 ---
 
 Cross-browser testing provided by <a href="https://www.browserstack.com"><img src="https://3fxtqy18kygf3on3bu39kh93-wpengine.netdna-ssl.com/wp-content/themes/browserstack/img/bs-logo.svg" /> BrowserStack</a>
+
+Dummy change
