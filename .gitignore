@@ -46,6 +46,7 @@ dist/
 cfstorage/
 vite.*.mjs
 archive/*
+.gpt-cache/
 
 # Sentry Config File
 .env.sentry-build-plugin

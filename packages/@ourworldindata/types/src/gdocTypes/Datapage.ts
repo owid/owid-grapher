@@ -138,6 +138,9 @@ export interface DataPageV2ContentFields {
     tagToSlugMap: Record<string, string>
     imageMetadata: Record<string, ImageMetadata>
     archivedChartInfo?: ArchiveContext
+    chartDescription?: string
+    showChartDescription?: boolean
+    showDownloadSection?: boolean
 }
 
 export interface DisplaySource {

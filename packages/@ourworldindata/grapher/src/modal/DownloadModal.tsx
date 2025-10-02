@@ -9,10 +9,24 @@ import {
     getPhraseForProcessingLevel,
     triggerDownloadFromBlob,
     triggerDownloadFromUrl,
+    makeDownloadCodeExamples,
 } from "@ourworldindata/utils"
+import {
+    CsvDownloadType,
+    createCsvBlobLocally,
+    getDownloadUrl,
+    getNonRedistributableInfo,
+} from "./DownloadHelpers.js"
+import type {
+    DataDownloadContextBase,
+    DataDownloadContextServerSide,
+    DataDownloadContextClientSide,
+} from "./DownloadHelpers.js"
 import {
     Checkbox,
     CodeSnippet,
+    DownloadIconFullDataset,
+    DownloadIconSelected,
     OverlayHeader,
     RadioButton,
     LoadingIndicator,
@@ -32,11 +46,6 @@ import {
 import { Modal } from "./Modal"
 import { GrapherExport } from "../captionedChart/StaticChartRasterizer.js"
 import { TabItem, Tabs } from "../tabs/Tabs.js"
-import {
-    DownloadIconFullDataset,
-    DownloadIconSelected,
-} from "./DownloadIcons.js"
-import { match } from "ts-pattern"
 import * as R from "remeda"
 import { GrapherImageDownloadEvent } from "../core/GrapherAnalytics"
 import {
@@ -535,123 +544,8 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
     }
 }
 
-enum CsvDownloadType {
-    Full = "full",
-    CurrentSelection = "current_selection",
-}
-
-interface DataDownloadContextBase {
-    slug: string
-    searchParams: URLSearchParams
-    externalSearchParams: URLSearchParams
-    baseUrl: string
-}
-
-interface DataDownloadContextServerSide extends DataDownloadContextBase {
-    // Configurable options
-    csvDownloadType: CsvDownloadType
-    shortColNames: boolean
-}
-
-interface DataDownloadContextClientSide extends DataDownloadContextBase {
-    // Configurable options
-    csvDownloadType: CsvDownloadType
-    shortColNames: boolean
-
-    // Only needed for local CSV generation
-    fullTable: OwidTable
-    filteredTable: OwidTable
-    activeColumnSlugs: string[] | undefined
-}
-
-const createCsvBlobLocally = async (ctx: DataDownloadContextClientSide) => {
-    const downloadTable =
-        ctx.csvDownloadType === CsvDownloadType.Full
-            ? ctx.fullTable
-            : ctx.filteredTable
-    const csv = downloadTable.toPrettyCsv(
-        ctx.shortColNames,
-        ctx.activeColumnSlugs
-    )
-
-    return new Blob([csv], { type: "text/csv;charset=utf-8" })
-}
-
-const getDownloadSearchParams = (ctx: DataDownloadContextServerSide) => {
-    const searchParams = new URLSearchParams()
-    searchParams.set("v", "1") // API versioning
-    searchParams.set(
-        "csvType",
-        match(ctx.csvDownloadType)
-            .with(CsvDownloadType.CurrentSelection, () => "filtered")
-            .with(CsvDownloadType.Full, () => "full")
-            .exhaustive()
-    )
-    searchParams.set("useColumnShortNames", ctx.shortColNames.toString())
-    const otherParams =
-        ctx.csvDownloadType === CsvDownloadType.CurrentSelection
-            ? // Append all the current grapher settings, e.g.
-              // ?time=2020&selection=~USA + mdim dimensions.
-              ctx.searchParams
-            : // Use the base grapher settings + mdim dimensions.
-              ctx.externalSearchParams
-    for (const [key, value] of otherParams.entries()) {
-        searchParams.set(key, value)
-    }
-    return searchParams
-}
-
-const getDownloadUrl = (
-    extension: "csv" | "metadata.json" | "zip",
-    ctx: DataDownloadContextServerSide
-) => {
-    const searchParams = getDownloadSearchParams(ctx)
-    const searchStr = searchParams.toString().replaceAll("%7E", "~")
-    return `${ctx.baseUrl}.${extension}` + (searchStr ? `?${searchStr}` : "")
-}
-
-export const getNonRedistributableInfo = (
-    table: OwidTable | undefined
-): { cols: CoreColumn[] | undefined; sourceLinks: string[] | undefined } => {
-    if (!table) return { cols: undefined, sourceLinks: undefined }
-
-    const nonRedistributableCols = table.columnsAsArray.filter(
-        (col) => (col.def as OwidColumnDef).nonRedistributable
-    )
-
-    if (!nonRedistributableCols.length)
-        return { cols: undefined, sourceLinks: undefined }
-
-    const sourceLinks = nonRedistributableCols
-        .map((col) => {
-            const def = col.def as OwidColumnDef
-            return def.sourceLink ?? def.origins?.[0]?.urlMain
-        })
-        .filter((link): link is string => !!link)
-
-    return { cols: nonRedistributableCols, sourceLinks: _.uniq(sourceLinks) }
-}
-
 const CodeExamplesBlock = (props: { csvUrl: string; metadataUrl: string }) => {
-    const code = {
-        "Excel / Google Sheets": `=IMPORTDATA("${props.csvUrl}")`,
-        "Python with Pandas": `import pandas as pd
-import requests
-
-# Fetch the data.
-df = pd.read_csv("${props.csvUrl}", storage_options = {'User-Agent': 'Our World In Data data fetch/1.0'})
-
-# Fetch the metadata
-metadata = requests.get("${props.metadataUrl}").json()`,
-        R: `library(jsonlite)
-
-# Fetch the data
-df <- read.csv("${props.csvUrl}")
-
-# Fetch the metadata
-metadata <- fromJSON("${props.metadataUrl}")`,
-        Stata: `import delimited "${props.csvUrl}", encoding("utf-8") clear`,
-    }
+    const code = makeDownloadCodeExamples(props.csvUrl, props.metadataUrl)
 
     return (
         <div className="download-modal__data-section">

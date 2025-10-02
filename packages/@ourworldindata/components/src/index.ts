@@ -32,6 +32,7 @@ export {
     makeLinks,
 } from "./IndicatorKeyData/IndicatorKeyData.js"
 export { IndicatorProcessing } from "./IndicatorProcessing/IndicatorProcessing.js"
+export { AboutDataPage } from "./AboutDataPage/AboutDataPage.js"
 
 export { LabeledSwitch } from "./LabeledSwitch/LabeledSwitch.js"
 export { Checkbox } from "./Checkbox.js"
@@ -49,6 +50,8 @@ export { CodeSnippet } from "./CodeSnippet/CodeSnippet.js"
 export { hydrateCodeSnippets } from "./CodeSnippet/hydrateCodeSnippets.js"
 
 export { DataCitation } from "./DataCitation/DataCitation.js"
+export { DownloadIconFullDataset } from "./icons/DownloadIconFullDataset.js"
+export { DownloadIconSelected } from "./icons/DownloadIconSelected.js"
 
 export {
     DATAPAGE_ABOUT_THIS_DATA_SECTION_ID,

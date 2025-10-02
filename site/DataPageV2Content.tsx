@@ -28,7 +28,7 @@ import {
 } from "../settings/clientSettings.js"
 import AboutThisData from "./AboutThisData.js"
 import DataPageResearchAndWriting from "./DataPageResearchAndWriting.js"
-import MetadataSection from "./MetadataSection.js"
+import MetadataSection, { DownloadSectionProps } from "./MetadataSection.js"
 import TopicTags from "./TopicTags.js"
 import { processRelatedResearch } from "./dataPage.js"
 import { GrapherWithFallback } from "./GrapherWithFallback.js"
@@ -55,9 +55,14 @@ export const DataPageV2Content = ({
     tagToSlugMap,
     imageMetadata,
     archivedChartInfo,
+    chartDescription,
+    showChartDescription = false,
+    showDownloadSection = false,
 }: DataPageV2ContentFields & {
     grapherConfig: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>
+    showChartDescription?: boolean
+    showDownloadSection?: boolean
 }) => {
     const titleFragments = joinTitleFragments(
         datapageData.attributionShort,
@@ -127,6 +132,19 @@ export const DataPageV2Content = ({
     }, [])
 
     const { isPageInExperiment, assignedExperiments } = experimentState
+
+    const downloadProps: DownloadSectionProps | undefined = useMemo(() => {
+        if (!grapherConfig.slug) return undefined
+        return {
+            displaySlug: grapherConfig.slug,
+            baseUrl: `/grapher/${grapherConfig.slug}`,
+            queryStr:
+                typeof window !== "undefined"
+                    ? window?.location?.search
+                    : undefined,
+            isServerSideDownloadAvailable: true,
+        }
+    }, [grapherConfig.slug])
 
     return (
         <AttachmentsContext.Provider
@@ -290,6 +308,7 @@ export const DataPageV2Content = ({
                             }
                         />
                     </div>
+                    {/* TODO: Add link to download images */}
                     <MetadataSection
                         attributionShort={datapageData.attributionShort}
                         attributions={datapageData.attributions}
@@ -305,6 +324,10 @@ export const DataPageV2Content = ({
                         title={datapageData.title}
                         titleVariant={datapageData.titleVariant}
                         archivedChartInfo={archivedChartInfo}
+                        downloadProps={downloadProps}
+                        chartDescription={chartDescription}
+                        showChartDescription={showChartDescription}
+                        showDownloadSection={showDownloadSection}
                     />
                 </div>
             </DocumentContext.Provider>
