@@ -14,6 +14,7 @@ type ButtonCommonProps = {
     /** Set to null to hide the icon */
     icon?: IconDefinition | null
     iconPosition?: "left" | "right"
+    iconNowrap?: boolean
     dataTrackNote?: string
 }
 
@@ -45,23 +46,42 @@ export const Button = ({
     type = "button",
     icon = faArrowRight,
     iconPosition = "right",
+    iconNowrap = true,
     dataTrackNote,
 }: ButtonProps) => {
     const classes = cx("owid-btn", `owid-btn--${theme}`, className)
+
+    const words = text.trim().split(" ")
+    let neighborWord
+    if (icon && iconNowrap) {
+        neighborWord = iconPosition === "left" ? words.shift() : words.pop()
+    }
+    const rest = words.join(" ")
+
     const content = (
         <>
             {iconPosition === "left" && icon && (
-                <FontAwesomeIcon
-                    className={cx({ "owid-btn--icon-left": text })}
-                    icon={icon}
-                />
+                <span className={cx({ "whitespace-nowrap": iconNowrap })}>
+                    <FontAwesomeIcon
+                        className={cx({ "owid-btn--icon-left": text })}
+                        icon={icon}
+                    />
+                    {neighborWord && (
+                        <span>{neighborWord + (rest ? " " : "")}</span>
+                    )}
+                </span>
             )}
-            {text && <span>{text}</span>}
+            {rest && <span>{rest}</span>}
             {iconPosition !== "left" && icon && (
-                <FontAwesomeIcon
-                    className={cx({ "owid-btn--icon-right": text })}
-                    icon={icon}
-                />
+                <span className={cx({ "whitespace-nowrap": iconNowrap })}>
+                    {neighborWord && (
+                        <span>{(rest ? " " : "") + neighborWord}</span>
+                    )}
+                    <FontAwesomeIcon
+                        className={cx({ "owid-btn--icon-right": text })}
+                        icon={icon}
+                    />
+                </span>
             )}
         </>
     )
