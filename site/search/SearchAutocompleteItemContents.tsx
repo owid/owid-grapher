@@ -31,26 +31,20 @@ export function SearchAutocompleteItemContents({
             {match(filter.type)
                 // keep in sync with setQueries logic in SearchAutocomplete
                 .with(FilterType.QUERY, () => (
-                    <>
-                        <span className="search-autocomplete-item-contents__query">
-                            {filter.name}
-                        </span>
-                    </>
+                    <span className="search-autocomplete-item-contents__query">
+                        {filter.name}
+                    </span>
                 ))
                 .with(FilterType.COUNTRY, () => (
-                    <>
-                        <span className="search-autocomplete-item-contents__query">
-                            {unmatchedQuery} {filter.name.toLowerCase()}
-                        </span>
-                    </>
+                    <span className="search-autocomplete-item-contents__query">
+                        {unmatchedQuery} {filter.name.toLowerCase()}
+                    </span>
                 ))
                 .with(FilterType.TOPIC, () => (
-                    <>
-                        <SearchFilterPill
-                            name={filter.name}
-                            icon={getFilterIcon(filter)}
-                        />
-                    </>
+                    <SearchFilterPill
+                        name={filter.name}
+                        icon={getFilterIcon(filter)}
+                    />
                 ))
                 .exhaustive()}
         </div>
