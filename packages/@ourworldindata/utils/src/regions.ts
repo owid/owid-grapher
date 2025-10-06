@@ -109,7 +109,7 @@ export const countries: Country[] = regions.filter(
 
 export const listedRegionsNames = lazy(() =>
     regions
-        .filter((entity) => !checkIsCountry(entity) || !entity.isUnlisted)
+        .filter((entity) => checkIsCountry(entity) && !entity.isUnlisted)
         .map((entity) => entity.name)
 )
 
