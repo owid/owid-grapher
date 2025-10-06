@@ -1,6 +1,0 @@
----
-description:
-globs:
-alwaysApply: true
----
-- `yarn typecheck`: To type check the whole project. Running `tsc` only for a single file won't work, because we use TypeScript Project References.
