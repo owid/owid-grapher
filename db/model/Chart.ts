@@ -23,9 +23,9 @@ import {
     GrapherChartType,
 } from "@ourworldindata/types"
 import { OpenAI } from "openai"
+import { zodResponseFormat } from "openai/helpers/zod"
 import { OPENAI_API_KEY } from "../../settings/serverSettings.js"
-import { z } from "zod"
-import { zodResponseFormat } from "../../serverUtils/openAiUtils.js"
+import { z } from "zod/v3"
 
 // XXX hardcoded filtering to public parent tags
 export const PUBLIC_TAG_PARENT_IDS = [

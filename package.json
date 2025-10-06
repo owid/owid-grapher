@@ -127,7 +127,7 @@
         "mysql2": "^3.14.1",
         "nodejs-polars": "^0.7.2",
         "normalize.css": "^8.0.1",
-        "openai": "^5.5.0",
+        "openai": "^6.1.0",
         "p-map": "^7.0.3",
         "papaparse": "^5.5.3",
         "polylabel": "^2.0.1",
