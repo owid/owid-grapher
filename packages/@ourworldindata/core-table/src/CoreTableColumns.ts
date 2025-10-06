@@ -755,6 +755,7 @@ class PercentChangeOverTimeColumn extends PercentageColumn {
     ): string {
         return super.formatValue(value, {
             showPlus: true,
+            numDecimalPlaces: 1,
             ...options,
         })
     }
