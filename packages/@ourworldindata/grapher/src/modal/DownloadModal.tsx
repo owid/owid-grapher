@@ -928,6 +928,12 @@ export const DownloadModalDataTab = (props: DownloadModalProps) => {
             const ctx = {
                 ...downloadCtx,
                 csvDownloadType,
+                // Hard code shortColNames here, since it's not obvious that the
+                // radio button to change shortColNames would influence what
+                // this button does. We use long names, since they are always
+                // available and more useful than short names in e.g. Excel,
+                // which is the more likely tool of choice for a casual user,
+                // who doesn't use the API.
                 shortColNames: false,
             }
             if (serverSideDownloadAvailable) {
