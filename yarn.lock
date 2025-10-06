@@ -3136,7 +3136,7 @@ __metadata:
     eslint: "npm:^9.32.0"
     eslint-plugin-react-hooks: "npm:^5.2.0"
     typescript: "npm:~5.9.2"
-    zod: "npm:^4.0.5"
+    zod: "npm:^4.1.11"
   languageName: unknown
   linkType: soft
 
@@ -11551,7 +11551,7 @@ __metadata:
     wrangler: "npm:^4.35.0"
     yaml: "npm:^2.8.0"
     yargs: "npm:^17.7.2"
-    zod: "npm:^4.0.5"
+    zod: "npm:^4.1.11"
   languageName: unknown
   linkType: soft
 
@@ -14288,7 +14288,7 @@ __metadata:
     react-dom: "npm:^19.1.0"
     stripe: "npm:^14.20.0"
     uuidv7: "npm:^1.0.1"
-    zod: "npm:^4.0.5"
+    zod: "npm:^4.1.11"
   languageName: unknown
   linkType: soft
 
@@ -18616,10 +18616,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^4.0.5":
-  version: 4.0.5
-  resolution: "zod@npm:4.0.5"
-  checksum: 10/f057f46e685e91ea280039ecda026c91facabdcbf869b3bae482ed13d34dce2efe9ee1f513fb1c8c0fde3b32e5904391f5ca015ec50b0924abf83a2b6f9dba65
+"zod@npm:^4.1.11":
+  version: 4.1.11
+  resolution: "zod@npm:4.1.11"
+  checksum: 10/5a0f5697dbe86bf40934916d888cfe0ec6f1f767eb0b6f944ffd5573397c8a56ef7d2ebd0f889bfb44ceaf93edcddf021994633747a9a6b0dcbeb57bd0a67442
   languageName: node
   linkType: hard
 

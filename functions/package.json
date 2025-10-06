@@ -15,7 +15,7 @@
         "react-dom": "^19.1.0",
         "stripe": "^14.20.0",
         "uuidv7": "^1.0.1",
-        "zod": "^4.0.5"
+        "zod": "^4.1.11"
     },
     "devDependencies": {
         "@cloudflare/workers-types": "^4.20250510.0",
