@@ -302,15 +302,9 @@ const createFiltersSource = (
                         <span className="autocomplete-item-contents__type-icon">
                             <FontAwesomeIcon icon={faSearch} />
                         </span>
-                        {unmatchedQuery && (
-                            <span className="autocomplete-item-contents__query autocomplete-item-contents__query--unmatched">
-                                {unmatchedQuery}
-                            </span>
-                        )}
-                        <SearchFilterPill
-                            name={filter.name}
-                            icon={getFilterIcon(filter)}
-                        />
+                        <span className="autocomplete-item-contents__query autocomplete-item-contents__query--unmatched">
+                            {unmatchedQuery} {filter.name.toLowerCase()}
+                        </span>
                     </span>
                 ))
                 .with(FilterType.TOPIC, () => (
