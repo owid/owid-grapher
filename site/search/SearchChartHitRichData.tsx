@@ -214,13 +214,20 @@ export function SearchChartHitRichData({
     const countryParam = grapherState.changedParams.country
     const grapherParams = countryParam ? { country: countryParam } : undefined
     const chartUrl = constructChartUrl({ hit, grapherParams })
+    const sourcesUrl = constructChartUrl({
+        hit,
+        grapherParams,
+        overlay: "sources",
+    })
+    const downloadUrl = constructChartUrl({
+        hit,
+        grapherParams,
+        overlay: "download-data",
+    })
 
     const contentStyle = {
         "--num-columns": getTotalColumnCount(layout?.placedTabs ?? []),
     } as React.CSSProperties
-
-    const sourcesUrl = constructChartUrl({ hit, overlay: "sources" })
-    const downloadUrl = constructChartUrl({ hit, overlay: "download-data" })
 
     return (
         <div ref={ref} className="search-chart-hit-rich-data">
