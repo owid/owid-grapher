@@ -8,6 +8,7 @@ import {
     ExplorerVariablesTableName,
     ExplorerViewsTableName,
     ExplorersTableName,
+    JobsTableName,
     MultiDimDataPagesTableName,
     MultiDimXChartConfigsTableName,
     PostsGdocsTableName,
@@ -28,6 +29,7 @@ export const TABLES_IN_USE = [
     ExplorerChartsTableName, // Must come before ChartsTableName due to foreign key
     ExplorerVariablesTableName,
     ExplorersTableName,
+    JobsTableName,
     ChartsTableName,
     VariablesTableName,
     ChartConfigsTableName,
