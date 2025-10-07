@@ -147,7 +147,7 @@ export function SearchChartHitRichData({
     const initialDataTableContent = useQueryDataTableContent(
         hit,
         grapherState.changedParams,
-        { enabled: grapherState.isConfigReady }
+        { enabled: hasBeenVisible && grapherState.isConfigReady }
     )
 
     // Place Grapher tabs into grid layout and calculate info for data display
@@ -177,7 +177,8 @@ export function SearchChartHitRichData({
     // Fetch the data table's content using the updated grapher state
     const { data: dataTableContent, status: loadingStatusTableContent } =
         useQueryDataTableContent(hit, grapherState.changedParams, {
-            enabled: initialDataTableContent.status === "success",
+            enabled:
+                hasBeenVisible && initialDataTableContent.status === "success",
         })
 
     const status = combineStatuses(
