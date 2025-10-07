@@ -107,6 +107,7 @@ export function SearchChartHitRichDataFallback({
                     href={downloadUrl}
                     icon={faDownload}
                     iconPosition="left"
+                    dataTrackNote="search-download-options"
                 />
             </div>
 

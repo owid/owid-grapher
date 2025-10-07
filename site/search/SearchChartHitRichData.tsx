@@ -181,6 +181,7 @@ export function SearchChartHitRichData({
                     href={downloadUrl}
                     icon={faDownload}
                     iconPosition="left"
+                    dataTrackNote="search-download-options"
                 />
             </div>
 
