@@ -23,13 +23,13 @@ export async function getLatestArchivedChartVersions(
 ): Promise<
     Pick<
         DbPlainArchivedChartVersion,
-        "grapherId" | "grapherSlug" | "archivalTimestamp"
+        "grapherId" | "grapherSlug" | "archivalTimestamp" | "hashOfInputs"
     >[]
 > {
     const queryBuilder = knex<DbPlainArchivedChartVersion>(
         ArchivedChartVersionsTableName
     )
-        .select("grapherId", "grapherSlug", "archivalTimestamp")
+        .select("grapherId", "grapherSlug", "archivalTimestamp", "hashOfInputs")
         .whereRaw(
             `(grapherId, archivalTimestamp) IN (SELECT grapherId, MAX(archivalTimestamp) FROM archived_chart_versions a2 GROUP BY grapherId)`
         )
@@ -72,17 +72,12 @@ export async function getLatestArchivedChartPageVersionsIfEnabled(
     return await getLatestArchivedChartPageVersions(knex, chartIds)
 }
 
-export async function getExistingArchivedChartVersionHashes(
+export async function getLatestArchivedChartVersionHashes(
     knex: db.KnexReadonlyTransaction,
-    hashes: string[]
-): Promise<Set<string>> {
-    const rows = await knex<DbPlainArchivedChartVersion>(
-        ArchivedChartVersionsTableName
-    )
-        .select("hashOfInputs")
-        .whereIn("hashOfInputs", hashes)
-        .pluck("hashOfInputs")
-    return new Set(rows)
+    chartIds?: number[]
+): Promise<Map<number, string>> {
+    const rows = await getLatestArchivedChartVersions(knex, chartIds)
+    return new Map(rows.map((row) => [row.grapherId, row.hashOfInputs]))
 }
 
 export async function insertArchivedChartVersions(
