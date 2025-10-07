@@ -59,7 +59,7 @@ import { getAllMultiDimDataPageSlugs } from "../db/model/MultiDimDataPage.js"
 import pMap from "p-map"
 import { stringify } from "safe-stable-stringify"
 import { GrapherArchivalManifest } from "../serverUtils/archivalUtils.js"
-import { getLatestChartArchivedVersionsIfEnabled } from "../db/model/archival/archivalDb.js"
+import { getLatestArchivedChartPageVersionsIfEnabled } from "../db/model/ArchivedChartVersion.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 
 const renderDatapageIfApplicable = async (
@@ -319,7 +319,7 @@ export const renderPreviewDataPageOrGrapherPage = async (
     knex: db.KnexReadonlyTransaction
 ) => {
     const archiveContextDictionary =
-        await getLatestChartArchivedVersionsIfEnabled(knex)
+        await getLatestArchivedChartPageVersionsIfEnabled(knex)
     const datapage = await renderDatapageIfApplicable(grapher, true, knex, {
         archiveContextDictionary,
     })
@@ -481,7 +481,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
         _.keyBy(images, "filename")
     )
     const archiveContextDictionary =
-        await getLatestChartArchivedVersionsIfEnabled(knex)
+        await getLatestArchivedChartPageVersionsIfEnabled(knex)
 
     const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map((row) => ({
         id: row.id,

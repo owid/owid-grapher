@@ -3,13 +3,33 @@ Common utlities for deriving properties from image metadata.
 */
 
 import { traverseEnrichedBlock } from "./Util.js"
-import { OwidGdoc, OwidGdocType, ImageMetadata } from "@ourworldindata/types"
+import {
+    AssetMap,
+    OwidGdoc,
+    OwidGdocType,
+    ImageMetadata,
+} from "@ourworldindata/types"
 import { match, P } from "ts-pattern"
 
 export const AUTHOR_BYLINE_WIDTH = 48
 export const THUMBNAIL_WIDTH = 100
 export const LARGE_THUMBNAIL_WIDTH = 350
 export const LARGEST_IMAGE_WIDTH = 1350
+
+export function getArchivalSizes(
+    originalWidth: ImageMetadata["originalWidth"]
+): number[] {
+    if (!originalWidth) return []
+    const widths: number[] = []
+    if (originalWidth > LARGE_THUMBNAIL_WIDTH) {
+        widths.push(LARGE_THUMBNAIL_WIDTH)
+    }
+    if (originalWidth > LARGEST_IMAGE_WIDTH) {
+        widths.push(LARGEST_IMAGE_WIDTH)
+    }
+    widths.push(originalWidth)
+    return widths
+}
 
 export function getSizes(
     originalWidth: ImageMetadata["originalWidth"]
@@ -74,6 +94,37 @@ export type SourceProps = {
     srcSet: string
 }
 
+export function appendImageSizeSuffix(filename: string, size: number): string {
+    const extIndex = filename.lastIndexOf(".")
+    if (extIndex === -1) return `${filename}-${size}w`
+    const name = filename.slice(0, extIndex)
+    const ext = filename.slice(extIndex)
+    return `${name}-${size}w${ext}`
+}
+
+function generateArchivalSrcSet(
+    image: ImageMetadata,
+    sizes: number[],
+    assetMap: AssetMap
+): string {
+    return sizes
+        .map((size) => {
+            const filename =
+                size === image.originalWidth
+                    ? image.filename
+                    : appendImageSizeSuffix(image.filename, size)
+            const path = assetMap[filename]
+            if (!path) {
+                throw new Error(
+                    `Image ${image.filename} not found in asset map`
+                )
+            }
+            return `${path} ${size}w`
+        })
+        .filter(Boolean)
+        .join(", ")
+}
+
 /**
  * When we have a small and large image, we want to generate two <source> elements.
  * The first will only be active at small screen sizes, due to its `media` property.
@@ -83,25 +134,40 @@ export type SourceProps = {
 export function generateSourceProps(
     smallImage: ImageMetadata | undefined,
     regularImage: ImageMetadata,
-    absoluteUrl: string = ""
+    absoluteUrl: string = "",
+    assetMap?: AssetMap
 ): SourceProps[] {
     const props: SourceProps[] = []
-    if (smallImage && smallImage.cloudflareId) {
-        const encodedSmallId = encodeURIComponent(smallImage.cloudflareId)
-        const smallSizes = getSizes(smallImage.originalWidth)
+
+    function buildProps(image: ImageMetadata, media: string | undefined): void {
+        const sizes = assetMap
+            ? getArchivalSizes(image.originalWidth)
+            : getSizes(image.originalWidth)
+        if (sizes.length === 0) return
+
+        let srcSet: string | undefined
+        if (assetMap) {
+            srcSet = generateArchivalSrcSet(image, sizes, assetMap)
+        } else if (image.cloudflareId) {
+            const encodedId = encodeURIComponent(image.cloudflareId)
+            srcSet = generateSrcSet(sizes, encodedId, absoluteUrl)
+        }
+
+        if (!srcSet) return
+
         props.push({
-            media: "(max-width: 768px)",
-            srcSet: generateSrcSet(smallSizes, encodedSmallId, absoluteUrl),
+            media,
+            srcSet,
         })
     }
-    if (regularImage && regularImage.cloudflareId) {
-        const encodedRegularId = encodeURIComponent(regularImage.cloudflareId)
-        const regularSizes = getSizes(regularImage.originalWidth)
-        props.push({
-            media: undefined,
-            srcSet: generateSrcSet(regularSizes, encodedRegularId, absoluteUrl),
-        })
+
+    if (smallImage) {
+        buildProps(smallImage, "(max-width: 768px)")
     }
+    if (regularImage) {
+        buildProps(regularImage, undefined)
+    }
+
     return props
 }
 

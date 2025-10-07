@@ -20,6 +20,7 @@ import {
     spansToUnformattedPlainText,
     extractGdocPageData,
     OwidGdocPageData,
+    readFromAssetMap,
 } from "@ourworldindata/utils"
 import { getCanonicalUrl, getPageTitle } from "@ourworldindata/components"
 import { DebugProvider } from "./DebugProvider.js"
@@ -261,7 +262,11 @@ export default function OwidGdocPage({
         ])
         if (cloudflareId) {
             // "public" is a hard-coded variant that doesn't need to know the image's width
-            imageUrl = `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/public`
+            const fallbackUrl = `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/public`
+            imageUrl = readFromAssetMap(assetMaps?.runtime, {
+                path: featuredImageFilename,
+                fallback: fallbackUrl,
+            })
         }
     }
 
