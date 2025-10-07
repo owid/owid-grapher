@@ -83,7 +83,7 @@ export function SearchChartHitSmall({
                             ? { text: chartInfo.source, url: sourcesUrl }
                             : undefined
                     }
-                    onClick={onClick}
+                    onClick={() => onClick(chartType)}
                 />
                 <div className="search-chart-hit-small__tabs-container">
                     {hit.availableTabs.map((tab) => {
@@ -106,7 +106,7 @@ export function SearchChartHitSmall({
                             >
                                 <a
                                     href={chartUrl}
-                                    onClick={onClick}
+                                    onClick={() => onClick(tab)}
                                     aria-label={label}
                                 >
                                     <GrapherTabIcon tab={tab} />
