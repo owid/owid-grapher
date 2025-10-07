@@ -65,6 +65,11 @@ export function SearchChartHitSmall({
 
     const grapherParams = toGrapherQueryParams({ entities })
     const chartUrl = constructChartUrl({ hit, grapherParams })
+    const downloadUrl = constructChartUrl({
+        hit,
+        grapherParams,
+        overlay: "download-data",
+    })
 
     return (
         <article ref={ref} className="search-chart-hit-small">
@@ -121,10 +126,7 @@ export function SearchChartHitSmall({
                     <Button
                         className="search-chart-hit-small__download-button"
                         theme="solid-light-blue"
-                        href={constructChartUrl({
-                            hit,
-                            overlay: "download-data",
-                        })}
+                        href={downloadUrl}
                         icon={faDownload}
                         ariaLabel="Download options"
                         dataTrackNote="search-download-options"
