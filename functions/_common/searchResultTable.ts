@@ -1009,7 +1009,6 @@ function buildDataTableContentForWorldMap({
             ),
             title: makeTableTitle(grapherState, chartState, formatColumn),
         },
-        isLegend: true,
     }
 }
 

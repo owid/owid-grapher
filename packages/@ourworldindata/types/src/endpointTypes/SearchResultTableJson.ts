@@ -5,7 +5,6 @@ export type SearchChartHitDataTableContent =
     | {
           type: "data-table"
           props: SearchChartHitDataTableProps
-          isLegend?: boolean
       }
     | {
           type: "data-points"
