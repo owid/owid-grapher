@@ -327,8 +327,14 @@ function configureGrapherStateForDataTable(
 ): void {
     limitSelectionToAvailableTableRows(grapherState, args)
 
-    // For stacked discrete bar charts, we display multiple stacked bars in the
-    // chart but the data table only shows values for one entity
+    if (grapherState.isScatter) {
+        configureGrapherStateForScatter(grapherState, { props: args.props })
+    }
+
+    if (grapherState.isMarimekko) {
+        configureGrapherStateForMarimekko(grapherState, { props: args.props })
+    }
+
     if (grapherState.isStackedDiscreteBar) {
         configureGrapherStateForStackedDiscreteBarChart(grapherState, {
             props: args.props,
@@ -388,6 +394,9 @@ function configureGrapherStateForStackedDiscreteBarChart(
         maxNumEntities,
     }: { props: SearchChartHitDataTableProps; maxNumEntities: number }
 ): void {
+    // For stacked discrete bar charts, we display multiple stacked bars in the
+    // chart but the data table only shows values for one entity
+
     // Find the entity that is displayed in the table
     const tableEntity =
         grapherState.yColumnSlugs.length > 1 ? props.title : undefined
@@ -407,13 +416,39 @@ function configureGrapherStateForStackedDiscreteBarChart(
     if (tableEntity) grapherState.focusArray.clearAllAndAdd(tableEntity)
 }
 
+function configureGrapherStateForScatter(
+    grapherState: GrapherState,
+    { props }: { props: SearchChartHitDataTableProps }
+): void {
+    const displayEntities = props.rows
+        .map((row) => row.seriesName)
+        .filter((entityName) => entityName !== undefined)
+
+    // Select the entities that are displayed in the data table
+    if (displayEntities.length)
+        grapherState.selection.setSelectedEntities(displayEntities)
+}
+
+function configureGrapherStateForMarimekko(
+    grapherState: GrapherState,
+    { props }: { props: SearchChartHitDataTableProps }
+): void {
+    const displayEntities = props.rows
+        .map((row) => row.label)
+        .filter((entityName) => entityName !== undefined)
+
+    // Select the entities that are displayed in the data table
+    if (displayEntities.length)
+        grapherState.selection.setSelectedEntities(displayEntities)
+}
+
 function configureGrapherStateForDataPoints(
     grapherState: GrapherState,
     { props }: { props: SearchChartHitDataPointsProps }
 ): void {
     // Highlight the entities that are displayed as data points in the chart
-    const entityNames = props.dataPoints.map(
-        (dataPoint) => dataPoint.entityName
+    const entityNames = _.uniq(
+        props.dataPoints.map((dataPoint) => dataPoint.entityName)
     )
     if (entityNames.length) {
         grapherState.focusArray.clearAllAndAdd(...entityNames)
@@ -508,6 +543,14 @@ export function constructChartAndPreviewUrlsForTab({
     imageWidth?: number
     imageHeight?: number
 }): { chartUrl: string; previewUrl: string } {
+    const {
+        DiscreteBar,
+        Marimekko,
+        WorldMap,
+        StackedDiscreteBar,
+        ScatterPlot,
+    } = GRAPHER_TAB_NAMES
+
     // Use Grapher's changedParams to construct chart and preview URLs.
     // We override the tab parameter because the GrapherState is currently set to
     // the first tab of the chart, but we need to generate URLs for the specific
@@ -518,9 +561,9 @@ export function constructChartAndPreviewUrlsForTab({
     }
 
     // Adjust grapher query params for some chart types
-    if (tab === GRAPHER_TAB_NAMES.DiscreteBar) {
+    if (tab === DiscreteBar) {
         configureGrapherParamsForDiscreteBarPreview(grapherState, grapherParams)
-    } else if (tab === GRAPHER_TAB_NAMES.Marimekko) {
+    } else if (tab === Marimekko) {
         configureGrapherParamsForMarimekkoPreview(grapherState, grapherParams)
     }
 
@@ -528,9 +571,9 @@ export function constructChartAndPreviewUrlsForTab({
     // otherwise be too overpowering in thumbnail previews. Otherwise, rely on
     // the default
     const tabsWithSmallerFont: GrapherTabName[] = [
-        GRAPHER_TAB_NAMES.WorldMap,
-        GRAPHER_TAB_NAMES.DiscreteBar,
-        GRAPHER_TAB_NAMES.StackedDiscreteBar,
+        WorldMap,
+        DiscreteBar,
+        StackedDiscreteBar,
     ]
     const fontSize =
         previewType.variant === PreviewVariant.Thumbnail &&
@@ -548,10 +591,17 @@ export function constructChartAndPreviewUrlsForTab({
         imageHeight,
     })
 
+    // We don't want to link to a chart where entities are highlighted.
+    // In case of scatters and Marimekkos, we also ignore the current
+    // entity selection so that we always link to a chart with the default
+    // selection.
+    const omitParams: (keyof GrapherQueryParams)[] = ["focus"]
+    if (tab === ScatterPlot || tab === Marimekko) omitParams.push("country")
+    const grapherParamsForChartUrl = R.omit(grapherParams, omitParams)
+
     const chartUrl = constructChartUrl({
         hit,
-        // We don't want to link to a chart where entities are highlighted
-        grapherParams: R.omit(grapherParams, ["focus"]),
+        grapherParams: grapherParamsForChartUrl,
     })
 
     return { chartUrl, previewUrl }

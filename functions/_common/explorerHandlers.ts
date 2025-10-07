@@ -27,6 +27,7 @@ import {
     prepareSearchParamsBeforeExtractingDataValues,
 } from "./downloadFunctions.js"
 import { assembleMetadata } from "./metadataTools.js"
+import { getDataApiUrl } from "./grapherTools.js"
 
 async function initGrapherForExplorerView(
     env: Env,
@@ -308,7 +309,10 @@ export async function fetchSearchResultTableForExplorerView(
         if (entityNames?.length > 0)
             grapherState.selection.setSelectedEntities(entityNames)
 
-        const searchResultTable = assembleSearchResultTable(grapherState)
+        const searchResultTable = await assembleSearchResultTable(
+            grapherState,
+            { dataApiUrl: getDataApiUrl(env) }
+        )
 
         if (searchResultTable === undefined)
             return error(500, "Unable to generate search results table")
