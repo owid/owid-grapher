@@ -7,8 +7,9 @@
     }
 
     .search-chart-hit-header__logo {
-        height: 32px;
+        height: 37px;
         width: auto;
+        align-self: center;
     }
 
     .search-chart-hit-header__content {
@@ -78,5 +79,22 @@
 
     &:hover .search-chart-hit-header__title {
         text-decoration: underline;
+    }
+
+    &.search-chart-hit-header--large {
+        .search-chart-hit-header__title {
+            font-size: 1.375rem;
+        }
+
+        .search-chart-hit-header__subtitle {
+            font-size: 1rem;
+            font-weight: 400;
+            margin: 1px 0 0;
+        }
+
+        .search-chart-hit-header__source {
+            font-size: 0.875rem;
+            font-weight: 400;
+        }
     }
 }
