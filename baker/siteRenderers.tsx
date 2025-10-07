@@ -98,7 +98,7 @@ import {
     AttachmentsContext,
 } from "../site/gdocs/AttachmentsContext.js"
 import AtomArticleBlocks from "../site/gdocs/components/AtomArticleBlocks.js"
-import { getLatestExplorerArchivedVersionsIfEnabled } from "../db/model/archival/archivalDb.js"
+import { getLatestArchivedExplorerPageVersionsIfEnabled } from "../db/model/ArchivedExplorerVersion.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 
 export const renderToHtmlPage = (element: any) =>
@@ -788,10 +788,10 @@ export const renderExplorerPage = async (
 
     let archiveContext = opts?.archiveContext
     if (!archiveContext) {
-        const latestBySlug = await getLatestExplorerArchivedVersionsIfEnabled(
-            knex,
-            [program.slug]
-        )
+        const latestBySlug =
+            await getLatestArchivedExplorerPageVersionsIfEnabled(knex, [
+                program.slug,
+            ])
         archiveContext = latestBySlug[program.slug]
     }
 
