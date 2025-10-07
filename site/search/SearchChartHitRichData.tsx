@@ -295,6 +295,7 @@ export function SearchChartHitRichData({
                             chartUrl={chartUrl}
                             dataTableContent={dataTableContent}
                             numAvailableEntities={availableEntities.length}
+                            numRowsPerColumn={numDataTableRowsPerColumn}
                             entityType={grapherState.entityType}
                             entityTypePlural={grapherState.entityTypePlural}
                             className={className}
