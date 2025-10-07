@@ -1,12 +1,13 @@
+import cx from "classnames"
+import { Highlight } from "react-instantsearch"
 import { getIndexName } from "./searchClient.js"
 import { SearchChartHit, SearchIndexName } from "./searchTypes.js"
-import { Highlight } from "react-instantsearch"
 
 interface SearchChartHitHeaderProps {
     hit: SearchChartHit
     url: string
     source?: string
-    showLogo?: boolean
+    isLarge?: boolean
     onClick?: () => void
 }
 
@@ -14,12 +15,14 @@ export function SearchChartHitHeader({
     hit,
     url,
     source,
-    showLogo = false,
+    isLarge = false,
     onClick,
 }: SearchChartHitHeaderProps) {
     return (
         <a
-            className="search-chart-hit-header"
+            className={cx("search-chart-hit-header", {
+                "search-chart-hit-header--large": isLarge,
+            })}
             href={url}
             onClick={onClick}
             data-algolia-index={getIndexName(
@@ -29,7 +32,7 @@ export function SearchChartHitHeader({
             data-algolia-position={hit.__position}
         >
             <header className="search-chart-hit-header__content-wrapper">
-                {showLogo && (
+                {isLarge && (
                     <img
                         src="owid-logo.svg"
                         alt="Our World in Data logo"
