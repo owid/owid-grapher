@@ -14,6 +14,7 @@
         "littlezipper": "^0.1.4",
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
+        "remeda": "^2.32.0",
         "stripe": "^14.20.0",
         "ts-pattern": "^5.8.0",
         "uuidv7": "^1.0.1",

@@ -14287,6 +14287,7 @@ __metadata:
     littlezipper: "npm:^0.1.4"
     react: "npm:^19.1.0"
     react-dom: "npm:^19.1.0"
+    remeda: "npm:^2.32.0"
     stripe: "npm:^14.20.0"
     ts-pattern: "npm:^5.8.0"
     uuidv7: "npm:^1.0.1"
@@ -15959,6 +15960,15 @@ __metadata:
   dependencies:
     type-fest: "npm:^4.41.0"
   checksum: 10/82797d18369a42d3259c4756e7cfda8a53b4dd9fbaab04d48e7b1589dc24b353887d42fd9a23d37a52d44a8ca1aab965521a9c30469853714b5369b781ce39b0
+  languageName: node
+  linkType: hard
+
+"remeda@npm:^2.32.0":
+  version: 2.32.0
+  resolution: "remeda@npm:2.32.0"
+  dependencies:
+    type-fest: "npm:^4.41.0"
+  checksum: 10/a779ff89be1607b94d0d1817fabeba814c78f5fe0792a47d7ef0e20c84f99a7a9d5aa6e6c1d14bdbdf7c94a5825b3c36eebf996d775be936cafd44a869ee654a
   languageName: node
   linkType: hard
 
