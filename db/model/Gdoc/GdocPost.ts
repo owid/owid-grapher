@@ -21,7 +21,7 @@ import { parseFaqs } from "./rawToEnriched.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
 import { GdocBase } from "./GdocBase.js"
 import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
-import { getLatestChartArchivedVersionsIfEnabled } from "../archival/archivalDb.js"
+import { getLatestArchivedChartPageVersionsIfEnabled } from "../ArchivedChartVersion.js"
 
 export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     declare content: OwidGdocPostContent
@@ -174,7 +174,7 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             `,
             [this.tags.map((tag) => tag.id)]
         )
-        archivedVersions ??= await getLatestChartArchivedVersionsIfEnabled(
+        archivedVersions ??= await getLatestArchivedChartPageVersionsIfEnabled(
             knex,
             relatedCharts.map((c) => c.chartId)
         )

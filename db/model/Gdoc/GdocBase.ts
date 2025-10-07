@@ -75,11 +75,9 @@ import {
 } from "../NarrativeChart.js"
 import { indexBy } from "remeda"
 import { getDods } from "../Dod.js"
-import {
-    getLatestChartArchivedVersionsIfEnabled,
-    getLatestMultiDimArchivedVersionsIfEnabled,
-    getLatestExplorerArchivedVersionsIfEnabled,
-} from "../archival/archivalDb.js"
+import { getLatestArchivedExplorerPageVersionsIfEnabled } from "../ArchivedExplorerVersion.js"
+import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../ArchivedMultiDimVersion.js"
+import { getLatestArchivedChartPageVersionsIfEnabled } from "../ArchivedChartVersion.js"
 
 export async function getLinkedIndicatorsForCharts(
     knex: db.KnexReadonlyTransaction,
@@ -751,7 +749,7 @@ export class GdocBase implements OwidGdocBaseInterface {
             archivedMultiDimVersions,
             archivedExplorerVersions,
         ] = await Promise.all([
-            getLatestChartArchivedVersionsIfEnabled(
+            getLatestArchivedChartPageVersionsIfEnabled(
                 knex,
                 excludeUndefined(
                     this.linkedChartSlugs.grapher.map(
@@ -759,8 +757,8 @@ export class GdocBase implements OwidGdocBaseInterface {
                     )
                 )
             ),
-            getLatestMultiDimArchivedVersionsIfEnabled(knex),
-            getLatestExplorerArchivedVersionsIfEnabled(
+            getLatestArchivedMultiDimPageVersionsIfEnabled(knex),
+            getLatestArchivedExplorerPageVersionsIfEnabled(
                 knex,
                 this.linkedChartSlugs.explorer
             ),
