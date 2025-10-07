@@ -2,6 +2,7 @@
 // set up before any errors are thrown.
 import "../../serverUtils/instrument.js"
 
+import * as _ from "lodash-es"
 import * as Sentry from "@sentry/node"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
@@ -15,10 +16,7 @@ import {
     getMultiDimChecksumsFromDb,
     getExplorerChecksumsFromDb,
     getPostChecksumsFromDb,
-    insertChartVersions,
-    insertMultiDimVersions,
-    insertExplorerVersions,
-    insertPostVersions,
+    ArchivalImage,
 } from "../../db/model/archival/archivalDb.js"
 import {
     GrapherChecksumsObjectWithHash,
@@ -36,6 +34,10 @@ import {
     OwidChartDimensionInterface,
     AssetMap,
 } from "@ourworldindata/utils"
+import { insertArchivedChartVersions } from "../../db/model/ArchivedChartVersion.js"
+import { insertArchivedExplorerVersions } from "../../db/model/ArchivedExplorerVersion.js"
+import { insertArchivedMultiDimVersions } from "../../db/model/ArchivedMultiDimVersion.js"
+import { insertArchivedPostVersions } from "../../db/model/ArchivedPostVersion.js"
 import { getEnrichedChartsByIds } from "../../db/model/Chart.js"
 import {
     bakeArchivalGrapherPagesToFolder,
@@ -50,6 +52,7 @@ import {
     createCommonArchivalContext,
     archiveVariableIds,
     archiveChartConfigs,
+    archiveImages,
     CommonArchivalContext,
     MinimalMultiDimInfo,
     MinimalChartInfo,
@@ -152,35 +155,44 @@ const getExplorersToArchive = async (
 
 const getPostsToArchive = async (
     trx: db.KnexReadWriteTransaction,
-    opts: Options
-): Promise<PostChecksumsObjectWithHash[]> => {
-    const shouldProcessPosts = opts.type === "posts" || opts.type === "all"
+    { type, postSlugs }: Options
+): Promise<{
+    postsToArchive: PostChecksumsObjectWithHash[]
+    imagesByPostId: Record<string, ArchivalImage[]>
+}> => {
+    const shouldProcessPosts = type === "posts" || type === "all"
 
     if (!shouldProcessPosts) {
-        return []
+        return { postsToArchive: [], imagesByPostId: {} }
     }
 
-    if (opts.postSlugs?.length) {
+    if (postSlugs && postSlugs.length > 0) {
         console.log(
             "Archiving only the following post slugs:",
-            opts.postSlugs.join(", ")
+            postSlugs.join(", ")
         )
 
-        const allChecksums = await getPostChecksumsFromDb(trx)
+        const { postChecksums: allChecksums, imagesByPostId } =
+            await getPostChecksumsFromDb(trx)
         const postsToArchive = allChecksums.filter((checksum) =>
-            opts.postSlugs?.includes(checksum.postSlug)
+            postSlugs.includes(checksum.postSlug)
+        )
+        const postIds = new Set(postsToArchive.map((post) => post.postId))
+        const imagesByPostIdToArchive = _.pickBy(imagesByPostId, (_, postId) =>
+            postIds.has(postId)
         )
 
-        if (opts.postSlugs.length !== postsToArchive.length) {
+        if (postSlugs.length !== postsToArchive.length) {
             throw new Error(
-                `Not all post slugs were found in the database. Found ${postsToArchive.length} out of ${opts.postSlugs.length}.`
+                `Not all post slugs were found in the database. Found ${postsToArchive.length} out of ${postSlugs.length}.`
             )
         }
 
-        return postsToArchive
+        return { postsToArchive, imagesByPostId: imagesByPostIdToArchive }
     }
 
-    return await findChangedPostPages(trx)
+    const { postChecksums, imagesByPostId } = await findChangedPostPages(trx)
+    return { postsToArchive: postChecksums, imagesByPostId }
 }
 
 /**
@@ -407,7 +419,12 @@ const archiveGrapherPages = async (
         variableFiles
     )
 
-    await insertChartVersions(trx, graphersToArchive, archivalDate, manifests)
+    await insertArchivedChartVersions(
+        trx,
+        graphersToArchive,
+        archivalDate,
+        manifests
+    )
 
     await generateChartVersionsFiles(
         trx,
@@ -440,7 +457,7 @@ const archiveMultiDimPages = async (
         chartConfigFiles
     )
 
-    await insertMultiDimVersions(
+    await insertArchivedMultiDimVersions(
         trx,
         multiDimsToArchive,
         archivalDate,
@@ -476,7 +493,7 @@ const archiveExplorerPages = async (
         variableFiles
     )
 
-    await insertExplorerVersions(
+    await insertArchivedExplorerVersions(
         trx,
         explorersToArchive,
         archivalDate,
@@ -495,6 +512,7 @@ const archivePostPages = async (
     postsToArchive: PostChecksumsObjectWithHash[],
     postInfos: MinimalPostInfo[],
     commonCtx: CommonArchivalContext,
+    imageFilesByPostId: Record<string, AssetMap>,
     archivalDate: ArchivalTimestamp,
     opts: Options
 ): Promise<void> => {
@@ -504,10 +522,16 @@ const archivePostPages = async (
         trx,
         postsToArchive,
         postInfos,
-        commonCtx
+        commonCtx,
+        imageFilesByPostId
     )
 
-    await insertPostVersions(trx, postsToArchive, archivalDate, manifests)
+    await insertArchivedPostVersions(
+        trx,
+        postsToArchive,
+        archivalDate,
+        manifests
+    )
 
     await generatePostVersionsFiles(
         trx,
@@ -526,14 +550,13 @@ const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
             graphersToArchive,
             multiDimsToArchive,
             explorersToArchive,
-            postsToArchive,
+            { postsToArchive, imagesByPostId },
         ] = await Promise.all([
             getGraphersToArchive(trx, opts),
             getMultiDimsToArchive(trx, opts),
             getExplorersToArchive(trx, opts),
             getPostsToArchive(trx, opts),
         ])
-
         const totalToArchive =
             graphersToArchive.length +
             multiDimsToArchive.length +
@@ -591,7 +614,6 @@ const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
             commonCtx.baseArchiveDir
         )
 
-        // Archive both types of pages
         await Promise.all([
             archiveGrapherPages(
                 trx,
@@ -623,6 +645,11 @@ const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
             ),
         ])
 
+        const imageFilesByPostId = await archiveImages(
+            imagesByPostId,
+            commonCtx.baseArchiveDir
+        )
+
         // Must run after the charts so we can fetch their latest archived
         // versions.
         await archivePostPages(
@@ -630,6 +657,7 @@ const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
             postsToArchive,
             postInfos,
             commonCtx,
+            imageFilesByPostId,
             archivalDate,
             opts
         )
