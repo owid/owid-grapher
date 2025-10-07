@@ -20,6 +20,8 @@ export function renderGrapherIntoContainer(
         noCache,
     }: { archivedChartInfo?: ArchiveContext; noCache?: boolean } = {}
 ): void {
+    const reactRoot = createRoot(containerNode)
+
     const setBoundsFromContainerAndRender = (
         entries: ResizeObserverEntry[]
     ): void => {
@@ -41,8 +43,7 @@ export function renderGrapherIntoContainer(
                 loadVariableDataAndMetadata(varId, dataApiUrl, { noCache }),
         }
 
-        const root = createRoot(containerNode)
-        root.render(
+        reactRoot.render(
             <Sentry.ErrorBoundary>
                 <FetchingGrapher
                     config={grapherConfigWithBounds}
