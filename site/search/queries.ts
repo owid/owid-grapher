@@ -73,9 +73,8 @@ export const chartHitQueryKeys = {
     tableContent: (
         slug: string,
         queryParams?: string,
-        grapherParams?: GrapherQueryParams,
-        maxRows?: number
-    ) => ["table-content", slug, queryParams, grapherParams, maxRows] as const,
+        grapherParams?: GrapherQueryParams
+    ) => ["table-content", slug, queryParams, grapherParams] as const,
 } as const
 
 export async function queryDataTopics(
