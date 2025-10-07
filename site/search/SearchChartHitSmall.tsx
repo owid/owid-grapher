@@ -137,6 +137,7 @@ export function SearchChartHitSmall({
                         })}
                         icon={faDownload}
                         ariaLabel="Download options"
+                        dataTrackNote="search-download-options"
                     />
                 </div>
             </Tippy>
