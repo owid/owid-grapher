@@ -4,7 +4,8 @@ import {
     processExplorerViewsJob,
     processOneExplorerViewsJob,
 } from "../../jobQueue/explorerJobProcessor.js"
-import { claimNextQueuedJob } from "../../db/model/Jobs.js"
+import { claimNextQueuedJob, markJobFailed } from "../../db/model/Jobs.js"
+import { DbPlainJob } from "@ourworldindata/types"
 import { knexReadWriteTransaction } from "../../db/db.js"
 import { logErrorAndMaybeCaptureInSentry } from "../../serverUtils/errorLog.js"
 import yargs from "yargs"
@@ -16,10 +17,8 @@ async function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-async function processOneJobAndExit(): Promise<void> {
-    console.log(
-        `[${new Date().toISOString()}] Explorer jobs worker (single-run mode) started`
-    )
+async function processJob(): Promise<boolean> {
+    let currentJob: DbPlainJob | null = null
 
     try {
         const job = await knexReadWriteTransaction(async (trx) => {
@@ -27,12 +26,10 @@ async function processOneJobAndExit(): Promise<void> {
         })
 
         if (!job) {
-            console.log(
-                `[${new Date().toISOString()}] No jobs available, exiting`
-            )
-            return
+            return false // No job available
         }
 
+        currentJob = job
         const result = await processExplorerViewsJob(job)
 
         if (result.success) {
@@ -45,11 +42,13 @@ async function processOneJobAndExit(): Promise<void> {
             // Handle retry logic here in the caller
             if (result.shouldRetry && result.retryDelayMs) {
                 console.log(
-                    `[${new Date().toISOString()}] Sleeping ${result.retryDelayMs}ms before allowing next job`
+                    `[${new Date().toISOString()}] Sleeping ${result.retryDelayMs}ms before next job`
                 )
                 await sleep(result.retryDelayMs)
             }
         }
+
+        return true // Job processed
     } catch (error) {
         console.error(
             `[${new Date().toISOString()}] Error processing job:`,
@@ -58,7 +57,45 @@ async function processOneJobAndExit(): Promise<void> {
         void logErrorAndMaybeCaptureInSentry(
             error instanceof Error ? error : new Error(String(error))
         )
+
+        // If we have a job that was claimed but processExplorerViewsJob threw,
+        // try to mark it as failed to prevent it from staying in "running" state
+        if (currentJob) {
+            try {
+                await knexReadWriteTransaction(async (trx) => {
+                    await markJobFailed(
+                        trx,
+                        currentJob!.id,
+                        error instanceof Error
+                            ? error
+                            : new Error(String(error))
+                    )
+                })
+                console.log(
+                    `[${new Date().toISOString()}] Marked job ${currentJob!.id} as failed after worker error`
+                )
+            } catch (fallbackError) {
+                console.error(
+                    `[${new Date().toISOString()}] Failed to mark job ${currentJob!.id} as failed:`,
+                    fallbackError
+                )
+                // Job will remain in "running" state, but we've logged the issue
+            }
+        }
+
         throw error
+    }
+}
+
+async function processOneJobAndExit(): Promise<void> {
+    console.log(
+        `[${new Date().toISOString()}] Explorer jobs worker (single-run mode) started`
+    )
+
+    const jobProcessed = await processJob()
+
+    if (!jobProcessed) {
+        console.log(`[${new Date().toISOString()}] No jobs available, exiting`)
     }
 }
 
@@ -71,30 +108,11 @@ async function workerLoop(): Promise<void> {
 
     while (true) {
         try {
-            const job = await knexReadWriteTransaction(async (trx) => {
-                return await claimNextQueuedJob(trx, "refresh_explorer_views")
-            })
+            const jobProcessed = await processJob()
 
-            if (!job) {
+            if (!jobProcessed) {
                 // No jobs available, sleep and continue
                 await sleep(POLL_INTERVAL_MS)
-                continue
-            }
-
-            const result = await processExplorerViewsJob(job)
-
-            if (!result.success) {
-                console.error(
-                    `[${new Date().toISOString()}] Failed to process job ${job.id}`
-                )
-
-                // Handle retry logic here in the caller
-                if (result.shouldRetry && result.retryDelayMs) {
-                    console.log(
-                        `[${new Date().toISOString()}] Sleeping ${result.retryDelayMs}ms before next poll`
-                    )
-                    await sleep(result.retryDelayMs)
-                }
             }
         } catch (error) {
             console.error(
