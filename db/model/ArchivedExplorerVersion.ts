@@ -21,12 +21,15 @@ export async function getLatestArchivedExplorerVersions(
     knex: db.KnexReadonlyTransaction,
     slugs?: string[]
 ): Promise<
-    Pick<DbPlainArchivedExplorerVersion, "explorerSlug" | "archivalTimestamp">[]
+    Pick<
+        DbPlainArchivedExplorerVersion,
+        "explorerSlug" | "archivalTimestamp" | "hashOfInputs"
+    >[]
 > {
     const queryBuilder = knex<DbPlainArchivedExplorerVersion>(
         ArchivedExplorerVersionsTableName
     )
-        .select("explorerSlug", "archivalTimestamp")
+        .select("explorerSlug", "archivalTimestamp", "hashOfInputs")
         .whereRaw(
             `(explorerSlug, archivalTimestamp) IN (SELECT explorerSlug, MAX(archivalTimestamp) FROM archived_explorer_versions a2 GROUP BY explorerSlug)`
         )
@@ -67,17 +70,12 @@ export async function getLatestArchivedExplorerPageVersionsIfEnabled(
     return await getLatestArchivedExplorerPageVersions(knex, slugs)
 }
 
-export async function getExistingArchivedExplorerVersionHashes(
+export async function getLatestArchivedExplorerVersionHashes(
     knex: db.KnexReadonlyTransaction,
-    hashes: string[]
-): Promise<Set<string>> {
-    const rows = await knex<DbPlainArchivedExplorerVersion>(
-        ArchivedExplorerVersionsTableName
-    )
-        .select("hashOfInputs")
-        .whereIn("hashOfInputs", hashes)
-        .pluck("hashOfInputs")
-    return new Set(rows)
+    slugs?: string[]
+): Promise<Map<string, string>> {
+    const rows = await getLatestArchivedExplorerVersions(knex, slugs)
+    return new Map(rows.map((row) => [row.explorerSlug, row.hashOfInputs]))
 }
 
 export async function insertArchivedExplorerVersions(

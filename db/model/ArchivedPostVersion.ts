@@ -23,13 +23,13 @@ export async function getLatestArchivedPostVersions(
 ): Promise<
     Pick<
         DbPlainArchivedPostVersion,
-        "postId" | "postSlug" | "archivalTimestamp"
+        "postId" | "postSlug" | "archivalTimestamp" | "hashOfInputs"
     >[]
 > {
     const queryBuilder = knex<DbPlainArchivedPostVersion>(
         ArchivedPostVersionsTableName
     )
-        .select("postId", "postSlug", "archivalTimestamp")
+        .select("postId", "postSlug", "archivalTimestamp", "hashOfInputs")
         .whereRaw(
             `(postId, archivalTimestamp) IN (SELECT postId, MAX(archivalTimestamp) FROM archived_post_versions a2 GROUP BY postId)`
         )
@@ -74,17 +74,12 @@ export async function getLatestArchivedPostPageVersionsIfEnabled(
     return await getLatestArchivedPostPageVersions(knex, postIds)
 }
 
-export async function getExistingArchivedPostVersionHashes(
+export async function getLatestArchivedPostVersionHashes(
     knex: db.KnexReadonlyTransaction,
-    hashes: string[]
-): Promise<Set<string>> {
-    const rows = await knex<DbPlainArchivedPostVersion>(
-        ArchivedPostVersionsTableName
-    )
-        .select("hashOfInputs")
-        .whereIn("hashOfInputs", hashes)
-        .pluck("hashOfInputs")
-    return new Set(rows)
+    postIds?: string[]
+): Promise<Map<string, string>> {
+    const rows = await getLatestArchivedPostVersions(knex, postIds)
+    return new Map(rows.map((row) => [row.postId, row.hashOfInputs]))
 }
 
 export async function insertArchivedPostVersions(
