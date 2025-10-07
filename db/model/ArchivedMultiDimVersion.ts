@@ -23,13 +23,18 @@ export async function getLatestArchivedMultiDimVersions(
 ): Promise<
     Pick<
         DbPlainArchivedMultiDimVersion,
-        "multiDimId" | "multiDimSlug" | "archivalTimestamp"
+        "multiDimId" | "multiDimSlug" | "archivalTimestamp" | "hashOfInputs"
     >[]
 > {
     const queryBuilder = knex<DbPlainArchivedMultiDimVersion>(
         ArchivedMultiDimVersionsTableName
     )
-        .select("multiDimId", "multiDimSlug", "archivalTimestamp")
+        .select(
+            "multiDimId",
+            "multiDimSlug",
+            "archivalTimestamp",
+            "hashOfInputs"
+        )
         .whereRaw(
             `(multiDimId, archivalTimestamp) IN (SELECT multiDimId, MAX(archivalTimestamp) FROM archived_multi_dim_versions a2 GROUP BY multiDimId)`
         )
@@ -72,17 +77,12 @@ export async function getLatestArchivedMultiDimPageVersionsIfEnabled(
     return await getLatestArchivedMultiDimPageVersions(knex, multiDimIds)
 }
 
-export async function getExistingArchivedMultiDimVersionHashes(
+export async function getLatestArchivedMultiDimVersionHashes(
     knex: db.KnexReadonlyTransaction,
-    hashes: string[]
-): Promise<Set<string>> {
-    const rows = await knex<DbPlainArchivedMultiDimVersion>(
-        ArchivedMultiDimVersionsTableName
-    )
-        .select("hashOfInputs")
-        .whereIn("hashOfInputs", hashes)
-        .pluck("hashOfInputs")
-    return new Set(rows)
+    multiDimIds?: number[]
+): Promise<Map<number, string>> {
+    const rows = await getLatestArchivedMultiDimVersions(knex, multiDimIds)
+    return new Map(rows.map((row) => [row.multiDimId, row.hashOfInputs]))
 }
 
 export async function insertArchivedMultiDimVersions(
