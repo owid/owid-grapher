@@ -34,7 +34,7 @@ import { VerticalLabels } from "../verticalLabels/VerticalLabels"
 import { MarkX } from "./MarkX"
 import { NoDataModal } from "../noDataModal/NoDataModal"
 
-const DOT_RADIUS = 4
+const DOT_RADIUS = 3.5
 const SPACE_BETWEEN_DOT_AND_LABEL = 4
 
 const LABEL_PADDING = DOT_RADIUS + SPACE_BETWEEN_DOT_AND_LABEL
@@ -337,7 +337,7 @@ export class SlopeChartThumbnail
                         <Slope
                             key={series.seriesName}
                             series={series}
-                            dotRadius={2.5}
+                            dotRadius={DOT_RADIUS}
                             strokeWidth={1.5}
                             outlineWidth={0}
                             outlineStroke={this.manager.backgroundColor}
