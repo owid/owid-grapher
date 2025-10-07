@@ -84,31 +84,29 @@ export function SearchChartHitRichDataFallback({
         "--num-columns": getTotalColumnCount(placedTabs),
     } as React.CSSProperties
 
-    const sourcesUrl = constructChartUrl({ hit, overlay: "sources" })
-    const downloadUrl = constructChartUrl({ hit, overlay: "download-data" })
-
     return (
         <div ref={ref} className="search-chart-hit-rich-data">
             <div className="search-chart-hit-rich-data__header">
                 <SearchChartHitHeader
                     hit={hit}
                     url={chartUrl}
-                    source={
-                        chartInfo?.source
-                            ? { text: chartInfo.source, url: sourcesUrl }
-                            : undefined
-                    }
+                    source={chartInfo?.source}
                     onClick={() => onClick(chartType)}
                 />
-                <Button
-                    text="Download options"
-                    className="search-chart-hit-rich-data__button"
-                    theme="solid-light-blue"
-                    href={downloadUrl}
-                    icon={faDownload}
-                    iconPosition="left"
-                    dataTrackNote="search-download-options"
-                />
+                <div className="search-chart-hit-rich-data__header-actions">
+                    <Button
+                        text="Download options"
+                        className="search-chart-hit-rich-data__button"
+                        theme="solid-light-blue"
+                        href={constructChartUrl({
+                            hit,
+                            overlay: "download-data",
+                        })}
+                        icon={faDownload}
+                        iconPosition="left"
+                        dataTrackNote="search-download-options"
+                    />
+                </div>
             </div>
 
             <div
