@@ -8,6 +8,7 @@ export function CaptionedTable({
     chartUrl,
     dataTableContent,
     numAvailableEntities,
+    numRowsPerColumn,
     entityType,
     entityTypePlural,
     className,
@@ -16,6 +17,7 @@ export function CaptionedTable({
     chartUrl: string
     dataTableContent?: SearchChartHitDataTableContent
     numAvailableEntities: number
+    numRowsPerColumn?: number
     entityType: string
     entityTypePlural: string
     className?: string
@@ -39,7 +41,10 @@ export function CaptionedTable({
                 <div className="search-chart-hit-table-wrapper-content">
                     {match(dataTableContent)
                         .with({ type: "data-table" }, (content) => (
-                            <SearchChartHitDataTable {...content.props} />
+                            <SearchChartHitDataTable
+                                {...content.props}
+                                numRowsPerColumn={numRowsPerColumn}
+                            />
                         ))
                         .with({ type: "data-points" }, (content) => (
                             <SearchChartHitDataPoints {...content.props} />

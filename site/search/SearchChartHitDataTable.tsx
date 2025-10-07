@@ -6,7 +6,10 @@ import { GrapherTrendArrow } from "@ourworldindata/components"
 export function SearchChartHitDataTable({
     rows,
     title,
-}: SearchChartHitDataTableProps): React.ReactElement {
+    numRowsPerColumn = 4,
+}: SearchChartHitDataTableProps & {
+    numRowsPerColumn?: number
+}): React.ReactElement {
     // Show the time in the title if all items refer to the same time
     const times = rows.map((row) => row.time).filter((time) => time)
     const mainTime = times[0]
@@ -22,6 +25,8 @@ export function SearchChartHitDataTable({
     const shouldShowSwatch =
         rows.length <= 1 || rows.some((row) => row.color !== rows[0].color)
 
+    const shouldSpanBothColumns = displayRows.length <= numRowsPerColumn
+
     return (
         <div className="search-chart-hit-table">
             <Header
@@ -34,7 +39,7 @@ export function SearchChartHitDataTable({
                     key={row.label}
                     row={row}
                     shouldShowSwatch={shouldShowSwatch}
-                    shouldSpanBothColumns={displayRows.length <= 4}
+                    shouldSpanBothColumns={shouldSpanBothColumns}
                 />
             ))}
         </div>
