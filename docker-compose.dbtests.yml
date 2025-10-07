@@ -3,7 +3,7 @@
 services:
     # Stock mysql database. Root password is hardcoded for now
     db:
-        image: mysql:8.4.5
+        image: mysql:8
         command: --log-bin-trust-function-creators=ON
         restart: always
         volumes:
@@ -17,7 +17,7 @@ services:
 
     # mysql:8 container for running the DB creation scripts
     db-load-data:
-        image: mysql:8.4.5
+        image: mysql:8
         command: "/app/create-test-db.sh"
         volumes:
             - ./devTools/docker:/app
