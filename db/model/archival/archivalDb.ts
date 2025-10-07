@@ -33,10 +33,10 @@ import * as db from "../../db.js"
 import { stringify } from "safe-stable-stringify"
 import { hashHex } from "../../../serverUtils/hash.js"
 import { getAllVariableIds } from "@ourworldindata/utils"
-import { getExistingArchivedChartVersionHashes } from "../ArchivedChartVersion.js"
-import { getExistingArchivedExplorerVersionHashes } from "../ArchivedExplorerVersion.js"
-import { getExistingArchivedMultiDimVersionHashes } from "../ArchivedMultiDimVersion.js"
-import { getExistingArchivedPostVersionHashes } from "../ArchivedPostVersion.js"
+import { getLatestArchivedChartVersionHashes } from "../ArchivedChartVersion.js"
+import { getLatestArchivedExplorerVersionHashes } from "../ArchivedExplorerVersion.js"
+import { getLatestArchivedMultiDimVersionHashes } from "../ArchivedMultiDimVersion.js"
+import { getLatestArchivedPostVersionHashes } from "../ArchivedPostVersion.js"
 import { getGdocBaseObjectById } from "../Gdoc/GdocFactory.js"
 import { GdocPost } from "../Gdoc/GdocPost.js"
 
@@ -153,13 +153,14 @@ export const findChangedGrapherPages = async (
     const allChartChecksums = await getGrapherChecksumsFromDb(knex)
 
     // We're gonna find the hashes of all the graphers that are already archived and up-to-date
-    const hashesFoundInDb = await getExistingArchivedChartVersionHashes(
-        knex,
-        allChartChecksums.map((c) => c.checksumsHashed)
-    )
+    const chartIds = allChartChecksums.map((c) => c.chartId)
+    const hashesFoundInDb =
+        chartIds.length > 0
+            ? await getLatestArchivedChartVersionHashes(knex, chartIds)
+            : new Map<number, string>()
     const [alreadyArchived, needToBeArchived] = _.partition(
         allChartChecksums,
-        (c) => hashesFoundInDb.has(c.checksumsHashed)
+        (c) => hashesFoundInDb.get(c.chartId) === c.checksumsHashed
     )
 
     console.log("total published graphers", allChartChecksums.length)
@@ -175,13 +176,14 @@ export const findChangedMultiDimPages = async (
     const allMultiDimChecksums = await getMultiDimChecksumsFromDb(knex)
 
     // We're gonna find the hashes of all the multi-dim pages that are already archived and up-to-date
-    const hashesFoundInDb = await getExistingArchivedMultiDimVersionHashes(
-        knex,
-        allMultiDimChecksums.map((c) => c.checksumsHashed)
-    )
+    const multiDimIds = allMultiDimChecksums.map((c) => c.multiDimId)
+    const hashesFoundInDb =
+        multiDimIds.length > 0
+            ? await getLatestArchivedMultiDimVersionHashes(knex, multiDimIds)
+            : new Map<number, string>()
     const [alreadyArchived, needToBeArchived] = _.partition(
         allMultiDimChecksums,
-        (c) => hashesFoundInDb.has(c.checksumsHashed)
+        (c) => hashesFoundInDb.get(c.multiDimId) === c.checksumsHashed
     )
 
     console.log("total published multi-dim pages", allMultiDimChecksums.length)
@@ -471,13 +473,14 @@ export const findChangedExplorerPages = async (
     const allExplorerChecksums = await getExplorerChecksumsFromDb(knex)
 
     // We're gonna find the hashes of all the explorers that are already archived and up-to-date
-    const hashesFoundInDb = await getExistingArchivedExplorerVersionHashes(
-        knex,
-        allExplorerChecksums.map((c) => c.checksumsHashed)
-    )
+    const explorerSlugs = allExplorerChecksums.map((c) => c.explorerSlug)
+    const hashesFoundInDb =
+        explorerSlugs.length > 0
+            ? await getLatestArchivedExplorerVersionHashes(knex, explorerSlugs)
+            : new Map<string, string>()
     const [alreadyArchived, needToBeArchived] = _.partition(
         allExplorerChecksums,
-        (c) => hashesFoundInDb.has(c.checksumsHashed)
+        (c) => hashesFoundInDb.get(c.explorerSlug) === c.checksumsHashed
     )
 
     console.log("total published explorers", allExplorerChecksums.length)
@@ -846,13 +849,14 @@ export const findChangedPostPages = async (
         await getPostChecksumsFromDb(knex)
 
     // We're gonna find the hashes of all the posts that are already archived and up-to-date
-    const hashesFoundInDb = await getExistingArchivedPostVersionHashes(
-        knex,
-        allPostChecksums.map((c) => c.checksumsHashed)
-    )
+    const postIds = allPostChecksums.map((c) => c.postId)
+    const hashesFoundInDb =
+        postIds.length > 0
+            ? await getLatestArchivedPostVersionHashes(knex, postIds)
+            : new Map<string, string>()
     const [alreadyArchived, needToBeArchived] = _.partition(
         allPostChecksums,
-        (c) => hashesFoundInDb.has(c.checksumsHashed)
+        (c) => hashesFoundInDb.get(c.postId) === c.checksumsHashed
     )
 
     console.log("total published articles", allPostChecksums.length)
