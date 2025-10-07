@@ -7,22 +7,28 @@
     .search-chart-hit-rich-data__header {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
         gap: 24px;
     }
 
-    .search-chart-hit-rich-data__button {
-        padding: 5px 8px;
-        font-size: 13px;
-        white-space: nowrap;
-        border-radius: 4px;
+    .search-chart-hit-rich-data__header-actions {
+        display: flex;
+        gap: 16px;
+        align-self: flex-start;
+        flex-shrink: 0;
 
-        &:hover {
-            background-color: #bed2e7;
-        }
+        .search-chart-hit-rich-data__button {
+            padding: 5px 8px;
+            font-size: 13px;
+            white-space: nowrap;
+            border-radius: 4px;
 
-        @include sm-only {
-            display: none;
+            &:hover {
+                background-color: #bed2e7;
+            }
+
+            @include sm-only {
+                display: none;
+            }
         }
     }
 

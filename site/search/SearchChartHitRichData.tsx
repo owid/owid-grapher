@@ -222,29 +222,36 @@ export function SearchChartHitRichData({
     const sourcesUrl = constructChartUrl({ hit, overlay: "sources" })
     const downloadUrl = constructChartUrl({ hit, overlay: "download-data" })
 
-    const source = chartInfo
-        ? { text: chartInfo.source, url: sourcesUrl }
-        : undefined
-
     return (
         <div ref={ref} className="search-chart-hit-rich-data">
             <div className="search-chart-hit-rich-data__header">
                 <SearchChartHitHeader
                     hit={hit}
                     url={chartUrl}
-                    source={source}
+                    source={chartInfo?.source}
                     showLogo={isLargeVariant}
                     onClick={onClick}
                 />
-                <Button
-                    text="Download options"
-                    className="search-chart-hit-rich-data__button"
-                    theme="solid-light-blue"
-                    href={downloadUrl}
-                    icon={faDownload}
-                    iconPosition="left"
-                    dataTrackNote="search-download-options"
-                />
+                <div className="search-chart-hit-rich-data__header-actions">
+                    {isLargeVariant && (
+                        <Button
+                            text="Learn more about this data"
+                            className="search-chart-hit-rich-data__button"
+                            theme="outline-light-blue"
+                            href={sourcesUrl}
+                            icon={null}
+                        />
+                    )}
+                    <Button
+                        text="Download options"
+                        className="search-chart-hit-rich-data__button"
+                        theme="solid-light-blue"
+                        href={downloadUrl}
+                        icon={faDownload}
+                        iconPosition="left"
+                        dataTrackNote="search-download-options"
+                    />
+                </div>
             </div>
 
             <div
