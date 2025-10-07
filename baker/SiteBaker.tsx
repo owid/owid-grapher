@@ -93,10 +93,8 @@ import { getNarrativeChartsInfo } from "../db/model/NarrativeChart.js"
 import { getGrapherRedirectsMap } from "./redirectsFromDb.js"
 import * as R from "remeda"
 import { getDods, getParsedDodsDictionary } from "../db/model/Dod.js"
-import {
-    getLatestChartArchivedVersionsIfEnabled,
-    getLatestMultiDimArchivedVersionsIfEnabled,
-} from "../db/model/archival/archivalDb.js"
+import { getLatestArchivedChartPageVersionsIfEnabled } from "../db/model/ArchivedChartVersion.js"
+import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../db/model/ArchivedMultiDimVersion.js"
 import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
 import {
     getLatestPageItems,
@@ -331,8 +329,8 @@ export class SiteBaker {
             console.log("Prefetching archived versions")
             const [archivedChartVersions, archivedMultiDimVersions] =
                 await Promise.all([
-                    getLatestChartArchivedVersionsIfEnabled(knex),
-                    getLatestMultiDimArchivedVersionsIfEnabled(knex),
+                    getLatestArchivedChartPageVersionsIfEnabled(knex),
+                    getLatestArchivedMultiDimPageVersionsIfEnabled(knex),
                 ])
 
             const archivedVersions = {

@@ -11,7 +11,7 @@ import * as db from "../db/db.js"
 import { stringify } from "safe-stable-stringify"
 import { ExplorerArchivalManifest } from "../serverUtils/archivalUtils.js"
 import { ArchiveMetaInformation } from "@ourworldindata/types"
-import { getLatestExplorerArchivedVersionsIfEnabled } from "../db/model/archival/archivalDb.js"
+import { getLatestArchivedExplorerPageVersionsIfEnabled } from "../db/model/ArchivedExplorerVersion.js"
 
 export const bakeAllPublishedExplorers = async (
     outputFolder: string,
@@ -32,7 +32,7 @@ const bakeExplorersToDir = async (
     knex: db.KnexReadonlyTransaction
 ) => {
     const latestArchivedBySlug =
-        await getLatestExplorerArchivedVersionsIfEnabled(
+        await getLatestArchivedExplorerPageVersionsIfEnabled(
             knex,
             explorers.map((e) => e.slug)
         )

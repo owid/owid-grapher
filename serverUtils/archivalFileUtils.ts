@@ -3,11 +3,14 @@ import path from "path"
 import { hashBase36, hashBase36FromStream } from "./hash.js"
 
 const hashFile = async (file: string) => {
-    const stream = await fs.createReadStream(file)
+    const stream = fs.createReadStream(file)
     return await hashBase36FromStream(stream)
 }
 
-export const hashAndWriteFile = async (targetPath: string, content: string) => {
+export const hashAndWriteFile = async (
+    targetPath: string,
+    content: string | Buffer
+) => {
     const hash = hashBase36(content)
     const targetPathWithHash = targetPath.replace(
         /^(.*\/)?([^.]+\.)/,

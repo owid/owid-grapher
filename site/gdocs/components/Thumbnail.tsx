@@ -21,7 +21,8 @@ export const Thumbnail = ({
             />
         )
     if (
-        thumbnail.startsWith(GRAPHER_DYNAMIC_THUMBNAIL_URL) ||
+        (GRAPHER_DYNAMIC_THUMBNAIL_URL &&
+            thumbnail.startsWith(GRAPHER_DYNAMIC_THUMBNAIL_URL)) ||
         thumbnail.endsWith(ARCHIVED_THUMBNAIL_FILENAME) ||
         thumbnail.endsWith(DEFAULT_THUMBNAIL_FILENAME)
     ) {

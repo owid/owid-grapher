@@ -77,11 +77,9 @@ import {
 } from "../NarrativeChart.js"
 import * as R from "remeda"
 import { getDods } from "../Dod.js"
-import {
-    getLatestChartArchivedVersionsIfEnabled,
-    getLatestMultiDimArchivedVersionsIfEnabled,
-    getLatestExplorerArchivedVersionsIfEnabled,
-} from "../archival/archivalDb.js"
+import { getLatestArchivedExplorerPageVersionsIfEnabled } from "../ArchivedExplorerVersion.js"
+import { getLatestArchivedMultiDimPageVersionsIfEnabled } from "../ArchivedMultiDimVersion.js"
+import { getLatestArchivedChartPageVersionsIfEnabled } from "../ArchivedChartVersion.js"
 
 export async function getLinkedIndicatorsForCharts(
     knex: db.KnexReadonlyTransaction,
@@ -133,12 +131,12 @@ export async function loadLinkedChartsForSlugs(
         archivedMultiDimVersions,
         archivedExplorerVersions,
     ] = await Promise.all([
-        getLatestChartArchivedVersionsIfEnabled(
+        getLatestArchivedChartPageVersionsIfEnabled(
             knex,
             excludeUndefined(grapherSlugs.map((slug) => slugToIdMap[slug]))
         ),
-        getLatestMultiDimArchivedVersionsIfEnabled(knex),
-        getLatestExplorerArchivedVersionsIfEnabled(knex, explorerSlugs),
+        getLatestArchivedMultiDimPageVersionsIfEnabled(knex),
+        getLatestArchivedExplorerPageVersionsIfEnabled(knex, explorerSlugs),
     ])
 
     // TODO: rewrite this as a single query instead of N queries
