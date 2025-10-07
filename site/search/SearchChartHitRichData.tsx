@@ -229,7 +229,7 @@ export function SearchChartHitRichData({
                     hit={hit}
                     url={chartUrl}
                     source={chartInfo?.source}
-                    showLogo={isLargeVariant}
+                    isLarge={isLargeVariant}
                     onClick={onClick}
                 />
                 <div className="search-chart-hit-rich-data__header-actions">
