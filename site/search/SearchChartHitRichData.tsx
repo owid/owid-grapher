@@ -236,7 +236,7 @@ export function SearchChartHitRichData({
                             grapherState={grapherState}
                             maxRows={maxRows}
                             className={className}
-                            onClick={onClick}
+                            onClick={() => onClick(tab)}
                         />
                     ) : (
                         <CaptionedThumbnail
@@ -248,7 +248,7 @@ export function SearchChartHitRichData({
                             imageWidth={imageWidth}
                             imageHeight={imageHeight}
                             className={className}
-                            onClick={onClick}
+                            onClick={() => onClick(tab)}
                         />
                     )
                 })}

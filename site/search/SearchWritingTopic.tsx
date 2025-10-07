@@ -57,9 +57,11 @@ export const SearchWritingTopic = ({
                                     onClick={() => {
                                         analytics.logSiteSearchResultClick(
                                             hit,
-                                            index + 1,
-                                            "ribbon",
-                                            result.title
+                                            {
+                                                position: index + 1,
+                                                source: "ribbon",
+                                                ribbonTag: result.title,
+                                            }
                                         )
                                     }}
                                 />
@@ -88,9 +90,11 @@ export const SearchWritingTopic = ({
                                         onClick={() => {
                                             analytics.logSiteSearchResultClick(
                                                 hit,
-                                                index + 1,
-                                                "ribbon",
-                                                result.title
+                                                {
+                                                    position: index + 1,
+                                                    source: "ribbon",
+                                                    ribbonTag: result.title,
+                                                }
                                             )
                                         }}
                                     >

@@ -76,16 +76,17 @@ export class SiteAnalytics extends GrapherAnalytics {
             | TopicPageHit
             | DataInsightHit
             | StackedArticleHit,
-        position: number,
-        source: "ribbon" | "search", // "ribbons" are the per-area overview components present on the unparametrized browse pages for writing and data.
-        ribbonTag?: string
+        context: {
+            position: number
+            source: "ribbon" | "search" // "ribbons" are the per-area overview components present on the unparameterized browse pages for writing and data.
+            ribbonTag?: string
+            vizType?: string
+        }
     ) {
         const eventContext = {
-            position,
-            source,
+            ...context,
             type: hit.type,
         }
-        if (ribbonTag) _.set(eventContext, "ribbonTag", ribbonTag)
         this.logToGA({
             event: EventCategory.SiteSearchResultClick,
             eventAction: "click",

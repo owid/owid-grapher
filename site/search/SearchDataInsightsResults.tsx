@@ -57,8 +57,10 @@ export function SearchDataInsightsResults() {
                                     onClick={() => {
                                         analytics.logSiteSearchResultClick(
                                             hit,
-                                            index + 1,
-                                            "search"
+                                            {
+                                                position: index + 1,
+                                                source: "search",
+                                            }
                                         )
                                     }}
                                 />

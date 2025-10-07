@@ -138,7 +138,7 @@ export interface SearchChartHitComponentProps {
     selectedRegionNames?: string[] | undefined
     // Search uses a global onClick handler to track analytics
     // But the data catalog passes a function to this component explicitly
-    onClick?: () => void
+    onClick: (vizType?: string) => void
 }
 
 export type SearchChartHitComponentVariant = "large" | "medium" | "small"
