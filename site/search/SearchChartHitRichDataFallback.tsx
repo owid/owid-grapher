@@ -98,7 +98,7 @@ export function SearchChartHitRichDataFallback({
                             ? { text: chartInfo.source, url: sourcesUrl }
                             : undefined
                     }
-                    onClick={onClick}
+                    onClick={() => onClick(chartType)}
                 />
                 <Button
                     text="Download options"
@@ -135,7 +135,7 @@ export function SearchChartHitRichDataFallback({
                             caption={caption}
                             url={chartUrl}
                             className={className}
-                            onClick={onClick}
+                            onClick={() => onClick(tab)}
                         >
                             <SearchChartHitThumbnail previewUrl={previewUrl} />
                         </CaptionedLink>

@@ -49,11 +49,10 @@ function SingleColumnResults({
                             hit={hit}
                             variant={hasLargeTopic ? "large" : undefined}
                             onClick={() => {
-                                analytics.logSiteSearchResultClick(
-                                    hit,
-                                    index + 1,
-                                    "search"
-                                )
+                                analytics.logSiteSearchResultClick(hit, {
+                                    position: index + 1,
+                                    source: "search",
+                                })
                             }}
                         />
                     )
@@ -63,11 +62,10 @@ function SingleColumnResults({
                             key={hit.objectID}
                             hit={hit as FlatArticleHit}
                             onClick={() => {
-                                analytics.logSiteSearchResultClick(
-                                    hit,
-                                    index + 1,
-                                    "search"
-                                )
+                                analytics.logSiteSearchResultClick(hit, {
+                                    position: index + 1,
+                                    source: "search",
+                                })
                             }}
                         />
                     )
@@ -101,11 +99,10 @@ function MultiColumnResults({
                             key={hit.objectID}
                             hit={hit}
                             onClick={() => {
-                                analytics.logSiteSearchResultClick(
-                                    hit,
-                                    index + 1,
-                                    "search"
-                                )
+                                analytics.logSiteSearchResultClick(hit, {
+                                    position: index + 1,
+                                    source: "search",
+                                })
                             }}
                         />
                     ))}
@@ -120,8 +117,10 @@ function MultiColumnResults({
                             onClick={() => {
                                 analytics.logSiteSearchResultClick(
                                     interleavedTopics[0],
-                                    1,
-                                    "search"
+                                    {
+                                        position: 1,
+                                        source: "search",
+                                    }
                                 )
                             }}
                         />
@@ -131,11 +130,10 @@ function MultiColumnResults({
                                 key={hit.objectID}
                                 hit={hit}
                                 onClick={() => {
-                                    analytics.logSiteSearchResultClick(
-                                        hit,
-                                        index + 1,
-                                        "search"
-                                    )
+                                    analytics.logSiteSearchResultClick(hit, {
+                                        position: index + 1,
+                                        source: "search",
+                                    })
                                 }}
                             />
                         ))
@@ -151,8 +149,10 @@ function MultiColumnResults({
                             onClick={() => {
                                 analytics.logSiteSearchResultClick(
                                     remainingTopics[0],
-                                    interleavedTopics.length + 1,
-                                    "search"
+                                    {
+                                        position: interleavedTopics.length + 1,
+                                        source: "search",
+                                    }
                                 )
                             }}
                         />
@@ -162,11 +162,13 @@ function MultiColumnResults({
                                 key={hit.objectID}
                                 hit={hit}
                                 onClick={() => {
-                                    analytics.logSiteSearchResultClick(
-                                        hit,
-                                        interleavedTopics.length + index + 1,
-                                        "search"
-                                    )
+                                    analytics.logSiteSearchResultClick(hit, {
+                                        position:
+                                            interleavedTopics.length +
+                                            index +
+                                            1,
+                                        source: "search",
+                                    })
                                 }}
                             />
                         ))
