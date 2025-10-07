@@ -275,7 +275,10 @@ export async function fetchSearchResultTableForGrapher(
     if (entityNames?.length > 0)
         grapher.grapherState.selection.setSelectedEntities(entityNames)
 
-    const searchResultTable = assembleSearchResultTable(grapher.grapherState)
+    const searchResultTable = await assembleSearchResultTable(
+        grapher.grapherState,
+        { dataApiUrl: getDataApiUrl(env) }
+    )
 
     if (searchResultTable === undefined)
         return error(500, "Unable to generate search results table")
@@ -283,8 +286,11 @@ export async function fetchSearchResultTableForGrapher(
     return Response.json(searchResultTable)
 }
 
-export function assembleSearchResultTable(grapherState: GrapherState) {
-    return constructSearchResultTable({ grapherState })
+export async function assembleSearchResultTable(
+    grapherState: GrapherState,
+    { dataApiUrl }: { dataApiUrl?: string }
+) {
+    return constructSearchResultTable({ grapherState, dataApiUrl })
 }
 
 export function findEntityForExtractingDataValues(
