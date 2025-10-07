@@ -216,18 +216,15 @@ export function calculateMediumVariantLayout(
                 grapherState.chartState
 
             // Determine whether to allow dropping the DiscreteBar tab to make
-            // room for the table. We prioritize the table in two scenarios:
-            // 1. When the table serves as a legend, we want to show as many
-            //    legend items as possible to avoid partial/truncated legends
-            // 2. When plotting columns (rather than entities), we want to
-            //    label as many columns as possible since all column lines are
-            //    plotted (they can't be deselected, other than entity lines)
+            // room for the table. We only prioritize the table in this scenario:
+            // When plotting columns (rather than entities), we want to
+            // label as many columns as possible since all column lines are
+            // plotted (they can't be deselected, other than entity lines)
             const prioritizeTableOverDiscreteBar =
-                dataTableContent.isLegend ||
-                (seriesStrategy === SeriesStrategy.column &&
-                    !grapherState.isFaceted &&
-                    !grapherState.hasProjectedData &&
-                    !grapherState.isStackedDiscreteBar)
+                seriesStrategy === SeriesStrategy.column &&
+                !grapherState.isFaceted &&
+                !grapherState.hasProjectedData &&
+                !grapherState.isStackedDiscreteBar
 
             return placeGrapherTabsInMediumVariantGridLayout(sortedTabs, {
                 hasDataDisplay: !!dataDisplayProps,
