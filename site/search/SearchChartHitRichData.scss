@@ -154,7 +154,7 @@
     // Medium variant grid slots
     .search-chart-hit-rich-data__content--medium {
         // Keep in sync with NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT
-        $num-rows-per-column-without-caption: 4;
+        $num-rows-per-column-without-caption: 6;
         $num-rows-per-column: $num-rows-per-column-without-caption + 1;
 
         // Applies to any medium variant grid slot
@@ -275,7 +275,7 @@
     // Large variant grid slots
     .search-chart-hit-rich-data__content--large {
         // Keep in sync with NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT
-        $num-rows-per-column-without-caption: 10;
+        $num-rows-per-column-without-caption: 12;
         $num-rows-per-column: $num-rows-per-column-without-caption + 1;
 
         // Applies to any large variant grid slot

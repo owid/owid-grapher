@@ -79,8 +79,8 @@ import { fetchJson } from "@ourworldindata/utils"
 import { useQueryChartInfo } from "./SearchChartHitSmallHelpers.js"
 
 // Keep in sync with $num-rows-per-column in SearchChartHitRichData.scss
-const NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT = 4
-const NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_LARGE_VARIANT = 10
+const NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT = 6
+const NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_LARGE_VARIANT = 12
 
 export function SearchChartHitRichData({
     hit,
