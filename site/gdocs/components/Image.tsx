@@ -1,7 +1,9 @@
 import { useCallback, useContext, useState } from "react"
 import {
+    AssetMap,
     generateSourceProps,
     ImageMetadata,
+    readFromAssetMap,
     triggerDownloadFromBlob,
 } from "@ourworldindata/utils"
 import cx from "classnames"
@@ -65,6 +67,16 @@ const containerSizes: Record<ImageParentContainer, string> = {
 
 export const LIGHTBOX_IMAGE_CLASS = "lightbox-image"
 
+function makeSrc(image: ImageMetadata, assetMap?: AssetMap) {
+    if (!image.cloudflareId) {
+        throw new Error("Image has no cloudflareId")
+    }
+    return readFromAssetMap(assetMap, {
+        path: image.filename,
+        fallback: `${CLOUDFLARE_IMAGES_URL}/${image.cloudflareId}/w=${image.originalWidth}`,
+    })
+}
+
 export default function Image(props: {
     filename: string
     smallFilename?: string
@@ -91,7 +103,11 @@ export default function Image(props: {
     // Whether we should show the lightbox and a download button
     const isInteractive = shouldLightbox && containerType !== "thumbnail"
 
-    const { isPreviewing } = useContext(DocumentContext)
+    const { archiveContext, isPreviewing } = useContext(DocumentContext)
+    const isOnArchivalPage = archiveContext?.type === "archive-page"
+    const assetMap = isOnArchivalPage
+        ? archiveContext?.assets?.runtime
+        : undefined
     const isSmall = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
     const image = useImage(filename)
     const smallImage = useImage(smallFilename)
@@ -118,13 +134,13 @@ export default function Image(props: {
     const handleDownload = useCallback(async () => {
         if (!activeImage) return
         const { filename } = activeImage
-        const src = makeSrc(activeImage)
+        const src = makeSrc(activeImage, assetMap)
         if (src && filename) {
             const response = await fetch(src)
             const blob = await response.blob()
             triggerDownloadFromBlob(filename, blob)
         }
-    }, [activeImage])
+    }, [activeImage, assetMap])
 
     if (!activeImage || !activeImage.cloudflareId) {
         if (isPreviewing) {
@@ -136,18 +152,12 @@ export default function Image(props: {
 
     const alt = props.alt ?? activeImage.defaultAlt
 
-    function makeSrc(image: ImageMetadata) {
-        if (!image.cloudflareId) {
-            throw new Error("Image has no cloudflareId")
-        }
-        return `${CLOUDFLARE_IMAGES_URL}/${image.cloudflareId}/w=${image.originalWidth}`
-    }
-
-    const imageSrc = makeSrc(activeImage)
+    const imageSrc = makeSrc(activeImage, assetMap)
     const sourceProps = generateSourceProps(
         smallImage,
         activeImage,
-        CLOUDFLARE_IMAGES_URL
+        CLOUDFLARE_IMAGES_URL,
+        assetMap
     )
 
     return (
