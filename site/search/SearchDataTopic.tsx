@@ -56,13 +56,13 @@ export const SearchDataTopic = ({
                             <SearchChartHitComponent
                                 hit={hit}
                                 variant={hitIndex === 0 ? "medium" : "small"}
-                                onClick={() => {
-                                    analytics.logSiteSearchResultClick(
-                                        hit,
-                                        hitIndex + 1,
-                                        "ribbon",
-                                        title
-                                    )
+                                onClick={(vizType?: string) => {
+                                    analytics.logSiteSearchResultClick(hit, {
+                                        position: hitIndex + 1,
+                                        source: "ribbon",
+                                        ribbonTag: title,
+                                        vizType,
+                                    })
                                 }}
                                 selectedRegionNames={selectedRegionNames}
                             />
