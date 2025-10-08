@@ -23,7 +23,7 @@ import {
 } from "./grapherTools.js"
 import { TWITTER_OPTIONS } from "./imageOptions.js"
 import { constructReadme } from "./readmeTools.js"
-import { constructSearchResultsTable } from "./searchResultsTable.js"
+import { constructSearchResultTable } from "./searchResultTable.js"
 import { constructGrapherValuesJson } from "./grapherValuesJson.js"
 
 export async function fetchMetadataForGrapher(
@@ -248,7 +248,7 @@ export function assembleDataValues(
     return constructGrapherValuesJson(grapherState, entityName)
 }
 
-export async function fetchSearchResultsTableForGrapher(
+export async function fetchSearchResultTableForGrapher(
     identifier: GrapherIdentifier,
     env: Env,
     searchParams: URLSearchParams
@@ -275,16 +275,16 @@ export async function fetchSearchResultsTableForGrapher(
     if (entityNames?.length > 0)
         grapher.grapherState.selection.setSelectedEntities(entityNames)
 
-    const searchResultsTable = assembleSearchResultsTable(grapher.grapherState)
+    const searchResultTable = assembleSearchResultTable(grapher.grapherState)
 
-    if (searchResultsTable === undefined)
+    if (searchResultTable === undefined)
         return error(500, "Unable to generate search results table")
 
-    return Response.json(searchResultsTable)
+    return Response.json(searchResultTable)
 }
 
-export function assembleSearchResultsTable(grapherState: GrapherState) {
-    return constructSearchResultsTable({ grapherState })
+export function assembleSearchResultTable(grapherState: GrapherState) {
+    return constructSearchResultTable({ grapherState })
 }
 
 export function findEntityForExtractingDataValues(

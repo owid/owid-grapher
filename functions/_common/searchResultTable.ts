@@ -40,7 +40,7 @@ interface Args<State extends ChartState = ChartState> extends BaseArgs {
     chartState: State
 }
 
-export function constructSearchResultsTable(
+export function constructSearchResultTable(
     props: BaseArgs
 ): SearchChartHitDataTableContent | undefined {
     if (!props.grapherState.isReady) return undefined
