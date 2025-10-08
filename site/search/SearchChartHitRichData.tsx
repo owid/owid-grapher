@@ -312,6 +312,7 @@ export function SearchChartHitRichData({
                         <CaptionedThumbnail
                             key={tab}
                             chartType={tab}
+                            isSmallSlot={isSmallSlot}
                             chartUrl={chartUrl}
                             previewUrl={previewUrl}
                             imageWidth={imageWidth}
