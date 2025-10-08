@@ -1,7 +1,10 @@
 import { match } from "ts-pattern"
 import { SearchChartHitDataTable } from "./SearchChartHitDataTable"
 import { SearchChartHitDataPoints } from "./SearchChartHitDataPoints"
-import { CaptionedLink } from "./SearchChartHitCaptionedLink"
+import {
+    CaptionedLink,
+    CaptionedLinkOverlay,
+} from "./SearchChartHitCaptionedLink"
 import { SearchChartHitDataTableContent } from "@ourworldindata/types"
 
 export function CaptionedTable({
@@ -51,6 +54,7 @@ export function CaptionedTable({
                         ))
                         .exhaustive()}
                 </div>
+                <CaptionedLinkOverlay />
             </div>
         </CaptionedLink>
     )

@@ -26,3 +26,13 @@ export function CaptionedLink({
         </a>
     )
 }
+
+export function CaptionedLinkOverlay(): React.ReactElement {
+    return (
+        <div className="search-chart-hit-captioned-link__overlay">
+            <div className="search-chart-hit-captioned-link__cta">
+                Click to explore
+            </div>
+        </div>
+    )
+}
