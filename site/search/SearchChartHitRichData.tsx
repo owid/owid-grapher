@@ -178,7 +178,7 @@ export function SearchChartHitRichData({
     const { data: dataTableContent, status: loadingStatusTableContent } =
         useQueryDataTableContent(hit, grapherState.changedParams, {
             enabled:
-                hasBeenVisible && initialDataTableContent.status === "success",
+                hasBeenVisible && initialDataTableContent.status !== "loading",
         })
 
     const status = combineStatuses(
