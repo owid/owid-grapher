@@ -5,7 +5,11 @@ import {
     CaptionedLink,
     CaptionedLinkOverlay,
 } from "./SearchChartHitCaptionedLink"
-import { SearchChartHitDataTableContent } from "@ourworldindata/types"
+import {
+    GRAPHER_TAB_NAMES,
+    SearchChartHitDataTableContent,
+} from "@ourworldindata/types"
+import { GrapherTabIcon } from "@ourworldindata/components"
 
 export function CaptionedTable({
     chartUrl,
@@ -33,9 +37,16 @@ export function CaptionedTable({
             ? `Data available for ${numAvailableEntities} ${entityType}`
             : `Data available for ${numAvailableEntities} ${entityTypePlural}`
 
+    const captionWithIcon = (
+        <span className="search-chart-hit-captioned-link-label-content">
+            <GrapherTabIcon tab={GRAPHER_TAB_NAMES.Table} />
+            {caption}
+        </span>
+    )
+
     return (
         <CaptionedLink
-            caption={caption}
+            caption={captionWithIcon}
             url={chartUrl}
             className={className}
             onClick={onClick}

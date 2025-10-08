@@ -79,6 +79,14 @@
             grid-template-columns: repeat(4, minmax(0, 1fr));
             align-items: flex-start;
         }
+
+        .search-chart-hit-captioned-link-label-content svg {
+            margin-right: 4px;
+            color: $blue-60;
+            height: 12px;
+            width: 12px;
+            vertical-align: -1.625px;
+        }
     }
 
     .search-chart-hit-rich-data__placeholder {
