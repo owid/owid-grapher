@@ -96,7 +96,7 @@ export function getSortedGrapherTabsForChartHit(
     return sortedTabs
 }
 
-export function pickEntitiesForDisplay(
+export function pickDisplayEntities(
     grapherState: GrapherState,
     {
         pickedEntities,

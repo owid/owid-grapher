@@ -13,7 +13,7 @@ import {
 } from "@ourworldindata/grapher"
 import {
     getSortedGrapherTabsForChartHit,
-    pickEntitiesForDisplay,
+    pickDisplayEntities,
 } from "./SearchChartHitRichDataHelpers.js"
 import {
     SampleColumnSlugs,
@@ -90,7 +90,7 @@ describe(getSortedGrapherTabsForChartHit, () => {
     })
 })
 
-describe(pickEntitiesForDisplay, () => {
+describe(pickDisplayEntities, () => {
     const availableEntityNames = [
         "USA",
         "Canada",
@@ -163,7 +163,7 @@ describe(pickEntitiesForDisplay, () => {
                 addCountryMode: EntitySelectionMode.Disabled,
             })
 
-            const displayEntities = pickEntitiesForDisplay(grapherState, {
+            const displayEntities = pickDisplayEntities(grapherState, {
                 pickedEntities,
                 availableEntities: grapherState.availableEntityNames,
             })
@@ -182,7 +182,7 @@ describe(pickEntitiesForDisplay, () => {
                     chartTypes: [chartType],
                 })
 
-                const displayEntities = pickEntitiesForDisplay(grapherState, {
+                const displayEntities = pickDisplayEntities(grapherState, {
                     pickedEntities,
                     availableEntities: grapherState.availableEntityNames,
                 })
@@ -199,7 +199,7 @@ describe(pickEntitiesForDisplay, () => {
                 addCountryMode: EntitySelectionMode.SingleEntity,
             })
 
-            const displayEntities = pickEntitiesForDisplay(grapherState, {
+            const displayEntities = pickDisplayEntities(grapherState, {
                 pickedEntities,
                 availableEntities: grapherState.availableEntityNames,
             })
@@ -213,7 +213,7 @@ describe(pickEntitiesForDisplay, () => {
                 addCountryMode: EntitySelectionMode.SingleEntity,
             })
 
-            const displayEntities = pickEntitiesForDisplay(grapherState, {
+            const displayEntities = pickDisplayEntities(grapherState, {
                 pickedEntities: [],
                 availableEntities: grapherState.availableEntityNames,
             })
@@ -230,7 +230,7 @@ describe(pickEntitiesForDisplay, () => {
                 selectedFacetStrategy: FacetStrategy.metric,
             })
 
-            const displayEntities = pickEntitiesForDisplay(grapherState, {
+            const displayEntities = pickDisplayEntities(grapherState, {
                 pickedEntities,
                 availableEntities: grapherState.availableEntityNames,
             })
@@ -245,7 +245,7 @@ describe(pickEntitiesForDisplay, () => {
                 selectedFacetStrategy: FacetStrategy.entity,
             })
 
-            const displayEntities = pickEntitiesForDisplay(grapherState, {
+            const displayEntities = pickDisplayEntities(grapherState, {
                 pickedEntities: [],
                 availableEntities: grapherState.availableEntityNames,
             })
@@ -264,7 +264,7 @@ describe(pickEntitiesForDisplay, () => {
                 SeriesStrategy.column
             )
 
-            const displayEntities = pickEntitiesForDisplay(grapherState, {
+            const displayEntities = pickDisplayEntities(grapherState, {
                 pickedEntities,
                 availableEntities: grapherState.availableEntityNames,
             })
@@ -278,7 +278,7 @@ describe(pickEntitiesForDisplay, () => {
                 addCountryMode: EntitySelectionMode.MultipleEntities,
             })
 
-            const displayEntities = pickEntitiesForDisplay(grapherState, {
+            const displayEntities = pickDisplayEntities(grapherState, {
                 pickedEntities,
                 availableEntities: grapherState.availableEntityNames,
             })
@@ -295,7 +295,7 @@ describe(pickEntitiesForDisplay, () => {
                 addCountryMode: EntitySelectionMode.MultipleEntities,
             })
 
-            const displayEntities = pickEntitiesForDisplay(grapherState, {
+            const displayEntities = pickDisplayEntities(grapherState, {
                 pickedEntities,
                 availableEntities: grapherState.availableEntityNames,
             })

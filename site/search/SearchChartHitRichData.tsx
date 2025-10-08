@@ -4,6 +4,7 @@ import cx from "classnames"
 import { useIntersectionObserver, useMediaQuery } from "usehooks-ts"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { match } from "ts-pattern"
+import * as R from "remeda"
 import {
     GrapherState,
     migrateGrapherConfigToLatestVersion,
@@ -38,7 +39,7 @@ import {
     configureGrapherStateTab,
     getSortedGrapherTabsForChartHit,
     getTotalColumnCount,
-    pickEntitiesForDisplay as pickDisplayEntities,
+    pickDisplayEntities,
     getTableRowCountForGridSlot,
     makeSlotClassNames,
     extractTableSlot,
@@ -129,30 +130,18 @@ export function SearchChartHitRichData({
     const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
 
     // Choose the entities to display
-    const displayEntities = pickDisplayEntities(grapherState, {
-        pickedEntities,
-        availableEntities,
-    })
-
-    // Find the slot available to the table and drop display entities
-    // if there are too many to fit into the table
-    const initialTableSlot = pickInitialTableSlot(variant, grapherState, {
-        chartInfo,
-        sortedTabs,
-        entityForDataDisplay,
-        numDataTableRowsPerColumn,
-    })
-    if (initialTableSlot) {
-        const numAvailableDataTableRows = getTableRowCountForGridSlot(
-            initialTableSlot,
-            numDataTableRowsPerColumn
-        )
-        if (
-            numAvailableDataTableRows > 0 &&
-            displayEntities.length > numAvailableDataTableRows
-        )
-            displayEntities.splice(0, numAvailableDataTableRows)
-    }
+    const displayEntities = findDisplayEntitiesForChartHit(
+        variant,
+        grapherState,
+        {
+            pickedEntities,
+            availableEntities,
+            chartInfo,
+            sortedTabs,
+            entityForDataDisplay,
+            numDataTableRowsPerColumn,
+        }
+    )
 
     // Bring Grapher into the right state for this search result:
     // - Set the tab to the leftmost tab in the sorted list
@@ -455,6 +444,56 @@ function calculateLayout(
         .with("large", () => calculateLargeVariantLayout(grapherState, args))
         .with("medium", () => calculateMediumVariantLayout(grapherState, args))
         .exhaustive()
+}
+
+function findDisplayEntitiesForChartHit(
+    variant: RichDataComponentVariant,
+    grapherState: GrapherState,
+    {
+        pickedEntities,
+        availableEntities,
+        chartInfo,
+        sortedTabs,
+        entityForDataDisplay,
+        numDataTableRowsPerColumn,
+    }: {
+        pickedEntities: EntityName[]
+        availableEntities: EntityName[]
+        sortedTabs: GrapherTabName[]
+        chartInfo?: GrapherValuesJson
+        entityForDataDisplay?: EntityName
+        numDataTableRowsPerColumn: number
+    }
+): EntityName[] {
+    // Choose the entities to display
+    const displayEntities = pickDisplayEntities(grapherState, {
+        pickedEntities,
+        availableEntities,
+    })
+
+    // Find the slot available to the table
+    const tableSlot = pickInitialTableSlot(variant, grapherState, {
+        chartInfo,
+        sortedTabs,
+        entityForDataDisplay,
+        numDataTableRowsPerColumn,
+    })
+    if (!tableSlot) return displayEntities
+
+    const numAvailableDataTableRows = getTableRowCountForGridSlot(
+        tableSlot,
+        numDataTableRowsPerColumn
+    )
+
+    // Drop entities if there are too many to fit into the table
+    if (
+        numAvailableDataTableRows > 0 &&
+        displayEntities.length > numAvailableDataTableRows
+    ) {
+        return R.take(displayEntities, numAvailableDataTableRows)
+    }
+
+    return displayEntities
 }
 
 function pickInitialTableSlot(
