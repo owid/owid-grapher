@@ -6,6 +6,7 @@ import {
     GRAPHER_THUMBNAIL_HEIGHT,
     GRAPHER_THUMBNAIL_WIDTH,
 } from "@ourworldindata/grapher"
+import { CaptionedLinkOverlay } from "./SearchChartHitCaptionedLink.js"
 
 export const SearchChartHitThumbnail = ({
     previewUrl,
@@ -37,6 +38,7 @@ export const SearchChartHitThumbnail = ({
                 onLoad={() => setImgLoaded(true)}
                 onError={() => setImgError(true)}
             />
+            <CaptionedLinkOverlay />
         </div>
     )
 }
