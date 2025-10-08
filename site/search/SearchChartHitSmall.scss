@@ -5,6 +5,10 @@
     display: flex;
     gap: 24px;
 
+    @include sm-only {
+        gap: 0px;
+    }
+
     .search-chart-hit-small__content {
         flex: 1 1 0;
         width: 0;

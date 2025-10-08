@@ -4,6 +4,10 @@
     .search-chart-hit-header__content-wrapper {
         display: flex;
         gap: 16px;
+
+        @include sm-only {
+            display: block;
+        }
     }
 
     .search-chart-hit-header__logo {
