@@ -136,7 +136,10 @@ export function SearchChartHitRichDataFallback({
                             className={className}
                             onClick={() => onClick(tab)}
                         >
-                            <SearchChartHitThumbnail previewUrl={previewUrl} />
+                            <SearchChartHitThumbnail
+                                previewUrl={previewUrl}
+                                hoverOverlayText="Click to explore"
+                            />
                         </CaptionedLink>
                     )
                 })}

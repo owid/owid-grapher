@@ -54,7 +54,7 @@ export function CaptionedTable({
                         ))
                         .exhaustive()}
                 </div>
-                <CaptionedLinkOverlay />
+                <CaptionedLinkOverlay>Click to explore</CaptionedLinkOverlay>
             </div>
         </CaptionedLink>
     )
