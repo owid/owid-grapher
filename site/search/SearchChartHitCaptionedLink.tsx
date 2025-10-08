@@ -11,7 +11,7 @@ export function CaptionedLink({
     className?: string
     onClick?: () => void
     children: React.ReactNode
-    caption: string
+    caption: React.ReactNode
 }): React.ReactElement {
     return (
         <a

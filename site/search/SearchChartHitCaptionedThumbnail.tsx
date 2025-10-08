@@ -2,6 +2,7 @@ import { makeLabelForGrapherTab } from "@ourworldindata/grapher"
 import { GrapherTabName } from "@ourworldindata/types"
 import { SearchChartHitThumbnail } from "./SearchChartHitThumbnail"
 import { CaptionedLink } from "./SearchChartHitCaptionedLink"
+import { GrapherTabIcon } from "@ourworldindata/components"
 
 export function CaptionedThumbnail({
     chartType,
@@ -25,9 +26,16 @@ export function CaptionedThumbnail({
     const caption = makeLabelForGrapherTab(chartType, { format: "long" })
     const hoverOverlayText = isSmallSlot ? "Explore" : "Click to explore"
 
+    const captionWithIcon = (
+        <span className="search-chart-hit-captioned-link-label-content">
+            <GrapherTabIcon tab={chartType} />
+            {caption}
+        </span>
+    )
+
     return (
         <CaptionedLink
-            caption={caption}
+            caption={captionWithIcon}
             url={chartUrl}
             className={className}
             onClick={onClick}
