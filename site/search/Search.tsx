@@ -37,6 +37,7 @@ import { SearchNoResults } from "./SearchNoResults.js"
 import { SearchDetectedFilters } from "./SearchDetectedFilters.js"
 import { buildSynonymMap } from "./synonymUtils.js"
 import { SiteAnalytics } from "../SiteAnalytics.js"
+import { PoweredBy } from "react-instantsearch"
 
 export const Search = ({
     initialState,
@@ -114,6 +115,10 @@ export const Search = ({
                     ))
                     .exhaustive()}
             </div>
+            <PoweredBy
+                className="col-start-2 span-cols-12"
+                style={{ width: "200px", marginTop: "32px" }}
+            />
         </SearchContext.Provider>
     )
 }
