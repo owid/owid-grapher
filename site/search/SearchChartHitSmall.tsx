@@ -9,7 +9,7 @@ import {
     buildChartHitDataDisplayProps,
 } from "./searchUtils.js"
 import { Button, GrapherTabIcon } from "@ourworldindata/components"
-import { useIntersectionObserver } from "usehooks-ts"
+import { useIntersectionObserver, useMediaQuery } from "usehooks-ts"
 import {
     makeLabelForGrapherTab,
     WORLD_ENTITY_NAME,
@@ -21,12 +21,15 @@ import {
     constructChartAndPreviewUrlsForTab,
     useQueryChartInfo,
 } from "./SearchChartHitSmallHelpers.js"
+import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
 
 export function SearchChartHitSmall({
     hit,
     selectedRegionNames,
     onClick,
 }: SearchChartHitComponentProps) {
+    const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
+
     // Intersection observer for lazy loading chart info
     const { ref, isIntersecting: hasBeenVisible } = useIntersectionObserver({
         rootMargin: "400px", // Start loading 400px before visible
@@ -98,6 +101,7 @@ export function SearchChartHitSmall({
                                 content={label}
                                 placement="bottom"
                                 theme="dark"
+                                disabled={isSmallScreen}
                             >
                                 <a
                                     href={chartUrl}
@@ -120,6 +124,7 @@ export function SearchChartHitSmall({
                 content="Download options"
                 placement="bottom"
                 theme="dark"
+                disabled={isSmallScreen}
             >
                 {/* Without this wrapper element, the tippy isn't positioned correctly */}
                 <div className="search-chart-hit-small__download-button-wrapper">
