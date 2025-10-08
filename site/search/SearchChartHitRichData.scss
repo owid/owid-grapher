@@ -8,6 +8,10 @@
         display: flex;
         justify-content: space-between;
         gap: 24px;
+
+        @include sm-only {
+            gap: 0px;
+        }
     }
 
     .search-chart-hit-rich-data__header-actions {
