@@ -34,19 +34,19 @@ export default function MultiDim({
     localGrapherConfig,
     slug,
     queryStr,
-    archivedChartInfo,
+    archiveContext,
     isPreviewing,
 }: {
     config: MultiDimDataPageConfig
     localGrapherConfig?: GrapherProgrammaticInterface
     slug: string | null
     queryStr: string
-    archivedChartInfo?: ArchiveContext
+    archiveContext?: ArchiveContext
     isPreviewing?: boolean
 }) {
     const assetMap =
-        archivedChartInfo?.type === "archive-page"
-            ? archivedChartInfo.assets.runtime
+        archiveContext?.type === "archive-page"
+            ? archiveContext.assets.runtime
             : undefined
     const manager = useRef(localGrapherConfig?.manager ?? {})
     const grapherRef = useMaybeGlobalGrapherStateRef({
@@ -57,22 +57,18 @@ export default function MultiDim({
                 assetMap,
                 noCache: isPreviewing,
             }),
-        archivedChartInfo,
+        archiveContext,
         isConfigReady: false,
     })
 
     const grapherDataLoader = useRef(
-        getCachingInputTableFetcher(
-            DATA_API_URL,
-            archivedChartInfo,
-            isPreviewing
-        )
+        getCachingInputTableFetcher(DATA_API_URL, archiveContext, isPreviewing)
     )
     const grapherContainerRef = useRef<HTMLDivElement>(null)
     const bounds = useElementBounds(grapherContainerRef)
     const additionalConfig = useMemo(
-        () => ({ archivedChartInfo, isEmbeddedInAnOwidPage: true }),
-        [archivedChartInfo]
+        () => ({ archiveContext, isEmbeddedInAnOwidPage: true }),
+        [archiveContext]
     )
     const baseGrapherConfig = useBaseGrapherConfig(additionalConfig)
     const searchParams = useMemo(

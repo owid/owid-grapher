@@ -81,15 +81,15 @@ export async function loadVariableDataAndMetadata(
 export async function loadVariablesDataSite(
     variableIds: number[],
     dataApiUrl: string,
-    archivedChartInfo: ArchiveContext | undefined,
+    archiveContext: ArchiveContext | undefined,
     noCache?: boolean,
     loadMetadataOnly?: boolean
 ): Promise<MultipleOwidVariableDataDimensionsMap> {
     const loadVariableDataPromises = variableIds.map((variableId) =>
         loadVariableDataAndMetadata(variableId, dataApiUrl, {
             assetMap:
-                archivedChartInfo?.type === "archive-page"
-                    ? archivedChartInfo.assets.runtime
+                archiveContext?.type === "archive-page"
+                    ? archiveContext.assets.runtime
                     : undefined,
             noCache,
             loadMetadataOnly,

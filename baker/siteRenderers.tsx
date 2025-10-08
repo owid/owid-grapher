@@ -658,7 +658,7 @@ export const renderExplorerIndexPage = async (
 interface ExplorerRenderOpts {
     urlMigrationSpec?: ExplorerPageUrlMigrationSpec
     isPreviewing?: boolean
-    archivedChartInfo?: ArchiveContext
+    archiveContext?: ArchiveContext
 }
 
 export const renderExplorerPage = async (
@@ -779,7 +779,7 @@ export const renderExplorerPage = async (
           )
         : undefined
 
-    let archiveContext = opts?.archivedChartInfo
+    let archiveContext = opts?.archiveContext
     if (!archiveContext) {
         const latestBySlug = await getLatestExplorerArchivedVersionsIfEnabled(
             knex,
@@ -799,7 +799,7 @@ export const renderExplorerPage = async (
                 baseUrl={BAKED_BASE_URL}
                 urlMigrationSpec={opts?.urlMigrationSpec}
                 isPreviewing={opts?.isPreviewing}
-                archivedChartInfo={archiveContext}
+                archiveContext={archiveContext}
             />
         )
     )

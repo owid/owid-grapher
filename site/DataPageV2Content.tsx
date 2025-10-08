@@ -54,7 +54,7 @@ export const DataPageV2Content = ({
     canonicalUrl = "{URL}", // when we bake pages to their proper url this will be set correctly but on preview pages we leave this undefined
     tagToSlugMap,
     imageMetadata,
-    archivedChartInfo,
+    archiveContext,
 }: DataPageV2ContentFields & {
     grapherConfig: GrapherInterface
     imageMetadata: Record<string, ImageMetadata>
@@ -72,9 +72,9 @@ export const DataPageV2Content = ({
             adminBaseUrl: ADMIN_BASE_URL,
             bakedGrapherURL: BAKED_GRAPHER_URL,
             enableKeyboardShortcuts: typeof window !== "undefined",
-            archivedChartInfo,
+            archiveContext,
         }),
-        [grapherConfig, archivedChartInfo]
+        [grapherConfig, archiveContext]
     )
     const stickyNavLinks = excludeNull([
         {
@@ -304,7 +304,7 @@ export const DataPageV2Content = ({
                         source={datapageData.source}
                         title={datapageData.title}
                         titleVariant={datapageData.titleVariant}
-                        archivedChartInfo={archivedChartInfo}
+                        archiveContext={archiveContext}
                     />
                 </div>
             </DocumentContext.Provider>

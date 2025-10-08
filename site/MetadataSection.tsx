@@ -38,7 +38,7 @@ export default function MetadataSection({
     source,
     title,
     titleVariant,
-    archivedChartInfo,
+    archiveContext,
 }: {
     attributionShort?: string
     attributions: string[]
@@ -51,10 +51,10 @@ export default function MetadataSection({
     source?: OwidSource
     title: IndicatorTitleWithFragments
     titleVariant?: string
-    archivedChartInfo?: ArchiveContext
+    archiveContext?: ArchiveContext
 }) {
     const sourcesForDisplay = prepareSourcesForDisplay({ origins, source })
-    const citationUrl = archivedChartInfo?.archiveUrl ?? canonicalUrl
+    const citationUrl = archiveContext?.archiveUrl ?? canonicalUrl
     const citationShort = getCitationShort(
         origins,
         attributions,
@@ -69,7 +69,7 @@ export default function MetadataSection({
         titleVariant,
         owidProcessingLevel,
         citationUrl,
-        archivedChartInfo?.archivalDate
+        archiveContext?.archivalDate
     )
     const currentYear = dayjs().year()
     const producers = _.uniq(origins.map((o) => `${o.producer}`))
@@ -82,7 +82,7 @@ export default function MetadataSection({
     // For the citation of the data page add a period it doesn't have that or a question mark
     const primaryTopicCitation = maybeAddPeriod(primaryTopic?.citation ?? "")
     const archivalString = getPhraseForArchivalDate(
-        archivedChartInfo?.archivalDate
+        archiveContext?.archivalDate
     )
     const citationDatapage = excludeUndefined([
         primaryTopic

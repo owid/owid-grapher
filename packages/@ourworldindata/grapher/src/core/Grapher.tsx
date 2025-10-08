@@ -286,7 +286,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     canHideExternalControlsInEmbed?: boolean
 
     narrativeChartInfo?: MinimalNarrativeChartInfo
-    archivedChartInfo?: ArchiveContext
+    archiveContext?: ArchiveContext
 
     manager?: GrapherManager
     additionalDataLoaderFn?: AdditionalGrapherDataFetchFn
@@ -462,7 +462,7 @@ export class GrapherState {
         this.canHideExternalControlsInEmbed
 
     narrativeChartInfo?: MinimalNarrativeChartInfo = undefined
-    archivedChartInfo?: ArchiveContext
+    archiveContext?: ArchiveContext
 
     selection: SelectionArray = new SelectionArray()
     focusArray = new FocusArray()
@@ -636,7 +636,7 @@ export class GrapherState {
         this.staticBounds = options.staticBounds ?? DEFAULT_GRAPHER_BOUNDS
 
         this.narrativeChartInfo = options.narrativeChartInfo
-        this.archivedChartInfo = options.archivedChartInfo
+        this.archiveContext = options.archiveContext
 
         this.populateFromQueryParams(
             legacyToCurrentGrapherQueryParams(
@@ -1001,16 +1001,16 @@ export class GrapherState {
     }
 
     @computed get isOnArchivalPage(): boolean {
-        return this.archivedChartInfo?.type === "archive-page"
+        return this.archiveContext?.type === "archive-page"
     }
 
     @computed get hasArchivedPage(): boolean {
-        return this.archivedChartInfo?.type === "archived-page-version"
+        return this.archiveContext?.type === "archived-page-version"
     }
 
     @computed private get runtimeAssetMap(): AssetMap | undefined {
-        return this.archivedChartInfo?.type === "archive-page"
-            ? this.archivedChartInfo.assets.runtime
+        return this.archiveContext?.type === "archive-page"
+            ? this.archiveContext.assets.runtime
             : undefined
     }
 
@@ -3230,7 +3230,7 @@ export class GrapherState {
         })
     }
     @computed get baseUrl(): string | undefined {
-        if (this.isOnArchivalPage) return this.archivedChartInfo?.archiveUrl
+        if (this.isOnArchivalPage) return this.archiveContext?.archiveUrl
 
         return this.isPublished
             ? `${this.bakedGrapherURL ?? "/grapher"}/${this.displaySlug}`
@@ -3292,8 +3292,8 @@ export class GrapherState {
     }
 
     @computed get embedArchivedUrl(): string | undefined {
-        if (!this.archivedChartInfo) return undefined
-        const baseUrl = this.archivedChartInfo.archiveUrl + this.queryStr
+        if (!this.archiveContext) return undefined
+        const baseUrl = this.archiveContext.archiveUrl + this.queryStr
         return this.makeEmbedUrl(baseUrl)
     }
 
