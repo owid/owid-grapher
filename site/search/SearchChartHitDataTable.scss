@@ -58,6 +58,10 @@
         margin-right: 4px;
         flex-shrink: 0;
 
+        &.search-chart-hit-table-row__swatch--rounded {
+            border-radius: 50%;
+        }
+
         &.search-chart-hit-table-row__swatch--outlined {
             border: 0.5px solid #333;
         }

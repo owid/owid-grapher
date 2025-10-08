@@ -31,6 +31,7 @@ interface TableRow {
     muted?: boolean
     striped?: boolean | "no-data"
     outlined?: boolean
+    rounded?: boolean
     trend?: GrapherTrendArrowDirection // only relevant if startValue is given
 }
 
