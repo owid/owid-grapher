@@ -203,6 +203,7 @@ export function SearchChartHitRichData({
             <div ref={ref} className="search-chart-hit-rich-data">
                 <SearchChartHitHeader
                     hit={hit}
+                    isLarge={isLargeVariant}
                     url={constructChartUrl({ hit })}
                     onClick={onClick}
                 />
