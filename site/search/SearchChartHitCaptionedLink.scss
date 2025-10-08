@@ -1,10 +1,6 @@
 .search-chart-hit-captioned-link {
+    // Show overlay on hover
     &:hover {
-        .search-chart-hit-captioned-link__label {
-            text-decoration: none;
-        }
-
-        // Show overlay on hover
         .search-chart-hit-captioned-link__overlay {
             display: flex;
             align-items: center;
@@ -19,8 +15,6 @@
     .search-chart-hit-captioned-link__label {
         @include note-1-regular;
         color: $blue-90;
-        text-decoration: underline;
-        text-underline-offset: 3px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
