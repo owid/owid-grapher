@@ -5,6 +5,7 @@ import {
     SiteFooterContext,
     GrapherInterface,
 } from "@ourworldindata/utils"
+import { ArchiveContext } from "@ourworldindata/types"
 import {
     EMBEDDED_EXPLORER_DELIMITER,
     EMBEDDED_EXPLORER_GRAPHER_CONFIGS,
@@ -36,6 +37,7 @@ interface ExplorerPageSettings {
     baseUrl: string
     urlMigrationSpec?: ExplorerPageUrlMigrationSpec
     isPreviewing?: boolean
+    archivedChartInfo?: ArchiveContext
 }
 
 const ExplorerContent = ({ content }: { content: string }) => {
@@ -67,6 +69,7 @@ export const ExplorerPage = (props: ExplorerPageSettings) => {
         partialGrapherConfigs,
         baseUrl,
         urlMigrationSpec,
+        archivedChartInfo,
     } = props
     const {
         subNavId,
@@ -77,6 +80,10 @@ export const ExplorerPage = (props: ExplorerPageSettings) => {
         thumbnail,
         hideAlertBanner,
     } = program
+
+    const isOnArchivalPage = archivedChartInfo?.type === "archive-page"
+    const assetMaps = isOnArchivalPage ? archivedChartInfo.assets : undefined
+
     const subNav = subNavId ? (
         <SiteSubnavigation
             subnavId={subNavId}
@@ -108,7 +115,15 @@ const explorerConstants = ${serializeJSONForHTML(
         },
         EXPLORER_CONSTANTS_DELIMITER
     )}
-window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfigs, partialGrapherConfigs, explorerConstants, urlMigrationSpec);`
+const archivedChartInfo = ${JSON.stringify(archivedChartInfo)};
+window.Explorer.renderSingleExplorerOnExplorerPage(
+    explorerProgram,
+    grapherConfigs,
+    partialGrapherConfigs,
+    explorerConstants,
+    urlMigrationSpec,
+    archivedChartInfo
+);`
 
     return (
         <Html>
@@ -118,11 +133,18 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
                 pageDesc={explorerSubtitle}
                 imageUrl={thumbnail}
                 baseUrl={baseUrl}
+                staticAssetMap={assetMaps?.static}
+                archivedChartInfo={archivedChartInfo}
             >
                 <IFrameDetector />
             </Head>
             <body className={GRAPHER_PAGE_BODY_CLASS}>
-                <SiteHeader hideAlertBanner={hideAlertBanner || false} />
+                <SiteHeader
+                    hideAlertBanner={hideAlertBanner || false}
+                    archiveInfo={
+                        isOnArchivalPage ? archivedChartInfo : undefined
+                    }
+                />
                 {subNav}
                 <main id={ExplorerContainerId}>
                     <div className="js--show-warning-block-if-js-disabled" />
@@ -132,6 +154,9 @@ window.Explorer.renderSingleExplorerOnExplorerPage(explorerProgram, grapherConfi
                 <SiteFooter
                     context={SiteFooterContext.explorerPage}
                     isPreviewing={props.isPreviewing}
+                    archiveInfo={
+                        isOnArchivalPage ? archivedChartInfo : undefined
+                    }
                 />
                 <script
                     type="module"
