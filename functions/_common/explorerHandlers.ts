@@ -21,7 +21,7 @@ import {
     assembleCsv,
     assembleDataValues,
     assembleReadme,
-    assembleSearchResultsTable,
+    assembleSearchResultTable,
     ensureDownloadOfDataAllowed,
     findEntityForExtractingDataValues,
     prepareSearchParamsBeforeExtractingDataValues,
@@ -284,7 +284,7 @@ export async function fetchDataValuesForExplorerView(
     }
 }
 
-export async function fetchSearchResultsTableForExplorerView(
+export async function fetchSearchResultTableForExplorerView(
     searchParams: URLSearchParams,
     env: Env
 ) {
@@ -293,7 +293,7 @@ export async function fetchSearchResultsTableForExplorerView(
     try {
         const explorerEnv = stripUrlExtensionFromEnv(
             env,
-            extensions.searchResultsTable
+            extensions.searchResultTable
         )
         const { grapherState } = await initGrapherForExplorerView(
             explorerEnv,
@@ -308,12 +308,12 @@ export async function fetchSearchResultsTableForExplorerView(
         if (entityNames?.length > 0)
             grapherState.selection.setSelectedEntities(entityNames)
 
-        const searchResultsTable = assembleSearchResultsTable(grapherState)
+        const searchResultTable = assembleSearchResultTable(grapherState)
 
-        if (searchResultsTable === undefined)
+        if (searchResultTable === undefined)
             return error(500, "Unable to generate search results table")
 
-        return Response.json(searchResultsTable)
+        return Response.json(searchResultTable)
     } catch (e) {
         console.error(e)
         return error(500, e)

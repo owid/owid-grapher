@@ -270,7 +270,7 @@ export const constructSearchTableUrl = ({
         ? EXPLORER_DYNAMIC_THUMBNAIL_URL
         : GRAPHER_DYNAMIC_THUMBNAIL_URL
 
-    return `${basePath}/${hit.slug}.search-results-table.json${queryStr}`
+    return `${basePath}/${hit.slug}.search-result-table.json${queryStr}`
 }
 
 export const constructPreviewUrl = ({

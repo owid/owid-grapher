@@ -886,4 +886,4 @@ export {
     type SearchChartHitDataTableContent,
     type SearchChartHitDataTableProps,
     type SearchChartHitDataPointsProps,
-} from "./endpointTypes/SearchResultsTableJson.js"
+} from "./endpointTypes/SearchResultTableJson.js"
