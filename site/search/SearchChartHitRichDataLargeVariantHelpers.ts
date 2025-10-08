@@ -14,6 +14,7 @@ import {
     Layout,
     PlacedTab,
 } from "./SearchChartHitRichDataTypes.js"
+import { extractTableSlot } from "./SearchChartHitRichDataHelpers.js"
 
 export function calculateLargeVariantLayout(
     _grapherState: GrapherState,
@@ -48,7 +49,19 @@ export function calculateLargeVariantLayout(
     return { placedTabs, dataTableContent }
 }
 
+export function pickInitialTableSlotForLargeVariant(
+    _grapherState: GrapherState,
+    { sortedTabs }: { sortedTabs: GrapherTabName[] }
+): LargeVariantGridSlot | undefined {
+    return extractTableSlot(
+        placeGrapherTabsInLargeVariantGrid(sortedTabs, {
+            tableType: "unknown",
+        })
+    )
+}
+
 type PlacingOptions =
+    | { tableType: "unknown" }
     | {
           tableType: "data-table"
           numDataTableRows: number
@@ -86,6 +99,9 @@ export function placeGrapherTabsInLargeVariantGrid(
 
     // Find the appropriate slot for the table tab
     const tableSlot = match(options)
+        .with({ tableType: "unknown" }, () =>
+            numRemainingTabs > 0 ? RightQuadLeftColumn : RightQuad
+        )
         .with(
             { tableType: "data-table" },
             ({ numDataTableRows, numDataTableRowsPerColumn }) => {

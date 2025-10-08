@@ -15,10 +15,14 @@ import {
     MediumVariantGridSlot,
     PlacedTab,
 } from "./SearchChartHitRichDataTypes.js"
-import { getTableColumnCountForGridSlot } from "./SearchChartHitRichDataHelpers"
+import {
+    extractTableSlot,
+    getTableColumnCountForGridSlot,
+} from "./SearchChartHitRichDataHelpers"
 
 type PlacingOptions =
     | { tableType: "none" }
+    | { tableType: "unknown" }
     | {
           tableType: "data-table"
           numDataTableRows: number
@@ -139,6 +143,7 @@ function placeTabsInUniformGrid(
 
     const numSlotsForTable = match(options)
         .with({ tableType: "none" }, () => 0)
+        .with({ tableType: "unknown" }, () => numAvailableSlotsForTable)
         .with({ tableType: "data-points" }, ({ numMaxSlotsForTable }) =>
             numMaxSlotsForTable
                 ? Math.min(numAvailableSlotsForTable, numMaxSlotsForTable)
@@ -211,29 +216,16 @@ export function calculateMediumVariantLayout(
     // The table tab can optionally span two or more slots (instead of just one)
     // if there's enough space in the grid and enough data to justify it.
     const placedTabs = match(dataTableContent)
-        .with({ type: "data-table" }, (dataTableContent) => {
-            const { seriesStrategy = SeriesStrategy.entity } =
-                grapherState.chartState
-
-            // Determine whether to allow dropping the DiscreteBar tab to make
-            // room for the table. We only prioritize the table in this scenario:
-            // When plotting columns (rather than entities), we want to
-            // label as many columns as possible since all column lines are
-            // plotted (they can't be deselected, other than entity lines)
-            const prioritizeTableOverDiscreteBar =
-                seriesStrategy === SeriesStrategy.column &&
-                !grapherState.isFaceted &&
-                !grapherState.hasProjectedData &&
-                !grapherState.isStackedDiscreteBar
-
-            return placeGrapherTabsInMediumVariantGridLayout(sortedTabs, {
+        .with({ type: "data-table" }, (dataTableContent) =>
+            placeGrapherTabsInMediumVariantGridLayout(sortedTabs, {
                 hasDataDisplay: !!dataDisplayProps,
                 tableType: dataTableContent.type,
                 numDataTableRows: dataTableContent.props.rows.length,
                 numDataTableRowsPerColumn,
-                prioritizeTableOverDiscreteBar,
+                prioritizeTableOverDiscreteBar:
+                    shouldPrioritizeTableOverDiscreteBar(grapherState),
             })
-        })
+        )
         .with({ type: "data-points" }, (dataTableContent) =>
             placeGrapherTabsInMediumVariantGridLayout(sortedTabs, {
                 hasDataDisplay: !!dataDisplayProps,
@@ -244,4 +236,50 @@ export function calculateMediumVariantLayout(
         .exhaustive()
 
     return { placedTabs, dataTableContent, dataDisplayProps }
+}
+
+export function pickInitialTableSlotForMediumVariant(
+    grapherState: GrapherState,
+    {
+        chartInfo,
+        sortedTabs,
+        entityForDataDisplay = WORLD_ENTITY_NAME,
+    }: {
+        chartInfo?: GrapherValuesJson
+        sortedTabs: GrapherTabName[]
+        entityForDataDisplay?: EntityName
+    }
+): MediumVariantGridSlot | undefined {
+    const hasDataDisplay = !!buildChartHitDataDisplayProps({
+        chartInfo,
+        chartType: grapherState.chartType,
+        entity: entityForDataDisplay,
+        isEntityPickedByUser: entityForDataDisplay !== WORLD_ENTITY_NAME,
+    })
+
+    const placedTabs = placeGrapherTabsInMediumVariantGridLayout(sortedTabs, {
+        hasDataDisplay,
+        tableType: "unknown",
+        prioritizeTableOverDiscreteBar:
+            shouldPrioritizeTableOverDiscreteBar(grapherState),
+    })
+
+    return extractTableSlot(placedTabs)
+}
+
+/**
+ * Determine whether to allow dropping the DiscreteBar tab to make
+ * room for the table. We only prioritize the table in one scenario:
+ * When plotting columns (rather than entities), we want to
+ * label as many columns as possible since all column lines are
+ * plotted (they can't be deselected, other than entity lines)
+ */
+function shouldPrioritizeTableOverDiscreteBar(grapherState: GrapherState) {
+    const { seriesStrategy = SeriesStrategy.entity } = grapherState.chartState
+    return (
+        seriesStrategy === SeriesStrategy.column &&
+        !grapherState.isFaceted &&
+        !grapherState.hasProjectedData &&
+        !grapherState.isStackedDiscreteBar
+    )
 }

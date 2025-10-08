@@ -23,7 +23,6 @@ import {
 import {
     GridSlot,
     LargeVariantGridSlot,
-    Layout,
     MediumVariantGridSlot,
     PlacedTab,
     PreviewType,
@@ -335,11 +334,11 @@ function configureGrapherStateForDataTable(
     limitSelectionToAvailableTableRows(grapherState, args)
 
     if (grapherState.isScatter) {
-        configureGrapherStateForScatter(grapherState, { props: args.props })
+        configureGrapherStateForScatter(grapherState, args)
     }
 
     if (grapherState.isMarimekko) {
-        configureGrapherStateForMarimekko(grapherState, { props: args.props })
+        configureGrapherStateForMarimekko(grapherState, args)
     }
 
     if (grapherState.isStackedDiscreteBar) {
@@ -350,6 +349,11 @@ function configureGrapherStateForDataTable(
     }
 }
 
+/**
+ * Check how many rows are available for the table and update
+ * the selected/focused entities accordingly. This is important to ensure
+ * that the table and thumbnail display the same entities/series.
+ */
 function limitSelectionToAvailableTableRows(
     grapherState: GrapherState,
     {
@@ -363,9 +367,6 @@ function limitSelectionToAvailableTableRows(
     const selectedEntities = grapherState.selection.selectedEntityNames
     const { seriesStrategy = SeriesStrategy.entity } = grapherState.chartState
 
-    // Check how many rows are available for the table and update
-    // the selected/focused entities accordingly. This is important to ensure
-    // that the table and thumbnail display the same entities/series.
     const numRows = props.rows.length
 
     // No need to adjust the selection if all rows fit
@@ -503,9 +504,10 @@ export function getTotalColumnCount(placedTabs: PlacedTab<GridSlot>[]): number {
     )
 }
 
-export function findTableSlot(layout?: Layout<GridSlot>): GridSlot | undefined {
-    return layout?.placedTabs.find(({ tab }) => tab === GRAPHER_TAB_NAMES.Table)
-        ?.slot
+export function extractTableSlot<TSlot extends GridSlot>(
+    placedTabs: PlacedTab<TSlot>[]
+): TSlot | undefined {
+    return placedTabs.find(({ tab }) => tab === GRAPHER_TAB_NAMES.Table)?.slot
 }
 
 export function makeSlotClassNames(

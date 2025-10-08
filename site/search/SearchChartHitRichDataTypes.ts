@@ -58,12 +58,12 @@ export enum LargeVariantGridSlot {
 
 export type GridSlot = MediumVariantGridSlot | LargeVariantGridSlot
 
-export interface PlacedTab<TSlot extends string> {
+export interface PlacedTab<TSlot extends GridSlot> {
     tab: GrapherTabName
     slot: TSlot
 }
 
-export interface Layout<TSlot extends string> {
+export interface Layout<TSlot extends GridSlot> {
     placedTabs: PlacedTab<TSlot>[]
     dataTableContent: SearchChartHitDataTableContent
     dataDisplayProps?: SearchChartHitDataDisplayProps

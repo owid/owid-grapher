@@ -41,11 +41,14 @@ import {
     pickEntitiesForDisplay as pickDisplayEntities,
     getTableRowCountForGridSlot,
     makeSlotClassNames,
-    findTableSlot,
+    extractTableSlot,
     getPreviewType,
     constructChartAndPreviewUrlsForTab,
 } from "./SearchChartHitRichDataHelpers.js"
-import { calculateMediumVariantLayout } from "./SearchChartHitRichDataMediumVariantHelpers.js"
+import {
+    pickInitialTableSlotForMediumVariant,
+    calculateMediumVariantLayout,
+} from "./SearchChartHitRichDataMediumVariantHelpers.js"
 import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
 import { CaptionedTable } from "./SearchChartHitCaptionedTable.js"
 import { CaptionedThumbnail } from "./SearchChartHitCaptionedThumbnail.js"
@@ -60,6 +63,7 @@ import {
     RichDataComponentVariant,
 } from "./SearchChartHitRichDataTypes.js"
 import {
+    pickInitialTableSlotForLargeVariant,
     calculateLargePreviewImageDimensions,
     calculateLargeVariantLayout,
 } from "./SearchChartHitRichDataLargeVariantHelpers.js"
@@ -107,7 +111,7 @@ export function SearchChartHitRichData({
     const { data: chartConfig, status: loadingStatusConfig } =
         useQueryChartConfig(hit, { enabled: hasBeenVisible })
 
-    // Fetch chart info and data values
+    // Fetch info for the data value display
     const entityForDataDisplay = pickedEntities[0] ?? WORLD_ENTITY_NAME
     const { data: chartInfo } = useQueryChartInfo({
         hit,
@@ -121,14 +125,34 @@ export function SearchChartHitRichData({
         [chartConfig]
     )
 
+    // Find Grapher tabs to display and bring them in the right order
+    const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
+
     // Choose the entities to display
     const displayEntities = pickDisplayEntities(grapherState, {
         pickedEntities,
         availableEntities,
     })
 
-    // Find Grapher tabs to display and bring them in the right order
-    const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
+    // Find the slot available to the table and drop display entities
+    // if there are too many to fit into the table
+    const initialTableSlot = pickInitialTableSlot(variant, grapherState, {
+        chartInfo,
+        sortedTabs,
+        entityForDataDisplay,
+        numDataTableRowsPerColumn,
+    })
+    if (initialTableSlot) {
+        const numAvailableDataTableRows = getTableRowCountForGridSlot(
+            initialTableSlot,
+            numDataTableRowsPerColumn
+        )
+        if (
+            numAvailableDataTableRows > 0 &&
+            displayEntities.length > numAvailableDataTableRows
+        )
+            displayEntities.splice(0, numAvailableDataTableRows)
+    }
 
     // Bring Grapher into the right state for this search result:
     // - Set the tab to the leftmost tab in the sorted list
@@ -142,23 +166,20 @@ export function SearchChartHitRichData({
         configureGrapherStateFocus(grapherState, { entities: pickedEntities })
     })
 
-    // Fetch the data table's content to determine the layout
-    // (this isn't necessarily the data that will be displayed in the end)
-    const initialDataTableContent = useQueryDataTableContent(
-        hit,
-        grapherState.changedParams,
-        { enabled: hasBeenVisible && grapherState.isConfigReady }
-    )
+    // Fetch the data table's content
+    const { data: dataTableContent, status: loadingStatusTableContent } =
+        useQueryDataTableContent(hit, grapherState.changedParams, {
+            enabled: hasBeenVisible && grapherState.isConfigReady,
+        })
 
-    // Place Grapher tabs into grid layout and calculate info for data display
     const layout = calculateLayout(variant, grapherState, {
         chartInfo,
-        dataTableContent: initialDataTableContent.data,
+        dataTableContent,
         sortedTabs,
         entityForDataDisplay,
         numDataTableRowsPerColumn,
     })
-    const tableSlot = findTableSlot(layout)
+    const tableSlot = extractTableSlot(layout?.placedTabs ?? [])
 
     // We might need to adjust entity selection and focus according to the chosen layout
     if (layout && tableSlot)
@@ -172,13 +193,6 @@ export function SearchChartHitRichData({
                 maxNumEntitiesInStackedDiscreteBarChart:
                     variant === "large" ? 12 : 6,
             })
-        })
-
-    // Fetch the data table's content using the updated grapher state
-    const { data: dataTableContent, status: loadingStatusTableContent } =
-        useQueryDataTableContent(hit, grapherState.changedParams, {
-            enabled:
-                hasBeenVisible && initialDataTableContent.status !== "loading",
         })
 
     const status = combineStatuses(
@@ -440,6 +454,26 @@ function calculateLayout(
     return match(variant)
         .with("large", () => calculateLargeVariantLayout(grapherState, args))
         .with("medium", () => calculateMediumVariantLayout(grapherState, args))
+        .exhaustive()
+}
+
+function pickInitialTableSlot(
+    variant: RichDataComponentVariant,
+    grapherState: GrapherState,
+    args: {
+        chartInfo?: GrapherValuesJson
+        sortedTabs: GrapherTabName[]
+        entityForDataDisplay?: EntityName
+        numDataTableRowsPerColumn: number
+    }
+): GridSlot | undefined {
+    return match(variant)
+        .with("large", () =>
+            pickInitialTableSlotForLargeVariant(grapherState, args)
+        )
+        .with("medium", () =>
+            pickInitialTableSlotForMediumVariant(grapherState, args)
+        )
         .exhaustive()
 }
 
