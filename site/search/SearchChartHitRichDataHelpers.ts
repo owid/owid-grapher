@@ -165,9 +165,16 @@ export function pickEntitiesForDisplay(
                 return defaultEntities
             }
 
-            // Don't combine picked and comparison entities if columns are
-            // plotted since Grapher would switch to faceting mode
-            if (!isEntityStrategy) {
+            // Special cases where picked and comparison entities shouldn't be combined
+            if (
+                // If columns are plotted then Grapher would switch to faceting mode
+                // if picked and comparison entities were combined
+                !isEntityStrategy ||
+                // Scatters and Marimekko displays for a few entities are
+                // nicer than tables with many entities
+                grapherState.isScatter ||
+                grapherState.isMarimekko
+            ) {
                 return pickedEntities.length > 0
                     ? pickedEntities
                     : defaultEntities
