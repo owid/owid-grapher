@@ -10,10 +10,12 @@ import { CaptionedLinkOverlay } from "./SearchChartHitCaptionedLink.js"
 
 export const SearchChartHitThumbnail = ({
     previewUrl,
+    hoverOverlayText,
     imageWidth = GRAPHER_THUMBNAIL_WIDTH,
     imageHeight = GRAPHER_THUMBNAIL_HEIGHT,
 }: {
     previewUrl: string
+    hoverOverlayText: string
     imageWidth?: number
     imageHeight?: number
 }) => {
@@ -38,7 +40,7 @@ export const SearchChartHitThumbnail = ({
                 onLoad={() => setImgLoaded(true)}
                 onError={() => setImgError(true)}
             />
-            <CaptionedLinkOverlay />
+            <CaptionedLinkOverlay>{hoverOverlayText}</CaptionedLinkOverlay>
         </div>
     )
 }
