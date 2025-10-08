@@ -783,6 +783,7 @@ async function buildValueTableContentForScatterPlot({
                     chartState.transformedTable.timeColumn
                 ),
                 yValue: point.y,
+                rounded: true,
             }
         })
         .filter((row) => row !== undefined)

@@ -88,6 +88,8 @@ function Row({
             {shouldShowSwatch && row.color && (
                 <span
                     className={cx("search-chart-hit-table-row__swatch", {
+                        "search-chart-hit-table-row__swatch--rounded":
+                            row.rounded,
                         "search-chart-hit-table-row__swatch--outlined":
                             row.outlined,
                         "search-chart-hit-table-row__swatch--striped":
