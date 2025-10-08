@@ -1,6 +1,6 @@
 import { GrapherTrendArrowDirection } from "../grapherTypes/GrapherTypes"
 
-/** Type definition for data retrieved from the `/grapher/slug.search-results-table.json` endpoint */
+/** Type definition for data retrieved from the `/grapher/slug.search-result-table.json` endpoint */
 export type SearchChartHitDataTableContent =
     | {
           type: "data-table"
