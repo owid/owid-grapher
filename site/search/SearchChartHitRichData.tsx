@@ -38,7 +38,7 @@ import {
     configureGrapherStateTab,
     getSortedGrapherTabsForChartHit,
     getTotalColumnCount,
-    pickEntitiesForDisplay,
+    pickEntitiesForDisplay as pickDisplayEntities,
     getTableRowCountForGridSlot,
     makeSlotClassNames,
     findTableSlot,
@@ -122,7 +122,7 @@ export function SearchChartHitRichData({
     )
 
     // Choose the entities to display
-    const displayEntities = pickEntitiesForDisplay(grapherState, {
+    const displayEntities = pickDisplayEntities(grapherState, {
         pickedEntities,
         availableEntities,
     })
