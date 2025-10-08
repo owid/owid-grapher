@@ -25,6 +25,9 @@ export type DbPlainExplorer = Required<DbInsertExplorer> & {
     // config is a parsed version of the TSV
     // it is used in getNonGrapherExplorerViewCount or in getPublishedExplorersBySlug
     config: JsonString
+    // Automatically generated MD5 of the config by the DB. Used to detect
+    // changes in the config.
+    configMd5: string
     // Views refresh status for async job processing
     viewsRefreshStatus: ExplorerViewsRefreshStatus
     lastViewsRefreshAt: Date | null
