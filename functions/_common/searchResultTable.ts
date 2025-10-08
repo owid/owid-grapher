@@ -770,11 +770,13 @@ async function buildValueTableContentForScatterPlot({
             if (!point) return undefined
             const yValue = yColumn.formatValueShort(point.y)
             const xValue = xColumn.formatValueShort(point.x)
-            const value = isTimeScatter ? yValue : `${yValue} vs. ${xValue}`
+            const value = isTimeScatter ? yValue : xValue
+            const startValue = !isTimeScatter ? yValue : undefined
             return {
                 seriesName: series.seriesName,
                 label: series.seriesName,
                 color: series.color,
+                startValue,
                 value,
                 time: yColumn.formatTime(point.timeValue),
                 timePreposition: OwidTable.getPreposition(

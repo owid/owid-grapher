@@ -108,10 +108,17 @@ function Row({
                         {row.startValue && (
                             <>
                                 {row.startValue}
-                                <GrapherTrendArrow
-                                    className="search-chart-hit-table-row__arrow"
-                                    direction={row.trend ?? "right"}
-                                />
+                                {row.trend ? (
+                                    <GrapherTrendArrow
+                                        className="search-chart-hit-table-row__arrow"
+                                        direction={row.trend}
+                                    />
+                                ) : (
+                                    <span className="search-chart-hit-table-row__vs">
+                                        {" "}
+                                        vs.{" "}
+                                    </span>
+                                )}
                             </>
                         )}
                         {row.value}
