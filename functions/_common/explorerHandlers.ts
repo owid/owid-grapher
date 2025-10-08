@@ -81,11 +81,12 @@ export async function handleThumbnailRequestForExplorerView(
 ) {
     const options = extractOptions(searchParams)
 
-    const url = env.url
-    url.href = url.href.replace(`.${extension}`, "")
-
     try {
-        const { grapherState } = await initGrapherForExplorerView(env, options)
+        const explorerEnv = stripUrlExtensionFromEnv(env, `.${extension}`)
+        const { grapherState } = await initGrapherForExplorerView(
+            explorerEnv,
+            options
+        )
         const svg = grapherState.generateStaticSvg(
             ReactDOMServer.renderToStaticMarkup
         )
@@ -111,11 +112,12 @@ export async function handleConfigRequestForExplorerView(
 ) {
     const options = extractOptions(searchParams)
 
-    const url = env.url
-    url.href = url.href.replace(extensions.configJson, "")
-
     try {
-        const { grapherState } = await initGrapherForExplorerView(env, options)
+        const explorerEnv = stripUrlExtensionFromEnv(env, extensions.configJson)
+        const { grapherState } = await initGrapherForExplorerView(
+            explorerEnv,
+            options
+        )
 
         const config = grapherState.object
         return new Response(JSON.stringify(config), {
@@ -134,11 +136,12 @@ export async function fetchCsvForExplorerView(
 ) {
     const options = extractOptions(searchParams)
 
-    const url = env.url
-    url.href = url.href.replace(extensions.csv, "")
-
     try {
-        const { grapherState } = await initGrapherForExplorerView(env, options)
+        const explorerEnv = stripUrlExtensionFromEnv(env, extensions.csv)
+        const { grapherState } = await initGrapherForExplorerView(
+            explorerEnv,
+            options
+        )
 
         console.log("checking if download is allowed")
         ensureDownloadOfDataAllowed(grapherState)
@@ -163,11 +166,12 @@ export async function fetchMetadataForExplorerView(
 ) {
     const options = extractOptions(searchParams)
 
-    const url = env.url
-    url.href = url.href.replace(extensions.metadata, "")
-
     try {
-        const { grapherState } = await initGrapherForExplorerView(env, options)
+        const explorerEnv = stripUrlExtensionFromEnv(env, extensions.metadata)
+        const { grapherState } = await initGrapherForExplorerView(
+            explorerEnv,
+            options
+        )
         const metadata = assembleMetadata(grapherState, searchParams)
         return Response.json(metadata)
     } catch (e) {
@@ -182,11 +186,12 @@ export async function fetchReadmeForExplorerView(
 ) {
     const options = extractOptions(searchParams)
 
-    const url = env.url
-    url.href = url.href.replace(extensions.readme, "")
-
     try {
-        const { grapherState } = await initGrapherForExplorerView(env, options)
+        const explorerEnv = stripUrlExtensionFromEnv(env, extensions.readme)
+        const { grapherState } = await initGrapherForExplorerView(
+            explorerEnv,
+            options
+        )
         const readme = assembleReadme(grapherState, searchParams)
         return new Response(readme, {
             headers: { "Content-Type": "text/markdown; charset=utf-8" },
@@ -203,12 +208,10 @@ export async function fetchZipForExplorerView(
 ) {
     const options = extractOptions(searchParams)
 
-    const url = env.url
-    url.href = url.href.replace(extensions.zip, "")
-
     try {
+        const explorerEnv = stripUrlExtensionFromEnv(env, extensions.zip)
         const { grapherState, explorerParams } =
-            await initGrapherForExplorerView(env, options)
+            await initGrapherForExplorerView(explorerEnv, options)
 
         ensureDownloadOfDataAllowed(grapherState)
         const metadata = assembleMetadata(grapherState, searchParams)
@@ -217,7 +220,7 @@ export async function fetchZipForExplorerView(
         console.log("Fetched the parts, creating zip file")
 
         // Make a unique identifier for the given view
-        const explorerSlug = url.pathname.split("/").pop()
+        const explorerSlug = explorerEnv.url.pathname.split("/").pop()
         const viewId = Object.values(explorerParams)
             .map((value) => value.replace(/\s/g, "_"))
             .join("__")
@@ -252,14 +255,17 @@ export async function fetchDataValuesForExplorerView(
 ) {
     const options = extractOptions(searchParams)
 
-    const url = env.url
-    url.href = url.href.replace(extensions.values, "")
+    const explorerEnv = stripUrlExtensionFromEnv(env, extensions.values)
+    const url = explorerEnv.url
 
     const entityName = findEntityForExtractingDataValues(url.searchParams)
     prepareSearchParamsBeforeExtractingDataValues(url.searchParams, entityName)
 
     try {
-        const { grapherState } = await initGrapherForExplorerView(env, options)
+        const { grapherState } = await initGrapherForExplorerView(
+            explorerEnv,
+            options
+        )
 
         // Make sure the country query param is respected since Grapher ignores
         // the country param if entity selection is disabled
@@ -284,11 +290,15 @@ export async function fetchSearchResultsTableForExplorerView(
 ) {
     const options = extractOptions(searchParams)
 
-    const url = env.url
-    url.href = url.href.replace(extensions.searchResultsTable, "")
-
     try {
-        const { grapherState } = await initGrapherForExplorerView(env, options)
+        const explorerEnv = stripUrlExtensionFromEnv(
+            env,
+            extensions.searchResultsTable
+        )
+        const { grapherState } = await initGrapherForExplorerView(
+            explorerEnv,
+            options
+        )
 
         // Make sure the country query param is respected since Grapher ignores
         // the country param if entity selection is disabled
@@ -308,4 +318,10 @@ export async function fetchSearchResultsTableForExplorerView(
         console.error(e)
         return error(500, e)
     }
+}
+
+function stripUrlExtensionFromEnv(env: Env, extension: string): Env {
+    const url = new URL(env.url)
+    url.href = url.href.replace(extension, "")
+    return { ...env, url }
 }
