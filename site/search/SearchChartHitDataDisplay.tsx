@@ -12,6 +12,10 @@ export interface SearchChartHitDataDisplayProps {
     trend?: "down" | "right" | "up" // only relevant if startValue is given
     showLocationIcon?: boolean
     className?: string
+
+    // not used in rendering, but useful to know
+    startTimeValue?: number
+    endTimeValue?: number
 }
 
 export function SearchChartHitDataDisplay({

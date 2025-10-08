@@ -216,6 +216,16 @@ export async function fetchDataValuesForGrapher(
         searchParams,
         env
     )
+
+    // Optionally ignore projected data if requested
+    const shouldIgnoreProjections = searchParams.has("ignoreProjections")
+    if (shouldIgnoreProjections) {
+        grapher.grapherState.dimensions =
+            grapher.grapherState.dimensions.filter(
+                (dim) => !dim.display.isProjection
+            )
+    }
+
     const inputTable = await fetchInputTableForConfig({
         dimensions: grapher.grapherState.dimensions,
         selectedEntityColors: grapher.grapherState.selectedEntityColors,

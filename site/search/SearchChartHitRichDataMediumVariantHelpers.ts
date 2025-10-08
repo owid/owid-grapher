@@ -1,15 +1,12 @@
 import * as _ from "lodash-es"
 import { match } from "ts-pattern"
 import {
-    EntityName,
     GRAPHER_TAB_NAMES,
     GrapherTabName,
-    GrapherValuesJson,
     SearchChartHitDataTableContent,
     SeriesStrategy,
 } from "@ourworldindata/types"
-import { GrapherState, WORLD_ENTITY_NAME } from "@ourworldindata/grapher"
-import { buildChartHitDataDisplayProps } from "./searchUtils"
+import { GrapherState } from "@ourworldindata/grapher"
 import {
     Layout,
     MediumVariantGridSlot,
@@ -19,6 +16,7 @@ import {
     extractTableSlot,
     getTableColumnCountForGridSlot,
 } from "./SearchChartHitRichDataHelpers"
+import { SearchChartHitDataDisplayProps } from "./SearchChartHitDataDisplay.js"
 
 type PlacingOptions =
     | { tableType: "none" }
@@ -185,32 +183,19 @@ function getGridSlotForCount(slotCount: number): MediumVariantGridSlot {
 export function calculateMediumVariantLayout(
     grapherState: GrapherState,
     {
-        chartInfo,
         dataTableContent,
+        dataDisplayProps,
         sortedTabs,
-        entityForDataDisplay = WORLD_ENTITY_NAME,
         numDataTableRowsPerColumn,
     }: {
-        chartInfo?: GrapherValuesJson
         dataTableContent?: SearchChartHitDataTableContent
+        dataDisplayProps?: SearchChartHitDataDisplayProps
         sortedTabs: GrapherTabName[]
-        entityForDataDisplay?: EntityName
         numDataTableRowsPerColumn: number
     }
 ): Layout<MediumVariantGridSlot> | undefined {
     // Build the data table props
     if (!dataTableContent) return undefined
-
-    // Prepare rendering the data display
-    const hasDataDisplayProps = dataTableContent.type !== "data-points"
-    const dataDisplayProps = hasDataDisplayProps
-        ? buildChartHitDataDisplayProps({
-              chartInfo,
-              chartType: grapherState.chartType,
-              entity: entityForDataDisplay,
-              isEntityPickedByUser: entityForDataDisplay !== WORLD_ENTITY_NAME,
-          })
-        : undefined
 
     // Figure out the layout by assigning each Grapher tab to grid slots.
     // The table tab can optionally span two or more slots (instead of just one)
@@ -241,24 +226,15 @@ export function calculateMediumVariantLayout(
 export function pickInitialTableSlotForMediumVariant(
     grapherState: GrapherState,
     {
-        chartInfo,
+        dataDisplayProps,
         sortedTabs,
-        entityForDataDisplay = WORLD_ENTITY_NAME,
     }: {
-        chartInfo?: GrapherValuesJson
+        dataDisplayProps?: SearchChartHitDataDisplayProps
         sortedTabs: GrapherTabName[]
-        entityForDataDisplay?: EntityName
     }
 ): MediumVariantGridSlot | undefined {
-    const hasDataDisplay = !!buildChartHitDataDisplayProps({
-        chartInfo,
-        chartType: grapherState.chartType,
-        entity: entityForDataDisplay,
-        isEntityPickedByUser: entityForDataDisplay !== WORLD_ENTITY_NAME,
-    })
-
     const placedTabs = placeGrapherTabsInMediumVariantGridLayout(sortedTabs, {
-        hasDataDisplay,
+        hasDataDisplay: !!dataDisplayProps,
         tableType: "unknown",
         prioritizeTableOverDiscreteBar:
             shouldPrioritizeTableOverDiscreteBar(grapherState),

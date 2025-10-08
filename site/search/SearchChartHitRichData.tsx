@@ -27,6 +27,7 @@ import {
     SearchChartHitComponentProps,
 } from "./searchTypes.js"
 import {
+    buildChartHitDataDisplayProps,
     constructChartUrl,
     constructConfigUrl,
     constructSearchTableUrl,
@@ -45,6 +46,7 @@ import {
     extractTableSlot,
     getPreviewType,
     constructChartAndPreviewUrlsForTab,
+    configureGrapherStateMaxTime,
 } from "./SearchChartHitRichDataHelpers.js"
 import {
     pickInitialTableSlotForMediumVariant,
@@ -53,7 +55,10 @@ import {
 import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
 import { CaptionedTable } from "./SearchChartHitCaptionedTable.js"
 import { CaptionedThumbnail } from "./SearchChartHitCaptionedThumbnail.js"
-import { SearchChartHitDataDisplay } from "./SearchChartHitDataDisplay.js"
+import {
+    SearchChartHitDataDisplay,
+    SearchChartHitDataDisplayProps,
+} from "./SearchChartHitDataDisplay.js"
 import { SearchChartHitRichDataFallback } from "./SearchChartHitRichDataFallback.js"
 import {
     GridSlot,
@@ -143,16 +148,32 @@ export function SearchChartHitRichData({
         }
     )
 
+    // Prepare rendering the data display
+    const dataDisplayProps = buildChartHitDataDisplayProps({
+        chartInfo,
+        chartType: grapherState.chartType,
+        entity: entityForDataDisplay,
+        isEntityPickedByUser: pickedEntities.length > 0,
+    })
+
+    // Choose the time for the thumbnails and the data table
+    const displayTime =
+        pickedEntities.length > 0
+            ? (dataDisplayProps?.endTimeValue ?? chartInfo?.endTime)
+            : chartInfo?.endTime
+
     // Bring Grapher into the right state for this search result:
     // - Set the tab to the leftmost tab in the sorted list
     // - Select the entities determined for this search result
     // - Highlight the entity (or entities) the user picked
+    // - Set the end time (relevant for charts with projections)
     runInAction(() => {
         configureGrapherStateTab(grapherState, { tab: sortedTabs[0] })
         configureGrapherStateSelection(grapherState, {
             entities: displayEntities,
         })
         configureGrapherStateFocus(grapherState, { entities: pickedEntities })
+        configureGrapherStateMaxTime(grapherState, { time: displayTime })
     })
 
     // Fetch the data table's content
@@ -162,10 +183,9 @@ export function SearchChartHitRichData({
         })
 
     const layout = calculateLayout(variant, grapherState, {
-        chartInfo,
+        dataDisplayProps,
         dataTableContent,
         sortedTabs,
-        entityForDataDisplay,
         numDataTableRowsPerColumn,
     })
     const tableSlot = extractTableSlot(layout?.placedTabs ?? [])
@@ -433,10 +453,9 @@ function calculateLayout(
     variant: RichDataComponentVariant,
     grapherState: GrapherState,
     args: {
-        chartInfo?: GrapherValuesJson
+        dataDisplayProps?: SearchChartHitDataDisplayProps
         dataTableContent?: SearchChartHitDataTableContent
         sortedTabs: GrapherTabName[]
-        entityForDataDisplay?: EntityName
         numDataTableRowsPerColumn: number
     }
 ): Layout<GridSlot> | undefined {
@@ -565,12 +584,12 @@ function useQueryDataTableContent(
             grapherParams
         ),
         queryFn: () => {
-            const configUrl = constructSearchTableUrl({
+            const searchTableUrl = constructSearchTableUrl({
                 hit,
                 grapherParams,
             })
-            if (!configUrl) return null
-            return fetchJson<SearchChartHitDataTableContent>(configUrl)
+            if (!searchTableUrl) return null
+            return fetchJson<SearchChartHitDataTableContent>(searchTableUrl)
         },
         enabled,
     })

@@ -246,7 +246,13 @@ export const constructChartInfoUrl = ({
     hit: SearchChartHit
     grapherParams?: GrapherQueryParams
 }): string | undefined => {
-    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
+    const viewQueryStr = generateQueryStrForChartHit({ hit, grapherParams })
+
+    // Always ignore projected data to ensure that the data display shows a
+    // historical data point
+    const queryStr = viewQueryStr
+        ? `${viewQueryStr}&ignoreProjections`
+        : "?ignoreProjections"
 
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
     const basePath = isExplorerView
@@ -1001,6 +1007,8 @@ export function buildChartHitDataDisplayProps({
         unit,
         trend,
         showLocationIcon,
+        startTimeValue: startDatapoint?.time,
+        endTimeValue: endDatapoint.time,
     }
 }
 

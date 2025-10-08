@@ -12,6 +12,7 @@ import {
     SearchChartHitDataTableContent,
     SearchChartHitDataTableProps,
     SeriesStrategy,
+    Time,
 } from "@ourworldindata/types"
 import {
     generateFocusedSeriesNamesParam,
@@ -289,6 +290,13 @@ export function configureGrapherStateFocus(
         // Clear the focus state for any entities that might be focused by default
         grapherState.focusArray.clear()
     }
+}
+
+export function configureGrapherStateMaxTime(
+    grapherState: GrapherState,
+    { time }: { time?: Time }
+): void {
+    if (time) grapherState.maxTime = time
 }
 
 export function resetGrapherColors(grapherState: GrapherState): void {
