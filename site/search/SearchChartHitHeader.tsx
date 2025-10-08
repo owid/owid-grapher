@@ -52,14 +52,16 @@ export function SearchChartHitHeader({
                             </span>
                         )}
                     </div>
-                    <Highlight
-                        hit={hit}
-                        attribute="subtitle"
-                        highlightedTagName="strong"
-                        classNames={{
-                            root: "search-chart-hit-header__subtitle",
-                        }}
-                    />
+                    {hit.subtitle && (
+                        <Highlight
+                            hit={hit}
+                            attribute="subtitle"
+                            highlightedTagName="strong"
+                            classNames={{
+                                root: "search-chart-hit-header__subtitle",
+                            }}
+                        />
+                    )}
                     {source && (
                         <span className="search-chart-hit-header__source search-chart-hit-header__source--mobile">
                             Source: {source}
