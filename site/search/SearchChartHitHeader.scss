@@ -53,7 +53,7 @@
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
-                margin-top: 4px;
+                margin-top: 3px;
 
                 @include sm-up {
                     display: none;
@@ -64,7 +64,6 @@
         .search-chart-hit-header__subtitle {
             @include body-3-medium;
             color: $blue-65;
-            margin: 3px 0 0;
 
             display: -webkit-box;
             -webkit-box-orient: vertical;
@@ -74,6 +73,7 @@
 
             @include sm-only {
                 @include label-1-regular;
+                margin: 3px 0 0;
 
                 -webkit-line-clamp: 2;
                 line-clamp: 2;
@@ -93,7 +93,6 @@
         .search-chart-hit-header__subtitle {
             font-size: 1rem;
             font-weight: 400;
-            margin: 1px 0 0;
         }
 
         .search-chart-hit-header__source {
