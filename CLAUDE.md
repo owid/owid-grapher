@@ -18,6 +18,7 @@ When you want to create a git commit, refer to docs/agent-guidelines/commit-mess
 - Use type definitions for function params and return values. Reuse existing shared type definitions where possible.
 - Avoid the use of the `any` type. Only use it if you have to and ask for permission.
 - In Grapher and the admin, where we use MobX 6, we use a somewhat nonstandard setup. We use class based components with TC-39 stage 3 decorators, but only for @computed and @action properties. The observable props are not marked with @observable, but are instead listed in the constructor in a `makeObservable` call. The `makeObservable` call must mention all obserable props, but none of the @computed or @action ones.
+- For CSS, we mostly use named style classes following the BEM conventions in separate .scss files. We usually avoid inline styles - only use those if the component you are working on already makes use of them for a similar use case. Components usually have a companion scss file with the same name. The entry point for our site styles is /site/owid.scss, the entry point for grapher styles is /packages/@ourworldindata/grapher/src/core/grapher.scss
 
 # Codebase overview
 
