@@ -27,15 +27,25 @@ export async function getLatestArchivedPostVersions(
     >[]
 > {
     const queryBuilder = knex<DbPlainArchivedPostVersion>(
-        ArchivedPostVersionsTableName
+        `${ArchivedPostVersionsTableName} as a1`
     )
-        .select("postId", "postSlug", "archivalTimestamp", "hashOfInputs")
-        .whereRaw(
-            `(postId, archivalTimestamp) IN (SELECT postId, MAX(archivalTimestamp) FROM archived_post_versions a2 GROUP BY postId)`
+        .select(
+            "a1.postId",
+            "a1.postSlug",
+            "a1.archivalTimestamp",
+            "a1.hashOfInputs"
+        )
+        .joinRaw(
+            `-- sql
+            INNER JOIN (
+                SELECT postId, MAX(archivalTimestamp) as latestArchivalTimestamp
+                FROM archived_post_versions
+                GROUP BY postId
+            ) a2 ON a1.postId = a2.postId AND a1.archivalTimestamp = a2.latestArchivalTimestamp`
         )
 
     if (postIds) {
-        queryBuilder.whereIn("postId", postIds)
+        queryBuilder.whereIn("a1.postId", postIds)
     }
 
     return await queryBuilder

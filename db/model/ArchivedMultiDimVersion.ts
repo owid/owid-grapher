@@ -27,19 +27,24 @@ export async function getLatestArchivedMultiDimVersions(
     >[]
 > {
     const queryBuilder = knex<DbPlainArchivedMultiDimVersion>(
-        ArchivedMultiDimVersionsTableName
+        `${ArchivedMultiDimVersionsTableName} as a1`
     )
         .select(
-            "multiDimId",
-            "multiDimSlug",
-            "archivalTimestamp",
-            "hashOfInputs"
+            "a1.multiDimId",
+            "a1.multiDimSlug",
+            "a1.archivalTimestamp",
+            "a1.hashOfInputs"
         )
-        .whereRaw(
-            `(multiDimId, archivalTimestamp) IN (SELECT multiDimId, MAX(archivalTimestamp) FROM archived_multi_dim_versions a2 GROUP BY multiDimId)`
+        .joinRaw(
+            `-- sql
+            INNER JOIN (
+                SELECT multiDimId, MAX(archivalTimestamp) as latestArchivalTimestamp
+                FROM archived_multi_dim_versions
+                GROUP BY multiDimId
+            ) a2 ON a1.multiDimId = a2.multiDimId AND a1.archivalTimestamp = a2.latestArchivalTimestamp`
         )
     if (multiDimIds) {
-        queryBuilder.whereIn("multiDimId", multiDimIds)
+        queryBuilder.whereIn("a1.multiDimId", multiDimIds)
     }
     return await queryBuilder
 }
