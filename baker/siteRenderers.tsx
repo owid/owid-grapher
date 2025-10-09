@@ -645,9 +645,12 @@ export const renderReusableBlock = async (
 export const renderExplorerIndexPage = async (
     knex: KnexReadonlyTransaction
 ): Promise<string> => {
-    const explorersBySlug = await getPublishedExplorersBySlug(knex)
-    const explorers = Object.values(explorersBySlug).sort((a, b) =>
-        a.title.localeCompare(b.title)
+    const explorers = await getPublishedExplorersBySlug(knex).then(
+        (explorers) => {
+            return Object.values(explorers)
+                .filter((explorer) => !explorer.tags.includes("Unlisted"))
+                .sort((a, b) => a.title.localeCompare(b.title))
+        }
     )
 
     return renderToHtmlPage(
