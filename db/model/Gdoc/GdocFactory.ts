@@ -357,7 +357,8 @@ export async function getAndLoadGdocBySlug(
 export async function getAndLoadGdocById(
     knex: KnexReadonlyTransaction,
     id: string,
-    contentSource?: GdocsContentSource
+    contentSource?: GdocsContentSource,
+    acceptSuggestions: boolean = false
 ): Promise<
     | GdocPost
     | GdocDataInsight
@@ -369,7 +370,7 @@ export async function getAndLoadGdocById(
     const base = await getGdocBaseObjectById(knex, id, true)
     if (!base)
         throw new Error(`No Google Doc with id "${id}" found in the database`)
-    return loadGdocFromGdocBase(knex, base, contentSource)
+    return loadGdocFromGdocBase(knex, base, contentSource, acceptSuggestions)
 }
 
 export async function createOrLoadGdocById(
@@ -390,7 +391,8 @@ export async function createOrLoadGdocById(
 export async function loadGdocFromGdocBase(
     knex: KnexReadonlyTransaction,
     base: OwidGdocBaseInterface,
-    contentSource?: GdocsContentSource
+    contentSource?: GdocsContentSource,
+    acceptSuggestions: boolean = false
 ): Promise<
     | GdocPost
     | GdocDataInsight
@@ -429,7 +431,7 @@ export async function loadGdocFromGdocBase(
 
     if (contentSource === GdocsContentSource.Gdocs) {
         // TODO: if we get here via fromJSON then we have already done this - optimize that?
-        await gdoc.fetchAndEnrichGdoc()
+        await gdoc.fetchAndEnrichGdoc(acceptSuggestions)
     }
 
     await gdoc.loadState(knex)

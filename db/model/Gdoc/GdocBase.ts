@@ -872,7 +872,9 @@ export class GdocBase implements OwidGdocBaseInterface {
         this.linkedNarrativeCharts = _.keyBy(result, "name")
     }
 
-    async fetchAndEnrichGdoc(): Promise<void> {
+    async fetchAndEnrichGdoc(
+        acceptSuggestions: boolean = false
+    ): Promise<void> {
         const docsClient = googleDocs({
             version: "v1",
             auth: OwidGoogleAuth.getGoogleReadonlyAuth(),
@@ -881,7 +883,9 @@ export class GdocBase implements OwidGdocBaseInterface {
         // Retrieve raw data from Google
         const { data } = await docsClient.documents.get({
             documentId: this.id,
-            suggestionsViewMode: "PREVIEW_WITHOUT_SUGGESTIONS",
+            suggestionsViewMode: acceptSuggestions
+                ? "PREVIEW_SUGGESTIONS_ACCEPTED"
+                : "PREVIEW_WITHOUT_SUGGESTIONS",
         })
 
         this.revisionId = data.revisionId ?? null
