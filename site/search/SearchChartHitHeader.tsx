@@ -31,7 +31,7 @@ export function SearchChartHitHeader({
             data-algolia-object-id={hit.objectID}
             data-algolia-position={hit.__position}
         >
-            <header className="search-chart-hit-header__content-wrapper">
+            <div className="search-chart-hit-header__content-wrapper">
                 {isLarge && (
                     <img
                         src="owid-logo.svg"
@@ -66,7 +66,7 @@ export function SearchChartHitHeader({
                         </span>
                     )}
                 </div>
-            </header>
+            </div>
         </a>
     )
 }
