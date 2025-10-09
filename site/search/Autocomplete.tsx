@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState, useEffect, useMemo } from "react"
 import * as React from "react"
 import { createRoot, Root } from "react-dom/client"
 import urljoin from "url-join"
+import { useTopicTagGraph, useTagGraphTopics } from "./searchHooks.js"
 import {
     AutocompleteApi,
     AutocompleteSource,
@@ -12,10 +13,10 @@ import algoliasearch from "algoliasearch"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
 import {
     ChartRecordType,
-    PageType,
     SearchIndexName,
-    WordpressPageType,
-    pageTypeDisplayNames,
+    Filter,
+    FilterType,
+    SynonymMap,
 } from "./searchTypes.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
@@ -24,21 +25,33 @@ import {
     BAKED_BASE_URL,
     BAKED_GRAPHER_URL,
 } from "../../settings/clientSettings.js"
-import { faSearch } from "@fortawesome/free-solid-svg-icons"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     DEFAULT_SEARCH_PLACEHOLDER,
     getIndexName,
     parseIndexName,
 } from "./searchClient.js"
-import { OwidGdocType, queryParamsToStr } from "@ourworldindata/utils"
+import {
+    listedRegionsNames,
+    OwidGdocType,
+    queryParamsToStr,
+} from "@ourworldindata/utils"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 import Mousetrap from "mousetrap"
 import { match } from "ts-pattern"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
+import {
+    suggestFiltersFromQuerySuffix,
+    getFilterIcon,
+    getItemUrlForFilter,
+    getPageTypeNameAndIcon,
+    SEARCH_BASE_PATH,
+} from "./searchUtils.js"
+import { buildSynonymMap } from "./synonymUtils.js"
+import { SearchFilterPill } from "./SearchFilterPill.js"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faLineChart, faSearch } from "@fortawesome/free-solid-svg-icons"
 
 const siteAnalytics = new SiteAnalytics()
-
 type BaseItem = Record<string, unknown>
 
 const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
@@ -49,16 +62,8 @@ const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
             ...source,
             onSelect({ item, navigator }) {
                 navigator.navigate({
-                    itemUrl: `/search${queryParamsToStr({ q: item.id })}`,
+                    itemUrl: `${SEARCH_BASE_PATH}${queryParamsToStr({ q: item.id })}`,
                 } as any)
-            },
-            templates: {
-                ...source.templates,
-                header() {
-                    return (
-                        <h5 className="overline-black-caps">Recent Searches</h5>
-                    )
-                },
             },
         }
     },
@@ -66,7 +71,6 @@ const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
 
 const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
 
-// This is the same simple function for the two non-Algolia sources
 const onSelect: AutocompleteSource<BaseItem>["onSelect"] = ({
     navigator,
     item,
@@ -76,7 +80,6 @@ const onSelect: AutocompleteSource<BaseItem>["onSelect"] = ({
     navigator.navigate({ itemUrl, item, state })
 }
 
-// This is the same simple function for the two non-Algolia sources
 const getItemUrl: AutocompleteSource<BaseItem>["getItemUrl"] = ({ item }) =>
     item.slug as string
 
@@ -89,12 +92,6 @@ const prependSubdirectoryToAlgoliaItemUrl = (item: BaseItem): string => {
             return urljoin(BAKED_GRAPHER_URL, item.slug as string)
         })
         .with(SearchIndexName.Pages, () => {
-            if (
-                item.type === WordpressPageType.Country ||
-                item.type === WordpressPageType.Other
-            ) {
-                return urljoin(BAKED_BASE_URL, item.slug as string)
-            }
             return getCanonicalUrl(BAKED_BASE_URL, {
                 slug: item.slug as string,
                 content: {
@@ -135,20 +132,22 @@ const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
         return ["CO2", "Energy", "Education", "Poverty", "Democracy"].map(
             (term) => ({
                 title: term,
-                slug: `/search${queryParamsToStr({ q: term })}`,
+                slug: `${SEARCH_BASE_PATH}${queryParamsToStr({ q: term })}`,
             })
         )
     },
 
     templates: {
-        header: () => (
-            <h5 className="overline-black-caps">Featured Searches</h5>
-        ),
         item: ({ item }) => {
             return (
-                <div>
-                    <span>{item.title as string}</span>
-                </div>
+                <span className="autocomplete-item-contents">
+                    <span className="autocomplete-item-contents__type-icon">
+                        <FontAwesomeIcon icon={faSearch} />
+                    </span>
+                    <span className="autocomplete-item-contents__query autocomplete-item-contents__query--only">
+                        {item.title as string}
+                    </span>
+                </span>
             )
         },
     },
@@ -196,70 +195,133 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
     },
 
     templates: {
-        header: () => <h5 className="overline-black-caps">Top Results</h5>,
         item: ({ item, components }) => {
             const index = parseIndexName(
                 item.__autocomplete_indexName as string
             )
+
             const indexLabel =
                 index === SearchIndexName.ExplorerViewsMdimViewsAndCharts
                     ? item.type === ChartRecordType.ExplorerView
                         ? "Explorer"
                         : "Chart"
-                    : pageTypeDisplayNames[item.type as PageType]
+                    : getPageTypeNameAndIcon(item.type as OwidGdocType).name
+
+            const indexIcon =
+                index === SearchIndexName.ExplorerViewsMdimViewsAndCharts
+                    ? faLineChart
+                    : getPageTypeNameAndIcon(item.type as OwidGdocType).icon
 
             return (
-                <div
-                    className="aa-ItemWrapper"
+                <span
+                    className="autocomplete-item-contents"
                     key={item.title as string}
                     translate="no"
                 >
+                    <span>
+                        <FontAwesomeIcon
+                            icon={indexIcon}
+                            className="autocomplete-item-contents__type-icon"
+                        />
+                    </span>
                     <span>
                         <components.Highlight
                             hit={item}
                             attribute={"title"}
                             tagName="strong"
                         />
+                        <span className="autocomplete-item-contents__contentType">
+                            {indexLabel}
+                        </span>
                     </span>
-                    <span className="aa-ItemWrapper__contentType">
-                        {indexLabel}
-                    </span>
-                </div>
+                </span>
             )
         },
     },
 }
 
-const AllResultsSource: AutocompleteSource<BaseItem> = {
-    sourceId: "runSearch",
-    onSelect,
+const createFiltersSource = (
+    allTopics: string[],
+    synonymMap: SynonymMap
+): AutocompleteSource<BaseItem> => ({
+    sourceId: "filters",
+    onSelect({ navigator, item, state }) {
+        const itemUrl = item.slug as string
+        siteAnalytics.logInstantSearchClick({
+            query: state.query,
+            url: itemUrl,
+            position: String(state.activeItemId),
+        })
+        navigator.navigate({ itemUrl, item, state })
+    },
     getItemUrl,
     getItems({ query }) {
-        return [
-            {
-                slug: `/search${queryParamsToStr({ q: query })}`,
-                title: `All search results for "${query}"`,
-            },
-        ]
-    },
+        if (!query.trim()) return []
 
+        const suggestions = suggestFiltersFromQuerySuffix(
+            query,
+            listedRegionsNames(),
+            allTopics,
+            [], // no selected filters in this context
+            synonymMap
+        )
+
+        const items: {
+            filter: Filter
+            unmatchedQuery: string
+            slug: string
+        }[] = []
+
+        suggestions.suggestions.forEach((filter) => {
+            items.push({
+                filter,
+                unmatchedQuery: suggestions.unmatchedQuery,
+                slug: getItemUrlForFilter(filter, suggestions.unmatchedQuery),
+            })
+        })
+        return items
+    },
     templates: {
         item: ({ item }) => {
-            return (
-                <div className="aa-ItemWrapper">
-                    <div className="aa-ItemContent">
-                        <div className="aa-ItemIcon">
+            const filter = item.filter as Filter
+            const unmatchedQuery = item.unmatchedQuery as string
+
+            return match(filter.type)
+                .with(FilterType.QUERY, () => (
+                    <span className="autocomplete-item-contents">
+                        <span className="autocomplete-item-contents__type-icon">
                             <FontAwesomeIcon icon={faSearch} />
-                        </div>
-                        <div className="aa-ItemContentBody">
-                            {item.title as string}
-                        </div>
-                    </div>
-                </div>
-            )
+                        </span>
+                        <span className="autocomplete-item-contents__query autocomplete-item-contents__query--only autocomplete-item-contents__query--highlighted">
+                            {filter.name}
+                        </span>
+                    </span>
+                ))
+                .with(FilterType.COUNTRY, () => (
+                    <span className="autocomplete-item-contents">
+                        <span className="autocomplete-item-contents__type-icon">
+                            <FontAwesomeIcon icon={faSearch} />
+                        </span>
+                        <span className="autocomplete-item-contents__query autocomplete-item-contents__query--unmatched">
+                            {unmatchedQuery} {filter.name.toLowerCase()}
+                        </span>
+                    </span>
+                ))
+                .with(FilterType.TOPIC, () => (
+                    <span className="autocomplete-item-contents">
+                        <span className="autocomplete-item-contents__type-icon">
+                            <FontAwesomeIcon icon={faSearch} />
+                        </span>
+                        <SearchFilterPill
+                            name={filter.name}
+                            icon={getFilterIcon(filter)}
+                        />
+                    </span>
+                ))
+                .exhaustive()
         },
     },
-}
+})
 
 export const AUTOCOMPLETE_CONTAINER_ID = "#autocomplete"
 
@@ -283,6 +345,9 @@ export function Autocomplete({
     const containerRef = useRef<HTMLDivElement>(null)
     const panelRootRef = useRef<Root | null>(null)
     const rootRef = useRef<HTMLElement | null>(null)
+    const { allTopics } = useTagGraphTopics(useTopicTagGraph())
+
+    const synonymMap = useMemo(() => buildSynonymMap(), [])
 
     const [search, setSearch] = useState<AutocompleteApi<BaseItem> | null>(null)
 
@@ -297,6 +362,7 @@ export function Autocomplete({
                 panel: panelClassName,
             },
             openOnFocus: true,
+            defaultActiveItemId: 0,
             onStateChange({ state, prevState }) {
                 if (onActivate && !prevState.isOpen && state.isOpen) {
                     onActivate()
@@ -307,7 +373,7 @@ export function Autocomplete({
             onSubmit({ state, navigator }) {
                 if (!state.query) return
                 navigator.navigate({
-                    itemUrl: `/search${queryParamsToStr({ q: state.query })}`,
+                    itemUrl: `${SEARCH_BASE_PATH}${queryParamsToStr({ q: state.query })}`,
                     // this method is incorrectly typed - `item` and `state` are optional
                 } as any)
             },
@@ -331,7 +397,10 @@ export function Autocomplete({
             getSources({ query }) {
                 const sources: AutocompleteSource<BaseItem>[] = []
                 if (query) {
-                    sources.push(AlgoliaSource, AllResultsSource)
+                    sources.push(
+                        createFiltersSource(allTopics, synonymMap),
+                        AlgoliaSource
+                    )
                 } else {
                     sources.push(FeaturedSearchesSource)
                 }
@@ -371,6 +440,8 @@ export function Autocomplete({
         detachedMediaQuery,
         panelClassName,
         containerRef,
+        allTopics,
+        synonymMap,
     ])
 
     // Register a global shortcut to open the search box on typing "/"

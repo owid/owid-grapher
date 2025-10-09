@@ -2,34 +2,35 @@ import { Head } from "../Head.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { SiteFooter } from "../SiteFooter.js"
 import { SiteFooterContext, TagGraphRoot } from "@ourworldindata/utils"
-import { SearchInstantSearchWrapper } from "./SearchInstantSearchWrapper.js"
+import { SearchWrapper } from "./SearchWrapper.js"
 import { Html } from "../Html.js"
+import { SEARCH_BASE_PATH } from "./searchUtils.js"
 
 declare global {
     interface Window {
-        _OWID_TAG_GRAPH: TagGraphRoot
+        _OWID_TOPIC_TAG_GRAPH: TagGraphRoot
     }
 }
 
 export const SearchPage = (props: {
     baseUrl: string
-    tagGraph: TagGraphRoot
+    topicTagGraph: TagGraphRoot
 }) => {
-    const { baseUrl, tagGraph } = props
+    const { baseUrl, topicTagGraph } = props
 
     return (
         <Html>
             <Head
-                canonicalUrl={`${baseUrl}/data`}
-                pageTitle="Data Catalog"
-                pageDesc="Explore Our World in Data's extensive collection of charts. Use the search bar to find specific data visualizations or browse by topic. Filter by country or subject area to discover insights on global issues supported by reliable data."
+                canonicalUrl={`${baseUrl}${SEARCH_BASE_PATH}`}
+                pageTitle="Search"
+                pageDesc="Search articles and charts on Our World in Data. Filter by country or subject area to discover insights on global issues supported by reliable data."
                 baseUrl={baseUrl}
                 imageUrl={`${baseUrl}/data-catalog-thumbnail.png`}
             >
                 <script
                     dangerouslySetInnerHTML={{
-                        __html: `window._OWID_TAG_GRAPH = ${JSON.stringify(
-                            tagGraph
+                        __html: `window._OWID_TOPIC_TAG_GRAPH = ${JSON.stringify(
+                            topicTagGraph
                         )}`,
                     }}
                 ></script>
@@ -40,7 +41,7 @@ export const SearchPage = (props: {
                     id="search-page-root"
                     className="grid grid-cols-12-full-width"
                 >
-                    <SearchInstantSearchWrapper tagGraph={tagGraph} />
+                    <SearchWrapper topicTagGraph={topicTagGraph} />
                 </main>
                 <SiteFooter context={SiteFooterContext.searchPage} />
             </body>

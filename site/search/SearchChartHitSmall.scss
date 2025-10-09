@@ -1,0 +1,78 @@
+.search-chart-hit-small {
+    background-color: $blue-5;
+    padding: 16px;
+
+    display: flex;
+    gap: 24px;
+
+    @include sm-only {
+        gap: 0px;
+        padding: 12px;
+    }
+
+    .search-chart-hit-small__content {
+        flex: 1 1 0;
+        width: 0;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .search-chart-hit-small__tabs-container {
+        margin-top: 8px;
+        display: flex;
+        gap: 12px;
+
+        @include sm-only {
+            margin-top: 12px;
+        }
+
+        a {
+            color: $blue-60;
+            line-height: 0;
+
+            &:hover {
+                color: $blue-90;
+            }
+        }
+
+        svg {
+            width: 14px;
+            height: 14px;
+        }
+    }
+
+    .search-chart-hit-small__download-button-wrapper {
+        align-self: center;
+    }
+
+    .search-chart-hit-small__download-button {
+        border-radius: 4px;
+
+        &:hover {
+            background-color: #bed2e7;
+        }
+
+        @include sm-only {
+            display: none;
+        }
+    }
+
+    @include sm-only {
+        .search-chart-hit-data-display {
+            display: none;
+        }
+    }
+}
+
+.search-chart-hit-small__tippy {
+    $background: $gray-90;
+
+    @include note-1-regular;
+    background-color: $background;
+
+    .tippy-arrow {
+        color: $background;
+    }
+}

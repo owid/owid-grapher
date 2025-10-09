@@ -1,17 +1,14 @@
 import { match } from "ts-pattern"
-import { Filter, FilterType } from "./searchTypes"
+import { FilterType } from "./searchTypes"
 import { SearchFilterPill } from "./SearchFilterPill.js"
 import { getFilterAriaLabel, getFilterIcon } from "./searchUtils.js"
+import { useSearchContext } from "./SearchContext.js"
 
-export const SearchActiveFilters = ({
-    filters,
-    removeCountry,
-    removeTopic,
-}: {
-    filters: Filter[]
-    removeCountry: (country: string) => void
-    removeTopic: (topic: string) => void
-}) => {
+export const SearchActiveFilters = () => {
+    const {
+        state: { filters },
+        actions: { removeCountry, removeTopic },
+    } = useSearchContext()
     return (
         <>
             {filters.map((filter) =>
@@ -46,9 +43,8 @@ export const SearchActiveFilters = ({
                             />
                         </button>
                     ))
-                    .otherwise(() => {
-                        return null
-                    })
+                    .with({ type: FilterType.QUERY }, (_filter) => null)
+                    .exhaustive()
             )}
         </>
     )

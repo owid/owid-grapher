@@ -41,6 +41,7 @@ export {
     urlToSlug,
     trimObject,
     fetchText,
+    fetchJson,
     getUserCountryInformation,
     stripHTML,
     getRandomNumberGenerator,
@@ -116,7 +117,6 @@ export {
     checkIsAuthor,
     cartesian,
     removeTrailingParenthetical,
-    isElementHidden,
     commafyNumber,
     isFiniteWithGuard,
     createTagGraph,
@@ -140,6 +140,7 @@ export {
     extractDetailsFromSyntax,
     parseFloatOrUndefined,
     bind,
+    merge,
 } from "./Util.js"
 
 export {
@@ -193,6 +194,7 @@ export {
     regions,
     type Region,
     countries,
+    listedRegionsNames,
     type Country,
     type IncomeGroup,
     type OwidIncomeGroupName,
@@ -219,6 +221,8 @@ export {
     getCountryNamesForRegion,
     checkHasMembers,
     getRegionByName,
+    getParentRegions,
+    getSiblingRegions,
 } from "./regions.js"
 
 export { getStylesForTargetHeight } from "./react-select.js"
@@ -237,8 +241,6 @@ export { PointVector } from "./PointVector.js"
 export { OwidVariableDisplayConfig } from "./OwidVariable.js"
 
 export {
-    getQueryParams,
-    getWindowQueryParams,
     strToQueryParams,
     queryParamsToStr,
     getWindowQueryStr,
@@ -298,7 +300,6 @@ export { isAndroid, isIOS } from "./BrowserUtils.js"
 export {
     diffGrapherConfigs,
     mergeGrapherConfigs,
-    simpleMerge,
 } from "./grapherConfigUtils.js"
 
 export {

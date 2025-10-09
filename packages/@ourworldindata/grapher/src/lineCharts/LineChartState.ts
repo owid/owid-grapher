@@ -38,7 +38,10 @@ import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { CategoricalColorAssigner } from "../color/CategoricalColorAssigner"
-import { getColorKey, getSeriesName } from "./LineChartHelpers"
+import { getColorKey, getDisplayName, getSeriesName } from "./LineChartHelpers"
+import { FocusArray } from "../focus/FocusArray"
+import { AxisConfig } from "../axis/AxisConfig"
+import { HorizontalAxis, VerticalAxis } from "../axis/Axis"
 
 export class LineChartState implements ChartState, ColorScaleManager {
     manager: LineChartManager
@@ -126,6 +129,14 @@ export class LineChartState implements ChartState, ColorScaleManager {
         return makeSelectionArray(this.manager.selection)
     }
 
+    @computed get focusArray(): FocusArray {
+        return this.manager.focusArray ?? new FocusArray()
+    }
+
+    @computed get isFocusModeActive(): boolean {
+        return this.focusArray.hasFocusedSeries
+    }
+
     @computed get yColumnSlugs(): string[] {
         return autoDetectYColumnSlugs(this.manager)
     }
@@ -137,6 +148,10 @@ export class LineChartState implements ChartState, ColorScaleManager {
 
     @computed get yColumns(): CoreColumn[] {
         return this.yColumnSlugs.map((slug) => this.transformedTable.get(slug))
+    }
+
+    @computed get formatColumn(): CoreColumn {
+        return this.yColumns[0]
     }
 
     @computed get colorColumn(): CoreColumn {
@@ -236,7 +251,7 @@ export class LineChartState implements ChartState, ColorScaleManager {
         column: CoreColumn
     ): LineChartSeries {
         const {
-            manager: { canSelectMultipleEntities = false },
+            manager: { canSelectMultipleEntities },
             transformedTable: { availableEntityNames },
             seriesStrategy,
             hasColorScale,
@@ -271,12 +286,19 @@ export class LineChartState implements ChartState, ColorScaleManager {
 
         // Construct series properties
         const columnName = column.nonEmptyDisplayName
+        const hasMultipleEntitiesSelected = availableEntityNames.length > 1
         const seriesName = getSeriesName({
             entityName,
             columnName,
             seriesStrategy,
-            availableEntityNames,
-            canSelectMultipleEntities,
+            hasMultipleEntitiesSelected,
+            allowsMultiEntitySelection: canSelectMultipleEntities,
+        })
+        const displayName = getDisplayName({
+            entityName,
+            columnName,
+            seriesStrategy,
+            hasMultipleEntitiesSelected,
         })
 
         let seriesColor: Color
@@ -289,7 +311,7 @@ export class LineChartState implements ChartState, ColorScaleManager {
                     entityName,
                     columnName,
                     seriesStrategy,
-                    availableEntityNames,
+                    hasMultipleEntitiesSelected,
                 })
             )
         }
@@ -297,10 +319,52 @@ export class LineChartState implements ChartState, ColorScaleManager {
         return {
             points,
             seriesName,
+            entityName,
+            columnName,
+            displayName,
             isProjection: column.isProjection,
             plotMarkersOnly: column.display?.plotMarkersOnlyInLineChart,
             color: seriesColor,
+            focus: this.focusArray.state(seriesName),
         }
+    }
+
+    toHorizontalAxis(config: AxisConfig): HorizontalAxis {
+        const axis = config.toHorizontalAxis()
+
+        // Update domain
+        axis.updateDomainPreservingUserSettings(
+            this.transformedTable.timeDomainFor(this.yColumnSlugs)
+        )
+
+        axis.scaleType = ScaleType.linear
+        axis.formatColumn = this.inputTable.timeColumn
+        axis.hideFractionalTicks = true
+
+        return axis
+    }
+
+    toVerticalAxis(config: AxisConfig): VerticalAxis {
+        const axis = config.toVerticalAxis()
+
+        // Update domain
+        const yDomain = this.transformedTable.domainFor(this.yColumnSlugs)
+        axis.updateDomainPreservingUserSettings([
+            Math.min(axis.domain[0], yDomain[0]),
+            Math.max(axis.domain[1], yDomain[1]),
+        ])
+
+        // All y axis points are integral, don't show fractional ticks in that case
+        axis.hideFractionalTicks = this.yColumns.every(
+            (yColumn) => yColumn.isAllIntegers
+        )
+
+        // Line charts don't have a y-axis label
+        axis.label = ""
+
+        axis.formatColumn = this.formatColumn
+
+        return axis
     }
 
     @computed get errorInfo(): ChartErrorInfo {

@@ -10,6 +10,7 @@ import {
     GrapherTabQueryParam,
 } from "@ourworldindata/types"
 import * as R from "remeda"
+import { match } from "ts-pattern"
 
 /**
  * Chart type combinations that are currently supported. Every subset of these
@@ -42,6 +43,17 @@ export const CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
     [GRAPHER_CHART_TYPES.DiscreteBar]: "Bar",
     [GRAPHER_CHART_TYPES.StackedDiscreteBar]: "Stacked bar",
     [GRAPHER_CHART_TYPES.Marimekko]: "Marimekko",
+}
+
+export const LONG_CHART_TYPE_LABEL: Record<GrapherChartType, string> = {
+    [GRAPHER_CHART_TYPES.LineChart]: "Line chart",
+    [GRAPHER_CHART_TYPES.SlopeChart]: "Slope chart",
+    [GRAPHER_CHART_TYPES.ScatterPlot]: "Scatter plot",
+    [GRAPHER_CHART_TYPES.StackedArea]: "Stacked area chart",
+    [GRAPHER_CHART_TYPES.StackedBar]: "Bar chart",
+    [GRAPHER_CHART_TYPES.DiscreteBar]: "Bar chart",
+    [GRAPHER_CHART_TYPES.StackedDiscreteBar]: "Bar chart",
+    [GRAPHER_CHART_TYPES.Marimekko]: "Marimekko chart",
 }
 
 const MAP_CHART_TAB_CONFIG_OPTION_TO_CHART_TYPE_NAME: Record<
@@ -87,6 +99,34 @@ export function mapChartTypeNameToQueryParam(
     chartType: GrapherChartType
 ): ChartTabConfigOption {
     return MAP_CHART_TYPE_NAME_TO_CHART_TAB_CONFIG_OPTION[chartType]
+}
+
+export function mapGrapherTabNameToConfigOption(
+    tabName: GrapherTabName
+): GrapherTabConfigOption {
+    return match(tabName)
+        .with(GRAPHER_TAB_NAMES.Table, () => GRAPHER_TAB_CONFIG_OPTIONS.table)
+        .with(GRAPHER_TAB_NAMES.WorldMap, () => GRAPHER_TAB_CONFIG_OPTIONS.map)
+        .otherwise((tabName) => mapChartTypeNameToTabConfigOption(tabName))
+}
+
+export const mapGrapherTabNameToQueryParam = mapGrapherTabNameToConfigOption
+
+export function makeLabelForGrapherTab(
+    tab: GrapherTabName,
+    options?: { useGenericChartLabel?: boolean; format?: "short" | "long" }
+): string {
+    const { useGenericChartLabel = false, format = "short" } = options ?? {}
+
+    if (tab === GRAPHER_TAB_NAMES.Table) return "Table"
+    if (tab === GRAPHER_TAB_NAMES.WorldMap)
+        return format === "short" ? "Map" : "World map"
+
+    if (useGenericChartLabel) return "Chart"
+
+    return format === "short"
+        ? CHART_TYPE_LABEL[tab]
+        : LONG_CHART_TYPE_LABEL[tab]
 }
 
 export function findPotentialChartTypeSiblings(

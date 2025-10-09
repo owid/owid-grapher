@@ -1,15 +1,25 @@
 import { Url } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
-import { SearchState, SearchAction, Filter, FilterType } from "./searchTypes.js"
+import { uniqueBy } from "remeda"
+import {
+    SearchState,
+    SearchAction,
+    Filter,
+    FilterType,
+    SearchResultType,
+    SearchUrlParam,
+} from "./searchTypes.js"
 import {
     createCountryFilter,
     createTopicFilter,
     deserializeSet,
     getFilterNamesOfType,
+    isValidResultType,
     serializeSet,
+    removeMatchedWordsWithStopWords,
+    splitIntoWords,
 } from "./searchUtils.js"
 
-// Helper functions to handle filter actions
 function handleAddFilter(state: SearchState, filter: Filter): SearchState {
     const filterExists = state.filters.some(
         (f) => f.type === filter.type && f.name === filter.name
@@ -17,7 +27,6 @@ function handleAddFilter(state: SearchState, filter: Filter): SearchState {
     const newFilters = filterExists ? state.filters : [...state.filters, filter]
     return {
         ...state,
-        page: 0,
         filters: newFilters,
     }
 }
@@ -33,7 +42,6 @@ function handleRemoveFilter(state: SearchState, filter: Filter): SearchState {
 
     return {
         ...state,
-        page: 0,
         requireAllCountries: hasCountryFilters
             ? state.requireAllCountries
             : false,
@@ -48,8 +56,7 @@ export function searchReducer(
     return match(action)
         .with({ type: "setQuery" }, ({ query }) => ({
             ...state,
-            page: 0,
-            query,
+            query: query.trim(),
         }))
         .with({ type: "addFilter" }, ({ filter }) =>
             handleAddFilter(state, filter)
@@ -63,25 +70,55 @@ export function searchReducer(
         .with({ type: "removeCountry" }, ({ country }) =>
             handleRemoveFilter(state, createCountryFilter(country))
         )
-        .with({ type: "addTopic" }, ({ topic }) =>
-            handleAddFilter(state, createTopicFilter(topic))
-        )
         .with({ type: "removeTopic" }, ({ topic }) =>
             handleRemoveFilter(state, createTopicFilter(topic))
         )
+        .with({ type: "setTopic" }, ({ topic }) => {
+            // Remove all existing topic filters and add the new one
+            const newFilters = state.filters.filter(
+                (f) => f.type !== FilterType.TOPIC
+            )
+            return {
+                ...state,
+                filters: [...newFilters, createTopicFilter(topic)],
+            }
+        })
         .with({ type: "toggleRequireAllCountries" }, () => ({
             ...state,
             requireAllCountries: !state.requireAllCountries,
-        }))
-        .with({ type: "setPage" }, ({ page }) => ({
-            ...state,
-            page,
         }))
         .with({ type: "setState" }, ({ state }) => state)
         .with({ type: "reset" }, () => ({
             ...state,
             ...getInitialSearchState(),
         }))
+        .with({ type: "setResultType" }, ({ resultType }) => ({
+            ...state,
+            resultType,
+        }))
+        .with(
+            // Apply multiple filters and update query in one atomic operation
+            { type: "replaceQueryWithFilters" },
+            ({ filters, matchedPositions }) => {
+                const queryWords = splitIntoWords(state.query)
+                const newQuery = removeMatchedWordsWithStopWords(
+                    queryWords,
+                    matchedPositions
+                )
+
+                // Deduplicate filters by type and name
+                const allFilters = [...state.filters, ...filters]
+                const uniqueFilters = uniqueBy(
+                    allFilters,
+                    (filter) => `${filter.type}:${filter.name}`
+                )
+                return {
+                    ...state,
+                    query: newQuery.trim(),
+                    filters: uniqueFilters,
+                }
+            }
+        )
         .exhaustive()
 }
 
@@ -89,27 +126,29 @@ export function createActions(dispatch: (action: SearchAction) => void) {
     // prettier-ignore
     return {
         addCountry: (country: string) => dispatch({ type: "addCountry", country }),
-        addTopic: (topic: string) => dispatch({ type: "addTopic", topic }),
+        setTopic: (topic: string) => dispatch({ type: "setTopic", topic }),
         removeCountry: (country: string) => dispatch({ type: "removeCountry", country }),
         removeTopic: (topic: string) => dispatch({ type: "removeTopic", topic }),
         addFilter: (filter: Filter) => dispatch({ type: "addFilter", filter }),
         removeFilter: (filter: Filter) => dispatch({ type: "removeFilter", filter }),
-        setPage: (page: number) => dispatch({ type: "setPage", page }),
         setQuery: (query: string) => dispatch({ type: "setQuery", query }),
         setState: (state: SearchState) => dispatch({ type: "setState", state }),
         toggleRequireAllCountries: () => dispatch({ type: "toggleRequireAllCountries" }),
+        setResultType: (resultType: SearchResultType) => dispatch({ type: "setResultType", resultType }),
+        replaceQueryWithFilters: (filters: Filter[], matchedPositions: number[]) => dispatch({ type: "replaceQueryWithFilters", filters, matchedPositions }),
         reset: () => dispatch({ type: "reset" }),
     }
 }
 
 export function getInitialSearchState(): SearchState {
-    // Always return the default state to prevent hydration mismatches
-    // The actual URL state will be applied client-side after hydration
+    // Always return the default state to prevent hydration mismatches. The
+    // actual URL state will be applied client-side after hydration using the
+    // useSyncUrlToState hook.
     return {
         query: "",
         filters: [],
         requireAllCountries: false,
-        page: 0,
+        resultType: SearchResultType.DATA,
     }
 }
 
@@ -122,11 +161,18 @@ export function urlToSearchState(url: Url): SearchState {
         [...countriesSet].map((country) => createCountryFilter(country)),
     ].flat()
 
+    const queryParams = url.queryParams as Record<
+        SearchUrlParam,
+        string | undefined
+    >
+
     return {
-        query: url.queryParams.q || "",
+        query: queryParams.q || "",
         filters,
         requireAllCountries: url.queryParams.requireAllCountries === "true",
-        page: url.queryParams.page ? parseInt(url.queryParams.page) - 1 : 0,
+        resultType: isValidResultType(url.queryParams.resultType)
+            ? url.queryParams.resultType
+            : SearchResultType.DATA,
     }
 }
 
@@ -135,16 +181,21 @@ export function searchStateToUrl(state: SearchState) {
         typeof window === "undefined" ? "" : window.location.href
     )
 
-    const params = {
-        q: state.query || undefined,
-        topics: serializeSet(
+    const params: Record<SearchUrlParam, string | undefined> = {
+        [SearchUrlParam.QUERY]: state.query || undefined,
+        [SearchUrlParam.TOPIC]: serializeSet(
             getFilterNamesOfType(state.filters, FilterType.TOPIC)
         ),
-        countries: serializeSet(
+        [SearchUrlParam.COUNTRY]: serializeSet(
             getFilterNamesOfType(state.filters, FilterType.COUNTRY)
         ),
-        requireAllCountries: state.requireAllCountries ? "true" : undefined,
-        page: state.page > 0 ? (state.page + 1).toString() : undefined,
+        [SearchUrlParam.REQUIRE_ALL_COUNTRIES]: state.requireAllCountries
+            ? "true"
+            : undefined,
+        [SearchUrlParam.RESULT_TYPE]:
+            state.resultType !== SearchResultType.DATA
+                ? state.resultType
+                : undefined,
     }
 
     Object.entries(params).forEach(([key, value]) => {

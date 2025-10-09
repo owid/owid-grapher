@@ -1,8 +1,10 @@
 import { Env, extensions, Etag } from "../_common/env.js"
 import {
     fetchCsvForGrapher,
+    fetchDataValuesForGrapher,
     fetchMetadataForGrapher,
     fetchReadmeForGrapher,
+    fetchSearchResultTableForGrapher,
     fetchZipForGrapher,
 } from "../_common/downloadFunctions.js"
 import { handleThumbnailRequest } from "../_common/reusableHandlers.js"
@@ -84,6 +86,24 @@ router
         `/grapher/:slug${extensions.zip}`,
         async ({ params: { slug } }, { searchParams }, env) =>
             fetchZipForGrapher({ type: "slug", id: slug }, env, searchParams)
+    )
+    .get(
+        `/grapher/:slug${extensions.values}`,
+        async ({ params: { slug } }, { searchParams }, env) =>
+            fetchDataValuesForGrapher(
+                { type: "slug", id: slug },
+                env,
+                searchParams
+            )
+    )
+    .get(
+        `/grapher/:slug${extensions.searchResultTable}`,
+        async ({ params: { slug } }, { searchParams }, env) =>
+            fetchSearchResultTableForGrapher(
+                { type: "slug", id: slug },
+                env,
+                searchParams
+            )
     )
     .get(
         "/grapher/:slug",
