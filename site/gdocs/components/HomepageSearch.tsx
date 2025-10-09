@@ -5,10 +5,12 @@ import { commafyNumber } from "@ourworldindata/utils"
 import { SEARCH_BASE_PATH } from "../../search/searchUtils.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
+    faArrowRight,
     faBookmark,
     faChartLine,
     faMagnifyingGlassChart,
 } from "@fortawesome/free-solid-svg-icons"
+import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 
 export function HomepageSearch(props: { className?: string }) {
     const { homepageMetadata } = useContext(AttachmentsContext)
@@ -63,6 +65,12 @@ export function HomepageSearch(props: { className?: string }) {
                 Research and data to make progress against the world’s largest
                 problems.
             </h2>
+            <a
+                href={`${BAKED_BASE_URL}/about#our-mission`}
+                className="homepage-search__about-link span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"
+            >
+                Read about our mission <FontAwesomeIcon icon={faArrowRight} />
+            </a>
             <Autocomplete
                 className="span-cols-6 col-start-5 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"
                 panelClassName="homepage-search__panel"
