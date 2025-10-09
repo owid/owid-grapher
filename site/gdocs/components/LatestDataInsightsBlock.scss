@@ -1,5 +1,10 @@
 .latest-data-insights-block {
     padding-top: 24px;
+    @include md-up {
+        margin-top: 32px;
+        margin-bottom: 16px;
+        background-color: $blue-5;
+    }
 }
 
 .latest-data-insights-block__header {
