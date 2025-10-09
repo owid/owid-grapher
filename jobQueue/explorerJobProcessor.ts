@@ -51,14 +51,14 @@ export async function processExplorerViewsJob(
 ): Promise<JobResult> {
     const { slug, explorerUpdatedAt } = job.payload
 
-    let refreshResult: ExplorerViewsRefreshResult | undefined
     let isPublished: boolean = false
 
     const getNow = opts.now ?? (() => new Date())
     const maxAttempts = opts.maxAttempts ?? MAX_ATTEMPTS
 
     try {
-        // Phase 1: DB operations in a single transaction
+        // Phase 1: Quick check and status update - releases explorers lock immediately
+        // This prevents blocking concurrent PUT requests to update the explorer
         const shouldContinue = await knexReadWriteTransaction(async (trx) => {
             // Check if explorer still exists and get current state
             const current = await trx("explorers")
@@ -90,14 +90,21 @@ export async function processExplorerViewsJob(
             // Set explorer status to "refreshing"
             await updateExplorerRefreshStatus(trx, slug, "refreshing")
 
-            // Perform DB-only refresh operations
-            refreshResult = await refreshExplorerViewsForSlug(trx, slug)
-
+            // Transaction commits here, releasing the lock on explorers table
             return true
         })
 
-        // If we got here without refreshResult, the job was marked done early
-        if (!shouldContinue || !refreshResult) {
+        if (!shouldContinue) {
+            return { success: true, shouldRetry: false }
+        }
+
+        // Phase 2: Heavy view generation in separate transaction
+        // This avoids holding locks on the explorers table during the long operation
+        const refreshResult = await knexReadWriteTransaction(async (trx) => {
+            return await refreshExplorerViewsForSlug(trx, slug)
+        })
+
+        if (!refreshResult) {
             return { success: true, shouldRetry: false }
         }
 
@@ -238,6 +245,9 @@ export async function processExplorerViewsJob(
         console.error(
             `[${new Date().toISOString()}] Error processing job ${job.id} for explorer ${slug}:`,
             error
+        )
+        void logErrorAndMaybeCaptureInSentry(
+            error instanceof Error ? error : new Error(String(error))
         )
 
         // Handle job failure in a new transaction
