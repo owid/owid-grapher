@@ -248,8 +248,6 @@ describe("Explorer queue semantics", { timeout: 20000 }, () => {
         const finalJob = await env.testKnex!(JobsTableName)
             .where({ id: job.id })
             .first()
-        // With maxAttempts=1, job may be marked failed or (implementation detail)
-        // marked done with an error message; assert robustly.
         expect(["failed", "done"].includes(finalJob.state)).toBe(true)
         if (finalJob.state === "failed") {
             expect(finalJob.lastError).toBeTruthy()
