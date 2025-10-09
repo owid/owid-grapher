@@ -135,15 +135,12 @@ async function getMultiDimDataPagesWithInheritedTags(
             )
         }
 
-        const topicTags = new Set<string>(
-            tags.flatMap((tag) =>
-                getUniqueNamesFromTagHierarchies(
-                    topicHierarchiesByChildName[tag]
-                )
-            )
+        const topicTags = getUniqueNamesFromTagHierarchies(
+            tags,
+            topicHierarchiesByChildName
         )
 
-        result.push({ multiDim, tags: [...topicTags] })
+        result.push({ multiDim, tags: topicTags })
     }
 
     return result
