@@ -621,15 +621,18 @@ const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
                 archivalDate,
                 opts
             ),
-            archivePostPages(
-                trx,
-                postsToArchive,
-                postInfos,
-                commonCtx,
-                archivalDate,
-                opts
-            ),
         ])
+
+        // Must run after the charts so we can fetch their latest archived
+        // versions.
+        await archivePostPages(
+            trx,
+            postsToArchive,
+            postInfos,
+            commonCtx,
+            archivalDate,
+            opts
+        )
 
         if (opts.latestDir) {
             await copyToLatestDir(

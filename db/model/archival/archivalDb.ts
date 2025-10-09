@@ -36,6 +36,9 @@ import {
     DbRawPostGdoc,
     OwidGdocType,
     parseChartConfig,
+    PostsGdocsLinksTableName,
+    DbPlainPostGdocLink,
+    ContentGraphLinkType,
 } from "@ourworldindata/types"
 import * as db from "../../db.js"
 import { stringify } from "safe-stable-stringify"
@@ -65,7 +68,8 @@ type VariableChecksums = Pick<DbRawVariable, "id"> & {
 
 // Fetches checksum/hash information about all published charts from the database
 export const getGrapherChecksumsFromDb = async (
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    slugs?: string[]
 ): Promise<GrapherChecksumsObjectWithHash[]> => {
     type FlatGrapherChecksums = {
         chartId: number
@@ -89,9 +93,11 @@ export const getGrapherChecksumsFromDb = async (
         JOIN chart_dimensions cd on cd.chartId = c.id
         JOIN variables v on cd.variableId = v.id
         WHERE cc.full ->> "$.isPublished" = "true"
+        ${slugs ? `AND cc.slug IN (${slugs.map(() => "?").join(",")})` : ""}
         GROUP BY c.id
         ORDER BY c.id
-        `
+        `,
+            slugs ?? []
         )
         .then((row) =>
             row.map((r) => ({
@@ -259,7 +265,16 @@ const hashExplorerChecksumsObj = (checksums: ExplorerChecksums): string => {
 }
 
 const hashPostChecksumsObj = (checksums: PostChecksums): string => {
-    const stringified = stringify(_.pick(checksums, "postContentMd5"))
+    const stringified = stringify(
+        _.pick(
+            checksums,
+            "postContentMd5",
+            "indicators",
+            "graphers",
+            "explorers",
+            "multiDims"
+        )
+    )
     const hashed = hashHex(stringified, null)
     return hashed
 }
@@ -397,15 +412,22 @@ export const getAllChartVersionsForChartId = async (
 
 // Fetches checksum/hash information about all published multi-dim data pages from the database
 export const getMultiDimChecksumsFromDb = async (
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    slugs?: string[]
 ): Promise<MultiDimChecksumsObjectWithHash[]> => {
     // Get all published multi-dim data pages
-    const multiDimPages = await knex<DbPlainMultiDimDataPage>(
+    const multiDimPagesQuery = knex<DbPlainMultiDimDataPage>(
         MultiDimDataPagesTableName
     )
         .select("id", "slug", "config", "configMd5")
         .where("published", true)
         .orderBy("id")
+
+    if (slugs) {
+        multiDimPagesQuery.whereIn("slug", slugs)
+    }
+
+    const multiDimPages = await multiDimPagesQuery
 
     if (multiDimPages.length === 0) return []
 
@@ -455,7 +477,7 @@ export const getMultiDimChecksumsFromDb = async (
     // Get variable checksums
     const variableChecksums = await knex<VariableChecksums>(VariablesTableName)
         .select("id", "metadataChecksum", "dataChecksum")
-        .whereIn("id", Array.from(allVariableIds))
+        .whereIn("id", [...allVariableIds])
 
     const variableChecksumsMap = new Map(
         variableChecksums.map((v) => [
@@ -524,11 +546,12 @@ export const getAllMultiDimVersionsForId = async (
 }
 
 export const getExplorerChecksumsFromDb = async (
-    knex: db.KnexReadonlyTransaction
+    knex: db.KnexReadonlyTransaction,
+    slugs?: string[]
 ): Promise<ExplorerChecksumsObjectWithHash[]> => {
     // Get all published explorers that are either indicator-based or grapher-based
     // (excludes CSV-based explorers that have no variables or charts)
-    const explorers = await knex<DbPlainExplorer>(ExplorersTableName)
+    const explorersQuery = knex<DbPlainExplorer>(ExplorersTableName)
         .select("slug", "config", "configMd5")
         .where("isPublished", true)
         .where(function () {
@@ -543,6 +566,12 @@ export const getExplorerChecksumsFromDb = async (
             })
         })
         .orderBy("slug")
+
+    if (slugs) {
+        explorersQuery.whereIn("slug", slugs)
+    }
+
+    const explorers = await explorersQuery
 
     if (explorers.length === 0) return []
 
@@ -619,7 +648,7 @@ export const getExplorerChecksumsFromDb = async (
     // Get variable checksums
     const variableChecksums = await knex<VariableChecksums>(VariablesTableName)
         .select("id", "metadataChecksum", "dataChecksum")
-        .whereIn("id", Array.from(allVariableIds))
+        .whereIn("id", [...allVariableIds])
 
     const variableChecksumsMap = new Map(
         variableChecksums.map((v) => [
@@ -635,9 +664,9 @@ export const getExplorerChecksumsFromDb = async (
         explorers.map(async (explorer) => {
             const chartConfigs =
                 chartConfigsByExplorerSlug.get(explorer.slug) || {}
-            const usedVariableIds = Array.from(
-                variablesByExplorerSlug.get(explorer.slug) || []
-            )
+            const usedVariableIds = [
+                ...(variablesByExplorerSlug.get(explorer.slug) || []),
+            ]
 
             const indicators: {
                 [id: string]: { metadataChecksum: string; dataChecksum: string }
@@ -778,6 +807,112 @@ export const getLatestExplorerArchivedVersionsIfEnabled = async (
     return await getLatestExplorerArchivedVersions(knex, slugs)
 }
 
+type LinkedChart = Pick<DbPlainPostGdocLink, "sourceId" | "linkType" | "target">
+
+interface ChartsByPost {
+    grapher: Set<string>
+    explorer: Set<string>
+}
+
+const getLinkedChartsFromPosts = async (
+    knex: db.KnexReadonlyTransaction,
+    postIds: string[]
+): Promise<LinkedChart[]> => {
+    if (postIds.length === 0) return []
+    return await knex<DbPlainPostGdocLink>(PostsGdocsLinksTableName)
+        .distinct("sourceId", "linkType", "target")
+        .whereIn("sourceId", postIds)
+        .whereIn("linkType", [
+            ContentGraphLinkType.Grapher,
+            ContentGraphLinkType.Explorer,
+        ])
+        .where("componentType", "chart")
+}
+
+const groupLinkedChartsByPost = (
+    posts: Pick<DbRawPostGdoc, "id">[],
+    linkedCharts: LinkedChart[]
+): Map<string, ChartsByPost> => {
+    const chartsByPost = new Map<string, ChartsByPost>()
+
+    for (const post of posts) {
+        chartsByPost.set(post.id, {
+            grapher: new Set<string>(),
+            explorer: new Set<string>(),
+        })
+    }
+
+    for (const link of linkedCharts) {
+        const postCharts = chartsByPost.get(link.sourceId)
+        if (postCharts) {
+            if (link.linkType === ContentGraphLinkType.Grapher) {
+                postCharts.grapher.add(link.target)
+            } else if (link.linkType === ContentGraphLinkType.Explorer) {
+                postCharts.explorer.add(link.target)
+            }
+        }
+    }
+
+    return chartsByPost
+}
+
+const getVariableChecksumsForIds = async (
+    knex: db.KnexReadonlyTransaction,
+    variableIds: Set<number>
+): Promise<Map<string, { metadataChecksum: string; dataChecksum: string }>> => {
+    if (variableIds.size === 0) {
+        return new Map()
+    }
+
+    const variableChecksums = await knex<VariableChecksums>(VariablesTableName)
+        .select("id", "metadataChecksum", "dataChecksum")
+        .whereIn("id", Array.from(variableIds))
+
+    return new Map(
+        variableChecksums.map((v) => [
+            v.id.toString(),
+            {
+                metadataChecksum: v.metadataChecksum,
+                dataChecksum: v.dataChecksum,
+            },
+        ])
+    )
+}
+
+const resolveGrapherRedirects = async (
+    knex: db.KnexReadonlyTransaction,
+    slugs: string[]
+): Promise<Map<string, string>> => {
+    const redirectMap = new Map<string, string>()
+    if (slugs.length === 0) return redirectMap
+
+    const redirects = await db.knexRaw<{
+        oldSlug: string
+        newSlug: string
+    }>(
+        knex,
+        `-- sql
+        SELECT
+            csr.slug as oldSlug,
+            cc.slug as newSlug
+        FROM chart_slug_redirects csr
+        INNER JOIN charts c ON c.id = csr.chart_id
+        INNER JOIN chart_configs cc ON cc.id = c.configId
+        WHERE csr.slug IN (${slugs.map(() => "?").join(",")})
+        `,
+        slugs
+    )
+
+    for (const slug of slugs) {
+        redirectMap.set(slug, slug)
+    }
+    for (const redirect of redirects) {
+        redirectMap.set(redirect.oldSlug, redirect.newSlug)
+    }
+
+    return redirectMap
+}
+
 export const getPostChecksumsFromDb = async (
     knex: db.KnexReadonlyTransaction
 ): Promise<PostChecksumsObjectWithHash[]> => {
@@ -788,10 +923,185 @@ export const getPostChecksumsFromDb = async (
 
     if (posts.length === 0) return []
 
-    // Build result with checksums and hashed checksums
+    const postIds = posts.map((p) => p.id)
+    const linkedCharts = await getLinkedChartsFromPosts(knex, postIds)
+    const chartsByPost = groupLinkedChartsByPost(posts, linkedCharts)
+
+    const allGrapherSlugs = new Set<string>()
+    const allExplorerSlugs = new Set<string>()
+    for (const [, charts] of chartsByPost) {
+        charts.grapher.forEach((slug) => allGrapherSlugs.add(slug))
+        charts.explorer.forEach((slug) => allExplorerSlugs.add(slug))
+    }
+
+    const grapherSlugRedirects = await resolveGrapherRedirects(
+        knex,
+        Array.from(allGrapherSlugs)
+    )
+
+    // Replace original slugs with resolved slugs.
+    for (const [, charts] of chartsByPost) {
+        charts.grapher = new Set(
+            charts.grapher
+                .values()
+                .map((slug) => grapherSlugRedirects.get(slug) ?? slug)
+        )
+    }
+
+    const resolvedGrapherSlugs = new Set(
+        chartsByPost.values().flatMap((charts) => charts.grapher)
+    )
+
+    const grapherChecksums = await getGrapherChecksumsFromDb(
+        knex,
+        Array.from(resolvedGrapherSlugs)
+    )
+    const grapherChecksumsMap = new Map(
+        grapherChecksums.map((c) => [c.chartSlug, c])
+    )
+
+    const multiDimSlugs = Array.from(resolvedGrapherSlugs).filter(
+        (slug) => !grapherChecksumsMap.has(slug)
+    )
+    const multiDimChecksums = await getMultiDimChecksumsFromDb(
+        knex,
+        multiDimSlugs
+    )
+    const multiDimChecksumsMap = new Map(
+        multiDimChecksums.map((m) => [m.multiDimSlug, m])
+    )
+
+    const explorerChecksums = await getExplorerChecksumsFromDb(
+        knex,
+        Array.from(allExplorerSlugs)
+    )
+    const explorerChecksumsMap = new Map(
+        explorerChecksums.map((e) => [e.explorerSlug, e])
+    )
+
+    const allVariableIds = new Set<number>()
+    for (const grapher of grapherChecksums) {
+        Object.keys(grapher.checksums.indicators).forEach((id) =>
+            allVariableIds.add(parseInt(id))
+        )
+    }
+    for (const multiDim of multiDimChecksums) {
+        Object.keys(multiDim.checksums.indicators).forEach((id) =>
+            allVariableIds.add(parseInt(id))
+        )
+    }
+    for (const explorer of explorerChecksums) {
+        Object.keys(explorer.checksums.indicators).forEach((id) =>
+            allVariableIds.add(parseInt(id))
+        )
+    }
+
+    const variableChecksumsMap = await getVariableChecksumsForIds(
+        knex,
+        allVariableIds
+    )
+
     return posts.map((post) => {
+        const postCharts = chartsByPost.get(post.id)!
+
+        const graphers: Record<
+            string,
+            { slug: string; chartConfigMd5: string }
+        > = {}
+        for (const slug of postCharts.grapher) {
+            const checksum = grapherChecksumsMap.get(slug)
+            if (checksum) {
+                graphers[checksum.chartId.toString()] = {
+                    slug: checksum.chartSlug,
+                    chartConfigMd5: checksum.checksums.chartConfigMd5,
+                }
+            }
+        }
+
+        const multiDims: Record<
+            string,
+            {
+                slug: string
+                multiDimConfigMd5: string
+                chartConfigs: Record<string, string>
+            }
+        > = {}
+        for (const slug of postCharts.grapher) {
+            const checksum = multiDimChecksumsMap.get(slug)
+            if (checksum) {
+                multiDims[checksum.multiDimId.toString()] = {
+                    slug: checksum.multiDimSlug,
+                    multiDimConfigMd5: checksum.checksums.multiDimConfigMd5,
+                    chartConfigs: checksum.checksums.chartConfigs,
+                }
+            }
+        }
+
+        const explorers: Record<
+            string,
+            {
+                explorerConfigMd5: string
+                chartConfigs: Record<string, string>
+            }
+        > = {}
+        for (const slug of postCharts.explorer) {
+            const checksum = explorerChecksumsMap.get(slug)
+            if (checksum) {
+                explorers[slug] = {
+                    explorerConfigMd5: checksum.checksums.explorerConfigMd5,
+                    chartConfigs: checksum.checksums.chartConfigs,
+                }
+            }
+        }
+
+        const postIndicators: Record<
+            string,
+            { metadataChecksum: string; dataChecksum: string }
+        > = {}
+        for (const slug of postCharts.grapher) {
+            const grapherChecksum = grapherChecksumsMap.get(slug)
+            if (grapherChecksum) {
+                for (const id of Object.keys(
+                    grapherChecksum.checksums.indicators
+                )) {
+                    const variableChecksum = variableChecksumsMap.get(id)
+                    if (variableChecksum) {
+                        postIndicators[id] = variableChecksum
+                    }
+                }
+            }
+            const multiDimChecksum = multiDimChecksumsMap.get(slug)
+            if (multiDimChecksum) {
+                for (const id of Object.keys(
+                    multiDimChecksum.checksums.indicators
+                )) {
+                    const variableChecksum = variableChecksumsMap.get(id)
+                    if (variableChecksum) {
+                        postIndicators[id] = variableChecksum
+                    }
+                }
+            }
+        }
+        for (const slug of postCharts.explorer) {
+            const explorerChecksum = explorerChecksumsMap.get(slug)
+            if (explorerChecksum) {
+                for (const id of Object.keys(
+                    explorerChecksum.checksums.indicators
+                )) {
+                    const variableChecksum = variableChecksumsMap.get(id)
+                    if (variableChecksum) {
+                        postIndicators[id] = variableChecksum
+                    }
+                }
+            }
+        }
+
         const checksums: PostChecksums = {
             postContentMd5: post.contentMd5,
+            indicators: postIndicators,
+            graphers,
+            explorers,
+            multiDims,
         }
 
         return {
