@@ -1380,7 +1380,8 @@ div.raw-html-table__container {
 
     h2 {
         color: $amber;
-        margin: 24px 0;
+        margin-top: 24px;
+        margin-bottom: 8px;
     }
 
     h2.homepage-search__search-heading {
@@ -1478,6 +1479,7 @@ div.raw-html-table__container {
 
     .homepage-search__links--mobile {
         display: none;
+        @include body-3-medium;
         a {
             @include owid-link-60;
             color: $blue-30;
@@ -1506,10 +1508,31 @@ div.raw-html-table__container {
         }
     }
 
+    .homepage-search__about-link {
+        color: $blue-30;
+        margin-top: 0;
+        margin-bottom: 16px;
+        @include body-2-regular;
+        &:visited {
+            color: $blue-30;
+        }
+        &:hover {
+            text-decoration: underline;
+        }
+        svg {
+            font-size: 12px;
+            margin-bottom: 1px;
+        }
+        @include sm-only {
+            @include body-3-regular;
+        }
+    }
+
     .homepage-search__tagline {
         margin-bottom: 0;
         @include sm-only {
             margin-top: 0;
+            @include body-3-medium;
         }
     }
 }

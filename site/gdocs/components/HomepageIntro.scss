@@ -9,9 +9,9 @@
 
 /* Featured work */
 .homepage-intro__featured-work {
-    overflow: scroll;
     @include md-down {
         margin: 0 16px 24px 16px;
+        overflow-x: auto;
     }
 }
 
@@ -85,7 +85,8 @@
 .homepage-intro__announcements {
     background-color: $gray-5;
     padding: 16px;
-    align-self: start;
+    display: flex;
+    flex-direction: column;
 
     @include md-down {
         padding-top: 24px;
@@ -114,6 +115,12 @@
     }
 }
 
+.homepage-intro__announcements-list {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
 .homepage-intro__announcement {
     list-style: none;
     padding: 16px 0;
@@ -122,7 +129,8 @@
 
 .homepage-intro__announcement:last-child {
     border-bottom: none;
-    max-height: 120px;
+    flex: 1 1 0;
+    min-height: 0;
     overflow: hidden;
     position: relative;
 
