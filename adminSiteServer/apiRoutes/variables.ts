@@ -343,11 +343,7 @@ export async function putVariablesVariableIdGrapherConfigETL(
 
     await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
     const chartIdsForRefresh = Array.from(
-        new Set(
-            updatedCharts
-                .map((chart) => chart.chartId)
-                .filter((id): id is number => typeof id === "number")
-        )
+        new Set(updatedCharts.map((chart) => chart.chartId))
     )
     await enqueueExplorerRefreshJobsForDependencies(trx, {
         chartIds: chartIdsForRefresh,
@@ -429,11 +425,7 @@ export async function deleteVariablesVariableIdGrapherConfigETL(
         )
     await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
     const chartIdsForRefresh = Array.from(
-        new Set(
-            updatedCharts
-                .map((chart) => chart.chartId)
-                .filter((id): id is number => typeof id === "number")
-        )
+        new Set(updatedCharts.map((chart) => chart.chartId))
     )
     await enqueueExplorerRefreshJobsForDependencies(trx, {
         chartIds: chartIdsForRefresh,
@@ -480,11 +472,7 @@ export async function putVariablesVariableIdGrapherConfigAdmin(
 
     await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
     const chartIdsForRefresh = Array.from(
-        new Set(
-            updatedCharts
-                .map((chart) => chart.chartId)
-                .filter((id): id is number => typeof id === "number")
-        )
+        new Set(updatedCharts.map((chart) => chart.chartId))
     )
     await enqueueExplorerRefreshJobsForDependencies(trx, {
         chartIds: chartIdsForRefresh,
@@ -557,11 +545,7 @@ export async function deleteVariablesVariableIdGrapherConfigAdmin(
         )
     await updateGrapherConfigsInR2(trx, updatedCharts, updatedMultiDimViews)
     const chartIdsForRefresh = Array.from(
-        new Set(
-            updatedCharts
-                .map((chart) => chart.chartId)
-                .filter((id): id is number => typeof id === "number")
-        )
+        new Set(updatedCharts.map((chart) => chart.chartId))
     )
     await enqueueExplorerRefreshJobsForDependencies(trx, {
         chartIds: chartIdsForRefresh,
