@@ -6,10 +6,7 @@ import {
     updateExplorerRefreshStatus,
     isJobStillRunning,
 } from "../db/model/Jobs.js"
-import {
-    refreshExplorerViewsForSlug,
-    ExplorerViewsRefreshResult,
-} from "../db/model/ExplorerViews.js"
+import { refreshExplorerViewsForSlug } from "../db/model/ExplorerViews.js"
 import { knexReadWriteTransaction, knexReadonlyTransaction } from "../db/db.js"
 import {
     saveGrapherConfigToR2ByUUID,
