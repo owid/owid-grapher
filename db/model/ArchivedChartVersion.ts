@@ -29,7 +29,12 @@ export async function getLatestArchivedChartVersions(
     const queryBuilder = knex<DbPlainArchivedChartVersion>(
         `${ArchivedChartVersionsTableName} as a1`
     )
-        .select("a1.grapherId", "a1.archivalTimestamp", "a1.hashOfInputs")
+        .select(
+            "a1.grapherId",
+            "a1.grapherSlug",
+            "a1.archivalTimestamp",
+            "a1.hashOfInputs"
+        )
         .joinRaw(
             `-- sql
             INNER JOIN (
