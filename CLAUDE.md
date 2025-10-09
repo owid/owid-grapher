@@ -8,7 +8,7 @@
 - make migrate: apply migrations
 - make dbtest: run database and api tests
 
-When you have completed implementing a set of changes, ALWAYS run `yarn typecheck` and fix any errors you have.
+When you have completed implementing a big set of changes, run `yarn typecheck` and fix any errors you have.
 
 When you want to create a git commit, refer to docs/agent-guidelines/commit-messages.md for instructions.
 
