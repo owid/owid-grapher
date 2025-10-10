@@ -1,15 +1,6 @@
 .search-chart-hit-header {
     overflow: hidden;
 
-    .search-chart-hit-header__content-wrapper {
-        display: flex;
-        gap: 16px;
-
-        @include sm-only {
-            display: block;
-        }
-    }
-
     .search-chart-hit-header__logo {
         height: 37px;
         width: auto;
@@ -86,6 +77,11 @@
     }
 
     &.search-chart-hit-header--large {
+        .search-chart-hit-header__content-wrapper {
+            display: flex;
+            gap: 16px;
+        }
+
         .search-chart-hit-header__title {
             font-size: 1.375rem;
         }
