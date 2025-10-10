@@ -222,6 +222,11 @@ export async function fetchDataValuesForGrapher(
         searchParams,
         env
     )
+
+    // Optionally ignore projected data if requested
+    const shouldIgnoreProjections = searchParams.has("ignoreProjections")
+    if (shouldIgnoreProjections) dropProjectionColumns(grapher.grapherState)
+
     const inputTable = await fetchInputTableForConfig({
         dimensions: grapher.grapherState.dimensions,
         selectedEntityColors: grapher.grapherState.selectedEntityColors,
@@ -292,6 +297,11 @@ export async function fetchSearchResultDataForGrapher(
         searchParams,
         env
     )
+
+    // Optionally ignore projected data if requested
+    const shouldIgnoreProjections = searchParams.has("ignoreProjections")
+    if (shouldIgnoreProjections) dropProjectionColumns(grapher.grapherState)
+
     const dataApiUrl = getDataApiUrl(env)
     const inputTable = await fetchInputTableForConfig({
         dimensions: grapher.grapherState.dimensions,
@@ -382,4 +392,10 @@ export function parseVersionParam(
     const numDataTableRowsPerColumn = parseInt(version ?? "", 10)
     if (isNaN(numDataTableRowsPerColumn)) return defaultVersion
     return numDataTableRowsPerColumn
+}
+
+export function dropProjectionColumns(grapherState: GrapherState) {
+    grapherState.dimensions = grapherState.dimensions.filter(
+        (dim) => !dim.display.isProjection
+    )
 }
