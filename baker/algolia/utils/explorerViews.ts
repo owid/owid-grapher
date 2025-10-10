@@ -14,6 +14,7 @@ import { getVariableMetadataRoute, GrapherState } from "@ourworldindata/grapher"
 import pMap from "p-map"
 import { ExplorerAdminServer } from "../../../explorerAdminServer/ExplorerAdminServer.js"
 import { parseDelimited } from "@ourworldindata/core-table"
+import { toPlaintext } from "@ourworldindata/components"
 import {
     ColumnTypeNames,
     CoreRow,
@@ -45,7 +46,6 @@ import {
     maybeAddChangeInPrefix,
     processAvailableEntities as processRecordAvailableEntities,
     scaleRecordScores,
-    toPlaintext,
 } from "./shared.js"
 import {
     ChartRecord,

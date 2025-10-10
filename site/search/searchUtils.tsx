@@ -2,17 +2,12 @@ import * as _ from "lodash-es"
 import * as R from "remeda"
 import {
     EntityName,
-    GRAPHER_CHART_TYPES,
     GRAPHER_TAB_QUERY_PARAMS,
-    GrapherChartType,
     GrapherQueryParams,
     GrapherTabName,
     GrapherTabQueryParam,
-    GrapherTrendArrowDirection,
     GrapherValuesJson,
-    GrapherValuesJsonDataPoint,
     OwidGdocType,
-    PrimitiveType,
     TagGraphRoot,
     TimeBounds,
 } from "@ourworldindata/types"
@@ -25,7 +20,6 @@ import {
     timeBoundToTimeBoundString,
     queryParamsToStr,
     omitUndefinedValues,
-    getRegionByName,
 } from "@ourworldindata/utils"
 import {
     generateSelectedEntityNamesParam,
@@ -71,9 +65,10 @@ import {
     GRAPHER_DYNAMIC_THUMBNAIL_URL,
 } from "../../settings/clientSettings.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
-import { SearchChartHitDataDisplayProps } from "./SearchChartHitDataDisplay.js"
-import { CoreColumn } from "@ourworldindata/core-table"
-import { PreviewVariant } from "./SearchChartHitRichDataTypes.js"
+import {
+    PreviewVariant,
+    RichDataComponentVariant,
+} from "./SearchChartHitRichDataTypes.js"
 
 // Common English stop words that should be ignored in search
 const STOP_WORDS = new Set([
@@ -256,21 +251,40 @@ export const constructChartInfoUrl = ({
     return `${basePath}/${hit.slug}.values.json${queryStr}`
 }
 
-export const constructSearchTableUrl = ({
+export const constructSearchResultUrl = ({
     hit,
-    grapherParams,
+    params,
 }: {
     hit: SearchChartHit
-    grapherParams?: GrapherQueryParams
+    params: {
+        version: number
+        variant: RichDataComponentVariant
+        entities?: EntityName[]
+        numDataTableRowsPerColumn?: number
+    }
 }): string | undefined => {
-    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
+    const viewQueryStr = generateQueryStrForChartHit({ hit })
+
+    let optionsQueryStr = `version=${params.version}&variant=${params.variant}`
+    if (params.entities && params.entities.length > 0)
+        optionsQueryStr += `&entities=${generateSelectedEntityNamesParam(params.entities)}`
+    if (params.numDataTableRowsPerColumn) {
+        optionsQueryStr += `&numDataTableRowsPerColumn=${params.numDataTableRowsPerColumn}`
+    }
+
+    // Combine view and options query strings
+    const queryParts = [
+        viewQueryStr?.replace(/^\?/, ""),
+        optionsQueryStr,
+    ].filter((queryStr) => queryStr)
+    const queryStr = queryParts.length > 0 ? `?${queryParts.join("&")}` : ""
 
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
     const basePath = isExplorerView
         ? EXPLORER_DYNAMIC_THUMBNAIL_URL
         : GRAPHER_DYNAMIC_THUMBNAIL_URL
 
-    return `${basePath}/${hit.slug}.search-result-table.json${queryStr}`
+    return `${basePath}/${hit.slug}.search-result.json${queryStr}`
 }
 
 export const constructPreviewUrl = ({
@@ -356,7 +370,7 @@ export function getTimeBoundsForChartUrl(
     // charts don't customize their start time.
     if (startTime && startTime !== endTime) return undefined
 
-    const columnSlug = chartInfo.endTimeValues?.y[0].columnSlug ?? ""
+    const columnSlug = chartInfo.endValues?.y.at(0)?.columnSlug ?? ""
     const columnInfo = chartInfo.columns?.[columnSlug]
 
     return {
@@ -937,123 +951,6 @@ export const getEffectiveResultType = (
         desiredResultType === SearchResultType.ALL
         ? SearchResultType.DATA
         : desiredResultType
-}
-
-export function buildChartHitDataDisplayProps({
-    chartInfo,
-    chartType,
-    entity,
-    isEntityPickedByUser,
-}: {
-    chartInfo?: GrapherValuesJson | null
-    chartType?: GrapherChartType
-    entity: EntityName
-    isEntityPickedByUser?: boolean
-}): SearchChartHitDataDisplayProps | undefined {
-    if (!chartInfo) return undefined
-
-    // Showing a time range only makes sense for slope charts and connected scatter plots
-    const showTimeRange =
-        chartType === GRAPHER_CHART_TYPES.SlopeChart ||
-        chartType === GRAPHER_CHART_TYPES.ScatterPlot
-
-    const endDatapoint = findDatapoint(chartInfo, "end")
-    const startDatapoint = showTimeRange
-        ? findDatapoint(chartInfo, "start")
-        : undefined
-    const columnInfo = endDatapoint?.columnSlug
-        ? chartInfo?.columns?.[endDatapoint?.columnSlug]
-        : undefined
-
-    if (!endDatapoint?.formattedValueShort || !endDatapoint?.formattedTime)
-        return undefined
-
-    // For scatter plots, displaying a single data value is ambiguous since
-    // they have two dimensions. But we do show a data value if the x axis
-    // is GDP since then it's sufficiently clear
-    const xSlug = chartInfo?.endTimeValues?.x?.columnSlug
-    const xColumnInfo = chartInfo?.columns?.[xSlug ?? ""]
-    const hasDataDisplay =
-        chartType !== GRAPHER_CHART_TYPES.ScatterPlot ||
-        /GDP/.test(xColumnInfo?.name ?? "")
-
-    if (!hasDataDisplay) return undefined
-
-    const endValue = endDatapoint.valueLabel ?? endDatapoint.formattedValueShort
-    const startValue =
-        startDatapoint?.valueLabel ?? startDatapoint?.formattedValueShort
-    const unit = columnInfo ? getColumnUnitForDisplay(columnInfo) : undefined
-    const time = startDatapoint?.formattedTime
-        ? `${startDatapoint?.formattedTime}–${endDatapoint.formattedTime}`
-        : endDatapoint.formattedTime
-    const trend = calculateTrendDirection(
-        startDatapoint?.value,
-        endDatapoint?.value
-    )
-    const showLocationIcon =
-        isEntityPickedByUser && getRegionByName(entity) !== undefined
-
-    return {
-        entityName: entity,
-        endValue,
-        startValue,
-        time,
-        unit,
-        trend,
-        showLocationIcon,
-    }
-}
-
-export function calculateTrendDirection(
-    startValue?: PrimitiveType,
-    endValue?: PrimitiveType
-): GrapherTrendArrowDirection | undefined {
-    if (typeof startValue !== "number" || typeof endValue !== "number")
-        return undefined
-    return endValue > startValue
-        ? "up"
-        : endValue < startValue
-          ? "down"
-          : "right"
-}
-
-function findDatapoint(
-    chartInfo: GrapherValuesJson | undefined,
-    time: "end" | "start" = "end"
-): GrapherValuesJsonDataPoint | undefined {
-    if (!chartInfo) return undefined
-
-    const yDims = match(time)
-        .with("end", () => chartInfo.endTimeValues?.y)
-        .with("start", () => chartInfo.startTimeValues?.y)
-        .exhaustive()
-    if (!yDims) return undefined
-
-    // Make sure we're not showing a projected data point
-    const historicalDims = yDims.filter(
-        (dim) => !chartInfo.columns?.[dim.columnSlug]?.isProjection
-    )
-
-    // Don't show a data value for charts with multiple y-indicators
-    if (historicalDims.length > 1) return undefined
-
-    return historicalDims[0]
-}
-
-export function getColumnUnitForDisplay(
-    column: CoreColumn | { unit?: string; shortUnit?: string },
-    { allowTrivial = false }: { allowTrivial?: boolean } = {}
-): string | undefined {
-    if (!column.unit) return undefined
-
-    // The unit is considered trivial if it is the same as the short unit
-    const isTrivial = column.unit === column.shortUnit
-    const unit = allowTrivial || !isTrivial ? column.unit : undefined
-
-    // Remove parentheses from the beginning and end of the unit
-    const strippedUnit = unit?.replace(/(^\(|\)$)/g, "")
-
-    return strippedUnit
 }
 
 export const getUrlParamNameForFilter = (filter: Filter) =>

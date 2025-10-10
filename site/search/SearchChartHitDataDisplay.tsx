@@ -2,17 +2,7 @@ import cx from "classnames"
 import { faLocationDot } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { GrapherTrendArrow } from "@ourworldindata/components"
-
-export interface SearchChartHitDataDisplayProps {
-    entityName: string
-    endValue: string
-    time: string
-    unit?: string
-    startValue?: string // if given, display as a range
-    trend?: "down" | "right" | "up" // only relevant if startValue is given
-    showLocationIcon?: boolean
-    className?: string
-}
+import { SearchChartHitDataDisplayProps } from "@ourworldindata/types"
 
 export function SearchChartHitDataDisplay({
     entityName,

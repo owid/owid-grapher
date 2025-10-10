@@ -1,12 +1,11 @@
 import { useMemo } from "react"
-import { Tippy } from "@ourworldindata/utils"
+import { buildChartHitDataDisplayProps, Tippy } from "@ourworldindata/utils"
 import { GRAPHER_TAB_NAMES, GrapherChartType } from "@ourworldindata/types"
 import { SearchChartHitComponentProps } from "./searchTypes.js"
 import {
     constructChartUrl,
     pickEntitiesForChartHit,
     toGrapherQueryParams,
-    buildChartHitDataDisplayProps,
 } from "./searchUtils.js"
 import { Button, GrapherTabIcon } from "@ourworldindata/components"
 import { useIntersectionObserver, useMediaQuery } from "usehooks-ts"

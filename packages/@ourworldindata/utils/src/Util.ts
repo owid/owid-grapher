@@ -42,6 +42,8 @@ import {
     AssetMap,
     OwidGdocAboutInterface,
     OwidGdocHomepageInterface,
+    PrimitiveType,
+    GrapherTrendArrowDirection,
 } from "@ourworldindata/types"
 import { PointVector } from "./PointVector.js"
 import * as React from "react"
@@ -2212,4 +2214,33 @@ export const merge: typeof _.merge = (
             return Array.isArray(srcValue) ? srcValue : undefined
         }
     )
+}
+
+export function calculateTrendDirection(
+    startValue?: PrimitiveType,
+    endValue?: PrimitiveType
+): GrapherTrendArrowDirection | undefined {
+    if (typeof startValue !== "number" || typeof endValue !== "number")
+        return undefined
+    return endValue > startValue
+        ? "up"
+        : endValue < startValue
+          ? "down"
+          : "right"
+}
+
+export function getDisplayUnit(
+    column: { unit?: string; shortUnit?: string },
+    { allowTrivial = false }: { allowTrivial?: boolean } = {}
+): string | undefined {
+    if (!column.unit) return undefined
+
+    // The unit is considered trivial if it is the same as the short unit
+    const isTrivial = column.unit === column.shortUnit
+    const unit = allowTrivial || !isTrivial ? column.unit : undefined
+
+    // Remove parentheses from the beginning and end of the unit
+    const strippedUnit = unit?.replace(/(^\(|\)$)/g, "")
+
+    return strippedUnit
 }
