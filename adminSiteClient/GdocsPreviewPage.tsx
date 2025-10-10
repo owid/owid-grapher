@@ -24,7 +24,7 @@ import {
     Tippy,
     CreateTombstoneData,
 } from "@ourworldindata/utils"
-import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
+import { Button, Col, Drawer, Row, Space, Switch, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faGear,
@@ -83,14 +83,15 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const store = useGdocsStore()
 
     const [isMobilePreviewActive, setIsMobilePreviewActive] = useState(false)
+    const [acceptSuggestions, setAcceptSuggestions] = useState(false)
 
     const iframeRef = useRef<HTMLIFrameElement>(null)
 
     const fetchGdoc = useCallback(
-        (contentSource: GdocsContentSource) =>
+        (contentSource: GdocsContentSource, acceptSuggestions = false) =>
             admin
                 .requestJSON<OwidGdocJSON>(
-                    `/api/gdocs/${id}?contentSource=${contentSource}`,
+                    `/api/gdocs/${id}?contentSource=${contentSource}&acceptSuggestions=${acceptSuggestions}`,
                     {},
                     "GET",
                     { onFailure: "continue" }
@@ -111,8 +112,8 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         async function fetchGdocs() {
             try {
                 const [original, current] = await Promise.all([
-                    fetchGdoc(GdocsContentSource.Internal),
-                    fetchGdoc(GdocsContentSource.Gdocs),
+                    fetchGdoc(GdocsContentSource.Internal, false),
+                    fetchGdoc(GdocsContentSource.Gdocs, acceptSuggestions),
                 ])
                 if (!current.slug && current.content.title) {
                     current.slug = slugify(current.content.title)
@@ -126,7 +127,7 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         if (!originalGdoc) {
             void fetchGdocs()
         }
-    }, [originalGdoc, fetchGdoc, handleError, admin])
+    }, [originalGdoc, fetchGdoc, handleError, admin, acceptSuggestions])
 
     const isLightningUpdate = useLightningUpdate(
         originalGdoc,
@@ -187,6 +188,24 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         setIsMobilePreviewActive(
             (isMobilePreviewActive) => !isMobilePreviewActive
         )
+
+    const toggleAcceptSuggestions = async () => {
+        const newAcceptSuggestions = !acceptSuggestions
+        setAcceptSuggestions(newAcceptSuggestions)
+        // Refetch the current gdoc with the new setting
+        try {
+            const current = await fetchGdoc(
+                GdocsContentSource.Gdocs,
+                newAcceptSuggestions
+            )
+            if (!current.slug && current.content.title) {
+                current.slug = slugify(current.content.title)
+            }
+            setGdoc({ original: originalGdoc, current })
+        } catch (error) {
+            handleError(error)
+        }
+    }
 
     const onSettingsClose = () => {
         setSettingsOpen(false)
@@ -313,6 +332,31 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                     <FontAwesomeIcon icon={faGear} />
                                 </Button>
                             </IconBadge>
+                            <Space>
+                                <Switch
+                                    checked={acceptSuggestions}
+                                    onChange={toggleAcceptSuggestions}
+                                    id="preview-suggestions"
+                                />
+                                <Tippy
+                                    content={
+                                        acceptSuggestions
+                                            ? "Previewing with suggested edits accepted"
+                                            : "Previewing without suggested edits"
+                                    }
+                                    placement="bottom"
+                                >
+                                    <label
+                                        htmlFor="preview-suggestions"
+                                        style={{
+                                            marginBottom: 0,
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        Preview suggestions
+                                    </label>
+                                </Tippy>
+                            </Space>
                             <GdocsMoreMenu
                                 gdoc={currentGdoc}
                                 onDebug={() => setDiffOpen(true)}
@@ -465,14 +509,15 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     */}
                     <iframe
                         ref={iframeRef}
-                        src={`/gdocs/${currentGdoc.id}/preview#owid-document-root`}
+                        src={`/gdocs/${currentGdoc.id}/preview?acceptSuggestions=${acceptSuggestions}#owid-document-root`}
                         style={{
                             width: "100%",
                             border: "none",
                             maxWidth: isMobilePreviewActive ? 375 : undefined,
                         }}
                         // use `updatedAt` as a proxy for when database-level settings such as breadcrumbs have changed
-                        key={`${currentGdoc.revisionId}-${originalGdoc?.updatedAt}`}
+                        // include acceptSuggestions to force reload when suggestions toggle changes
+                        key={`${currentGdoc.revisionId}-${originalGdoc?.updatedAt}-${acceptSuggestions}`}
                     />
                 </div>
 
