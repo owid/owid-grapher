@@ -69,8 +69,17 @@ export const chartHitQueryKeys = {
         slug: string,
         queryParams?: string,
         variant?: RichDataComponentVariant,
-        entities?: EntityName[]
-    ) => ["table-content", slug, queryParams, variant, entities] as const,
+        entities?: EntityName[],
+        numDataTableRowsPerColumn?: number
+    ) =>
+        [
+            "chart-hit-data",
+            slug,
+            queryParams,
+            variant,
+            entities,
+            numDataTableRowsPerColumn,
+        ] as const,
 } as const
 
 export async function queryDataTopics(

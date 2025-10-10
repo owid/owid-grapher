@@ -16,6 +16,7 @@ import {
 } from "./searchUtils"
 import { chartHitQueryKeys } from "./queries"
 import { PreviewVariant } from "./SearchChartHitRichDataTypes.js"
+import { calculateScatterPreviewImageDimensions } from "./SearchChartHitRichDataHelpers.js"
 
 export function useQueryChartInfo({
     hit,
@@ -61,11 +62,13 @@ export function constructChartAndPreviewUrlsForTab({
     tab,
     chartInfo,
     entities,
+    hasScatter = false,
 }: {
     hit: SearchChartHit
     tab: GrapherTabName
     chartInfo?: GrapherValuesJson
     entities?: EntityName[]
+    hasScatter?: boolean
 }): { chartUrl: string; previewUrl: string } {
     // Single-time line charts are rendered as bar charts
     // by Grapher. Adjusting the time param makes sure
@@ -89,10 +92,16 @@ export function constructChartAndPreviewUrlsForTab({
         hit,
         grapherParams,
     })
+
+    const imageDimensions = hasScatter
+        ? calculateScatterPreviewImageDimensions()
+        : undefined
     const previewUrl = constructPreviewUrl({
         hit,
         grapherParams,
         variant: PreviewVariant.Thumbnail,
+        imageWidth: imageDimensions?.width,
+        imageHeight: imageDimensions?.height,
     })
 
     return { chartUrl, previewUrl }
