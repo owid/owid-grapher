@@ -23,9 +23,7 @@ import {
     GridSlotKey,
     LargeVariantGridSlotKey,
     MediumVariantGridSlotKey,
-    OwidVariableRow,
     LayoutSlot,
-    PrimitiveType,
     SearchChartHitDataDisplayProps,
     SearchChartHitDataTableProps,
     SeriesStrategy,
@@ -36,7 +34,6 @@ import { constructGrapherValuesJson } from "../grapherValuesJson"
 import {
     buildChartHitDataDisplayProps,
     checkIsCountry,
-    excludeUndefined,
     getAggregates,
     getContinents,
     getIncomeGroups,
@@ -909,38 +906,26 @@ function getPreviewGrapherQueryParamsForDiscreteBar(
         grapherState.isFaceted && !grapherState.hasMultipleSeriesPerFacet
     if (hasSingleSeriesPerFacet) overwriteParams.facet = FacetStrategy.none
 
-    // Add the entities with the minimum and maximum value
-    // for discrete bar charts with a single bar
+    // Add comparison entities to discrete bar charts if
+    // only a single entity is currently selected
     const { seriesStrategy = SeriesStrategy.entity } = grapherState.chartState
     const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
     const selectedEntities = grapherState.selection.selectedEntityNames
     if (
         !grapherState.isFaceted &&
         isEntityStrategy &&
-        selectedEntities.length === 1 &&
-        grapherState.addCountryMode === EntitySelectionMode.MultipleEntities &&
-        grapherState.endTime !== undefined
+        selectedEntities.length === 1
     ) {
-        const selectedEntity = selectedEntities[0]
-        const owidRows: OwidVariableRow<PrimitiveType>[] = grapherState.table
-            .filterByTargetTimes([grapherState.endTime])
-            .get(grapherState.yColumnSlug).owidRows
-        const minRow = _.minBy(owidRows, (point) => point.value)
-        const maxRow = _.maxBy(owidRows, (point) => point.value)
-        const enrichedSelectedEntities = R.unique(
-            excludeUndefined([
-                selectedEntity,
-                minRow?.entityName,
-                maxRow?.entityName,
-            ])
+        const comparisonEntities = pickComparisonEntities(
+            selectedEntities[0],
+            grapherState.availableEntityNames
         )
-        if (enrichedSelectedEntities.length > 1) {
+        if (comparisonEntities.length > 1) {
             overwriteParams.country = generateSelectedEntityNamesParam(
-                enrichedSelectedEntities
+                _.uniq([...selectedEntities, ...comparisonEntities])
             )
-            overwriteParams.focus = generateFocusedSeriesNamesParam([
-                selectedEntity,
-            ])
+            overwriteParams.focus =
+                generateFocusedSeriesNamesParam(selectedEntities)
         }
     }
 
