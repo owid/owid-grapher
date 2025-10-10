@@ -886,4 +886,10 @@ export {
     type SearchChartHitDataTableContent,
     type SearchChartHitDataTableProps,
     type SearchChartHitDataPointsProps,
-} from "./endpointTypes/SearchResultTableJson.js"
+    type GrapherSearchResultJson,
+    type SearchChartHitDataDisplayProps,
+    type LayoutSlot,
+    type GridSlotKey,
+    MediumVariantGridSlotKey,
+    LargeVariantGridSlotKey,
+} from "./endpointTypes/GrapherSearchResultJson.js"

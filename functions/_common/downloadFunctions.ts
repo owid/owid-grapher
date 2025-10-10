@@ -23,8 +23,14 @@ import {
 } from "./grapherTools.js"
 import { TWITTER_OPTIONS } from "./imageOptions.js"
 import { constructReadme } from "./readmeTools.js"
-import { constructSearchResultTable } from "./searchResultTable.js"
+import { constructSearchResultDataTableContent } from "./search/constructSearchResultDataTableContent.js"
 import { constructGrapherValuesJson } from "./grapherValuesJson.js"
+import { match } from "ts-pattern"
+import {
+    constructSearchResultJson,
+    pickDisplayEntities,
+    RichDataVariant,
+} from "./search/constructSearchResultJson.js"
 
 export async function fetchMetadataForGrapher(
     identifier: GrapherIdentifier,
@@ -248,11 +254,37 @@ export function assembleDataValues(
     return constructGrapherValuesJson(grapherState, entityName)
 }
 
-export async function fetchSearchResultTableForGrapher(
+export async function fetchSearchResultDataForGrapher(
     identifier: GrapherIdentifier,
     env: Env,
     searchParams: URLSearchParams
 ) {
+    const supportedVersions = [1]
+    const version = parseVersionParam(
+        searchParams.get("version"),
+        supportedVersions.at(-1)
+    )
+
+    // Validate version
+    if (!supportedVersions.includes(version)) {
+        return error(
+            400,
+            `Unsupported version: ${version}. Supported versions: ${supportedVersions.join(
+                ", "
+            )}`
+        )
+    }
+
+    // Entities selected by the user
+    const pickedEntities =
+        getEntityNamesParam(searchParams.get("entities") ?? undefined) ?? []
+
+    // Parse options
+    const variant = parseVariantParam(searchParams.get("variant"))
+    const numDataTableRowsPerColumn = parseNumDataTableRowsPerColumnParam(
+        searchParams.get("numDataTableRowsPerColumn")
+    )
+
     // Initialize Grapher and download its data
     const { grapher } = await initGrapher(
         identifier,
@@ -260,37 +292,44 @@ export async function fetchSearchResultTableForGrapher(
         searchParams,
         env
     )
+    const dataApiUrl = getDataApiUrl(env)
     const inputTable = await fetchInputTableForConfig({
         dimensions: grapher.grapherState.dimensions,
         selectedEntityColors: grapher.grapherState.selectedEntityColors,
-        dataApiUrl: getDataApiUrl(env),
+        dataApiUrl,
     })
     grapher.grapherState.inputTable = inputTable
 
-    // Make sure the country query param is respected since Grapher ignores
-    // the country param if entity selection is disabled
-    const entityNames = getEntityNamesParam(
-        searchParams.get("country") ?? undefined
-    )
-    if (entityNames?.length > 0)
-        grapher.grapherState.selection.setSelectedEntities(entityNames)
+    const searchResult = await assembleSearchResultData(grapher.grapherState, {
+        variant,
+        pickedEntities,
+        numDataTableRowsPerColumn,
+        dataApiUrl,
+    })
 
-    const searchResultTable = await assembleSearchResultTable(
-        grapher.grapherState,
-        { dataApiUrl: getDataApiUrl(env) }
-    )
+    if (searchResult === undefined)
+        return error(500, "Unable to generate search result data")
 
-    if (searchResultTable === undefined)
-        return error(500, "Unable to generate search results table")
-
-    return Response.json(searchResultTable)
+    return Response.json(searchResult)
 }
 
-export async function assembleSearchResultTable(
+export async function assembleSearchResultData(
     grapherState: GrapherState,
-    { dataApiUrl }: { dataApiUrl?: string }
+    args: {
+        variant: RichDataVariant
+        pickedEntities: EntityName[]
+        numDataTableRowsPerColumn: number
+        dataApiUrl: string
+    }
 ) {
-    return constructSearchResultTable({ grapherState, dataApiUrl })
+    // Choose the entities to display
+    const displayEntities = await pickDisplayEntities(grapherState, args)
+
+    return constructSearchResultJson(grapherState, { ...args, displayEntities })
+}
+
+export function assembleSearchResultDataTable(grapherState: GrapherState) {
+    return constructSearchResultDataTableContent({ grapherState })
 }
 
 export function findEntityForExtractingDataValues(
@@ -318,4 +357,29 @@ export function prepareSearchParamsBeforeExtractingDataValues(
     // If no tab param is specified, default to the chart tab
     const tab = searchParams.get("tab") ?? GRAPHER_TAB_QUERY_PARAMS.chart
     searchParams.set("tab", tab)
+}
+
+export function parseVariantParam(variant: string | null): RichDataVariant {
+    const { Large, Medium } = RichDataVariant
+    return match(variant?.toLocaleLowerCase())
+        .with(Large, () => Large)
+        .with(Medium, () => Medium)
+        .otherwise(() => Medium)
+}
+
+export function parseNumDataTableRowsPerColumnParam(
+    num: string | null
+): number {
+    const numDataTableRowsPerColumn = parseInt(num ?? "", 10)
+    if (isNaN(numDataTableRowsPerColumn)) return 4
+    return numDataTableRowsPerColumn
+}
+
+export function parseVersionParam(
+    version: string | null,
+    defaultVersion: number
+): number {
+    const numDataTableRowsPerColumn = parseInt(version ?? "", 10)
+    if (isNaN(numDataTableRowsPerColumn)) return defaultVersion
+    return numDataTableRowsPerColumn
 }

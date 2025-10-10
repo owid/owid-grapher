@@ -7,8 +7,8 @@ export interface GrapherValuesJson {
     startTime?: Time
     endTime?: Time
     columns?: Record<ColumnSlug, GrapherValuesJsonDimension>
-    startTimeValues?: GrapherValuesJsonDataPoints
-    endTimeValues?: GrapherValuesJsonDataPoints
+    startValues?: GrapherValuesJsonDataPoints
+    endValues?: GrapherValuesJsonDataPoints
     source: string
 }
 
