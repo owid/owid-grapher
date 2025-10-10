@@ -241,7 +241,13 @@ export const constructChartInfoUrl = ({
     hit: SearchChartHit
     grapherParams?: GrapherQueryParams
 }): string | undefined => {
-    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
+    const viewQueryStr = generateQueryStrForChartHit({ hit, grapherParams })
+
+    // Always ignore projected data to ensure that the data display shows a
+    // historical data point
+    const queryStr = viewQueryStr
+        ? `${viewQueryStr}&ignoreProjections`
+        : "?ignoreProjections"
 
     const isExplorerView = hit.type === ChartRecordType.ExplorerView
     const basePath = isExplorerView
@@ -265,7 +271,7 @@ export const constructSearchResultUrl = ({
 }): string | undefined => {
     const viewQueryStr = generateQueryStrForChartHit({ hit })
 
-    let optionsQueryStr = `version=${params.version}&variant=${params.variant}`
+    let optionsQueryStr = `version=${params.version}&variant=${params.variant}&ignoreProjections`
     if (params.entities && params.entities.length > 0)
         optionsQueryStr += `&entities=${generateSelectedEntityNamesParam(params.entities)}`
     if (params.numDataTableRowsPerColumn) {

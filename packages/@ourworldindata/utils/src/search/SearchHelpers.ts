@@ -75,6 +75,7 @@ export function buildChartHitDataDisplayProps({
         unit,
         trend,
         showLocationIcon,
+        numericEndTime: endDatapoint.time,
     }
 }
 

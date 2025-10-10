@@ -113,4 +113,5 @@ export interface SearchChartHitDataDisplayProps {
     trend?: GrapherTrendArrowDirection // only relevant if startValue is given
     showLocationIcon?: boolean
     className?: string
+    numericEndTime?: number // not displayed, but useful to know
 }
