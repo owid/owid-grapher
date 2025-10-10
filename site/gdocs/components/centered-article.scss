@@ -827,6 +827,12 @@ p.article-block__text + #article-licence {
     }
 }
 
+.article-block__cta {
+    .span-linked-chart-icon {
+        display: none;
+    }
+}
+
 // A fix for the legacy way we did CTAs for data insights
 // If/once we've migrated them all to use the {.cta} component, this won't be necessary
 // TODO: https://github.com/owid/owid-grapher/issues/5437
