@@ -101,6 +101,7 @@ export interface OwidGdocBaseInterface {
     slug: string
     // TODO: should we type this as a union of the possible content types instead?
     content: OwidGdocContent
+    contentMd5: string
     published: boolean
     createdAt: Date
     publishedAt: Date | null
