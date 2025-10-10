@@ -451,15 +451,15 @@ const handleLatestPageRequest = async (
         OwidGdocType.Announcement,
     ])
 
-    const { linkedAuthors, imageMetadata } = await enrichLatestPageItems(
-        trx,
-        pageData.items
-    )
+    const { linkedAuthors, imageMetadata, linkedDocuments, linkedCharts } =
+        await enrichLatestPageItems(trx, pageData.items)
 
     return renderLatestPage(
         pageData.items,
         imageMetadata,
         linkedAuthors,
+        linkedCharts,
+        linkedDocuments,
         pageData.pagination.pageNum,
         pageData.pagination.totalPages
     )
