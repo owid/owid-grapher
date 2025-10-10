@@ -91,6 +91,16 @@ export const extractOptions = (params: URLSearchParams): ImageOptions => {
         }
         if (params.has("imFontSize"))
             thumbnailOptions.fontSize = parseInt(params.get("imFontSize")!)
+        if (params.has("imWidth"))
+            thumbnailOptions.pngWidth = parseInt(params.get("imWidth")!)
+        if (params.has("imHeight"))
+            thumbnailOptions.pngHeight = parseInt(params.get("imHeight")!)
+        thumbnailOptions.grapherProps.staticBounds = new Bounds(
+            0,
+            0,
+            thumbnailOptions.pngWidth / 4,
+            thumbnailOptions.pngHeight / 4
+        )
         return thumbnailOptions
     } else if (imType === "square" || imType === "social-media-square") {
         const squareOptions = _.cloneDeep(SQUARE_OPTIONS) as ImageOptions

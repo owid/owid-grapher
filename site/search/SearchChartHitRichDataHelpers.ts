@@ -15,6 +15,10 @@ import {
     LayoutSlot,
 } from "@ourworldindata/types"
 
+// Keep in sync with $scatter-thumbnail-width and $scatter-thumbnail-height in SearchChartHitRichData.scss
+const SCATTER_THUMBNAIL_WIDTH = 300
+const SCATTER_THUMBNAIL_HEIGHT = 200
+
 /** Number of table columns for a number of placed tabs */
 export function getTotalColumnCount(
     placedTabs: LayoutSlot<GridSlotKey>[]
@@ -49,6 +53,16 @@ export function getPreviewType(
     const isMinimal = isSmallSlot || isPrimaryTab
 
     return { variant: PreviewVariant.Thumbnail, isMinimal }
+}
+
+export function calculateScatterPreviewImageDimensions(): {
+    width: number
+    height: number
+} {
+    return {
+        width: 4 * SCATTER_THUMBNAIL_WIDTH,
+        height: 4 * SCATTER_THUMBNAIL_HEIGHT,
+    }
 }
 
 function mapGridSlotKeyToClassName(
