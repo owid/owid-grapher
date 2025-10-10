@@ -359,9 +359,7 @@ async function pickDisplayEntitiesForScatterPlot({
     chartState: ScatterPlotChartState
     dataApiUrl?: string
 }): Promise<EntityName[]> {
-    const { series, colorColumnSlug, sizeColumnSlug, isConnected } = chartState
-
-    if (isConnected) return []
+    const { series, colorColumnSlug, sizeColumnSlug } = chartState
 
     // Pick income groups or continents if available
     const regions = findBestAvailableRegions(grapherState.availableEntityNames)
