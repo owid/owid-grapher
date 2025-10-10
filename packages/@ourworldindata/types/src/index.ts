@@ -365,6 +365,7 @@ export {
     type EnrichedFaq,
     type DetailDictionary,
     GdocsContentSource,
+    type LatestPageItem,
     type LatestDataInsight,
     type LinkedAuthor,
     type LinkedChart,

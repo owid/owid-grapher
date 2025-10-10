@@ -8,8 +8,6 @@ import {
     JsonError,
     PostRestApi,
     RelatedChart,
-    IndexPost,
-    OwidGdocPostInterface,
     snapshotIsPostRestApi,
     snapshotIsBlockGraphQlApi,
     PostReference,
@@ -20,16 +18,10 @@ import {
     parseLatestWork,
     DEFAULT_THUMBNAIL_FILENAME,
     ARCHVED_THUMBNAIL_FILENAME,
-    DbEnrichedImage,
 } from "@ourworldindata/types"
-import { LARGEST_IMAGE_WIDTH } from "@ourworldindata/utils"
 import { Knex } from "knex"
-import {
-    BAKED_BASE_URL,
-    CLOUDFLARE_IMAGES_URL,
-} from "../../settings/clientSettings.js"
+import { BAKED_BASE_URL } from "../../settings/clientSettings.js"
 import { decodeHTML } from "entities"
-import { getAndLoadListedGdocPosts } from "./Gdoc/GdocFactory.js"
 
 export const postsTable = "posts"
 
@@ -150,59 +142,6 @@ const getFullPost = async (
             ? await getPostRelatedCharts(knex, postApi.id)
             : undefined,
 })
-
-export const getBlogIndex = _.memoize(
-    async (knex: db.KnexReadonlyTransaction): Promise<IndexPost[]> => {
-        const gdocPosts = await getAndLoadListedGdocPosts(knex)
-        const imagesByFilename = await db
-            .getCloudflareImages(knex)
-            .then((images) => _.keyBy(images, "filename"))
-
-        const posts = [...mapGdocsToWordpressPosts(gdocPosts, imagesByFilename)]
-
-        return _.orderBy(posts, (post) => post.date.getTime(), ["desc"])
-    }
-)
-
-function getGdocThumbnail(
-    gdoc: OwidGdocPostInterface,
-    imagesByFilename: Record<string, DbEnrichedImage>
-): string {
-    let thumbnailUrl = `${BAKED_BASE_URL}/${DEFAULT_THUMBNAIL_FILENAME}`
-    if (gdoc.content["deprecation-notice"]) {
-        thumbnailUrl = `${BAKED_BASE_URL}/${ARCHVED_THUMBNAIL_FILENAME}`
-    } else if (
-        gdoc.content["featured-image"] &&
-        imagesByFilename[gdoc.content["featured-image"]]?.cloudflareId
-    ) {
-        const cloudflareId =
-            imagesByFilename[gdoc.content["featured-image"]].cloudflareId
-        thumbnailUrl = `${CLOUDFLARE_IMAGES_URL}/${cloudflareId}/w=${LARGEST_IMAGE_WIDTH}`
-    }
-    return thumbnailUrl
-}
-
-export const mapGdocsToWordpressPosts = (
-    gdocs: OwidGdocPostInterface[],
-    imagesByFilename: Record<string, DbEnrichedImage>
-): IndexPost[] => {
-    return gdocs.map((gdoc) => ({
-        title: gdoc.content["atom-title"] || gdoc.content.title || "Untitled",
-        slug: gdoc.slug,
-        type: gdoc.content.type,
-        date: gdoc.publishedAt as Date,
-        modifiedDate: gdoc.updatedAt
-            ? new Date(gdoc.updatedAt)
-            : new Date(gdoc.publishedAt as Date),
-        authors: gdoc.content.authors,
-        excerpt: gdoc.content["atom-excerpt"] || gdoc.content.excerpt,
-        imageUrl: getGdocThumbnail(gdoc, imagesByFilename),
-    }))
-}
-
-export const postsFlushCache = (): void => {
-    getBlogIndex.cache.clear?.()
-}
 
 export const getBlockContentFromSnapshot = async (
     trx: db.KnexReadonlyTransaction,

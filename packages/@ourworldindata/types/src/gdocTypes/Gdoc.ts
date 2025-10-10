@@ -422,3 +422,8 @@ export type EnrichedFaq = {
 } & EnrichedBlockWithParseErrors
 
 export type FaqDictionary = Record<string, EnrichedFaq>
+
+export type LatestPageItem =
+    | { type: OwidGdocType.Article; data: OwidGdocMinimalPostInterface }
+    | { type: OwidGdocType.DataInsight; data: LatestDataInsight }
+    | { type: OwidGdocType.Announcement; data: OwidGdocAnnouncementInterface }

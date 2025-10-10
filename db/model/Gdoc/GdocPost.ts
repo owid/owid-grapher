@@ -10,8 +10,12 @@ import {
     OwidGdocMinimalPostInterface,
     OwidGdocBaseInterface,
     ArchiveContext,
+    LatestPageItem,
+    PostsGdocsTableName,
+    DbEnrichedImage,
+    LinkedAuthor,
 } from "@ourworldindata/types"
-import { excludeNullish } from "@ourworldindata/utils"
+import { excludeNullish, formatDate } from "@ourworldindata/utils"
 import {
     formatCitation,
     generateStickyNav,
@@ -19,9 +23,17 @@ import {
 } from "./archieToEnriched.js"
 import { parseFaqs } from "./rawToEnriched.js"
 import { htmlToEnrichedTextBlock } from "./htmlToEnriched.js"
-import { GdocBase } from "./GdocBase.js"
+import { GdocBase, getMinimalAuthorsByNames } from "./GdocBase.js"
 import { KnexReadonlyTransaction, knexRaw } from "../../db.js"
 import { getLatestChartArchivedVersionsIfEnabled } from "../archival/archivalDb.js"
+import * as db from "../../db.js"
+import { BLOG_POSTS_PER_PAGE } from "../../../settings/serverSettings.js"
+import { GdocAnnouncement } from "./GdocAnnouncement.js"
+import { GdocDataInsight } from "./GdocDataInsight.js"
+import { gdocFromJSON } from "./GdocFactory.js"
+import { pipe, unique } from "remeda"
+import { getAllImages } from "../Image.js"
+import { keyBy, pick } from "lodash-es"
 
 export class GdocPost extends GdocBase implements OwidGdocPostInterface {
     declare content: OwidGdocPostContent
@@ -184,4 +196,142 @@ export class GdocPost extends GdocBase implements OwidGdocPostInterface {
             archiveContext: archivedVersions[chart.chartId] || undefined,
         }))
     }
+}
+
+function gdocToLatestItem(
+    gdoc: GdocPost | GdocAnnouncement | GdocDataInsight
+): LatestPageItem {
+    if (gdoc instanceof GdocPost) {
+        return {
+            type: OwidGdocType.Article,
+            data: {
+                id: gdoc.id,
+                title: gdoc.content.title ?? "",
+                slug: gdoc.slug,
+                authors: gdoc.content.authors,
+                publishedAt: formatDate(gdoc.publishedAt!),
+                published: gdoc.published,
+                subtitle: gdoc.content.subtitle ?? "",
+                excerpt: gdoc.content.excerpt ?? "",
+                type: OwidGdocType.Article,
+                "featured-image": gdoc.content["featured-image"],
+            },
+        }
+    } else if (gdoc instanceof GdocDataInsight) {
+        return {
+            type: OwidGdocType.DataInsight,
+            data: {
+                id: gdoc.id,
+                slug: gdoc.slug,
+                publishedAt: gdoc.publishedAt,
+                content: gdoc.content,
+            },
+        }
+    } else {
+        return {
+            type: OwidGdocType.Announcement,
+            data: gdoc,
+        }
+    }
+}
+
+export const enrichLatestPageItems = async (
+    knex: KnexReadonlyTransaction,
+    items: LatestPageItem[]
+): Promise<{
+    linkedAuthors: LinkedAuthor[]
+    imageMetadata: Record<string, DbEnrichedImage>
+}> => {
+    const articles = items.filter((post) => post.type === OwidGdocType.Article)
+    const dataInsights = items.filter(
+        (post) => post.type === OwidGdocType.DataInsight
+    )
+    const announcements = items.filter(
+        (post) => post.type === OwidGdocType.Announcement
+    )
+
+    // Fetch authors (only for articles)
+    const linkedAuthors = await getMinimalAuthorsByNames(
+        knex,
+        unique(articles.flatMap((post) => post.data.authors))
+    )
+
+    // Gather all image filenames
+    const articleFeaturedImages = pipe(
+        articles.map((post) => post.data["featured-image"]),
+        excludeNullish
+    )
+
+    const dataInsightFeaturedImages = pipe(
+        dataInsights.map((post) =>
+            post.data.content.body.find((block) => block.type === "image")
+        ),
+        excludeNullish,
+        (images) => images.map((image) => image.filename)
+    )
+
+    const announcementImages = pipe(
+        announcements.map((post) =>
+            post.data.content.body.filter((block) => block.type === "image")
+        ),
+        excludeNullish,
+        (images) => images.flat().map((image) => image.filename)
+    )
+
+    // Fetch image metadata
+    const imageMetadata = await getAllImages(knex).then((allImages) =>
+        pick(keyBy(allImages, "filename"), [
+            ...articleFeaturedImages,
+            ...dataInsightFeaturedImages,
+            ...announcementImages,
+        ])
+    )
+
+    return {
+        linkedAuthors,
+        imageMetadata,
+    }
+}
+
+export const getLatestPageItems = async (
+    knex: db.KnexReadonlyTransaction,
+    pageNum: number = 1,
+    includeTypes: OwidGdocType[] = []
+): Promise<{
+    items: LatestPageItem[]
+    pagination: {
+        pageNum: number
+        totalPages: number
+    }
+}> => {
+    const rawResults = await db.knexRaw<Record<string, any>>(
+        knex,
+        `-- sql
+            SELECT
+                pg.*,
+                COUNT(*) OVER() as totalRecords
+            FROM ${PostsGdocsTableName} pg
+            WHERE pg.published = TRUE
+            AND pg.publishedAt <= NOW()
+            ${includeTypes.length ? `AND pg.type IN (:types)` : ""}
+            AND pg.publicationContext = 'listed'
+            ORDER BY pg.publishedAt DESC
+            LIMIT ${BLOG_POSTS_PER_PAGE} OFFSET :offset
+            `,
+        {
+            types: includeTypes,
+            offset: (pageNum - 1) * BLOG_POSTS_PER_PAGE,
+        }
+    )
+
+    const items = rawResults
+        .map(gdocFromJSON)
+        .map((gdoc) =>
+            gdocToLatestItem(
+                gdoc as GdocPost | GdocAnnouncement | GdocDataInsight
+            )
+        )
+    const totalRecords = rawResults.length > 0 ? rawResults[0].totalRecords : 0
+    const totalPages = Math.ceil(totalRecords / BLOG_POSTS_PER_PAGE)
+    return { items, pagination: { pageNum, totalPages } }
 }
