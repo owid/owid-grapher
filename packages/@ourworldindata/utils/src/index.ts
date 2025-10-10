@@ -141,6 +141,8 @@ export {
     parseFloatOrUndefined,
     bind,
     merge,
+    calculateTrendDirection,
+    getDisplayUnit,
 } from "./Util.js"
 
 export {
@@ -334,3 +336,11 @@ export {
     EXPERIMENT_ARM_SEPARATOR,
     EXPERIMENT_PREFIX,
 } from "./experiments/constants.js"
+
+export {
+    buildChartHitDataDisplayProps,
+    getTableColumnCountForGridSlotKey,
+} from "./search/SearchHelpers.js"
+
+export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
+export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"

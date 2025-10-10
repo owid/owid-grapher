@@ -1,7 +1,12 @@
 import { describe, it, expect } from "vitest"
-import { GRAPHER_TAB_NAMES } from "@ourworldindata/types"
-import { MediumVariantGridSlot } from "./SearchChartHitRichDataTypes.js"
-import { placeGrapherTabsInMediumVariantGridLayout } from "./SearchChartHitRichDataMediumVariantHelpers.js"
+import {
+    GRAPHER_TAB_NAMES,
+    MediumVariantGridSlotKey,
+} from "@ourworldindata/types"
+import { placeGrapherTabsInMediumVariantGridLayout } from "./MediumVariantRichDataHelpers.js"
+
+const { Single, Double, Triple, Quad, SmallLeft, SmallRight } =
+    MediumVariantGridSlotKey
 
 describe(placeGrapherTabsInMediumVariantGridLayout, () => {
     const { LineChart, Table, WorldMap, DiscreteBar, Marimekko } =
@@ -18,10 +23,19 @@ describe(placeGrapherTabsInMediumVariantGridLayout, () => {
             })
 
             expect(result).toEqual([
-                { tab: LineChart, slot: MediumVariantGridSlot.Single },
-                { tab: Table, slot: MediumVariantGridSlot.Single },
-                { tab: WorldMap, slot: MediumVariantGridSlot.Single },
-                { tab: DiscreteBar, slot: MediumVariantGridSlot.Single },
+                {
+                    grapherTab: LineChart,
+                    slotKey: Single,
+                },
+                { grapherTab: Table, slotKey: Single },
+                {
+                    grapherTab: WorldMap,
+                    slotKey: Single,
+                },
+                {
+                    grapherTab: DiscreteBar,
+                    slotKey: Single,
+                },
             ])
         })
 
@@ -35,10 +49,19 @@ describe(placeGrapherTabsInMediumVariantGridLayout, () => {
             })
 
             expect(result).toEqual([
-                { tab: LineChart, slot: MediumVariantGridSlot.Single },
-                { tab: Table, slot: MediumVariantGridSlot.Single },
-                { tab: WorldMap, slot: MediumVariantGridSlot.Single },
-                { tab: Marimekko, slot: MediumVariantGridSlot.Single },
+                {
+                    grapherTab: LineChart,
+                    slotKey: Single,
+                },
+                { grapherTab: Table, slotKey: Single },
+                {
+                    grapherTab: WorldMap,
+                    slotKey: Single,
+                },
+                {
+                    grapherTab: Marimekko,
+                    slotKey: Single,
+                },
             ])
         })
 
@@ -52,9 +75,15 @@ describe(placeGrapherTabsInMediumVariantGridLayout, () => {
             })
 
             expect(result).toEqual([
-                { tab: LineChart, slot: MediumVariantGridSlot.Single },
-                { tab: Table, slot: MediumVariantGridSlot.Double },
-                { tab: WorldMap, slot: MediumVariantGridSlot.Single },
+                {
+                    grapherTab: LineChart,
+                    slotKey: Single,
+                },
+                { grapherTab: Table, slotKey: Double },
+                {
+                    grapherTab: WorldMap,
+                    slotKey: Single,
+                },
             ])
         })
 
@@ -68,9 +97,15 @@ describe(placeGrapherTabsInMediumVariantGridLayout, () => {
             })
 
             expect(result).toEqual([
-                { tab: LineChart, slot: MediumVariantGridSlot.Single },
-                { tab: Table, slot: MediumVariantGridSlot.Single },
-                { tab: WorldMap, slot: MediumVariantGridSlot.Single },
+                {
+                    grapherTab: LineChart,
+                    slotKey: Single,
+                },
+                { grapherTab: Table, slotKey: Single },
+                {
+                    grapherTab: WorldMap,
+                    slotKey: Single,
+                },
             ])
         })
 
@@ -84,8 +119,11 @@ describe(placeGrapherTabsInMediumVariantGridLayout, () => {
             })
 
             expect(result).toEqual([
-                { tab: LineChart, slot: MediumVariantGridSlot.Single },
-                { tab: Table, slot: MediumVariantGridSlot.Triple },
+                {
+                    grapherTab: LineChart,
+                    slotKey: Single,
+                },
+                { grapherTab: Table, slotKey: Triple },
             ])
         })
 
@@ -98,8 +136,11 @@ describe(placeGrapherTabsInMediumVariantGridLayout, () => {
             })
 
             expect(result).toEqual([
-                { tab: LineChart, slot: MediumVariantGridSlot.Single },
-                { tab: Table, slot: MediumVariantGridSlot.Double },
+                {
+                    grapherTab: LineChart,
+                    slotKey: Single,
+                },
+                { grapherTab: Table, slotKey: Double },
             ])
         })
 
@@ -112,9 +153,7 @@ describe(placeGrapherTabsInMediumVariantGridLayout, () => {
                 numDataTableRowsPerColumn: 4,
             })
 
-            expect(result).toEqual([
-                { tab: Table, slot: MediumVariantGridSlot.Double },
-            ])
+            expect(result).toEqual([{ grapherTab: Table, slotKey: Double }])
         })
 
         it("should give Table the maximum available space when needed", () => {
@@ -126,9 +165,7 @@ describe(placeGrapherTabsInMediumVariantGridLayout, () => {
                 numDataTableRowsPerColumn: 4,
             })
 
-            expect(result).toEqual([
-                { tab: Table, slot: MediumVariantGridSlot.Quad },
-            ])
+            expect(result).toEqual([{ grapherTab: Table, slotKey: Quad }])
         })
 
         it("drops the DiscreteBar tab in favour of a wider table", () => {
@@ -142,9 +179,15 @@ describe(placeGrapherTabsInMediumVariantGridLayout, () => {
             })
 
             expect(result).toEqual([
-                { tab: LineChart, slot: MediumVariantGridSlot.Single },
-                { tab: Table, slot: MediumVariantGridSlot.Double },
-                { tab: WorldMap, slot: MediumVariantGridSlot.Single },
+                {
+                    grapherTab: LineChart,
+                    slotKey: Single,
+                },
+                { grapherTab: Table, slotKey: Double },
+                {
+                    grapherTab: WorldMap,
+                    slotKey: Single,
+                },
             ])
         })
     })
@@ -160,11 +203,23 @@ describe(placeGrapherTabsInMediumVariantGridLayout, () => {
             })
 
             expect(result).toEqual([
-                { tab: LineChart, slot: MediumVariantGridSlot.Single },
-                { tab: Table, slot: MediumVariantGridSlot.Single },
-                { tab: Marimekko, slot: MediumVariantGridSlot.Single },
-                { tab: WorldMap, slot: MediumVariantGridSlot.SmallLeft },
-                { tab: DiscreteBar, slot: MediumVariantGridSlot.SmallRight },
+                {
+                    grapherTab: LineChart,
+                    slotKey: Single,
+                },
+                { grapherTab: Table, slotKey: Single },
+                {
+                    grapherTab: Marimekko,
+                    slotKey: Single,
+                },
+                {
+                    grapherTab: WorldMap,
+                    slotKey: SmallLeft,
+                },
+                {
+                    grapherTab: DiscreteBar,
+                    slotKey: SmallRight,
+                },
             ])
         })
 
@@ -178,9 +233,15 @@ describe(placeGrapherTabsInMediumVariantGridLayout, () => {
             })
 
             expect(result).toEqual([
-                { tab: LineChart, slot: MediumVariantGridSlot.Single },
-                { tab: Table, slot: MediumVariantGridSlot.Single },
-                { tab: WorldMap, slot: MediumVariantGridSlot.Single },
+                {
+                    grapherTab: LineChart,
+                    slotKey: Single,
+                },
+                { grapherTab: Table, slotKey: Single },
+                {
+                    grapherTab: WorldMap,
+                    slotKey: Single,
+                },
             ])
         })
 
@@ -194,8 +255,11 @@ describe(placeGrapherTabsInMediumVariantGridLayout, () => {
             })
 
             expect(result).toEqual([
-                { tab: LineChart, slot: MediumVariantGridSlot.Single },
-                { tab: Table, slot: MediumVariantGridSlot.Double },
+                {
+                    grapherTab: LineChart,
+                    slotKey: Single,
+                },
+                { grapherTab: Table, slotKey: Double },
             ])
         })
 
@@ -208,8 +272,11 @@ describe(placeGrapherTabsInMediumVariantGridLayout, () => {
             })
 
             expect(result).toEqual([
-                { tab: LineChart, slot: MediumVariantGridSlot.Single },
-                { tab: Table, slot: MediumVariantGridSlot.Single },
+                {
+                    grapherTab: LineChart,
+                    slotKey: Single,
+                },
+                { grapherTab: Table, slotKey: Single },
             ])
         })
 
@@ -224,9 +291,15 @@ describe(placeGrapherTabsInMediumVariantGridLayout, () => {
             })
 
             expect(result).toEqual([
-                { tab: LineChart, slot: MediumVariantGridSlot.Single },
-                { tab: Table, slot: MediumVariantGridSlot.Double },
-                { tab: DiscreteBar, slot: MediumVariantGridSlot.SmallLeft },
+                {
+                    grapherTab: LineChart,
+                    slotKey: Single,
+                },
+                { grapherTab: Table, slotKey: Double },
+                {
+                    grapherTab: DiscreteBar,
+                    slotKey: SmallLeft,
+                },
             ])
         })
     })

@@ -21,9 +21,11 @@ import {
     assembleCsv,
     assembleDataValues,
     assembleReadme,
-    assembleSearchResultTable,
+    assembleSearchResultData,
     ensureDownloadOfDataAllowed,
     findEntityForExtractingDataValues,
+    parseNumDataTableRowsPerColumnParam,
+    parseVariantParam,
     prepareSearchParamsBeforeExtractingDataValues,
 } from "./downloadFunctions.js"
 import { assembleMetadata } from "./metadataTools.js"
@@ -285,39 +287,43 @@ export async function fetchDataValuesForExplorerView(
     }
 }
 
-export async function fetchSearchResultTableForExplorerView(
+export async function fetchSearchResultDataForExplorerView(
     searchParams: URLSearchParams,
     env: Env
 ) {
-    const options = extractOptions(searchParams)
+    // Entities selected by the user
+    const pickedEntities =
+        getEntityNamesParam(searchParams.get("entities") ?? undefined) ?? []
+
+    // Parse information about the search component
+    const variant = parseVariantParam(searchParams.get("variant"))
+    const numDataTableRowsPerColumn = parseNumDataTableRowsPerColumnParam(
+        searchParams.get("numDataTableRowsPerColumn")
+    )
 
     try {
         const explorerEnv = stripUrlExtensionFromEnv(
             env,
-            extensions.searchResultTable
+            extensions.searchResult
         )
+        const options = extractOptions(searchParams)
         const { grapherState } = await initGrapherForExplorerView(
             explorerEnv,
             options
         )
 
-        // Make sure the country query param is respected since Grapher ignores
-        // the country param if entity selection is disabled
-        const entityNames = getEntityNamesParam(
-            searchParams.get("country") ?? undefined
-        )
-        if (entityNames?.length > 0)
-            grapherState.selection.setSelectedEntities(entityNames)
+        const dataApiUrl = getDataApiUrl(env)
+        const searchResult = await assembleSearchResultData(grapherState, {
+            variant,
+            pickedEntities,
+            numDataTableRowsPerColumn,
+            dataApiUrl,
+        })
 
-        const searchResultTable = await assembleSearchResultTable(
-            grapherState,
-            { dataApiUrl: getDataApiUrl(env) }
-        )
+        if (searchResult === undefined)
+            return error(500, "Unable to generate search result data")
 
-        if (searchResultTable === undefined)
-            return error(500, "Unable to generate search results table")
-
-        return Response.json(searchResultTable)
+        return Response.json(searchResult)
     } catch (e) {
         console.error(e)
         return error(500, e)

@@ -1,9 +1,5 @@
 import * as R from "remeda"
-import {
-    GrapherQueryParams,
-    OwidGdocType,
-    TagGraphRoot,
-} from "@ourworldindata/types"
+import { EntityName, OwidGdocType, TagGraphRoot } from "@ourworldindata/types"
 import { SearchClient } from "algoliasearch"
 import {
     SearchState,
@@ -28,6 +24,7 @@ import {
     DATA_CATALOG_ATTRIBUTES,
     formatTopicFacetFilters,
 } from "./searchUtils.js"
+import { RichDataComponentVariant } from "./SearchChartHitRichDataTypes.js"
 
 function makeStateForKey(state: SearchState) {
     return R.pick(state, ["query", "filters", "requireAllCountries"])
@@ -68,13 +65,12 @@ export const searchQueryKeys = {
 export const chartHitQueryKeys = {
     chartInfo: (slug: string, entities: string[], queryParams?: string) =>
         ["chart-info", slug, entities, queryParams] as const,
-    chartConfig: (slug: string, queryParams?: string) =>
-        ["chart-config", slug, queryParams] as const,
-    tableContent: (
+    searchResultData: (
         slug: string,
         queryParams?: string,
-        grapherParams?: GrapherQueryParams
-    ) => ["table-content", slug, queryParams, grapherParams] as const,
+        variant?: RichDataComponentVariant,
+        entities?: EntityName[]
+    ) => ["table-content", slug, queryParams, variant, entities] as const,
 } as const
 
 export async function queryDataTopics(

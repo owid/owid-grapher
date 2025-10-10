@@ -1,7 +1,20 @@
 import { describe, it, expect } from "vitest"
-import { GRAPHER_TAB_NAMES } from "@ourworldindata/types"
-import { LargeVariantGridSlot } from "./SearchChartHitRichDataTypes.js"
-import { placeGrapherTabsInLargeVariantGrid } from "./SearchChartHitRichDataLargeVariantHelpers.js"
+import {
+    GRAPHER_TAB_NAMES,
+    LargeVariantGridSlotKey,
+} from "@ourworldindata/types"
+import { placeGrapherTabsInLargeVariantGrid } from "./LargeVariantRichDataHelpers.js"
+
+const {
+    Full,
+    LeftQuad,
+    RightQuad,
+    RightQuadLeftColumn,
+    BottomRightCell,
+    TopRightCell,
+    RightQuadBottomRow,
+    SingleCell,
+} = LargeVariantGridSlotKey
 
 describe(placeGrapherTabsInLargeVariantGrid, () => {
     const { LineChart, Table, WorldMap, DiscreteBar, Marimekko } =
@@ -16,10 +29,22 @@ describe(placeGrapherTabsInLargeVariantGrid, () => {
         })
 
         expect(result).toEqual([
-            { tab: LineChart, slot: LargeVariantGridSlot.LeftQuad },
-            { tab: Table, slot: LargeVariantGridSlot.RightQuadLeftColumn },
-            { tab: WorldMap, slot: LargeVariantGridSlot.BottomRightCell },
-            { tab: DiscreteBar, slot: LargeVariantGridSlot.TopRightCell },
+            {
+                grapherTab: LineChart,
+                slotKey: LeftQuad,
+            },
+            {
+                grapherTab: Table,
+                slotKey: RightQuadLeftColumn,
+            },
+            {
+                grapherTab: WorldMap,
+                slotKey: BottomRightCell,
+            },
+            {
+                grapherTab: DiscreteBar,
+                slotKey: TopRightCell,
+            },
         ])
     })
 
@@ -32,10 +57,22 @@ describe(placeGrapherTabsInLargeVariantGrid, () => {
         })
 
         expect(result).toEqual([
-            { tab: LineChart, slot: LargeVariantGridSlot.LeftQuad },
-            { tab: Table, slot: LargeVariantGridSlot.RightQuadLeftColumn },
-            { tab: WorldMap, slot: LargeVariantGridSlot.BottomRightCell },
-            { tab: Marimekko, slot: LargeVariantGridSlot.TopRightCell },
+            {
+                grapherTab: LineChart,
+                slotKey: LeftQuad,
+            },
+            {
+                grapherTab: Table,
+                slotKey: RightQuadLeftColumn,
+            },
+            {
+                grapherTab: WorldMap,
+                slotKey: BottomRightCell,
+            },
+            {
+                grapherTab: Marimekko,
+                slotKey: TopRightCell,
+            },
         ])
     })
 
@@ -48,9 +85,18 @@ describe(placeGrapherTabsInLargeVariantGrid, () => {
         })
 
         expect(result).toEqual([
-            { tab: LineChart, slot: LargeVariantGridSlot.LeftQuad },
-            { tab: Table, slot: LargeVariantGridSlot.RightQuadLeftColumn },
-            { tab: WorldMap, slot: LargeVariantGridSlot.BottomRightCell },
+            {
+                grapherTab: LineChart,
+                slotKey: LeftQuad,
+            },
+            {
+                grapherTab: Table,
+                slotKey: RightQuadLeftColumn,
+            },
+            {
+                grapherTab: WorldMap,
+                slotKey: BottomRightCell,
+            },
         ])
     })
 
@@ -63,9 +109,18 @@ describe(placeGrapherTabsInLargeVariantGrid, () => {
         })
 
         expect(result).toEqual([
-            { tab: LineChart, slot: LargeVariantGridSlot.LeftQuad },
-            { tab: Table, slot: LargeVariantGridSlot.RightQuadLeftColumn },
-            { tab: WorldMap, slot: LargeVariantGridSlot.BottomRightCell },
+            {
+                grapherTab: LineChart,
+                slotKey: LeftQuad,
+            },
+            {
+                grapherTab: Table,
+                slotKey: RightQuadLeftColumn,
+            },
+            {
+                grapherTab: WorldMap,
+                slotKey: BottomRightCell,
+            },
         ])
     })
 
@@ -78,8 +133,11 @@ describe(placeGrapherTabsInLargeVariantGrid, () => {
         })
 
         expect(result).toEqual([
-            { tab: LineChart, slot: LargeVariantGridSlot.LeftQuad },
-            { tab: Table, slot: LargeVariantGridSlot.RightQuad },
+            {
+                grapherTab: LineChart,
+                slotKey: LeftQuad,
+            },
+            { grapherTab: Table, slotKey: RightQuad },
         ])
     })
 
@@ -92,8 +150,14 @@ describe(placeGrapherTabsInLargeVariantGrid, () => {
         })
 
         expect(result).toEqual([
-            { tab: LineChart, slot: LargeVariantGridSlot.LeftQuad },
-            { tab: Table, slot: LargeVariantGridSlot.RightQuadLeftColumn },
+            {
+                grapherTab: LineChart,
+                slotKey: LeftQuad,
+            },
+            {
+                grapherTab: Table,
+                slotKey: RightQuadLeftColumn,
+            },
         ])
     })
 
@@ -105,9 +169,7 @@ describe(placeGrapherTabsInLargeVariantGrid, () => {
             numDataTableRowsPerColumn: 10,
         })
 
-        expect(result).toEqual([
-            { tab: Table, slot: LargeVariantGridSlot.Full },
-        ])
+        expect(result).toEqual([{ grapherTab: Table, slotKey: Full }])
     })
 
     it("uses the full space for the data points when there are no other tabs", () => {
@@ -117,8 +179,11 @@ describe(placeGrapherTabsInLargeVariantGrid, () => {
         })
 
         expect(result).toEqual([
-            { tab: LineChart, slot: LargeVariantGridSlot.LeftQuad },
-            { tab: Table, slot: LargeVariantGridSlot.RightQuad },
+            {
+                grapherTab: LineChart,
+                slotKey: LeftQuad,
+            },
+            { grapherTab: Table, slotKey: RightQuad },
         ])
     })
 
@@ -129,9 +194,18 @@ describe(placeGrapherTabsInLargeVariantGrid, () => {
         })
 
         expect(result).toEqual([
-            { tab: LineChart, slot: LargeVariantGridSlot.LeftQuad },
-            { tab: Table, slot: LargeVariantGridSlot.RightQuadBottomRow },
-            { tab: DiscreteBar, slot: LargeVariantGridSlot.SingleCell },
+            {
+                grapherTab: LineChart,
+                slotKey: LeftQuad,
+            },
+            {
+                grapherTab: Table,
+                slotKey: RightQuadBottomRow,
+            },
+            {
+                grapherTab: DiscreteBar,
+                slotKey: SingleCell,
+            },
         ])
     })
 })
