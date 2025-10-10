@@ -72,10 +72,6 @@ function mapGridSlotKeyToClassName(
                 LargeVariantGridSlotKey.RightQuadLeftColumn,
                 () => "right-quad-left-column"
             )
-            .with(
-                LargeVariantGridSlotKey.RightQuadBottomRow,
-                () => "right-quad-bottom-row"
-            )
             .with(LargeVariantGridSlotKey.TopRightCell, () => "top-right-cell")
             .with(
                 LargeVariantGridSlotKey.BottomRightCell,

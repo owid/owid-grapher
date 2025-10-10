@@ -9,7 +9,6 @@ import {
     EntitySelectionMode,
     GRAPHER_CHART_TYPES,
     ColorSchemeName,
-    SearchChartHitDataTableProps,
 } from "@ourworldindata/types"
 import {
     SynthesizeGDPTable,
@@ -104,10 +103,9 @@ describe("constructSearchResultDataTableContent for LineChart", () => {
     it("lists entities when entities are plotted", () => {
         const grapherState = createSingleIndicatorGrapherState()
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -124,10 +122,9 @@ describe("constructSearchResultDataTableContent for LineChart", () => {
     it("lists columns when columns are plotted", () => {
         const grapherState = createFruityMultipleIndicatorsGrapherState()
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.title).toBe("Benin")
         expect(dataTable.rows).toMatchObject([
@@ -147,10 +144,9 @@ describe("constructSearchResultDataTableContent for LineChart", () => {
             focusedSeriesNames: [selectedEntityNames[1]],
         })
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.rows).toMatchObject([
             { label: "Philippines", muted: true },
@@ -164,10 +160,9 @@ describe("constructSearchResultDataTableContent for LineChart", () => {
             selectedFacetStrategy: FacetStrategy.entity,
         })
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -182,10 +177,9 @@ describe("constructSearchResultDataTableContent for LineChart", () => {
             selectedFacetStrategy: FacetStrategy.metric,
         })
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -206,10 +200,9 @@ describe("constructSearchResultDataTableContent for SlopeChart", () => {
             chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
         })
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -246,10 +239,9 @@ describe("constructSearchResultDataTableContent for SlopeChart", () => {
             chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
         })
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.title).toBe("Benin")
         expect(dataTable.rows).toMatchObject([
@@ -285,10 +277,9 @@ describe("constructSearchResultDataTableContent for SlopeChart", () => {
             focusedSeriesNames: [selectedEntityNames[0]],
         })
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -304,10 +295,9 @@ describe("constructSearchResultDataTableContent for SlopeChart", () => {
             selectedFacetStrategy: FacetStrategy.entity,
         })
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -341,10 +331,9 @@ describe("constructSearchResultDataTableContent for SlopeChart", () => {
             selectedFacetStrategy: FacetStrategy.metric,
         })
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -383,10 +372,9 @@ describe("constructSearchResultDataTableContent for StackedAreaChart", () => {
             chartTypes: [GRAPHER_CHART_TYPES.StackedArea],
         })
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -405,10 +393,9 @@ describe("constructSearchResultDataTableContent for StackedAreaChart", () => {
             chartTypes: [GRAPHER_CHART_TYPES.StackedArea],
         })
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.title).toBe("Benin")
         expect(dataTable.rows).toMatchObject([
@@ -429,10 +416,9 @@ describe("constructSearchResultDataTableContent for StackedAreaChart", () => {
             focusedSeriesNames: [selectedEntityNames[1]],
         })
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.rows).toMatchObject([
             { label: "Philippines", muted: true },
@@ -447,10 +433,9 @@ describe("constructSearchResultDataTableContent for StackedAreaChart", () => {
             selectedFacetStrategy: FacetStrategy.entity,
         })
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -466,10 +451,9 @@ describe("constructSearchResultDataTableContent for StackedAreaChart", () => {
             selectedFacetStrategy: FacetStrategy.metric,
         })
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -490,10 +474,9 @@ describe("constructSearchResultDataTableContent for DiscreteBar", () => {
             chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
         })
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -508,10 +491,9 @@ describe("constructSearchResultDataTableContent for DiscreteBar", () => {
             chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
         })
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.title).toBe("Benin")
         expect(dataTable.rows).toMatchObject([
@@ -528,10 +510,9 @@ describe("constructSearchResultDataTableContent for DiscreteBar", () => {
             focusedSeriesNames: [selectedEntityNames[1]],
         })
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.rows).toMatchObject([
             { label: "Philippines", muted: true },
@@ -546,10 +527,9 @@ describe("constructSearchResultDataTableContent for DiscreteBar", () => {
             selectedFacetStrategy: FacetStrategy.entity,
         })
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -565,10 +545,9 @@ describe("constructSearchResultDataTableContent for DiscreteBar", () => {
             selectedFacetStrategy: FacetStrategy.metric,
         })
 
-        const result = constructSearchResultDataTableContent({ grapherState })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
+        const dataTable = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([
@@ -596,12 +575,9 @@ describe("constructSearchResultDataTableContent for WorldMap", () => {
             },
         })
 
-        const result = constructSearchResultDataTableContent({
+        const dataTable = constructSearchResultDataTableContent({
             grapherState,
         })
-
-        expect(result?.type).toBe("data-table")
-        const dataTable = result?.props as SearchChartHitDataTableProps
 
         expect(dataTable.title).toBe("GDP")
         expect(dataTable.rows).toMatchObject([

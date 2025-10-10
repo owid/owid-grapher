@@ -1,5 +1,4 @@
 import * as _ from "lodash-es"
-import { match } from "ts-pattern"
 import {
     GRAPHER_TAB_NAMES,
     GrapherTabName,
@@ -9,15 +8,11 @@ import {
 import { getTableColumnCountForGridSlotKey } from "./SearchHelpers.js"
 
 type PlacingOptions =
-    | { tableType: "none" }
+    | { hasDataTable: false }
     | {
-          tableType: "data-table"
+          hasDataTable: true
           numDataTableRows: number
           numDataTableRowsPerColumn: number
-      }
-    | {
-          tableType: "data-points"
-          numMaxSlotsForTable: number
       }
 
 export function placeGrapherTabsInMediumVariantGridLayout(
@@ -131,27 +126,17 @@ function placeTabsInUniformGrid(
         }))
     }
 
-    const numSlotsForTable = match(options)
-        .with({ tableType: "none" }, () => 0)
-        .with({ tableType: "data-points" }, ({ numMaxSlotsForTable }) =>
-            numMaxSlotsForTable
-                ? Math.min(numAvailableSlotsForTable, numMaxSlotsForTable)
-                : numAvailableSlotsForTable
+    let numSlotsForTable = 0
+    if (options.hasDataTable) {
+        const numNeededSlotsForTable = Math.ceil(
+            options.numDataTableRows / options.numDataTableRowsPerColumn
         )
-        .with(
-            { tableType: "data-table" },
-            ({ numDataTableRows, numDataTableRowsPerColumn }) => {
-                const numNeededSlotsForTable = Math.ceil(
-                    numDataTableRows / numDataTableRowsPerColumn
-                )
 
-                return Math.min(
-                    numAvailableSlotsForTable,
-                    numNeededSlotsForTable
-                )
-            }
+        numSlotsForTable = Math.min(
+            numAvailableSlotsForTable,
+            numNeededSlotsForTable
         )
-        .exhaustive()
+    }
 
     const tableSlot = getGridSlotKeyForCount(numSlotsForTable)
 
