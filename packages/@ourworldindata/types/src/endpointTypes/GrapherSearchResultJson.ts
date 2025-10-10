@@ -11,28 +11,14 @@ export type GrapherSearchResultJson = {
     source: string
     grapherQueryParams: GrapherQueryParams
     layout: LayoutSlot[]
-    dataTable: SearchChartHitDataTableContent
+    dataTable: SearchChartHitDataTableProps
     entityType: string
     entityTypePlural: string
 }
 
-export type SearchChartHitDataTableContent =
-    | {
-          type: "data-table"
-          props: SearchChartHitDataTableProps
-      }
-    | {
-          type: "data-points"
-          props: SearchChartHitDataPointsProps
-      }
-
 export interface SearchChartHitDataTableProps {
     rows: TableRow[]
     title: string
-}
-
-export interface SearchChartHitDataPointsProps {
-    dataPoints: DataPoint[]
 }
 
 interface TableRow {
@@ -47,16 +33,6 @@ interface TableRow {
     striped?: boolean | "no-data"
     outlined?: boolean
     rounded?: boolean
-    trend?: GrapherTrendArrowDirection // only relevant if startValue is given
-}
-
-interface DataPoint {
-    columnName: string
-    unit?: string
-    time: string
-    entityName: string
-    value: string
-    startValue?: string
     trend?: GrapherTrendArrowDirection // only relevant if startValue is given
 }
 
@@ -94,8 +70,6 @@ export enum LargeVariantGridSlotKey {
     RightQuad = "right-quad",
     // Cell numbers 3, 7
     RightQuadLeftColumn = "right-quad-left-column",
-    // Cell numbers 7, 8
-    RightQuadBottomRow = "right-quad-bottom-row",
     // Cell number 4
     TopRightCell = "top-right-cell",
     // Cell number 8

@@ -80,7 +80,7 @@ export function SearchChartHitRichDataFallback({
     )
     const placedTabs = placeGrapherTabsInMediumVariantGridLayout(grapherTabs, {
         hasDataDisplay: !!dataDisplayProps,
-        tableType: "none", // since there is no table tab
+        hasDataTable: false,
     })
 
     const contentStyle = {

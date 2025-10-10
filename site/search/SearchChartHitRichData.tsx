@@ -116,10 +116,7 @@ export function SearchChartHitRichData({
     // Prepare rendering of the data display
     const chartType = data?.layout[0].grapherTab
     const dataDisplayProps =
-        !isLargeVariant &&
-        data?.dataTable.type !== "data-points" &&
-        chartType &&
-        isChartTypeName(chartType)
+        !isLargeVariant && chartType && isChartTypeName(chartType)
             ? buildChartHitDataDisplayProps({
                   chartInfo,
                   chartType,

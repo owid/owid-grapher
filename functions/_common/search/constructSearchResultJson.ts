@@ -27,8 +27,6 @@ import {
     LayoutSlot,
     PrimitiveType,
     SearchChartHitDataDisplayProps,
-    SearchChartHitDataPointsProps,
-    SearchChartHitDataTableContent,
     SearchChartHitDataTableProps,
     SeriesStrategy,
     Time,
@@ -635,7 +633,7 @@ function calculateLayout(
     variant: RichDataVariant,
     grapherState: GrapherState,
     args: {
-        dataTableContent?: SearchChartHitDataTableContent
+        dataTableContent?: SearchChartHitDataTableProps
         dataDisplayProps?: SearchChartHitDataDisplayProps
         sortedTabs: GrapherTabName[]
         numDataTableRowsPerColumn: number
@@ -659,7 +657,7 @@ function calculateMediumVariantLayout(
         sortedTabs,
         numDataTableRowsPerColumn,
     }: {
-        dataTableContent?: SearchChartHitDataTableContent
+        dataTableContent?: SearchChartHitDataTableProps
         dataDisplayProps?: SearchChartHitDataDisplayProps
         sortedTabs: GrapherTabName[]
         numDataTableRowsPerColumn: number
@@ -671,38 +669,27 @@ function calculateMediumVariantLayout(
     // Figure out the layout by assigning each Grapher tab to grid slots.
     // The table tab can optionally span two or more slots (instead of just one)
     // if there's enough space in the grid and enough data to justify it.
-    return match(dataTableContent)
-        .with({ type: "data-table" }, (dataTableContent) => {
-            const { seriesStrategy = SeriesStrategy.entity } =
-                grapherState.chartState
 
-            // Determine whether to allow dropping the DiscreteBar tab to make
-            // room for the table. We only prioritize the table in this scenario:
-            // When plotting columns (rather than entities), we want to
-            // label as many columns as possible since all column lines are
-            // plotted (they can't be deselected, other than entity lines)
-            const prioritizeTableOverDiscreteBar =
-                seriesStrategy === SeriesStrategy.column &&
-                !grapherState.isFaceted &&
-                !grapherState.hasProjectedData &&
-                !grapherState.isStackedDiscreteBar
+    const { seriesStrategy = SeriesStrategy.entity } = grapherState.chartState
 
-            return placeGrapherTabsInMediumVariantGridLayout(sortedTabs, {
-                hasDataDisplay: !!dataDisplayProps,
-                tableType: dataTableContent.type,
-                numDataTableRows: dataTableContent.props.rows.length,
-                numDataTableRowsPerColumn,
-                prioritizeTableOverDiscreteBar,
-            })
-        })
-        .with({ type: "data-points" }, (dataTableContent) =>
-            placeGrapherTabsInMediumVariantGridLayout(sortedTabs, {
-                hasDataDisplay: !!dataDisplayProps,
-                tableType: dataTableContent.type,
-                numMaxSlotsForTable: 2,
-            })
-        )
-        .exhaustive()
+    // Determine whether to allow dropping the DiscreteBar tab to make
+    // room for the table. We only prioritize the table in this scenario:
+    // When plotting columns (rather than entities), we want to
+    // label as many columns as possible since all column lines are
+    // plotted (they can't be deselected, other than entity lines)
+    const prioritizeTableOverDiscreteBar =
+        seriesStrategy === SeriesStrategy.column &&
+        !grapherState.isFaceted &&
+        !grapherState.hasProjectedData &&
+        !grapherState.isStackedDiscreteBar
+
+    return placeGrapherTabsInMediumVariantGridLayout(sortedTabs, {
+        hasDataTable: true,
+        hasDataDisplay: !!dataDisplayProps,
+        numDataTableRows: dataTableContent.rows.length,
+        numDataTableRowsPerColumn,
+        prioritizeTableOverDiscreteBar,
+    })
 }
 
 function calculateLargeVariantLayout(
@@ -712,7 +699,7 @@ function calculateLargeVariantLayout(
         sortedTabs,
         numDataTableRowsPerColumn,
     }: {
-        dataTableContent?: SearchChartHitDataTableContent
+        dataTableContent?: SearchChartHitDataTableProps
         sortedTabs: GrapherTabName[]
         numDataTableRowsPerColumn: number
     }
@@ -720,20 +707,10 @@ function calculateLargeVariantLayout(
     if (!dataTableContent) return undefined
 
     // Figure out the layout by assigning each Grapher tab to grid slots
-    return match(dataTableContent)
-        .with({ type: "data-table" }, (dataTableContent) =>
-            placeGrapherTabsInLargeVariantGrid(sortedTabs, {
-                tableType: dataTableContent.type,
-                numDataTableRows: dataTableContent.props.rows.length,
-                numDataTableRowsPerColumn,
-            })
-        )
-        .with({ type: "data-points" }, (dataTableContent) =>
-            placeGrapherTabsInLargeVariantGrid(sortedTabs, {
-                tableType: dataTableContent.type,
-            })
-        )
-        .exhaustive()
+    return placeGrapherTabsInLargeVariantGrid(sortedTabs, {
+        numDataTableRows: dataTableContent.rows.length,
+        numDataTableRowsPerColumn,
+    })
 }
 
 function configureGrapherStateForLayout(
@@ -743,25 +720,16 @@ function configureGrapherStateForLayout(
         numAvailableDataTableRows,
         maxNumEntitiesInStackedDiscreteBarChart,
     }: {
-        dataTableContent: SearchChartHitDataTableContent
+        dataTableContent: SearchChartHitDataTableProps
         numAvailableDataTableRows: number
         maxNumEntitiesInStackedDiscreteBarChart: number
     }
 ) {
-    match(dataTableContent)
-        .with({ type: "data-table" }, (dataTableContent) =>
-            configureGrapherStateForDataTable(grapherState, {
-                props: dataTableContent.props,
-                numAvailableDataTableRows,
-                maxNumEntitiesInStackedDiscreteBarChart,
-            })
-        )
-        .with({ type: "data-points" }, (dataTableContent) =>
-            configureGrapherStateForDataPoints(grapherState, {
-                props: dataTableContent.props,
-            })
-        )
-        .exhaustive()
+    configureGrapherStateForDataTable(grapherState, {
+        props: dataTableContent,
+        numAvailableDataTableRows,
+        maxNumEntitiesInStackedDiscreteBarChart,
+    })
 }
 
 function configureGrapherStateForDataTable(
@@ -887,20 +855,6 @@ function configureGrapherStateForMarimekko(
     // Select the entities that are displayed in the data table
     if (displayEntities.length)
         grapherState.selection.setSelectedEntities(displayEntities)
-}
-
-function configureGrapherStateForDataPoints(
-    grapherState: GrapherState,
-    { props }: { props: SearchChartHitDataPointsProps }
-): void {
-    // Highlight the entities that are displayed as data points in the chart
-    const entityNames = _.uniq(
-        props.dataPoints.map((dataPoint) => dataPoint.entityName)
-    )
-    if (entityNames.length) {
-        grapherState.focusArray.clearAllAndAdd(...entityNames)
-        grapherState.selection.setSelectedEntities(entityNames)
-    }
 }
 
 function getPreviewGrapherQueryParamsForTab({
