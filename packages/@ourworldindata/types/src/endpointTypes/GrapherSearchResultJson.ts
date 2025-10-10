@@ -39,6 +39,7 @@ interface TableRow {
 export interface LayoutSlot<TSlotKey extends GridSlotKey = GridSlotKey> {
     slotKey: TSlotKey
     grapherTab: GrapherTabName
+    chartParams?: GrapherQueryParams
     previewParams?: GrapherQueryParams
 }
 

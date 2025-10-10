@@ -155,14 +155,20 @@ export function constructSearchResultJson(
         maxRows,
     })
 
-    // Some preview thumbnails need specific grapher query params
+    // Some charts and preview thumbnails need specific grapher query params
     const enrichedLayout = layout.map(({ slotKey, grapherTab }) => {
-        const previewParams = getPreviewGrapherQueryParamsForTab({
+        const { chartParams, previewParams } = getGrapherQueryParamsForTab({
             grapherState,
             tab: grapherTab,
             timeBounds: pickedTimeBounds,
         })
-        return omitUndefinedValues({ slotKey, grapherTab, previewParams })
+
+        return omitUndefinedValues({
+            slotKey,
+            grapherTab,
+            chartParams,
+            previewParams,
+        })
     })
 
     const grapherParams = {
@@ -856,7 +862,7 @@ function configureGrapherStateForMarimekko(
         grapherState.selection.setSelectedEntities(displayEntities)
 }
 
-function getPreviewGrapherQueryParamsForTab({
+function getGrapherQueryParamsForTab({
     grapherState,
     tab,
     timeBounds,
@@ -864,42 +870,55 @@ function getPreviewGrapherQueryParamsForTab({
     grapherState: GrapherState
     tab: GrapherTabName
     timeBounds?: TimeBounds
-}): GrapherQueryParams | undefined {
+}): { chartParams?: GrapherQueryParams; previewParams?: GrapherQueryParams } {
     // Adjust grapher query params for the preview thumbnail of some chart types
     const params = match(tab)
         .with(GRAPHER_TAB_NAMES.DiscreteBar, () =>
-            getPreviewGrapherQueryParamsForDiscreteBar(grapherState)
+            getGrapherQueryParamsForDiscreteBar(grapherState)
         )
         .with(GRAPHER_TAB_NAMES.Marimekko, () =>
-            getPreviewGrapherQueryParamsForMarimekko(grapherState)
+            getGrapherQueryParamsForMarimekko(grapherState)
         )
         .with(GRAPHER_TAB_NAMES.SlopeChart, () =>
-            getPreviewGrapherQueryParamsForSlopeChart(grapherState, timeBounds)
+            getGrapherQueryParamsForSlopeChart(grapherState, timeBounds)
         )
         .otherwise(() => undefined)
 
-    return _.isEmpty(params) ? undefined : params
+    if (!params) return { chartParams: undefined, previewParams: undefined }
+
+    const { chartParams, previewParams } = params
+    return {
+        chartParams: _.isEmpty(chartParams) ? undefined : chartParams,
+        previewParams: _.isEmpty(previewParams) ? undefined : previewParams,
+    }
 }
 
-function getPreviewGrapherQueryParamsForMarimekko(
+function getGrapherQueryParamsForMarimekko(
     grapherState: GrapherState
-): GrapherQueryParams {
+):
+    | { chartParams?: GrapherQueryParams; previewParams?: GrapherQueryParams }
+    | undefined {
     // If the Marimekko chart has a selection, also set
     // the focus param, so that the selected entities are
     // labelled
     const originalGrapherParams = grapherState.changedParams
     if (!originalGrapherParams.focus && grapherState.selection.hasSelection) {
         return {
-            focus: generateFocusedSeriesNamesParam(
-                grapherState.selection.selectedEntityNames
-            ),
+            chartParams: undefined,
+            previewParams: {
+                focus: generateFocusedSeriesNamesParam(
+                    grapherState.selection.selectedEntityNames
+                ),
+            },
         }
     }
 }
 
-function getPreviewGrapherQueryParamsForDiscreteBar(
+function getGrapherQueryParamsForDiscreteBar(
     grapherState: GrapherState
-): GrapherQueryParams {
+):
+    | { chartParams?: GrapherQueryParams; previewParams?: GrapherQueryParams }
+    | undefined {
     const overwriteParams: GrapherQueryParams = {}
 
     // Instead of showing a single series per facet,
@@ -931,13 +950,15 @@ function getPreviewGrapherQueryParamsForDiscreteBar(
         }
     }
 
-    return overwriteParams
+    return { chartParams: overwriteParams, previewParams: overwriteParams }
 }
 
-function getPreviewGrapherQueryParamsForSlopeChart(
+function getGrapherQueryParamsForSlopeChart(
     grapherState: GrapherState,
     timeBounds?: TimeBounds
-): GrapherQueryParams {
+):
+    | { chartParams?: GrapherQueryParams; previewParams?: GrapherQueryParams }
+    | undefined {
     const [startTime, endTime] = timeBounds || []
 
     if (startTime === undefined && endTime === undefined) return
@@ -956,7 +977,9 @@ function getPreviewGrapherQueryParamsForSlopeChart(
     ]
 
     // Set the time param to the new time bounds
-    return { time: makeGrapherTimeParam(grapherState, updatedTime) }
+    const params = { time: makeGrapherTimeParam(grapherState, updatedTime) }
+
+    return { chartParams: params, previewParams: params }
 }
 
 function makeGrapherTimeParam(
