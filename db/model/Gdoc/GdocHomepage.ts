@@ -66,10 +66,16 @@ export class GdocHomepage
             db.getNonGrapherExplorerViewCount(knex),
         ])
 
+        const explorerCount = await db
+            .getPublishedExplorersBySlug(knex, false)
+            .then((explorers) => Object.keys(explorers).length)
+
         this.homepageMetadata = {
             chartCount: grapherCount + nonGrapherExplorerViewCount,
             topicCount: await db.getUniqueTopicCount(knex),
+            explorerCount,
             tagGraph: await db.generateTopicTagGraph(knex),
+            announcements: await db.getHomepageAnnouncements(knex),
         }
 
         const { dataInsights, imageMetadata } =

@@ -41,9 +41,12 @@ import {
     TagsTableName,
     TagGraphTableName,
     ExplorersTableName,
+    OwidGdocMinimalPostInterface,
+    DbRawPostGdoc,
 } from "@ourworldindata/types"
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
+import { rawGdocToMinimalPost } from "./model/Gdoc/GdocBase.js"
 
 // Return the first match from a mysql query
 export const closeTypeOrmAndKnexConnections = async (): Promise<void> => {
@@ -210,7 +213,8 @@ export const getExplorerTags = async (
 }
 
 export const getPublishedExplorersBySlug = async (
-    knex: KnexReadonlyTransaction
+    knex: KnexReadonlyTransaction,
+    includeUnlisted: boolean = true
 ): Promise<Record<string, MinimalExplorerInfo>> => {
     const tags = await getExplorerTags(knex)
     const tagsBySlug = _.keyBy(tags, "slug")
@@ -228,7 +232,7 @@ export const getPublishedExplorersBySlug = async (
         WHERE
             e.isPublished = TRUE`
     ).then((rows) => {
-        const processed = rows.map((row: any) => {
+        let processed = rows.map((row: any) => {
             const tagsForExplorer = tagsBySlug[row.slug]
             return {
                 slug: row.slug,
@@ -241,6 +245,11 @@ export const getPublishedExplorersBySlug = async (
                 updatedAt: row.updatedAt,
             }
         })
+        if (!includeUnlisted) {
+            processed = processed.filter(
+                (row) => !row.tags.includes("Unlisted")
+            )
+        }
         return _.keyBy(processed, "slug")
     })
 }
@@ -377,6 +386,25 @@ export const getHomepageId = (
             type = '${OwidGdocType.Homepage}'
             AND published = TRUE`
     ).then((result) => result?.id)
+}
+
+export const getHomepageAnnouncements = (
+    knex: KnexReadonlyTransaction
+): Promise<OwidGdocMinimalPostInterface[]> => {
+    return knexRaw<DbRawPostGdoc>(
+        knex,
+        `-- sql
+        SELECT
+            pg.*
+        FROM ${PostsGdocsTableName} pg
+        WHERE pg.published = TRUE
+        AND pg.publishedAt <= NOW()
+        AND pg.type = '${OwidGdocType.Announcement}'
+        AND pg.publicationContext = 'listed'
+        ORDER BY pg.publishedAt DESC
+        LIMIT 3
+        `
+    ).then((rows) => rows.map(rawGdocToMinimalPost))
 }
 
 export async function checkIsImageInDB(

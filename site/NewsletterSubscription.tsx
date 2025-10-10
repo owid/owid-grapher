@@ -5,6 +5,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { SiteAnalytics } from "./SiteAnalytics.js"
 import { TextInput } from "@ourworldindata/components"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
+import cx from "classnames"
+import { NewsletterIcon } from "./gdocs/components/NewsletterIcon.js"
+import { SOCIALS } from "./SiteConstants.js"
 
 const analytics = new SiteAnalytics()
 
@@ -179,3 +182,43 @@ export const NewsletterSubscriptionForm = ({
         </form>
     )
 }
+
+export const NewsletterWithSocials = ({
+    className,
+}: {
+    className?: string
+}) => (
+    <div className={cx(className, "newsletter-with-socials")}>
+        <div className="newsletter-with-socials__header">
+            <NewsletterIcon className="newsletter-with-socials__icon" />
+            <h4 className="newsletter-with-socials__heading">
+                Subscribe to our newsletters
+            </h4>
+        </div>
+        <NewsletterSubscriptionForm
+            key="signup"
+            className="newsletter-with-socials__form"
+            context={NewsletterSubscriptionContext.Latest}
+        />
+        <p className="newsletter-with-socials__social-cta">Follow us</p>
+        <ul className="newsletter-with-socials__socials">
+            {SOCIALS.map(({ title, url, icon }) => (
+                <li key={title}>
+                    <a
+                        href={url}
+                        className="list-item"
+                        title={title}
+                        target="_blank"
+                        rel="noopener"
+                        data-track-note="latest_page_follow_us"
+                    >
+                        <span className="icon">
+                            <FontAwesomeIcon icon={icon} />
+                        </span>
+                        <span className="label">{title}</span>
+                    </a>
+                </li>
+            ))}
+        </ul>
+    </div>
+)
