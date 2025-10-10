@@ -3,6 +3,7 @@ export { TextWrap, shortenForTargetWidth } from "./TextWrap/TextWrap.js"
 export {
     MarkdownTextWrap,
     sumTextWrapHeights,
+    toPlaintext,
 } from "./MarkdownTextWrap/MarkdownTextWrap.js"
 
 export {

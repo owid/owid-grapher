@@ -2,51 +2,9 @@ import { match } from "ts-pattern"
 import {
     GRAPHER_TAB_NAMES,
     GrapherTabName,
-    SearchChartHitDataTableContent,
+    LargeVariantGridSlotKey,
+    LayoutSlot,
 } from "@ourworldindata/types"
-import {
-    GRAPHER_THUMBNAIL_HEIGHT,
-    GRAPHER_THUMBNAIL_WIDTH,
-    GrapherState,
-} from "@ourworldindata/grapher"
-import {
-    LargeVariantGridSlot,
-    Layout,
-    PlacedTab,
-} from "./SearchChartHitRichDataTypes.js"
-
-export function calculateLargeVariantLayout(
-    _grapherState: GrapherState,
-    {
-        dataTableContent,
-        sortedTabs,
-        numDataTableRowsPerColumn,
-    }: {
-        dataTableContent?: SearchChartHitDataTableContent
-        sortedTabs: GrapherTabName[]
-        numDataTableRowsPerColumn: number
-    }
-): Layout<LargeVariantGridSlot> | undefined {
-    if (!dataTableContent) return undefined
-
-    // Figure out the layout by assigning each Grapher tab to grid slots
-    const placedTabs = match(dataTableContent)
-        .with({ type: "data-table" }, (dataTableContent) =>
-            placeGrapherTabsInLargeVariantGrid(sortedTabs, {
-                tableType: dataTableContent.type,
-                numDataTableRows: dataTableContent.props.rows.length,
-                numDataTableRowsPerColumn,
-            })
-        )
-        .with({ type: "data-points" }, (dataTableContent) =>
-            placeGrapherTabsInLargeVariantGrid(sortedTabs, {
-                tableType: dataTableContent.type,
-            })
-        )
-        .exhaustive()
-
-    return { placedTabs, dataTableContent }
-}
 
 type PlacingOptions =
     | {
@@ -59,7 +17,7 @@ type PlacingOptions =
 export function placeGrapherTabsInLargeVariantGrid(
     tabs: GrapherTabName[],
     options: PlacingOptions
-): PlacedTab<LargeVariantGridSlot>[] {
+): LayoutSlot<LargeVariantGridSlotKey>[] {
     const { Table } = GRAPHER_TAB_NAMES
     const {
         Full,
@@ -70,15 +28,17 @@ export function placeGrapherTabsInLargeVariantGrid(
         LeftQuad,
         BottomRightCell,
         TopRightCell,
-    } = LargeVariantGridSlot
+    } = LargeVariantGridSlotKey
 
     // Special case: The table tab is in the first position
     if (tabs.length === 1 && tabs[0] === Table)
-        return [{ tab: Table, slot: Full }]
+        return [{ grapherTab: Table, slotKey: Full }]
 
     // Special case: There is no table tab (should never happen)
     if (!tabs.includes(Table))
-        return tabs.slice(0, 8).map((tab) => ({ tab, slot: SingleCell }))
+        return tabs
+            .slice(0, 8)
+            .map((tab) => ({ grapherTab: tab, slotKey: SingleCell }))
 
     // All tabs except the primary tab and the table tab
     const remainingTabs = tabs.slice(2)
@@ -111,8 +71,8 @@ export function placeGrapherTabsInLargeVariantGrid(
         .exhaustive()
 
     // The primary/first tab always takes up the left half of the grid
-    const placedPrimaryTab = { tab: tabs[0], slot: LeftQuad }
-    const placedTableTab = { tab: Table, slot: tableSlot }
+    const placedPrimaryTab = { grapherTab: tabs[0], slotKey: LeftQuad }
+    const placedTableTab = { grapherTab: Table, slotKey: tableSlot }
 
     // If the table takes up the right quadrant, there is no space
     // for any additional thumbnails
@@ -126,36 +86,14 @@ export function placeGrapherTabsInLargeVariantGrid(
         // (starting by default from the left). If the table takes up the left
         // column, place the remaining tabs starting from the bottom
         {
-            tab: remainingTabs[0],
-            slot:
+            grapherTab: remainingTabs[0],
+            slotKey:
                 tableSlot === RightQuadBottomRow ? SingleCell : BottomRightCell,
         },
         {
-            tab: remainingTabs[1],
-            slot: tableSlot === RightQuadBottomRow ? SingleCell : TopRightCell,
+            grapherTab: remainingTabs[1],
+            slotKey:
+                tableSlot === RightQuadBottomRow ? SingleCell : TopRightCell,
         },
-    ].filter(({ tab }) => tab)
-}
-
-export function calculateLargePreviewImageDimensions(
-    layout: Layout<LargeVariantGridSlot>
-): {
-    width: number
-    height: number
-} {
-    const slots = layout.placedTabs.map(({ slot }) => slot)
-
-    if (slots.length <= 2) {
-        return {
-            width: 4 * GRAPHER_THUMBNAIL_WIDTH,
-            height: 4 * GRAPHER_THUMBNAIL_HEIGHT,
-        }
-    }
-
-    // The large chart must be a little taller to match the combined height of
-    // both thumbnails plus the vertical spacing and caption text between them.
-    return {
-        width: 4 * GRAPHER_THUMBNAIL_WIDTH,
-        height: 4 * GRAPHER_THUMBNAIL_HEIGHT + 4 * 16, // Magic number
-    }
+    ].filter(({ grapherTab }) => grapherTab)
 }

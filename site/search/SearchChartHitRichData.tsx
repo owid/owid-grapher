@@ -1,22 +1,26 @@
+import * as R from "remeda"
 import { useMemo } from "react"
-import { runInAction } from "mobx"
 import cx from "classnames"
 import { useIntersectionObserver, useMediaQuery } from "usehooks-ts"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
 import { match } from "ts-pattern"
 import {
-    GrapherState,
-    migrateGrapherConfigToLatestVersion,
+    GRAPHER_THUMBNAIL_HEIGHT,
+    GRAPHER_THUMBNAIL_WIDTH,
+    isChartTypeName,
+    mapGrapherTabNameToQueryParam,
     WORLD_ENTITY_NAME,
 } from "@ourworldindata/grapher"
 import {
     EntityName,
     GRAPHER_TAB_NAMES,
-    GrapherInterface,
-    GrapherQueryParams,
     GrapherTabName,
-    GrapherValuesJson,
-    SearchChartHitDataTableContent,
+    GridSlotKey,
+    LargeVariantGridSlotKey,
+    MediumVariantGridSlotKey,
+    LayoutSlot,
+    GrapherSearchResultJson,
+    GrapherQueryParams,
 } from "@ourworldindata/types"
 import { Button } from "@ourworldindata/components"
 import { MEDIUM_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
@@ -24,48 +28,31 @@ import {
     ChartRecordType,
     SearchChartHit,
     SearchChartHitComponentProps,
+    SearchChartHitComponentVariant,
 } from "./searchTypes.js"
 import {
     constructChartUrl,
-    constructConfigUrl,
-    constructSearchTableUrl,
+    constructPreviewUrl,
+    constructSearchResultUrl,
     pickEntitiesForChartHit,
 } from "./searchUtils.js"
 import {
-    configureGrapherStateFocus,
-    configureGrapherStateForLayout,
-    configureGrapherStateSelection,
-    configureGrapherStateTab,
-    getSortedGrapherTabsForChartHit,
     getTotalColumnCount,
-    pickEntitiesForDisplay as pickDisplayEntities,
-    getTableRowCountForGridSlot,
     makeSlotClassNames,
-    findTableSlot,
     getPreviewType,
-    constructChartAndPreviewUrlsForTab,
 } from "./SearchChartHitRichDataHelpers.js"
-import { calculateMediumVariantLayout } from "./SearchChartHitRichDataMediumVariantHelpers.js"
 import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
 import { CaptionedTable } from "./SearchChartHitCaptionedTable.js"
 import { CaptionedThumbnail } from "./SearchChartHitCaptionedThumbnail.js"
 import { SearchChartHitDataDisplay } from "./SearchChartHitDataDisplay.js"
 import { SearchChartHitRichDataFallback } from "./SearchChartHitRichDataFallback.js"
 import {
-    GridSlot,
-    LargeVariantGridSlot,
-    Layout,
-    MediumVariantGridSlot,
     PreviewVariant,
     RichDataComponentVariant,
 } from "./SearchChartHitRichDataTypes.js"
-import {
-    calculateLargePreviewImageDimensions,
-    calculateLargeVariantLayout,
-} from "./SearchChartHitRichDataLargeVariantHelpers.js"
 import { QueryStatus, useQuery } from "@tanstack/react-query"
 import { chartHitQueryKeys } from "./queries.js"
-import { fetchJson } from "@ourworldindata/utils"
+import { buildChartHitDataDisplayProps, fetchJson } from "@ourworldindata/utils"
 import { useQueryChartInfo } from "./SearchChartHitSmallHelpers.js"
 
 // Keep in sync with $num-rows-per-column in SearchChartHitRichData.scss
@@ -103,91 +90,46 @@ export function SearchChartHitRichData({
         freezeOnceVisible: true, // Only trigger once
     })
 
-    // Fetch the grapher config
-    const { data: chartConfig, status: loadingStatusConfig } =
-        useQueryChartConfig(hit, { enabled: hasBeenVisible })
+    // Fetch search result data for this chart hit
+    const { data, status: loadingStatus } = useQuerySearchResultDataForChartHit(
+        {
+            hit,
+            params: {
+                version: 1,
+                variant,
+                entities: pickedEntities,
+                numDataTableRowsPerColumn,
+            },
+            enabled: hasBeenVisible,
+        }
+    )
 
-    // Fetch chart info and data values
+    // Fetch chart info for the big data value
     const entityForDataDisplay = pickedEntities[0] ?? WORLD_ENTITY_NAME
     const { data: chartInfo } = useQueryChartInfo({
         hit,
         entities: [entityForDataDisplay],
-        enabled: hasBeenVisible,
+        // The large variant doesn't display a data value on the right
+        enabled: hasBeenVisible && !isLargeVariant,
     })
 
-    // Init the grapher state
-    const grapherState = useMemo(
-        () => new GrapherState(chartConfig ?? { isConfigReady: false }),
-        [chartConfig]
-    )
-
-    // Choose the entities to display
-    const displayEntities = pickDisplayEntities(grapherState, {
-        pickedEntities,
-        availableEntities,
-    })
-
-    // Find Grapher tabs to display and bring them in the right order
-    const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
-
-    // Bring Grapher into the right state for this search result:
-    // - Set the tab to the leftmost tab in the sorted list
-    // - Select the entities determined for this search result
-    // - Highlight the entity (or entities) the user picked
-    runInAction(() => {
-        configureGrapherStateTab(grapherState, { tab: sortedTabs[0] })
-        configureGrapherStateSelection(grapherState, {
-            entities: displayEntities,
-        })
-        configureGrapherStateFocus(grapherState, { entities: pickedEntities })
-    })
-
-    // Fetch the data table's content to determine the layout
-    // (this isn't necessarily the data that will be displayed in the end)
-    const initialDataTableContent = useQueryDataTableContent(
-        hit,
-        grapherState.changedParams,
-        { enabled: hasBeenVisible && grapherState.isConfigReady }
-    )
-
-    // Place Grapher tabs into grid layout and calculate info for data display
-    const layout = calculateLayout(variant, grapherState, {
-        chartInfo,
-        dataTableContent: initialDataTableContent.data,
-        sortedTabs,
-        entityForDataDisplay,
-        numDataTableRowsPerColumn,
-    })
-    const tableSlot = findTableSlot(layout)
-
-    // We might need to adjust entity selection and focus according to the chosen layout
-    if (layout && tableSlot)
-        runInAction(() => {
-            configureGrapherStateForLayout(grapherState, {
-                dataTableContent: layout.dataTableContent,
-                numAvailableDataTableRows: getTableRowCountForGridSlot(
-                    tableSlot,
-                    numDataTableRowsPerColumn
-                ),
-                maxNumEntitiesInStackedDiscreteBarChart:
-                    variant === "large" ? 12 : 6,
-            })
-        })
-
-    // Fetch the data table's content using the updated grapher state
-    const { data: dataTableContent, status: loadingStatusTableContent } =
-        useQueryDataTableContent(hit, grapherState.changedParams, {
-            enabled:
-                hasBeenVisible && initialDataTableContent.status !== "loading",
-        })
-
-    const status = combineStatuses(
-        loadingStatusConfig,
-        loadingStatusTableContent
-    )
+    // Prepare rendering of the data display
+    const chartType = data?.layout[0].grapherTab
+    const dataDisplayProps =
+        !isLargeVariant &&
+        data?.dataTable.type !== "data-points" &&
+        chartType &&
+        isChartTypeName(chartType)
+            ? buildChartHitDataDisplayProps({
+                  chartInfo,
+                  chartType,
+                  entity: entityForDataDisplay,
+                  isEntityPickedByUser: pickedEntities.length > 0,
+              })
+            : undefined
 
     // Render the fallback component if config or data loading failed
-    if (status === "error") {
+    if (loadingStatus === "error") {
         return (
             <SearchChartHitRichDataFallback
                 hit={hit}
@@ -198,7 +140,7 @@ export function SearchChartHitRichData({
     }
 
     // Render a placeholder component while the config and data are loading
-    if (status === "loading") {
+    if (loadingStatus === "loading" || data === undefined) {
         return (
             <div ref={ref} className="search-chart-hit-rich-data">
                 <SearchChartHitHeader
@@ -212,22 +154,21 @@ export function SearchChartHitRichData({
         )
     }
 
-    const countryParam = grapherState.changedParams.country
-    const grapherParams = countryParam ? { country: countryParam } : undefined
-    const chartUrl = constructChartUrl({ hit, grapherParams })
+    const countryParam = R.pick(data.grapherQueryParams, ["country"])
+    const chartUrl = constructChartUrl({ hit, grapherParams: countryParam })
     const sourcesUrl = constructChartUrl({
         hit,
-        grapherParams,
+        grapherParams: countryParam,
         overlay: "sources",
     })
     const downloadUrl = constructChartUrl({
         hit,
-        grapherParams,
+        grapherParams: countryParam,
         overlay: "download-data",
     })
 
     const contentStyle = {
-        "--num-columns": getTotalColumnCount(layout?.placedTabs ?? []),
+        "--num-columns": getTotalColumnCount(data.layout),
     } as React.CSSProperties
 
     return (
@@ -235,8 +176,10 @@ export function SearchChartHitRichData({
             <div className="search-chart-hit-rich-data__header">
                 <SearchChartHitHeader
                     hit={hit}
+                    title={data.title}
+                    subtitle={data.subtitle}
                     url={chartUrl}
-                    source={chartInfo?.source}
+                    source={data.source ?? chartInfo?.source}
                     isLarge={isLargeVariant}
                     onClick={onClick}
                 />
@@ -269,72 +212,60 @@ export function SearchChartHitRichData({
                 )}
                 style={contentStyle}
             >
-                {layout?.placedTabs.map(({ tab, slot }, tabIndex) => {
-                    const isPrimaryTab = tabIndex === 0
+                {data.layout.map(({ grapherTab, slotKey }, tabIndex) => {
                     const isSmallSlot =
-                        slot === MediumVariantGridSlot.SmallLeft ||
-                        slot === MediumVariantGridSlot.SmallRight
+                        slotKey === MediumVariantGridSlotKey.SmallLeft ||
+                        slotKey === MediumVariantGridSlotKey.SmallRight
 
-                    // Always use the complete version on smaller screens since
-                    // the table might not be visible
-                    const minimalThumbnail = {
-                        variant: PreviewVariant.Thumbnail,
-                        isMinimal: false,
-                    }
-                    const previewType = isMediumScreen
-                        ? minimalThumbnail
-                        : getPreviewType(variant, { isPrimaryTab, isSmallSlot })
+                    const chartUrl = constructChartUrlForTab({
+                        hit,
+                        grapherTab,
+                        grapherQueryParams: data.grapherQueryParams,
+                    })
 
-                    const { width: imageWidth, height: imageHeight } =
-                        previewType.variant === PreviewVariant.Large
-                            ? calculateLargePreviewImageDimensions(
-                                  layout as Layout<LargeVariantGridSlot>
-                              )
-                            : {}
-
-                    const { chartUrl, previewUrl } =
-                        constructChartAndPreviewUrlsForTab({
+                    const { previewUrl, imageWidth, imageHeight } =
+                        constructPreviewUrlForTab({
                             hit,
-                            grapherState,
-                            tab,
-                            previewType,
-                            imageWidth,
-                            imageHeight,
+                            grapherQueryParams: data.grapherQueryParams,
+                            variant,
+                            layout: data.layout,
+                            slotIndex: tabIndex,
+                            isMediumScreen,
                         })
 
-                    const className = makeSlotClassNames(variant, slot)
+                    const className = makeSlotClassNames(variant, slotKey)
 
-                    return tab === GRAPHER_TAB_NAMES.Table ? (
+                    return grapherTab === GRAPHER_TAB_NAMES.Table ? (
                         <CaptionedTable
-                            key={tab}
+                            key={grapherTab}
                             chartUrl={chartUrl}
-                            dataTableContent={dataTableContent}
+                            dataTableContent={data.dataTable}
                             numAvailableEntities={availableEntities.length}
                             numRowsPerColumn={numDataTableRowsPerColumn}
-                            entityType={grapherState.entityType}
-                            entityTypePlural={grapherState.entityTypePlural}
+                            entityType={data.entityType}
+                            entityTypePlural={data.entityTypePlural}
                             className={className}
-                            onClick={() => onClick(tab)}
+                            onClick={() => onClick(grapherTab)}
                         />
                     ) : (
                         <CaptionedThumbnail
-                            key={tab}
-                            chartType={tab}
+                            key={grapherTab}
+                            chartType={grapherTab}
                             isSmallSlot={isSmallSlot}
                             chartUrl={chartUrl}
                             previewUrl={previewUrl}
                             imageWidth={imageWidth}
                             imageHeight={imageHeight}
                             className={className}
-                            onClick={() => onClick(tab)}
+                            onClick={() => onClick(grapherTab)}
                         />
                     )
                 })}
 
-                {layout?.dataDisplayProps && (
+                {dataDisplayProps && (
                     <SearchChartHitDataDisplay
                         className="data-slot"
-                        {...layout.dataDisplayProps}
+                        {...dataDisplayProps}
                     />
                 )}
             </div>
@@ -361,15 +292,15 @@ function RichDataContentMediumVariantPlaceholder(): React.ReactElement {
         >
             <GrapherThumbnailPlaceholder
                 variant="medium"
-                slot={MediumVariantGridSlot.Single}
+                slot={MediumVariantGridSlotKey.Single}
             />
             <GrapherThumbnailPlaceholder
                 variant="medium"
-                slot={MediumVariantGridSlot.Single}
+                slot={MediumVariantGridSlotKey.Single}
             />
             <GrapherThumbnailPlaceholder
                 variant="medium"
-                slot={MediumVariantGridSlot.Single}
+                slot={MediumVariantGridSlotKey.Single}
             />
         </div>
     )
@@ -380,19 +311,19 @@ function RichDataContentLargeVariantPlaceholder(): React.ReactElement {
         <div className="search-chart-hit-rich-data__content search-chart-hit-rich-data__content--large">
             <GrapherThumbnailPlaceholder
                 variant="large"
-                slot={LargeVariantGridSlot.LeftQuad}
+                slot={LargeVariantGridSlotKey.LeftQuad}
             />
             <GrapherThumbnailPlaceholder
                 variant="large"
-                slot={LargeVariantGridSlot.RightQuadLeftColumn}
+                slot={LargeVariantGridSlotKey.RightQuadLeftColumn}
             />
             <GrapherThumbnailPlaceholder
                 variant="large"
-                slot={LargeVariantGridSlot.SingleCell}
+                slot={LargeVariantGridSlotKey.SingleCell}
             />
             <GrapherThumbnailPlaceholder
                 variant="large"
-                slot={LargeVariantGridSlot.SingleCell}
+                slot={LargeVariantGridSlotKey.SingleCell}
             />
         </div>
     )
@@ -403,7 +334,7 @@ function GrapherThumbnailPlaceholder({
     slot,
 }: {
     variant: RichDataComponentVariant
-    slot: GridSlot
+    slot: GridSlotKey
 }): React.ReactElement {
     return (
         <div
@@ -418,93 +349,167 @@ function GrapherThumbnailPlaceholder({
     )
 }
 
-function combineStatuses(...statuses: QueryStatus[]): QueryStatus {
-    return statuses.includes("error")
-        ? "error"
-        : statuses.includes("loading")
-          ? "loading"
-          : "success"
-}
-
-function calculateLayout(
-    variant: RichDataComponentVariant,
-    grapherState: GrapherState,
-    args: {
-        chartInfo?: GrapherValuesJson
-        dataTableContent?: SearchChartHitDataTableContent
-        sortedTabs: GrapherTabName[]
-        entityForDataDisplay?: EntityName
+function useQuerySearchResultDataForChartHit({
+    hit,
+    params,
+    enabled,
+}: {
+    hit: SearchChartHit
+    params: {
+        version: number
+        entities?: EntityName[]
+        variant: RichDataComponentVariant
         numDataTableRowsPerColumn: number
     }
-): Layout<GridSlot> | undefined {
-    return match(variant)
-        .with("large", () => calculateLargeVariantLayout(grapherState, args))
-        .with("medium", () => calculateMediumVariantLayout(grapherState, args))
-        .exhaustive()
-}
-
-/** Fetches the Grapher config for a given chart hit */
-function useQueryChartConfig(
-    hit: SearchChartHit,
-    { enabled }: { enabled?: boolean } = {}
-): {
-    data?: GrapherInterface
-    status: QueryStatus
-} {
-    const isChartRecord = hit.type === ChartRecordType.Chart
-
-    const { data: fetchedChartConfig, status } = useQuery({
-        queryKey: chartHitQueryKeys.chartConfig(
-            hit.slug,
-            isChartRecord ? undefined : hit.queryParams
-        ),
-        queryFn: () => {
-            const configUrl = constructConfigUrl({ hit })
-            if (!configUrl) return null
-            return fetchJson<GrapherInterface>(configUrl)
-        },
-        enabled,
-    })
-
-    // If the result is null, the query URL couldn't be constructed. In this
-    // case, return an error status instead of a success status with null data
-    if (fetchedChartConfig === null) return { status: "error" }
-
-    const chartConfig = fetchedChartConfig
-        ? migrateGrapherConfigToLatestVersion(fetchedChartConfig)
-        : undefined
-
-    return { data: chartConfig, status }
-}
-
-function useQueryDataTableContent(
-    hit: SearchChartHit,
-    grapherParams: GrapherQueryParams,
-    { enabled }: { enabled?: boolean }
-): {
-    data?: SearchChartHitDataTableContent
-    status: QueryStatus
-} {
-    const { data: dataTableContent, status } = useQuery({
-        queryKey: chartHitQueryKeys.tableContent(
+    enabled?: boolean
+}): { data?: GrapherSearchResultJson; status: QueryStatus } {
+    const { data, status } = useQuery({
+        queryKey: chartHitQueryKeys.searchResultData(
             hit.slug,
             hit.type === ChartRecordType.Chart ? undefined : hit.queryParams,
-            grapherParams
+            params.variant,
+            params.entities
         ),
         queryFn: () => {
-            const configUrl = constructSearchTableUrl({
-                hit,
-                grapherParams,
-            })
-            if (!configUrl) return null
-            return fetchJson<SearchChartHitDataTableContent>(configUrl)
+            const url = constructSearchResultUrl({ hit, params })
+            if (!url) return null
+            return fetchJson<GrapherSearchResultJson>(url)
         },
         enabled,
     })
 
     // If the result is null, the query URL couldn't be constructed. In this
     // case, return an error status instead of a success status with null data
-    if (dataTableContent === null) return { status: "error" }
+    if (data === null) return { status: "error" }
 
-    return { data: dataTableContent, status }
+    return { data, status }
+}
+
+function constructChartUrlForTab({
+    hit,
+    grapherTab,
+    grapherQueryParams,
+}: {
+    hit: SearchChartHit
+    grapherTab: GrapherTabName
+    grapherQueryParams: GrapherQueryParams
+}): string {
+    // Use Grapher's changedParams to construct chart URL.
+    // We override the tab parameter because the GrapherState is currently set to
+    // the first tab of the chart, but we need to generate URLs for the specific
+    // tab being rendered in this preview.
+    const grapherParams = {
+        ...grapherQueryParams,
+        tab: mapGrapherTabNameToQueryParam(grapherTab),
+    }
+
+    // We don't want to link to a chart where entities are highlighted.
+    const omitParamsForChartUrl: (keyof GrapherQueryParams)[] = ["focus"]
+
+    // In case of scatters and Marimekkos, we also ignore the current
+    // entity selection so that we always link to a chart with the default
+    // selection.
+    if (
+        grapherTab === GRAPHER_TAB_NAMES.ScatterPlot ||
+        grapherTab === GRAPHER_TAB_NAMES.Marimekko
+    )
+        omitParamsForChartUrl.push("country")
+
+    return constructChartUrl({
+        hit,
+        grapherParams: R.omit(grapherParams, omitParamsForChartUrl),
+    })
+}
+
+function constructPreviewUrlForTab({
+    hit,
+    grapherQueryParams,
+    variant,
+    layout,
+    slotIndex,
+    isMediumScreen,
+}: {
+    hit: SearchChartHit
+    grapherQueryParams: GrapherQueryParams
+    variant: SearchChartHitComponentVariant
+    layout: LayoutSlot[]
+    slotIndex: number
+    isMediumScreen: boolean
+}): { previewUrl: string; imageWidth?: number; imageHeight?: number } {
+    const { slotKey, grapherTab, previewParams } = layout[slotIndex]
+
+    const isPrimaryTab = slotIndex === 0
+    const isSmallSlot =
+        slotKey === MediumVariantGridSlotKey.SmallLeft ||
+        slotKey === MediumVariantGridSlotKey.SmallRight
+
+    // Always use the complete version on smaller screens since
+    // the table might not be visible
+    const previewType = isMediumScreen
+        ? { variant: PreviewVariant.Thumbnail, isMinimal: false }
+        : getPreviewType(variant, { isPrimaryTab, isSmallSlot })
+
+    // Use Grapher's changedParams to construct preview URL.
+    // We override the tab parameter because the GrapherState is currently set to
+    // the first tab of the chart, but we need to generate URLs for the specific
+    // tab being rendered in this preview.
+    const grapherParams = {
+        ...grapherQueryParams,
+        tab: mapGrapherTabNameToQueryParam(grapherTab),
+    }
+
+    const { width: imageWidth, height: imageHeight } =
+        previewType.variant === PreviewVariant.Large
+            ? calculateLargePreviewImageDimensions(layout)
+            : {}
+
+    // Use a smaller font size for chart types where labels or legends would
+    // otherwise be too overpowering in thumbnail previews. Otherwise, rely on
+    // the default
+    const tabsWithSmallerFont: GrapherTabName[] = [
+        GRAPHER_TAB_NAMES.WorldMap,
+        GRAPHER_TAB_NAMES.DiscreteBar,
+        GRAPHER_TAB_NAMES.StackedDiscreteBar,
+    ]
+    const fontSize =
+        previewType.variant === PreviewVariant.Thumbnail &&
+        tabsWithSmallerFont.includes(grapherTab)
+            ? 12
+            : undefined
+
+    const previewUrl = constructPreviewUrl({
+        hit,
+        grapherParams: {
+            ...grapherParams,
+            ...previewParams,
+        },
+        variant: previewType.variant,
+        isMinimal: previewType.isMinimal,
+        fontSize,
+        imageWidth,
+        imageHeight,
+    })
+
+    return { previewUrl, imageWidth, imageHeight }
+}
+
+function calculateLargePreviewImageDimensions(layout: LayoutSlot[]): {
+    width: number
+    height: number
+} {
+    const slots = layout.map(({ slotKey }) => slotKey)
+
+    if (slots.length <= 2) {
+        return {
+            width: 4 * GRAPHER_THUMBNAIL_WIDTH,
+            height: 4 * GRAPHER_THUMBNAIL_HEIGHT,
+        }
+    }
+
+    // The large chart must be a little taller to match the combined height of
+    // both thumbnails plus the vertical spacing and caption text between them.
+    return {
+        width: 4 * GRAPHER_THUMBNAIL_WIDTH,
+        height: 4 * GRAPHER_THUMBNAIL_HEIGHT + 4 * 16, // Magic number
+    }
 }

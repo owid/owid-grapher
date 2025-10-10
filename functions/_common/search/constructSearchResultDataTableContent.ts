@@ -1,5 +1,4 @@
 import * as _ from "lodash-es"
-import * as R from "remeda"
 import { match } from "ts-pattern"
 import {
     GrapherState,
@@ -18,22 +17,17 @@ import {
     isNoDataBin,
     NumericBin,
     ColorScaleBin,
-    WORLD_ENTITY_NAME,
-    fetchInputTableForConfig,
 } from "@ourworldindata/grapher"
 import {
+    calculateTrendDirection,
     excludeUndefined,
-    getAggregates,
-    getContinents,
-    getIncomeGroups,
+    getDisplayUnit,
 } from "@ourworldindata/utils"
 import {
-    DimensionProperty,
     EntityName,
     FacetStrategy,
     GRAPHER_MAP_TYPE,
     GRAPHER_TAB_NAMES,
-    GrapherTrendArrowDirection,
     PrimitiveType,
     SearchChartHitDataTableContent,
     SearchChartHitDataTableProps,
@@ -41,21 +35,16 @@ import {
 } from "@ourworldindata/types"
 import { CoreColumn, OwidTable, TimeColumn } from "@ourworldindata/core-table"
 
-// Population variable ID used to fetch latest population data for entities.
-// This data helps determine which entities to display in Scatter plots and
-// Marimekko charts when no specific selection is made
-const POPULATION_VARIABLE_ID = 953903 // "Population (historical) (various sources, 2024-07-15)"
-
 interface BaseArgs {
     grapherState: GrapherState
-    dataApiUrl?: string
+    maxRows?: number
 }
 
 interface Args<State extends ChartState = ChartState> extends BaseArgs {
     chartState: State
 }
 
-export function constructSearchResultTable(
+export function constructSearchResultDataTableContent(
     props: BaseArgs
 ): SearchChartHitDataTableContent | undefined {
     if (!props.grapherState.isReady) return undefined
@@ -70,7 +59,7 @@ export function constructSearchResultTable(
 
     if (!chartState) return undefined
 
-    return match(props.grapherState.activeTab)
+    const result = match(props.grapherState.activeTab)
         .with(GRAPHER_TAB_NAMES.LineChart, () =>
             buildDataTableContentForLineChart({
                 ...props,
@@ -129,6 +118,16 @@ export function constructSearchResultTable(
             buildDataTableContentForTableTab(props)
         )
         .exhaustive()
+
+    if (result.type === "data-points") return result
+
+    // Take the first X rows if maxRows is specified
+    const rows =
+        props.maxRows > 0
+            ? _.take(result.props.rows, props.maxRows)
+            : result.props.rows
+
+    return { ...result, props: { ...result.props, rows } }
 }
 
 function buildDataTableContentForLineChart({
@@ -323,7 +322,7 @@ function buildDataTableContentForStackedDiscreteBarChart({
             rows = _.orderBy(rows, [(row) => row.point.value], ["desc"])
 
             const columnName = getColumnNameForDisplay(formatColumn)
-            const unit = getColumnUnitForDisplay(formatColumn)
+            const unit = getDisplayUnit(formatColumn)
             const title = unit ? `${columnName} (${unit})` : columnName
 
             return {
@@ -467,14 +466,16 @@ function buildDataTableContentForStackedAreaAndBarChart({
 
     const title = makeTableTitle(grapherState, chartState, formatColumn)
 
-    return { type: "data-table", props: { rows, title } }
+    return {
+        type: "data-table",
+        props: { rows: rows.map((row) => _.omit(row, ["point"])), title },
+    }
 }
 
-async function buildDataTableContentForMarimekkoChart({
+function buildDataTableContentForMarimekkoChart({
     grapherState,
     chartState,
-    dataApiUrl,
-}: Args<MarimekkoChartState>): Promise<SearchChartHitDataTableContent> {
+}: Args<MarimekkoChartState>): SearchChartHitDataTableContent {
     const selectedEntities = grapherState.selection.selectedEntityNames
 
     // If one or two entities are selected, then display the x and y values for those entities
@@ -487,11 +488,7 @@ async function buildDataTableContentForMarimekkoChart({
     }
 
     // Display a table where each row corresponds to an entity
-    return buildValueTableContentForMarimekko({
-        grapherState,
-        chartState,
-        dataApiUrl,
-    })
+    return buildValueTableContentForMarimekko({ grapherState, chartState })
 }
 
 /**
@@ -525,7 +522,7 @@ function buildDataPointsContentForMarimekko({
         return {
             entityName,
             columnName: getColumnNameForDisplay(yColumn),
-            unit: getColumnUnitForDisplay(yColumn),
+            unit: getDisplayUnit(yColumn),
             value,
             time,
             timePreposition: OwidTable.getPreposition(
@@ -540,32 +537,21 @@ function buildDataPointsContentForMarimekko({
 /**
  * Creates a table where each row represents an entity in Marimekko chart.
  */
-async function buildValueTableContentForMarimekko({
+function buildValueTableContentForMarimekko({
     grapherState,
     chartState,
-    dataApiUrl,
 }: {
     grapherState: GrapherState
     chartState: MarimekkoChartState
-    dataApiUrl?: string
-}): Promise<SearchChartHitDataTableContent> {
+}): SearchChartHitDataTableContent {
     const formatColumn = chartState.formatColumn
     const series = chartState.series[0]
 
-    // Determine which entities to display in the table
-    const displayEntities = chartState.selectionArray.hasSelection
-        ? chartState.selectionArray.selectedSet
-        : new Set(
-              await pickDisplayEntitiesForMarimekko({
-                  grapherState,
-                  chartState,
-                  dataApiUrl,
-              })
-          )
-
     let points = series.points
-    if (displayEntities.size > 0) {
-        points = points.filter((point) => displayEntities.has(point.position))
+    if (chartState.selectionArray.selectedSet.size > 0) {
+        points = points.filter((point) =>
+            chartState.selectionArray.selectedSet.has(point.position)
+        )
     }
 
     let rows = points
@@ -599,69 +585,10 @@ async function buildValueTableContentForMarimekko({
     }
 }
 
-async function pickDisplayEntitiesForMarimekko({
+function buildDataTableContentForScatterPlot({
     grapherState,
     chartState,
-    dataApiUrl,
-    maxRows = 12,
-}: {
-    grapherState: GrapherState
-    chartState: MarimekkoChartState
-    dataApiUrl?: string
-    maxRows?: number
-}): Promise<EntityName[]> {
-    const { items, colorColumnSlug, xColumnSlug } = chartState
-
-    // Pick income groups or continents if available
-    const regions = findBestAvailableRegions(grapherState.availableEntityNames)
-    if (regions.length > 0) return regions
-
-    // Helper functions
-    type MarimekkoItem = MarimekkoChartState["items"][number]
-    const getName = (item: MarimekkoItem) => item.entityName
-    const getColor = (item: MarimekkoItem) =>
-        item.entityColor?.colorDomainValue ?? ""
-    const getX = (item: MarimekkoItem) => item.xPoint?.value ?? 0
-
-    // When both color and x dimensions are available, select the entity
-    // with the largest x from each color group
-    if (colorColumnSlug && xColumnSlug) {
-        return maxByGroup(items, getColor, getX).map(getName)
-    }
-
-    // When only the color dimension is available, select the entity with the
-    // largest population from each color group
-    if (colorColumnSlug) {
-        const populationByEntityName = await fetchLatestPopulationData({
-            dataApiUrl,
-        })
-
-        const getPopulation = (item: MarimekkoItem) =>
-            populationByEntityName?.get(item.entityName) ?? 0
-
-        return maxByGroup(items, getColor, getPopulation).map(getName)
-    }
-
-    // When only the x dimension is available, select the entities
-    // with the largest x
-    if (xColumnSlug) {
-        return R.pipe(
-            items,
-            R.sortBy((item) => -getX(item)),
-            R.take(maxRows),
-            R.map(getName)
-        )
-    }
-
-    // Otherwise, just take the first x entities
-    return R.pipe(items, R.take(maxRows), R.map(getName))
-}
-
-async function buildDataTableContentForScatterPlot({
-    grapherState,
-    chartState,
-    dataApiUrl,
-}: Args<ScatterPlotChartState>): Promise<SearchChartHitDataTableContent> {
+}: Args<ScatterPlotChartState>): SearchChartHitDataTableContent {
     const selectedEntities: EntityName[] =
         grapherState.selection.selectedEntityNames
 
@@ -700,11 +627,7 @@ async function buildDataTableContentForScatterPlot({
 
     // Display a table where each row corresponds to an entity and lists x and
     // y-values in this format: '<x-value> vs. <y-value>'.
-    return buildValueTableContentForScatterPlot({
-        grapherState,
-        chartState,
-        dataApiUrl,
-    })
+    return buildValueTableContentForScatterPlot({ chartState })
 }
 
 function findSingleDisplayEntityForScatterPlot(
@@ -729,15 +652,11 @@ function findSingleDisplayEntityForScatterPlot(
  * Creates a table where each row represents an entity in a scatter plot,
  * displaying both x and y values in a "y vs x" format for each entity.
  */
-async function buildValueTableContentForScatterPlot({
-    grapherState,
+function buildValueTableContentForScatterPlot({
     chartState,
-    dataApiUrl,
 }: {
-    grapherState: GrapherState
     chartState: ScatterPlotChartState
-    dataApiUrl?: string
-}): Promise<SearchChartHitDataTableContent> {
+}): SearchChartHitDataTableContent {
     const { xColumn, yColumn } = chartState
 
     const yLabel =
@@ -745,21 +664,10 @@ async function buildValueTableContentForScatterPlot({
     const xLabel =
         chartState.horizontalAxisLabel || getColumnNameForDisplay(xColumn)
 
-    // Determine which entities to display in the table
-    const displayEntities = chartState.selectionArray.hasSelection
-        ? chartState.selectionArray.selectedSet
-        : new Set(
-              await pickDisplayEntitiesForScatterPlot({
-                  grapherState,
-                  chartState,
-                  dataApiUrl,
-              })
-          )
-
     let series = chartState.series
-    if (displayEntities.size > 0)
+    if (chartState.selectionArray.selectedSet.size > 0)
         series = series.filter((series) =>
-            displayEntities.has(series.seriesName)
+            chartState.selectionArray.selectedSet.has(series.seriesName)
         )
 
     const isTimeScatter = xColumn instanceof TimeColumn
@@ -800,90 +708,6 @@ async function buildValueTableContentForScatterPlot({
             title,
         },
     }
-}
-
-async function pickDisplayEntitiesForScatterPlot({
-    grapherState,
-    chartState,
-    dataApiUrl,
-    maxRows = 12,
-}: {
-    grapherState: GrapherState
-    chartState: ScatterPlotChartState
-    dataApiUrl?: string
-    maxRows?: number
-}): Promise<EntityName[]> {
-    const { series, colorColumnSlug, sizeColumnSlug, isConnected } = chartState
-
-    if (isConnected) return []
-
-    // Pick income groups or continents if available
-    const regions = findBestAvailableRegions(grapherState.availableEntityNames)
-    if (regions.length > 0) return regions
-
-    // Helper functions
-    type ScatterSeries = ScatterPlotChartState["series"][number]
-    const getName = (series: ScatterSeries) => series.seriesName
-    const getColor = (series: ScatterSeries) => series.points.at(0)?.color ?? ""
-    const getSize = (series: ScatterSeries) => series.points.at(0)?.size ?? 0
-
-    // When both color and size dimensions are available, select the entity
-    // with the largest size from each color group
-    if (colorColumnSlug && sizeColumnSlug) {
-        return maxByGroup(series, getColor, getSize).map(getName)
-    }
-
-    // When only the color dimension is available, select the entity with the
-    // largest population from each color group
-    if (colorColumnSlug) {
-        const populationByEntityName = await fetchLatestPopulationData({
-            dataApiUrl,
-        })
-
-        const getPopulation = (series: ScatterSeries) =>
-            populationByEntityName?.get(series.seriesName) ?? 0
-
-        return maxByGroup(series, getColor, getPopulation).map(getName)
-    }
-
-    // When only the size dimension is available, select the entities
-    // with the largest size
-    if (sizeColumnSlug) {
-        return R.pipe(
-            series,
-            R.sortBy((series) => -getSize(series)),
-            R.take(maxRows),
-            R.map(getName)
-        )
-    }
-
-    // Otherwise, just take the first x entities
-    return R.pipe(series, R.take(maxRows), R.map(getName))
-}
-
-/**
- * Finds the best available regions from a set of available entities,
- * prioritizing income groups, then continents, then other aggregates.
- */
-function findBestAvailableRegions(availableEntities: EntityName[]) {
-    const availableEntitySet = new Set(availableEntities)
-
-    const regionGroups = [getIncomeGroups(), getContinents(), getAggregates()]
-    for (const regions of regionGroups) {
-        const availableRegions: EntityName[] = regions
-            .filter((region) => availableEntitySet.has(region.name))
-            .map((region) => region.name)
-
-        if (availableRegions.length > 0) {
-            // Also add the World entity if it's available
-            if (availableEntitySet.has(WORLD_ENTITY_NAME)) {
-                availableRegions.push(WORLD_ENTITY_NAME)
-            }
-
-            return availableRegions
-        }
-    }
-    return []
 }
 
 /**
@@ -931,7 +755,7 @@ function buildDataPointsContentForScatterPlot({
     const yDataPoint = {
         entityName,
         columnName: yLabel,
-        unit: getColumnUnitForDisplay(yColumn),
+        unit: getDisplayUnit(yColumn),
         time,
         value: endPoint ? yColumn.formatValueShort(endPoint.y) : "No data",
         startValue: startPoint
@@ -944,7 +768,7 @@ function buildDataPointsContentForScatterPlot({
         ? {
               entityName,
               columnName: xLabel,
-              unit: getColumnUnitForDisplay(xColumn),
+              unit: getDisplayUnit(xColumn),
               time,
               value: endPoint
                   ? xColumn.formatValueShort(endPoint.x)
@@ -1022,7 +846,7 @@ function buildDataTableContentForTableTab({
 }: BaseArgs): SearchChartHitDataTableContent {
     const yColumn = grapherState.tableForDisplay.get(grapherState.yColumnSlug)
     const columnName = getColumnNameForDisplay(yColumn)
-    const unit = getColumnUnitForDisplay(yColumn, { allowTrivial: true })
+    const unit = getDisplayUnit(yColumn, { allowTrivial: true })
     const title = unit ? `In ${unit}` : columnName
 
     const time = grapherState.endTime ?? grapherState.tableForDisplay.maxTime
@@ -1057,7 +881,7 @@ function makeTableTitle(
         grapherState.facetStrategy === FacetStrategy.entity
 
     const columnName = getColumnNameForDisplay(formatColumn)
-    const unit = getColumnUnitForDisplay(formatColumn, { allowTrivial: true })
+    const unit = getDisplayUnit(formatColumn, { allowTrivial: true })
 
     if (grapherState.hasMultipleSeriesPerFacet) {
         if (isFacetedByEntity) {
@@ -1125,94 +949,4 @@ const makeLabelForBin = (bin: ColorScaleBin): string =>
 
 function getColumnNameForDisplay(column: CoreColumn): string {
     return column.titlePublicOrDisplayName.title ?? column.nonEmptyDisplayName
-}
-
-function getColumnUnitForDisplay(
-    column: CoreColumn | { unit?: string; shortUnit?: string },
-    { allowTrivial = false }: { allowTrivial?: boolean } = {}
-): string | undefined {
-    if (!column.unit) return undefined
-
-    // The unit is considered trivial if it is the same as the short unit
-    const isTrivial = column.unit === column.shortUnit
-    const unit = allowTrivial || !isTrivial ? column.unit : undefined
-
-    // Remove parentheses from the beginning and end of the unit
-    const strippedUnit = unit?.replace(/(^\(|\)$)/g, "")
-
-    return strippedUnit
-}
-
-function calculateTrendDirection(
-    startValue?: PrimitiveType,
-    endValue?: PrimitiveType
-): GrapherTrendArrowDirection | undefined {
-    if (typeof startValue !== "number" || typeof endValue !== "number")
-        return undefined
-    return endValue > startValue
-        ? "up"
-        : endValue < startValue
-          ? "down"
-          : "right"
-}
-
-let _populationDataCache: Map<EntityName, number> | undefined
-/**
- * Fetch the latest population data and return a map from entity name to
- * population value. The data is cached after the first fetch to avoid
- * re-fetching and re-processing the table on subsequent calls.
- */
-async function fetchLatestPopulationData({
-    dataApiUrl,
-}: {
-    dataApiUrl: string
-}): Promise<Map<EntityName, number> | undefined> {
-    // Return cached population data if available to avoid re-fetching/re-processing the table
-    if (_populationDataCache) return _populationDataCache
-
-    // Fetch population data as OWID table
-    const table = await fetchInputTableForConfig({
-        dimensions: [
-            {
-                property: DimensionProperty.y,
-                variableId: POPULATION_VARIABLE_ID,
-            },
-        ],
-        dataApiUrl,
-    })
-
-    // Filter to the most recent year
-    const maxTime = table.maxTime ?? 0
-    const populationColumn = table
-        .filterByTargetTimes([maxTime])
-        .get(POPULATION_VARIABLE_ID.toString())
-    if (populationColumn.isMissing) return undefined
-
-    // Create a map from entity name to population value
-    const data = new Map<EntityName, number>()
-    for (const [entityName, rows] of populationColumn.owidRowsByEntityName) {
-        if (rows.length > 0) data.set(entityName, rows[0].value)
-    }
-
-    // Update cache
-    _populationDataCache = data
-
-    return data
-}
-
-/**
- * Groups an array of items by a key function and returns the item with the
- * maximum value (according to sortFn) from each group
- */
-export function maxByGroup<T>(
-    arr: ReadonlyArray<T>,
-    groupFn: (item: T) => string | number,
-    sortFn: (item: T) => number
-) {
-    return R.pipe(
-        arr,
-        R.groupBy(groupFn),
-        R.mapValues((item) => R.firstBy(item, [sortFn, "desc"])),
-        R.values()
-    )
 }

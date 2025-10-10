@@ -21,10 +21,15 @@ export function constructGrapherValuesJson(
     grapherState: GrapherState,
     entityName: EntityName
 ): GrapherValuesJson {
-    // Make sure the given entityName is currently selected
+    // Make sure the given entityName is the only entity that is currently selected
     let selectionWasModified = false
-    if (!grapherState.selection.selectedSet.has(entityName)) {
-        grapherState.selection.selectEntity(entityName)
+    let originalSelection: EntityName[] | undefined
+    if (
+        grapherState.selection.numSelectedEntities !== 1 ||
+        grapherState.selection.selectedEntityNames[0] !== entityName
+    ) {
+        originalSelection = grapherState.selection.selectedEntityNames
+        grapherState.selection.setSelectedEntities([entityName])
         selectionWasModified = true
     }
 
@@ -51,13 +56,13 @@ export function constructGrapherValuesJson(
         startTime: grapherState.startTime,
         endTime: grapherState.endTime,
         columns: makeColumnInfoForRelevantSlugs(grapherState),
-        startTimeValues: makeDimensionValuesForTime(
+        startValues: makeDimensionValuesForTime(
             grapherState,
             entityName,
             startTime,
             formatValueIfCustom
         ),
-        endTimeValues: makeDimensionValuesForTime(
+        endValues: makeDimensionValuesForTime(
             grapherState,
             entityName,
             endTime,
@@ -66,7 +71,9 @@ export function constructGrapherValuesJson(
         source: grapherState.sourcesLine,
     })
 
-    if (selectionWasModified) grapherState.selection.deselectEntity(entityName)
+    if (selectionWasModified) {
+        grapherState.selection.setSelectedEntities(originalSelection)
+    }
 
     return result
 }
