@@ -1166,3 +1166,10 @@ function maybeBoldMarkdownText({
 }): string {
     return bold ? `**${text}**` : text
 }
+
+export function toPlaintext(markdown: string): string {
+    return new MarkdownTextWrap({
+        text: markdown,
+        fontSize: 10, // doesn't matter, but is a mandatory field
+    }).plaintext
+}

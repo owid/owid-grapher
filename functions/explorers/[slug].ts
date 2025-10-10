@@ -7,7 +7,7 @@ import {
     fetchDataValuesForExplorerView,
     fetchMetadataForExplorerView,
     fetchReadmeForExplorerView,
-    fetchSearchResultTableForExplorerView,
+    fetchSearchResultDataForExplorerView,
     fetchZipForExplorerView,
     handleConfigRequestForExplorerView,
     handleThumbnailRequestForExplorerView,
@@ -90,10 +90,10 @@ router
         }
     )
     .get(
-        `/explorers/:slug${extensions.searchResultTable}`,
+        `/explorers/:slug${extensions.searchResult}`,
         async (_, { searchParams }, env) => {
-            console.log("Handling explorer search results table request")
-            return fetchSearchResultTableForExplorerView(searchParams, env)
+            console.log("Handling explorer search result data request")
+            return fetchSearchResultDataForExplorerView(searchParams, env)
         }
     )
     .get(

@@ -2,7 +2,6 @@ import { useIntersectionObserver } from "usehooks-ts"
 import { SearchChartHitComponentProps } from "./searchTypes.js"
 import { useMemo } from "react"
 import {
-    buildChartHitDataDisplayProps,
     constructChartUrl,
     pickEntitiesForChartHit,
     toGrapherQueryParams,
@@ -11,8 +10,12 @@ import {
     makeLabelForGrapherTab,
     WORLD_ENTITY_NAME,
 } from "@ourworldindata/grapher"
-import { GRAPHER_TAB_NAMES, GrapherChartType } from "@ourworldindata/utils"
-import { placeGrapherTabsInMediumVariantGridLayout } from "./SearchChartHitRichDataMediumVariantHelpers.js"
+import {
+    buildChartHitDataDisplayProps,
+    GRAPHER_TAB_NAMES,
+    GrapherChartType,
+    placeGrapherTabsInMediumVariantGridLayout,
+} from "@ourworldindata/utils"
 import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
 import { Button } from "@ourworldindata/components"
 import { faDownload } from "@fortawesome/free-solid-svg-icons"
@@ -113,28 +116,28 @@ export function SearchChartHitRichDataFallback({
                 className="search-chart-hit-rich-data__content search-chart-hit-rich-data__content--medium"
                 style={contentStyle}
             >
-                {placedTabs.map(({ tab, slot }) => {
-                    const caption = makeLabelForGrapherTab(tab, {
+                {placedTabs.map(({ grapherTab, slotKey }) => {
+                    const caption = makeLabelForGrapherTab(grapherTab, {
                         format: "long",
                     })
 
                     const { chartUrl, previewUrl } =
                         constructChartAndPreviewUrlsForTab({
                             hit,
-                            tab,
+                            tab: grapherTab,
                             chartInfo,
                             entities,
                         })
 
-                    const className = makeSlotClassNames("medium", slot)
+                    const className = makeSlotClassNames("medium", slotKey)
 
                     return (
                         <CaptionedLink
-                            key={tab}
+                            key={grapherTab}
                             caption={caption}
                             url={chartUrl}
                             className={className}
-                            onClick={() => onClick(tab)}
+                            onClick={() => onClick(grapherTab)}
                         >
                             <SearchChartHitThumbnail
                                 previewUrl={previewUrl}
