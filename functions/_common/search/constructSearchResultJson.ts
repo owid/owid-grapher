@@ -60,6 +60,8 @@ export enum RichDataVariant {
     Large = "large",
 }
 
+type TimeBounds = [Time | undefined, Time | undefined]
+
 export function constructSearchResultJson(
     grapherState: GrapherState,
     {
@@ -95,13 +97,13 @@ export function constructSearchResultJson(
         : undefined
 
     // Start and end time for which the picked entity has data
-    const pickedStartTime =
+    const pickedTimeBounds: TimeBounds =
         pickedEntities.length > 0
-            ? chartInfo?.startValues?.y[0].time
-            : undefined
-    const pickedEndTime =
-        pickedEntities.length > 0 ? chartInfo?.endValues?.y[0].time : undefined
-    const displayTime = pickedEndTime ?? grapherState.endTime
+            ? [
+                  chartInfo?.startValues?.y[0].time,
+                  chartInfo?.endValues?.y[0].time,
+              ]
+            : [undefined, undefined]
 
     // Bring Grapher into the right state for this search result:
     // - Select the entities determined for this search result
@@ -113,7 +115,6 @@ export function constructSearchResultJson(
     configureGrapherStateFocus(grapherState, {
         entities: pickedEntities,
     })
-    configureGrapherStateMaxTime(grapherState, { time: displayTime })
 
     // Construct the data table content (used to determine the grid layout)
     const initialDataTableContent = constructSearchResultDataTableContent({
@@ -159,16 +160,26 @@ export function constructSearchResultJson(
         const previewParams = getPreviewGrapherQueryParamsForTab({
             grapherState,
             tab: grapherTab,
-            startTime: pickedStartTime,
+            timeBounds: pickedTimeBounds,
         })
         return omitUndefinedValues({ slotKey, grapherTab, previewParams })
     })
+
+    const grapherParams = {
+        ...grapherState.changedParams,
+        // Explicitly set time as query parameter in case it differs from the original chart.
+        // This can happen when projections have been removed from the chart.
+        time: makeGrapherTimeParam(grapherState, [
+            grapherState.startTime,
+            grapherState.endTime,
+        ]),
+    }
 
     return omitUndefinedValues({
         title: grapherState.title,
         subtitle: stripMarkdown(grapherState.subtitle),
         source: stripMarkdown(grapherState.sourcesLine),
-        grapherQueryParams: grapherState.changedParams,
+        grapherQueryParams: grapherParams,
         layout: enrichedLayout,
         dataTable: dataTableContent,
         entityType: grapherState.entityType,
@@ -617,13 +628,6 @@ function configureGrapherStateFocus(
     }
 }
 
-function configureGrapherStateMaxTime(
-    grapherState: GrapherState,
-    { time }: { time?: Time }
-): void {
-    if (time !== undefined) grapherState.maxTime = time
-}
-
 function calculateLayout(
     variant: RichDataVariant,
     grapherState: GrapherState,
@@ -855,11 +859,11 @@ function configureGrapherStateForMarimekko(
 function getPreviewGrapherQueryParamsForTab({
     grapherState,
     tab,
-    startTime,
+    timeBounds,
 }: {
     grapherState: GrapherState
     tab: GrapherTabName
-    startTime?: Time
+    timeBounds?: TimeBounds
 }): GrapherQueryParams | undefined {
     // Adjust grapher query params for the preview thumbnail of some chart types
     const params = match(tab)
@@ -870,7 +874,7 @@ function getPreviewGrapherQueryParamsForTab({
             getPreviewGrapherQueryParamsForMarimekko(grapherState)
         )
         .with(GRAPHER_TAB_NAMES.SlopeChart, () =>
-            getPreviewGrapherQueryParamsForSlopeChart(grapherState, startTime)
+            getPreviewGrapherQueryParamsForSlopeChart(grapherState, timeBounds)
         )
         .otherwise(() => undefined)
 
@@ -932,27 +936,43 @@ function getPreviewGrapherQueryParamsForDiscreteBar(
 
 function getPreviewGrapherQueryParamsForSlopeChart(
     grapherState: GrapherState,
-    startTime?: Time
+    timeBounds?: TimeBounds
 ): GrapherQueryParams {
-    if (startTime === undefined) return
+    const [startTime, endTime] = timeBounds || []
+
+    if (startTime === undefined && endTime === undefined) return
+
+    // Parse the time bounds
+    const originalGrapherParams = grapherState.changedParams
+    const parsedTime: TimeBounds =
+        originalGrapherParams.time !== undefined
+            ? getTimeDomainFromQueryString(originalGrapherParams.time)
+            : [-Infinity, Infinity]
+
+    // Override the start and end time with the provided values
+    const updatedTime: TimeBounds = [
+        startTime ?? parsedTime[0],
+        endTime ?? parsedTime[1],
+    ]
+
+    // Set the time param to the new time bounds
+    return { time: makeGrapherTimeParam(grapherState, updatedTime) }
+}
+
+function makeGrapherTimeParam(
+    grapherState: GrapherState,
+    timeBounds: TimeBounds
+): string {
+    const [startTime, endTime] = timeBounds
 
     const isDailyData =
         grapherState.table.timeColumn instanceof ColumnTypeMap.Day
     const formatTime = (t: Time): string =>
         timeBoundToTimeBoundString(t, isDailyData)
 
-    // Parse the time bounds
-    const originalGrapherParams = grapherState.changedParams
-    const timeBounds =
-        originalGrapherParams.time !== undefined
-            ? getTimeDomainFromQueryString(originalGrapherParams.time)
-            : [-Infinity, Infinity]
-
-    // Override the start time with the provided value
-    timeBounds[0] = startTime
-
-    // Set the time param to the new time bounds
-    return { time: timeBounds.map(formatTime).join("..") }
+    return [startTime ?? -Infinity, endTime ?? Infinity]
+        .map(formatTime)
+        .join("..")
 }
 
 /** Number of table rows that can fit in a grid slot */
