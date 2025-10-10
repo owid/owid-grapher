@@ -31,6 +31,7 @@ import {
     SearchChartHitDataTableContent,
     SearchChartHitDataTableProps,
     SeriesStrategy,
+    Time,
 } from "@ourworldindata/types"
 import { constructSearchResultDataTableContent } from "./constructSearchResultDataTableContent"
 import { constructGrapherValuesJson } from "../grapherValuesJson"
@@ -77,23 +78,7 @@ export function constructSearchResultJson(
 ) {
     // Find Grapher tabs to display and bring them in the right order
     const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
-
-    // Bring Grapher into the right state for this search result:
-    // - Set the tab to the leftmost tab in the sorted list
-    // - Select the entities determined for this search result
-    // - Highlight the entity (or entities) the user picked
     configureGrapherStateTab(grapherState, { tab: sortedTabs[0] })
-    configureGrapherStateSelection(grapherState, {
-        entities: displayEntities,
-    })
-    configureGrapherStateFocus(grapherState, {
-        entities: pickedEntities,
-    })
-
-    // Construct the data table content (used to determine the grid layout)
-    const initialDataTableContent = constructSearchResultDataTableContent({
-        grapherState,
-    })
 
     // Prepare data for the big data value display (if applicable)
     const entityForDataDisplay = pickedEntities[0] ?? WORLD_ENTITY_NAME
@@ -102,11 +87,31 @@ export function constructSearchResultJson(
         {
             entity: entityForDataDisplay,
             isEntityPickedByUser: pickedEntities.length > 0,
-            shouldShowDataDisplay:
-                initialDataTableContent.type !== "data-points" &&
-                variant !== RichDataVariant.Large,
+            shouldShowDataDisplay: variant !== RichDataVariant.Large,
         }
     )
+
+    const displayTime =
+        pickedEntities.length > 0
+            ? (dataDisplayProps?.numericEndTime ?? grapherState.endTime)
+            : grapherState.endTime
+
+    // Bring Grapher into the right state for this search result:
+    // - Select the entities determined for this search result
+    // - Highlight the entity (or entities) the user picked
+    // - Set the end time (relevant for charts with projections)
+    configureGrapherStateSelection(grapherState, {
+        entities: displayEntities,
+    })
+    configureGrapherStateFocus(grapherState, {
+        entities: pickedEntities,
+    })
+    configureGrapherStateMaxTime(grapherState, { time: displayTime })
+
+    // Construct the data table content (used to determine the grid layout)
+    const initialDataTableContent = constructSearchResultDataTableContent({
+        grapherState,
+    })
 
     // Place Grapher tabs into the grid layout
     const layout = calculateLayout(variant, grapherState, {
@@ -606,7 +611,14 @@ function configureGrapherStateFocus(
     }
 }
 
-export function calculateLayout(
+function configureGrapherStateMaxTime(
+    grapherState: GrapherState,
+    { time }: { time?: Time }
+): void {
+    if (time) grapherState.maxTime = time
+}
+
+function calculateLayout(
     variant: RichDataVariant,
     grapherState: GrapherState,
     args: {
