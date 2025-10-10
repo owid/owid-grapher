@@ -434,6 +434,7 @@ export function DataPageContent({
                                 />
                             </figure>
                         </div>
+                        <div className="js--show-warning-block-if-js-disabled" />
                         {varDatapageData && (
                             <AboutThisData
                                 datapageData={varDatapageData}
