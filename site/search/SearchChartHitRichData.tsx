@@ -40,6 +40,7 @@ import {
     getTotalColumnCount,
     makeSlotClassNames,
     getPreviewType,
+    calculateScatterPreviewImageDimensions,
 } from "./SearchChartHitRichDataHelpers.js"
 import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
 import { CaptionedTable } from "./SearchChartHitCaptionedTable.js"
@@ -59,6 +60,9 @@ import { useQueryChartInfo } from "./SearchChartHitSmallHelpers.js"
 const NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT = 4
 const NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_LARGE_VARIANT = 10
 
+// Keep in sync with $scatter-num-data-table-rows-per-column in SearchChartHitRichData.scss
+const SCATTER_NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT = 6
+
 export function SearchChartHitRichData({
     hit,
     selectedRegionNames,
@@ -67,10 +71,15 @@ export function SearchChartHitRichData({
 }: SearchChartHitComponentProps & {
     variant: RichDataComponentVariant
 }) {
+    // todo: add to placeholder as well
+    const hasScatter = hit.availableTabs.includes(GRAPHER_TAB_NAMES.ScatterPlot)
+
     const isLargeVariant = variant === "large"
     const numDataTableRowsPerColumn = isLargeVariant
         ? NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_LARGE_VARIANT
-        : NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT
+        : hasScatter
+          ? SCATTER_NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT
+          : NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT
 
     const isMediumScreen = useMediaQuery(MEDIUM_BREAKPOINT_MEDIA_QUERY)
 
@@ -146,7 +155,10 @@ export function SearchChartHitRichData({
                     url={constructChartUrl({ hit })}
                     onClick={onClick}
                 />
-                <RichDataContentPlaceholder variant={variant} />
+                <RichDataContentPlaceholder
+                    variant={variant}
+                    hasScatter={hasScatter}
+                />
             </div>
         )
     }
@@ -205,7 +217,11 @@ export function SearchChartHitRichData({
             <div
                 className={cx(
                     "search-chart-hit-rich-data__content",
-                    `search-chart-hit-rich-data__content--${variant}`
+                    `search-chart-hit-rich-data__content--${variant}`,
+                    {
+                        "search-chart-hit-rich-data__content--scatter":
+                            hasScatter,
+                    }
                 )}
                 style={contentStyle}
             >
@@ -228,6 +244,7 @@ export function SearchChartHitRichData({
                             layout: data.layout,
                             slotIndex: tabIndex,
                             isMediumScreen,
+                            hasScatter,
                         })
 
                     const className = makeSlotClassNames(variant, slotKey)
@@ -272,19 +289,31 @@ export function SearchChartHitRichData({
 
 function RichDataContentPlaceholder({
     variant,
+    hasScatter,
 }: {
     variant: RichDataComponentVariant
+    hasScatter: boolean
 }): React.ReactElement {
     return match(variant)
-        .with("medium", () => <RichDataContentMediumVariantPlaceholder />)
+        .with("medium", () => (
+            <RichDataContentMediumVariantPlaceholder hasScatter={hasScatter} />
+        ))
         .with("large", () => <RichDataContentLargeVariantPlaceholder />)
         .exhaustive()
 }
 
-function RichDataContentMediumVariantPlaceholder(): React.ReactElement {
+function RichDataContentMediumVariantPlaceholder({
+    hasScatter,
+}: {
+    hasScatter: boolean
+}): React.ReactElement {
     return (
         <div
-            className="search-chart-hit-rich-data__content search-chart-hit-rich-data__content--medium"
+            className={cx(
+                "search-chart-hit-rich-data__content",
+                "search-chart-hit-rich-data__content--medium",
+                { "search-chart-hit-rich-data__content--scatter": hasScatter }
+            )}
             style={{ "--num-columns": 3 } as React.CSSProperties}
         >
             <GrapherThumbnailPlaceholder
@@ -365,7 +394,8 @@ function useQuerySearchResultDataForChartHit({
             hit.slug,
             hit.type === ChartRecordType.Chart ? undefined : hit.queryParams,
             params.variant,
-            params.entities
+            params.entities,
+            params.numDataTableRowsPerColumn
         ),
         queryFn: () => {
             const url = constructSearchResultUrl({ hit, params })
@@ -425,6 +455,7 @@ function constructPreviewUrlForTab({
     layout,
     slotIndex,
     isMediumScreen,
+    hasScatter,
 }: {
     hit: SearchChartHit
     grapherQueryParams: GrapherQueryParams
@@ -432,6 +463,7 @@ function constructPreviewUrlForTab({
     layout: LayoutSlot[]
     slotIndex: number
     isMediumScreen: boolean
+    hasScatter: boolean
 }): { previewUrl: string; imageWidth?: number; imageHeight?: number } {
     const { slotKey, grapherTab, previewParams } = layout[slotIndex]
 
@@ -458,7 +490,9 @@ function constructPreviewUrlForTab({
     const { width: imageWidth, height: imageHeight } =
         previewType.variant === PreviewVariant.Large
             ? calculateLargePreviewImageDimensions(layout)
-            : {}
+            : hasScatter
+              ? calculateScatterPreviewImageDimensions()
+              : {}
 
     // Use a smaller font size for chart types where labels or legends would
     // otherwise be too overpowering in thumbnail previews. Otherwise, rely on

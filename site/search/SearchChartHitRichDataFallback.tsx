@@ -1,6 +1,7 @@
 import { useIntersectionObserver } from "usehooks-ts"
 import { SearchChartHitComponentProps } from "./searchTypes.js"
 import { useMemo } from "react"
+import cx from "classnames"
 import {
     constructChartUrl,
     pickEntitiesForChartHit,
@@ -36,6 +37,8 @@ export function SearchChartHitRichDataFallback({
     selectedRegionNames,
     onClick,
 }: SearchChartHitComponentProps) {
+    const hasScatter = hit.availableTabs.includes(GRAPHER_TAB_NAMES.ScatterPlot)
+
     // Intersection observer for lazy loading chart info
     const { ref, isIntersecting: hasBeenVisible } = useIntersectionObserver({
         rootMargin: "400px", // Start loading 400px before visible
@@ -113,7 +116,14 @@ export function SearchChartHitRichDataFallback({
             </div>
 
             <div
-                className="search-chart-hit-rich-data__content search-chart-hit-rich-data__content--medium"
+                className={cx(
+                    "search-chart-hit-rich-data__content",
+                    "search-chart-hit-rich-data__content--medium",
+                    {
+                        "search-chart-hit-rich-data__content--scatter":
+                            hasScatter,
+                    }
+                )}
                 style={contentStyle}
             >
                 {placedTabs.map(({ grapherTab, slotKey }) => {
@@ -127,6 +137,7 @@ export function SearchChartHitRichDataFallback({
                             tab: grapherTab,
                             chartInfo,
                             entities,
+                            hasScatter,
                         })
 
                     const className = makeSlotClassNames("medium", slotKey)
