@@ -664,7 +664,7 @@ export async function copyToLatestDir(archiveDir: string, dir: string) {
         dirsCopied = 0
     for await (const file of await fs.opendir(dir, { recursive: true })) {
         console.log(`Copying ${file.name}`)
-        const relativePath = path.relative(dir, file.path)
+        const relativePath = path.relative(dir, file.parentPath)
 
         if (file.isDirectory()) {
             dirsCopied++
@@ -672,7 +672,7 @@ export async function copyToLatestDir(archiveDir: string, dir: string) {
         } else if (file.isFile()) {
             filesCopied++
             await fs.copy(
-                path.join(file.path, file.name),
+                path.join(file.parentPath, file.name),
                 path.join(latestDir, relativePath, file.name),
                 { overwrite: true }
             )
