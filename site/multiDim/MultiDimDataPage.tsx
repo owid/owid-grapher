@@ -1,13 +1,23 @@
 import urljoin from "url-join"
+import { StaticRouter } from "react-router-dom-v5-compat"
+
 import { Head } from "../Head.js"
 import { IFrameDetector } from "../IframeDetector.js"
 import { SiteHeader } from "../SiteHeader.js"
 import { OWID_DATAPAGE_CONTENT_ROOT_ID } from "../DataPageV2Content.js"
 import { SiteFooter } from "../SiteFooter.js"
-import { SiteFooterContext, serializeJSONForHTML } from "@ourworldindata/utils"
+import {
+    MultiDimDataPageConfig,
+    SiteFooterContext,
+    serializeJSONForHTML,
+} from "@ourworldindata/utils"
 import { MultiDimDataPageProps } from "@ourworldindata/types"
+import { DebugProvider } from "../gdocs/DebugProvider.js"
 import { Html } from "../Html.js"
-import { MultiDimDataPageData } from "./MultiDimDataPageContent.js"
+import {
+    MultiDimDataPageContent,
+    MultiDimDataPageData,
+} from "./MultiDimDataPageContent.js"
 import { DEFAULT_PAGE_DESCRIPTION } from "../dataPage.js"
 
 export function MultiDimDataPage({
@@ -98,17 +108,27 @@ export function MultiDimDataPage({
                         }}
                     />
                     <div id={OWID_DATAPAGE_CONTENT_ROOT_ID}>
-                        {/* <DebugProvider debug={isPreviewing}>
-                            <DataPageV2Content
-                                datapageData={datapageData}
-                                grapherConfig={grapherConfig}
-                                imageMetadata={imageMetadata}
-                                isPreviewing={isPreviewing}
-                                faqEntries={faqEntries}
-                                canonicalUrl={canonicalUrl}
-                                tagToSlugMap={tagToSlugMap}
-                            />
-                        </DebugProvider> */}
+                        <DebugProvider debug={isPreviewing}>
+                            {/* Location is mandatory, but we don't really need it. */}
+                            <StaticRouter location="/">
+                                <MultiDimDataPageContent
+                                    slug={slug}
+                                    canonicalUrl={canonicalUrl}
+                                    config={MultiDimDataPageConfig.fromObject(
+                                        configObj
+                                    )}
+                                    isPreviewing={isPreviewing}
+                                    faqEntries={faqEntries}
+                                    primaryTopic={primaryTopic}
+                                    relatedResearchCandidates={
+                                        relatedResearchCandidates
+                                    }
+                                    tagToSlugMap={tagToSlugMap}
+                                    imageMetadata={imageMetadata}
+                                    archiveContext={archiveContext}
+                                />
+                            </StaticRouter>
+                        </DebugProvider>
                     </div>
                 </main>
                 <SiteFooter
