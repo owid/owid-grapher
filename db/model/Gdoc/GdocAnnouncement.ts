@@ -4,6 +4,7 @@ import {
     OwidGdocMinimalPostInterface,
     OwidGdocBaseInterface,
     LatestDataInsight,
+    excludeNullish,
 } from "@ourworldindata/utils"
 import { GdocBase } from "./GdocBase.js"
 
@@ -15,6 +16,10 @@ export class GdocAnnouncement
 
     constructor(id?: string) {
         super(id)
+    }
+
+    protected override typeSpecificUrls(): string[] {
+        return excludeNullish([this.content["cta"]?.url])
     }
 
     static create(obj: OwidGdocBaseInterface): GdocAnnouncement {

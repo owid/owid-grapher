@@ -3,19 +3,24 @@ import cx from "classnames"
 import {
     EnrichedBlockHomepageIntro,
     EnrichedBlockHomepageIntroPost,
+    OwidGdocMinimalPostInterface,
 } from "@ourworldindata/types"
 import { dayjs, formatAuthors } from "@ourworldindata/utils"
-import { useLinkedDocument } from "../utils.js"
+import { useLinkedChart, useLinkedDocument } from "../utils.js"
 import { DocumentContext } from "../DocumentContext.js"
 import Image, { ImageParentContainer } from "./Image.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { sortBy, take, prop } from "remeda"
-import { NewsletterWithSocials } from "../../NewsletterSubscription.js"
+import {
+    NewsletterSubscriptionForm,
+    NewsletterSubscriptionHeader,
+} from "../../NewsletterSubscription.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { Button } from "@ourworldindata/components"
 import { AnnouncementsIcon } from "./AnnouncementsIcon.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faHeart } from "@fortawesome/free-solid-svg-icons"
+import { OwidSocials } from "../../OwidSocials.js"
 
 type FeaturedWorkTileProps = EnrichedBlockHomepageIntroPost & {
     isTertiary?: boolean
@@ -116,6 +121,49 @@ function FeaturedWorkTile({
     )
 }
 
+function HomepageAnnouncement(props: {
+    announcement: OwidGdocMinimalPostInterface
+    index: number
+}) {
+    const { announcement, index } = props
+    const { linkedChart } = useLinkedChart(announcement.cta?.url || "")
+    const { linkedDocument } = useLinkedDocument(announcement.cta?.url || "")
+    const href = announcement.cta
+        ? linkedChart?.resolvedUrl ||
+          linkedDocument?.url ||
+          announcement.cta.url
+        : `/${announcement.slug}`
+
+    return (
+        <li className="homepage-intro__announcement" key={announcement.id}>
+            <a
+                className="homepage-intro__announcement-link"
+                aria-labelledby={`announcement-${announcement.id}`}
+                tabIndex={index === 2 ? -1 : undefined}
+                href={href}
+            >
+                <span className="homepage-intro__announcement-meta h6-black-caps">
+                    {announcement.kicker} -{" "}
+                    {dayjs(announcement.publishedAt).fromNow()}{" "}
+                </span>
+                <h3
+                    id={`announcement-${announcement.id}`}
+                    className="homepage-intro__announcement-title body-2-bold"
+                >
+                    {announcement.title}
+                </h3>
+                <p className="homepage-intro__excerpt body-3-medium">
+                    {announcement.excerpt}
+                </p>
+                <span className="homepage-intro__announcement-read-more body-3-medium">
+                    {announcement.cta ? announcement.cta.text : "Read more"}{" "}
+                    <FontAwesomeIcon icon={faArrowRight} />
+                </span>
+            </a>
+        </li>
+    )
+}
+
 function HomepageAnnouncements() {
     const { homepageMetadata = {} } = useContext(AttachmentsContext)
     const announcements = prop(homepageMetadata, "announcements")
@@ -128,35 +176,11 @@ function HomepageAnnouncements() {
             </div>
             <ul className="homepage-intro__announcements-list">
                 {announcements.map((announcement, i) => (
-                    <li
-                        className="homepage-intro__announcement"
-                        key={announcement.id}
-                    >
-                        <a
-                            className="homepage-intro__announcement-link"
-                            aria-labelledby={`announcement-${announcement.id}`}
-                            tabIndex={i === 2 ? -1 : undefined}
-                            href={`/${announcement.slug}`}
-                        >
-                            <span className="homepage-intro__announcement-meta h6-black-caps">
-                                {announcement.kicker} -{" "}
-                                {dayjs(announcement.publishedAt).fromNow()}{" "}
-                            </span>
-                            <h3
-                                id={`announcement-${announcement.id}`}
-                                className="homepage-intro__announcement-title body-2-bold"
-                            >
-                                {announcement.title}
-                            </h3>
-                            <p className="homepage-intro__excerpt body-3-medium">
-                                {announcement.excerpt}
-                            </p>
-                            <span className="homepage-intro__announcement-read-more body-3-medium">
-                                Read more{" "}
-                                <FontAwesomeIcon icon={faArrowRight} />
-                            </span>
-                        </a>
-                    </li>
+                    <HomepageAnnouncement
+                        announcement={announcement}
+                        key={i}
+                        index={i}
+                    />
                 ))}
             </ul>
             <Button
@@ -227,7 +251,11 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
             </div>
             <HomepageAnnouncements />
             <div className="span-cols-3 col-start-11 span-md-cols-14 col-md-start-1">
-                <NewsletterWithSocials className="homepage-intro__newsletter-signup" />
+                <div className="homepage-intro__newsletter-signup">
+                    <NewsletterSubscriptionHeader />
+                    <NewsletterSubscriptionForm />
+                    <OwidSocials />
+                </div>
                 <DonationCta />
             </div>
         </section>

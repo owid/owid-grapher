@@ -8,6 +8,7 @@ import { DEPRECATEDSearchPage } from "../site/search/_DEPRECATEDSearchPage.js"
 import NotFoundPage from "../site/NotFoundPage.js"
 import { DonatePage } from "../site/DonatePage.js"
 import { ExplorerIndexPage } from "../site/ExplorerIndexPage.js"
+import { SubscribePage } from "../site/SubscribePage.js"
 import { ThankYouPage } from "../site/ThankYouPage.js"
 import TombstonePage from "../site/TombstonePage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
@@ -49,7 +50,10 @@ import {
     DbRawChartConfig,
     FormattingOptions,
     GrapherInterface,
+    ImageMetadata,
     LatestPageItem,
+    LinkedAuthor,
+    LinkedChart,
     OwidGdocMinimalPostInterface,
     OwidGdocPublicationContext,
 } from "@ourworldindata/types"
@@ -273,8 +277,10 @@ export const renderDataInsightsIndexPage = (
 
 export const renderLatestPage = (
     posts: LatestPageItem[],
-    imageMetadata: any,
-    linkedAuthors: any,
+    imageMetadata: Record<string, ImageMetadata>,
+    linkedAuthors: LinkedAuthor[],
+    linkedCharts: Record<string, LinkedChart>,
+    linkedDocuments: Record<string, OwidGdocMinimalPostInterface>,
     pageNum: number,
     totalPages: number
 ) => {
@@ -283,6 +289,8 @@ export const renderLatestPage = (
             posts={posts}
             imageMetadata={imageMetadata}
             linkedAuthors={linkedAuthors}
+            linkedCharts={linkedCharts}
+            linkedDocuments={linkedDocuments}
             pageNum={pageNum}
             numPages={totalPages}
             baseUrl={BAKED_BASE_URL}
@@ -682,6 +690,10 @@ export const renderExplorerIndexPage = async (
     return renderToHtmlPage(
         <ExplorerIndexPage baseUrl={BAKED_BASE_URL} explorers={explorers} />
     )
+}
+
+export const renderSubscribePage = async (): Promise<string> => {
+    return renderToHtmlPage(<SubscribePage baseUrl={BAKED_BASE_URL} />)
 }
 
 interface ExplorerRenderOpts {

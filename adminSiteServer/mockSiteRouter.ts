@@ -21,6 +21,7 @@ import {
     makeDataInsightsAtomFeed,
     renderGdocTombstone,
     renderExplorerIndexPage,
+    renderSubscribePage,
 } from "../baker/siteRenderers.js"
 import {
     BAKED_BASE_URL,
@@ -304,6 +305,10 @@ mockSiteRouter.get("/thank-you", async (req, res) =>
     res.send(await renderThankYouPage())
 )
 
+mockSiteRouter.get("/subscribe", async (req, res) =>
+    res.send(await renderSubscribePage())
+)
+
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     "/data-insights{/:pageNumberOrSlug}",
@@ -449,15 +454,15 @@ const handleLatestPageRequest = async (
         OwidGdocType.Announcement,
     ])
 
-    const { linkedAuthors, imageMetadata } = await enrichLatestPageItems(
-        trx,
-        pageData.items
-    )
+    const { linkedAuthors, imageMetadata, linkedDocuments, linkedCharts } =
+        await enrichLatestPageItems(trx, pageData.items)
 
     return renderLatestPage(
         pageData.items,
         imageMetadata,
         linkedAuthors,
+        linkedCharts,
+        linkedDocuments,
         pageData.pagination.pageNum,
         pageData.pagination.totalPages
     )

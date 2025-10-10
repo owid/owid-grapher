@@ -3,6 +3,7 @@ import * as React from "react"
 import { ArticleBlocks } from "../components/ArticleBlocks.js"
 import DataInsightDateline from "../components/DataInsightDateline.js"
 import LinkedAuthor from "../components/LinkedAuthor.js"
+import { Cta } from "../components/Cta.js"
 
 type AnnouncementProps = {
     className?: string
@@ -45,10 +46,20 @@ export const AnnouncementPageContent = (props: AnnouncementProps) => {
                     </div>
                 )}
             </header>
-            <ArticleBlocks
-                blocks={props.content.body}
-                interactiveImages={false}
-            />
+            {props.content.cta ? (
+                <>
+                    <p>{props.content.excerpt}</p>
+                    <Cta
+                        text={props.content.cta.text}
+                        url={props.content.cta.url}
+                    />
+                </>
+            ) : (
+                <ArticleBlocks
+                    blocks={props.content.body}
+                    interactiveImages={false}
+                />
+            )}
         </div>
     )
 }

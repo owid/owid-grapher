@@ -827,7 +827,7 @@ p.article-block__text + #article-licence {
     }
 }
 
-.article-block__cta {
+.cta {
     .span-linked-chart-icon {
         display: none;
     }
@@ -1163,7 +1163,7 @@ div.raw-html-table__container {
     }
 }
 
-.article-block__cta {
+.cta {
     @include body-2-semibold;
     color: $vermillion;
     margin-bottom: 16px;
