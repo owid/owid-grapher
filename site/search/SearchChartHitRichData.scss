@@ -141,13 +141,8 @@
             height: 100%;
         }
 
-        .search-chart-hit-table,
-        .search-chart-hit-data-points {
+        .search-chart-hit-table {
             padding: 6px 12px;
-        }
-
-        .search-chart-hit-data-points--align-top {
-            padding-top: 12px;
         }
     }
 
@@ -300,17 +295,6 @@
             grid-row: 2;
         }
 
-        .large-variant__right-quad-bottom-row {
-            grid-column: 3 / -1;
-            grid-row: 2;
-
-            height: 100%;
-
-            .search-chart-hit-table-wrapper {
-                height: calc(100% - 24px);
-            }
-        }
-
         .large-variant__right-quad-left-column {
             grid-column: 3;
             grid-row: 1 / -1;
@@ -338,11 +322,6 @@
 
             .search-chart-hit-table {
                 grid-template-columns: repeat(2, 1fr);
-            }
-
-            .search-chart-hit-data-points {
-                height: auto;
-                padding-top: 12px;
             }
         }
 

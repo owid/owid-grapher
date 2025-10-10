@@ -883,9 +883,7 @@ export {
 } from "./endpointTypes/GrapherValuesJson.js"
 
 export {
-    type SearchChartHitDataTableContent,
     type SearchChartHitDataTableProps,
-    type SearchChartHitDataPointsProps,
     type GrapherSearchResultJson,
     type SearchChartHitDataDisplayProps,
     type LayoutSlot,
