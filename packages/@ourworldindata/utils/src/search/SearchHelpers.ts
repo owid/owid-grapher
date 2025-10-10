@@ -120,7 +120,6 @@ export function getTableColumnCountForGridSlotKey(slot: GridSlotKey): number {
             .with(LargeVariantGridSlotKey.SingleCell, () => 0.5)
             .with(LargeVariantGridSlotKey.TopRightCell, () => 0.5)
             .with(LargeVariantGridSlotKey.BottomRightCell, () => 0.5)
-            .with(LargeVariantGridSlotKey.RightQuadBottomRow, () => 2)
             .with(LargeVariantGridSlotKey.Full, () => 4)
             .exhaustive()
     )
