@@ -18,12 +18,9 @@ import {
     excludeNullish,
     getUniqueNamesFromTagHierarchies,
 } from "@ourworldindata/utils"
-import {
-    maybeAddChangeInPrefix,
-    processAvailableEntities,
-    toPlaintext,
-} from "./shared.js"
+import { maybeAddChangeInPrefix, processAvailableEntities } from "./shared.js"
 import { GrapherState } from "@ourworldindata/grapher"
+import { toPlaintext } from "@ourworldindata/components"
 
 const computeChartScore = (record: Omit<ChartRecord, "score">): number => {
     const { numRelatedArticles, views_7d } = record

@@ -16,7 +16,7 @@ import {
     SampleColumnSlugs,
     SynthesizeFruitTable,
 } from "@ourworldindata/core-table"
-import { constructSearchResultTable } from "./searchResultTable.js"
+import { constructSearchResultDataTableContent } from "./constructSearchResultDataTableContent.js"
 
 function createSingleIndicatorGrapherState(
     overrides: GrapherProgrammaticInterface = {}
@@ -100,11 +100,11 @@ function createFruityMultipleIndicatorsGrapherState(
     })
 }
 
-describe("constructSearchResultTable for LineChart", () => {
+describe("constructSearchResultDataTableContent for LineChart", () => {
     it("lists entities when entities are plotted", () => {
         const grapherState = createSingleIndicatorGrapherState()
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -124,7 +124,7 @@ describe("constructSearchResultTable for LineChart", () => {
     it("lists columns when columns are plotted", () => {
         const grapherState = createFruityMultipleIndicatorsGrapherState()
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -147,7 +147,7 @@ describe("constructSearchResultTable for LineChart", () => {
             focusedSeriesNames: [selectedEntityNames[1]],
         })
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -164,7 +164,7 @@ describe("constructSearchResultTable for LineChart", () => {
             selectedFacetStrategy: FacetStrategy.entity,
         })
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -182,7 +182,7 @@ describe("constructSearchResultTable for LineChart", () => {
             selectedFacetStrategy: FacetStrategy.metric,
         })
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -200,13 +200,13 @@ describe("constructSearchResultTable for LineChart", () => {
     })
 })
 
-describe("constructSearchResultTable for SlopeChart", () => {
+describe("constructSearchResultDataTableContent for SlopeChart", () => {
     it("lists entities when entities are plotted", () => {
         const grapherState = createSingleIndicatorGrapherState({
             chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
         })
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -246,7 +246,7 @@ describe("constructSearchResultTable for SlopeChart", () => {
             chartTypes: [GRAPHER_CHART_TYPES.SlopeChart],
         })
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -285,7 +285,7 @@ describe("constructSearchResultTable for SlopeChart", () => {
             focusedSeriesNames: [selectedEntityNames[0]],
         })
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -304,7 +304,7 @@ describe("constructSearchResultTable for SlopeChart", () => {
             selectedFacetStrategy: FacetStrategy.entity,
         })
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -341,7 +341,7 @@ describe("constructSearchResultTable for SlopeChart", () => {
             selectedFacetStrategy: FacetStrategy.metric,
         })
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -377,13 +377,13 @@ describe("constructSearchResultTable for SlopeChart", () => {
     })
 })
 
-describe("constructSearchResultTable for StackedAreaChart", () => {
+describe("constructSearchResultDataTableContent for StackedAreaChart", () => {
     it("lists entities when entities are plotted", () => {
         const grapherState = createSingleIndicatorGrapherState({
             chartTypes: [GRAPHER_CHART_TYPES.StackedArea],
         })
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -405,7 +405,7 @@ describe("constructSearchResultTable for StackedAreaChart", () => {
             chartTypes: [GRAPHER_CHART_TYPES.StackedArea],
         })
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -429,7 +429,7 @@ describe("constructSearchResultTable for StackedAreaChart", () => {
             focusedSeriesNames: [selectedEntityNames[1]],
         })
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -447,7 +447,7 @@ describe("constructSearchResultTable for StackedAreaChart", () => {
             selectedFacetStrategy: FacetStrategy.entity,
         })
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -466,7 +466,7 @@ describe("constructSearchResultTable for StackedAreaChart", () => {
             selectedFacetStrategy: FacetStrategy.metric,
         })
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -484,13 +484,13 @@ describe("constructSearchResultTable for StackedAreaChart", () => {
     })
 })
 
-describe("constructSearchResultTable for DiscreteBar", () => {
+describe("constructSearchResultDataTableContent for DiscreteBar", () => {
     it("lists entities when entities are plotted", () => {
         const grapherState = createSingleIndicatorGrapherState({
             chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
         })
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -508,7 +508,7 @@ describe("constructSearchResultTable for DiscreteBar", () => {
             chartTypes: [GRAPHER_CHART_TYPES.DiscreteBar],
         })
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -528,7 +528,7 @@ describe("constructSearchResultTable for DiscreteBar", () => {
             focusedSeriesNames: [selectedEntityNames[1]],
         })
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -546,7 +546,7 @@ describe("constructSearchResultTable for DiscreteBar", () => {
             selectedFacetStrategy: FacetStrategy.entity,
         })
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -565,7 +565,7 @@ describe("constructSearchResultTable for DiscreteBar", () => {
             selectedFacetStrategy: FacetStrategy.metric,
         })
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({ grapherState })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps
@@ -579,7 +579,7 @@ describe("constructSearchResultTable for DiscreteBar", () => {
     })
 })
 
-describe("constructSearchResultTable for WorldMap", () => {
+describe("constructSearchResultDataTableContent for WorldMap", () => {
     it("shows the map legend", () => {
         const grapherState = createSingleIndicatorGrapherState({
             chartTypes: [],
@@ -596,7 +596,9 @@ describe("constructSearchResultTable for WorldMap", () => {
             },
         })
 
-        const result = constructSearchResultTable({ grapherState })
+        const result = constructSearchResultDataTableContent({
+            grapherState,
+        })
 
         expect(result?.type).toBe("data-table")
         const dataTable = result?.props as SearchChartHitDataTableProps

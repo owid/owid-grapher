@@ -2,518 +2,34 @@ import * as R from "remeda"
 import * as _ from "lodash-es"
 import { match } from "ts-pattern"
 import {
-    EntityName,
-    EntitySelectionMode,
-    FacetStrategy,
-    GRAPHER_TAB_NAMES,
-    GrapherQueryParams,
-    GrapherTabName,
-    SearchChartHitDataPointsProps,
-    SearchChartHitDataTableContent,
-    SearchChartHitDataTableProps,
-    SeriesStrategy,
-} from "@ourworldindata/types"
-import {
-    generateFocusedSeriesNamesParam,
-    GrapherState,
-    mapGrapherTabNameToConfigOption,
-    mapGrapherTabNameToQueryParam,
-    WORLD_ENTITY_NAME,
-} from "@ourworldindata/grapher"
-import {
-    GridSlot,
-    LargeVariantGridSlot,
-    Layout,
-    MediumVariantGridSlot,
-    PlacedTab,
     PreviewType,
     PreviewVariant,
     RichDataComponentVariant,
 } from "./SearchChartHitRichDataTypes.js"
-import { SearchChartHit, SearchChartHitComponentVariant } from "./searchTypes"
+import { SearchChartHitComponentVariant } from "./searchTypes"
+import { getTableColumnCountForGridSlotKey } from "@ourworldindata/utils"
 import {
-    checkIsCountry,
-    getRegionByName,
-    getParentRegions,
-    getSiblingRegions,
-    getAggregates,
-    getContinents,
-    getIncomeGroups,
-} from "@ourworldindata/utils"
-import { constructChartUrl, constructPreviewUrl } from "./searchUtils"
-
-export function getSortedGrapherTabsForChartHit(
-    grapherState: GrapherState
-): GrapherTabName[] {
-    const { Table, LineChart, Marimekko, WorldMap, DiscreteBar } =
-        GRAPHER_TAB_NAMES
-
-    // Original chart config before search customizations
-    // (entity selection, tab switching, etc.)
-    const originalGrapherState = grapherState.authorsVersion
-
-    const {
-        availableTabs,
-        validChartTypes: availableChartTypes,
-        validChartTypeSet: availableChartTypeSet,
-    } = originalGrapherState
-
-    const sortedTabs: GrapherTabName[] = []
-
-    // First position
-    if (availableChartTypeSet.has(LineChart)) {
-        // If a line chart is available, it's always the first tab
-        sortedTabs.push(LineChart)
-    } else if (availableChartTypes.length > 0) {
-        // Otherwise, pick the first valid chart type
-        sortedTabs.push(availableChartTypes[0])
-    } else if (availableTabs.includes(WorldMap)) {
-        // Or a map
-        sortedTabs.push(WorldMap)
-    } else if (availableTabs.includes(Table)) {
-        // Or a table
-        sortedTabs.push(Table)
-    }
-
-    // Second position is always the table
-    // (unless the table is already in the first position)
-    if (sortedTabs[0] !== Table) sortedTabs.push(Table)
-
-    // In the third position, prioritize the Marimekko chart
-    if (sortedTabs[0] === LineChart && availableChartTypeSet.has(Marimekko)) {
-        sortedTabs.push(Marimekko)
-    }
-
-    // Fill up the remaining positions, with the discrete bar chart last
-    const remainingTabs = availableTabs.filter(
-        (tab) => !sortedTabs.includes(tab)
-    )
-    const remainingTabsExceptDiscreteBar = remainingTabs.filter(
-        (tab) => tab !== DiscreteBar
-    )
-    sortedTabs.push(...remainingTabsExceptDiscreteBar)
-    if (remainingTabs.includes(DiscreteBar)) sortedTabs.push(DiscreteBar)
-
-    return sortedTabs
-}
-
-export function pickEntitiesForDisplay(
-    grapherState: GrapherState,
-    {
-        pickedEntities,
-        availableEntities,
-    }: { pickedEntities: EntityName[]; availableEntities: EntityName[] }
-): EntityName[] {
-    // Original chart config before search customizations
-    // (entity selection, tab switching, etc.)
-    const originalGrapherState = grapherState.authorsVersion
-    const defaultEntities = originalGrapherState.selectedEntityNames
-
-    return match(originalGrapherState.addCountryMode)
-        .with(EntitySelectionMode.Disabled, () => {
-            // Entity selection is disabled, so the default entities are the
-            // only valid choice, unless we're dealing with a chart type where
-            // all entities are plotted by default. In that case _highlighting_
-            // an entity is valid even when entity _selection_ is disabled
-            return originalGrapherState.isScatter ||
-                originalGrapherState.isMarimekko
-                ? pickedEntities
-                : defaultEntities
-        })
-        .with(EntitySelectionMode.SingleEntity, () => {
-            // Only a single entity can be selected at a time, so pick the first one,
-            // or rely on the default selection if none is picked
-            return pickedEntities.length > 0
-                ? [pickedEntities[0]]
-                : defaultEntities
-        })
-        .with(EntitySelectionMode.MultipleEntities, () => {
-            const { seriesStrategy = SeriesStrategy.entity } =
-                originalGrapherState.chartState
-            const isEntityStrategy = seriesStrategy === SeriesStrategy.entity
-            const facetStrategy =
-                originalGrapherState.selectedFacetStrategy ??
-                originalGrapherState.facetStrategy
-            const isFaceted = facetStrategy !== FacetStrategy.none
-
-            // When multiple entities can be selected, the basic strategy is to
-            // pick entities for comparison based on the first picked entity.
-            // If no entities for comparison can be found, we rely on the default
-            // selection. Those entities are then combined with the user-picked
-            // entities, but we make exceptions for certain cases where doing so
-            // would create crowded or unreadable charts.
-
-            // Don't combine picked and comparison entities if the chart is
-            // faceted because many facets are hard to read in thumbnails
-            if (isFaceted) {
-                // Choose the user-picked entities if there are any
-                if (pickedEntities.length > 0) return pickedEntities
-
-                if (defaultEntities.length === 0) return [] // Shouldn't happen
-
-                // If no entities were picked by the user and the chart is
-                // faceted by entity, check if the chart has multiple series
-                // per facet. If so, simplify the display by showing only
-                // the first default entity (effectively un-faceting the chart)
-                if (
-                    facetStrategy === FacetStrategy.entity &&
-                    originalGrapherState.hasMultipleSeriesPerFacet
-                )
-                    return [defaultEntities[0]]
-
-                // Otherwise, rely on the default selection
-                return defaultEntities
-            }
-
-            // Special cases where picked and comparison entities shouldn't be combined
-            if (
-                // If columns are plotted then Grapher would switch to faceting mode
-                // if picked and comparison entities were combined
-                !isEntityStrategy ||
-                // Scatters and Marimekko displays for a few entities are
-                // nicer than tables with many entities
-                grapherState.isScatter ||
-                grapherState.isMarimekko
-            ) {
-                return pickedEntities.length > 0
-                    ? pickedEntities
-                    : defaultEntities
-            }
-
-            // Find entities for comparison and combine them with the picked entities
-            if (pickedEntities.length > 0) {
-                const potentialComparisonEntities = pickComparisonEntities(
-                    pickedEntities[0],
-                    availableEntities
-                )
-                const comparisonEntities =
-                    potentialComparisonEntities.length > 0
-                        ? potentialComparisonEntities
-                        : defaultEntities
-
-                // It's important to prepend the picked entities because we later
-                // take the first N entities to render if there are space constraints
-                return R.unique([...pickedEntities, ...comparisonEntities])
-            }
-
-            return defaultEntities
-        })
-        .exhaustive()
-}
-
-/**
- * Selects relevant comparison entities for a given entity to provide meaningful
- * contextual comparisons in search results.
- */
-export function pickComparisonEntities(
-    entity: EntityName,
-    availableEntities: EntityName[]
-): EntityName[] {
-    const availableEntitySet = new Set(availableEntities)
-
-    const comparisonEntities = new Set<EntityName>()
-
-    // Can't determine comparison entities for non-geographical entities
-    const region = getRegionByName(entity)
-    if (!region) return []
-
-    // Compare World to any other aggregate entity (e.g. continents or income groups)
-    if (entity === WORLD_ENTITY_NAME)
-        return [...getContinents(), ...getIncomeGroups(), ...getAggregates()]
-            .filter((aggregate) => availableEntitySet.has(aggregate.name))
-            .map((aggregate) => aggregate.name)
-
-    // Always include World as a comparison if available
-    if (availableEntitySet.has(WORLD_ENTITY_NAME))
-        comparisonEntities.add(WORLD_ENTITY_NAME)
-
-    if (checkIsCountry(region)) {
-        // For countries: add their parent regions (continent, income group, etc.)
-        // Example: Germany -> Europe, Europe (WHO), High income countries
-        const regions = getParentRegions(region.name)
-        for (const region of regions)
-            if (availableEntitySet.has(region.name))
-                comparisonEntities.add(region.name)
-    } else {
-        // For aggregate regions: add sibling regions at the same hierarchical level
-        // Example: Europe -> Asia, Africa, North America (other continents)
-        const siblings = getSiblingRegions(region.name)
-        for (const sibling of siblings) {
-            if (availableEntitySet.has(sibling.name))
-                comparisonEntities.add(sibling.name)
-        }
-    }
-
-    return Array.from(comparisonEntities)
-}
-
-export function configureGrapherStateTab(
-    grapherState: GrapherState,
-    { tab }: { tab: GrapherTabName }
-): void {
-    if (!tab) return
-
-    // Update Grapher's active tab
-    grapherState.tab = mapGrapherTabNameToConfigOption(tab)
-
-    // When a line or slope chart has only a single time point selected by default,
-    // Grapher automatically switches to a discrete bar chart. This means the active
-    // tab type (DiscreteBar) wouldn't match what we want to render in the preview
-    // (LineChart). By ensuring the time handles are on different times, we force
-    // Grapher to display the actual line/slope chart instead of a bar chart.
-    grapherState.ensureTimeHandlesAreSensibleForTab(tab)
-}
-
-export function configureGrapherStateSelection(
-    grapherState: GrapherState,
-    { entities }: { entities: EntityName[] }
-): void {
-    if (entities.length > 0)
-        grapherState.selection.setSelectedEntities(entities)
-}
-
-export function configureGrapherStateFocus(
-    grapherState: GrapherState,
-    { entities }: { entities: EntityName[] }
-): void {
-    const { seriesStrategy = SeriesStrategy.entity } = grapherState.chartState
-    if (
-        entities.length > 0 &&
-        // focusing entities only makes sense when we're plotting entities
-        seriesStrategy === SeriesStrategy.entity
-    ) {
-        const validEntities = entities.filter((entity) =>
-            grapherState.selection.selectedSet.has(entity)
-        )
-        grapherState.focusArray.clearAllAndAdd(...validEntities)
-    } else {
-        // Clear the focus state for any entities that might be focused by default
-        grapherState.focusArray.clear()
-    }
-}
-
-export function resetGrapherColors(grapherState: GrapherState): void {
-    grapherState.seriesColorMap?.clear()
-}
-
-export function configureGrapherStateForLayout(
-    grapherState: GrapherState,
-    {
-        dataTableContent,
-        numAvailableDataTableRows,
-        maxNumEntitiesInStackedDiscreteBarChart,
-    }: {
-        dataTableContent: SearchChartHitDataTableContent
-        numAvailableDataTableRows: number
-        maxNumEntitiesInStackedDiscreteBarChart: number
-    }
-) {
-    match(dataTableContent)
-        .with({ type: "data-table" }, (dataTableContent) =>
-            configureGrapherStateForDataTable(grapherState, {
-                props: dataTableContent.props,
-                numAvailableDataTableRows,
-                maxNumEntitiesInStackedDiscreteBarChart,
-            })
-        )
-        .with({ type: "data-points" }, (dataTableContent) =>
-            configureGrapherStateForDataPoints(grapherState, {
-                props: dataTableContent.props,
-            })
-        )
-        .exhaustive()
-}
-
-function configureGrapherStateForDataTable(
-    grapherState: GrapherState,
-    args: {
-        props: SearchChartHitDataTableProps
-        numAvailableDataTableRows: number
-        maxNumEntitiesInStackedDiscreteBarChart: number
-    }
-): void {
-    limitSelectionToAvailableTableRows(grapherState, args)
-
-    if (grapherState.isScatter) {
-        configureGrapherStateForScatter(grapherState, { props: args.props })
-    }
-
-    if (grapherState.isMarimekko) {
-        configureGrapherStateForMarimekko(grapherState, { props: args.props })
-    }
-
-    if (grapherState.isStackedDiscreteBar) {
-        configureGrapherStateForStackedDiscreteBarChart(grapherState, {
-            props: args.props,
-            maxNumEntities: args.maxNumEntitiesInStackedDiscreteBarChart,
-        })
-    }
-}
-
-function limitSelectionToAvailableTableRows(
-    grapherState: GrapherState,
-    {
-        props,
-        numAvailableDataTableRows,
-    }: {
-        props: SearchChartHitDataTableProps
-        numAvailableDataTableRows: number
-    }
-): void {
-    const selectedEntities = grapherState.selection.selectedEntityNames
-    const { seriesStrategy = SeriesStrategy.entity } = grapherState.chartState
-
-    // Check how many rows are available for the table and update
-    // the selected/focused entities accordingly. This is important to ensure
-    // that the table and thumbnail display the same entities/series.
-    const numRows = props.rows.length
-
-    // No need to adjust the selection if all rows fit
-    if (numRows <= numAvailableDataTableRows) return
-
-    if (seriesStrategy === SeriesStrategy.entity) {
-        // When plotting entities as series, limit the selection to only
-        // those that can be displayed in the table rows to ensure
-        // thumbnails and table show the same data
-        grapherState.selection.setSelectedEntities(
-            selectedEntities.slice(0, numAvailableDataTableRows)
-        )
-    } else if (
-        seriesStrategy === SeriesStrategy.column &&
-        !grapherState.isFaceted &&
-        !grapherState.hasProjectedData &&
-        !grapherState.isStackedDiscreteBar
-    ) {
-        // When plotting columns as series, focus only the subset of columns
-        // that can be displayed in the table
-        const seriesNames = props.rows
-            .slice(0, numAvailableDataTableRows)
-            .map((row) => row.seriesName)
-            .filter((seriesName) => seriesName !== undefined)
-        grapherState.focusArray.clearAllAndAdd(...seriesNames)
-    }
-}
-
-function configureGrapherStateForStackedDiscreteBarChart(
-    grapherState: GrapherState,
-    {
-        props,
-        maxNumEntities,
-    }: { props: SearchChartHitDataTableProps; maxNumEntities: number }
-): void {
-    // For stacked discrete bar charts, we display multiple stacked bars in the
-    // chart but the data table only shows values for one entity
-
-    // Find the entity that is displayed in the table
-    const tableEntity =
-        grapherState.yColumnSlugs.length > 1 ? props.title : undefined
-
-    // Limit the number of selected entities to the maximum allowed
-    if (grapherState.addCountryMode !== EntitySelectionMode.Disabled) {
-        const defaultEntities = grapherState.selection.selectedEntityNames
-        const selectedEntities = defaultEntities.slice(0, maxNumEntities)
-        if (tableEntity && !selectedEntities.includes(tableEntity)) {
-            selectedEntities.pop()
-            selectedEntities.push(tableEntity)
-        }
-        grapherState.selection.setSelectedEntities(selectedEntities)
-    }
-
-    // Focus the entity that is displayed in the table
-    if (tableEntity) grapherState.focusArray.clearAllAndAdd(tableEntity)
-}
-
-function configureGrapherStateForScatter(
-    grapherState: GrapherState,
-    { props }: { props: SearchChartHitDataTableProps }
-): void {
-    const displayEntities = props.rows
-        .map((row) => row.seriesName)
-        .filter((entityName) => entityName !== undefined)
-
-    // Select the entities that are displayed in the data table
-    if (displayEntities.length)
-        grapherState.selection.setSelectedEntities(displayEntities)
-}
-
-function configureGrapherStateForMarimekko(
-    grapherState: GrapherState,
-    { props }: { props: SearchChartHitDataTableProps }
-): void {
-    const displayEntities = props.rows
-        .map((row) => row.label)
-        .filter((entityName) => entityName !== undefined)
-
-    // Select the entities that are displayed in the data table
-    if (displayEntities.length)
-        grapherState.selection.setSelectedEntities(displayEntities)
-}
-
-function configureGrapherStateForDataPoints(
-    grapherState: GrapherState,
-    { props }: { props: SearchChartHitDataPointsProps }
-): void {
-    // Highlight the entities that are displayed as data points in the chart
-    const entityNames = _.uniq(
-        props.dataPoints.map((dataPoint) => dataPoint.entityName)
-    )
-    if (entityNames.length) {
-        grapherState.focusArray.clearAllAndAdd(...entityNames)
-        grapherState.selection.setSelectedEntities(entityNames)
-    }
-}
-
-export function getTableColumnCountForGridSlot(slot: GridSlot): number {
-    return (
-        match(slot)
-            // medium variant grid slots
-            .with(MediumVariantGridSlot.Single, () => 1)
-            .with(MediumVariantGridSlot.Double, () => 2)
-            .with(MediumVariantGridSlot.Triple, () => 3)
-            .with(MediumVariantGridSlot.Quad, () => 4)
-            .with(MediumVariantGridSlot.SmallLeft, () => 1)
-            .with(MediumVariantGridSlot.SmallRight, () => 1)
-
-            // large variant grid slots
-            .with(LargeVariantGridSlot.LeftQuad, () => 2)
-            .with(LargeVariantGridSlot.RightQuad, () => 2)
-            .with(LargeVariantGridSlot.RightQuadLeftColumn, () => 1)
-            .with(LargeVariantGridSlot.SingleCell, () => 0.5)
-            .with(LargeVariantGridSlot.TopRightCell, () => 0.5)
-            .with(LargeVariantGridSlot.BottomRightCell, () => 0.5)
-            .with(LargeVariantGridSlot.RightQuadBottomRow, () => 2)
-            .with(LargeVariantGridSlot.Full, () => 4)
-            .exhaustive()
-    )
-}
-
-/** Number of table rows that can fit in a grid slot */
-export function getTableRowCountForGridSlot(
-    slot: GridSlot,
-    numRowsPerColumn: number
-): number {
-    const numColumns = getTableColumnCountForGridSlot(slot)
-    return numColumns * numRowsPerColumn
-}
+    GridSlotKey,
+    LargeVariantGridSlotKey,
+    MediumVariantGridSlotKey,
+    LayoutSlot,
+} from "@ourworldindata/types"
 
 /** Number of table columns for a number of placed tabs */
-export function getTotalColumnCount(placedTabs: PlacedTab<GridSlot>[]): number {
+export function getTotalColumnCount(
+    placedTabs: LayoutSlot<GridSlotKey>[]
+): number {
     return R.sumBy(placedTabs, (tab) =>
-        getTableColumnCountForGridSlot(tab.slot)
+        getTableColumnCountForGridSlotKey(tab.slotKey)
     )
-}
-
-export function findTableSlot(layout?: Layout<GridSlot>): GridSlot | undefined {
-    return layout?.placedTabs.find(({ tab }) => tab === GRAPHER_TAB_NAMES.Table)
-        ?.slot
 }
 
 export function makeSlotClassNames(
     variant: RichDataComponentVariant,
-    slot: GridSlot
+    slot: GridSlotKey
 ): string {
     const baseName = `${variant}-variant`
-    return `${baseName}__slot ${baseName}__${slot}`
+    return `${baseName}__slot ${baseName}__${mapGridSlotKeyToClassName(slot)}`
 }
 
 export function getPreviewType(
@@ -535,106 +51,37 @@ export function getPreviewType(
     return { variant: PreviewVariant.Thumbnail, isMinimal }
 }
 
-export function constructChartAndPreviewUrlsForTab({
-    hit,
-    grapherState,
-    tab,
-    previewType,
-    imageWidth,
-    imageHeight,
-}: {
-    hit: SearchChartHit
-    grapherState: GrapherState
-    tab: GrapherTabName
-    previewType: PreviewType
-    imageWidth?: number
-    imageHeight?: number
-}): { chartUrl: string; previewUrl: string } {
-    const {
-        DiscreteBar,
-        Marimekko,
-        WorldMap,
-        StackedDiscreteBar,
-        ScatterPlot,
-    } = GRAPHER_TAB_NAMES
+function mapGridSlotKeyToClassName(
+    slot: MediumVariantGridSlotKey | LargeVariantGridSlotKey
+): string {
+    return (
+        match(slot)
+            // medium variant grid slots
+            .with(MediumVariantGridSlotKey.Single, () => "single-slot")
+            .with(MediumVariantGridSlotKey.Double, () => "double-slot")
+            .with(MediumVariantGridSlotKey.Triple, () => "triple-slot")
+            .with(MediumVariantGridSlotKey.Quad, () => "quad-slot")
+            .with(MediumVariantGridSlotKey.SmallLeft, () => "small-slot-left")
+            .with(MediumVariantGridSlotKey.SmallRight, () => "small-slot-right")
 
-    // Use Grapher's changedParams to construct chart and preview URLs.
-    // We override the tab parameter because the GrapherState is currently set to
-    // the first tab of the chart, but we need to generate URLs for the specific
-    // tab being rendered in this preview.
-    const grapherParams = {
-        ...grapherState.changedParams,
-        tab: mapGrapherTabNameToQueryParam(tab),
-    }
-
-    // Adjust grapher query params for some chart types
-    if (tab === DiscreteBar) {
-        configureGrapherParamsForDiscreteBarPreview(grapherState, grapherParams)
-    } else if (tab === Marimekko) {
-        configureGrapherParamsForMarimekkoPreview(grapherState, grapherParams)
-    }
-
-    // Use a smaller font size for chart types where labels or legends would
-    // otherwise be too overpowering in thumbnail previews. Otherwise, rely on
-    // the default
-    const tabsWithSmallerFont: GrapherTabName[] = [
-        WorldMap,
-        DiscreteBar,
-        StackedDiscreteBar,
-    ]
-    const fontSize =
-        previewType.variant === PreviewVariant.Thumbnail &&
-        tabsWithSmallerFont.includes(tab)
-            ? 12
-            : undefined
-
-    const previewUrl = constructPreviewUrl({
-        hit,
-        grapherParams,
-        variant: previewType.variant,
-        isMinimal: previewType.isMinimal,
-        fontSize,
-        imageWidth,
-        imageHeight,
-    })
-
-    // We don't want to link to a chart where entities are highlighted.
-    // In case of scatters and Marimekkos, we also ignore the current
-    // entity selection so that we always link to a chart with the default
-    // selection.
-    const omitParams: (keyof GrapherQueryParams)[] = ["focus"]
-    if (tab === ScatterPlot || tab === Marimekko) omitParams.push("country")
-    const grapherParamsForChartUrl = R.omit(grapherParams, omitParams)
-
-    const chartUrl = constructChartUrl({
-        hit,
-        grapherParams: grapherParamsForChartUrl,
-    })
-
-    return { chartUrl, previewUrl }
-}
-
-function configureGrapherParamsForMarimekkoPreview(
-    grapherState: GrapherState,
-    grapherParams: GrapherQueryParams
-): void {
-    // If the Marimekko chart has a selection, also set
-    // the focus param, so that the selected entities are
-    // labelled
-    if (!grapherParams.focus && grapherState.selection.hasSelection) {
-        grapherParams.focus = generateFocusedSeriesNamesParam(
-            grapherState.selection.selectedEntityNames
-        )
-    }
-}
-
-function configureGrapherParamsForDiscreteBarPreview(
-    grapherState: GrapherState,
-    grapherParams: GrapherQueryParams
-): void {
-    // Instead of showing a single series per facet,
-    // show all series in a single discrete bar chart
-    const hasSingleSeriesPerFacet =
-        grapherState.isFaceted && !grapherState.hasMultipleSeriesPerFacet
-    if (hasSingleSeriesPerFacet) grapherParams.facet = FacetStrategy.none
+            // large variant grid slots
+            .with(LargeVariantGridSlotKey.Full, () => "full")
+            .with(LargeVariantGridSlotKey.LeftQuad, () => "left-quad")
+            .with(LargeVariantGridSlotKey.RightQuad, () => "right-quad")
+            .with(
+                LargeVariantGridSlotKey.RightQuadLeftColumn,
+                () => "right-quad-left-column"
+            )
+            .with(
+                LargeVariantGridSlotKey.RightQuadBottomRow,
+                () => "right-quad-bottom-row"
+            )
+            .with(LargeVariantGridSlotKey.TopRightCell, () => "top-right-cell")
+            .with(
+                LargeVariantGridSlotKey.BottomRightCell,
+                () => "bottom-right-cell"
+            )
+            .with(LargeVariantGridSlotKey.SingleCell, () => "single-cell")
+            .exhaustive()
+    )
 }

@@ -117,6 +117,7 @@ export {
     type GuidedChartContextValue,
 } from "./chart/GuidedChartUtils"
 export {
+    isChartTypeName,
     isValidTabQueryParam,
     findPotentialChartTypeSiblings,
     mapGrapherTabNameToQueryParam,

@@ -12,13 +12,13 @@ import {
     GrapherProgrammaticInterface,
 } from "@ourworldindata/grapher"
 import {
-    getSortedGrapherTabsForChartHit,
-    pickEntitiesForDisplay,
-} from "./SearchChartHitRichDataHelpers.js"
-import {
     SampleColumnSlugs,
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
+import {
+    getSortedGrapherTabsForChartHit,
+    pickDisplayEntities,
+} from "./constructSearchResultJson.js"
 
 describe(getSortedGrapherTabsForChartHit, () => {
     const {
@@ -90,7 +90,7 @@ describe(getSortedGrapherTabsForChartHit, () => {
     })
 })
 
-describe(pickEntitiesForDisplay, () => {
+describe(pickDisplayEntities, () => {
     const availableEntityNames = [
         "USA",
         "Canada",
@@ -156,22 +156,21 @@ describe(pickEntitiesForDisplay, () => {
     const defaultEntities = ["USA", "Canada"]
     const pickedEntities = ["Brazil"]
 
-    describe("when entity selection is disabled", () => {
-        it("should return default entities when entity selection is disabled", () => {
+    describe("when entity selection is disabled", async () => {
+        it("should return default entities when entity selection is disabled", async () => {
             const grapherState = createSingleIndicatorGrapherState({
                 selectedEntityNames: defaultEntities,
                 addCountryMode: EntitySelectionMode.Disabled,
             })
 
-            const displayEntities = pickEntitiesForDisplay(grapherState, {
+            const displayEntities = await pickDisplayEntities(grapherState, {
                 pickedEntities,
-                availableEntities: grapherState.availableEntityNames,
             })
 
             expect(displayEntities).toEqual(defaultEntities)
         })
 
-        it("should return picked entities for scatter plots and Marimekko charts even when selection is disabled", () => {
+        it("should return picked entities for scatter plots and Marimekko charts even when selection is disabled", async () => {
             for (const chartType of [
                 GRAPHER_CHART_TYPES.Marimekko,
                 GRAPHER_CHART_TYPES.ScatterPlot,
@@ -182,40 +181,40 @@ describe(pickEntitiesForDisplay, () => {
                     chartTypes: [chartType],
                 })
 
-                const displayEntities = pickEntitiesForDisplay(grapherState, {
-                    pickedEntities,
-                    availableEntities: grapherState.availableEntityNames,
-                })
+                const displayEntities = await pickDisplayEntities(
+                    grapherState,
+                    { pickedEntities }
+                )
 
-                expect(displayEntities).toEqual(pickedEntities)
+                pickedEntities.forEach((pickedEntity) =>
+                    expect(displayEntities).toContain(pickedEntity)
+                )
             }
         })
     })
 
     describe("when single entity selection is active", () => {
-        it("should return only the first picked entity", () => {
+        it("should return only the first picked entity", async () => {
             const grapherState = createSingleIndicatorGrapherState({
                 selectedEntityNames: [defaultEntities[0]],
                 addCountryMode: EntitySelectionMode.SingleEntity,
             })
 
-            const displayEntities = pickEntitiesForDisplay(grapherState, {
+            const displayEntities = await pickDisplayEntities(grapherState, {
                 pickedEntities,
-                availableEntities: grapherState.availableEntityNames,
             })
 
             expect(displayEntities).toEqual([pickedEntities[0]])
         })
 
-        it("should return default entities when no entities are picked", () => {
+        it("should return default entities when no entities are picked", async () => {
             const grapherState = createSingleIndicatorGrapherState({
                 selectedEntityNames: [defaultEntities[0]],
                 addCountryMode: EntitySelectionMode.SingleEntity,
             })
 
-            const displayEntities = pickEntitiesForDisplay(grapherState, {
+            const displayEntities = await pickDisplayEntities(grapherState, {
                 pickedEntities: [],
-                availableEntities: grapherState.availableEntityNames,
             })
 
             expect(displayEntities).toEqual([defaultEntities[0]])
@@ -223,37 +222,35 @@ describe(pickEntitiesForDisplay, () => {
     })
 
     describe("when multiple entity selection is active", () => {
-        it("shouldn't combine default and picked entities when chart is faceted", () => {
+        it("shouldn't combine default and picked entities when chart is faceted", async () => {
             const grapherState = createMultipleIndicatorsGrapherState({
                 selectedEntityNames: defaultEntities,
                 addCountryMode: EntitySelectionMode.MultipleEntities,
                 selectedFacetStrategy: FacetStrategy.metric,
             })
 
-            const displayEntities = pickEntitiesForDisplay(grapherState, {
+            const displayEntities = await pickDisplayEntities(grapherState, {
                 pickedEntities,
-                availableEntities: grapherState.availableEntityNames,
             })
 
             expect(displayEntities).toEqual(pickedEntities)
         })
 
-        it("should un-facet chart when faceted by entity", () => {
+        it("should un-facet chart when faceted by entity", async () => {
             const grapherState = createMultipleIndicatorsGrapherState({
                 selectedEntityNames: defaultEntities,
                 addCountryMode: EntitySelectionMode.MultipleEntities,
                 selectedFacetStrategy: FacetStrategy.entity,
             })
 
-            const displayEntities = pickEntitiesForDisplay(grapherState, {
+            const displayEntities = await pickDisplayEntities(grapherState, {
                 pickedEntities: [],
-                availableEntities: grapherState.availableEntityNames,
             })
 
             expect(displayEntities).toEqual([defaultEntities[0]])
         })
 
-        it("shouldn't combine picked and default entities when using column strategy", () => {
+        it("shouldn't combine picked and default entities when using column strategy", async () => {
             const grapherState = createMultipleIndicatorsGrapherState({
                 selectedEntityNames: [defaultEntities[0]],
                 addCountryMode: EntitySelectionMode.MultipleEntities,
@@ -264,23 +261,21 @@ describe(pickEntitiesForDisplay, () => {
                 SeriesStrategy.column
             )
 
-            const displayEntities = pickEntitiesForDisplay(grapherState, {
+            const displayEntities = await pickDisplayEntities(grapherState, {
                 pickedEntities,
-                availableEntities: grapherState.availableEntityNames,
             })
 
             expect(displayEntities).toEqual(pickedEntities)
         })
 
-        it("should combine picked and default entities", () => {
+        it("should combine picked and default entities", async () => {
             const grapherState = createSingleIndicatorGrapherState({
                 selectedEntityNames: defaultEntities,
                 addCountryMode: EntitySelectionMode.MultipleEntities,
             })
 
-            const displayEntities = pickEntitiesForDisplay(grapherState, {
+            const displayEntities = await pickDisplayEntities(grapherState, {
                 pickedEntities,
-                availableEntities: grapherState.availableEntityNames,
             })
 
             expect(displayEntities).toEqual([
@@ -289,15 +284,14 @@ describe(pickEntitiesForDisplay, () => {
             ])
         })
 
-        it("should return a unique list of entities, with picked entities first", () => {
+        it("should return a unique list of entities, with picked entities first", async () => {
             const grapherState = createSingleIndicatorGrapherState({
                 selectedEntityNames: [...defaultEntities, ...pickedEntities],
                 addCountryMode: EntitySelectionMode.MultipleEntities,
             })
 
-            const displayEntities = pickEntitiesForDisplay(grapherState, {
+            const displayEntities = await pickDisplayEntities(grapherState, {
                 pickedEntities,
-                availableEntities: grapherState.availableEntityNames,
             })
 
             expect(displayEntities).toEqual([
