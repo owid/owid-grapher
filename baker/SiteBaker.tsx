@@ -945,15 +945,15 @@ export class SiteBaker {
             OwidGdocType.Announcement,
         ])
 
-        const { linkedAuthors, imageMetadata } = await enrichLatestPageItems(
-            knex,
-            indexPageData.items
-        )
+        const { linkedAuthors, imageMetadata, linkedCharts, linkedDocuments } =
+            await enrichLatestPageItems(knex, indexPageData.items)
 
         const indexPageHtml = renderLatestPage(
             indexPageData.items,
             imageMetadata,
             linkedAuthors,
+            linkedCharts,
+            linkedDocuments,
             indexPageData.pagination.pageNum,
             indexPageData.pagination.totalPages
         )
@@ -969,15 +969,19 @@ export class SiteBaker {
                 OwidGdocType.Announcement,
             ])
 
-            const enrichedData = await enrichLatestPageItems(
-                knex,
-                pageData.items
-            )
+            const {
+                linkedAuthors,
+                imageMetadata,
+                linkedCharts,
+                linkedDocuments,
+            } = await enrichLatestPageItems(knex, pageData.items)
 
             const pageHtml = renderLatestPage(
                 pageData.items,
-                enrichedData.imageMetadata,
-                enrichedData.linkedAuthors,
+                imageMetadata,
+                linkedAuthors,
+                linkedCharts,
+                linkedDocuments,
                 pageData.pagination.pageNum,
                 pageData.pagination.totalPages
             )

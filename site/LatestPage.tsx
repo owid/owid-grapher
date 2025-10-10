@@ -7,6 +7,7 @@ import {
     LatestDataInsight,
     LatestPageItem,
     LinkedAuthor,
+    LinkedChart,
     OwidGdocAnnouncementInterface,
     OwidGdocMinimalPostInterface,
     OwidGdocType,
@@ -141,6 +142,8 @@ export const LatestPage = (props: {
     posts: LatestPageItem[]
     imageMetadata: Record<string, ImageMetadata>
     linkedAuthors: LinkedAuthor[]
+    linkedCharts: Record<string, LinkedChart>
+    linkedDocuments: Record<string, OwidGdocMinimalPostInterface>
     pageNum: number
     numPages: number
     baseUrl: string
@@ -168,8 +171,8 @@ export const LatestPage = (props: {
                     value={{
                         imageMetadata: props.imageMetadata,
                         linkedAuthors: props.linkedAuthors,
-                        linkedCharts: {},
-                        linkedDocuments: {},
+                        linkedCharts: props.linkedCharts,
+                        linkedDocuments: props.linkedDocuments,
                         linkedIndicators: {},
                         relatedCharts: [],
                         tags: [],

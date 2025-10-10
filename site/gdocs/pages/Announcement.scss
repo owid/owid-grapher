@@ -1,5 +1,6 @@
 .announcement-page {
     background-color: $gray-10;
+    min-height: calc(100vh - $header-height-md - 500px);
 }
 .announcement-page-content {
     background-color: #fff;
