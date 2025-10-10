@@ -225,56 +225,59 @@ export function SearchChartHitRichData({
                 )}
                 style={contentStyle}
             >
-                {data.layout.map(({ grapherTab, slotKey }, tabIndex) => {
-                    const isSmallSlot =
-                        slotKey === MediumVariantGridSlotKey.SmallLeft ||
-                        slotKey === MediumVariantGridSlotKey.SmallRight
+                {data.layout.map(
+                    ({ grapherTab, slotKey, chartParams }, tabIndex) => {
+                        const isSmallSlot =
+                            slotKey === MediumVariantGridSlotKey.SmallLeft ||
+                            slotKey === MediumVariantGridSlotKey.SmallRight
 
-                    const chartUrl = constructChartUrlForTab({
-                        hit,
-                        grapherTab,
-                        grapherQueryParams: data.grapherQueryParams,
-                    })
-
-                    const { previewUrl, imageWidth, imageHeight } =
-                        constructPreviewUrlForTab({
+                        const chartUrl = constructChartUrlForTab({
                             hit,
+                            grapherTab,
                             grapherQueryParams: data.grapherQueryParams,
-                            variant,
-                            layout: data.layout,
-                            slotIndex: tabIndex,
-                            isMediumScreen,
-                            hasScatter,
+                            overwriteParams: chartParams,
                         })
 
-                    const className = makeSlotClassNames(variant, slotKey)
+                        const { previewUrl, imageWidth, imageHeight } =
+                            constructPreviewUrlForTab({
+                                hit,
+                                grapherQueryParams: data.grapherQueryParams,
+                                variant,
+                                layout: data.layout,
+                                slotIndex: tabIndex,
+                                isMediumScreen,
+                                hasScatter,
+                            })
 
-                    return grapherTab === GRAPHER_TAB_NAMES.Table ? (
-                        <CaptionedTable
-                            key={grapherTab}
-                            chartUrl={chartUrl}
-                            dataTableContent={data.dataTable}
-                            numAvailableEntities={availableEntities.length}
-                            numRowsPerColumn={numDataTableRowsPerColumn}
-                            entityType={data.entityType}
-                            entityTypePlural={data.entityTypePlural}
-                            className={className}
-                            onClick={() => onClick(grapherTab)}
-                        />
-                    ) : (
-                        <CaptionedThumbnail
-                            key={grapherTab}
-                            chartType={grapherTab}
-                            isSmallSlot={isSmallSlot}
-                            chartUrl={chartUrl}
-                            previewUrl={previewUrl}
-                            imageWidth={imageWidth}
-                            imageHeight={imageHeight}
-                            className={className}
-                            onClick={() => onClick(grapherTab)}
-                        />
-                    )
-                })}
+                        const className = makeSlotClassNames(variant, slotKey)
+
+                        return grapherTab === GRAPHER_TAB_NAMES.Table ? (
+                            <CaptionedTable
+                                key={grapherTab}
+                                chartUrl={chartUrl}
+                                dataTableContent={data.dataTable}
+                                numAvailableEntities={availableEntities.length}
+                                numRowsPerColumn={numDataTableRowsPerColumn}
+                                entityType={data.entityType}
+                                entityTypePlural={data.entityTypePlural}
+                                className={className}
+                                onClick={() => onClick(grapherTab)}
+                            />
+                        ) : (
+                            <CaptionedThumbnail
+                                key={grapherTab}
+                                chartType={grapherTab}
+                                isSmallSlot={isSmallSlot}
+                                chartUrl={chartUrl}
+                                previewUrl={previewUrl}
+                                imageWidth={imageWidth}
+                                imageHeight={imageHeight}
+                                className={className}
+                                onClick={() => onClick(grapherTab)}
+                            />
+                        )
+                    }
+                )}
 
                 {dataDisplayProps && (
                     <SearchChartHitDataDisplay
@@ -419,10 +422,12 @@ function constructChartUrlForTab({
     hit,
     grapherTab,
     grapherQueryParams,
+    overwriteParams,
 }: {
     hit: SearchChartHit
     grapherTab: GrapherTabName
     grapherQueryParams: GrapherQueryParams
+    overwriteParams?: GrapherQueryParams
 }): string {
     // Use Grapher's changedParams to construct chart URL.
     // We override the tab parameter because the GrapherState is currently set to
@@ -430,6 +435,7 @@ function constructChartUrlForTab({
     // tab being rendered in this preview.
     const grapherParams = {
         ...grapherQueryParams,
+        ...overwriteParams,
         tab: mapGrapherTabNameToQueryParam(grapherTab),
     }
 
