@@ -47,10 +47,13 @@ import {
     getSiblingRegions,
     getTableColumnCountForGridSlotKey,
     omitUndefinedValues,
+    getTimeDomainFromQueryString,
     placeGrapherTabsInLargeVariantGrid,
     placeGrapherTabsInMediumVariantGridLayout,
+    timeBoundToTimeBoundString,
 } from "@ourworldindata/utils"
 import { toPlaintext } from "@ourworldindata/components"
+import { ColumnTypeMap } from "@ourworldindata/core-table"
 
 // Population variable ID used to fetch latest population data for entities.
 // This data helps determine which entities to display in Scatter plots and
@@ -82,19 +85,28 @@ export function constructSearchResultJson(
 
     // Prepare data for the big data value display (if applicable)
     const entityForDataDisplay = pickedEntities[0] ?? WORLD_ENTITY_NAME
-    const dataDisplayProps = constructSearchResultDataDisplayContent(
+    const shouldShowDataDisplay = variant !== RichDataVariant.Large
+    const chartInfo = constructGrapherValuesJson(
         grapherState,
-        {
-            entity: entityForDataDisplay,
-            isEntityPickedByUser: pickedEntities.length > 0,
-            shouldShowDataDisplay: variant !== RichDataVariant.Large,
-        }
+        entityForDataDisplay
     )
+    const dataDisplayProps = shouldShowDataDisplay
+        ? buildChartHitDataDisplayProps({
+              chartInfo,
+              chartType: grapherState.chartType,
+              entity: entityForDataDisplay,
+              isEntityPickedByUser: pickedEntities.length > 0,
+          })
+        : undefined
 
-    const displayTime =
+    // Start and end time for which the picked entity has data
+    const pickedStartTime =
         pickedEntities.length > 0
-            ? (dataDisplayProps?.numericEndTime ?? grapherState.endTime)
-            : grapherState.endTime
+            ? chartInfo?.startValues?.y[0].time
+            : undefined
+    const pickedEndTime =
+        pickedEntities.length > 0 ? chartInfo?.endValues?.y[0].time : undefined
+    const displayTime = pickedEndTime ?? grapherState.endTime
 
     // Bring Grapher into the right state for this search result:
     // - Select the entities determined for this search result
@@ -152,6 +164,7 @@ export function constructSearchResultJson(
         const previewParams = getPreviewGrapherQueryParamsForTab({
             grapherState,
             tab: grapherTab,
+            startTime: pickedStartTime,
         })
         return omitUndefinedValues({ slotKey, grapherTab, previewParams })
     })
@@ -615,7 +628,7 @@ function configureGrapherStateMaxTime(
     grapherState: GrapherState,
     { time }: { time?: Time }
 ): void {
-    if (time) grapherState.maxTime = time
+    if (time !== undefined) grapherState.maxTime = time
 }
 
 function calculateLayout(
@@ -893,19 +906,22 @@ function configureGrapherStateForDataPoints(
 function getPreviewGrapherQueryParamsForTab({
     grapherState,
     tab,
+    startTime,
 }: {
     grapherState: GrapherState
     tab: GrapherTabName
+    startTime?: Time
 }): GrapherQueryParams | undefined {
-    const { DiscreteBar, Marimekko } = GRAPHER_TAB_NAMES
-
     // Adjust grapher query params for the preview thumbnail of some chart types
     const params = match(tab)
-        .with(DiscreteBar, () =>
+        .with(GRAPHER_TAB_NAMES.DiscreteBar, () =>
             getPreviewGrapherQueryParamsForDiscreteBar(grapherState)
         )
-        .with(Marimekko, () =>
+        .with(GRAPHER_TAB_NAMES.Marimekko, () =>
             getPreviewGrapherQueryParamsForMarimekko(grapherState)
+        )
+        .with(GRAPHER_TAB_NAMES.SlopeChart, () =>
+            getPreviewGrapherQueryParamsForSlopeChart(grapherState, startTime)
         )
         .otherwise(() => undefined)
 
@@ -977,29 +993,29 @@ function getPreviewGrapherQueryParamsForDiscreteBar(
     return overwriteParams
 }
 
-function constructSearchResultDataDisplayContent(
+function getPreviewGrapherQueryParamsForSlopeChart(
     grapherState: GrapherState,
-    {
-        entity,
-        isEntityPickedByUser,
-        shouldShowDataDisplay,
-    }: {
-        entity: EntityName
-        shouldShowDataDisplay: boolean
-        isEntityPickedByUser: boolean
-    }
-): SearchChartHitDataDisplayProps | undefined {
-    if (!shouldShowDataDisplay) return undefined
+    startTime?: Time
+): GrapherQueryParams {
+    if (startTime === undefined) return
 
-    const chartInfo = constructGrapherValuesJson(grapherState, entity)
-    if (!chartInfo) return undefined
+    const isDailyData =
+        grapherState.table.timeColumn instanceof ColumnTypeMap.Day
+    const formatTime = (t: Time): string =>
+        timeBoundToTimeBoundString(t, isDailyData)
 
-    return buildChartHitDataDisplayProps({
-        chartInfo,
-        chartType: grapherState.chartType,
-        entity: entity,
-        isEntityPickedByUser,
-    })
+    // Parse the time bounds
+    const originalGrapherParams = grapherState.changedParams
+    const timeBounds =
+        originalGrapherParams.time !== undefined
+            ? getTimeDomainFromQueryString(originalGrapherParams.time)
+            : [-Infinity, Infinity]
+
+    // Override the start time with the provided value
+    timeBounds[0] = startTime
+
+    // Set the time param to the new time bounds
+    return { time: timeBounds.map(formatTime).join("..") }
 }
 
 /** Number of table rows that can fit in a grid slot */
