@@ -409,6 +409,9 @@ function useQuerySearchResultDataForChartHit({
     // case, return an error status instead of a success status with null data
     if (data === null) return { status: "error" }
 
+    // Treat an empty data table as an error
+    if (data && data.dataTable.rows.length === 0) return { status: "error" }
+
     return { data, status }
 }
 
