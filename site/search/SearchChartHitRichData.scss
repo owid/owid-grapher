@@ -1,4 +1,8 @@
 .search-chart-hit-rich-data {
+    // Keep in sync with SCATTER_THUMBNAIL_WIDTH and SCATTER_THUMBNAIL_HEIGHT
+    $scatter-thumbnail-width: 300px;
+    $scatter-thumbnail-height: 200px;
+
     $grid-gap: 16px;
 
     background-color: $blue-5;
@@ -124,6 +128,14 @@
             background: $blue-10;
             width: 40px;
         }
+    }
+
+    .search-chart-hit-rich-data__content--scatter
+        .search-chart-hit-rich-data__placeholder.medium-variant__single-slot
+        .search-chart-hit-rich-data__thumbnail-placeholder {
+        aspect-ratio: calc(
+            $scatter-thumbnail-width / $scatter-thumbnail-height
+        );
     }
 
     @include md-down {
@@ -264,6 +276,46 @@
         .data-slot {
             grid-column: 7 / 9;
             grid-row: 1;
+        }
+    }
+
+    // Medium variant grid slots (sized for scatters)
+    .search-chart-hit-rich-data__content--medium.search-chart-hit-rich-data__content--scatter {
+        // Keep in sync with SCATTER_NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT
+        $scatter-num-rows-per-column-without-caption: 6;
+        $scatter-num-rows-per-column: $scatter-num-rows-per-column-without-caption +
+            1;
+
+        .medium-variant__slot {
+            .search-chart-hit-table {
+                grid-template-rows: repeat($scatter-num-rows-per-column, 1fr);
+            }
+        }
+
+        .medium-variant__single-slot {
+            .search-chart-hit-table-wrapper {
+                @include aspect-ratio(
+                    $scatter-thumbnail-width / $scatter-thumbnail-height
+                );
+            }
+        }
+
+        .medium-variant__double-slot {
+            .search-chart-hit-table-wrapper {
+                @include aspect-ratio(
+                    (2 * $scatter-thumbnail-width + 1 * $grid-gap) /
+                        $scatter-thumbnail-height
+                );
+            }
+        }
+
+        .medium-variant__triple-slot {
+            .search-chart-hit-table-wrapper {
+                @include aspect-ratio(
+                    (3 * $scatter-thumbnail-width + 2 * $grid-gap) /
+                        $scatter-thumbnail-height
+                );
+            }
         }
     }
 
