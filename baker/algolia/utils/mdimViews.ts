@@ -11,6 +11,7 @@ import {
     parseChartConfig,
     queryParamsToStr,
 } from "@ourworldindata/utils"
+import { toPlaintext } from "@ourworldindata/components"
 import * as db from "../../../db/db.js"
 import { getAllPublishedMultiDimDataPages } from "../../../db/model/MultiDimDataPage.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
@@ -24,7 +25,7 @@ import {
     getRelevantVariableMetadata,
 } from "../../MultiDimBaker.js"
 import { GrapherState } from "@ourworldindata/grapher"
-import { maybeAddChangeInPrefix, toPlaintext } from "./shared.js"
+import { maybeAddChangeInPrefix } from "./shared.js"
 
 async function getChartConfigsByIds(
     knex: db.KnexReadonlyTransaction,

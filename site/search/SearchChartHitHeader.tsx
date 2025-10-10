@@ -5,6 +5,8 @@ import { SearchChartHit, SearchIndexName } from "./searchTypes.js"
 
 interface SearchChartHitHeaderProps {
     hit: SearchChartHit
+    title?: string
+    subtitle?: string
     url: string
     source?: string
     isLarge?: boolean
@@ -13,6 +15,8 @@ interface SearchChartHitHeaderProps {
 
 export function SearchChartHitHeader({
     hit,
+    title,
+    subtitle,
     url,
     source,
     isLarge = false,
@@ -44,7 +48,7 @@ export function SearchChartHitHeader({
                 <div className="search-chart-hit-header__content">
                     <div className="search-chart-hit-header__title-container">
                         <h3 className="search-chart-hit-header__title">
-                            {hit.title}
+                            {title || hit.title}
                         </h3>
                         {source && (
                             <span className="search-chart-hit-header__source search-chart-hit-header__source--desktop">
@@ -52,7 +56,11 @@ export function SearchChartHitHeader({
                             </span>
                         )}
                     </div>
-                    {hit.subtitle && (
+                    {subtitle && subtitle !== hit.subtitle ? (
+                        <div className="search-chart-hit-header__subtitle">
+                            {subtitle}
+                        </div>
+                    ) : hit.subtitle ? (
                         <Highlight
                             hit={hit}
                             attribute="subtitle"
@@ -61,7 +69,7 @@ export function SearchChartHitHeader({
                                 root: "search-chart-hit-header__subtitle",
                             }}
                         />
-                    )}
+                    ) : null}
                     {source && (
                         <span className="search-chart-hit-header__source search-chart-hit-header__source--mobile">
                             Source: {source}
