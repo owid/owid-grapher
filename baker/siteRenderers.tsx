@@ -413,6 +413,7 @@ ${dataInsights
                         "linkedNarrativeCharts",
                         {}
                     ),
+                    linkedStaticViz: _.get(post, "linkedStaticViz", {}),
                     // lodash doesn't use fallback when value is null
                     tags: post.tags ?? [],
                 }}
