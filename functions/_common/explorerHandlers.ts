@@ -22,6 +22,7 @@ import {
     assembleDataValues,
     assembleReadme,
     assembleSearchResultData,
+    dropProjectionColumns,
     ensureDownloadOfDataAllowed,
     findEntityForExtractingDataValues,
     parseNumDataTableRowsPerColumnParam,
@@ -311,6 +312,10 @@ export async function fetchSearchResultDataForExplorerView(
             explorerEnv,
             options
         )
+
+        // Optionally ignore projected data if requested
+        const shouldIgnoreProjections = searchParams.has("ignoreProjections")
+        if (shouldIgnoreProjections) dropProjectionColumns(grapherState)
 
         const dataApiUrl = getDataApiUrl(env)
         const searchResult = await assembleSearchResultData(grapherState, {
