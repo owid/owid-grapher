@@ -267,13 +267,13 @@ export async function pickDisplayEntities(
     const enrichPickedEntities = () => {
         if (pickedEntities.length === 0) return defaultEntities
 
-        const potentialComparisonEntities = pickComparisonEntities(
+        const pickedComparisonEntities = pickComparisonEntities(
             pickedEntities[0],
             availableEntities
         )
         const comparisonEntities =
-            potentialComparisonEntities.length > 0
-                ? potentialComparisonEntities
+            pickedComparisonEntities.length > 0
+                ? pickedComparisonEntities
                 : defaultEntities
 
         // It's important to prepend the picked entities because we later
@@ -290,13 +290,8 @@ export async function pickDisplayEntities(
     // Scatter plots and Marimekko charts are special because they're
     // the only chart types where all entities are plotted by default
     if (chartType === ScatterPlot || chartType === Marimekko) {
-        // Find entities for comparison and combine them with the picked entities
-        if (pickedEntities.length > 0) return enrichPickedEntities()
-
-        // If there are no default entities and the user hasn't picked any,
-        // we try to pick a sensible selection based on the chart data
-        if (defaultEntities.length === 0) {
-            return match(chartType)
+        const pickEntitiesForScatterOrMarimekko = () =>
+            match(chartType)
                 .with(ScatterPlot, () => {
                     const chartState =
                         grapherState.chartState as ScatterPlotChartState
@@ -316,6 +311,25 @@ export async function pickDisplayEntities(
                     })
                 })
                 .exhaustive()
+
+        // Find entities for comparison and combine them with the picked entities
+        if (pickedEntities.length > 0) {
+            const enrichedEntities = enrichPickedEntities()
+
+            // If we couldn't find any comparison entities,
+            // we try to pick a sensible selection based on the chart data
+            if (enrichedEntities.length === pickedEntities.length) {
+                const newEntities = await pickEntitiesForScatterOrMarimekko()
+                return R.unique([...pickedEntities, ...newEntities])
+            }
+
+            return enrichedEntities
+        }
+
+        // If there are no default entities and the user hasn't picked any,
+        // we try to pick a sensible selection based on the chart data
+        if (defaultEntities.length === 0) {
+            return pickEntitiesForScatterOrMarimekko()
         }
 
         return defaultEntities
@@ -379,7 +393,10 @@ async function pickDisplayEntitiesForScatterPlot({
     const { series, colorColumnSlug, sizeColumnSlug } = chartState
 
     // Pick income groups or continents if available
-    const regions = findBestAvailableRegions(grapherState.availableEntityNames)
+    const regions = findBestAvailableRegions(
+        grapherState.availableEntityNames,
+        { includeWorld: true }
+    )
     if (regions.length > 0) return regions
 
     // Helper functions
@@ -432,7 +449,10 @@ async function pickDisplayEntitiesForMarimekko({
     const { items, colorColumnSlug, xColumnSlug } = chartState
 
     // Pick income groups or continents if available
-    const regions = findBestAvailableRegions(grapherState.availableEntityNames)
+    const regions = findBestAvailableRegions(
+        grapherState.availableEntityNames,
+        { includeWorld: true }
+    )
     if (regions.length > 0) return regions
 
     // Helper functions
@@ -476,12 +496,15 @@ async function pickDisplayEntitiesForMarimekko({
 
 /**
  * Finds the best available regions from a set of available entities,
- * prioritizing income groups, then continents, then other aggregates.
+ * prioritizing continents, then  income groups, then other aggregates.
  */
-function findBestAvailableRegions(availableEntities: EntityName[]) {
+function findBestAvailableRegions(
+    availableEntities: EntityName[],
+    { includeWorld }: { includeWorld: boolean } = { includeWorld: false }
+) {
     const availableEntitySet = new Set(availableEntities)
 
-    const regionGroups = [getIncomeGroups(), getContinents(), getAggregates()]
+    const regionGroups = [getContinents(), getIncomeGroups(), getAggregates()]
     for (const regions of regionGroups) {
         const availableRegions: EntityName[] = regions
             .filter((region) => availableEntitySet.has(region.name))
@@ -489,7 +512,7 @@ function findBestAvailableRegions(availableEntities: EntityName[]) {
 
         if (availableRegions.length > 0) {
             // Also add the World entity if it's available
-            if (availableEntitySet.has(WORLD_ENTITY_NAME)) {
+            if (includeWorld && availableEntitySet.has(WORLD_ENTITY_NAME)) {
                 availableRegions.push(WORLD_ENTITY_NAME)
             }
 
@@ -515,11 +538,9 @@ function pickComparisonEntities(
     const region = getRegionByName(entity)
     if (!region) return []
 
-    // Compare World to any other aggregate entity (e.g. continents or income groups)
+    // Compare World to any aggregate entities (e.g. continents or income groups)
     if (entity === WORLD_ENTITY_NAME)
-        return [...getContinents(), ...getIncomeGroups(), ...getAggregates()]
-            .filter((aggregate) => availableEntitySet.has(aggregate.name))
-            .map((aggregate) => aggregate.name)
+        return findBestAvailableRegions(availableEntities)
 
     // Always include World as a comparison if available
     if (availableEntitySet.has(WORLD_ENTITY_NAME))
