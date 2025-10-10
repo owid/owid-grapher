@@ -1,13 +1,11 @@
-import { match } from "ts-pattern"
 import { SearchChartHitDataTable } from "./SearchChartHitDataTable"
-import { SearchChartHitDataPoints } from "./SearchChartHitDataPoints"
 import {
     CaptionedLink,
     CaptionedLinkOverlay,
 } from "./SearchChartHitCaptionedLink"
 import {
     GRAPHER_TAB_NAMES,
-    SearchChartHitDataTableContent,
+    SearchChartHitDataTableProps,
 } from "@ourworldindata/types"
 import { GrapherTabIcon } from "@ourworldindata/components"
 
@@ -22,7 +20,7 @@ export function CaptionedTable({
     onClick,
 }: {
     chartUrl: string
-    dataTableContent?: SearchChartHitDataTableContent
+    dataTableContent?: SearchChartHitDataTableProps
     numAvailableEntities: number
     numRowsPerColumn?: number
     entityType: string
@@ -53,17 +51,10 @@ export function CaptionedTable({
         >
             <div className="search-chart-hit-table-wrapper">
                 <div className="search-chart-hit-table-wrapper-content">
-                    {match(dataTableContent)
-                        .with({ type: "data-table" }, (content) => (
-                            <SearchChartHitDataTable
-                                {...content.props}
-                                numRowsPerColumn={numRowsPerColumn}
-                            />
-                        ))
-                        .with({ type: "data-points" }, (content) => (
-                            <SearchChartHitDataPoints {...content.props} />
-                        ))
-                        .exhaustive()}
+                    <SearchChartHitDataTable
+                        {...dataTableContent}
+                        numRowsPerColumn={numRowsPerColumn}
+                    />
                 </div>
                 <CaptionedLinkOverlay>Click to explore</CaptionedLinkOverlay>
             </div>

@@ -18,18 +18,13 @@ import {
     NumericBin,
     ColorScaleBin,
 } from "@ourworldindata/grapher"
-import {
-    calculateTrendDirection,
-    excludeUndefined,
-    getDisplayUnit,
-} from "@ourworldindata/utils"
+import { calculateTrendDirection, getDisplayUnit } from "@ourworldindata/utils"
 import {
     EntityName,
     FacetStrategy,
     GRAPHER_MAP_TYPE,
     GRAPHER_TAB_NAMES,
     PrimitiveType,
-    SearchChartHitDataTableContent,
     SearchChartHitDataTableProps,
     SeriesStrategy,
 } from "@ourworldindata/types"
@@ -46,7 +41,7 @@ interface Args<State extends ChartState = ChartState> extends BaseArgs {
 
 export function constructSearchResultDataTableContent(
     props: BaseArgs
-): SearchChartHitDataTableContent | undefined {
+): SearchChartHitDataTableProps | undefined {
     if (!props.grapherState.isReady) return undefined
 
     // If the chart is faceted and displays multiple series per facet
@@ -119,21 +114,17 @@ export function constructSearchResultDataTableContent(
         )
         .exhaustive()
 
-    if (result.type === "data-points") return result
-
     // Take the first X rows if maxRows is specified
     const rows =
-        props.maxRows > 0
-            ? _.take(result.props.rows, props.maxRows)
-            : result.props.rows
+        props.maxRows > 0 ? _.take(result.rows, props.maxRows) : result.rows
 
-    return { ...result, props: { ...result.props, rows } }
+    return { ...result, rows }
 }
 
 function buildDataTableContentForLineChart({
     grapherState,
     chartState,
-}: Args<LineChartState>): SearchChartHitDataTableContent {
+}: Args<LineChartState>): SearchChartHitDataTableProps {
     const formatColumn = chartState.formatColumn
 
     // Create a map chart state to access custom label formatting.
@@ -211,18 +202,15 @@ function buildDataTableContentForLineChart({
     rows = _.orderBy(rows, [(row) => row.point.y], "desc")
 
     return {
-        type: "data-table",
-        props: {
-            rows: rows.map((row) => _.omit(row, ["series", "point"])),
-            title: makeTableTitle(grapherState, chartState, formatColumn),
-        },
+        rows: rows.map((row) => _.omit(row, ["series", "point"])),
+        title: makeTableTitle(grapherState, chartState, formatColumn),
     }
 }
 
 function buildDataTableContentForDiscreteBarChart({
     grapherState,
     chartState,
-}: Args<DiscreteBarChartState>): SearchChartHitDataTableContent {
+}: Args<DiscreteBarChartState>): SearchChartHitDataTableProps {
     const formatColumn = chartState.formatColumn
 
     const rows = chartState.series.map((series) => ({
@@ -237,18 +225,15 @@ function buildDataTableContentForDiscreteBarChart({
     }))
 
     return {
-        type: "data-table",
-        props: {
-            rows: rows.map((row) => _.omit(row, ["series"])),
-            title: makeTableTitle(grapherState, chartState, formatColumn),
-        },
+        rows: rows.map((row) => _.omit(row, ["series"])),
+        title: makeTableTitle(grapherState, chartState, formatColumn),
     }
 }
 
 function buildDataTableContentForSlopeChart({
     grapherState,
     chartState,
-}: Args<SlopeChartState>): SearchChartHitDataTableContent {
+}: Args<SlopeChartState>): SearchChartHitDataTableProps {
     const formatColumn = chartState.formatColumn
 
     let rows = chartState.series.map((series) => {
@@ -283,13 +268,13 @@ function buildDataTableContentForSlopeChart({
 
     const title = makeTableTitle(grapherState, chartState, formatColumn)
 
-    return { type: "data-table", props: { rows, title } }
+    return { rows, title }
 }
 
 function buildDataTableContentForStackedDiscreteBarChart({
     grapherState,
     chartState,
-}: Args<StackedDiscreteBarChartState>): SearchChartHitDataTableContent {
+}: Args<StackedDiscreteBarChartState>): SearchChartHitDataTableProps {
     const formatColumn = chartState.formatColumn
 
     const mode =
@@ -406,7 +391,7 @@ function buildDataTableContentForStackedDiscreteBarChart({
         })
         .exhaustive()
 
-    return { type: "data-table", props: { rows, title } }
+    return { rows, title }
 }
 
 function buildDataTableContentForStackedAreaAndBarChart({
@@ -414,7 +399,7 @@ function buildDataTableContentForStackedAreaAndBarChart({
     chartState,
 }: Args<
     StackedAreaChartState | StackedBarChartState
->): SearchChartHitDataTableContent {
+>): SearchChartHitDataTableProps {
     const formatColumn = chartState.formatColumn
 
     const hasSingleSeriesPerFacet =
@@ -466,84 +451,13 @@ function buildDataTableContentForStackedAreaAndBarChart({
 
     const title = makeTableTitle(grapherState, chartState, formatColumn)
 
-    return {
-        type: "data-table",
-        props: { rows: rows.map((row) => _.omit(row, ["point"])), title },
-    }
+    return { rows: rows.map((row) => _.omit(row, ["point"])), title }
 }
 
 function buildDataTableContentForMarimekkoChart({
     grapherState,
     chartState,
-}: Args<MarimekkoChartState>): SearchChartHitDataTableContent {
-    const selectedEntities = grapherState.selection.selectedEntityNames
-
-    // If one or two entities are selected, then display the x and y values for those entities
-    if (selectedEntities.length > 0 && selectedEntities.length <= 2) {
-        return buildDataPointsContentForMarimekko({
-            grapherState,
-            chartState,
-            entityNames: selectedEntities,
-        })
-    }
-
-    // Display a table where each row corresponds to an entity
-    return buildValueTableContentForMarimekko({ grapherState, chartState })
-}
-
-/**
- * Builds data points props for Marimekko charts, extracting the values for
- * specific entities
- */
-function buildDataPointsContentForMarimekko({
-    grapherState,
-    chartState,
-    entityNames,
-}: {
-    grapherState: GrapherState
-    chartState: MarimekkoChartState
-    entityNames: EntityName[]
-}): SearchChartHitDataTableContent {
-    // Marimekko charts can be stacked, but this feature has never been used.
-    // It's safe to assume we're dealing with a single y-indicator chart.
-    const series = chartState.series[0]
-    const yColumn = chartState.yColumns[0]
-
-    const dataPoints = entityNames.map((entityName) => {
-        const point = series.points.find(
-            (point) => point.position === entityName
-        )
-
-        const value = point ? yColumn.formatValueShort(point.value) : "No data"
-        const time = point
-            ? yColumn.formatTime(point.time)
-            : yColumn.formatTime(grapherState.endTime!)
-
-        return {
-            entityName,
-            columnName: getColumnNameForDisplay(yColumn),
-            unit: getDisplayUnit(yColumn),
-            value,
-            time,
-            timePreposition: OwidTable.getPreposition(
-                chartState.transformedTable.timeColumn
-            ),
-        }
-    })
-
-    return { type: "data-points", props: { dataPoints } }
-}
-
-/**
- * Creates a table where each row represents an entity in Marimekko chart.
- */
-function buildValueTableContentForMarimekko({
-    grapherState,
-    chartState,
-}: {
-    grapherState: GrapherState
-    chartState: MarimekkoChartState
-}): SearchChartHitDataTableContent {
+}: Args<MarimekkoChartState>): SearchChartHitDataTableProps {
     const formatColumn = chartState.formatColumn
     const series = chartState.series[0]
 
@@ -577,86 +491,15 @@ function buildValueTableContentForMarimekko({
     rows = _.orderBy(rows, [(row) => row.point.value], "desc")
 
     return {
-        type: "data-table",
-        props: {
-            rows: rows.map((row) => _.omit(row, ["point"])),
-            title: makeTableTitle(grapherState, chartState, formatColumn),
-        },
+        rows: rows.map((row) => _.omit(row, ["point"])),
+        title: makeTableTitle(grapherState, chartState, formatColumn),
     }
 }
 
 function buildDataTableContentForScatterPlot({
-    grapherState,
+    grapherState: _grapherState,
     chartState,
-}: Args<ScatterPlotChartState>): SearchChartHitDataTableContent {
-    const selectedEntities: EntityName[] =
-        grapherState.selection.selectedEntityNames
-
-    // If exactly one entity is selected, then display the x and y values for that entity
-    if (selectedEntities.length === 1) {
-        return buildDataPointsContentForScatterPlot({
-            grapherState,
-            chartState,
-            entityName: selectedEntities[0],
-        })
-    }
-
-    // Special handling for two cases (if the selection is empty):
-    // Case 1:
-    //   The scatter plot has exactly one entity. In this case, displaying
-    //   the x-and y-value of that entity in a large format is nicer than
-    //   a single-row table.
-    // Case 2:
-    //   The scatter plot is connected and has more than one entity. In this
-    //   case, we can't fit the start and end values for both dimensions into
-    //   a single table row. That's why we simply display the x- and y-values
-    //   of one of the entities.
-    if (
-        selectedEntities.length === 0 &&
-        (chartState.series.length === 1 || chartState.isConnected)
-    ) {
-        const displayEntity =
-            findSingleDisplayEntityForScatterPlot(chartState) ??
-            chartState.series[0]?.seriesName
-        return buildDataPointsContentForScatterPlot({
-            grapherState,
-            chartState,
-            entityName: displayEntity,
-        })
-    }
-
-    // Display a table where each row corresponds to an entity and lists x and
-    // y-values in this format: '<x-value> vs. <y-value>'.
-    return buildValueTableContentForScatterPlot({ chartState })
-}
-
-function findSingleDisplayEntityForScatterPlot(
-    chartState: ScatterPlotChartState
-): string | undefined {
-    // If entities are selected, use the first selected entity
-    const selectedEntities = chartState.selectionArray.selectedEntityNames
-    if (selectedEntities.length > 0) return selectedEntities[0]
-
-    // For non-connected scatter plots, use the first entity
-    if (!chartState.isConnected) return chartState.series[0]?.seriesName
-
-    // For connected scatter plots, prefer an entity with multiple data points
-    // (indicating a connected line) over an entity with just a single point
-    return (
-        chartState.series.find((series) => series.points.length > 1) ??
-        chartState.series[0]
-    )?.seriesName
-}
-
-/**
- * Creates a table where each row represents an entity in a scatter plot,
- * displaying both x and y values in a "y vs x" format for each entity.
- */
-function buildValueTableContentForScatterPlot({
-    chartState,
-}: {
-    chartState: ScatterPlotChartState
-}): SearchChartHitDataTableContent {
+}: Args<ScatterPlotChartState>): SearchChartHitDataTableProps {
     const { xColumn, yColumn } = chartState
 
     const yLabel =
@@ -702,93 +545,15 @@ function buildValueTableContentForScatterPlot({
     const title = isTimeScatter ? yLabel : `${yLabel} vs. ${xLabel}`
 
     return {
-        type: "data-table",
-        props: {
-            rows: rows.map((row) => _.omit(row, ["yValue"])),
-            title,
-        },
+        rows: rows.map((row) => _.omit(row, ["yValue"])),
+        title,
     }
-}
-
-/**
- * Builds data points props for scatter plot charts, extracting x and y values
- * for a specific entity. For connected scatter plots, includes both start and
- * end values.
- */
-function buildDataPointsContentForScatterPlot({
-    grapherState,
-    chartState,
-    entityName,
-}: {
-    grapherState: GrapherState
-    chartState: ScatterPlotChartState
-    entityName: EntityName
-}): SearchChartHitDataTableContent {
-    const { xColumn, yColumn } = chartState
-
-    const yLabel =
-        chartState.verticalAxisLabel || getColumnNameForDisplay(yColumn)
-    const xLabel =
-        chartState.horizontalAxisLabel || getColumnNameForDisplay(xColumn)
-
-    const series = chartState.series.find(
-        (series) => series.seriesName === entityName
-    )
-    const points = series?.points ?? []
-    const endPoint = _.maxBy(points, (point) => point.timeValue)
-    const startPoint =
-        points.length > 1
-            ? _.minBy(points, (point) => point.timeValue)
-            : undefined
-
-    const formattedStartTime = startPoint
-        ? yColumn.formatTime(startPoint.timeValue)
-        : undefined
-    const formattedEndTime = yColumn.formatTime(
-        endPoint?.timeValue ?? grapherState.endTime!
-    )
-
-    const time = formattedStartTime
-        ? `${formattedStartTime}–${formattedEndTime}`
-        : formattedEndTime
-
-    const yDataPoint = {
-        entityName,
-        columnName: yLabel,
-        unit: getDisplayUnit(yColumn),
-        time,
-        value: endPoint ? yColumn.formatValueShort(endPoint.y) : "No data",
-        startValue: startPoint
-            ? yColumn.formatValueShort(startPoint.y)
-            : undefined,
-        trend: calculateTrendDirection(startPoint?.y, endPoint?.y),
-    }
-
-    const xDataPoint = grapherState.xColumnSlug
-        ? {
-              entityName,
-              columnName: xLabel,
-              unit: getDisplayUnit(xColumn),
-              time,
-              value: endPoint
-                  ? xColumn.formatValueShort(endPoint.x)
-                  : "No data",
-              startValue: startPoint
-                  ? xColumn.formatValueShort(startPoint.x)
-                  : undefined,
-              trend: calculateTrendDirection(startPoint?.x, endPoint?.x),
-          }
-        : undefined
-
-    const dataPoints = excludeUndefined([yDataPoint, xDataPoint])
-
-    return { type: "data-points", props: { dataPoints } }
 }
 
 function buildDataTableContentForWorldMap({
     grapherState,
     chartState,
-}: Args<MapChartState>): SearchChartHitDataTableContent {
+}: Args<MapChartState>): SearchChartHitDataTableProps {
     const formatColumn = chartState.mapColumn
     const bins = chartState.colorScale.legendBins
 
@@ -829,13 +594,10 @@ function buildDataTableContentForWorldMap({
     }
 
     return {
-        type: "data-table",
-        props: {
-            rows: rows.map((row) =>
-                _.omit(row, ["bin", "numSeriesContainedInBin"])
-            ),
-            title: makeTableTitle(grapherState, chartState, formatColumn),
-        },
+        rows: rows.map((row) =>
+            _.omit(row, ["bin", "numSeriesContainedInBin"])
+        ),
+        title: makeTableTitle(grapherState, chartState, formatColumn),
     }
 }
 
@@ -843,7 +605,7 @@ function buildDataTableContentForWorldMap({
 // nor a map tab which should never (or very rarely) happen
 function buildDataTableContentForTableTab({
     grapherState,
-}: BaseArgs): SearchChartHitDataTableContent {
+}: BaseArgs): SearchChartHitDataTableProps {
     const yColumn = grapherState.tableForDisplay.get(grapherState.yColumnSlug)
     const columnName = getColumnNameForDisplay(yColumn)
     const unit = getDisplayUnit(yColumn, { allowTrivial: true })
@@ -851,7 +613,7 @@ function buildDataTableContentForTableTab({
 
     const time = grapherState.endTime ?? grapherState.tableForDisplay.maxTime
 
-    if (!time) return { type: "data-table", props: { rows: [], title } }
+    if (!time) return { rows: [], title }
 
     let owidRows = grapherState.tableForDisplay
         .filterByTargetTimes([time])
@@ -867,7 +629,7 @@ function buildDataTableContentForTableTab({
         value: yColumn.formatValueShort(row.value),
     }))
 
-    return { type: "data-table", props: { rows: tableRows, title } }
+    return { rows: tableRows, title }
 }
 
 function makeTableTitle(
