@@ -54,7 +54,7 @@ export function constructSearchResultDataTableContent(
 
     if (!chartState) return undefined
 
-    const result = match(props.grapherState.activeTab)
+    return match(props.grapherState.activeTab)
         .with(GRAPHER_TAB_NAMES.LineChart, () =>
             buildDataTableContentForLineChart({
                 ...props,
@@ -113,17 +113,12 @@ export function constructSearchResultDataTableContent(
             buildDataTableContentForTableTab(props)
         )
         .exhaustive()
-
-    // Take the first X rows if maxRows is specified
-    const rows =
-        props.maxRows > 0 ? _.take(result.rows, props.maxRows) : result.rows
-
-    return { ...result, rows }
 }
 
 function buildDataTableContentForLineChart({
     grapherState,
     chartState,
+    maxRows,
 }: Args<LineChartState>): SearchChartHitDataTableProps {
     const formatColumn = chartState.formatColumn
 
@@ -198,6 +193,9 @@ function buildDataTableContentForLineChart({
     const hasProjectedData = rows.some((row) => row.series.isProjection)
     if (hasProjectedData) rows = rows.filter((row) => row.series.isProjection)
 
+    // Take the first X rows if maxRows is specified
+    if (maxRows > 0) rows = _.take(rows, maxRows)
+
     // Sort by value in descending order
     rows = _.orderBy(rows, [(row) => row.point.y], "desc")
 
@@ -210,10 +208,11 @@ function buildDataTableContentForLineChart({
 function buildDataTableContentForDiscreteBarChart({
     grapherState,
     chartState,
+    maxRows,
 }: Args<DiscreteBarChartState>): SearchChartHitDataTableProps {
     const formatColumn = chartState.formatColumn
 
-    const rows = chartState.series.map((series) => ({
+    let rows = chartState.series.map((series) => ({
         series,
         seriesName: series.seriesName,
         label: series.shortEntityName ?? series.entityName,
@@ -224,6 +223,9 @@ function buildDataTableContentForDiscreteBarChart({
         muted: series.focus.background,
     }))
 
+    // Take the first X rows if maxRows is specified
+    if (maxRows > 0) rows = _.take(rows, maxRows)
+
     return {
         rows: rows.map((row) => _.omit(row, ["series"])),
         title: makeTableTitle(grapherState, chartState, formatColumn),
@@ -233,6 +235,7 @@ function buildDataTableContentForDiscreteBarChart({
 function buildDataTableContentForSlopeChart({
     grapherState,
     chartState,
+    maxRows,
 }: Args<SlopeChartState>): SearchChartHitDataTableProps {
     const formatColumn = chartState.formatColumn
 
@@ -263,6 +266,9 @@ function buildDataTableContentForSlopeChart({
         }
     })
 
+    // Take the first X rows if maxRows is specified
+    if (maxRows > 0) rows = _.take(rows, maxRows)
+
     // Sort by value in descending order
     rows = _.orderBy(rows, [(row) => row.endValue], "desc")
 
@@ -274,6 +280,7 @@ function buildDataTableContentForSlopeChart({
 function buildDataTableContentForStackedDiscreteBarChart({
     grapherState,
     chartState,
+    maxRows,
 }: Args<StackedDiscreteBarChartState>): SearchChartHitDataTableProps {
     const formatColumn = chartState.formatColumn
 
@@ -303,6 +310,9 @@ function buildDataTableContentForStackedDiscreteBarChart({
                     }
                 })
                 .filter((row) => row !== undefined)
+
+            // Take the first X rows if maxRows is specified
+            if (maxRows > 0) rows = _.take(rows, maxRows)
 
             rows = _.orderBy(rows, [(row) => row.point.value], ["desc"])
 
@@ -382,6 +392,9 @@ function buildDataTableContentForStackedDiscreteBarChart({
                 )
             }
 
+            // Take the first X rows if maxRows is specified
+            if (maxRows > 0) rows = _.take(rows, maxRows)
+
             return {
                 rows: rows.map((row) =>
                     _.omit(row, ["columnSlug", "sortValue"])
@@ -397,6 +410,7 @@ function buildDataTableContentForStackedDiscreteBarChart({
 function buildDataTableContentForStackedAreaAndBarChart({
     grapherState,
     chartState,
+    maxRows,
 }: Args<
     StackedAreaChartState | StackedBarChartState
 >): SearchChartHitDataTableProps {
@@ -443,6 +457,9 @@ function buildDataTableContentForStackedAreaAndBarChart({
         })
         .filter((row) => row !== undefined)
 
+    // Take the first X rows if maxRows is specified
+    if (maxRows > 0) rows = _.take(rows, maxRows)
+
     // Stacked area charts plot series from bottom to top and reverse the
     // original order, so that the first selected series appears on top.
     // We reverse the order again here, so that the first selected entity
@@ -457,6 +474,7 @@ function buildDataTableContentForStackedAreaAndBarChart({
 function buildDataTableContentForMarimekkoChart({
     grapherState,
     chartState,
+    maxRows,
 }: Args<MarimekkoChartState>): SearchChartHitDataTableProps {
     const formatColumn = chartState.formatColumn
     const series = chartState.series[0]
@@ -483,9 +501,13 @@ function buildDataTableContentForMarimekkoChart({
                 timePreposition: OwidTable.getPreposition(
                     chartState.transformedTable.timeColumn
                 ),
+                muted: chartState.focusArray.state(point.position).background,
             }
         })
         .filter((row) => row !== undefined)
+
+    // Take the first X rows if maxRows is specified
+    if (maxRows > 0) rows = _.take(rows, maxRows)
 
     // Sort by value in descending order
     rows = _.orderBy(rows, [(row) => row.point.value], "desc")
@@ -499,6 +521,7 @@ function buildDataTableContentForMarimekkoChart({
 function buildDataTableContentForScatterPlot({
     grapherState: _grapherState,
     chartState,
+    maxRows,
 }: Args<ScatterPlotChartState>): SearchChartHitDataTableProps {
     const { xColumn, yColumn } = chartState
 
@@ -535,9 +558,14 @@ function buildDataTableContentForScatterPlot({
                 ),
                 yValue: point.y,
                 rounded: true,
+                muted: chartState.focusArray.state(series.seriesName)
+                    .background,
             }
         })
         .filter((row) => row !== undefined)
+
+    // Take the first X rows if maxRows is specified
+    if (maxRows > 0) rows = _.take(rows, maxRows)
 
     // Sort by y-value in descending order
     rows = _.orderBy(rows, [(row) => row.yValue, "desc"])
@@ -553,6 +581,7 @@ function buildDataTableContentForScatterPlot({
 function buildDataTableContentForWorldMap({
     grapherState,
     chartState,
+    maxRows,
 }: Args<MapChartState>): SearchChartHitDataTableProps {
     const formatColumn = chartState.mapColumn
     const bins = chartState.colorScale.legendBins
@@ -580,6 +609,9 @@ function buildDataTableContentForWorldMap({
         })
         .filter((row) => row !== undefined)
 
+    // Take the first X rows if maxRows is specified
+    if (maxRows > 0) rows = _.take(rows, maxRows)
+
     // Sort bins by the number of countries it contains, with the No Data bin at the bottom
     const hasNumericBins = bins.some((bin) => isNumericBin(bin))
     if (!hasNumericBins) {
@@ -605,6 +637,7 @@ function buildDataTableContentForWorldMap({
 // nor a map tab which should never (or very rarely) happen
 function buildDataTableContentForTableTab({
     grapherState,
+    maxRows,
 }: BaseArgs): SearchChartHitDataTableProps {
     const yColumn = grapherState.tableForDisplay.get(grapherState.yColumnSlug)
     const columnName = getColumnNameForDisplay(yColumn)
@@ -620,7 +653,7 @@ function buildDataTableContentForTableTab({
         .get(grapherState.yColumnSlug).owidRows
     owidRows = _.orderBy(owidRows, [(row) => row.value], "desc")
 
-    const tableRows = owidRows.map((row) => ({
+    let tableRows = owidRows.map((row) => ({
         label: row.entityName,
         time: yColumn.formatTime(row.originalTime),
         timePreposition: OwidTable.getPreposition(
@@ -628,6 +661,9 @@ function buildDataTableContentForTableTab({
         ),
         value: yColumn.formatValueShort(row.value),
     }))
+
+    // Take the first X rows if maxRows is specified
+    if (maxRows > 0) tableRows = _.take(tableRows, maxRows)
 
     return { rows: tableRows, title }
 }
