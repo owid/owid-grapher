@@ -13,7 +13,7 @@ import Image, { ImageParentContainer } from "./Image.js"
 import { DocumentContext } from "../DocumentContext.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import {
-    ARCHVED_THUMBNAIL_FILENAME,
+    ARCHIVED_THUMBNAIL_FILENAME,
     DEFAULT_GDOC_FEATURED_IMAGE,
     DEFAULT_THUMBNAIL_FILENAME,
     DbEnrichedLatestWork,
@@ -28,7 +28,7 @@ function Thumbnail({
     containerType: ImageParentContainer
 }) {
     if (
-        filename === ARCHVED_THUMBNAIL_FILENAME ||
+        filename === ARCHIVED_THUMBNAIL_FILENAME ||
         filename === DEFAULT_THUMBNAIL_FILENAME
     ) {
         return <img src={`/${filename}`} />

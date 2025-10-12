@@ -25,7 +25,7 @@ import { getCanonicalUrl, getPageTitle } from "@ourworldindata/components"
 import { DebugProvider } from "./DebugProvider.js"
 import { match, P } from "ts-pattern"
 import {
-    ARCHVED_THUMBNAIL_FILENAME,
+    ARCHIVED_THUMBNAIL_FILENAME,
     EnrichedBlockText,
     OwidGdocPostInterface,
     OwidGdocAuthorInterface,
@@ -247,7 +247,7 @@ export default function OwidGdocPage({
         gdoc.content.type === OwidGdocType.Article &&
         gdoc.content["deprecation-notice"]
     ) {
-        imageUrl = `${baseUrl}/${ARCHVED_THUMBNAIL_FILENAME}`
+        imageUrl = `${baseUrl}/${ARCHIVED_THUMBNAIL_FILENAME}`
     } else if (featuredImageFilename) {
         const cloudflareId = _.get(gdoc, [
             "imageMetadata",

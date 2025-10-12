@@ -51,7 +51,7 @@ import {
     multiDimDataPageExists,
 } from "../MultiDimDataPage.js"
 import {
-    ARCHVED_THUMBNAIL_FILENAME,
+    ARCHIVED_THUMBNAIL_FILENAME,
     ChartConfigType,
     NarrativeChartInfo,
     ContentGraphLinkType,
@@ -1153,7 +1153,7 @@ export async function getMinimalGdocPostsByIds(
                 content ->> '$.excerpt' as excerpt,
                 type,
                 CASE
-                    WHEN content ->> '$."deprecation-notice"' IS NOT NULL THEN '${ARCHVED_THUMBNAIL_FILENAME}'
+                    WHEN content ->> '$."deprecation-notice"' IS NOT NULL THEN '${ARCHIVED_THUMBNAIL_FILENAME}'
                     ELSE content ->> '$."featured-image"'
                 END as "featured-image"
             FROM posts_gdocs

@@ -19,7 +19,7 @@ import {
     DbEnrichedLatestWork,
     parseLatestWork,
     DEFAULT_THUMBNAIL_FILENAME,
-    ARCHVED_THUMBNAIL_FILENAME,
+    ARCHIVED_THUMBNAIL_FILENAME,
     DbEnrichedImage,
 } from "@ourworldindata/types"
 import { LARGEST_IMAGE_WIDTH } from "@ourworldindata/utils"
@@ -170,7 +170,7 @@ function getGdocThumbnail(
 ): string {
     let thumbnailUrl = `${BAKED_BASE_URL}/${DEFAULT_THUMBNAIL_FILENAME}`
     if (gdoc.content["deprecation-notice"]) {
-        thumbnailUrl = `${BAKED_BASE_URL}/${ARCHVED_THUMBNAIL_FILENAME}`
+        thumbnailUrl = `${BAKED_BASE_URL}/${ARCHIVED_THUMBNAIL_FILENAME}`
     } else if (
         gdoc.content["featured-image"] &&
         imagesByFilename[gdoc.content["featured-image"]]?.cloudflareId
@@ -413,7 +413,7 @@ export const getLatestWorkByAuthor = async (
             authors,
             pg.publishedAt,
             CASE
-                WHEN content ->> '$."deprecation-notice"' IS NOT NULL THEN '${ARCHVED_THUMBNAIL_FILENAME}'
+                WHEN content ->> '$."deprecation-notice"' IS NOT NULL THEN '${ARCHIVED_THUMBNAIL_FILENAME}'
                 ELSE content ->> '$."featured-image"'
             END as "featured-image"
         FROM

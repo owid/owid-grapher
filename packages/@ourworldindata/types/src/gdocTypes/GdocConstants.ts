@@ -39,4 +39,4 @@ export const DEFAULT_GDOC_FEATURED_IMAGE = "default-featured-image.png"
 export const DEFAULT_THUMBNAIL_FILENAME = "default-thumbnail.png"
 
 // Stored in this repo and served
-export const ARCHVED_THUMBNAIL_FILENAME = "archived-thumbnail.jpg"
+export const ARCHIVED_THUMBNAIL_FILENAME = "archived-thumbnail.jpg"

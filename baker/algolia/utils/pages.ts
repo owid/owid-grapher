@@ -8,7 +8,7 @@ import {
     OwidGdocType,
     type RawPageview,
     OwidGdocPostInterface,
-    ARCHVED_THUMBNAIL_FILENAME,
+    ARCHIVED_THUMBNAIL_FILENAME,
     DEFAULT_GDOC_FEATURED_IMAGE,
     DEFAULT_THUMBNAIL_FILENAME,
     DbEnrichedImage,
@@ -78,7 +78,7 @@ const getThumbnailUrl = (
     }
 
     if (gdoc.content["deprecation-notice"]) {
-        return `${BAKED_BASE_URL}/${ARCHVED_THUMBNAIL_FILENAME}`
+        return `${BAKED_BASE_URL}/${ARCHIVED_THUMBNAIL_FILENAME}`
     }
 
     if (!gdoc.content["featured-image"]) {
