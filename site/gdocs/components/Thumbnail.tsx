@@ -14,14 +14,18 @@ export const Thumbnail = ({
 }) => {
     if (!thumbnail)
         return (
-            <img src={`/${DEFAULT_THUMBNAIL_FILENAME}`} className={className} />
+            <img
+                src={`/${DEFAULT_THUMBNAIL_FILENAME}`}
+                className={className}
+                loading="lazy"
+            />
         )
     if (
         thumbnail.startsWith(GRAPHER_DYNAMIC_THUMBNAIL_URL) ||
         thumbnail.endsWith(ARCHVED_THUMBNAIL_FILENAME) ||
         thumbnail.endsWith(DEFAULT_THUMBNAIL_FILENAME)
     ) {
-        return <img src={thumbnail} className={className} />
+        return <img src={thumbnail} className={className} loading="lazy" />
     } else {
         return (
             <Image
