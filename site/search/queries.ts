@@ -67,15 +67,17 @@ export const chartHitQueryKeys = {
         ["chart-info", slug, entities, queryParams] as const,
     searchResultData: (
         slug: string,
-        queryParams?: string,
-        variant?: RichDataComponentVariant,
-        entities?: EntityName[],
-        numDataTableRowsPerColumn?: number
+        queryParams: string | undefined,
+        version: number,
+        variant: RichDataComponentVariant,
+        entities: EntityName[] | undefined,
+        numDataTableRowsPerColumn: number
     ) =>
         [
             "chart-hit-data",
             slug,
             queryParams,
+            version,
             variant,
             entities,
             numDataTableRowsPerColumn,
