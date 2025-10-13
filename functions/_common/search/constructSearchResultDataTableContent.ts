@@ -193,11 +193,11 @@ function buildDataTableContentForLineChart({
     const hasProjectedData = rows.some((row) => row.series.isProjection)
     if (hasProjectedData) rows = rows.filter((row) => row.series.isProjection)
 
-    // Take the first X rows if maxRows is specified
-    if (maxRows > 0) rows = _.take(rows, maxRows)
-
     // Sort by value in descending order
     rows = _.orderBy(rows, [(row) => row.point.y], "desc")
+
+    // Take the first X rows if maxRows is specified
+    if (maxRows > 0) rows = _.take(rows, maxRows)
 
     return {
         rows: rows.map((row) => _.omit(row, ["series", "point"])),
