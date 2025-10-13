@@ -266,11 +266,11 @@ function buildDataTableContentForSlopeChart({
         }
     })
 
-    // Take the first X rows if maxRows is specified
-    if (maxRows > 0) rows = _.take(rows, maxRows)
-
     // Sort by value in descending order
     rows = _.orderBy(rows, [(row) => row.endValue], "desc")
+
+    // Take the first X rows if maxRows is specified
+    if (maxRows > 0) rows = _.take(rows, maxRows)
 
     const title = makeTableTitle(grapherState, chartState, formatColumn)
 
@@ -311,10 +311,10 @@ function buildDataTableContentForStackedDiscreteBarChart({
                 })
                 .filter((row) => row !== undefined)
 
+            rows = _.orderBy(rows, [(row) => row.point.value], ["desc"])
+
             // Take the first X rows if maxRows is specified
             if (maxRows > 0) rows = _.take(rows, maxRows)
-
-            rows = _.orderBy(rows, [(row) => row.point.value], ["desc"])
 
             const columnName = getColumnNameForDisplay(formatColumn)
             const unit = getDisplayUnit(formatColumn)
@@ -457,14 +457,14 @@ function buildDataTableContentForStackedAreaAndBarChart({
         })
         .filter((row) => row !== undefined)
 
-    // Take the first X rows if maxRows is specified
-    if (maxRows > 0) rows = _.take(rows, maxRows)
-
     // Stacked area charts plot series from bottom to top and reverse the
     // original order, so that the first selected series appears on top.
     // We reverse the order again here, so that the first selected entity
     // (which is on top of the chart) is also on top of the table.
     rows = _.reverse(rows)
+
+    // Take the first X rows if maxRows is specified
+    if (maxRows > 0) rows = _.take(rows, maxRows)
 
     const title = makeTableTitle(grapherState, chartState, formatColumn)
 
@@ -484,6 +484,7 @@ function buildDataTableContentForMarimekkoChart({
         points = points.filter((point) =>
             chartState.selectionArray.selectedSet.has(point.position)
         )
+        if (points.length === 0) points = series.points
     }
 
     let rows = points
@@ -506,11 +507,11 @@ function buildDataTableContentForMarimekkoChart({
         })
         .filter((row) => row !== undefined)
 
-    // Take the first X rows if maxRows is specified
-    if (maxRows > 0) rows = _.take(rows, maxRows)
-
     // Sort by value in descending order
     rows = _.orderBy(rows, [(row) => row.point.value], "desc")
+
+    // Take the first X rows if maxRows is specified
+    if (maxRows > 0) rows = _.take(rows, maxRows)
 
     return {
         rows: rows.map((row) => _.omit(row, ["point"])),
@@ -531,10 +532,12 @@ function buildDataTableContentForScatterPlot({
         chartState.horizontalAxisLabel || getColumnNameForDisplay(xColumn)
 
     let series = chartState.series
-    if (chartState.selectionArray.selectedSet.size > 0)
+    if (chartState.selectionArray.selectedSet.size > 0) {
         series = series.filter((series) =>
             chartState.selectionArray.selectedSet.has(series.seriesName)
         )
+        if (series.length === 0) series = chartState.series
+    }
 
     const isTimeScatter = xColumn instanceof TimeColumn
 
@@ -564,11 +567,11 @@ function buildDataTableContentForScatterPlot({
         })
         .filter((row) => row !== undefined)
 
-    // Take the first X rows if maxRows is specified
-    if (maxRows > 0) rows = _.take(rows, maxRows)
-
     // Sort by y-value in descending order
     rows = _.orderBy(rows, [(row) => row.yValue, "desc"])
+
+    // Take the first X rows if maxRows is specified
+    if (maxRows > 0) rows = _.take(rows, maxRows)
 
     const title = isTimeScatter ? yLabel : `${yLabel} vs. ${xLabel}`
 
@@ -609,9 +612,6 @@ function buildDataTableContentForWorldMap({
         })
         .filter((row) => row !== undefined)
 
-    // Take the first X rows if maxRows is specified
-    if (maxRows > 0) rows = _.take(rows, maxRows)
-
     // Sort bins by the number of countries it contains, with the No Data bin at the bottom
     const hasNumericBins = bins.some((bin) => isNumericBin(bin))
     if (!hasNumericBins) {
@@ -624,6 +624,9 @@ function buildDataTableContentForWorldMap({
             "desc"
         )
     }
+
+    // Take the first X rows if maxRows is specified
+    if (maxRows > 0) rows = _.take(rows, maxRows)
 
     return {
         rows: rows.map((row) =>
