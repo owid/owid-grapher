@@ -254,9 +254,7 @@ export async function fetchDataValuesForGrapher(
 
     const dataValues = assembleDataValues(grapher.grapherState, entityName)
 
-    const cacheControl = shouldCache
-        ? "s-maxage=3600, max-age=3600"
-        : "no-cache"
+    const cacheControl = shouldCache ? "max-age=3600" : "no-cache"
     const response = Response.json(dataValues, {
         headers: { "Cache-Control": cacheControl },
     })
@@ -347,9 +345,7 @@ export async function fetchSearchResultDataForGrapher(
     if (searchResult === undefined)
         return error(500, "Unable to generate search result data")
 
-    const cacheControl = shouldCache
-        ? "s-maxage=3600, max-age=3600"
-        : "no-cache"
+    const cacheControl = shouldCache ? "max-age=3600" : "no-cache"
     const response = Response.json(searchResult, {
         headers: { "Cache-Control": cacheControl },
     })
