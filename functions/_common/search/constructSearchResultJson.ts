@@ -805,26 +805,13 @@ function limitSelectionToAvailableTableRows(
     // No need to adjust the selection if all rows fit
     if (numRows <= numAvailableDataTableRows) return
 
+    // When plotting entities as series, limit the selection to only
+    // those that can be displayed in the table rows to ensure
+    // thumbnails and table show the same data
     if (seriesStrategy === SeriesStrategy.entity) {
-        // When plotting entities as series, limit the selection to only
-        // those that can be displayed in the table rows to ensure
-        // thumbnails and table show the same data
         grapherState.selection.setSelectedEntities(
             selectedEntities.slice(0, numAvailableDataTableRows)
         )
-    } else if (
-        seriesStrategy === SeriesStrategy.column &&
-        !grapherState.isFaceted &&
-        !grapherState.hasProjectedData &&
-        !grapherState.isStackedDiscreteBar
-    ) {
-        // When plotting columns as series, focus only the subset of columns
-        // that can be displayed in the table
-        const seriesNames = props.rows
-            .slice(0, numAvailableDataTableRows)
-            .map((row) => row.seriesName)
-            .filter((seriesName) => seriesName !== undefined)
-        grapherState.focusArray.clearAllAndAdd(...seriesNames)
     }
 }
 
