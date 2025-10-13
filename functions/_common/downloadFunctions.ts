@@ -34,6 +34,7 @@ import {
     pickDisplayEntities,
     RichDataVariant,
 } from "./search/constructSearchResultJson.js"
+import { checkCache } from "./reusableHandlers.js"
 
 export async function fetchMetadataForGrapher(
     identifier: GrapherIdentifier,
@@ -213,8 +214,14 @@ export function assembleReadme(
 export async function fetchDataValuesForGrapher(
     identifier: GrapherIdentifier,
     env: Env,
-    searchParams: URLSearchParams
+    searchParams: URLSearchParams,
+    ctx: EventContext<unknown, any, Record<string, unknown>>
 ) {
+    // Check cache
+    const shouldCache = searchParams.get("nocache") === null
+    const cachedResponse = await checkCache(ctx.request, shouldCache)
+    if (cachedResponse) return cachedResponse
+
     const entityName = findEntityForExtractingDataValues(searchParams)
     prepareSearchParamsBeforeExtractingDataValues(searchParams, entityName)
 
@@ -247,7 +254,18 @@ export async function fetchDataValuesForGrapher(
 
     const dataValues = assembleDataValues(grapher.grapherState, entityName)
 
-    return Response.json(dataValues)
+    const cacheControl = shouldCache
+        ? "s-maxage=3600, max-age=3600"
+        : "no-cache"
+    const response = Response.json(dataValues, {
+        headers: { "Cache-Control": cacheControl },
+    })
+
+    // Cache the response
+    if (shouldCache)
+        ctx.waitUntil(caches.default.put(ctx.request, response.clone()))
+
+    return response
 }
 
 export function assembleDataValues(
@@ -265,8 +283,14 @@ export function assembleDataValues(
 export async function fetchSearchResultDataForGrapher(
     identifier: GrapherIdentifier,
     env: Env,
-    searchParams: URLSearchParams
+    searchParams: URLSearchParams,
+    ctx: EventContext<unknown, any, Record<string, unknown>>
 ) {
+    // Check cache
+    const shouldCache = searchParams.get("nocache") === null
+    const cachedResponse = await checkCache(ctx.request, shouldCache)
+    if (cachedResponse) return cachedResponse
+
     const supportedVersions = [1]
     const version = parseVersionParam(
         searchParams.get("version"),
@@ -323,7 +347,18 @@ export async function fetchSearchResultDataForGrapher(
     if (searchResult === undefined)
         return error(500, "Unable to generate search result data")
 
-    return Response.json(searchResult)
+    const cacheControl = shouldCache
+        ? "s-maxage=3600, max-age=3600"
+        : "no-cache"
+    const response = Response.json(searchResult, {
+        headers: { "Cache-Control": cacheControl },
+    })
+
+    // Cache the response
+    if (shouldCache)
+        ctx.waitUntil(caches.default.put(ctx.request, response.clone()))
+
+    return response
 }
 
 export async function assembleSearchResultData(

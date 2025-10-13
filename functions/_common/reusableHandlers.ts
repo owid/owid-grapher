@@ -2,6 +2,27 @@ import { Env, Etag } from "./env.js"
 import { fetchAndRenderGrapher } from "./grapherRenderer.js"
 import { GrapherIdentifier } from "./grapherTools.js"
 
+export async function checkCache(
+    request: Request,
+    shouldCache: boolean
+): Promise<Response | null> {
+    if (!shouldCache) return null
+
+    console.log("Checking cache")
+    const cache = caches.default
+    const maybeCached = await cache.match(request)
+
+    console.log("Cache check result", maybeCached ? "hit" : "miss")
+
+    if (maybeCached) {
+        // Cached responses are immutable, so we have to clone them,
+        // so that the corsify middleware can add CORS headers
+        return new Response(maybeCached.body, maybeCached)
+    }
+
+    return null
+}
+
 export async function handleThumbnailRequest(
     id: GrapherIdentifier,
     searchParams: URLSearchParams,
@@ -11,22 +32,13 @@ export async function handleThumbnailRequest(
     extension: "png" | "svg"
 ) {
     const url = new URL(env.url)
-    const shouldCache = !url.searchParams.has("nocache")
 
-    const cache = caches.default
     console.log("Handling", env.url, ctx.request.headers.get("User-Agent"))
 
-    if (shouldCache) {
-        console.log("Checking cache")
-        const maybeCached = await cache.match(ctx.request)
-        console.log("Cache check result", maybeCached ? "hit" : "miss")
-        if (maybeCached) {
-            // Cached responses are immutable, so we have to clone them,
-            // so that the corsify middleware can add CORS headers
-            const newResponse = new Response(maybeCached.body, maybeCached)
-            return newResponse
-        }
-    }
+    // Check cache
+    const shouldCache = !url.searchParams.has("nocache")
+    const cachedResponse = await checkCache(ctx.request, shouldCache)
+    if (cachedResponse) return cachedResponse
 
     const resp = await fetchAndRenderGrapher(id, searchParams, extension, env)
     if (shouldCache) {

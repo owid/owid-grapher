@@ -32,6 +32,7 @@ import {
 } from "./downloadFunctions.js"
 import { assembleMetadata } from "./metadataTools.js"
 import { getDataApiUrl } from "./grapherTools.js"
+import { checkCache } from "./reusableHandlers.js"
 
 async function initGrapherForExplorerView(
     env: Env,
@@ -256,8 +257,14 @@ export async function fetchZipForExplorerView(
 
 export async function fetchDataValuesForExplorerView(
     searchParams: URLSearchParams,
-    env: Env
+    env: Env,
+    ctx: EventContext<unknown, any, Record<string, unknown>>
 ) {
+    // Check cache
+    const shouldCache = searchParams.get("nocache") === null
+    const cachedResponse = await checkCache(ctx.request, shouldCache)
+    if (cachedResponse) return cachedResponse
+
     const options = extractOptions(searchParams)
 
     const explorerEnv = stripUrlExtensionFromEnv(env, extensions.values)
@@ -282,7 +289,18 @@ export async function fetchDataValuesForExplorerView(
 
         const dataValues = assembleDataValues(grapherState, entityName)
 
-        return Response.json(dataValues)
+        const cacheControl = shouldCache
+            ? "s-maxage=3600, max-age=3600"
+            : "no-cache"
+        const response = Response.json(dataValues, {
+            headers: { "Cache-Control": cacheControl },
+        })
+
+        // Cache the response
+        if (shouldCache)
+            ctx.waitUntil(caches.default.put(ctx.request, response.clone()))
+
+        return response
     } catch (e) {
         console.error(e)
         return error(500, e)
@@ -291,8 +309,14 @@ export async function fetchDataValuesForExplorerView(
 
 export async function fetchSearchResultDataForExplorerView(
     searchParams: URLSearchParams,
-    env: Env
+    env: Env,
+    ctx: EventContext<unknown, any, Record<string, unknown>>
 ) {
+    // Check cache
+    const shouldCache = searchParams.get("nocache") === null
+    const cachedResponse = await checkCache(ctx.request, shouldCache)
+    if (cachedResponse) return cachedResponse
+
     const supportedVersions = [1]
     const version = parseVersionParam(
         searchParams.get("version"),
@@ -345,7 +369,18 @@ export async function fetchSearchResultDataForExplorerView(
         if (searchResult === undefined)
             return error(500, "Unable to generate search result data")
 
-        return Response.json(searchResult)
+        const cacheControl = shouldCache
+            ? "s-maxage=3600, max-age=3600"
+            : "no-cache"
+        const response = Response.json(searchResult, {
+            headers: { "Cache-Control": cacheControl },
+        })
+
+        // Cache the response
+        if (shouldCache)
+            ctx.waitUntil(caches.default.put(ctx.request, response.clone()))
+
+        return response
     } catch (e) {
         console.error(e)
         return error(500, e)
