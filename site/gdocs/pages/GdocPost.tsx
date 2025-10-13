@@ -174,8 +174,7 @@ export function GdocPost({
                     {!isDeprecated && (
                         <>
                             <img
-                                src={`${BAKED_BASE_URL}/owid-logo.svg`}
-                                className="img-raw"
+                                src="/owid-logo.svg"
                                 alt="Our World in Data logo"
                                 loading="lazy"
                                 width={104}
