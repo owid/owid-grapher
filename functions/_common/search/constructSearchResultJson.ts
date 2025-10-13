@@ -403,6 +403,7 @@ async function pickDisplayEntitiesForScatterPlot({
     const getName = (series: ScatterSeries) => series.seriesName
     const getColor = (series: ScatterSeries) => series.points.at(0)?.color ?? ""
     const getSize = (series: ScatterSeries) => series.points.at(0)?.size ?? 0
+    const getY = (series: ScatterSeries) => series.points.at(0)?.y ?? 0
 
     // When both color and size dimensions are available, select the entity
     // with the largest size from each color group
@@ -433,7 +434,11 @@ async function pickDisplayEntitiesForScatterPlot({
         )
     }
 
-    return R.pipe(series, R.map(getName))
+    return R.pipe(
+        series,
+        R.sortBy((series) => -getY(series)),
+        R.map(getName)
+    )
 }
 
 async function pickDisplayEntitiesForMarimekko({
@@ -460,6 +465,7 @@ async function pickDisplayEntitiesForMarimekko({
     const getColor = (item: MarimekkoItem) =>
         item.entityColor?.colorDomainValue ?? ""
     const getX = (item: MarimekkoItem) => item.xPoint?.value ?? 0
+    const getY = (item: MarimekkoItem) => item.bars[0]?.yPoint?.value ?? 0
 
     // When both color and x dimensions are available, select the entity
     // with the largest x from each color group
@@ -490,7 +496,11 @@ async function pickDisplayEntitiesForMarimekko({
         )
     }
 
-    return R.pipe(items, R.map(getName))
+    return R.pipe(
+        items,
+        R.sortBy((item) => -getY(item)),
+        R.map(getName)
+    )
 }
 
 /**
