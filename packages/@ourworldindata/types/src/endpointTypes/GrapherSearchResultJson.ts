@@ -12,6 +12,7 @@ export type GrapherSearchResultJson = {
     grapherQueryParams: GrapherQueryParams
     layout: LayoutSlot[]
     dataTable: SearchChartHitDataTableProps
+    valueDisplay?: SearchChartHitDataDisplayProps
     entityType: string
     entityTypePlural: string
 }
