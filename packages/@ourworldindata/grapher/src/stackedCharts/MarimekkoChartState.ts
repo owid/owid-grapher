@@ -300,11 +300,16 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
                     : undefined
                 if (xSeries && !xPoint) return undefined
 
+                // Don't use the domain color for highlighted bars
+                const color = this.isFocusModeActive
+                    ? undefined
+                    : domainColorForEntityMap.get(entityName)
+
                 return {
                     entityName,
                     shortEntityName: getShortNameForEntity(entityName),
                     xPoint: xPoint,
-                    entityColor: domainColorForEntityMap.get(entityName),
+                    entityColor: color,
                     bars: excludeUndefined(
                         series.map((series): Bar | undefined => {
                             const point = series.points.find(
