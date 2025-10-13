@@ -10,6 +10,7 @@ import {
     OwidColumnDef,
     GRAPHER_TAB_QUERY_PARAMS,
     EntityName,
+    GrapherSearchResultJson,
 } from "@ourworldindata/types"
 import { error, StatusError } from "itty-router"
 import { createZip, File } from "littlezipper"
@@ -27,7 +28,9 @@ import { constructSearchResultDataTableContent } from "./search/constructSearchR
 import { constructGrapherValuesJson } from "./grapherValuesJson.js"
 import { match } from "ts-pattern"
 import {
+    configureGrapherStateTab,
     constructSearchResultJson,
+    getSortedGrapherTabsForChartHit,
     pickDisplayEntities,
     RichDataVariant,
 } from "./search/constructSearchResultJson.js"
@@ -331,11 +334,19 @@ export async function assembleSearchResultData(
         numDataTableRowsPerColumn: number
         dataApiUrl: string
     }
-) {
+): Promise<GrapherSearchResultJson | undefined> {
+    // Find Grapher tabs to display and bring them in the right order
+    const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
+    configureGrapherStateTab(grapherState, { tab: sortedTabs[0] })
+
     // Choose the entities to display
     const displayEntities = await pickDisplayEntities(grapherState, args)
 
-    return constructSearchResultJson(grapherState, { ...args, displayEntities })
+    return constructSearchResultJson(grapherState, {
+        ...args,
+        sortedTabs,
+        displayEntities,
+    })
 }
 
 export function assembleSearchResultDataTable(grapherState: GrapherState) {
