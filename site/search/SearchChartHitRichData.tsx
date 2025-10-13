@@ -147,14 +147,25 @@ export function SearchChartHitRichData({
 
     // Render a placeholder component while the config and data are loading
     if (loadingStatus === "loading" || data === undefined) {
+        const chartUrl = constructChartUrl({ hit })
+        const sourcesUrl = constructChartUrl({ hit, overlay: "sources" })
+        const downloadUrl = constructChartUrl({ hit, overlay: "download-data" })
+
         return (
             <div ref={ref} className="search-chart-hit-rich-data">
-                <SearchChartHitHeader
-                    hit={hit}
-                    isLarge={isLargeVariant}
-                    url={constructChartUrl({ hit })}
-                    onClick={onClick}
-                />
+                <div className="search-chart-hit-rich-data__header">
+                    <SearchChartHitHeader
+                        hit={hit}
+                        url={chartUrl}
+                        isLarge={isLargeVariant}
+                        onClick={onClick}
+                    />
+                    <SearchChartHitHeaderActionButtons
+                        isLarge={isLargeVariant}
+                        sourcesUrl={sourcesUrl}
+                        downloadUrl={downloadUrl}
+                    />
+                </div>
                 <RichDataContentPlaceholder
                     variant={variant}
                     hasScatter={hasScatter}
@@ -192,26 +203,11 @@ export function SearchChartHitRichData({
                     isLarge={isLargeVariant}
                     onClick={onClick}
                 />
-                <div className="search-chart-hit-rich-data__header-actions">
-                    {isLargeVariant && (
-                        <Button
-                            text="Learn more about this data"
-                            className="search-chart-hit-rich-data__button"
-                            theme="outline-light-blue"
-                            href={sourcesUrl}
-                            icon={null}
-                        />
-                    )}
-                    <Button
-                        text="Download options"
-                        className="search-chart-hit-rich-data__button"
-                        theme="solid-light-blue"
-                        href={downloadUrl}
-                        icon={faDownload}
-                        iconPosition="left"
-                        dataTrackNote="search-download-options"
-                    />
-                </div>
+                <SearchChartHitHeaderActionButtons
+                    isLarge={isLargeVariant}
+                    sourcesUrl={sourcesUrl}
+                    downloadUrl={downloadUrl}
+                />
             </div>
 
             <div
@@ -287,6 +283,40 @@ export function SearchChartHitRichData({
                     />
                 )}
             </div>
+        </div>
+    )
+}
+
+function SearchChartHitHeaderActionButtons({
+    isLarge,
+    sourcesUrl,
+    downloadUrl,
+}: {
+    isLarge: boolean
+    sourcesUrl: string
+    downloadUrl: string
+}): React.ReactElement {
+    return (
+        <div className="search-chart-hit-rich-data__header-actions">
+            {isLarge && (
+                <Button
+                    text="Learn more about this data"
+                    className="search-chart-hit-rich-data__button"
+                    theme="outline-light-blue"
+                    href={sourcesUrl}
+                    icon={null}
+                    dataTrackNote="search-sources-modal"
+                />
+            )}
+            <Button
+                text="Download options"
+                className="search-chart-hit-rich-data__button"
+                theme="solid-light-blue"
+                href={downloadUrl}
+                icon={faDownload}
+                iconPosition="left"
+                dataTrackNote="search-download-options"
+            />
         </div>
     )
 }
