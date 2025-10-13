@@ -89,20 +89,22 @@ router
     )
     .get(
         `/grapher/:slug${extensions.values}`,
-        async ({ params: { slug } }, { searchParams }, env) =>
+        async ({ params: { slug } }, { searchParams }, env, _etag, ctx) =>
             fetchDataValuesForGrapher(
                 { type: "slug", id: slug },
                 env,
-                searchParams
+                searchParams,
+                ctx
             )
     )
     .get(
         `/grapher/:slug${extensions.searchResult}`,
-        async ({ params: { slug } }, { searchParams }, env) =>
+        async ({ params: { slug } }, { searchParams }, env, _etag, ctx) =>
             fetchSearchResultDataForGrapher(
                 { type: "slug", id: slug },
                 env,
-                searchParams
+                searchParams,
+                ctx
             )
     )
     .get(
