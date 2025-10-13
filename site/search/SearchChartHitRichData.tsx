@@ -234,6 +234,7 @@ export function SearchChartHitRichData({
                         const chartUrl = constructChartUrlForTab({
                             hit,
                             grapherTab,
+                            primaryGrapherTab: data.layout[0].grapherTab,
                             grapherQueryParams: data.grapherQueryParams,
                             overwriteParams: chartParams,
                         })
@@ -421,11 +422,13 @@ function useQuerySearchResultDataForChartHit({
 function constructChartUrlForTab({
     hit,
     grapherTab,
+    primaryGrapherTab,
     grapherQueryParams,
     overwriteParams,
 }: {
     hit: SearchChartHit
     grapherTab: GrapherTabName
+    primaryGrapherTab: GrapherTabName
     grapherQueryParams: GrapherQueryParams
     overwriteParams?: GrapherQueryParams
 }): string {
@@ -447,7 +450,9 @@ function constructChartUrlForTab({
     // selection.
     if (
         grapherTab === GRAPHER_TAB_NAMES.ScatterPlot ||
-        grapherTab === GRAPHER_TAB_NAMES.Marimekko
+        grapherTab === GRAPHER_TAB_NAMES.Marimekko ||
+        primaryGrapherTab === GRAPHER_TAB_NAMES.ScatterPlot ||
+        primaryGrapherTab === GRAPHER_TAB_NAMES.Marimekko
     )
         omitParamsForChartUrl.push("country")
 
