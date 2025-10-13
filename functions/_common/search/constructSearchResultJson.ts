@@ -28,6 +28,7 @@ import {
     SearchChartHitDataTableProps,
     SeriesStrategy,
     Time,
+    GrapherSearchResultJson,
 } from "@ourworldindata/types"
 import { constructSearchResultDataTableContent } from "./constructSearchResultDataTableContent"
 import { constructGrapherValuesJson } from "../grapherValuesJson"
@@ -68,18 +69,16 @@ export function constructSearchResultJson(
         variant,
         pickedEntities,
         displayEntities,
+        sortedTabs,
         numDataTableRowsPerColumn,
     }: {
         variant: RichDataVariant
         pickedEntities: EntityName[]
         displayEntities: EntityName[]
+        sortedTabs: GrapherTabName[]
         numDataTableRowsPerColumn: number
     }
-) {
-    // Find Grapher tabs to display and bring them in the right order
-    const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
-    configureGrapherStateTab(grapherState, { tab: sortedTabs[0] })
-
+): GrapherSearchResultJson | undefined {
     // Prepare data for the big data value display (if applicable)
     const entityForDataDisplay = pickedEntities[0] ?? WORLD_ENTITY_NAME
     const shouldShowDataDisplay = variant !== RichDataVariant.Large
@@ -610,7 +609,7 @@ async function fetchLatestPopulationData({
     return data
 }
 
-function configureGrapherStateTab(
+export function configureGrapherStateTab(
     grapherState: GrapherState,
     { tab }: { tab: GrapherTabName }
 ): void {
