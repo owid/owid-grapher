@@ -84,16 +84,16 @@ router
     )
     .get(
         `/explorers/:slug${extensions.values}`,
-        async (_, { searchParams }, env) => {
+        async (_, { searchParams }, env, _etag, ctx) => {
             console.log("Handling explorer values request")
-            return fetchDataValuesForExplorerView(searchParams, env)
+            return fetchDataValuesForExplorerView(searchParams, env, ctx)
         }
     )
     .get(
         `/explorers/:slug${extensions.searchResult}`,
-        async (_, { searchParams }, env) => {
+        async (_, { searchParams }, env, _etag, ctx) => {
             console.log("Handling explorer search result data request")
-            return fetchSearchResultDataForExplorerView(searchParams, env)
+            return fetchSearchResultDataForExplorerView(searchParams, env, ctx)
         }
     )
     .get(
