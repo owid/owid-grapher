@@ -186,6 +186,7 @@ export function constructSearchResultJson(
         grapherQueryParams: grapherParams,
         layout: enrichedLayout,
         dataTable: dataTableContent,
+        valueDisplay: dataDisplayProps,
         entityType: grapherState.entityType,
         entityTypePlural: grapherState.entityTypePlural,
     })

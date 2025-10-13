@@ -7,9 +7,7 @@ import { match } from "ts-pattern"
 import {
     GRAPHER_THUMBNAIL_HEIGHT,
     GRAPHER_THUMBNAIL_WIDTH,
-    isChartTypeName,
     mapGrapherTabNameToQueryParam,
-    WORLD_ENTITY_NAME,
 } from "@ourworldindata/grapher"
 import {
     EntityName,
@@ -53,8 +51,7 @@ import {
 } from "./SearchChartHitRichDataTypes.js"
 import { QueryStatus, useQuery } from "@tanstack/react-query"
 import { chartHitQueryKeys } from "./queries.js"
-import { buildChartHitDataDisplayProps, fetchJson } from "@ourworldindata/utils"
-import { useQueryChartInfo } from "./SearchChartHitSmallHelpers.js"
+import { fetchJson } from "@ourworldindata/utils"
 
 // Keep in sync with $num-rows-per-column in SearchChartHitRichData.scss
 const NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT = 4
@@ -111,27 +108,6 @@ export function SearchChartHitRichData({
             enabled: hasBeenVisible,
         }
     )
-
-    // Fetch chart info for the big data value
-    const entityForDataDisplay = pickedEntities[0] ?? WORLD_ENTITY_NAME
-    const { data: chartInfo } = useQueryChartInfo({
-        hit,
-        entities: [entityForDataDisplay],
-        // The large variant doesn't display a data value on the right
-        enabled: hasBeenVisible && !isLargeVariant,
-    })
-
-    // Prepare rendering of the data display
-    const chartType = data?.layout[0].grapherTab
-    const dataDisplayProps =
-        !isLargeVariant && chartType && isChartTypeName(chartType)
-            ? buildChartHitDataDisplayProps({
-                  chartInfo,
-                  chartType,
-                  entity: entityForDataDisplay,
-                  isEntityPickedByUser: pickedEntities.length > 0,
-              })
-            : undefined
 
     // Render the fallback component if config or data loading failed
     if (loadingStatus === "error") {
@@ -198,7 +174,7 @@ export function SearchChartHitRichData({
                     title={data.title}
                     subtitle={data.subtitle}
                     url={chartUrl}
-                    source={data.source ?? chartInfo?.source}
+                    source={data.source}
                     isLarge={isLargeVariant}
                     onClick={onClick}
                 />
@@ -275,10 +251,10 @@ export function SearchChartHitRichData({
                     }
                 )}
 
-                {dataDisplayProps && (
+                {data.valueDisplay && (
                     <SearchChartHitDataDisplay
                         className="data-slot"
-                        {...dataDisplayProps}
+                        {...data.valueDisplay}
                     />
                 )}
             </div>
