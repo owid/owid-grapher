@@ -2,9 +2,7 @@
     // Show overlay on hover
     &:hover {
         .search-chart-hit-captioned-link__overlay {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            opacity: 1;
         }
     }
 
@@ -35,8 +33,15 @@
         background: rgba(163, 199, 245, 0.3);
         pointer-events: none;
 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
         // Hidden by default
-        display: none;
+        opacity: 0;
+
+        // Animates the opacity when shown
+        transition: opacity 0.2s ease-in-out;
 
         .search-chart-hit-captioned-link__cta {
             @include label-2-medium;
