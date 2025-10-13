@@ -479,18 +479,14 @@ function constructPreviewUrlForTab({
     isMediumScreen: boolean
     hasScatter: boolean
 }): { previewUrl: string; imageWidth?: number; imageHeight?: number } {
-    const { slotKey, grapherTab, previewParams } = layout[slotIndex]
-
-    const isPrimaryTab = slotIndex === 0
-    const isSmallSlot =
-        slotKey === MediumVariantGridSlotKey.SmallLeft ||
-        slotKey === MediumVariantGridSlotKey.SmallRight
+    const { grapherTab, previewParams } = layout[slotIndex]
 
     // Always use the complete version on smaller screens since
     // the table might not be visible
+    const isPrimaryTab = slotIndex === 0
     const previewType = isMediumScreen
         ? { variant: PreviewVariant.Thumbnail, isMinimal: false }
-        : getPreviewType(variant, { isPrimaryTab, isSmallSlot })
+        : getPreviewType(variant, { isPrimaryTab })
 
     // Use Grapher's changedParams to construct preview URL.
     // We override the tab parameter because the GrapherState is currently set to
