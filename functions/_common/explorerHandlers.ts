@@ -27,6 +27,7 @@ import {
     findEntityForExtractingDataValues,
     parseNumDataTableRowsPerColumnParam,
     parseVariantParam,
+    parseVersionParam,
     prepareSearchParamsBeforeExtractingDataValues,
 } from "./downloadFunctions.js"
 import { assembleMetadata } from "./metadataTools.js"
@@ -292,6 +293,22 @@ export async function fetchSearchResultDataForExplorerView(
     searchParams: URLSearchParams,
     env: Env
 ) {
+    const supportedVersions = [1]
+    const version = parseVersionParam(
+        searchParams.get("version"),
+        supportedVersions.at(-1)
+    )
+
+    // Validate version
+    if (!supportedVersions.includes(version)) {
+        return error(
+            400,
+            `Unsupported version: ${version}. Supported versions: ${supportedVersions.join(
+                ", "
+            )}`
+        )
+    }
+
     // Entities selected by the user
     const pickedEntities =
         getEntityNamesParam(searchParams.get("entities") ?? undefined) ?? []
