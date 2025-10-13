@@ -71,17 +71,16 @@ export function SearchChartHitRichData({
 }: SearchChartHitComponentProps & {
     variant: RichDataComponentVariant
 }) {
-    // todo: add to placeholder as well
-    const hasScatter = hit.availableTabs.includes(GRAPHER_TAB_NAMES.ScatterPlot)
+    const isMediumScreen = useMediaQuery(MEDIUM_BREAKPOINT_MEDIA_QUERY)
 
+    // Determine the maximum number of data table rows per column
     const isLargeVariant = variant === "large"
+    const hasScatter = hit.availableTabs.includes(GRAPHER_TAB_NAMES.ScatterPlot)
     const numDataTableRowsPerColumn = isLargeVariant
         ? NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_LARGE_VARIANT
         : hasScatter
           ? SCATTER_NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT
           : NUM_DATA_TABLE_ROWS_PER_COLUMN_IN_MEDIUM_VARIANT
-
-    const isMediumScreen = useMediaQuery(MEDIUM_BREAKPOINT_MEDIA_QUERY)
 
     // Entities available for the chart
     const availableEntities =
@@ -427,6 +426,7 @@ function useQuerySearchResultDataForChartHit({
         queryKey: chartHitQueryKeys.searchResultData(
             hit.slug,
             hit.type === ChartRecordType.Chart ? undefined : hit.queryParams,
+            params.version,
             params.variant,
             params.entities,
             params.numDataTableRowsPerColumn
