@@ -119,6 +119,7 @@ export function constructSearchResultJson(
     const initialDataTableContent = constructSearchResultDataTableContent({
         grapherState,
     })
+    if (!initialDataTableContent) return undefined
 
     // Place Grapher tabs into the grid layout
     const layout = calculateLayout(variant, grapherState, {
@@ -145,14 +146,17 @@ export function constructSearchResultJson(
     grapherState.seriesColorMap?.clear()
 
     // Construct the data table content using the updated grapher state
-    const maxRows = getTableRowCountForGridSlotKey(
-        tableSlotKey,
-        numDataTableRowsPerColumn
-    )
+    const maxRows = tableSlotKey
+        ? getTableRowCountForGridSlotKey(
+              tableSlotKey,
+              numDataTableRowsPerColumn
+          )
+        : undefined
     const dataTableContent = constructSearchResultDataTableContent({
         grapherState,
         maxRows,
     })
+    if (!dataTableContent) return undefined
 
     // Some charts and preview thumbnails need specific grapher query params
     const enrichedLayout = layout.map(({ slotKey, grapherTab }) => {
@@ -668,7 +672,7 @@ function calculateLayout(
     variant: RichDataVariant,
     grapherState: GrapherState,
     args: {
-        dataTableContent?: SearchChartHitDataTableProps
+        dataTableContent: SearchChartHitDataTableProps
         dataDisplayProps?: SearchChartHitDataDisplayProps
         sortedTabs: GrapherTabName[]
         numDataTableRowsPerColumn: number
@@ -692,15 +696,12 @@ function calculateMediumVariantLayout(
         sortedTabs,
         numDataTableRowsPerColumn,
     }: {
-        dataTableContent?: SearchChartHitDataTableProps
+        dataTableContent: SearchChartHitDataTableProps
         dataDisplayProps?: SearchChartHitDataDisplayProps
         sortedTabs: GrapherTabName[]
         numDataTableRowsPerColumn: number
     }
 ): LayoutSlot<MediumVariantGridSlotKey>[] | undefined {
-    // Build the data table props
-    if (!dataTableContent) return undefined
-
     // Figure out the layout by assigning each Grapher tab to grid slots.
     // The table tab can optionally span two or more slots (instead of just one)
     // if there's enough space in the grid and enough data to justify it.
@@ -734,13 +735,11 @@ function calculateLargeVariantLayout(
         sortedTabs,
         numDataTableRowsPerColumn,
     }: {
-        dataTableContent?: SearchChartHitDataTableProps
+        dataTableContent: SearchChartHitDataTableProps
         sortedTabs: GrapherTabName[]
         numDataTableRowsPerColumn: number
     }
 ): LayoutSlot<LargeVariantGridSlotKey>[] | undefined {
-    if (!dataTableContent) return undefined
-
     // Figure out the layout by assigning each Grapher tab to grid slots
     return placeGrapherTabsInLargeVariantGrid(sortedTabs, {
         numDataTableRows: dataTableContent.rows.length,
@@ -897,7 +896,7 @@ function getGrapherQueryParamsForTab({
             getGrapherQueryParamsForMarimekko(grapherState)
         )
         .with(GRAPHER_TAB_NAMES.SlopeChart, () =>
-            getGrapherQueryParamsForSlopeChart(grapherState, timeBounds)
+            getGrapherQueryParamsForSlopeChart(grapherState, { timeBounds })
         )
         .otherwise(() => undefined)
 
@@ -972,7 +971,7 @@ function getGrapherQueryParamsForDiscreteBar(
 
 function getGrapherQueryParamsForSlopeChart(
     grapherState: GrapherState,
-    timeBounds?: TimeBounds
+    { timeBounds }: { timeBounds?: TimeBounds }
 ):
     | { chartParams?: GrapherQueryParams; previewParams?: GrapherQueryParams }
     | undefined {
