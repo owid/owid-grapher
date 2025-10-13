@@ -17,7 +17,6 @@ import {
     SCATTER_LINE_MIN_WIDTH,
     SCATTER_POINT_MIN_RADIUS,
     ScatterPlotManager,
-    SeriesPoint,
 } from "./ScatterPlotChartConstants"
 import { toSizeRange } from "./ScatterUtils"
 import { DualAxisComponent } from "../axis/AxisViews"
@@ -149,71 +148,8 @@ export class ScatterPlotChartThumbnail
                     }
                     hideScatterLabels={true}
                     backgroundColor={this.manager.backgroundColor}
-                    hideFocusRing={true}
                 />
-                {!this.chartState.isConnected &&
-                    this.chartState.focusArray.seriesNames.map((entityName) => {
-                        const series = this.chartState.series.find(
-                            (s) => s.seriesName === entityName
-                        )
-                        const point = series?.points[0]
-                        if (!point) return null
-
-                        const color =
-                            this.chartState.colorScale !== undefined
-                                ? this.chartState.colorScale.getColor(
-                                      point.color
-                                  )
-                                : undefined
-
-                        return (
-                            <CrossHair
-                                key={entityName}
-                                dualAxis={this.dualAxis}
-                                point={point}
-                                color={color ?? series.color}
-                                dotRadius={this.getPointRadius(point.size)}
-                            />
-                        )
-                    })}
             </>
         )
     }
-}
-
-function CrossHair({
-    dualAxis,
-    point,
-    color,
-    dotRadius = 4,
-}: {
-    dualAxis: DualAxis
-    point: SeriesPoint
-    color: string
-    dotRadius?: number
-}): React.ReactElement {
-    const bounds = dualAxis.innerBounds
-
-    const x = Math.floor(dualAxis.horizontalAxis.place(point.x))
-    const y = Math.floor(dualAxis.verticalAxis.place(point.y))
-
-    return (
-        <g>
-            <line
-                x1={x}
-                x2={x}
-                y1={bounds.top}
-                y2={bounds.bottom}
-                stroke={color}
-            />
-            <line
-                x1={bounds.left}
-                x2={bounds.right}
-                y1={y}
-                y2={y}
-                stroke={color}
-            />
-            <circle cx={x} cy={y} r={dotRadius} fill={color} />
-        </g>
-    )
 }
