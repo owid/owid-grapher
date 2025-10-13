@@ -540,7 +540,7 @@ function buildDataTableContentForScatterPlot({
 
     let rows = series
         .map((series) => {
-            const point = series.points[0]
+            const point = _.maxBy(series.points, (point) => point.timeValue)
             if (!point) return undefined
             const yValue = yColumn.formatValueShort(point.y)
             const xValue = xColumn.formatValueShort(point.x)
