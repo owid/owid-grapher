@@ -1056,9 +1056,9 @@ export class MarimekkoChart
         const { domainColorForEntityMap } = this.chartState
         return this.pickedLabelCandidates.map((candidate) => {
             const labelX = candidate.bounds.width
-            const domainColor = domainColorForEntityMap.get(
-                candidate.item.entityName
-            )
+            const domainColor = this.chartState.isFocusModeActive
+                ? undefined
+                : domainColorForEntityMap.get(candidate.item.entityName)
             const seriesColor = series[0].color
             const color = domainColor?.color ?? seriesColor ?? "#000"
             return {
