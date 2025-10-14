@@ -11,14 +11,17 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { canWriteToClipboard, isAndroid, isIOS } from "@ourworldindata/utils"
 import { GrapherModal } from "../core/GrapherConstants"
+import { GrapherExport } from "../captionedChart/StaticChartRasterizer.js"
 
 export interface ShareMenuManager {
     slug?: string
     currentTitle?: string
     canonicalUrl?: string
     editUrl?: string
+    showAdminControls?: boolean
     createNarrativeChartUrl?: string
     activeModal?: GrapherModal
+    rasterize: () => Promise<GrapherExport>
 }
 
 interface ShareMenuProps {
@@ -162,12 +165,34 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         }
     }
 
+    @action.bound async onCopyPng(): Promise<void> {
+        const { manager } = this
+
+        try {
+            await manager
+                .rasterize()
+                .then(({ blob }) =>
+                    navigator.clipboard.write([
+                        new ClipboardItem({ "image/png": blob }),
+                    ])
+                )
+        } catch (err) {
+            console.error("couldn't copy PNG to clipboard", err)
+        }
+    }
+
     @computed get canUseShareApi(): boolean {
         return canUseShareApi(this.manager)
     }
 
+    @computed get showCopyPngButton(): boolean {
+        return (
+            this.state.canWriteToClipboard && !!this.manager.showAdminControls
+        )
+    }
+
     override render(): React.ReactElement {
-        const { canUseShareApi, manager } = this
+        const { canUseShareApi, manager, showCopyPngButton } = this
         const { editUrl, createNarrativeChartUrl } = manager
 
         const width = 200
@@ -213,6 +238,16 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                     >
                         <FontAwesomeIcon className="icon" icon={faLink} />
                         {this.state.copied ? "Copied!" : "Copy link"}
+                    </a>
+                )}
+                {showCopyPngButton && (
+                    <a
+                        title="Copy PNG image to clipboard"
+                        data-track-note="chart_share_copypng"
+                        onClick={this.onCopyPng}
+                    >
+                        <FontAwesomeIcon className="icon" icon={faPanorama} />
+                        Copy PNG
                     </a>
                 )}
                 {editUrl && (
