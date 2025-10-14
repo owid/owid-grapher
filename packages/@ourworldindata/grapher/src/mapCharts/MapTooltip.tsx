@@ -22,7 +22,6 @@ import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
 import {
     PrimitiveType,
     excludeUndefined,
-    anyToString,
     PointVector,
 } from "@ourworldindata/utils"
 import { darkenColorForHighContrastText } from "../color/ColorUtils"
@@ -36,7 +35,10 @@ interface MapTooltipProps {
     mapColumnInfo: MapColumnInfo
     position?: PointVector
     lineColorScale: ColorScale
-    formatValueIfCustom: (d: PrimitiveType) => string | undefined
+    formatValueForTooltip: (d: PrimitiveType) => {
+        formattedValue: string
+        isRounded: boolean
+    }
     timeSeriesTable: OwidTable
     targetTime?: Time
     sparklineWidth?: number
@@ -132,7 +134,8 @@ export class MapTooltip
             entityName,
             isProjection,
         } = this
-        const { targetTime, formatValueIfCustom, position, fading } = this.props
+        const { targetTime, formatValueForTooltip, position, fading } =
+            this.props
 
         const { timeColumn } = mapTable
         const displayTime = !timeColumn.isMissing
@@ -147,19 +150,8 @@ export class MapTooltip
         )
 
         // format the value label
-        let valueLabel: string | undefined,
-            isValueLabelRounded = false
-        if (datum) {
-            const customValueLabel = formatValueIfCustom(datum.value)
-            if (customValueLabel !== undefined) {
-                valueLabel = customValueLabel
-            } else if (_.isNumber(datum.value)) {
-                valueLabel = mapColumn?.formatValueShort(datum.value)
-                isValueLabelRounded = true
-            } else {
-                valueLabel = anyToString(datum.value)
-            }
-        }
+        const { formattedValue: valueLabel, isRounded: isValueLabelRounded } =
+            datum ? formatValueForTooltip(datum.value) : {}
 
         const yColumn = this.mapTable.get(this.mapColumnSlug)
 

@@ -6,6 +6,7 @@ import {
     Color,
     HorizontalAlign,
     PrimitiveType,
+    anyToString,
 } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -213,18 +214,27 @@ export class MapChart
         this.mapConfig.region = value
     }
 
-    @computed private get formatTooltipValueIfCustom(): (
-        d: PrimitiveType
-    ) => string | undefined {
+    @computed private get formatValueForTooltip(): (d: PrimitiveType) => {
+        formattedValue: string
+        isRounded: boolean
+    } {
         const { mapConfig, colorScale } = this
 
-        return (d: PrimitiveType): string | undefined => {
-            if (!mapConfig.tooltipUseCustomLabels) return undefined
-            // Find the bin (and its label) that this value belongs to
-            const bin = colorScale.getBinForValue(d)
-            const label = bin?.label
-            if (label !== undefined && label !== "") return label
-            else return undefined
+        return (d: PrimitiveType) => {
+            if (mapConfig.tooltipUseCustomLabels) {
+                // Find the bin (and its label) that this value belongs to
+                const bin = colorScale.getBinForValue(d)
+                const label = bin?.label
+                if (label !== undefined && label !== "")
+                    return { formattedValue: label, isRounded: false }
+            }
+
+            if (typeof d === "number")
+                return {
+                    formattedValue: this.mapColumn.formatValueShort(d),
+                    isRounded: true,
+                }
+            else return { formattedValue: anyToString(d), isRounded: false }
         }
     }
 
@@ -614,7 +624,7 @@ export class MapChart
                         position={tooltipState.position}
                         fading={tooltipState.fading}
                         timeSeriesTable={this.chartState.inputTable}
-                        formatValueIfCustom={this.formatTooltipValueIfCustom}
+                        formatValueForTooltip={this.formatValueForTooltip}
                         manager={this.manager}
                         lineColorScale={this.colorScale}
                         targetTime={this.targetTime}
