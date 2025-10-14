@@ -118,8 +118,8 @@ function useQueryVariablesDataAndMetadata(
     const allResponses = [...metadataResponses, ...dataResponses]
     if (allResponses.some((result) => result.status === "error"))
         return { status: "error" }
-    if (allResponses.some((result) => result.status === "loading"))
-        return { status: "loading" }
+    if (allResponses.some((result) => result.status === "pending"))
+        return { status: "pending" }
 
     // Combine the metadata and data query results into a unified map
     // Each variable ID maps to an object containing both its data and metadata

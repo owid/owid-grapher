@@ -473,13 +473,15 @@ export function FeaturedMetricsPage() {
                 featuredMetric,
                 "POST"
             ),
-        onSuccess: () => queryClient.invalidateQueries(["featuredMetrics"]),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: ["featuredMetrics"] }),
     }) as AddFeaturedMetricMutation
 
     const deleteFeaturedMetric = useMutation({
         mutationFn: ({ id }) =>
             admin.requestJSON(`/api/featured-metrics/${id}`, {}, "DELETE"),
-        onSuccess: () => queryClient.invalidateQueries(["featuredMetrics"]),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: ["featuredMetrics"] }),
     }) as DeleteFeaturedMetricMutation
 
     const rerankFeaturedMetrics = useMutation({
@@ -489,7 +491,8 @@ export function FeaturedMetricsPage() {
                 featuredMetrics,
                 "POST"
             ),
-        onSuccess: () => queryClient.invalidateQueries(["featuredMetrics"]),
+        onSuccess: () =>
+            queryClient.invalidateQueries({ queryKey: ["featuredMetrics"] }),
     }) as RerankFeaturedMetricsMutation
 
     const filteredFeaturedMetrics = useMemo(() => {

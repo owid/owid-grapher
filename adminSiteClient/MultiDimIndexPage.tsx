@@ -243,7 +243,7 @@ function createColumns(
                         checked={published}
                         disabled={
                             !record.slug ||
-                            (publishMutation.isLoading &&
+                            (publishMutation.isPending &&
                                 publishMutation.variables?.id === record.id)
                         }
                     />

@@ -121,7 +121,7 @@ export function SearchChartHitRichData({
     }
 
     // Render a placeholder component while the config and data are loading
-    if (loadingStatus === "loading" || data === undefined) {
+    if (loadingStatus === "pending" || data === undefined) {
         const chartUrl = constructChartUrl({ hit })
         const sourcesUrl = constructChartUrl({ hit, overlay: "sources" })
         const downloadUrl = constructChartUrl({ hit, overlay: "download-data" })
