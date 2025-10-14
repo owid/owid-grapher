@@ -235,6 +235,7 @@ export class SlopeChartThumbnail
 
         return new VerticalLabelsState(series, {
             fontSize: this.labelFontSize,
+            fontWeight: 500,
             minSpacing: 2,
             yRange: this.labelsRange,
         })
@@ -264,6 +265,7 @@ export class SlopeChartThumbnail
 
         return new VerticalLabelsState(series, {
             fontSize: this.labelFontSize,
+            fontWeight: 500,
             maxWidth: showEntityNames ? 0.25 * this.bounds.width : undefined,
             minSpacing: showEntityNames ? 5 : 2,
             yRange: this.labelsRange,

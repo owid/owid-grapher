@@ -148,6 +148,7 @@ export class StackedAreaChartThumbnail
 
         return new VerticalLabelsState(series, {
             fontSize: this.labelFontSize,
+            fontWeight: 500,
             maxWidth: 0.25 * this.bounds.width,
             yRange: this.labelsRange,
             resolveCollision: (
