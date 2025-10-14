@@ -29,7 +29,7 @@
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
         "react-markdown": "^10.1.0",
-        "remeda": "^2.23.3",
+        "remeda": "^2.32.0",
         "ts-pattern": "^5.8.0",
         "unist-util-visit": "^5.0.0",
         "url-slug": "^4.0.1"

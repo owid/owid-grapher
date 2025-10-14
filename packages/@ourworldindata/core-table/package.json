@@ -20,7 +20,7 @@
     "d3": "^7.9.0",
     "dayjs": "^1.11.11",
     "papaparse": "^5.5.3",
-    "remeda": "^2.23.3"
+    "remeda": "^2.32.0"
   },
   "devDependencies": {
     "@types/d3": "^7.4.3",
