@@ -138,7 +138,7 @@ export class MapSparkline extends React.Component<MapSparklineProps> {
                 },
                 // Copy min/max from top-level Grapher config if Y column == Map column
                 min: this.manager.mapAndYColumnAreTheSame
-                    ? this.manager.yAxisConfig?.min
+                    ? (this.manager.yAxisConfig?.min ?? 0) // Default to 0 if not specified
                     : undefined,
                 max: this.manager.mapAndYColumnAreTheSame
                     ? this.manager.yAxisConfig?.max
