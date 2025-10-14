@@ -49,9 +49,9 @@ export class MarimekkoChartThumbnail
             this.bounds
                 // Allow internal labels to eat into the thumbnail padding
                 .padTop(this.labelHeight ? this.labelHeight - 6 : 0)
-                // Add some bottom padding since the axis tick labels are
+                // Add some bottom padding since the y-axis tick labels are
                 // center-aligned and eat into the thumbnail padding
-                .padBottom(6)
+                .padBottom(this.shouldShowVerticalAxis ? 6 : 0)
         )
     }
 
@@ -67,11 +67,15 @@ export class MarimekkoChartThumbnail
         return this.shouldShowLabels ? this.labelFontSize + LABEL_PADDING : 0
     }
 
+    @computed private get shouldShowVerticalAxis(): boolean {
+        return !!this.manager.isDisplayedAlongsideComplementaryTable
+    }
+
     @computed private get yAxisConfig(): AxisConfig {
         const { yAxisConfig } = this.manager
         const custom = {
             hideGridlines: true,
-            hideAxis: !this.manager.isDisplayedAlongsideComplementaryTable,
+            hideAxis: !this.shouldShowVerticalAxis,
         }
         return new AxisConfig({ ...yAxisConfig, ...custom }, this)
     }
