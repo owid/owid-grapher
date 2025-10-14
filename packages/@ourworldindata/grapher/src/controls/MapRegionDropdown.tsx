@@ -53,18 +53,13 @@ export class MapRegionDropdown extends React.Component<{
         return !!(!hideMapRegionDropdown && isOnMapTab && isMapSelectionEnabled)
     }
 
-    @action.bound onChange(
-        selected: MapRegionDropdownOption | null,
-        mode: { action: unknown }
-    ): void {
-        if (mode.action === "clear") {
+    @action.bound onChange(selected: MapRegionDropdownOption | null): void {
+        if (!selected) {
             this.manager.mapRegionDropdownValue = undefined
             this.mapConfig.region = MapRegionName.World
             this.manager.globeController?.hideGlobe()
             return
         }
-
-        if (!selected) return
 
         // update active option
         const { value } = selected

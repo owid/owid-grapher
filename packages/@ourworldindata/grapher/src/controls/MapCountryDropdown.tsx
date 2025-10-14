@@ -19,6 +19,11 @@ import { GlobeController } from "../mapCharts/GlobeController"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationArrow } from "@fortawesome/free-solid-svg-icons"
 import { SearchDropdown } from "./SearchDropdown"
+import {
+    DropdownCollection,
+    DropdownCollectionItem,
+    DropdownOptionGroup,
+} from "./Dropdown.js"
 import { MAP_REGION_LABELS } from "../mapCharts/MapChartConstants"
 import { match } from "ts-pattern"
 import * as R from "remeda"
@@ -41,9 +46,12 @@ interface DropdownOption {
     trackNote: "map_zoom_mobile"
 }
 
-interface GroupedDropdownOption {
-    label: string
-    options: DropdownOption[]
+type GroupedDropdownOption = DropdownOptionGroup<DropdownOption>
+
+function isGroupedOption(
+    item: DropdownCollectionItem<DropdownOption>
+): item is GroupedDropdownOption {
+    return (item as GroupedDropdownOption).options !== undefined
 }
 
 @observer
@@ -120,13 +128,15 @@ export class MapCountryDropdown extends React.Component<{
                 )
             })
             .exhaustive()
+
+        this.searchInput = ""
     }
 
     @computed private get sortedCountries(): EntityName[] {
         return _.sortBy(mappableCountries.map((country) => country.name))
     }
 
-    @computed private get options(): GroupedDropdownOption[] {
+    @computed private get options(): DropdownCollection<DropdownOption> {
         const { localEntityNames = [] } = this
         const langs = getUserNavigatorLanguagesNonEnglish()
 
@@ -177,12 +187,13 @@ export class MapCountryDropdown extends React.Component<{
     }
 
     @computed private get flatOptions(): DropdownOption[] {
-        return this.options.flatMap((option) => option.options)
+        return this.options.flatMap((item) =>
+            isGroupedOption(item) ? item.options : [item]
+        )
     }
 
-    @computed private get filteredOptions():
-        | DropdownOption[]
-        | GroupedDropdownOption[] {
+    @computed
+    private get filteredOptions(): DropdownCollection<DropdownOption> {
         if (!this.searchInput) return this.options
         return this.fuzzy.search(this.searchInput)
     }
@@ -244,17 +255,18 @@ export class MapCountryDropdown extends React.Component<{
                     onFocus={this.onFocus}
                     onChange={this.onChange}
                     value={this.value}
-                    filterOption={() => true} // disable the default filtering
+                    inputValue={this.searchInput}
                     onInputChange={(inputValue) =>
                         (this.searchInput = inputValue)
                     }
                     placeholder="Zoom to..."
-                    formatOptionLabel={(option) => (
+                    aria-label="Search for country or continent"
+                    renderMenuOption={(option) => (
                         <>
                             {option.label}
                             {option.isLocal && (
                                 <FontAwesomeIcon
-                                    className="local-icon"
+                                    className="map-country-dropdown-local-icon"
                                     icon={faLocationArrow}
                                 />
                             )}

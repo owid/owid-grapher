@@ -1,6 +1,6 @@
 import { Component } from "react"
-import { bind, getStylesForTargetHeight } from "@ourworldindata/utils"
-import Select, { components, SingleValueProps } from "react-select"
+import { Dropdown, SearchDropdown } from "@ourworldindata/grapher"
+import { bind } from "@ourworldindata/utils"
 import {
     ExplorerControlType,
     ExplorerChoiceOption,
@@ -57,20 +57,6 @@ interface ExplorerDropdownOption {
     value: string
 }
 
-const ExplorerSingleValue = (
-    props: SingleValueProps<ExplorerDropdownOption>
-) => {
-    if (props.selectProps.isSearchable && props.selectProps.menuIsOpen)
-        return (
-            <components.SingleValue {...props}>
-                <span style={{ fontStyle: "italic", opacity: 0.75 }}>
-                    Type to search&hellip;
-                </span>
-            </components.SingleValue>
-        )
-    else return <components.SingleValue {...props} />
-}
-
 const ExplorerDropdown = (props: {
     options: ExplorerDropdownOption[]
     value: ExplorerDropdownOption
@@ -78,28 +64,40 @@ const ExplorerDropdown = (props: {
     onChange: (option: string) => void
 }) => {
     const { options, value, isMobile, onChange } = props
-    const styles = getStylesForTargetHeight(30)
+    const isSearchable = !isMobile && options.length > 10
+    const dropdownOptions = options.map((option) => ({
+        label: option.label,
+        value: option.value,
+    }))
+    const selectedOption =
+        dropdownOptions.find((option) => option.value === value?.value) ?? null
+    const isDisabled = options.length < 2
+
+    if (isSearchable) {
+        return (
+            <SearchDropdown
+                className={EXPLORER_DROPDOWN_CLASS}
+                options={dropdownOptions}
+                value={selectedOption}
+                onChange={(option) => {
+                    if (option) onChange(option.value)
+                }}
+                placeholder="Type to search..."
+                isDisabled={isDisabled}
+            />
+        )
+    }
 
     return (
-        <Select<ExplorerDropdownOption>
+        <Dropdown
             className={EXPLORER_DROPDOWN_CLASS}
-            classNamePrefix={EXPLORER_DROPDOWN_CLASS}
-            isDisabled={options.length < 2}
-            // menuPlacement="auto" doesn't work perfectly well on mobile, with fixed position
-            menuPlacement={isMobile ? "top" : "auto"}
-            menuPosition="absolute"
-            options={options}
-            value={value}
-            onChange={(option: ExplorerDropdownOption | null) => {
+            options={dropdownOptions}
+            value={selectedOption}
+            onChange={(option) => {
                 if (option) onChange(option.value)
             }}
-            components={{
-                IndicatorSeparator: null,
-                SingleValue: ExplorerSingleValue,
-            }}
-            styles={styles}
-            isSearchable={!isMobile && options.length > 10}
-            maxMenuHeight={350}
+            isDisabled={isDisabled}
+            placeholder="-"
         />
     )
 }

@@ -24,6 +24,11 @@ $toggle-full-width-breakpoint: 520px;
         visibility: hidden;
     }
 
+    &:focus-visible {
+        // Override global focus-visible style.
+        outline: none !important;
+    }
+
     &:hover:not([data-disabled]),
     &:focus:not([data-disabled]) {
         border-color: $blue-30;
@@ -175,6 +180,10 @@ $toggle-full-width-breakpoint: 520px;
         padding: 16px 0;
         border-bottom: 1px solid $gray-20;
         cursor: pointer;
+
+        &:focus-visible {
+            outline: none !important;
+        }
 
         &:first-of-type {
             padding-top: 0;

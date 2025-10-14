@@ -38,6 +38,7 @@
     "mobx-react": "^7.6.0",
     "mousetrap": "^1.6.5",
     "react": "^19.1.0",
+    "react-aria-components": "^1.13.0",
     "react-dom": "^19.1.0",
     "react-flip-toolkit": "^7.2.4",
     "react-move": "^6.5.0",

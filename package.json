@@ -134,7 +134,7 @@
         "progress": "^2.0.3",
         "react": "^19.1.0",
         "react-animate-height": "^3.2.3",
-        "react-aria-components": "^1.9.0",
+        "react-aria-components": "^1.13.0",
         "react-color": "^2.18.1",
         "react-diff-viewer-continued": "^3.4.0",
         "react-dom": "^19.1.0",

@@ -58,7 +58,6 @@ $zindex-controls-drawer: 150;
     @import "../popover/Popover.scss";
     @import "../controls/SettingsMenu.scss";
     @import "../controls/MapRegionDropdown.scss";
-    @import "../controls/MapCountryDropdown.scss";
     @import "../captionedChart/CaptionedChart.scss";
     @import "../timeline/TimelineComponent.scss";
     @import "../controls/ContentSwitchers.scss";
@@ -80,13 +79,10 @@ $zindex-controls-drawer: 150;
     @import "../tabs/ExpandableTabs.scss";
     @import "../slideInDrawer/SlideInDrawer.scss";
     @import "../sidePanel/SidePanel.scss";
-    @import "../controls/Dropdown.scss";
-    @import "../controls/SearchDropdown.scss";
     @import "../scatterCharts/NoDataSection.scss";
     @import "../controls/CloseGlobeViewButton.scss";
     @import "../controls/GlobeSwitcher.scss";
     @import "../mapCharts/MapChart.scss";
-    @import "../controls/DataTableFilterDropdown.scss";
     @import "../controls/SearchField.scss";
     @import "../controls/DataTableSearchField.scss";
 }
@@ -102,6 +98,11 @@ $zindex-controls-drawer: 150;
 
 @import "../../../components/src/closeButton/CloseButton.scss";
 @import "../../../components/src/OverlayHeader.scss";
+
+@import "../controls/Dropdown.scss";
+@import "../controls/DataTableFilterDropdown.scss";
+@import "../controls/SearchDropdown.scss";
+@import "../controls/MapCountryDropdown.scss";
 
 .grapher_dark {
     color: $dark-text;
