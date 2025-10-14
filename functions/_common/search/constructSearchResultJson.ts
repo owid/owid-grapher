@@ -79,7 +79,7 @@ export function constructSearchResultJson(
         numDataTableRowsPerColumn: number
     }
 ): GrapherSearchResultJson | undefined {
-    // Prepare data for the big data value display (if applicable)
+    // Prepare data for the big data value display
     const entityForDataDisplay = pickedEntities[0] ?? WORLD_ENTITY_NAME
     const shouldShowDataDisplay = variant !== RichDataVariant.Large
     const chartInfo = constructGrapherValuesJson(
@@ -107,13 +107,8 @@ export function constructSearchResultJson(
     // Bring Grapher into the right state for this search result:
     // - Select the entities determined for this search result
     // - Highlight the entity (or entities) the user picked
-    // - Set the end time (relevant for charts with projections)
-    configureGrapherStateSelection(grapherState, {
-        entities: displayEntities,
-    })
-    configureGrapherStateFocus(grapherState, {
-        entities: pickedEntities,
-    })
+    configureGrapherStateSelection(grapherState, { entities: displayEntities })
+    configureGrapherStateFocus(grapherState, { entities: pickedEntities })
 
     // Construct the data table content (used to determine the grid layout)
     const initialDataTableContent = constructSearchResultDataTableContent({
@@ -274,6 +269,8 @@ export async function pickDisplayEntities(
             pickedEntities[0],
             availableEntities
         )
+
+        // Default to the default entities if no comparison entities could be found
         const comparisonEntities =
             pickedComparisonEntities.length > 0
                 ? pickedComparisonEntities
