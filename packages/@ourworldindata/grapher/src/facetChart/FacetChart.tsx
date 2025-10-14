@@ -783,25 +783,31 @@ export class FacetChart
 
     @computed get categoricalLegendData(): CategoricalBin[] {
         if (this.isNumericLegend || !this.hideFacetLegends) return []
+
         const allBins: CategoricalBin[] = this.externalLegends
             .flatMap((legend) => [
                 ...(legend.numericLegendData ?? []),
                 ...(legend.categoricalLegendData ?? []),
             ])
             .filter((bin) => bin instanceof CategoricalBin) as CategoricalBin[]
-        const uniqBins = this.getUniqBins(allBins)
-        const newBins = uniqBins.map(
-            // remap index to ensure it's unique (the above procedure can lead to duplicates)
-            (bin, index) =>
-                new CategoricalBin({
-                    ...bin.props,
-                    index,
-                })
+
+        const uniqBins = this.getUniqBins(allBins).map(
+            // Remap index to ensure it's unique (the above procedure can lead to duplicates)
+            (bin, index) => new CategoricalBin({ ...bin.props, index })
         )
-        if (this.facetStrategy === FacetStrategy.metric && newBins.length <= 1)
+
+        // Hide single-item legends for metric facets
+        if (this.facetStrategy === FacetStrategy.metric && uniqBins.length <= 1)
             return []
-        const sortedBins = _.sortBy(newBins, (bin) => bin.label)
-        return sortedBins
+
+        // Stacked area and bar charts reverse the stacking order
+        if (
+            this.chartTypeName === GRAPHER_CHART_TYPES.StackedArea ||
+            this.chartTypeName === GRAPHER_CHART_TYPES.StackedBar
+        )
+            return _.reverse(uniqBins)
+
+        return uniqBins
     }
 
     private legendHoverBin: ColorScaleBin | undefined = undefined
