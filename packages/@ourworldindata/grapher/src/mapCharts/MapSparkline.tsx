@@ -6,8 +6,8 @@ import {
     AxisConfigInterface,
     ColumnSlug,
     EntityName,
-    OwidVariableRoundingMode,
     OwidVariableRow,
+    PrimitiveType,
     Time,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
@@ -35,6 +35,10 @@ export interface MapSparklineManager {
     datum?: OwidVariableRow<number | string>
     mapAndYColumnAreTheSame?: boolean
     yAxisConfig?: AxisConfigInterface
+    formatValueForTooltip: (d: PrimitiveType) => {
+        formattedValue: string
+        isRounded: boolean
+    }
 }
 
 interface MapSparklineProps {
@@ -196,27 +200,14 @@ export class MapSparkline extends React.Component<MapSparklineProps> {
     override render(): React.ReactElement | null {
         if (!this.showSparkline) return null
 
+        const { mapColumnSlug, formatValueForTooltip } = this.manager
+
         const { yAxisConfig } = this.sparklineManager,
-            yColumn = this.sparklineTable.get(this.mapColumnSlug),
-            minVal = _.min([yColumn.minValue, yAxisConfig?.min]),
-            maxVal = _.max([yColumn.maxValue, yAxisConfig?.max]),
-            minCustom =
-                _.isNumber(minVal) &&
-                this.manager.lineColorScale?.getBinForValue(minVal)?.label,
-            maxCustom =
-                _.isNumber(maxVal) &&
-                this.manager.lineColorScale?.getBinForValue(maxVal)?.label,
-            useCustom = R.isString(minCustom) && R.isString(maxCustom),
-            minLabel = useCustom
-                ? minCustom
-                : yColumn.formatValueShort(minVal ?? 0, {
-                      roundingMode: OwidVariableRoundingMode.decimalPlaces,
-                  }),
-            maxLabel = useCustom
-                ? maxCustom
-                : yColumn.formatValueShort(maxVal ?? 0, {
-                      roundingMode: OwidVariableRoundingMode.decimalPlaces,
-                  })
+            yColumn = this.sparklineTable.get(mapColumnSlug),
+            minVal = _.min([yColumn.minValue, yAxisConfig?.min]) ?? 0,
+            maxVal = _.max([yColumn.maxValue, yAxisConfig?.max]) ?? 0,
+            minLabel = formatValueForTooltip(minVal).formattedValue,
+            maxLabel = formatValueForTooltip(maxVal).formattedValue
         const { innerBounds: axisBounds } = this.sparklineChart.dualAxis
 
         const labelX = axisBounds.right - SPARKLINE_NUDGE

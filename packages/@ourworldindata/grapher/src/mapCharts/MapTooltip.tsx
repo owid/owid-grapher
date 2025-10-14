@@ -117,6 +117,13 @@ export class MapTooltip
         return this.props.lineColorScale
     }
 
+    @computed get formatValueForTooltip(): (d: PrimitiveType) => {
+        formattedValue: string
+        isRounded: boolean
+    } {
+        return this.props.formatValueForTooltip
+    }
+
     @computed private get showSparkline(): boolean {
         return MapSparkline.shouldShow(this)
     }
@@ -133,9 +140,9 @@ export class MapTooltip
             lineColorScale,
             entityName,
             isProjection,
+            formatValueForTooltip,
         } = this
-        const { targetTime, formatValueForTooltip, position, fading } =
-            this.props
+        const { targetTime, position, fading } = this.props
 
         const { timeColumn } = mapTable
         const displayTime = !timeColumn.isMissing
