@@ -2751,8 +2751,8 @@ export class GrapherState {
     }
 
     @computed get chartAreaPadding(): number {
-        // Choose padding based on chart size, ensuring it's at most 16px
-        return Math.min(16, Math.ceil(0.025 * this.activeBounds.width))
+        // Choose padding based on chart size, ensuring it's at most 24px
+        return Math.min(24, Math.ceil(0.025 * this.activeBounds.width))
     }
 
     /** Bounds of the chart area if no CaptionedChart is rendered */
