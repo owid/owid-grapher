@@ -337,6 +337,8 @@ export async function assembleSearchResultData(
 ): Promise<GrapherSearchResultJson | undefined> {
     // Find Grapher tabs to display and bring them in the right order
     const sortedTabs = getSortedGrapherTabsForChartHit(grapherState)
+
+    // Ensure the primary tab is currently active
     configureGrapherStateTab(grapherState, { tab: sortedTabs[0] })
 
     // Choose the entities to display
