@@ -232,6 +232,7 @@ export class LineChartThumbnail
 
         return new VerticalLabelsState(series, {
             fontSize: this.labelFontSize,
+            fontWeight: 500,
             yRange: this.labelsRange,
             minSpacing: 2,
             resolveCollision: (
@@ -316,6 +317,7 @@ export class LineChartThumbnail
 
         return new VerticalLabelsState(series, {
             fontSize: this.labelFontSize,
+            fontWeight: 500,
             maxWidth: showEntityNames ? 0.25 * this.bounds.width : undefined,
             minSpacing: showEntityNames ? 5 : 2,
             yRange: this.labelsRange,

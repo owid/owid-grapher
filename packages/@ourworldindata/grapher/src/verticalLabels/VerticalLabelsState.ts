@@ -7,6 +7,9 @@ interface VerticalLabelsOptions {
     /** Font size for the labels */
     fontSize: number
 
+    /** Font weight for the labels */
+    fontWeight?: number
+
     /** Line height multiplier for multi-line labels (defaults to 1) */
     lineHeight?: number
 
@@ -53,6 +56,7 @@ export class VerticalLabelsState {
         maxWidth: Infinity,
         minSpacing: 5,
         verticalAlign: VerticalAlign.middle,
+        fontWeight: 400,
     } as const satisfies Partial<VerticalLabelsOptions>
 
     constructor(
@@ -72,7 +76,8 @@ export class VerticalLabelsState {
 
     @computed
     private get sizedSeries(): SizedVerticalLabelsSeries[] {
-        const { fontSize, maxWidth, verticalAlign, lineHeight } = this.options
+        const { fontSize, fontWeight, maxWidth, verticalAlign, lineHeight } =
+            this.options
 
         return this.initialSeries.map((series) => {
             const { label, yPosition } = series
@@ -81,6 +86,7 @@ export class VerticalLabelsState {
                 text: label,
                 maxWidth,
                 fontSize,
+                fontWeight,
                 lineHeight,
                 verticalAlign,
             })
