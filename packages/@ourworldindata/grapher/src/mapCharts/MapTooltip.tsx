@@ -23,7 +23,7 @@ import { excludeUndefined, PointVector } from "@ourworldindata/utils"
 import { darkenColorForHighContrastText } from "../color/ColorUtils"
 import { MapSparkline, MapSparklineManager } from "./MapSparkline.js"
 import { match } from "ts-pattern"
-import type { MapFormatValueForTooltip } from "./MapChart.js"
+import type { MapFormatValueForTooltip } from "./MapChartState.js"
 
 interface MapTooltipProps {
     entityName: EntityName

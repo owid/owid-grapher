@@ -17,46 +17,37 @@ export function SearchAutocompleteItemContents({
     unmatchedQuery?: string
 }) {
     return (
-        <span className="search-autocomplete-item-contents">
+        <div className="search-autocomplete-item-contents">
+            <FontAwesomeIcon
+                className="search-autocomplete-item-contents__type-icon"
+                icon={faSearch}
+            />
+            {renderActiveFilters(activeFilters)}
+            {activeFilters.length > 0 && (
+                <span className="search-autocomplete-item-contents__ellipsis">
+                    ...
+                </span>
+            )}
             {match(filter.type)
                 // keep in sync with setQueries logic in SearchAutocomplete
                 .with(FilterType.QUERY, () => (
-                    <>
-                        <FontAwesomeIcon
-                            className="search-autocomplete-item-contents__search-icon"
-                            icon={faSearch}
-                        />
-                        {renderActiveFilters(activeFilters)}
-                        <span className="search-autocomplete-item-contents__query">
-                            {filter.name}
-                        </span>
-                    </>
+                    <span className="search-autocomplete-item-contents__query">
+                        {filter.name}
+                    </span>
                 ))
                 .with(FilterType.COUNTRY, () => (
-                    <>
-                        {renderActiveFilters(activeFilters)}
-                        {unmatchedQuery && (
-                            <span className="search-autocomplete-item-contents__query">
-                                {unmatchedQuery}
-                            </span>
-                        )}
-                        <SearchFilterPill
-                            name={filter.name}
-                            icon={getFilterIcon(filter)}
-                        />
-                    </>
+                    <span className="search-autocomplete-item-contents__query">
+                        {unmatchedQuery} {filter.name.toLowerCase()}
+                    </span>
                 ))
                 .with(FilterType.TOPIC, () => (
-                    <>
-                        {renderActiveFilters(activeFilters)}
-                        <SearchFilterPill
-                            name={filter.name}
-                            icon={getFilterIcon(filter)}
-                        />
-                    </>
+                    <SearchFilterPill
+                        name={filter.name}
+                        icon={getFilterIcon(filter)}
+                    />
                 ))
                 .exhaustive()}
-        </span>
+        </div>
     )
 }
 
@@ -75,6 +66,7 @@ const renderActiveFilters = (filters: Filter[]) => {
                     key={`${filter.type}-${filter.name}`}
                     icon={getFilterIcon(filter)}
                     name={filter.name}
+                    selected={true}
                 />
             ))}
             {isCollapsed && (

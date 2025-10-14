@@ -61,6 +61,7 @@ import {
     NumericBin,
 } from "../color/ColorScaleBin"
 import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
+import { FocusArray } from "../focus/FocusArray"
 
 const SHARED_X_AXIS_MIN_FACET_COUNT = 12
 
@@ -90,10 +91,9 @@ const shouldHideFacetAxis = (
     edges: Set<Position>,
     sharedAxesSizes: PositionMap<number>
 ): boolean => {
-    if (axis) {
-        return axis.orient in sharedAxesSizes && !edges.has(axis.orient)
-    }
-    return false
+    if (!axis) return false
+    if (axis.hideAxis) return true
+    return axis.orient in sharedAxesSizes && !edges.has(axis.orient)
 }
 
 interface AxisInfo {
@@ -179,7 +179,7 @@ export class FacetChart
     }
 
     @computed private get facetFontSize(): number {
-        return getFontSize(this.series.length, this.fontSize)
+        return getFontSize(this.bounds.width, this.series.length, this.fontSize)
     }
 
     @computed private get yAxisConfig(): AxisConfig {
@@ -366,7 +366,7 @@ export class FacetChart
                 manager,
                 bounds,
                 chartType: this.chartTypeName,
-                renderMode: this.manager.renderMode,
+                variant: this.manager.variant,
             })
         })
     }
@@ -542,8 +542,12 @@ export class FacetChart
         })
     }
 
-    @computed private get selectionArray(): SelectionArray {
+    @computed get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager.selection)
+    }
+
+    @computed get focusArray(): FocusArray {
+        return this.manager.focusArray ?? new FocusArray()
     }
 
     @computed private get entityFacets(): FacetSeries[] {
@@ -629,6 +633,7 @@ export class FacetChart
     @computed private get showLegend(): boolean {
         const { isNumericLegend, categoricalLegendData, numericLegendData } =
             this
+        if (this.manager.isDisplayedAlongsideComplementaryTable) return false
         const hasBins =
             categoricalLegendData.length > 0 || numericLegendData.length > 0
         if (!hasBins) return false
@@ -699,7 +704,9 @@ export class FacetChart
     }
 
     @computed get legendAlign(): HorizontalAlign {
-        return HorizontalAlign.left
+        return this.isNumericLegend
+            ? HorizontalAlign.center
+            : HorizontalAlign.left
     }
 
     @computed get legendTitle(): string | undefined {
@@ -744,14 +751,13 @@ export class FacetChart
     }
 
     @computed get activeColors(): Color[] | undefined {
-        const { focusArray } = this.manager
-        if (!focusArray) return undefined
+        if (!this.focusArray) return undefined
 
         // find colours of all currently focused series
         const activeColors = _.uniq(
             this.intermediateChartInstances.flatMap((chartInstance) =>
                 chartInstance.chartState.series
-                    .filter((series) => focusArray.has(series.seriesName))
+                    .filter((series) => this.focusArray.has(series.seriesName))
                     .map((series) => series.color)
             )
         )
@@ -908,7 +914,7 @@ export class FacetChart
                                 <ChartComponent
                                     manager={facetChart.manager}
                                     chartType={this.chartTypeName}
-                                    renderMode={this.manager.renderMode}
+                                    variant={this.manager.variant}
                                     bounds={bounds}
                                 />
                             </g>

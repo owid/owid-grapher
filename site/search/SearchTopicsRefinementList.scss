@@ -1,0 +1,64 @@
+.search-topics-refinement-list {
+    margin-bottom: 24px;
+
+    @include sm-only {
+        display: none;
+    }
+}
+
+.search-topics-refinement-list__heading {
+    color: $blue-60;
+    margin-bottom: 4px;
+    margin-top: 0;
+}
+
+.search-topics-refinement-list__expand-button {
+    display: none;
+    cursor: pointer;
+    color: $blue-60;
+    svg {
+        color: $blue-90;
+    }
+}
+
+.search-topics-refinement-list__list {
+    line-height: 24px;
+    list-style: none;
+}
+
+.search-topics-refinement-list__list-item {
+    display: inline;
+    margin: 0;
+    margin-right: 6px;
+    button {
+        cursor: pointer;
+        color: $blue-90;
+        padding: 0;
+        background-color: transparent;
+        &:hover {
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+    }
+}
+
+.search-topics-refinement-list__separator {
+    display: inline-block;
+    pointer-events: none;
+    margin: 0;
+    margin-right: 6px;
+    color: $blue-30;
+    &::after {
+        content: "•";
+    }
+}
+
+// Skeletons
+.search-topics-refinement-list__skeleton {
+    background-color: $blue-10;
+    height: 48px;
+    // Most areas have more than 2 lines of topics, so when we're in an area we set the height to 96px and hope for the best
+    &.search-topics-refinement-list__skeleton--large {
+        height: 96px;
+    }
+}

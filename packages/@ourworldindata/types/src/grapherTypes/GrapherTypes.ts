@@ -107,11 +107,6 @@ export enum DimensionProperty {
     table = "table",
 }
 
-export interface InteractionState {
-    active: boolean // actively hovered or focused
-    background: boolean // another series is actively hovered or focused
-}
-
 // see CoreTableConstants.ts
 export type ColumnSlug = string // a url friendly name for a column in a table. cannot have spaces
 
@@ -704,9 +699,22 @@ export const grapherKeysToSerialize = [
     "bakedGrapherURL",
 ]
 
-export enum GrapherRenderMode {
-    Captioned = "captioned", // Chart with header and footer
-    Thumbnail = "thumbnail", // Chart only, no header or footer
+export enum GrapherVariant {
+    /**
+     * Default rendering, with header and footer
+     */
+    Default = "default",
+
+    /**
+     * Default rendering, chart area only
+     */
+    Uncaptioned = "uncaptioned",
+
+    /**
+     * Simplified rendering, suitable for thumbnails.
+     * Less noisy visualization, but should be understandable on its own
+     */
+    Thumbnail = "thumbnail",
 }
 
 export interface ChartRedirect {
@@ -725,3 +733,5 @@ export type AdditionalGrapherDataFetchFn = (
     varId: OwidVariableId,
     loadMetadataOnly?: boolean
 ) => Promise<OwidVariableDataMetadataDimensions>
+
+export type GrapherTrendArrowDirection = "up" | "right" | "down"

@@ -1,0 +1,110 @@
+import { match } from "ts-pattern"
+import { SearchTopicType } from "./searchTypes.js"
+import { SearchDataTopicsResults } from "./SearchDataTopicsResults.js"
+import { SearchDataResults } from "./SearchDataResults.js"
+import { useSearchContext } from "./SearchContext.js"
+import { SearchWritingResults } from "./SearchWritingResults.js"
+import { SearchDataInsightsResults } from "./SearchDataInsightsResults.js"
+
+export const SearchTemplatesAll = () => {
+    const { templateConfig } = useSearchContext()
+
+    return (
+        match([
+            templateConfig.topicType,
+            templateConfig.hasCountry,
+            templateConfig.hasQuery,
+        ] as const)
+            // All + Topic + Country + Query
+            .with([SearchTopicType.Topic, true, true], () => (
+                <>
+                    <SearchDataInsightsResults />
+                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchWritingResults topicType={SearchTopicType.Topic} />
+                </>
+            ))
+            // All + Topic + Country + No Query
+            .with([SearchTopicType.Topic, true, false], () => (
+                <>
+                    <SearchDataInsightsResults />
+                    <SearchDataResults isFirstChartLarge={false} />
+                    <SearchWritingResults topicType={SearchTopicType.Topic} />
+                </>
+            ))
+            // All + Topic + No Country + Query
+            .with([SearchTopicType.Topic, false, true], () => (
+                <>
+                    <SearchWritingResults topicType={SearchTopicType.Topic} />
+                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // All + Topic + No Country + No Query
+            .with([SearchTopicType.Topic, false, false], () => (
+                <>
+                    <SearchWritingResults topicType={SearchTopicType.Topic} />
+                    <SearchDataResults isFirstChartLarge={false} />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // All + Area + Country + Query
+            .with([SearchTopicType.Area, true, true], () => (
+                <>
+                    <SearchDataInsightsResults />
+                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchWritingResults topicType={SearchTopicType.Area} />
+                </>
+            ))
+            // All + Area + Country + No Query
+            .with([SearchTopicType.Area, true, false], () => (
+                <>
+                    <SearchDataInsightsResults />
+                    <SearchDataTopicsResults />
+                    <SearchWritingResults topicType={SearchTopicType.Area} />
+                </>
+            ))
+            // All + Area + No Country + Query
+            .with([SearchTopicType.Area, false, true], () => (
+                <>
+                    <SearchWritingResults topicType={SearchTopicType.Area} />
+                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // All + Area + No Country + No Query
+            .with([SearchTopicType.Area, false, false], () => (
+                <>
+                    <SearchWritingResults topicType={SearchTopicType.Area} />
+                    <SearchDataTopicsResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // All + No Topic + Country + Query
+            .with([null, true, true], () => (
+                <>
+                    <SearchDataInsightsResults />
+                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchWritingResults />
+                </>
+            ))
+            // All + No Topic + Country + No Query
+            .with([null, true, false], () => (
+                <>
+                    <SearchDataInsightsResults />
+                    <SearchDataTopicsResults />
+                    <SearchWritingResults hasTopicPages={false} />
+                </>
+            ))
+            // All + No Topic + No Country + Query
+            .with([null, false, true], () => (
+                <>
+                    <SearchWritingResults />
+                    <SearchDataResults isFirstChartLarge={true} />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // All + No Topic + No Country + No Query
+            .with([null, false, false], () => null)
+            .exhaustive()
+    )
+}

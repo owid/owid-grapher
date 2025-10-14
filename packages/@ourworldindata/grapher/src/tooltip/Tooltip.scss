@@ -8,8 +8,6 @@
         $dark-grey: #2d2d2d;
         $light-grey: $gray-30;
         $grey: #787878;
-        $red: #cc3b55;
-        $green: #2c8465;
         $fade-time: 200ms;
         $fade-delay: 200ms;
         $medium: 400;
@@ -156,18 +154,9 @@
                                 overflow-wrap: anywhere;
                             }
 
-                            svg.arrow {
+                            .GrapherTrendArrow {
                                 height: 14px;
                                 padding-right: 0.15em;
-                                &.up path {
-                                    fill: $green;
-                                }
-                                &.down path {
-                                    fill: $red;
-                                }
-                                &.right path {
-                                    fill: $grey;
-                                }
                             }
                         }
 
@@ -489,7 +478,7 @@
                     .variable .values {
                         font-size: 16px;
                         line-height: 18px;
-                        svg.arrow {
+                        .GrapherTrendArrow {
                             height: 12px;
                             padding-right: 2px;
                         }

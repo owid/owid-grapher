@@ -1,0 +1,142 @@
+import { useMemo } from "react"
+import { buildChartHitDataDisplayProps, Tippy } from "@ourworldindata/utils"
+import { GRAPHER_TAB_NAMES, GrapherChartType } from "@ourworldindata/types"
+import { SearchChartHitComponentProps } from "./searchTypes.js"
+import {
+    constructChartUrl,
+    pickEntitiesForChartHit,
+    toGrapherQueryParams,
+} from "./searchUtils.js"
+import { Button, GrapherTabIcon } from "@ourworldindata/components"
+import { useIntersectionObserver, useMediaQuery } from "usehooks-ts"
+import {
+    makeLabelForGrapherTab,
+    WORLD_ENTITY_NAME,
+} from "@ourworldindata/grapher"
+import { SearchChartHitDataDisplay } from "./SearchChartHitDataDisplay.js"
+import { SearchChartHitHeader } from "./SearchChartHitHeader.js"
+import { faDownload } from "@fortawesome/free-solid-svg-icons"
+import {
+    constructChartAndPreviewUrlsForTab,
+    useQueryChartInfo,
+} from "./SearchChartHitSmallHelpers.js"
+import { SMALL_BREAKPOINT_MEDIA_QUERY } from "../SiteConstants.js"
+
+export function SearchChartHitSmall({
+    hit,
+    selectedRegionNames,
+    onClick,
+}: SearchChartHitComponentProps) {
+    const isSmallScreen = useMediaQuery(SMALL_BREAKPOINT_MEDIA_QUERY)
+
+    // Intersection observer for lazy loading chart info
+    const { ref, isIntersecting: hasBeenVisible } = useIntersectionObserver({
+        rootMargin: "400px", // Start loading 400px before visible
+        freezeOnceVisible: true, // Only trigger once
+    })
+
+    const entities = useMemo(
+        () => pickEntitiesForChartHit(hit, selectedRegionNames),
+        [hit, selectedRegionNames]
+    )
+
+    const entityForDisplay = entities[0] ?? WORLD_ENTITY_NAME
+    const hasUserPickedEntities = entities.length > 0
+
+    // Fetch chart info and data values
+    const { data: chartInfo } = useQueryChartInfo({
+        hit,
+        entities: [entityForDisplay],
+        // Only fetch when the component is visible
+        enabled: hasBeenVisible,
+    })
+
+    // The first chart tab is the primary chart type
+    const chartType: GrapherChartType | undefined = hit.availableTabs.find(
+        (tab) =>
+            tab !== GRAPHER_TAB_NAMES.Table &&
+            tab !== GRAPHER_TAB_NAMES.WorldMap
+    )
+
+    const dataDisplayProps = buildChartHitDataDisplayProps({
+        chartInfo,
+        chartType,
+        entity: entityForDisplay,
+        isEntityPickedByUser: hasUserPickedEntities,
+    })
+
+    const grapherParams = toGrapherQueryParams({ entities })
+    const chartUrl = constructChartUrl({ hit, grapherParams })
+    const downloadUrl = constructChartUrl({
+        hit,
+        grapherParams,
+        overlay: "download-data",
+    })
+
+    return (
+        <article ref={ref} className="search-chart-hit-small">
+            <div className="search-chart-hit-small__content">
+                <SearchChartHitHeader
+                    hit={hit}
+                    url={chartUrl}
+                    source={chartInfo?.source}
+                    onClick={() => onClick(chartType)}
+                />
+                <div className="search-chart-hit-small__tabs-container">
+                    {hit.availableTabs.map((tab) => {
+                        const { chartUrl } = constructChartAndPreviewUrlsForTab(
+                            { hit, tab, chartInfo, entities }
+                        )
+
+                        const label = makeLabelForGrapherTab(tab, {
+                            format: "long",
+                        })
+
+                        return (
+                            <Tippy
+                                key={tab}
+                                appendTo={() => document.body}
+                                className="search-chart-hit-small__tippy"
+                                content={label}
+                                placement="bottom"
+                                theme="dark"
+                                disabled={isSmallScreen}
+                            >
+                                <a
+                                    href={chartUrl}
+                                    onClick={() => onClick(tab)}
+                                    aria-label={label}
+                                >
+                                    <GrapherTabIcon tab={tab} />
+                                </a>
+                            </Tippy>
+                        )
+                    })}
+                </div>
+            </div>
+            {dataDisplayProps && (
+                <SearchChartHitDataDisplay {...dataDisplayProps} />
+            )}
+            <Tippy
+                appendTo={() => document.body}
+                className="search-chart-hit-small__tippy"
+                content="Download options"
+                placement="bottom"
+                theme="dark"
+                disabled={isSmallScreen}
+            >
+                {/* Without this wrapper element, the tippy isn't positioned correctly */}
+                <div className="search-chart-hit-small__download-button-wrapper">
+                    <Button
+                        className="search-chart-hit-small__download-button"
+                        theme="solid-light-blue"
+                        href={downloadUrl}
+                        icon={faDownload}
+                        ariaLabel="Download options"
+                        dataTrackNote="search-download-options"
+                    />
+                </div>
+            </Tippy>
+        </article>
+    )
+}

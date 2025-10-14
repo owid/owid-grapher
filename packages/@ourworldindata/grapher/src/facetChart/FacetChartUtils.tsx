@@ -1,11 +1,16 @@
-import { BASE_FONT_SIZE } from "../core/GrapherConstants"
+import { BASE_FONT_SIZE, GRAPHER_FONT_SCALE_10 } from "../core/GrapherConstants"
 
 // not sure if we want to do something more sophisticated
 export const getFontSize = (
+    containerWidth: number,
     count: number,
     baseFontSize = BASE_FONT_SIZE,
     minSize = 8
 ): number => {
+    // Pick a fixed font size for very small charts
+    if (containerWidth < 300) return GRAPHER_FONT_SCALE_10 * baseFontSize
+
+    // Scale the font size based on the number of series otherwise
     if (count <= 2) return Math.max(minSize, baseFontSize * (15 / 16))
     if (count <= 4) return Math.max(minSize, baseFontSize * (14 / 16))
     if (count <= 9) return Math.max(minSize, baseFontSize * (13 / 16))

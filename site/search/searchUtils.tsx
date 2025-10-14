@@ -1,157 +1,387 @@
 import * as _ from "lodash-es"
-import { HitAttributeHighlightResult, SearchResponse } from "instantsearch.js"
+import * as R from "remeda"
 import {
     EntityName,
+    GRAPHER_TAB_QUERY_PARAMS,
     GrapherQueryParams,
-    TagGraphNode,
+    GrapherTabName,
+    GrapherTabQueryParam,
+    GrapherValuesJson,
+    OwidGdocType,
     TagGraphRoot,
+    TimeBounds,
 } from "@ourworldindata/types"
 import {
-    Region,
-    getRegionByNameOrVariantName,
-    regions,
-    removeTrailingParenthetical,
-    lazy,
     Url,
     countriesByName,
     FuzzySearch,
     FuzzySearchResult,
+    getAllChildrenOfArea,
+    timeBoundToTimeBoundString,
+    queryParamsToStr,
+    omitUndefinedValues,
 } from "@ourworldindata/utils"
-import { partition } from "remeda"
-import { generateSelectedEntityNamesParam } from "@ourworldindata/grapher"
-import { getIndexName } from "./searchClient.js"
-import { SearchClient } from "algoliasearch"
 import {
-    MultipleQueriesResponse,
-    IDataCatalogHit,
-    DataCatalogRibbonResult,
-    DataCatalogSearchResult,
+    generateSelectedEntityNamesParam,
+    isValidTabQueryParam,
+    mapGrapherTabNameToQueryParam,
+} from "@ourworldindata/grapher"
+import { getIndexName } from "./searchClient.js"
+import {
     SearchIndexName,
-    SearchState,
     Filter,
     FilterType,
-    SearchAutocompleteContextType,
-    ScoredSearchResult,
+    ScoredFilter,
+    SearchResultType,
+    SearchTopicType,
+    SearchFacetFilters,
+    ChartRecordType,
+    SearchChartHit,
+    IChartHit,
+    SearchUrlParam,
+    SynonymMap,
+    Ngram,
+    WordPositioned,
+    ScoredFilterPositioned,
 } from "./searchTypes.js"
-import { faTag } from "@fortawesome/free-solid-svg-icons"
+import {
+    faBook,
+    faBookmark,
+    faBullhorn,
+    faFileLines,
+    faLightbulb,
+    faTag,
+    IconDefinition,
+} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { match, P } from "ts-pattern"
-import { createContext, ForwardedRef, useContext } from "react"
+import { ForwardedRef } from "react"
+import {
+    BAKED_BASE_URL,
+    BAKED_GRAPHER_URL,
+    EXPLORER_DYNAMIC_CONFIG_URL,
+    EXPLORER_DYNAMIC_THUMBNAIL_URL,
+    GRAPHER_DYNAMIC_CONFIG_URL,
+    GRAPHER_DYNAMIC_THUMBNAIL_URL,
+} from "../../settings/clientSettings.js"
+import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
+import {
+    PreviewVariant,
+    RichDataComponentVariant,
+} from "./SearchChartHitRichDataTypes.js"
 
-/**
- * The below code is used to search for entities we can highlight in charts and explorer results.
- *
- * There are two main functions here:
- * - `extractRegionNamesFromSearchQuery` looks at the search query (e.g. "covid cases us china asia") and extracts anything
- *   that looks like a country, region or variant name (e.g. "US"), case-insensitive.
- *   It doesn't have any knowledge of what entities are actually available.
- * - `pickEntitiesForChartHit` gets information about the entities available in a chart.
- *    It also receives the result of `extractRegionNamesFromSearchQuery`, i.e. a list of regions that are mentioned in the search query.
- *    This is useful because Algolia removes stop words like "the" and "and", which makes it difficult to match entities like
- *    "Trinidad and Tobago".
- *    - It then reduces this list to the entities that are actually available in the chart.
- *    - Afterwards, it uses the highlighted entities from Algolia to pick any other entities that are fully contained in the
- *      search query - this now adds any entities _not_ in the `regions` list, like "high-income countries" or "Salmon (farmed)".
- *
- * In practice, we use `pickEntitiesForChartHit` for explorers, since there we don't have any entity information available,
- * and can only act based on the fact that most explorers are country-based and have data for most countries and regions.
- * For charts, we use the more accurate `pickEntitiesForChartHit` function, since entity information is available.
- *
- * -- @marcelgerber, 2024-06-18
- */
-const getRegionNameRegex = lazy(() => {
-    const allCountryNamesAndVariants = lazy(() =>
-        regions.flatMap((c) => [
-            c.name,
-            ...(("variantNames" in c && c.variantNames) || []),
-        ])
-    )
-
-    // A RegExp that matches any country, region and variant name. Case-independent.
-    return new RegExp(
-        `\\b(${allCountryNamesAndVariants().map(_.escapeRegExp).join("|")})\\b`,
-        "gi"
-    )
-})
-
-export const extractRegionNamesFromSearchQuery = (query: string) => {
-    const matches = query.matchAll(getRegionNameRegex())
-    const regionNames = Array.from(matches, (match) => match[0])
-    if (regionNames.length === 0) return null
-    return regionNames.map(getRegionByNameOrVariantName) as Region[]
-}
-
-const removeHighlightTags = (text: string) =>
-    text.replace(/<\/?(mark|strong)>/g, "")
+// Common English stop words that should be ignored in search
+const STOP_WORDS = new Set([
+    "the",
+    "in", // matches "India"
+    "is", // matches "Israel"
+    "of",
+    "and", // matches "Andorra"
+    "a",
+    "an",
+    "to",
+    "for",
+    "with",
+    "on",
+    "at",
+    "by",
+    "from",
+    "per", // matches "Peru"
+    "vs",
+])
 
 export function pickEntitiesForChartHit(
-    availableEntitiesHighlighted: HitAttributeHighlightResult[] | undefined,
-    availableEntities: EntityName[] | undefined,
-    searchQueryRegionsMatches: Region[] | undefined
+    hit: IChartHit | SearchChartHit,
+    selectedRegionNames: string[] | undefined
 ): EntityName[] {
+    if (!selectedRegionNames) return []
+
+    const availableEntities =
+        hit.originalAvailableEntities ?? hit.availableEntities
     if (!availableEntities) return []
 
-    const pickedEntities = new Set(
-        searchQueryRegionsMatches?.map((r) => r.name)
+    // Build intersection of selectedRegionNames and availableEntities, so we
+    // only select entities that are actually present in the chart
+    const filteredEntities = R.intersection(
+        selectedRegionNames,
+        availableEntities
     )
 
-    // Build intersection of searchQueryRegionsMatches and availableEntities, so we only select entities that are actually present in the chart
-    if (pickedEntities.size > 0) {
-        const availableEntitiesSet = new Set(availableEntities)
-        for (const entity of pickedEntities) {
-            if (!availableEntitiesSet.has(entity)) {
-                pickedEntities.delete(entity)
-            }
-        }
+    // Reverse the order so that the last picked entity is first
+    const sortedEntities = [...filteredEntities].reverse()
+
+    return sortedEntities
+}
+
+const generateGrapherTabQueryParam = ({
+    tab,
+    hasEntities,
+}: {
+    tab?: GrapherTabName | GrapherTabQueryParam
+    hasEntities: boolean
+}) => {
+    if (tab) {
+        return isValidTabQueryParam(tab)
+            ? tab
+            : mapGrapherTabNameToQueryParam(tab)
     }
 
-    if (availableEntitiesHighlighted) {
-        for (const highlightEntry of availableEntitiesHighlighted) {
-            if (highlightEntry.matchLevel === "none") continue
+    // If we have any entities pre-selected, we want to show the chart tab
+    if (hasEntities) return GRAPHER_TAB_QUERY_PARAMS.chart
 
-            const withoutHighlightTags = removeHighlightTags(
-                highlightEntry.value
-            )
-            if (pickedEntities.has(withoutHighlightTags)) continue
+    return undefined
+}
 
-            // Remove any trailing parentheses, e.g. "Africa (UN)" -> "Africa"
-            const withoutTrailingParens =
-                removeTrailingParenthetical(withoutHighlightTags)
-
-            // The sequence of words that Algolia matched; could be something like ["arab", "united", "republic"]
-            // which we want to check against the entity name
-            const matchedSequenceLowerCase = highlightEntry.matchedWords
-                .join(" ")
-                .toLowerCase()
-
-            // Pick entity if the matched sequence contains the full entity name
-            if (
-                matchedSequenceLowerCase.startsWith(
-                    withoutTrailingParens
-                        .replaceAll("-", " ") // makes "high-income countries" into "high income countries", enabling a match
-                        .toLowerCase()
-                )
-            )
-                pickedEntities.add(withoutHighlightTags)
-        }
-    }
-
-    const sortedEntities = [...pickedEntities].sort()
-
-    return sortedEntities ?? []
+const generateGrapherTimeQueryParam = ({
+    timeBounds,
+    timeMode = "year",
+}: {
+    timeBounds: TimeBounds
+    timeMode?: "year" | "day"
+}) => {
+    return timeBounds
+        .map((time) => timeBoundToTimeBoundString(time, timeMode === "day"))
+        .join("..")
 }
 
 export const getEntityQueryStr = (
-    entities: EntityName[] | null | undefined,
-    existingQueryStr: string = ""
-) => {
-    if (!entities?.length) return existingQueryStr
-    else {
-        return Url.fromQueryStr(existingQueryStr).updateQueryParams({
-            // If we have any entities pre-selected, we want to show the chart tab
-            tab: "chart",
-            country: generateSelectedEntityNamesParam(entities),
-        } satisfies GrapherQueryParams).queryStr
+    entities: EntityName[] | null | undefined
+): string => {
+    const hasEntities = !!entities?.length
+
+    const countryParam = hasEntities
+        ? generateSelectedEntityNamesParam(entities)
+        : undefined
+
+    const queryParams = { country: countryParam } satisfies GrapherQueryParams
+
+    const url = Url.fromQueryParams(queryParams)
+
+    return url.queryStr
+}
+
+export const toGrapherQueryParams = ({
+    entities = [],
+    tab,
+    timeBounds,
+    timeMode = "year",
+}: {
+    entities?: EntityName[]
+    tab?: GrapherTabName
+    timeBounds?: TimeBounds
+    timeMode?: "year" | "day"
+}): GrapherQueryParams => {
+    const hasEntities = entities.length > 0
+    return {
+        tab: generateGrapherTabQueryParam({ tab, hasEntities }),
+        country: hasEntities
+            ? generateSelectedEntityNamesParam(entities)
+            : undefined,
+        time: timeBounds
+            ? generateGrapherTimeQueryParam({ timeBounds, timeMode })
+            : undefined,
+    }
+}
+
+const generateQueryStrForChartHit = ({
+    hit,
+    grapherParams,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+}): string => {
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    const isMultiDimView = hit.type === ChartRecordType.MultiDimView
+
+    const viewQueryStr =
+        isExplorerView || isMultiDimView ? hit.queryParams : undefined
+    const grapherQueryStr = grapherParams
+        ? queryParamsToStr(grapherParams)
+        : undefined
+
+    // Remove leading '?' from query strings
+    const queryStrList = [viewQueryStr, grapherQueryStr]
+        .map((queryStr) => queryStr?.replace(/^\?/, ""))
+        .filter((queryStr) => queryStr)
+
+    const queryStr = queryStrList.length > 0 ? "?" + queryStrList.join("&") : ""
+
+    return queryStr
+}
+
+export const constructChartUrl = ({
+    hit,
+    grapherParams,
+    overlay,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+    overlay?: "sources" | "download-data"
+}): string => {
+    const viewQueryStr = generateQueryStrForChartHit({ hit, grapherParams })
+    const overlayQueryStr = overlay ? `overlay=${overlay}` : ""
+    const queryParts = [
+        viewQueryStr?.replace(/^\?/, ""),
+        overlayQueryStr,
+    ].filter((queryStr) => queryStr)
+    const queryStr = queryParts.length > 0 ? `?${queryParts.join("&")}` : ""
+
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    const basePath = isExplorerView
+        ? `${BAKED_BASE_URL}/${EXPLORERS_ROUTE_FOLDER}`
+        : BAKED_GRAPHER_URL
+
+    return `${basePath}/${hit.slug}${queryStr}`
+}
+
+export const constructChartInfoUrl = ({
+    hit,
+    grapherParams,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+}): string | undefined => {
+    const viewQueryStr = generateQueryStrForChartHit({ hit, grapherParams })
+
+    // Always ignore projected data to ensure that the data display shows a
+    // historical data point
+    const queryStr = viewQueryStr
+        ? `${viewQueryStr}&ignoreProjections`
+        : "?ignoreProjections"
+
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    const basePath = isExplorerView
+        ? EXPLORER_DYNAMIC_THUMBNAIL_URL
+        : GRAPHER_DYNAMIC_THUMBNAIL_URL
+
+    return `${basePath}/${hit.slug}.values.json${queryStr}`
+}
+
+export const constructSearchResultUrl = ({
+    hit,
+    params,
+}: {
+    hit: SearchChartHit
+    params: {
+        version: number
+        variant: RichDataComponentVariant
+        entities?: EntityName[]
+        numDataTableRowsPerColumn?: number
+    }
+}): string | undefined => {
+    const viewQueryStr = generateQueryStrForChartHit({ hit })
+
+    let optionsQueryStr = `version=${params.version}&variant=${params.variant}&ignoreProjections`
+    if (params.entities && params.entities.length > 0)
+        optionsQueryStr += `&entities=${generateSelectedEntityNamesParam(params.entities)}`
+    if (params.numDataTableRowsPerColumn) {
+        optionsQueryStr += `&numDataTableRowsPerColumn=${params.numDataTableRowsPerColumn}`
+    }
+
+    // Combine view and options query strings
+    const queryParts = [
+        viewQueryStr?.replace(/^\?/, ""),
+        optionsQueryStr,
+    ].filter((queryStr) => queryStr)
+    const queryStr = queryParts.length > 0 ? `?${queryParts.join("&")}` : ""
+
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+    const basePath = isExplorerView
+        ? EXPLORER_DYNAMIC_THUMBNAIL_URL
+        : GRAPHER_DYNAMIC_THUMBNAIL_URL
+
+    return `${basePath}/${hit.slug}.search-result.json${queryStr}`
+}
+
+export const constructPreviewUrl = ({
+    hit,
+    grapherParams,
+    variant,
+    isMinimal,
+    fontSize,
+    imageWidth,
+    imageHeight,
+}: {
+    hit: SearchChartHit
+    grapherParams?: GrapherQueryParams
+    variant: PreviewVariant
+    isMinimal?: boolean
+    fontSize?: number
+    imageWidth?: number
+    imageHeight?: number
+}): string => {
+    const isExplorerView = hit.type === ChartRecordType.ExplorerView
+
+    const queryStr = generateQueryStrForChartHit({ hit, grapherParams })
+
+    const searchParams = new URLSearchParams(
+        omitUndefinedValues({
+            imType: variant === "large" ? "uncaptioned" : variant,
+            imMinimal: isMinimal ? "1" : "0",
+            imFontSize: fontSize?.toString(),
+            imWidth: imageWidth?.toString(),
+            imHeight: imageHeight?.toString(),
+        })
+    )
+    const fullQueryStr = queryStr
+        ? `${queryStr}&${searchParams}`
+        : `?${searchParams}`
+
+    const basePath = isExplorerView
+        ? EXPLORER_DYNAMIC_THUMBNAIL_URL
+        : GRAPHER_DYNAMIC_THUMBNAIL_URL
+
+    return `${basePath}/${hit.slug}.png${fullQueryStr}`
+}
+
+export const constructConfigUrl = ({
+    hit,
+}: {
+    hit: SearchChartHit
+}): string | undefined => {
+    return match(hit)
+        .with(
+            { type: ChartRecordType.Chart },
+            (hit) => `${GRAPHER_DYNAMIC_CONFIG_URL}/${hit.slug}.config.json`
+        )
+        .with(
+            { type: ChartRecordType.MultiDimView },
+            (hit) =>
+                `${GRAPHER_DYNAMIC_CONFIG_URL}/by-uuid/${hit.chartConfigId}.config.json`
+        )
+        .with({ type: ChartRecordType.ExplorerView }, () => {
+            const queryStr = generateQueryStrForChartHit({ hit })
+            return `${EXPLORER_DYNAMIC_CONFIG_URL}/${hit.slug}.config.json${queryStr}`
+        })
+        .exhaustive()
+}
+
+// Generates time bounds to force line charts to display properly in previews.
+// When start and end times are the same (single time point), line charts
+// automatically switch to discrete bar charts. To prevent that, we set the start
+// time to -Infinity, which refers to the earliest available data.
+export function getTimeBoundsForChartUrl(
+    chartInfo?: GrapherValuesJson | null
+): { timeBounds: TimeBounds; timeMode: "year" | "day" } | undefined {
+    if (!chartInfo) return undefined
+
+    const { startTime, endTime } = chartInfo
+
+    // When a chart has different start and end times, we don't need to adjust
+    // the time parameter because the chart will naturally display as a line chart.
+    // Note: `chartInfo` is fetched for the _default_ view. If startTime equals
+    // endTime here, it doesn't necessarily mean that the line chart is actually
+    // single-time, since we're looking at the default tab rather than the specific
+    // line chart tab. However, false positives are generally harmless because most
+    // charts don't customize their start time.
+    if (startTime && startTime !== endTime) return undefined
+
+    const columnSlug = chartInfo.endValues?.y.at(0)?.columnSlug ?? ""
+    const columnInfo = chartInfo.columns?.[columnSlug]
+
+    return {
+        timeBounds: [-Infinity, endTime ?? Infinity],
+        timeMode: columnInfo?.yearIsDay ? "day" : "year",
     }
 }
 
@@ -166,40 +396,11 @@ export const DATA_CATALOG_ATTRIBUTES = [
     "variantName",
     "type",
     "queryParams",
+    "availableTabs",
+    "subtitle",
+    "chartConfigId",
+    "explorerType",
 ]
-
-function checkIfNoTopicsOrOneAreaTopicApplied(
-    topics: Set<string>,
-    areas: string[]
-) {
-    if (topics.size === 0) return true
-    if (topics.size > 1) return false
-
-    const [tag] = topics.values()
-    return areas.includes(tag)
-}
-
-export function checkShouldShowRibbonView(
-    query: string,
-    topics: Set<string>,
-    areaNames: string[]
-): boolean {
-    return (
-        query === "" && checkIfNoTopicsOrOneAreaTopicApplied(topics, areaNames)
-    )
-}
-
-/**
- * Set url if it's different from the current url.
- * When the user navigates back, we derive the state from the url and set it
- * so the url is already identical to the state - we don't need to push it again (otherwise we'd get an infinite loop)
- */
-export function syncDataCatalogURL(stateAsUrl: string) {
-    const currentUrl = window.location.href
-    if (currentUrl !== stateAsUrl) {
-        window.history.pushState({}, "", stateAsUrl)
-    }
-}
 
 export function setToFacetFilters(
     facetSet: Set<string>,
@@ -207,34 +408,26 @@ export function setToFacetFilters(
 ) {
     return Array.from(facetSet).map((facet) => `${attribute}:${facet}`)
 }
-function getAllTagsInArea(area: TagGraphNode): string[] {
-    const topics = area.children.reduce((tags, child) => {
-        tags.push(child.name)
-        if (child.children.length > 0) {
-            tags.push(...getAllTagsInArea(child))
-        }
-        return tags
-    }, [] as string[])
-    return Array.from(new Set(topics))
-}
 
-export function getTopicsForRibbons(
-    topics: Set<string>,
-    tagGraph: TagGraphRoot
-) {
-    if (topics.size === 0) return tagGraph.children.map((child) => child.name)
-    if (topics.size === 1) {
-        const area = tagGraph.children.find((child) => topics.has(child.name))
-        if (area) return getAllTagsInArea(area)
-    }
-    return []
+export function getSelectableTopics(
+    tagGraph: TagGraphRoot,
+    selectedTopic: string | undefined
+): Set<string> {
+    if (!selectedTopic)
+        return new Set(tagGraph.children.map((child) => child.name))
+
+    const area = tagGraph.children.find((child) => child.name === selectedTopic)
+    if (area)
+        return new Set(getAllChildrenOfArea(area).map((node) => node.name))
+
+    return new Set()
 }
 
 export function formatCountryFacetFilters(
     countries: Set<string>,
     requireAllCountries: boolean
 ) {
-    const facetFilters: (string | string[])[] = []
+    const facetFilters: SearchFacetFilters = []
     if (requireAllCountries) {
         // conjunction mode (A AND B): [attribute:"A", attribute:"B"]
         facetFilters.push(...setToFacetFilters(countries, "availableEntities"))
@@ -249,13 +442,11 @@ export function formatCountryFacetFilters(
     return facetFilters
 }
 
-export function getCountryData(selectedCountries: Set<string>): Region[] {
-    const regionData: Region[] = []
-    const countries = countriesByName()
-    for (const selectedCountry of selectedCountries) {
-        regionData.push(countries[selectedCountry])
-    }
-    return regionData
+export const formatTopicFacetFilters = (
+    topics: Set<string>
+): SearchFacetFilters => {
+    // disjunction mode (A OR B): [[attribute:"A", attribute:"B"]]
+    return [setToFacetFilters(topics, "tags")]
 }
 
 export function serializeSet(set: Set<string>) {
@@ -279,227 +470,135 @@ export function getFilterNamesOfType(
 
 export const getFilterIcon = (filter: Filter) => {
     return match(filter.type)
-        .with(FilterType.COUNTRY, () => (
-            <img
-                className="flag"
-                aria-hidden={true}
-                height={12}
-                width={16}
-                src={`/images/flags/${countriesByName()[filter.name].code}.svg`}
-            />
-        ))
+        .with(FilterType.COUNTRY, () => {
+            // Some countries filters might be regions or historical countries,
+            // for which we don't show a flag. By looking for potential region
+            // names in the countries list, we're effectively filtering out
+            // non-country regions.
+            const countryCode = countriesByName()[filter.name]?.code
+            return countryCode ? (
+                <img
+                    className="flag"
+                    aria-hidden={true}
+                    height={12}
+                    width={16}
+                    src={`/images/flags/${countryCode}.svg`}
+                />
+            ) : null
+        })
         .with(FilterType.TOPIC, () => (
             <span className="icon">
                 <FontAwesomeIcon icon={faTag} />
             </span>
         ))
-        .otherwise(() => null)
+        .with(FilterType.QUERY, () => null)
+        .exhaustive()
 }
 
-export function dataCatalogStateToAlgoliaQueries(
-    state: SearchState,
-    topicNames: string[]
-) {
-    const countryFacetFilters = formatCountryFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        state.requireAllCountries
-    )
-    return topicNames.map((topic) => {
-        const facetFilters = [[`tags:${topic}`], ...countryFacetFilters]
-        return {
-            indexName: CHARTS_INDEX,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            query: state.query,
-            facetFilters: facetFilters,
-            hitsPerPage: 4,
-            facets: ["tags"],
-            page: state.page < 0 ? 0 : state.page,
+export function findTopicAndRegionFilters(
+    words: string[],
+    allRegionsNames: string[],
+    allTopics: string[],
+    selectedRegionNames: Set<string>,
+    selectedTopics: Set<string>,
+    synonymMap: SynonymMap,
+    sortOptions: { threshold: number; limit: number }
+): ScoredFilter[] {
+    const searchTerm = words.join(" ")
+
+    const searchCountryTopics = (term: string) => {
+        const countryFilters: ScoredFilter[] = FuzzySearch.withKey(
+            allRegionsNames,
+            _.identity,
+            sortOptions
+        )
+            .searchResults(term)
+            .filter(
+                (result: FuzzySearchResult) =>
+                    !selectedRegionNames.has(result.target)
+            )
+            .map((result: FuzzySearchResult) => ({
+                ...createCountryFilter(result.target),
+                score: result.score,
+            }))
+
+        const topicFilters: ScoredFilter[] =
+            selectedTopics.size === 0
+                ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
+                      .searchResults(term)
+                      .map((result: FuzzySearchResult) => ({
+                          ...createTopicFilter(result.target),
+                          score: result.score,
+                      }))
+                : []
+
+        return [...countryFilters, ...topicFilters]
+    }
+
+    // 1. Perform original search
+    let filters = searchCountryTopics(searchTerm)
+
+    // 2. Search with synonyms
+    const synonyms = synonymMap.get(searchTerm.toLowerCase())
+
+    if (synonyms && synonyms.length > 0) {
+        // Search with each synonym and combine results
+        for (const synonym of synonyms) {
+            const filtersFromSynonym = searchCountryTopics(synonym)
+            filters.push(...filtersFromSynonym)
         }
-    })
-}
+    }
 
-export function dataCatalogStateToAlgoliaQuery(state: SearchState) {
-    const facetFilters = formatCountryFacetFilters(
-        getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        state.requireAllCountries
-    )
-    facetFilters.push(
-        ...setToFacetFilters(
-            getFilterNamesOfType(state.filters, FilterType.TOPIC),
-            "tags"
+    // For each filter type, keep only the top results then recombine into a single array
+    filters = R.pipe(
+        filters,
+        R.groupBy((filter) => filter.type),
+        R.values,
+        R.flatMap((filtersOfType: ScoredFilter[]) =>
+            R.pipe(
+                filtersOfType,
+                R.sortBy([R.prop("score"), "desc"]),
+                R.uniqueBy((filter) => filter.name),
+                R.take(sortOptions.limit)
+            )
         )
     )
 
-    return [
-        {
-            indexName: CHARTS_INDEX,
-            attributesToRetrieve: DATA_CATALOG_ATTRIBUTES,
-            query: state.query,
-            facetFilters: facetFilters,
-            highlightPostTag: "</mark>",
-            highlightPreTag: "<mark>",
-            facets: ["tags"],
-            maxValuesPerFacet: 15,
-            hitsPerPage: 60,
-            page: state.page < 0 ? 0 : state.page,
-        },
-    ]
-}
-
-export function formatAlgoliaRibbonsResponse(
-    response: MultipleQueriesResponse<IDataCatalogHit>,
-    ribbonTopics: string[]
-): DataCatalogRibbonResult[] {
-    return response.results.map((res, i: number) => ({
-        ...(res as SearchResponse<IDataCatalogHit>),
-        title: ribbonTopics[i],
-    }))
-}
-
-export function formatAlgoliaSearchResponse(
-    response: MultipleQueriesResponse<IDataCatalogHit>
-): DataCatalogSearchResult {
-    const result = response.results[0] as SearchResponse<IDataCatalogHit>
-    return result
+    return filters
 }
 
 /**
- * Async
+ * Detects words that are inside quoted phrases and should be excluded from filter matching.
+ * Returns a set of word positions that should be ignored.
  */
-export async function queryRibbons(
-    searchClient: SearchClient,
-    state: SearchState,
-    tagGraph: TagGraphRoot
-): Promise<DataCatalogRibbonResult[]> {
-    const topicsForRibbons = getTopicsForRibbons(
-        getFilterNamesOfType(state.filters, FilterType.TOPIC),
-        tagGraph
-    )
-    const searchParams = dataCatalogStateToAlgoliaQueries(
-        state,
-        topicsForRibbons
-    )
-    return searchClient
-        .search<IDataCatalogHit>(searchParams)
-        .then((response) =>
-            formatAlgoliaRibbonsResponse(response, topicsForRibbons)
-        )
-}
+function getQuotedWordPositions(words: string[]): Set<number> {
+    const quotedPositions = new Set<number>()
+    const parts = words
+        .join(" ")
+        .split(/("[^"]*"|\S+)/)
+        .filter(Boolean)
 
-export async function querySearch(
-    searchClient: SearchClient,
-    state: SearchState
-): Promise<DataCatalogSearchResult> {
-    const searchParams = dataCatalogStateToAlgoliaQuery(state)
-    return searchClient
-        .search<IDataCatalogHit>(searchParams)
-        .then(formatAlgoliaSearchResponse)
-}
-
-export function searchWithWords(
-    words: string[],
-    allCountryNames: string[],
-    allTopics: string[],
-    selectedCountryNames: Set<string>,
-    selectedTopics: Set<string>,
-    sortOptions: { threshold: number; limit: number }
-): {
-    countryResults: ScoredSearchResult[]
-    topicResults: ScoredSearchResult[]
-    hasResults: boolean
-} {
-    const searchTerm = words.join(" ")
-
-    const countryResults = FuzzySearch.withKey(
-        allCountryNames,
-        (country) => country,
-        sortOptions
-    )
-        .searchResults(searchTerm)
-        .filter(
-            (result: FuzzySearchResult) =>
-                !selectedCountryNames.has(result.target)
-        )
-        .map((result: FuzzySearchResult) => ({
-            name: result.target,
-            score: result.score,
-        }))
-
-    const topicResults: ScoredSearchResult[] =
-        selectedTopics.size === 0
-            ? FuzzySearch.withKey(allTopics, (topic) => topic, sortOptions)
-                  .searchResults(searchTerm)
-                  .map((result: FuzzySearchResult) => ({
-                      name: result.target,
-                      score: result.score,
-                  }))
-            : []
-
-    return {
-        countryResults,
-        topicResults,
-        hasResults: countryResults.length > 0 || topicResults.length > 0,
-    }
-}
-
-export function findMatches(
-    words: string[],
-    allCountryNames: string[],
-    allTopics: string[],
-    selectedCountryNames: Set<string>,
-    selectedTopics: Set<string>,
-    sortOptions: { threshold: number; limit: number },
-    wordIndex: number = 0
-): {
-    countryResults: ScoredSearchResult[]
-    topicResults: ScoredSearchResult[]
-    matchStartIndex: number
-} {
-    const wordsToSearch = words.slice(wordIndex)
-    const results = searchWithWords(
-        wordsToSearch,
-        allCountryNames,
-        allTopics,
-        selectedCountryNames,
-        selectedTopics,
-        sortOptions
-    )
-
-    if (results.hasResults) {
-        return {
-            countryResults: results.countryResults,
-            topicResults: results.topicResults,
-            matchStartIndex: wordIndex,
+    let wordIndex = 0
+    for (const part of parts) {
+        if (part.startsWith('"') && part.endsWith('"')) {
+            // Count words in the quoted phrase
+            const wordCount = part.split(/\s+/).filter(Boolean).length
+            for (let i = 0; i < wordCount; i++) {
+                quotedPositions.add(wordIndex + i)
+            }
+            wordIndex += wordCount
+        } else if (part.trim()) {
+            wordIndex++
         }
     }
 
-    return wordIndex < words.length - 1
-        ? findMatches(
-              words,
-              allCountryNames,
-              allTopics,
-              selectedCountryNames,
-              selectedTopics,
-              sortOptions,
-              wordIndex + 1
-          )
-        : {
-              countryResults: [],
-              topicResults: [],
-              matchStartIndex: words.length,
-          }
+    return quotedPositions
 }
 
 /**
  * Generates autocomplete suggestions for a search query and identifies any unmatched portion of the query.
  *
- * This function takes a search query and finds possible country and topic suggestions by:
- * 1. Splitting the query into words
- * 2. Finding the earliest word index where country and/or topic matches can be found using fuzzy search
- * 3. Returning the found matches as Filter objects, sorted with exact matches first
- * 4. Also returning the unmatched portion of the query (words before the match point)
- *
- * The function uses fuzzy search to match partial query words against country names and topics,
+ * This function uses fuzzy search to match partial query words against country names and topics,
  * filtering out any countries or topics that have already been selected as filters.
  * It progressively tries to match from increasing starting points in the query until it finds matches
  * or reaches the end of the query. This prioritizes matching whole phrases from the beginning, while still
@@ -507,33 +606,50 @@ export function findMatches(
  * "Indoor Air Pollution" and "Outdoor Air Pollution" and prevent the "pollution" query from being run;
  * thus not returning "Lead Pollution" as a suggestion).
  *
- * Exact matches (score = 1) are prioritized in the returned suggestions array, followed by
- * the original query (as a query filter), and then partial matches sorted by score.
+ * **Search Process:**
+ * 1. Splitting the query into words
+ * 2. Finding the earliest word index where country and/or topic matches can be found using fuzzy search
+ * 3. Returning the found matches as Filter objects, sorted with exact matches first
+ * 4. Also returning the unmatched portion of the query (words before the match point)
  *
+ * The search utilizes the same synonym definitions as Algolia to ensure consistent experiences
+ * between Algolia-powered search (homepage autocomplete, nav bar autocomplete, search results) and local fuzzy search (filter autocomplete).
+ * This includes bidirectional synonyms from synonym groups (e.g., "ai" ↔ "artificial intelligence")
+ * and unidirectional country alternatives (e.g., "us" → "united states"). Results from both original
+ * and synonym searches are combined, with duplicates removed while preserving the highest scores.
+ *
+ * **Result Prioritization:**
+ * Exact matches (score = 1) are prioritized in the returned suggestions array, followed by
+ * the original query (as a query filter), and then partial matches sorted by score descending.
+ *
+ * **Examples:**
+ * - Query "artificial intelligence" → also searches for synonyms like "ai", "machine learning"
+ * - Query "co2 emissions" → also searches for "carbon dioxide", "c02"
+ * - Query "us" → "us" gets expanded to "united states" for better country matching
+ *
+ * @returns Object containing suggestion filters and any unmatched query portion
  */
-export function getAutocompleteSuggestionsWithUnmatchedQuery(
+export function suggestFiltersFromQuerySuffix(
     query: string,
+    allRegionNames: string[],
     allTopics: string[],
-    filters: Filter[]
+    filters: Filter[], // currently active filters to exclude from suggestions
+    synonymMap: SynonymMap,
+    sortOptions: { threshold: number; limit: number } = {
+        threshold: 0.75,
+        limit: 3,
+    }
 ): {
     suggestions: Filter[]
     unmatchedQuery: string
 } {
-    const sortOptions = {
-        threshold: 0.5,
-        limit: 3,
-    }
     const selectedCountryNames = getFilterNamesOfType(
         filters,
         FilterType.COUNTRY
     )
     const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
-    const allCountries = countriesByName()
-    const allCountryNames = Object.values(allCountries).map(
-        (country) => country.name
-    )
 
-    const queryWords = query.trim().split(/\s+/)
+    const queryWords = splitIntoWords(query)
 
     if (!queryWords.length || queryWords[0] === "") {
         return {
@@ -542,32 +658,52 @@ export function getAutocompleteSuggestionsWithUnmatchedQuery(
         }
     }
 
-    const searchResults = findMatches(
-        queryWords,
-        allCountryNames,
-        allTopics,
-        selectedCountryNames,
-        selectedTopics,
-        sortOptions
+    let matchedFilters: ScoredFilter[] = []
+    let matchStartIndex = queryWords.length
+
+    for (let i = 0; i < queryWords.length; i++) {
+        const wordsToSearch = queryWords.slice(i)
+        const filters = findTopicAndRegionFilters(
+            wordsToSearch,
+            allRegionNames,
+            allTopics,
+            selectedCountryNames,
+            selectedTopics,
+            synonymMap,
+            sortOptions
+        )
+
+        if (filters.length > 0) {
+            matchedFilters = filters
+            matchStartIndex = i
+            break
+        }
+    }
+
+    const unmatchedQuery = queryWords.slice(0, matchStartIndex).join(" ")
+
+    const countryMatches = matchedFilters.filter(
+        (f) =>
+            // remove exact matches from country suggestions, as exact matches are
+            // already handled by automatic filters (see SearchDetectedFilters).
+            f.type === FilterType.COUNTRY &&
+            f.score !== 1 &&
+            // we matched on all regions to stop the iteration when a region is
+            // found, and avoid suggesting countries contained in that region's
+            // name (e.g. if "East Germany" is found, stop the iteration to
+            // prevent finding "Germany"). However, we don't want to pollute the
+            // autocomplete results with historical regions or aggregates, so we
+            // filter them out of the suggestions.
+            countriesByName()[f.name]
     )
 
-    const unmatchedQuery = queryWords
-        .slice(0, searchResults.matchStartIndex)
-        .join(" ")
-
-    const countryMatches = searchResults.countryResults.map((result) => ({
-        filter: createCountryFilter(result.name),
-        score: result.score,
-    }))
-
-    const topicMatches = searchResults.topicResults.map((result) => ({
-        filter: createTopicFilter(result.name),
-        score: result.score,
-    }))
+    const topicMatches = matchedFilters.filter(
+        (f) => f.type === FilterType.TOPIC
+    )
 
     const allMatches = [...countryMatches, ...topicMatches]
 
-    const [exactMatches, partialMatches] = partition(
+    const [exactMatches, partialMatches] = R.partition(
         allMatches,
         (item) => item.score === 1
     )
@@ -576,16 +712,140 @@ export function getAutocompleteSuggestionsWithUnmatchedQuery(
         (a, b) => b.score - a.score
     )
 
-    const combinedFilters = [
-        ...exactMatches.map((item) => item.filter),
+    const primaryFilters = [
+        exactMatches,
         ...(query ? [createQueryFilter(query)] : []),
-        ...sortedPartialMatches.map((item) => item.filter),
+    ]
+
+    const combinedFilters = [
+        ...(!unmatchedQuery ? primaryFilters : primaryFilters.reverse()).flat(),
+        ...sortedPartialMatches,
     ]
 
     return {
         suggestions: combinedFilters,
         unmatchedQuery,
     }
+}
+
+/**
+ * Validates whether an n-gram should be used for filter matching.
+ * Filters out n-grams that:
+ * - Overlap with already matched word positions
+ * - Contain quoted words
+ * - Start or end with stop words
+ */
+const isNotValidNgram = (
+    ngram: Ngram,
+    quotedWordPositions: Set<number>,
+    matchedWordPositions: Set<number>
+): boolean => {
+    return (
+        ngram.some(
+            ({ position }) =>
+                matchedWordPositions.has(position) ||
+                quotedWordPositions.has(position)
+        ) || hasLeadingTrailingStopWords(ngram)
+    )
+}
+
+/**
+ * Generator function that yields n-grams from largest to smallest.)
+ */
+function* generateNgrams(
+    tokens: WordPositioned[],
+    maxSize: number
+): Generator<Ngram> {
+    for (let n = maxSize; n >= 1; n--) {
+        for (let i = 0; i <= tokens.length - n; i++) {
+            yield tokens.slice(i, i + n)
+        }
+    }
+}
+
+/**
+ * Gets filter suggestions using contiguous sequence of words (n-grams) for
+ * multi-entity matching in a given query.
+ *
+ * Where `suggestFiltersFromQuerySuffix` progressively tries to match
+ * from increasing starting points in the query and returns a list of possible
+ * matches for that position (1 position, multiple matches), this function tries
+ * to find the best match for all possible contiguous sequences of words
+ * (n-grams) in the query (multiple positions, 1 match per position).
+ *
+ * Generates n-grams from 1 to 4 non stop-words, non quotes phrases,
+ * prioritizing longer phrases over shorter ones. Uses overlap detection to
+ * prevent the same word positions from being matched multiple times. Keeps a
+ * single country or filter topic per n-gram then deduplicates overall results
+ * by name.
+ *
+ * @returns Array of deduplicated scored filters
+ */
+export function extractFiltersFromQuery(
+    query: string,
+    allRegionNames: string[],
+    allTopics: string[],
+    filters: Filter[], // currently active filters to exclude from suggestions
+    sortOptions: { threshold: number; limit: number },
+    synonymMap: SynonymMap
+): ScoredFilterPositioned[] {
+    if (!query) return []
+
+    const selectedCountryNames = getFilterNamesOfType(
+        filters,
+        FilterType.COUNTRY
+    )
+    const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
+
+    const allFilters: ScoredFilterPositioned[] = []
+    const matchedWordPositions = new Set<number>()
+
+    const words = splitIntoWords(query)
+
+    // Get positions of words inside quoted phrases
+    const quotedWordPositions = getQuotedWordPositions(words)
+
+    const tokens: WordPositioned[] = words.map((word, index) => ({
+        word,
+        position: index,
+    }))
+
+    const maxNgramSize = Math.min(tokens.length, 4) // Topics and countries mostly fit within 4 words
+
+    // Generate and process n-grams on-the-fly, prioritizing longer phrases
+    for (const ngram of generateNgrams(tokens, maxNgramSize)) {
+        if (isNotValidNgram(ngram, quotedWordPositions, matchedWordPositions)) {
+            continue
+        }
+
+        const ngramWords = R.map(ngram, R.prop("word"))
+        const ngramPositions = R.map(ngram, R.prop("position"))
+
+        const filtersFromNgram = findTopicAndRegionFilters(
+            ngramWords,
+            allRegionNames,
+            allTopics,
+            selectedCountryNames,
+            selectedTopics,
+            synonymMap,
+            sortOptions
+        )
+
+        const bestFilter = _.maxBy(filtersFromNgram, (f) => f.score)
+        if (bestFilter) {
+            // Store the original positions for later use in replacement logic
+            allFilters.push({
+                ...bestFilter,
+                positions: ngramPositions,
+            })
+            // Mark these word positions as matched to prevent overlaps
+            ngramPositions.forEach((pos: number) =>
+                matchedWordPositions.add(pos)
+            )
+        }
+    }
+
+    return R.uniqueBy(allFilters, (filter) => filter.name)
 }
 
 export function createFilter(type: FilterType) {
@@ -595,20 +855,6 @@ export function createFilter(type: FilterType) {
 export const createCountryFilter = createFilter(FilterType.COUNTRY)
 export const createTopicFilter = createFilter(FilterType.TOPIC)
 export const createQueryFilter = createFilter(FilterType.QUERY)
-
-export const SearchAutocompleteContext = createContext<
-    SearchAutocompleteContextType | undefined
->(undefined)
-
-export function useSearchAutocomplete() {
-    const context = useContext(SearchAutocompleteContext)
-    if (context === undefined) {
-        throw new Error(
-            "useSearchAutocomplete must be used within a SearchAutocompleteContextProvider"
-        )
-    }
-    return context
-}
 
 /**
  * Returns a click handler that focuses an input element when clicking on the
@@ -664,4 +910,193 @@ export const getFilterAriaLabel = (
             () => `${actionName} ${filter.name} ${filter.type} filter`
         )
         .exhaustive()
+}
+
+export const isValidResultType = (
+    value: string | undefined
+): value is SearchResultType => {
+    return Object.values(SearchResultType).includes(value as SearchResultType)
+}
+
+export const getSelectedTopic = (filters: Filter[]): string | undefined => {
+    const selectedTopics = getFilterNamesOfType(filters, FilterType.TOPIC)
+    return selectedTopics.size > 0 ? [...selectedTopics][0] : undefined
+}
+
+export function getSelectedTopicType(
+    filters: Filter[],
+    areaNames: string[]
+): SearchTopicType | null {
+    const selectedTopic = getSelectedTopic(filters)
+    if (!selectedTopic) return null
+
+    return areaNames.includes(selectedTopic)
+        ? SearchTopicType.Area
+        : SearchTopicType.Topic
+}
+
+/**
+ * Checks if the search is in browsing mode, which is defined as having no query
+ * and no filters applied.
+ */
+export const isBrowsing = (filters: Filter[], query: string) => {
+    return query.trim() === "" && filters.length === 0
+}
+
+/**
+ * Computes the effective result type that should be displayed/used in the UI.
+ * This respects constraints (e.g., "all" is not allowed when browsing) while
+ * preserving the user's desired result type in the state.
+ */
+export const getEffectiveResultType = (
+    filters: Filter[],
+    query: string,
+    desiredResultType: SearchResultType
+): SearchResultType => {
+    return isBrowsing(filters, query) &&
+        desiredResultType === SearchResultType.ALL
+        ? SearchResultType.DATA
+        : desiredResultType
+}
+
+export const getUrlParamNameForFilter = (filter: Filter) =>
+    match(filter.type)
+        .with(FilterType.COUNTRY, () => SearchUrlParam.COUNTRY)
+        .with(FilterType.TOPIC, () => SearchUrlParam.TOPIC)
+        .with(FilterType.QUERY, () => SearchUrlParam.QUERY)
+        .exhaustive()
+
+/**
+ * Builds a fully qualified search URL for the provided autocomplete filter.
+ *
+ * - add  a `resultType=ALL` parameter to broaden search results beyond the
+ *   default data-only view
+ * - `COUNTRY` filters include unmatched query terms
+ *
+ * Examples:
+ * - Country filter "Kenya" with unmatched query "emissions":
+ *   "?country=Kenya&q=emissions&resultType=all"
+ * - Topic filter "Health" (unmatched query discarded, if any):
+ *   "?topic=Health&resultType=all"
+ * - Query filter "outdoor": "?q=outdoor&resultType=all"
+ *
+ * See also `SearchAutocomplete.tsx` for similar logic in the search page.
+ */
+export const getItemUrlForFilter = (
+    filter: Filter,
+    unmatchedQuery: string
+): string => {
+    const filterParam = {
+        [getUrlParamNameForFilter(filter)]: filter.name,
+        [SearchUrlParam.RESULT_TYPE]: SearchResultType.ALL,
+    }
+
+    const queryParams = match(filter.type)
+        .with(FilterType.COUNTRY, () => ({
+            ...filterParam,
+            ...(unmatchedQuery && {
+                [SearchUrlParam.QUERY]: unmatchedQuery,
+            }),
+        }))
+        .with(FilterType.QUERY, FilterType.TOPIC, () => filterParam)
+        .exhaustive()
+
+    return `${BAKED_BASE_URL}${SEARCH_BASE_PATH}${queryParamsToStr(queryParams)}`
+}
+
+export function getPageTypeNameAndIcon(pageType: OwidGdocType): {
+    name: string
+    icon: IconDefinition
+} {
+    return match(pageType)
+        .with(OwidGdocType.AboutPage, () => ({
+            name: "About",
+            icon: faFileLines,
+        }))
+        .with(OwidGdocType.Article, () => ({ name: "Article", icon: faBook }))
+        .with(OwidGdocType.DataInsight, () => ({
+            name: "Data Insight",
+            icon: faLightbulb,
+        }))
+        .with(OwidGdocType.LinearTopicPage, OwidGdocType.TopicPage, () => ({
+            name: "Topic page",
+            icon: faBookmark,
+        }))
+        .with(OwidGdocType.Announcement, () => ({
+            name: "Announcement",
+            icon: faBullhorn,
+        }))
+        .with(
+            OwidGdocType.Author, // Should never be indexed
+            OwidGdocType.Fragment, // Should never be indexed
+            OwidGdocType.Homepage, // Should never be indexed
+            () => ({ name: "", icon: faFileLines })
+        )
+        .exhaustive()
+}
+export const SEARCH_BASE_PATH = "/search"
+
+export const getPaginationOffsetAndLength = (
+    pageParam: number,
+    firstPageSize: number,
+    laterPageSize: number
+) => {
+    const offset =
+        pageParam === 0 ? 0 : firstPageSize + (pageParam - 1) * laterPageSize
+    const length = pageParam === 0 ? firstPageSize : laterPageSize
+    return { offset, length }
+}
+
+export const getNbPaginatedItemsRequested = (
+    currentPageIndex: number,
+    firstPageSize: number,
+    laterPageSize: number,
+    lastPageHits: number
+) => {
+    return currentPageIndex === 0
+        ? firstPageSize
+        : firstPageSize + (currentPageIndex - 1) * laterPageSize + lastPageHits
+}
+
+/**
+ * Helper function to remove matched words and preceding stop words from query
+ * when a filter is selected.
+ */
+export function removeMatchedWordsWithStopWords(
+    originalWords: string[],
+    matchedPositions: number[]
+): string {
+    if (!matchedPositions.length) return originalWords.join(" ")
+
+    const wordsToRemove = new Set(matchedPositions)
+
+    // For each matched position, remove any consecutive stop words that immediately precede it
+    for (const matchedPos of matchedPositions) {
+        // Look backwards from this matched position to remove consecutive preceding stop words
+        for (let i = matchedPos - 1; i >= 0; i--) {
+            const word = originalWords[i].toLowerCase()
+            if (STOP_WORDS.has(word)) {
+                wordsToRemove.add(i)
+            } else {
+                // Stop when we hit a non-stop word
+                break
+            }
+        }
+    }
+
+    return originalWords
+        .filter((_, index) => !wordsToRemove.has(index))
+        .join(" ")
+}
+
+export const splitIntoWords = (text: string) => text.trim().split(/\s+/)
+
+export const isNotStopWord = (word: string) =>
+    !STOP_WORDS.has(word.toLowerCase())
+
+const hasLeadingTrailingStopWords = (ngram: Ngram) => {
+    if (ngram.length === 0) return false
+    const firstWord = ngram[0].word.toLowerCase()
+    const lastWord = ngram[ngram.length - 1].word.toLowerCase()
+    return STOP_WORDS.has(firstWord) || STOP_WORDS.has(lastWord)
 }

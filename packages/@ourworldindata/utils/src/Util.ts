@@ -42,6 +42,8 @@ import {
     AssetMap,
     OwidGdocAboutInterface,
     OwidGdocHomepageInterface,
+    PrimitiveType,
+    GrapherTrendArrowDirection,
 } from "@ourworldindata/types"
 import { PointVector } from "./PointVector.js"
 import * as React from "react"
@@ -493,6 +495,14 @@ export const fetchText = async (url: string): Promise<string> => {
             throw new Error(`Fetch failed: ${res.status} ${res.statusText}`)
         return res.text()
     })
+}
+
+export async function fetchJson<TResult>(url: string): Promise<TResult> {
+    const response = await fetch(url)
+    if (!response.ok) {
+        throw new Error(`Failed to fetch ${url}: ${response.statusText}`)
+    }
+    return response.json()
 }
 
 const _getUserCountryInformation = async (): Promise<
@@ -1940,17 +1950,6 @@ export function removeTrailingParenthetical(str: string): string {
     return str.replace(/\s*\(.*\)$/, "")
 }
 
-export function isElementHidden(element: Element | null): boolean {
-    if (!element) return false
-    const computedStyle = window.getComputedStyle(element)
-    if (
-        computedStyle.display === "none" ||
-        computedStyle.visibility === "hidden"
-    )
-        return true
-    return isElementHidden(element.parentElement)
-}
-
 const commafyFormatter = lazy(() => new Intl.NumberFormat("en-US"))
 /**
  * Example: 12000 -> "12,000"
@@ -1963,17 +1962,28 @@ export function isFiniteWithGuard(value: unknown): value is number {
     return isFinite(value as any)
 }
 
-// Use with getTagHierarchiesByChildName to collapse all paths to the child into a single array of unique parent tag names
-export function getUniqueNamesFromTagHierarchies(
-    tagHierarchies: Pick<DbPlainTag, "id" | "name" | "slug">[][]
-): string[] {
-    const tagNames = new Set<string>(
-        tagHierarchies.flatMap((tagHierarchy) =>
-            tagHierarchy.map((tag) => tag.name)
+/**
+ * Collapse all paths to topic tags into a single array of unique parent tag
+ * names, including the original tags if they are topics. This is used across
+ * all Algolia indexing utilities to ensure comprehensive search results when
+ * faceting by topic.
+ *
+ * Use with getTagHierarchiesByChildName to get the topic hierarchies
+ *
+ */
+export const getUniqueNamesFromTagHierarchies = (
+    tagNames: string[],
+    tagHierarchiesByChildName: Record<
+        string,
+        Pick<DbPlainTag, "id" | "name" | "slug">[][]
+    >
+): string[] => {
+    return R.unique(
+        tagNames.flatMap((tagName) =>
+            (tagHierarchiesByChildName[tagName] ?? []) // fallback for non-topic tags
+                .flatMap((tagHierarchy) => tagHierarchy.map((tag) => tag.name))
         )
     )
-
-    return [...tagNames]
 }
 
 export function createTagGraph(
@@ -2186,4 +2196,51 @@ export const getUserNavigatorLanguages = (): readonly string[] => {
 
 export const getUserNavigatorLanguagesNonEnglish = (): readonly string[] => {
     return getUserNavigatorLanguages().filter((lang) => !lang.startsWith("en"))
+}
+
+/**
+ * Merge multiple objects into a single object.
+ * Arrays are overwritten completely instead of merged.
+ */
+export const merge: typeof _.merge = (
+    ...objects: Parameters<typeof _.merge>
+) => {
+    return _.mergeWith(
+        {}, // merge mutates the first argument
+        ...objects,
+        // Overwrite arrays completely instead of merging them.
+        // Otherwise fall back to the default merge behavior.
+        (_: unknown, srcValue: unknown) => {
+            return Array.isArray(srcValue) ? srcValue : undefined
+        }
+    )
+}
+
+export function calculateTrendDirection(
+    startValue?: PrimitiveType,
+    endValue?: PrimitiveType
+): GrapherTrendArrowDirection | undefined {
+    if (typeof startValue !== "number" || typeof endValue !== "number")
+        return undefined
+    return endValue > startValue
+        ? "up"
+        : endValue < startValue
+          ? "down"
+          : "right"
+}
+
+export function getDisplayUnit(
+    column: { unit?: string; shortUnit?: string },
+    { allowTrivial = false }: { allowTrivial?: boolean } = {}
+): string | undefined {
+    if (!column.unit) return undefined
+
+    // The unit is considered trivial if it is the same as the short unit
+    const isTrivial = column.unit === column.shortUnit
+    const unit = allowTrivial || !isTrivial ? column.unit : undefined
+
+    // Remove parentheses from the beginning and end of the unit
+    const strippedUnit = unit?.replace(/(^\(|\)$)/g, "")
+
+    return strippedUnit
 }

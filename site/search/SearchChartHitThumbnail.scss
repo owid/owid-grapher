@@ -1,0 +1,44 @@
+.search-chart-hit-thumbnail {
+    aspect-ratio: calc($grapher-thumbnail-width / $grapher-thumbnail-height);
+
+    width: 100%;
+    background-color: $gray-10;
+    position: relative;
+
+    img {
+        display: block; // Remove the space below the image
+        width: 100%;
+        height: auto;
+
+        &.loaded {
+            background-color: #fff;
+        }
+
+        &.error {
+            display: none;
+        }
+    }
+
+    .chart-hit-img-error {
+        display: flex;
+        height: 100%;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: $gray-10;
+        flex-grow: 1;
+        font-size: 0.9em;
+
+        color: $grey-text-color;
+        animation: chartErrorFadeIn 0.3s;
+
+        gap: 0.5em;
+
+        svg {
+            font-size: 1.75em;
+        }
+        span {
+            text-align: center;
+        }
+    }
+}

@@ -1,17 +1,17 @@
 import {
     DbEnrichedVariable,
     FeaturedMetricIncomeGroup,
+    GrapherInterface,
+    GrapherTabName,
 } from "@ourworldindata/types"
-import { ChartRecord } from "../../../site/search/searchTypes.js"
+import { ChartRecord, ExplorerType } from "../../../site/search/searchTypes.js"
 import { OwidIncomeGroupName } from "@ourworldindata/utils"
 
 /** Charts */
 export interface RawChartRecordRow {
     id: number
     slug: string
-    title: string
-    variantName: string
-    subtitle: string
+    config: string
     numDimensions: string
     publishedAt: string
     updatedAt: string
@@ -23,9 +23,7 @@ export interface RawChartRecordRow {
 export interface ParsedChartRecordRow {
     id: number
     slug: string
-    title: string
-    variantName: string
-    subtitle: string
+    config: GrapherInterface
     numDimensions: string
     publishedAt: string
     updatedAt: string
@@ -64,6 +62,7 @@ export type ExplorerIndicatorMetadataDictionary = Record<
 >
 
 export interface ExplorerViewBaseRecord {
+    explorerType: ExplorerType
     availableEntities: string[]
     numNonDefaultSettings: number
     tableSlug?: string
@@ -74,6 +73,7 @@ export interface ExplorerViewBaseRecord {
     viewSettings: Array<string | null>
     viewSubtitle?: string
     viewTitle?: string
+    viewAvailableTabs?: GrapherTabName[]
     ySlugs: Array<string>
     yVariableIds: Array<number | string>
     explorerSlug: string
@@ -83,22 +83,26 @@ export interface ExplorerViewBaseRecord {
 }
 
 export type GrapherUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
+    explorerType: ExplorerType.Grapher
     viewGrapherId: number
 }
 
 export type GrapherEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
+    explorerType: ExplorerType.Grapher
     viewTitle: string
     viewSubtitle: string
     titleLength: number
 }
 
 export type IndicatorUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
+    explorerType: ExplorerType.Indicator
     viewGrapherId: never
     ySlugs: []
     tableSlug: never
 }
 
 export type IndicatorEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
+    explorerType: ExplorerType.Indicator
     viewGrapherId: never
     ySlugs: string[]
     tableSlug: never
@@ -107,12 +111,14 @@ export type IndicatorEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
 }
 
 export type CsvUnenrichedExplorerViewRecord = ExplorerViewBaseRecord & {
+    explorerType: ExplorerType.Csv
     viewGrapherId: never
     ySlugs: string[]
     tableSlug: string
 }
 
 export type CsvEnrichedExplorerViewRecord = ExplorerViewBaseRecord & {
+    explorerType: ExplorerType.Csv
     viewGrapherId: never
     ySlugs: string[]
     tableSlug: string
@@ -128,6 +134,7 @@ export type EnrichedExplorerRecord =
 // These properties are only used in Algolia for ranking purposes.
 // This type shouldn't be necessary in any client-side code.
 export type FinalizedExplorerRecord = ChartRecord & {
+    explorerType: ExplorerType
     viewTitleIndexWithinExplorer: number
     isFirstExplorerView: boolean
 }

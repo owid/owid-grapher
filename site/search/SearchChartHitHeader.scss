@@ -1,0 +1,99 @@
+.search-chart-hit-header {
+    overflow: hidden;
+
+    .search-chart-hit-header__logo {
+        height: 37px;
+        width: auto;
+        align-self: center;
+    }
+
+    .search-chart-hit-header__content {
+        display: flex;
+        flex-direction: column;
+
+        .search-chart-hit-header__title-container {
+            line-height: 1.2222;
+
+            @include sm-up {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+
+        .search-chart-hit-header__title {
+            @include h3-bold;
+            font-weight: 600;
+            display: inline-block;
+            color: $blue-90;
+            margin: 0 8px 0 0;
+            line-height: 1.2222;
+        }
+
+        .search-chart-hit-header__source {
+            @include note-12-medium;
+            color: $blue-90;
+
+            &.search-chart-hit-header__source--desktop {
+                @include sm-only {
+                    display: none;
+                }
+            }
+
+            &.search-chart-hit-header__source--mobile {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                margin-top: 3px;
+
+                @include sm-up {
+                    display: none;
+                }
+            }
+        }
+
+        .search-chart-hit-header__subtitle {
+            @include body-3-medium;
+            color: $blue-65;
+
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 1;
+            line-clamp: 1;
+            overflow: hidden;
+
+            @include sm-only {
+                @include label-1-regular;
+                margin: 3px 0 0;
+
+                -webkit-line-clamp: 2;
+                line-clamp: 2;
+            }
+        }
+    }
+
+    &:hover .search-chart-hit-header__title {
+        text-decoration: underline;
+    }
+
+    &.search-chart-hit-header--large {
+        .search-chart-hit-header__content-wrapper {
+            display: flex;
+            gap: 16px;
+        }
+
+        .search-chart-hit-header__title {
+            font-size: 1.375rem;
+        }
+
+        .search-chart-hit-header__subtitle {
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
+        .search-chart-hit-header__source {
+            font-size: 0.875rem;
+            font-weight: 400;
+        }
+    }
+}

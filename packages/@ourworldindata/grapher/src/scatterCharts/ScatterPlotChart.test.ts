@@ -29,6 +29,7 @@ import {
 import { ContinentColors } from "../color/CustomSchemes"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
 import { GrapherState } from "../core/Grapher"
+import { InteractionState } from "../interaction/InteractionState.js"
 
 it("can create a new chart", () => {
     const manager: ScatterPlotManager = {
@@ -36,9 +37,8 @@ it("can create a new chart", () => {
     }
 
     const chartState = new ScatterPlotChartState({ manager })
-    const chart = new ScatterPlotChart({ chartState })
     expect(chartState.errorInfo.reason).toBeFalsy()
-    expect(chart.seriesNamesToHighlight.size).toEqual(0)
+    expect(chartState.seriesNamesToHighlight.size).toEqual(0)
     expect(chartState.series.length).toEqual(2)
     expect(chartState.allPoints.length).toBeGreaterThan(0)
 })
@@ -265,6 +265,7 @@ describe("basic scatterplot", () => {
                     },
                 ],
                 seriesName: "UK",
+                focus: new InteractionState(),
             },
             {
                 color: chartState.defaultNoDataColor,
@@ -286,6 +287,7 @@ describe("basic scatterplot", () => {
                     },
                 ],
                 seriesName: "USA",
+                focus: new InteractionState(),
             },
         ])
     })
@@ -955,7 +957,7 @@ describe("correct bubble sizes", () => {
 
         const scatterPoints = new ScatterPointsWithLabels({
             noDataModalManager: manager,
-            isConnected: chart["isConnected"],
+            isConnected: chartState["isConnected"],
             hideConnectedScatterLines: chart["hideConnectedScatterLines"],
             seriesArray: chart["series"],
             dualAxis: chart["dualAxis"],
@@ -1020,7 +1022,7 @@ describe("correct bubble sizes", () => {
 
         const scatterPoints = new ScatterPointsWithLabels({
             noDataModalManager: manager,
-            isConnected: chart["isConnected"],
+            isConnected: chartState["isConnected"],
             hideConnectedScatterLines: chart["hideConnectedScatterLines"],
             seriesArray: chart["series"],
             dualAxis: chart["dualAxis"],

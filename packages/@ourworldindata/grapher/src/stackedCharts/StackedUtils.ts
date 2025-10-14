@@ -1,3 +1,4 @@
+import * as R from "remeda"
 import * as _ from "lodash-es"
 import {
     sortNumeric,
@@ -11,9 +12,11 @@ import {
     EntityName,
     excludeUndefined,
     getRegionByName,
+    AxisConfigInterface,
 } from "@ourworldindata/utils"
 import { StackedPointPositionType, StackedSeries } from "./StackedConstants"
 import { WORLD_ENTITY_NAME } from "../core/GrapherConstants.js"
+import { StackedBarChartState } from "./StackedBarChartState.js"
 
 // This method shift up the Y Values of a Series with Points in place.
 export const stackSeries = <PositionType extends StackedPointPositionType>(
@@ -157,4 +160,43 @@ function getCountryNames(region: Region): string[] {
     return checkHasMembers(region)
         ? getCountryNamesForRegion(region)
         : [region.name]
+}
+
+export function resolveCollision(
+    s1: StackedSeries<number>,
+    s2: StackedSeries<number>
+): StackedSeries<number> | undefined {
+    // Early return if one series is all zeroes
+    if (s1.isAllZeros && !s2.isAllZeros) return s2
+    if (s2.isAllZeros && !s1.isAllZeros) return s1
+
+    // Prefer series with a higher maximum value
+    const yMax1 = _.maxBy(s1.points, (p) => p.value)?.value ?? 0
+    const yMax2 = _.maxBy(s2.points, (p) => p.value)?.value ?? 0
+    if (yMax1 > yMax2) return s1
+    if (yMax2 > yMax1) return s2
+
+    // Prefer series with a higher last value
+    const yLast1 = R.last(s1.points)?.value ?? 0
+    const yLast2 = R.last(s2.points)?.value ?? 0
+    if (yLast1 > yLast2) return s1
+    if (yLast2 > yLast1) return s2
+
+    // Prefer series with a higher total area
+    const area1 = _.sumBy(s1.points, (p) => p.value)
+    const area2 = _.sumBy(s2.points, (p) => p.value)
+    if (area1 > area2) return s1
+    if (area2 > area1) return s2
+
+    return undefined // no preference
+}
+
+export function getXAxisConfigDefaultsForStackedBar(
+    chartState: StackedBarChartState
+): AxisConfigInterface {
+    return {
+        hideGridlines: true,
+        domainValues: chartState.xValues,
+        ticks: chartState.xValues.map((value) => ({ value, priority: 2 })),
+    }
 }

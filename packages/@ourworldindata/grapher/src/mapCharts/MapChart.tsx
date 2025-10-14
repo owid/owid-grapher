@@ -5,8 +5,6 @@ import {
     exposeInstanceOnWindow,
     Color,
     HorizontalAlign,
-    PrimitiveType,
-    anyToString,
 } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
@@ -24,7 +22,6 @@ import {
     GeoFeature,
     MapBracket,
     MapChartManager,
-    ChoroplethSeries,
     DEFAULT_STROKE_COLOR,
     ChoroplethSeriesByName,
     ChoroplethMapManager,
@@ -33,11 +30,7 @@ import {
     PROJECTED_DATA_LEGEND_COLOR,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
-import {
-    ColorScale,
-    NO_DATA_LABEL,
-    PROJECTED_DATA_LABEL,
-} from "../color/ColorScale"
+import { ColorScale } from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -49,14 +42,16 @@ import { ChartInterface } from "../chart/ChartInterface"
 import {
     CategoricalBin,
     ColorScaleBin,
+    isCategoricalBin,
+    isNoDataBin,
+    isNumericBin,
+    isProjectedDataBin,
     NumericBin,
 } from "../color/ColorScaleBin"
 import {
     ColumnSlug,
-    InteractionState,
+    GrapherVariant,
     MapRegionName,
-    SeriesName,
-    TickFormattingOptions,
 } from "@ourworldindata/types"
 import { ClipPath, makeClipPath } from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -70,16 +65,9 @@ import { match } from "ts-pattern"
 import { makeProjectedDataPatternId } from "./MapComponents"
 import { MapChartState } from "./MapChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
+import { InteractionState } from "../interaction/InteractionState"
 
 export type MapChartProps = ChartComponentProps<MapChartState>
-
-export type MapFormatValueForTooltip = (
-    d: PrimitiveType,
-    options?: TickFormattingOptions
-) => {
-    formattedValue: string
-    isRounded: boolean
-}
 
 @observer
 export class MapChart
@@ -146,7 +134,7 @@ export class MapChart
     }
 
     @computed get choroplethData(): ChoroplethSeriesByName {
-        return this.seriesMap
+        return this.chartState.seriesMap
     }
 
     base = createRef<SVGGElement>()
@@ -221,39 +209,6 @@ export class MapChart
 
     @action.bound onRegionChange(value: MapRegionName): void {
         this.mapConfig.region = value
-    }
-
-    @computed private get formatValueForTooltip(): MapFormatValueForTooltip {
-        const { mapConfig, colorScale } = this
-
-        return (d: PrimitiveType, options?: TickFormattingOptions) => {
-            if (mapConfig.tooltipUseCustomLabels) {
-                // Find the bin (and its label) that this value belongs to
-                const bin = colorScale.getBinForValue(d)
-                const label = bin?.label
-                if (label !== undefined && label !== "")
-                    return { formattedValue: label, isRounded: false }
-            }
-
-            if (typeof d === "number")
-                return {
-                    formattedValue: this.mapColumn.formatValueShort(d, options),
-                    isRounded: true,
-                }
-            else return { formattedValue: anyToString(d), isRounded: false }
-        }
-    }
-
-    @computed private get series(): ChoroplethSeries[] {
-        return this.chartState.series
-    }
-
-    @computed private get seriesMap(): ChoroplethSeriesByName {
-        const map = new Map<SeriesName, ChoroplethSeries>()
-        this.series.forEach((series) => {
-            map.set(series.seriesName, series)
-        })
-        return map
     }
 
     @computed private get colorScale(): ColorScale {
@@ -337,10 +292,7 @@ export class MapChart
 
     getHoverState(featureId: string): InteractionState {
         const isHovered = this.isHovered(featureId)
-        return {
-            active: isHovered,
-            background: !!this.hoverBracket && !isHovered,
-        }
+        return new InteractionState(isHovered, !!this.hoverBracket)
     }
 
     @computed get fontSize(): number {
@@ -414,10 +366,45 @@ export class MapChart
         return [bins[bins.length - 1], ...bins.slice(0, -1)]
     }
 
+    @computed private get numMembersPerCategoricalBinByIndex(): Map<
+        number,
+        number
+    > {
+        const { chartState, legendData } = this
+        return new Map(
+            legendData
+                .filter((bin) => isCategoricalBin(bin))
+                .map((bin) => {
+                    const memberCount = chartState.series.filter((series) =>
+                        bin.contains(series.value)
+                    ).length
+                    return [bin.index, memberCount]
+                })
+        )
+    }
+
     @computed get categoricalLegendData(): CategoricalBin[] {
-        return this.legendData
+        let categoricalLegendData = this.legendData
             .filter((bin) => isCategoricalBin(bin))
             .map((bin) => this.maybeAddPatternRefToBin(bin))
+
+        // Hide empty bins in thumbnails
+        if (
+            this.isStatic &&
+            this.manager.variant === GrapherVariant.Thumbnail
+        ) {
+            categoricalLegendData = categoricalLegendData.filter((bin) => {
+                const memberCount =
+                    this.numMembersPerCategoricalBinByIndex.get(bin.index) ?? 0
+                return (
+                    isNoDataBin(bin) ||
+                    isProjectedDataBin(bin) ||
+                    memberCount > 0
+                )
+            })
+        }
+
+        return categoricalLegendData
     }
 
     @computed private get hasCategoricalLegendData(): boolean {
@@ -494,6 +481,8 @@ export class MapChart
     @computed private get categoryLegend():
         | HorizontalCategoricalColorLegend
         | undefined {
+        if (this.manager.isDisplayedAlongsideComplementaryTable)
+            return undefined
         return this.categoricalLegendData.length > 1
             ? new HorizontalCategoricalColorLegend({ manager: this })
             : undefined
@@ -502,6 +491,8 @@ export class MapChart
     @computed private get numericLegend():
         | HorizontalNumericColorLegend
         | undefined {
+        if (this.manager.isDisplayedAlongsideComplementaryTable)
+            return undefined
         return this.numericLegendData.length > 1
             ? new HorizontalNumericColorLegend({ manager: this })
             : undefined
@@ -546,6 +537,10 @@ export class MapChart
             renderUid: this.renderUid,
             box: this.choroplethMapBounds,
         })
+    }
+
+    @computed get numericBinSize(): number {
+        return 0.625 * this.fontSize
     }
 
     renderMapLegend(): React.ReactElement {
@@ -630,7 +625,9 @@ export class MapChart
                         position={tooltipState.position}
                         fading={tooltipState.fading}
                         timeSeriesTable={this.chartState.inputTable}
-                        formatValueForTooltip={this.formatValueForTooltip}
+                        formatValueForTooltip={
+                            this.chartState.formatValueForTooltip
+                        }
                         manager={this.manager}
                         lineColorScale={this.colorScale}
                         targetTime={this.targetTime}
@@ -658,20 +655,4 @@ export class MapChart
 
         return this.isStatic ? this.renderStatic() : this.renderInteractive()
     }
-}
-
-function isCategoricalBin(bin: ColorScaleBin): bin is CategoricalBin {
-    return bin instanceof CategoricalBin
-}
-
-function isNumericBin(bin: ColorScaleBin): bin is NumericBin {
-    return bin instanceof NumericBin
-}
-
-function isNoDataBin(bin: ColorScaleBin): bin is CategoricalBin {
-    return isCategoricalBin(bin) && bin.value === NO_DATA_LABEL
-}
-
-function isProjectedDataBin(bin: ColorScaleBin): bin is CategoricalBin {
-    return isCategoricalBin(bin) && bin.value === PROJECTED_DATA_LABEL
 }

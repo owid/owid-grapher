@@ -1,195 +1,124 @@
-import { TagGraphRoot, TagGraphNode } from "@ourworldindata/types"
-import { Url } from "@ourworldindata/utils"
+import { TagGraphRoot } from "@ourworldindata/types"
 import { SearchClient } from "algoliasearch"
-import { useReducer, useState, useMemo, useEffect } from "react"
-import { DataCatalogRibbonView } from "./DataCatalogRibbonView.js"
-import { DataCatalogResults } from "./DataCatalogResults.js"
-import { Searchbar } from "./Searchbar.js"
+import { useReducer, useMemo, useDeferredValue } from "react"
+import { match } from "ts-pattern"
+import { useIsFetching } from "@tanstack/react-query"
+
+// Search state and types
+import { searchReducer, createActions } from "./searchState.js"
 import {
-    searchReducer,
-    createActions,
-    searchStateToUrl,
-    urlToSearchState,
-} from "./searchState.js"
-import {
-    DataCatalogCache,
-    DataCatalogRibbonResult,
-    DataCatalogSearchResult,
     SearchState,
     FilterType,
+    TemplateConfig,
+    SearchResultType,
 } from "./searchTypes.js"
-import {
-    checkShouldShowRibbonView,
-    getCountryData,
-    queryRibbons,
-    querySearch,
-    syncDataCatalogURL,
-    getFilterNamesOfType,
-} from "./searchUtils.js"
-import { SiteAnalytics } from "../SiteAnalytics.js"
 
-const analytics = new SiteAnalytics()
+// Utils and hooks
+import {
+    getFilterNamesOfType,
+    getSelectedTopicType,
+    getEffectiveResultType,
+} from "./searchUtils.js"
+import {
+    useUrlSync,
+    useTagGraphTopics,
+    useSearchStateAnalytics,
+} from "./searchHooks.js"
+
+// Components
+import { Searchbar } from "./Searchbar.js"
+import { SearchTopicsRefinementList } from "./SearchTopicsRefinementList.js"
+import { SearchContext } from "./SearchContext.js"
+import { SearchResultTypeToggle } from "./SearchResultTypeToggle.js"
+import { SearchTemplatesAll } from "./SearchTemplatesAll.js"
+import { SearchTemplatesData } from "./SearchTemplatesData.js"
+import { SearchTemplatesWriting } from "./SearchTemplatesWriting.js"
+import { SearchNoResults } from "./SearchNoResults.js"
+import { SearchDetectedFilters } from "./SearchDetectedFilters.js"
+import { buildSynonymMap } from "./synonymUtils.js"
+import { SiteAnalytics } from "../SiteAnalytics.js"
+import { PoweredBy } from "react-instantsearch"
 
 export const Search = ({
     initialState,
-    tagGraph,
+    topicTagGraph,
     searchClient,
 }: {
     initialState: SearchState
-    tagGraph: TagGraphRoot
+    topicTagGraph: TagGraphRoot
     searchClient: SearchClient
 }) => {
+    // State management
     const [state, dispatch] = useReducer(searchReducer, initialState)
     const actions = useMemo(() => createActions(dispatch), [dispatch])
-    const [isLoading, setIsLoading] = useState(false)
-    const [cache, setCache] = useState<DataCatalogCache>({
-        ribbons: new Map(),
-        search: new Map(),
-    })
-    const AREA_NAMES = useMemo(
-        () => tagGraph.children.map((child) => child.name),
-        [tagGraph]
-    )
 
-    const ALL_TOPICS = useMemo(() => {
-        function getAllTopics(node: TagGraphNode): Set<string> {
-            return node.children.reduce((acc, child) => {
-                if (child.isTopic) {
-                    acc.add(child.name)
-                }
-                if (child.children.length) {
-                    const topics = getAllTopics(child)
-                    topics.forEach((topic) => acc.add(topic))
-                }
-                return acc
-            }, new Set<string>())
-        }
-        return Array.from(getAllTopics(tagGraph))
-    }, [tagGraph])
+    // Extract topic and area data from the graph
+    const { allAreas, allTopics } = useTagGraphTopics(topicTagGraph)
 
-    const selectedTopics = useMemo(
-        () => getFilterNamesOfType(state.filters, FilterType.TOPIC),
-        [state.filters]
-    )
+    const synonymMap = useMemo(() => buildSynonymMap(), [])
 
-    const selectedCountryNames = useMemo(
-        () => getFilterNamesOfType(state.filters, FilterType.COUNTRY),
-        [state.filters]
-    )
+    const analytics = useMemo(() => new SiteAnalytics(), [])
 
-    const shouldShowRibbons = useMemo(
-        () =>
-            checkShouldShowRibbonView(state.query, selectedTopics, AREA_NAMES),
-        [state.query, selectedTopics, AREA_NAMES]
-    )
-    const selectedCountries = useMemo(
-        () => getCountryData(selectedCountryNames),
-        [selectedCountryNames]
-    )
+    const deferredState = useDeferredValue(state)
 
-    const stateAsUrl = searchStateToUrl(state)
-    const cacheKey = shouldShowRibbons ? "ribbons" : "search"
-    const currentResults = cache[cacheKey].get(stateAsUrl)
+    // Bidirectional URL synchronization
+    const isInitialUrlStateLoaded = useUrlSync(deferredState, actions.setState)
 
-    useEffect(() => {
-        const url = Url.fromURL(window.location.href)
-        const urlState = urlToSearchState(url)
-        actions.setState(urlState)
-    }, [actions])
+    // Handle analytics tracking
+    useSearchStateAnalytics(deferredState, analytics, isInitialUrlStateLoaded)
 
-    useEffect(() => {
-        // Reconstructing state from the `stateAsUrl` serialization to avoid a `state` dependency in this effect,
-        // which would cause it to run on every state change (even no-ops)
-        const url = Url.fromURL(stateAsUrl)
-        const state = urlToSearchState(url)
-        analytics.logDataCatalogSearch(state)
-    }, [stateAsUrl])
+    const isFetching = useIsFetching()
 
-    useEffect(() => {
-        async function fetchData() {
-            const results = shouldShowRibbons
-                ? await queryRibbons(searchClient, state, tagGraph)
-                : await querySearch(searchClient, state)
-            setCache((prevCache) => ({
-                ...prevCache,
-                [cacheKey]: prevCache[cacheKey].set(stateAsUrl, results as any),
-            }))
-        }
-
-        syncDataCatalogURL(stateAsUrl)
-        if (cache[cacheKey].has(stateAsUrl)) return
-
-        setIsLoading(true)
-        void fetchData().then(() => setIsLoading(false))
-        return () => setIsLoading(false)
-    }, [
-        state,
-        searchClient,
-        shouldShowRibbons,
-        tagGraph,
-        stateAsUrl,
-        cacheKey,
-        cache,
-    ])
-
-    useEffect(() => {
-        const handlePopState = () => {
-            const url = Url.fromURL(window.location.href)
-            actions.setState(urlToSearchState(url))
-        }
-        window.addEventListener("popstate", handlePopState)
-        return () => {
-            window.removeEventListener("popstate", handlePopState)
-        }
-    }, [actions])
+    // Derived state for template configuration
+    const topicType = getSelectedTopicType(deferredState.filters, allAreas)
+    const templateConfig: TemplateConfig = {
+        resultType: getEffectiveResultType(
+            deferredState.filters,
+            deferredState.query,
+            deferredState.resultType
+        ),
+        topicType,
+        hasCountry:
+            getFilterNamesOfType(deferredState.filters, FilterType.COUNTRY)
+                .size > 0,
+        hasQuery: deferredState.query.length > 0,
+    }
 
     return (
-        <>
-            <div className="data-catalog-header span-cols-14 grid grid-cols-12-full-width">
-                <header className="data-catalog-heading span-cols-12 col-start-2">
-                    <h1 className="h1-semibold">Data Catalog</h1>
-                    <p className="body-2-regular">
-                        Search for a specific chart, or browse all our charts by
-                        area and topic.
-                    </p>
-                </header>
-                <div className="data-catalog-search-controls-container span-cols-12 col-start-2">
-                    <Searchbar
-                        allTopics={ALL_TOPICS}
-                        filters={state.filters}
-                        addCountry={actions.addCountry}
-                        removeCountry={actions.removeCountry}
-                        addTopic={actions.addTopic}
-                        removeTopic={actions.removeTopic}
-                        query={state.query}
-                        requireAllCountries={state.requireAllCountries}
-                        setQuery={actions.setQuery}
-                        toggleRequireAllCountries={
-                            actions.toggleRequireAllCountries
-                        }
-                        reset={actions.reset}
-                    />
-                </div>
+        <SearchContext.Provider
+            value={{
+                state,
+                deferredState,
+                actions,
+                searchClient,
+                templateConfig,
+                topicTagGraph,
+                synonymMap,
+                analytics,
+            }}
+        >
+            <div className="search-controls-container span-cols-12 col-start-2">
+                <Searchbar allTopics={allTopics} />
+                <SearchDetectedFilters allTopics={allTopics} />
             </div>
-            {shouldShowRibbons ? (
-                <DataCatalogRibbonView
-                    addTopic={actions.addTopic}
-                    isLoading={isLoading}
-                    results={currentResults as DataCatalogRibbonResult[]}
-                    selectedCountries={selectedCountries}
-                    tagGraph={tagGraph}
-                    topics={selectedTopics}
-                />
-            ) : (
-                <DataCatalogResults
-                    addTopic={actions.addTopic}
-                    isLoading={isLoading}
-                    results={currentResults as DataCatalogSearchResult}
-                    selectedCountries={selectedCountries}
-                    setPage={actions.setPage}
-                    topics={selectedTopics}
-                />
-            )}
-        </>
+            <div className="search-filters span-cols-12 col-start-2">
+                <SearchTopicsRefinementList topicType={topicType} />
+                <SearchResultTypeToggle />
+            </div>
+            <div className="search-template-results col-start-2 span-cols-12">
+                {!isFetching && <SearchNoResults />}
+                {match(templateConfig.resultType)
+                    .with(SearchResultType.ALL, () => <SearchTemplatesAll />)
+                    .with(SearchResultType.DATA, () => <SearchTemplatesData />)
+                    .with(SearchResultType.WRITING, () => (
+                        <SearchTemplatesWriting />
+                    ))
+                    .exhaustive()}
+            </div>
+            <PoweredBy
+                className="col-start-2 span-cols-12"
+                style={{ width: "200px", marginTop: "32px" }}
+            />
+        </SearchContext.Provider>
     )
 }

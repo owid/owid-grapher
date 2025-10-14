@@ -3,31 +3,33 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { IconDefinition, faArrowRight } from "@fortawesome/free-solid-svg-icons"
 
 type ButtonCommonProps = {
-    text: string
+    text?: string
     className?: string
     theme:
         | "solid-vermillion"
-        | "outline-vermillion"
         | "solid-blue"
         | "solid-dark-blue"
+        | "solid-light-blue"
+        | "outline-vermillion"
+        | "outline-light-blue"
         | "outline-white"
     /** Set to null to hide the icon */
     icon?: IconDefinition | null
     iconPosition?: "left" | "right"
     dataTrackNote?: string
+    disabled?: boolean
+    ariaLabel?: string
 }
 
 type WithHrefProps = {
     href: string
     onClick?: never
-    ariaLabel?: never
     type?: never
 }
 
 type WithOnClickProps = {
     onClick?: () => void
     href?: never
-    ariaLabel: string
     type?: "button" | "submit"
 }
 
@@ -46,8 +48,11 @@ export const Button = ({
     icon = faArrowRight,
     iconPosition = "right",
     dataTrackNote,
+    disabled,
 }: ButtonProps) => {
-    const classes = cx("owid-btn", `owid-btn--${theme}`, className)
+    const classes = cx("owid-btn", `owid-btn--${theme}`, className, {
+        "owid-btn--icon-only": icon && !text,
+    })
     const content = (
         <>
             {iconPosition === "left" && icon && (
@@ -68,9 +73,14 @@ export const Button = ({
 
     if (href) {
         const aProps = {
-            href,
+            href: disabled ? undefined : href,
             className: classes,
             "data-track-note": dataTrackNote,
+            onClick: disabled
+                ? (e: React.MouseEvent) => e.preventDefault()
+                : undefined,
+            "aria-label": ariaLabel,
+            "aria-disabled": disabled,
         }
         return <a {...aProps}>{content}</a>
     }
@@ -81,6 +91,7 @@ export const Button = ({
         onClick,
         "aria-label": ariaLabel,
         "data-track-note": dataTrackNote,
+        disabled,
     }
     return <button {...buttonProps}>{content}</button>
 }

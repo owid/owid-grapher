@@ -8,7 +8,6 @@ import {
 import {
     SeriesStrategy,
     EntityName,
-    InteractionState,
     SeriesName,
     ColumnSlug,
     GrapherTabName,
@@ -37,6 +36,7 @@ import {
     OwidTable,
 } from "@ourworldindata/core-table"
 import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
+import { InteractionState } from "../interaction/InteractionState"
 
 export const autoDetectYColumnSlugs = (manager: ChartManager): string[] => {
     if (manager.yColumnSlugs && manager.yColumnSlugs.length)
@@ -175,9 +175,9 @@ export function getHoverStateForSeries(
     const isHoverModeActive =
         props.isHoverModeActive ?? hoveredSeriesNames.length > 0
 
-    const active = hoveredSeriesNames.includes(series.seriesName)
-    const background = isHoverModeActive && !active
-    return { active, background }
+    const isActive = hoveredSeriesNames.includes(series.seriesName)
+
+    return new InteractionState(isActive, isHoverModeActive)
 }
 
 /** Useful for sorting series by their interaction state */

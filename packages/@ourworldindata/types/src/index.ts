@@ -129,11 +129,10 @@ export {
     GrapherWindowType,
     AxisMinMaxValueStr,
     GrapherTooltipAnchor,
-    type InteractionState,
     type MapConfigInterface,
     type GlobeConfig,
     type ProjectionColumnInfo,
-    GrapherRenderMode,
+    GrapherVariant,
     type ChartErrorInfo,
 } from "./grapherTypes/GrapherTypes.js"
 
@@ -858,7 +857,10 @@ export {
     type ExplorerChecksums,
     type ExplorerChecksumsObjectWithHash,
 } from "./domainTypes/Archive.js"
-export { type AdditionalGrapherDataFetchFn } from "./grapherTypes/GrapherTypes.js"
+export {
+    type AdditionalGrapherDataFetchFn,
+    type GrapherTrendArrowDirection,
+} from "./grapherTypes/GrapherTypes.js"
 
 export {
     logBinningStrategies,
@@ -873,3 +875,19 @@ export {
     type ResolvedBinningStrategy,
     type MidpointMode,
 } from "./grapherTypes/BinningStrategyTypes.js"
+
+export {
+    type GrapherValuesJson,
+    type GrapherValuesJsonDataPoints,
+    type GrapherValuesJsonDataPoint,
+} from "./endpointTypes/GrapherValuesJson.js"
+
+export {
+    type SearchChartHitDataTableProps,
+    type GrapherSearchResultJson,
+    type SearchChartHitDataDisplayProps,
+    type LayoutSlot,
+    type GridSlotKey,
+    MediumVariantGridSlotKey,
+    LargeVariantGridSlotKey,
+} from "./endpointTypes/GrapherSearchResultJson.js"

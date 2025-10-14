@@ -3,7 +3,6 @@ import { Bounds, ColumnSlug } from "@ourworldindata/utils"
 import {
     MapRegionName,
     SeriesName,
-    InteractionState,
     GlobeRegionName,
     ProjectionColumnInfo,
 } from "@ourworldindata/types"
@@ -16,6 +15,7 @@ import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { GrapherInteractionEvent } from "../core/GrapherAnalytics"
 import * as R from "remeda"
+import { InteractionState } from "../interaction/InteractionState"
 
 export declare type SVGMouseEvent = React.MouseEvent<SVGElement>
 
@@ -99,12 +99,12 @@ export interface ChoroplethMapManager {
     globeController?: GlobeController
     mapRegionDropdownValue?: MapRegionDropdownValue
     resetMapRegionDropdownValue?: () => void
-    selectionArray: MapSelectionArray
+    selectionArray?: MapSelectionArray
     fontSize?: number
-    getHoverState: (featureId: string) => InteractionState
-    isSelected: (featureId: string) => boolean
-    onMapMouseOver: (d: GeoFeature) => void
-    onMapMouseLeave: () => void
+    getHoverState?: (featureId: string) => InteractionState
+    isSelected?: (featureId: string) => boolean
+    onMapMouseOver?: (d: GeoFeature) => void
+    onMapMouseLeave?: () => void
     isMapSelectionEnabled?: boolean
     isStatic?: boolean
     binColors?: string[]

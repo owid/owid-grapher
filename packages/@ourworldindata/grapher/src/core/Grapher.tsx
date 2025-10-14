@@ -112,7 +112,7 @@ import {
     OwidVariableRow,
     AdditionalGrapherDataFetchFn,
     ProjectionColumnInfo,
-    GrapherRenderMode,
+    GrapherVariant,
     GRAPHER_MAP_TYPE,
 } from "@ourworldindata/types"
 import {
@@ -139,6 +139,7 @@ import {
     DEFAULT_GRAPHER_BOUNDS_SQUARE,
     GrapherModal,
     GRAPHER_PROD_URL,
+    CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME,
 } from "../core/GrapherConstants"
 import Cookies from "js-cookie"
 import { ChartDimension } from "../chart/ChartDimension"
@@ -231,7 +232,7 @@ import {
     groupEntityNamesByRegionType,
 } from "./EntitiesByRegionType"
 import * as R from "remeda"
-import { CaptionedOrThumbnailChart } from "../chart/CaptionedOrThumbnailChart.js"
+import { Chart } from "../chart/Chart.js"
 import { flushSync } from "react-dom"
 import { match } from "ts-pattern"
 
@@ -255,7 +256,8 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     entityYearHighlight?: EntityYearHighlight
     baseFontSize?: number
     staticBounds?: Bounds
-    renderMode?: GrapherRenderMode
+    variant?: GrapherVariant
+    isDisplayedAlongsideComplementaryTable?: boolean
 
     hideTitle?: boolean
     hideSubtitle?: boolean
@@ -396,6 +398,13 @@ export class GrapherState {
     entityYearHighlight: EntityYearHighlight | undefined = undefined
 
     hideFacetControl = true
+
+    /**
+     * Indicates whether the chart is embedded alongside a complementary table.
+     * If that's the case, the chart can be simplified (e.g. hide legends or
+     * annotations) since the table serves as an additional source of information.
+     */
+    isDisplayedAlongsideComplementaryTable = false
 
     // the desired faceting strategy, which might not be possible if we change the data
     selectedFacetStrategy: FacetStrategy | undefined = undefined
@@ -574,7 +583,7 @@ export class GrapherState {
             isExportingToSvgOrPng: observable.ref,
             isSocialMediaExport: observable.ref,
             isWikimediaExport: observable.ref,
-            renderMode: observable.ref,
+            variant: observable.ref,
             staticBounds: observable,
             isPlaying: observable.ref,
             isTimelineAnimationActive: observable.ref,
@@ -607,6 +616,7 @@ export class GrapherState {
             hideShareButton: observable,
             hideExploreTheDataButton: observable,
             hideRelatedQuestion: observable,
+            isDisplayedAlongsideComplementaryTable: observable,
         })
         // prefer the manager's selection over the config's selectedEntityNames
         // if both are passed in and the manager's selection is not empty.
@@ -888,6 +898,7 @@ export class GrapherState {
             (time) => findClosestTime(this.times, time) ?? time
         ) as TimeBounds
     }
+
     @computed private get shouldShowDiscreteBarWhenSingleTime(): boolean {
         let { minTime, maxTime } = this
 
@@ -922,8 +933,9 @@ export class GrapherState {
         // Switch to the discrete bar chart tab if we're on the line or slope
         // chart tab and a single time is selected
         if (
-            (activeTab === GRAPHER_TAB_NAMES.LineChart ||
-                activeTab === GRAPHER_TAB_NAMES.SlopeChart) &&
+            CHART_TYPES_THAT_SWITCH_TO_DISCRETE_BAR_WHEN_SINGLE_TIME.includes(
+                activeTab as any
+            ) &&
             this.shouldShowDiscreteBarWhenSingleTime &&
             // Don't switch to a bar chart while the timeline animation is playing.
             // This is necessary because the time handles are at the same time
@@ -1177,6 +1189,14 @@ export class GrapherState {
             : this.chartStateExceptMap
     }
 
+    @computed get facetChartInstance(): FacetChart | undefined {
+        if (!this.isFaceted) return undefined
+        return new FacetChart({
+            manager: this,
+            chartTypeName: this.activeChartType,
+        })
+    }
+
     // When Map becomes a first-class chart instance, we should drop this
     @computed get chartStateExceptMap(): ChartState {
         const chartType = this.activeChartType ?? GRAPHER_CHART_TYPES.LineChart
@@ -1189,14 +1209,13 @@ export class GrapherState {
 
         // collect series names from all chart instances when faceted
         if (this.isFaceted) {
-            const facetChartInstance = new FacetChart({ manager: this })
             return _.uniq(
-                facetChartInstance.intermediateChartInstances.flatMap(
+                this.facetChartInstance?.intermediateChartInstances.flatMap(
                     (chartInstance) =>
                         chartInstance.chartState.series.map(
                             (series) => series.seriesName
                         )
-                )
+                ) ?? []
             )
         }
 
@@ -1242,7 +1261,7 @@ export class GrapherState {
     isSocialMediaExport = false
     isWikimediaExport = false
 
-    renderMode = GrapherRenderMode.Captioned
+    variant = GrapherVariant.Default
 
     staticBounds: Bounds = DEFAULT_GRAPHER_BOUNDS
 
@@ -1612,15 +1631,21 @@ export class GrapherState {
         ].includes(tabName)
     }
 
+    @action.bound ensureTimeHandlesAreSensibleForTab(
+        tab: GrapherTabName
+    ): void {
+        if (this.checkOnlySingleTimeSelectionPossible(tab)) {
+            this.ensureHandlesAreOnSameTime()
+        } else if (this.checkStartAndEndTimeSelectionPreferred(tab)) {
+            this.ensureHandlesAreOnDifferentTimes()
+        }
+    }
+
     @action.bound onChartSwitching(
         _oldTab: GrapherTabName,
         newTab: GrapherTabName
     ): void {
-        if (this.checkOnlySingleTimeSelectionPossible(newTab)) {
-            this.ensureHandlesAreOnSameTime()
-        } else if (this.checkStartAndEndTimeSelectionPreferred(newTab)) {
-            this.ensureHandlesAreOnDifferentTimes()
-        }
+        this.ensureTimeHandlesAreSensibleForTab(newTab)
     }
 
     @action.bound syncEntitySelectionBetweenChartAndMap(
@@ -2456,9 +2481,7 @@ export class GrapherState {
         const _isExportingToSvgOrPng = this.isExportingToSvgOrPng
         this.isExportingToSvgOrPng = true
 
-        const innerHTML = renderToHtmlString(
-            <CaptionedOrThumbnailChart manager={this} />
-        )
+        const innerHTML = renderToHtmlString(<Chart manager={this} />)
 
         this.isExportingToSvgOrPng = _isExportingToSvgOrPng
         return innerHTML
@@ -2727,10 +2750,14 @@ export class GrapherState {
         )
     }
 
+    @computed get chartAreaPadding(): number {
+        // Choose padding based on chart size, ensuring it's at most 16px
+        return Math.min(16, Math.ceil(0.025 * this.activeBounds.width))
+    }
+
     /** Bounds of the chart area if no CaptionedChart is rendered */
     @computed get chartAreaBounds(): Bounds {
-        // 2px accounts for the border
-        return this.activeBounds.pad(2)
+        return this.activeBounds.pad(this.chartAreaPadding)
     }
 
     /** Bounds of the entity selector if rendered into the side panel */
@@ -2934,10 +2961,20 @@ export class GrapherState {
 
         return firstOfNonEmptyArray(this.availableFacetStrategies)
     }
+
     @computed get isFaceted(): boolean {
         const hasFacetStrategy = this.facetStrategy !== FacetStrategy.none
         return this.isOnChartTab && hasFacetStrategy
     }
+
+    @computed get hasMultipleSeriesPerFacet(): boolean {
+        return (
+            this.isFaceted &&
+            this.selection.numSelectedEntities > 1 &&
+            this.yColumnSlugs.length > 1
+        )
+    }
+
     @computed get isInFullScreenMode(): boolean {
         return this._isInFullScreenMode
     }
@@ -2978,6 +3015,7 @@ export class GrapherState {
     @computed get isModalOpen(): boolean {
         return this.isEntitySelectorModalOpen || this.activeModal !== undefined
     }
+
     // Whether a server-side download is available for the download modal
     @computed get isServerSideDownloadAvailable(): boolean {
         return (
@@ -2994,16 +3032,20 @@ export class GrapherState {
     }
     _baseFontSize = BASE_FONT_SIZE
     @computed get baseFontSize(): number {
+        if (this.isStatic && this.initialOptions.baseFontSize)
+            return this.initialOptions.baseFontSize
         if (this.isStaticAndSmall) {
             return this.computeBaseFontSizeFromHeight(this.staticBounds)
         }
         if (this.isStatic) return 18
         return this._baseFontSize
     }
+
     // the header and footer don't rely on the base font size unless explicitly specified
     @computed get useBaseFontSize(): boolean {
         return this.initialOptions.baseFontSize !== undefined
     }
+
     private computeBaseFontSizeFromHeight(bounds: Bounds): number {
         const squareBounds = DEFAULT_GRAPHER_BOUNDS_SQUARE
         const factor = squareBounds.height / 21
@@ -3044,6 +3086,7 @@ export class GrapherState {
         if (!this.isStatic) return false
         return this.areStaticBoundsSmall
     }
+
     @computed get areStaticBoundsSmall(): boolean {
         const { defaultBounds, staticBounds } = this
         const idealPixelCount = defaultBounds.width * defaultBounds.height
@@ -3521,8 +3564,6 @@ export class GrapherState {
 
     @computed get isEntitySelectorPanelActive(): boolean {
         if (this.hideEntityControls) return false
-
-        if (this.renderMode === GrapherRenderMode.Thumbnail) return false
 
         const shouldShowPanel =
             this.shouldShowEntitySelectorAs === GrapherWindowType.panel
@@ -4006,7 +4047,7 @@ export class Grapher extends React.Component<GrapherProps> {
     override render(): React.ReactElement | undefined {
         // Used in the admin to render a static preview of the chart
         if (this.grapherState.isExportingToSvgOrPng)
-            return <CaptionedOrThumbnailChart manager={this.grapherState} />
+            return <Chart manager={this.grapherState} />
 
         if (this.grapherState.isInFullScreenMode) {
             return (
@@ -4035,7 +4076,7 @@ export class Grapher extends React.Component<GrapherProps> {
             <>
                 {/* Chart and entity selector */}
                 <div className="CaptionedChartAndSidePanel">
-                    <CaptionedOrThumbnailChart manager={this.grapherState} />
+                    <Chart manager={this.grapherState} />
 
                     {this.grapherState.sidePanelBounds && (
                         <SidePanel bounds={this.grapherState.sidePanelBounds}>
@@ -4163,6 +4204,7 @@ export class Grapher extends React.Component<GrapherProps> {
             this.hasBeenVisible = true
         }
     }
+
     @action.bound private setBaseFontSize(): void {
         this.grapherState.baseFontSize =
             this.grapherState.computeBaseFontSizeFromWidth(

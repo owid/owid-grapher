@@ -1,0 +1,172 @@
+.search-writing-topic-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.search-writing-topic {
+    background: $blue-5;
+    padding: 16px;
+}
+
+.search-writing-topic__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    min-height: 28px;
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+
+    &:hover {
+        .search-writing-topic__title,
+        .search-writing-topic__count {
+            // Set is separately for each nested element to preserve the
+            // their respective underline color.
+            text-decoration: underline;
+        }
+    }
+}
+
+.search-writing-topic__title {
+    @include body-1-bold;
+    color: $blue-90;
+    margin: 0;
+}
+
+.search-writing-topic__count {
+    @include body-2-semibold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: $blue-60;
+
+    @include sm-only {
+        display: none;
+    }
+}
+
+.search-writing-topic__arrow {
+    background: $blue-60;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $blue-5;
+    font-size: 10px;
+}
+
+.search-writing-topic__content {
+    display: flex;
+    gap: 24px;
+
+    @include sm-only {
+        flex-direction: column;
+    }
+}
+
+.search-writing-topic__sub-title {
+    @include h5-black-caps;
+    color: $blue-60;
+    margin: 0 0 16px 0;
+}
+
+.search-writing-topic__featured-topic-pages {
+    flex: 0 1 286px;
+
+    @include sm-only {
+        flex-basis: 100%;
+    }
+}
+
+.search-writing-topic__divider {
+    display: none;
+    border: none;
+    border-top: 1px solid $blue-20;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+
+    @include sm-only {
+        display: block;
+    }
+}
+
+.search-writing-topic__featured-articles {
+    flex-shrink: 1;
+}
+
+.search-writing-featured-topics__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 16px;
+
+    @include sm-only {
+        flex-direction: row;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+    }
+}
+
+.search-writing-featured-topics__list-item {
+    @include sm-only {
+        flex-basis: calc(50% - 8px);
+        overflow: hidden;
+    }
+}
+
+.search-writing-topic-link {
+    @include body-3-medium;
+    display: block;
+    text-decoration: none;
+    color: $blue-90;
+
+    &:hover {
+        text-decoration: underline;
+    }
+
+    @include sm-only {
+        text-wrap: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.search-writing-topic-link__icon {
+    font-size: 10px;
+    margin-left: 8px;
+}
+
+.search-writing-featured-articles__list {
+    display: flex;
+    gap: var(--grid-gap);
+
+    @include sm-only {
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+
+        scrollbar-width: none; // Firefox
+        -ms-overflow-style: none; // IE and Edge
+        &::-webkit-scrollbar {
+            display: none; // Chrome, Safari, Opera
+        }
+    }
+}
+
+.search-writing-topic__see-all {
+    display: none;
+
+    @include sm-only {
+        display: block;
+    }
+}

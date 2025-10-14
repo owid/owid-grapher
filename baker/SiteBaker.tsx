@@ -14,7 +14,6 @@ import {
     renderFrontPage,
     renderBlogByPageNum,
     renderSearchPage,
-    DEPRECATEDrenderSearchPage,
     renderDonatePage,
     makeAtomFeed,
     feedbackPage,
@@ -95,6 +94,7 @@ import {
     getLatestChartArchivedVersionsIfEnabled,
     getLatestMultiDimArchivedVersionsIfEnabled,
 } from "../db/model/archival/archivalDb.js"
+import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
 
 type PrefetchedAttachments = {
     donors: string[]
@@ -271,7 +271,7 @@ export class SiteBaker {
                     path !== "donate" &&
                     path !== "feedback" &&
                     path !== "charts" &&
-                    path !== "search" &&
+                    path !== SEARCH_BASE_PATH.slice(1) &&
                     path !== "index" &&
                     path !== "identifyadmin" &&
                     path !== "404" &&
@@ -669,8 +669,8 @@ export class SiteBaker {
             await feedbackPage()
         )
         await this.stageWrite(
-            `${this.bakedSiteDir}/search.html`,
-            await DEPRECATEDrenderSearchPage()
+            `${this.bakedSiteDir}${SEARCH_BASE_PATH}.html`,
+            await renderSearchPage(knex)
         )
         await this.stageWrite(
             `${this.bakedSiteDir}/explorers.html`,
@@ -691,11 +691,6 @@ export class SiteBaker {
         await this.stageWrite(
             `${this.bakedSiteDir}/sitemap.xml`,
             await makeSitemap(this.explorerAdminServer, knex)
-        )
-
-        await this.stageWrite(
-            `${this.bakedSiteDir}/data.html`,
-            await renderSearchPage(knex)
         )
     }
 

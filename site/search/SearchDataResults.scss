@@ -1,0 +1,11 @@
+.search-data-results__list {
+    list-style: none;
+}
+
+.search-data-results__hit {
+    margin: 16px 0;
+
+    @include sm-only {
+        margin: 8px 0;
+    }
+}

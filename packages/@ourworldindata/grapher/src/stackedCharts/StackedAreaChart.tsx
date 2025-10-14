@@ -10,7 +10,7 @@ import {
     exposeInstanceOnWindow,
 } from "@ourworldindata/utils"
 import { computed, action, observable, makeObservable } from "mobx"
-import { InteractionState, SeriesName } from "@ourworldindata/types"
+import { SeriesName } from "@ourworldindata/types"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
@@ -44,6 +44,8 @@ import { StackedAreas } from "./StackedAreas"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
+import { InteractionState } from "../interaction/InteractionState"
+import { resolveCollision } from "./StackedUtils"
 
 const STACKED_AREA_CHART_CLASS_NAME = "StackedArea"
 
@@ -122,64 +124,23 @@ export class StackedAreaChart
     }
 
     @computed private get horizontalAxisPart(): HorizontalAxis {
-        const axis = this.xAxisConfig.toHorizontalAxis()
-        axis.updateDomainPreservingUserSettings(
-            this.chartState.transformedTable.timeDomainFor(
-                this.chartState.yColumnSlugs
-            )
-        )
-        axis.formatColumn = this.chartState.inputTable.timeColumn
-        axis.hideFractionalTicks = true
-        return axis
+        return this.chartState.toHorizontalAxis(this.xAxisConfig)
     }
 
     @computed private get yAxisConfig(): AxisConfig {
-        return new AxisConfig(
-            {
-                nice: true,
-                ...this.manager.yAxisConfig,
-            },
-            this
-        )
+        const { yAxisConfig } = this.manager
+        const custom = { nice: true }
+        return new AxisConfig({ ...custom, ...yAxisConfig }, this)
     }
 
     @computed private get verticalAxisPart(): VerticalAxis {
-        const axis = this.yAxisConfig.toVerticalAxis()
-        // Use user settings for axis, unless relative mode
-        if (this.manager.isRelativeMode) axis.domain = [0, 100]
-        else axis.updateDomainPreservingUserSettings(this.yAxisDomain)
-        axis.formatColumn = this.chartState.yColumns[0]
-        return axis
-    }
-
-    @computed private get yAxisDomain(): [number, number] {
-        const yValues = this.chartState.allStackedPoints.map(
-            (point) => point.value + point.valueOffset
-        )
-        return [0, _.max(yValues) ?? 0]
+        return this.chartState.toVerticalAxis(this.yAxisConfig)
     }
 
     @computed private get xAxisConfig(): AxisConfig {
-        return new AxisConfig(
-            {
-                hideGridlines: true,
-                ...this.manager.xAxisConfig,
-            },
-            this
-        )
-    }
-
-    @computed private get midpoints(): number[] {
-        let prevY = 0
-        return this.stackedSeries.map((series) => {
-            const lastValue = R.last(series.points)
-            if (!lastValue) return 0
-
-            const y = lastValue.value + lastValue.valueOffset
-            const middleY = prevY + (y - prevY) / 2
-            prevY = y
-            return middleY
-        })
+        const { xAxisConfig } = this.manager
+        const custom = { hideGridlines: true }
+        return new AxisConfig({ ...custom, ...xAxisConfig }, this)
     }
 
     private hoverStateForSeries(
@@ -192,13 +153,12 @@ export class StackedAreaChart
     }
 
     @computed private get lineLegendSeries(): LineLabelSeries[] {
-        const { midpoints } = this
         return this.stackedSeries
             .map((series, index) => ({
                 color: series.color,
                 seriesName: series.seriesName,
                 label: series.seriesName,
-                yValue: midpoints[index],
+                yValue: this.chartState.midpoints[index],
                 isAllZeros: series.isAllZeros,
                 hover: this.hoverStateForSeries(series),
             }))
@@ -210,8 +170,15 @@ export class StackedAreaChart
         return Math.min(150, this.bounds.width / 3)
     }
 
+    @computed private get showLegend(): boolean {
+        return (
+            !!this.manager.showLegend &&
+            !this.manager.isDisplayedAlongsideComplementaryTable
+        )
+    }
+
     @computed private get lineLegendWidth(): number {
-        if (!this.manager.showLegend) return 0
+        if (!this.showLegend) return 0
 
         // only pass props that are required to calculate
         // the width to avoid circular dependencies
@@ -250,7 +217,7 @@ export class StackedAreaChart
     }
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
-        if (!this.manager.showLegend) {
+        if (!this.showLegend) {
             const categoricalLegendData = this.chartState.unstackedSeries
                 .map(
                     (series, index) =>
@@ -280,27 +247,9 @@ export class StackedAreaChart
                     if (!s1) return PREFER_S2
                     if (!s2) return PREFER_S1
 
-                    // early return if one series is all zeroes
-                    if (s1.isAllZeros && !s2.isAllZeros) return PREFER_S2
-                    if (s2.isAllZeros && !s1.isAllZeros) return PREFER_S1
-
-                    // prefer series with a higher maximum value
-                    const yMax1 = _.maxBy(s1.points, (p) => p.value)?.value ?? 0
-                    const yMax2 = _.maxBy(s2.points, (p) => p.value)?.value ?? 0
-                    if (yMax1 > yMax2) return PREFER_S1
-                    if (yMax2 > yMax1) return PREFER_S2
-
-                    // prefer series with a higher last value
-                    const yLast1 = R.last(s1.points)?.value ?? 0
-                    const yLast2 = R.last(s2.points)?.value ?? 0
-                    if (yLast1 > yLast2) return PREFER_S1
-                    if (yLast2 > yLast1) return PREFER_S2
-
-                    // prefer series with a higher total area
-                    const area1 = _.sumBy(s1.points, (p) => p.value)
-                    const area2 = _.sumBy(s2.points, (p) => p.value)
-                    if (area1 > area2) return PREFER_S1
-                    if (area2 > area1) return PREFER_S2
+                    const picked = resolveCollision(s1, s2)
+                    if (picked === s1) return PREFER_S1
+                    if (picked === s2) return PREFER_S2
 
                     return 0
                 }
@@ -471,7 +420,7 @@ export class StackedAreaChart
         const bottomSeriesPoint = series[0].points[hoveredPointIndex]
         if (!bottomSeriesPoint) return undefined
 
-        const formatColumn = this.chartState.yColumns[0], // Assumes same type for all columns.
+        const formatColumn = this.chartState.formatColumn,
             formattedTime = formatColumn.formatTime(bottomSeriesPoint.position),
             { unit, shortUnit } = formatColumn
 
@@ -519,8 +468,8 @@ export class StackedAreaChart
                         const focused = name === target.series
                         const values = [point?.fake ? undefined : point?.value]
                         const opacity = focused
-                            ? AREA_OPACITY.focus
-                            : AREA_OPACITY.default
+                            ? AREA_OPACITY.FOCUS
+                            : AREA_OPACITY.DEFAULT
                         const swatch = { color, opacity }
 
                         return {
@@ -596,7 +545,7 @@ export class StackedAreaChart
     }
 
     renderLegend(): React.ReactElement | undefined {
-        if (!this.manager.showLegend) return
+        if (!this.showLegend) return
         return (
             <LineLegend
                 series={this.lineLegendSeries}
@@ -621,7 +570,7 @@ export class StackedAreaChart
                 <StackedAreas
                     dualAxis={this.dualAxis}
                     seriesArr={this.stackedSeries}
-                    focusedSeriesName={this.hoveredSeriesName}
+                    hoveredSeriesName={this.hoveredSeriesName}
                 />
             </>
         )
@@ -662,7 +611,7 @@ export class StackedAreaChart
                     <StackedAreas
                         dualAxis={dualAxis}
                         seriesArr={series}
-                        focusedSeriesName={this.hoveredSeriesName}
+                        hoveredSeriesName={this.hoveredSeriesName}
                         onAreaMouseEnter={this.onAreaMouseEnter}
                         onAreaMouseLeave={this.onAreaMouseLeave}
                     />
@@ -692,9 +641,7 @@ export class StackedAreaChart
     }
 
     @computed private get lineLegendX(): number {
-        return this.manager.showLegend
-            ? this.bounds.right - this.lineLegendWidth
-            : 0
+        return this.showLegend ? this.bounds.right - this.lineLegendWidth : 0
     }
 
     @computed private get lineLegendY(): [number, number] {

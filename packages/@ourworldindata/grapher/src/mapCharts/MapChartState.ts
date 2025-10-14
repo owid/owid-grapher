@@ -3,6 +3,7 @@ import { computed, makeObservable } from "mobx"
 import { ChartState } from "../chart/ChartInterface"
 import {
     ChoroplethSeries,
+    ChoroplethSeriesByName,
     MapChartManager,
     MapColumnInfo,
 } from "./MapChartConstants"
@@ -18,9 +19,12 @@ import {
     ColorSchemeName,
     ColumnSlug,
     EntityName,
+    PrimitiveType,
+    TickFormattingOptions,
     Time,
 } from "@ourworldindata/types"
 import {
+    anyToString,
     checkHasMembers,
     isPresent,
     mappableCountries,
@@ -32,6 +36,14 @@ import { isOnTheMap } from "./MapHelpers"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
 import { ColorScale, ColorScaleManager } from "../color/ColorScale"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
+
+export type MapFormatValueForTooltip = (
+    d: PrimitiveType,
+    options?: TickFormattingOptions
+) => {
+    formattedValue: string
+    isRounded: boolean
+}
 
 export class MapChartState implements ChartState, ColorScaleManager {
     manager: MapChartManager
@@ -318,6 +330,31 @@ export class MapChartState implements ChartState, ColorScaleManager {
                 } satisfies ChoroplethSeries
             })
             .filter(isPresent)
+    }
+
+    @computed get seriesMap(): ChoroplethSeriesByName {
+        return new Map(this.series.map((series) => [series.seriesName, series]))
+    }
+
+    @computed get formatValueForTooltip(): MapFormatValueForTooltip {
+        const { mapConfig, colorScale } = this
+
+        return (d: PrimitiveType, options?: TickFormattingOptions) => {
+            if (mapConfig.tooltipUseCustomLabels) {
+                // Find the bin (and its label) that this value belongs to
+                const bin = colorScale.getBinForValue(d)
+                const label = bin?.label
+                if (label !== undefined && label !== "")
+                    return { formattedValue: label, isRounded: false }
+            }
+
+            if (typeof d === "number")
+                return {
+                    formattedValue: this.mapColumn.formatValueShort(d, options),
+                    isRounded: true,
+                }
+            else return { formattedValue: anyToString(d), isRounded: false }
+        }
     }
 
     @computed get errorInfo(): ChartErrorInfo {

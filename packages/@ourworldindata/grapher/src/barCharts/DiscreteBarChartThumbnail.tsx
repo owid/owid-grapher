@@ -8,6 +8,8 @@ import {
     type DiscreteBarChartProps,
 } from "./DiscreteBarChart.js"
 
+import { DiscreteBarChartManager } from "./DiscreteBarChartConstants.js"
+
 @observer
 export class DiscreteBarChartThumbnail
     extends React.Component<DiscreteBarChartProps>
@@ -20,6 +22,10 @@ export class DiscreteBarChartThumbnail
 
     @computed get chartState(): DiscreteBarChartState {
         return this.props.chartState
+    }
+
+    @computed get manager(): DiscreteBarChartManager {
+        return this.props.chartState.manager
     }
 
     override render(): React.ReactElement {

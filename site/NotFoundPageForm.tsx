@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch, faCircleXmark } from "@fortawesome/free-solid-svg-icons"
+import { SEARCH_BASE_PATH } from "./search/searchUtils.js"
 
 export default function NotFoundPageForm() {
     const [searchQuery, setSearchQuery] = useState("")
@@ -13,7 +14,11 @@ export default function NotFoundPageForm() {
     }, [])
 
     return (
-        <form className="NotFoundPageForm" action="/search" method="GET">
+        <form
+            className="NotFoundPageForm"
+            action={SEARCH_BASE_PATH}
+            method="GET"
+        >
             <input
                 id="search_q"
                 className="NotFoundPageForm__input"

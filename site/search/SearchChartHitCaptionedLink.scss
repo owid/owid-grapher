@@ -1,0 +1,56 @@
+.search-chart-hit-captioned-link {
+    // Show overlay on hover
+    &:hover {
+        .search-chart-hit-captioned-link__overlay {
+            opacity: 1;
+        }
+    }
+
+    @include md-down {
+        scroll-snap-align: start;
+    }
+
+    .search-chart-hit-captioned-link__label {
+        @include note-1-regular;
+        color: $blue-90;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        margin-top: 8px;
+    }
+
+    .search-chart-hit-captioned-link__overlay {
+        @include body-3-bold;
+
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        padding: 12px;
+
+        background: rgba(163, 199, 245, 0.3);
+        pointer-events: none;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        // Hidden by default
+        opacity: 0;
+
+        // Animates the opacity when shown
+        transition: opacity 0.2s ease-in-out;
+
+        .search-chart-hit-captioned-link__cta {
+            @include label-2-medium;
+
+            background: $blue-65;
+            opacity: 1;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+    }
+}

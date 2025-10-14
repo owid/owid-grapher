@@ -7,6 +7,28 @@
     display: block;
     cursor: pointer;
 
+    &.owid-btn--icon-only {
+        padding: 4.5px 9px;
+    }
+
+    &:disabled {
+        cursor: default;
+
+        &.owid-btn--solid-blue,
+        &.owid-btn--solid-dark-blue,
+        &.owid-btn--solid-light-blue,
+        &.owid-btn--solid-vermillion {
+            color: $blue-50;
+            background-color: $blue-10;
+        }
+
+        &.owid-btn--outline-vermillion,
+        &.owid-btn--outline-white {
+            color: $blue-40;
+            border-color: $blue-40;
+        }
+    }
+
     svg {
         font-size: 0.75rem;
     }
@@ -57,9 +79,28 @@
     }
 }
 
+.owid-btn--solid-light-blue {
+    background-color: $blue-20;
+    color: $blue-90;
+
+    &:hover {
+        background-color: $blue-10;
+    }
+}
+
 .owid-btn--outline-white {
     border-color: $white;
     color: $white;
+
+    &:hover {
+        background-color: $white;
+        color: $blue-90;
+    }
+}
+
+.owid-btn--outline-light-blue {
+    border-color: $blue-20;
+    color: $blue-90;
 
     &:hover {
         background-color: $white;

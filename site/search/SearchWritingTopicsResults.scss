@@ -1,0 +1,10 @@
+.search-writing-topics-results {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+
+    @include sm-only {
+        gap: 32px;
+    }
+}

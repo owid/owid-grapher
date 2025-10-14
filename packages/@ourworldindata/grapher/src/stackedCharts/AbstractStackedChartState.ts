@@ -1,3 +1,5 @@
+import * as _ from "lodash-es"
+import * as R from "remeda"
 import { ChartState } from "../chart/ChartInterface.js"
 import { ChartManager } from "../chart/ChartManager.js"
 import {
@@ -5,6 +7,7 @@ import {
     ColorSchemeName,
     FacetStrategy,
     MissingDataStrategy,
+    SeriesName,
     SeriesStrategy,
 } from "@ourworldindata/types"
 import { computed, makeObservable } from "mobx"
@@ -32,6 +35,9 @@ import {
 } from "../color/CategoricalColorAssigner.js"
 import { BinaryMapPaletteE } from "../color/CustomSchemes.js"
 import { checkIsStackingEntitiesSensible } from "./StackedUtils.js"
+import { FocusArray } from "../focus/FocusArray.js"
+import { AxisConfig } from "../axis/AxisConfig.js"
+import { HorizontalAxis, VerticalAxis } from "../axis/Axis.js"
 
 // used in StackedBar charts to color negative and positive bars
 const POSITIVE_COLOR = BinaryMapPaletteE.colorSets[0][0] // orange
@@ -43,6 +49,7 @@ export abstract class AbstractStackedChartState implements ChartState {
     abstract shouldRunLinearInterpolation: boolean
 
     abstract get series(): readonly StackedSeries<number>[]
+    abstract get yDomain(): [number, number]
     abstract get useValueBasedColorScheme(): boolean
 
     constructor({ manager }: { manager: ChartManager }) {
@@ -128,6 +135,11 @@ export abstract class AbstractStackedChartState implements ChartState {
         return this.manager.yColumnSlugs ?? autoDetectYColumnSlugs(this.manager)
     }
 
+    @computed get formatColumn(): CoreColumn {
+        // we can just use the first column for formatting, b/c we assume all columns have same type
+        return this.yColumns[0]
+    }
+
     @computed get seriesStrategy(): SeriesStrategy {
         return autoDetectSeriesStrategy(this.manager)
     }
@@ -135,11 +147,12 @@ export abstract class AbstractStackedChartState implements ChartState {
     @computed
     get columnsAsSeries(): readonly StackedRawSeries<number>[] {
         return this.yColumns
-            .map((col) => {
+            .map((column) => {
                 return {
-                    isProjection: col.isProjection,
-                    seriesName: col.displayName,
-                    rows: col.owidRows,
+                    isProjection: column.isProjection,
+                    seriesName: column.displayName,
+                    rows: column.owidRows,
+                    focus: this.focusArray.state(column.displayName),
                 }
             })
             .toReversed() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
@@ -151,11 +164,12 @@ export abstract class AbstractStackedChartState implements ChartState {
 
         const { isProjection, owidRowsByEntityName } = this.yColumns[0]
         return this.selectionArray.selectedEntityNames
-            .map((seriesName) => {
+            .map((entityName) => {
                 return {
                     isProjection,
-                    seriesName,
-                    rows: owidRowsByEntityName.get(seriesName) || [],
+                    seriesName: entityName,
+                    rows: owidRowsByEntityName.get(entityName) || [],
+                    focus: this.focusArray.state(entityName),
                 }
             })
             .toReversed() // For stacked charts, we want the first selected series to be on top, so we reverse the order of the stacks.
@@ -166,6 +180,10 @@ export abstract class AbstractStackedChartState implements ChartState {
         return this.isEntitySeries
             ? this.entitiesAsSeries
             : this.columnsAsSeries
+    }
+
+    @computed get seriesByName(): Map<SeriesName, StackedSeries<number>> {
+        return new Map(this.series.map((series) => [series.seriesName, series]))
     }
 
     @computed
@@ -198,6 +216,14 @@ export abstract class AbstractStackedChartState implements ChartState {
 
     @computed get selectionArray(): SelectionArray {
         return makeSelectionArray(this.manager.selection)
+    }
+
+    @computed get focusArray(): FocusArray {
+        return this.manager.focusArray ?? new FocusArray()
+    }
+
+    @computed get isFocusModeActive(): boolean {
+        return this.focusArray.hasFocusedSeries
     }
 
     @computed get isEntitySeries(): boolean {
@@ -286,8 +312,48 @@ export abstract class AbstractStackedChartState implements ChartState {
                     points,
                     isAllZeros: points.every((point) => point.value === 0),
                     color: this.categoricalColorAssigner.assign(seriesName),
+                    focus: series.focus,
                 }
-            }) as StackedSeries<number>[]
+            })
+    }
+
+    @computed get midpoints(): number[] {
+        let prevY = 0
+        return this.series.map((series) => {
+            const lastValue = R.last(series.points)
+            if (!lastValue) return 0
+
+            const y = lastValue.value + lastValue.valueOffset
+            const middleY = prevY + (y - prevY) / 2
+            prevY = y
+            return middleY
+        })
+    }
+
+    toHorizontalAxis(config: AxisConfig): HorizontalAxis {
+        const axis = config.toHorizontalAxis()
+
+        // Update domain
+        axis.updateDomainPreservingUserSettings(
+            this.transformedTable.timeDomainFor(this.yColumnSlugs)
+        )
+
+        axis.formatColumn = this.inputTable.timeColumn
+        axis.hideFractionalTicks = true
+
+        return axis
+    }
+
+    toVerticalAxis(config: AxisConfig): VerticalAxis {
+        const axis = config.toVerticalAxis()
+
+        // Use user settings for axis, unless relative mode
+        if (this.manager.isRelativeMode) axis.domain = [0, 100]
+        else axis.updateDomainPreservingUserSettings(this.yDomain)
+
+        axis.formatColumn = this.yColumns[0]
+
+        return axis
     }
 
     @computed get errorInfo(): ChartErrorInfo {

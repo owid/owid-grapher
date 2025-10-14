@@ -1,0 +1,98 @@
+import { match } from "ts-pattern"
+import { useSearchContext } from "./SearchContext.js"
+import { SearchTopicType } from "./searchTypes.js"
+import { SearchWritingResults } from "./SearchWritingResults.js"
+import { SearchDataInsightsResults } from "./SearchDataInsightsResults.js"
+import { SearchWritingTopicsResults } from "./SearchWritingTopicsResults.js"
+
+export const SearchTemplatesWriting = () => {
+    const { templateConfig } = useSearchContext()
+
+    return (
+        match([
+            templateConfig.topicType,
+            templateConfig.hasCountry,
+            templateConfig.hasQuery,
+        ] as const)
+            // Writing + Topic + Country + Query
+            .with([SearchTopicType.Topic, true, true], () => (
+                <>
+                    <SearchWritingResults topicType={SearchTopicType.Topic} />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // Writing + Topic + Country + No Query
+            .with([SearchTopicType.Topic, true, false], () => (
+                <>
+                    <SearchDataInsightsResults />
+                    <SearchWritingResults topicType={SearchTopicType.Topic} />
+                </>
+            ))
+            // Writing + Topic + No Country + Query
+            .with([SearchTopicType.Topic, false, true], () => (
+                <>
+                    <SearchWritingResults topicType={SearchTopicType.Topic} />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // Writing + Topic + No Country + No Query
+            .with([SearchTopicType.Topic, false, false], () => (
+                <>
+                    <SearchWritingResults topicType={SearchTopicType.Topic} />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // Writing + Area + Country + Query
+            .with([SearchTopicType.Area, true, true], () => (
+                <>
+                    <SearchWritingResults topicType={SearchTopicType.Area} />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // Writing + Area + Country + No Query
+            .with([SearchTopicType.Area, true, false], () => (
+                <>
+                    <SearchDataInsightsResults />
+                    <SearchWritingResults topicType={SearchTopicType.Area} />
+                </>
+            ))
+            // Writing + Area + No Country + Query
+            .with([SearchTopicType.Area, false, true], () => (
+                <>
+                    <SearchWritingResults topicType={SearchTopicType.Area} />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // Writing + Area + No Country + No Query
+            .with([SearchTopicType.Area, false, false], () => (
+                <>
+                    <SearchWritingResults topicType={SearchTopicType.Area} />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // Writing + No Topic + Country + Query
+            .with([null, true, true], () => (
+                <>
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // Writing + No Topic + Country + No Query
+            .with([null, true, false], () => (
+                <>
+                    <SearchDataInsightsResults />
+                    <SearchWritingResults hasTopicPages={false} />
+                </>
+            ))
+            // Writing + No Topic + No Country + Query
+            .with([null, false, true], () => (
+                <>
+                    <SearchWritingResults />
+                    <SearchDataInsightsResults />
+                </>
+            ))
+            // Writing + No Topic + No Country + No Query
+            .with([null, false, false], () => <SearchWritingTopicsResults />)
+            .exhaustive()
+    )
+}

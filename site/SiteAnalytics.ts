@@ -1,9 +1,12 @@
 import * as _ from "lodash-es"
 import { GrapherAnalytics, EventCategory } from "@ourworldindata/grapher"
 import {
-    type SearchCategoryFilter,
-    type IDataCatalogHit,
+    type SearchChartHit,
     type SearchState,
+    type FlatArticleHit,
+    type TopicPageHit,
+    type DataInsightHit,
+    type StackedArticleHit,
     FilterType,
 } from "./search/searchTypes.js"
 import { getFilterNamesOfType } from "./search/searchUtils.js"
@@ -25,38 +28,6 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logSearchClick({
-        query,
-        position,
-        url,
-        positionInSection,
-        cardPosition,
-        positionWithinCard,
-        filter,
-    }: {
-        query: string
-        position: string
-        positionInSection: string
-        cardPosition?: string
-        positionWithinCard?: string
-        url: string
-        filter: SearchCategoryFilter
-    }) {
-        this.logToGA({
-            event: EventCategory.SiteSearchClick,
-            eventAction: "click",
-            eventContext: JSON.stringify({
-                query,
-                position,
-                positionInSection,
-                cardPosition,
-                positionWithinCard,
-                filter,
-            }),
-            eventTarget: url,
-        })
-    }
-
     logInstantSearchClick({
         query,
         url,
@@ -74,14 +45,6 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logSearchFilterClick({ key }: { key: string }) {
-        this.logToGA({
-            event: EventCategory.SiteSearchFilterClick,
-            eventAction: "click",
-            eventContext: key,
-        })
-    }
-
     logDodShown(id: string) {
         this.logToGA({
             event: EventCategory.DetailOnDemand,
@@ -90,9 +53,9 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logDataCatalogSearch(state: SearchState) {
+    logSearch(state: SearchState) {
         this.logToGA({
-            event: EventCategory.DataCatalogSearch,
+            event: EventCategory.SiteSearch,
             eventAction: "search",
             eventContext: JSON.stringify({
                 ...state,
@@ -106,19 +69,26 @@ export class SiteAnalytics extends GrapherAnalytics {
         })
     }
 
-    logDataCatalogResultClick(
-        hit: IDataCatalogHit,
-        position: number,
-        source: "ribbon" | "search",
-        ribbonTag?: string
+    logSiteSearchResultClick(
+        hit:
+            | SearchChartHit
+            | FlatArticleHit
+            | TopicPageHit
+            | DataInsightHit
+            | StackedArticleHit,
+        context: {
+            position: number
+            source: "ribbon" | "search" // "ribbons" are the per-area overview components present on the unparameterized browse pages for writing and data.
+            ribbonTag?: string
+            vizType?: string
+        }
     ) {
         const eventContext = {
-            position,
-            source,
+            ...context,
+            type: hit.type,
         }
-        if (ribbonTag) _.set(eventContext, "ribbonTag", ribbonTag)
         this.logToGA({
-            event: EventCategory.DataCatalogResultClick,
+            event: EventCategory.SiteSearchResultClick,
             eventAction: "click",
             eventContext: JSON.stringify(eventContext),
             eventTarget: hit.slug,

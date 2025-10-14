@@ -34,8 +34,12 @@ import {
     getAnnotationsForSeries,
     getAnnotationsMap,
     getColorKey,
+    getDisplayName,
     getSeriesName,
 } from "../lineCharts/LineChartHelpers"
+import { domainExtent } from "@ourworldindata/utils"
+import { AxisConfig } from "../axis/AxisConfig"
+import { VerticalAxis } from "../axis/Axis"
 
 export class SlopeChartState implements ChartState {
     manager: SlopeChartManager
@@ -126,6 +130,10 @@ export class SlopeChartState implements ChartState {
         return this.manager.focusArray ?? new FocusArray()
     }
 
+    @computed get isFocusModeActive(): boolean {
+        return this.focusArray.hasFocusedSeries
+    }
+
     @computed get yColumnSlugs(): ColumnSlug[] {
         return autoDetectYColumnSlugs(this.manager)
     }
@@ -144,6 +152,10 @@ export class SlopeChartState implements ChartState {
 
     @computed get missingDataStrategy(): MissingDataStrategy {
         return this.manager.missingDataStrategy || MissingDataStrategy.auto
+    }
+
+    @computed get yScaleType(): ScaleType {
+        return this.manager.yAxisConfig?.scaleType ?? ScaleType.linear
     }
 
     @computed get colorScheme(): ColorScheme {
@@ -198,34 +210,43 @@ export class SlopeChartState implements ChartState {
         column: CoreColumn
     ): RawSlopeChartSeries {
         const { startTime, endTime, seriesStrategy } = this
-        const { canSelectMultipleEntities = false } = this.manager
-
+        const { canSelectMultipleEntities } = this.manager
         const { availableEntityNames } = this.transformedTable
+
         const columnName = column.nonEmptyDisplayName
-        const props = {
+        const hasMultipleEntitiesSelected = availableEntityNames.length > 1
+        const seriesName = getSeriesName({
             entityName,
             columnName,
             seriesStrategy,
-            availableEntityNames,
-            canSelectMultipleEntities,
-        }
-        const seriesName = getSeriesName(props)
-        const displayName = getSeriesName({
-            ...props,
+            hasMultipleEntitiesSelected,
+            allowsMultiEntitySelection: canSelectMultipleEntities,
+        })
+        const displayName = getDisplayName({
             entityName: getShortNameForEntity(entityName) ?? entityName,
+            columnName,
+            seriesStrategy,
+            hasMultipleEntitiesSelected,
         })
 
         const owidRowByTime = column.owidRowByEntityNameAndTime.get(entityName)
         const start = owidRowByTime?.get(startTime)
         const end = owidRowByTime?.get(endTime)
 
-        const colorKey = getColorKey(props)
+        const colorKey = getColorKey({
+            entityName,
+            columnName,
+            seriesStrategy,
+            hasMultipleEntitiesSelected,
+        })
         const color = this.categoricalColorAssigner.assign(colorKey)
 
         const annotation = getAnnotationsForSeries(
             this.annotationsMap,
             seriesName
         )
+
+        const focus = this.focusArray.state(seriesName)
 
         return {
             column,
@@ -236,6 +257,7 @@ export class SlopeChartState implements ChartState {
             start,
             end,
             annotation,
+            focus,
         }
     }
 
@@ -318,6 +340,37 @@ export class SlopeChartState implements ChartState {
         return this.rawSeries.filter((series) =>
             this.shouldSeriesBePlotted(series)
         )
+    }
+
+    @computed get allYValues(): number[] {
+        return this.series.flatMap((series) => [
+            series.start.value,
+            series.end.value,
+        ])
+    }
+
+    @computed get xDomain(): [number, number] {
+        return [this.startTime, this.endTime]
+    }
+
+    @computed get yDomainDefault(): [number, number] {
+        const defaultDomain: [number, number] = [Infinity, -Infinity]
+        return domainExtent(this.allYValues, this.yScaleType) ?? defaultDomain
+    }
+
+    toVerticalAxis(
+        config: AxisConfig,
+        {
+            yDomain,
+            yRange,
+        }: { yDomain: [number, number]; yRange: [number, number] }
+    ): VerticalAxis {
+        const axis = config.toVerticalAxis()
+        axis.domain = yDomain
+        axis.range = yRange
+        axis.formatColumn = this.yColumns[0]
+        axis.label = ""
+        return axis
     }
 
     @computed get errorInfo(): ChartErrorInfo {

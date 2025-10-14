@@ -41,6 +41,7 @@ export {
     urlToSlug,
     trimObject,
     fetchText,
+    fetchJson,
     getUserCountryInformation,
     stripHTML,
     getRandomNumberGenerator,
@@ -116,7 +117,6 @@ export {
     checkIsAuthor,
     cartesian,
     removeTrailingParenthetical,
-    isElementHidden,
     commafyNumber,
     isFiniteWithGuard,
     createTagGraph,
@@ -140,6 +140,9 @@ export {
     extractDetailsFromSyntax,
     parseFloatOrUndefined,
     bind,
+    merge,
+    calculateTrendDirection,
+    getDisplayUnit,
 } from "./Util.js"
 
 export {
@@ -193,6 +196,7 @@ export {
     regions,
     type Region,
     countries,
+    listedRegionsNames,
     type Country,
     type IncomeGroup,
     type OwidIncomeGroupName,
@@ -219,6 +223,8 @@ export {
     getCountryNamesForRegion,
     checkHasMembers,
     getRegionByName,
+    getParentRegions,
+    getSiblingRegions,
 } from "./regions.js"
 
 export { getStylesForTargetHeight } from "./react-select.js"
@@ -237,8 +243,6 @@ export { PointVector } from "./PointVector.js"
 export { OwidVariableDisplayConfig } from "./OwidVariable.js"
 
 export {
-    getQueryParams,
-    getWindowQueryParams,
     strToQueryParams,
     queryParamsToStr,
     getWindowQueryStr,
@@ -298,7 +302,6 @@ export { isAndroid, isIOS } from "./BrowserUtils.js"
 export {
     diffGrapherConfigs,
     mergeGrapherConfigs,
-    simpleMerge,
 } from "./grapherConfigUtils.js"
 
 export {
@@ -333,3 +336,11 @@ export {
     EXPERIMENT_ARM_SEPARATOR,
     EXPERIMENT_PREFIX,
 } from "./experiments/constants.js"
+
+export {
+    buildChartHitDataDisplayProps,
+    getTableColumnCountForGridSlotKey,
+} from "./search/SearchHelpers.js"
+
+export { placeGrapherTabsInLargeVariantGrid } from "./search/LargeVariantRichDataHelpers.js"
+export { placeGrapherTabsInMediumVariantGridLayout } from "./search/MediumVariantRichDataHelpers.js"
