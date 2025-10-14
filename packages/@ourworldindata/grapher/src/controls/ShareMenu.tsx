@@ -183,14 +183,14 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         return canUseShareApi(this.manager)
     }
 
-    @computed get canCopyPng(): boolean {
+    @computed get showCopyPngButton(): boolean {
         return (
             this.state.canWriteToClipboard && !!this.manager.showAdminControls
         )
     }
 
     override render(): React.ReactElement {
-        const { canUseShareApi, manager, canCopyPng } = this
+        const { canUseShareApi, manager, showCopyPngButton } = this
         const { editUrl, createNarrativeChartUrl } = manager
 
         const width = 200
@@ -238,7 +238,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         {this.state.copied ? "Copied!" : "Copy link"}
                     </a>
                 )}
-                {canCopyPng && (
+                {showCopyPngButton && (
                     <a
                         title="Copy PNG image to clipboard"
                         data-track-note="chart_share_copypng"

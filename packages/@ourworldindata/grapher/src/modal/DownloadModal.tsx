@@ -5,6 +5,7 @@ import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import {
     Bounds,
+    canWriteToClipboard,
     getOriginAttributionFragments,
     getPhraseForProcessingLevel,
     triggerDownloadFromBlob,
@@ -20,6 +21,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faCircleExclamation,
+    faCopy,
     faDownload,
     faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons"
@@ -214,12 +216,14 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
             | "svgPreviewUrl"
             | "pngBlob"
             | "pngPreviewUrl"
+            | "canWriteToClipboard"
             | "isReady"
         >(this, {
             svgBlob: observable,
             svgPreviewUrl: observable,
             pngBlob: observable,
             pngPreviewUrl: observable,
+            canWriteToClipboard: observable,
             isReady: observable,
         })
     }
@@ -272,6 +276,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
 
     private pngBlob: Blob | undefined = undefined
     private pngPreviewUrl: string | undefined = undefined
+    private canWriteToClipboard: boolean = false
 
     private isReady: boolean = false
 
@@ -360,8 +365,28 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
         this.manager.activeModal = GrapherModal.Embed
     }
 
+    @computed get showCopyPngButton(): boolean {
+        return !!this.manager.showAdminControls && this.canWriteToClipboard
+    }
+
+    @action.bound async onCopyPng(): Promise<void> {
+        try {
+            if (!this.pngBlob) return
+            await navigator.clipboard.write([
+                new ClipboardItem({ "image/png": this.pngBlob }),
+            ])
+        } catch (err) {
+            console.error("couldn't copy PNG to clipboard", err)
+        }
+    }
+
     override componentDidMount(): void {
         queueMicrotask(() => this.export())
+
+        void canWriteToClipboard().then(
+            (canWriteToClipboard) =>
+                (this.canWriteToClipboard = canWriteToClipboard)
+        )
     }
 
     override render(): React.ReactElement {
@@ -447,6 +472,15 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                 onClick={this.onPngDownload}
                                 imageStyle={imageStyle}
                             />
+                            {this.showCopyPngButton && (
+                                <button
+                                    className="download-modal__download-button download-modal__download-button--variant-copy"
+                                    onClick={this.onCopyPng}
+                                >
+                                    <FontAwesomeIcon icon={faCopy} />
+                                    Copy PNG
+                                </button>
+                            )}
                             <DownloadButton
                                 title="Vector graphic (SVG)"
                                 description="For high quality prints, or further editing the chart in graphics software."
