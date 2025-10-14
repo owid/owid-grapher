@@ -80,7 +80,7 @@ export function SearchChartHitSmall({
                     hit={hit}
                     url={chartUrl}
                     source={chartInfo?.source}
-                    onClick={() => onClick(chartType)}
+                    onClick={onClick}
                 />
                 <div className="search-chart-hit-small__tabs-container">
                     {hit.availableTabs.map((tab) => {

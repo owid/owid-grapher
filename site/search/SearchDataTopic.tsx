@@ -56,7 +56,7 @@ export const SearchDataTopic = ({
                             <SearchChartHitComponent
                                 hit={hit}
                                 variant={hitIndex === 0 ? "medium" : "small"}
-                                onClick={(vizType?: string) => {
+                                onClick={(vizType?: string | null) => {
                                     analytics.logSiteSearchResultClick(hit, {
                                         position: hitIndex + 1,
                                         source: "ribbon",

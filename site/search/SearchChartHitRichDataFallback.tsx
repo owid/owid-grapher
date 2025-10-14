@@ -97,7 +97,7 @@ export function SearchChartHitRichDataFallback({
                     hit={hit}
                     url={chartUrl}
                     source={chartInfo?.source}
-                    onClick={() => onClick(chartType)}
+                    onClick={onClick}
                 />
                 <div className="search-chart-hit-rich-data__header-actions">
                     <Button
