@@ -56,6 +56,7 @@ import {
     InteractionState,
     MapRegionName,
     SeriesName,
+    TickFormattingOptions,
 } from "@ourworldindata/types"
 import { ClipPath, makeClipPath } from "../chart/ChartUtils"
 import { NoDataModal } from "../noDataModal/NoDataModal"
@@ -71,6 +72,14 @@ import { MapChartState } from "./MapChartState"
 import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 
 export type MapChartProps = ChartComponentProps<MapChartState>
+
+export type MapFormatValueForTooltip = (
+    d: PrimitiveType,
+    options?: TickFormattingOptions
+) => {
+    formattedValue: string
+    isRounded: boolean
+}
 
 @observer
 export class MapChart
@@ -214,13 +223,10 @@ export class MapChart
         this.mapConfig.region = value
     }
 
-    @computed private get formatValueForTooltip(): (d: PrimitiveType) => {
-        formattedValue: string
-        isRounded: boolean
-    } {
+    @computed private get formatValueForTooltip(): MapFormatValueForTooltip {
         const { mapConfig, colorScale } = this
 
-        return (d: PrimitiveType) => {
+        return (d: PrimitiveType, options?: TickFormattingOptions) => {
             if (mapConfig.tooltipUseCustomLabels) {
                 // Find the bin (and its label) that this value belongs to
                 const bin = colorScale.getBinForValue(d)
@@ -231,7 +237,7 @@ export class MapChart
 
             if (typeof d === "number")
                 return {
-                    formattedValue: this.mapColumn.formatValueShort(d),
+                    formattedValue: this.mapColumn.formatValueShort(d, options),
                     isRounded: true,
                 }
             else return { formattedValue: anyToString(d), isRounded: false }

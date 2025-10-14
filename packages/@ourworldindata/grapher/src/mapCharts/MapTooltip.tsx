@@ -19,14 +19,11 @@ import {
     ColumnSlug,
 } from "@ourworldindata/types"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
-import {
-    PrimitiveType,
-    excludeUndefined,
-    PointVector,
-} from "@ourworldindata/utils"
+import { excludeUndefined, PointVector } from "@ourworldindata/utils"
 import { darkenColorForHighContrastText } from "../color/ColorUtils"
 import { MapSparkline, MapSparklineManager } from "./MapSparkline.js"
 import { match } from "ts-pattern"
+import type { MapFormatValueForTooltip } from "./MapChart.js"
 
 interface MapTooltipProps {
     entityName: EntityName
@@ -35,10 +32,7 @@ interface MapTooltipProps {
     mapColumnInfo: MapColumnInfo
     position?: PointVector
     lineColorScale: ColorScale
-    formatValueForTooltip: (d: PrimitiveType) => {
-        formattedValue: string
-        isRounded: boolean
-    }
+    formatValueForTooltip: MapFormatValueForTooltip
     timeSeriesTable: OwidTable
     targetTime?: Time
     sparklineWidth?: number
@@ -117,10 +111,7 @@ export class MapTooltip
         return this.props.lineColorScale
     }
 
-    @computed get formatValueForTooltip(): (d: PrimitiveType) => {
-        formattedValue: string
-        isRounded: boolean
-    } {
+    @computed get formatValueForTooltip(): MapFormatValueForTooltip {
         return this.props.formatValueForTooltip
     }
 

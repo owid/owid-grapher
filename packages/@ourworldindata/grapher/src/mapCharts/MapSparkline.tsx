@@ -6,8 +6,8 @@ import {
     AxisConfigInterface,
     ColumnSlug,
     EntityName,
+    OwidVariableRoundingMode,
     OwidVariableRow,
-    PrimitiveType,
     Time,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
@@ -18,6 +18,7 @@ import { LineChartManager } from "../lineCharts/LineChartConstants"
 import { ColorScale } from "../color/ColorScale.js"
 import * as R from "remeda"
 import { MapColumnInfo } from "./MapChartConstants"
+import type { MapFormatValueForTooltip } from "./MapChart.js"
 
 const DEFAULT_SPARKLINE_WIDTH = 250
 const DEFAULT_SPARKLINE_HEIGHT = 87
@@ -35,10 +36,7 @@ export interface MapSparklineManager {
     datum?: OwidVariableRow<number | string>
     mapAndYColumnAreTheSame?: boolean
     yAxisConfig?: AxisConfigInterface
-    formatValueForTooltip: (d: PrimitiveType) => {
-        formattedValue: string
-        isRounded: boolean
-    }
+    formatValueForTooltip: MapFormatValueForTooltip
 }
 
 interface MapSparklineProps {
@@ -206,8 +204,12 @@ export class MapSparkline extends React.Component<MapSparklineProps> {
             yColumn = this.sparklineTable.get(mapColumnSlug),
             minVal = _.min([yColumn.minValue, yAxisConfig?.min]) ?? 0,
             maxVal = _.max([yColumn.maxValue, yAxisConfig?.max]) ?? 0,
-            minLabel = formatValueForTooltip(minVal).formattedValue,
-            maxLabel = formatValueForTooltip(maxVal).formattedValue
+            minLabel = formatValueForTooltip(minVal, {
+                roundingMode: OwidVariableRoundingMode.decimalPlaces,
+            }).formattedValue,
+            maxLabel = formatValueForTooltip(maxVal, {
+                roundingMode: OwidVariableRoundingMode.decimalPlaces,
+            }).formattedValue
         const { innerBounds: axisBounds } = this.sparklineChart.dualAxis
 
         const labelX = axisBounds.right - SPARKLINE_NUDGE
