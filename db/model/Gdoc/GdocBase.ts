@@ -115,6 +115,75 @@ export async function getLinkedIndicatorsForCharts(
     })
 }
 
+/**
+ * Helper function to load linked charts for given grapher and explorer slugs.
+ * This is shared between GdocBase.loadLinkedCharts and GdocHomepage.loadAnnouncementLinks
+ */
+export async function loadLinkedChartsForSlugs(
+    knex: db.KnexReadonlyTransaction,
+    grapherSlugs: string[],
+    explorerSlugs: string[]
+): Promise<LinkedChart[]> {
+    if (grapherSlugs.length === 0 && explorerSlugs.length === 0) return []
+
+    const slugToIdMap = await mapSlugsToIds(knex)
+
+    const [archivedChartVersions, archivedMultiDimVersions] = await Promise.all(
+        [
+            getLatestChartArchivedVersionsIfEnabled(
+                knex,
+                excludeUndefined(grapherSlugs.map((slug) => slugToIdMap[slug]))
+            ),
+            getLatestMultiDimArchivedVersionsIfEnabled(knex),
+        ]
+    )
+
+    // TODO: rewrite this as a single query instead of N queries
+    const linkedGrapherCharts = await Promise.all(
+        grapherSlugs.map(async (originalSlug) => {
+            const chartId = slugToIdMap[originalSlug]
+            if (chartId) {
+                const chart = await getChartConfigById(knex, chartId)
+                if (!chart) return
+
+                return makeGrapherLinkedChart(
+                    knex,
+                    chart.config,
+                    originalSlug,
+                    {
+                        archivedPageVersion:
+                            archivedChartVersions[chartId] || undefined,
+                    }
+                )
+            } else {
+                const multiDim = await getMultiDimDataPageBySlug(
+                    knex,
+                    originalSlug,
+                    { onlyPublished: false }
+                )
+                if (!multiDim) return
+
+                return makeMultiDimLinkedChart(multiDim.config, originalSlug, {
+                    archivedPageVersion:
+                        archivedMultiDimVersions[multiDim.id] || undefined,
+                })
+            }
+        })
+    ).then(excludeNullish)
+
+    const publishedExplorersBySlug = await db.getPublishedExplorersBySlug(knex)
+
+    const linkedExplorerCharts = excludeNullish(
+        explorerSlugs.map((originalSlug) => {
+            const explorer = publishedExplorersBySlug[originalSlug]
+            if (!explorer) return
+            return makeExplorerLinkedChart(explorer, originalSlug)
+        })
+    )
+
+    return [...linkedGrapherCharts, ...linkedExplorerCharts]
+}
+
 export class GdocBase implements OwidGdocBaseInterface {
     id!: string
     slug: string = ""
@@ -744,74 +813,13 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async loadLinkedCharts(knex: db.KnexReadonlyTransaction): Promise<void> {
-        const slugToIdMap = await mapSlugsToIds(knex)
-
-        const [archivedChartVersions, archivedMultiDimVersions] =
-            await Promise.all([
-                getLatestChartArchivedVersionsIfEnabled(
-                    knex,
-                    excludeUndefined(
-                        this.linkedChartSlugs.grapher.map(
-                            (slug) => slugToIdMap[slug]
-                        )
-                    )
-                ),
-                getLatestMultiDimArchivedVersionsIfEnabled(knex),
-            ])
-
-        // TODO: rewrite this as a single query instead of N queries
-        const linkedGrapherCharts = await Promise.all(
-            this.linkedChartSlugs.grapher.map(async (originalSlug) => {
-                const chartId = slugToIdMap[originalSlug]
-                if (chartId) {
-                    const chart = await getChartConfigById(knex, chartId)
-                    if (!chart) return
-
-                    return makeGrapherLinkedChart(
-                        knex,
-                        chart.config,
-                        originalSlug,
-                        {
-                            archivedPageVersion:
-                                archivedChartVersions[chartId] || undefined,
-                        }
-                    )
-                } else {
-                    const multiDim = await getMultiDimDataPageBySlug(
-                        knex,
-                        originalSlug,
-                        { onlyPublished: false }
-                    )
-                    if (!multiDim) return
-
-                    return makeMultiDimLinkedChart(
-                        multiDim.config,
-                        originalSlug,
-                        {
-                            archivedPageVersion:
-                                archivedMultiDimVersions[multiDim.id] ||
-                                undefined,
-                        }
-                    )
-                }
-            })
-        ).then(excludeNullish)
-
-        const publishedExplorersBySlug =
-            await db.getPublishedExplorersBySlug(knex)
-
-        const linkedExplorerCharts = excludeNullish(
-            this.linkedChartSlugs.explorer.map((originalSlug) => {
-                const explorer = publishedExplorersBySlug[originalSlug]
-                if (!explorer) return
-                return makeExplorerLinkedChart(explorer, originalSlug)
-            })
+        const linkedCharts = await loadLinkedChartsForSlugs(
+            knex,
+            this.linkedChartSlugs.grapher,
+            this.linkedChartSlugs.explorer
         )
 
-        this.linkedCharts = _.keyBy(
-            [...linkedGrapherCharts, ...linkedExplorerCharts],
-            "originalSlug"
-        )
+        this.linkedCharts = _.keyBy(linkedCharts, "originalSlug")
     }
 
     async loadLinkedIndicators(
@@ -1102,7 +1110,7 @@ export class GdocBase implements OwidGdocBaseInterface {
         await this.loadLinkedCharts(knex)
         await this.loadLinkedIndicators(knex) // depends on linked charts
         await this.loadNarrativeChartsInfo(knex)
-        await this._loadSubclassAttachments(knex)
+        await this._loadSubclassAttachments(knex) // for GdocHomepage, mutates linkedCharts and linkedDocuments
         await this.validate(knex)
     }
 

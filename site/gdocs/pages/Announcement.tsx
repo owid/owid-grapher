@@ -52,6 +52,7 @@ export const AnnouncementPageContent = (props: AnnouncementProps) => {
                 <>
                     <p>{props.content.excerpt}</p>
                     <Cta
+                        shouldRenderLinks
                         text={props.content.cta.text}
                         url={props.content.cta.url}
                     />
