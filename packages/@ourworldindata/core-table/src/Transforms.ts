@@ -341,7 +341,7 @@ const duplicate: Transform = {
     ): CoreValueType[] => _.cloneDeep(columnStore[columnSlug]),
 }
 
-const availableTransforms: Record<string, Transform> = {
+const availableTransforms = {
     asPercentageOf,
     timeSinceEntityExceededThreshold,
     divideBy,
@@ -352,15 +352,19 @@ const availableTransforms: Record<string, Transform> = {
     duplicate,
 } as const
 
-export const AvailableTransforms = Object.keys(availableTransforms)
+type TransformName = keyof typeof availableTransforms
+export const AvailableTransforms = Object.keys(
+    availableTransforms
+) as TransformName[]
+
+const isTransformName = (word: string): word is TransformName =>
+    AvailableTransforms.includes(word as any)
 
 export const extractTransformNameAndParams = (
     transform: string
-): { transformName: string; params: string[] } | undefined => {
+): { transformName: TransformName; params: string[] } | undefined => {
     const words = transform.split(" ")
-    const transformName = words.find(
-        (word) => availableTransforms[word] !== undefined
-    )
+    const transformName = words.find((word) => isTransformName(word))
     if (!transformName) {
         console.warn(`Warning: transform '${transformName}' not found`)
         return
@@ -410,11 +414,11 @@ export const applyTransforms = (
  */
 export const extractDataSlugsFromTransformString = (
     transform: string
-): ColumnSlug[] => {
+): { transformName: TransformName; dataSlugs: ColumnSlug[] } | undefined => {
     const { transformName, params = [] } =
         extractTransformNameAndParams(transform) ?? {}
 
-    if (!transformName) return []
+    if (!transformName) return undefined
 
     // Extract data slugs from transforms (i.e. columns with data, not time or entity)
     const paramDefs = availableTransforms[transformName].params
@@ -437,5 +441,5 @@ export const extractDataSlugsFromTransformString = (
         dataSlugs.push(...params.slice(paramDefs.length))
     }
 
-    return _.uniq(dataSlugs)
+    return { transformName, dataSlugs: _.uniq(dataSlugs) }
 }

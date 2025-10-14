@@ -349,13 +349,18 @@ export class Explorer
     }
 
     @computed get partialGrapherConfigsBySlug() {
+        const { columnDefsWithoutTableSlug } = this.explorerProgram
+
         const configsBySlug = new Map<string, GrapherInterface>()
-        for (const columnDef of this.explorerProgram
-            .columnDefsWithoutTableSlug) {
-            if (columnDef.transform?.startsWith("duplicate")) {
-                const indicatorId = +columnDef.transform
-                    .replace("duplicate", "")
-                    .trim()
+        for (const columnDef of columnDefsWithoutTableSlug) {
+            if (!columnDef.transform) continue
+
+            const parsedTransform = extractDataSlugsFromTransformString(
+                columnDef.transform
+            )
+
+            if (parsedTransform?.transformName === "duplicate") {
+                const indicatorId = +parsedTransform.dataSlugs[0]
                 const partialGrapherConfig =
                     this.partialGrapherConfigsByVariableId.get(indicatorId)
                 if (partialGrapherConfig)
@@ -579,21 +584,6 @@ export class Explorer
         )
     }
 
-    /**
-     * Extracts the data slugs (variable IDs or column slugs) that a transformed
-     * column depends on.
-     *
-     * For example, if a column has the transform 'divideBy 170775 other_slug', this method
-     * would return ['170775', 'other_slug'] as these are the columns that the
-     * transformed column needs to perform its calculation.
-     */
-    private getDataSlugsForTransformedColumn(slug: string): string[] {
-        const def = this.columnDefsWithoutTableSlugByIdOrSlug[slug]
-        return def.transform
-            ? extractDataSlugsFromTransformString(def.transform)
-            : []
-    }
-
     @action.bound async updateGrapherFromExplorerUsingGrapherId() {
         const grapherState = this.grapherState
 
@@ -708,56 +698,51 @@ export class Explorer
                 .with({ type: "variableId" }, (dimension) => {
                     dimensions.push(_.omit(dimension, "type"))
                 })
-                .with({ type: "slug" }, (dimension) => {
+                .with({ type: "slug" }, ({ slug }) => {
+                    const def = this.columnDefsWithoutTableSlugByIdOrSlug[slug]
+
+                    // Parse the transform string to identify all variable ids
+                    // that the transformed column depends on
+                    const parsedTransform = extractDataSlugsFromTransformString(
+                        def.transform ?? ""
+                    )
+
                     // It's safe to assume the extracted data slugs are variable ids
                     // since indicator-based explorers don't support multi-step transforms
-                    const variableIds = this.getDataSlugsForTransformedColumn(
-                        dimension.slug
-                    )
-                        .map((id) => parseIntOrUndefined(id))
-                        .filter((id) => id !== undefined)
+                    const variableIds =
+                        parsedTransform?.dataSlugs
+                            .map((id) => parseIntOrUndefined(id))
+                            .filter((id) => id !== undefined) ?? []
 
-                    for (let index = 0; index < variableIds.length; index++) {
-                        const variableId = variableIds[index]
-
-                        const hasDimension = dimensions.some(
+                    for (const variableId of variableIds) {
+                        // Skip if the variable id is already present as a dimension
+                        const dimensionExists = dimensions.some(
                             (d) => d.variableId === variableId
                         )
+                        if (dimensionExists) continue
 
-                        // Add the dimension to the _beginning_ of the array
-                        // to ensure that the slug-based dimensions appear
-                        // before the variable id-based dimensions,
-                        // maintaining consistency with the ySlugs ordering
-                        // (see below)
-                        if (!hasDimension) {
-                            if (index === 0) {
-                                // If the transform depends on a single variable
-                                // (e.g. duplicate transform), then add that
-                                // variable as proper chart dimension. If the
-                                // transform depends on multiple variables, then
-                                // the first variable id is treated as the main
-                                // variable for the dimension.
-                                dimensions.unshift({
-                                    variableId: variableId,
-                                    property: dimension.property,
-                                    display: dimension.display,
-                                })
-                            } else {
-                                // If a transformed column depends on multiple
-                                // variables, we use DimensionProperty.table to
-                                // prevent intermediate variables from appearing
-                                // as chart dimensions
-                                dimensions.unshift({
-                                    variableId: variableId,
-                                    property: DimensionProperty.table,
-                                })
-                            }
+                        if (parsedTransform?.transformName === "duplicate") {
+                            // Use the original DimensionProperty if the column
+                            // has been duplicated from an existing variable
+                            dimensions.push({
+                                slug,
+                                variableId: variableId,
+                                property: dimension.property,
+                                display: dimension.display,
+                            })
+                        } else {
+                            // Use DimensionProperty.table to prevent intermediate
+                            // variables from appearing as chart dimensions
+                            dimensions.push({
+                                slug,
+                                variableId: variableId,
+                                property: DimensionProperty.table,
+                            })
                         }
                     }
                 })
                 .exhaustive()
         }
-        config.dimensions = dimensions
 
         // The ySlugs ultimately determine which dimensions are used as the y-dimensions.
         // If there are any ySlugs defined, we want to append the variable IDs to them, so
@@ -766,15 +751,29 @@ export class Explorer
         if (config.ySlugs && explorerGrapherConfig.yVariableIds)
             config.ySlugs = `${config.ySlugs} ${explorerGrapherConfig.yVariableIds}`
 
+        const indexMap: Record<string, number> = {}
+        const ySlugList = config.ySlugs?.split(" ") ?? []
+        ySlugList.forEach((slug, index) => (indexMap[slug] = index))
+
+        // Sort dimensions to match the order defined in config.ySlugs
+        config.dimensions = _.sortBy(
+            dimensions,
+            (dim) => indexMap[dim.slug ?? dim.variableId]
+        )
+
         this.inputTableTransformer = (table: OwidTable) => {
             // All slugs specified by the author in the explorer config
             const slugs = _.uniq(slugDimensions.map(({ slug }) => slug))
 
             // Add transformed columns (and the variables they depend on) to the grapher table
             if (slugs.length > 0) {
-                const baseSlugs = slugs.flatMap((slug) =>
-                    this.getDataSlugsForTransformedColumn(slug)
-                )
+                const baseSlugs = slugs.flatMap((slug) => {
+                    const { transform = "" } =
+                        this.columnDefsWithoutTableSlugByIdOrSlug[slug]
+                    const parsedTransform =
+                        extractDataSlugsFromTransformString(transform)
+                    return parsedTransform?.dataSlugs ?? []
+                })
                 const allRequiredSlugs = _.uniq([...baseSlugs, ...slugs])
                 const existingSlugs = new Set(table.columnSlugs)
                 const missingSlugs = allRequiredSlugs.filter(

@@ -161,7 +161,7 @@ export const SampleInlineDataExplorer = (props?: Partial<ExplorerProps>) => {
     })
 }
 
-const SampleIndicatorBasedExplorerProgram = `explorerTitle	Sample Explorer
+export const SampleIndicatorBasedExplorerProgram = `explorerTitle	Sample Explorer
 selection	World
 
 graphers
