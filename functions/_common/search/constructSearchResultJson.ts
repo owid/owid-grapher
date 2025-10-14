@@ -302,6 +302,7 @@ export async function pickDisplayEntities(
                         grapherState,
                         chartState,
                         dataApiUrl,
+                        entity: pickedEntities[0],
                     })
                 })
                 .with(Marimekko, () => {
@@ -311,6 +312,7 @@ export async function pickDisplayEntities(
                         grapherState,
                         chartState,
                         dataApiUrl,
+                        entity: pickedEntities[0],
                     })
                 })
                 .exhaustive()
@@ -388,10 +390,12 @@ async function pickDisplayEntitiesForScatterPlot({
     grapherState,
     chartState,
     dataApiUrl,
+    entity,
 }: {
     grapherState: GrapherState
     chartState: ScatterPlotChartState
     dataApiUrl?: string
+    entity?: EntityName
 }): Promise<EntityName[]> {
     const { series, colorColumnSlug, sizeColumnSlug } = chartState
 
@@ -409,10 +413,19 @@ async function pickDisplayEntitiesForScatterPlot({
     const getSize = (series: ScatterSeries) => series.points.at(0)?.size ?? 0
     const getY = (series: ScatterSeries) => series.points.at(0)?.y ?? 0
 
+    // Color of the entity picked by the user
+    const pickedColor = grapherState.table
+        .get(colorColumnSlug)
+        .owidRowsByEntityName.get(entity)?.[0]?.value
+    const isDifferentFromPickedColor = (series: ScatterSeries) =>
+        !pickedColor || getColor(series) !== pickedColor
+
     // When both color and size dimensions are available, select the entity
     // with the largest size from each color group
     if (colorColumnSlug && sizeColumnSlug) {
-        return maxByGroup(series, getColor, getSize).map(getName)
+        return maxByGroup(series, getColor, getSize)
+            .filter(isDifferentFromPickedColor)
+            .map(getName)
     }
 
     // When only the color dimension is available, select the entity with the
@@ -425,7 +438,9 @@ async function pickDisplayEntitiesForScatterPlot({
         const getPopulation = (series: ScatterSeries) =>
             populationByEntityName?.get(series.seriesName) ?? 0
 
-        return maxByGroup(series, getColor, getPopulation).map(getName)
+        return maxByGroup(series, getColor, getPopulation)
+            .filter(isDifferentFromPickedColor)
+            .map(getName)
     }
 
     // When only the size dimension is available, select the entities
@@ -449,10 +464,12 @@ async function pickDisplayEntitiesForMarimekko({
     grapherState,
     chartState,
     dataApiUrl,
+    entity,
 }: {
     grapherState: GrapherState
     chartState: MarimekkoChartState
     dataApiUrl?: string
+    entity?: EntityName
 }): Promise<EntityName[]> {
     const { items, colorColumnSlug, xColumnSlug } = chartState
 
@@ -471,10 +488,19 @@ async function pickDisplayEntitiesForMarimekko({
     const getX = (item: MarimekkoItem) => item.xPoint?.value ?? 0
     const getY = (item: MarimekkoItem) => item.bars[0]?.yPoint?.value ?? 0
 
+    // Color of the entity picked by the user
+    const pickedColor = grapherState.table
+        .get(colorColumnSlug)
+        .owidRowsByEntityName.get(entity)?.[0]?.value
+    const isDifferentFromPickedColor = (item: MarimekkoItem) =>
+        !pickedColor || getColor(item) !== pickedColor
+
     // When both color and x dimensions are available, select the entity
     // with the largest x from each color group
     if (colorColumnSlug && xColumnSlug) {
-        return maxByGroup(items, getColor, getX).map(getName)
+        return maxByGroup(items, getColor, getX)
+            .filter(isDifferentFromPickedColor)
+            .map(getName)
     }
 
     // When only the color dimension is available, select the entity with the
@@ -487,7 +513,9 @@ async function pickDisplayEntitiesForMarimekko({
         const getPopulation = (item: MarimekkoItem) =>
             populationByEntityName?.get(item.entityName) ?? 0
 
-        return maxByGroup(items, getColor, getPopulation).map(getName)
+        return maxByGroup(items, getColor, getPopulation)
+            .filter(isDifferentFromPickedColor)
+            .map(getName)
     }
 
     // When only the x dimension is available, select the entities
