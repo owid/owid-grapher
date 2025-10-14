@@ -184,6 +184,7 @@ export const synonyms = [
     ["foreign aid", "development assistance", "oda"],
     ["trade", "imports", "exports"],
     ["climate change", "global warming"],
+    ["conflict", "war"],
     ["deforestation", "forest loss", "tree loss"],
     ["land use", "land-use", "land cover"],
     [
