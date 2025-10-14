@@ -48,8 +48,8 @@ export function constructGrapherValuesJson(
         GRAPHER_MAP_TYPE,
         grapherState
     ) as MapChartState
-    const formatValueIfCustom = (value: PrimitiveType): string | undefined =>
-        mapChartState.formatTooltipValueIfCustom(value)
+    const formatValueForTooltip = (value: PrimitiveType): string | undefined =>
+        mapChartState.formatValueForTooltip(value)?.formattedValue
 
     const result = omitUndefinedValues({
         entityName,
@@ -60,13 +60,13 @@ export function constructGrapherValuesJson(
             grapherState,
             entityName,
             startTime,
-            formatValueIfCustom
+            formatValueForTooltip
         ),
         endValues: makeDimensionValuesForTime(
             grapherState,
             entityName,
             endTime,
-            formatValueIfCustom
+            formatValueForTooltip
         ),
         source: grapherState.sourcesLine,
     })
@@ -113,7 +113,7 @@ const makeDimensionValuesForTime = (
     grapherState: GrapherState,
     entityName: EntityName,
     time?: Time,
-    formatValueIfCustom?: (value: PrimitiveType) => string | undefined
+    formatValueForTooltip?: (value: PrimitiveType) => string | undefined
 ): GrapherValuesJsonDataPoints | undefined => {
     if (time === undefined) return undefined
 
@@ -126,14 +126,14 @@ const makeDimensionValuesForTime = (
                 getTransformedColumn(grapherState, ySlug),
                 entityName,
                 time,
-                formatValueIfCustom
+                formatValueForTooltip
             )
         ),
         x: makeDimensionValueForColumnAndTime(
             getTransformedColumn(grapherState, xSlug),
             entityName,
             time,
-            formatValueIfCustom
+            formatValueForTooltip
         ),
     })
 }
@@ -142,7 +142,7 @@ const makeDimensionValueForColumnAndTime = (
     column: CoreColumn,
     entityName: string,
     time: Time,
-    formatValueIfCustom?: (value: PrimitiveType) => string | undefined
+    formatValueForTooltip?: (value: PrimitiveType) => string | undefined
 ): GrapherValuesJsonDataPoint | undefined => {
     if (column.isMissing) return undefined
 
@@ -162,7 +162,7 @@ const makeDimensionValueForColumnAndTime = (
         formattedValueShortWithAbbreviations:
             column.formatValueShortWithAbbreviations(value),
 
-        valueLabel: formatValueIfCustom?.(value),
+        valueLabel: formatValueForTooltip?.(value),
 
         time: owidRow.originalTime,
         formattedTime: column.formatTime(owidRow.originalTime),
