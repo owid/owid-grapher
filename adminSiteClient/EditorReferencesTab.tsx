@@ -455,7 +455,7 @@ const ReferencesExplorers = (props: {
     if (!props.references.explorers?.length) return null
     return (
         <>
-            <p>Explorers that reference this chart:</p>
+            <p>Explorers (incl. unpublished ones) that reference this chart:</p>
             <ul className="list-group">
                 {props.references.explorers.map((explorer) => (
                     <li key={explorer} className="list-group-item">

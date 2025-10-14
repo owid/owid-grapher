@@ -81,10 +81,8 @@ export const getReferencesByChartId = async (
             explorerSlug
         FROM
             explorer_charts
-            join explorers e on explorerSlug = e.slug
         WHERE
-            chartId = ?
-            and e.isPublished = 1`,
+            chartId = ?`,
         [chartId]
     )
     const narrativeChartsPromise = db.knexRaw<NarrativeChartMinimalInformation>(
