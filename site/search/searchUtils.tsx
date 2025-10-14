@@ -969,19 +969,18 @@ export const getUrlParamNameForFilter = (filter: Filter) =>
 /**
  * Builds a fully qualified search URL for the provided autocomplete filter.
  *
- * Handles different filter types:
- * - `COUNTRY` or `TOPIC` filters include a `resultType=ALL` parameter to
- *   broaden search results beyond the default data-only view, plus any
- *   unmatched query terms
- * - `QUERY` filters only include the filter parameter itself (defaults to
- *   data-only results)
+ * - add  a `resultType=ALL` parameter to broaden search results beyond the
+ *   default data-only view
+ * - `COUNTRY` filters include unmatched query terms
  *
  * Examples:
  * - Country filter "Kenya" with unmatched query "emissions":
- *   "?country=Kenya&q=emissions&resultType=all" (shows all content types)
- * - Topic filter "Health": "?topic=Health&resultType=all" (shows all content
- *   types)
- * - Query filter "outdoor": "?q=outdoor" (shows data results only)
+ *   "?country=Kenya&q=emissions&resultType=all"
+ * - Topic filter "Health" (unmatched query discarded, if any):
+ *   "?topic=Health&resultType=all"
+ * - Query filter "outdoor": "?q=outdoor&resultType=all"
+ *
+ * See also `SearchAutocomplete.tsx` for similar logic in the search page.
  */
 export const getItemUrlForFilter = (
     filter: Filter,
@@ -989,17 +988,17 @@ export const getItemUrlForFilter = (
 ): string => {
     const filterParam = {
         [getUrlParamNameForFilter(filter)]: filter.name,
+        [SearchUrlParam.RESULT_TYPE]: SearchResultType.ALL,
     }
 
     const queryParams = match(filter.type)
-        .with(FilterType.COUNTRY, FilterType.TOPIC, () => ({
+        .with(FilterType.COUNTRY, () => ({
             ...filterParam,
             ...(unmatchedQuery && {
                 [SearchUrlParam.QUERY]: unmatchedQuery,
             }),
-            [SearchUrlParam.RESULT_TYPE]: SearchResultType.ALL,
         }))
-        .with(FilterType.QUERY, () => filterParam)
+        .with(FilterType.QUERY, FilterType.TOPIC, () => filterParam)
         .exhaustive()
 
     return `${BAKED_BASE_URL}${SEARCH_BASE_PATH}${queryParamsToStr(queryParams)}`
