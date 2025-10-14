@@ -169,11 +169,13 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         const { manager } = this
 
         try {
-            await manager.rasterize().then(({ blob }) => {
-                navigator.clipboard.write([
-                    new ClipboardItem({ "image/png": blob }),
-                ])
-            })
+            await manager
+                .rasterize()
+                .then(({ blob }) =>
+                    navigator.clipboard.write([
+                        new ClipboardItem({ "image/png": blob }),
+                    ])
+                )
         } catch (err) {
             console.error("couldn't copy PNG to clipboard", err)
         }
