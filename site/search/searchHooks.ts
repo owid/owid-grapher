@@ -195,7 +195,7 @@ export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
     const { state, searchClient } = useSearchContext()
     const query = useInfiniteQuery<T, Error>({
         queryKey: queryKey(state),
-        queryFn: ({ pageParam = 0 }: { pageParam: unknown }) => {
+        queryFn: ({ pageParam }) => {
             if (typeof pageParam !== "number")
                 throw new Error("Invalid pageParam")
 
@@ -253,7 +253,7 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
     const query = useInfiniteQuery<T, Error>({
         // All paginated subqueries share the same query key
         queryKey: queryKey(state),
-        queryFn: ({ pageParam = 0 }) => {
+        queryFn: ({ pageParam }) => {
             if (typeof pageParam !== "number")
                 throw new Error("Invalid pageParam")
 
