@@ -8,6 +8,7 @@ import reactHooks from "eslint-plugin-react-hooks"
 import reactRefresh from "eslint-plugin-react-refresh"
 import tseslint from "typescript-eslint"
 import mobx from "eslint-plugin-mobx"
+import tanstackQuery from "@tanstack/eslint-plugin-query"
 
 export default tseslint.config(
     eslint.configs.recommended,
@@ -18,6 +19,7 @@ export default tseslint.config(
     react.configs.flat["jsx-runtime"],
     reactHooks.configs["recommended-latest"],
     mobx.flatConfigs.recommended,
+    ...tanstackQuery.configs["flat/recommended"],
     {
         files: [
             // TODO: Apply to all React files when we move off class components,

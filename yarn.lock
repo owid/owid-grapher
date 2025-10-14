@@ -6415,6 +6415,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/eslint-plugin-query@npm:^5.91.0":
+  version: 5.91.0
+  resolution: "@tanstack/eslint-plugin-query@npm:5.91.0"
+  dependencies:
+    "@typescript-eslint/utils": "npm:^8.44.1"
+  peerDependencies:
+    eslint: ^8.57.0 || ^9.0.0
+  checksum: 10/e6add8f7a4e219055908863ac78f0c7e6520c1d187db7c9aceede8cc492ac185a33edff00e320cb3cbad526fe4f47bb0b08773a36d78241a854cea5e22dd8c14
+  languageName: node
+  linkType: hard
+
 "@tanstack/query-core@npm:5.90.3":
   version: 5.90.3
   resolution: "@tanstack/query-core@npm:5.90.3"
@@ -7645,7 +7656,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/utils@npm:8.46.1":
+"@typescript-eslint/utils@npm:8.46.1, @typescript-eslint/utils@npm:^8.44.1":
   version: 8.46.1
   resolution: "@typescript-eslint/utils@npm:8.46.1"
   dependencies:
@@ -11384,6 +11395,7 @@ __metadata:
     "@sentry/react": "npm:^10.0.0"
     "@sentry/vite-plugin": "npm:^4.0.2"
     "@slack/web-api": "npm:^7.9.1"
+    "@tanstack/eslint-plugin-query": "npm:^5.91.0"
     "@tanstack/react-query": "npm:5.90.3"
     "@testing-library/dom": "npm:^10.4.1"
     "@testing-library/jest-dom": "npm:^6.6.4"
