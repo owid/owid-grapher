@@ -465,13 +465,6 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                             </Callout>
                         )}
                         <div>
-                            <DownloadButton
-                                title="Image (PNG)"
-                                description="Suitable for most uses, widely compatible."
-                                previewImageUrl={pngPreviewUrl}
-                                onClick={this.onPngDownload}
-                                imageStyle={imageStyle}
-                            />
                             {this.showCopyPngButton && (
                                 <button
                                     className="download-modal__download-button download-modal__download-button--variant-copy"
@@ -481,6 +474,13 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                     Copy PNG
                                 </button>
                             )}
+                            <DownloadButton
+                                title="Image (PNG)"
+                                description="Suitable for most uses, widely compatible."
+                                previewImageUrl={pngPreviewUrl}
+                                onClick={this.onPngDownload}
+                                imageStyle={imageStyle}
+                            />
                             <DownloadButton
                                 title="Vector graphic (SVG)"
                                 description="For high quality prints, or further editing the chart in graphics software."
