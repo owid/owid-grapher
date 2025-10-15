@@ -42,8 +42,11 @@ export class EditorFeatures {
 
     @computed get canEnableLogLinearToggle() {
         return (
+            !this.grapherState.isStackedArea &&
+            !this.grapherState.isStackedBar &&
             !this.grapherState.isDiscreteBar &&
-            !this.grapherState.isStackedDiscreteBar
+            !this.grapherState.isStackedDiscreteBar &&
+            !this.grapherState.isMarimekko
         )
     }
 
