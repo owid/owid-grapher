@@ -111,6 +111,7 @@ type PrefetchedAttachments = {
     }
     linkedIndicators: Record<number, LinkedIndicator>
     linkedNarrativeCharts: Record<string, NarrativeChartInfo>
+    slugToIdMap: Record<string, number>
 }
 
 // These aren't all "wordpress" steps
@@ -355,6 +356,7 @@ export class SiteBaker {
                 }
             )
             const publishedCharts: LinkedChart[] = []
+            const slugToIdMap: Record<string, number> = {}
 
             for (const publishedChartsRawChunk of R.chunk(
                 publishedChartsRaw,
@@ -362,6 +364,7 @@ export class SiteBaker {
             )) {
                 await Promise.all(
                     publishedChartsRawChunk.map(async (chart) => {
+                        slugToIdMap[chart.slug] = chart.id
                         publishedCharts.push(
                             await makeGrapherLinkedChart(
                                 knex,
@@ -448,6 +451,7 @@ export class SiteBaker {
                 },
                 linkedIndicators: datapageIndicatorsById,
                 linkedNarrativeCharts: narrativeChartsInfoByName,
+                slugToIdMap,
             }
             this._prefetchedAttachmentsCache = prefetchedAttachments
         }
@@ -512,13 +516,14 @@ export class SiteBaker {
                     this._prefetchedAttachmentsCache.linkedAuthors.filter(
                         (author) => authorNames.includes(author.name)
                     ),
+                slugToIdMap: this._prefetchedAttachmentsCache.slugToIdMap,
                 linkedNarrativeCharts: _.pick(
                     this._prefetchedAttachmentsCache.linkedNarrativeCharts,
                     linkedNarrativeChartNames
                 ),
             }
         }
-        return this._prefetchedAttachmentsCache
+        return this._prefetchedAttachmentsCache!
     }
 
     private async removeDeletedPosts(knex: db.KnexReadonlyTransaction) {
@@ -573,6 +578,7 @@ export class SiteBaker {
                 publishedGdoc.linkedChartSlugs.explorer,
                 publishedGdoc.linkedNarrativeChartNames,
             ])
+
             publishedGdoc.donors = attachments.donors
             publishedGdoc.linkedAuthors = attachments.linkedAuthors
             publishedGdoc.linkedDocuments = attachments.linkedDocuments
@@ -603,7 +609,7 @@ export class SiteBaker {
                 )
             }
 
-            await publishedGdoc.validate(knex)
+            await publishedGdoc.validate(knex, attachments.slugToIdMap)
             try {
                 await this.bakeOwidGdoc(publishedGdoc)
             } catch (e) {
