@@ -58,6 +58,10 @@ html:not(.js-enabled) .latest-data-insights__card,
         @include body-3-medium;
     }
 
+    .article-block__cta {
+        color: $blue-90;
+    }
+
     &:hover {
         background: $accent-pale-blue;
 
