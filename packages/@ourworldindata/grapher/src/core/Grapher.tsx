@@ -1645,6 +1645,11 @@ export class GrapherState {
         _oldTab: GrapherTabName,
         newTab: GrapherTabName
     ): void {
+        if (!this.isReady)
+            console.warn(
+                "onChartSwitching has been called before grapher has loaded its data, this is probably a mistake"
+            )
+
         this.ensureTimeHandlesAreSensibleForTab(newTab)
     }
 
