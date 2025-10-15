@@ -511,7 +511,7 @@ export async function getGptTopicSuggestions(
     })
     const completion = await openai.chat.completions.parse({
         messages: [{ role: "user", content: prompt }],
-        model: "gpt-4o",
+        model: "gpt-5-mini",
         response_format: zodResponseFormat(TopicsResponseSchema, "topics"),
     })
 

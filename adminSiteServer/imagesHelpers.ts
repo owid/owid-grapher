@@ -138,7 +138,7 @@ If the image is a data visualization and there are data sources in the footer, d
                 ],
             },
         ],
-        model: "gpt-4o-mini",
+        model: "gpt-5-mini",
     })
 
     const content = completion.choices[0].message.content
