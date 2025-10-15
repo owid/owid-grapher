@@ -412,6 +412,11 @@ function useQuerySearchResultDataForChartHit({
             if (!url) return null
             return fetchJson<GrapherSearchResultJson>(url)
         },
+        // If a query fails, it's likely because the worker
+        // exceeded resource limits (which is expected for some
+        // of our charts). Rather than retrying, we fail immediately
+        // and fall back to a simpler display.
+        retry: false,
         enabled,
     })
 
