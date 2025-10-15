@@ -195,7 +195,10 @@ export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
     const { state, searchClient } = useSearchContext()
     const query = useInfiniteQuery<T, Error>({
         queryKey: queryKey(state),
-        queryFn: ({ pageParam = 0 }) => {
+        queryFn: ({ pageParam }) => {
+            if (typeof pageParam !== "number")
+                throw new Error("Invalid pageParam")
+
             const { offset, length } = getPaginationOffsetAndLength(
                 pageParam,
                 firstPageSize,
@@ -219,6 +222,7 @@ export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
                 : undefined
         },
         enabled,
+        initialPageParam: 0,
     })
 
     const hits: U[] = query.data?.pages.flatMap((page) => page.hits) || []
@@ -249,11 +253,17 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
     const query = useInfiniteQuery<T, Error>({
         // All paginated subqueries share the same query key
         queryKey: queryKey(state),
-        queryFn: ({ pageParam = 0 }) => queryFn(searchClient, state, pageParam),
+        queryFn: ({ pageParam }) => {
+            if (typeof pageParam !== "number")
+                throw new Error("Invalid pageParam")
+
+            return queryFn(searchClient, state, pageParam)
+        },
         getNextPageParam: (lastPage) => {
             const { page, nbPages } = lastPage
             return page < nbPages - 1 ? page + 1 : undefined
         },
+        initialPageParam: 0,
         enabled,
     })
 

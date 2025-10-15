@@ -274,7 +274,7 @@ function PostFileButton({ currentPath }: { currentPath: string }) {
             <input
                 type="file"
                 onChange={handleFileUpload}
-                disabled={uploadFileMutation.isLoading}
+                disabled={uploadFileMutation.isPending}
                 style={{ display: "none" }}
                 id="file-upload-input"
             />
@@ -282,10 +282,10 @@ function PostFileButton({ currentPath }: { currentPath: string }) {
                 htmlFor="file-upload-input"
                 className={cx(
                     "file-upload-label",
-                    uploadFileMutation.isLoading && "is-uploading"
+                    uploadFileMutation.isPending && "is-uploading"
                 )}
             >
-                {uploadFileMutation.isLoading ? (
+                {uploadFileMutation.isPending ? (
                     <FontAwesomeIcon icon={faSpinner} size="sm" spin />
                 ) : (
                     <span>
