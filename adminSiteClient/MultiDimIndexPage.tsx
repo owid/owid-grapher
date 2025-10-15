@@ -292,6 +292,7 @@ export function MultiDimIndexPage() {
     }, [admin])
 
     const { data } = useQuery({
+        // eslint-disable-next-line @tanstack/query/exhaustive-deps
         queryKey: ["multiDims"],
         queryFn: () => fetchMultiDims(admin),
     })

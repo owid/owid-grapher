@@ -463,6 +463,7 @@ export function FeaturedMetricsPage() {
     }, [admin])
 
     const featuredMetrics = useQuery({
+        // eslint-disable-next-line @tanstack/query/exhaustive-deps
         queryKey: ["featuredMetrics"],
         queryFn: () => fetchFeaturedMetrics(admin),
     })

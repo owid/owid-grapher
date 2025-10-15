@@ -305,6 +305,7 @@ export function FilesIndexPage() {
     const [searchValue, setSearchValue] = useState("")
 
     const { data } = useQuery({
+        // eslint-disable-next-line @tanstack/query/exhaustive-deps
         queryKey: ["files"],
         queryFn: () => fetchFiles(admin),
     })
