@@ -54,7 +54,7 @@
     "@types/react-dom": "^19.1.6",
     "@types/topojson-client": "^3.1.1",
     "@types/url-parse": "^1.4.8",
-    "eslint": "^9.32.0",
+    "eslint": "^9.37.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "typescript": "~5.9.2",
     "vitest": "^3.2.4"
