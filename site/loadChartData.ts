@@ -145,7 +145,7 @@ const useQueryVariablesMetadata = (
 ) =>
     useQueries({
         queries: variableIds.map((variableId) => ({
-            queryKey: ["variable-metadata", variableId],
+            queryKey: ["variable-metadata", dataApiUrl, variableId],
             queryFn: () => {
                 const route = getVariableMetadataRoute(dataApiUrl, variableId)
                 return fetchJson<OwidVariableWithSourceAndDimension>(route)
@@ -160,7 +160,7 @@ const useQueryVariablesData = (
 ) =>
     useQueries({
         queries: variableIds.map((variableId) => ({
-            queryKey: ["variable-data", variableId],
+            queryKey: ["variable-data", dataApiUrl, variableId],
             queryFn: () => {
                 const route = getVariableDataRoute(dataApiUrl, variableId)
                 return fetchJson<OwidVariableMixedData>(route)

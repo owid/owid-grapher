@@ -462,7 +462,7 @@ export function FeaturedMetricsPage() {
         }
     }, [admin])
 
-    const featuredMetrics = useQuery({
+    const { data: featuredMetricsData } = useQuery({
         // eslint-disable-next-line @tanstack/query/exhaustive-deps
         queryKey: ["featuredMetrics"],
         queryFn: () => fetchFeaturedMetrics(admin),
@@ -498,12 +498,12 @@ export function FeaturedMetricsPage() {
 
     const filteredFeaturedMetrics = useMemo(() => {
         const query = search.trim().toLowerCase()
-        const entries = Object.entries(featuredMetrics.data ?? {})
+        const entries = Object.entries(featuredMetricsData ?? {})
         const filtered = entries.filter(([key]) =>
             key.toLowerCase().includes(query)
         )
         return Object.fromEntries(filtered)
-    }, [featuredMetrics, search])
+    }, [featuredMetricsData, search])
 
     return (
         <AdminLayout title="Featured Metrics">
