@@ -80,13 +80,14 @@ export class SiteAnalytics extends GrapherAnalytics {
             position: number
             source: "ribbon" | "search" // "ribbons" are the per-area overview components present on the unparameterized browse pages for writing and data.
             ribbonTag?: string
-            vizType?: string
+            vizType?: string | null
         }
     ) {
         const eventContext = {
             ...context,
             type: hit.type,
         }
+
         this.logToGA({
             event: EventCategory.SiteSearchResultClick,
             eventAction: "click",
