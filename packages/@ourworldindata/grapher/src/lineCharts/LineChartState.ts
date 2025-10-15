@@ -224,12 +224,23 @@ export class LineChartState implements ChartState, ColorScaleManager {
     }
 
     @computed get series(): readonly LineChartSeries[] {
-        return this.yColumns.flatMap((col) =>
+        const series = this.yColumns.flatMap((col) =>
             col.uniqEntityNames.map(
                 (entityName): LineChartSeries =>
                     this.constructSingleSeries(entityName, col)
             )
         )
+
+        // The lines should be plotted in the order of the selected entities
+        const { selectedEntityNames } = this.selectionArray
+        const entityIndex = new Map(
+            selectedEntityNames.map((name, index) => [name, index])
+        )
+        const sortedSeries = _.sortBy(series, (series) =>
+            entityIndex.get(series.seriesName)
+        )
+
+        return sortedSeries
     }
 
     @computed get availableFacetStrategies(): FacetStrategy[] {
