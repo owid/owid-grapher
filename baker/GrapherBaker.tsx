@@ -62,6 +62,22 @@ import { GrapherArchivalManifest } from "../serverUtils/archivalUtils.js"
 import { getLatestChartArchivedVersionsIfEnabled } from "../db/model/archival/archivalDb.js"
 import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 
+// TEMPORARY: Profiling instrumentation
+const timings: Record<string, { count: number; total: number }> = {}
+const track = (name: string, duration: number) => {
+    if (!timings[name]) timings[name] = { count: 0, total: 0 }
+    timings[name].count++
+    timings[name].total += duration
+}
+const printTimings = () => {
+    console.log("\n⏱️  Detailed timing breakdown:")
+    Object.entries(timings)
+        .sort((a, b) => b[1].total - a[1].total)
+        .forEach(([name, { count, total }]) => {
+            console.log(`   ${name}: ${total}ms (${count} calls, ${(total / count).toFixed(1)}ms avg)`)
+        })
+}
+
 const renderDatapageIfApplicable = async (
     grapher: GrapherInterface,
     isPreviewing: boolean,
@@ -74,7 +90,9 @@ const renderDatapageIfApplicable = async (
         archiveContextDictionary?: Record<number, ArchiveContext | undefined>
     } = {}
 ) => {
+    const start = Date.now()
     const variable = await getVariableOfDatapageIfApplicable(knex, grapher)
+    track("getVariableOfDatapageIfApplicable", Date.now() - start)
 
     if (!variable) return undefined
 
@@ -87,7 +105,8 @@ const renderDatapageIfApplicable = async (
         )
     }
 
-    return await renderDataPageV2(
+    const renderStart = Date.now()
+    const result = await renderDataPageV2(
         {
             variableId: variable.id,
             variableMetadata: variable.metadata,
@@ -99,6 +118,8 @@ const renderDatapageIfApplicable = async (
         },
         knex
     )
+    track("renderDataPageV2", Date.now() - renderStart)
+    return result
 }
 
 /**
@@ -150,10 +171,12 @@ export async function renderDataPageV2(
     },
     knex: db.KnexReadonlyTransaction
 ) {
+    let start = Date.now()
     const grapherConfigForVariable = await getMergedGrapherConfigForVariable(
         knex,
         variableId
     )
+    track("getMergedGrapherConfigForVariable", Date.now() - start)
     // Only merge the grapher config on the indicator if the caller tells us to do so -
     // this is true for preview pages for datapages on the indicator level but false
     // if we are on Grapher pages. Once we have a good way in the grapher admin for how
@@ -205,11 +228,13 @@ export async function renderDataPageV2(
     }
     const datapageData = getDatapageDataV2(variableMetadata, grapher ?? {})
 
+    start = Date.now()
     datapageData.primaryTopic = await getPrimaryTopic(
         knex,
         datapageData.topicTagsLinks,
         grapher.slug
     )
+    track("getPrimaryTopic", Date.now() - start)
 
     let imageMetadata: Record<string, ImageMetadata> = {}
     let tagToSlugMap: Record<string, string> = {}
@@ -224,18 +249,22 @@ export async function renderDataPageV2(
     if (archiveContext?.type !== "archive-page") {
         // Get the charts this variable is being used in (aka "related charts")
         // and exclude the current chart to avoid duplicates
+        start = Date.now()
         const allCharts = await getRelatedChartsForVariable(
             knex,
             variableId,
             grapher && "id" in grapher ? [grapher.id as number] : []
         )
+        track("getRelatedChartsForVariable", Date.now() - start)
         datapageData.allCharts = allCharts.map((chart) => ({
             ...chart,
             archiveContext: archiveContextDictionary?.[chart.chartId],
         }))
 
+        start = Date.now()
         datapageData.relatedResearch =
             await getRelatedResearchAndWritingForVariables(knex, [variableId])
+        track("getRelatedResearchAndWritingForVariables", Date.now() - start)
 
         const relatedResearchFilenames = datapageData.relatedResearch
             .map((r) => r.imageUrl)
@@ -246,8 +275,13 @@ export async function renderDataPageV2(
             _.uniq(relatedResearchFilenames)
         )
 
+        start = Date.now()
         tagToSlugMap = await getTagToSlugMap(knex)
+        track("getTagToSlugMap", Date.now() - start)
+
+        start = Date.now()
         const tagsWithDataInsights = await getTagsWithDataInsights(knex)
+        track("getTagsWithDataInsights", Date.now() - start)
 
         datapageData.hasDataInsights = datapageData.primaryTopic?.topicTag
             ? tagsWithDataInsights.has(datapageData.primaryTopic.topicTag)
@@ -344,20 +378,29 @@ const renderGrapherPage = async (
     const isOnArchivalPage = archiveContext?.type === "archive-page"
     const postSlug = urlToSlug(grapher.originUrl || "") as string | undefined
     // TODO: update this to use gdocs posts
+    let start = Date.now()
     const postId =
         postSlug && !isOnArchivalPage
             ? await getPostIdFromSlug(knex, postSlug)
             : undefined
+    if (postId) track("getPostIdFromSlug", Date.now() - start)
+
+    start = Date.now()
     const relatedCharts =
         postId && !isOnArchivalPage
             ? await getPostRelatedCharts(knex, postId)
             : undefined
+    if (relatedCharts) track("getPostRelatedCharts", Date.now() - start)
+
+    start = Date.now()
     const relatedArticles =
         grapher.id && !isOnArchivalPage
             ? await getRelatedArticles(knex, grapher.id)
             : undefined
+    if (relatedArticles) track("getRelatedArticles", Date.now() - start)
 
-    return renderToHtmlPage(
+    start = Date.now()
+    const result = renderToHtmlPage(
         <GrapherPage
             grapher={grapher}
             relatedCharts={relatedCharts}
@@ -368,6 +411,8 @@ const renderGrapherPage = async (
             isPreviewing={isPreviewing}
         />
     )
+    track("renderToHtmlPage (grapher)", Date.now() - start)
+    return result
 }
 
 export const bakeSingleGrapherPageForArchival = async (
@@ -453,6 +498,9 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
     bakedSiteDir: string,
     knex: db.KnexReadonlyTransaction
 ) => {
+    const startTime = Date.now()
+    console.log("⏱️  Starting chart baking process...")
+
     const chartsToBake = await knexRaw<
         Pick<DbPlainChart, "id"> & {
             config: DbRawChartConfig["full"]
@@ -470,36 +518,44 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
         WHERE JSON_EXTRACT(cc.full, "$.isPublished")=true
         ORDER BY cc.slug ASC`
     )
+    console.log(`⏱️  Query charts: ${Date.now() - startTime}ms (${chartsToBake.length} charts)`)
 
     await fs.mkdirp(bakedSiteDir + "/grapher")
 
     // Prefetch imageMetadata and archiveContextDictionary instead of each grapher page fetching them
     // individually. imageMetadata is used by the google docs powering rich
     // text (including images) in data pages.
+    const imageStart = Date.now()
     const imageMetadataDictionary = await getAllImages(knex).then((images) =>
         _.keyBy(images, "filename")
     )
+    console.log(`⏱️  Fetch image metadata: ${Date.now() - imageStart}ms`)
+
+    const archiveStart = Date.now()
     const archiveContextDictionary =
         await getLatestChartArchivedVersionsIfEnabled(knex)
+    console.log(`⏱️  Fetch archive context: ${Date.now() - archiveStart}ms`)
 
     const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map((row) => ({
-        id: row.id,
-        config: row.config,
-        bakedSiteDir: bakedSiteDir,
-        slug: row.slug,
-        imageMetadataDictionary,
-        archiveContextDictionary,
-    }))
+            id: row.id,
+            config: row.config,
+            bakedSiteDir: bakedSiteDir,
+            slug: row.slug,
+            imageMetadataDictionary,
+            archiveContextDictionary,
+        }))
 
     const progressBar = new ProgressBar(
         "bake grapher page [:bar] :current/:total :elapseds :rate/s :name\n",
         {
             width: 20,
-            total: chartsToBake.length + 1,
+            total: jobs.length + 1,
             renderThrottle: 0,
         }
     )
 
+    console.log(`⏱️  Starting to bake ${jobs.length} charts...`)
+    const bakeStart = Date.now()
     await pMap(
         jobs,
         async (job) => {
@@ -513,11 +569,13 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
             )
             progressBar.tick({ name: job.slug })
         },
-        { concurrency: 10 }
+        { concurrency: 30 }
     )
+    console.log(`⏱️  Bake all charts: ${Date.now() - bakeStart}ms`)
 
     // Multi-dim data pages are baked into the same directory as graphers
     // and they are handled separately.
+    const cleanupStart = Date.now()
     const multiDimSlugs = await getAllMultiDimDataPageSlugs(knex)
     const newSlugs = excludeUndefined([
         ...chartsToBake.map((row) => row.slug),
@@ -525,4 +583,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
     ])
     await deleteOldGraphers(bakedSiteDir, newSlugs)
     progressBar.tick({ name: `✅ Deleted old graphers` })
+    console.log(`⏱️  Cleanup: ${Date.now() - cleanupStart}ms`)
+    console.log(`⏱️  Total time: ${Date.now() - startTime}ms`)
+    printTimings()
 }
