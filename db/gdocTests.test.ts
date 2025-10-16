@@ -22,6 +22,8 @@ import {
     parseRawBlocksToEnrichedBlocks,
     parseSimpleText,
 } from "./model/Gdoc/rawToEnriched.js"
+import { gdocToArchie } from "./model/Gdoc/gdocToArchie.js"
+import { docs_v1 } from "@googleapis/docs"
 
 function getArchieMLDocWithContent(content: string): string {
     return `title: Writing OWID Articles With Google Docs
@@ -260,6 +262,230 @@ level: 2
         }
 
         expect(article?.body?.[0]).toEqual(expectedEnrichedBlock)
+    })
+
+    it("keeps subscripts inside a single link span", async () => {
+        const url = "http://ourworldindata.org/grapher/life-expectancy"
+        const doc: docs_v1.Schema$Document = {
+            body: {
+                content: [
+                    {
+                        paragraph: {
+                            elements: [
+                                {
+                                    textRun: {
+                                        content: "CO",
+                                        textStyle: {
+                                            link: { url },
+                                        },
+                                    },
+                                },
+                                {
+                                    textRun: {
+                                        content: "2",
+                                        textStyle: {
+                                            link: { url },
+                                            baselineOffset: "SUBSCRIPT",
+                                        },
+                                    },
+                                },
+                                {
+                                    textRun: {
+                                        content: " Emissions Data Explorer",
+                                        textStyle: {
+                                            link: { url },
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                ],
+            },
+        }
+
+        const { text } = await gdocToArchie(doc)
+        expect(text).toContain(
+            `<a href="${url}">CO<sub>2</sub> Emissions Data Explorer</a>`
+        )
+        const matches = text.match(new RegExp(`<a href="${url}"`, "g")) ?? []
+        expect(matches.length).toBe(1)
+    })
+
+    it("keeps consecutive links to different targets separate", async () => {
+        const url1 = "http://ourworldindata.org/grapher/life-expectancy"
+        const url2 = "http://ourworldindata.org/grapher/co2-emissions"
+        const doc: docs_v1.Schema$Document = {
+            body: {
+                content: [
+                    {
+                        paragraph: {
+                            elements: [
+                                {
+                                    textRun: {
+                                        content: "First link",
+                                        textStyle: {
+                                            link: { url: url1 },
+                                        },
+                                    },
+                                },
+                                {
+                                    textRun: {
+                                        content: " and ",
+                                        textStyle: {},
+                                    },
+                                },
+                                {
+                                    textRun: {
+                                        content: "second link",
+                                        textStyle: {
+                                            link: { url: url2 },
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                ],
+            },
+        }
+
+        const { text } = await gdocToArchie(doc)
+        expect(text).toContain(`<a href="${url1}">First link</a>`)
+        expect(text).toContain(`<a href="${url2}">second link</a>`)
+        const matches1 = text.match(new RegExp(`<a href="${url1}"`, "g")) ?? []
+        const matches2 = text.match(new RegExp(`<a href="${url2}"`, "g")) ?? []
+        expect(matches1.length).toBe(1)
+        expect(matches2.length).toBe(1)
+    })
+
+    it("keeps adjacent links to different targets separate without text between", async () => {
+        const url1 = "http://ourworldindata.org/grapher/life-expectancy"
+        const url2 = "http://ourworldindata.org/grapher/co2-emissions"
+        const doc: docs_v1.Schema$Document = {
+            body: {
+                content: [
+                    {
+                        paragraph: {
+                            elements: [
+                                {
+                                    textRun: {
+                                        content: "First link",
+                                        textStyle: {
+                                            link: { url: url1 },
+                                        },
+                                    },
+                                },
+                                {
+                                    textRun: {
+                                        content: "Second link",
+                                        textStyle: {
+                                            link: { url: url2 },
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                ],
+            },
+        }
+
+        const { text } = await gdocToArchie(doc)
+        expect(text).toContain(`<a href="${url1}">First link</a>`)
+        expect(text).toContain(`<a href="${url2}">Second link</a>`)
+        const matches1 = text.match(new RegExp(`<a href="${url1}"`, "g")) ?? []
+        const matches2 = text.match(new RegExp(`<a href="${url2}"`, "g")) ?? []
+        expect(matches1.length).toBe(1)
+        expect(matches2.length).toBe(1)
+    })
+
+    it("merges multiple consecutive elements with the same link and mixed styles", async () => {
+        const url = "http://ourworldindata.org/grapher/life-expectancy"
+        const doc: docs_v1.Schema$Document = {
+            body: {
+                content: [
+                    {
+                        paragraph: {
+                            elements: [
+                                {
+                                    textRun: {
+                                        content: "Bold",
+                                        textStyle: {
+                                            link: { url },
+                                            bold: true,
+                                        },
+                                    },
+                                },
+                                {
+                                    textRun: {
+                                        content: " italic",
+                                        textStyle: {
+                                            link: { url },
+                                            italic: true,
+                                        },
+                                    },
+                                },
+                                {
+                                    textRun: {
+                                        content: " plain",
+                                        textStyle: {
+                                            link: { url },
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                ],
+            },
+        }
+
+        const { text } = await gdocToArchie(doc)
+        expect(text).toContain(`<a href="${url}">`)
+        expect(text).toContain(`<b>Bold</b>`)
+        expect(text).toContain(`<i> italic</i>`)
+        expect(text).toContain(` plain`)
+        const matches = text.match(new RegExp(`<a href="${url}"`, "g")) ?? []
+        expect(matches.length).toBe(1)
+    })
+
+    it("keeps superscripts inside a single link span", async () => {
+        const url = "http://ourworldindata.org/grapher/area-calculation"
+        const doc: docs_v1.Schema$Document = {
+            body: {
+                content: [
+                    {
+                        paragraph: {
+                            elements: [
+                                {
+                                    textRun: {
+                                        content: "Area in km",
+                                        textStyle: {
+                                            link: { url },
+                                        },
+                                    },
+                                },
+                                {
+                                    textRun: {
+                                        content: "2",
+                                        textStyle: {
+                                            link: { url },
+                                            baselineOffset: "SUPERSCRIPT",
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                ],
+            },
+        }
+
+        const { text } = await gdocToArchie(doc)
+        expect(text).toContain(`<a href="${url}">Area in km<sup>2</sup></a>`)
+        const matches = text.match(new RegExp(`<a href="${url}"`, "g")) ?? []
+        expect(matches.length).toBe(1)
     })
 
     it.each(Object.values(enrichedBlockExamples))(
