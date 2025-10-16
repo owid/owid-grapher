@@ -4,7 +4,8 @@
 
 import { assert, expect, test } from "vitest"
 import { render, fireEvent, screen } from "@testing-library/react"
-import { Grapher, GrapherState } from "../core/Grapher.js"
+import { Grapher } from "../core/Grapher.js"
+import { GrapherState } from "../core/GrapherState.js"
 import { legacyMapGrapher, legacyMapGrapherData } from "./MapChart.sample.js"
 import { legacyToOwidTableAndDimensionsWithMandatorySlug } from "../core/LegacyToOwidTable.js"
 

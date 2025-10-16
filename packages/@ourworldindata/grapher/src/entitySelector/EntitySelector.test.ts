@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { GrapherState } from "../core/Grapher"
+import { GrapherState } from "../core/GrapherState"
 import {
     SynthesizeFruitTable,
     SynthesizeGDPTable,
