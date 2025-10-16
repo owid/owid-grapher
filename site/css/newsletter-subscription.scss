@@ -14,7 +14,7 @@
     @include body-2-bold;
 }
 
-// hidden by default, shown on the /subscribe page
+// hidden by default, shown on the /subscribe page and homepage
 .newsletter-subscription-form__label-frequency {
     display: none;
     color: $blue-60;
@@ -78,18 +78,21 @@
     align-items: flex-start;
     gap: 8px 16px;
     margin-bottom: 8px;
+    align-items: center;
     .newsletter-subscription-header__icon {
-        height: 3rem;
+        height: 56px;
+        width: 56px;
         flex-shrink: 0;
     }
 
     .newsletter-subscription-header__heading {
         font-size: 1.25rem;
+        line-height: 1.5rem;
         color: $blue-90;
         margin: 0;
-        // magic number to sit flush with svg when there's room,
-        // and wrap when there isn't
-        flex: 0 0 184px;
+        // magic number to get the heading to wrap at the same place as the announcements heading
+        // (can't use calc because that makes it linebreak differently)
+        flex: 0 0 150.25px;
     }
 }
 
