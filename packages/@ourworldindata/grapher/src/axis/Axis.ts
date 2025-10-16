@@ -22,6 +22,7 @@ import { ColumnTypeMap, CoreColumn } from "@ourworldindata/core-table"
 import {
     DEFAULT_GRAPHER_BOUNDS,
     GRAPHER_FONT_SCALE_10_5,
+    GRAPHER_FONT_SCALE_11,
     GRAPHER_FONT_SCALE_12,
 } from "../core/GrapherConstants.js"
 import { makeAxisLabel } from "../chart/ChartUtils"
@@ -556,9 +557,11 @@ abstract class AbstractAxis {
             shortUnit: this.formatColumn?.shortUnit,
         })
 
+        const logScaleNotice = "plotted on a logarithmic axis"
+
         if (axisLabel.unit) {
             const secondaryText = this.isLogScale
-                ? `(${axisLabel.unit}; plotted on a logarithmic axis)`
+                ? `(${axisLabel.unit}; ${logScaleNotice})`
                 : `(${axisLabel.unit})`
             return MarkdownTextWrap.fromFragments({
                 main: { text: axisLabel.mainLabel, bold: true },
@@ -571,7 +574,7 @@ abstract class AbstractAxis {
         if (this.isLogScale) {
             return MarkdownTextWrap.fromFragments({
                 main: { text: axisLabel.mainLabel, bold: true },
-                secondary: { text: "(plotted on a logarithmic axis)" },
+                secondary: { text: `(${logScaleNotice})` },
                 newLine: "avoid-wrap",
                 textWrapProps,
             })
@@ -820,6 +823,33 @@ export class VerticalAxis extends AbstractAxis {
             isHidden: false,
         }
     }
+
+    @computed get shouldShowLogNotice(): boolean {
+        return this.isLogScale && !this.labelTextWrap
+    }
+
+    @computed get logNoticeTextWrap(): MarkdownTextWrap | undefined {
+        if (!this.shouldShowLogNotice) return undefined
+
+        const fontSize = Math.floor(GRAPHER_FONT_SCALE_11 * this.fontSize)
+
+        return new MarkdownTextWrap({
+            text: "log axis",
+            maxWidth: Infinity, // No line breaks
+            fontSize,
+        })
+    }
+
+    @computed get logNoticeWidth(): number {
+        return this.logNoticeTextWrap ? this.logNoticeTextWrap.width : 0
+    }
+
+    @computed get logNoticeHeight(): number {
+        const padding = this.tickFontSize
+        return this.logNoticeTextWrap
+            ? this.logNoticeTextWrap.height + padding
+            : 0
+    }
 }
 
 interface DualAxisProps {
@@ -870,16 +900,21 @@ export class DualAxis {
     @computed get innerBounds(): Bounds {
         return (
             this.bounds
-                // add padding to account for the width of the vertical axis
+                // Add padding to account for the width of the vertical axis
                 // and the height of the horizontal axis
                 .pad({
                     [this.props.horizontalAxis.orient]: this.horizontalAxisSize,
                     [this.props.verticalAxis.orient]: this.verticalAxisSize,
                 })
-                // make space for the y-axis label if plotted above the axis
+                // Make space for the y-axis label if plotted above the axis
                 .padTop(this.props.verticalAxis.labelOffsetTop)
-                // make space for vertical comparison line labels if any
+                // Make space for vertical comparison line labels if any
                 .padTop(this.comparisonLineLabelOffset)
+                .padTop(
+                    this.shouldShowLogNotice
+                        ? this.props.verticalAxis.logNoticeHeight
+                        : 0
+                )
         )
     }
 
@@ -905,6 +940,14 @@ export class DualAxis {
         if (!hasVerticalComparisonLines) return 0
 
         return this.comparisonLineLabelFontSize
+    }
+
+    @computed private get shouldShowLogNotice(): boolean {
+        return (
+            this.props.verticalAxis.shouldShowLogNotice &&
+            // Only show the notice if it fits in the margin
+            this.props.verticalAxis.logNoticeWidth <= this.verticalAxisSize
+        )
     }
 }
 

@@ -894,9 +894,11 @@ export class LineChart
                         ? this.lineLegendWidth
                         : this.defaultRightPadding
                 )
-                // top padding leaves room for tick labels
-                .padTop(6)
-                // bottom padding avoids axis labels to be cut off at some resolutions
+                // The top padding leaves room for tick labels.
+                // No padding is needed when plotted on a log axis because the
+                // log scale notice leaves enough space for tick labels.
+                .padTop(this.chartState.isLogScale ? 0 : 6)
+                // The bottom padding avoids axis labels to be cut off at some resolutions
                 .padBottom(2)
         )
     }
