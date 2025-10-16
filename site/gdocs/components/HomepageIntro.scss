@@ -30,6 +30,7 @@
     color: $blue-90;
     align-self: start;
     margin-bottom: 24px;
+    transition: border-color 0.125s;
     &:hover {
         border-color: $blue-30;
     }
@@ -80,6 +81,7 @@
 
 .homepage-intro__featured-work-authors {
     margin: 0;
+    color: $blue-60;
 }
 
 /* Announcements */
@@ -99,16 +101,18 @@
     flex-wrap: wrap;
     align-items: flex-start;
     gap: 8px 16px;
+    align-items: center;
     svg {
-        height: 3rem;
+        height: 56px;
         flex-shrink: 0;
     }
 
     h4 {
         font-size: 1.25rem;
+        line-height: 1.5rem;
         color: $blue-90;
         margin: 0;
-        flex: 0 0 75%;
+        flex: 0 0 calc(100% - 56px - 16px);
     }
 
     @include md-down {
@@ -134,14 +138,15 @@
     min-height: 0;
     overflow: hidden;
     position: relative;
+    pointer-events: none;
 
     &.homepage-intro__announcement--is-overflowing {
         .homepage-intro__announcement-read-more {
             opacity: 0;
         }
         &:after {
-            pointer-events: none;
             content: "";
+            pointer-events: none;
             width: 100%;
             height: 100%;
             position: absolute;
@@ -153,14 +158,16 @@
                 $gray-5 100%
             );
         }
+    }
 
-        @include md-down {
-            display: none;
-        }
+    @include md-down {
+        display: none;
     }
 }
 
 .homepage-intro__announcement-link {
+    line-height: 1;
+    display: block;
     &:hover {
         .homepage-intro__announcement-read-more {
             text-decoration: underline;
@@ -176,6 +183,7 @@
 
 .homepage-intro__announcement-title {
     color: $blue-90;
+    line-height: 1.3125rem;
     margin-top: 0;
     margin-bottom: 4px;
 }
@@ -187,6 +195,19 @@
 
 .homepage-intro__announcement-read-more {
     color: $blue-90;
+    svg {
+        height: 10px;
+        position: relative;
+        top: -1px;
+    }
+}
+
+.homepage-intro__latest-button {
+    @include sm-only {
+        svg {
+            display: none;
+        }
+    }
 }
 
 .homepage-intro__subscribe-button {
@@ -194,6 +215,9 @@
     @include md-down {
         display: block;
         margin-top: 16px;
+        svg {
+            display: none;
+        }
     }
 }
 
@@ -203,23 +227,46 @@
     padding: 16px;
     margin-bottom: 24px;
 
+    .newsletter-subscription-header {
+        margin-bottom: 16px;
+    }
+
     .newsletter-subscription-form {
         border-bottom: 1px solid #bdd4f7;
         padding-bottom: 16px;
     }
 
     .newsletter-subscription-form__subheader {
-        font-weight: bold;
+        @include body-2-regular;
+        color: $blue-65;
+    }
+
+    .newsletter-subscription-form__label-frequency {
+        display: inline;
+        margin-left: 6px;
+    }
+
+    .newsletter-subscription-form__email-submit {
+        display: flex;
+        flex-direction: column;
+        .newsletter-subscription-form__submit {
+            margin-top: 8px;
+            height: 40px;
+        }
+    }
+
+    .newsletter-subscription-form__privacy-notice {
+        color: $blue-65;
     }
 
     @include md-down {
         background-color: $gray-5;
         padding-top: 8px;
-        .newsletter-with-socials__header,
-        .newsletter-with-socials__form {
+        .newsletter-subscription-header,
+        .newsletter-subscription-form {
             display: none;
         }
-        .socials__cta {
+        .owid-socials__heading {
             margin-top: 0;
         }
     }
@@ -237,11 +284,14 @@
         padding: 16px;
         border-radius: 50%;
     }
-    p,
-    a {
+
+    .homepage-intro__donation-message {
         margin: 0;
+        color: $blue-65;
     }
-    a {
+
+    .homepage-intro__donation-link {
+        margin: 0;
         color: $vermillion;
         text-decoration: underline;
         &:hover {

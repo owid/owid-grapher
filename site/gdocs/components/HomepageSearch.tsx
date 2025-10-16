@@ -25,21 +25,21 @@ export function HomepageSearch(props: { className?: string }) {
                         className="homepage-search__link body-3-medium"
                         href={SEARCH_BASE_PATH}
                     >
-                        <FontAwesomeIcon icon={faChartLine} />{" "}
+                        <FontAwesomeIcon icon={faChartLine} />
                         {commafyNumber(chartCount)} Charts
                     </a>
                     <a
                         className="homepage-search__link body-3-medium"
                         href="#all-topics"
                     >
-                        <FontAwesomeIcon icon={faBookmark} />{" "}
+                        <FontAwesomeIcon icon={faBookmark} />
                         {commafyNumber(topicCount)} Topic Pages
                     </a>
                     <a
                         className="homepage-search__link body-3-medium"
                         href="/explorers"
                     >
-                        <FontAwesomeIcon icon={faMagnifyingGlassChart} />{" "}
+                        <FontAwesomeIcon icon={faMagnifyingGlassChart} />
                         {commafyNumber(explorerCount)} Data Explorers
                     </a>
                 </div>
