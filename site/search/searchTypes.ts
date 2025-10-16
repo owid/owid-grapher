@@ -1,10 +1,10 @@
 import { GrapherTabName, OwidGdocType } from "@ourworldindata/types"
-import { SearchResponse } from "instantsearch.js"
-import {
+import type {
+    SearchResponse,
     BaseHit,
     Hit,
     HitHighlightResult,
-} from "instantsearch.js/es/types/results.js"
+} from "instantsearch.js"
 
 export interface PageRecord {
     objectID: string

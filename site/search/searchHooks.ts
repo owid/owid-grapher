@@ -9,10 +9,10 @@ import { useSearchContext } from "./SearchContext.js"
 import { flattenNonTopicNodes, Url } from "@ourworldindata/utils"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { SearchClient } from "algoliasearch"
-import { SearchResponse } from "instantsearch.js"
+import type { SearchResponse } from "instantsearch.js"
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { urlToSearchState, searchStateToUrl } from "./searchState.js"
-import { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
+import type { TagGraphNode, TagGraphRoot } from "@ourworldindata/types"
 import { SiteAnalytics } from "../SiteAnalytics.js"
 
 export const useSelectedTopic = (
