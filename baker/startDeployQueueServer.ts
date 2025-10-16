@@ -20,21 +20,18 @@ const main = async () => {
         process.exit(1)
     }
 
-    await db.knexReadonly(
-        async (knex) => {
-            // Poll for changes every 5 seconds
-            while (true) {
-                try {
-                    await deployIfQueueIsNotEmpty(knex)
-                } catch (error) {
-                    await logErrorAndMaybeCaptureInSentry(error)
-                    throw error
-                }
-                await new Promise((resolve) => setTimeout(resolve, 5 * 1000))
+    await db.knexReadonly(async (knex) => {
+        // Poll for changes every 5 seconds
+        while (true) {
+            try {
+                await deployIfQueueIsNotEmpty(knex)
+            } catch (error) {
+                await logErrorAndMaybeCaptureInSentry(error)
+                throw error
             }
-        },
-        db.TransactionCloseMode.KeepOpen
-    )
+            await new Promise((resolve) => setTimeout(resolve, 5 * 1000))
+        }
+    }, db.TransactionCloseMode.KeepOpen)
 }
 
 void main()

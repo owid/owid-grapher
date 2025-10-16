@@ -711,9 +711,7 @@ export class SiteBaker {
         )
     }
 
-    private async validateGrapherDodReferences(
-        knex: db.KnexReadonly
-    ) {
+    private async validateGrapherDodReferences(knex: db.KnexReadonly) {
         if (!this.bakeSteps.has("dods") || !this.bakeSteps.has("charts")) return
         console.log("Validating grapher DoDs")
 

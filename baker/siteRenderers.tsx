@@ -115,9 +115,7 @@ export const renderSearchPage = async (knex: KnexReadonly) => {
     )
 }
 
-export async function renderTopChartsCollectionPage(
-    knex: KnexReadonly
-) {
+export async function renderTopChartsCollectionPage(knex: KnexReadonly) {
     const charts: string[] = await knexRaw<{ slug: string }>(
         knex,
         `-- sql
@@ -179,10 +177,7 @@ export function renderGdocTombstone(
     )
 }
 
-export const renderPageBySlug = async (
-    slug: string,
-    knex: KnexReadonly
-) => {
+export const renderPageBySlug = async (slug: string, knex: KnexReadonly) => {
     const post = await getFullPostBySlugFromSnapshot(knex, slug)
     return renderPost(post, knex)
 }

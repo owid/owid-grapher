@@ -167,9 +167,7 @@ const getSlackMentionByEmail = _.memoize(
  * the end of the current one, as long as there are changes in the queue.
  * If there are no changes in the queue, a deploy won't be initiated.
  */
-export const deployIfQueueIsNotEmpty = async (
-    knex: KnexReadonly
-) => {
+export const deployIfQueueIsNotEmpty = async (knex: KnexReadonly) => {
     if (!(await deployQueueServer.queueIsEmpty())) {
         const deployContent =
             await deployQueueServer.readQueuedAndPendingFiles()
