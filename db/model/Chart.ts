@@ -626,7 +626,8 @@ export const getRelatedChartsForVariable = async (
             FROM charts
             JOIN chart_configs ON charts.configId=chart_configs.id
             INNER JOIN chart_tags ON charts.id=chart_tags.chartId
-            WHERE JSON_CONTAINS(chart_configs.full->'$.dimensions', '{"variableId":${variableId}}')
+            INNER JOIN chart_dimensions ON charts.id=chart_dimensions.chartId
+            WHERE chart_dimensions.variableId = ${variableId}
             AND chart_configs.full->>"$.isPublished" = "true"
             ${excludeChartIds}
             GROUP BY charts.id

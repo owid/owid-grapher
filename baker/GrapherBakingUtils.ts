@@ -48,9 +48,12 @@ export const grapherSlugToExportFileKey = (
  *   "Women's Rights" -> "womens-rights"
  *   123 -> "womens-rights"
  */
+let _tagToSlugMapCache: Record<string | number, string> | null = null
 export async function getTagToSlugMap(
     knex: db.KnexReadonlyTransaction
 ): Promise<Record<string | number, string>> {
+    if (_tagToSlugMapCache) return _tagToSlugMapCache
+
     const tags = await db.knexRaw<Pick<DbPlainTag, "name" | "id" | "slug">>(
         knex,
         `SELECT slug, name, id FROM tags WHERE slug IS NOT NULL`
@@ -63,6 +66,7 @@ export async function getTagToSlugMap(
         }
     }
 
+    _tagToSlugMapCache = tagsByIdAndName
     return tagsByIdAndName
 }
 
@@ -72,9 +76,12 @@ export async function getTagToSlugMap(
  *   "Women's Rights" -> true
  *   123 -> true
  */
+let _tagsWithDataInsightsCache: Set<string> | null = null
 export async function getTagsWithDataInsights(
     knex: db.KnexReadonlyTransaction
 ): Promise<Set<string>> {
+    if (_tagsWithDataInsightsCache) return _tagsWithDataInsightsCache
+
     // Query for tags that have any published data insights
     const rows = await db.knexRaw<{ name: string }>(
         knex,
@@ -91,7 +98,8 @@ export async function getTagsWithDataInsights(
         `
     )
 
-    return new Set(rows.map((row) => row.name))
+    _tagsWithDataInsightsCache = new Set(rows.map((row) => row.name))
+    return _tagsWithDataInsightsCache
 }
 
 /**
