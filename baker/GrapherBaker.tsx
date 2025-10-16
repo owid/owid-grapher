@@ -74,7 +74,9 @@ const printTimings = () => {
     Object.entries(timings)
         .sort((a, b) => b[1].total - a[1].total)
         .forEach(([name, { count, total }]) => {
-            console.log(`   ${name}: ${total}ms (${count} calls, ${(total / count).toFixed(1)}ms avg)`)
+            console.log(
+                `   ${name}: ${total}ms (${count} calls, ${(total / count).toFixed(1)}ms avg)`
+            )
         })
 }
 
@@ -518,7 +520,9 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
         WHERE JSON_EXTRACT(cc.full, "$.isPublished")=true
         ORDER BY cc.slug ASC`
     )
-    console.log(`⏱️  Query charts: ${Date.now() - startTime}ms (${chartsToBake.length} charts)`)
+    console.log(
+        `⏱️  Query charts: ${Date.now() - startTime}ms (${chartsToBake.length} charts)`
+    )
 
     await fs.mkdirp(bakedSiteDir + "/grapher")
 
@@ -537,13 +541,13 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
     console.log(`⏱️  Fetch archive context: ${Date.now() - archiveStart}ms`)
 
     const jobs: BakeSingleGrapherChartArguments[] = chartsToBake.map((row) => ({
-            id: row.id,
-            config: row.config,
-            bakedSiteDir: bakedSiteDir,
-            slug: row.slug,
-            imageMetadataDictionary,
-            archiveContextDictionary,
-        }))
+        id: row.id,
+        config: row.config,
+        bakedSiteDir: bakedSiteDir,
+        slug: row.slug,
+        imageMetadataDictionary,
+        archiveContextDictionary,
+    }))
 
     const progressBar = new ProgressBar(
         "bake grapher page [:bar] :current/:total :elapseds :rate/s :name\n",
