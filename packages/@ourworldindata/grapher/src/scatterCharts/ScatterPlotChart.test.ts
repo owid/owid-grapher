@@ -28,7 +28,7 @@ import {
 } from "@ourworldindata/types"
 import { ContinentColors } from "../color/CustomSchemes"
 import { ScatterPointsWithLabels } from "./ScatterPointsWithLabels"
-import { GrapherState } from "../core/Grapher"
+import { GrapherState } from "../core/GrapherState"
 import { InteractionState } from "../interaction/InteractionState.js"
 
 it("can create a new chart", () => {

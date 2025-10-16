@@ -1,5 +1,5 @@
 import { expect, it } from "vitest"
-import { GrapherState } from "../core/Grapher"
+import { GrapherState } from "./GrapherState"
 import { SynthesizeGDPTable } from "@ourworldindata/core-table"
 
 it("detects regions based on their suffix", () => {

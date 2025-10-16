@@ -5,7 +5,7 @@ import {
     CaptionedChart,
     StaticCaptionedChart,
 } from "../captionedChart/CaptionedChart.js"
-import { GrapherState } from "../core/Grapher.js"
+import { GrapherState } from "../core/GrapherState.js"
 import { ChartAreaContent } from "./ChartAreaContent.js"
 import { StaticChartWrapper } from "./StaticChartWrapper.js"
 import { GrapherVariant } from "@ourworldindata/types"

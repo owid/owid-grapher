@@ -8,7 +8,7 @@ import {
     SynthesizeGDPTable,
 } from "@ourworldindata/core-table"
 import { DefaultColorScheme } from "../color/CustomSchemes"
-import { GrapherState } from "../core/Grapher"
+import { GrapherState } from "../core/GrapherState"
 import { GRAPHER_CHART_TYPES, SortBy, SortOrder } from "@ourworldindata/types"
 import { MarimekkoChart } from "./MarimekkoChart"
 import {

@@ -68,10 +68,10 @@ export {
 export { GlobalEntitySelector } from "./controls/globalEntitySelector/GlobalEntitySelector"
 export {
     Grapher,
-    GrapherState,
     type GrapherProgrammaticInterface,
     type GrapherManager,
 } from "./core/Grapher"
+export { GrapherState } from "./core/GrapherState"
 export { GrapherAnalytics, EventCategory } from "./core/GrapherAnalytics"
 export { hydrateGlobalEntitySelectorIfAny } from "./controls/globalEntitySelector/GlobalEntitySelector"
 export { legacyToCurrentGrapherUrl } from "./core/GrapherUrlMigrations"
