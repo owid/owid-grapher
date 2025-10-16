@@ -254,7 +254,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                 {showCopyPngButton && (
                     <a
                         title="Copy an image of this chart to the clipboard"
-                        data-track-note="chart_share_copypng"
+                        data-track-note="chart_share_copy_png"
                         onClick={this.onCopyPng}
                     >
                         <FontAwesomeIcon className="icon" icon={faImage} />
