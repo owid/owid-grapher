@@ -573,7 +573,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
             )
             progressBar.tick({ name: job.slug })
         },
-        { concurrency: 30 }
+        { concurrency: 10 }
     )
     console.log(`⏱️  Bake all charts: ${Date.now() - bakeStart}ms`)
 
