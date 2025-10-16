@@ -226,7 +226,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         onClick={this.onEmbed}
                     >
                         <FontAwesomeIcon className="icon" icon={faCode} />
-                        Embed
+                        Embed this chart
                     </a>
                 )}
                 {canUseShareApi && (
@@ -239,18 +239,6 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         Share via&hellip;
                     </a>
                 )}
-                {this.state.canWriteToClipboard && this.canonicalUrl && (
-                    <a
-                        title="Copy a link to this chart to the clipboard"
-                        data-track-note="chart_share_copylink"
-                        onClick={this.onCopyUrl}
-                    >
-                        <FontAwesomeIcon className="icon" icon={faLink} />
-                        {this.state.copiedLink
-                            ? "Link copied!"
-                            : "Copy link to chart"}
-                    </a>
-                )}
                 {showCopyPngButton && (
                     <a
                         title="Copy an image of this chart to the clipboard"
@@ -261,6 +249,18 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         {this.state.copiedPng
                             ? "Chart copied!"
                             : "Copy chart as image"}
+                    </a>
+                )}
+                {this.state.canWriteToClipboard && this.canonicalUrl && (
+                    <a
+                        title="Copy a link to this chart to the clipboard"
+                        data-track-note="chart_share_copylink"
+                        onClick={this.onCopyUrl}
+                    >
+                        <FontAwesomeIcon className="icon" icon={faLink} />
+                        {this.state.copiedLink
+                            ? "Link copied!"
+                            : "Copy link to chart"}
                     </a>
                 )}
                 {editUrl && (
