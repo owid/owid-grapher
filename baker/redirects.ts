@@ -17,7 +17,6 @@ export const getRedirects = async (knex: db.KnexReadonlyTransaction) => {
         // Entries and blog (we should keep these for a while)
         "/entries / 302",
         "/blog /latest 301",
-        "/subscribe /#subscribe 301",
 
         // Country detection
         "/detect-country https://detect-country.owid.io 302",
