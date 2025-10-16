@@ -8,6 +8,7 @@ import {
     faLink,
     faEdit,
     faPanorama,
+    faImage,
 } from "@fortawesome/free-solid-svg-icons"
 import { canWriteToClipboard, isAndroid, isIOS } from "@ourworldindata/utils"
 import { GrapherModal } from "../core/GrapherConstants"
@@ -32,7 +33,8 @@ interface ShareMenuProps {
 
 interface ShareMenuState {
     canWriteToClipboard: boolean
-    copied: boolean
+    copiedLink: boolean
+    copiedPng: boolean
 }
 
 type ShareApiManager = Pick<ShareMenuManager, "canonicalUrl" | "currentTitle">
@@ -94,7 +96,8 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
 
         this.state = {
             canWriteToClipboard: false,
-            copied: false,
+            copiedLink: false,
+            copiedPng: false,
         }
     }
 
@@ -161,7 +164,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
 
         try {
             await navigator.clipboard.writeText(this.canonicalUrl)
-            this.setState({ copied: true })
+            this.setState({ copiedLink: true, copiedPng: false })
         } catch (err) {
             console.error(
                 "couldn't copy to clipboard using navigator.clipboard",
@@ -181,6 +184,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         new ClipboardItem({ "image/png": blob }),
                     ])
                 )
+            this.setState({ copiedLink: false, copiedPng: true })
         } catch (err) {
             console.error("couldn't copy PNG to clipboard", err)
         }
@@ -236,7 +240,9 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         onClick={this.onCopyUrl}
                     >
                         <FontAwesomeIcon className="icon" icon={faLink} />
-                        {this.state.copied ? "Copied!" : "Copy link"}
+                        {this.state.copiedLink
+                            ? "Link copied!"
+                            : "Copy link to chart"}
                     </a>
                 )}
                 {showCopyPngButton && (
@@ -245,8 +251,10 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         data-track-note="chart_share_copypng"
                         onClick={this.onCopyPng}
                     >
-                        <FontAwesomeIcon className="icon" icon={faPanorama} />
-                        Copy chart
+                        <FontAwesomeIcon className="icon" icon={faImage} />
+                        {this.state.copiedPng
+                            ? "Chart copied!"
+                            : "Copy chart as image"}
                     </a>
                 )}
                 {editUrl && (
