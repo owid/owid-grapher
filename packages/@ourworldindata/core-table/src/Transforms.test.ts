@@ -3,7 +3,7 @@ import { expect, it, describe } from "vitest"
 import {
     insertMissingValuePlaceholders,
     computeRollingAverage,
-    extractPotentialDataSlugsFromTransform,
+    extractDataSlugsFromTransformString,
 } from "./Transforms.js"
 import { ErrorValueTypes } from "./ErrorValues.js"
 import { ErrorValue } from "@ourworldindata/types"
@@ -105,67 +105,82 @@ describe(computeRollingAverage, () => {
     })
 })
 
-describe(extractPotentialDataSlugsFromTransform, () => {
+describe(extractDataSlugsFromTransformString, () => {
     it("extracts data slugs from transforms", () => {
         expect(
-            extractPotentialDataSlugsFromTransform("asPercentageOf slug 256972")
-        ).toStrictEqual(["slug", "256972"])
+            extractDataSlugsFromTransformString("asPercentageOf slug 256972")
+        ).toStrictEqual({
+            transformName: "asPercentageOf",
+            dataSlugs: ["slug", "256972"],
+        })
         expect(
-            extractPotentialDataSlugsFromTransform(
+            extractDataSlugsFromTransformString(
                 "timeSinceEntityExceededThreshold time entity slug 50"
             )
-        ).toStrictEqual(["slug"])
+        ).toStrictEqual({
+            transformName: "timeSinceEntityExceededThreshold",
+            dataSlugs: ["slug"],
+        })
         expect(
-            extractPotentialDataSlugsFromTransform("divideBy 256972 slug")
-        ).toStrictEqual(["256972", "slug"])
+            extractDataSlugsFromTransformString("divideBy 256972 slug")
+        ).toStrictEqual({
+            transformName: "divideBy",
+            dataSlugs: ["256972", "slug"],
+        })
         expect(
-            extractPotentialDataSlugsFromTransform(
+            extractDataSlugsFromTransformString(
                 "rollingAverage time entity slug 7"
             )
-        ).toStrictEqual(["slug"])
+        ).toStrictEqual({
+            transformName: "rollingAverage",
+            dataSlugs: ["slug"],
+        })
         expect(
-            extractPotentialDataSlugsFromTransform(
+            extractDataSlugsFromTransformString(
                 "percentChange my-time my-entity 256972 2"
             )
-        ).toStrictEqual(["256972"])
+        ).toStrictEqual({
+            transformName: "percentChange",
+            dataSlugs: ["256972"],
+        })
         expect(
-            extractPotentialDataSlugsFromTransform("multiplyBy slug 2")
-        ).toStrictEqual(["slug"])
+            extractDataSlugsFromTransformString("multiplyBy slug 2")
+        ).toStrictEqual({
+            transformName: "multiplyBy",
+            dataSlugs: ["slug"],
+        })
         expect(
-            extractPotentialDataSlugsFromTransform("subtract 256972 slug")
-        ).toStrictEqual(["256972", "slug"])
-        expect(
-            extractPotentialDataSlugsFromTransform(
-                "slug where 256972 isGreaterThanOrEqual 0"
-            )
-        ).toStrictEqual(["slug", "256972"])
-        expect(
-            extractPotentialDataSlugsFromTransform(
-                "slug where entity isNot France"
-            )
-        ).toStrictEqual(["slug", "entity"])
+            extractDataSlugsFromTransformString("subtract 256972 slug")
+        ).toStrictEqual({
+            transformName: "subtract",
+            dataSlugs: ["256972", "slug"],
+        })
     })
     it("extracts a unique list of data slugs", () => {
         expect(
-            extractPotentialDataSlugsFromTransform("256972 subtract 256972")
-        ).toStrictEqual(["256972"])
-        expect(
-            extractPotentialDataSlugsFromTransform(
-                "slug where slug isGreaterThanOrEqual 0"
-            )
-        ).toStrictEqual(["slug"])
+            extractDataSlugsFromTransformString("256972 subtract 256972")
+        ).toStrictEqual({
+            transformName: "subtract",
+            dataSlugs: ["256972"],
+        })
     })
     it("allows the transform name to be in different positions", () => {
         expect(
-            extractPotentialDataSlugsFromTransform("multiplyBy my-slug 2")
-        ).toStrictEqual(["my-slug"])
+            extractDataSlugsFromTransformString("multiplyBy my-slug 2")
+        ).toStrictEqual({
+            transformName: "multiplyBy",
+            dataSlugs: ["my-slug"],
+        })
         expect(
-            extractPotentialDataSlugsFromTransform("256972 multiplyBy 2")
-        ).toStrictEqual(["256972"])
+            extractDataSlugsFromTransformString("256972 multiplyBy 2")
+        ).toStrictEqual({
+            transformName: "multiplyBy",
+            dataSlugs: ["256972"],
+        })
     })
     it("returns undefined for inputs that are not transforms", () => {
         expect(
-            extractPotentialDataSlugsFromTransform(
+            extractDataSlugsFromTransformString(
                 "some-string pretending-to-be a transform"
             )
         ).toBeUndefined()

@@ -658,23 +658,22 @@ export class GrapherState {
         }
     }
 
-    toObject(deleteUnchanged: boolean = true): GrapherInterface {
+    toObject(): GrapherInterface {
         const obj: GrapherInterface = objectWithPersistablesToObject(
             this,
             grapherKeysToSerialize
         )
 
+        // Persist selection and focus
         obj.selectedEntityNames = this.selection.selectedEntityNames
         obj.focusedSeriesNames = this.focusArray.seriesNames
 
-        if (deleteUnchanged) {
-            deleteRuntimeAndUnchangedProps(obj, defaultObject)
-        }
+        deleteRuntimeAndUnchangedProps(obj, defaultObject)
 
-        // always include the schema, even if it's the default
+        // Always include the schema, even if it's the default
         obj.$schema = this.$schema || latestGrapherConfigSchema
 
-        // JSON doesn't support Infinity, so we use strings instead.
+        // JSON doesn't support Infinity, so we use strings instead
         if (obj.minTime) obj.minTime = minTimeToJSON(this.minTime) as any
         if (obj.maxTime) obj.maxTime = maxTimeToJSON(this.maxTime) as any
 
@@ -683,7 +682,7 @@ export class GrapherState {
         if (obj.timelineMaxTime)
             obj.timelineMaxTime = maxTimeToJSON(this.timelineMaxTime) as any
 
-        // don't serialise tab if the default chart is currently shown
+        // Don't serialise the tab if the default chart is currently shown
         if (
             this.activeChartType &&
             this.activeChartType === this.defaultChartType
@@ -691,9 +690,25 @@ export class GrapherState {
             delete obj.tab
         }
 
-        // todo: remove dimensions concept
-        // if (this.legacyConfigAsAuthored?.dimensions)
-        //     obj.dimensions = this.legacyConfigAsAuthored.dimensions
+        // Explorers set color properties directly on column defs.
+        // These properties wouldn't be serialized in the JSON config by default,
+        // so this code extracts them and adds them to the serialized object.
+        // Color properties from the color column are stored as obj.colorScale
+        if (!obj.colorScale) {
+            const colorColumn = this.inputTable.get(this.colorColumnSlug)
+            const colorScaleConfig = ColorScaleConfig.fromDSL(colorColumn.def)
+            if (colorScaleConfig) obj.colorScale = colorScaleConfig.toObject()
+        }
+
+        // Similarly, color properties from the map column are stored as obj.map.colorScale
+        if (!obj.map?.colorScale) {
+            const mapColumn = this.inputTable.get(this.mapColumnSlug)
+            const colorScaleConfig = ColorScaleConfig.fromDSL(mapColumn.def)
+            if (colorScaleConfig) {
+                obj.map ??= {}
+                obj.map.colorScale = colorScaleConfig.toObject()
+            }
+        }
 
         return obj
     }

@@ -17,10 +17,12 @@ import {
 import * as R from "remeda"
 
 enum TransformParamType {
-    TimeSlug = "TimeSlug", // column with time
-    EntitySlug = "EntitySlug", // column with entity
-    DataSlug = "DataSlug", // column with data
-    ColumnSlug = "ColumnSlug", // any column
+    /** Column with time */
+    TimeSlug = "TimeSlug",
+    /** Column with entity */
+    EntitySlug = "EntitySlug",
+    /** Column with data */
+    DataSlug = "DataSlug",
     Number = "Number",
     String = "String",
 }
@@ -267,67 +269,6 @@ const subtract: Transform = {
     },
 }
 
-enum WhereOperators {
-    is = "is",
-    isNot = "isNot",
-    isGreaterThan = "isGreaterThan",
-    isGreaterThanOrEqual = "isGreaterThanOrEqual",
-    isLessThan = "isLessThan",
-    isLessThanOrEqual = "isLessThanOrEqual",
-}
-// Todo: add tests/expand capabilities/remove?
-// Currently this just supports `columnSlug where someColumnSlug (isNot|is) this or that or this`
-const where: Transform = {
-    params: [
-        { type: TransformParamType.DataSlug },
-        {
-            type: TransformParamType.ColumnSlug,
-        },
-        {
-            type: TransformParamType.String,
-            spread: true,
-        },
-    ],
-    fn: (
-        columnStore: CoreColumnStore,
-        columnSlug: ColumnSlug,
-        conditionSlug: ColumnSlug,
-        ...condition: string[]
-    ): CoreValueType[] => {
-        const values = columnStore[columnSlug]
-        const conditionValues = columnStore[conditionSlug]
-        const operator = condition.shift()
-        let passes: (value: any) => boolean = () => true
-        if (
-            operator === WhereOperators.isNot ||
-            operator === WhereOperators.is
-        ) {
-            const result = operator === "isNot" ? false : true
-            const list = condition.join(" ").split(" or ")
-            const set = new Set(list)
-            passes = (value: any): boolean =>
-                set.has(value) ? result : !result
-        } else if (operator === WhereOperators.isGreaterThan)
-            passes = (value: any): boolean =>
-                value > parseFloat(condition.join(""))
-        else if (operator === WhereOperators.isGreaterThanOrEqual)
-            passes = (value: any): boolean =>
-                value >= parseFloat(condition.join(""))
-        else if (operator === WhereOperators.isLessThan)
-            passes = (value: any): boolean =>
-                value < parseFloat(condition.join(""))
-        else if (operator === WhereOperators.isLessThanOrEqual)
-            passes = (value: any): boolean =>
-                value <= parseFloat(condition.join(""))
-
-        return values.map((value, index) =>
-            passes(conditionValues[index])
-                ? value
-                : ErrorValueTypes.FilteredValue
-        )
-    },
-}
-
 // Assumptions: data is sorted by entity, then time, and time is a continous integer with a row for each time step.
 // todo: move tests over from CE
 const percentChange: Transform = {
@@ -339,7 +280,7 @@ const percentChange: Transform = {
     ],
     fn: (
         columnStore: CoreColumnStore,
-        timeSlug: ColumnSlug,
+        _timeSlug: ColumnSlug,
         entitySlug: ColumnSlug,
         columnSlug: ColumnSlug,
         windowSize: number
@@ -400,7 +341,7 @@ const duplicate: Transform = {
     ): CoreValueType[] => _.cloneDeep(columnStore[columnSlug]),
 }
 
-const availableTransforms: Record<string, Transform> = {
+const availableTransforms = {
     asPercentageOf,
     timeSinceEntityExceededThreshold,
     divideBy,
@@ -408,19 +349,22 @@ const availableTransforms: Record<string, Transform> = {
     percentChange,
     multiplyBy,
     subtract,
-    where,
     duplicate,
 } as const
 
-export const AvailableTransforms = Object.keys(availableTransforms)
+type TransformName = keyof typeof availableTransforms
+export const AvailableTransforms = Object.keys(
+    availableTransforms
+) as TransformName[]
+
+const isTransformName = (word: string): word is TransformName =>
+    AvailableTransforms.includes(word as any)
 
 export const extractTransformNameAndParams = (
     transform: string
-): { transformName: string; params: string[] } | undefined => {
+): { transformName: TransformName; params: string[] } | undefined => {
     const words = transform.split(" ")
-    const transformName = words.find(
-        (word) => availableTransforms[word] !== undefined
-    )
+    const transformName = words.find((word) => isTransformName(word))
     if (!transformName) {
         console.warn(`Warning: transform '${transformName}' not found`)
         return
@@ -458,26 +402,44 @@ export const applyTransforms = (
     return columnStore
 }
 
-const isMaybeDataSlugParam = (paramDef: TransformParam): boolean =>
-    paramDef.type === TransformParamType.DataSlug ||
-    paramDef.type === TransformParamType.ColumnSlug // might be a data slug
-
-export const extractPotentialDataSlugsFromTransform = (
+/**
+ * Extracts column slugs that represent data columns from a transform string.
+ *
+ * Parses a transform string to identify parameters that are data column slugs
+ * (as opposed to time, entity, number, or string parameters). This is useful
+ * for understanding which data columns a transform depends on.
+ *
+ * For example, returns ['population'] for the transform string
+ * 'rollingAverage time entity population 5'.
+ */
+export const extractDataSlugsFromTransformString = (
     transform: string
-): ColumnSlug[] | undefined => {
+): { transformName: TransformName; dataSlugs: ColumnSlug[] } | undefined => {
     const { transformName, params = [] } =
         extractTransformNameAndParams(transform) ?? {}
-    if (!transformName) return
+
+    if (!transformName) return undefined
+
+    // Extract data slugs from transforms (i.e. columns with data, not time or entity)
     const paramDefs = availableTransforms[transformName].params
     const dataSlugs = R.zip(paramDefs, params)
         .filter(
             ([paramDef, param]) =>
-                param && paramDef && isMaybeDataSlugParam(paramDef)
+                param &&
+                paramDef &&
+                paramDef.type === TransformParamType.DataSlug
         )
         .map(([_, param]) => param as string)
-    const lastParam = paramDefs[paramDefs.length - 1]
-    if (lastParam && isMaybeDataSlugParam(lastParam) && lastParam.spread) {
+
+    // Handle the case where the last parameter is a spread parameter
+    const lastParam = paramDefs.at(-1)
+    if (
+        lastParam &&
+        lastParam.type === TransformParamType.DataSlug &&
+        lastParam.spread
+    ) {
         dataSlugs.push(...params.slice(paramDefs.length))
     }
-    return _.uniq(dataSlugs)
+
+    return { transformName, dataSlugs: _.uniq(dataSlugs) }
 }

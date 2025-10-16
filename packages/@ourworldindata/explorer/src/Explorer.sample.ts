@@ -160,3 +160,30 @@ export const SampleInlineDataExplorer = (props?: Partial<ExplorerProps>) => {
         ...props,
     })
 }
+
+export const SampleIndicatorBasedExplorerProgram = `explorerTitle	Sample Explorer
+selection	World
+
+graphers
+	Test Radio	yVariableIds	ySlugs
+	Indicator id based	952182
+	Slug based		duplicated
+
+columns
+	slug	variableId	transform	unit	shortUnit	name
+		952182			tons	Variable name
+	duplicated		duplicate 952182	people		Overwritten name`
+
+export const SampleIndicatorBasedExplorer = (
+    props?: Partial<ExplorerProps>
+) => {
+    return new Explorer({
+        slug: "test-slug-indicator-based",
+        program: SampleIndicatorBasedExplorerProgram,
+        adminBaseUrl: "",
+        bakedBaseUrl: "",
+        bakedGrapherUrl: "",
+        dataApiUrl: "",
+        ...props,
+    })
+}
