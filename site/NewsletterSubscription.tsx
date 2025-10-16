@@ -119,6 +119,42 @@ export const NewsletterSubscriptionForm = ({
             </span>
             <img
                 className="newsletter-subscription-form__checkbox-image"
+                src="/images/biweekly-newsletter.webp"
+                width={1200}
+                height={630}
+            />
+            <div className="newsletter-subscription-form__checkbox">
+                <input
+                    type="checkbox"
+                    value={BIWEEKLY}
+                    name={`group[85302][${BIWEEKLY}]`}
+                    id={idBiweekly}
+                    checked={frequencies.includes(BIWEEKLY)}
+                    onChange={updateFrequencies}
+                />
+                <label htmlFor={idBiweekly}>
+                    <span className="newsletter-subscription-form__label-title">
+                        The Brief
+                    </span>
+                    <span className="newsletter-subscription-form__label-frequency note-12-medium">
+                        Twice a month
+                    </span>
+                    <div className="newsletter-subscription-form__label-text">
+                        Stay up to date with our latest work plus curated
+                        highlights from across Our World in Data, twice a month.
+                    </div>
+                </label>
+                <a
+                    className="newsletter-subscription-form__example-link note-12-medium"
+                    href="https://us8.campaign-archive.com/?u=18058af086319ba6afad752ec&id=53877b47f3"
+                    target="_blank"
+                    rel="noopener"
+                >
+                    See example Biweekly Digest newsletter
+                </a>
+            </div>
+            <img
+                className="newsletter-subscription-form__checkbox-image"
                 src="/images/data-insights.webp"
                 width={1200}
                 height={630}
@@ -150,43 +186,7 @@ export const NewsletterSubscriptionForm = ({
                     target="_blank"
                     rel="noopener"
                 >
-                    Example Data Insights newsletter
-                </a>
-            </div>
-            <img
-                className="newsletter-subscription-form__checkbox-image"
-                src="/images/biweekly-newsletter.webp"
-                width={1200}
-                height={630}
-            />
-            <div className="newsletter-subscription-form__checkbox">
-                <input
-                    type="checkbox"
-                    value={BIWEEKLY}
-                    name={`group[85302][${BIWEEKLY}]`}
-                    id={idBiweekly}
-                    checked={frequencies.includes(BIWEEKLY)}
-                    onChange={updateFrequencies}
-                />
-                <label htmlFor={idBiweekly}>
-                    <span className="newsletter-subscription-form__label-title">
-                        Biweekly Digest
-                    </span>
-                    <span className="newsletter-subscription-form__label-frequency note-12-medium">
-                        Every two weeks
-                    </span>
-                    <div className="newsletter-subscription-form__label-text">
-                        Receive an overview of our recent work and highlights of
-                        our other work every two weeks.
-                    </div>
-                </label>
-                <a
-                    className="newsletter-subscription-form__example-link note-12-medium"
-                    href="https://us8.campaign-archive.com/?u=18058af086319ba6afad752ec&id=53877b47f3"
-                    target="_blank"
-                    rel="noopener"
-                >
-                    Example Biweekly Digest newsletter
+                    See example Data Insights newsletter
                 </a>
             </div>
             {frequencies.length === 0 && (
