@@ -207,7 +207,7 @@ export function DataPageContent({
                             ...grapherConfig.value,
                             ...baseGrapherConfig,
                         }
-                        void inputTableFetcher(
+                        const loadDataPromise = inputTableFetcher(
                             grapherConfig.value.dimensions!,
                             grapherConfig.value.selectedEntityColors
                         ).then((inputTable) => {
@@ -234,21 +234,25 @@ export function DataPageContent({
                             grapherState.populateFromQueryParams(
                                 grapherQueryParams
                             )
-
-                            // When switching between mdim views, we usually preserve the tab.
-                            // However, if the new chart doesn't support the previously selected tab,
-                            // Grapher automatically switches to a supported one. In such cases,
-                            // we call onChartSwitching to make adjustments that ensure the new view
-                            // is sensible (e.g. updating the time selection when switching from a
-                            // single-time chart like a discrete bar chart to a multi-time chart like
-                            // a line chart).
-                            const currentTab = grapherState.activeTab
-                            if (previousTab !== currentTab)
-                                grapherState.onChartSwitching(
-                                    previousTab,
-                                    currentTab
-                                )
                         })
+
+                        // The below code needs to run after the data has been loaded, so that it has access
+                        // to the table and its time range
+                        await loadDataPromise
+
+                        // When switching between mdim views, we usually preserve the tab.
+                        // However, if the new chart doesn't support the previously selected tab,
+                        // Grapher automatically switches to a supported one. In such cases,
+                        // we call onChartSwitching to make adjustments that ensure the new view
+                        // is sensible (e.g. updating the time selection when switching from a
+                        // single-time chart like a discrete bar chart to a multi-time chart like
+                        // a line chart).
+                        const currentTab = grapherState.activeTab
+                        if (previousTab !== currentTab)
+                            grapherState.onChartSwitching(
+                                previousTab,
+                                currentTab
+                            )
                     }
                 })
                 .catch(Sentry.captureException)
