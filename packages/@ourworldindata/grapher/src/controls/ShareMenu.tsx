@@ -18,7 +18,6 @@ export interface ShareMenuManager {
     currentTitle?: string
     canonicalUrl?: string
     editUrl?: string
-    showAdminControls?: boolean
     createNarrativeChartUrl?: string
     activeModal?: GrapherModal
     rasterize: () => Promise<GrapherExport>
@@ -186,9 +185,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     }
 
     @computed get showCopyPngButton(): boolean {
-        return (
-            this.state.canWriteToClipboard && !!this.manager.showAdminControls
-        )
+        return this.state.canWriteToClipboard
     }
 
     override render(): React.ReactElement {
@@ -232,7 +229,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                 )}
                 {this.state.canWriteToClipboard && this.canonicalUrl && (
                     <a
-                        title="Copy link to clipboard"
+                        title="Copy a link to this chart to the clipboard"
                         data-track-note="chart_share_copylink"
                         onClick={this.onCopyUrl}
                     >
@@ -242,12 +239,12 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                 )}
                 {showCopyPngButton && (
                     <a
-                        title="Copy PNG image to clipboard"
+                        title="Copy an image of the chart to the clipboard"
                         data-track-note="chart_share_copypng"
                         onClick={this.onCopyPng}
                     >
                         <FontAwesomeIcon className="icon" icon={faPanorama} />
-                        Copy PNG
+                        Copy chart
                     </a>
                 )}
                 {editUrl && (
