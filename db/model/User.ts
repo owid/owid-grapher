@@ -1,19 +1,9 @@
-import { BCryptHasher } from "../hashers.js"
 import {
     DbPlainUser,
     DbInsertUser,
     UsersTableName,
 } from "@ourworldindata/types"
 import { KnexReadWriteTransaction, KnexReadonlyTransaction } from "../db.js"
-export async function setPassword(
-    knex: KnexReadWriteTransaction,
-    id: number,
-    password: string
-): Promise<void> {
-    const h = new BCryptHasher()
-    const encrypted = await h.encode(password)
-    await updateUser(knex, id, { password: encrypted })
-}
 
 export async function getUserById(
     knex: KnexReadonlyTransaction,
