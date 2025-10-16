@@ -116,7 +116,6 @@
 
     &:placeholder-shown,
     &::placeholder {
-        @include label-2-regular;
         color: $gray-60;
     }
 
