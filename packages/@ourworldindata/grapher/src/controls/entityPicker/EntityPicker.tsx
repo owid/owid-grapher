@@ -16,7 +16,6 @@ import {
     FuzzySearch,
     scrollIntoViewIfNeeded,
     sortByUndefinedLast,
-    getStylesForTargetHeight,
     ColumnSlug,
     getUserCountryInformation,
     regions,
@@ -27,11 +26,11 @@ import {
 } from "@ourworldindata/utils"
 import classnames from "classnames"
 import { scaleLinear, ScaleLinear } from "d3-scale"
-import Select from "react-select"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faSearch, faTimes } from "@fortawesome/free-solid-svg-icons"
 import { VerticalScrollContainer } from "../../controls/VerticalScrollContainer"
 import { SortIcon } from "../../controls/SortIcon"
+import { Dropdown, BasicDropdownOption } from "../Dropdown"
 import {
     ColumnTypeMap,
     CoreColumn,
@@ -190,6 +189,24 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
                 }
             ),
         ])
+    }
+
+    @computed private get metricDropdownOptions(): BasicDropdownOption[] {
+        return this.metricOptions.map((option) => ({
+            // Use a special string value for undefined metric (relevance)
+            value: option.value ?? "",
+            label: option.label,
+        }))
+    }
+
+    @computed
+    private get selectedMetricDropdownOption():
+        | BasicDropdownOption
+        | undefined {
+        const targetValue = this.metric ?? ""
+        return this.metricDropdownOptions.find(
+            (option) => option.value === targetValue
+        )
     }
 
     @computed private get metricTable(): OwidTable | undefined {
@@ -500,7 +517,16 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
         }
     }
 
-    @action private updateMetric(columnSlug: ColumnSlug): void {
+    @action.bound private onMetricSelectionChange(
+        option: BasicDropdownOption | null
+    ): void {
+        if (!option) return
+        // Empty string means undefined/relevance option
+        const columnSlug = option.value === "" ? undefined : option.value
+        this.updateMetric(columnSlug)
+    }
+
+    @action private updateMetric(columnSlug: ColumnSlug | undefined): void {
         const col = this.pickerTable?.get(columnSlug)
 
         this.manager.setEntityPicker?.({
@@ -529,28 +555,19 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
 
     private get pickerMenu(): React.ReactElement | null {
         if (this.isDropdownMenu) return null
+
         return (
             <div className="MetricSettings">
-                <span className="mainLabel">Sort by</span>
-                <Select
+                <label id="metric-dropdown-label" className="mainLabel">
+                    Sort by
+                </label>
+                <Dropdown
                     className="metricDropdown"
-                    options={this.metricOptions}
-                    value={this.metricOptions.find(
-                        (option) => option.value === this.metric
-                    )}
-                    onChange={(option): void => {
-                        if (option) this.updateMetric(option.value)
-                    }}
-                    menuPlacement="bottom"
-                    components={{
-                        IndicatorSeparator: null,
-                    }}
-                    styles={getStylesForTargetHeight(26)}
-                    isSearchable={false}
+                    options={this.metricDropdownOptions}
+                    value={this.selectedMetricDropdownOption ?? null}
+                    onChange={this.onMetricSelectionChange}
                     isLoading={this.manager.entityPickerTableIsLoading}
-                    onKeyDown={(event): void => {
-                        event.stopPropagation()
-                    }}
+                    aria-labelledby="metric-dropdown-label"
                 />
                 <span
                     className="sort"
@@ -592,8 +609,11 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
         const selectedDebugMessage = `${selectedEntityNames.length} selected. ${availableEntities.size} available. ${this.entitiesWithMetricValue.length} options total.`
 
         return (
-            <div className="EntityPicker" onKeyDown={this.onKeyDown}>
-                <div className="EntityPickerSearchInput">
+            <div className="EntityPicker">
+                <div
+                    className="EntityPickerSearchInput"
+                    onKeyDown={this.onKeyDown}
+                >
                     <input
                         className={classnames("input-field", {
                             "with-done-button": this.showDoneButton,
@@ -619,7 +639,7 @@ export class EntityPicker extends React.Component<EntityPickerProps> {
                     )}
                 </div>
                 {this.pickerMenu}
-                <div className="EntityListContainer">
+                <div className="EntityListContainer" onKeyDown={this.onKeyDown}>
                     {(!this.isDropdownMenu || this.isOpen) && (
                         <div
                             className={classnames("EntityList", {

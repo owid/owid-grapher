@@ -1,30 +1,20 @@
-@use "sass:math";
+$grapher-dropdown-hover-fill: $gray-10;
+$grapher-dropdown-active-fill: $blue-20;
+$grapher-dropdown-selected-fill: #c7ced7;
 
 .grapher-dropdown {
-    $option-checkmark: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOSIgdmlld0JveD0iMCAwIDEyIDkiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xMS4wMTU2IDAuOTg0Mzc1QzExLjMyMDMgMS4yNjU2MiAxMS4zMjAzIDEuNzU3ODEgMTEuMDE1NiAyLjAzOTA2TDUuMDE1NjIgOC4wMzkwNkM0LjczNDM4IDguMzQzNzUgNC4yNDIxOSA4LjM0Mzc1IDMuOTYwOTQgOC4wMzkwNkwwLjk2MDkzOCA1LjAzOTA2QzAuNjU2MjUgNC43NTc4MSAwLjY1NjI1IDQuMjY1NjIgMC45NjA5MzggMy45ODQzOEMxLjI0MjE5IDMuNjc5NjkgMS43MzQzOCAzLjY3OTY5IDIuMDE1NjIgMy45ODQzOEw0LjQ3NjU2IDYuNDQ1MzFMOS45NjA5NCAwLjk4NDM3NUMxMC4yNDIyIDAuNjc5Njg4IDEwLjczNDQgMC42Nzk2ODggMTEuMDE1NiAwLjk4NDM3NVoiIGZpbGw9IiMxRDNENjMiLz4KPC9zdmc+";
     $menu-caret-up: "data:image/svg+xml;base64, PHN2ZyB3aWR0aD0iOCIgaGVpZ2h0PSI1IiB2aWV3Qm94PSIwIDAgOCA1IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMC40NjA5MzggMy43MzQzOEwzLjQzNzUgMC43MzQzNzVDMy42MDE1NiAwLjU5Mzc1IDMuNzg5MDYgMC41IDQgMC41QzQuMTg3NSAwLjUgNC4zNzUgMC41OTM3NSA0LjUxNTYyIDAuNzM0Mzc1TDcuNDkyMTkgMy43MzQzOEM3LjcwMzEyIDMuOTQ1MzEgNy43NzM0NCA0LjI3MzQ0IDcuNjU2MjUgNC41NTQ2OUM3LjUzOTA2IDQuODM1OTQgNy4yODEyNSA1IDYuOTc2NTYgNUgxQzAuNjk1MzEyIDUgMC40MTQwNjIgNC44MzU5NCAwLjI5Njg3NSA0LjU1NDY5QzAuMTc5Njg4IDQuMjczNDQgMC4yNSAzLjk0NTMxIDAuNDYwOTM4IDMuNzM0MzhaIiBmaWxsPSIjNUI1QjVCIi8+Cjwvc3ZnPg==";
     $menu-caret-down: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOCIgaGVpZ2h0PSI1IiB2aWV3Qm94PSIwIDAgOCA1IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNNy41MTU2MiAxLjI4OTA2TDQuNTM5MDYgNC4yODkwNkM0LjM3NSA0LjQyOTY5IDQuMTg3NSA0LjUgNCA0LjVDMy43ODkwNiA0LjUgMy42MDE1NiA0LjQyOTY5IDMuNDYwOTQgNC4yODkwNkwwLjQ4NDM3NSAxLjI4OTA2QzAuMjUgMS4wNzgxMiAwLjE3OTY4OCAwLjc1IDAuMjk2ODc1IDAuNDY4NzVDMC40MTQwNjIgMC4xODc1IDAuNjk1MzEyIDAgMSAwSDYuOTc2NTZDNy4yODEyNSAwIDcuNTM5MDYgMC4xODc1IDcuNjU2MjUgMC40Njg3NUM3Ljc3MzQ0IDAuNzUgNy43MjY1NiAxLjA3ODEyIDcuNTE1NjIgMS4yODkwNloiIGZpbGw9IiM1QjVCNUIiLz4KPC9zdmc+Cg==";
     $clear: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cGF0aAogICAgZD0iTTI1NiA1MTJBMjU2IDI1NiAwIDEgMCAyNTYgMGEyNTYgMjU2IDAgMSAwIDAgNTEyek0xNzUgMTc1YzkuNC05LjQgMjQuNi05LjQgMzMuOSAwbDQ3IDQ3IDQ3LTQ3YzkuNC05LjQgMjQuNi05LjQgMzMuOSAwczkuNCAyNC42IDAgMzMuOWwtNDcgNDcgNDcgNDdjOS40IDkuNCA5LjQgMjQuNiAwIDMzLjlzLTI0LjYgOS40LTMzLjkgMGwtNDctNDctNDcgNDdjLTkuNCA5LjQtMjQuNiA5LjQtMzMuOSAwcy05LjQtMjQuNiAwLTMzLjlsNDctNDctNDctNDdjLTkuNC05LjQtOS40LTI0LjYgMC0zMy45eiIKICAgIGZpbGw9IiM4NTg1ODUiCiAgLz4KPC9zdmc+Cg==";
     $clear-hover: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cGF0aAogICAgZD0iTTI1NiA1MTJBMjU2IDI1NiAwIDEgMCAyNTYgMGEyNTYgMjU2IDAgMSAwIDAgNTEyek0xNzUgMTc1YzkuNC05LjQgMjQuNi05LjQgMzMuOSAwbDQ3IDQ3IDQ3LTQ3YzkuNC05LjQgMjQuNi05LjQgMzMuOSAwczkuNCAyNC42IDAgMzMuOWwtNDcgNDcgNDcgNDdjOS40IDkuNCA5LjQgMjQuNiAwIDMzLjlzLTI0LjYgOS40LTMzLjkgMGwtNDctNDctNDcgNDdjLTkuNCA5LjQtMjQuNiA5LjQtMzMuOSAwcy05LjQtMjQuNiAwLTMzLjlsNDctNDctNDctNDdjLTkuNC05LjQtOS40LTI0LjYgMC0zMy45eiIKICAgIGZpbGw9IiM1YjViNWIiCiAgLz4KPC9zdmc+Cg==";
 
-    $medium: 400;
-    $lato: $sans-serif-font-stack;
-
-    $light-stroke: $gray-20;
-    $active-stroke: $blue-30;
-
-    $active-fill: $blue-20;
-    $hover-fill: $gray-10;
-    $selected-fill: #c7ced7;
-
-    font: $medium 13px/16px $lato;
+    position: relative;
+    font: 400 13px/16px $sans-serif-font-stack;
 
     // fixes a bug in Firefox where long labels would cause the dropdown to resize,
     // see https://github.com/JedWatson/react-select/issues/5170
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-
-    $option-checkmark-width: 12px;
 
     .placeholder {
         color: $gray-60;
@@ -32,50 +22,61 @@
     }
 
     .clear-indicator {
-        margin-right: 5px;
         padding-right: 10px;
-
-        // this is a trick to make the vertical border a bit longer
-        $scaleY: 1.25;
-        transform: scaleY($scaleY);
+        position: absolute;
+        right: 29px; // Leave space for the dropdown caret
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
         border-right: 1px solid #dadada;
+        background: none;
+        display: flex;
+        align-items: center;
+        z-index: 1;
+        height: calc(100% - 12px);
 
         &::after {
             content: " ";
             background: url($clear) no-repeat center;
             width: 12px;
             height: 12px;
-            transform: scaleY(math.div(1, $scaleY)); // invert scaling of parent
         }
 
         &:hover::after {
             background-image: url($clear-hover);
         }
-
-        svg {
-            display: none;
-        }
     }
 
     .control {
         min-height: auto;
-        font: $medium 13px/16px $lato;
+        font: 400 13px/16px $sans-serif-font-stack;
         letter-spacing: 0.01em;
+        text-align: left;
         display: flex;
         align-items: center;
-        border: 1px solid $light-stroke;
+        border: 1px solid $gray-20;
         border-radius: 4px;
         padding: 7px;
         color: $dark-text;
+        background: white;
+        cursor: pointer;
+        position: relative;
+        width: 100%;
 
-        &.focus {
-            outline: 1px solid $blue-30 !important;
+        &:focus-visible {
+            // Override global focus-visible style.
+            outline: 1px solid $blue-30;
             outline-offset: -1px;
         }
 
         &:hover {
-            background: $hover-fill;
-            cursor: pointer;
+            background: $grapher-dropdown-hover-fill;
+        }
+
+        &[data-disabled] {
+            opacity: 0.75;
+            cursor: default;
+            background: $gray-10;
         }
 
         &:after {
@@ -83,90 +84,112 @@
             background: url($menu-caret-down) no-repeat center;
             width: 16px;
             height: 16px;
+            margin-left: auto;
         }
 
-        &.active {
-            border-color: $active-stroke;
+        &.loading:after {
+            opacity: 0.5;
+        }
+
+        &[data-pressed] {
+            border-color: $blue-30;
             &:after {
                 background: url($menu-caret-up) no-repeat center;
             }
         }
-    }
 
-    .menu {
-        margin-top: 3px;
-        border-radius: 4px;
-        background: white;
-        box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.15);
-        z-index: $zindex-controls-popup;
-        color: $dark-text;
+        .label {
+            color: $gray-60;
 
-        .group-heading {
-            @include grapher_h5-black-caps;
-
-            font-size: 11px;
-            color: $light-text;
-
-            margin: 12px 8px 2px 8px;
-            font-weight: 700;
-        }
-
-        .group + .group .group-heading {
-            margin-top: 8px;
-            padding: 12px 0 2px 0;
-            border-top: 1px solid #f2f2f2;
-        }
-
-        .option {
-            padding: 8px calc(16px + $option-checkmark-width + 2px) 8px 16px;
-            &:hover,
-            &.focus {
-                cursor: pointer;
-                background: $hover-fill;
-            }
-            &:active,
-            &.active {
-                color: $active-text;
-                background: $active-fill;
-            }
-            &.active {
-                position: relative;
-                &:hover {
-                    background: $selected-fill;
-                }
-                &:after {
-                    content: " ";
-                    background: url($option-checkmark) no-repeat;
-                    width: $option-checkmark-width;
-                    height: 9px;
-                    position: absolute;
-                    right: 18px;
-                    bottom: 50%;
-                    transform: translateY(50%);
-                }
+            svg {
+                margin-left: 1px;
+                margin-right: 5px;
             }
         }
     }
 
-    // only show the label in the control; don't show it for each option
-    .option .label {
-        display: none;
+    .select-value {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 100%;
+    }
+}
+
+.grapher-dropdown-menu {
+    $option-checkmark: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOSIgdmlld0JveD0iMCAwIDEyIDkiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xMS4wMTU2IDAuOTg0Mzc1QzExLjMyMDMgMS4yNjU2MiAxMS4zMjAzIDEuNzU3ODEgMTEuMDE1NiAyLjAzOTA2TDUuMDE1NjIgOC4wMzkwNkM0LjczNDM4IDguMzQzNzUgNC4yNDIxOSA4LjM0Mzc1IDMuOTYwOTQgOC4wMzkwNkwwLjk2MDkzOCA1LjAzOTA2QzAuNjU2MjUgNC43NTc4MSAwLjY1NjI1IDQuMjY1NjIgMC45NjA5MzggMy45ODQzOEMxLjI0MjE5IDMuNjc5NjkgMS43MzQzOCAzLjY3OTY5IDIuMDE1NjIgMy45ODQzOEw0LjQ3NjU2IDYuNDQ1MzFMOS45NjA5NCAwLjk4NDM3NUMxMC4yNDIyIDAuNjc5Njg4IDEwLjczNDQgMC42Nzk2ODggMTEuMDE1NiAwLjk4NDM3NVoiIGZpbGw9IiMxRDNENjMiLz4KPC9zdmc+";
+    $option-checkmark-width: 12px;
+    font: 400 13px/16px $sans-serif-font-stack;
+
+    margin-top: 3px;
+    border-radius: 4px;
+    background: white;
+    box-shadow: 0px 4px 40px 0px rgba(0, 0, 0, 0.15);
+    z-index: $zindex-controls-popup;
+    color: $dark-text;
+    width: var(--trigger-width);
+    overflow-y: auto;
+
+    .group-heading {
+        @include grapher_h5-black-caps;
+        font-size: 11px;
+        color: $light-text;
+        margin: 12px 8px 2px 8px;
+        font-weight: 700;
     }
 
-    .control .label {
-        color: $gray-60;
+    .group + .group .group-heading {
+        margin-top: 8px;
+        padding: 12px 0 2px 0;
+        border-top: 1px solid #f2f2f2;
+    }
 
-        svg {
-            margin-left: 1px;
-            margin-right: 5px;
+    .option {
+        padding: 8px calc(16px + $option-checkmark-width + 2px) 8px 16px;
+        cursor: pointer;
+
+        &[data-hovered],
+        &[data-focused] {
+            background: $grapher-dropdown-hover-fill;
         }
-    }
 
-    .option .detail {
-        color: $gray-60;
-    }
+        &:focus-visible {
+            // Override global focus-visible style.
+            outline: none !important;
+        }
 
-    .option.active .detail {
-        color: $blue-50;
+        &[data-pressed] {
+            color: $active-text;
+            background: $grapher-dropdown-active-fill;
+        }
+
+        &[data-selected] {
+            position: relative;
+            color: $active-text;
+            background: $grapher-dropdown-active-fill;
+
+            &:hover {
+                background: $grapher-dropdown-selected-fill;
+            }
+
+            &:after {
+                content: " ";
+                background: url($option-checkmark) no-repeat;
+                width: $option-checkmark-width;
+                height: 9px;
+                position: absolute;
+                right: 18px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+        }
+
+        .detail {
+            color: $gray-60;
+        }
+
+        &[data-selected] .detail {
+            color: $blue-50;
+        }
     }
 }

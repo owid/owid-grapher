@@ -135,20 +135,33 @@ export class DataTableFilterDropdown extends React.Component<{
         return (
             <Dropdown<DropdownOption>
                 className="data-table-filter-dropdown"
+                menuClassName="data-table-filter-dropdown-menu"
                 options={this.options}
                 onChange={this.onChange}
                 value={this.value}
-                formatOptionLabel={formatOptionLabel}
+                renderTriggerValue={renderFilterTriggerValue}
+                renderMenuOption={renderFilterMenuOption}
                 aria-label="Filter by"
             />
         )
     }
 }
 
-function formatOptionLabel(option: DropdownOption): React.ReactElement {
+function renderFilterTriggerValue(
+    option: DropdownOption | null
+): React.ReactNode | undefined {
+    if (!option) return undefined
     return (
         <>
             <span className="label">Filter by: </span>
+            {option.label} <span className="detail">({option.count})</span>
+        </>
+    )
+}
+
+function renderFilterMenuOption(option: DropdownOption): React.ReactNode {
+    return (
+        <>
             {option.label} <span className="detail">({option.count})</span>
         </>
     )

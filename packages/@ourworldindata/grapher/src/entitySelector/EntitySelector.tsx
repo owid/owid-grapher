@@ -1375,7 +1375,8 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                     options={this.filterOptions}
                     onChange={this.onChangeEntityFilter}
                     value={this.filterValue}
-                    formatOptionLabel={formatFilterOptionLabel}
+                    renderTriggerValue={renderFilterTriggerValue}
+                    renderMenuOption={renderFilterMenuOption}
                     aria-label="Filter by type"
                 />
             </div>
@@ -1410,7 +1411,8 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                         onChange={this.onChangeSortSlug}
                         value={this.sortValue}
                         isLoading={this.isLoadingExternalSortColumn}
-                        formatOptionLabel={formatSortOptionLabel}
+                        renderTriggerValue={renderSortTriggerValue}
+                        renderMenuOption={renderSortMenuOption}
                         aria-label="Sort by"
                     />
                     <button
@@ -1765,7 +1767,10 @@ function FlippedListItem({
     )
 }
 
-function formatSortOptionLabel(option: SortDropdownOption): React.ReactElement {
+function renderSortTriggerValue(
+    option: SortDropdownOption | null
+): React.ReactNode | undefined {
+    if (!option) return undefined
     return (
         <>
             <span className="label">
@@ -1780,15 +1785,35 @@ function formatSortOptionLabel(option: SortDropdownOption): React.ReactElement {
     )
 }
 
-function formatFilterOptionLabel(
-    option: FilterDropdownOption
-): React.ReactElement {
+function renderSortMenuOption(option: SortDropdownOption): React.ReactNode {
+    return (
+        <>
+            {option.label}
+            {option.formattedTime && (
+                <span className="detail">, {option.formattedTime}</span>
+            )}
+        </>
+    )
+}
+
+function renderFilterTriggerValue(
+    option: FilterDropdownOption | null
+): React.ReactNode | undefined {
+    if (!option) return undefined
     return (
         <>
             <span className="label">
                 <FontAwesomeIcon icon={faFilter} size="sm" />
                 {"Filter by type: "}
             </span>
+            {option.label} <span className="detail">({option.count})</span>
+        </>
+    )
+}
+
+function renderFilterMenuOption(option: FilterDropdownOption): React.ReactNode {
+    return (
+        <>
             {option.label} <span className="detail">({option.count})</span>
         </>
     )
