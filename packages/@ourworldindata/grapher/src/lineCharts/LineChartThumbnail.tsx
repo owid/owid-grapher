@@ -27,7 +27,7 @@ import {
 } from "./LineChartHelpers"
 import {
     HorizontalAxisComponent,
-    VerticalAxisZeroLine,
+    VerticalAxisDomainLine,
 } from "../axis/AxisViews"
 import {
     InitialVerticalLabelsSeries,
@@ -36,11 +36,9 @@ import {
 import { VerticalLabels } from "../verticalLabels/VerticalLabels"
 import { darkenColorForLine } from "../color/ColorUtils.js"
 import { NoDataModal } from "../noDataModal/NoDataModal"
-
-const DOT_RADIUS = 4
-const SPACE_BETWEEN_DOT_AND_LABEL = 4
-
-const LABEL_PADDING = DOT_RADIUS + SPACE_BETWEEN_DOT_AND_LABEL
+import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends.js"
+import { CategoricalBin } from "../color/ColorScaleBin.js"
+import { scaleLinear } from "d3"
 
 @observer
 export class LineChartThumbnail
@@ -83,7 +81,7 @@ export class LineChartThumbnail
 
     @computed private get xAxisConfig(): AxisConfig {
         const { xAxisConfig } = this.manager
-        const custom = { labelPadding: 0 }
+        const custom = { labelPadding: 0, tickPadding: 2 }
         return new AxisConfig({ ...custom, ...xAxisConfig }, this)
     }
 
@@ -125,28 +123,15 @@ export class LineChartThumbnail
     }
 
     /** Start points displayed as dots */
-    @computed private get visibleStartPoints(): PlacedPoint[] {
+    @computed private get startPoints(): PlacedPoint[] {
         return this.renderSeries
-            .filter(
-                (series) =>
-                    this.visibleStartLabels.has(series.seriesName) &&
-                    // Only show start points for historical series, not projected ones
-                    !series.isProjection
-            )
             .map((series) => _.minBy(series.placedPoints, (point) => point.x))
             .filter((point) => point !== undefined)
     }
 
     /** End points displayed as dots */
-    @computed private get visibleEndPoints(): PlacedPoint[] {
+    @computed private get endPoints(): PlacedPoint[] {
         return this.renderSeries
-            .filter(
-                (series) =>
-                    this.visibleEndLabels.has(series.seriesName) &&
-                    // When projected series exist in the chart, only show end dots
-                    // for the projected series. Otherwise, show end dots for all series
-                    (!this.hasProjectedSeries || series.isProjection)
-            )
             .map((series) => _.maxBy(series.placedPoints, (point) => point.x))
             .filter((point) => point !== undefined)
     }
@@ -172,6 +157,21 @@ export class LineChartThumbnail
         return this.chartState.series.some((series) => !!series.isProjection)
     }
 
+    @computed private get dotRadius(): number {
+        // Map font size to dot radius
+        const scale = scaleLinear().domain([11, 16]).range([2.5, 3.5])
+        // Round to nearest .5 number
+        return _.round(scale(this.fontSize) * 2) / 2
+    }
+
+    @computed private get spaceBetweenDotAndLabel(): number {
+        return this.dotRadius
+    }
+
+    @computed private get labelPadding(): number {
+        return this.dotRadius + this.spaceBetweenDotAndLabel
+    }
+
     @computed private get labelsRange(): [number, number] {
         const {
             horizontalAxisPart,
@@ -187,8 +187,6 @@ export class LineChartThumbnail
     }
 
     @computed private get endLabelsState(): VerticalLabelsState | undefined {
-        if (!this.manager.showLegend) return undefined
-
         let labelCandidateSeries = this.chartState.series
 
         // If there is a projected series, only show the labels for the projected ones
@@ -255,8 +253,6 @@ export class LineChartThumbnail
     }
 
     @computed private get startLabelsState(): VerticalLabelsState | undefined {
-        if (!this.manager.showLegend) return undefined
-
         const showEntityNames = !this.manager.isMinimalThumbnail
 
         let labelCandidateSeries = this.chartState.series
@@ -352,12 +348,14 @@ export class LineChartThumbnail
     }
 
     @computed private get paddedEndLabelsWidth(): number {
-        return this.endLabelsWidth > 0 ? this.endLabelsWidth + LABEL_PADDING : 0
+        return this.endLabelsWidth > 0
+            ? this.endLabelsWidth + this.labelPadding
+            : 0
     }
 
     @computed private get paddedStartLabelsWidth(): number {
         return this.startLabelsWidth > 0
-            ? this.startLabelsWidth + LABEL_PADDING
+            ? this.startLabelsWidth + this.labelPadding
             : 0
     }
 
@@ -373,6 +371,23 @@ export class LineChartThumbnail
         )
     }
 
+    // TODO: add numeric legend
+    // TODO: reconcile with LineChart.externalLegend
+    @computed get externalLegend(): HorizontalColorLegendManager {
+        const categoricalLegendData = this.chartState.hasColorScale
+            ? []
+            : this.chartState.series.map(
+                  (series, index) =>
+                      new CategoricalBin({
+                          index,
+                          value: series.seriesName,
+                          label: series.displayName,
+                          color: series.color,
+                      })
+              )
+        return { categoricalLegendData }
+    }
+
     override render(): React.ReactElement {
         if (this.chartState.errorInfo.reason)
             return (
@@ -385,7 +400,7 @@ export class LineChartThumbnail
 
         return (
             <>
-                <VerticalAxisZeroLine
+                <VerticalAxisDomainLine
                     verticalAxis={this.dualAxis.verticalAxis}
                     bounds={this.dualAxis.innerBounds}
                 />
@@ -400,20 +415,20 @@ export class LineChartThumbnail
                     multiColor={this.chartState.hasColorScale}
                     hidePoints
                     lineStrokeWidth={1.5}
-                    lineOutlineWidth={0}
+                    lineOutlineWidth={0.5}
                     isStatic={this.manager.isStatic}
                 />
-                {this.visibleStartPoints.map((point, index) => (
-                    <Dot key={index} point={point} />
+                {this.startPoints.map((point, index) => (
+                    <Dot key={index} point={point} radius={this.dotRadius} />
                 ))}
-                {this.visibleEndPoints.map((point, index) => (
-                    <Dot key={index} point={point} />
+                {this.endPoints.map((point, index) => (
+                    <Dot key={index} point={point} radius={this.dotRadius} />
                 ))}
                 {this.startLabelsState && (
                     <VerticalLabels
                         state={this.startLabelsState}
                         yAxis={this.dualAxis.verticalAxis}
-                        x={this.innerBounds.left - LABEL_PADDING}
+                        x={this.innerBounds.left - this.labelPadding}
                         xAnchor="end"
                     />
                 )}
@@ -421,7 +436,7 @@ export class LineChartThumbnail
                     <VerticalLabels
                         state={this.endLabelsState}
                         yAxis={this.dualAxis.verticalAxis}
-                        x={this.innerBounds.right + LABEL_PADDING}
+                        x={this.innerBounds.right + this.labelPadding}
                     />
                 )}
             </>
@@ -429,8 +444,12 @@ export class LineChartThumbnail
     }
 }
 
-function Dot({ point }: { point: PlacedPoint }): React.ReactElement | null {
-    return (
-        <circle cx={point.x} cy={point.y} r={DOT_RADIUS} fill={point.color} />
-    )
+function Dot({
+    point,
+    radius,
+}: {
+    point: PlacedPoint
+    radius: number
+}): React.ReactElement | null {
+    return <circle cx={point.x} cy={point.y} r={radius} fill={point.color} />
 }
