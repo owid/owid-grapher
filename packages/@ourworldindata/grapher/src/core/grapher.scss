@@ -89,7 +89,6 @@ $zindex-controls-drawer: 150;
 
 // These rules are currently used elsewhere in the site. e.g. Explorers
 // so we can't scope them to be grapher-only
-@import "../controls/entityPicker/EntityPicker.scss";
 @import "../controls/globalEntitySelector/GlobalEntitySelector.scss";
 @import "../fullScreen/FullScreen.scss";
 @import "../../../components/src/Checkbox.scss";

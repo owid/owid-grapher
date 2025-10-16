@@ -759,47 +759,6 @@ export const anyToString = (value: unknown): string => {
     return String(value)
 }
 
-// Scroll Helpers
-// Borrowed from: https://github.com/JedWatson/react-select/blob/32ad5c040b/packages/react-select/src/utils.js
-
-function isDocumentElement(el: HTMLElement): boolean {
-    return [document.documentElement, document.body].indexOf(el) > -1
-}
-
-function scrollTo(el: HTMLElement, top: number): void {
-    // with a scroll distance, we perform scroll on the element
-    if (isDocumentElement(el)) {
-        window.scrollTo(0, top)
-        return
-    }
-
-    el.scrollTop = top
-}
-
-export function scrollIntoViewIfNeeded(
-    containerEl: HTMLElement,
-    focusedEl: HTMLElement
-): void {
-    const menuRect = containerEl.getBoundingClientRect()
-    const focusedRect = focusedEl.getBoundingClientRect()
-    const overScroll = focusedEl.offsetHeight / 3
-
-    if (focusedRect.bottom + overScroll > menuRect.bottom) {
-        scrollTo(
-            containerEl,
-            Math.min(
-                focusedEl.offsetTop +
-                    focusedEl.clientHeight -
-                    containerEl.offsetHeight +
-                    overScroll,
-                containerEl.scrollHeight
-            )
-        )
-    } else if (focusedRect.top - overScroll < menuRect.top) {
-        scrollTo(containerEl, Math.max(focusedEl.offsetTop - overScroll, 0))
-    }
-}
-
 export function rollingMap<T, U>(array: T[], mapper: (a: T, b: T) => U): U[] {
     const result: U[] = []
     if (array.length <= 1) return result
@@ -872,21 +831,6 @@ export const intersection = <T>(...arrs: T[][]): T[] => {
         return arrs[1].filter((value) => set.has(value))
     }
     return intersection(arrs[0], intersection(...arrs.slice(1)))
-}
-
-export function sortByUndefinedLast<T>(
-    array: T[],
-    accessor: (t: T) => string | number | undefined,
-    order: SortOrder = SortOrder.asc
-): T[] {
-    const sorted = _.sortBy(array, (value) => {
-        const mapped = accessor(value)
-        if (mapped === undefined) {
-            return order === SortOrder.asc ? Infinity : -Infinity
-        }
-        return mapped
-    })
-    return order === SortOrder.asc ? sorted : sorted.reverse()
 }
 
 export const mapNullToUndefined = <T>(

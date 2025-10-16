@@ -19,7 +19,6 @@ import {
     extractPotentialDataSlugsFromTransform,
 } from "@ourworldindata/core-table"
 import {
-    EntityPickerManager,
     Grapher,
     GrapherManager,
     GrapherProgrammaticInterface,
@@ -190,10 +189,7 @@ const isNarrow = () =>
 @observer
 export class Explorer
     extends React.Component<ExplorerProps>
-    implements
-        SlideShowManager<ExplorerChoiceParams>,
-        EntityPickerManager,
-        GrapherManager
+    implements SlideShowManager<ExplorerChoiceParams>, GrapherManager
 {
     analytics = new GrapherAnalytics()
     grapherState: GrapherState
