@@ -10,6 +10,10 @@
     .data-insight-dateline {
         @include h6-black-caps;
     }
+
+    > [class*="article-block__"]:last-child {
+        margin-bottom: 0;
+    }
 }
 
 .announcement-page-header-meta {
