@@ -179,7 +179,7 @@ export class SiteBaker {
         this.explorerAdminServer = new ExplorerAdminServer()
     }
 
-    private async bakeCountryProfiles(knex: db.KnexReadonlyTransaction) {
+    private async bakeCountryProfiles(knex: db.KnexReadonly) {
         if (!this.bakeSteps.has("countryProfiles")) return
         this.progressBar.tick({ name: "Baking country profiles" })
         await Promise.all(
@@ -239,7 +239,7 @@ export class SiteBaker {
     }
 
     // Bake an individual post/page
-    private async bakePost(post: FullPost, knex: db.KnexReadonlyTransaction) {
+    private async bakePost(post: FullPost, knex: db.KnexReadonly) {
         const html = await renderPost(post, knex, this.baseUrl)
 
         const outPath = path.join(this.bakedSiteDir, `${post.slug}.html`)
@@ -287,7 +287,7 @@ export class SiteBaker {
     // from the prefetched dictionaries.
     _prefetchedAttachmentsCache: PrefetchedAttachments | undefined = undefined
     private async getPrefetchedGdocAttachments(
-        knex: db.KnexReadonlyTransaction,
+        knex: db.KnexReadonly,
         picks?: [string[], string[], string[], string[], string[], string[]]
     ): Promise<PrefetchedAttachments> {
         if (!this._prefetchedAttachmentsCache) {
@@ -521,7 +521,7 @@ export class SiteBaker {
         return this._prefetchedAttachmentsCache
     }
 
-    private async removeDeletedPosts(knex: db.KnexReadonlyTransaction) {
+    private async removeDeletedPosts(knex: db.KnexReadonly) {
         if (!this.bakeSteps.has("removeDeletedPosts")) return
         this.progressBar.tick({ name: "Removing deleted posts" })
 
@@ -538,7 +538,7 @@ export class SiteBaker {
 
     // Bake all GDoc posts, or a subset of them if slugs are provided
 
-    async bakeGDocPosts(knex: db.KnexReadonlyTransaction, slugs?: string[]) {
+    async bakeGDocPosts(knex: db.KnexReadonly, slugs?: string[]) {
         if (!this.bakeSteps.has("gdocPosts")) return
         this.progressBar.tick({ name: "Baking Google doc posts" })
         // We don't need to call `load` on these, because we prefetch all attachments
@@ -616,7 +616,7 @@ export class SiteBaker {
         }
     }
 
-    async bakeGDocTombstones(knex: db.KnexReadonlyTransaction) {
+    async bakeGDocTombstones(knex: db.KnexReadonly) {
         if (!this.bakeSteps.has("gdocTombstones")) return
         this.progressBar.tick({ name: "Baking Google doc tombstones" })
         const tombstones = await getTombstones(knex)
@@ -649,7 +649,7 @@ export class SiteBaker {
 
     // Bake unique individual pages
 
-    private async bakeSpecialPages(knex: db.KnexReadonlyTransaction) {
+    private async bakeSpecialPages(knex: db.KnexReadonly) {
         if (!this.bakeSteps.has("specialPages")) return
         this.progressBar.tick({ name: "Baking special pages" })
         await this.stageWrite(
@@ -694,7 +694,7 @@ export class SiteBaker {
         )
     }
 
-    private async bakeExplorers(knex: db.KnexReadonlyTransaction) {
+    private async bakeExplorers(knex: db.KnexReadonly) {
         if (!this.bakeSteps.has("explorers")) return
         this.progressBar.tick({ name: "Baking explorers" })
 
@@ -712,7 +712,7 @@ export class SiteBaker {
     }
 
     private async validateGrapherDodReferences(
-        knex: db.KnexReadonlyTransaction
+        knex: db.KnexReadonly
     ) {
         if (!this.bakeSteps.has("dods") || !this.bakeSteps.has("charts")) return
         console.log("Validating grapher DoDs")
@@ -760,14 +760,14 @@ export class SiteBaker {
         }
     }
 
-    private async bakeMultiDimPages(knex: db.KnexReadonlyTransaction) {
+    private async bakeMultiDimPages(knex: db.KnexReadonly) {
         if (!this.bakeSteps.has("multiDimPages")) return
         this.progressBar.tick({ name: "Baking multi-dim pages" })
         const { imageMetadata } = await this.getPrefetchedGdocAttachments(knex)
         await bakeAllMultiDimDataPages(knex, this.bakedSiteDir, imageMetadata)
     }
 
-    private async bakeDetailsOnDemand(knex: db.KnexReadonlyTransaction) {
+    private async bakeDetailsOnDemand(knex: db.KnexReadonly) {
         if (!this.bakeSteps.has("dods")) return
         this.progressBar.tick({ name: "Baking dods.json" })
 
@@ -779,7 +779,7 @@ export class SiteBaker {
         )
     }
 
-    private async bakeDataInsights(knex: db.KnexReadonlyTransaction) {
+    private async bakeDataInsights(knex: db.KnexReadonly) {
         if (!this.bakeSteps.has("dataInsights")) return
         this.progressBar.tick({ name: "Baking data insights" })
         const {
@@ -867,7 +867,7 @@ export class SiteBaker {
         )
     }
 
-    private async bakeAuthors(knex: db.KnexReadonlyTransaction) {
+    private async bakeAuthors(knex: db.KnexReadonly) {
         if (!this.bakeSteps.has("authors")) return
         this.progressBar.tick({ name: "Baking author pages" })
 
@@ -931,7 +931,7 @@ export class SiteBaker {
 
     // Bake the blog index
 
-    private async bakeBlogIndex(knex: db.KnexReadonlyTransaction) {
+    private async bakeBlogIndex(knex: db.KnexReadonly) {
         if (!this.bakeSteps.has("blogIndex")) return
         this.progressBar.tick({ name: "Baking blog index" })
         const allPosts = await getBlogIndex(knex)
@@ -946,7 +946,7 @@ export class SiteBaker {
 
     // Bake the RSS feed
 
-    private async bakeRSS(knex: db.KnexReadonlyTransaction) {
+    private async bakeRSS(knex: db.KnexReadonly) {
         if (!this.bakeSteps.has("rss")) return
         this.progressBar.tick({ name: "Baking RSS feeds" })
         await this.stageWrite(
@@ -965,7 +965,7 @@ export class SiteBaker {
 
     // We don't have an icon for every single tag (yet), but for the icons that we *do* have,
     // we want to make sure that we have a corresponding tag in the database.
-    private async validateTagIcons(trx: db.KnexReadonlyTransaction) {
+    private async validateTagIcons(trx: db.Knex) {
         const allTags = await trx
             .table("tags")
             .select<{ name: string }[]>("name")
@@ -984,7 +984,7 @@ export class SiteBaker {
     }
 
     // Bake the static assets
-    private async bakeAssets(trx: db.KnexReadonlyTransaction) {
+    private async bakeAssets(trx: db.Knex) {
         if (!this.bakeSteps.has("assets")) return
         this.progressBar.tick({ name: "Baking assets" })
 
@@ -1018,7 +1018,7 @@ export class SiteBaker {
         await fs.ensureDir(`${this.bakedSiteDir}/grapher`)
     }
 
-    async bakeRedirects(knex: db.KnexReadonlyTransaction) {
+    async bakeRedirects(knex: db.KnexReadonly) {
         if (!this.bakeSteps.has("redirects")) return
         this.progressBar.tick({ name: "Baking site redirects" })
         const redirects = await getRedirects(knex)
@@ -1035,14 +1035,14 @@ export class SiteBaker {
         )
     }
 
-    async bakeWordpressPages(knex: db.KnexReadonlyTransaction) {
+    async bakeWordpressPages(knex: db.KnexReadonly) {
         await this.bakeRedirects(knex)
         await this.bakeBlogIndex(knex)
         await this.bakeRSS(knex)
         await this.bakeAssets(knex)
     }
 
-    private async _bakeNonWordpressPages(knex: db.KnexReadonlyTransaction) {
+    private async _bakeNonWordpressPages(knex: db.KnexReadonly) {
         if (this.bakeSteps.has("countries")) {
             await bakeCountries(this, knex)
         }
@@ -1067,7 +1067,7 @@ export class SiteBaker {
         await this.bakeAuthors(knex)
     }
 
-    async bakeNonWordpressPages(knex: db.KnexReadonlyTransaction) {
+    async bakeNonWordpressPages(knex: db.KnexReadonly) {
         const progressBarTotal = nonWordpressSteps
             .map((step) => this.bakeSteps.has(step))
             .filter((hasStep) => hasStep).length
@@ -1081,7 +1081,7 @@ export class SiteBaker {
         await this._bakeNonWordpressPages(knex)
     }
 
-    async bakeAll(knex: db.KnexReadonlyTransaction) {
+    async bakeAll(knex: db.KnexReadonly) {
         // Ensure caches are correctly initialized
         this.flushCache()
         await this.removeDeletedPosts(knex)

@@ -11,12 +11,6 @@ import * as db from "../db/db.js"
 import "../db/cleanup.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
 
-const runDeployIfQueueIsNotEmpty = async () =>
-    await db.knexReadonlyTransaction(
-        deployIfQueueIsNotEmpty,
-        db.TransactionCloseMode.KeepOpen
-    )
-
 // TODO: The deploy queue is largely obsolete with buildkite but it's not visible in the admin yet so for now this code is kept
 const main = async () => {
     if (!fs.existsSync(DEPLOY_QUEUE_FILE_PATH)) {
@@ -26,16 +20,21 @@ const main = async () => {
         process.exit(1)
     }
 
-    // Poll for changes every 5 seconds
-    while (true) {
-        try {
-            await runDeployIfQueueIsNotEmpty()
-        } catch (error) {
-            await logErrorAndMaybeCaptureInSentry(error)
-            throw error
-        }
-        await new Promise((resolve) => setTimeout(resolve, 5 * 1000))
-    }
+    await db.knexReadonly(
+        async (knex) => {
+            // Poll for changes every 5 seconds
+            while (true) {
+                try {
+                    await deployIfQueueIsNotEmpty(knex)
+                } catch (error) {
+                    await logErrorAndMaybeCaptureInSentry(error)
+                    throw error
+                }
+                await new Promise((resolve) => setTimeout(resolve, 5 * 1000))
+            }
+        },
+        db.TransactionCloseMode.KeepOpen
+    )
 }
 
 void main()
