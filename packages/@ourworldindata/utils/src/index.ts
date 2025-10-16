@@ -227,8 +227,6 @@ export {
     getSiblingRegions,
 } from "./regions.js"
 
-export { getStylesForTargetHeight } from "./react-select.js"
-
 export { type GridBounds, FontFamily, Bounds } from "./Bounds.js"
 
 export {
