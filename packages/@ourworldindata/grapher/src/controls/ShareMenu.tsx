@@ -12,6 +12,7 @@ import {
 import { canWriteToClipboard, isAndroid, isIOS } from "@ourworldindata/utils"
 import { GrapherModal } from "../core/GrapherConstants"
 import { GrapherExport } from "../captionedChart/StaticChartRasterizer.js"
+import { isTargetOutsideElement } from "../chart/ChartUtils.js"
 
 export interface ShareMenuManager {
     slug?: string
@@ -84,7 +85,7 @@ export const shareUsingShareApi = async (
 
 @observer
 export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
-    dismissable = true
+    private menuRef = React.createRef<HTMLDivElement>()
 
     constructor(props: ShareMenuProps) {
         super(props)
@@ -122,9 +123,14 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         this.props.onDismiss?.()
     }
 
-    @action.bound onClickSomewhere(): void {
-        if (this.dismissable) this.dismiss()
-        else this.dismissable = true
+    @action.bound onClickSomewhere(e: Event): void {
+        if (
+            this.menuRef.current &&
+            e.target &&
+            isTargetOutsideElement(e.target, this.menuRef.current)
+        ) {
+            this.dismiss()
+        }
     }
 
     override componentDidMount(): void {
@@ -200,11 +206,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         }
 
         return (
-            <div
-                className="ShareMenu"
-                onClick={action(() => (this.dismissable = false))}
-                style={style}
-            >
+            <div className="ShareMenu" ref={this.menuRef} style={style}>
                 <h2>Share</h2>
                 {this.canonicalUrl && (
                     <a
