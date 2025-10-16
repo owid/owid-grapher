@@ -14,5 +14,7 @@ export const reactRenderToStringClientOnly = (
     const div = document.createElement("div")
     const root = createRoot(div)
     flushSync(() => root.render(element))
-    return div.innerHTML
+    const html = div.innerHTML
+    root.unmount()
+    return html
 }
