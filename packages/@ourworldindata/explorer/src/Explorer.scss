@@ -129,6 +129,8 @@ html.IsInIframe .ExplorerFigure,
         position: relative;
         min-height: 600px;
 
+        grid-column: span 2;
+
         // Remove chart from layout calculation.
         // Since grid/flex layouts size to their contents, having the chart dictate that leads to
         // a very slow adaptations to resizing.
