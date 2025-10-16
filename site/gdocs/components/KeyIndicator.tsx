@@ -46,7 +46,7 @@ export default function KeyIndicator({
                 <Button
                     className="datapage-link datapage-link-desktop"
                     href={linkedChart.resolvedUrl}
-                    text="Explore and learn more about this data"
+                    text="Explore the data"
                     theme="solid-blue"
                 />
             </div>
@@ -61,7 +61,7 @@ export default function KeyIndicator({
             <Button
                 className="datapage-link datapage-link-mobile col-start-1 span-cols-12"
                 href={linkedChart.resolvedUrl}
-                text="Explore and learn more about this data"
+                text="Explore the data"
                 theme="solid-blue"
             />
         </div>
