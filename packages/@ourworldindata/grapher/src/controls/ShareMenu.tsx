@@ -8,17 +8,18 @@ import {
     faLink,
     faEdit,
     faPanorama,
+    faImage,
 } from "@fortawesome/free-solid-svg-icons"
 import { canWriteToClipboard, isAndroid, isIOS } from "@ourworldindata/utils"
 import { GrapherModal } from "../core/GrapherConstants"
 import { GrapherExport } from "../captionedChart/StaticChartRasterizer.js"
+import { isTargetOutsideElement } from "../chart/ChartUtils.js"
 
 export interface ShareMenuManager {
     slug?: string
     currentTitle?: string
     canonicalUrl?: string
     editUrl?: string
-    showAdminControls?: boolean
     createNarrativeChartUrl?: string
     activeModal?: GrapherModal
     rasterize: () => Promise<GrapherExport>
@@ -32,7 +33,8 @@ interface ShareMenuProps {
 
 interface ShareMenuState {
     canWriteToClipboard: boolean
-    copied: boolean
+    copiedLink: boolean
+    copiedPng: boolean
 }
 
 type ShareApiManager = Pick<ShareMenuManager, "canonicalUrl" | "currentTitle">
@@ -85,7 +87,7 @@ export const shareUsingShareApi = async (
 
 @observer
 export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
-    dismissable = true
+    private menuRef = React.createRef<HTMLDivElement>()
 
     constructor(props: ShareMenuProps) {
         super(props)
@@ -94,7 +96,8 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
 
         this.state = {
             canWriteToClipboard: false,
-            copied: false,
+            copiedLink: false,
+            copiedPng: false,
         }
     }
 
@@ -123,9 +126,14 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         this.props.onDismiss?.()
     }
 
-    @action.bound onClickSomewhere(): void {
-        if (this.dismissable) this.dismiss()
-        else this.dismissable = true
+    @action.bound onClickSomewhere(e: Event): void {
+        if (
+            this.menuRef.current &&
+            e.target &&
+            isTargetOutsideElement(e.target, this.menuRef.current)
+        ) {
+            this.dismiss()
+        }
     }
 
     override componentDidMount(): void {
@@ -155,8 +163,9 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         if (!this.canonicalUrl) return
 
         try {
+            this.setState({ copiedLink: false, copiedPng: false })
             await navigator.clipboard.writeText(this.canonicalUrl)
-            this.setState({ copied: true })
+            this.setState({ copiedLink: true, copiedPng: false })
         } catch (err) {
             console.error(
                 "couldn't copy to clipboard using navigator.clipboard",
@@ -169,13 +178,19 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         const { manager } = this
 
         try {
-            await manager
-                .rasterize()
-                .then(({ blob }) =>
-                    navigator.clipboard.write([
-                        new ClipboardItem({ "image/png": blob }),
-                    ])
-                )
+            this.setState({ copiedLink: false, copiedPng: false })
+
+            // Safari needs the clipboard.write call to happen without a delay after the user interaction,
+            // so it's important that we pass a promise to ClipboardItem, not await the rasterization first
+            // see https://stackoverflow.com/a/68241516/10670163
+            const rasterizePromise = manager.rasterize()
+            await navigator.clipboard.write([
+                new ClipboardItem({
+                    "image/png": rasterizePromise.then(({ blob }) => blob),
+                }),
+            ])
+
+            this.setState({ copiedLink: false, copiedPng: true })
         } catch (err) {
             console.error("couldn't copy PNG to clipboard", err)
         }
@@ -186,9 +201,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
     }
 
     @computed get showCopyPngButton(): boolean {
-        return (
-            this.state.canWriteToClipboard && !!this.manager.showAdminControls
-        )
+        return this.state.canWriteToClipboard
     }
 
     override render(): React.ReactElement {
@@ -203,21 +216,17 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         }
 
         return (
-            <div
-                className="ShareMenu"
-                onClick={action(() => (this.dismissable = false))}
-                style={style}
-            >
+            <div className="ShareMenu" ref={this.menuRef} style={style}>
                 <h2>Share</h2>
                 {this.canonicalUrl && (
                     <a
                         className="embed"
-                        title="Embed this visualization in another HTML document"
+                        title="Embed this interactive visualization in another HTML document, e.g. a blog post or website"
                         data-track-note="chart_share_embed"
                         onClick={this.onEmbed}
                     >
                         <FontAwesomeIcon className="icon" icon={faCode} />
-                        Embed
+                        Embed this chart
                     </a>
                 )}
                 {canUseShareApi && (
@@ -230,24 +239,28 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                         Share via&hellip;
                     </a>
                 )}
+                {showCopyPngButton && (
+                    <a
+                        title="Copy an image of this chart to the clipboard"
+                        data-track-note="chart_share_copy_png"
+                        onClick={this.onCopyPng}
+                    >
+                        <FontAwesomeIcon className="icon" icon={faImage} />
+                        {this.state.copiedPng
+                            ? "Chart copied!"
+                            : "Copy chart as image"}
+                    </a>
+                )}
                 {this.state.canWriteToClipboard && this.canonicalUrl && (
                     <a
-                        title="Copy link to clipboard"
+                        title="Copy a link to this chart to the clipboard"
                         data-track-note="chart_share_copylink"
                         onClick={this.onCopyUrl}
                     >
                         <FontAwesomeIcon className="icon" icon={faLink} />
-                        {this.state.copied ? "Copied!" : "Copy link"}
-                    </a>
-                )}
-                {showCopyPngButton && (
-                    <a
-                        title="Copy PNG image to clipboard"
-                        data-track-note="chart_share_copypng"
-                        onClick={this.onCopyPng}
-                    >
-                        <FontAwesomeIcon className="icon" icon={faPanorama} />
-                        Copy PNG
+                        {this.state.copiedLink
+                            ? "Link copied!"
+                            : "Copy link to chart"}
                     </a>
                 )}
                 {editUrl && (
