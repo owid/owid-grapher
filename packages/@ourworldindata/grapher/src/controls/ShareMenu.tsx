@@ -163,6 +163,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         if (!this.canonicalUrl) return
 
         try {
+            this.setState({ copiedLink: false, copiedPng: false })
             await navigator.clipboard.writeText(this.canonicalUrl)
             this.setState({ copiedLink: true, copiedPng: false })
         } catch (err) {
@@ -177,6 +178,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         const { manager } = this
 
         try {
+            this.setState({ copiedLink: false, copiedPng: false })
             await manager
                 .rasterize()
                 .then(({ blob }) =>
@@ -215,7 +217,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                 {this.canonicalUrl && (
                     <a
                         className="embed"
-                        title="Embed this visualization in another HTML document"
+                        title="Embed this interactive visualization in another HTML document, e.g. a blog post or website"
                         data-track-note="chart_share_embed"
                         onClick={this.onEmbed}
                     >
@@ -247,7 +249,7 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
                 )}
                 {showCopyPngButton && (
                     <a
-                        title="Copy an image of the chart to the clipboard"
+                        title="Copy an image of this chart to the clipboard"
                         data-track-note="chart_share_copypng"
                         onClick={this.onCopyPng}
                     >
