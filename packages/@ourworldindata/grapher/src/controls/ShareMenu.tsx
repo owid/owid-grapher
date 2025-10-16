@@ -179,13 +179,17 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
 
         try {
             this.setState({ copiedLink: false, copiedPng: false })
-            await manager
-                .rasterize()
-                .then(({ blob }) =>
-                    navigator.clipboard.write([
-                        new ClipboardItem({ "image/png": blob }),
-                    ])
-                )
+
+            // Safari needs the clipboard.write call to happen without a delay after the user interaction,
+            // so it's important that we pass a promise to ClipboardItem, not await the rasterization first
+            // see https://stackoverflow.com/a/68241516/10670163
+            const rasterizePromise = manager.rasterize()
+            await navigator.clipboard.write([
+                new ClipboardItem({
+                    "image/png": rasterizePromise.then(({ blob }) => blob),
+                }),
+            ])
+
             this.setState({ copiedLink: false, copiedPng: true })
         } catch (err) {
             console.error("couldn't copy PNG to clipboard", err)
