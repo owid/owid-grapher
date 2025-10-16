@@ -40,7 +40,7 @@ import {
     getMultiDimDataPageBySlug,
 } from "../db/model/MultiDimDataPage.js"
 import { MultiDimArchivalManifest } from "../serverUtils/archivalUtils.js"
-import { getLatestMultiDimArchivedVersions } from "../db/model/archival/archivalDb.js"
+import { getLatestArchivedMultiDimPageVersions } from "../db/model/ArchivedMultiDimVersion.js"
 
 const getLatestMultiDimArchivedVersionsIfEnabled = async (
     knex: db.KnexReadonlyTransaction,
@@ -48,7 +48,7 @@ const getLatestMultiDimArchivedVersionsIfEnabled = async (
 ): Promise<Record<number, ArchivedPageVersion>> => {
     if (!ARCHIVE_BASE_URL) return {}
 
-    return await getLatestMultiDimArchivedVersions(knex, multiDimIds)
+    return await getLatestArchivedMultiDimPageVersions(knex, multiDimIds)
 }
 
 export function getRelevantVariableIds(
