@@ -29,6 +29,7 @@ import {
     SeriesStrategy,
     AxisConfigInterface,
     ChartErrorInfo,
+    GrapherVariant,
 } from "@ourworldindata/types"
 import { ChartComponent, makeChartInstance } from "../chart/ChartTypeMap"
 import { ChartManager } from "../chart/ChartManager"
@@ -304,6 +305,11 @@ export class FacetChart
         // all possible color values from `inputTable`.
         const colorScaleColumnOverride = this.inputTable.get(colorColumnSlug)
 
+        // Show start and end value labels for line charts and slope charts
+        const isMinimalThumbnail =
+            this.chartTypeName === GRAPHER_CHART_TYPES.LineChart ||
+            this.chartTypeName === GRAPHER_CHART_TYPES.SlopeChart
+
         return series.map((series, index) => {
             const { bounds } = gridBoundsArr[index]
             const showLegend = !this.hideFacetLegends
@@ -338,6 +344,7 @@ export class FacetChart
                 hideNoDataSection,
                 focusArray,
                 isStatic,
+                isMinimalThumbnail,
                 ...series.manager,
                 xAxisConfig: {
                     ...globalXAxisConfig,
@@ -366,9 +373,25 @@ export class FacetChart
                 manager,
                 bounds,
                 chartType: this.chartTypeName,
-                variant: this.manager.variant,
+                variant: this.getVariantFromFacetBounds(bounds),
             })
         })
+    }
+
+    // TODO: add support for more chart types
+    @computed private get canShowThumbnails(): boolean {
+        return (
+            this.chartTypeName === GRAPHER_CHART_TYPES.LineChart ||
+            this.chartTypeName === GRAPHER_CHART_TYPES.SlopeChart
+        )
+    }
+
+    private getVariantFromFacetBounds(facetBounds: Bounds): GrapherVariant {
+        if (!this.canShowThumbnails) return GrapherVariant.Default
+        // TODO: fine-tune the threshold
+        return facetBounds.width <= 200
+            ? GrapherVariant.Thumbnail
+            : GrapherVariant.Default
     }
 
     @computed private get isSharedYAxis(): boolean {
@@ -388,8 +411,9 @@ export class FacetChart
     @computed private get isSharedXAxis(): boolean {
         return (
             this.uniformXAxis &&
-            // TODO: do this for stacked area charts and line charts as well?
-            this.chartTypeName === GRAPHER_CHART_TYPES.StackedBar &&
+            (this.chartTypeName === GRAPHER_CHART_TYPES.StackedBar ||
+                this.chartTypeName === GRAPHER_CHART_TYPES.StackedArea ||
+                this.chartTypeName === GRAPHER_CHART_TYPES.LineChart) &&
             this.facetCount >= SHARED_X_AXIS_MIN_FACET_COUNT
         )
     }
@@ -895,6 +919,7 @@ export class FacetChart
                 {showLegend && <LegendClass manager={this} />}
                 {this.placedSeries.map((facetChart, index: number) => {
                     const { bounds, contentBounds, seriesName } = facetChart
+                    const variant = this.getVariantFromFacetBounds(bounds)
                     const labelPadding = getLabelPadding(facetFontSize)
 
                     const { fontSize, shortenedLabel } =
@@ -920,7 +945,7 @@ export class FacetChart
                                 <ChartComponent
                                     manager={facetChart.manager}
                                     chartType={this.chartTypeName}
-                                    variant={this.manager.variant}
+                                    variant={variant}
                                     bounds={bounds}
                                 />
                             </g>
