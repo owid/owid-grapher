@@ -1494,17 +1494,25 @@ div.raw-html-table__container {
 
     .homepage-search__link {
         @include owid-link-60;
-        color: $blue-30;
+        color: $blue-20;
         text-decoration: none;
-        border: 1px solid $blue-40;
+        border: 1px solid $blue-50;
         border-radius: 32px;
         padding: 4.5px 12px;
+        transition: 0.125s;
         &:visited {
-            color: $blue-30;
+            color: $blue-20;
         }
         &:hover {
-            color: $blue-20;
-            border-color: $blue-20;
+            color: #fff;
+            border-color: #fff;
+            svg {
+                color: $blue-30;
+            }
+        }
+        svg {
+            margin-right: 6px;
+            color: $blue-50;
         }
     }
 
@@ -1530,6 +1538,7 @@ div.raw-html-table__container {
 
     .homepage-search__tagline {
         margin-bottom: 0;
+        font-size: 0.875rem;
         @include sm-only {
             margin-top: 0;
             @include body-3-medium;
