@@ -33,6 +33,8 @@ import {
 import { VerticalLabels } from "../verticalLabels/VerticalLabels"
 import { MarkX } from "./MarkX"
 import { NoDataModal } from "../noDataModal/NoDataModal"
+import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends.js"
+import { CategoricalBin } from "../color/ColorScaleBin.js"
 
 const DOT_RADIUS = 3.5
 const SPACE_BETWEEN_DOT_AND_LABEL = 4
@@ -212,8 +214,6 @@ export class SlopeChartThumbnail
     }
 
     @computed private get endLabelsState(): VerticalLabelsState | undefined {
-        if (!this.manager.showLegend) return undefined
-
         const series = this.labelCandidateSeries.map((series) => {
             const { seriesName, color } = series
 
@@ -242,8 +242,6 @@ export class SlopeChartThumbnail
     }
 
     @computed private get startLabelsState(): VerticalLabelsState | undefined {
-        if (!this.manager.showLegend) return undefined
-
         const showEntityNames = !this.manager.isMinimalThumbnail
 
         const series = this.labelCandidateSeries.map((series) => {
@@ -303,6 +301,20 @@ export class SlopeChartThumbnail
         return this.startLabelsWidth > 0
             ? this.startLabelsWidth + LABEL_PADDING
             : 0
+    }
+
+    // TODO: reconcile with SlopeChart.externalLegend
+    @computed get externalLegend(): HorizontalColorLegendManager {
+        const categoricalLegendData = this.chartState.series.map(
+            (series, index) =>
+                new CategoricalBin({
+                    index,
+                    value: series.seriesName,
+                    label: series.displayName,
+                    color: series.color,
+                })
+        )
+        return { categoricalLegendData }
     }
 
     override render(): React.ReactElement {
