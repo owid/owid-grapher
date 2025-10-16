@@ -456,6 +456,8 @@ async function getAndLoadPublishedGdocs<T extends GdocBase>(
             .distinct()
     }
 
+    // TEMPORARY: Removed limit - testing full optimization
+
     if (options?.limit) query = query.limit(options.limit)
     if (options?.offset) query = query.offset(options.offset)
 

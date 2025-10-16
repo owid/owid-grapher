@@ -1094,14 +1094,48 @@ export class GdocBase implements OwidGdocBaseInterface {
     }
 
     async loadState(knex: db.KnexReadonlyTransaction): Promise<void> {
+        // TEMPORARY: Profiling instrumentation
+        const track = (name: string, duration: number) => {
+            if (!(global as any).__gdocLoadStateTiming) {
+                ;(global as any).__gdocLoadStateTiming = {}
+            }
+            const timings = (global as any).__gdocLoadStateTiming
+            if (!timings[name]) timings[name] = { count: 0, total: 0 }
+            timings[name].count++
+            timings[name].total += duration
+        }
+
+        let start = Date.now()
         await this.loadLinkedAuthors(knex)
+        track("loadLinkedAuthors", Date.now() - start)
+
+        start = Date.now()
         await this.loadLinkedDocuments(knex)
+        track("loadLinkedDocuments", Date.now() - start)
+
+        start = Date.now()
         await this.loadImageMetadataFromDB(knex)
+        track("loadImageMetadataFromDB", Date.now() - start)
+
+        start = Date.now()
         await this.loadLinkedCharts(knex)
+        track("loadLinkedCharts", Date.now() - start)
+
+        start = Date.now()
         await this.loadLinkedIndicators(knex) // depends on linked charts
+        track("loadLinkedIndicators", Date.now() - start)
+
+        start = Date.now()
         await this.loadNarrativeChartsInfo(knex)
+        track("loadNarrativeChartsInfo", Date.now() - start)
+
+        start = Date.now()
         await this._loadSubclassAttachments(knex)
+        track("_loadSubclassAttachments", Date.now() - start)
+
+        start = Date.now()
         await this.validate(knex)
+        track("validate", Date.now() - start)
     }
 
     toJSON(): OwidGdoc {
