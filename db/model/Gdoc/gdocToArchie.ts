@@ -9,10 +9,117 @@ import {
     RawBlockTableRow,
     RawBlockTableCell,
     RawBlockText,
+    SpanSimpleText,
+    SpanLink,
 } from "@ourworldindata/utils"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { OwidRawGdocBlockToArchieMLString } from "./rawToArchie.js"
 import { match, P } from "ts-pattern"
+
+type MergedParagraphElement = docs_v1.Schema$ParagraphElement & {
+    __mergedSpan?: Span
+}
+
+function applyTextStyles(
+    textRun: docs_v1.Schema$TextRun,
+    baseSpan: SpanSimpleText
+): Span {
+    let styledSpan: Span = baseSpan
+    const textStyle = textRun.textStyle
+
+    if (!textStyle) {
+        return styledSpan
+    }
+
+    // Apply styles by wrapping the span. The order matters for nesting.
+    if (textStyle.italic) {
+        styledSpan = { spanType: "span-italic", children: [styledSpan] }
+    }
+    if (textStyle.bold) {
+        styledSpan = { spanType: "span-bold", children: [styledSpan] }
+    }
+    if (textStyle.baselineOffset === "SUPERSCRIPT") {
+        styledSpan = { spanType: "span-superscript", children: [styledSpan] }
+    }
+    if (textStyle.baselineOffset === "SUBSCRIPT") {
+        styledSpan = { spanType: "span-subscript", children: [styledSpan] }
+    }
+
+    return styledSpan
+}
+
+function mergeAdjacentLinkedElements(
+    elements: docs_v1.Schema$ParagraphElement[]
+): MergedParagraphElement[] {
+    if (!elements || elements.length === 0) {
+        return []
+    }
+
+    const merged: MergedParagraphElement[] = []
+    let i = 0
+
+    while (i < elements.length) {
+        const current = elements[i]
+        const currentUrl = current.textRun?.textStyle?.link?.url
+
+        // If the element is not a link, push it and continue
+        if (!currentUrl) {
+            merged.push(current)
+            i++
+            continue
+        }
+
+        // Look ahead to find all consecutive elements with the same link URL
+        let j = i + 1
+        while (
+            j < elements.length &&
+            elements[j].textRun?.textStyle?.link?.url === currentUrl
+        ) {
+            j++
+        }
+
+        const elementsToMerge = elements.slice(i, j)
+
+        // If we only found one element, it doesn't need merging
+        if (elementsToMerge.length <= 1) {
+            merged.push(current)
+            i++
+            continue
+        }
+
+        // Create the merged span
+        const children: Span[] = elementsToMerge
+            .map((el) => {
+                if (!el.textRun) return null // Should not happen in this logic block
+
+                const baseSpan: SpanSimpleText = {
+                    spanType: "span-simple-text",
+                    text: el.textRun.content || "",
+                }
+
+                return applyTextStyles(el.textRun, baseSpan)
+            })
+            .filter((span) => span !== null)
+
+        const linkSpan: SpanLink = {
+            spanType: "span-link",
+            url: currentUrl,
+            children,
+        }
+
+        // Create the synthetic element to replace the sequence
+        const syntheticElement: MergedParagraphElement = {
+            __mergedSpan: linkSpan,
+        }
+
+        merged.push(syntheticElement)
+
+        // Advance the index past all the elements we just merged
+        i = j
+    }
+
+    return merged
+}
 
 function paragraphToString(
     paragraph: docs_v1.Schema$Paragraph,
@@ -33,6 +140,9 @@ function paragraphToString(
     if (paragraph.elements) {
         // all values in the element
         const values: docs_v1.Schema$ParagraphElement[] = paragraph.elements
+
+        // Merge adjacent elements that share the same link URL to prevent splitting links
+        const mergedValues = mergeAdjacentLinkedElements(values)
 
         let idx = 0
 
@@ -56,7 +166,7 @@ function paragraphToString(
             return text
         }
         let elementText = ""
-        for (const value of values) {
+        for (const value of mergedValues) {
             // we only need to add a bullet to the first value, so we check
             const isFirstValue = idx === 0
 
@@ -165,8 +275,13 @@ export async function gdocToArchie(
 }
 
 function parseParagraph(
-    element: docs_v1.Schema$ParagraphElement
+    element: MergedParagraphElement
 ): Span | RawBlockHorizontalRule | null {
+    // Check if this is a merged element created by mergeAdjacentLinkedElements
+    if (element.__mergedSpan) {
+        return element.__mergedSpan
+    }
+
     // pull out the text
     const textRun = element.textRun
 
