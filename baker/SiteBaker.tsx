@@ -815,7 +815,9 @@ export class SiteBaker {
             await GdocDataInsight.getPublishedDataInsights(knex)
         track("getPublishedDataInsights", Date.now() - start)
 
-        console.log(`\n📊 Processing ${publishedDataInsights.length} data insights...`)
+        console.log(
+            `\n📊 Processing ${publishedDataInsights.length} data insights...`
+        )
 
         for (const dataInsight of publishedDataInsights) {
             start = Date.now()
@@ -899,9 +901,7 @@ export class SiteBaker {
             console.log("\n⏱️  GdocBase.loadState timing breakdown:")
             const loadStateTimings = (global as any).__gdocLoadStateTiming
             Object.entries(loadStateTimings)
-                .sort(
-                    (a: any, b: any) => b[1].total - a[1].total
-                )
+                .sort((a: any, b: any) => b[1].total - a[1].total)
                 .forEach(([name, { count, total }]: [string, any]) => {
                     console.log(
                         `   ${name}: ${total}ms (${count} calls, ${(total / count).toFixed(1)}ms avg)`
