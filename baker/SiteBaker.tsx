@@ -782,14 +782,43 @@ export class SiteBaker {
     private async bakeDataInsights(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("dataInsights")) return
         this.progressBar.tick({ name: "Baking data insights" })
+
+        // TEMPORARY: Profiling instrumentation
+        const timings: Record<string, { count: number; total: number }> = {}
+        const track = (name: string, duration: number) => {
+            if (!timings[name]) timings[name] = { count: 0, total: 0 }
+            timings[name].count++
+            timings[name].total += duration
+        }
+        const printTimings = () => {
+            console.log("\n⏱️  Data Insights timing breakdown:")
+            Object.entries(timings)
+                .sort((a, b) => b[1].total - a[1].total)
+                .forEach(([name, { count, total }]) => {
+                    console.log(
+                        `   ${name}: ${total}ms (${count} calls, ${(total / count).toFixed(1)}ms avg)`
+                    )
+                })
+        }
+
+        const overallStart = Date.now()
+
+        let start = Date.now()
         const {
             dataInsights: latestDataInsights,
             imageMetadata: latestDataInsightsImageMetadata,
         } = await getLatestDataInsights(knex)
+        track("getLatestDataInsights", Date.now() - start)
+
+        start = Date.now()
         const publishedDataInsights =
             await GdocDataInsight.getPublishedDataInsights(knex)
+        track("getPublishedDataInsights", Date.now() - start)
+
+        console.log(`\n📊 Processing ${publishedDataInsights.length} data insights...`)
 
         for (const dataInsight of publishedDataInsights) {
+            start = Date.now()
             const attachments = await this.getPrefetchedGdocAttachments(knex, [
                 dataInsight.content.authors,
                 dataInsight.linkedDocumentIds,
@@ -798,6 +827,8 @@ export class SiteBaker {
                 dataInsight.linkedChartSlugs.explorer,
                 dataInsight.linkedNarrativeChartNames,
             ])
+            track("getPrefetchedGdocAttachments", Date.now() - start)
+
             dataInsight.linkedDocuments = attachments.linkedDocuments
             dataInsight.imageMetadata = {
                 ...attachments.imageMetadata,
@@ -809,9 +840,14 @@ export class SiteBaker {
             }
             dataInsight.latestDataInsights = latestDataInsights
 
+            start = Date.now()
             await dataInsight.validate(knex)
+            track("validate", Date.now() - start)
+
             try {
+                start = Date.now()
                 await this.bakeOwidGdoc(dataInsight)
+                track("bakeOwidGdoc", Date.now() - start)
             } catch (e) {
                 await logErrorAndMaybeCaptureInSentry(
                     new Error(
@@ -830,6 +866,7 @@ export class SiteBaker {
         )
 
         for (let pageNumber = 0; pageNumber < totalPageCount; pageNumber++) {
+            start = Date.now()
             const html = renderDataInsightsIndexPage(
                 publishedDataInsights.slice(
                     pageNumber * DATA_INSIGHTS_INDEX_PAGE_SIZE,
@@ -838,6 +875,8 @@ export class SiteBaker {
                 pageNumber,
                 totalPageCount
             )
+            track("renderDataInsightsIndexPage", Date.now() - start)
+
             // Page 0 is data-insights.html, page 1 is data-insights/2.html, etc.
             const filename = pageNumber === 0 ? "" : `/${pageNumber + 1}`
             const outPath = path.join(
@@ -845,7 +884,29 @@ export class SiteBaker {
                 `data-insights${filename}.html`
             )
             await fs.mkdirp(path.dirname(outPath))
+
+            start = Date.now()
             await this.stageWrite(outPath, html)
+            track("stageWrite", Date.now() - start)
+        }
+
+        const overallTime = Date.now() - overallStart
+        console.log(`\n✅ Total bakeDataInsights time: ${overallTime}ms`)
+        printTimings()
+
+        // Print GdocBase.loadState timings
+        if ((global as any).__gdocLoadStateTiming) {
+            console.log("\n⏱️  GdocBase.loadState timing breakdown:")
+            const loadStateTimings = (global as any).__gdocLoadStateTiming
+            Object.entries(loadStateTimings)
+                .sort(
+                    (a: any, b: any) => b[1].total - a[1].total
+                )
+                .forEach(([name, { count, total }]: [string, any]) => {
+                    console.log(
+                        `   ${name}: ${total}ms (${count} calls, ${(total / count).toFixed(1)}ms avg)`
+                    )
+                })
         }
 
         // bake all data insights to dataInsights.json to allow for a topic-filtered

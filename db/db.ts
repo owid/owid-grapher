@@ -209,12 +209,18 @@ export const getExplorerTags = async (
     )
 }
 
+// TEMPORARY: Memoization for getPublishedExplorersBySlug
+let _publishedExplorersBySlugCache: Record<string, MinimalExplorerInfo> | null =
+    null
+
 export const getPublishedExplorersBySlug = async (
     knex: KnexReadonlyTransaction
 ): Promise<Record<string, MinimalExplorerInfo>> => {
+    if (_publishedExplorersBySlugCache) return _publishedExplorersBySlugCache
+
     const tags = await getExplorerTags(knex)
     const tagsBySlug = _.keyBy(tags, "slug")
-    return knexRaw(
+    const result = await knexRaw(
         knex,
         `-- sql
         SELECT
@@ -243,6 +249,9 @@ export const getPublishedExplorersBySlug = async (
         })
         return _.keyBy(processed, "slug")
     })
+
+    _publishedExplorersBySlugCache = result
+    return result
 }
 
 export const getPublishedDataInsights = (
