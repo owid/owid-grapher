@@ -48,7 +48,10 @@ import {
     DbRawChartConfig,
     FormattingOptions,
     GrapherInterface,
+    ImageMetadata,
     LatestPageItem,
+    LinkedAuthor,
+    LinkedChart,
     OwidGdocMinimalPostInterface,
     OwidGdocPublicationContext,
 } from "@ourworldindata/types"
@@ -275,8 +278,10 @@ export const renderDataInsightsIndexPage = (
 
 export const renderLatestPage = (
     posts: LatestPageItem[],
-    imageMetadata: any,
-    linkedAuthors: any,
+    imageMetadata: Record<string, ImageMetadata>,
+    linkedAuthors: LinkedAuthor[],
+    linkedCharts: Record<string, LinkedChart>,
+    linkedDocuments: Record<string, OwidGdocMinimalPostInterface>,
     pageNum: number,
     totalPages: number
 ) => {
@@ -285,6 +290,8 @@ export const renderLatestPage = (
             posts={posts}
             imageMetadata={imageMetadata}
             linkedAuthors={linkedAuthors}
+            linkedCharts={linkedCharts}
+            linkedDocuments={linkedDocuments}
             pageNum={pageNum}
             numPages={totalPages}
             baseUrl={BAKED_BASE_URL}
