@@ -757,7 +757,7 @@ export class GdocBase implements OwidGdocBaseInterface {
                 getLatestMultiDimArchivedVersionsIfEnabled(knex),
             ])
 
-        // TODO: rewrite this as a single query instead of N queries
+        // Note: I tried converting this to a batch query, but it wasn't any faster
         const linkedGrapherCharts = await Promise.all(
             this.linkedChartSlugs.grapher.map(async (originalSlug) => {
                 const chartId = slugToIdMap[originalSlug]
