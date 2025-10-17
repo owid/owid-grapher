@@ -2,7 +2,7 @@ import * as _ from "lodash-es"
 import * as React from "react"
 import { select } from "d3-selection"
 import cx from "classnames"
-import { getRelativeMouse, isMobile, Bounds } from "@ourworldindata/utils"
+import { getRelativeMouse, isMobile, Bounds, Time } from "@ourworldindata/utils"
 import { observable, computed, action, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { faPlay, faPause } from "@fortawesome/free-solid-svg-icons"
@@ -18,9 +18,15 @@ import {
     GRAPHER_TIMELINE_CLASS,
 } from "../core/GrapherConstants.js"
 
-export const TIMELINE_HEIGHT = 32 // keep in sync with $timelineHeight in TimelineComponent.scss
+export const TIMELINE_HEIGHT = 32 // Keep in sync with $timelineHeight in TimelineComponent.scss
 
+const HANDLE_DIAMETER = 20 // Keep in sync with $handle-diameter in TimelineComponent.scss
 const HANDLE_TOOLTIP_FADE_TIME_MS = 2000
+
+enum MarkerType {
+    Start = "startMarker",
+    End = "endMarker",
+}
 
 interface TimelineComponentProps {
     timelineController: TimelineController
@@ -36,13 +42,20 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
         makeObservable<
             TimelineComponent,
-            "startTooltipVisible" | "endTooltipVisible" | "lastUpdatedTooltip"
+            | "startTooltipVisible"
+            | "endTooltipVisible"
+            | "lastUpdatedTooltip"
+            | "hoverTime"
         >(this, {
             startTooltipVisible: observable,
             endTooltipVisible: observable,
             lastUpdatedTooltip: observable,
+            hoverTime: observable,
         })
     }
+
+    /** Currently hovered time */
+    private hoverTime?: Time
 
     @computed protected get maxWidth(): number {
         return this.props.maxWidth ?? DEFAULT_GRAPHER_BOUNDS.width
@@ -99,13 +112,14 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         this.startTooltipVisible = true
         this.endTooltipVisible = true
 
-        if (this.dragTarget === "start") this.lastUpdatedTooltip = "startMarker"
-        if (this.dragTarget === "end") this.lastUpdatedTooltip = "endMarker"
+        if (this.dragTarget === "start")
+            this.lastUpdatedTooltip = MarkerType.Start
+        if (this.dragTarget === "end") this.lastUpdatedTooltip = MarkerType.End
         if (this.manager.startHandleTimeBound > this.manager.endHandleTimeBound)
             this.lastUpdatedTooltip =
-                this.lastUpdatedTooltip === "startMarker"
-                    ? "endMarker"
-                    : "startMarker"
+                this.lastUpdatedTooltip === MarkerType.Start
+                    ? MarkerType.End
+                    : MarkerType.Start
     }
 
     private getDragTarget(
@@ -129,22 +143,25 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     @action.bound private onMouseDown(event: any): void {
         this.manager.onTimelineClick?.()
 
-        const logic = this.controller
+        // Immediately hide the hover time handle
+        this.hoverTime = undefined
+
         const targetEl = select(event.target)
 
         const inputTime = this.getInputTimeFromMouse(event)
-
         if (!inputTime) return
 
         this.manager.timelineDragTarget = this.getDragTarget(
             inputTime,
-            targetEl.classed("startMarker"),
-            targetEl.classed("endMarker")
+            targetEl.classed(MarkerType.Start),
+            targetEl.classed(MarkerType.End)
         )
 
-        if (this.dragTarget === "both") logic.setDragOffsets(inputTime)
+        if (this.dragTarget === "both")
+            this.controller.setDragOffsets(inputTime)
 
         this.onDrag(inputTime)
+
         event.preventDefault()
     }
 
@@ -174,8 +191,51 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         }
     }
 
+    @computed private get areBothHandlesVisible(): boolean {
+        return this.controller.startTime !== this.controller.endTime
+    }
+
+    @computed private get shouldShowHoverTimeHandle(): boolean {
+        return (
+            !this.manager.isSingleTimeSelectionActive &&
+            !this.isDragging &&
+            !this.areBothHandlesVisible
+        )
+    }
+
+    private setHoverTime(event: any): void {
+        if (!this.shouldShowHoverTimeHandle) return
+
+        const inputTime = this.getInputTimeFromMouse(event)
+        if (!inputTime) return
+
+        if (!this.slider) return
+        const mouseX = getRelativeMouse(this.slider, event).x
+        const startX =
+            this.controller.startTimeProgress * this.slider.clientWidth
+        const handleX1 = startX - HANDLE_DIAMETER / 2
+        const handleX2 = startX + HANDLE_DIAMETER / 2
+
+        // Hide the hover handle when the mouse is positioned directly over
+        // the existing time handle
+        if (mouseX >= handleX1 && mouseX <= handleX2) {
+            this.hoverTime = undefined
+            return
+        }
+
+        const timeBound = this.controller.getTimeBoundFromDrag(inputTime)
+        if (!Number.isFinite(timeBound)) return
+
+        this.hoverTime = timeBound
+    }
+
+    @computed private get hoverTimeProgress(): number | undefined {
+        if (this.hoverTime === undefined) return undefined
+        return this.controller.calculateProgress(this.hoverTime)
+    }
+
     private mouseHoveringOverTimeline: boolean = false
-    @action.bound private onMouseOver(): void {
+    @action.bound private onMouseOverSlider(event: any): void {
         this.mouseHoveringOverTimeline = true
 
         this.hideStartTooltip.cancel()
@@ -183,14 +243,21 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
         this.hideEndTooltip.cancel()
         this.endTooltipVisible = true
+
+        this.setHoverTime(event)
     }
 
-    @action.bound private onMouseLeave(): void {
+    @action.bound private onMouseMoveSlider(event: any): void {
+        this.setHoverTime(event)
+    }
+
+    @action.bound private onMouseLeaveSlider(): void {
         if (!this.manager.isPlaying && !this.isDragging) {
             this.startTooltipVisible = false
             this.endTooltipVisible = false
         }
         this.mouseHoveringOverTimeline = false
+        this.hoverTime = undefined
     }
 
     private hideStartTooltip = _.debounce(() => {
@@ -278,6 +345,12 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                         ? controller.resetStartToMin()
                         : controller.resetEndToMax()
                 }
+                onMouseEnter={() => {
+                    if (this.shouldShowHoverTimeHandle) this.hoverTime = time
+                }}
+                onMouseLeave={() => {
+                    this.hoverTime = undefined
+                }}
             >
                 {this.formatTime(time)}
             </button>
@@ -286,8 +359,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
     private startTooltipVisible: boolean = false
     private endTooltipVisible: boolean = false
-    private lastUpdatedTooltip: "startMarker" | "endMarker" | undefined =
-        undefined
+    private lastUpdatedTooltip?: MarkerType
 
     @action.bound private togglePlay(): void {
         void this.controller.togglePlay()
@@ -326,7 +398,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
     }
 
     override render(): React.ReactElement {
-        const { manager, controller } = this
+        const { manager, controller, hoverTime } = this
         const {
             startTimeProgress,
             endTimeProgress,
@@ -340,6 +412,8 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
         const formattedMaxTime = this.formatTime(maxTime)
         const formattedStartTime = this.formatTime(startTime)
         const formattedEndTime = this.formatTime(endTime)
+        const formattedHoverTime =
+            hoverTime !== undefined ? this.formatTime(hoverTime) : undefined
 
         return (
             <div
@@ -347,11 +421,10 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                 className={cx(GRAPHER_TIMELINE_CLASS, {
                     hover: this.mouseHoveringOverTimeline,
                 })}
-                style={{
-                    padding: `0 ${GRAPHER_FRAME_PADDING_HORIZONTAL}px`,
-                }}
-                onMouseOver={this.onMouseOver}
-                onMouseLeave={this.onMouseLeave}
+                style={{ padding: `0 ${GRAPHER_FRAME_PADDING_HORIZONTAL}px` }}
+                onMouseOver={this.onMouseOverSlider}
+                onMouseLeave={this.onMouseLeaveSlider}
+                onMouseMove={this.onMouseMoveSlider}
             >
                 {!this.manager.disablePlay && (
                     <ActionButton
@@ -378,15 +451,15 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                     onMouseDown={this.onMouseDown}
                 >
                     <TimelineHandle
-                        type="startMarker"
-                        label="Start time"
+                        type={MarkerType.Start}
+                        ariaLabel="Start time"
                         offsetPercent={startTimeProgress * 100}
                         formattedMinTime={formattedMinTime}
                         formattedMaxTime={formattedMaxTime}
                         formattedCurrTime={formattedStartTime}
                         tooltipVisible={this.startTooltipVisible}
                         tooltipZIndex={
-                            this.lastUpdatedTooltip === "startMarker" ? 2 : 1
+                            this.lastUpdatedTooltip === MarkerType.Start ? 2 : 1
                         }
                         onKeyDown={action((e) => {
                             // prevent browser to scroll to the top or bottom of the page
@@ -403,23 +476,32 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                             this.endTooltipVisible = false
                         })}
                     />
-                    <div
-                        className="interval"
-                        style={{
-                            left: `${startTimeProgress * 100}%`,
-                            right: `${100 - endTimeProgress * 100}%`,
-                        }}
+                    <TimelineInterval
+                        startTimeProgress={startTimeProgress}
+                        endTimeProgress={endTimeProgress}
                     />
+                    {this.hoverTimeProgress !== undefined && (
+                        <TimelineInterval
+                            startTimeProgress={Math.min(
+                                startTimeProgress,
+                                this.hoverTimeProgress
+                            )}
+                            endTimeProgress={Math.max(
+                                startTimeProgress,
+                                this.hoverTimeProgress
+                            )}
+                        />
+                    )}
                     <TimelineHandle
-                        type="endMarker"
-                        label="End time"
+                        type={MarkerType.End}
+                        ariaLabel="End time"
                         offsetPercent={endTimeProgress * 100}
                         formattedMinTime={formattedMinTime}
                         formattedMaxTime={formattedMaxTime}
                         formattedCurrTime={formattedEndTime}
                         tooltipVisible={this.endTooltipVisible}
                         tooltipZIndex={
-                            this.lastUpdatedTooltip === "endMarker" ? 2 : 1
+                            this.lastUpdatedTooltip === MarkerType.End ? 2 : 1
                         }
                         onKeyDown={action((e) => {
                             // prevent browser to scroll to the top or bottom of the page
@@ -436,6 +518,18 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
                             this.endTooltipVisible = false
                         })}
                     />
+                    {this.hoverTime !== undefined &&
+                        this.hoverTimeProgress !== undefined && (
+                            <TimelineHandle
+                                type="hoverMarker"
+                                offsetPercent={this.hoverTimeProgress * 100}
+                                formattedMinTime={formattedMinTime}
+                                formattedMaxTime={formattedMaxTime}
+                                formattedCurrTime={formattedHoverTime!}
+                                tooltipVisible={true}
+                                tooltipZIndex={3}
+                            />
+                        )}
                 </div>
                 {this.timelineEdgeMarker("end")}
             </div>
@@ -445,7 +539,7 @@ export class TimelineComponent extends React.Component<TimelineComponentProps> {
 
 const TimelineHandle = ({
     type,
-    label,
+    ariaLabel,
     offsetPercent,
     formattedMinTime,
     formattedMaxTime,
@@ -456,8 +550,8 @@ const TimelineHandle = ({
     onFocus,
     onBlur,
 }: {
-    type: "startMarker" | "endMarker"
-    label: string
+    type: MarkerType | "hoverMarker"
+    ariaLabel?: string
     offsetPercent: number
     formattedMinTime: string
     formattedMaxTime: string
@@ -473,15 +567,13 @@ const TimelineHandle = ({
         // the numeric representation of a date is meaningless, so we pass the formatted date string instead.
         <div
             className={cx("handle", type)}
-            style={{
-                left: `${offsetPercent}%`,
-            }}
+            style={{ left: `${offsetPercent}%` }}
             role="slider"
             tabIndex={0}
             aria-valuemin={castToNumberIfPossible(formattedMinTime)}
             aria-valuenow={castToNumberIfPossible(formattedCurrTime)}
             aria-valuemax={castToNumberIfPossible(formattedMaxTime)}
-            aria-label={label}
+            aria-label={ariaLabel}
             onFocus={onFocus}
             onBlur={onBlur}
             onKeyDown={onKeyDown}
@@ -502,6 +594,25 @@ const TimelineHandle = ({
                 </>
             )}
         </div>
+    )
+}
+
+const TimelineInterval = ({
+    startTimeProgress,
+    endTimeProgress,
+    className,
+}: {
+    startTimeProgress: number
+    endTimeProgress: number
+    className?: string
+}): React.ReactElement => {
+    const left = startTimeProgress * 100
+    const right = 100 - endTimeProgress * 100
+    return (
+        <div
+            className={cx("interval", className)}
+            style={{ left: `${left}%`, right: `${right}%` }}
+        />
     )
 }
 
