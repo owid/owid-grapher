@@ -46,6 +46,7 @@ export interface DropdownProps<DropdownOption extends BasicDropdownOption> {
         option: DropdownOption | null
     ) => React.ReactNode | undefined
     renderMenuOption?: (option: DropdownOption) => React.ReactNode
+    portalContainer?: HTMLElement
     "data-track-note"?: string
     "aria-label"?: string
 }
@@ -79,6 +80,7 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
     isLoading,
     renderTriggerValue,
     renderMenuOption,
+    portalContainer,
     ...otherProps
 }: DropdownProps<DropdownOption>): React.ReactElement {
     const flatOptions = useMemo(() => flattenOptions(options), [options])
@@ -140,6 +142,7 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
             <Popover
                 className={cx("grapher-dropdown-menu", menuClassName)}
                 offset={4}
+                UNSTABLE_portalContainer={portalContainer}
             >
                 <ListBox>
                     {options.map((item, index) =>
