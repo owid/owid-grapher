@@ -2,6 +2,7 @@ import cx from "classnames"
 import * as React from "react"
 import { useMemo } from "react"
 import {
+    Button,
     ComboBox,
     Input,
     Key,
@@ -99,6 +100,7 @@ export function SearchDropdown<DropdownOption extends BasicDropdownOption>({
                     }}
                 />
                 <span className="control-icon"></span>
+                <Button className="caret-icon" />
             </div>
             <Popover
                 className="grapher-dropdown-menu"
