@@ -214,7 +214,8 @@ export const getPublishedExplorersBySlug = async (
 ): Promise<Record<string, MinimalExplorerInfo>> => {
     // TEMPORARY: Transaction-scoped memoization for baking performance
     // Cache is stored on the knex transaction object and cleared when transaction ends
-    const cache = (knex as any).__queryCache = (knex as any).__queryCache || {}
+    const cache = ((knex as any).__queryCache =
+        (knex as any).__queryCache || {})
     if (cache.publishedExplorersBySlug) return cache.publishedExplorersBySlug
 
     const tags = await getExplorerTags(knex)
