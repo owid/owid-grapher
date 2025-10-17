@@ -66,12 +66,21 @@ export async function getIndividualGdoc(
     const contentSource = req.query.contentSource as
         | GdocsContentSource
         | undefined
+    const acceptSuggestions = req.query.acceptSuggestions === "true"
 
     try {
         // Beware: if contentSource=gdocs this will update images in the DB+S3 even if the gdoc is published
-        const gdoc = await getAndLoadGdocById(trx, id, contentSource)
+        const gdoc = await getAndLoadGdocById(
+            trx,
+            id,
+            contentSource,
+            acceptSuggestions
+        )
 
-        if (!gdoc.published) {
+        // CRITICAL: Never save content with suggestions accepted to the database.
+        // When acceptSuggestions is true, we only want to display the preview but
+        // never persist suggested changes to the database.
+        if (!gdoc.published && !acceptSuggestions) {
             await updateGdocContentOnly(trx, id, gdoc)
         }
 
