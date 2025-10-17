@@ -174,15 +174,25 @@ export class HorizontalAxisZeroLine extends React.Component<HorizontalAxisZeroLi
 interface VerticalAxisZeroLineProps {
     verticalAxis: VerticalAxis
     bounds: Bounds
+    stroke?: string
     strokeWidth?: number
+    strokeDasharray?: string
 }
 
 @observer
 export class VerticalAxisZeroLine extends React.Component<VerticalAxisZeroLineProps> {
     override render(): React.ReactElement {
-        const { bounds, verticalAxis, strokeWidth = 1 } = this.props
+        const {
+            bounds,
+            verticalAxis,
+            stroke = SOLID_TICK_COLOR,
+            strokeWidth = 1,
+            strokeDasharray,
+        } = this.props
+
         const axis = verticalAxis.clone()
         axis.range = bounds.yRange()
+
         const y = axis.place(0)
 
         return (
@@ -192,8 +202,9 @@ export class VerticalAxisZeroLine extends React.Component<VerticalAxisZeroLinePr
                 y1={y.toFixed(2)}
                 x2={bounds.right.toFixed(2)}
                 y2={y.toFixed(2)}
-                stroke={SOLID_TICK_COLOR}
+                stroke={stroke}
                 strokeWidth={strokeWidth}
+                strokeDasharray={strokeDasharray}
             />
         )
     }

@@ -43,7 +43,7 @@ import {
 import { CoreColumn } from "@ourworldindata/core-table"
 import { getHoverStateForSeries } from "../chart/ChartUtils"
 import { VerticalAxis } from "../axis/Axis"
-import { VerticalAxisComponent } from "../axis/AxisViews"
+import { VerticalAxisZeroLine } from "../axis/AxisViews"
 import { NoDataSection } from "../scatterCharts/NoDataSection"
 
 import { LineLegend, LineLegendProps } from "../lineLegend/LineLegend"
@@ -59,7 +59,10 @@ import { TooltipFooterIcon } from "../tooltip/TooltipProps"
 import { Halo } from "@ourworldindata/components"
 import { HorizontalColorLegendManager } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin } from "../color/ColorScaleBin"
-import { GRAPHER_BACKGROUND_DEFAULT } from "../color/ColorConstants"
+import {
+    GRAPHER_BACKGROUND_DEFAULT,
+    GRAPHER_DARK_TEXT,
+} from "../color/ColorConstants"
 import { FocusArray } from "../focus/FocusArray"
 import { LineLabelSeries } from "../lineLegend/LineLegendTypes"
 import { SlopeChartState } from "./SlopeChartState"
@@ -874,17 +877,41 @@ export class SlopeChart
         )
     }
 
-    private renderYAxis(): React.ReactElement {
+    private renderYAxis(): React.ReactElement | null {
+        // Don't show a zero line if it's not in the domain
+        const isZeroInDomain =
+            this.yAxis.domain[0] <= 0 && this.yAxis.domain[1] >= 0
+        if (!isZeroInDomain) return null
+
+        const fontSize = GRAPHER_FONT_SCALE_12 * this.fontSize
+        const tickLabelOffset = 5
+
+        const tickLabel = this.yAxis.formatTick(0)
+        const tickLabelLength = Bounds.forText(tickLabel, { fontSize }).width
+        const bounds = this.innerBounds.padLeft(
+            this.yAxis.hideAxis ? 0 : tickLabelLength + tickLabelOffset
+        )
+
         return (
             <>
                 {!this.yAxis.hideGridlines && (
-                    <GridLines bounds={this.innerBounds} yAxis={this.yAxis} />
+                    <VerticalAxisZeroLine
+                        bounds={bounds}
+                        verticalAxis={this.yAxis}
+                        stroke="#ddd"
+                        strokeDasharray="3,2"
+                    />
                 )}
                 {!this.yAxis.hideAxis && (
-                    <VerticalAxisComponent
-                        bounds={this.bounds}
-                        verticalAxis={this.yAxis}
-                    />
+                    <text
+                        x={this.innerBounds.left}
+                        y={this.yAxis.place(0).toFixed(2)}
+                        dy={dyFromAlign(VerticalAlign.middle)}
+                        fontSize={fontSize}
+                        fill={GRAPHER_DARK_TEXT}
+                    >
+                        {tickLabel}
+                    </text>
                 )}
             </>
         )
@@ -1020,31 +1047,4 @@ export class SlopeChart
             ? this.renderStatic()
             : this.renderInteractive()
     }
-}
-
-interface GridLinesProps {
-    bounds: Bounds
-    yAxis: VerticalAxis
-}
-
-function GridLines({ bounds, yAxis }: GridLinesProps) {
-    return (
-        <g id={makeIdForHumanConsumption("grid-lines")}>
-            {yAxis.tickLabels.map((tick) => {
-                const y = yAxis.place(tick.value)
-                return (
-                    <line
-                        id={makeIdForHumanConsumption(tick.formattedValue)}
-                        key={tick.formattedValue}
-                        x1={bounds.left + yAxis.width}
-                        y1={y}
-                        x2={bounds.right}
-                        y2={y}
-                        stroke="#ddd"
-                        strokeDasharray="3,2"
-                    />
-                )
-            })}
-        </g>
-    )
 }
