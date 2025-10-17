@@ -28,6 +28,7 @@ import {
     SortConfig,
     SortBy,
     SortOrder,
+    ScaleType,
 } from "@ourworldindata/types"
 import { OWID_NO_DATA_GRAY } from "../color/ColorConstants"
 import { StackedPoint, StackedSeries } from "./StackedConstants"
@@ -444,6 +445,7 @@ export class MarimekkoChartState implements ChartState, ColorScaleManager {
         const axis = config.toVerticalAxis()
         axis.updateDomainPreservingUserSettings(this.yDomainDefault)
 
+        axis.scaleType = ScaleType.linear
         axis.formatColumn = this.formatColumn
         axis.label = ""
 
