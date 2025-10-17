@@ -73,8 +73,10 @@ export const getNarrativeChartNameConfigMap = async (
 export const getAllNarrativeChartNames = async (
     knex: db.KnexReadonlyTransaction
 ): Promise<Set<string>> => {
-    const rows = await knex<DbPlainNarrativeChart>(
-        NarrativeChartsTableName
-    ).select("name")
-    return new Set(rows.map((row) => row.name))
+    return db.cachedInTransaction(knex, "narrativeChartNames", async () => {
+        const rows = await knex<DbPlainNarrativeChart>(
+            NarrativeChartsTableName
+        ).select("name")
+        return new Set(rows.map((row) => row.name))
+    })
 }

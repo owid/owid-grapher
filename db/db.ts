@@ -45,6 +45,40 @@ import {
 import { gdocFromJSON } from "./model/Gdoc/GdocFactory.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
 
+/**
+ * TEMPORARY: Transaction-scoped caching helper for baking performance
+ *
+ * Caches the result of an async function on the knex transaction object.
+ * Cache is automatically cleared when the transaction ends, making it safe
+ * for both long-running baking transactions and short web app requests.
+ *
+ * @param knex - The knex transaction object
+ * @param cacheKey - Unique key for this cached function
+ * @param fn - The async function to cache
+ * @returns The cached or computed result
+ *
+ * @example
+ * export async function getDods(knex: KnexReadonlyTransaction) {
+ *   return cachedInTransaction(knex, 'dods', async () => {
+ *     return knexRaw(knex, `SELECT * FROM dods`)
+ *   })
+ * }
+ */
+export async function cachedInTransaction<T>(
+    knex: KnexReadonlyTransaction,
+    cacheKey: string,
+    fn: () => Promise<T>
+): Promise<T> {
+    const cache = ((knex as any).__queryCache =
+        (knex as any).__queryCache || {})
+    if (cache[cacheKey] !== undefined) {
+        return cache[cacheKey]
+    }
+    const result = await fn()
+    cache[cacheKey] = result
+    return result
+}
+
 // Return the first match from a mysql query
 export const closeTypeOrmAndKnexConnections = async (): Promise<void> => {
     if (_knexInstance) {
@@ -212,36 +246,38 @@ export const getExplorerTags = async (
 export const getPublishedExplorersBySlug = async (
     knex: KnexReadonlyTransaction
 ): Promise<Record<string, MinimalExplorerInfo>> => {
-    const tags = await getExplorerTags(knex)
-    const tagsBySlug = _.keyBy(tags, "slug")
-    return knexRaw(
-        knex,
-        `-- sql
-        SELECT
-            e.slug,
-            e.config->>"$.explorerTitle" as title,
-            e.config->>"$.explorerSubtitle" as subtitle,
-            e.createdAt,
-            e.updatedAt
-        FROM
-            explorers e
-        WHERE
-            e.isPublished = TRUE`
-    ).then((rows) => {
-        const processed = rows.map((row: any) => {
-            const tagsForExplorer = tagsBySlug[row.slug]
-            return {
-                slug: row.slug,
-                title: row.title,
-                subtitle: row.subtitle === "null" ? "" : row.subtitle,
-                tags: tagsForExplorer
-                    ? tagsForExplorer.tags.map((tag) => tag.name)
-                    : [],
-                createdAt: row.createdAt,
-                updatedAt: row.updatedAt,
-            }
+    return cachedInTransaction(knex, "publishedExplorersBySlug", async () => {
+        const tags = await getExplorerTags(knex)
+        const tagsBySlug = _.keyBy(tags, "slug")
+        return knexRaw(
+            knex,
+            `-- sql
+            SELECT
+                e.slug,
+                e.config->>"$.explorerTitle" as title,
+                e.config->>"$.explorerSubtitle" as subtitle,
+                e.createdAt,
+                e.updatedAt
+            FROM
+                explorers e
+            WHERE
+                e.isPublished = TRUE`
+        ).then((rows) => {
+            const processed = rows.map((row: any) => {
+                const tagsForExplorer = tagsBySlug[row.slug]
+                return {
+                    slug: row.slug,
+                    title: row.title,
+                    subtitle: row.subtitle === "null" ? "" : row.subtitle,
+                    tags: tagsForExplorer
+                        ? tagsForExplorer.tags.map((tag) => tag.name)
+                        : [],
+                    createdAt: row.createdAt,
+                    updatedAt: row.updatedAt,
+                }
+            })
+            return _.keyBy(processed, "slug")
         })
-        return _.keyBy(processed, "slug")
     })
 }
 
