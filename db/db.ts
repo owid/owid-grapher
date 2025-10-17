@@ -209,14 +209,13 @@ export const getExplorerTags = async (
     )
 }
 
-// TEMPORARY: Memoization for getPublishedExplorersBySlug
-let _publishedExplorersBySlugCache: Record<string, MinimalExplorerInfo> | null =
-    null
-
 export const getPublishedExplorersBySlug = async (
     knex: KnexReadonlyTransaction
 ): Promise<Record<string, MinimalExplorerInfo>> => {
-    if (_publishedExplorersBySlugCache) return _publishedExplorersBySlugCache
+    // TEMPORARY: Transaction-scoped memoization for baking performance
+    // Cache is stored on the knex transaction object and cleared when transaction ends
+    const cache = (knex as any).__queryCache = (knex as any).__queryCache || {}
+    if (cache.publishedExplorersBySlug) return cache.publishedExplorersBySlug
 
     const tags = await getExplorerTags(knex)
     const tagsBySlug = _.keyBy(tags, "slug")
@@ -250,7 +249,7 @@ export const getPublishedExplorersBySlug = async (
         return _.keyBy(processed, "slug")
     })
 
-    _publishedExplorersBySlugCache = result
+    cache.publishedExplorersBySlug = result
     return result
 }
 

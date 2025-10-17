@@ -14,13 +14,13 @@ import {
 import { extractDetailsFromSyntax } from "@ourworldindata/utils"
 import { KnexReadonlyTransaction, knexRaw } from "../db.js"
 
-// TEMPORARY: Memoization for getDods
-let _dodsCache: DbPlainDod[] | null = null
-
 export async function getDods(
     knex: KnexReadonlyTransaction
 ): Promise<DbPlainDod[]> {
-    if (_dodsCache) return _dodsCache
+    // TEMPORARY: Transaction-scoped memoization for baking performance
+    // Cache is stored on the knex transaction object and cleared when transaction ends
+    const cache = (knex as any).__queryCache = (knex as any).__queryCache || {}
+    if (cache.dods) return cache.dods
 
     const result = await knexRaw<DbPlainDod>(
         knex,
@@ -29,7 +29,7 @@ export async function getDods(
         ORDER BY updatedAt DESC`
     )
 
-    _dodsCache = result
+    cache.dods = result
     return result
 }
 
