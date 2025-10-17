@@ -8,13 +8,13 @@ All Google Doc subclasses inherit the attachment workflow from `GdocBase` (`db/m
 
 1. `loadState(knex)` orchestrates attachment loading **after** the document has been parsed into enriched blocks.
 2. Each helper method populates a different slice of state on the instance:
-   - `loadLinkedAuthors` → `linkedAuthors`: batched lookup of published author pages via `getMinimalAuthorsByNames`.
-   - `loadLinkedDocuments` → `linkedDocuments`: single query (`getMinimalGdocPostsByIds`) for referenced Google Docs.
-   - `loadImageMetadataFromDB` → `imageMetadata`: batch query (`getImageMetadataByFilenames`) driven by filenames extracted from blocks, linked docs, and referenced authors.
-   - `loadLinkedCharts` → `linkedCharts`: fetches Grapher, Explorer, or MultiDim configs for all linked slugs. (Currently an `O(n)` set of queries; see limitations below.)
-   - `loadLinkedIndicators` → `linkedIndicators`: derives indicator metadata for datapage-linked charts.
-   - `loadNarrativeChartsInfo` → `linkedNarrativeCharts`: fetches metadata for referenced narrative charts.
-   - Subclass overrides `_loadSubclassAttachments` to append type-specific data (e.g., donor names, homepage metrics, latest insights, author “latest work” tiles).
+    - `loadLinkedAuthors` → `linkedAuthors`: batched lookup of published author pages via `getMinimalAuthorsByNames`.
+    - `loadLinkedDocuments` → `linkedDocuments`: single query (`getMinimalGdocPostsByIds`) for referenced Google Docs.
+    - `loadImageMetadataFromDB` → `imageMetadata`: batch query (`getImageMetadataByFilenames`) driven by filenames extracted from blocks, linked docs, and referenced authors.
+    - `loadLinkedCharts` → `linkedCharts`: fetches Grapher, Explorer, or MultiDim configs for all linked slugs. (Currently an `O(n)` set of queries; see limitations below.)
+    - `loadLinkedIndicators` → `linkedIndicators`: derives indicator metadata for datapage-linked charts.
+    - `loadNarrativeChartsInfo` → `linkedNarrativeCharts`: fetches metadata for referenced narrative charts.
+    - Subclass overrides `_loadSubclassAttachments` to append type-specific data (e.g., donor names, homepage metrics, latest insights, author “latest work” tiles).
 3. `validate` runs after attachments are loaded so that missing metadata (images, authors, links, etc.) can trigger contextual errors.
 
 Because attachments are populated directly onto the `GdocBase` instance, they are automatically included in `extractGdocPageData` (`packages/@ourworldindata/utils/src/Util.ts:1314`), which shapes the payload handed to React pages.
@@ -29,6 +29,7 @@ Because attachments are populated directly onto the `GdocBase` instance, they ar
 - `useImage`, `useDonors`, `useLinkedNarrativeChart`
 
 Examples:
+
 - The “All Charts” block pulls `relatedCharts` and `tags` from the context to render the key-charts grid (`site/gdocs/components/AllCharts.tsx`).
 - The research-and-writing block reads `latestWorkLinks` to show author content (`site/gdocs/components/ResearchAndWriting.tsx`).
 - Homepage components depend on `homepageMetadata` and `latestDataInsights` to render counts and cards.
@@ -64,17 +65,17 @@ Pages that do not rely on Google Docs (e.g., WordPress articles) bypass this sys
 
 ## Batch vs. Single-item Fetches
 
-| Attachment type            | Loader                                  | Query strategy                        |
-|---------------------------|------------------------------------------|---------------------------------------|
-| Authors                   | `loadLinkedAuthors`                      | Single `IN` clause on author titles   |
-| Linked documents          | `loadLinkedDocuments`                    | Single `IN` clause on document IDs    |
-| Images                    | `loadImageMetadataFromDB`                | Single `IN` clause on filenames       |
-| Grapher / Explorer charts | `loadLinkedCharts`                       | **Per-slug lookup** (`Promise.all`)   |
-| Indicators                | `loadLinkedIndicators`                   | Batched query using indicator IDs     |
-| Narrative charts          | `loadNarrativeChartsInfo`                | Single batched query                  |
-| Related charts            | `GdocPost.loadRelatedCharts`             | Batched query filtered by tags        |
-| Latest insights           | `getLatestDataInsights`                  | Single query + batched image lookup   |
-| Author latest work        | `GdocAuthor.loadLatestWorkImages`        | Single query for work + batched images|
+| Attachment type           | Loader                            | Query strategy                         |
+| ------------------------- | --------------------------------- | -------------------------------------- |
+| Authors                   | `loadLinkedAuthors`               | Single `IN` clause on author titles    |
+| Linked documents          | `loadLinkedDocuments`             | Single `IN` clause on document IDs     |
+| Images                    | `loadImageMetadataFromDB`         | Single `IN` clause on filenames        |
+| Grapher / Explorer charts | `loadLinkedCharts`                | **Per-slug lookup** (`Promise.all`)    |
+| Indicators                | `loadLinkedIndicators`            | Batched query using indicator IDs      |
+| Narrative charts          | `loadNarrativeChartsInfo`         | Single batched query                   |
+| Related charts            | `GdocPost.loadRelatedCharts`      | Batched query filtered by tags         |
+| Latest insights           | `getLatestDataInsights`           | Single query + batched image lookup    |
+| Author latest work        | `GdocAuthor.loadLatestWorkImages` | Single query for work + batched images |
 
 Understanding these hotspots helps when optimising for new features. For example, when adding another attachment type, prefer the existing “batch with `IN` clause” pattern to avoid the N+1 behaviour that currently exists for charts.
 

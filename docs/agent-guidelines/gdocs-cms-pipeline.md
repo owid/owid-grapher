@@ -5,10 +5,10 @@ This document explains how content written in Google Docs travels through our in
 ## Source Code Map
 
 - `db/model/Gdoc/` — end-to-end pipeline code. Key files are:
-  - `GdocBase.ts` and the subtype classes (e.g. `GdocPost.ts`, `GdocDataInsight.ts`) for fetching documents, attaching related metadata, validation, and persistence hooks.
-  - `gdocToArchie.ts` for converting the Google Docs JSON AST into ArchieML-compatible text.
-  - `archieToEnriched.ts`, `rawToEnriched.ts`, and `htmlToEnriched.ts` for parsing ArchieML output into our enriched JSON block model.
-  - `rawToArchie.ts` and `enrichedToRaw.ts` for the inverse conversions used by tests and some editing tools.
+    - `GdocBase.ts` and the subtype classes (e.g. `GdocPost.ts`, `GdocDataInsight.ts`) for fetching documents, attaching related metadata, validation, and persistence hooks.
+    - `gdocToArchie.ts` for converting the Google Docs JSON AST into ArchieML-compatible text.
+    - `archieToEnriched.ts`, `rawToEnriched.ts`, and `htmlToEnriched.ts` for parsing ArchieML output into our enriched JSON block model.
+    - `rawToArchie.ts` and `enrichedToRaw.ts` for the inverse conversions used by tests and some editing tools.
 - `db/OwidGoogleAuth.ts` — Google service account configuration.
 - `db/gdocTests.test.ts` — Vitest coverage for the parsing steps.
 - `db/docs/posts_gdocs.yml` — database table documentation for the final stored format.
