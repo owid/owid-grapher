@@ -161,7 +161,9 @@ export const getBlogIndex = _.memoize(
         const gdocPosts = await getAndLoadListedGdocPosts(knex, {
             loadState: false,
         })
-        console.log(`   getAndLoadListedGdocPosts: ${Date.now() - start}ms (${gdocPosts.length} posts)`)
+        console.log(
+            `   getAndLoadListedGdocPosts: ${Date.now() - start}ms (${gdocPosts.length} posts)`
+        )
 
         start = Date.now()
         const imagesByFilename = await db
