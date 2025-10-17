@@ -1023,8 +1023,15 @@ export class SiteBaker {
         // TEMPORARY: Print loadState timings accumulated during getBlogIndex
         const loadStateTimings = (global as any).__gdocLoadStateTiming
         if (loadStateTimings) {
-            console.log("\n⏱️  loadState timing breakdown (across all 399 posts):")
-            Object.entries(loadStateTimings as Record<string, { count: number; total: number }>)
+            console.log(
+                "\n⏱️  loadState timing breakdown (across all 399 posts):"
+            )
+            Object.entries(
+                loadStateTimings as Record<
+                    string,
+                    { count: number; total: number }
+                >
+            )
                 .sort((a, b) => (b[1] as any).total - (a[1] as any).total)
                 .forEach(([name, { count, total }]) => {
                     console.log(
@@ -1034,7 +1041,9 @@ export class SiteBaker {
         }
 
         const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
-        console.log(`\n📄 Baking ${numPages} blog index pages (${allPosts.length} posts)...`)
+        console.log(
+            `\n📄 Baking ${numPages} blog index pages (${allPosts.length} posts)...`
+        )
 
         for (let i = 1; i <= numPages; i++) {
             const slug = i === 1 ? "latest" : `latest/page/${i}`

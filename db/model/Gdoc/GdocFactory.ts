@@ -629,7 +629,9 @@ export async function getAndLoadListedGdocPosts(
         { publicationContext: OwidGdocPublicationContext.listed }
     )
     if (shouldLoadState) {
-        console.log(`   Query posts_gdocs: ${Date.now() - start}ms (${rows.length} rows)`)
+        console.log(
+            `   Query posts_gdocs: ${Date.now() - start}ms (${rows.length} rows)`
+        )
     }
 
     start = Date.now()
@@ -665,12 +667,16 @@ export async function getAndLoadListedGdocPosts(
     // When loadState=true (default), it fully loads linked charts, validates, loads images, etc.
     const gdocs = (await Promise.all(
         enrichedRows.map(async (row) =>
-            loadGdocFromGdocBase(knex, row, undefined, { loadState: shouldLoadState })
+            loadGdocFromGdocBase(knex, row, undefined, {
+                loadState: shouldLoadState,
+            })
         )
     )) as GdocPost[]
 
     if (shouldLoadState) {
-        console.log(`   loadGdocFromGdocBase (Promise.all): ${Date.now() - start}ms (${enrichedRows.length} posts)`)
+        console.log(
+            `   loadGdocFromGdocBase (Promise.all): ${Date.now() - start}ms (${enrichedRows.length} posts)`
+        )
     }
 
     return gdocs
