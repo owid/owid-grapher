@@ -3,13 +3,14 @@
     $red: #cc3b55;
     $green: #2c8465;
 
-    &.up path {
+    fill: $grey;
+    &.colored.up path {
         fill: $green;
     }
-    &.down path {
+    &.colored.down path {
         fill: $red;
     }
-    &.right path {
+    &.colored.right path {
         fill: $grey;
     }
 }

@@ -20,7 +20,6 @@ import {
     strToQueryParams,
     queryParamsToStr,
     setWindowQueryStr,
-    EntityYearHighlight,
 } from "@ourworldindata/utils"
 import { BodyDiv } from "@ourworldindata/components"
 import {
@@ -34,6 +33,7 @@ import {
     ArchiveContext,
     AdditionalGrapherDataFetchFn,
     GrapherVariant,
+    Time,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
 import {
@@ -81,7 +81,7 @@ export interface GrapherProgrammaticInterface extends GrapherInterface {
     bakedGrapherURL?: string
     adminBaseUrl?: string
     env?: string
-    entityYearHighlight?: EntityYearHighlight
+    highlightedTimesInLineChart?: Time[]
     baseFontSize?: number
     staticBounds?: Bounds
     variant?: GrapherVariant
@@ -550,7 +550,10 @@ export class Grapher extends React.Component<GrapherProps> {
                         <EmbedModal manager={this.grapherState} />
                     )}
                 {this.grapherState.isEntitySelectorModalOpen && (
-                    <EntitySelectorModal manager={this.grapherState} />
+                    <EntitySelectorModal
+                        manager={this.grapherState}
+                        selection={entitySelectorArray}
+                    />
                 )}
 
                 {/* Entity selector in a slide-in drawer */}

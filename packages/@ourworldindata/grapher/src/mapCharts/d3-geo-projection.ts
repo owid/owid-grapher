@@ -1,7 +1,7 @@
 /* eslint-disable */
 /*
-Duplication of d3-geo-projection.geoRobinson for webpack bundlesize purposes,
-as the original module wasn't tree-shakeable
+Duplication of d3-geo-projection.geoPatterson && d3-geo-projection.geoRobinson
+for webpack bundlesize purposes, as the original module wasn't tree-shakeable
 
 Copyright 2013-2021 Mike Bostock
 
@@ -44,11 +44,62 @@ THE SOFTWARE.
 
 import { geoProjection, GeoProjection } from "d3-geo"
 
-const epsilon = 1e-12
+const epsilon = 1e-6
+const epsilon2 = 1e-12
 const pi = Math.PI
 const halfPi = pi / 2
 const degrees = 180 / pi
 const radians = pi / 180
+
+// https://github.com/d3/d3-geo-projection/blob/main/src/patterson.js
+const pattersonK1 = 1.0148,
+    pattersonK2 = 0.23185,
+    pattersonK3 = -0.14499,
+    pattersonK4 = 0.02406,
+    pattersonC1 = pattersonK1,
+    pattersonC2 = 5 * pattersonK2,
+    pattersonC3 = 7 * pattersonK3,
+    pattersonC4 = 9 * pattersonK4,
+    pattersonYmax = 1.790857183
+
+export function pattersonRaw(lambda: number, phi: number): [number, number] {
+    const phi2 = phi * phi
+    return [
+        lambda,
+        phi *
+            (pattersonK1 +
+                phi2 *
+                    phi2 *
+                    (pattersonK2 + phi2 * (pattersonK3 + pattersonK4 * phi2))),
+    ]
+}
+
+pattersonRaw.invert = function (x: number, y: number): [number, number] {
+    if (y > pattersonYmax) y = pattersonYmax
+    else if (y < -pattersonYmax) y = -pattersonYmax
+    let yc = y,
+        delta
+
+    do {
+        // Newton-Raphson
+        const y2 = yc * yc
+        yc -= delta =
+            (yc *
+                (pattersonK1 +
+                    y2 *
+                        y2 *
+                        (pattersonK2 + y2 * (pattersonK3 + pattersonK4 * y2))) -
+                y) /
+            (pattersonC1 +
+                y2 * y2 * (pattersonC2 + y2 * (pattersonC3 + pattersonC4 * y2)))
+    } while (Math.abs(delta) > epsilon)
+
+    return [x, yc]
+}
+
+export function geoPatterson(): GeoProjection {
+    return geoProjection(pattersonRaw).scale(139.319)
+}
 
 // https://github.com/d3/d3-geo-projection/blob/main/src/robinson.js
 const K = [
@@ -129,7 +180,7 @@ robinsonRaw.invert = function (x: number, y: number): [number, number] {
                                 (di * (cy - ay)) / 2 +
                                 (di * di * (cy - 2 * by + ay)) / 2) -
                         y) * degrees
-            } while (Math.abs(delta) > epsilon && --j > 0)
+            } while (Math.abs(delta) > epsilon2 && --j > 0)
             break
         }
     } while (--i0 >= 0)

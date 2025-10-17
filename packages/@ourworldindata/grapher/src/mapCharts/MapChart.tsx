@@ -28,13 +28,13 @@ import {
     MAP_CHART_CLASSNAME,
     MapColumnInfo,
     PROJECTED_DATA_LEGEND_COLOR,
+    MapViewport,
 } from "./MapChartConstants"
 import { MapConfig } from "./MapConfig"
 import { ColorScale } from "../color/ColorScale"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
-    GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_MAX_TOOLTIP_WIDTH,
     Patterns,
 } from "../core/GrapherConstants"
@@ -59,7 +59,6 @@ import { Component, createRef } from "react"
 import { ChoroplethMap } from "./ChoroplethMap"
 import { ChoroplethGlobe } from "./ChoroplethGlobe"
 import { GlobeController } from "./GlobeController"
-import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 import { match } from "ts-pattern"
 import { makeProjectedDataPatternId } from "./MapComponents"
@@ -68,6 +67,11 @@ import { ChartComponentProps } from "../chart/ChartTypeMap.js"
 import { InteractionState } from "../interaction/InteractionState"
 
 export type MapChartProps = ChartComponentProps<MapChartState>
+
+export const PADDING_BETWEEN_MAP_AND_LEGEND = 8
+export const PADDING_BELOW_MAP_LEGEND = 4
+export const PADDING_BETWEEN_MAP_LEGENDS = 4
+export const MAP_LEGEND_MAX_WIDTH_RATIO = 0.95
 
 @observer
 export class MapChart
@@ -81,14 +85,10 @@ export class MapChart
         super(props)
 
         makeObservable(this, {
-            hoverFeatureId: observable,
             hoverBracket: observable,
             tooltipState: observable,
         })
     }
-
-    /** The id of the currently hovered feature/country */
-    hoverFeatureId: string | undefined = undefined
 
     /**
      * The currently hovered map bracket.
@@ -126,7 +126,7 @@ export class MapChart
     }
 
     @computed private get targetTime(): number | undefined {
-        return this.chartState.targetTime
+        return this.manager.targetTime ?? this.manager.endTime
     }
 
     @computed private get bounds(): Bounds {
@@ -141,7 +141,7 @@ export class MapChart
     @action.bound onMapMouseOver(feature: GeoFeature): void {
         if (feature.id !== undefined) {
             const featureId = feature.id as string
-            this.hoverFeatureId = featureId
+            this.mapConfig.hoverCountry = featureId
             this.tooltipState.target = { featureId }
             this.manager.logGrapherInteractionEvent?.(
                 "map_country_hover",
@@ -158,7 +158,7 @@ export class MapChart
     }
 
     @action.bound onMapMouseLeave(): void {
-        this.hoverFeatureId = undefined
+        this.mapConfig.hoverCountry = undefined
         this.tooltipState.target = null
     }
 
@@ -170,16 +170,20 @@ export class MapChart
         return this.manager.globeController ?? new GlobeController(this)
     }
 
-    @computed get mapRegionDropdownValue(): MapRegionDropdownValue | undefined {
-        return this.manager.mapRegionDropdownValue
+    @computed get mapViewport(): MapViewport | undefined {
+        return this.manager.mapViewport
+    }
+
+    @computed get isFaceted(): boolean | undefined {
+        return this.manager.isFaceted
+    }
+
+    @computed get shouldShowMapZoomToSelectionButton(): boolean {
+        return !!this.manager.shouldShowMapZoomToSelectionButton
     }
 
     @computed get isMapSelectionEnabled(): boolean {
         return !!this.manager.isMapSelectionEnabled
-    }
-
-    @action.bound resetMapRegionDropdownValue(): void {
-        this.manager.mapRegionDropdownValue = undefined
     }
 
     override componentWillUnmount(): void {
@@ -219,7 +223,26 @@ export class MapChart
         // hide the globe on hitting the Escape key
         if (e.key === "Escape" && this.mapConfig.globe.isActive) {
             this.globeController.hideGlobe()
+            this.globeController.resetGlobe()
+            this.mapConfig.region = MapRegionName.World
         }
+    }
+
+    @computed get externalLegend(): HorizontalColorLegendManager | undefined {
+        const {
+            numericLegendData,
+            categoricalLegendData,
+            categoricalBinStroke,
+            legendMaxWidth,
+        } = this
+        if (!this.manager.showLegend)
+            return {
+                numericLegendData,
+                categoricalLegendData,
+                categoricalBinStroke,
+                legendMaxWidth,
+            }
+        return undefined
     }
 
     @computed private get disableIntroAnimation(): boolean {
@@ -260,30 +283,29 @@ export class MapChart
 
     /** The value of the currently hovered feature/country */
     @computed private get hoverValue(): string | number | undefined {
-        if (!this.hoverFeatureId) return undefined
+        if (!this.mapConfig.hoverCountry) return undefined
 
-        const series = this.choroplethData.get(this.hoverFeatureId)
+        const series = this.choroplethData.get(this.mapConfig.hoverCountry)
         if (!series) return "No data"
 
         return series.value
     }
 
     private isHovered(featureId: string): boolean {
-        const { mapConfig, hoverFeatureId, hoverBracket } = this
+        const { mapConfig, hoverBracket } = this
+        const { externalLegendHoverBin } = this.manager
 
-        if (mapConfig.globe.focusCountry === featureId) return true
-
-        if (hoverFeatureId === featureId) return true
-        else if (!hoverBracket) return false
+        if (mapConfig.hoverCountry === featureId) return true
 
         const series = this.choroplethData.get(featureId)
         if (
-            hoverBracket.contains(series?.value, {
+            hoverBracket?.contains(series?.value, {
                 isProjection: series?.isProjection,
             })
         )
             return true
-        else return false
+        if (externalLegendHoverBin?.contains(series?.value)) return true
+        return false
     }
 
     isSelected(featureId: string): boolean {
@@ -292,7 +314,10 @@ export class MapChart
 
     getHoverState(featureId: string): InteractionState {
         const isHovered = this.isHovered(featureId)
-        return new InteractionState(isHovered, !!this.hoverBracket)
+        return new InteractionState(
+            isHovered,
+            !!(this.hoverBracket || this.manager.externalLegendHoverBin)
+        )
     }
 
     @computed get fontSize(): number {
@@ -300,7 +325,13 @@ export class MapChart
     }
 
     @computed get choroplethMapBounds(): Bounds {
-        return this.bounds.padBottom(this.legendHeight + 4)
+        return this.bounds.padBottom(
+            this.legendHeight
+                ? this.legendHeight +
+                      PADDING_BETWEEN_MAP_AND_LEGEND +
+                      PADDING_BELOW_MAP_LEGEND
+                : 0
+        )
     }
 
     @computed private get region(): MapRegionName {
@@ -416,22 +447,21 @@ export class MapChart
     }
 
     @computed private get numericHoverBracket(): ColorScaleBin | undefined {
-        const { hoverBracket, hoverValue } = this
-        const { numericLegendData } = this
+        const { hoverBracket, hoverValue, numericLegendData } = this
+        const { externalLegendHoverBin } = this.manager
 
         if (hoverBracket) return hoverBracket
 
         if (hoverValue !== undefined)
             return numericLegendData.find((bin) => bin.contains(hoverValue))
 
-        return undefined
+        return externalLegendHoverBin
     }
 
     @computed private get categoricalHoverBracket():
         | CategoricalBin
         | undefined {
-        const { hoverBracket, hoverValue } = this
-        const { categoricalLegendData } = this
+        const { hoverBracket, hoverValue, categoricalLegendData } = this
 
         if (hoverBracket && hoverBracket instanceof CategoricalBin)
             return hoverBracket
@@ -457,9 +487,8 @@ export class MapChart
     }
 
     @computed get legendMaxWidth(): number {
-        // it seems nice to have just a little bit of
-        // extra padding left and right
-        return this.bounds.width * 0.95
+        // it seems nice to have just a little bit of extra padding left and right
+        return this.bounds.width * MAP_LEGEND_MAX_WIDTH_RATIO
     }
 
     @computed get legendX(): number {
@@ -467,7 +496,8 @@ export class MapChart
     }
 
     @computed get legendHeight(): number {
-        return this.categoryLegendHeight + this.numericLegendHeight + 10
+        if (!this.manager.showLegend) return 0
+        return this.categoryLegendHeight + this.numericLegendHeight
     }
 
     @computed private get numericLegendHeight(): number {
@@ -475,7 +505,7 @@ export class MapChart
     }
 
     @computed private get categoryLegendHeight(): number {
-        return this.categoryLegend ? this.categoryLegend.height + 5 : 0
+        return this.categoryLegend ? this.categoryLegend.height : 0
     }
 
     @computed private get categoryLegend():
@@ -483,7 +513,7 @@ export class MapChart
         | undefined {
         if (this.manager.isDisplayedAlongsideComplementaryTable)
             return undefined
-        return this.categoricalLegendData.length > 1
+        return this.manager.showLegend && this.categoricalLegendData.length > 1
             ? new HorizontalCategoricalColorLegend({ manager: this })
             : undefined
     }
@@ -493,16 +523,18 @@ export class MapChart
         | undefined {
         if (this.manager.isDisplayedAlongsideComplementaryTable)
             return undefined
-        return this.numericLegendData.length > 1
+        return this.manager.showLegend && this.numericLegendData.length > 1
             ? new HorizontalNumericColorLegend({ manager: this })
             : undefined
     }
 
     @computed get categoryLegendY(): number {
-        const { categoryLegend, bounds, categoryLegendHeight } = this
-
-        if (categoryLegend) return bounds.bottom - categoryLegendHeight
-        return 0
+        if (!this.categoryLegend) return 0
+        return (
+            this.bounds.bottom -
+            this.categoryLegend.height -
+            PADDING_BELOW_MAP_LEGEND
+        )
     }
 
     @computed get legendAlign(): HorizontalAlign {
@@ -510,18 +542,21 @@ export class MapChart
     }
 
     @computed get numericLegendY(): number {
-        const {
-            numericLegend,
-            numericLegendHeight,
-            bounds,
-            categoryLegendHeight,
-        } = this
+        if (!this.numericLegend) return 0
+        return (
+            this.bounds.bottom -
+            this.numericLegendHeight -
+            PADDING_BELOW_MAP_LEGEND -
+            // If present, the category legend is placed below the numeric legend
+            (this.categoryLegend
+                ? this.categoryLegendHeight + PADDING_BETWEEN_MAP_LEGENDS
+                : 0)
+        )
+    }
 
-        if (numericLegend)
-            return (
-                bounds.bottom - categoryLegendHeight - numericLegendHeight - 4
-            )
-        return 0
+    @computed get hoverColors(): Color[] | undefined {
+        if (!this.hoverBracket) return undefined
+        return [this.hoverBracket.color]
     }
 
     @computed get isStatic(): boolean {
@@ -596,18 +631,14 @@ export class MapChart
 
         let sparklineWidth: number | undefined
         if (this.manager.shouldPinTooltipToBottom) {
+            const windowWidth = window?.innerWidth ?? 240
             sparklineWidth = Math.min(
                 GRAPHER_MAX_TOOLTIP_WIDTH,
-                this.bounds.width + (GRAPHER_FRAME_PADDING_HORIZONTAL - 1) * 2
+                windowWidth - 8
             )
         }
 
-        const tooltipCountry =
-            tooltipState.target?.featureId ??
-            // show a pinned-to-the-bottom tooltip when focused on a country
-            (this.manager.shouldPinTooltipToBottom
-                ? this.mapConfig.globe.focusCountry
-                : undefined)
+        const tooltipCountry = tooltipState.target?.featureId
 
         return (
             <g
@@ -625,17 +656,20 @@ export class MapChart
                         position={tooltipState.position}
                         fading={tooltipState.fading}
                         timeSeriesTable={this.chartState.inputTable}
-                        formatValueForTooltip={
-                            this.chartState.formatValueForTooltip
+                        shouldUseCustomLabels={
+                            this.mapConfig.tooltipUseCustomLabels
                         }
                         manager={this.manager}
                         lineColorScale={this.colorScale}
                         targetTime={this.targetTime}
+                        targetTimes={this.manager.highlightedTimesInTooltip}
                         sparklineWidth={sparklineWidth}
+                        formatValueForTooltip={
+                            this.chartState.formatValueForTooltip
+                        }
                         dismissTooltip={() => {
-                            this.hoverFeatureId = undefined
+                            this.mapConfig.hoverCountry = undefined
                             this.tooltipState.target = null
-                            this.globeController.dismissCountryFocus()
                         }}
                     />
                 )}

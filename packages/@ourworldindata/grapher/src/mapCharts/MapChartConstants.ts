@@ -5,12 +5,12 @@ import {
     SeriesName,
     GlobeRegionName,
     ProjectionColumnInfo,
+    Time,
 } from "@ourworldindata/types"
 import { ChartManager } from "../chart/ChartManager"
 import { MapConfig } from "./MapConfig"
 import { ChartSeries } from "../chart/ChartInterface"
 import { GlobeController } from "./GlobeController"
-import { MapRegionDropdownValue } from "../controls/MapRegionDropdown"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 import { CoreColumn } from "@ourworldindata/core-table"
 import { GrapherInteractionEvent } from "../core/GrapherAnalytics"
@@ -97,8 +97,6 @@ export interface ChoroplethMapManager {
     mapConfig: MapConfig
     mapColumn: CoreColumn
     globeController?: GlobeController
-    mapRegionDropdownValue?: MapRegionDropdownValue
-    resetMapRegionDropdownValue?: () => void
     selectionArray?: MapSelectionArray
     fontSize?: number
     getHoverState?: (featureId: string) => InteractionState
@@ -109,6 +107,9 @@ export interface ChoroplethMapManager {
     isStatic?: boolean
     binColors?: string[]
     hasProjectedData?: boolean
+    mapViewport?: MapViewport
+    isFaceted?: boolean
+    shouldShowMapZoomToSelectionButton?: boolean
 }
 
 export enum RenderFeatureType {
@@ -137,19 +138,31 @@ export interface GlobeRenderFeature extends RenderFeature {
 export interface MapChartManager extends ChartManager {
     mapColumnSlug?: ColumnSlug
     mapConfig?: MapConfig
+    targetTime?: Time
     globeController?: GlobeController
-    mapRegionDropdownValue?: MapRegionDropdownValue
     isMapSelectionEnabled?: boolean
+    highlightedTimesInTooltip?: [Time, Time]
+    mapViewport?: MapViewport
+    isFaceted?: boolean
     logGrapherInteractionEvent?: (
         action: GrapherInteractionEvent,
         target?: string
     ) => void
     projectionColumnInfoBySlug?: Map<ColumnSlug, ProjectionColumnInfo>
+    shouldShowMapZoomToSelectionButton?: boolean
 }
 
 export interface GlobeViewport {
     rotation: [number, number]
     zoom: number
+}
+
+export interface MapViewport {
+    x: number
+    y: number
+    width: number
+    height: number
+    ratio: number
 }
 
 export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
@@ -159,6 +172,26 @@ export const GLOBE_VIEWPORTS: Record<GlobeRegionName, GlobeViewport> = {
     SouthAmerica: { rotation: [-62, -22], zoom: 1.75 },
     Asia: { rotation: [81, 26], zoom: 1.85 },
     Oceania: { rotation: [152.65, -18.8], zoom: 2 },
+}
+
+/** Viewport for each region, defined by center and width+height in fractional coordinates */
+export const MAP_VIEWPORTS: Record<MapRegionName, MapViewport> = {
+    World: { x: 0.565, y: 0.5, width: 1.01, height: 1.01, ratio: 2.29 },
+    Europe: { x: 0.53, y: 0.21, width: 0.2, height: 0.2, ratio: 1.77 },
+    Africa: { x: 0.48, y: 0.7, width: 0.21, height: 0.38, ratio: 1.07 },
+    NorthAmerica: { x: 0.46, y: 0.4, width: 0.19, height: 0.35, ratio: 1.12 },
+    SouthAmerica: { x: 0.52, y: 0.815, width: 0.1, height: 0.26, ratio: 0.62 },
+    Asia: { x: 0.74, y: 0.45, width: 0.36, height: 0.5, ratio: 1.65 },
+    Oceania: { x: 0.51, y: 0.75, width: 0.1, height: 0.2, ratio: 1.47 },
+}
+
+// Custom viewport for faceted world map, which zooms in a little bit to make best use of the available space
+export const MAP_VIEWPORT_FACETED_WORLD: MapViewport = {
+    x: 0.545,
+    y: 0.5,
+    width: 0.91,
+    height: 1.01,
+    ratio: 2.29,
 }
 
 export interface Circle {
