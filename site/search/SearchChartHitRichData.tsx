@@ -410,7 +410,7 @@ function useQuerySearchResultDataForChartHit({
         queryFn: () => {
             const url = constructSearchResultUrl({ hit, params })
             if (!url) return null
-            return fetchJson<GrapherSearchResultJson>(url)
+            return fetchJson<GrapherSearchResultJson>(url, { timeoutMs: 5000 })
         },
         // If a query fails, it's likely because the worker
         // exceeded resource limits (which is expected for some
