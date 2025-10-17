@@ -70,19 +70,19 @@ export const getNarrativeChartNameConfigMap = async (
     return Object.fromEntries(rows.map((row) => [row.name, row.chartConfigId]))
 }
 
-// TEMPORARY: Memoization for getAllNarrativeChartNames
-let _narrativeChartNamesCache: Set<string> | null = null
-
 export const getAllNarrativeChartNames = async (
     knex: db.KnexReadonlyTransaction
 ): Promise<Set<string>> => {
-    if (_narrativeChartNamesCache) return _narrativeChartNamesCache
+    // TEMPORARY: Transaction-scoped memoization for baking performance
+    // Cache is stored on the knex transaction object and cleared when transaction ends
+    const cache = (knex as any).__queryCache = (knex as any).__queryCache || {}
+    if (cache.narrativeChartNames) return cache.narrativeChartNames
 
     const rows = await knex<DbPlainNarrativeChart>(
         NarrativeChartsTableName
     ).select("name")
 
     const result = new Set(rows.map((row) => row.name))
-    _narrativeChartNamesCache = result
+    cache.narrativeChartNames = result
     return result
 }

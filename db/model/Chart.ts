@@ -33,14 +33,14 @@ export const PUBLIC_TAG_PARENT_IDS = [
     1505, 1508, 1512, 1510, 1834, 1835,
 ]
 
-// TEMPORARY: Memoization for mapSlugsToIds
-let _mapSlugsToIdsCache: { [slug: string]: number } | null = null
-
 // Only considers published charts, because only in that case the mapping slug -> id is unique
 export async function mapSlugsToIds(
     knex: db.KnexReadonlyTransaction
 ): Promise<{ [slug: string]: number }> {
-    if (_mapSlugsToIdsCache) return _mapSlugsToIdsCache
+    // TEMPORARY: Transaction-scoped memoization for baking performance
+    // Cache is stored on the knex transaction object and cleared when transaction ends
+    const cache = (knex as any).__queryCache = (knex as any).__queryCache || {}
+    if (cache.mapSlugsToIds) return cache.mapSlugsToIds
 
     const [redirects, rows] = await Promise.all([
         db.knexRaw<{ chart_id: number; slug: string }>(
@@ -66,7 +66,7 @@ export async function mapSlugsToIds(
         slugToId[row.slug] = row.id
     }
 
-    _mapSlugsToIdsCache = slugToId
+    cache.mapSlugsToIds = slugToId
     return slugToId
 }
 
