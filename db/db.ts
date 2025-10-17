@@ -69,7 +69,8 @@ export async function cachedInTransaction<T>(
     cacheKey: string,
     fn: () => Promise<T>
 ): Promise<T> {
-    const cache = (knex as any).__queryCache = (knex as any).__queryCache || {}
+    const cache = ((knex as any).__queryCache =
+        (knex as any).__queryCache || {})
     if (cache[cacheKey] !== undefined) {
         return cache[cacheKey]
     }
