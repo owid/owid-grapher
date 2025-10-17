@@ -14,15 +14,23 @@ import {
 import { extractDetailsFromSyntax } from "@ourworldindata/utils"
 import { KnexReadonlyTransaction, knexRaw } from "../db.js"
 
+// TEMPORARY: Memoization for getDods
+let _dodsCache: DbPlainDod[] | null = null
+
 export async function getDods(
     knex: KnexReadonlyTransaction
 ): Promise<DbPlainDod[]> {
-    return knexRaw<DbPlainDod>(
+    if (_dodsCache) return _dodsCache
+
+    const result = await knexRaw<DbPlainDod>(
         knex,
         `-- sql
         SELECT * FROM dods
         ORDER BY updatedAt DESC`
     )
+
+    _dodsCache = result
+    return result
 }
 
 export async function getParsedDodsDictionary(
