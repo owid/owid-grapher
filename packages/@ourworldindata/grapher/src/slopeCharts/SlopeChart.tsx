@@ -19,6 +19,7 @@ import { NoDataModal } from "../noDataModal/NoDataModal"
 import {
     BASE_FONT_SIZE,
     DEFAULT_GRAPHER_BOUNDS,
+    GRAPHER_FONT_SCALE_11,
     GRAPHER_FONT_SCALE_12,
     GRAPHER_TEXT_OUTLINE_FACTOR,
 } from "../core/GrapherConstants"
@@ -81,7 +82,6 @@ type SVGMouseOrTouchEvent =
     | React.MouseEvent<SVGGElement>
     | React.TouchEvent<SVGGElement>
 
-const TOP_PADDING = 6 // leave room for overflowing dots
 const LINE_LEGEND_PADDING = 4
 
 export type SlopeChartProps = ChartComponentProps<SlopeChartState>
@@ -123,7 +123,7 @@ export class SlopeChart
 
     @computed private get innerBounds(): Bounds {
         return this.bounds
-            .padTop(TOP_PADDING)
+            .padTop(6) // Leave room for overflowing dots
             .padBottom(this.bottomPadding)
             .padRight(this.sidebarWidth + this.sidebarMargin)
     }
@@ -250,7 +250,8 @@ export class SlopeChart
     @computed get yAxisConfig(): AxisConfig {
         const { yAxisConfig } = this.manager
         const defaults = getYAxisConfigDefaults(yAxisConfig)
-        return new AxisConfig({ ...defaults, ...yAxisConfig }, this)
+        const custom = { hideAxis: true }
+        return new AxisConfig({ ...defaults, ...yAxisConfig, ...custom }, this)
     }
 
     @computed get yDomainDefault(): [number, number] {
@@ -296,6 +297,30 @@ export class SlopeChart
         return this.showNoDataSection
             ? R.clamp(this.bounds.width * 0.125, { min: 60, max: 140 })
             : 0
+    }
+
+    @computed private get formattedStartTime(): string {
+        return this.formatColumn.formatTime(this.chartState.xDomain[0])
+    }
+
+    @computed private get formattedEndTime(): string {
+        return this.formatColumn.formatTime(this.chartState.xDomain[1])
+    }
+
+    @computed private get xMarkFontSize(): number {
+        return this.yAxis.tickFontSize
+    }
+
+    @computed private get xStartMarkWidth(): number {
+        return Bounds.forText(this.formattedStartTime, {
+            fontSize: this.xMarkFontSize,
+        }).width
+    }
+
+    @computed private get xEndMarkWidth(): number {
+        return Bounds.forText(this.formattedEndTime, {
+            fontSize: this.xMarkFontSize,
+        }).width
     }
 
     @computed get externalLegend(): HorizontalColorLegendManager | undefined {
@@ -877,7 +902,17 @@ export class SlopeChart
         )
     }
 
-    private renderYAxis(): React.ReactElement | null {
+    private renderZeroLine(): React.ReactElement | null {
+        // Don't draw a zero line if all start values are zero,
+        // which is trivially true in relative mode
+        if (this.chartState.isRelativeMode) return null
+
+        // Don't draw a zero line if all start values are zero
+        const areAllStartValuesZero = !this.chartState.series.some(
+            (series) => series.start.value !== 0
+        )
+        if (areAllStartValuesZero) return null
+
         // Don't show a zero line if it's not in the domain
         const isZeroInDomain =
             this.yAxis.domain[0] <= 0 && this.yAxis.domain[1] >= 0
@@ -889,7 +924,7 @@ export class SlopeChart
         const tickLabel = this.yAxis.formatTick(0)
         const tickLabelLength = Bounds.forText(tickLabel, { fontSize }).width
         const bounds = this.innerBounds.padLeft(
-            this.yAxis.hideAxis ? 0 : tickLabelLength + tickLabelOffset
+            tickLabelLength + tickLabelOffset
         )
 
         return (
@@ -902,42 +937,95 @@ export class SlopeChart
                         strokeDasharray="3,2"
                     />
                 )}
-                {!this.yAxis.hideAxis && (
-                    <text
-                        x={this.innerBounds.left}
-                        y={this.yAxis.place(0).toFixed(2)}
-                        dy={dyFromAlign(VerticalAlign.middle)}
-                        fontSize={fontSize}
-                        fill={GRAPHER_DARK_TEXT}
-                    >
-                        {tickLabel}
-                    </text>
-                )}
+                <text
+                    x={this.innerBounds.left}
+                    y={this.yAxis.place(0).toFixed(2)}
+                    dy={dyFromAlign(VerticalAlign.middle)}
+                    fontSize={fontSize}
+                    fill={GRAPHER_DARK_TEXT}
+                >
+                    {tickLabel}
+                </text>
+            </>
+        )
+    }
+
+    private renderLogNotice(): React.ReactElement | null {
+        if (!this.chartState.isLogScale) return null
+
+        const fontSize = GRAPHER_FONT_SCALE_11 * this.fontSize
+
+        const longText = "plotted on a logarithmic axis"
+        const shortText = "log axis"
+
+        const longTextWidth = Bounds.forText(longText, { fontSize }).width
+        const shortTextWidth = Bounds.forText(shortText, { fontSize }).width
+
+        // Determine how much space is available for the log notice
+        const xDist = this.endX - this.startX
+        const rightPadding = 0.5 * this.xEndMarkWidth
+        const leftPadding = 0.5 * this.xStartMarkWidth
+        const maxWidth = xDist - rightPadding - leftPadding - 24
+
+        // Prefer the long text if it fits. If both texts are too long,
+        // don't display a notice
+        const renderedText =
+            longTextWidth <= maxWidth
+                ? longText
+                : shortTextWidth <= maxWidth
+                  ? shortText
+                  : null
+
+        if (!renderedText) return null
+
+        // Placed in between the start and end x marks
+        const midX = (this.startX + this.endX) / 2
+        const y = this.innerBounds.bottom + this.xLabelPadding
+
+        return (
+            <text
+                x={midX}
+                y={y}
+                fontSize={fontSize}
+                textAnchor="middle"
+                dy={dyFromAlign(VerticalAlign.bottom)}
+                fill={GRAPHER_DARK_TEXT}
+                fontStyle="italic"
+            >
+                {renderedText}
+            </text>
+        )
+    }
+
+    private renderYAxis(): React.ReactElement | null {
+        return (
+            <>
+                {this.renderZeroLine()}
+                {this.renderLogNotice()}
             </>
         )
     }
 
     private renderXAxis() {
         const { startX, endX } = this
-        const { xDomain } = this.chartState
 
         return (
             <g id={makeIdForHumanConsumption("horizontal-axis")}>
                 <MarkX
-                    label={this.formatColumn.formatTime(xDomain[0])}
+                    label={this.formattedStartTime}
                     x={startX}
                     top={this.innerBounds.top}
                     bottom={this.innerBounds.bottom}
                     labelPadding={this.xLabelPadding}
-                    fontSize={this.yAxis.tickFontSize}
+                    fontSize={this.xMarkFontSize}
                 />
                 <MarkX
-                    label={this.formatColumn.formatTime(xDomain[1])}
+                    label={this.formattedEndTime}
                     x={endX}
                     top={this.innerBounds.top}
                     bottom={this.innerBounds.bottom}
                     labelPadding={this.xLabelPadding}
-                    fontSize={this.yAxis.tickFontSize}
+                    fontSize={this.xMarkFontSize}
                 />
             </g>
         )
@@ -1033,14 +1121,11 @@ export class SlopeChart
     override render() {
         if (this.chartState.errorInfo.reason)
             return (
-                <>
-                    {this.renderYAxis()}
-                    <NoDataModal
-                        manager={this.manager}
-                        bounds={this.props.bounds}
-                        message={this.chartState.errorInfo.reason}
-                    />
-                </>
+                <NoDataModal
+                    manager={this.manager}
+                    bounds={this.props.bounds}
+                    message={this.chartState.errorInfo.reason}
+                />
             )
 
         return this.manager.isStatic

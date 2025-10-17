@@ -66,8 +66,8 @@ export class SlopeChartState implements ChartState {
         let table = this.transformedTableFromGrapher
         // The % growth transform cannot be applied in transformTable() because it will filter out
         // any rows before startTime and change the timeline bounds.
-        const { isRelativeMode, startTime } = this.manager
-        if (isRelativeMode && startTime !== undefined) {
+        const { startTime } = this.manager
+        if (this.isRelativeMode && startTime !== undefined) {
             table = table.toTotalGrowthForEachColumnComparedToStartTime(
                 startTime,
                 this.yColumnSlugs ?? []
@@ -144,6 +144,10 @@ export class SlopeChartState implements ChartState {
 
     @computed get formatColumn(): CoreColumn {
         return this.yColumns[0]
+    }
+
+    @computed get isRelativeMode(): boolean {
+        return !!this.manager.isRelativeMode
     }
 
     @computed get isLogScale(): boolean {

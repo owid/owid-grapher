@@ -325,7 +325,8 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
             showTickMarks,
             showEndpointsOnly,
         } = this.props
-        const { tickLabels, labelTextWrap, config } = verticalAxis
+        const { tickLabels, labelTextWrap, logNoticeTextWrap, config } =
+            verticalAxis
 
         let visibleTickLabels = tickLabels
         if (showEndpointsOnly) {
@@ -334,11 +335,36 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
             )
         }
 
+        const shouldShowLogNotice =
+            verticalAxis.shouldShowLogNotice &&
+            // Only show the notice if it fits in the margin
+            verticalAxis.logNoticeWidth <= verticalAxis.width
+
+        const tickX =
+            bounds.left + verticalAxis.width - verticalAxis.tickPadding
+
         return (
             <g
                 id={makeIdForHumanConsumption("vertical-axis")}
                 className="VerticalAxis"
             >
+                {shouldShowLogNotice && logNoticeTextWrap && (
+                    <React.Fragment key={logNoticeTextWrap.text}>
+                        {logNoticeTextWrap.renderSVG(tickX, bounds.top, {
+                            id: makeIdForHumanConsumption(
+                                "vertical-axis-log-notice"
+                            ),
+                            textProps: {
+                                fill: tickColor || GRAPHER_DARK_TEXT,
+                                textAnchor: textAnchorFromAlign(
+                                    HorizontalAlign.right
+                                ),
+                                fontStyle: "italic",
+                            },
+                            detailsMarker,
+                        })}
+                    </React.Fragment>
+                )}
                 {labelTextWrap && (
                     <React.Fragment key={labelTextWrap.text}>
                         {labelTextWrap.renderSVG(bounds.left, bounds.top, {
@@ -378,11 +404,7 @@ export class VerticalAxisComponent extends React.Component<VerticalAxisComponent
                             return (
                                 <text
                                     key={i}
-                                    x={(
-                                        bounds.left +
-                                        verticalAxis.width -
-                                        verticalAxis.tickPadding
-                                    ).toFixed(2)}
+                                    x={tickX.toFixed(2)}
                                     y={y}
                                     dy={dyFromAlign(
                                         yAlign ?? VerticalAlign.middle
