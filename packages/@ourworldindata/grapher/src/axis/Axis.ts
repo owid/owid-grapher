@@ -142,6 +142,10 @@ abstract class AbstractAxis {
         return this._scaleType ?? this.config.scaleType ?? ScaleType.linear
     }
 
+    @computed get isLogScale(): boolean {
+        return this.scaleType === ScaleType.log
+    }
+
     set scaleType(value: ScaleType) {
         this._scaleType = value
     }
@@ -252,11 +256,10 @@ abstract class AbstractAxis {
 
     private niceTicks?: number[]
     @computed private get d3_scale(): Scale {
-        const isLogScale = this.scaleType === ScaleType.log
-        const d3Scale = isLogScale ? scaleLog : scaleLinear
+        const d3Scale = this.isLogScale ? scaleLog : scaleLinear
         let scale = d3Scale().domain(this.domain).range(this.range)
 
-        if (this.nice && !isLogScale) {
+        if (this.nice && !this.isLogScale) {
             const { scale: niceScale, ticks: niceTicks } =
                 AbstractAxis.makeScaleNice(scale, this.totalTicksTarget)
             scale = niceScale
@@ -310,7 +313,7 @@ abstract class AbstractAxis {
     }
 
     getTickValues(): Tickmark[] {
-        const { scaleType, d3_scale } = this
+        const { d3_scale } = this
 
         let ticks: Tickmark[]
 
@@ -333,7 +336,7 @@ abstract class AbstractAxis {
                             tick.value >= minValue && tick.value <= maxValue
                     )
             )
-        } else if (scaleType === ScaleType.log) {
+        } else if (this.isLogScale) {
             // Show a bit more ticks for log axes
             const maxLabelledTicks = Math.round(this.totalTicksTarget * 1.25)
             const maxTicks = Math.round(this.totalTicksTarget * 3)
@@ -473,7 +476,7 @@ abstract class AbstractAxis {
                 "Can't place value on scale without a defined output range"
             )
             return value
-        } else if (this.scaleType === ScaleType.log && value <= 0) {
+        } else if (this.isLogScale && value <= 0) {
             console.error(`Can't have ${value} which is <= 0 on a log scale`)
             return value
         } else if (this.domain[0] === this.domain[1]) {
@@ -554,9 +557,21 @@ abstract class AbstractAxis {
         })
 
         if (axisLabel.unit) {
+            const secondaryText = this.isLogScale
+                ? `(${axisLabel.unit}; plotted on a logarithmic axis)`
+                : `(${axisLabel.unit})`
             return MarkdownTextWrap.fromFragments({
                 main: { text: axisLabel.mainLabel, bold: true },
-                secondary: { text: `(${axisLabel.unit})` },
+                secondary: { text: secondaryText },
+                newLine: "avoid-wrap",
+                textWrapProps,
+            })
+        }
+
+        if (this.isLogScale) {
+            return MarkdownTextWrap.fromFragments({
+                main: { text: axisLabel.mainLabel, bold: true },
+                secondary: { text: "(plotted on a logarithmic axis)" },
                 newLine: "avoid-wrap",
                 textWrapProps,
             })
@@ -625,7 +640,7 @@ export class HorizontalAxis extends AbstractAxis {
         const { domain } = this
 
         // Make sure the start and end values are present, if they're whole numbers
-        const startEndPrio = this.scaleType === ScaleType.log ? 2 : 1
+        const startEndPrio = this.isLogScale ? 2 : 1
         if (domain[0] % 1 === 0)
             ticks = [
                 {
