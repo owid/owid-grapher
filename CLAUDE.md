@@ -45,3 +45,11 @@ Some key directories, going roughly along the dependency chain from the most sta
 Our main datastore is a mysql 8 database. The documentation for this lives in db/docs - there is README.md file which is a good overview and starting point, then one TABLE-NAME.yml file per table describing the table in more detail. ALWAYS list the directory db/docs/ to understand which tables are available and read the relevant table description files before constructing a query or writing a migration.
 
 You can run (read only) queries against the database with `yarn query "QUERY TEXT"` - e.g. if you need to understand the contents of a table of the cardinality of various tables.
+
+# Additional documentation
+
+More details of our gdocs pipeline are described in these files:
+
+- ./docs/agent-guidelines/gdocs-cms-pipeline.md - detailed overview of our archieml pipeline from gdocs to our database. Read this before you work on gdocs related things.
+- ./docs/agent-guidelines/gdocs-class-hierarchy.md - overview of the different types of gdocs and how they differ and how to create new types.
+- ./docs/agent-guidelines/gdocs-attachments.md - outlines the attachments mechanism and how we use it to give the react components that ultimately render our site the necessary context
