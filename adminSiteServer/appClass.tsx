@@ -91,11 +91,13 @@ export class OwidAdminApp {
         // Public preview of a Gdoc document
         app.get("/gdocs/:id/preview", async (req, res) => {
             try {
+                const acceptSuggestions = req.query.acceptSuggestions === "true"
                 await db.knexReadonlyTransaction(async (knex) => {
                     const gdoc = await getAndLoadGdocById(
                         knex,
                         req.params.id,
-                        GdocsContentSource.Gdocs
+                        GdocsContentSource.Gdocs,
+                        acceptSuggestions
                     )
 
                     res.set("X-Robots-Tag", "noindex")
