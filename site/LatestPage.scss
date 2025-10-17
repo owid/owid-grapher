@@ -71,12 +71,6 @@
         }
     }
 
-    .newsletter-subscription-form__icon {
-        @include md-down {
-            display: none;
-        }
-    }
-
     .newsletter-subscription-form {
         @include lg-up {
             padding-bottom: 16px;
