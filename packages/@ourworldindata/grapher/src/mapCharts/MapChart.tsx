@@ -632,11 +632,11 @@ export class MapChart
                         lineColorScale={this.colorScale}
                         targetTime={this.targetTime}
                         sparklineWidth={sparklineWidth}
-                        dismissTooltip={() => {
+                        dismissTooltip={action(() => {
                             this.hoverFeatureId = undefined
                             this.tooltipState.target = null
                             this.globeController.dismissCountryFocus()
-                        }}
+                        })}
                     />
                 )}
             </g>

@@ -6,6 +6,7 @@ import {
     sleep,
     findClosestTime,
 } from "@ourworldindata/utils"
+import { action } from "mobx"
 
 export type TimelineDragTarget = "start" | "end" | "both"
 
@@ -96,13 +97,13 @@ export class TimelineController {
             : this.minTime
     }
 
-    private resetToBeginning(): void {
+    @action.bound private resetToBeginning(): void {
         const { beginning } = this
         this.manager.endHandleTimeBound = beginning
         this.manager.startHandleTimeBound = beginning
     }
 
-    async play(numberOfTicks?: number): Promise<number> {
+    @action.bound async play(numberOfTicks?: number): Promise<number> {
         const { manager } = this
 
         manager.isPlaying = true
@@ -149,14 +150,14 @@ export class TimelineController {
         this.updateEndTime(prevTime)
     }
 
-    private stop(): void {
+    @action.bound private stop(): void {
         this.manager.isPlaying = false
         this.manager.isTimelineAnimationActive = false
         this.manager.animationStartTime = undefined
         this.manager.areHandlesOnSameTimeBeforeAnimation = undefined
     }
 
-    private pause(): void {
+    @action.bound private pause(): void {
         this.manager.isPlaying = false
     }
 
@@ -164,7 +165,7 @@ export class TimelineController {
         this.stop()
     }
 
-    async togglePlay(): Promise<void> {
+    @action.bound async togglePlay(): Promise<void> {
         if (!this.manager.isTimelineAnimationActive) {
             this.manager.areHandlesOnSameTimeBeforeAnimation =
                 this.manager.startHandleTimeBound ===
@@ -254,11 +255,11 @@ export class TimelineController {
         return constrainedHandle
     }
 
-    private updateStartTime(timeBound: TimeBound): void {
+    @action.bound private updateStartTime(timeBound: TimeBound): void {
         this.manager.startHandleTimeBound = timeBound
     }
 
-    private updateEndTime(timeBound: TimeBound): void {
+    @action.bound private updateEndTime(timeBound: TimeBound): void {
         this.manager.endHandleTimeBound = timeBound
     }
 

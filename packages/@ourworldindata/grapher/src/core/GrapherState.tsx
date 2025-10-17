@@ -336,7 +336,7 @@ export class GrapherState {
         return this._inputTable
     }
 
-    set inputTable(table: OwidTable) {
+    @action set inputTable(table: OwidTable) {
         this._inputTable = table
 
         if (this.manager?.selection?.hasSelection) {
