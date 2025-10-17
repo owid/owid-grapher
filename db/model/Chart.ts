@@ -37,38 +37,33 @@ export const PUBLIC_TAG_PARENT_IDS = [
 export async function mapSlugsToIds(
     knex: db.KnexReadonlyTransaction
 ): Promise<{ [slug: string]: number }> {
-    // TEMPORARY: Transaction-scoped memoization for baking performance
-    // Cache is stored on the knex transaction object and cleared when transaction ends
-    const cache = ((knex as any).__queryCache =
-        (knex as any).__queryCache || {})
-    if (cache.mapSlugsToIds) return cache.mapSlugsToIds
+    return db.cachedInTransaction(knex, "mapSlugsToIds", async () => {
+        const [redirects, rows] = await Promise.all([
+            db.knexRaw<{ chart_id: number; slug: string }>(
+                knex,
+                `SELECT chart_id, slug FROM chart_slug_redirects`
+            ),
+            db.knexRaw<{ id: number; slug: string }>(
+                knex,
+                `-- sql
+                    SELECT c.id, cc.slug
+                    FROM charts c
+                    JOIN chart_configs cc ON cc.id = c.configId
+                    WHERE cc.full ->> "$.isPublished" = "true"
+                `
+            ),
+        ])
 
-    const [redirects, rows] = await Promise.all([
-        db.knexRaw<{ chart_id: number; slug: string }>(
-            knex,
-            `SELECT chart_id, slug FROM chart_slug_redirects`
-        ),
-        db.knexRaw<{ id: number; slug: string }>(
-            knex,
-            `-- sql
-                SELECT c.id, cc.slug
-                FROM charts c
-                JOIN chart_configs cc ON cc.id = c.configId
-                WHERE cc.full ->> "$.isPublished" = "true"
-            `
-        ),
-    ])
+        const slugToId: { [slug: string]: number } = {}
+        for (const row of redirects) {
+            slugToId[row.slug] = row.chart_id
+        }
+        for (const row of rows) {
+            slugToId[row.slug] = row.id
+        }
 
-    const slugToId: { [slug: string]: number } = {}
-    for (const row of redirects) {
-        slugToId[row.slug] = row.chart_id
-    }
-    for (const row of rows) {
-        slugToId[row.slug] = row.id
-    }
-
-    cache.mapSlugsToIds = slugToId
-    return slugToId
+        return slugToId
+    })
 }
 
 // Same as mapSlugsToIds but gets the configs also

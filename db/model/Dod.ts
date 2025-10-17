@@ -12,26 +12,23 @@ import {
     DodUsageRecord,
 } from "@ourworldindata/types"
 import { extractDetailsFromSyntax } from "@ourworldindata/utils"
-import { KnexReadonlyTransaction, knexRaw } from "../db.js"
+import {
+    KnexReadonlyTransaction,
+    knexRaw,
+    cachedInTransaction,
+} from "../db.js"
 
 export async function getDods(
     knex: KnexReadonlyTransaction
 ): Promise<DbPlainDod[]> {
-    // TEMPORARY: Transaction-scoped memoization for baking performance
-    // Cache is stored on the knex transaction object and cleared when transaction ends
-    const cache = ((knex as any).__queryCache =
-        (knex as any).__queryCache || {})
-    if (cache.dods) return cache.dods
-
-    const result = await knexRaw<DbPlainDod>(
-        knex,
-        `-- sql
-        SELECT * FROM dods
-        ORDER BY updatedAt DESC`
-    )
-
-    cache.dods = result
-    return result
+    return cachedInTransaction(knex, "dods", async () => {
+        return knexRaw<DbPlainDod>(
+            knex,
+            `-- sql
+            SELECT * FROM dods
+            ORDER BY updatedAt DESC`
+        )
+    })
 }
 
 export async function getParsedDodsDictionary(
