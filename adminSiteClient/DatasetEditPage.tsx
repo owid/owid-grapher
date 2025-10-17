@@ -11,6 +11,7 @@ import { Link } from "./Link.js"
 import { BindString, Toggle, FieldsRow, Timeago, TextField } from "./Forms.js"
 import { EditableTags } from "./EditableTags.js"
 import { ChartList, ChartListItem } from "./ChartList.js"
+import { NarrativeChartList } from "./NarrativeChartList.js"
 import { OriginList } from "./OriginList.js"
 import { SourceList } from "./SourceList.js"
 import { VariableList, VariableListItem } from "./VariableList.js"
@@ -26,6 +27,20 @@ import { faDownload, faHatWizard } from "@fortawesome/free-solid-svg-icons"
 import { ETL_WIZARD_URL } from "../settings/clientSettings.js"
 import { Button } from "antd"
 import urljoin from "url-join"
+
+export interface NarrativeChartListItem {
+    id: number
+    name: string
+    title: string
+    chartConfigId: string
+    parentChartId: number | null
+    parentMultiDimXChartConfigId: number | null
+    parentTitle: string
+    parentCatalogPath: string | null
+    queryParamsForParentChart: string
+    updatedAt: Date | null
+    lastEditedByUser: string
+}
 
 interface DatasetPageData {
     id: number
@@ -51,6 +66,7 @@ interface DatasetPageData {
     tags: { id: number; name: string }[]
     variables: VariableListItem[]
     charts: ChartListItem[]
+    narrativeCharts: NarrativeChartListItem[]
     variableSources: OwidSource[]
 
     origins: OwidOrigin[]
@@ -395,6 +411,20 @@ class DatasetEditor extends Component<DatasetEditorProps> {
                     </section>
                 )
 
+            case "narrativeCharts":
+                return (
+                    <section>
+                        <h3>Narrative Charts</h3>
+                        <p>
+                            Narrative charts that use variables from this
+                            dataset.
+                        </p>
+                        <NarrativeChartList
+                            narrativeCharts={dataset.narrativeCharts}
+                        />
+                    </section>
+                )
+
             case "settings":
                 return (
                     <section>
@@ -455,6 +485,7 @@ class DatasetEditor extends Component<DatasetEditorProps> {
             { key: "metadata", label: "Metadata" },
             { key: "indicators", label: "Indicators" },
             { key: "charts", label: "Charts" },
+            { key: "narrativeCharts", label: "Narrative Charts" },
             { key: "settings", label: "Settings" },
         ]
 

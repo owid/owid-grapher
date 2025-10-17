@@ -243,6 +243,68 @@ export async function getDataset(
     )
     dataset.availableTags = availableTags
 
+    // Fetch narrative charts that use variables from this dataset
+    // Note: Narrative charts don't have chart_dimensions entries, so we need to extract
+    // dimension information from the full config JSON in chart_configs
+    type NarrativeChartRow = {
+        id: number
+        name: string
+        title: string
+        chartConfigId: string
+        parentChartId: number | null
+        parentMultiDimXChartConfigId: number | null
+        parentTitle: string
+        parentCatalogPath: string | null
+        queryParamsForParentChart: string
+        updatedAt: Date | null
+        lastEditedByUser: string
+    }
+
+    const narrativeCharts = await db.knexRaw<NarrativeChartRow>(
+        trx,
+        `-- sql
+        SELECT DISTINCT
+            nc.id,
+            nc.name,
+            cc.full ->> "$.title" as title,
+            nc.chartConfigId,
+            nc.parentChartId,
+            nc.parentMultiDimXChartConfigId,
+            nc.queryParamsForParentChart,
+            nc.updatedAt,
+            u.fullName as lastEditedByUser,
+            CASE
+                WHEN nc.parentChartId IS NOT NULL THEN pcc1.full ->> "$.title"
+                ELSE COALESCE(
+                    pcc2.full ->> "$.title",
+                    mddp.config ->> "$.title.title",
+                    ''
+                )
+            END as parentTitle,
+            mddp.catalogPath as parentCatalogPath
+        FROM narrative_charts nc
+        JOIN chart_configs cc ON nc.chartConfigId = cc.id
+        JOIN users u ON nc.lastEditedByUserId = u.id
+        -- For chart parents
+        LEFT JOIN charts pc ON nc.parentChartId = pc.id
+        LEFT JOIN chart_configs pcc1 ON pc.configId = pcc1.id
+        -- For multi-dim view parents
+        LEFT JOIN multi_dim_x_chart_configs mdxcc ON nc.parentMultiDimXChartConfigId = mdxcc.id
+        LEFT JOIN multi_dim_data_pages mddp ON mdxcc.multiDimId = mddp.id
+        LEFT JOIN chart_configs pcc2 ON mdxcc.chartConfigId = pcc2.id
+        WHERE EXISTS (
+            -- Check if any dimension in the JSON config uses a variable from this dataset
+            SELECT 1 FROM variables v
+            WHERE v.datasetId = ?
+            AND JSON_SEARCH(cc.full, 'one', CAST(v.id AS CHAR), NULL, '$.dimensions[*].variableId') IS NOT NULL
+        )
+        ORDER BY nc.updatedAt DESC
+        `,
+        [datasetId]
+    )
+
+    dataset.narrativeCharts = narrativeCharts
+
     return { dataset: dataset }
 }
 
