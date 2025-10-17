@@ -19,6 +19,7 @@ export interface TimelineManager {
     startHandleTimeBound: TimeBound
     endHandleTimeBound: TimeBound
     areHandlesOnSameTimeBeforeAnimation?: boolean
+    isSingleTimeSelectionActive?: boolean
     msPerTick?: number
     onPlay?: () => void
     onTimelineClick?: () => void
@@ -56,12 +57,16 @@ export class TimelineController {
         return R.last(this.timesAsc)!
     }
 
+    calculateProgress(time: Time): number {
+        return (time - this.minTime) / (this.maxTime - this.minTime)
+    }
+
     get startTimeProgress(): number {
-        return (this.startTime - this.minTime) / (this.maxTime - this.minTime)
+        return this.calculateProgress(this.startTime)
     }
 
     get endTimeProgress(): number {
-        return (this.endTime - this.minTime) / (this.maxTime - this.minTime)
+        return this.calculateProgress(this.endTime)
     }
 
     getNextTime(time: number): number {
