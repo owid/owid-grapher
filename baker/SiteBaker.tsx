@@ -995,14 +995,62 @@ export class SiteBaker {
     private async bakeBlogIndex(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("blogIndex")) return
         this.progressBar.tick({ name: "Baking blog index" })
+
+        // TEMPORARY: Profiling instrumentation
+        const timings: Record<string, { count: number; total: number }> = {}
+        const track = (name: string, duration: number) => {
+            if (!timings[name]) timings[name] = { count: 0, total: 0 }
+            timings[name].count++
+            timings[name].total += duration
+        }
+        const printTimings = () => {
+            console.log("\n⏱️  Blog Index timing breakdown:")
+            Object.entries(timings)
+                .sort((a, b) => b[1].total - a[1].total)
+                .forEach(([name, { count, total }]) => {
+                    console.log(
+                        `   ${name}: ${total}ms (${count} calls, ${(total / count).toFixed(1)}ms avg)`
+                    )
+                })
+        }
+
+        const overallStart = Date.now()
+
+        let start = Date.now()
         const allPosts = await getBlogIndex(knex)
+        track("getBlogIndex", Date.now() - start)
+
+        // TEMPORARY: Print loadState timings accumulated during getBlogIndex
+        const loadStateTimings = (global as any).__gdocLoadStateTiming
+        if (loadStateTimings) {
+            console.log("\n⏱️  loadState timing breakdown (across all 399 posts):")
+            Object.entries(loadStateTimings as Record<string, { count: number; total: number }>)
+                .sort((a, b) => (b[1] as any).total - (a[1] as any).total)
+                .forEach(([name, { count, total }]) => {
+                    console.log(
+                        `   ${name}: ${total}ms (${count} calls, ${(total / count).toFixed(1)}ms avg)`
+                    )
+                })
+        }
+
         const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
+        console.log(`\n📄 Baking ${numPages} blog index pages (${allPosts.length} posts)...`)
 
         for (let i = 1; i <= numPages; i++) {
             const slug = i === 1 ? "latest" : `latest/page/${i}`
+
+            start = Date.now()
             const html = await renderBlogByPageNum(i, knex)
+            track("renderBlogByPageNum", Date.now() - start)
+
+            start = Date.now()
             await this.stageWrite(`${this.bakedSiteDir}/${slug}.html`, html)
+            track("stageWrite", Date.now() - start)
         }
+
+        const overallTime = Date.now() - overallStart
+        console.log(`\n✅ Total bakeBlogIndex time: ${overallTime}ms`)
+        printTimings()
     }
 
     // Bake the RSS feed
