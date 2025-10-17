@@ -13,8 +13,9 @@
         margin-bottom: 4px;
         color: $blue-90;
     }
-    p {
+    .latest-page__header-subtitle {
         margin: 0;
+        line-height: 1.3125rem;
         color: $blue-60;
     }
     @include sm-only {
@@ -23,9 +24,6 @@
         background-color: $gray-5;
         h1 {
             font-size: 2rem;
-        }
-        p {
-            font-size: 1rem;
         }
     }
 }
@@ -50,15 +48,71 @@
     margin-bottom: 16px;
 }
 
-.latest-page .newsletter-with-socials {
+.latest-page__newsletter-signup {
+    background-color: $blue-10;
+    padding: 24px;
+    margin-bottom: 24px;
+    grid-row: 2 / span 3;
+    align-self: start;
     @include md-down {
-        display: none;
+        grid-row: unset;
     }
-}
 
-.latest-page .newsletter-with-socials__social-cta {
-    @include md-down {
-        display: none;
+    .newsletter-subscription-header {
+        .newsletter-subscription-header__icon {
+            height: 48px;
+            width: 48px;
+            @include md-down {
+                display: none;
+            }
+        }
+        .newsletter-subscription-header__heading {
+            flex: 0 0 100%;
+        }
+    }
+
+    .newsletter-subscription-form__icon {
+        @include md-down {
+            display: none;
+        }
+    }
+
+    .newsletter-subscription-form {
+        @include lg-up {
+            padding-bottom: 16px;
+            border-bottom: 1px solid $blue-20;
+        }
+    }
+
+    .newsletter-subscription-form__email-submit {
+        flex-wrap: wrap;
+        gap: 8px;
+        @include md-down {
+            flex-wrap: nowrap;
+            .newsletter-subscription-form__submit {
+                flex: 0 1 min-content;
+                padding: 9.5px 48px;
+            }
+        }
+    }
+
+    .newsletter-subscription-form__email {
+        margin: 0;
+    }
+
+    .newsletter-subscription-form__submit {
+        flex: 1 1 100%;
+        height: 40px;
+    }
+
+    .newsletter-subscription-form__privacy-notice {
+        @include body-3-regular;
+    }
+
+    .owid-socials {
+        @include md-down {
+            display: none;
+        }
     }
 }
 
@@ -78,9 +132,11 @@
     background-color: $blue-20;
     color: $blue-90;
     padding: 16px;
+    display: flex;
+    gap: 16px;
     &:hover {
         background-color: $accent-pale-blue;
-        .latest-page__data-insight-blocks:before {
+        .latest-page__data-insight-content:before {
             background: linear-gradient(
                 180deg,
                 rgba(231, 242, 255, 0) 50%,
@@ -88,9 +144,15 @@
             );
         }
     }
+    @include sm-only {
+        flex-direction: column;
+        gap: 0;
+    }
 }
 
 .latest-page__data-insight-image {
+    // Magic number from Figma
+    flex: 0 0 214px;
     @include sm-only {
         margin-bottom: 16px;
         picture {
@@ -99,11 +161,10 @@
     }
 }
 
-.latest-page__data-insight-blocks {
-    max-height: 120px;
-    position: relative;
+.latest-page__data-insight-content {
+    max-height: 214px;
     overflow: hidden;
-
+    position: relative;
     &:before {
         content: "";
         width: 100%;
@@ -117,9 +178,25 @@
             $blue-20 100%
         );
     }
+}
 
+.latest-page__data-insight-title {
+    line-height: 1.5rem;
+}
+
+.latest-page__data-insight-blocks {
+    // Don't show these large, bright red buttons when they don't do anything
+    // in this context
+    .article-block__cta {
+        display: none;
+    }
     @include text-block-override {
         @include note-12-medium;
+    }
+    @include sm-only {
+        @include text-block-override {
+            @include body-3-medium;
+        }
     }
 }
 
@@ -135,38 +212,50 @@
     background-color: $blue-10;
     padding: 16px;
     color: $blue-90;
+    display: flex;
+    gap: 16px;
     &:hover {
         h2 {
             text-decoration: underline;
         }
     }
-    h2 {
-        @include h3-bold;
-        margin: 0;
+}
+
+.latest-page__article-image {
+    flex: 0 0 85px;
+    align-self: start;
+    @include sm-only {
+        flex-basis: 69px;
+    }
+}
+
+.latest-page__article-title {
+    @include h3-bold;
+    margin-top: 0;
+    margin-bottom: 4px;
+    @include sm-only {
+        @include h4-semibold;
+        margin-top: 0;
         margin-bottom: 4px;
     }
-    p {
-        @include body-3-medium;
-        margin: 0;
-    }
+}
+.latest-page__article-excerpt {
+    @include body-3-medium;
+    margin-top: 0;
+    margin-bottom: 4px;
     @include sm-only {
-        h2 {
-            @include h4-semibold;
-            margin: 0;
-            margin-bottom: 4px;
-        }
-        p {
-            @include note-12-medium;
-            margin: 0;
-        }
+        @include note-12-medium;
     }
 }
 
 .latest-page__article-authors {
+    @include body-3-medium-italic;
     color: $blue-50;
-    font-style: italic;
-    font-size: 0.875rem;
-    font-family: $sans-serif-font-stack;
+    margin: 0;
+    @include sm-only {
+        @include note-12-medium;
+        font-style: italic;
+    }
 }
 
 /* Announcement */

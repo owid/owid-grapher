@@ -1,12 +1,12 @@
 import { faRss } from "@fortawesome/free-solid-svg-icons"
 import {
     faXTwitter,
-    faFacebookSquare,
     faInstagram,
     faThreads,
     faLinkedin,
-    faSquareBluesky,
-    faGithubSquare,
+    faGithub,
+    faBluesky,
+    faFacebook,
 } from "@fortawesome/free-brands-svg-icons"
 import { SubNavId } from "@ourworldindata/types"
 
@@ -62,7 +62,7 @@ export const SOCIALS = [
     {
         title: "Facebook",
         url: "https://facebook.com/ourworldindata",
-        icon: faFacebookSquare,
+        icon: faFacebook,
     },
     {
         title: "LinkedIn",
@@ -72,12 +72,12 @@ export const SOCIALS = [
     {
         title: "Bluesky",
         url: "https://bsky.app/profile/ourworldindata.org",
-        icon: faSquareBluesky,
+        icon: faBluesky,
     },
     {
         title: "GitHub",
         url: "https://github.com/owid",
-        icon: faGithubSquare,
+        icon: faGithub,
     },
 ]
 

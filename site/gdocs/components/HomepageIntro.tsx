@@ -11,12 +11,16 @@ import { DocumentContext } from "../DocumentContext.js"
 import Image, { ImageParentContainer } from "./Image.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
 import { sortBy, take, prop } from "remeda"
-import { NewsletterWithSocials } from "../../NewsletterSubscription.js"
+import {
+    NewsletterSubscriptionForm,
+    NewsletterSubscriptionHeader,
+} from "../../NewsletterSubscription.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { Button } from "@ourworldindata/components"
 import { AnnouncementsIcon } from "./AnnouncementsIcon.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faHeart } from "@fortawesome/free-solid-svg-icons"
+import { OwidSocials } from "../../OwidSocials.js"
 
 type FeaturedWorkTileProps = EnrichedBlockHomepageIntroPost & {
     isTertiary?: boolean
@@ -167,7 +171,7 @@ function HomepageAnnouncements() {
     const announcements = prop(homepageMetadata, "announcements")
     if (!announcements || announcements.length === 0) return null
     return (
-        <div className="homepage-intro__announcements span-cols-3 col-start-8 span-md-cols-14 col-md-start-1">
+        <div className="homepage-intro__announcements span-cols-1 span-md-cols-2">
             <div className="homepage-intro__announcements-header">
                 <AnnouncementsIcon />
                 <h4 className="h2-bold">Updates and Announcements</h4>
@@ -182,6 +186,7 @@ function HomepageAnnouncements() {
                 ))}
             </ul>
             <Button
+                className="homepage-intro__latest-button"
                 href="/latest"
                 text="See all updates"
                 theme="outline-vermillion"
@@ -201,11 +206,14 @@ function DonationCta() {
         <div className="homepage-intro__donation-cta">
             <FontAwesomeIcon icon={faHeart} />
             <div>
-                <p className="body-3-bold">
+                <p className="homepage-intro__donation-message note-12-medium">
                     We are a non-profit — all our work is free to use and open
                     source.
                 </p>
-                <a href="/donate" className="body-3-bold">
+                <a
+                    href="/donate"
+                    className="homepage-intro__donation-link body-3-bold"
+                >
                     Donate to support us
                 </a>
             </div>
@@ -247,10 +255,16 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                     <FeaturedWorkTile id={"fw4"} isTertiary {...w4} />
                 </div>
             </div>
-            <HomepageAnnouncements />
-            <div className="span-cols-3 col-start-11 span-md-cols-14 col-md-start-1">
-                <NewsletterWithSocials className="homepage-intro__newsletter-signup" />
-                <DonationCta />
+            <div className="grid grid-cols-2 span-cols-6 span-md-cols-14 col-md-start-1">
+                <HomepageAnnouncements />
+                <div className="span-cols-1 span-md-cols-2">
+                    <div className="homepage-intro__newsletter-signup">
+                        <NewsletterSubscriptionHeader />
+                        <NewsletterSubscriptionForm />
+                        <OwidSocials />
+                    </div>
+                    <DonationCta />
+                </div>
             </div>
         </section>
     )

@@ -20,8 +20,12 @@ import Image from "./gdocs/components/Image.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import DataInsightDateline from "./gdocs/components/DataInsightDateline.js"
 import cx from "classnames"
-import { NewsletterWithSocials } from "./NewsletterSubscription.js"
+import {
+    NewsletterSubscriptionForm,
+    NewsletterSubscriptionHeader,
+} from "./NewsletterSubscription.js"
 import { Pagination } from "./Pagination.js"
+import { OwidSocials } from "./OwidSocials.js"
 
 const COMMON_CLASSES =
     "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1"
@@ -50,18 +54,20 @@ const LatestPageDataInsight = (props: { data: LatestDataInsight }) => {
             <a
                 href={href}
                 aria-label={props.data.content.title}
-                className="latest-page__data-insight-link grid grid-cols-6 span-cols-6"
+                className="latest-page__data-insight-link span-cols-6"
             >
                 {firstImage && (
                     <Image
-                        className="latest-page__data-insight-image span-cols-2 span-sm-cols-6"
+                        className="latest-page__data-insight-image"
                         filename={firstImage.filename}
                         containerType="span-5"
                         shouldLightbox={false}
                     />
                 )}
-                <div className="span-cols-4 col-start-3 span-sm-cols-6 col-sm-start-1">
-                    <h2 className="body-1-bold">{props.data.content.title}</h2>
+                <div className="latest-page__data-insight-content">
+                    <h2 className="latest-page__data-insight-title body-1-bold">
+                        {props.data.content.title}
+                    </h2>
                     <div className="latest-page__data-insight-blocks">
                         <ArticleBlocks
                             blocks={otherBlocks}
@@ -92,18 +98,22 @@ const LatestPageArticle = (props: { data: OwidGdocMinimalPostInterface }) => {
             <a
                 href={href}
                 aria-label={props.data.title}
-                className="latest-page__article-link grid grid-cols-6 span-cols-6"
+                className="latest-page__article-link span-cols-6"
             >
                 {featuredImage && (
                     <Image
                         filename={featuredImage}
-                        className="span-cols-1"
+                        className="latest-page__article-image"
                         shouldLightbox={false}
                     />
                 )}
-                <div className="span-cols-5 col-start-2">
-                    <h2>{props.data.title}</h2>
-                    <p>{props.data.excerpt}</p>
+                <div className="latest-page__article-content">
+                    <h2 className="latest-page__article-title">
+                        {props.data.title}
+                    </h2>
+                    <p className="latest-page__article-excerpt">
+                        {props.data.excerpt}
+                    </p>
                     <p className="latest-page__article-authors">
                         {formatAuthors(props.data.authors)}
                     </p>
@@ -179,18 +189,21 @@ export const LatestPage = (props: {
                     }}
                 >
                     <main className="latest-page grid grid-cols-12-full-width grid-md-cols-12">
-                        <header className="latest-page-header span-cols-14 span-md-cols-12 grid grid-cols-12-full-width grid-md-cols-12">
-                            <h1 className="display-2-semibold span-cols-6 col-start-5 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                        <header className="latest-page-header span-cols-14 grid grid-cols-12-full-width">
+                            <h1 className="display-2-semibold span-cols-6 col-start-5 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                                 Latest
                             </h1>
-                            <p className="body-1-regular span-cols-6 col-start-5 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-12">
+                            <p className="latest-page__header-subtitle body-1-regular span-cols-6 col-start-5 col-md-start-3 span-md-cols-10 col-sm-start-2 span-sm-cols-12">
                                 Our latest articles, data updates, and
                                 announcements
                             </p>
                         </header>
-
                         {posts.slice(0, 2).map(renderLatestPageItem)}
-                        <NewsletterWithSocials className="latest-page__newsletter-signup col-start-11 span-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-14" />
+                        <div className="latest-page__newsletter-signup col-start-11 span-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-14">
+                            <NewsletterSubscriptionHeader />
+                            <NewsletterSubscriptionForm />
+                            <OwidSocials />
+                        </div>
                         {posts.slice(2).map(renderLatestPageItem)}
                         <Pagination
                             pageNumber={pageNum}
