@@ -70,11 +70,19 @@ export const getNarrativeChartNameConfigMap = async (
     return Object.fromEntries(rows.map((row) => [row.name, row.chartConfigId]))
 }
 
+// TEMPORARY: Memoization for getAllNarrativeChartNames
+let _narrativeChartNamesCache: Set<string> | null = null
+
 export const getAllNarrativeChartNames = async (
     knex: db.KnexReadonlyTransaction
 ): Promise<Set<string>> => {
+    if (_narrativeChartNamesCache) return _narrativeChartNamesCache
+
     const rows = await knex<DbPlainNarrativeChart>(
         NarrativeChartsTableName
     ).select("name")
-    return new Set(rows.map((row) => row.name))
+
+    const result = new Set(rows.map((row) => row.name))
+    _narrativeChartNamesCache = result
+    return result
 }
