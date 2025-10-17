@@ -24,7 +24,7 @@ import {
     Tippy,
     CreateTombstoneData,
 } from "@ourworldindata/utils"
-import { Button, Col, Drawer, Row, Space, Tag, Typography } from "antd"
+import { Button, Col, Drawer, Row, Space, Switch, Tag, Typography } from "antd"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import {
     faGear,
@@ -83,19 +83,25 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const store = useGdocsStore()
 
     const [isMobilePreviewActive, setIsMobilePreviewActive] = useState(false)
+    const [acceptSuggestions, setAcceptSuggestions] = useState(false)
 
     const iframeRef = useRef<HTMLIFrameElement>(null)
 
     const fetchGdoc = useCallback(
-        (contentSource: GdocsContentSource) =>
-            admin
+        (contentSource: GdocsContentSource, accept = false) => {
+            const params = new URLSearchParams({
+                contentSource,
+            })
+            if (accept) params.set("acceptSuggestions", "true")
+            return admin
                 .requestJSON<OwidGdocJSON>(
-                    `/api/gdocs/${id}?contentSource=${contentSource}`,
+                    `/api/gdocs/${id}?${params.toString()}`,
                     {},
                     "GET",
                     { onFailure: "continue" }
                 )
-                .then(getOwidGdocFromJSON),
+                .then(getOwidGdocFromJSON)
+        },
         [id, admin]
     )
 
@@ -106,27 +112,49 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         }
     }, [])
 
+    useEffect(() => {
+        setAcceptSuggestions(false)
+        setGdoc((prev) =>
+            prev.original === undefined && prev.current === undefined
+                ? prev
+                : { original: undefined, current: undefined }
+        )
+    }, [id])
+
     // initialise
     useEffect(() => {
-        async function fetchGdocs() {
+        let isMounted = true
+        async function fetchLatestGdoc() {
             try {
-                const [original, current] = await Promise.all([
-                    fetchGdoc(GdocsContentSource.Internal),
-                    fetchGdoc(GdocsContentSource.Gdocs),
-                ])
+                admin.loadingIndicatorSetting = "loading"
+                let original = originalGdoc
+                if (!original) {
+                    original = await fetchGdoc(GdocsContentSource.Internal)
+                }
+                const current = await fetchGdoc(
+                    GdocsContentSource.Gdocs,
+                    acceptSuggestions
+                )
+                if (!isMounted || !original || !current) return
                 if (!current.slug && current.content.title) {
                     current.slug = slugify(current.content.title)
                 }
-                admin.loadingIndicatorSetting = "off"
                 setGdoc({ original, current })
             } catch (error) {
-                handleError(error)
+                if (isMounted) {
+                    handleError(error)
+                }
+            } finally {
+                if (isMounted) {
+                    admin.loadingIndicatorSetting = "off"
+                }
             }
         }
-        if (!originalGdoc) {
-            void fetchGdocs()
+        void fetchLatestGdoc()
+        return () => {
+            isMounted = false
         }
-    }, [originalGdoc, fetchGdoc, handleError, admin])
+    }, [admin, acceptSuggestions, fetchGdoc, handleError, originalGdoc])
 
     const isLightningUpdate = useLightningUpdate(
         originalGdoc,
@@ -187,6 +215,10 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         setIsMobilePreviewActive(
             (isMobilePreviewActive) => !isMobilePreviewActive
         )
+
+    const onToggleAcceptSuggestions = (checked: boolean) => {
+        setAcceptSuggestions(checked)
+    }
 
     const onSettingsClose = () => {
         setSettingsOpen(false)
@@ -300,6 +332,31 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 doPublish={doPublish}
                                 saveDraft={saveDraft}
                             />
+                            <Space>
+                                <Switch
+                                    checked={acceptSuggestions}
+                                    onChange={onToggleAcceptSuggestions}
+                                    id="preview-suggestions"
+                                />
+                                <Tippy
+                                    content={
+                                        acceptSuggestions
+                                            ? "Previewing with suggested edits accepted"
+                                            : "Previewing without suggested edits"
+                                    }
+                                    placement="bottom"
+                                >
+                                    <label
+                                        htmlFor="preview-suggestions"
+                                        style={{
+                                            marginBottom: 0,
+                                            cursor: "pointer",
+                                        }}
+                                    >
+                                        Preview suggestions
+                                    </label>
+                                </Tippy>
+                            </Space>
                             <IconBadge
                                 status={
                                     hasErrors
@@ -465,14 +522,14 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     */}
                     <iframe
                         ref={iframeRef}
-                        src={`/gdocs/${currentGdoc.id}/preview#owid-document-root`}
+                        src={`/gdocs/${currentGdoc.id}/preview${acceptSuggestions ? "?acceptSuggestions=true" : ""}#owid-document-root`}
                         style={{
                             width: "100%",
                             border: "none",
                             maxWidth: isMobilePreviewActive ? 375 : undefined,
                         }}
                         // use `updatedAt` as a proxy for when database-level settings such as breadcrumbs have changed
-                        key={`${currentGdoc.revisionId}-${originalGdoc?.updatedAt}`}
+                        key={`${currentGdoc.revisionId}-${originalGdoc?.updatedAt}-${acceptSuggestions}`}
                     />
                 </div>
 
