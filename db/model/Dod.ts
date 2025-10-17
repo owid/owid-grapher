@@ -12,11 +12,7 @@ import {
     DodUsageRecord,
 } from "@ourworldindata/types"
 import { extractDetailsFromSyntax } from "@ourworldindata/utils"
-import {
-    KnexReadonlyTransaction,
-    knexRaw,
-    cachedInTransaction,
-} from "../db.js"
+import { KnexReadonlyTransaction, knexRaw, cachedInTransaction } from "../db.js"
 
 export async function getDods(
     knex: KnexReadonlyTransaction
