@@ -271,6 +271,7 @@ export const synonyms = [
         "self driving",
         "robotaxis",
     ],
+    ["gaza", "palestine", "west bank"],
 ]
 
 /**

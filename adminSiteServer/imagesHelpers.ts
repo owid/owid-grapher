@@ -123,7 +123,11 @@ export async function fetchGptGeneratedAltText(url: string) {
                 content: `Generate alt text for this image, describing it for a vision impaired person using a screen reader.
 Do not say "alt text:".
 Do not say "The image...".
+Do not mention colors unless they are important.
 Do not use markdown in the text.
+If the image has a title, mention it first.
+When describing a number range, write "X to Y" not "X-Y".
+If the image is a data visualization, be brief in your description. Communicate the type of chart, but focus on delivering the key insight (which is often in the title or annotations)
 If the image is a data visualization and there are data sources in the footer, describe them exhaustively.`,
             },
             {

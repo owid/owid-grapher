@@ -658,7 +658,11 @@ function ArticleBlockInternal({
         })
         .with({ type: "cta" }, (block) => {
             return (
-                <Cta {...block} className={getLayout("cta", containerType)} />
+                <Cta
+                    {...block}
+                    className={getLayout("cta", containerType)}
+                    shouldRenderLinks={shouldRenderLinks}
+                />
             )
         })
         .with({ type: "key-insights" }, (block) => (
