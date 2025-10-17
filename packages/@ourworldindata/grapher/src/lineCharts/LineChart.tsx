@@ -178,7 +178,7 @@ export class LineChart
 
         // be sure all lines are un-dimmed if the cursor is above the graph itself
         if (this.dualAxis.innerBounds.contains(mouse)) {
-            this.lineLegendHoveredSeriesName = undefined
+            this.clearLineLegendHover()
         }
 
         this.tooltipState.target = hoverX === undefined ? null : { x: hoverX }
@@ -441,11 +441,17 @@ export class LineChart
         this.lineLegendHoveredSeriesName = seriesName
     }
 
+    @action.bound private clearLineLegendHover(): void {
+        this.lineLegendHoveredSeriesName = undefined
+    }
+
     @action.bound private clearHighlightedSeries(): void {
         clearTimeout(this.hoverTimer)
+
+        // Wait before clearing selection in case the mouse is moving
+        // quickly over neighboring labels
         this.hoverTimer = window.setTimeout(() => {
-            // wait before clearing selection in case the mouse is moving quickly over neighboring labels
-            this.lineLegendHoveredSeriesName = undefined
+            this.clearLineLegendHover()
         }, 200)
     }
 
