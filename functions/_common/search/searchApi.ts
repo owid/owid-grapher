@@ -1,4 +1,8 @@
-import { SearchIndexName, FilterType, Filter } from "../../../site/search/searchTypes.js"
+import {
+    SearchIndexName,
+    FilterType,
+    Filter,
+} from "../../../site/search/searchTypes.js"
 import { getIndexName, AlgoliaConfig } from "./algoliaClient.js"
 import type { SearchChartHit } from "../../../site/search/searchTypes.js"
 
@@ -127,12 +131,8 @@ export async function searchCharts(
 
     // Clean up the hits and add URL
     const cleanedHits = result.hits.map((hit) => {
-        const {
-            _highlightResult,
-            _snippetResult,
-            objectID,
-            ...cleanHit
-        } = hit as any
+        const { _highlightResult, _snippetResult, objectID, ...cleanHit } =
+            hit as any
 
         // Construct URL based on type
         let url: string
