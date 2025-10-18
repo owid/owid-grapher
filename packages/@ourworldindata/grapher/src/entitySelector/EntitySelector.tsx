@@ -8,6 +8,7 @@ import {
     when,
     IReactionDisposer,
     makeObservable,
+    runInAction,
 } from "mobx"
 import cx from "classnames"
 import a from "indefinite"
@@ -314,10 +315,12 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
             correctedState.sortConfig = correctedSortConfig
         }
 
-        this.manager.entitySelectorState = {
-            ...this.manager.entitySelectorState,
-            ...correctedState,
-        }
+        runInAction(() => {
+            this.manager.entitySelectorState = {
+                ...this.manager.entitySelectorState,
+                ...correctedState,
+            }
+        })
     }
 
     getDefaultSortConfig(): SortConfig {

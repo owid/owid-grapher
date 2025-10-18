@@ -39,6 +39,7 @@ import { isPointPlacedOnVisibleHemisphere } from "./MapHelpers"
 import { ckmeans } from "simple-statistics"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
 import { center } from "@turf/center"
+import { action } from "mobx"
 
 const geoFeaturesById = new Map<string, GlobeRenderFeature>(
     getGeoFeaturesForGlobe().map((f: GlobeRenderFeature) => [f.id, f])
@@ -67,23 +68,23 @@ export class GlobeController {
         return this.manager.mapConfig.globe
     }
 
-    showGlobe(): void {
+    @action.bound showGlobe(): void {
         this.globeConfig.isActive = true
     }
 
-    hideGlobe(): void {
+    @action.bound hideGlobe(): void {
         this.globeConfig.isActive = false
         this.resetGlobe()
     }
 
-    toggleGlobe(): void {
+    @action.bound toggleGlobe(): void {
         this.globeConfig.isActive = !this.globeConfig.isActive
 
         // reset globe if it's being hidden
         if (!this.globeConfig.isActive) this.resetGlobe()
     }
 
-    private resetGlobe(): void {
+    @action.bound private resetGlobe(): void {
         this.globeConfig.rotation = DEFAULT_GLOBE_ROTATION
         this.globeConfig.zoom = 1
         this.globeConfig.focusCountry = undefined
@@ -92,11 +93,11 @@ export class GlobeController {
         this.manager.mapConfig.region = MapRegionName.World
     }
 
-    private setFocusCountry(country: EntityName): void {
+    @action.bound private setFocusCountry(country: EntityName): void {
         this.globeConfig.focusCountry = country
     }
 
-    dismissCountryFocus(): void {
+    @action.bound dismissCountryFocus(): void {
         this.globeConfig.focusCountry = undefined
     }
 
@@ -105,7 +106,7 @@ export class GlobeController {
         this.setFocusCountry(country)
     }
 
-    private jumpTo(target: Partial<Target>): void {
+    @action.bound private jumpTo(target: Partial<Target>): void {
         if (target.coords) this.globeConfig.rotation = target.coords
         if (target.zoom) this.globeConfig.zoom = target.zoom
     }
@@ -192,7 +193,7 @@ export class GlobeController {
 
         const animPromise = new Promise<void>((resolve, reject) => {
             const now = Date.now()
-            const step = (): void => {
+            const step = action((): void => {
                 const elapsed = Date.now() - now
                 const t = Math.min(1, elapsed / ANIMATION_DURATION)
 
@@ -214,7 +215,7 @@ export class GlobeController {
                 } else {
                     resolve()
                 }
-            }
+            })
             requestAnimationFrame(step)
         })
 
@@ -222,11 +223,14 @@ export class GlobeController {
             .catch(() => {
                 // ignore
             })
-            .then(() => {
-                // ensure we end exactly at the target values
-                this.globeConfig.rotation = targetCoords
-                if (targetZoom !== undefined) this.globeConfig.zoom = targetZoom
-            })
+            .then(
+                action(() => {
+                    // ensure we end exactly at the target values
+                    this.globeConfig.rotation = targetCoords
+                    if (targetZoom !== undefined)
+                        this.globeConfig.zoom = targetZoom
+                })
+            )
     }
 }
 

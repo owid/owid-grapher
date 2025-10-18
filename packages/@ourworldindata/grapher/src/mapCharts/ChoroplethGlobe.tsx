@@ -388,31 +388,35 @@ export class ChoroplethGlobe extends React.Component<{
     private rotateFrameId: number | undefined
     @action.bound private rotateGlobe(targetCoords: [number, number]): void {
         if (this.rotateFrameId) cancelAnimationFrame(this.rotateFrameId)
-        this.rotateFrameId = requestAnimationFrame(() => {
-            this.mapConfig.globe.rotation = [
-                -targetCoords[0],
-                // Clamping the latitude to [-90, 90] would allow rotation up to the poles.
-                // However, the panning strategy used doesn't work well around the poles.
-                // That's why we clamp the latitude to a narrower range.
-                -R.clamp(targetCoords[1], {
-                    min: GLOBE_LATITUDE_MIN,
-                    max: GLOBE_LATITUDE_MAX,
-                }),
-            ]
-        })
+        this.rotateFrameId = requestAnimationFrame(
+            action(() => {
+                this.mapConfig.globe.rotation = [
+                    -targetCoords[0],
+                    // Clamping the latitude to [-90, 90] would allow rotation up to the poles.
+                    // However, the panning strategy used doesn't work well around the poles.
+                    // That's why we clamp the latitude to a narrower range.
+                    -R.clamp(targetCoords[1], {
+                        min: GLOBE_LATITUDE_MIN,
+                        max: GLOBE_LATITUDE_MAX,
+                    }),
+                ]
+            })
+        )
     }
 
     private zoomFrameId: number | undefined
     @action.bound private zoomGlobe(delta: number): void {
         if (this.zoomFrameId) cancelAnimationFrame(this.zoomFrameId)
-        this.zoomFrameId = requestAnimationFrame(() => {
-            const sensitivity = 0.01
-            const newZoom = this.zoomScale * (1 + delta * sensitivity)
-            this.mapConfig.globe.zoom = R.clamp(newZoom, {
-                min: GLOBE_MIN_ZOOM,
-                max: GLOBE_MAX_ZOOM,
+        this.zoomFrameId = requestAnimationFrame(
+            action(() => {
+                const sensitivity = 0.01
+                const newZoom = this.zoomScale * (1 + delta * sensitivity)
+                this.mapConfig.globe.zoom = R.clamp(newZoom, {
+                    min: GLOBE_MIN_ZOOM,
+                    max: GLOBE_MAX_ZOOM,
+                })
             })
-        })
+        )
     }
 
     @computed private get hoverFeature(): GlobeRenderFeature | undefined {
@@ -559,7 +563,7 @@ export class ChoroplethGlobe extends React.Component<{
                 previousType = type
             }
 
-            const panningOrZooming = (event: any): void => {
+            const panningOrZooming = action((event: any): void => {
                 this.isPanningOrZooming = true
 
                 this.clearHover() // dismiss the tooltip
@@ -649,7 +653,7 @@ export class ChoroplethGlobe extends React.Component<{
                 else if (type === "pan") panning()
 
                 previousType = type
-            }
+            })
 
             const panningOrZoomingEnd = (): void => {
                 this.isPanningOrZooming = false
