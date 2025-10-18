@@ -22,6 +22,8 @@ import {
     parseRawBlocksToEnrichedBlocks,
     parseSimpleText,
 } from "./model/Gdoc/rawToEnriched.js"
+import { gdocToArchie } from "./model/Gdoc/gdocToArchie.js"
+import { docs_v1 } from "@googleapis/docs"
 
 function getArchieMLDocWithContent(content: string): string {
     return `title: Writing OWID Articles With Google Docs
@@ -260,6 +262,54 @@ level: 2
         }
 
         expect(article?.body?.[0]).toEqual(expectedEnrichedBlock)
+    })
+
+    it("keeps subscripts inside a single link span", async () => {
+        const url = "http://ourworldindata.org/grapher/life-expectancy"
+        const doc: docs_v1.Schema$Document = {
+            body: {
+                content: [
+                    {
+                        paragraph: {
+                            elements: [
+                                {
+                                    textRun: {
+                                        content: "CO",
+                                        textStyle: {
+                                            link: { url },
+                                        },
+                                    },
+                                },
+                                {
+                                    textRun: {
+                                        content: "2",
+                                        textStyle: {
+                                            link: { url },
+                                            baselineOffset: "SUBSCRIPT",
+                                        },
+                                    },
+                                },
+                                {
+                                    textRun: {
+                                        content: " Emissions Data Explorer",
+                                        textStyle: {
+                                            link: { url },
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                ],
+            },
+        }
+
+        const { text } = await gdocToArchie(doc)
+        expect(text).toContain(
+            `<a href="${url}">CO<sub>2</sub> Emissions Data Explorer</a>`
+        )
+        const matches = text.match(new RegExp(`<a href="${url}"`, "g")) ?? []
+        expect(matches.length).toBe(1)
     })
 
     it.each(Object.values(enrichedBlockExamples))(
