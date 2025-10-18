@@ -671,6 +671,7 @@ export function getDbEnrichedGdocFromOwidGdoc(
     const enrichedGdoc = {
         manualBreadcrumbs: gdoc.manualBreadcrumbs,
         content: gdoc.content,
+        contentMd5: gdoc.contentMd5,
         createdAt: gdoc.createdAt,
         id: gdoc.id,
         markdown: gdoc.markdown,
@@ -686,7 +687,14 @@ export function getDbEnrichedGdocFromOwidGdoc(
 export async function upsertGdoc(
     knex: KnexReadWriteTransaction,
     gdoc: OwidGdoc | GdocBase
-): Promise<DbEnrichedPostGdoc> {
+): Promise<
+    | GdocPost
+    | GdocDataInsight
+    | GdocHomepage
+    | GdocAbout
+    | GdocAuthor
+    | GdocAnnouncement
+> {
     let sql = undefined
     try {
         const enrichedGdoc = getDbEnrichedGdocFromOwidGdoc(gdoc)
