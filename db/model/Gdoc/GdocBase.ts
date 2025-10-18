@@ -242,11 +242,20 @@ export class GdocBase implements OwidGdocBaseInterface {
         return [...details]
     }
 
-    async loadLinkedAuthors(knex: db.KnexReadonlyTransaction): Promise<void> {
-        this.linkedAuthors = await getMinimalAuthorsByNames(
-            knex,
-            this.content.authors
-        )
+    async loadLinkedAuthors(
+        knex: db.KnexReadonlyTransaction,
+        prefetchedAuthors?: LinkedAuthor[]
+    ): Promise<void> {
+        if (prefetchedAuthors) {
+            this.linkedAuthors = prefetchedAuthors.filter((author) =>
+                this.content.authors.includes(author.name)
+            )
+        } else {
+            this.linkedAuthors = await getMinimalAuthorsByNames(
+                knex,
+                this.content.authors
+            )
+        }
     }
 
     get links(): DbInsertPostGdocLink[] {
@@ -741,8 +750,11 @@ export class GdocBase implements OwidGdocBaseInterface {
         }
     }
 
-    async loadLinkedCharts(knex: db.KnexReadonlyTransaction): Promise<void> {
-        const slugToIdMap = await mapSlugsToIds(knex)
+    async loadLinkedCharts(
+        knex: db.KnexReadonlyTransaction,
+        prefetchedSlugToIdMap?: Record<string, number>
+    ): Promise<void> {
+        const slugToIdMap = prefetchedSlugToIdMap ?? (await mapSlugsToIds(knex))
 
         const [archivedChartVersions, archivedMultiDimVersions] =
             await Promise.all([
@@ -893,7 +905,10 @@ export class GdocBase implements OwidGdocBaseInterface {
         this.content = archieToEnriched(text, this._enrichSubclassContent)
     }
 
-    async validate(knex: db.KnexReadonlyTransaction): Promise<void> {
+    async validate(
+        knex: db.KnexReadonlyTransaction,
+        prefetchedSlugToIdMap?: Record<string, number>
+    ): Promise<void> {
         const whitespaceErrors: OwidGdocErrorMessage[] = []
         const documentContainsInvalidWhitespace = this.content
             ? // match on actual whitespace or the literal string '\u000b'
@@ -952,7 +967,9 @@ export class GdocBase implements OwidGdocBaseInterface {
             narrativeChartNames,
             dods,
         ] = await Promise.all([
-            mapSlugsToIds(knex),
+            prefetchedSlugToIdMap
+                ? Promise.resolve(prefetchedSlugToIdMap)
+                : mapSlugsToIds(knex),
             db.getPublishedExplorersBySlug(knex),
             getAllNarrativeChartNames(knex),
             getDods(knex).then((dods) => indexBy(dods, (dod) => dod.name)),
@@ -1093,15 +1110,21 @@ export class GdocBase implements OwidGdocBaseInterface {
         ]
     }
 
-    async loadState(knex: db.KnexReadonlyTransaction): Promise<void> {
-        await this.loadLinkedAuthors(knex)
+    async loadState(
+        knex: db.KnexReadonlyTransaction,
+        prefetched?: {
+            slugToIdMap?: Record<string, number>
+            authors?: LinkedAuthor[]
+        }
+    ): Promise<void> {
+        await this.loadLinkedAuthors(knex, prefetched?.authors)
         await this.loadLinkedDocuments(knex)
         await this.loadImageMetadataFromDB(knex)
-        await this.loadLinkedCharts(knex)
+        await this.loadLinkedCharts(knex, prefetched?.slugToIdMap)
         await this.loadLinkedIndicators(knex) // depends on linked charts
         await this.loadNarrativeChartsInfo(knex)
         await this._loadSubclassAttachments(knex)
-        await this.validate(knex)
+        await this.validate(knex, prefetched?.slugToIdMap)
     }
 
     toJSON(): OwidGdoc {
