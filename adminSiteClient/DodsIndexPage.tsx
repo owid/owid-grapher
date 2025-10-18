@@ -1,6 +1,6 @@
 import {
+    UseMutateFunction,
     useMutation,
-    UseMutationResult,
     useQuery,
     useQueryClient,
 } from "@tanstack/react-query"
@@ -114,12 +114,12 @@ function InvalidDodMessage() {
 function DodEditor({
     dods,
     id,
-    patchDodMutation,
+    patchDodMutate,
     text,
 }: {
     dods: Record<string, DbPlainDod> | undefined
     id: number
-    patchDodMutation: PatchDodMutationType
+    patchDodMutate: PatchDodMutateType
     text: string
 }) {
     const [value, setValue] = useState(text)
@@ -133,7 +133,7 @@ function DodEditor({
                 value={value}
                 valid={isValid}
                 onSave={(value) => {
-                    patchDodMutation.mutate({
+                    patchDodMutate({
                         id,
                         content: value,
                     })
@@ -145,17 +145,17 @@ function DodEditor({
 }
 
 function createColumns({
-    deleteDodMutation,
+    deleteDodMutate,
     dods,
     dodUsage,
-    patchDodMutation,
+    patchDodMutate,
     setActiveDodForUsageModal,
     users,
 }: {
-    deleteDodMutation: DeleteDodMutationType
+    deleteDodMutate: DeleteDodMutateType
     dods: Record<string, DbPlainDod> | undefined
     dodUsage: Record<string, DodUsageRecord[]> | undefined
-    patchDodMutation: PatchDodMutationType
+    patchDodMutate: PatchDodMutateType
     setActiveDodForUsageModal: (name: string) => void
     users: Record<string, DbPlainUser> | undefined
 }): ColumnsType<DbPlainDod> {
@@ -200,7 +200,7 @@ function createColumns({
                         <DodEditor
                             text={content}
                             id={dod.id}
-                            patchDodMutation={patchDodMutation}
+                            patchDodMutate={patchDodMutate}
                             dods={dods}
                         />
                     </div>
@@ -261,7 +261,7 @@ function createColumns({
                             title="Are you sure?"
                             description="This action cannot be undone."
                             onConfirm={() =>
-                                deleteDodMutation.mutate({
+                                deleteDodMutate({
                                     id: dod.id,
                                 })
                             }
@@ -326,13 +326,13 @@ async function fetchUsers(admin: Admin) {
     return indexBy(users, (u) => u.id)
 }
 
-type DodMutation<T> = UseMutationResult<DbPlainDod, unknown, T, unknown>
+type DodMutate<T> = UseMutateFunction<DbPlainDod, unknown, T, unknown>
 
-type PatchDodMutationType = DodMutation<{ id: number; content: string }>
+type PatchDodMutateType = DodMutate<{ id: number; content: string }>
 
-type DeleteDodMutationType = DodMutation<{ id: number }>
+type DeleteDodMutateType = DodMutate<{ id: number }>
 
-type CreateDodMutationType = DodMutation<{ content: string; name: string }>
+type CreateDodMutateType = DodMutate<{ content: string; name: string }>
 
 async function patchDod(admin: Admin, id: number, data: { content: string }) {
     const response = await admin.requestJSON<DbPlainDod>(
@@ -365,12 +365,12 @@ async function createDod(
 }
 
 function CreateDodModal({
-    createDodMutation,
+    createDodMutate,
     isOpen,
     onClose,
     dods,
 }: {
-    createDodMutation: CreateDodMutationType
+    createDodMutate: CreateDodMutateType
     isOpen: boolean
     onClose: () => void
     dods: Record<string, DbPlainDod> | undefined
@@ -402,7 +402,7 @@ function CreateDodModal({
                 form={form}
                 layout="vertical"
                 onFinish={(values) => {
-                    createDodMutation.mutate(values)
+                    createDodMutate(values)
                     form.resetFields()
                     onClose()
                 }}
@@ -552,21 +552,24 @@ export function DodsIndexPage() {
     const queryClient = useQueryClient()
 
     const { data: dods } = useQuery({
+        // eslint-disable-next-line @tanstack/query/exhaustive-deps
         queryKey: ["dods"],
         queryFn: () => fetchDods(admin),
     })
 
     const { data: dodUsage } = useQuery({
+        // eslint-disable-next-line @tanstack/query/exhaustive-deps
         queryKey: ["dod-usage"],
         queryFn: () => fetchDodUsage(admin),
     })
 
     const { data: users } = useQuery({
+        // eslint-disable-next-line @tanstack/query/exhaustive-deps
         queryKey: ["users"],
         queryFn: () => fetchUsers(admin),
     })
 
-    const patchDodMutation = useMutation({
+    const { mutate: patchDodMutate } = useMutation({
         mutationFn: ({ id, content }: { id: number; content: string }) =>
             patchDod(admin, id, { content }),
         onSuccess: async () => {
@@ -574,14 +577,14 @@ export function DodsIndexPage() {
         },
     })
 
-    const deleteDodMutation = useMutation({
+    const { mutate: deleteDodMutate } = useMutation({
         mutationFn: ({ id }: { id: number }) => deleteDod(admin, id),
         onSuccess: async () => {
             return queryClient.invalidateQueries({ queryKey: ["dods"] })
         },
     })
 
-    const createDodMutation = useMutation({
+    const { mutate: createDodMutate } = useMutation({
         mutationFn: ({ content, name }: { content: string; name: string }) =>
             createDod(admin, { content, name }),
         onSuccess: async () => {
@@ -611,18 +614,18 @@ export function DodsIndexPage() {
     const columns = useMemo(
         () =>
             createColumns({
-                deleteDodMutation,
+                deleteDodMutate,
                 dods,
                 dodUsage,
-                patchDodMutation,
+                patchDodMutate,
                 setActiveDodForUsageModal,
                 users,
             }),
         [
-            deleteDodMutation,
+            deleteDodMutate,
             dods,
             dodUsage,
-            patchDodMutation,
+            patchDodMutate,
             setActiveDodForUsageModal,
             users,
         ]
@@ -655,7 +658,7 @@ export function DodsIndexPage() {
                     rowKey={(x) => x.id}
                 />
                 <CreateDodModal
-                    createDodMutation={createDodMutation}
+                    createDodMutate={createDodMutate}
                     isOpen={isCreateDodModalOpen}
                     onClose={() => setIsCreateDodModalOpen(false)}
                     dods={dods}
