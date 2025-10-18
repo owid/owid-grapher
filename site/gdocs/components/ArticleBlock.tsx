@@ -58,11 +58,13 @@ function ArticleBlockInternal({
     containerType = "default",
     toc,
     shouldRenderLinks = true,
+    interactiveImages = true,
 }: {
     b: OwidEnrichedGdocBlock
     containerType?: Container
     toc?: TocHeadingWithTitleSupertitle[]
     shouldRenderLinks?: boolean
+    interactiveImages?: boolean
 }) {
     block.type = block.type.toLowerCase() as any // this comes from the user and may not be all lowercase, enforce it here
 
@@ -179,6 +181,7 @@ function ArticleBlockInternal({
                     hasOutline={block.hasOutline}
                     containerType={containerType as ImageParentContainer}
                     preferSmallFilename={block.preferSmallFilename}
+                    shouldLightbox={interactiveImages}
                 />
                 {block.caption ? (
                     <figcaption
@@ -789,11 +792,13 @@ export default function ArticleBlock({
     containerType = "default",
     toc,
     shouldRenderLinks = true,
+    interactiveImages = true,
 }: {
     b: OwidEnrichedGdocBlock
     containerType?: Container
     toc?: TocHeadingWithTitleSupertitle[]
     shouldRenderLinks?: boolean
+    interactiveImages?: boolean
 }) {
     return (
         <BlockErrorBoundary className={getLayout("default", containerType)}>
@@ -802,6 +807,7 @@ export default function ArticleBlock({
                 containerType={containerType}
                 toc={toc}
                 shouldRenderLinks={shouldRenderLinks}
+                interactiveImages={interactiveImages}
             />
         </BlockErrorBoundary>
     )

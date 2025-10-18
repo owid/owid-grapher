@@ -124,7 +124,7 @@ export class GdocBase implements OwidGdocBaseInterface {
     revisionId: string | null = null
     markdown: string | null = null
     publicationContext: OwidGdocPublicationContext =
-        OwidGdocPublicationContext.unlisted
+        OwidGdocPublicationContext.listed
     breadcrumbs: BreadcrumbItem[] | null = null
     manualBreadcrumbs: BreadcrumbItem[] | null = null
     tags: DbPlainTag[] | null = null

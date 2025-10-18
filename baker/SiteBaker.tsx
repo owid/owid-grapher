@@ -8,11 +8,10 @@ import path from "path"
 import { glob } from "glob"
 import ProgressBar from "progress"
 import * as db from "../db/db.js"
-import { BLOG_POSTS_PER_PAGE, BASE_DIR } from "../settings/serverSettings.js"
+import { BASE_DIR } from "../settings/serverSettings.js"
 
 import {
     renderFrontPage,
-    renderBlogByPageNum,
     renderSearchPage,
     renderDonatePage,
     makeAtomFeed,
@@ -30,6 +29,7 @@ import {
     makeDataInsightsAtomFeed,
     renderGdocTombstone,
     renderExplorerIndexPage,
+    renderLatestPage,
 } from "../baker/siteRenderers.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import { bakeCountries } from "../baker/countryProfiles.js"
@@ -50,6 +50,7 @@ import {
     gdocUrlRegex,
     NarrativeChartInfo,
     ArchiveContext,
+    OwidGdocType,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
 import { countryProfileSpecs } from "../site/countryProfileProjects.js"
@@ -61,7 +62,6 @@ import {
     bakeAllPublishedExplorers,
 } from "./ExplorerBaker.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
-import { getBlogIndex, postsFlushCache } from "../db/model/Post.js"
 import { getAllImages } from "../db/model/Image.js"
 import { generateEmbedSnippet } from "../site/viteUtils.js"
 import { logErrorAndMaybeCaptureInSentry } from "../serverUtils/errorLog.js"
@@ -70,7 +70,7 @@ import { GdocDataInsight } from "../db/model/Gdoc/GdocDataInsight.js"
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
 import {
     gdocFromJSON,
-    getAllMinimalGdocBaseObjects,
+    getMinimalGdocBaseObjects,
     getLatestDataInsights,
 } from "../db/model/Gdoc/GdocFactory.js"
 import { getBakePath } from "@ourworldindata/components"
@@ -95,6 +95,10 @@ import {
     getLatestMultiDimArchivedVersionsIfEnabled,
 } from "../db/model/archival/archivalDb.js"
 import { SEARCH_BASE_PATH } from "../site/search/searchUtils.js"
+import {
+    getLatestPageItems,
+    enrichLatestPageItems,
+} from "../db/model/Gdoc/GdocPost.js"
 
 type PrefetchedAttachments = {
     donors: string[]
@@ -296,7 +300,7 @@ export class SiteBaker {
             console.log(`✅ Prefetched ${donors.length} donors`)
 
             console.log("Prefetching gdocs")
-            const publishedGdocs = await getAllMinimalGdocBaseObjects(knex)
+            const publishedGdocs = await getMinimalGdocBaseObjects(knex)
             const publishedGdocsDictionary = _.keyBy(publishedGdocs, "id")
             console.log(`✅ Prefetched ${publishedGdocs.length} gdocs`)
 
@@ -525,7 +529,7 @@ export class SiteBaker {
         if (!this.bakeSteps.has("removeDeletedPosts")) return
         this.progressBar.tick({ name: "Removing deleted posts" })
 
-        const gdocPosts = await getAllMinimalGdocBaseObjects(knex)
+        const gdocPosts = await getMinimalGdocBaseObjects(knex)
         const postSlugs = gdocPosts.map((post) => post.slug)
 
         // Delete any previously rendered posts that aren't in the database
@@ -930,22 +934,64 @@ export class SiteBaker {
     }
 
     // Bake the blog index
-
     private async bakeBlogIndex(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("blogIndex")) return
         this.progressBar.tick({ name: "Baking blog index" })
-        const allPosts = await getBlogIndex(knex)
-        const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
 
-        for (let i = 1; i <= numPages; i++) {
-            const slug = i === 1 ? "latest" : `latest/page/${i}`
-            const html = await renderBlogByPageNum(i, knex)
-            await this.stageWrite(`${this.bakedSiteDir}/${slug}.html`, html)
+        // Fetch and render page 1
+        const indexPageData = await getLatestPageItems(knex, 1, [
+            OwidGdocType.Article,
+            OwidGdocType.DataInsight,
+            OwidGdocType.Announcement,
+        ])
+
+        const { linkedAuthors, imageMetadata } = await enrichLatestPageItems(
+            knex,
+            indexPageData.items
+        )
+
+        const indexPageHtml = renderLatestPage(
+            indexPageData.items,
+            imageMetadata,
+            linkedAuthors,
+            indexPageData.pagination.pageNum,
+            indexPageData.pagination.totalPages
+        )
+
+        await this.stageWrite(`${this.bakedSiteDir}/latest.html`, indexPageHtml)
+
+        // Render remaining pages
+        const totalPages = indexPageData.pagination.totalPages
+        for (let pageNum = 2; pageNum <= totalPages; pageNum++) {
+            const pageData = await getLatestPageItems(knex, pageNum, [
+                OwidGdocType.Article,
+                OwidGdocType.DataInsight,
+                OwidGdocType.Announcement,
+            ])
+
+            const enrichedData = await enrichLatestPageItems(
+                knex,
+                pageData.items
+            )
+
+            const pageHtml = renderLatestPage(
+                pageData.items,
+                enrichedData.imageMetadata,
+                enrichedData.linkedAuthors,
+                pageData.pagination.pageNum,
+                pageData.pagination.totalPages
+            )
+
+            const outPath = path.join(
+                this.bakedSiteDir,
+                `latest/page/${pageNum}.html`
+            )
+            await fs.mkdirp(path.dirname(outPath))
+            await this.stageWrite(outPath, pageHtml)
         }
     }
 
     // Bake the RSS feed
-
     private async bakeRSS(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("rss")) return
         this.progressBar.tick({ name: "Baking RSS feeds" })
@@ -1118,7 +1164,6 @@ export class SiteBaker {
     private flushCache() {
         this.progressBar.tick({ name: "Flushing cache" })
         // Clear caches to allow garbage collection while waiting for next run
-        postsFlushCache()
         siteBakingFlushCache()
         redirectsFlushCache()
     }
