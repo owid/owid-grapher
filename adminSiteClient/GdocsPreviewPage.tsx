@@ -88,19 +88,21 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const iframeRef = useRef<HTMLIFrameElement>(null)
 
     const fetchGdoc = useCallback(
-        (contentSource: GdocsContentSource, accept = false) => {
+        async (
+            contentSource: GdocsContentSource,
+            acceptSuggestions = false
+        ) => {
             const params = new URLSearchParams({
                 contentSource,
             })
-            if (accept) params.set("acceptSuggestions", "true")
-            return admin
-                .requestJSON<OwidGdocJSON>(
-                    `/api/gdocs/${id}?${params.toString()}`,
-                    {},
-                    "GET",
-                    { onFailure: "continue" }
-                )
-                .then(getOwidGdocFromJSON)
+            if (acceptSuggestions) params.set("acceptSuggestions", "true")
+            const json = await admin.requestJSON<OwidGdocJSON>(
+                `/api/gdocs/${id}?${params.toString()}`,
+                {},
+                "GET",
+                { onFailure: "continue" }
+            )
+            return getOwidGdocFromJSON(json)
         },
         [id, admin]
     )
@@ -121,20 +123,16 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
         )
     }, [id])
 
-    // initialise
+    // initialize
     useEffect(() => {
         let isMounted = true
         async function fetchLatestGdoc() {
             try {
                 admin.loadingIndicatorSetting = "loading"
-                let original = originalGdoc
-                if (!original) {
-                    original = await fetchGdoc(GdocsContentSource.Internal)
-                }
-                const current = await fetchGdoc(
-                    GdocsContentSource.Gdocs,
-                    acceptSuggestions
-                )
+                const [original, current] = await Promise.all([
+                    originalGdoc ?? fetchGdoc(GdocsContentSource.Internal),
+                    fetchGdoc(GdocsContentSource.Gdocs, acceptSuggestions),
+                ])
                 if (!isMounted || !original || !current) return
                 if (!current.slug && current.content.title) {
                     current.slug = slugify(current.content.title)
