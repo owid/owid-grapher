@@ -289,6 +289,18 @@ export type EnrichedBlockVideo = {
     caption?: Span[]
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockStaticViz = {
+    type: "static-viz"
+    value: {
+        name?: string
+    }
+}
+
+export type EnrichedBlockStaticViz = {
+    type: "static-viz"
+    name: string
+} & EnrichedBlockWithParseErrors
+
 // TODO: This is what lists staring with * are converted to in archieToEnriched
 // It might also be what is used inside recirc elements but there it's not a simple
 // string IIRC - check this
@@ -1150,6 +1162,7 @@ export type OwidRawGdocBlock =
     | RawBlockCookieNotice
     | RawBlockCta
     | RawBlockSocials
+    | RawBlockStaticViz
 
 export type OwidEnrichedGdocBlock =
     | EnrichedBlockAllCharts
@@ -1207,6 +1220,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockCookieNotice
     | EnrichedBlockCta
     | EnrichedBlockSocials
+    | EnrichedBlockStaticViz
 
 /**
  * A map of all possible block types, with the type as the key and the block type as the value
