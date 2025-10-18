@@ -18,8 +18,8 @@ const bakeDomainToFolder = async (
     const baker = new SiteBaker(dir, baseUrl, bakeSteps)
     console.log(`Baking site locally with baseUrl '${baseUrl}' to dir '${dir}'`)
 
-    await db.knexReadonlyTransaction(
-        (trx) => baker.bakeAll(trx),
+    await db.knexReadonly(
+        (knex) => baker.bakeAll(knex),
         db.TransactionCloseMode.Close
     )
 }

@@ -8,6 +8,9 @@ import {
     GRAPHER_DB_PORT,
     BAKED_BASE_URL,
 } from "../settings/serverSettings.js"
+
+// Re-export Knex type for use in other modules
+export type { Knex }
 import { registerExitHandler } from "./cleanup.js"
 import { createTagGraph, Url } from "@ourworldindata/utils"
 import {
@@ -97,22 +100,50 @@ export const knexInstance = (): Knex<any, any[]> => {
     return _knexInstance
 }
 
+// Regular Knex instance for readonly operations that don't need transactions (e.g., baking)
+export type KnexReadonly = Knex<any, any[]>
+
+// Actual transaction types for when atomicity is needed
 declare const __read_capability: unique symbol
 declare const __write_capability: unique symbol
-export type KnexReadonlyTransaction = Knex.Transaction<any, any[]> & {
+type KnexReadonlyTransactionType = Knex.Transaction<any, any[]> & {
     readonly [__read_capability]: "read"
 }
+
+// KnexReadonlyTransaction accepts both regular Knex instances and actual transactions
+// This allows functions to work seamlessly whether they're in a transaction context or not
+export type KnexReadonlyTransaction = KnexReadonly | KnexReadonlyTransactionType
 
 export type KnexReadWriteTransaction = Knex.Transaction<any, any[]> & {
     readonly [__read_capability]: "read"
     readonly [__write_capability]: "write"
 }
 
+/**
+ * Controls whether the database connection pool should be destroyed after a transaction completes.
+ *
+ * IMPORTANT: This does NOT control transaction commit/rollback behavior.
+ * All transactions are automatically committed on success or rolled back on error.
+ *
+ * - Close: Destroys the entire connection pool after the transaction. Use for one-off scripts.
+ * - KeepOpen: Keeps the connection pool alive. Use for long-running processes (servers, workers).
+ */
 export enum TransactionCloseMode {
     Close,
     KeepOpen,
 }
 
+/**
+ * Creates a database transaction with optional connection pool management.
+ *
+ * Note: The transaction itself is ALWAYS committed on success or rolled back on error.
+ * The `closeConnection` parameter only controls whether the connection pool is destroyed afterwards.
+ *
+ * @param transactionFn - Function to execute within the transaction
+ * @param closeConnection - Whether to destroy the connection pool after completion
+ * @param readonly - Whether this is a read-only transaction
+ * @param knex - Knex instance to use
+ */
 async function knexTransaction<T, KT>(
     transactionFn: (trx: KT) => Promise<T>,
     closeConnection: TransactionCloseMode,
@@ -134,6 +165,38 @@ async function knexTransaction<T, KT>(
     }
 }
 
+/**
+ * Executes a function with a regular Knex instance (no transaction).
+ * Use this for readonly operations that don't need atomicity (e.g., baking).
+ *
+ * @param fn - Function to execute with the Knex instance
+ * @param closeConnection - Whether to destroy the connection pool after completion (default: Close)
+ * @param knex - Knex instance to use (default: shared instance)
+ */
+export async function knexReadonly<T>(
+    fn: (knex: KnexReadonly) => Promise<T>,
+    closeConnection: TransactionCloseMode = TransactionCloseMode.Close,
+    knex: Knex<any, any[]> = knexInstance()
+): Promise<T> {
+    try {
+        return await fn(knex)
+    } finally {
+        if (closeConnection === TransactionCloseMode.Close) {
+            await knex.destroy()
+            if (knex === _knexInstance) _knexInstance = undefined
+        }
+    }
+}
+
+/**
+ * Creates a read-only database transaction.
+ *
+ * The transaction is automatically committed on success or rolled back on error.
+ *
+ * @param transactionFn - Function to execute within the transaction
+ * @param closeConnection - Whether to destroy the connection pool after completion (default: KeepOpen)
+ * @param knex - Knex instance to use (default: shared instance)
+ */
 export async function knexReadonlyTransaction<T>(
     transactionFn: (trx: KnexReadonlyTransaction) => Promise<T>,
     closeConnection: TransactionCloseMode = TransactionCloseMode.KeepOpen,
@@ -142,6 +205,15 @@ export async function knexReadonlyTransaction<T>(
     return knexTransaction(transactionFn, closeConnection, true, knex)
 }
 
+/**
+ * Creates a read-write database transaction.
+ *
+ * The transaction is automatically committed on success or rolled back on error.
+ *
+ * @param transactionFn - Function to execute within the transaction
+ * @param closeConnection - Whether to destroy the connection pool after completion (default: KeepOpen)
+ * @param knex - Knex instance to use (default: shared instance)
+ */
 export async function knexReadWriteTransaction<T>(
     transactionFn: (trx: KnexReadWriteTransaction) => Promise<T>,
     closeConnection: TransactionCloseMode = TransactionCloseMode.KeepOpen,
