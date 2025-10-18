@@ -145,6 +145,7 @@ export interface MapChartManager extends ChartManager {
         target?: string
     ) => void
     projectionColumnInfoBySlug?: Map<ColumnSlug, ProjectionColumnInfo>
+    hideMapLegend?: boolean
 }
 
 export interface GlobeViewport {
