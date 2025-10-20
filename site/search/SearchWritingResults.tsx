@@ -212,15 +212,14 @@ export const SearchWritingResults = ({
         },
         firstPageSize: noArticles ? 6 : 2,
         laterPageSize: noArticles ? 6 : 4,
-        enabled: hasTopicPages && !articlesQuery.isInitialLoading,
+        enabled: hasTopicPages && !articlesQuery.isLoading,
     })
 
     const totalCount = articlesQuery.totalResults + topicsQuery.totalResults
     const hasNextPage = articlesQuery.hasNextPage || topicsQuery.hasNextPage
     const isFetchingNextPage =
         articlesQuery.isFetchingNextPage || topicsQuery.isFetchingNextPage
-    const isInitialLoading =
-        articlesQuery.isInitialLoading || topicsQuery.isInitialLoading
+    const isLoading = articlesQuery.isLoading || topicsQuery.isLoading
 
     const fetchNextPage = () =>
         Promise.all([
@@ -230,12 +229,12 @@ export const SearchWritingResults = ({
             topicsQuery.hasNextPage ? topicsQuery.fetchNextPage() : undefined,
         ])
 
-    if (!isInitialLoading && totalCount === 0) return null
+    if (!isLoading && totalCount === 0) return null
 
     return (
         <>
             <section>
-                {isInitialLoading ? (
+                {isLoading ? (
                     <SearchWritingResultsSkeleton />
                 ) : (
                     <>
@@ -259,7 +258,7 @@ export const SearchWritingResults = ({
                 )}
             </section>
             <SearchHorizontalDivider
-                hasButton={!isInitialLoading && hasNextPage}
+                hasButton={!isLoading && hasNextPage}
                 isLoading={isFetchingNextPage}
                 onClick={fetchNextPage}
             />

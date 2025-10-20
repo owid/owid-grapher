@@ -32,14 +32,14 @@ export function SearchDataInsightsResults() {
         },
     })
 
-    const { hits, totalResults, isInitialLoading } = query
+    const { hits, totalResults, isLoading } = query
 
-    if (!isInitialLoading && totalResults === 0) return null
+    if (!isLoading && totalResults === 0) return null
 
     return (
         <>
             <section>
-                {isInitialLoading ? (
+                {isLoading ? (
                     <SearchDataInsightsResultsSkeleton />
                 ) : (
                     <>
@@ -76,9 +76,7 @@ export function SearchDataInsightsResults() {
                 )}
             </section>
             <SearchHorizontalDivider
-                hasButton={
-                    !isInitialLoading && query.hasNextPage && !isSmallScreen
-                }
+                hasButton={!isLoading && query.hasNextPage && !isSmallScreen}
                 isLoading={query.isFetchingNextPage}
                 onClick={query.fetchNextPage}
             />

@@ -21,7 +21,7 @@ export const SearchDataTopicsResults = () => {
             ),
     })
 
-    if (query.isInitialLoading) return <SearchDataTopicsResultsSkeleton />
+    if (query.isLoading) return <SearchDataTopicsResultsSkeleton />
     if (!query.data?.length) return null
 
     return (
