@@ -23,8 +23,7 @@ import {
 } from "../../../site/search/searchTypes.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { getIndexName } from "../../../site/search/searchClient.js"
-import type { ObjectWithObjectID, SearchClient } from "@algolia/client-search"
-import { SearchIndex } from "algoliasearch"
+import type { Hit, SearchClient } from "@algolia/client-search"
 import { match, P } from "ts-pattern"
 import { gdocFromJSON } from "../../../db/model/Gdoc/GdocFactory.js"
 import {
@@ -308,9 +307,9 @@ export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
 
 async function getExistingRecordsForSlug(
     searchClient: SearchClient,
-    indexName: SearchIndex,
+    indexName: string,
     slug: string
-): Promise<ObjectWithObjectID[]> {
+): Promise<Hit[]> {
     const settings = await searchClient.getSettings({ indexName })
     // Settings can be specified with a modifier, e.g. `filterOnly(slug)`.
     if (!settings.attributesForFaceting?.some((a) => a.includes("slug"))) {
@@ -321,8 +320,8 @@ async function getExistingRecordsForSlug(
             )
         )
     }
-    const existingRecordsForPost: ObjectWithObjectID[] = []
-    await searchClient.browseObjects<ObjectWithObjectID>({
+    const existingRecordsForPost: Hit[] = []
+    await searchClient.browseObjects({
         indexName,
         browseParams: {
             attributesToRetrieve: ["objectID"],
@@ -374,7 +373,7 @@ export async function indexIndividualGdocPost(
         )
         return
     }
-    const index = client.initIndex(getIndexName(SearchIndexName.Pages))
+    const indexName = getIndexName(SearchIndexName.Pages)
     const pageviews = await getAnalyticsPageviewsByUrlObj(knex)
     const cloudflareImagesByFilename = await db
         .getCloudflareImages(knex)
@@ -397,8 +396,11 @@ export async function indexIndividualGdocPost(
         knex
     )
 
-    const existingRecordsForPost: ObjectWithObjectID[] =
-        await getExistingRecordsForSlug(index, indexedSlug)
+    const existingRecordsForPost: Hit[] = await getExistingRecordsForSlug(
+        client,
+        indexName,
+        indexedSlug
+    )
 
     try {
         if (
@@ -410,14 +412,18 @@ export async function indexIndividualGdocPost(
                 "Deleting Algolia index records for Gdoc post",
                 indexedSlug
             )
-            await index.deleteObjects(
-                existingRecordsForPost.map((r) => r.objectID)
-            )
+            await client.deleteObjects({
+                indexName,
+                objectIDs: existingRecordsForPost.map((r) => r.objectID),
+            })
         }
         console.log("Updating Algolia index for Gdoc post", gdoc.slug)
         // If the number of records hasn't changed, the records' objectIDs will be the same
         // so this will safely overwrite them or create new ones
-        await index.saveObjects(records)
+        await client.saveObjects({
+            indexName,
+            objects: records as Array<Record<string, any>>,
+        })
         console.log("Updated Algolia index for Gdoc post", gdoc.slug)
     } catch (e) {
         console.error("Error indexing Gdoc post to Algolia: ", e)
@@ -436,8 +442,11 @@ export async function removeIndividualGdocPostFromIndex(
         return
     }
     const indexName = getIndexName(SearchIndexName.Pages)
-    const existingRecordsForPost: ObjectWithObjectID[] =
-        await getExistingRecordsForSlug(index, gdoc.slug)
+    const existingRecordsForPost: Hit[] = await getExistingRecordsForSlug(
+        client,
+        indexName,
+        gdoc.slug
+    )
 
     try {
         console.log("Removing Gdoc post from Algolia index", gdoc.slug)

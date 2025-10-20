@@ -9,7 +9,7 @@ import {
     autocomplete,
     getAlgoliaResults,
 } from "@algolia/autocomplete-js"
-import { algoliasearch } from "algoliasearch"
+import { liteClient } from "algoliasearch/lite"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
 import {
     ChartRecordType,
@@ -69,7 +69,7 @@ const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
     },
 })
 
-const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
+const searchClient = liteClient(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
 
 const onSelect: AutocompleteSource<BaseItem>["onSelect"] = ({
     navigator,
@@ -174,8 +174,8 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
             queries: [
                 {
                     indexName: getIndexName(SearchIndexName.Pages),
-                    query,
                     params: {
+                        query,
                         hitsPerPage: 2,
                         distinct: true,
                     },
@@ -184,8 +184,8 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     indexName: getIndexName(
                         SearchIndexName.ExplorerViewsMdimViewsAndCharts
                     ),
-                    query,
                     params: {
+                        query,
                         hitsPerPage: 3,
                         distinct: true,
                     },

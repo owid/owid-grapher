@@ -40,7 +40,7 @@ export const SearchDataTopic = ({
                 <div className="search-data-topic__header">
                     <h2>{titleLabel}</h2>
                     <span className="search-data-topic__hit-count">
-                        {commafyNumber(charts.nbHits)}{" "}
+                        {commafyNumber(charts.nbHits ?? 0)}{" "}
                         {charts.nbHits === 1 ? "chart" : "charts"}
                         <FontAwesomeIcon icon={faArrowRight} />
                     </span>

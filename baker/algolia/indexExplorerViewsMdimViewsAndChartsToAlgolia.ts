@@ -66,9 +66,11 @@ const indexExplorerViewsMdimViewsAndChartsToAlgolia = async () => {
         return [...records, ...featuredMetricRecords]
     }, db.TransactionCloseMode.Close)
 
-    const index = client.initIndex(indexName)
     console.log(`Indexing ${records.length} records`)
-    await index.replaceAllObjects(records)
+    await client.replaceAllObjects({
+        indexName,
+        objects: records as Array<Record<string, any>>,
+    })
     console.log(`Indexing complete`)
 }
 

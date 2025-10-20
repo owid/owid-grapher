@@ -217,7 +217,7 @@ export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
                 lastPage.hits.length
             )
 
-            return requestedSoFar < lastPage.nbHits
+            return requestedSoFar < (lastPage.nbHits ?? 0)
                 ? currentPageIndex + 1
                 : undefined
         },
@@ -260,7 +260,9 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
             return queryFn(searchClient, state, pageParam)
         },
         getNextPageParam: (lastPage) => {
-            const { page, nbPages } = lastPage
+            let { page, nbPages } = lastPage
+            page = page ?? 0
+            nbPages = nbPages ?? 1
             return page < nbPages - 1 ? page + 1 : undefined
         },
         initialPageParam: 0,
