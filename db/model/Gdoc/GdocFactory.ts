@@ -610,12 +610,6 @@ export async function getAndLoadListedGdocPosts(
 ): Promise<GdocPost[]> {
     const shouldLoadState = options?.loadState ?? true
 
-    // TEMPORARY: Profiling instrumentation
-    if (shouldLoadState) {
-        console.log("\n⏱️  getAndLoadListedGdocPosts profiling:")
-    }
-
-    let start = Date.now()
     // TODO: Check if we shouldn't also restrict the types of gdocs here
     const rows = await knexRaw<DbRawPostGdoc>(
         knex,
@@ -628,13 +622,7 @@ export async function getAndLoadListedGdocPosts(
             ORDER BY publishedAt DESC`,
         { publicationContext: OwidGdocPublicationContext.listed }
     )
-    if (shouldLoadState) {
-        console.log(
-            `   Query posts_gdocs: ${Date.now() - start}ms (${rows.length} rows)`
-        )
-    }
 
-    start = Date.now()
     const ids = rows.map((row) => row.id)
     const tags = await knexRaw<DbPlainTag>(
         knex,
@@ -645,11 +633,7 @@ export async function getAndLoadListedGdocPosts(
                 WHERE gt.gdocId in (:ids)`,
         { ids: ids }
     )
-    if (shouldLoadState) {
-        console.log(`   Query tags: ${Date.now() - start}ms`)
-    }
 
-    start = Date.now()
     const groupedTags = _.groupBy(tags, "gdocId")
     const enrichedRows = rows.map((row) => {
         return {
@@ -657,11 +641,7 @@ export async function getAndLoadListedGdocPosts(
             tags: groupedTags[row.id] ? groupedTags[row.id] : null,
         } satisfies OwidGdocBaseInterface
     })
-    if (shouldLoadState) {
-        console.log(`   Process rows: ${Date.now() - start}ms`)
-    }
 
-    start = Date.now()
     // Pass loadState option through to loadGdocFromGdocBase
     // When loadState=false (for blog index), it only creates gdoc objects with basic metadata
     // When loadState=true (default), it fully loads linked charts, validates, loads images, etc.
@@ -672,12 +652,6 @@ export async function getAndLoadListedGdocPosts(
             })
         )
     )) as GdocPost[]
-
-    if (shouldLoadState) {
-        console.log(
-            `   loadGdocFromGdocBase (Promise.all): ${Date.now() - start}ms (${enrichedRows.length} posts)`
-        )
-    }
 
     return gdocs
 }
