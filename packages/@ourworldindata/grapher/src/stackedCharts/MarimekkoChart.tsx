@@ -1055,7 +1055,6 @@ export class MarimekkoChart
         const { labelAngleInDegrees, series } = this
         const { domainColorForEntityMap } = this.chartState
         return this.pickedLabelCandidates.map((candidate) => {
-            const labelX = candidate.bounds.width
             const domainColor = domainColorForEntityMap.get(
                 candidate.item.entityName
             )
@@ -1066,16 +1065,13 @@ export class MarimekkoChart
                 labelElement: (
                     <text
                         key={`${candidate.item.entityName}-label`}
-                        x={-labelX}
                         y={0}
-                        width={candidate.bounds.width}
-                        height={candidate.bounds.height}
                         fontWeight={candidate.isSelected ? 700 : 400}
                         fill={color}
                         transform={`rotate(${labelAngleInDegrees}, 0, 0)`}
                         opacity={1}
                         fontSize={this.entityLabelFontSize}
-                        textAnchor="right"
+                        textAnchor="end"
                         dy={dyFromAlign(VerticalAlign.middle)}
                         onMouseOver={(): void =>
                             this.onEntityMouseOver(candidate.item.entityName)

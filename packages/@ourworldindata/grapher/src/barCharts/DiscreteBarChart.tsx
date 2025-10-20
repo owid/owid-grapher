@@ -429,7 +429,7 @@ export class DiscreteBarChart
     }
 
     private renderEntityLabels(): React.ReactElement {
-        const style = { fill: "#555", textAnchor: "end" }
+        const style = { fill: "#555", textAnchor: "end" } as const
         return (
             <g id={makeIdForHumanConsumption("entity-labels")}>
                 {this.placedSeries.map((series) => {
