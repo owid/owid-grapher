@@ -39,7 +39,10 @@ const LatestPageDataInsight = (props: { data: LatestDataInsight }) => {
     )
 
     return (
-        <article className={cx("latest-page__data-insight", COMMON_CLASSES)}>
+        <article
+            id={props.data.slug}
+            className={cx("latest-page__data-insight", COMMON_CLASSES)}
+        >
             <DataInsightDateline
                 publishedAt={props.data.publishedAt}
                 className="latest-page__item-dateline h6-black-caps span-cols-4"
@@ -81,7 +84,10 @@ const LatestPageArticle = (props: { data: OwidGdocMinimalPostInterface }) => {
         content: { type: OwidGdocType.Article },
     })
     return (
-        <article className={cx("latest-page__article", COMMON_CLASSES)}>
+        <article
+            id={props.data.slug}
+            className={cx("latest-page__article", COMMON_CLASSES)}
+        >
             <DataInsightDateline
                 publishedAt={new Date(props.data.publishedAt!)}
                 className="latest-page__item-dateline h6-black-caps span-cols-4"
@@ -118,6 +124,7 @@ const LatestPageAnnouncement = (props: {
 }) => {
     return (
         <article
+            id={props.data.slug}
             className={cx(
                 "latest-page__announcement span-cols-6 col-start-5 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1"
             )}
