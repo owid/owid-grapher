@@ -99,10 +99,7 @@ export const configureAlgolia = async () => {
             // If we find a match (only) there, then it doesn't count towards `exact`, and is therefore ranked lower.
             // We also disable prefix matching and typo tolerance on these.
             disableExactOnAttributes: ["tags", "subtitle", "availableEntities"],
-            disableTypoToleranceOnAttributes: [
-                "subtitle",
-                "availableEntities",
-            ],
+            disableTypoToleranceOnAttributes: ["subtitle", "availableEntities"],
             disablePrefixOnAttributes: ["subtitle"],
         },
     })
@@ -138,7 +135,9 @@ export const configureAlgolia = async () => {
     })
 
     await client.setSettings({
-        indexName: getIndexName(SearchIndexName.ExplorerViewsMdimViewsAndCharts),
+        indexName: getIndexName(
+            SearchIndexName.ExplorerViewsMdimViewsAndCharts
+        ),
         indexSettings: {
             ...baseSettings,
             searchableAttributes: [
@@ -218,7 +217,9 @@ export const configureAlgolia = async () => {
         replaceExistingSynonyms: true,
     })
     await client.saveSynonyms({
-        indexName: getIndexName(SearchIndexName.ExplorerViewsMdimViewsAndCharts),
+        indexName: getIndexName(
+            SearchIndexName.ExplorerViewsMdimViewsAndCharts
+        ),
         synonymHit: algoliaSynonyms,
         replaceExistingSynonyms: true,
     })
@@ -228,7 +229,9 @@ export const configureAlgolia = async () => {
             indexName: CONTENT_GRAPH_ALGOLIA_INDEX,
             indexSettings: {
                 attributesForFaceting: [
-                    ...[...Array(5)].map((_, i) => `searchable(topics.lvl${i})`),
+                    ...[...Array(5)].map(
+                        (_, i) => `searchable(topics.lvl${i})`
+                    ),
                     "searchable(type)",
                 ],
             },

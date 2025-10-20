@@ -261,7 +261,9 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
         },
         getNextPageParam: (lastPage) => {
             const { page, nbPages } = lastPage
-            return (page ?? 0) < (nbPages ?? 1) - 1 ? (page ?? 0) + 1 : undefined
+            return (page ?? 0) < (nbPages ?? 1) - 1
+                ? (page ?? 0) + 1
+                : undefined
         },
         initialPageParam: 0,
         enabled,

@@ -346,7 +346,8 @@ export async function queryWritingTopics(
                 ] as SearchTopicPageResponse
 
                 const totalCount =
-                    (articlesResult.nbHits ?? 0) + (topicPagesResult.nbHits ?? 0)
+                    (articlesResult.nbHits ?? 0) +
+                    (topicPagesResult.nbHits ?? 0)
 
                 return {
                     title: topic,
