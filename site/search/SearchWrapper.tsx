@@ -56,7 +56,7 @@ export const SearchWrapper = ({
             <Search
                 initialState={initialState}
                 topicTagGraph={topicTagGraph}
-                liteClient={liteSearchClient}
+                liteSearchClient={liteSearchClient}
             />
         </QueryClientProvider>
     )
