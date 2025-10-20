@@ -42,11 +42,11 @@ import { PoweredBy } from "react-instantsearch"
 export const Search = ({
     initialState,
     topicTagGraph,
-    liteClient,
+    liteSearchClient,
 }: {
     initialState: SearchState
     topicTagGraph: TagGraphRoot
-    liteClient: LiteClient
+    liteSearchClient: LiteClient
 }) => {
     // State management
     const [state, dispatch] = useReducer(searchReducer, initialState)
@@ -90,7 +90,7 @@ export const Search = ({
                 state,
                 deferredState,
                 actions,
-                liteClient,
+                liteSearchClient,
                 templateConfig,
                 topicTagGraph,
                 synonymMap,

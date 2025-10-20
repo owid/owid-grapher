@@ -193,8 +193,8 @@ export const SearchWritingResults = ({
         FlatArticleHit
     >({
         queryKey: (state) => searchQueryKeys.articles(state),
-        queryFn: (searchClient, state, offset, length) => {
-            return queryArticles(searchClient, state, offset, length)
+        queryFn: (liteSearchClient, state, offset, length) => {
+            return queryArticles(liteSearchClient, state, offset, length)
         },
         firstPageSize: 2,
         laterPageSize: 6,
@@ -207,8 +207,8 @@ export const SearchWritingResults = ({
         TopicPageHit
     >({
         queryKey: (state) => searchQueryKeys.topicPages(state),
-        queryFn: (searchClient, state, offset, length) => {
-            return queryTopicPages(searchClient, state, offset, length)
+        queryFn: (liteSearchClient, state, offset, length) => {
+            return queryTopicPages(liteSearchClient, state, offset, length)
         },
         firstPageSize: noArticles ? 6 : 2,
         laterPageSize: noArticles ? 6 : 4,

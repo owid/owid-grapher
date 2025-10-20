@@ -183,7 +183,7 @@ export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
 }: {
     queryKey: (state: SearchState) => readonly (string | QueryKeyState)[]
     queryFn: (
-        searchClient: LiteClient,
+        liteSearchClient: LiteClient,
         state: SearchState,
         offset: number,
         length: number
@@ -192,7 +192,7 @@ export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
     laterPageSize: number
     enabled?: boolean
 }) {
-    const { state, liteClient } = useSearchContext()
+    const { state, liteSearchClient } = useSearchContext()
     const query = useInfiniteQuery<T, Error>({
         queryKey: queryKey(state),
         queryFn: ({ pageParam }) => {
@@ -205,7 +205,7 @@ export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
                 laterPageSize
             )
 
-            return queryFn(liteClient, state, offset, length)
+            return queryFn(liteSearchClient, state, offset, length)
         },
         getNextPageParam: (lastPage, allPages) => {
             const currentPageIndex = allPages.length - 1
@@ -242,13 +242,13 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
 }: {
     queryKey: (state: SearchState) => readonly (string | QueryKeyState)[]
     queryFn: (
-        searchClient: LiteClient,
+        liteSearchClient: LiteClient,
         state: SearchState,
         page: number
     ) => Promise<T>
     enabled?: boolean
 }) {
-    const { deferredState: state, liteClient } = useSearchContext()
+    const { deferredState: state, liteSearchClient } = useSearchContext()
 
     const query = useInfiniteQuery<T, Error>({
         // All paginated subqueries share the same query key
@@ -257,7 +257,7 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
             if (typeof pageParam !== "number")
                 throw new Error("Invalid pageParam")
 
-            return queryFn(liteClient, state, pageParam)
+            return queryFn(liteSearchClient, state, pageParam)
         },
         getNextPageParam: (lastPage) => {
             let { page, nbPages } = lastPage

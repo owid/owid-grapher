@@ -11,7 +11,7 @@ interface SearchContextType {
     state: SearchState
     deferredState: SearchState
     actions: SearchActions
-    liteClient: LiteClient
+    liteSearchClient: LiteClient
     templateConfig: TemplateConfig
     topicTagGraph: TagGraphRoot
     synonymMap: SynonymMap
