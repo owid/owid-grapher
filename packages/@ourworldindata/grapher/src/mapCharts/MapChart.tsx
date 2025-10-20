@@ -668,9 +668,6 @@ export class MapChart
                         position={tooltipState.position}
                         fading={tooltipState.fading}
                         timeSeriesTable={this.chartState.inputTable}
-                        shouldUseCustomLabels={
-                            this.mapConfig.tooltipUseCustomLabels
-                        }
                         manager={this.manager}
                         lineColorScale={this.colorScale}
                         targetTime={this.targetTime}
