@@ -1,5 +1,6 @@
 import { defineConfig } from "vite"
 import pluginReact from "@vitejs/plugin-react"
+import optimizeReactAriaLocales from "@react-aria/optimize-locales-plugin"
 import { sentryVitePlugin } from "@sentry/vite-plugin"
 import * as clientSettings from "./settings/clientSettings.js"
 import {
@@ -74,6 +75,12 @@ export const defineViteConfigForEntrypoint = (entrypoint: ViteEntryPoint) => {
                           }
                         : undefined,
                 }),
+            {
+                ...optimizeReactAriaLocales.vite({
+                    locales: ["en-US"],
+                }),
+                enforce: "pre",
+            },
         ],
         server: {
             port: 8090,
