@@ -9,7 +9,7 @@ import {
 } from "../../settings/clientSettings.js"
 import { SEARCH_EVAL_URL } from "../../settings/serverSettings.js"
 import { getIndexName } from "./searchClient.js"
-import algoliasearch from "algoliasearch"
+import { algoliasearch } from "algoliasearch"
 
 /* eslint-disable no-console */
 

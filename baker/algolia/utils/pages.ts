@@ -23,7 +23,7 @@ import {
 } from "../../../site/search/searchTypes.js"
 import { getAnalyticsPageviewsByUrlObj } from "../../../db/model/Pageview.js"
 import { getIndexName } from "../../../site/search/searchClient.js"
-import type { ObjectWithObjectID } from "@algolia/client-search"
+import type { ObjectWithObjectID, SearchClient } from "@algolia/client-search"
 import { SearchIndex } from "algoliasearch"
 import { match, P } from "ts-pattern"
 import { gdocFromJSON } from "../../../db/model/Gdoc/GdocFactory.js"
@@ -307,10 +307,11 @@ export const getPagesRecords = async (knex: db.KnexReadonlyTransaction) => {
 }
 
 async function getExistingRecordsForSlug(
-    index: SearchIndex,
+    searchClient: SearchClient,
+    indexName: SearchIndex,
     slug: string
 ): Promise<ObjectWithObjectID[]> {
-    const settings = await index.getSettings()
+    const settings = await searchClient.getSettings({ indexName })
     // Settings can be specified with a modifier, e.g. `filterOnly(slug)`.
     if (!settings.attributesForFaceting?.some((a) => a.includes("slug"))) {
         await logErrorAndMaybeCaptureInSentry(
@@ -321,11 +322,14 @@ async function getExistingRecordsForSlug(
         )
     }
     const existingRecordsForPost: ObjectWithObjectID[] = []
-    await index.browseObjects({
-        filters: `slug:${slug}`,
-        attributesToRetrieve: ["objectID"],
+    await searchClient.browseObjects<ObjectWithObjectID>({
+        indexName,
+        browseParams: {
+            attributesToRetrieve: ["objectID"],
+            filters: `slug:${slug}`,
+        },
         // This is the way you get results from browseObjects for some reason 🤷
-        batch: (batch) => existingRecordsForPost.push(...batch),
+        aggregator: (batch) => existingRecordsForPost.push(...batch.hits),
     })
     return existingRecordsForPost
 }
@@ -431,13 +435,16 @@ export async function removeIndividualGdocPostFromIndex(
         )
         return
     }
-    const index = client.initIndex(getIndexName(SearchIndexName.Pages))
+    const indexName = getIndexName(SearchIndexName.Pages)
     const existingRecordsForPost: ObjectWithObjectID[] =
         await getExistingRecordsForSlug(index, gdoc.slug)
 
     try {
         console.log("Removing Gdoc post from Algolia index", gdoc.slug)
-        await index.deleteObjects(existingRecordsForPost.map((r) => r.objectID))
+        await client.deleteObjects({
+            indexName,
+            objectIDs: existingRecordsForPost.map((r) => r.objectID),
+        })
         console.log("Removed Gdoc post from Algolia index", gdoc.slug)
     } catch (e) {
         console.error("Error removing Gdoc post from Algolia index: ", e)
