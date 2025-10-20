@@ -16,7 +16,7 @@ export const SearchWritingTopicsResults = () => {
             queryWritingTopics(liteClient, topicTagGraph, selectedTopic),
     })
 
-    if (query.isInitialLoading) return <SearchWritingTopicsResultsSkeleton />
+    if (query.isLoading) return <SearchWritingTopicsResultsSkeleton />
     if (!query.data?.length) return null
 
     return (
