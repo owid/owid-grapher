@@ -2408,13 +2408,16 @@ export class GrapherState {
 
         const { width, height } = this.staticBoundsWithDetails
 
-        // We need to ensure `rasterize` is only called on the client-side, otherwise this will fail
-        const staticSVG = this.generateStaticSvg(reactRenderToStringClientOnly)
-
-        this.shouldIncludeDetailsInStaticExport =
-            _shouldIncludeDetailsInStaticExport
-
-        return new StaticChartRasterizer(staticSVG, width, height).render()
+        try {
+            // We need to ensure `rasterize` is only called on the client-side, otherwise this will fail
+            const staticSVG = this.generateStaticSvg(
+                reactRenderToStringClientOnly
+            )
+            return new StaticChartRasterizer(staticSVG, width, height).render()
+        } finally {
+            this.shouldIncludeDetailsInStaticExport =
+                _shouldIncludeDetailsInStaticExport
+        }
     }
     @computed get disableIntroAnimation(): boolean {
         return this.isStatic
