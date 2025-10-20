@@ -1,4 +1,4 @@
-import { useContext } from "react"
+import { RefObject, useContext, useRef, useState } from "react"
 import cx from "classnames"
 import {
     EnrichedBlockHomepageIntro,
@@ -17,6 +17,7 @@ import { Button } from "@ourworldindata/components"
 import { AnnouncementsIcon } from "./AnnouncementsIcon.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faHeart } from "@fortawesome/free-solid-svg-icons"
+import { useResizeObserver } from "usehooks-ts"
 
 type FeaturedWorkTileProps = EnrichedBlockHomepageIntroPost & {
     isTertiary?: boolean
@@ -117,6 +118,28 @@ function FeaturedWorkTile({
     )
 }
 
+function useIsOverflowing<T extends HTMLElement = HTMLElement>(
+    ref: RefObject<T>
+): boolean {
+    const [isOverflowing, setIsOverflowing] = useState(false)
+
+    useResizeObserver({
+        ref,
+        onResize: () => {
+            const element = ref.current
+            if (!element) return
+
+            const overflowing =
+                element.scrollWidth > element.clientWidth ||
+                element.scrollHeight > element.clientHeight
+
+            setIsOverflowing(overflowing)
+        },
+    })
+
+    return isOverflowing
+}
+
 function HomepageAnnouncement(props: {
     announcement: OwidGdocMinimalPostInterface
     index: number
@@ -124,16 +147,29 @@ function HomepageAnnouncement(props: {
     const { announcement, index } = props
     const { linkedChart } = useLinkedChart(announcement.cta?.url || "")
     const { linkedDocument } = useLinkedDocument(announcement.cta?.url || "")
-    // If it's a CTA announcement, link to the chart/document/url
-    // Otherwise, link to the announcement itself
-    const href = announcement.cta
-        ? linkedChart?.resolvedUrl ||
+    // If there's not enough space to show all of the third announcement, we link to the latest page, no matter what
+    // If there is enough space, it behaves as normal:
+    // - cta: link directly to the resource
+    // - no cta: link to the latest page
+    const announcementRef = useRef<HTMLLIElement>(null)
+    const isOverflowing = useIsOverflowing(
+        announcementRef as RefObject<HTMLElement>
+    )
+    const latestPageLink = `/latest#${announcement.slug}`
+    const href = isOverflowing
+        ? latestPageLink
+        : linkedChart?.resolvedUrl ||
           linkedDocument?.url ||
-          announcement.cta.url
-        : `/${announcement.slug}`
+          announcement.cta?.url ||
+          latestPageLink
 
     return (
-        <li className="homepage-intro__announcement" key={announcement.id}>
+        <li
+            className={cx("homepage-intro__announcement", {
+                "homepage-intro__announcement--is-overflowing": isOverflowing,
+            })}
+            ref={announcementRef}
+        >
             <a
                 className="homepage-intro__announcement-link"
                 aria-labelledby={`announcement-${announcement.id}`}
@@ -176,7 +212,7 @@ function HomepageAnnouncements() {
                 {announcements.map((announcement, i) => (
                     <HomepageAnnouncement
                         announcement={announcement}
-                        key={i}
+                        key={announcement.id}
                         index={i}
                     />
                 ))}
