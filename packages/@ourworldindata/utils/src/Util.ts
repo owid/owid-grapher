@@ -497,12 +497,40 @@ export const fetchText = async (url: string): Promise<string> => {
     })
 }
 
-export async function fetchJson<TResult>(url: string): Promise<TResult> {
-    const response = await fetch(url)
+export async function fetchJson<TResult>(
+    url: string,
+    options?: { timeoutMs?: number }
+): Promise<TResult> {
+    const response =
+        options?.timeoutMs !== undefined
+            ? await fetchWithTimeout(url, options.timeoutMs)
+            : await fetch(url)
+
     if (!response.ok) {
         throw new Error(`Failed to fetch ${url}: ${response.statusText}`)
     }
+
     return response.json()
+}
+
+// Adapted from https://github.com/sindresorhus/ky/blob/main/source/utils/timeout.ts
+export async function fetchWithTimeout(
+    url: string,
+    timeoutMs: number
+): Promise<Response> {
+    const abortController = new AbortController()
+
+    return new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+            abortController.abort()
+            reject(new Error(`Request timed out: ${url}`))
+        }, timeoutMs)
+
+        void fetch(url, { signal: abortController.signal })
+            .then(resolve)
+            .catch(reject)
+            .finally(() => clearTimeout(timeoutId))
+    })
 }
 
 const _getUserCountryInformation = async (): Promise<
