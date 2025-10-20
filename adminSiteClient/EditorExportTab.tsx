@@ -284,7 +284,10 @@ export class EditorExportTab<
                 })
                 grapherState.inputTable = this.grapherState.inputTable
             }
-            const { blob: pngBlob, svgBlob } = await grapherState.rasterize()
+            const { blob: pngBlob, svgBlob } = await grapherState.rasterize({
+                includeDetails:
+                    this.settings.shouldIncludeDetailsInStaticExport,
+            })
             if (filename.endsWith("svg") && svgBlob) {
                 triggerDownloadFromBlob(filename, svgBlob)
             } else if (filename.endsWith("png") && pngBlob) {

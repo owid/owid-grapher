@@ -10,6 +10,10 @@ export interface GrapherExport {
     svgBlob: Blob
 }
 
+export type GrapherRasterizeFn = (options: {
+    includeDetails: boolean
+}) => Promise<GrapherExport>
+
 export class StaticChartRasterizer {
     svg: string
     width: number

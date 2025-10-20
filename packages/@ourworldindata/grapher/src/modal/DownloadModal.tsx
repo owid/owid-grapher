@@ -32,7 +32,7 @@ import {
     CoreColumn,
 } from "@ourworldindata/core-table"
 import { Modal } from "./Modal"
-import { GrapherExport } from "../captionedChart/StaticChartRasterizer.js"
+import { GrapherRasterizeFn } from "../captionedChart/StaticChartRasterizer.js"
 import { TabItem, Tabs } from "../tabs/Tabs.js"
 import {
     DownloadIconFullDataset,
@@ -49,7 +49,7 @@ import {
 
 export interface DownloadModalManager {
     displaySlug: string
-    rasterize: () => Promise<GrapherExport>
+    rasterize: GrapherRasterizeFn
     staticBounds?: Bounds
     staticBoundsWithDetails?: Bounds
     baseUrl?: string
@@ -59,7 +59,6 @@ export interface DownloadModalManager {
     transformedTable?: OwidTable
     tableForDisplay?: OwidTable
     yColumnsFromDimensionsOrSlugsOrAuto?: CoreColumn[]
-    shouldIncludeDetailsInStaticExport?: boolean
     detailsOrderedByReference?: string[]
     activeModal?: GrapherModal
     frameBounds?: Bounds
@@ -218,6 +217,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
             | "pngPreviewUrl"
             | "canWriteToClipboard"
             | "isReady"
+            | "shouldIncludeDetails"
         >(this, {
             svgBlob: observable,
             svgPreviewUrl: observable,
@@ -225,6 +225,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
             pngPreviewUrl: observable,
             canWriteToClipboard: observable,
             isReady: observable,
+            shouldIncludeDetails: observable,
         })
     }
 
@@ -251,12 +252,10 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
         return this.manager.isWikimediaExport ?? false
     }
 
-    @computed private get shouldIncludeDetails(): boolean {
-        return !!this.manager.shouldIncludeDetailsInStaticExport
-    }
-
     @computed private get targetBounds(): Bounds {
-        return this.manager.staticBoundsWithDetails ?? this.staticBounds
+        if (this.shouldIncludeDetails)
+            return this.manager.staticBoundsWithDetails ?? this.staticBounds
+        else return this.staticBounds
     }
 
     @computed private get targetWidth(): number {
@@ -280,10 +279,12 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
 
     private isReady: boolean = false
 
+    private shouldIncludeDetails = true
+
     @action.bound private export(): void {
         // render the graphic then cache data-urls for display & blobs for downloads
         this.manager
-            .rasterize()
+            .rasterize({ includeDetails: this.shouldIncludeDetails })
             .then(({ url, blob, svgUrl, svgBlob }) => {
                 this.pngPreviewUrl = url
                 this.pngBlob = blob
@@ -345,8 +346,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
     }
 
     @action.bound private toggleIncludeDetails(): void {
-        this.manager.shouldIncludeDetailsInStaticExport =
-            !this.manager.shouldIncludeDetailsInStaticExport
+        this.shouldIncludeDetails = !this.shouldIncludeDetails
     }
 
     @computed private get hasDetails(): boolean {
@@ -530,7 +530,7 @@ export class DownloadModalVisTab extends React.Component<DownloadModalProps> {
                                             if (this.isSocialMediaExport) {
                                                 this.manager.staticBounds =
                                                     DEFAULT_GRAPHER_BOUNDS_SQUARE
-                                                this.manager.shouldIncludeDetailsInStaticExport = false
+                                                this.shouldIncludeDetails = false
                                             }
 
                                             this.export()

@@ -12,8 +12,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { canWriteToClipboard, isAndroid, isIOS } from "@ourworldindata/utils"
 import { GrapherModal } from "../core/GrapherConstants"
-import { GrapherExport } from "../captionedChart/StaticChartRasterizer.js"
 import { isTargetOutsideElement } from "../chart/ChartUtils.js"
+import { GrapherRasterizeFn } from "../captionedChart/StaticChartRasterizer.js"
 
 export interface ShareMenuManager {
     slug?: string
@@ -22,7 +22,7 @@ export interface ShareMenuManager {
     editUrl?: string
     createNarrativeChartUrl?: string
     activeModal?: GrapherModal
-    rasterize: () => Promise<GrapherExport>
+    rasterize: GrapherRasterizeFn
 }
 
 interface ShareMenuProps {
@@ -180,10 +180,14 @@ export class ShareMenu extends React.Component<ShareMenuProps, ShareMenuState> {
         try {
             this.setState({ copiedLink: false, copiedPng: false })
 
+            const rasterizePromise = manager.rasterize({
+                // Don't include DoDs in the static export when copying PNG to clipboard
+                includeDetails: false,
+            })
+
             // Safari needs the clipboard.write call to happen without a delay after the user interaction,
             // so it's important that we pass a promise to ClipboardItem, not await the rasterization first
             // see https://stackoverflow.com/a/68241516/10670163
-            const rasterizePromise = manager.rasterize()
             await navigator.clipboard.write([
                 new ClipboardItem({
                     "image/png": rasterizePromise.then(({ blob }) => blob),
