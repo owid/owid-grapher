@@ -18,7 +18,7 @@ import {
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_FRAME_PADDING_VERTICAL,
 } from "../../core/GrapherConstants"
-import { CloseGlobeViewButton } from "../CloseGlobeViewButton"
+import { BackTo2dWorldMapButton } from "../BackTo2dWorldMapButton"
 import {
     DataTableFilterDropdown,
     DataTableFilterDropdownManager,
@@ -28,6 +28,7 @@ import {
     DataTableSearchFieldManager,
 } from "../DataTableSearchField"
 import { ZoomToSelectionButton } from "../ZoomToSelectionButton"
+import { MapZoomToCountryOrContinentDropdown } from "../MapZoomToCountryOrContinentDropdown"
 
 export interface ControlsRowManager
     extends ContentSwitchersManager,
@@ -74,7 +75,8 @@ export class ControlsRow extends Component<ControlsRowProps> {
             SettingsMenu.shouldShow(this.manager) ||
             EntitySelectionToggle.shouldShow(this.manager) ||
             MapRegionDropdown.shouldShow(this.manager) ||
-            CloseGlobeViewButton.shouldShow(this.manager) ||
+            MapZoomToCountryOrContinentDropdown.shouldShow(this.manager) ||
+            BackTo2dWorldMapButton.shouldShow(this.manager) ||
             ContentSwitchers.shouldShow(this.manager) ||
             DataTableFilterDropdown.shouldShow(this.manager) ||
             DataTableSearchField.shouldShow(this.manager)
@@ -116,19 +118,35 @@ export class ControlsRow extends Component<ControlsRowProps> {
     private renderMapControls(): React.ReactElement {
         return (
             <div className="controls map-controls">
-                {this.manager.isMapSelectionEnabled ? (
-                    <>
-                        <ZoomToSelectionButton manager={this.manager} />
-                        <CloseGlobeViewButton manager={this.manager} />
-                        <MapRegionDropdown manager={this.manager} />
-                        <EntitySelectionToggle manager={this.manager} />
-                    </>
-                ) : (
-                    <>
-                        <CloseGlobeViewButton manager={this.manager} />
-                    </>
-                )}
+                {this.manager.isMapSelectionEnabled
+                    ? this.renderMapControlsForDesktop()
+                    : this.renderMapControlsForMobile()}
             </div>
+        )
+    }
+
+    private renderMapControlsForDesktop(): React.ReactElement {
+        return (
+            <>
+                <ZoomToSelectionButton manager={this.manager} />
+                <BackTo2dWorldMapButton manager={this.manager} />
+                <MapRegionDropdown manager={this.manager} />
+                <EntitySelectionToggle manager={this.manager} />
+            </>
+        )
+    }
+
+    private renderMapControlsForMobile(): React.ReactElement {
+        const shouldShowBackToWorldMapButton =
+            BackTo2dWorldMapButton.shouldShow(this.manager)
+
+        if (shouldShowBackToWorldMapButton)
+            return <BackTo2dWorldMapButton manager={this.manager} />
+
+        return this.manager.isFaceted ? (
+            <MapRegionDropdown manager={this.manager} />
+        ) : (
+            <MapZoomToCountryOrContinentDropdown manager={this.manager} />
         )
     }
 

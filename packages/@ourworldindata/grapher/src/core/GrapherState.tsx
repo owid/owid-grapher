@@ -3539,11 +3539,17 @@ export class GrapherState {
     @computed get isMapSelectionEnabled(): boolean {
         if (this.enableMapSelection) return true
 
-        // If the entity controls are hidden, then selecting entities from
-        // the map should also be disabled
-        return !this.hideEntityControls
+        return (
+            // If the entity controls are hidden, then selecting entities from
+            // the map should also be disabled
+            !this.hideEntityControls &&
+            // Only show the entity selector on the map tab if it's rendered
+            // into the side panel or into the slide-in drawer
+            this.shouldShowEntitySelectorAs !== GrapherWindowType.modal
+        )
     }
 
+    // todo: remove?
     @computed get shouldShowMapZoomToSelectionButton(): boolean {
         return this.shouldShowEntitySelectorAs !== GrapherWindowType.modal
     }

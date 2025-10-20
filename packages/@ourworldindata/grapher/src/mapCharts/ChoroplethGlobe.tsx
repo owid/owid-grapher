@@ -423,6 +423,7 @@ export class ChoroplethGlobe extends React.Component<{
         this.hoverEnterFeature = undefined
         this.hoverNearbyFeature = undefined
         this.manager.onMapMouseLeave?.()
+        this.globeController.dismissCountryFocus()
     }
 
     @action.bound private onMouseMove(event: MouseEvent): void {
@@ -469,6 +470,10 @@ export class ChoroplethGlobe extends React.Component<{
         const country = feature.id
         if (this.manager.isMapSelectionEnabled) {
             this.mapConfig.selection.toggleSelection(country)
+
+            // make sure country focus is dismissed for unselected countries
+            if (!this.mapConfig.selection.selectedSet.has(country))
+                this.globeController.dismissCountryFocus()
         }
 
         // rotate to the selected country on mobile

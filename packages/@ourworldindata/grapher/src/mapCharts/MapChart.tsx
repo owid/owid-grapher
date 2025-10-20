@@ -295,6 +295,8 @@ export class MapChart
         const { mapConfig, hoverBracket } = this
         const { externalLegendHoverBin } = this.manager
 
+        if (mapConfig.globe.focusCountry === featureId) return true
+
         if (mapConfig.hoverCountry === featureId) return true
 
         const series = this.choroplethData.get(featureId)
@@ -638,7 +640,12 @@ export class MapChart
             )
         }
 
-        const tooltipCountry = tooltipState.target?.featureId
+        const tooltipCountry =
+            tooltipState.target?.featureId ??
+            // show a pinned-to-the-bottom tooltip when focused on a country
+            (this.manager.shouldPinTooltipToBottom
+                ? this.mapConfig.globe.focusCountry
+                : undefined)
 
         return (
             <g
@@ -667,6 +674,7 @@ export class MapChart
                         dismissTooltip={() => {
                             this.mapConfig.hoverCountry = undefined
                             this.tooltipState.target = null
+                            this.globeController.dismissCountryFocus()
                         }}
                     />
                 )}

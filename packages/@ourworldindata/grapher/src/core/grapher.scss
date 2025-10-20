@@ -100,6 +100,7 @@ $zindex-controls-drawer: 150;
 @import "../controls/Dropdown.scss";
 @import "../controls/DataTableFilterDropdown.scss";
 @import "../controls/SearchDropdown.scss";
+@import "../controls/MapZoomToCountryOrContinentDropdown.scss";
 
 .grapher_dark {
     color: $dark-text;

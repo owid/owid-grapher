@@ -399,6 +399,7 @@ export class ChoroplethMap extends React.Component<{
     }
 
     @action.bound private onDocumentClick(): void {
+        this.manager.globeController?.dismissCountryFocus()
         if (this.hoverEnterFeature || this.hoverNearbyFeature) {
             this.hoverEnterFeature = undefined
             this.hoverNearbyFeature = undefined

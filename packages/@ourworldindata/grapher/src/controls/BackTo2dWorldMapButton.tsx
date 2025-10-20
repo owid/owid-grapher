@@ -7,7 +7,7 @@ import { GlobeController } from "../mapCharts/GlobeController"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons"
 
-export interface CloseGlobeViewButtonManager {
+export interface BackTo2dWorldMapButtonManager {
     mapConfig?: MapConfig
     isOnMapTab?: boolean
     globeController?: GlobeController
@@ -15,16 +15,16 @@ export interface CloseGlobeViewButtonManager {
 }
 
 @observer
-export class CloseGlobeViewButton extends React.Component<{
-    manager: CloseGlobeViewButtonManager
+export class BackTo2dWorldMapButton extends React.Component<{
+    manager: BackTo2dWorldMapButtonManager
 }> {
-    constructor(props: { manager: CloseGlobeViewButtonManager }) {
+    constructor(props: { manager: BackTo2dWorldMapButtonManager }) {
         super(props)
         makeObservable(this)
     }
 
-    static shouldShow(manager: CloseGlobeViewButtonManager): boolean {
-        const menu = new CloseGlobeViewButton({ manager })
+    static shouldShow(manager: BackTo2dWorldMapButtonManager): boolean {
+        const menu = new BackTo2dWorldMapButton({ manager })
         return menu.showMenu
     }
 
@@ -40,7 +40,7 @@ export class CloseGlobeViewButton extends React.Component<{
         return !!(isOnMapTab && mapConfig?.globe.isActive)
     }
 
-    @computed private get manager(): CloseGlobeViewButtonManager {
+    @computed private get manager(): BackTo2dWorldMapButtonManager {
         return this.props.manager
     }
 

@@ -77,6 +77,15 @@ export class GlobeController {
     resetGlobe(): void {
         this.globeConfig.rotation = DEFAULT_GLOBE_ROTATION
         this.globeConfig.zoom = 1
+        this.globeConfig.focusCountry = undefined
+    }
+
+    setFocusCountry(country: EntityName): void {
+        this.globeConfig.focusCountry = country
+    }
+
+    dismissCountryFocus(): void {
+        this.globeConfig.focusCountry = undefined
     }
 
     private jumpTo(target: Partial<Target>): void {
