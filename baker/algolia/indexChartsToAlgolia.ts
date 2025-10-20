@@ -19,13 +19,16 @@ const indexChartsToAlgolia = async () => {
         return
     }
 
-    const index = client.initIndex(getIndexName(SearchIndexName.Charts))
+    const indexName = getIndexName(SearchIndexName.Charts)
 
     const records = await db.knexReadonlyTransaction(
         getChartsRecords,
         db.TransactionCloseMode.Close
     )
-    await index.replaceAllObjects(records)
+    await client.replaceAllObjects({
+        indexName,
+        objects: records as Array<Record<string, any>>,
+    })
 }
 
 indexChartsToAlgolia().catch(async (e) => {

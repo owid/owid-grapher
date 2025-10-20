@@ -8,7 +8,7 @@ import {
 import { useSearchContext } from "./SearchContext.js"
 import { flattenNonTopicNodes, Url } from "@ourworldindata/utils"
 import { useInfiniteQuery } from "@tanstack/react-query"
-import { SearchClient } from "algoliasearch"
+import { LiteClient } from "algoliasearch/lite"
 import type { SearchResponse } from "instantsearch.js"
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { urlToSearchState, searchStateToUrl } from "./searchState.js"
@@ -183,7 +183,7 @@ export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
 }: {
     queryKey: (state: SearchState) => readonly (string | QueryKeyState)[]
     queryFn: (
-        searchClient: SearchClient,
+        liteSearchClient: LiteClient,
         state: SearchState,
         offset: number,
         length: number
@@ -192,7 +192,7 @@ export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
     laterPageSize: number
     enabled?: boolean
 }) {
-    const { state, searchClient } = useSearchContext()
+    const { state, liteSearchClient } = useSearchContext()
     const query = useInfiniteQuery<T, Error>({
         queryKey: queryKey(state),
         queryFn: ({ pageParam }) => {
@@ -205,7 +205,7 @@ export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
                 laterPageSize
             )
 
-            return queryFn(searchClient, state, offset, length)
+            return queryFn(liteSearchClient, state, offset, length)
         },
         getNextPageParam: (lastPage, allPages) => {
             const currentPageIndex = allPages.length - 1
@@ -217,7 +217,7 @@ export function useInfiniteSearchOffset<T extends SearchResponse<U>, U>({
                 lastPage.hits.length
             )
 
-            return requestedSoFar < lastPage.nbHits
+            return requestedSoFar < (lastPage.nbHits ?? 0)
                 ? currentPageIndex + 1
                 : undefined
         },
@@ -242,13 +242,13 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
 }: {
     queryKey: (state: SearchState) => readonly (string | QueryKeyState)[]
     queryFn: (
-        searchClient: SearchClient,
+        liteSearchClient: LiteClient,
         state: SearchState,
         page: number
     ) => Promise<T>
     enabled?: boolean
 }) {
-    const { deferredState: state, searchClient } = useSearchContext()
+    const { deferredState: state, liteSearchClient } = useSearchContext()
 
     const query = useInfiniteQuery<T, Error>({
         // All paginated subqueries share the same query key
@@ -257,10 +257,12 @@ export function useInfiniteSearch<T extends SearchResponse<U>, U>({
             if (typeof pageParam !== "number")
                 throw new Error("Invalid pageParam")
 
-            return queryFn(searchClient, state, pageParam)
+            return queryFn(liteSearchClient, state, pageParam)
         },
         getNextPageParam: (lastPage) => {
-            const { page, nbPages } = lastPage
+            let { page, nbPages } = lastPage
+            page = page ?? 0
+            nbPages = nbPages ?? 1
             return page < nbPages - 1 ? page + 1 : undefined
         },
         initialPageParam: 0,

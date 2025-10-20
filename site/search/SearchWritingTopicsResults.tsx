@@ -7,16 +7,16 @@ import { SearchWritingTopic } from "./SearchWritingTopic.js"
 import { SearchWritingTopicsResultsSkeleton } from "./SearchWritingTopicsResultsSkeleton.js"
 
 export const SearchWritingTopicsResults = () => {
-    const { state, searchClient, topicTagGraph } = useSearchContext()
+    const { state, liteSearchClient, topicTagGraph } = useSearchContext()
     const selectedTopic = useSelectedTopic()
 
     const query = useQuery<SearchWritingTopicsResponse[], Error>({
         queryKey: searchQueryKeys.writingTopics(state),
         queryFn: () =>
-            queryWritingTopics(searchClient, topicTagGraph, selectedTopic),
+            queryWritingTopics(liteSearchClient, topicTagGraph, selectedTopic),
     })
 
-    if (query.isInitialLoading) return <SearchWritingTopicsResultsSkeleton />
+    if (query.isLoading) return <SearchWritingTopicsResultsSkeleton />
     if (!query.data?.length) return null
 
     return (

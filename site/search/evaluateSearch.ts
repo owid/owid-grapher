@@ -9,7 +9,7 @@ import {
 } from "../../settings/clientSettings.js"
 import { SEARCH_EVAL_URL } from "../../settings/serverSettings.js"
 import { getIndexName } from "./searchClient.js"
-import algoliasearch from "algoliasearch"
+import { algoliasearch, SearchClient } from "algoliasearch"
 
 /* eslint-disable no-console */
 
@@ -68,10 +68,9 @@ const evaluateArticleSearch = async (name: string): Promise<SearchResults> => {
 
     // make a search client
     const client = getClient()
-    const index = client.initIndex(indexName)
 
     // run the evaluation
-    const results = await simulateQueries(index, ds.queries)
+    const results = await simulateQueries(client, indexName, ds.queries)
     const scores: Scores = {}
     for (const scoreName of Object.keys(results[0].scores)) {
         const mean =
@@ -104,10 +103,14 @@ const fetchQueryDataset = async (name: string): Promise<QueryDataset> => {
 }
 
 const simulateQuery = async (
-    index: any,
+    searchClient: SearchClient,
+    indexName: string,
     query: Query
 ): Promise<ScoredQuery> => {
-    const { hits } = await index.search(query.query)
+    const { hits } = await searchClient.searchSingleIndex({
+        indexName,
+        searchParams: { query: query.query },
+    })
     const actual = hits.map((h: any) => h.slug)
     const scores = scoreResults(query.slugs, actual)
     return { query: query.query, expected: query.slugs, actual, scores }
@@ -134,7 +137,8 @@ const scoreResults = (relevant: string[], actual: string[]): Scores => {
 }
 
 const simulateQueries = async (
-    index: any,
+    searchClient: SearchClient,
+    indexName: string,
     queries: Query[]
 ): Promise<ScoredQuery[]> => {
     // NOTE: should be a rate-limited version of:
@@ -151,7 +155,7 @@ const simulateQueries = async (
         if (i >= queries.length) return
         const query = queries[i++]
         activeQueries++
-        const score = await simulateQuery(index, query)
+        const score = await simulateQuery(searchClient, indexName, query)
         scores.push(score)
         activeQueries--
         if (i < queries.length) {

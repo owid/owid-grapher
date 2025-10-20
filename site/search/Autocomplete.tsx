@@ -9,7 +9,7 @@ import {
     autocomplete,
     getAlgoliaResults,
 } from "@algolia/autocomplete-js"
-import algoliasearch from "algoliasearch"
+import { LiteClient, liteClient } from "algoliasearch/lite"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
 import {
     ChartRecordType,
@@ -69,7 +69,13 @@ const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
     },
 })
 
-const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
+let liteSearchClient: LiteClient | null
+if (ALGOLIA_ID && ALGOLIA_SEARCH_KEY) {
+    liteSearchClient = liteClient(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
+} else {
+    liteSearchClient = null
+    console.warn("Algolia credentials are not set")
+}
 
 const onSelect: AutocompleteSource<BaseItem>["onSelect"] = ({
     navigator,
@@ -169,13 +175,15 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
         return itemUrl
     },
     getItems({ query }) {
+        if (!liteSearchClient) return []
+
         return getAlgoliaResults({
-            searchClient,
+            searchClient: liteSearchClient,
             queries: [
                 {
                     indexName: getIndexName(SearchIndexName.Pages),
-                    query,
                     params: {
+                        query,
                         hitsPerPage: 2,
                         distinct: true,
                     },
@@ -184,8 +192,8 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
                     indexName: getIndexName(
                         SearchIndexName.ExplorerViewsMdimViewsAndCharts
                     ),
-                    query,
                     params: {
+                        query,
                         hitsPerPage: 3,
                         distinct: true,
                     },

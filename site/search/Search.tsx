@@ -1,5 +1,5 @@
 import { TagGraphRoot } from "@ourworldindata/types"
-import { SearchClient } from "algoliasearch"
+import { LiteClient } from "algoliasearch/lite"
 import { useReducer, useMemo, useDeferredValue } from "react"
 import { match } from "ts-pattern"
 import { useIsFetching } from "@tanstack/react-query"
@@ -42,11 +42,11 @@ import { PoweredBy } from "react-instantsearch"
 export const Search = ({
     initialState,
     topicTagGraph,
-    searchClient,
+    liteSearchClient,
 }: {
     initialState: SearchState
     topicTagGraph: TagGraphRoot
-    searchClient: SearchClient
+    liteSearchClient: LiteClient
 }) => {
     // State management
     const [state, dispatch] = useReducer(searchReducer, initialState)
@@ -90,7 +90,7 @@ export const Search = ({
                 state,
                 deferredState,
                 actions,
-                searchClient,
+                liteSearchClient,
                 templateConfig,
                 topicTagGraph,
                 synonymMap,

@@ -24,14 +24,14 @@ export const SearchDataResults = ({
         queryFn: queryCharts,
     })
 
-    const { hits, totalResults, isInitialLoading } = query
+    const { hits, totalResults, isLoading } = query
 
-    if (!isInitialLoading && totalResults === 0) return null
+    if (!isLoading && totalResults === 0) return null
 
     return (
         <>
             <section>
-                {isInitialLoading ? (
+                {isLoading ? (
                     <SearchDataResultsSkeleton />
                 ) : (
                     <>
@@ -80,7 +80,7 @@ export const SearchDataResults = ({
                 )}
             </section>
             <SearchHorizontalDivider
-                hasButton={!isInitialLoading && query.hasNextPage}
+                hasButton={!isLoading && query.hasNextPage}
                 isLoading={query.isFetchingNextPage}
                 onClick={query.fetchNextPage}
             />

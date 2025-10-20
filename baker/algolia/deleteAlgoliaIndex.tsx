@@ -26,9 +26,8 @@ const deleteAlgoliaIndex = async () => {
         SearchIndexName.ExplorerViewsMdimViewsAndCharts,
     ]) {
         const indexName = getIndexName(suffix)
-        const index = client.initIndex(indexName)
         try {
-            await index.delete()
+            await client.deleteIndex({ indexName })
             console.log(`Index '${indexName}' removed successfully`)
         } catch (error) {
             console.error(`Error removing index '${indexName}':`, error)

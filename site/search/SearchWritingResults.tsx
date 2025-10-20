@@ -193,8 +193,8 @@ export const SearchWritingResults = ({
         FlatArticleHit
     >({
         queryKey: (state) => searchQueryKeys.articles(state),
-        queryFn: (searchClient, state, offset, length) => {
-            return queryArticles(searchClient, state, offset, length)
+        queryFn: (liteSearchClient, state, offset, length) => {
+            return queryArticles(liteSearchClient, state, offset, length)
         },
         firstPageSize: 2,
         laterPageSize: 6,
@@ -207,20 +207,19 @@ export const SearchWritingResults = ({
         TopicPageHit
     >({
         queryKey: (state) => searchQueryKeys.topicPages(state),
-        queryFn: (searchClient, state, offset, length) => {
-            return queryTopicPages(searchClient, state, offset, length)
+        queryFn: (liteSearchClient, state, offset, length) => {
+            return queryTopicPages(liteSearchClient, state, offset, length)
         },
         firstPageSize: noArticles ? 6 : 2,
         laterPageSize: noArticles ? 6 : 4,
-        enabled: hasTopicPages && !articlesQuery.isInitialLoading,
+        enabled: hasTopicPages && !articlesQuery.isLoading,
     })
 
     const totalCount = articlesQuery.totalResults + topicsQuery.totalResults
     const hasNextPage = articlesQuery.hasNextPage || topicsQuery.hasNextPage
     const isFetchingNextPage =
         articlesQuery.isFetchingNextPage || topicsQuery.isFetchingNextPage
-    const isInitialLoading =
-        articlesQuery.isInitialLoading || topicsQuery.isInitialLoading
+    const isLoading = articlesQuery.isLoading || topicsQuery.isLoading
 
     const fetchNextPage = () =>
         Promise.all([
@@ -230,12 +229,12 @@ export const SearchWritingResults = ({
             topicsQuery.hasNextPage ? topicsQuery.fetchNextPage() : undefined,
         ])
 
-    if (!isInitialLoading && totalCount === 0) return null
+    if (!isLoading && totalCount === 0) return null
 
     return (
         <>
             <section>
-                {isInitialLoading ? (
+                {isLoading ? (
                     <SearchWritingResultsSkeleton />
                 ) : (
                     <>
@@ -259,7 +258,7 @@ export const SearchWritingResults = ({
                 )}
             </section>
             <SearchHorizontalDivider
-                hasButton={!isInitialLoading && hasNextPage}
+                hasButton={!isLoading && hasNextPage}
                 isLoading={isFetchingNextPage}
                 onClick={fetchNextPage}
             />

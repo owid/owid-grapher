@@ -7,16 +7,21 @@ import { SearchDataTopic } from "./SearchDataTopic.js"
 import { SearchDataTopicsResultsSkeleton } from "./SearchDataTopicsResultsSkeleton.js"
 
 export const SearchDataTopicsResults = () => {
-    const { state, searchClient, topicTagGraph } = useSearchContext()
+    const { state, liteSearchClient, topicTagGraph } = useSearchContext()
     const selectedTopic = useSelectedTopic()
 
     const query = useQuery<SearchDataTopicsResponse[], Error>({
         queryKey: searchQueryKeys.dataTopics(state),
         queryFn: () =>
-            queryDataTopics(searchClient, state, topicTagGraph, selectedTopic),
+            queryDataTopics(
+                liteSearchClient,
+                state,
+                topicTagGraph,
+                selectedTopic
+            ),
     })
 
-    if (query.isInitialLoading) return <SearchDataTopicsResultsSkeleton />
+    if (query.isLoading) return <SearchDataTopicsResultsSkeleton />
     if (!query.data?.length) return null
 
     return (
