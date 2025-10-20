@@ -1095,7 +1095,7 @@ export class GdocBase implements OwidGdocBaseInterface {
 
     async loadState(knex: db.KnexReadonlyTransaction): Promise<void> {
         // TEMPORARY: Profiling instrumentation
-        const track = (name: string, duration: number) => {
+        const track = (name: string, duration: number): void => {
             if (!(global as any).__gdocLoadStateTiming) {
                 ;(global as any).__gdocLoadStateTiming = {}
             }
