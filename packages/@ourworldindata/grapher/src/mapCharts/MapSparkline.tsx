@@ -200,16 +200,13 @@ export class MapSparkline extends React.Component<MapSparklineProps> {
 
         const { mapColumnSlug, formatValueForTooltip } = this.manager
 
+        const roundingMode = OwidVariableRoundingMode.decimalPlaces
         const { yAxisConfig } = this.sparklineManager,
             yColumn = this.sparklineTable.get(mapColumnSlug),
             minVal = _.min([yColumn.minValue, yAxisConfig?.min]) ?? 0,
             maxVal = _.max([yColumn.maxValue, yAxisConfig?.max]) ?? 0,
-            minLabel = formatValueForTooltip(minVal, {
-                roundingMode: OwidVariableRoundingMode.decimalPlaces,
-            }).formattedValue,
-            maxLabel = formatValueForTooltip(maxVal, {
-                roundingMode: OwidVariableRoundingMode.decimalPlaces,
-            }).formattedValue
+            minLabel = formatValueForTooltip(minVal, { roundingMode }).label,
+            maxLabel = formatValueForTooltip(maxVal, { roundingMode }).label
         const { innerBounds: axisBounds } = this.sparklineChart.dualAxis
 
         const labelX = axisBounds.right - SPARKLINE_NUDGE

@@ -25,11 +25,7 @@ import {
     PrimitiveType,
 } from "@ourworldindata/types"
 import { CoreColumn, OwidTable } from "@ourworldindata/core-table"
-import {
-    anyToString,
-    excludeUndefined,
-    PointVector,
-} from "@ourworldindata/utils"
+import { excludeUndefined, PointVector } from "@ourworldindata/utils"
 import { darkenColorForHighContrastText } from "../color/ColorUtils"
 import { MapSparkline, MapSparklineManager } from "./MapSparkline.js"
 import { match } from "ts-pattern"
@@ -43,7 +39,6 @@ interface MapTooltipProps {
     position?: PointVector
     lineColorScale: ColorScale
     timeSeriesTable: OwidTable
-    shouldUseCustomLabels?: boolean
     targetTime?: Time // show tooltip values for a specific point in time
     targetTimes?: [Time, Time] // show tooltip values for a specific time range (start and end times)
     sparklineWidth?: number
@@ -135,6 +130,22 @@ export class MapTooltip
         return this.mapColumn.owidRowByEntityNameAndTime
             .get(this.entityName)
             ?.get(this.endTime)
+    }
+
+    @computed
+    private get formattedStartValue():
+        | ReturnType<MapFormatValueForTooltip>
+        | undefined {
+        if (!this.startDatum) return undefined
+        return this.formatValueForTooltip(this.startDatum.value)
+    }
+
+    @computed
+    private get formattedEndValue():
+        | ReturnType<MapFormatValueForTooltip>
+        | undefined {
+        if (!this.endDatum) return undefined
+        return this.formatValueForTooltip(this.endDatum.value)
     }
 
     @computed get highlightedTimesInSparkline(): Time[] | undefined {
@@ -232,11 +243,7 @@ export class MapTooltip
     }
 
     @computed private get roundingNotice(): FooterItem | undefined {
-        const {
-            mapColumn,
-            lineColorScale: colorScale,
-            props: { shouldUseCustomLabels: shouldUseCustomLabel },
-        } = this
+        const { mapColumn } = this
 
         // Only show a rounding notice for rounding to sig figs
         if (!mapColumn.roundsToSignificantFigures) return undefined
@@ -244,17 +251,11 @@ export class MapTooltip
         // Don't show a rounding notice if all values are missing
         if (!this.startDatum && !this.endDatum) return undefined
 
-        const isStartValueLabelCategorical = hasCategoricalValueLabel(
-            this.startDatum?.value,
-            { shouldUseCustomLabel, colorScale }
+        // Don't show a rounding notice if both values are formatted as category strings
+        if (
+            this.formattedStartValue?.isCategorical &&
+            this.formattedEndValue?.isCategorical
         )
-        const isEndValueLabelCategorical = hasCategoricalValueLabel(
-            this.endDatum?.value,
-            { shouldUseCustomLabel, colorScale }
-        )
-
-        // Don't show a rounding notice if values are formatted as category strings
-        if (isStartValueLabelCategorical && isEndValueLabelCategorical)
             return undefined
 
         return {
@@ -274,7 +275,7 @@ export class MapTooltip
             isProjection,
             lineColorScale: colorScale,
         } = this
-        const { position, fading, shouldUseCustomLabels } = this.props
+        const { position, fading } = this.props
 
         const footer = excludeUndefined([
             this.toleranceNotice,
@@ -304,15 +305,16 @@ export class MapTooltip
                         mapColumn={mapColumn}
                         startDatum={startDatum}
                         endDatum={endDatum}
+                        formattedStartValue={this.formattedStartValue}
+                        formattedEndValue={this.formattedEndValue}
                         colorScale={colorScale}
-                        shouldUseCustomLabel={shouldUseCustomLabels}
                     />
                 ) : (
                     <MapTooltipValue
                         mapColumn={mapColumn}
                         datum={endDatum}
+                        formattedValue={this.formattedEndValue?.label}
                         colorScale={colorScale}
-                        shouldUseCustomLabel={shouldUseCustomLabels}
                         isProjection={isProjection}
                     />
                 )}
@@ -329,21 +331,16 @@ export class MapTooltip
 function MapTooltipValue({
     mapColumn,
     datum,
+    formattedValue,
     colorScale,
     isProjection = false,
-    shouldUseCustomLabel,
 }: {
     mapColumn: CoreColumn
     datum?: OwidVariableRow<number | string>
+    formattedValue?: string
     colorScale: ColorScale
     isProjection?: boolean
-    shouldUseCustomLabel?: boolean
 }): React.ReactElement {
-    const formattedValue = formatValueShort(datum?.value, {
-        mapColumn,
-        shouldUseCustomLabel,
-        colorScale,
-    })
     const color = makeTextColorForValue(datum?.value, { colorScale })
 
     return (
@@ -360,37 +357,19 @@ function MapTooltipRangeValues({
     mapColumn,
     startDatum,
     endDatum,
+    formattedStartValue,
+    formattedEndValue,
     colorScale,
-    shouldUseCustomLabel,
 }: {
     mapColumn: CoreColumn
     startDatum?: OwidVariableRow<number | string>
     endDatum?: OwidVariableRow<number | string>
+    formattedStartValue?: ReturnType<MapFormatValueForTooltip>
+    formattedEndValue?: ReturnType<MapFormatValueForTooltip>
     colorScale: ColorScale
-    shouldUseCustomLabel?: boolean
 }): React.ReactElement {
-    const isStartValueLabelCategorical = hasCategoricalValueLabel(
-        startDatum?.value,
-        { shouldUseCustomLabel, colorScale }
-    )
-    const isEndValueLabelCategorical = hasCategoricalValueLabel(
-        endDatum?.value,
-        { shouldUseCustomLabel, colorScale }
-    )
-
     const hasCategoricalValueLabels =
-        isStartValueLabelCategorical || isEndValueLabelCategorical
-
-    const formattedStartValue = formatValueShort(startDatum?.value, {
-        mapColumn,
-        shouldUseCustomLabel,
-        colorScale,
-    })
-    const formattedEndValue = formatValueShort(endDatum?.value, {
-        mapColumn,
-        shouldUseCustomLabel,
-        colorScale,
-    })
+        formattedStartValue?.isCategorical || formattedEndValue?.isCategorical
 
     const colors = [
         makeTextColorForValue(startDatum?.value, { colorScale }),
@@ -398,67 +377,12 @@ function MapTooltipRangeValues({
     ]
 
     const values = hasCategoricalValueLabels
-        ? [formattedStartValue, formattedEndValue]
+        ? [formattedStartValue?.label, formattedEndValue?.label]
         : [startDatum?.value, endDatum?.value]
 
     return (
         <TooltipValueRange column={mapColumn} values={values} colors={colors} />
     )
-}
-
-function formatValueShort(
-    value: PrimitiveType | undefined,
-    {
-        mapColumn,
-        shouldUseCustomLabel,
-        colorScale,
-    }: {
-        mapColumn: CoreColumn
-        shouldUseCustomLabel?: boolean
-        colorScale: ColorScale
-    }
-): string | undefined {
-    if (value === undefined) return undefined
-
-    const customLabel = formatValueIfCustom(value, {
-        shouldUseCustomLabel,
-        colorScale,
-    })
-    if (customLabel) return customLabel
-
-    if (_.isNumber(value)) return mapColumn.formatValueShort(value)
-    return anyToString(value)
-}
-
-function formatValueIfCustom(
-    value: PrimitiveType,
-    {
-        shouldUseCustomLabel,
-        colorScale,
-    }: { shouldUseCustomLabel?: boolean; colorScale: ColorScale }
-): string | undefined {
-    if (!shouldUseCustomLabel) return undefined
-    // Find the bin (and its label) that this value belongs to
-    const bin = colorScale.getBinForValue(value)
-    const label = bin?.label
-    if (label !== undefined && label !== "") return label
-    return undefined
-}
-
-function hasCategoricalValueLabel(
-    value: PrimitiveType | undefined,
-    {
-        shouldUseCustomLabel,
-        colorScale,
-    }: { shouldUseCustomLabel?: boolean; colorScale: ColorScale }
-): boolean {
-    if (value === undefined) return false
-    const hasCustomLabel =
-        formatValueIfCustom(value, {
-            shouldUseCustomLabel,
-            colorScale,
-        }) !== undefined
-    return !_.isNumber(value) || hasCustomLabel
 }
 
 function makeTextColorForValue(

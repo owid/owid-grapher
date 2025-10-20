@@ -42,8 +42,8 @@ export type MapFormatValueForTooltip = (
     d: PrimitiveType,
     options?: TickFormattingOptions
 ) => {
-    formattedValue: string
-    isRounded: boolean
+    label: string
+    isCategorical: boolean
 }
 
 export class MapChartState implements ChartState, ColorScaleManager {
@@ -387,15 +387,15 @@ export class MapChartState implements ChartState, ColorScaleManager {
                 const bin = colorScale.getBinForValue(d)
                 const label = bin?.label
                 if (label !== undefined && label !== "")
-                    return { formattedValue: label, isRounded: false }
+                    return { label, isCategorical: true }
             }
 
-            if (typeof d === "number")
-                return {
-                    formattedValue: this.mapColumn.formatValueShort(d, options),
-                    isRounded: true,
-                }
-            else return { formattedValue: anyToString(d), isRounded: false }
+            if (typeof d === "number") {
+                const label = this.mapColumn.formatValueShort(d, options)
+                return { label, isCategorical: false }
+            } else {
+                return { label: anyToString(d), isCategorical: true }
+            }
         }
     }
 
