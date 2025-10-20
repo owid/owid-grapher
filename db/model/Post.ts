@@ -153,7 +153,7 @@ const getFullPost = async (
 
 export const getBlogIndex = _.memoize(
     async (knex: db.KnexReadonlyTransaction): Promise<IndexPost[]> => {
-        // TEMPORARY: Using loadState: false to skip expensive operations for blog index
+        // Using loadState: false to skip expensive operations for blog index
         const gdocPosts = await getAndLoadListedGdocPosts(knex, {
             loadState: false,
         })
