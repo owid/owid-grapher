@@ -149,15 +149,18 @@ export class FacetMap
     }
 
     private getGridParams(bounds: Bounds): GridParameters {
-        const horizontalLayout = { rows: 1, columns: 2, count: 2 }
-        const verticalLayout = { rows: 2, columns: 1, count: 2 }
+        const { mapConfig } = this.manager
 
         // We determine the preferred layout (horizontal vs vertical)
         // by comparing which orientation produces an aspect ratio closest to
-        // the map's natural aspect ratio. The globe uses the same layout
-        // as the corresponding 2d map.
+        // the map's natural aspect ratio. The globe uses the horizontal layout.
 
-        const region = this.manager.mapConfig?.region ?? MapRegionName.World
+        const horizontalLayout = { rows: 1, columns: 2, count: 2 }
+        const verticalLayout = { rows: 2, columns: 1, count: 2 }
+
+        if (mapConfig?.globe.isActive) return horizontalLayout
+
+        const region = mapConfig?.region ?? MapRegionName.World
         const mapAspectRatio = MAP_VIEWPORTS[region].ratio
 
         // If faceted maps are side-by-side
