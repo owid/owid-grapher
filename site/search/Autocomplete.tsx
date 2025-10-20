@@ -9,7 +9,7 @@ import {
     autocomplete,
     getAlgoliaResults,
 } from "@algolia/autocomplete-js"
-import algoliasearch from "algoliasearch"
+import { algoliasearch } from "algoliasearch"
 import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches"
 import {
     ChartRecordType,
@@ -170,26 +170,22 @@ const AlgoliaSource: AutocompleteSource<BaseItem> = {
     },
     getItems({ query }) {
         return getAlgoliaResults({
-            searchClient,
+            searchClient: searchClient as any,
             queries: [
                 {
                     indexName: getIndexName(SearchIndexName.Pages),
                     query,
-                    params: {
-                        hitsPerPage: 2,
-                        distinct: true,
-                    },
-                },
+                    hitsPerPage: 2,
+                    distinct: true,
+                } as any,
                 {
                     indexName: getIndexName(
                         SearchIndexName.ExplorerViewsMdimViewsAndCharts
                     ),
                     query,
-                    params: {
-                        hitsPerPage: 3,
-                        distinct: true,
-                    },
-                },
+                    hitsPerPage: 3,
+                    distinct: true,
+                } as any,
             ],
         })
     },

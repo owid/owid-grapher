@@ -1,5 +1,5 @@
-import algoliasearch, { SearchClient } from "algoliasearch"
-import type { Synonym, Settings } from "@algolia/client-search"
+import { algoliasearch, SearchClient } from "algoliasearch"
+import type { SynonymHit, IndexSettings } from "@algolia/client-search"
 import {
     ALGOLIA_ID,
     TOPICS_CONTENT_GRAPH,
@@ -37,7 +37,7 @@ export const configureAlgolia = async () => {
         // throwing here to halt deploy process
         throw new Error("Algolia configuration failed (client not initialized)")
 
-    const baseSettings: Settings = {
+    const baseSettings: IndexSettings = {
         queryLanguages: ["en"],
         indexLanguages: ["en"],
 
@@ -58,112 +58,130 @@ export const configureAlgolia = async () => {
         unretrievableAttributes: ["views_7d", "score"],
     }
 
-    const chartsIndex = client.initIndex(getIndexName(SearchIndexName.Charts))
+    await client.setSettings({
+        indexName: getIndexName(SearchIndexName.Charts),
+        indexSettings: {
+            ...baseSettings,
+            searchableAttributes: [
+                /**
+                 * It may seem unintuitive that we're ranking `keyChartForTags` higher than `title`.
+                 * However, many of the search queries we get are for "topics", like `migration` or
+                 * `tourism`. If for this topic we have a key chart, we want to show that first,
+                 * since that's hand-picked to be super relevant for the topic.
+                 */
+                "unordered(keyChartForTags)",
+                "unordered(title)",
+                "unordered(slug)",
+                "unordered(variantName)",
+                "unordered(subtitle)",
+                "unordered(tags)",
+                "unordered(availableEntities)",
+            ],
+            ranking: [
+                "typo",
+                "words",
+                "exact",
+                "attribute",
+                "custom",
+                "proximity",
+            ],
+            customRanking: [
+                "desc(score)",
+                "desc(numRelatedArticles)",
+                "asc(numDimensions)",
+                "asc(titleLength)",
+            ],
+            attributesToSnippet: ["subtitle:24"],
+            attributeForDistinct: "id",
+            optionalWords: ["vs"],
 
-    await chartsIndex.setSettings({
-        ...baseSettings,
-        searchableAttributes: [
-            /**
-             * It may seem unintuitive that we're ranking `keyChartForTags` higher than `title`.
-             * However, many of the search queries we get are for "topics", like `migration` or
-             * `tourism`. If for this topic we have a key chart, we want to show that first,
-             * since that's hand-picked to be super relevant for the topic.
-             */
-            "unordered(keyChartForTags)",
-            "unordered(title)",
-            "unordered(slug)",
-            "unordered(variantName)",
-            "unordered(subtitle)",
-            "unordered(tags)",
-            "unordered(availableEntities)",
-        ],
-        ranking: ["typo", "words", "exact", "attribute", "custom", "proximity"],
-        customRanking: [
-            "desc(score)",
-            "desc(numRelatedArticles)",
-            "asc(numDimensions)",
-            "asc(titleLength)",
-        ],
-        attributesToSnippet: ["subtitle:24"],
-        attributeForDistinct: "id",
-        optionalWords: ["vs"],
-
-        // These lines below essentially demote matches in the `subtitle` and `availableEntities` fields:
-        // If we find a match (only) there, then it doesn't count towards `exact`, and is therefore ranked lower.
-        // We also disable prefix matching and typo tolerance on these.
-        disableExactOnAttributes: ["tags", "subtitle", "availableEntities"],
-        disableTypoToleranceOnAttributes: ["subtitle", "availableEntities"],
-        disablePrefixOnAttributes: ["subtitle"],
+            // These lines below essentially demote matches in the `subtitle` and `availableEntities` fields:
+            // If we find a match (only) there, then it doesn't count towards `exact`, and is therefore ranked lower.
+            // We also disable prefix matching and typo tolerance on these.
+            disableExactOnAttributes: ["tags", "subtitle", "availableEntities"],
+            disableTypoToleranceOnAttributes: [
+                "subtitle",
+                "availableEntities",
+            ],
+            disablePrefixOnAttributes: ["subtitle"],
+        },
     })
 
-    const pagesIndex = client.initIndex(getIndexName(SearchIndexName.Pages))
+    await client.setSettings({
+        indexName: getIndexName(SearchIndexName.Pages),
+        indexSettings: {
+            ...baseSettings,
+            searchableAttributes: [
+                "unordered(title)",
+                "unordered(excerpt)",
+                "unordered(tags)",
+                "unordered(authors)",
+                "unordered(content)",
+            ],
+            customRanking: ["desc(score)", "desc(importance)"],
+            attributesToSnippet: ["content:20"],
+            attributeForDistinct: "slug",
+            attributesForFaceting: [
+                "filterOnly(slug)",
+                "afterDistinct(type)",
+                "afterDistinct(searchable(tags))",
+                "afterDistinct(searchable(authors))",
+            ],
 
-    await pagesIndex.setSettings({
-        ...baseSettings,
-        searchableAttributes: [
-            "unordered(title)",
-            "unordered(excerpt)",
-            "unordered(tags)",
-            "unordered(authors)",
-            "unordered(content)",
-        ],
-        customRanking: ["desc(score)", "desc(importance)"],
-        attributesToSnippet: ["content:20"],
-        attributeForDistinct: "slug",
-        attributesForFaceting: [
-            "filterOnly(slug)",
-            "afterDistinct(type)",
-            "afterDistinct(searchable(tags))",
-            "afterDistinct(searchable(authors))",
-        ],
-
-        // These lines below essentially demote matches in the `content` (i.e. fulltext) field:
-        // If we find a match (only) there, then it doesn't count towards `exact`, and is therefore ranked lower.
-        // We also disable prefix matching and typo tolerance on `content`, so that "corn" doesn't match "corner", for example.
-        disableExactOnAttributes: ["tags", "content"],
-        disableTypoToleranceOnAttributes: ["content"],
-        disablePrefixOnAttributes: ["content"],
+            // These lines below essentially demote matches in the `content` (i.e. fulltext) field:
+            // If we find a match (only) there, then it doesn't count towards `exact`, and is therefore ranked lower.
+            // We also disable prefix matching and typo tolerance on `content`, so that "corn" doesn't match "corner", for example.
+            disableExactOnAttributes: ["tags", "content"],
+            disableTypoToleranceOnAttributes: ["content"],
+            disablePrefixOnAttributes: ["content"],
+        },
     })
 
-    const explorerViewsAndChartsIndex = client.initIndex(
-        getIndexName(SearchIndexName.ExplorerViewsMdimViewsAndCharts)
-    )
+    await client.setSettings({
+        indexName: getIndexName(SearchIndexName.ExplorerViewsMdimViewsAndCharts),
+        indexSettings: {
+            ...baseSettings,
+            searchableAttributes: [
+                "unordered(title)",
+                "unordered(slug)",
+                "unordered(variantName)",
+                "unordered(subtitle)",
+                "unordered(tags)",
+                "unordered(availableEntities)",
+                "unordered(originalAvailableEntities)",
+            ],
+            ranking: [
+                "typo",
+                "words",
+                "exact",
+                "attribute",
+                "custom",
+                "proximity",
+            ],
+            customRanking: [
+                "desc(score)",
+                // For multiple explorer views with the same title, we want to avoid surfacing duplicates.
+                // So, rank a result with viewTitleIndexWithinExplorer=0 way more highly than one with 1, 2, etc.
+                "asc(viewTitleIndexWithinExplorer)",
+                "asc(titleLength)",
+            ],
+            attributesToSnippet: ["subtitle:24"],
+            attributeForDistinct: "id",
+            optionalWords: ["vs"],
 
-    await explorerViewsAndChartsIndex.setSettings({
-        ...baseSettings,
-        searchableAttributes: [
-            "unordered(title)",
-            "unordered(slug)",
-            "unordered(variantName)",
-            "unordered(subtitle)",
-            "unordered(tags)",
-            "unordered(availableEntities)",
-            "unordered(originalAvailableEntities)",
-        ],
-        ranking: ["typo", "words", "exact", "attribute", "custom", "proximity"],
-        customRanking: [
-            "desc(score)",
-            // For multiple explorer views with the same title, we want to avoid surfacing duplicates.
-            // So, rank a result with viewTitleIndexWithinExplorer=0 way more highly than one with 1, 2, etc.
-            "asc(viewTitleIndexWithinExplorer)",
-            "asc(titleLength)",
-        ],
-        attributesToSnippet: ["subtitle:24"],
-        attributeForDistinct: "id",
-        optionalWords: ["vs"],
-
-        // These lines below essentially demote matches in the `subtitle` and `availableEntities` fields:
-        // If we find a match (only) there, then it doesn't count towards `exact`, and is therefore ranked lower.
-        // We also disable prefix matching and typo tolerance on these.
-        disableExactOnAttributes: ["tags", "subtitle", "availableEntities"],
-        disableTypoToleranceOnAttributes: ["subtitle", "availableEntities"],
-        disablePrefixOnAttributes: ["subtitle"],
-        attributesForFaceting: [
-            "tags",
-            "availableEntities",
-            "type",
-            "isIncomeGroupSpecificFM",
-        ],
+            // These lines below essentially demote matches in the `subtitle` and `availableEntities` fields:
+            // If we find a match (only) there, then it doesn't count towards `exact`, and is therefore ranked lower.
+            // We also disable prefix matching and typo tolerance on these.
+            disableExactOnAttributes: ["tags", "subtitle", "availableEntities"],
+            disableTypoToleranceOnAttributes: ["subtitle", "availableEntities"],
+            disablePrefixOnAttributes: ["subtitle"],
+            attributesForFaceting: [
+                "tags",
+                "availableEntities",
+                "type",
+                "isIncomeGroupSpecificFM",
+            ],
+        },
     })
 
     const algoliaSynonyms = synonyms.map((s) => {
@@ -171,7 +189,7 @@ export const configureAlgolia = async () => {
             objectID: s.join("-"),
             type: "synonym",
             synonyms: s,
-        } as Synonym
+        } as SynonymHit
     })
 
     // Send all our country variant names to algolia as one-way synonyms
@@ -189,24 +207,31 @@ export const configureAlgolia = async () => {
             })
     }
 
-    await pagesIndex.saveSynonyms(algoliaSynonyms, {
+    await client.saveSynonyms({
+        indexName: getIndexName(SearchIndexName.Pages),
+        synonymHit: algoliaSynonyms,
         replaceExistingSynonyms: true,
     })
-    await chartsIndex.saveSynonyms(algoliaSynonyms, {
+    await client.saveSynonyms({
+        indexName: getIndexName(SearchIndexName.Charts),
+        synonymHit: algoliaSynonyms,
         replaceExistingSynonyms: true,
     })
-    await explorerViewsAndChartsIndex.saveSynonyms(algoliaSynonyms, {
+    await client.saveSynonyms({
+        indexName: getIndexName(SearchIndexName.ExplorerViewsMdimViewsAndCharts),
+        synonymHit: algoliaSynonyms,
         replaceExistingSynonyms: true,
     })
 
     if (TOPICS_CONTENT_GRAPH) {
-        const graphIndex = client.initIndex(CONTENT_GRAPH_ALGOLIA_INDEX)
-
-        await graphIndex.setSettings({
-            attributesForFaceting: [
-                ...[...Array(5)].map((_, i) => `searchable(topics.lvl${i})`),
-                "searchable(type)",
-            ],
+        await client.setSettings({
+            indexName: CONTENT_GRAPH_ALGOLIA_INDEX,
+            indexSettings: {
+                attributesForFaceting: [
+                    ...[...Array(5)].map((_, i) => `searchable(topics.lvl${i})`),
+                    "searchable(type)",
+                ],
+            },
         })
     }
 }

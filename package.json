@@ -83,7 +83,7 @@
         "@turf/center": "^7.2.0",
         "@types/multer": "^2.0.0",
         "@uiw/react-codemirror": "^4.24.1",
-        "algoliasearch": "^4.25.2",
+        "algoliasearch": "^5.40.1",
         "antd": "^5.24.0",
         "archieml": "^0.5.0",
         "bcryptjs": "^3.0.2",

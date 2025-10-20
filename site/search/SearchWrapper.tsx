@@ -5,7 +5,7 @@ import {
 } from "../../settings/clientSettings.js"
 import { Search } from "./Search.js"
 import { getInitialSearchState } from "./searchState.js"
-import algoliasearch from "algoliasearch"
+import { algoliasearch } from "algoliasearch"
 import {
     QueryClient,
     QueryClientProvider,

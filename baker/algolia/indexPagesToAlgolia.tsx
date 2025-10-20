@@ -18,14 +18,14 @@ const indexPagesToAlgolia = async () => {
         console.error(`Failed indexing pages (Algolia client not initialized)`)
         return
     }
-    const index = client.initIndex(getIndexName(SearchIndexName.Pages))
+    const indexName = getIndexName(SearchIndexName.Pages)
 
     const records = await db.knexReadonlyTransaction(
         getPagesRecords,
         db.TransactionCloseMode.Close
     )
 
-    await index.replaceAllObjects(records)
+    await client.replaceAllObjects({ indexName, objects: records as any[] })
 
     process.exit(0)
 }
