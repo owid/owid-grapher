@@ -461,8 +461,6 @@ async function getAndLoadPublishedGdocs<T extends GdocBase>(
             .distinct()
     }
 
-    // TEMPORARY: Removed limit - testing full optimization
-
     if (options?.limit) query = query.limit(options.limit)
     if (options?.offset) query = query.offset(options.offset)
 
@@ -622,7 +620,6 @@ export async function getAndLoadListedGdocPosts(
             ORDER BY publishedAt DESC`,
         { publicationContext: OwidGdocPublicationContext.listed }
     )
-
     const ids = rows.map((row) => row.id)
     const tags = await knexRaw<DbPlainTag>(
         knex,
@@ -633,7 +630,6 @@ export async function getAndLoadListedGdocPosts(
                 WHERE gt.gdocId in (:ids)`,
         { ids: ids }
     )
-
     const groupedTags = _.groupBy(tags, "gdocId")
     const enrichedRows = rows.map((row) => {
         return {

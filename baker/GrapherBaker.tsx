@@ -247,7 +247,6 @@ export async function renderDataPageV2(
         )
 
         tagToSlugMap = await getTagToSlugMap(knex)
-
         const tagsWithDataInsights = await getTagsWithDataInsights(knex)
 
         datapageData.hasDataInsights = datapageData.primaryTopic?.topicTag
@@ -349,12 +348,10 @@ const renderGrapherPage = async (
         postSlug && !isOnArchivalPage
             ? await getPostIdFromSlug(knex, postSlug)
             : undefined
-
     const relatedCharts =
         postId && !isOnArchivalPage
             ? await getPostRelatedCharts(knex, postId)
             : undefined
-
     const relatedArticles =
         grapher.id && !isOnArchivalPage
             ? await getRelatedArticles(knex, grapher.id)
@@ -482,7 +479,6 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
     const imageMetadataDictionary = await getAllImages(knex).then((images) =>
         _.keyBy(images, "filename")
     )
-
     const archiveContextDictionary =
         await getLatestChartArchivedVersionsIfEnabled(knex)
 

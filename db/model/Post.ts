@@ -153,33 +153,18 @@ const getFullPost = async (
 
 export const getBlogIndex = _.memoize(
     async (knex: db.KnexReadonlyTransaction): Promise<IndexPost[]> => {
-        // TEMPORARY: Profiling instrumentation
-        console.log("\n⏱️  getBlogIndex profiling:")
-
-        let start = Date.now()
         // TEMPORARY: Using loadState: false to skip expensive operations for blog index
         const gdocPosts = await getAndLoadListedGdocPosts(knex, {
             loadState: false,
         })
-        console.log(
-            `   getAndLoadListedGdocPosts: ${Date.now() - start}ms (${gdocPosts.length} posts)`
-        )
 
-        start = Date.now()
         const imagesByFilename = await db
             .getCloudflareImages(knex)
             .then((images) => _.keyBy(images, "filename"))
-        console.log(`   getCloudflareImages: ${Date.now() - start}ms`)
 
-        start = Date.now()
         const posts = [...mapGdocsToWordpressPosts(gdocPosts, imagesByFilename)]
-        console.log(`   mapGdocsToWordpressPosts: ${Date.now() - start}ms`)
 
-        start = Date.now()
-        const result = _.orderBy(posts, (post) => post.date.getTime(), ["desc"])
-        console.log(`   orderBy: ${Date.now() - start}ms`)
-
-        return result
+        return _.orderBy(posts, (post) => post.date.getTime(), ["desc"])
     }
 )
 

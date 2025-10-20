@@ -61,7 +61,6 @@ export async function mapSlugsToIds(
         for (const row of rows) {
             slugToId[row.slug] = row.id
         }
-
         return slugToId
     })
 }

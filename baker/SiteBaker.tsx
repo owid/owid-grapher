@@ -782,12 +782,10 @@ export class SiteBaker {
     private async bakeDataInsights(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("dataInsights")) return
         this.progressBar.tick({ name: "Baking data insights" })
-
         const {
             dataInsights: latestDataInsights,
             imageMetadata: latestDataInsightsImageMetadata,
         } = await getLatestDataInsights(knex)
-
         const publishedDataInsights =
             await GdocDataInsight.getPublishedDataInsights(knex)
 
@@ -800,7 +798,6 @@ export class SiteBaker {
                 dataInsight.linkedChartSlugs.explorer,
                 dataInsight.linkedNarrativeChartNames,
             ])
-
             dataInsight.linkedDocuments = attachments.linkedDocuments
             dataInsight.imageMetadata = {
                 ...attachments.imageMetadata,
@@ -813,7 +810,6 @@ export class SiteBaker {
             dataInsight.latestDataInsights = latestDataInsights
 
             await dataInsight.validate(knex)
-
             try {
                 await this.bakeOwidGdoc(dataInsight)
             } catch (e) {
@@ -842,7 +838,6 @@ export class SiteBaker {
                 pageNumber,
                 totalPageCount
             )
-
             // Page 0 is data-insights.html, page 1 is data-insights/2.html, etc.
             const filename = pageNumber === 0 ? "" : `/${pageNumber + 1}`
             const outPath = path.join(
@@ -850,7 +845,6 @@ export class SiteBaker {
                 `data-insights${filename}.html`
             )
             await fs.mkdirp(path.dirname(outPath))
-
             await this.stageWrite(outPath, html)
         }
 
@@ -940,16 +934,12 @@ export class SiteBaker {
     private async bakeBlogIndex(knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("blogIndex")) return
         this.progressBar.tick({ name: "Baking blog index" })
-
         const allPosts = await getBlogIndex(knex)
-
         const numPages = Math.ceil(allPosts.length / BLOG_POSTS_PER_PAGE)
 
         for (let i = 1; i <= numPages; i++) {
             const slug = i === 1 ? "latest" : `latest/page/${i}`
-
             const html = await renderBlogByPageNum(i, knex)
-
             await this.stageWrite(`${this.bakedSiteDir}/${slug}.html`, html)
         }
     }
