@@ -114,7 +114,7 @@ import * as R from "remeda"
 import { match } from "ts-pattern"
 import { AxisConfig } from "../axis/AxisConfig.js"
 import {
-    type GrapherExport,
+    GrapherRasterizeFn,
     StaticChartRasterizer,
 } from "../captionedChart/StaticChartRasterizer.js"
 import { Chart } from "../chart/Chart.js"
@@ -2401,11 +2401,18 @@ export class GrapherState {
         return new Bounds(0, 0, this.staticBounds.width, height)
     }
 
-    rasterize(): Promise<GrapherExport> {
+    rasterize: GrapherRasterizeFn = ({ includeDetails }) => {
+        const _shouldIncludeDetailsInStaticExport =
+            this.shouldIncludeDetailsInStaticExport
+        this.shouldIncludeDetailsInStaticExport = includeDetails
+
         const { width, height } = this.staticBoundsWithDetails
 
         // We need to ensure `rasterize` is only called on the client-side, otherwise this will fail
         const staticSVG = this.generateStaticSvg(reactRenderToStringClientOnly)
+
+        this.shouldIncludeDetailsInStaticExport =
+            _shouldIncludeDetailsInStaticExport
 
         return new StaticChartRasterizer(staticSVG, width, height).render()
     }
