@@ -5,7 +5,7 @@ import {
 } from "../../settings/clientSettings.js"
 import { Search } from "./Search.js"
 import { getInitialSearchState } from "./searchState.js"
-import { algoliasearch } from "algoliasearch"
+import { liteClient } from "algoliasearch/lite"
 import {
     QueryClient,
     QueryClientProvider,
@@ -48,7 +48,7 @@ export const SearchWrapper = ({
 }: {
     topicTagGraph: TagGraphRoot
 }) => {
-    const searchClient = algoliasearch(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
+    const liteSearchClient = liteClient(ALGOLIA_ID, ALGOLIA_SEARCH_KEY)
     const initialState = getInitialSearchState()
 
     return (
@@ -56,7 +56,7 @@ export const SearchWrapper = ({
             <Search
                 initialState={initialState}
                 topicTagGraph={topicTagGraph}
-                searchClient={searchClient}
+                liteClient={liteSearchClient}
             />
         </QueryClientProvider>
     )

@@ -1,6 +1,6 @@
 import * as R from "remeda"
 import { EntityName, OwidGdocType, TagGraphRoot } from "@ourworldindata/types"
-import { SearchClient } from "algoliasearch"
+import { type LiteClient } from "algoliasearch/lite"
 import {
     SearchState,
     SearchChartsResponse,
@@ -85,7 +85,7 @@ export const chartHitQueryKeys = {
 } as const
 
 export async function queryDataTopics(
-    searchClient: SearchClient,
+    searchClient: LiteClient,
     state: SearchState,
     tagGraph: TagGraphRoot,
     selectedTopic: string | undefined
@@ -119,7 +119,7 @@ export async function queryDataTopics(
 }
 
 export async function queryCharts(
-    searchClient: SearchClient,
+    searchClient: LiteClient,
     state: SearchState,
     page: number = 0
 ): Promise<SearchChartsResponse> {
@@ -151,7 +151,7 @@ export async function queryCharts(
 }
 
 export async function queryDataInsights(
-    searchClient: SearchClient,
+    searchClient: LiteClient,
     state: SearchState,
     page: number = 0
 ): Promise<SearchDataInsightResponse> {
@@ -205,7 +205,7 @@ export async function queryDataInsights(
 }
 
 export async function queryArticles(
-    searchClient: SearchClient,
+    searchClient: LiteClient,
     state: SearchState,
     offset: number = 0,
     length: number
@@ -262,7 +262,7 @@ export async function queryArticles(
 }
 
 export async function queryTopicPages(
-    searchClient: SearchClient,
+    searchClient: LiteClient,
     state: SearchState,
     offset: number = 0,
     length: number
@@ -295,7 +295,7 @@ export async function queryTopicPages(
 }
 
 export async function queryWritingTopics(
-    searchClient: SearchClient,
+    searchClient: LiteClient,
     tagGraph: TagGraphRoot,
     selectedTopic: string | undefined
 ): Promise<SearchWritingTopicsResponse[]> {
