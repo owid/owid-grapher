@@ -62,8 +62,9 @@ const ExplorerDropdown = (props: {
     value: ExplorerDropdownOption
     isMobile: boolean
     onChange: (option: string) => void
+    ariaLabel?: string
 }) => {
-    const { options, value, isMobile, onChange } = props
+    const { options, value, isMobile, onChange, ariaLabel } = props
     const isSearchable = !isMobile && options.length > 10
     const dropdownOptions = options.map((option) => ({
         label: option.label,
@@ -84,6 +85,7 @@ const ExplorerDropdown = (props: {
                 }}
                 placeholder="Type to search..."
                 isDisabled={isDisabled}
+                aria-label={ariaLabel}
             />
         )
     }
@@ -98,6 +100,7 @@ const ExplorerDropdown = (props: {
             }}
             isDisabled={isDisabled}
             placeholder="-"
+            aria-label={ariaLabel}
         />
     )
 }
@@ -176,6 +179,7 @@ export class ExplorerControlPanel extends Component<{
                 value={value}
                 isMobile={this.props.isMobile}
                 onChange={this.customOnChange}
+                ariaLabel={this.props.choice.title}
             />
         )
     }

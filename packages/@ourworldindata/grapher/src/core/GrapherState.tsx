@@ -3288,10 +3288,6 @@ export class GrapherState {
         this.dismissTooltip()
     }
 
-    @action.bound onMapCountryDropdownFocus(): void {
-        this.dismissTooltip()
-    }
-
     @action.bound resetMapRegionDropdown(): void {
         this.mapRegionDropdownValue = undefined
     }

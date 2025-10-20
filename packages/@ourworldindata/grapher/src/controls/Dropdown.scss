@@ -13,11 +13,6 @@ $grapher-dropdown-selected-fill: #c7ced7;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
 
-    .placeholder {
-        color: $gray-60;
-        white-space: nowrap;
-    }
-
     .clear-indicator {
         padding-right: 10px;
         position: absolute;
@@ -110,6 +105,11 @@ $grapher-dropdown-selected-fill: #c7ced7;
         text-overflow: ellipsis;
         white-space: nowrap;
         width: 100%;
+
+        &[data-placeholder] {
+            color: $gray-60;
+            white-space: nowrap;
+        }
     }
 }
 
