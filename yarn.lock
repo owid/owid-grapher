@@ -11518,7 +11518,6 @@ __metadata:
     safe-stable-stringify: "npm:^2.4.1"
     sass: "npm:^1.89.2"
     schema-dts: "npm:^1.1.5"
-    search-insights: "npm:^2.17.3"
     sharp: "npm:^0.33.5"
     simple-git: "npm:^3.16.1"
     simple-statistics: "npm:^7.3.2"
@@ -16357,7 +16356,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"search-insights@npm:^2.17.2, search-insights@npm:^2.17.3":
+"search-insights@npm:^2.17.2":
   version: 2.17.3
   resolution: "search-insights@npm:2.17.3"
   checksum: 10/7f2d7c5d317d84bb9bb745f3e5cd411c206fb72e453331515712bda855e3ee8af4b767231a4bc25693eadd34e2ffd58b6eebb7c407fc17eeb2932cc997442dff
