@@ -113,6 +113,16 @@ $grapher-dropdown-selected-fill: #c7ced7;
     }
 }
 
+.grapher-dropdown-listbox {
+    max-height: 400px;
+    overflow-y: auto;
+
+    &:focus-visible {
+        // Override global focus-visible style.
+        outline: none;
+    }
+}
+
 .grapher-dropdown-menu {
     $option-checkmark: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOSIgdmlld0JveD0iMCAwIDEyIDkiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xMS4wMTU2IDAuOTg0Mzc1QzExLjMyMDMgMS4yNjU2MiAxMS4zMjAzIDEuNzU3ODEgMTEuMDE1NiAyLjAzOTA2TDUuMDE1NjIgOC4wMzkwNkM0LjczNDM4IDguMzQzNzUgNC4yNDIxOSA4LjM0Mzc1IDMuOTYwOTQgOC4wMzkwNkwwLjk2MDkzOCA1LjAzOTA2QzAuNjU2MjUgNC43NTc4MSAwLjY1NjI1IDQuMjY1NjIgMC45NjA5MzggMy45ODQzOEMxLjI0MjE5IDMuNjc5NjkgMS43MzQzOCAzLjY3OTY5IDIuMDE1NjIgMy45ODQzOEw0LjQ3NjU2IDYuNDQ1MzFMOS45NjA5NCAwLjk4NDM3NUMxMC4yNDIyIDAuNjc5Njg4IDEwLjczNDQgMC42Nzk2ODggMTEuMDE1NiAwLjk4NDM3NVoiIGZpbGw9IiMxRDNENjMiLz4KPC9zdmc+";
     $option-checkmark-width: 12px;
@@ -125,7 +135,7 @@ $grapher-dropdown-selected-fill: #c7ced7;
     z-index: $zindex-controls-popup;
     color: $dark-text;
     width: var(--trigger-width);
-    overflow-y: auto;
+    overflow-y: hidden;
 
     .group-heading {
         @include grapher_h5-black-caps;
@@ -189,4 +199,54 @@ $grapher-dropdown-selected-fill: #c7ced7;
             color: $blue-50;
         }
     }
+}
+
+.grapher-dropdown-search {
+    display: flex;
+    align-items: center;
+    margin: 4px;
+    border: 1px solid $gray-20;
+    border-radius: 4px;
+    height: 32px;
+}
+
+.grapher-dropdown-search-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: 0;
+    font: 400 13px/16px $sans-serif-font-stack;
+    color: $dark-text;
+    background: white;
+    padding: 4px 6px;
+
+    &:focus-visible {
+        // Override global focus-visible style.
+        outline: none;
+    }
+}
+
+.grapher-dropdown-search-icon {
+    $magnifying-glass: "data:image/svg+xml;base64,PHN2ZwogICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICAgdmlld0JveD0iMCAwIDUxMiA1MTIiCj4KICA8cGF0aAogICAgZD0iTTQxNiAyMDhjMCA0NS45LTE0LjkgODguMy00MCAxMjIuN0w1MDIuNiA0NTcuNGMxMi41IDEyLjUgMTIuNSAzMi44IDAgNDUuM3MtMzIuOCAxMi41LTQ1LjMgMEwzMzAuNyAzNzZjLTM0LjQgMjUuMi03Ni44IDQwLTEyMi43IDQwQzkzLjEgNDE2IDAgMzIyLjkgMCAyMDhTOTMuMSAwIDIwOCAwUzQxNiA5My4xIDQxNiAyMDh6TTIwOCAzNTJhMTQ0IDE0NCAwIDEgMCAwLTI4OCAxNDQgMTQ0IDAgMSAwIDAgMjg4eiIKICAgIGZpbGw9IiM4NTg1ODUiCiAgLz4KPC9zdmc+Cg==";
+    margin-left: 8px;
+    width: 12px;
+    height: 12px;
+    background: url($magnifying-glass) no-repeat center;
+}
+
+.grapher-dropdown-search-reset {
+    margin-right: 8px;
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    color: $gray-60;
+
+    &:hover {
+        color: $dark-text;
+    }
+}
+
+.grapher-dropdown-search[data-empty] .grapher-dropdown-search-reset {
+    visibility: hidden;
 }

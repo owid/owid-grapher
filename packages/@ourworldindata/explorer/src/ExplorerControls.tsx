@@ -1,5 +1,5 @@
 import { Component } from "react"
-import { Dropdown, SearchDropdown } from "@ourworldindata/grapher"
+import { Dropdown } from "@ourworldindata/grapher"
 import { bind } from "@ourworldindata/utils"
 import {
     ExplorerControlType,
@@ -74,22 +74,6 @@ const ExplorerDropdown = (props: {
         dropdownOptions.find((option) => option.value === value?.value) ?? null
     const isDisabled = options.length < 2
 
-    if (isSearchable) {
-        return (
-            <SearchDropdown
-                className={EXPLORER_DROPDOWN_CLASS}
-                options={dropdownOptions}
-                value={selectedOption}
-                onChange={(option) => {
-                    if (option) onChange(option.value)
-                }}
-                placeholder="Type to search..."
-                isDisabled={isDisabled}
-                aria-label={ariaLabel}
-            />
-        )
-    }
-
     return (
         <Dropdown
             className={EXPLORER_DROPDOWN_CLASS}
@@ -99,6 +83,7 @@ const ExplorerDropdown = (props: {
                 if (option) onChange(option.value)
             }}
             isDisabled={isDisabled}
+            isSearchable={isSearchable}
             placeholder="-"
             aria-label={ariaLabel}
         />
