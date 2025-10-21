@@ -1,5 +1,3 @@
-/* ☝️ eslint wants to resolve the symlink to our fonts imports */
-
 import { initWasm, Resvg, type ResvgRenderOptions } from "@resvg/resvg-wasm"
 import { TimeLogger } from "./timeLogger.js"
 import { png } from "itty-router"
