@@ -1,4 +1,3 @@
-/* eslint-disable import-x/no-relative-packages */
 /* ☝️ eslint wants to resolve the symlink to our fonts imports */
 
 import { initWasm, Resvg, type ResvgRenderOptions } from "@resvg/resvg-wasm"
@@ -7,12 +6,12 @@ import { png } from "itty-router"
 
 import resvg_wasm from "@resvg/resvg-wasm/index_bg.wasm"
 
-// these are regular .woff2 files, but cloudflare needs the .bin extension to serve them correctly
-import LatoRegular from "../_common/fonts/LatoLatin-Regular.woff2.bin"
-import LatoMedium from "../_common/fonts/LatoLatin-Medium.woff2.bin"
-import LatoItalic from "../_common/fonts/LatoLatin-Italic.woff2.bin"
-import LatoBold from "../_common/fonts/LatoLatin-Bold.woff2.bin"
-import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.woff2.bin"
+// these are regular .ttf files, but cloudflare needs the .bin extension to serve them correctly
+import LatoRegular from "../_common/fonts/LatoLatin-Regular.ttf.bin"
+import LatoMedium from "../_common/fonts/LatoLatin-Medium.ttf.bin"
+import LatoItalic from "../_common/fonts/LatoLatin-Italic.ttf.bin"
+import LatoBold from "../_common/fonts/LatoLatin-Bold.ttf.bin"
+import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.ttf.bin"
 import { Env } from "./env.js"
 import { ImageOptions, extractOptions } from "./imageOptions.js"
 import {
