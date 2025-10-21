@@ -106,6 +106,7 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
             // uncontrolled, so we need to set it explicitly.
             selectedKey={value?.value ?? null}
             onSelectionChange={handleSelectionChange}
+            placeholder={placeholder}
             isDisabled={isDisabled}
             {...otherProps}
         >
@@ -115,18 +116,11 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
                 })}
             >
                 <SelectValue className="select-value">
-                    {() => {
-                        const rendered = renderTriggerValue?.(selectedValue)
-                        if (rendered !== undefined) return rendered
-                        if (selectedValue)
-                            return selectedValue.label as React.ReactNode
-                        if (placeholder)
-                            return (
-                                <span className="placeholder">
-                                    {placeholder}
-                                </span>
-                            )
-                        return null
+                    {({ selectedItems, defaultChildren }) => {
+                        if (renderTriggerValue && selectedItems.length === 1) {
+                            return renderTriggerValue(selectedValue)
+                        }
+                        return defaultChildren
                     }}
                 </SelectValue>
             </Button>

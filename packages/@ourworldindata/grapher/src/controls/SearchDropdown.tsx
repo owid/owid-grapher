@@ -3,7 +3,6 @@ import * as React from "react"
 import { useMemo } from "react"
 import {
     Button,
-    ComboBox,
     Input,
     Key,
     ListBox,
@@ -11,7 +10,14 @@ import {
     ListBoxSection,
     Popover,
     Header,
+    SelectValue,
+    Select,
+    Autocomplete,
+    SearchField,
+    useFilter,
 } from "react-aria-components"
+import { faTimesCircle } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { isTouchDevice } from "@ourworldindata/utils"
 import {
     BasicDropdownOption,
@@ -24,7 +30,6 @@ import {
 interface SearchDropdownProps<DropdownOption extends BasicDropdownOption>
     extends Omit<DropdownProps<DropdownOption>, "isClearable"> {
     options: DropdownCollection<DropdownOption>
-    onFocus?: () => void
     onInputChange?: (value: string) => void
     inputValue?: string
 }
@@ -48,7 +53,6 @@ export function SearchDropdown<DropdownOption extends BasicDropdownOption>({
     options,
     value,
     onChange,
-    onFocus,
     onInputChange,
     placeholder,
     isDisabled,
@@ -56,106 +60,110 @@ export function SearchDropdown<DropdownOption extends BasicDropdownOption>({
     renderMenuOption,
     ...otherProps
 }: SearchDropdownProps<DropdownOption>): React.ReactElement {
+    const { contains } = useFilter({ sensitivity: "base" })
     const flatOptions = useMemo(() => flattenOptions(options), [options])
 
     function handleSelectionChange(key: Key | null): void {
         if (key === null) {
             onChange?.(null)
-            onInputChange?.("")
             return
         }
         if (typeof key === "number") return
         const selected = flatOptions.find((option) => option.value === key)
         if (selected) {
             onChange?.(selected)
-            onInputChange?.("")
         }
     }
 
-    function handleInputChange(value: string): void {
-        onInputChange?.(value)
-    }
-
     return (
-        <ComboBox
+        <Select
             className={cx(
                 "grapher-dropdown grapher-search-dropdown",
                 className
             )}
             selectedKey={value?.value}
             onSelectionChange={handleSelectionChange}
-            menuTrigger="focus"
             isDisabled={isDisabled}
-            inputValue={inputValue}
-            onInputChange={handleInputChange}
+            placeholder={placeholder}
             {...otherProps}
         >
-            <div className="control-wrapper">
-                <Input
-                    className="control"
-                    placeholder={placeholder}
-                    onFocus={onFocus}
-                    style={{
-                        fontSize: isTouchDevice() ? 16 : undefined,
-                    }}
-                />
-                <span className="control-icon"></span>
-                <Button className="caret-icon" />
-            </div>
-            <Popover
-                className="grapher-dropdown-menu"
-                maxHeight={400}
-                offset={4}
-            >
-                <ListBox>
-                    {options.map((item, index) =>
-                        isOptionGroup(item) ? (
-                            <ListBoxSection
-                                key={`section-${index}`}
-                                id={`section-${index}`}
-                                className="group"
-                            >
-                                <Header className="group-heading">
-                                    {item.label}
-                                </Header>
-                                {item.options.map((option) => (
-                                    <ListBoxItem
-                                        className="option"
-                                        key={option.value}
-                                        id={option.value}
-                                        textValue={
-                                            typeof option.label === "string"
-                                                ? option.label
-                                                : String(option.value)
-                                        }
-                                        data-track-note={option.trackNote}
-                                    >
-                                        {renderMenuOption
-                                            ? renderMenuOption(option)
-                                            : option.label}
-                                    </ListBoxItem>
-                                ))}
-                            </ListBoxSection>
-                        ) : (
-                            <ListBoxItem
-                                className="option"
-                                key={item.value}
-                                id={item.value}
-                                textValue={
-                                    typeof item.label === "string"
-                                        ? item.label
-                                        : String(item.value)
-                                }
-                                data-track-note={item.trackNote}
-                            >
-                                {renderMenuOption
-                                    ? renderMenuOption(item)
-                                    : item.label}
-                            </ListBoxItem>
-                        )
-                    )}
-                </ListBox>
+            <Button className="control">
+                <SelectValue className="select-value" />
+            </Button>
+            <Popover className="grapher-dropdown-menu" offset={4}>
+                {/* If inputValue is provided, the component is controlled and
+                we expect the filtering to happen outside of it. */}
+                <Autocomplete filter={inputValue ? undefined : contains}>
+                    <SearchField
+                        className="grapher-dropdown-search"
+                        aria-label="Search"
+                        autoFocus
+                    >
+                        <span className="grapher-dropdown-search-icon" />
+                        <Input
+                            className="grapher-dropdown-search-input"
+                            style={{
+                                fontSize: isTouchDevice() ? 16 : undefined,
+                            }}
+                            value={inputValue}
+                            onChange={(event) =>
+                                onInputChange?.(event.target.value)
+                            }
+                        />
+                        <Button className="grapher-dropdown-search-reset">
+                            <FontAwesomeIcon icon={faTimesCircle} aria-hidden />
+                        </Button>
+                    </SearchField>
+                    <ListBox className="grapher-dropdown-search-options">
+                        {options.map((item, index) =>
+                            isOptionGroup(item) ? (
+                                <ListBoxSection
+                                    key={`section-${index}`}
+                                    id={`section-${index}`}
+                                    className="group"
+                                >
+                                    <Header className="group-heading">
+                                        {item.label}
+                                    </Header>
+                                    {item.options.map((option) => (
+                                        <ListBoxItem
+                                            className="option"
+                                            key={option.value}
+                                            id={option.value}
+                                            textValue={
+                                                typeof option.label === "string"
+                                                    ? option.label
+                                                    : String(option.value)
+                                            }
+                                            data-track-note={option.trackNote}
+                                        >
+                                            {renderMenuOption
+                                                ? renderMenuOption(option)
+                                                : option.label}
+                                        </ListBoxItem>
+                                    ))}
+                                </ListBoxSection>
+                            ) : (
+                                <ListBoxItem
+                                    className="option"
+                                    key={item.value}
+                                    id={item.value}
+                                    textValue={
+                                        typeof item.label === "string"
+                                            ? item.label
+                                            : String(item.value)
+                                    }
+                                    data-track-note={item.trackNote}
+                                >
+                                    {renderMenuOption
+                                        ? renderMenuOption(item)
+                                        : item.label}
+                                </ListBoxItem>
+                            )
+                        )}
+                    </ListBox>
+                </Autocomplete>
             </Popover>
-        </ComboBox>
+        </Select>
     )
 }
