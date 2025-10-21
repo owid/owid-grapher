@@ -339,7 +339,7 @@ export default function SiteRedirectsIndexPage() {
                             <Button
                                 type="primary"
                                 htmlType="submit"
-                                loading={createMutation.isLoading}
+                                loading={createMutation.isPending}
                             >
                                 Create
                             </Button>
