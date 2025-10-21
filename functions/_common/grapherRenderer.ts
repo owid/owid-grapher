@@ -7,6 +7,7 @@ import resvg_wasm from "@resvg/resvg-wasm/index_bg.wasm"
 // these are regular .ttf files, but cloudflare needs the .bin extension to serve them correctly
 import LatoRegular from "../_common/fonts/LatoLatin-Regular.ttf.bin"
 import LatoMedium from "../_common/fonts/LatoLatin-Medium.ttf.bin"
+import LatoItalic from "../_common/fonts/LatoLatin-Italic.ttf.bin"
 import LatoBold from "../_common/fonts/LatoLatin-Bold.ttf.bin"
 import PlayfairSemiBold from "../_common/fonts/PlayfairDisplayLatin-SemiBold.ttf.bin"
 import { Env } from "./env.js"
@@ -134,6 +135,7 @@ export async function renderSvgToPng(
             fontBuffers: [
                 LatoRegular,
                 LatoMedium,
+                LatoItalic,
                 LatoBold,
                 PlayfairSemiBold,
             ].map((f) => new Uint8Array(f)),
