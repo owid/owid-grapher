@@ -132,7 +132,6 @@ export { GeoFeatures } from "./mapCharts/GeoFeatures"
 export { isValidVerticalComparisonLineConfig } from "./comparisonLine/ComparisonLineHelpers"
 export { hasValidConfigForBinningStrategy } from "./color/BinningStrategies"
 export { Dropdown } from "./controls/Dropdown"
-export { SearchDropdown } from "./controls/SearchDropdown"
 
 export { makeChartState } from "./chart/ChartTypeMap"
 export type { ChartState } from "./chart/ChartInterface"

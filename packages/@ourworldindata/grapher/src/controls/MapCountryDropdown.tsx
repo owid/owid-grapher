@@ -18,8 +18,8 @@ import {
 import { GlobeController } from "../mapCharts/GlobeController"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationArrow } from "@fortawesome/free-solid-svg-icons"
-import { SearchDropdown } from "./SearchDropdown"
 import {
+    Dropdown,
     DropdownCollection,
     DropdownCollectionItem,
     DropdownOptionGroup,
@@ -242,7 +242,7 @@ export class MapCountryDropdown extends React.Component<{
     override render(): React.ReactElement | null {
         return this.showMenu ? (
             <div className="map-country-dropdown">
-                <SearchDropdown
+                <Dropdown
                     options={
                         this.searchInput ? this.filteredOptions : this.options
                     }
@@ -252,6 +252,7 @@ export class MapCountryDropdown extends React.Component<{
                     onInputChange={(inputValue) =>
                         (this.searchInput = inputValue)
                     }
+                    isSearchable
                     placeholder="Zoom to..."
                     aria-label="Search for country or continent"
                     renderMenuOption={(option) => (

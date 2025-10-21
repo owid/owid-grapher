@@ -2,16 +2,23 @@ import cx from "classnames"
 import * as React from "react"
 import { useMemo } from "react"
 import {
+    Autocomplete,
     Button,
+    Header,
+    Input,
+    Key,
     ListBox,
     ListBoxItem,
     ListBoxSection,
     Popover,
-    Header,
+    SearchField,
     Select,
     SelectValue,
-    Key,
+    useFilter,
 } from "react-aria-components"
+import { faTimesCircle } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { isTouchDevice } from "@ourworldindata/utils"
 
 export interface BasicDropdownOption {
     trackNote?: string
@@ -37,11 +44,14 @@ export interface DropdownProps<DropdownOption extends BasicDropdownOption> {
     menuClassName?: string
     options: DropdownCollection<DropdownOption>
     value?: DropdownOption | null
+    inputValue?: string
     onChange?: (option: DropdownOption | null) => void
+    onInputChange?: (value: string) => void
     placeholder?: string
     isDisabled?: boolean
     isClearable?: boolean
     isLoading?: boolean
+    isSearchable?: boolean
     renderTriggerValue?: (
         option: DropdownOption | null
     ) => React.ReactNode | undefined
@@ -73,16 +83,20 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
     menuClassName,
     options,
     value,
+    inputValue,
     onChange,
+    onInputChange,
     placeholder,
     isDisabled,
     isClearable,
     isLoading,
+    isSearchable,
     renderTriggerValue,
     renderMenuOption,
     portalContainer,
     ...otherProps
 }: DropdownProps<DropdownOption>): React.ReactElement {
+    const { contains } = useFilter({ sensitivity: "base" })
     const flatOptions = useMemo(() => flattenOptions(options), [options])
     const selectedValue = value ?? null
 
@@ -98,6 +112,53 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
             onChange?.(selected)
         }
     }
+
+    const listBox = (
+        <ListBox className="grapher-dropdown-listbox">
+            {options.map((item, index) =>
+                isOptionGroup(item) ? (
+                    <ListBoxSection
+                        key={`section-${index}`}
+                        id={`section-${index}`}
+                        className="group"
+                    >
+                        <Header className="group-heading">{item.label}</Header>
+                        {item.options.map((option) => (
+                            <ListBoxItem
+                                className="option"
+                                key={option.value}
+                                id={option.value}
+                                textValue={
+                                    typeof option.label === "string"
+                                        ? option.label
+                                        : String(option.value)
+                                }
+                                data-track-note={option.trackNote}
+                            >
+                                {renderMenuOption
+                                    ? renderMenuOption(option)
+                                    : option.label}
+                            </ListBoxItem>
+                        ))}
+                    </ListBoxSection>
+                ) : (
+                    <ListBoxItem
+                        className="option"
+                        key={item.value}
+                        id={item.value}
+                        textValue={
+                            typeof item.label === "string"
+                                ? item.label
+                                : String(item.value)
+                        }
+                        data-track-note={item.trackNote}
+                    >
+                        {renderMenuOption ? renderMenuOption(item) : item.label}
+                    </ListBoxItem>
+                )
+            )}
+        </ListBox>
+    )
 
     return (
         <Select
@@ -138,54 +199,36 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
                 offset={4}
                 UNSTABLE_portalContainer={portalContainer}
             >
-                <ListBox>
-                    {options.map((item, index) =>
-                        isOptionGroup(item) ? (
-                            <ListBoxSection
-                                key={`section-${index}`}
-                                id={`section-${index}`}
-                                className="group"
-                            >
-                                <Header className="group-heading">
-                                    {item.label}
-                                </Header>
-                                {item.options.map((option) => (
-                                    <ListBoxItem
-                                        className="option"
-                                        key={option.value}
-                                        id={option.value}
-                                        textValue={
-                                            typeof option.label === "string"
-                                                ? option.label
-                                                : String(option.value)
-                                        }
-                                        data-track-note={option.trackNote}
-                                    >
-                                        {renderMenuOption
-                                            ? renderMenuOption(option)
-                                            : option.label}
-                                    </ListBoxItem>
-                                ))}
-                            </ListBoxSection>
-                        ) : (
-                            <ListBoxItem
-                                className="option"
-                                key={item.value}
-                                id={item.value}
-                                textValue={
-                                    typeof item.label === "string"
-                                        ? item.label
-                                        : String(item.value)
-                                }
-                                data-track-note={item.trackNote}
-                            >
-                                {renderMenuOption
-                                    ? renderMenuOption(item)
-                                    : item.label}
-                            </ListBoxItem>
-                        )
-                    )}
-                </ListBox>
+                {isSearchable ? (
+                    // If inputValue is provided, the component is controlled
+                    // and we expect the filtering to happen outside of it.
+                    <Autocomplete filter={inputValue ? undefined : contains}>
+                        <SearchField
+                            className="grapher-dropdown-search"
+                            aria-label="Search"
+                            autoFocus
+                            value={inputValue}
+                            onChange={onInputChange}
+                        >
+                            <span className="grapher-dropdown-search-icon" />
+                            <Input
+                                className="grapher-dropdown-search-input"
+                                style={{
+                                    fontSize: isTouchDevice() ? 16 : undefined,
+                                }}
+                            />
+                            <Button className="grapher-dropdown-search-reset">
+                                <FontAwesomeIcon
+                                    icon={faTimesCircle}
+                                    aria-hidden
+                                />
+                            </Button>
+                        </SearchField>
+                        {listBox}
+                    </Autocomplete>
+                ) : (
+                    listBox
+                )}
             </Popover>
         </Select>
     )
