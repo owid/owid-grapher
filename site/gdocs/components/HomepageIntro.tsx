@@ -22,6 +22,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowRight, faHeart } from "@fortawesome/free-solid-svg-icons"
 import { useResizeObserver } from "usehooks-ts"
 import { OwidSocials } from "../../OwidSocials.js"
+import { NewsletterSubscriptionContext } from "../../newsletter.js"
 
 type FeaturedWorkTileProps = EnrichedBlockHomepageIntroPost & {
     isTertiary?: boolean
@@ -296,8 +297,12 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                 <div className="span-cols-1 span-md-cols-2">
                     <div className="homepage-intro__newsletter-signup">
                         <NewsletterSubscriptionHeader />
-                        <NewsletterSubscriptionForm />
-                        <OwidSocials />
+                        <NewsletterSubscriptionForm
+                            context={NewsletterSubscriptionContext.Homepage}
+                        />
+                        <OwidSocials
+                            context={NewsletterSubscriptionContext.Homepage}
+                        />
                     </div>
                     <DonationCta />
                 </div>

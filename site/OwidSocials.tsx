@@ -1,9 +1,15 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import * as React from "react"
 import { RSS_FEEDS, SOCIALS } from "./SiteConstants.js"
+import { NewsletterSubscriptionContext } from "./newsletter.js"
 
 export const OwidSocials = ({
     includeRss = false,
-}: { includeRss?: boolean } = {}) => {
+    context,
+}: {
+    includeRss?: boolean
+    context: NewsletterSubscriptionContext
+}) => {
     const items = includeRss ? [...SOCIALS, ...RSS_FEEDS] : SOCIALS
     return (
         <div className="owid-socials">
@@ -17,7 +23,7 @@ export const OwidSocials = ({
                             title={title}
                             target="_blank"
                             rel="noopener"
-                            data-track-note="latest_page_follow_us"
+                            data-track-note={context}
                         >
                             <FontAwesomeIcon
                                 className="owid-socials__label-icon"
