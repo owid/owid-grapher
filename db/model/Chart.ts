@@ -609,12 +609,22 @@ export const getMostViewedGrapherIdsByChartType = async (
 export const getRelatedChartsForVariable = async (
     knex: db.KnexReadonlyTransaction,
     variableId: number,
-    chartIdsToExclude: number[] = []
+    chartIdsToExclude: number[] = [],
+    filterUnlisted: boolean = false
 ): Promise<RelatedChart[]> => {
     const excludeChartIds =
         chartIdsToExclude.length > 0
             ? `AND charts.id NOT IN (${chartIdsToExclude.join(", ")})`
             : ""
+
+    const filterUnlistedClause = filterUnlisted
+        ? `-- sql
+            AND NOT EXISTS (
+                SELECT 1 FROM chart_tags ct
+                JOIN tags t ON ct.tagId = t.id
+                WHERE ct.chartId = charts.id AND t.name = 'Unlisted'
+            )`
+        : ""
 
     return db.knexRaw<RelatedChart>(
         knex,
@@ -631,6 +641,7 @@ export const getRelatedChartsForVariable = async (
             INNER JOIN chart_dimensions ON charts.id=chart_dimensions.chartId
             WHERE chart_dimensions.variableId = ${variableId}
             AND chart_configs.full->>"$.isPublished" = "true"
+            ${filterUnlistedClause}
             ${excludeChartIds}
             GROUP BY charts.id
             ORDER BY title ASC

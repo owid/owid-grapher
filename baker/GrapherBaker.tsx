@@ -227,7 +227,8 @@ export async function renderDataPageV2(
         const allCharts = await getRelatedChartsForVariable(
             knex,
             variableId,
-            grapher && "id" in grapher ? [grapher.id as number] : []
+            grapher && "id" in grapher ? [grapher.id as number] : [],
+            true
         )
         datapageData.allCharts = allCharts.map((chart) => ({
             ...chart,
