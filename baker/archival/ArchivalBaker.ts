@@ -393,6 +393,54 @@ export const archiveImages = async (
     return imageFilesByPostId
 }
 
+const bakeVideo = async (url: string, archiveDir: string): Promise<string> => {
+    const videosDir = path.join(archiveDir, "videos")
+    await fs.mkdirp(videosDir)
+
+    const response = await fetch(url)
+    if (!response.ok) {
+        throw new Error(`Failed to fetch video from ${url}: ${response.status}`)
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer())
+    const urlFilename = path.basename(new URL(url).pathname)
+    const targetPath = path.join(videosDir, urlFilename)
+    const targetPathWithHash = await hashAndWriteFile(targetPath, buffer)
+    return `/videos/${path.basename(targetPathWithHash)}`
+}
+
+export const archiveVideos = async (
+    videosByPostId: Record<string, string[]>,
+    archiveDir: string
+): Promise<Record<string, AssetMap>> => {
+    const uniqueVideos = _.uniq(Object.values(videosByPostId).flat())
+    if (uniqueVideos.length === 0) return {}
+
+    console.log("Videos to archive:", uniqueVideos.length)
+
+    const bakedFilesByVideoUrl: Record<string, string> = {}
+    await pMap(
+        uniqueVideos,
+        async (url) => {
+            const hashedPath = await bakeVideo(url, archiveDir)
+            bakedFilesByVideoUrl[url] = hashedPath
+        },
+        { concurrency: 10 }
+    )
+
+    const videoFilesByPostId: Record<string, AssetMap> = {}
+    for (const [postId, postVideos] of Object.entries(videosByPostId)) {
+        const postVideoFiles: AssetMap = {}
+        for (const url of postVideos) {
+            const hashedPath = bakedFilesByVideoUrl[url]
+            postVideoFiles[url] = hashedPath
+        }
+        videoFilesByPostId[postId] = postVideoFiles
+    }
+
+    return videoFilesByPostId
+}
+
 export interface MinimalChartInfo {
     chartId: number
     chartConfigId: string
@@ -661,7 +709,8 @@ export const bakeArchivalPostPagesToFolder = async (
     postChecksumsObjsToBeArchived: PostChecksumsObjectWithHash[],
     postInfos: MinimalPostInfo[],
     commonCtx: CommonArchivalContext,
-    imageFilesByPostId: Record<string, AssetMap> = {}
+    imageFilesByPostId: Record<string, AssetMap> = {},
+    videoFilesByPostId: Record<string, AssetMap> = {}
 ) => {
     await fs.mkdirp(path.join(commonCtx.archiveDir))
     console.log(`Baking post pages locally to dir '${commonCtx.archiveDir}'`)
@@ -687,11 +736,13 @@ export const bakeArchivalPostPagesToFolder = async (
             )
 
         const imageFiles = imageFilesByPostId[postInfo.postId] || {}
+        const videoFiles = videoFilesByPostId[postInfo.postId] || {}
         await bakePostPageForArchival(knex, commonCtx.archiveDir, postInfo, {
             ...commonCtx,
             checksumsObj,
             latestArchivalVersions,
             imageFiles,
+            videoFiles,
         }).then((manifest) => {
             manifests[postInfo.postSlug] = manifest
         })
@@ -747,6 +798,7 @@ interface PostBakeContext extends CommonArchivalContext {
         >
     >
     imageFiles: AssetMap
+    videoFiles: AssetMap
 }
 
 async function bakeGrapherPageForArchival(
@@ -843,11 +895,16 @@ async function bakePostPageForArchival(
         date,
         latestArchivalVersions,
         imageFiles,
+        videoFiles,
     } = ctx
 
     if (!ARCHIVE_BASE_URL) throw new Error("ARCHIVE_BASE_URL is missing")
 
-    const runtimeAssetMap = { ...commonRuntimeFiles, ...imageFiles }
+    const runtimeAssetMap = {
+        ...commonRuntimeFiles,
+        ...imageFiles,
+        ...videoFiles,
+    }
     const manifest = await assemblePostManifest({
         staticAssetMap,
         runtimeAssetMap,

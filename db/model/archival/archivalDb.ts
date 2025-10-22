@@ -566,6 +566,35 @@ export const getImagesByPostId = async (
     return imagesByPostId
 }
 
+export const getVideosByPostId = async (
+    knex: db.KnexReadonlyTransaction,
+    postIds: string[]
+): Promise<Record<string, string[]>> => {
+    if (postIds.length === 0) return {}
+
+    // We only care about video URLs for now and don't support re-archiving when
+    // a different video is uploaded with the same URL.
+    const videoComponents = await db.knexRaw<{
+        gdocId: string
+        url: string
+    }>(
+        knex,
+        `-- sql
+        SELECT
+            gdocId,
+            config ->> '$.url' AS url
+        FROM posts_gdocs_components
+        WHERE gdocId IN (${postIds.map(() => "?").join(",")})
+        AND type = 'video'
+        `,
+        postIds
+    )
+
+    return _.mapValues(_.groupBy(videoComponents, "gdocId"), (components) =>
+        components.map((c) => c.url)
+    )
+}
+
 const getVariableChecksumsForIds = async (
     knex: db.KnexReadonlyTransaction,
     variableIds: Set<number>
@@ -844,6 +873,7 @@ export const findChangedPostPages = async (
 ): Promise<{
     postChecksums: PostChecksumsObjectWithHash[]
     imagesByPostId: Record<string, ArchivalImage[]>
+    videosByPostId: Record<string, string[]>
 }> => {
     const { postChecksums: allPostChecksums, imagesByPostId } =
         await getPostChecksumsFromDb(knex)
@@ -863,15 +893,16 @@ export const findChangedPostPages = async (
     console.log("already archived", alreadyArchived.length)
     console.log("need archived", needToBeArchived.length)
 
-    const postIdsToArchive = new Set(
-        needToBeArchived.map((post) => post.postId)
-    )
-    const imagesByPostIdToArchive = _.pickBy(imagesByPostId, (_, postId) =>
-        postIdsToArchive.has(postId)
+    const postIdsToArchive = _.uniq(needToBeArchived.map((post) => post.postId))
+    const imagesByPostIdToArchive = _.pick(imagesByPostId, postIdsToArchive)
+    const videosByPostIdToArchive = await getVideosByPostId(
+        knex,
+        postIdsToArchive
     )
 
     return {
         postChecksums: needToBeArchived,
         imagesByPostId: imagesByPostIdToArchive,
+        videosByPostId: videosByPostIdToArchive,
     }
 }
