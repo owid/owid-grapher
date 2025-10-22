@@ -13,7 +13,7 @@ const analytics = new SiteAnalytics()
 export const NewsletterSubscription = ({
     context,
 }: {
-    context?:
+    context:
         | NewsletterSubscriptionContext.Homepage
         | NewsletterSubscriptionContext.Floating
 }) => {
@@ -76,7 +76,7 @@ export const NewsletterSubscriptionForm = ({
     context,
     className = "",
 }: {
-    context?: NewsletterSubscriptionContext
+    context: NewsletterSubscriptionContext
     className?: string
 }) => {
     const DATA_INSIGHTS = "16"
@@ -118,6 +118,7 @@ export const NewsletterSubscriptionForm = ({
                 Receive our latest work by email.
             </span>
             <img
+                alt=""
                 className="newsletter-subscription-form__checkbox-image"
                 src="/images/biweekly-newsletter.webp"
                 width={1200}
@@ -154,6 +155,7 @@ export const NewsletterSubscriptionForm = ({
                 </a>
             </div>
             <img
+                alt=""
                 className="newsletter-subscription-form__checkbox-image"
                 src="/images/data-insights.webp"
                 width={1200}
