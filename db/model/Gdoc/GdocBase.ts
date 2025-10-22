@@ -75,7 +75,7 @@ import {
     getAllNarrativeChartNames,
     getNarrativeChartsInfo,
 } from "../NarrativeChart.js"
-import { indexBy } from "remeda"
+import * as R from "remeda"
 import { getDods } from "../Dod.js"
 import {
     getLatestChartArchivedVersionsIfEnabled,
@@ -965,7 +965,7 @@ export class GdocBase implements OwidGdocBaseInterface {
             mapSlugsToIds(knex),
             db.getPublishedExplorersBySlug(knex),
             getAllNarrativeChartNames(knex),
-            getDods(knex).then((dods) => indexBy(dods, (dod) => dod.name)),
+            getDods(knex).then((dods) => R.indexBy(dods, (dod) => dod.name)),
         ])
 
         const linkErrors: OwidGdocErrorMessage[] = []

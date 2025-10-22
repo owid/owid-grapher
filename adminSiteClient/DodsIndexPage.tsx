@@ -18,7 +18,7 @@ import {
 } from "@ourworldindata/types"
 import { ColumnsType } from "antd/es/table/InternalTable.js"
 import { EditableTextarea } from "./EditableTextarea.js"
-import { indexBy } from "remeda"
+import * as R from "remeda"
 import { Admin } from "./Admin.js"
 import { fromMarkdown } from "mdast-util-from-markdown"
 import { Content, PhrasingContent } from "mdast"
@@ -308,7 +308,7 @@ async function fetchDods(admin: Admin) {
     const { dods } = await admin.getJSON<{
         dods: DbPlainDod[]
     }>("/api/dods.json")
-    return indexBy(dods, (d) => d.name)
+    return R.indexBy(dods, (d) => d.name)
 }
 
 async function fetchDodUsage(admin: Admin) {
@@ -323,7 +323,7 @@ async function fetchUsers(admin: Admin) {
     const { users } = await admin.getJSON<{
         users: DbPlainUser[]
     }>("/api/users.json")
-    return indexBy(users, (u) => u.id)
+    return R.indexBy(users, (u) => u.id)
 }
 
 type DodMutation<T> = UseMutationResult<DbPlainDod, unknown, T, unknown>

@@ -10,7 +10,7 @@ import { useLinkedChart, useLinkedDocument } from "../utils.js"
 import { DocumentContext } from "../DocumentContext.js"
 import Image, { ImageParentContainer } from "./Image.js"
 import { BlockErrorFallback } from "./BlockErrorBoundary.js"
-import { sortBy, take, prop } from "remeda"
+import * as R from "remeda"
 import { NewsletterWithSocials } from "../../NewsletterSubscription.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { Button } from "@ourworldindata/components"
@@ -200,7 +200,7 @@ function HomepageAnnouncement(props: {
 
 function HomepageAnnouncements() {
     const { homepageMetadata = {} } = useContext(AttachmentsContext)
-    const announcements = prop(homepageMetadata, "announcements")
+    const announcements = R.prop(homepageMetadata, "announcements")
     if (!announcements || announcements.length === 0) return null
     return (
         <div className="homepage-intro__announcements span-cols-3 col-start-8 span-md-cols-14 col-md-start-1">
@@ -254,8 +254,8 @@ function DonationCta() {
 // This function sorts the items by type and takes the top 4 to display.
 function getSortedFeaturedWork(featuredWork: EnrichedBlockHomepageIntroPost[]) {
     const ranking = ["primary", "secondary", "tertiary"]
-    return take(
-        sortBy(featuredWork, (work) => ranking.indexOf(work.type)),
+    return R.take(
+        R.sortBy(featuredWork, (work) => ranking.indexOf(work.type)),
         4
     ) as [
         EnrichedBlockHomepageIntroPost,
