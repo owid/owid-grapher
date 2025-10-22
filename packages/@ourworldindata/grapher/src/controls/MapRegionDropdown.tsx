@@ -60,6 +60,13 @@ export class MapRegionDropdown extends React.Component<{
 
         // Update the current region
         this.mapConfig.region = value
+
+        // It's confusing to have regions selected when switching to a continent
+        if (this.mapConfig.region !== MapRegionName.World) {
+            this.mapConfig.selection.deselectEntities(
+                this.mapConfig.selection.selectedRegionNames
+            )
+        }
     }
 
     @computed get options(): MapRegionDropdownOption[] {
