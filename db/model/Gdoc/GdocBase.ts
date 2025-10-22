@@ -117,7 +117,6 @@ export async function getLinkedIndicatorsForCharts(
 
 /**
  * Helper function to load linked charts for given grapher and explorer slugs.
- * This is shared between GdocBase.loadLinkedCharts and GdocHomepage.loadAnnouncementLinks
  */
 export async function loadLinkedChartsForSlugs(
     knex: db.KnexReadonlyTransaction,
