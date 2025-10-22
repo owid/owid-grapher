@@ -37,10 +37,15 @@ export const SubscribePage = ({ baseUrl }: SubscribePageProps) => {
                                 }
                             />
                         </div>
-                        <OwidSocials includeRss />
+                        <OwidSocials
+                            includeRss
+                            context={
+                                NewsletterSubscriptionContext.SubscribePage
+                            }
+                        />
                     </div>
                 </main>
-                <SiteFooter context={SiteFooterContext.default} />
+                <SiteFooter context={SiteFooterContext.subscribePage} />
             </body>
         </Html>
     )
