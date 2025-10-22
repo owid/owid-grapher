@@ -60,7 +60,7 @@ import {
 } from "@ourworldindata/types"
 import { spanToHtmlString } from "./gdocUtils.js"
 import { match, P } from "ts-pattern"
-import { pickBy } from "remeda"
+import * as R from "remeda"
 
 function spansToHtmlText(spans: Span[]): string {
     return spans.map(spanToHtmlString).join("")
@@ -689,7 +689,7 @@ export function enrichedBlockToRawBlock(
 function convertEnrichedHybridLinksToRaw(
     link: EnrichedHybridLink
 ): RawHybridLink {
-    return pickBy(link, (value, key) => {
+    return R.pickBy(link, (value, key) => {
         const keys: Array<keyof EnrichedHybridLink> = [
             "title",
             "subtitle",

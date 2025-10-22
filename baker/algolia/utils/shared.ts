@@ -20,7 +20,7 @@ import {
     ChartRecordType,
 } from "../../../site/search/searchTypes.js"
 import urljoin from "url-join"
-import { groupBy } from "remeda"
+import * as R from "remeda"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
 import { incomeGroupMap, REAL_FM_INCOME_GROUPS } from "./types.js"
 import { ExpandedFeaturedMetric } from "@ourworldindata/types"
@@ -184,7 +184,7 @@ function generateObjectID(
 function expandDefaultFeaturedMetrics(
     fms: DbPlainFeaturedMetricWithParentTagName[]
 ): ExpandedFeaturedMetric[] {
-    const byTag = groupBy(fms, (fm) => fm.parentTagName)
+    const byTag = R.groupBy(fms, (fm) => fm.parentTagName)
     const expanded: ExpandedFeaturedMetric[] = fms.map((fm) => ({
         ...fm,
         // Confusing, because there are `default` FMs in this array currently,
