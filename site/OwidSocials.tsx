@@ -1,5 +1,4 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import * as React from "react"
 import { RSS_FEEDS, SOCIALS } from "./SiteConstants.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
 
