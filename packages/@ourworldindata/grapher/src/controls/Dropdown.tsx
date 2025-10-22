@@ -197,6 +197,8 @@ export function Dropdown<DropdownOption extends BasicDropdownOption>({
             <Popover
                 className={cx("grapher-dropdown-menu", menuClassName)}
                 offset={4}
+                placement="bottom"
+                shouldFlip={false}
                 UNSTABLE_portalContainer={portalContainer}
             >
                 {isSearchable ? (
