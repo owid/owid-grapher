@@ -390,7 +390,8 @@ export async function createOrLoadGdocById(
 export async function loadGdocFromGdocBase(
     knex: KnexReadonlyTransaction,
     base: OwidGdocBaseInterface,
-    contentSource?: GdocsContentSource
+    contentSource?: GdocsContentSource,
+    options?: { loadState?: boolean }
 ): Promise<
     | GdocPost
     | GdocDataInsight
@@ -399,6 +400,8 @@ export async function loadGdocFromGdocBase(
     | GdocAuthor
     | GdocAnnouncement
 > {
+    const shouldLoadState = options?.loadState ?? true
+
     const type = _.get(base, "content.type") as unknown
     if (!type)
         throw new Error(
@@ -432,7 +435,9 @@ export async function loadGdocFromGdocBase(
         await gdoc.fetchAndEnrichGdoc()
     }
 
-    await gdoc.loadState(knex)
+    if (shouldLoadState) {
+        await gdoc.loadState(knex)
+    }
 
     return gdoc
 }
@@ -598,8 +603,11 @@ export async function loadPublishedGdocAuthors(
 }
 
 export async function getAndLoadListedGdocPosts(
-    knex: KnexReadonlyTransaction
+    knex: KnexReadonlyTransaction,
+    options?: { loadState?: boolean }
 ): Promise<GdocPost[]> {
+    const shouldLoadState = options?.loadState ?? true
+
     // TODO: Check if we shouldn't also restrict the types of gdocs here
     const rows = await knexRaw<DbRawPostGdoc>(
         knex,
@@ -629,10 +637,19 @@ export async function getAndLoadListedGdocPosts(
             tags: groupedTags[row.id] ? groupedTags[row.id] : null,
         } satisfies OwidGdocBaseInterface
     })
-    const gdocs = await Promise.all(
-        enrichedRows.map(async (row) => loadGdocFromGdocBase(knex, row))
-    )
-    return gdocs as GdocPost[]
+
+    // Pass loadState option through to loadGdocFromGdocBase
+    // When loadState=false (for blog index), it only creates gdoc objects with basic metadata
+    // When loadState=true (default), it fully loads linked charts, validates, loads images, etc.
+    const gdocs = (await Promise.all(
+        enrichedRows.map(async (row) =>
+            loadGdocFromGdocBase(knex, row, undefined, {
+                loadState: shouldLoadState,
+            })
+        )
+    )) as GdocPost[]
+
+    return gdocs
 }
 
 export async function setTagsForGdoc(

@@ -495,7 +495,7 @@ export const bakeAllChangedGrapherPagesAndDeleteRemovedGraphers = async (
         "bake grapher page [:bar] :current/:total :elapseds :rate/s :name\n",
         {
             width: 20,
-            total: chartsToBake.length + 1,
+            total: jobs.length + 1,
             renderThrottle: 0,
         }
     )

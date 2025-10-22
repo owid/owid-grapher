@@ -37,30 +37,32 @@ export const PUBLIC_TAG_PARENT_IDS = [
 export async function mapSlugsToIds(
     knex: db.KnexReadonlyTransaction
 ): Promise<{ [slug: string]: number }> {
-    const [redirects, rows] = await Promise.all([
-        db.knexRaw<{ chart_id: number; slug: string }>(
-            knex,
-            `SELECT chart_id, slug FROM chart_slug_redirects`
-        ),
-        db.knexRaw<{ id: number; slug: string }>(
-            knex,
-            `-- sql
-                SELECT c.id, cc.slug
-                FROM charts c
-                JOIN chart_configs cc ON cc.id = c.configId
-                WHERE cc.full ->> "$.isPublished" = "true"
-            `
-        ),
-    ])
+    return db.cachedInTransaction(knex, "mapSlugsToIds", async () => {
+        const [redirects, rows] = await Promise.all([
+            db.knexRaw<{ chart_id: number; slug: string }>(
+                knex,
+                `SELECT chart_id, slug FROM chart_slug_redirects`
+            ),
+            db.knexRaw<{ id: number; slug: string }>(
+                knex,
+                `-- sql
+                    SELECT c.id, cc.slug
+                    FROM charts c
+                    JOIN chart_configs cc ON cc.id = c.configId
+                    WHERE cc.full ->> "$.isPublished" = "true"
+                `
+            ),
+        ])
 
-    const slugToId: { [slug: string]: number } = {}
-    for (const row of redirects) {
-        slugToId[row.slug] = row.chart_id
-    }
-    for (const row of rows) {
-        slugToId[row.slug] = row.id
-    }
-    return slugToId
+        const slugToId: { [slug: string]: number } = {}
+        for (const row of redirects) {
+            slugToId[row.slug] = row.chart_id
+        }
+        for (const row of rows) {
+            slugToId[row.slug] = row.id
+        }
+        return slugToId
+    })
 }
 
 // Same as mapSlugsToIds but gets the configs also
@@ -626,7 +628,8 @@ export const getRelatedChartsForVariable = async (
             FROM charts
             JOIN chart_configs ON charts.configId=chart_configs.id
             INNER JOIN chart_tags ON charts.id=chart_tags.chartId
-            WHERE JSON_CONTAINS(chart_configs.full->'$.dimensions', '{"variableId":${variableId}}')
+            INNER JOIN chart_dimensions ON charts.id=chart_dimensions.chartId
+            WHERE chart_dimensions.variableId = ${variableId}
             AND chart_configs.full->>"$.isPublished" = "true"
             ${excludeChartIds}
             GROUP BY charts.id

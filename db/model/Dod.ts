@@ -12,17 +12,19 @@ import {
     DodUsageRecord,
 } from "@ourworldindata/types"
 import { extractDetailsFromSyntax } from "@ourworldindata/utils"
-import { KnexReadonlyTransaction, knexRaw } from "../db.js"
+import { KnexReadonlyTransaction, knexRaw, cachedInTransaction } from "../db.js"
 
 export async function getDods(
     knex: KnexReadonlyTransaction
 ): Promise<DbPlainDod[]> {
-    return knexRaw<DbPlainDod>(
-        knex,
-        `-- sql
-        SELECT * FROM dods
-        ORDER BY updatedAt DESC`
-    )
+    return cachedInTransaction(knex, "dods", async () => {
+        return knexRaw<DbPlainDod>(
+            knex,
+            `-- sql
+            SELECT * FROM dods
+            ORDER BY updatedAt DESC`
+        )
+    })
 }
 
 export async function getParsedDodsDictionary(

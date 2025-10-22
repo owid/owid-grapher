@@ -153,7 +153,11 @@ const getFullPost = async (
 
 export const getBlogIndex = _.memoize(
     async (knex: db.KnexReadonlyTransaction): Promise<IndexPost[]> => {
-        const gdocPosts = await getAndLoadListedGdocPosts(knex)
+        // Using loadState: false to skip expensive operations for blog index
+        const gdocPosts = await getAndLoadListedGdocPosts(knex, {
+            loadState: false,
+        })
+
         const imagesByFilename = await db
             .getCloudflareImages(knex)
             .then((images) => _.keyBy(images, "filename"))
