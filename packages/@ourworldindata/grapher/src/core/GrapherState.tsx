@@ -1534,14 +1534,14 @@ export class GrapherState {
             this.mapConfig.selection.hasSelection
 
         // switching from the chart tab to the map tab
-        if (isChartTab(oldTab) && isMapTab(newTab) && shouldSyncSelection) {
+        if (!isMapTab(oldTab) && isMapTab(newTab) && shouldSyncSelection) {
             this.mapConfig.selection.setSelectedEntities(
                 this.selection.selectedEntityNames
             )
         }
 
         // switching from the map tab to the chart tab
-        if (isMapTab(oldTab) && isChartTab(newTab) && shouldSyncSelection) {
+        if (isMapTab(oldTab) && !isMapTab(newTab) && shouldSyncSelection) {
             this.selection.setSelectedEntities(
                 this.mapConfig.selection.selectedEntityNames
             )
