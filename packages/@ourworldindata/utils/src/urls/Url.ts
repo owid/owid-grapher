@@ -9,7 +9,7 @@ import {
 } from "../Util.js"
 
 import { queryParamsToStr, strToQueryParams } from "./UrlUtils.js"
-import { isShallowEqual } from "remeda"
+import * as R from "remeda"
 
 const parseUrl = (url: string): urlParseLib<string> => {
     const parsed = urlParseLib(url, {})
@@ -185,7 +185,7 @@ export class Url {
         const thisParams = this.queryParams
         const otherParams = otherUrl.queryParams
 
-        return isShallowEqual(thisParams, otherParams)
+        return R.isShallowEqual(thisParams, otherParams)
     }
 }
 

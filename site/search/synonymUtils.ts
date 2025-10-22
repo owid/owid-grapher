@@ -1,5 +1,5 @@
 import { countries, excludeUndefined } from "@ourworldindata/utils"
-import { partition } from "remeda"
+import * as R from "remeda"
 import { SynonymMap } from "./searchTypes.js"
 
 export const synonyms = [
@@ -292,7 +292,7 @@ export function buildSynonymMap(): SynonymMap {
     // Process bidirectional synonym groups
     for (const group of synonyms) {
         for (const term of group) {
-            const [, otherTerms] = partition(group, (t) => t === term)
+            const [, otherTerms] = R.partition(group, (t) => t === term)
             const termLower = term.toLowerCase()
             const otherTermsLower = otherTerms.map((t) => t.toLowerCase())
 

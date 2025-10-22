@@ -1,6 +1,6 @@
 import { Url } from "@ourworldindata/utils"
 import { match } from "ts-pattern"
-import { uniqueBy } from "remeda"
+import * as R from "remeda"
 import {
     SearchState,
     SearchAction,
@@ -108,7 +108,7 @@ export function searchReducer(
 
                 // Deduplicate filters by type and name
                 const allFilters = [...state.filters, ...filters]
-                const uniqueFilters = uniqueBy(
+                const uniqueFilters = R.uniqueBy(
                     allFilters,
                     (filter) => `${filter.type}:${filter.name}`
                 )
