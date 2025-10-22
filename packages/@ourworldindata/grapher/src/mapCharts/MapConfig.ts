@@ -3,6 +3,7 @@ import {
     GlobeConfig,
     MapRegionName,
     MapConfigInterface,
+    TimeBound,
 } from "@ourworldindata/types"
 import { ColorScaleConfig } from "../color/ColorScaleConfig"
 import {
@@ -13,9 +14,11 @@ import {
     deleteRuntimeAndUnchangedProps,
     maxTimeBoundFromJSONOrPositiveInfinity,
     maxTimeToJSON,
+    minTimeToJSON,
     trimObject,
     NoUndefinedValues,
     ToleranceStrategy,
+    minTimeBoundFromJSONOrNegativeInfinity,
 } from "@ourworldindata/utils"
 import { MapSelectionArray } from "../selection/MapSelectionArray"
 import { DEFAULT_GLOBE_ROTATION, DEFAULT_GLOBE_ZOOM } from "./MapChartConstants"
@@ -26,7 +29,8 @@ import * as R from "remeda"
 // TODO: migrate database config & only pass legend props
 class MapConfigDefaults {
     columnSlug: ColumnSlug | undefined = undefined
-    time: number | undefined = undefined
+    time: TimeBound | undefined = undefined
+    startTime: TimeBound | undefined = undefined
     timeTolerance: number | undefined = undefined
     toleranceStrategy: ToleranceStrategy | undefined = undefined
     hideTimeline: boolean | undefined = undefined
@@ -48,6 +52,7 @@ class MapConfigDefaults {
         makeObservable(this, {
             columnSlug: observable,
             time: observable,
+            startTime: observable,
             timeTolerance: observable,
             toleranceStrategy: observable,
             hideTimeline: observable,
@@ -64,8 +69,15 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
     updateFromObject(obj: Partial<MapConfigInterface>): void {
         updatePersistables(this, obj)
 
-        if (obj.time)
+        if (obj.time) {
             this.time = maxTimeBoundFromJSONOrPositiveInfinity(obj.time)
+        }
+
+        if (obj.startTime) {
+            this.startTime = minTimeBoundFromJSONOrNegativeInfinity(
+                obj.startTime
+            )
+        }
 
         // If the region is set, automatically switch to the globe
         if (obj.region && obj.region !== MapRegionName.World) {
@@ -91,6 +103,10 @@ export class MapConfig extends MapConfigDefaults implements Persistable {
         deleteRuntimeAndUnchangedProps(obj, new MapConfigDefaults())
 
         if (obj.time) obj.time = maxTimeToJSON(this.time) as any
+        if (obj.startTime) obj.startTime = minTimeToJSON(this.startTime) as any
+
+        // No need to store the startTime if it's the same as the end time
+        if (obj.startTime === obj.time) delete obj.startTime
 
         // persist selection
         obj.selectedEntityNames = this.selection.selectedEntityNames
