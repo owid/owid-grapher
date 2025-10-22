@@ -152,7 +152,7 @@ $grapher-dropdown-selected-fill: #c7ced7;
     }
 
     .option {
-        padding: 8px calc(16px + $option-checkmark-width + 2px) 8px 16px;
+        padding: 10px calc(16px + $option-checkmark-width + 2px) 10px 16px;
         cursor: pointer;
 
         &[data-hovered],
