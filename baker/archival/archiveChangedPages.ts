@@ -16,6 +16,7 @@ import {
     getMultiDimChecksumsFromDb,
     getExplorerChecksumsFromDb,
     getPostChecksumsFromDb,
+    getVideosByPostId,
     ArchivalImage,
 } from "../../db/model/archival/archivalDb.js"
 import {
@@ -53,6 +54,7 @@ import {
     archiveVariableIds,
     archiveChartConfigs,
     archiveImages,
+    archiveVideos,
     CommonArchivalContext,
     MinimalMultiDimInfo,
     MinimalChartInfo,
@@ -159,11 +161,12 @@ const getPostsToArchive = async (
 ): Promise<{
     postsToArchive: PostChecksumsObjectWithHash[]
     imagesByPostId: Record<string, ArchivalImage[]>
+    videosByPostId: Record<string, string[]>
 }> => {
     const shouldProcessPosts = type === "posts" || type === "all"
 
     if (!shouldProcessPosts) {
-        return { postsToArchive: [], imagesByPostId: {} }
+        return { postsToArchive: [], imagesByPostId: {}, videosByPostId: {} }
     }
 
     if (postSlugs && postSlugs.length > 0) {
@@ -177,10 +180,6 @@ const getPostsToArchive = async (
         const postsToArchive = allChecksums.filter((checksum) =>
             postSlugs.includes(checksum.postSlug)
         )
-        const postIds = new Set(postsToArchive.map((post) => post.postId))
-        const imagesByPostIdToArchive = _.pickBy(imagesByPostId, (_, postId) =>
-            postIds.has(postId)
-        )
 
         if (postSlugs.length !== postsToArchive.length) {
             throw new Error(
@@ -188,11 +187,20 @@ const getPostsToArchive = async (
             )
         }
 
-        return { postsToArchive, imagesByPostId: imagesByPostIdToArchive }
+        const postIds = _.uniq(postsToArchive.map((post) => post.postId))
+        const imagesByPostIdToArchive = _.pick(imagesByPostId, postIds)
+        const videosByPostIdToArchive = await getVideosByPostId(trx, postIds)
+
+        return {
+            postsToArchive,
+            imagesByPostId: imagesByPostIdToArchive,
+            videosByPostId: videosByPostIdToArchive,
+        }
     }
 
-    const { postChecksums, imagesByPostId } = await findChangedPostPages(trx)
-    return { postsToArchive: postChecksums, imagesByPostId }
+    const { postChecksums, imagesByPostId, videosByPostId } =
+        await findChangedPostPages(trx)
+    return { postsToArchive: postChecksums, imagesByPostId, videosByPostId }
 }
 
 /**
@@ -513,6 +521,7 @@ const archivePostPages = async (
     postInfos: MinimalPostInfo[],
     commonCtx: CommonArchivalContext,
     imageFilesByPostId: Record<string, AssetMap>,
+    videoFilesByPostId: Record<string, AssetMap>,
     archivalDate: ArchivalTimestamp,
     opts: Options
 ): Promise<void> => {
@@ -523,7 +532,8 @@ const archivePostPages = async (
         postsToArchive,
         postInfos,
         commonCtx,
-        imageFilesByPostId
+        imageFilesByPostId,
+        videoFilesByPostId
     )
 
     await insertArchivedPostVersions(
@@ -550,7 +560,7 @@ const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
             graphersToArchive,
             multiDimsToArchive,
             explorersToArchive,
-            { postsToArchive, imagesByPostId },
+            { postsToArchive, imagesByPostId, videosByPostId },
         ] = await Promise.all([
             getGraphersToArchive(trx, opts),
             getMultiDimsToArchive(trx, opts),
@@ -650,6 +660,11 @@ const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
             commonCtx.baseArchiveDir
         )
 
+        const videoFilesByPostId = await archiveVideos(
+            videosByPostId,
+            commonCtx.baseArchiveDir
+        )
+
         // Must run after the charts so we can fetch their latest archived
         // versions.
         await archivePostPages(
@@ -658,6 +673,7 @@ const findChangedPagesAndArchive = async (opts: Options): Promise<void> => {
             postInfos,
             commonCtx,
             imageFilesByPostId,
+            videoFilesByPostId,
             archivalDate,
             opts
         )
