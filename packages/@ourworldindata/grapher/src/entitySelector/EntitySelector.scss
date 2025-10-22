@@ -37,11 +37,6 @@
         .entity-selector__sort-dropdown {
             flex-grow: 1;
 
-            // make the options menu wider to cover the sort button
-            .menu {
-                width: calc(100% + $sort-button-margin + $sort-button-size);
-            }
-
             .control .label svg {
                 transform: rotate(-90deg);
             }
@@ -86,6 +81,13 @@
                 color: $gray-60;
             }
         }
+    }
+
+    .entity-selector__sort-dropdown-menu {
+        // Make the sort dropdown menu span the full width of the sort bar.
+        width: calc(
+            var(--trigger-width) + $sort-button-margin + $sort-button-size
+        );
     }
 
     .entity-selector__filter-bar {

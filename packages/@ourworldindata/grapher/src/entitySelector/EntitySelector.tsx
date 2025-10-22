@@ -1410,6 +1410,7 @@ export class EntitySelector extends React.Component<EntitySelectorProps> {
                 <div className="entity-selector__sort-dropdown-and-button">
                     <Dropdown<SortDropdownOption>
                         className="entity-selector__sort-dropdown"
+                        menuClassName="entity-selector__sort-dropdown-menu"
                         options={this.sortOptions}
                         onChange={this.onChangeSortSlug}
                         value={this.sortValue}
