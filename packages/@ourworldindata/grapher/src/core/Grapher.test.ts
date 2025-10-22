@@ -11,6 +11,7 @@ import {
     LegacyGrapherQueryParams,
     GRAPHER_TAB_NAMES,
     OwidChartDimensionInterface,
+    GRAPHER_TAB_QUERY_PARAMS,
 } from "@ourworldindata/types"
 import {
     TimeBoundValue,
@@ -761,6 +762,28 @@ describe("time parameter", () => {
                     const params = toQueryParams({
                         minTime: test.param[0],
                         maxTime: test.param[1],
+                    })
+                    expect(params.time).toEqual(test.query)
+                })
+            }
+        }
+
+        for (const test of tests) {
+            it(`parse ${test.name} (map tab)`, () => {
+                const grapher = fromQueryParams({
+                    tab: GRAPHER_TAB_QUERY_PARAMS.map,
+                    time: test.query,
+                })
+                const [start, end] = grapher.timelineHandleTimeBounds
+                expect(start).toEqual(test.param[0])
+                expect(end).toEqual(test.param[1])
+            })
+            if (!test.irreversible) {
+                it(`encode ${test.name}`, () => {
+                    const params = toQueryParams({
+                        hasMapTab: true,
+                        tab: GRAPHER_TAB_CONFIG_OPTIONS.map,
+                        map: { startTime: test.param[0], time: test.param[1] },
                     })
                     expect(params.time).toEqual(test.query)
                 })
