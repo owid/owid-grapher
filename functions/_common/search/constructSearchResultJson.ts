@@ -173,7 +173,7 @@ export function constructSearchResultJson(
         ...grapherState.changedParams,
         // Explicitly set time as query parameter in case it differs from the original chart.
         // This can happen when projections have been removed from the chart.
-        time: makeGrapherTimeParam(grapherState, [
+        time: formatGrapherTimeRangeParam(grapherState, [
             grapherState.startTime,
             grapherState.endTime,
         ]),
@@ -924,6 +924,9 @@ function getGrapherQueryParamsForTab({
         .with(GRAPHER_TAB_NAMES.SlopeChart, () =>
             getGrapherQueryParamsForSlopeChart(grapherState, { timeBounds })
         )
+        .with(GRAPHER_TAB_NAMES.WorldMap, () =>
+            getGrapherQueryParamsForMap(grapherState)
+        )
         .otherwise(() => undefined)
 
     if (!params) return { chartParams: undefined, previewParams: undefined }
@@ -1019,25 +1022,42 @@ function getGrapherQueryParamsForSlopeChart(
     ]
 
     // Set the time param to the new time bounds
-    const params = { time: makeGrapherTimeParam(grapherState, updatedTime) }
+    const params = {
+        time: formatGrapherTimeRangeParam(grapherState, updatedTime),
+    }
 
     return { chartParams: params, previewParams: params }
 }
 
-function makeGrapherTimeParam(
+function getGrapherQueryParamsForMap(grapherState: GrapherState): {
+    chartParams?: GrapherQueryParams
+    previewParams?: GrapherQueryParams
+} {
+    // The map.time setting is ignored on purpose for consistency between the different views
+    const mapTime = grapherState.endTime
+    const params = { time: formatGrapherTimeParam(grapherState, mapTime) }
+    return { chartParams: params, previewParams: params }
+}
+
+function formatGrapherTimeRangeParam(
     grapherState: GrapherState,
     timeBounds: TimeBounds
 ): string {
     const [startTime, endTime] = timeBounds
+    return [startTime ?? -Infinity, endTime ?? Infinity]
+        .map((time) => formatGrapherTimeParam(grapherState, time))
+        .join("..")
+}
 
+function formatGrapherTimeParam(
+    grapherState: GrapherState,
+    time: Time
+): string {
     const isDailyData =
         grapherState.table.timeColumn instanceof ColumnTypeMap.Day
     const formatTime = (t: Time): string =>
         timeBoundToTimeBoundString(t, isDailyData)
-
-    return [startTime ?? -Infinity, endTime ?? Infinity]
-        .map(formatTime)
-        .join("..")
+    return formatTime(time)
 }
 
 /** Number of table rows that can fit in a grid slot */
