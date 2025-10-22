@@ -32,7 +32,7 @@ import { BLOG_POSTS_PER_PAGE } from "../../../settings/serverSettings.js"
 import { GdocAnnouncement } from "./GdocAnnouncement.js"
 import { GdocDataInsight } from "./GdocDataInsight.js"
 import { gdocFromJSON } from "./GdocFactory.js"
-import { pipe, unique } from "remeda"
+import * as R from "remeda"
 import { getAllImages } from "../Image.js"
 import { keyBy, pick } from "lodash-es"
 
@@ -282,7 +282,7 @@ export const enrichLatestPageItems = async (
 
     // Extract announcements' linked documents' featured images
     // (in case they're needed for prominent links)
-    const linkedDocumentFeaturedImageFilenames = pipe(
+    const linkedDocumentFeaturedImageFilenames = R.pipe(
         Object.values(linkedDocuments).map((d) => d["featured-image"]),
         excludeNullish
     )
@@ -290,16 +290,16 @@ export const enrichLatestPageItems = async (
     // Fetch authors (only for articles)
     const linkedAuthors = await getMinimalAuthorsByNames(
         knex,
-        unique(articles.flatMap((post) => post.data.authors))
+        R.unique(articles.flatMap((post) => post.data.authors))
     )
 
     // Gather all article image filenames
-    const articleFeaturedImageFilenames = pipe(
+    const articleFeaturedImageFilenames = R.pipe(
         articles.map((post) => post.data["featured-image"]),
         excludeNullish
     )
 
-    const announcementAndDataInsightImageFilenames = pipe(
+    const announcementAndDataInsightImageFilenames = R.pipe(
         [...dataInsights, ...announcements].flatMap((post) =>
             post.data.content.body.filter((block) => block.type === "image")
         ),
