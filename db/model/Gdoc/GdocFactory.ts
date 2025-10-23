@@ -113,6 +113,9 @@ export function gdocFromJSON(
             // TODO: better validation here?
             () => GdocAnnouncement.create({ ...(json as any) })
         )
+        .with(OwidGdocType.Profile, () => {
+            throw new Error("Profiles are not yet supported in GdocFactory")
+        })
         .exhaustive()
 }
 
@@ -434,6 +437,9 @@ export async function loadGdocFromGdocBase(
         .with(OwidGdocType.Homepage, () => GdocHomepage.create(base))
         .with(OwidGdocType.Author, () => GdocAuthor.create(base))
         .with(OwidGdocType.Announcement, () => GdocAnnouncement.create(base))
+        .with(OwidGdocType.Profile, () => {
+            throw new Error("Profiles are not yet supported in GdocFactory")
+        })
         .exhaustive()
 
     if (contentSource === GdocsContentSource.Gdocs) {
