@@ -17,7 +17,6 @@ import {
     makeAtomFeed,
     feedbackPage,
     renderNotFoundPage,
-    renderCountryProfile,
     flushCache as siteBakingFlushCache,
     renderPost,
     renderGdoc,
@@ -35,7 +34,6 @@ import {
 import { makeSitemap } from "../baker/sitemap.js"
 import { bakeCountries } from "../baker/countryProfiles.js"
 import {
-    countries,
     FullPost,
     LinkedAuthor,
     LinkedChart,
@@ -54,7 +52,6 @@ import {
     OwidGdocType,
 } from "@ourworldindata/utils"
 import { execWrapper } from "../db/execWrapper.js"
-import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { getRedirects, flushCache as redirectsFlushCache } from "./redirects.js"
 import { bakeAllChangedGrapherPagesAndDeleteRemovedGraphers } from "./GrapherBaker.js"
 import { EXPLORERS_ROUTE_FOLDER } from "@ourworldindata/explorer"
@@ -184,37 +181,9 @@ export class SiteBaker {
         this.explorerAdminServer = new ExplorerAdminServer()
     }
 
-    private async bakeCountryProfiles(knex: db.KnexReadonlyTransaction) {
+    private async bakeCountryProfiles(_knex: db.KnexReadonlyTransaction) {
         if (!this.bakeSteps.has("countryProfiles")) return
-        this.progressBar.tick({ name: "Baking country profiles" })
-        await Promise.all(
-            countryProfileSpecs.map(async (spec) => {
-                // Delete all country profiles before regenerating them
-                await fs.remove(`${this.bakedSiteDir}/${spec.rootPath}`)
-
-                // Not necessary, as this is done by stageWrite already
-                // await this.ensureDir(profile.rootPath)
-                for (const country of countries) {
-                    const html = await renderCountryProfile(
-                        spec,
-                        country,
-                        knex
-                    ).catch(() =>
-                        console.error(
-                            `${country.name} country profile not baked for project "${spec.project}". Check that both pages "${spec.landingPageSlug}" and "${spec.genericProfileSlug}" exist and are published.`
-                        )
-                    )
-
-                    if (html) {
-                        const outPath = path.join(
-                            this.bakedSiteDir,
-                            `${spec.rootPath}/${country.slug}.html`
-                        )
-                        await this.stageWrite(outPath, html)
-                    }
-                }
-            })
-        )
+        this.progressBar.tick({ name: "Skipping legacy country profiles" })
     }
 
     // Bake an individual post/page
@@ -267,12 +236,8 @@ export class SiteBaker {
                     !path.startsWith("uploads") &&
                     !path.startsWith("grapher") &&
                     !path.startsWith("countries") &&
-                    !path.startsWith("country") &&
                     !path.startsWith("latest") &&
                     !path.startsWith("explore") &&
-                    !countryProfileSpecs.some((spec) =>
-                        path.startsWith(spec.rootPath)
-                    ) &&
                     path !== "donate" &&
                     path !== "feedback" &&
                     path !== "charts" &&
