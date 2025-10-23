@@ -35,7 +35,8 @@
         "name": "Aland Islands",
         "slug": "aland-islands",
         "regionType": "country",
-        "isUnlisted": true
+        "isUnlisted": true,
+        "article": "the"
     },
     {
         "code": "ALB",
@@ -60,7 +61,8 @@
         "slug": "netherlands-antilles",
         "regionType": "country",
         "isHistorical": true,
-        "isUnlisted": true
+        "isUnlisted": true,
+        "article": "the"
     },
     {
         "code": "ARE",
@@ -69,7 +71,8 @@
         "slug": "united-arab-emirates",
         "regionType": "country",
         "isMappable": true,
-        "variantNames": ["UAE"]
+        "variantNames": ["UAE"],
+        "article": "the"
     },
     {
         "code": "ARG",
@@ -110,7 +113,8 @@
         "slug": "french-southern-territories",
         "regionType": "country",
         "isMappable": true,
-        "isUnlisted": true
+        "isUnlisted": true,
+        "article": "the"
     },
     {
         "code": "ATG",
@@ -206,7 +210,8 @@
         "name": "Bahrain",
         "slug": "bahrain",
         "regionType": "country",
-        "isMappable": true
+        "isMappable": true,
+        "article": "the"
     },
     {
         "code": "BHS",
@@ -214,7 +219,8 @@
         "name": "Bahamas",
         "slug": "bahamas",
         "regionType": "country",
-        "isMappable": true
+        "isMappable": true,
+        "article": "the"
     },
     {
         "code": "BIH",
@@ -317,7 +323,8 @@
         "name": "Central African Republic",
         "slug": "central-african-republic",
         "regionType": "country",
-        "isMappable": true
+        "isMappable": true,
+        "article": "the"
     },
     {
         "code": "CAN",
@@ -333,7 +340,8 @@
         "name": "Cocos Islands",
         "slug": "cocos-islands",
         "regionType": "country",
-        "isUnlisted": true
+        "isUnlisted": true,
+        "article": "the"
     },
     {
         "code": "CHE",
@@ -382,7 +390,8 @@
         "shortName": "DR Congo",
         "slug": "democratic-republic-of-congo",
         "regionType": "country",
-        "isMappable": true
+        "isMappable": true,
+        "article": "the"
     },
     {
         "code": "COG",
@@ -390,7 +399,8 @@
         "name": "Congo",
         "slug": "congo",
         "regionType": "country",
-        "isMappable": true
+        "isMappable": true,
+        "article": "the"
     },
     {
         "code": "COK",
@@ -398,7 +408,8 @@
         "name": "Cook Islands",
         "slug": "cook-islands",
         "regionType": "country",
-        "isUnlisted": true
+        "isUnlisted": true,
+        "article": "the"
     },
     {
         "code": "COL",
@@ -414,7 +425,8 @@
         "name": "Comoros",
         "slug": "comoros",
         "regionType": "country",
-        "isMappable": true
+        "isMappable": true,
+        "article": "the"
     },
     {
         "code": "CPV",
@@ -460,7 +472,8 @@
         "shortCode": "KY",
         "name": "Cayman Islands",
         "slug": "cayman-islands",
-        "regionType": "country"
+        "regionType": "country",
+        "article": "the"
     },
     {
         "code": "CYP",
@@ -517,7 +530,8 @@
         "name": "Dominican Republic",
         "slug": "dominican-republic",
         "regionType": "country",
-        "isMappable": true
+        "isMappable": true,
+        "article": "the"
     },
     {
         "code": "DZA",
@@ -558,7 +572,8 @@
         "slug": "western-sahara",
         "regionType": "country",
         "isMappable": true,
-        "isUnlisted": true
+        "isUnlisted": true,
+        "article": "the"
     },
     {
         "code": "ESP",
@@ -605,7 +620,8 @@
         "shortCode": "FK",
         "name": "Falkland Islands",
         "slug": "falkland-islands",
-        "regionType": "country"
+        "regionType": "country",
+        "article": "the"
     },
     {
         "code": "FRA",
@@ -620,7 +636,8 @@
         "shortCode": "FO",
         "name": "Faroe Islands",
         "slug": "faroe-islands",
-        "regionType": "country"
+        "regionType": "country",
+        "article": "the"
     },
     {
         "code": "FSM",
@@ -645,7 +662,8 @@
         "slug": "united-kingdom",
         "regionType": "country",
         "isMappable": true,
-        "variantNames": ["UK"]
+        "variantNames": ["UK"],
+        "article": "the"
     },
     {
         "code": "GEO",
@@ -700,7 +718,8 @@
         "name": "Gambia",
         "slug": "gambia",
         "regionType": "country",
-        "isMappable": true
+        "isMappable": true,
+        "article": "the"
     },
     {
         "code": "GNB",
@@ -786,7 +805,8 @@
         "name": "Heard Island and McDonald Islands",
         "slug": "heard-island-and-mcdonald-islands",
         "regionType": "country",
-        "isUnlisted": true
+        "isUnlisted": true,
+        "article": "the"
     },
     {
         "code": "HND",
@@ -833,7 +853,8 @@
         "shortCode": "IM",
         "name": "Isle of Man",
         "slug": "isle-of-man",
-        "regionType": "country"
+        "regionType": "country",
+        "article": "the"
     },
     {
         "code": "IND",
@@ -849,7 +870,8 @@
         "name": "British Indian Ocean Territory",
         "slug": "british-indian-ocean-territory",
         "regionType": "country",
-        "isUnlisted": true
+        "isUnlisted": true,
+        "article": "the"
     },
     {
         "code": "IRL",
@@ -1135,7 +1157,8 @@
         "name": "Maldives",
         "slug": "maldives",
         "regionType": "country",
-        "isMappable": true
+        "isMappable": true,
+        "article": "the"
     },
     {
         "code": "MEX",
@@ -1151,7 +1174,8 @@
         "name": "Marshall Islands",
         "slug": "marshall-islands",
         "regionType": "country",
-        "isMappable": true
+        "isMappable": true,
+        "article": "the"
     },
     {
         "code": "MKD",
@@ -1207,7 +1231,8 @@
         "shortCode": "MP",
         "name": "Northern Mariana Islands",
         "slug": "northern-mariana-islands",
-        "regionType": "country"
+        "regionType": "country",
+        "article": "the"
     },
     {
         "code": "MOZ",
@@ -1331,7 +1356,8 @@
         "name": "Netherlands",
         "slug": "netherlands",
         "regionType": "country",
-        "isMappable": true
+        "isMappable": true,
+        "article": "the"
     },
     {
         "code": "NOR",
@@ -1541,14 +1567,16 @@
         "name": "Grand Duchy of Baden",
         "slug": "grand-duchy-of-baden",
         "regionType": "country",
-        "isHistorical": true
+        "isHistorical": true,
+        "article": "the"
     },
     {
         "code": "OWID_BAV",
         "name": "Kingdom of Bavaria",
         "slug": "kingdom-of-bavaria",
         "regionType": "country",
-        "isHistorical": true
+        "isHistorical": true,
+        "article": "the"
     },
     {
         "code": "OWID_CIS",
@@ -1575,14 +1603,16 @@
         "name": "Democratic Republic of Vietnam",
         "slug": "democratic-republic-of-vietnam",
         "regionType": "country",
-        "isHistorical": true
+        "isHistorical": true,
+        "article": "the"
     },
     {
         "code": "OWID_DSI",
         "name": "Kingdom of the Two Sicilies",
         "slug": "kingdom-of-the-two-sicilies",
         "regionType": "country",
-        "isHistorical": true
+        "isHistorical": true,
+        "article": "the"
     },
     {
         "code": "OWID_ERE",
@@ -1950,7 +1980,8 @@
         "name": "Duchy of Modena and Reggio",
         "slug": "duchy-of-modena-and-reggio",
         "regionType": "country",
-        "isHistorical": true
+        "isHistorical": true,
+        "article": "the"
     },
     {
         "code": "OWID_NAG",
@@ -2273,14 +2304,16 @@
         "name": "Orange Free State",
         "slug": "orange-free-state",
         "regionType": "country",
-        "isHistorical": true
+        "isHistorical": true,
+        "article": "the"
     },
     {
         "code": "OWID_PAR",
         "name": "Duchy of Parma and Piacenza",
         "slug": "duchy-of-parma-and-piacenza",
         "regionType": "country",
-        "isHistorical": true
+        "isHistorical": true,
+        "article": "the"
     },
     {
         "code": "OWID_PYA",
@@ -2308,14 +2341,16 @@
         "name": "Federal Republic of Central America",
         "slug": "federal-republic-of-central-america",
         "regionType": "country",
-        "isHistorical": true
+        "isHistorical": true,
+        "article": "the"
     },
     {
         "code": "OWID_RVN",
         "name": "Republic of Vietnam",
         "slug": "republic-of-vietnam",
         "regionType": "country",
-        "isHistorical": true
+        "isHistorical": true,
+        "article": "the"
     },
     {
         "code": "OWID_SAM",
@@ -2347,21 +2382,24 @@
         "name": "Kingdom of Sardinia",
         "slug": "kingdom-of-sardinia",
         "regionType": "country",
-        "isHistorical": true
+        "isHistorical": true,
+        "article": "the"
     },
     {
         "code": "OWID_SAX",
         "name": "Kingdom of Saxony",
         "slug": "kingdom-of-saxony",
         "regionType": "country",
-        "isHistorical": true
+        "isHistorical": true,
+        "article": "the"
     },
     {
         "code": "OWID_SDN",
         "name": "Sudan (former)",
         "slug": "sudan-former",
         "regionType": "country",
-        "isHistorical": true
+        "isHistorical": true,
+        "article": "the"
     },
     {
         "code": "OWID_SEK",
@@ -2468,7 +2506,8 @@
         "name": "Grand Duchy of Tuscany",
         "slug": "grand-duchy-of-tuscany",
         "regionType": "country",
-        "isHistorical": true
+        "isHistorical": true,
+        "article": "the"
     },
     {
         "code": "OWID_UMC",
@@ -2537,7 +2576,8 @@
         "name": "USSR",
         "slug": "ussr",
         "regionType": "country",
-        "isHistorical": true
+        "isHistorical": true,
+        "article": "the"
     },
     {
         "code": "OWID_WRL",
@@ -2559,14 +2599,16 @@
         "name": "Kingdom of Wurttemberg",
         "slug": "kingdom-of-wurttemberg",
         "regionType": "country",
-        "isHistorical": true
+        "isHistorical": true,
+        "article": "the"
     },
     {
         "code": "OWID_YAR",
         "name": "Yemen Arab Republic",
         "slug": "yemen-arab-republic",
         "regionType": "country",
-        "isHistorical": true
+        "isHistorical": true,
+        "article": "the"
     },
     {
         "code": "OWID_YGS",
@@ -2580,7 +2622,8 @@
         "name": "Yemen People's Republic",
         "slug": "yemen-peoples-republic",
         "regionType": "country",
-        "isHistorical": true
+        "isHistorical": true,
+        "article": "the"
     },
     {
         "code": "OWID_ZAN",
@@ -2906,7 +2949,8 @@
         "name": "Philippines",
         "slug": "philippines",
         "regionType": "country",
-        "isMappable": true
+        "isMappable": true,
+        "article": "the"
     },
     {
         "code": "PLW",
@@ -2978,7 +3022,8 @@
         "name": "Gaza Strip",
         "slug": "gaza-strip",
         "regionType": "country",
-        "isUnlisted": true
+        "isUnlisted": true,
+        "article": "the"
     },
     {
         "code": "PYF",
@@ -3064,7 +3109,8 @@
         "name": "South Georgia and the South Sandwich Islands",
         "slug": "south-georgia-and-the-south-sandwich-islands",
         "regionType": "country",
-        "isUnlisted": true
+        "isUnlisted": true,
+        "article": "the"
     },
     {
         "code": "SHN",
@@ -3088,7 +3134,8 @@
         "name": "Solomon Islands",
         "slug": "solomon-islands",
         "regionType": "country",
-        "isMappable": true
+        "isMappable": true,
+        "article": "the"
     },
     {
         "code": "SLE",
@@ -3208,7 +3255,8 @@
         "name": "Seychelles",
         "slug": "seychelles",
         "regionType": "country",
-        "isMappable": true
+        "isMappable": true,
+        "article": "the"
     },
     {
         "code": "SYR",
@@ -3224,7 +3272,8 @@
         "name": "Turks and Caicos Islands",
         "shortName": "Turks and Caicos",
         "slug": "turks-and-caicos-islands",
-        "regionType": "country"
+        "regionType": "country",
+        "article": "the"
     },
     {
         "code": "TCD",
@@ -4810,7 +4859,8 @@
         "slug": "united-states",
         "regionType": "country",
         "isMappable": true,
-        "variantNames": ["US", "USA"]
+        "variantNames": ["US", "USA"],
+        "article": "the"
     },
     {
         "code": "UZB",
@@ -4825,7 +4875,8 @@
         "shortCode": "VA",
         "name": "Vatican",
         "slug": "vatican",
-        "regionType": "country"
+        "regionType": "country",
+        "article": "the"
     },
     {
         "code": "VCT",
@@ -4848,14 +4899,16 @@
         "shortCode": "VG",
         "name": "British Virgin Islands",
         "slug": "british-virgin-islands",
-        "regionType": "country"
+        "regionType": "country",
+        "article": "the"
     },
     {
         "code": "VIR",
         "shortCode": "VI",
         "name": "United States Virgin Islands",
         "slug": "united-states-virgin-islands",
-        "regionType": "country"
+        "regionType": "country",
+        "article": "the"
     },
     {
         "code": "VNM",
