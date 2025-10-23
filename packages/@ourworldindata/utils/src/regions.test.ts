@@ -9,6 +9,7 @@ import {
     Continent,
     IncomeGroup,
     Aggregate,
+    articulateEntity,
 } from "./regions.js"
 
 it("isCountryName", () => {
@@ -49,6 +50,25 @@ it("getRegionByNameOrVariantName", () => {
         name: "United Arab Emirates",
         slug: "united-arab-emirates",
         code: "ARE",
+    })
+})
+
+describe("articulateEntity", () => {
+    it("adds an article when one is defined", () => {
+        expect(articulateEntity("United States")).toEqual("the United States")
+        expect(articulateEntity("Democratic Republic of Congo")).toEqual(
+            "the Democratic Republic of Congo"
+        )
+    })
+
+    it("avoids duplicating an existing article", () => {
+        expect(articulateEntity("the United Kingdom")).toEqual(
+            "the United Kingdom"
+        )
+    })
+
+    it("returns the original name when no article is defined", () => {
+        expect(articulateEntity("France")).toEqual("France")
     })
 })
 
