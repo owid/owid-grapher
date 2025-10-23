@@ -28,7 +28,7 @@
     "@types/papaparse": "^5.3.16",
     "eslint": "^9.37.0",
     "typescript": "~5.9.2",
-    "vitest": "^3.2.4"
+    "vitest": "^4.0.1"
   },
   "license": "MIT"
 }
