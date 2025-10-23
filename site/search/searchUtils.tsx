@@ -994,6 +994,10 @@ export function getPageTypeNameAndIcon(pageType: OwidGdocType): {
             name: "Announcement",
             icon: faBullhorn,
         }))
+        .with(OwidGdocType.Profile, () => ({
+            name: "Profile",
+            icon: faFileLines,
+        }))
         .with(
             OwidGdocType.Author, // Should never be indexed
             OwidGdocType.Fragment, // Should never be indexed
