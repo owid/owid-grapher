@@ -262,8 +262,6 @@ export default function OwidGdocPage({
     const assetMaps = isOnArchivalPage ? archiveContext.assets : undefined
     const isDataInsight = gdoc.content.type === OwidGdocType.DataInsight
     const isAuthor = checkIsAuthor(gdoc)
-    const isPost = isPostPredicate(gdoc)
-    const isProfile = isProfilePredicate(gdoc)
     const isArticleLike = isArticleLikePredicate(gdoc)
 
     let imageUrl

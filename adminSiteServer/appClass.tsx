@@ -17,9 +17,17 @@ import { renderToHtmlPage } from "../serverUtils/serverUtil.js"
 
 import { publicApiRouter } from "./publicApiRouter.js"
 import { mockSiteRouter } from "./mockSiteRouter.js"
-import { GdocsContentSource } from "@ourworldindata/utils"
+import {
+    GdocsContentSource,
+    OwidGdocType,
+    countries,
+} from "@ourworldindata/utils"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import { getAndLoadGdocById } from "../db/model/Gdoc/GdocFactory.js"
+import {
+    instantiateProfileForEntity,
+    GdocProfile,
+} from "../db/model/Gdoc/GdocProfile.js"
 
 interface OwidAdminAppOptions {
     isDev: boolean
@@ -99,6 +107,39 @@ export class OwidAdminApp {
                         GdocsContentSource.Gdocs,
                         acceptSuggestions
                     )
+
+                    // For profiles, instantiate with the selected entity
+                    if (
+                        gdoc.content.type === OwidGdocType.Profile &&
+                        req.query.entity
+                    ) {
+                        const entityCode = req.query.entity as string
+                        const entity = countries.find(
+                            (c) => c.code === entityCode
+                        )
+                        if (entity && entity.code) {
+                            const instantiatedProfile =
+                                instantiateProfileForEntity(
+                                    gdoc as GdocProfile,
+                                    {
+                                        name: entity.name,
+                                        code: entity.code,
+                                    }
+                                )
+                            res.set("X-Robots-Tag", "noindex")
+                            res.send(
+                                renderToHtmlPage(
+                                    <OwidGdocPage
+                                        baseUrl={BAKED_BASE_URL}
+                                        gdoc={instantiatedProfile}
+                                        debug
+                                        isPreviewing
+                                    />
+                                )
+                            )
+                            return
+                        }
+                    }
 
                     res.set("X-Robots-Tag", "noindex")
                     res.send(

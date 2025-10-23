@@ -7,7 +7,10 @@ import {
     OwidGdocAuthorInterface,
     OwidGdocAboutInterface,
     OwidGdocAnnouncementInterface,
+    OwidGdocProfileInterface,
+    countries,
 } from "@ourworldindata/utils"
+import { Select, Alert } from "antd"
 import { EXCERPT_MAX_LENGTH } from "./gdocsValidation.js"
 import { GdocsSlug } from "./GdocsSlug.js"
 import {
@@ -16,7 +19,6 @@ import {
 } from "./GdocsSettingsContentField.js"
 import { GdocsPublishedAt } from "./GdocsDateline.js"
 import { GdocsPublicationContext } from "./GdocsPublicationContext.js"
-import { Alert } from "antd"
 import { GdocsManualBreadcrumbsInput } from "./GdocsManualBreadcrumbsInput.js"
 
 const GdocCommonErrors = ({
@@ -50,10 +52,12 @@ const GdocCommonSettings = <T extends OwidGdoc>({
     gdoc,
     setCurrentGdoc,
     errors,
+    subdirectory,
 }: {
     gdoc: T
     setCurrentGdoc: (gdoc: T) => void
     errors?: OwidGdocErrorMessage[]
+    subdirectory?: string
 }) => {
     return (
         <div className="form-group">
@@ -72,6 +76,7 @@ const GdocCommonSettings = <T extends OwidGdoc>({
                 gdoc={gdoc}
                 setCurrentGdoc={setCurrentGdoc}
                 errors={errors}
+                subdirectory={subdirectory}
             />
             <GdocsPublishedAt
                 gdoc={gdoc}
@@ -193,6 +198,7 @@ export const GdocInsightSettings = ({
                 gdoc={gdoc}
                 setCurrentGdoc={setCurrentGdoc}
                 errors={errors}
+                subdirectory="data-insights/"
             />
             <div className="form-group">
                 <h3 className="form-section-heading">Data insight settings</h3>
@@ -312,6 +318,7 @@ export const GdocAuthorSettings = ({
                     gdoc={gdoc}
                     setCurrentGdoc={setCurrentGdoc}
                     errors={errors}
+                    subdirectory="team/"
                 />
             </div>
             <div className="form-group">
@@ -366,5 +373,90 @@ export const GdocAboutPageSettings = ({
                 />
             </div>
         </div>
+    )
+}
+
+export const GdocProfileSettings = ({
+    gdoc,
+    setCurrentGdoc,
+    errors,
+    selectedEntity,
+    setSelectedEntity,
+}: {
+    gdoc: OwidGdocProfileInterface
+    setCurrentGdoc: (gdoc: OwidGdocProfileInterface) => void
+    errors?: OwidGdocErrorMessage[]
+    selectedEntity: string
+    setSelectedEntity: (entity: string) => void
+}) => {
+    if (!gdoc || !errors) return null
+
+    const countryOptions = countries
+        .filter((c) => c.code && c.name)
+        .map((c) => ({
+            value: c.code,
+            label: c.name,
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label))
+
+    return (
+        <form className="GdocsSettingsForm">
+            <div
+                className="form-group"
+                style={{
+                    background: "#f9f9f9",
+                    padding: "10px",
+                    borderRadius: "5px",
+                    marginBottom: "20px",
+                }}
+            >
+                <label>
+                    <strong>Preview entity</strong>
+                </label>
+                <Select
+                    showSearch
+                    style={{ width: "100%" }}
+                    placeholder="Select a country to preview"
+                    optionFilterProp="label"
+                    value={selectedEntity}
+                    onChange={setSelectedEntity}
+                    options={countryOptions}
+                />
+                <p className="form-text text-muted">
+                    Select which country to preview this profile template for.
+                    This only affects the preview and does not change the
+                    template itself.
+                </p>
+            </div>
+            <GdocCommonErrors
+                errors={errors}
+                errorsToFilter={["scope", "excerpt", "featured-image"]}
+            />
+            <GdocCommonSettings
+                gdoc={gdoc}
+                setCurrentGdoc={setCurrentGdoc}
+                errors={errors}
+                subdirectory="profile/"
+            />
+            <div className="form-group">
+                <h3 className="form-section-heading">Profile settings</h3>
+                <GdocsSettingsContentField
+                    property="scope"
+                    gdoc={gdoc}
+                    errors={errors}
+                    description="Comma-separated list of scopes: 'countries', 'regions', 'all', or specific entity names (e.g. 'China, United States')"
+                />
+                <GdocsSettingsContentField
+                    property="excerpt"
+                    gdoc={gdoc}
+                    errors={errors}
+                />
+                <GdocsSettingsContentField
+                    property="featured-image"
+                    gdoc={gdoc}
+                    errors={errors}
+                />
+            </div>
+        </form>
     )
 }
