@@ -205,6 +205,12 @@ export function getFeaturedImageFilename(gdoc: OwidGdoc): string | undefined {
         })
         .with(
             {
+                content: { type: OwidGdocType.Profile },
+            },
+            (match) => match.content["featured-image"]
+        )
+        .with(
+            {
                 content: {
                     type: P.optional(
                         P.union(OwidGdocType.Fragment, OwidGdocType.Homepage)
