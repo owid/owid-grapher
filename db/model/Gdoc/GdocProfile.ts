@@ -8,6 +8,8 @@ import {
 import {
     getRegionByNameOrVariantName,
     removeTrailingParenthetical,
+    instantiateProfile,
+    ProfileEntity,
 } from "@ourworldindata/utils"
 import * as db from "../../db.js"
 import { GdocBase } from "./GdocBase.js"
@@ -86,5 +88,27 @@ export class GdocProfile extends GdocBase implements OwidGdocProfileInterface {
             (!!scopeWithoutParenthetical &&
                 !!getRegionByNameOrVariantName(scopeWithoutParenthetical))
         )
+    }
+}
+
+/**
+ * Renders a profile template for a specific entity by replacing template tokens
+ * with entity-specific values.
+ */
+export function instantiateProfileForEntity(
+    profileTemplate: GdocProfile,
+    entity: ProfileEntity
+): OwidGdocProfileInterface {
+    // Instantiate the content with entity-specific values
+    const instantiatedContent = instantiateProfile(
+        profileTemplate.content,
+        entity
+    )
+
+    return {
+        ...profileTemplate,
+        content: instantiatedContent,
+        // The template slug is something like "energy", and we want "profile/energy/usa"
+        slug: `profile/${profileTemplate.slug}/${entity.code.toLowerCase()}`,
     }
 }
