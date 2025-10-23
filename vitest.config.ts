@@ -6,11 +6,11 @@ export default defineConfig({
     test: {
         exclude: [
             ...configDefaults.exclude,
-            "itsJustJavascript/*",
-            "*/dist/*",
-            "db/tests/*",
+            "itsJustJavascript/**",
+            "**/dist/**",
+            "db/tests/**",
             "adminSiteServer/app.test.ts",
-            "adminSiteServer/tests/*",
+            "adminSiteServer/tests/**",
         ],
         pool: "threads",
         setupFiles: ["devTools/vitest-setup.ts"],

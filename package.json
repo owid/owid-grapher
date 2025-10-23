@@ -217,7 +217,7 @@
         "@types/url-parse": "^1.4.8",
         "@types/yargs": "^17.0.33",
         "@vitejs/plugin-react": "^5.0.3",
-        "@vitest/coverage-v8": "^3.2.4",
+        "@vitest/coverage-v8": "^4.0.1",
         "@yarnpkg/types": "^4.0.0",
         "bundlemon": "^3.1.0",
         "eslint": "^9.37.0",
@@ -240,7 +240,7 @@
         "tsx": "^4.19.3",
         "typescript-eslint": "^8.46.1",
         "vite": "^7.1.11",
-        "vitest": "^3.2.4",
+        "vitest": "^4.0.1",
         "wrangler": "^4.43.0"
     },
     "resolutions": {
