@@ -15,7 +15,6 @@ import "@testing-library/jest-dom/vitest"
 
 import ArticleBlock from "./ArticleBlock.js"
 import { KEY_INSIGHTS_INSIGHT_PARAM } from "./KeyInsights.js"
-import { DebugProvider } from "../DebugProvider.js"
 
 const KEY_INSIGHTS_SLUG = "key-insights"
 
@@ -50,12 +49,10 @@ const generateKeyInsights = (count: number): EnrichedBlockKeyInsights => {
 
 const renderKeyInsights = (keyInsightsBlock: EnrichedBlockKeyInsights) => {
     render(
-        <DebugProvider>
-            <div>
-                <p>test??</p>
-                <ArticleBlock b={keyInsightsBlock} />
-            </div>
-        </DebugProvider>
+        <div>
+            <p>test??</p>
+            <ArticleBlock b={keyInsightsBlock} />
+        </div>
     )
 }
 
