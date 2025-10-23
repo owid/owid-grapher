@@ -224,6 +224,7 @@ export {
     getRegionByName,
     getParentRegions,
     getSiblingRegions,
+    articulateEntity,
 } from "./regions.js"
 
 export {
