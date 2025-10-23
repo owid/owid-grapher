@@ -1,6 +1,6 @@
 # Country Profile Pages Migration Plan
 
-This document outlines the plan to migrate from the old country profile system (See e.g. `baker/countryProfiles.tsx`, `site/CountryProfilePage.tsx`) to a new Google Docs-based system using a new `GdocProfile` model. (See `db/model/Gdoc/GdocDataInsight.ts`)
+This document outlines the plan to migrate from the old country profile system (See e.g. `baker/countryProfiles.tsx`, `site/CountryIndexPage.tsx`) to a new Google Docs-based system using a new `GdocProfile` model. (See `db/model/Gdoc/GdocDataInsight.ts`)
 
 These pages are templated, mass-produced overviews of a country's data on a given topic.
 
@@ -84,18 +84,18 @@ We have a regions.json that contains all the country and region data and a regio
 
 Here are the steps for this project, as I see them.
 
-1. Delete all existing countryProfile code
-1. Create a new OwidGdocProfileInterface
-1. Create a new GdocProfile class that extends the GdocBase class and implements OwidGdocProfileInterface and implements the necessary boilerplate (as defined in each one of these Document-type classes, plus profile-specific code such as validation for the "scope" front-matter attribute)
-1. Create an object that augments regions.ts which knows whether or not an entity needs an article before it (e.g. regions.json has { "name": "United States" } and we need to know that that should be inserted as "the United States" ) and create a function called articulateEntity which will add this prefix if necessary when we replace $entityName in the template. The plan is to add an `article` property directly on each entity in `regions.json` so both client and baker share the same canonical metadata.
-1. Create a function that takes the enriched JSON representation of a template and replaces all the $entityName and $entityCode instances with a given entity. Templates will only use `$entityCode` inside URLs, so we can rely on simple string replacement without additional URL encoding.
-1. Create a function called renderProfileForEntity which takes a GdocProfile and a given entity (e.g. "Spain") which would be able to render the page (defined later)
-1. Create a site/gdocs/pages/Profile.tsx component that will receive a processed version of this data model and render it (similar to site/gdocs/pages/Post.tsx)
-1. Add a path to site/gdocs/OwidGdoc.tsx to render the page
-1. Support this route in mockSiteRouter.ts at the route `/profile/:slug/:entity`
-1. Create a new settings drawer (see e.g. GdocPostSettings) which would give the author a way to preview the profile for a different country
-1. Include country profiles in the sitemap. Each template will expand to ~200 entity-specific URLs, so we should keep an eye on sitemap generation performance.
-1. Reimplement a new version of the `countryProfiles` baking step in SiteBaker.tsx (using renderProfileForEntity)
-1. Add redirects from the old URL to the new one
+- [x] Delete all existing countryProfile code (not CountryIndex code)
+- [ ] Create a new OwidGdocProfileInterface
+- [ ] Create a new GdocProfile class that extends the GdocBase class and implements OwidGdocProfileInterface and implements the necessary boilerplate (as defined in each one of these Document-type classes, plus profile-specific code such as validation for the "scope" front-matter attribute)
+- [ ] Create an object that augments regions.ts which knows whether or not an entity needs an article before it (e.g. regions.json has { "name": "United States" } and we need to know that that should be inserted as "the United States" ) and create a function called articulateEntity which will add this prefix if necessary when we replace $entityName in the template. The plan is to add an `article` property directly on each entity in `regions.json` so both client and baker share the same canonical metadata.
+- [ ] Create a function that takes the enriched JSON representation of a template and replaces all the $entityName and $entityCode instances with a given entity. Templates will only use `$entityCode` inside URLs, so we can rely on simple string replacement without additional URL encoding.
+- [ ] Create a function called renderProfileForEntity which takes a GdocProfile and a given entity (e.g. "Spain") which would be able to render the page (defined later)
+- [ ] Create a site/gdocs/pages/Profile.tsx component that will receive a processed version of this data model and render it (similar to site/gdocs/pages/Post.tsx)
+- [ ] Add a path to site/gdocs/OwidGdoc.tsx to render the page
+- [ ] Support this route in mockSiteRouter.ts at the route `/profile/:slug/:entity`
+- [ ] Create a new settings drawer (see e.g. GdocPostSettings) which would give the author a way to preview the profile for a different country
+- [ ] Include country profiles in the sitemap. Each template will expand to ~200 entity-specific URLs, so we should keep an eye on sitemap generation performance.
+- [ ] Reimplement a new version of the `countryProfiles` baking step in SiteBaker.tsx (using renderProfileForEntity)
+- [ ] Add redirects from the old URL to the new one
 
 Although we will launch with country-only scope, the infrastructure should make it easy to add region-level profiles later (e.g. "Asia"), since the entity metadata already lives in `regions.json`.

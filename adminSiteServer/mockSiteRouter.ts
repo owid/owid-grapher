@@ -11,7 +11,6 @@ import {
     feedbackPage,
     renderNotFoundPage,
     renderLatestPage,
-    countryProfileCountryPage,
     renderExplorerPage,
     makeAtomFeedNoTopicPages,
     renderDynamicCollectionPage,
@@ -31,12 +30,11 @@ import {
 
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
 import {
-    countryProfilePage,
     countriesIndexPage,
-} from "../baker/countryProfiles.js"
+    countryIndexPage,
+} from "../baker/countryIndexes.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import { getChartConfigBySlug } from "../db/model/Chart.js"
-import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { getVariableData, getVariableMetadata } from "../db/model/Variable.js"
 import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage.js"
@@ -427,21 +425,6 @@ getPlainRouteWithROTransaction(
     }
 )
 
-countryProfileSpecs.forEach((spec) =>
-    getPlainRouteWithROTransaction(
-        mockSiteRouter,
-        `/${spec.rootPath}/:countrySlug`,
-        async (req, res, trx) => {
-            const countryPage = await countryProfileCountryPage(
-                spec,
-                req.params.countrySlug,
-                trx
-            )
-            res.send(countryPage)
-        }
-    )
-)
-
 getPlainRouteWithROTransaction(
     mockSiteRouter,
     SEARCH_BASE_PATH,
@@ -532,11 +515,7 @@ getPlainRouteWithROTransaction(
     "/country/:countrySlug",
     async (req, res, trx) =>
         res.send(
-            await countryProfilePage(
-                trx,
-                req.params.countrySlug,
-                BAKED_BASE_URL
-            )
+            await countryIndexPage(trx, req.params.countrySlug, BAKED_BASE_URL)
         )
 )
 
