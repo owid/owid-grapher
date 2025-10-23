@@ -631,12 +631,18 @@ export async function getAndLoadListedGdocPosts(
         { ids: ids }
     )
     const groupedTags = _.groupBy(tags, "gdocId")
-    const enrichedRows = rows.map((row) => {
-        return {
-            ...parsePostsGdocsRow(row),
-            tags: groupedTags[row.id] ? groupedTags[row.id] : null,
-        } satisfies OwidGdocBaseInterface
-    })
+    const enrichedRows = rows
+        .filter(
+            (row) =>
+                row.type !== OwidGdocType.Announcement &&
+                row.type !== OwidGdocType.Homepage
+        )
+        .map((row) => {
+            return {
+                ...parsePostsGdocsRow(row),
+                tags: groupedTags[row.id] ? groupedTags[row.id] : null,
+            } satisfies OwidGdocBaseInterface
+        })
 
     // Pass loadState option through to loadGdocFromGdocBase
     // When loadState=false (for blog index), it only creates gdoc objects with basic metadata
