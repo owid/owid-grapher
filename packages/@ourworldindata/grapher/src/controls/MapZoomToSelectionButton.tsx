@@ -54,7 +54,11 @@ export class MapZoomToSelectionButton extends React.Component<MapZoomToSelection
 
     override render(): React.ReactElement | null {
         return this.showMenu ? (
-            <button onClick={this.onClick} type="button">
+            <button
+                onClick={this.onClick}
+                type="button"
+                data-track-note="map_zoom_to_selection"
+            >
                 <GlobeIcon size={16} />
                 Zoom to selection
             </button>
