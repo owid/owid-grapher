@@ -17,7 +17,6 @@ import {
 } from "@ourworldindata/explorer"
 import * as db from "../db/db.js"
 import urljoin from "url-join"
-import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 
 import { calculateDataInsightIndexPageCount } from "../db/model/Gdoc/gdocUtils.js"
@@ -133,13 +132,6 @@ export const makeSitemap = async (
         .concat(
             ...STATIC_PAGES.map((path) => {
                 return [{ loc: urljoin(BAKED_BASE_URL, path) }]
-            })
-        )
-        .concat(
-            ...countryProfileSpecs.map((spec) => {
-                return countries.map((c) => ({
-                    loc: urljoin(BAKED_BASE_URL, spec.rootPath, c.slug),
-                }))
             })
         )
         .concat(
