@@ -53,6 +53,7 @@ import * as db from "../../db/db.js"
 import { Request } from "../authentication.js"
 import e from "express"
 import { GdocAnnouncement } from "../../db/model/Gdoc/GdocAnnouncement.js"
+import { GdocProfile } from "../../db/model/Gdoc/GdocProfile.js"
 
 export async function getAllGdocIndexItems(
     req: Request,
@@ -112,7 +113,8 @@ async function indexAndBakeGdocIfNeccesary(
         | GdocHomepage
         | GdocAbout
         | GdocAuthor
-        | GdocAnnouncement,
+        | GdocAnnouncement
+        | GdocProfile,
     nextGdoc:
         | GdocPost
         | GdocDataInsight
@@ -120,6 +122,7 @@ async function indexAndBakeGdocIfNeccesary(
         | GdocAbout
         | GdocAuthor
         | GdocAnnouncement
+        | GdocProfile
 ) {
     const prevJson = prevGdoc.toJSON()
     const nextJson = nextGdoc.toJSON()
@@ -173,6 +176,7 @@ async function validateSlugCollisionsIfPublishing(
         | GdocAbout
         | GdocAuthor
         | GdocAnnouncement
+        | GdocProfile
 ) {
     if (!gdoc.published) return
 
