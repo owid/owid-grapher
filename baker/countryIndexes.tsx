@@ -12,8 +12,8 @@ import {
 import * as lodash from "lodash-es"
 import {
     CountryProfileIndicator,
-    CountryProfilePage,
-} from "../site/CountryProfilePage.js"
+    CountryIndexPage,
+} from "../site/CountryIndexPage.js"
 import { SiteBaker } from "./SiteBaker.js"
 import { countries, getCountryBySlug, JsonError } from "@ourworldindata/utils"
 import { renderToHtmlPage } from "./siteRenderers.js"
@@ -80,6 +80,7 @@ export const countryIndicatorVariables = async (
         return rows.map(parseVariablesRow)
     })
 
+// TODO: what is this? check with matthieu/sophia
 export const denormalizeLatestCountryData = async (
     trx: db.KnexReadWriteTransaction,
     variableIds?: number[]
@@ -194,7 +195,9 @@ const countryIndicatorLatestData = async (
     return dataValuesByEntityId[countryCode]
 }
 
-export const countryProfilePage = async (
+// This is a page that lists all charts for a country
+// It's different from a country profile page which is a gdoc about a country
+export const countryIndexPage = async (
     trx: db.KnexReadonlyTransaction,
     countrySlug: string,
     baseUrl: string
@@ -228,7 +231,7 @@ export const countryProfilePage = async (
     indicators = lodash.sortBy(indicators, (i) => i.name.trim())
 
     return renderToHtmlPage(
-        <CountryProfilePage
+        <CountryIndexPage
             indicators={indicators}
             country={country}
             baseUrl={baseUrl}
@@ -236,18 +239,18 @@ export const countryProfilePage = async (
     )
 }
 
-export const bakeCountries = async (
+export const bakeCountryIndexes = async (
     baker: SiteBaker,
     trx: db.KnexReadonlyTransaction
 ) => {
-    baker.progressBar.tick({ name: "Baking countries" })
+    baker.progressBar.tick({ name: "Baking country index pages" })
     const html = await countriesIndexPage(baker.baseUrl)
     await baker.writeFile("/countries.html", html)
 
     await baker.ensureDir("/country")
     for (const country of countries) {
         const path = `/country/${country.slug}.html`
-        const html = await countryProfilePage(trx, country.slug, baker.baseUrl)
+        const html = await countryIndexPage(trx, country.slug, baker.baseUrl)
         await baker.writeFile(path, html)
     }
 }
