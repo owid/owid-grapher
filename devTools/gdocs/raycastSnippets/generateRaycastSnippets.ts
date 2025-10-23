@@ -41,6 +41,7 @@ const EXEMPT_BLOCK_TYPES = [
     "person",
     "pill-row",
     "sdg-grid",
+    "socials",
 ]
 
 async function readSnippetsFile(): Promise<RaycastSnippet[]> {

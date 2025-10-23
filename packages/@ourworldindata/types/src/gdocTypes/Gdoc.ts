@@ -106,6 +106,7 @@ export enum OwidGdocType {
     AboutPage = "about-page",
     Author = "author",
     Announcement = "announcement",
+    Profile = "profile",
 }
 
 export interface OwidGdocBaseInterface {
@@ -249,6 +250,24 @@ export interface OwidGdocAnnouncementInterface extends OwidGdocBaseInterface {
     content: OwidGdocAnnouncementContent
 }
 
+export interface OwidGdocProfileContent {
+    type: OwidGdocType.Profile
+    title: string
+    authors: string[]
+    scope: string[] // e.g. ["countries", "regions"]
+    subtitle?: string
+    excerpt?: string
+    "featured-image"?: string
+    "sidebar-toc"?: boolean
+    toc?: TocHeadingWithTitleSupertitle[]
+    body: OwidEnrichedGdocBlock[]
+    refs?: { definitions: RefDictionary; errors: OwidGdocErrorMessage[] }
+}
+
+export interface OwidGdocProfileInterface extends OwidGdocBaseInterface {
+    content: OwidGdocProfileContent
+}
+
 export interface OwidGdocHomepageContent {
     type: OwidGdocType.Homepage
     title?: string
@@ -314,6 +333,7 @@ export type OwidGdocContent =
     | OwidGdocAuthorContent
     | OwidGdocAboutContent
     | OwidGdocAnnouncementContent
+    | OwidGdocProfileContent
 
 export type OwidGdoc =
     | OwidGdocPostInterface
@@ -322,6 +342,7 @@ export type OwidGdoc =
     | OwidGdocAuthorInterface
     | OwidGdocAboutInterface
     | OwidGdocAnnouncementInterface
+    | OwidGdocProfileInterface
 
 export enum OwidGdocErrorMessageType {
     Error = "error",
@@ -339,6 +360,8 @@ export type OwidGdocProperty =
     | keyof OwidGdocAuthorContent
     | keyof OwidGdocAboutInterface
     | keyof OwidGdocAboutContent
+    | keyof OwidGdocProfileInterface
+    | keyof OwidGdocProfileContent
 
 export type OwidGdocErrorMessageProperty =
     | OwidGdocProperty

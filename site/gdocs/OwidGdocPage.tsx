@@ -82,6 +82,9 @@ function getPageDesc(gdoc: OwidGdocUnionType): string | undefined {
                   )
                 : undefined
         })
+        .with({ content: { type: OwidGdocType.Profile } }, (match) => {
+            return match.content.excerpt
+        })
         .with(
             {
                 content: {
