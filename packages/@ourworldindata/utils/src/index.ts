@@ -225,6 +225,7 @@ export {
     getRegionByName,
     getParentRegions,
     getSiblingRegions,
+    articulateEntity,
 } from "./regions.js"
 
 export { type GridBounds, FontFamily, Bounds } from "./Bounds.js"
