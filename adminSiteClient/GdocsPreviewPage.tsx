@@ -8,6 +8,7 @@ import {
     GdocAuthorSettings,
     GdocAboutPageSettings,
     GdocAnnouncementSettings,
+    GdocProfileSettings,
 } from "./GdocsSettingsForms.js"
 import { AdminAppContext } from "./AdminAppContext.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
@@ -83,6 +84,9 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
     const store = useGdocsStore()
 
     const [isMobilePreviewActive, setIsMobilePreviewActive] = useState(false)
+
+    // For profile previews, track which entity is being previewed (defaults to USA)
+    const [selectedEntity, setSelectedEntity] = useState("USA")
 
     const iframeRef = useRef<HTMLIFrameElement>(null)
 
@@ -430,6 +434,24 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                                 />
                             )
                         )
+                        .with(
+                            {
+                                content: {
+                                    type: OwidGdocType.Profile,
+                                },
+                            },
+                            (gdoc) => (
+                                <GdocProfileSettings
+                                    gdoc={gdoc}
+                                    setCurrentGdoc={(updatedGdoc) =>
+                                        setCurrentGdoc(() => updatedGdoc)
+                                    }
+                                    errors={errors}
+                                    selectedEntity={selectedEntity}
+                                    setSelectedEntity={setSelectedEntity}
+                                />
+                            )
+                        )
                         .with(P.any, () => (
                             <div>
                                 Unknown gdoc type. Add a <strong>type</strong>{" "}
@@ -465,14 +487,23 @@ export const GdocsPreviewPage = ({ match, history }: GdocsMatchProps) => {
                     */}
                     <iframe
                         ref={iframeRef}
-                        src={`/gdocs/${currentGdoc.id}/preview#owid-document-root`}
+                        src={
+                            currentGdoc.content.type === OwidGdocType.Profile
+                                ? `/gdocs/${currentGdoc.id}/preview?entity=${selectedEntity}#owid-document-root`
+                                : `/gdocs/${currentGdoc.id}/preview#owid-document-root`
+                        }
                         style={{
                             width: "100%",
                             border: "none",
                             maxWidth: isMobilePreviewActive ? 375 : undefined,
                         }}
                         // use `updatedAt` as a proxy for when database-level settings such as breadcrumbs have changed
-                        key={`${currentGdoc.revisionId}-${originalGdoc?.updatedAt}`}
+                        // For profiles, also include selectedEntity so iframe reloads when entity changes
+                        key={
+                            currentGdoc.content.type === OwidGdocType.Profile
+                                ? `${currentGdoc.revisionId}-${originalGdoc?.updatedAt}-${selectedEntity}`
+                                : `${currentGdoc.revisionId}-${originalGdoc?.updatedAt}`
+                        }
                     />
                 </div>
 
