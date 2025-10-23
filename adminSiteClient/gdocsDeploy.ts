@@ -9,6 +9,7 @@ import {
     OwidGdocHomepageContent,
     OwidGdocAuthorContent,
     OwidGdocAnnouncementContent,
+    OwidGdocProfileContent,
 } from "@ourworldindata/types"
 import { match } from "ts-pattern"
 import { GDOC_DIFF_OMITTABLE_PROPERTIES } from "./constants.js"
@@ -144,6 +145,22 @@ export const checkIsLightningUpdate = (
         socials: false, // assumed to be used in "author cards" throughout the site
         body: true, // probably not used outside of the author page, if at all
     }
+    const profileLightningPropContentConfigMap: Record<
+        keyof OwidGdocProfileContent,
+        boolean
+    > = {
+        type: false,
+        title: false,
+        authors: false,
+        scope: false,
+        subtitle: false,
+        excerpt: false,
+        "featured-image": false,
+        body: false,
+        refs: false,
+        "sidebar-toc": true,
+        toc: true,
+    }
 
     const contentPropsMap: Record<OwidGdocType, Record<string, boolean>> = {
         [OwidGdocType.Article]: postlightningPropContentConfigMap,
@@ -155,6 +172,7 @@ export const checkIsLightningUpdate = (
         [OwidGdocType.AboutPage]: postlightningPropContentConfigMap,
         [OwidGdocType.Author]: authorLightningPropContentConfigMap,
         [OwidGdocType.Announcement]: announcementLightningPropContentConfigMap,
+        [OwidGdocType.Profile]: profileLightningPropContentConfigMap,
     }
 
     const getLightningPropKeys = (configMap: Record<string, boolean>) =>
