@@ -12,6 +12,7 @@ import AboutPage from "./pages/AboutPage.js"
 import { AttachmentsContext } from "./AttachmentsContext.js"
 import { DocumentContext } from "./DocumentContext.js"
 import { AnnouncementPage } from "./pages/Announcement.js"
+import { Profile } from "./pages/Profile.js"
 
 function AdminLinks() {
     return (
@@ -65,6 +66,9 @@ export function OwidGdoc({
         ))
         .with({ content: { type: OwidGdocType.Fragment } }, (props) => (
             <Fragment {...props} />
+        ))
+        .with({ content: { type: OwidGdocType.Profile } }, (props) => (
+            <Profile {...props} />
         ))
         .with(P.any, (gdoc) => (
             <div
