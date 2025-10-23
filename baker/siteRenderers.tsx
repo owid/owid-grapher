@@ -1,5 +1,5 @@
 import * as _ from "lodash-es"
-import { LongFormPage, PageOverrides } from "../site/LongFormPage.js"
+import { LongFormPage } from "../site/LongFormPage.js"
 import { LatestPage } from "../site/LatestPage.js"
 import { SearchPage } from "../site/search/SearchPage.js"
 import { DynamicCollectionPage } from "../site/collections/DynamicCollectionPage.js"
@@ -12,7 +12,7 @@ import { ThankYouPage } from "../site/ThankYouPage.js"
 import TombstonePage from "../site/TombstonePage.js"
 import OwidGdocPage from "../site/gdocs/OwidGdocPage.js"
 import ReactDOMServer from "react-dom/server"
-import { formatCountryProfile, isCanonicalInternalUrl } from "./formatting.js"
+import { isCanonicalInternalUrl } from "./formatting.js"
 import * as cheerio from "cheerio"
 import {
     BAKED_BASE_URL,
@@ -27,11 +27,7 @@ import {
 } from "../settings/clientSettings.js"
 import { FeedbackPage } from "../site/FeedbackPage.js"
 import {
-    getCountryBySlug,
-    Country,
-    FormattedPost,
     FullPost,
-    JsonError,
     Url,
     OwidGdocType,
     OwidGdoc,
@@ -47,7 +43,6 @@ import {
     DbEnrichedImage,
     DbPlainChart,
     DbRawChartConfig,
-    FormattingOptions,
     GrapherInterface,
     ImageMetadata,
     LatestPageItem,
@@ -56,7 +51,6 @@ import {
     OwidGdocMinimalPostInterface,
     OwidGdocPublicationContext,
 } from "@ourworldindata/types"
-import { CountryProfileSpec } from "../site/countryProfileProjects.js"
 import { formatPost } from "./formatWordpressPost.js"
 import {
     knexRaw,
@@ -476,84 +470,9 @@ ${dataInsights
 export const feedbackPage = () =>
     renderToHtmlPage(<FeedbackPage baseUrl={BAKED_BASE_URL} />)
 
-const getCountryProfilePost = _.memoize(
-    async (
-        profileSpec: CountryProfileSpec,
-        knex: KnexReadonlyTransaction
-    ): Promise<[FormattedPost, FormattingOptions]> => {
-        // Get formatted content from generic covid country profile page.
-        const genericCountryProfilePost = await getFullPostBySlugFromSnapshot(
-            knex,
-            profileSpec.genericProfileSlug
-        )
-
-        const profileFormattingOptions = extractFormattingOptions(
-            genericCountryProfilePost.content
-        )
-        const formattedPost = await formatPost(
-            genericCountryProfilePost,
-            profileFormattingOptions,
-            knex
-        )
-
-        return [formattedPost, profileFormattingOptions]
-    }
-)
-
-// todo: we used to flush cache of this thing.
-const getCountryProfileLandingPost = _.memoize(
-    async (profileSpec: CountryProfileSpec, knex: KnexReadonlyTransaction) => {
-        return getFullPostBySlugFromSnapshot(knex, profileSpec.landingPageSlug)
-    }
-)
-
-export const renderCountryProfile = async (
-    profileSpec: CountryProfileSpec,
-    country: Country,
-    knex: KnexReadonlyTransaction
-) => {
-    const [formatted, formattingOptions] = await getCountryProfilePost(
-        profileSpec,
-        knex
-    )
-
-    const formattedCountryProfile = formatCountryProfile(formatted, country)
-
-    const landing = await getCountryProfileLandingPost(profileSpec, knex)
-
-    const overrides: PageOverrides = {
-        pageTitle: `${country.name}: ${profileSpec.pageTitle} Country Profile`,
-        pageDesc: `${country.name}: ${formattedCountryProfile.pageDesc}`,
-        canonicalUrl: `${BAKED_BASE_URL}/${profileSpec.rootPath}/${country.slug}`,
-        citationTitle: landing.title,
-        citationSlug: landing.slug,
-        citationCanonicalUrl: `${BAKED_BASE_URL}/${landing.slug}`,
-        citationAuthors: landing.authors,
-        citationPublicationDate: landing.date,
-    }
-    return renderToHtmlPage(
-        <LongFormPage
-            withCitation={true}
-            post={formattedCountryProfile}
-            overrides={overrides}
-            formattingOptions={formattingOptions}
-            baseUrl={BAKED_BASE_URL}
-        />
-    )
+export const flushCache = () => {
+    /* legacy country profile cache removed */
 }
-
-export const countryProfileCountryPage = async (
-    profileSpec: CountryProfileSpec,
-    countrySlug: string,
-    knex: KnexReadonlyTransaction
-) => {
-    const country = getCountryBySlug(countrySlug)
-    if (!country) throw new JsonError(`No such country ${countrySlug}`, 404)
-
-    return renderCountryProfile(profileSpec, country, knex)
-}
-
-export const flushCache = () => getCountryProfilePost.cache.clear?.()
 
 const renderPostThumbnailBySlug = async (
     knex: KnexReadonlyTransaction,
