@@ -75,6 +75,20 @@ export class MapResetButton extends React.Component<{
         return this.manager.mapConfig ?? new MapConfig()
     }
 
+    @computed private get label(): string {
+        return match(this.props.action)
+            .with("resetView", () => "Reset view")
+            .with("resetZoom", () => "Reset zoom")
+            .exhaustive()
+    }
+
+    @computed private get trackNote(): string {
+        return match(this.props.action)
+            .with("resetView", () => "map_reset_view")
+            .with("resetZoom", () => "map_reset_zoom")
+            .exhaustive()
+    }
+
     @action.bound private onClick(): void {
         this.mapConfig.region = MapRegionName.World
         this.manager.globeController?.hideGlobe()
@@ -87,12 +101,13 @@ export class MapResetButton extends React.Component<{
 
     override render(): React.ReactElement | null {
         return this.showMenu ? (
-            <button onClick={this.onClick} type="button">
+            <button
+                type="button"
+                data-track-note={this.trackNote}
+                onClick={this.onClick}
+            >
                 <FontAwesomeIcon icon={faRotateLeft} />
-                {match(this.props.action)
-                    .with("resetView", () => "Reset view")
-                    .with("resetZoom", () => "Reset zoom")
-                    .exhaustive()}
+                {this.label}
             </button>
         ) : null
     }
