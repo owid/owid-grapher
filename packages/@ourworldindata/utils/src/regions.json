@@ -382,7 +382,8 @@
         "shortName": "DR Congo",
         "slug": "democratic-republic-of-congo",
         "regionType": "country",
-        "isMappable": true
+        "isMappable": true,
+        "article": "the"
     },
     {
         "code": "COG",
@@ -645,7 +646,8 @@
         "slug": "united-kingdom",
         "regionType": "country",
         "isMappable": true,
-        "variantNames": ["UK"]
+        "variantNames": ["UK"],
+        "article": "the"
     },
     {
         "code": "GEO",
@@ -4810,7 +4812,8 @@
         "slug": "united-states",
         "regionType": "country",
         "isMappable": true,
-        "variantNames": ["US", "USA"]
+        "variantNames": ["US", "USA"],
+        "article": "the"
     },
     {
         "code": "UZB",
