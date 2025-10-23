@@ -1149,6 +1149,17 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
     margin-bottom: 8px;
 }
 
+.GdocsSettingsContentField__imagePreview {
+    margin-top: 12px;
+}
+
+.GdocsSettingsContentField__imagePreviewImage {
+    display: block;
+    width: 100%;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+}
+
 .GdocsEditPage {
     .anticon svg {
         vertical-align: unset; // undo reboot.css
