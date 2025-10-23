@@ -1097,11 +1097,9 @@ main:not(.ChartEditorPage):not(.GdocsEditPage) {
 }
 
 .GdocsAddForm {
-    ol {
-        list-style-position: inside;
-        & > li {
-            margin-bottom: 1rem;
-        }
+    .GdocsAddForm__instructions {
+        margin-left: 8px;
+        margin-bottom: 8px;
     }
     .validation-notice {
         display: none;
