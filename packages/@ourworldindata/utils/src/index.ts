@@ -227,6 +227,7 @@ export {
     getSiblingRegions,
     articulateEntity,
 } from "./regions.js"
+export { instantiateProfile, type ProfileEntity } from "./profiles.js"
 
 export {
     type GridBounds,
