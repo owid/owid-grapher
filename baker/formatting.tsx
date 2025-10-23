@@ -1,34 +1,10 @@
 import * as _ from "lodash-es"
 import * as cheerio from "cheerio"
-import { FormattedPost, Country, Url } from "@ourworldindata/utils"
-import { countryProfileDefaultCountryPlaceholder } from "../site/countryProfileProjects.js"
+import { Url } from "@ourworldindata/utils"
 import { BAKED_BASE_URL } from "../settings/serverSettings.js"
-import { getBodyHtml } from "../site/formatting.js"
 import path from "path"
 
 export const DEEP_LINK_CLASS = "deep-link"
-
-export const formatCountryProfile = (
-    post: FormattedPost,
-    country: Country
-): FormattedPost => {
-    // Localize country selector
-    const htmlWithLocalizedCountrySelector = post.html.replace(
-        countryProfileDefaultCountryPlaceholder,
-        country.code
-    )
-
-    const cheerioEl = cheerio.load(htmlWithLocalizedCountrySelector)
-
-    // Inject country names on h3 headings which have been already identified as subsections
-    // (filtering them out based on whether they have a deep link anchor attached to them)
-    cheerioEl(`h3 a.${DEEP_LINK_CLASS}`).each((_, deepLinkAnchor) => {
-        const $deepLinkAnchor = cheerioEl(deepLinkAnchor)
-        $deepLinkAnchor.parent().prepend(`${country.name}: `)
-    })
-
-    return { ...post, html: getBodyHtml(cheerioEl) }
-}
 
 // Assumes formatUrls URL standardisation
 export const isCanonicalInternalUrl = (url: Url): boolean => {
