@@ -10,7 +10,6 @@ import {
     feedbackPage,
     renderNotFoundPage,
     renderLatestPage,
-    countryProfileCountryPage,
     renderExplorerPage,
     makeAtomFeedNoTopicPages,
     renderDynamicCollectionPage,
@@ -29,13 +28,9 @@ import {
 } from "../settings/serverSettings.js"
 
 import { expectInt, renderToHtmlPage } from "../serverUtils/serverUtil.js"
-import {
-    countryProfilePage,
-    countriesIndexPage,
-} from "../baker/countryProfiles.js"
+import { countryProfilePage } from "../baker/countryProfiles.js"
 import { makeSitemap } from "../baker/sitemap.js"
 import { getChartConfigBySlug } from "../db/model/Chart.js"
-import { countryProfileSpecs } from "../site/countryProfileProjects.js"
 import { ExplorerAdminServer } from "../explorerAdminServer/ExplorerAdminServer.js"
 import { getVariableData, getVariableMetadata } from "../db/model/Variable.js"
 import { MultiEmbedderTestPage } from "../site/multiembedder/MultiEmbedderTestPage.js"
@@ -85,6 +80,7 @@ import {
     enrichLatestPageItems,
     getLatestPageItems,
 } from "../db/model/Gdoc/GdocPost.js"
+import { countriesIndexPage } from "../baker/countriesIndex.js"
 
 // todo: switch to an object literal where the key is the path and the value is the request handler? easier to test, reflect on, and manipulate
 const mockSiteRouter = Router()
@@ -423,21 +419,6 @@ getPlainRouteWithROTransaction(
             )
         )
     }
-)
-
-countryProfileSpecs.forEach((spec) =>
-    getPlainRouteWithROTransaction(
-        mockSiteRouter,
-        `/${spec.rootPath}/:countrySlug`,
-        async (req, res, trx) => {
-            const countryPage = await countryProfileCountryPage(
-                spec,
-                req.params.countrySlug,
-                trx
-            )
-            res.send(countryPage)
-        }
-    )
 )
 
 getPlainRouteWithROTransaction(
