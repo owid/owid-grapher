@@ -8,10 +8,12 @@ export const GdocsSlug = <T extends OwidGdoc>({
     gdoc,
     setCurrentGdoc,
     errors,
+    subdirectory,
 }: {
     gdoc: T
     setCurrentGdoc: (gdoc: T) => void
     errors?: OwidGdocErrorMessage[]
+    subdirectory?: string
 }) => {
     const [isSlugSyncing, setSlugSyncing] = useState(false)
     const {
@@ -42,7 +44,7 @@ export const GdocsSlug = <T extends OwidGdoc>({
             <Row gutter={24}>
                 <Col span={16}>
                     <Input
-                        addonBefore="ourworldindata.org/"
+                        addonBefore={`ourworldindata.org/${subdirectory ? subdirectory : ""}`}
                         value={slug}
                         onChange={(e) => setSlug(slugify(e.target.value, true))}
                         placeholder={slugFromTitle}
