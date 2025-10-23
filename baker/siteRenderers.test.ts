@@ -13,7 +13,8 @@ it("renders an explorer page with title", async () => {
     expect(
         await renderExplorerPage(
             new ExplorerProgram("foo", "explorerTitle helloWorld"),
-            knex
+            knex,
+            { skipArchiveContext: true }
         )
     ).toContain("helloWorld")
 })

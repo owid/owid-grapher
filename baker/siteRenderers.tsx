@@ -661,6 +661,7 @@ interface ExplorerRenderOpts {
     urlMigrationSpec?: ExplorerPageUrlMigrationSpec
     isPreviewing?: boolean
     archiveContext?: ArchiveContext
+    skipArchiveContext?: boolean
 }
 
 export const renderExplorerPage = async (
@@ -782,7 +783,7 @@ export const renderExplorerPage = async (
         : undefined
 
     let archiveContext = opts?.archiveContext
-    if (!archiveContext) {
+    if (!archiveContext && !opts?.skipArchiveContext) {
         const latestBySlug = await getLatestExplorerArchivedVersionsIfEnabled(
             knex,
             [program.slug]
