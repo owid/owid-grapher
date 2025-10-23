@@ -86,7 +86,7 @@ Here are the steps for this project, as I see them.
 
 - [x] Delete all existing countryProfile code (not CountryIndex code)
 - [x] Create a new OwidGdocProfileInterface
-- [ ] Create a new GdocProfile class that extends the GdocBase class and implements OwidGdocProfileInterface and implements the necessary boilerplate (as defined in each one of these Document-type classes, plus profile-specific code such as validation for the "scope" front-matter attribute)
+- [x] Create a new GdocProfile class that extends the GdocBase class and implements OwidGdocProfileInterface and implements the necessary boilerplate (as defined in each one of these Document-type classes, plus profile-specific code such as validation for the "scope" front-matter attribute)
 - [ ] Create an object that augments regions.ts which knows whether or not an entity needs an article before it (e.g. regions.json has { "name": "United States" } and we need to know that that should be inserted as "the United States" ) and create a function called articulateEntity which will add this prefix if necessary when we replace $entityName in the template. The plan is to add an `article` property directly on each entity in `regions.json` so both client and baker share the same canonical metadata.
 - [ ] Create a function that takes the enriched JSON representation of a template and replaces all the $entityName and $entityCode instances with a given entity. Templates will only use `$entityCode` inside URLs, so we can rely on simple string replacement without additional URL encoding.
 - [ ] Create a function called renderProfileForEntity which takes a GdocProfile and a given entity (e.g. "Spain") which would be able to render the page (defined later)
