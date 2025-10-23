@@ -7,7 +7,7 @@ export default defineConfig({
         exclude: [
             ...configDefaults.exclude,
             "itsJustJavascript/*",
-            "*/dist/*",
+            "**/dist/**",
             "db/tests/*",
             "adminSiteServer/app.test.ts",
             "adminSiteServer/tests/*",

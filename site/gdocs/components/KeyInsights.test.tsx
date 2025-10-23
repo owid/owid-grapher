@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 
-import { expect, it, beforeEach, vi } from "vitest"
+import { expect, it, beforeAll, afterAll, vi } from "vitest"
 
 import {
     EnrichedBlockKeyInsights,
@@ -15,18 +15,23 @@ import "@testing-library/jest-dom/vitest"
 
 import ArticleBlock from "./ArticleBlock.js"
 import { KEY_INSIGHTS_INSIGHT_PARAM } from "./KeyInsights.js"
+import { DebugProvider } from "../DebugProvider.js"
 
 const KEY_INSIGHTS_SLUG = "key-insights"
 
 //from https://stackoverflow.com/a/62148101
-beforeEach(() => {
-    const mockIntersectionObserver = vi.fn()
-    mockIntersectionObserver.mockReturnValue({
-        observe: () => null,
-        unobserve: () => null,
-        disconnect: () => null,
-    })
-    window.IntersectionObserver = mockIntersectionObserver as any
+beforeAll(() => {
+    const IntersectionObserverMock = class IntersectionObserverMock {
+        disconnect = vi.fn()
+        observe = vi.fn()
+        unobserve = vi.fn()
+    }
+
+    vi.stubGlobal("IntersectionObserver", IntersectionObserverMock)
+})
+
+afterAll(() => {
+    vi.unstubAllGlobals()
 })
 
 const generateKeyInsights = (count: number): EnrichedBlockKeyInsights => {
@@ -45,10 +50,12 @@ const generateKeyInsights = (count: number): EnrichedBlockKeyInsights => {
 
 const renderKeyInsights = (keyInsightsBlock: EnrichedBlockKeyInsights) => {
     render(
-        <div>
-            <p>test??</p>
-            <ArticleBlock b={keyInsightsBlock} />
-        </div>
+        <DebugProvider>
+            <div>
+                <p>test??</p>
+                <ArticleBlock b={keyInsightsBlock} />
+            </div>
+        </DebugProvider>
     )
 }
 
