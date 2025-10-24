@@ -287,10 +287,13 @@ export const enrichLatestPageItems = async (
         excludeNullish
     )
 
-    // Fetch authors (only for articles)
+    // Fetch authors (for articles and announcements)
     const linkedAuthors = await getMinimalAuthorsByNames(
         knex,
-        R.unique(articles.flatMap((post) => post.data.authors))
+        R.unique([
+            ...articles.flatMap((post) => post.data.authors),
+            ...announcements.flatMap((post) => post.data.content.authors),
+        ])
     )
 
     // Gather all article image filenames
