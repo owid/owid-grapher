@@ -255,6 +255,7 @@ ${items}
                 return `### ${b.title}\n${items}`
             }
         )
+        .with({ type: "subscribe-bar" }, (): string | undefined => undefined)
         .with({ type: "guided-chart" }, (b): string | undefined => {
             return b.content
                 .map((block) =>

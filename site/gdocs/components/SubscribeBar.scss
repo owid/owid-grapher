@@ -1,0 +1,75 @@
+.subscribe-bar {
+    background-color: $gray-10;
+    padding: 16px 24px;
+    border-radius: 8px;
+    display: flex;
+    margin: 16px 0 32px 0;
+    @include sm-only {
+        flex-direction: column;
+    }
+}
+
+.subscribe-bar__header {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+    svg {
+        margin-right: 8px;
+        color: $blue-90;
+        height: 16px;
+        width: 16px;
+        padding: 4px;
+    }
+    h5 {
+        line-height: 24px;
+        color: $blue-90;
+        margin: 0;
+    }
+}
+
+.subscribe-bar__p {
+    color: $blue-65;
+    margin: 0;
+    @include sm-only {
+        margin-bottom: 8px;
+    }
+}
+
+.subscribe-bar__button {
+    flex: 1 1 108px;
+    margin-left: 24px;
+    align-self: center;
+    @include sm-only {
+        flex: 1 1 100%;
+        margin-left: 0;
+        align-self: flex-start;
+    }
+}
+
+.subscribe-bar--left,
+.subscribe-bar--right {
+    flex-direction: column;
+    align-self: start;
+    margin: 0;
+    padding: 16px;
+    @include md-only {
+        flex-direction: row;
+        align-self: unset;
+    }
+    @include md-down {
+        margin: 16px 0 32px 0;
+    }
+    .subscribe-bar__button {
+        flex: 1 1 100%;
+        margin-left: 0;
+        align-self: flex-start;
+        @include md-only {
+            flex: 1 1 108px;
+            align-self: center;
+            margin-left: 24px;
+        }
+    }
+    .subscribe-bar__p {
+        margin-bottom: 16px;
+    }
+}

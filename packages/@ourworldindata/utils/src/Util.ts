@@ -1783,6 +1783,7 @@ export function traverseEnrichedBlock(
                     "prominent-link",
                     "pull-quote",
                     "recirc",
+                    "subscribe-bar",
                     "resource-panel",
                     "research-and-writing",
                     "scroller",

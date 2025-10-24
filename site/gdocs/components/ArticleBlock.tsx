@@ -8,6 +8,7 @@ import Donors from "./Donors.js"
 import PullQuote from "./PullQuote.js"
 import GuidedChart from "./GuidedChart.js"
 import Recirc from "./Recirc.js"
+import SubscribeBar from "./SubscribeBar.js"
 import List from "./List.js"
 import NumberedList from "./NumberedList.js"
 import Image, { ImageParentContainer } from "./Image.js"
@@ -242,6 +243,15 @@ function ArticleBlockInternal({
         .with({ type: "recirc" }, (block) => (
             <Recirc
                 className={getLayout(`recirc--${block.align}`, containerType)}
+                d={block}
+            />
+        ))
+        .with({ type: "subscribe-bar" }, (block) => (
+            <SubscribeBar
+                className={getLayout(
+                    `subscribe-bar--${block.align}`,
+                    containerType
+                )}
                 d={block}
             />
         ))
