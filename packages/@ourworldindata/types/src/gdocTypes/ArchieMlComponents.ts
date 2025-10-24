@@ -451,14 +451,14 @@ export type RawBlockRecirc = {
     }
 }
 
-export const recircAlignments = ["left", "center", "right"] as const
+export const blockAlignments = ["left", "center", "right"] as const
 
-export type RecircAlignment = (typeof recircAlignments)[number]
+export type BlockAlignment = (typeof blockAlignments)[number]
 
 export type EnrichedBlockRecirc = {
     type: "recirc"
     title: string
-    align?: RecircAlignment
+    align?: BlockAlignment
     links: EnrichedHybridLink[]
 } & EnrichedBlockWithParseErrors
 
@@ -1041,6 +1041,18 @@ export type EnrichedBlockCookieNotice = {
     type: "cookie-notice"
 } & EnrichedBlockWithParseErrors
 
+export type RawBlockSubscribeBar = {
+    type: "subscribe-bar"
+    value?: {
+        align?: string
+    }
+}
+
+export type EnrichedBlockSubscribeBar = {
+    type: "subscribe-bar"
+    align: BlockAlignment
+} & EnrichedBlockWithParseErrors
+
 export type RawBlockCta = {
     type: "cta"
     value: {
@@ -1144,6 +1156,7 @@ export type OwidRawGdocBlock =
     | RawBlockHomepageIntro
     | RawBlockLatestDataInsights
     | RawBlockCookieNotice
+    | RawBlockSubscribeBar
     | RawBlockCta
     | RawBlockSocials
 
@@ -1201,6 +1214,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockHomepageIntro
     | EnrichedBlockLatestDataInsights
     | EnrichedBlockCookieNotice
+    | EnrichedBlockSubscribeBar
     | EnrichedBlockCta
     | EnrichedBlockSocials
 
