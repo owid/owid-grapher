@@ -20,7 +20,6 @@ import DataInsightDateline from "../components/DataInsightDateline.js"
 import LatestDataInsights from "../components/LatestDataInsights.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
-import DataInsightsNewsletterBanner from "../../DataInsightsNewsletterBanner.js"
 
 export const LatestDataInsightCards = (props: {
     latestDataInsights?: LatestDataInsight[]
@@ -106,15 +105,12 @@ export const DataInsightBody = (
     const shouldLinkTitle = props.shouldLinkTitle
     const publishedAt = props.publishedAt ? new Date(props.publishedAt) : null
     return (
-        <div className="grid grid-cols-12-full-width span-cols-14">
+        <div className="grid grid-cols-1 span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 col-sm-start-1 span-sm-cols-14 data-insight-body-container">
             <div
                 id={props.anchor}
-                className={cx(
-                    "span-cols-6 col-start-5 span-md-cols-8 col-md-start-4 span-sm-cols-14 col-sm-start-1 data-insight-body",
-                    {
-                        "data-insight-body--has-tags": !!props.tags?.length,
-                    }
-                )}
+                className={cx("data-insight-body", {
+                    "data-insight-body--has-tags": !!props.tags?.length,
+                })}
             >
                 <DataInsightDateline
                     className="data-insight__dateline"
@@ -190,7 +186,6 @@ export const DataInsightPage = (
                 className="span-cols-12 col-start-2"
                 latestDataInsights={latestDataInsights}
             />
-            <DataInsightsNewsletterBanner />
         </div>
     )
 }
