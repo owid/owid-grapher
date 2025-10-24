@@ -252,6 +252,10 @@ export const GdocAnnouncementSettings = ({
                 setCurrentGdoc={setCurrentGdoc}
                 errors={errors}
             />
+            <GdocsPublicationContext
+                gdoc={gdoc}
+                setCurrentGdoc={setCurrentGdoc}
+            />
             <div className="form-group">
                 <h3 className="form-section-heading">Announcement settings</h3>
                 <GdocsSettingsContentField
