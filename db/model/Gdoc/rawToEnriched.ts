@@ -2621,96 +2621,100 @@ function parseHomepageIntro(
         })
     }
 
-    for (const post of raw.value["featured-work"]) {
-        if (!post.value.url) {
+    if (!Array.isArray(raw.value["featured-work"])) {
+        return createError({
+            message: "Homepage intro featured work must be an array",
+        })
+    }
+
+    const featuredWork = raw.value["featured-work"]
+    const expectedTileCount = 4
+
+    if (featuredWork.length !== expectedTileCount) {
+        parseErrors.push({
+            message: `Homepage intro must include exactly ${expectedTileCount} featured work items`,
+        })
+    }
+
+    featuredWork.forEach((post, index) => {
+        if (!post?.url) {
             parseErrors.push({
-                message: "Featured work is missing a url",
+                message: `Featured work item ${index + 1} is missing a url`,
             })
-        }
-        if (!["primary", "secondary", "tertiary"].includes(post.type)) {
-            parseErrors.push({
-                message:
-                    "Featured work must be of type primary, secondary, or tertiary",
-            })
+            return
         }
 
-        const rawBooleanValidation = validateRawBoolean("isNew", post.value)
+        const rawBooleanValidation = validateRawBoolean("isNew", post)
         if (!rawBooleanValidation.isValid) {
             parseErrors.push({
                 message: rawBooleanValidation.message,
             })
         }
 
-        const url = extractUrl(post.value.url)
+        const url = extractUrl(post.url)
         const linkType = getLinkType(url)
+        const authors =
+            post.authors !== null ? parseAuthors(post.authors) : undefined
+
+        const enrichedPost: EnrichedBlockHomepageIntroPost = {
+            url,
+            title: post.title,
+            description: post.description,
+            filename: post.filename,
+            kicker: post.kicker,
+        }
+        if (authors) {
+            enrichedPost.authors = authors
+        }
+        if (post.isNew !== undefined) {
+            enrichedPost.isNew = post.isNew === "true"
+        }
+
+        const isTertiaryIndex = index % 2 === 1
 
         if (["gdoc", "explorer", "grapher"].includes(linkType)) {
-            enrichedFeaturedWork.push({
-                type: post.type,
-                url,
-                title: post.value.title,
-                authors: post.value.authors
-                    ? parseAuthors(post.value.authors)
-                    : undefined,
-                description: post.value.description,
-                filename: post.value.filename,
-                kicker: post.value.kicker,
-                isNew: post.value.isNew === "true",
-            })
-        } else if (!post.value.title) {
-            parseErrors.push({
-                message: `Featured work using plain URL "${url}" is missing a title`,
-            })
-        } else if (!post.value.authors) {
-            parseErrors.push({
-                message: `Featured work using plain URL "${url}" is missing authors`,
-            })
-        } else if (post.type !== "tertiary" && !post.value.description) {
-            parseErrors.push({
-                message: `Featured work using plain URL "${url}" is missing a description`,
-            })
-        } else if (post.type !== "tertiary" && !post.value.filename) {
-            parseErrors.push({
-                message: `Featured work using plain URL "${url}" is missing a filename (thumbnail)`,
-            })
-        } else {
-            enrichedFeaturedWork.push({
-                type: post.type,
-                url,
-                title: post.value.title,
-                authors: parseAuthors(post.value.authors),
-                description: post.value.description,
-                filename: post.value.filename,
-                kicker: post.value.kicker,
-                isNew: post.value.isNew === "true",
-            })
+            enrichedFeaturedWork.push(enrichedPost)
+            return
         }
-    }
 
-    // We will likely support multile layouts in the future even though it's static now
-    const expectedFeaturedWorkShape = {
-        primary: 1,
-        secondary: 2,
-        tertiary: 2,
-    }
-    if (!parseErrors.length) {
-        const featuredWorkCounts = enrichedFeaturedWork.reduce(
-            (counts, post) => {
-                counts[post.type]++
-                return counts
-            },
-            { primary: 0, secondary: 0, tertiary: 0 }
-        )
-        Object.entries(expectedFeaturedWorkShape).forEach((shape) => {
-            const type = shape[0] as "primary" | "secondary" | "tertiary"
-            const expectedCount = shape[1] as number
-            if (featuredWorkCounts[type] !== expectedCount) {
-                parseErrors.push({
-                    message: `Expected ${expectedCount} ${type} featured work, but found ${featuredWorkCounts[type]}`,
-                })
-            }
-        })
-    }
+        if (!post.title) {
+            parseErrors.push({
+                message: `Featured work item ${
+                    index + 1
+                } using plain URL "${url}" is missing a title`,
+            })
+            return
+        }
+
+        if (!post.authors) {
+            parseErrors.push({
+                message: `Featured work item ${
+                    index + 1
+                } using plain URL "${url}" is missing authors`,
+            })
+            return
+        }
+
+        if (!isTertiaryIndex && !post.description) {
+            parseErrors.push({
+                message: `Featured work item ${
+                    index + 1
+                } using plain URL "${url}" is missing a description`,
+            })
+            return
+        }
+
+        if (!isTertiaryIndex && !post.filename) {
+            parseErrors.push({
+                message: `Featured work item ${
+                    index + 1
+                } using plain URL "${url}" is missing a filename (thumbnail)`,
+            })
+            return
+        }
+
+        enrichedFeaturedWork.push(enrichedPost)
+    })
 
     return {
         type: "homepage-intro",

@@ -908,22 +908,21 @@ function* rawBlockHomepageIntroToArchieMLString(
     block: RawBlockHomepageIntro
 ): Generator<string, void, undefined> {
     yield "{.homepage-intro}"
-    yield "[.+featured-work]"
-    if (block.value?.["featured-work"]) {
-        for (const post of block.value["featured-work"]) {
-            const value = post.value
-            yield `{.${post.type}}`
-            yield* propertyToArchieMLString("title", value)
-            yield* propertyToArchieMLString("description", value)
-            yield* propertyToArchieMLString("url", value)
-            yield* propertyToArchieMLString("filename", value)
-            yield* propertyToArchieMLString("kicker", value)
-            yield* propertyToArchieMLString("authors", value)
-            yield* propertyToArchieMLString("isNew", value)
-            yield "{}"
+    const featuredWork = block.value?.["featured-work"]
+    if (Array.isArray(featuredWork) && featuredWork.length) {
+        yield "[.featured-work]"
+        for (const post of featuredWork) {
+            yield* propertyToArchieMLString("title", post)
+            yield* propertyToArchieMLString("description", post)
+            yield* propertyToArchieMLString("url", post)
+            yield* propertyToArchieMLString("filename", post)
+            yield* propertyToArchieMLString("kicker", post)
+            yield* propertyToArchieMLString("authors", post)
+            yield* propertyToArchieMLString("isNew", post)
+            yield "\n "
         }
+        yield "[]"
     }
-    yield "[]"
     yield "{}"
 }
 
