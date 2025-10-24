@@ -2653,8 +2653,8 @@ function parseHomepageIntro(
 
         const url = extractUrl(post.url)
         const linkType = getLinkType(url)
-        const authors =
-            post.authors !== null ? parseAuthors(post.authors) : undefined
+        // If authors aren't specified, assume it's a linked gdoc
+        const authors = post.authors ? parseAuthors(post.authors) : undefined
 
         const enrichedPost: EnrichedBlockHomepageIntroPost = {
             url,
