@@ -20,13 +20,9 @@ import Image from "./gdocs/components/Image.js"
 import { ArticleBlocks } from "./gdocs/components/ArticleBlocks.js"
 import DataInsightDateline from "./gdocs/components/DataInsightDateline.js"
 import cx from "classnames"
-import {
-    NewsletterSubscriptionForm,
-    NewsletterSubscriptionHeader,
-} from "./NewsletterSubscription.js"
 import { Pagination } from "./Pagination.js"
-import { OwidSocials } from "./OwidSocials.js"
 import { NewsletterSubscriptionContext } from "./newsletter.js"
+import { NewsletterSignupBlock } from "./NewsletterSignupBlock.js"
 
 const COMMON_CLASSES =
     "grid grid-cols-6 span-cols-6 col-start-5 span-md-cols-10 col-md-start-2 span-sm-cols-14 col-sm-start-1"
@@ -207,15 +203,10 @@ export const LatestPage = (props: {
                             </p>
                         </header>
                         {posts.slice(0, 2).map(renderLatestPageItem)}
-                        <div className="latest-page__newsletter-signup col-start-11 span-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-14">
-                            <NewsletterSubscriptionHeader />
-                            <NewsletterSubscriptionForm
-                                context={NewsletterSubscriptionContext.Latest}
-                            />
-                            <OwidSocials
-                                context={NewsletterSubscriptionContext.Latest}
-                            />
-                        </div>
+                        <NewsletterSignupBlock
+                            className="latest-page__newsletter-signup col-start-11 span-cols-3 col-md-start-2 span-md-cols-10 col-sm-start-1 span-sm-cols-14"
+                            context={NewsletterSubscriptionContext.Latest}
+                        />
                         {posts.slice(2).map(renderLatestPageItem)}
                         <Pagination
                             pageNumber={pageNum}

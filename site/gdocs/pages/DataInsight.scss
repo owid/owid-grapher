@@ -311,6 +311,25 @@
     }
 }
 
+.data-insights-index-page__newsletter-signup {
+    margin-bottom: 24px;
+    grid-row: 2 / span 3;
+    align-self: start;
+
+    @include md-down {
+        grid-row: unset;
+        .newsletter-subscription-form__email-submit {
+            .newsletter-subscription-form__email {
+                flex-grow: 4;
+            }
+            .newsletter-subscription-form__submit {
+                padding: 9.5px 0;
+                flex-grow: 1;
+            }
+        }
+    }
+}
+
 .data-insights-index-page__pagination {
     margin-bottom: 24px;
     display: flex;
