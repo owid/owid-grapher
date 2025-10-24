@@ -1275,7 +1275,7 @@ export const getOwidGdocFromJSON = (json: OwidGdocJSON): OwidGdoc => {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
 export function extractGdocPageData(gdoc: OwidGdoc) {
     // Generic properties every gdoc has
-    const commonProps = R.pick(gdoc, [
+    const gdocProps = R.pick(gdoc, [
         "id",
         "slug",
         "content",
@@ -1285,15 +1285,25 @@ export function extractGdocPageData(gdoc: OwidGdoc) {
         "publishedAt",
         "breadcrumbs",
         "manualBreadcrumbs",
+        "tags",
+    ])
+
+    // Also generic properties. A separate function call because R.pick can only take so many arguments before TS complains
+    const attachmentProps = R.pick(gdoc, [
         "linkedAuthors",
         "linkedDocuments",
+        "linkedStaticViz",
         "linkedCharts",
         "linkedNarrativeCharts",
         "linkedIndicators",
         "imageMetadata",
         "relatedCharts",
-        "tags",
     ])
+
+    const commonProps = {
+        ...gdocProps,
+        ...attachmentProps,
+    }
 
     return match(gdoc)
         .when(checkIsAboutPage, (aboutGdoc) => {
@@ -1796,7 +1806,8 @@ export function traverseEnrichedBlock(
                     "homepage-search",
                     "homepage-intro",
                     "latest-data-insights",
-                    "socials"
+                    "socials",
+                    "static-viz"
                 ),
             },
             callback
