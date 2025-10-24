@@ -135,7 +135,7 @@ export const NewsletterSubscriptionForm = ({
                 />
                 <label htmlFor={idBiweekly}>
                     <span className="newsletter-subscription-form__label-title">
-                        The Brief
+                        The OWID Brief
                     </span>
                     <span className="newsletter-subscription-form__label-frequency note-12-medium">
                         Twice a month
