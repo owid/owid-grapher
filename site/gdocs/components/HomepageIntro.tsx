@@ -25,14 +25,12 @@ import { OwidSocials } from "../../OwidSocials.js"
 import { NewsletterSubscriptionContext } from "../../newsletter.js"
 
 type FeaturedWorkTileProps = EnrichedBlockHomepageIntroPost & {
-    isTertiary?: boolean
     className?: string
     id: string
     thumbnailSize?: ImageParentContainer
 }
 
 function FeaturedWorkTile({
-    isTertiary,
     title,
     kicker,
     authors,
@@ -57,16 +55,6 @@ function FeaturedWorkTile({
                     error={{
                         name: "Error with featured work",
                         message: `${errorMessage} This block won't render when the page is published`,
-                    }}
-                />
-            )
-        }
-        if (!isTertiary && !thumbnailFilename) {
-            return (
-                <BlockErrorFallback
-                    error={{
-                        name: "Error with featured work",
-                        message: `No thumbnail found for featured work. Only tertiary tiles can have missing images. This block won't render when the page is published`,
                     }}
                 />
             )
@@ -266,28 +254,22 @@ function DonationCta() {
     )
 }
 
-// Featured work used to be set in a way that explicitly defined where it would render,
-// but now the new homepage design only supports 2 items with thumbnails and 2 without.
-// This function sorts the items by type and takes the top 4 to display.
-function getSortedFeaturedWork(featuredWork: EnrichedBlockHomepageIntroPost[]) {
-    const ranking = ["primary", "secondary", "tertiary"]
-    return R.take(
-        R.sortBy(featuredWork, (work) => ranking.indexOf(work.type)),
-        4
-    ) as [
-        EnrichedBlockHomepageIntroPost,
-        EnrichedBlockHomepageIntroPost,
-        EnrichedBlockHomepageIntroPost,
-        EnrichedBlockHomepageIntroPost,
-    ]
-}
-
 export type HomepageIntroProps = {
     className?: string
 } & EnrichedBlockHomepageIntro
 
 export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
-    const [w1, w2, w3, w4] = getSortedFeaturedWork(featuredWork)
+    const tiles = featuredWork.slice(0, 4)
+    if (tiles.length < 4) {
+        return null
+    }
+    const [w1, w2, w3, w4] = tiles as [
+        EnrichedBlockHomepageIntroPost,
+        EnrichedBlockHomepageIntroPost,
+        EnrichedBlockHomepageIntroPost,
+        EnrichedBlockHomepageIntroPost,
+    ]
+
     return (
         <section className={cx("homepage-intro", className)}>
             <div className="homepage-intro__featured-work grid grid-cols-2 span-cols-6 col-start-2 span-md-cols-14">
@@ -296,14 +278,17 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
                     <FeaturedWorkTile id={"fw3"} {...w3} />
                 </div>
                 <div className="homepage-intro__featured-work-column homepage-intro__featured-work-column__desktop">
-                    <FeaturedWorkTile id={"fw2"} isTertiary {...w2} />
-                    <FeaturedWorkTile id={"fw4"} isTertiary {...w4} />
+                    <FeaturedWorkTile id={"fw2"} {...w2} />
+                    <FeaturedWorkTile id={"fw4"} {...w4} />
                 </div>
                 <div className="homepage-intro__featured-work-column homepage-intro__featured-work-column__mobile">
-                    <FeaturedWorkTile id={"fw1"} {...w1} />
-                    <FeaturedWorkTile id={"fw2"} {...w2} />
-                    <FeaturedWorkTile id={"fw3"} {...w3} />
-                    <FeaturedWorkTile id={"fw4"} {...w4} />
+                    {[w1, w2, w3, w4].map((tile, index) => (
+                        <FeaturedWorkTile
+                            key={index}
+                            id={`fw${index + 1}`}
+                            {...tile}
+                        />
+                    ))}
                 </div>
             </div>
             <div className="grid grid-cols-2 span-cols-6 span-md-cols-14 col-md-start-1">

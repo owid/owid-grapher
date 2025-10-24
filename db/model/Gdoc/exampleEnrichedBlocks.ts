@@ -809,7 +809,6 @@ export const enrichedBlockExamples: Record<
         type: "homepage-intro",
         featuredWork: [
             {
-                type: "primary",
                 url: "https://ourworldindata.org/optimism-and-pessimism",
                 title: "Optimism & Pessimism",
                 description:
@@ -820,7 +819,6 @@ export const enrichedBlockExamples: Record<
                 isNew: false,
             },
             {
-                type: "secondary",
                 url: "https://ourworldindata.org/flu-deaths",
                 title: "How many people die from the flu?",
                 description:
@@ -831,7 +829,6 @@ export const enrichedBlockExamples: Record<
                 isNew: true,
             },
             {
-                type: "secondary",
                 url: "https://ourworldindata.org/something",
                 title: "Is this a rhetorical question?",
                 description: "Blah blah",
@@ -841,17 +838,8 @@ export const enrichedBlockExamples: Record<
                 isNew: false,
             },
             {
-                type: "tertiary",
                 url: "https://ourworldindata.org/front-end-engineer",
                 title: "We’re looking for a front-end engineer to join our team.",
-                kicker: "Announcement",
-                authors: ["Our World In Data"],
-                isNew: false,
-            },
-            {
-                type: "tertiary",
-                url: "https://ourworldindata.org/civil-engineer",
-                title: "We’re looking to build bridges with a civil engineer.",
                 kicker: "Announcement",
                 authors: ["Our World In Data"],
                 isNew: false,

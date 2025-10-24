@@ -44,6 +44,7 @@ import {
     RawBlockPillRow,
     RawBlockHomepageSearch,
     RawBlockHomepageIntro,
+    RawBlockHomepageIntroPost,
     RawBlockLatestDataInsights,
     RawBlockSocials,
     RawBlockPeople,
@@ -661,14 +662,18 @@ export function enrichedBlockToRawBlock(
                 type: "homepage-intro",
                 value: {
                     ["featured-work"]: b.featuredWork.map(
-                        ({ type, authors, ...value }) => ({
-                            type,
-                            value: {
+                        ({ authors, isNew, ...value }) => {
+                            const rawPost: RawBlockHomepageIntroPost = {
                                 ...value,
-                                isNew: String(value.isNew),
-                                authors: authors?.join(", "),
-                            },
-                        })
+                            }
+                            if (authors) {
+                                rawPost.authors = authors.join(", ")
+                            }
+                            if (isNew !== undefined) {
+                                rawPost.isNew = String(isNew)
+                            }
+                            return rawPost
+                        }
                     ),
                 },
             }
