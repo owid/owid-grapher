@@ -158,12 +158,17 @@ export const renderGdocsPageBySlug = async (
     return renderGdoc(gdoc, isPreviewing)
 }
 
-export const renderGdoc = (gdoc: OwidGdoc, isPreviewing: boolean = false) => {
+export const renderGdoc = (
+    gdoc: OwidGdoc,
+    isPreviewing: boolean = false,
+    archiveContext?: ArchiveContext
+) => {
     return renderToHtmlPage(
         <OwidGdocPage
             baseUrl={BAKED_BASE_URL}
             gdoc={gdoc}
             isPreviewing={isPreviewing}
+            archiveContext={archiveContext}
         />
     )
 }
