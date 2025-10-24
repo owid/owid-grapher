@@ -104,8 +104,8 @@ export const NewsletterSubscriptionForm = ({
             className={cx("newsletter-subscription-form", className)}
             action="https://ourworldindata.us8.list-manage.com/subscribe/post?u=18058af086319ba6afad752ec&id=2e166c1fc1"
             method="post"
-            id="mc-embedded-subscribe-form"
-            name="mc-embedded-subscribe-form"
+            id="mc-embedded-subscribe-bar"
+            name="mc-embedded-subscribe-bar"
             target="_blank"
             onSubmit={() =>
                 analytics.logSiteFormSubmit(

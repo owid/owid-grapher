@@ -24,6 +24,7 @@ import {
     EnrichedBlockPullQuote,
     EnrichedBlockGuidedChart,
     EnrichedBlockRecirc,
+    EnrichedBlockSubscribeBar,
     EnrichedBlockScroller,
     EnrichedBlockSDGGrid,
     EnrichedBlockSDGToc,
@@ -59,6 +60,7 @@ import {
     RawBlockPullQuote,
     RawBlockGuidedChart,
     RawBlockRecirc,
+    RawBlockSubscribeBar,
     RawBlockScroller,
     RawBlockSDGGrid,
     RawBlockSideBySideContainer,
@@ -140,8 +142,8 @@ import {
     pullquoteAlignments,
     RawBlockExpander,
     EnrichedBlockExpander,
-    recircAlignments,
-    RecircAlignment,
+    blockAlignments,
+    BlockAlignment,
     RawBlockResourcePanel,
     EnrichedBlockResourcePanel,
     RawHybridLink,
@@ -213,6 +215,7 @@ export function parseRawBlocksToEnrichedBlocks(
             })
         )
         .with({ type: "recirc" }, parseRecirc)
+        .with({ type: "subscribe-bar" }, parseSubscribeBar)
         .with({ type: "text" }, parseText)
         .with(
             { type: "html" },
@@ -1246,21 +1249,42 @@ const parseRecirc = (raw: RawBlockRecirc): EnrichedBlockRecirc => {
         })
     }
 
-    if (
-        raw.value.align &&
-        !validateRawEnum(recircAlignments, raw.value.align)
-    ) {
+    if (raw.value.align && !validateRawEnum(blockAlignments, raw.value.align)) {
         parseErrors.push({
-            message: `If specified, recirc position must be one of ${recircAlignments.join(", ")}`,
+            message: `If specified, recirc align must be one of ${blockAlignments.join(", ")}`,
         })
     }
 
-    const align = (raw.value.align as RecircAlignment) || "center"
+    const align = (raw.value.align as BlockAlignment) || "center"
 
     return {
         type: "recirc",
         title: raw.value.title,
         links: parsedLinks,
+        align,
+        parseErrors,
+    }
+}
+
+const parseSubscribeBar = (
+    raw: RawBlockSubscribeBar
+): EnrichedBlockSubscribeBar => {
+    const parseErrors: ParseError[] = []
+
+    let align: BlockAlignment = "center"
+    const rawAlign = raw.value?.align
+    if (rawAlign) {
+        if (validateRawEnum(blockAlignments, rawAlign)) {
+            align = rawAlign as BlockAlignment
+        } else {
+            parseErrors.push({
+                message: `If specified, subscribe-bar align must be one of ${blockAlignments.join(", ")}`,
+            })
+        }
+    }
+
+    return {
+        type: "subscribe-bar",
         align,
         parseErrors,
     }

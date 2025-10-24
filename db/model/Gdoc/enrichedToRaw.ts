@@ -53,6 +53,7 @@ import {
     RawBlockNarrativeChart,
     RawBlockCode,
     RawBlockCookieNotice,
+    RawBlockSubscribeBar,
     RawBlockExpander,
     EnrichedHybridLink,
     RawBlockResourcePanel,
@@ -314,6 +315,15 @@ export function enrichedBlockToRawBlock(
                     title: b.title,
                     align: b.align,
                     links: b.links.map(convertEnrichedHybridLinksToRaw),
+                },
+            })
+        )
+        .with(
+            { type: "subscribe-bar" },
+            (b): RawBlockSubscribeBar => ({
+                type: b.type,
+                value: {
+                    align: b.align,
                 },
             })
         )

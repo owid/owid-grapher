@@ -341,6 +341,11 @@ export const enrichedBlockExamples: Record<
         ],
         parseErrors: [],
     },
+    ["subscribe-bar"]: {
+        type: "subscribe-bar",
+        align: "center",
+        parseErrors: [],
+    },
     ["resource-panel"]: {
         type: "resource-panel",
         icon: "chart",
