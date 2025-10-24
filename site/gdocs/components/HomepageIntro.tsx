@@ -291,13 +291,19 @@ export function HomepageIntro({ className, featuredWork }: HomepageIntroProps) {
     return (
         <section className={cx("homepage-intro", className)}>
             <div className="homepage-intro__featured-work grid grid-cols-2 span-cols-6 col-start-2 span-md-cols-14">
-                <div className="homepage-intro__featured-work-column">
+                <div className="homepage-intro__featured-work-column homepage-intro__featured-work-column__desktop">
                     <FeaturedWorkTile id={"fw1"} {...w1} />
                     <FeaturedWorkTile id={"fw3"} {...w3} />
                 </div>
-                <div className="homepage-intro__featured-work-column">
+                <div className="homepage-intro__featured-work-column homepage-intro__featured-work-column__desktop">
                     <FeaturedWorkTile id={"fw2"} isTertiary {...w2} />
                     <FeaturedWorkTile id={"fw4"} isTertiary {...w4} />
+                </div>
+                <div className="homepage-intro__featured-work-column homepage-intro__featured-work-column__mobile">
+                    <FeaturedWorkTile id={"fw1"} {...w1} />
+                    <FeaturedWorkTile id={"fw2"} {...w2} />
+                    <FeaturedWorkTile id={"fw3"} {...w3} />
+                    <FeaturedWorkTile id={"fw4"} {...w4} />
                 </div>
             </div>
             <div className="grid grid-cols-2 span-cols-6 span-md-cols-14 col-md-start-1">
