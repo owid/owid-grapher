@@ -20,7 +20,6 @@ import DataInsightDateline from "../components/DataInsightDateline.js"
 import LatestDataInsights from "../components/LatestDataInsights.js"
 import { AttachmentsContext } from "../AttachmentsContext.js"
 import { BAKED_BASE_URL } from "../../../settings/clientSettings.js"
-import DataInsightsNewsletterBanner from "../../DataInsightsNewsletterBanner.js"
 
 export const LatestDataInsightCards = (props: {
     latestDataInsights?: LatestDataInsight[]
@@ -190,7 +189,6 @@ export const DataInsightPage = (
                 className="span-cols-12 col-start-2"
                 latestDataInsights={latestDataInsights}
             />
-            <DataInsightsNewsletterBanner />
         </div>
     )
 }
