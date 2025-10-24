@@ -168,6 +168,15 @@ function HomepageAnnouncement(props: {
           announcement.cta?.url ||
           latestPageLink
 
+    const publishedAtDayJs = dayjs(announcement.publishedAt!)
+    const publishedAtFormatted = publishedAtDayJs.isToday()
+        ? "Today"
+        : publishedAtDayJs.isYesterday()
+          ? "Yesterday"
+          : publishedAtDayJs.isSame(dayjs(), "week")
+            ? "This Week"
+            : publishedAtDayJs.fromNow()
+
     return (
         <li
             className={cx("homepage-intro__announcement", {
@@ -182,8 +191,7 @@ function HomepageAnnouncement(props: {
                 href={href}
             >
                 <span className="homepage-intro__announcement-meta h6-black-caps">
-                    {announcement.kicker} -{" "}
-                    {dayjs(announcement.publishedAt).fromNow()}{" "}
+                    {announcement.kicker} - {publishedAtFormatted}
                 </span>
                 <h3
                     id={`announcement-${announcement.id}`}
