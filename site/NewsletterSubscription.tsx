@@ -151,7 +151,7 @@ export const NewsletterSubscriptionForm = ({
                     target="_blank"
                     rel="noopener"
                 >
-                    See example Biweekly Digest newsletter
+                    See example OWID Brief newsletter
                 </a>
             </div>
             <img
