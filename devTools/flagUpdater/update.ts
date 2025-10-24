@@ -2,7 +2,7 @@ import { Region, regions } from "@ourworldindata/utils"
 
 import path from "path"
 import fs from "fs-extra"
-import { glob } from "glob"
+import { glob } from "fs/promises"
 import findProjectBaseDir from "../../settings/findBaseDir.ts"
 
 const BASE_DIR = findProjectBaseDir(__dirname)
@@ -15,7 +15,7 @@ const main = async () => {
     const failedBecauseNoFlag: Region[] = []
     let successfulCount: number = 0
 
-    for (const f of await glob(`${FLAG_TARGET_DIR}/*.svg`)) {
+    for await (const f of glob(`${FLAG_TARGET_DIR}/*.svg`)) {
         await fs.remove(f)
     }
 

@@ -5,7 +5,6 @@ import "../serverUtils/instrument.js"
 import * as _ from "lodash-es"
 import fs from "fs-extra"
 import path from "path"
-import { glob } from "glob"
 import ProgressBar from "progress"
 import * as db from "../db/db.js"
 import { BLOG_POSTS_PER_PAGE, BASE_DIR } from "../settings/serverSettings.js"
@@ -252,8 +251,8 @@ export class SiteBaker {
     // Among all existing slugs on the filesystem, some are not coming from WP. They are baked independently and should not
     // be deleted if WP does not list them (e.g. grapher/*).
     private getPostSlugsToRemove(postSlugsFromDb: string[]) {
-        const existingSlugs = glob
-            .sync(`${this.bakedSiteDir}/**/*.html`)
+        const existingSlugs = fs
+            .globSync(`${this.bakedSiteDir}/**/*.html`)
             .map((path) =>
                 path.replace(`${this.bakedSiteDir}/`, "").replace(".html", "")
             )

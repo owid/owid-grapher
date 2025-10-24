@@ -11220,7 +11220,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:^10.2.2, glob@npm:^10.3.3, glob@npm:^10.4.5":
+"glob@npm:^10.2.2, glob@npm:^10.4.5":
   version: 10.4.5
   resolution: "glob@npm:10.4.5"
   dependencies:
@@ -11429,7 +11429,6 @@ __metadata:
     flag-icons: "npm:^7.5.0"
     fparser: "npm:^3.1.0"
     fs-extra: "npm:^11.1.1"
-    glob: "npm:^10.3.3"
     google-auth-library: "npm:^10.1.0"
     handsontable: "npm:^15.1.0"
     history: "npm:4"
