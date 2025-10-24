@@ -5,4 +5,5 @@ export enum NewsletterSubscriptionContext {
     FloatingDataInsights = "floatingDataInsights",
     Latest = "latest",
     SubscribePage = "subscribePage",
+    DataInsightsIndex = "dataInsightsIndex",
 }

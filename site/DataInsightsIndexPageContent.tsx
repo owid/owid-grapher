@@ -14,6 +14,8 @@ import { DataInsightsIndexPageProps } from "./DataInsightsIndexPage.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faClose, faTag } from "@fortawesome/free-solid-svg-icons"
 import { Pagination } from "./Pagination.js"
+import { NewsletterSignupBlock } from "./NewsletterSignupBlock.js"
+import { NewsletterSubscriptionContext } from "./newsletter.js"
 
 export const DataInsightsIndexPageContent = (
     props: DataInsightsIndexPageProps
@@ -43,6 +45,25 @@ export const DataInsightsIndexPageContent = (
                 >,
             }
         )
+    const firstDataInsight = dataInsights.slice(0, 1)
+    const remainingDataInsights = dataInsights.slice(1)
+
+    const renderDataInsight = (
+        dataInsight: (typeof dataInsights)[number],
+        index: number
+    ) => {
+        const id = pageNumber === 1 ? dataInsightIndexToIdMap[index] : undefined
+
+        return (
+            <DataInsightBody
+                key={dataInsight.id}
+                anchor={id}
+                shouldLinkTitle
+                {...dataInsight}
+            />
+        )
+    }
+
     return (
         <DocumentContext.Provider value={{ isPreviewing }}>
             <AttachmentsContext.Provider
@@ -72,20 +93,19 @@ export const DataInsightsIndexPageContent = (
                         />
                     )}
                 </header>
-                {dataInsights.map((dataInsight, index) => {
-                    const id =
-                        pageNumber === 0
-                            ? dataInsightIndexToIdMap[index]
-                            : undefined
-                    return (
-                        <DataInsightBody
-                            key={dataInsight.id}
-                            anchor={id}
-                            shouldLinkTitle
-                            {...dataInsight}
-                        />
+                {firstDataInsight.map((dataInsight, index) =>
+                    renderDataInsight(dataInsight, index)
+                )}
+                <NewsletterSignupBlock
+                    className="data-insights-index-page__newsletter-signup col-start-11 span-cols-3 span-md-cols-8 col-md-start-4 col-sm-start-1 span-sm-cols-14"
+                    context={NewsletterSubscriptionContext.DataInsightsIndex}
+                />
+                {remainingDataInsights.map((dataInsight, index) =>
+                    renderDataInsight(
+                        dataInsight,
+                        index + firstDataInsight.length
                     )
-                })}
+                )}
                 <Pagination
                     totalPageCount={props.totalPageCount}
                     pageNumber={props.pageNumber}
