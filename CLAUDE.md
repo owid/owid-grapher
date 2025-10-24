@@ -22,7 +22,7 @@ When you want to create a git commit, refer to docs/agent-guidelines/commit-mess
 
 # Codebase overview
 
-This is a sort of monorepo for the Our World In Data website, including our custom data viz react component, Grapher. The codebase is in typescript, uses React 19 and Node 22.
+This is a sort of monorepo for the Our World In Data website, including our custom data viz react component, Grapher. The codebase is in typescript, uses React 19 and Node 24.
 
 Some key directories, going roughly along the dependency chain from the most standalone pieces to the one with the most dependencies:
 
