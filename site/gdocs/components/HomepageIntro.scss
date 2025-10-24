@@ -24,6 +24,19 @@
     }
 }
 
+.homepage-intro__featured-work-column__desktop {
+    @include md-down {
+        display: none;
+    }
+}
+
+.homepage-intro__featured-work-column__mobile {
+    display: none;
+    @include md-down {
+        display: flex;
+    }
+}
+
 .homepage-intro__featured-tile {
     border: 1px solid $blue-10;
     padding: 16px;
