@@ -13,7 +13,6 @@ import { AttachmentsContext } from "./gdocs/AttachmentsContext.js"
 import { DataInsightsIndexPageProps } from "./DataInsightsIndexPage.js"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faClose, faTag } from "@fortawesome/free-solid-svg-icons"
-import DataInsightsNewsletterBanner from "./DataInsightsNewsletterBanner.js"
 import { Pagination } from "./Pagination.js"
 
 export const DataInsightsIndexPageContent = (
@@ -98,7 +97,6 @@ export const DataInsightsIndexPageContent = (
                     }
                     className="span-cols-8 col-start-4 span-md-cols-10 col-md-start-3 span-sm-cols-12 col-sm-start-2"
                 />
-                <DataInsightsNewsletterBanner />
             </AttachmentsContext.Provider>
         </DocumentContext.Provider>
     )
