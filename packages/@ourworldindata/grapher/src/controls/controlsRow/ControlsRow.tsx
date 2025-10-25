@@ -18,12 +18,7 @@ import {
     GRAPHER_FRAME_PADDING_HORIZONTAL,
     GRAPHER_FRAME_PADDING_VERTICAL,
 } from "../../core/GrapherConstants"
-import {
-    MapCountryDropdown,
-    MapCountryDropdownManager,
-} from "../MapCountryDropdown"
-import { CloseGlobeViewButton } from "../CloseGlobeViewButton"
-import { GlobeSwitcher } from "../GlobeSwitcher"
+import { MapResetButton, MapResetButtonManager } from "../MapResetButton"
 import {
     DataTableFilterDropdown,
     DataTableFilterDropdownManager,
@@ -32,13 +27,20 @@ import {
     DataTableSearchField,
     DataTableSearchFieldManager,
 } from "../DataTableSearchField"
+import {
+    MapZoomToSelectionButton,
+    MapZoomToSelectionButtonManager,
+} from "../MapZoomToSelectionButton"
+import { MapZoomDropdown, MapZoomDropdownManager } from "../MapZoomDropdown"
 
 export interface ControlsRowManager
     extends ContentSwitchersManager,
         EntitySelectionManager,
-        MapRegionDropdownManager,
-        MapCountryDropdownManager,
         SettingsMenuManager,
+        MapRegionDropdownManager,
+        MapResetButtonManager,
+        MapZoomToSelectionButtonManager,
+        MapZoomDropdownManager,
         DataTableFilterDropdownManager,
         DataTableSearchFieldManager {
     sidePanelBounds?: Bounds
@@ -76,12 +78,16 @@ export class ControlsRow extends Component<ControlsRowProps> {
 
     @computed private get showControlsRow(): boolean {
         return (
+            ContentSwitchers.shouldShow(this.manager) ||
             SettingsMenu.shouldShow(this.manager) ||
             EntitySelectionToggle.shouldShow(this.manager) ||
+            // Map controls
             MapRegionDropdown.shouldShow(this.manager) ||
-            MapCountryDropdown.shouldShow(this.manager) ||
-            CloseGlobeViewButton.shouldShow(this.manager) ||
-            ContentSwitchers.shouldShow(this.manager) ||
+            MapZoomDropdown.shouldShow(this.manager) ||
+            MapZoomToSelectionButton.shouldShow(this.manager) ||
+            MapResetButton.shouldShow(this.manager, "resetZoom") ||
+            MapResetButton.shouldShow(this.manager, "resetView") ||
+            // Table controls
             DataTableFilterDropdown.shouldShow(this.manager) ||
             DataTableSearchField.shouldShow(this.manager)
         )
@@ -122,19 +128,38 @@ export class ControlsRow extends Component<ControlsRowProps> {
     private renderMapControls(): React.ReactElement {
         return (
             <div className="controls map-controls">
-                {this.manager.isMapSelectionEnabled ? (
-                    <>
-                        <MapRegionDropdown manager={this.manager} />
-                        <GlobeSwitcher manager={this.manager} />
-                        <EntitySelectionToggle manager={this.manager} />
-                    </>
-                ) : (
-                    <>
-                        <MapCountryDropdown manager={this.manager} />
-                        <CloseGlobeViewButton manager={this.manager} />
-                    </>
-                )}
+                {this.manager.isMapSelectionEnabled
+                    ? this.renderMapControlsForDesktop()
+                    : this.renderMapControlsForMobile()}
             </div>
+        )
+    }
+
+    private renderMapControlsForDesktop(): React.ReactElement {
+        return (
+            <>
+                <MapResetButton manager={this.manager} action="resetZoom" />
+                <MapZoomToSelectionButton manager={this.manager} />
+                <MapResetButton manager={this.manager} action="resetView" />
+                <MapRegionDropdown manager={this.manager} />
+                <EntitySelectionToggle manager={this.manager} />
+            </>
+        )
+    }
+
+    private renderMapControlsForMobile(): React.ReactElement {
+        const shouldShowResetZoomButton = MapResetButton.shouldShow(
+            this.manager,
+            "resetZoom"
+        )
+
+        if (shouldShowResetZoomButton)
+            return <MapResetButton manager={this.manager} action="resetZoom" />
+
+        return this.manager.isFaceted ? (
+            <MapRegionDropdown manager={this.manager} />
+        ) : (
+            <MapZoomDropdown manager={this.manager} />
         )
     }
 

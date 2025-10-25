@@ -7,7 +7,6 @@ import {
     ColumnSlug,
     EntityName,
     OwidVariableRoundingMode,
-    OwidVariableRow,
     Time,
 } from "@ourworldindata/types"
 import { OwidTable } from "@ourworldindata/core-table"
@@ -33,7 +32,7 @@ export interface MapSparklineManager {
     targetTime?: Time
     entityName: EntityName
     lineColorScale?: ColorScale
-    datum?: OwidVariableRow<number | string>
+    highlightedTimesInSparkline?: Time[]
     mapAndYColumnAreTheSame?: boolean
     yAxisConfig?: AxisConfigInterface
     formatValueForTooltip: MapFormatValueForTooltip
@@ -84,6 +83,10 @@ export class MapSparkline extends React.Component<MapSparklineProps> {
         return this.hasTimeSeriesData
     }
 
+    @computed private get highlightedTimesInLineChart(): Time[] {
+        return this.props.manager.highlightedTimesInSparkline ?? []
+    }
+
     @computed private get sparklineManager(): LineChartManager {
         const { mapColumnInfo } = this.manager
 
@@ -125,10 +128,7 @@ export class MapSparkline extends React.Component<MapSparklineProps> {
             fontSize: 11,
             disableIntroAnimation: true,
             lineStrokeWidth: 2,
-            entityYearHighlight: {
-                entityName: this.manager.entityName,
-                year: this.manager.datum?.originalTime,
-            },
+            highlightedTimesInLineChart: this.highlightedTimesInLineChart,
             yAxisConfig: {
                 hideAxis: true,
                 hideGridlines: false,
@@ -200,16 +200,13 @@ export class MapSparkline extends React.Component<MapSparklineProps> {
 
         const { mapColumnSlug, formatValueForTooltip } = this.manager
 
+        const roundingMode = OwidVariableRoundingMode.decimalPlaces
         const { yAxisConfig } = this.sparklineManager,
             yColumn = this.sparklineTable.get(mapColumnSlug),
             minVal = _.min([yColumn.minValue, yAxisConfig?.min]) ?? 0,
             maxVal = _.max([yColumn.maxValue, yAxisConfig?.max]) ?? 0,
-            minLabel = formatValueForTooltip(minVal, {
-                roundingMode: OwidVariableRoundingMode.decimalPlaces,
-            }).formattedValue,
-            maxLabel = formatValueForTooltip(maxVal, {
-                roundingMode: OwidVariableRoundingMode.decimalPlaces,
-            }).formattedValue
+            minLabel = formatValueForTooltip(minVal, { roundingMode }).label,
+            maxLabel = formatValueForTooltip(maxVal, { roundingMode }).label
         const { innerBounds: axisBounds } = this.sparklineChart.dualAxis
 
         const labelX = axisBounds.right - SPARKLINE_NUDGE
