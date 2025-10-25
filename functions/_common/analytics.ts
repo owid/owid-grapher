@@ -48,14 +48,20 @@ export function getCommonEventParams(request: Request, pathname: string) {
 
     // null values aren't allowed & param values must be 100 characters or less
     const referrer = (request.headers.get("referer") || "").slice(0, 100)
-    const user_agent = (request.headers.get("user-agent") || "").slice(0, 100)
+    const fullUserAgent = request.headers.get("user-agent") || ""
+    const user_agent = fullUserAgent.slice(0, 100)
 
-    const params = {
+    const params: Record<string, string | number> = {
         pathname: pathname,
         referrer,
         user_agent,
         method: request.method,
         country: request.headers.get("cf-ipcountry") || "",
+    }
+
+    // If user-agent is longer than 100 chars, capture the next 100 chars
+    if (fullUserAgent.length > 100) {
+        params.user_agent_next = fullUserAgent.slice(100, 200)
     }
 
     const searchParams = url.searchParams
