@@ -336,7 +336,7 @@ export class GrapherState {
         return this._inputTable
     }
 
-    set inputTable(table: OwidTable) {
+    @action set inputTable(table: OwidTable) {
         this._inputTable = table
 
         if (this.manager?.selection?.hasSelection) {
@@ -1370,23 +1370,27 @@ export class GrapherState {
         return this.timelineHandleTimeBounds[0]
     }
     set startHandleTimeBound(newValue: TimeBound) {
-        if (this.isSingleTimeSelectionActive)
-            this.timelineHandleTimeBounds = [newValue, newValue]
-        else
-            this.timelineHandleTimeBounds = [
-                newValue,
-                this.timelineHandleTimeBounds[1],
-            ]
+        runInAction(() => {
+            if (this.isSingleTimeSelectionActive)
+                this.timelineHandleTimeBounds = [newValue, newValue]
+            else
+                this.timelineHandleTimeBounds = [
+                    newValue,
+                    this.timelineHandleTimeBounds[1],
+                ]
+        })
     }
 
     set endHandleTimeBound(newValue: TimeBound) {
-        if (this.isSingleTimeSelectionActive)
-            this.timelineHandleTimeBounds = [newValue, newValue]
-        else
-            this.timelineHandleTimeBounds = [
-                this.timelineHandleTimeBounds[0],
-                newValue,
-            ]
+        runInAction(() => {
+            if (this.isSingleTimeSelectionActive)
+                this.timelineHandleTimeBounds = [newValue, newValue]
+            else
+                this.timelineHandleTimeBounds = [
+                    this.timelineHandleTimeBounds[0],
+                    newValue,
+                ]
+        })
     }
 
     @computed get endHandleTimeBound(): TimeBound {
@@ -1689,12 +1693,14 @@ export class GrapherState {
     }
 
     set timelineHandleTimeBounds(value: TimeBounds) {
-        if (this.isOnMapTab) {
-            this.map.time = value[1]
-        } else {
-            this.minTime = value[0]
-            this.maxTime = value[1]
-        }
+        runInAction(() => {
+            if (this.isOnMapTab) {
+                this.map.time = value[1]
+            } else {
+                this.minTime = value[0]
+                this.maxTime = value[1]
+            }
+        })
     }
 
     // Get the dimension slots appropriate for this type of chart
@@ -2148,10 +2154,14 @@ export class GrapherState {
     }
 
     set facetStrategy(facet: FacetStrategy) {
-        this.selectedFacetStrategy = facet
+        runInAction(() => {
+            this.selectedFacetStrategy = facet
+        })
     }
     set baseFontSize(val: number) {
-        this._baseFontSize = val
+        runInAction(() => {
+            this._baseFontSize = val
+        })
     }
 
     getColumnSlugsForCondensedSources(): string[] {
@@ -2363,7 +2373,9 @@ export class GrapherState {
     }
     // todo: this is only relevant for scatter plots and Marimekko. move to scatter plot class?
     set xOverrideTime(value: number | undefined) {
-        this.xDimension!.targetYear = value
+        runInAction(() => {
+            this.xDimension!.targetYear = value
+        })
     }
     @computed get defaultBounds(): Bounds {
         return new Bounds(0, 0, DEFAULT_GRAPHER_WIDTH, DEFAULT_GRAPHER_HEIGHT)
@@ -2505,7 +2517,9 @@ export class GrapherState {
         )
     }
     set externalBounds(bounds: Bounds) {
-        this._externalBounds = bounds
+        runInAction(() => {
+            this._externalBounds = bounds
+        })
     }
     @computed get isPortrait(): boolean {
         return (
@@ -2883,17 +2897,19 @@ export class GrapherState {
     }
 
     set isInFullScreenMode(newValue: boolean) {
-        // prevent scrolling when in full-screen mode
-        if (newValue) {
-            document.documentElement.classList.add("no-scroll")
-        } else {
-            document.documentElement.classList.remove("no-scroll")
-        }
+        runInAction(() => {
+            // prevent scrolling when in full-screen mode
+            if (newValue) {
+                document.documentElement.classList.add("no-scroll")
+            } else {
+                document.documentElement.classList.remove("no-scroll")
+            }
 
-        // dismiss the share menu
-        this.isShareMenuActive = false
+            // dismiss the share menu
+            this.isShareMenuActive = false
 
-        this._isInFullScreenMode = newValue
+            this._isInFullScreenMode = newValue
+        })
     }
 
     @action.bound toggleFullScreenMode(): void {

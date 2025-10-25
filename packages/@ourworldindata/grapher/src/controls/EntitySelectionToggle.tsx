@@ -1,5 +1,5 @@
 import * as React from "react"
-import { computed, makeObservable } from "mobx"
+import { action, computed, makeObservable } from "mobx"
 import { observer } from "mobx-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faEye, faRightLeft, faPen } from "@fortawesome/free-solid-svg-icons"
@@ -115,11 +115,11 @@ export class EntitySelectionToggle extends React.Component<{
             <div className="entity-selection-menu">
                 <button
                     className={classnames("menu-toggle", { active })}
-                    onClick={(e): void => {
+                    onClick={action((e): void => {
                         this.props.manager.isEntitySelectorModalOrDrawerOpen =
                             !active
                         e.stopPropagation()
-                    }}
+                    })}
                     type="button"
                     data-track-note="chart_add_entity"
                     aria-label={`${label.action} ${label.entity}`}
