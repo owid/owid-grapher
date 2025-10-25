@@ -17,6 +17,7 @@ import {
     Filter,
     FilterType,
     SynonymMap,
+    SearchResultType,
 } from "./searchTypes.js"
 import { getCanonicalUrl } from "@ourworldindata/components"
 import {
@@ -62,7 +63,7 @@ const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
             ...source,
             onSelect({ item, navigator }) {
                 navigator.navigate({
-                    itemUrl: `${SEARCH_BASE_PATH}${queryParamsToStr({ q: item.id })}`,
+                    itemUrl: `${SEARCH_BASE_PATH}${queryParamsToStr({ q: item.id, resultType: SearchResultType.ALL })}`,
                 } as any)
             },
         }
@@ -138,7 +139,7 @@ const FeaturedSearchesSource: AutocompleteSource<BaseItem> = {
         return ["CO2", "Energy", "Education", "Poverty", "Democracy"].map(
             (term) => ({
                 title: term,
-                slug: `${SEARCH_BASE_PATH}${queryParamsToStr({ q: term })}`,
+                slug: `${SEARCH_BASE_PATH}${queryParamsToStr({ q: term, resultType: SearchResultType.ALL })}`,
             })
         )
     },
@@ -381,7 +382,7 @@ export function Autocomplete({
             onSubmit({ state, navigator }) {
                 if (!state.query) return
                 navigator.navigate({
-                    itemUrl: `${SEARCH_BASE_PATH}${queryParamsToStr({ q: state.query })}`,
+                    itemUrl: `${SEARCH_BASE_PATH}${queryParamsToStr({ q: state.query, resultType: SearchResultType.ALL })}`,
                     // this method is incorrectly typed - `item` and `state` are optional
                 } as any)
             },
