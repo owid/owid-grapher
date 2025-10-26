@@ -11447,7 +11447,7 @@ __metadata:
     mysql2: "npm:^3.14.1"
     nodejs-polars: "npm:^0.7.2"
     normalize.css: "npm:^8.0.1"
-    openai: "npm:^6.1.0"
+    openai: "npm:^6.7.0"
     p-map: "npm:^7.0.3"
     papaparse: "npm:^5.5.3"
     polylabel: "npm:^2.0.1"
@@ -14174,9 +14174,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openai@npm:^6.1.0":
-  version: 6.1.0
-  resolution: "openai@npm:6.1.0"
+"openai@npm:^6.7.0":
+  version: 6.7.0
+  resolution: "openai@npm:6.7.0"
   peerDependencies:
     ws: ^8.18.0
     zod: ^3.25 || ^4.0
@@ -14187,7 +14187,7 @@ __metadata:
       optional: true
   bin:
     openai: bin/cli
-  checksum: 10/c9b0748f34fc7c12f86538af14dd7bc594bed2c0c42d80a359d4b8160ae9c06d1319094cff2c15a65436ff7d8fa126850b4a00b305acb9dc246aa28f9b3f870b
+  checksum: 10/7de2a61503d509084f1278324dcfa08122d92dcc11199bba449ec519321c27931b8b7b78188d02ca3f4f3a83b94da0921c2fd56bc389a4d5585568d13689b98d
   languageName: node
   linkType: hard
 
