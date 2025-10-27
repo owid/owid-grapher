@@ -184,13 +184,13 @@ import {
     GrapherManager,
     DEFAULT_MS_PER_TICK,
 } from "./Grapher.js"
+import { GrapherAnalytics } from "./GrapherAnalytics.js"
 import {
-    GrapherAnalytics,
-    GrapherAnalyticsContext,
-    EntitySelectorEvent,
-    GrapherImageDownloadEvent,
-    GrapherInteractionEvent,
-} from "./GrapherAnalytics.js"
+    type GrapherAnalyticsContext,
+    type EntitySelectorEvent,
+    type GrapherImageDownloadEvent,
+    type GrapherInteractionEvent,
+} from "@ourworldindata/types"
 import {
     latestGrapherConfigSchema,
     DEFAULT_GRAPHER_ENTITY_TYPE,

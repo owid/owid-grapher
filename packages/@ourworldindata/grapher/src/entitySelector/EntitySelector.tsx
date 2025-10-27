@@ -67,12 +67,12 @@ import {
     ProjectionColumnInfo,
     Time,
     ToleranceStrategy,
+    type EntitySelectorEvent,
 } from "@ourworldindata/types"
 import { buildVariableTable } from "../core/LegacyToOwidTable"
 import { DrawerContext } from "../slideInDrawer/SlideInDrawer.js"
 import * as R from "remeda"
 import { MapConfig } from "../mapCharts/MapConfig"
-import { EntitySelectorEvent } from "../core/GrapherAnalytics"
 import { match } from "ts-pattern"
 import {
     entityRegionTypeLabels,

@@ -5,6 +5,7 @@ import {
     SeriesName,
     GlobeRegionName,
     ProjectionColumnInfo,
+    type GrapherInteractionEvent,
     Time,
 } from "@ourworldindata/types"
 import { ChartManager } from "../chart/ChartManager"
@@ -13,7 +14,6 @@ import { ChartSeries } from "../chart/ChartInterface"
 import { GlobeController } from "./GlobeController"
 import { MapSelectionArray } from "../selection/MapSelectionArray.js"
 import { CoreColumn } from "@ourworldindata/core-table"
-import { GrapherInteractionEvent } from "../core/GrapherAnalytics"
 import * as R from "remeda"
 import { InteractionState } from "../interaction/InteractionState"
 

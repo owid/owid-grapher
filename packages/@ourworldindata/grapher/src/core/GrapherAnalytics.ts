@@ -18,17 +18,6 @@ type WindowWithDataLayer = Window & {
 }
 declare const window: WindowWithDataLayer
 
-// Re-export types for backwards compatibility
-export type {
-    EventCategory,
-    EntitySelectorEvent,
-    GrapherImageDownloadEvent,
-    GrapherInteractionEvent,
-    GrapherAnalyticsContext,
-}
-
-// ============================================================================
-
 // taken from https://github.com/DefinitelyTyped/DefinitelyTyped/blob/de66435d18fbdb2684947d16b5cd3a77f876324c/types/gtag.js/index.d.ts#L151-L156
 interface GAConsentParams {
     ad_storage?: "granted" | "denied" | undefined

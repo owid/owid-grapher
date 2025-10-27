@@ -18,6 +18,7 @@ import {
 import {
     ChartErrorInfo,
     GRAPHER_MAP_TYPE,
+    GrapherInteractionEvent,
     MapRegionName,
     Time,
 } from "@ourworldindata/types"
@@ -47,7 +48,6 @@ import {
     PADDING_BETWEEN_MAP_AND_LEGEND,
     PADDING_BETWEEN_MAP_LEGENDS,
 } from "../mapCharts/MapChart"
-import { GrapherInteractionEvent } from "../core/GrapherAnalytics"
 import { ChartComponent, makeChartInstance } from "../chart/ChartTypeMap"
 import {
     MAP_VIEWPORT_FACETED_WORLD,
