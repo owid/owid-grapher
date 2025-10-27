@@ -3,7 +3,7 @@ name: Feature request
 about: Suggest an idea for this project
 title: ""
 type: enhancement
-labels: feature, needs triage
+labels: needs triage
 assignees: ""
 ---
 
