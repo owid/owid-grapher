@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
-import { injectAutomaticSubscribeBar } from "./gdocComponentUtils.js"
+import { injectAutomaticSubscribeBanner } from "./gdocComponentUtils.js"
 import type {
     EnrichedBlockHeading,
     EnrichedBlockText,
-    EnrichedBlockSubscribeBar,
+    EnrichedBlockSubscribeBanner,
     OwidEnrichedGdocBlock,
 } from "@ourworldindata/utils"
 
@@ -20,11 +20,11 @@ const textBlock = (): EnrichedBlockText => ({
     parseErrors: [],
 })
 
-describe("injectAutomaticSubscribeBar", () => {
+describe("injectAutomaticSubscribeBanner", () => {
     it("returns the original blocks when there is no level 1 heading", () => {
         const blocks: OwidEnrichedGdocBlock[] = [textBlock()]
 
-        const result = injectAutomaticSubscribeBar(blocks)
+        const result = injectAutomaticSubscribeBanner(blocks)
 
         expect(result).toBe(blocks)
     })
@@ -38,16 +38,16 @@ describe("injectAutomaticSubscribeBar", () => {
             lastHeading,
         ]
 
-        const result = injectAutomaticSubscribeBar(blocks)
+        const result = injectAutomaticSubscribeBanner(blocks)
 
         expect(result).not.toBe(blocks)
         expect(result).toHaveLength(blocks.length + 1)
-        const subscribeBar = result[
+        const SubscribeBanner = result[
             result.length - 2
-        ] as EnrichedBlockSubscribeBar
-        expect(subscribeBar.type).toBe("subscribe-bar")
-        expect(subscribeBar.align).toBe("center")
-        expect(subscribeBar.parseErrors).toEqual([])
+        ] as EnrichedBlockSubscribeBanner
+        expect(SubscribeBanner.type).toBe("subscribe-banner")
+        expect(SubscribeBanner.align).toBe("center")
+        expect(SubscribeBanner.parseErrors).toEqual([])
         expect(result[result.length - 1]).toBe(lastHeading)
     })
 
@@ -63,15 +63,15 @@ describe("injectAutomaticSubscribeBar", () => {
             trailingText,
         ]
 
-        const result = injectAutomaticSubscribeBar(blocks)
+        const result = injectAutomaticSubscribeBanner(blocks)
 
         expect(result).toHaveLength(blocks.length + 1)
         const finalHeadingIndex = result.indexOf(finalHeading)
         expect(finalHeadingIndex).toBeGreaterThan(0)
-        const subscribeBar = result[finalHeadingIndex - 1]
-        expect(subscribeBar.type).toBe("subscribe-bar")
+        const SubscribeBanner = result[finalHeadingIndex - 1]
+        expect(SubscribeBanner.type).toBe("subscribe-banner")
         expect(
-            result.filter((block) => block.type === "subscribe-bar")
+            result.filter((block) => block.type === "subscribe-banner")
         ).toHaveLength(1)
         expect(result[finalHeadingIndex + 1]).toBe(trailingText)
     })

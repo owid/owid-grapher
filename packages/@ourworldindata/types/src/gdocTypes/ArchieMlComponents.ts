@@ -1043,15 +1043,15 @@ export type EnrichedBlockCookieNotice = {
     type: "cookie-notice"
 } & EnrichedBlockWithParseErrors
 
-export type RawBlockSubscribeBar = {
-    type: "subscribe-bar"
+export type RawBlockSubscribeBanner = {
+    type: "subscribe-banner"
     value?: {
         align?: string
     }
 }
 
-export type EnrichedBlockSubscribeBar = {
-    type: "subscribe-bar"
+export type EnrichedBlockSubscribeBanner = {
+    type: "subscribe-banner"
     align: BlockAlignment
 } & EnrichedBlockWithParseErrors
 
@@ -1158,7 +1158,7 @@ export type OwidRawGdocBlock =
     | RawBlockHomepageIntro
     | RawBlockLatestDataInsights
     | RawBlockCookieNotice
-    | RawBlockSubscribeBar
+    | RawBlockSubscribeBanner
     | RawBlockCta
     | RawBlockSocials
 
@@ -1216,7 +1216,7 @@ export type OwidEnrichedGdocBlock =
     | EnrichedBlockHomepageIntro
     | EnrichedBlockLatestDataInsights
     | EnrichedBlockCookieNotice
-    | EnrichedBlockSubscribeBar
+    | EnrichedBlockSubscribeBanner
     | EnrichedBlockCta
     | EnrichedBlockSocials
 

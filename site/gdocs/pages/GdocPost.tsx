@@ -132,7 +132,7 @@ export function GdocPost({
                 <ArticleBlocks
                     toc={content.toc}
                     blocks={content.body}
-                    automaticSubscribeBar={!shouldHideSubscribeBanner}
+                    automaticSubscribeBanner={!shouldHideSubscribeBanner}
                 />
             ) : null}
             {content.refs && !_.isEmpty(content.refs.definitions) ? (
