@@ -1,8 +1,8 @@
 /**
- * @vitest-environment jsdom
+ * @vitest-environment happy-dom
  */
 
-import { assert, expect, test } from "vitest"
+import { afterAll, assert, beforeAll, expect, test, vi } from "vitest"
 import { render, fireEvent, screen } from "@testing-library/react"
 import { Grapher } from "../core/Grapher.js"
 import { GrapherState } from "../core/GrapherState.js"
@@ -15,6 +15,42 @@ state.inputTable = legacyToOwidTableAndDimensionsWithMandatorySlug(
     legacyMapGrapher.dimensions!,
     legacyMapGrapher.selectedEntityColors
 )
+
+beforeAll(() => {
+    // Replace IntersectionObserver with a mock that always calls the callback immediately when
+    // `observe` is called. This ensures that Grapher is rendering, and doesn't wait for the
+    // element to become visible first (which doesn't happen in the test environment).
+    const IntersectionObserverMock = class IntersectionObserverMock extends IntersectionObserver {
+        constructor(public callback: IntersectionObserverCallback) {
+            super(callback)
+        }
+
+        override observe(elem: Element): void {
+            this.callback(
+                [
+                    {
+                        isIntersecting: true,
+                        target: elem,
+                        boundingClientRect: {} as DOMRectReadOnly,
+                        intersectionRatio: 1,
+                        intersectionRect: {} as DOMRectReadOnly,
+                        rootBounds: null,
+                        time: Date.now(),
+                    },
+                ],
+                this
+            )
+        }
+        override unobserve = vi.fn()
+        override disconnect = vi.fn()
+    }
+
+    vi.stubGlobal("IntersectionObserver", IntersectionObserverMock)
+})
+
+afterAll(() => {
+    vi.unstubAllGlobals()
+})
 
 test("map tooltip renders iff mouseenter", () => {
     const { container } = render(<Grapher grapherState={state} />)

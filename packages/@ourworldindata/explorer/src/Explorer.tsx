@@ -421,11 +421,7 @@ export class Explorer
             this.disposers.push(() => {
                 resizeObserver.disconnect()
             })
-        } else if (
-            typeof window === "object" &&
-            typeof document === "object" &&
-            !navigator.userAgent.includes("jsdom")
-        ) {
+        } else if (typeof window === "object" && typeof document === "object") {
             // only show the warning when we're in something that roughly resembles a browser
             console.warn(
                 "ResizeObserver not available; the explorer will not be responsive to window resizes"
