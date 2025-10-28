@@ -4,11 +4,20 @@ import { getAlgoliaConfig } from "./algoliaClient.js"
 import { searchCharts, SearchState } from "./searchApi.js"
 import { FilterType, Filter } from "./types.js"
 
+const hasSearchEnvVars = (env: Env): boolean => {
+    return !!env.ALGOLIA_ID && !!env.ALGOLIA_SEARCH_KEY
+}
+
 export const onRequestGet: PagesFunction<Env> = async (context) => {
     const { request, env } = context
     const url = new URL(request.url)
 
     try {
+        if (!hasSearchEnvVars(env)) {
+            throw new Error(
+                "Missing environment variables. Please check that both ALGOLIA_ID and ALGOLIA_SEARCH_KEY are set."
+            )
+        }
         // Parse query parameter
         const query = url.searchParams.get("q") || ""
 
