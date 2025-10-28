@@ -8,8 +8,15 @@ export interface SearchWord {
     exclude: boolean
 }
 
+// TS Workaround until RegExp.escape lands, see https://github.com/microsoft/TypeScript/issues/61321
+declare global {
+    interface RegExpConstructor {
+        escape(str: string): string
+    }
+}
+
 function buildRegexFromSearchWord(str: string): RegExp {
-    const escapedString = _.escapeRegExp(str)
+    const escapedString = RegExp.escape(str)
     const moreTolerantMatchReplacements =
         // Match digit or superscript/subscript variant
         [
