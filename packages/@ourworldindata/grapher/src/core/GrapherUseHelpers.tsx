@@ -79,7 +79,12 @@ export function renderSingleGrapherOnGrapherPage(
     {
         archiveContext,
         noCache,
-    }: { archiveContext?: ArchiveContext; noCache?: boolean } = {}
+        queryStr,
+    }: {
+        archiveContext?: ArchiveContext
+        noCache?: boolean
+        queryStr?: string
+    } = {}
 ): void {
     const container = document.getElementsByTagName("figure")[0]
     try {
@@ -88,7 +93,7 @@ export function renderSingleGrapherOnGrapherPage(
                 ...jsonConfig,
                 bindUrlToWindow: true,
                 enableKeyboardShortcuts: true,
-                queryStr: window.location.search,
+                queryStr: queryStr ?? window.location.search,
                 archiveContext,
             },
             container,
