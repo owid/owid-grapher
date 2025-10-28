@@ -12,14 +12,14 @@ export async function getFigmaImageUrl(
     _res: e.Response<any, Record<string, any>>,
     _trx: db.KnexReadonlyTransaction
 ) {
-    const { fileId, nodeId } = req.query
+    const { fileId, nodeId } = req.query as Record<string, string>
 
     if (!fileId || !nodeId) throw new JsonError("fileId or nodeId missing")
 
     // Request the image URL from Figma
     const imageMap = await figmaApi.getImages(
         { file_key: fileId },
-        { ids: [nodeId], scale: 3 }
+        { ids: [nodeId].join(","), scale: 3 }
     )
     if (!imageMap || imageMap.err !== null)
         throw new JsonError("Failed to fetch image map from Figma")
