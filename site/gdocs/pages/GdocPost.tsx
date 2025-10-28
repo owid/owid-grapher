@@ -65,6 +65,8 @@ export function GdocPost({
     )
     const citationText = `${shortPageCitation} Published online at OurWorldinData.org. Retrieved from: '${`${BAKED_BASE_URL}/${slug}`}' [Online Resource]`
     const hasSidebarToc = content["sidebar-toc"]
+    const shouldHideSubscribeBanner =
+        content["hide-subscribe-banner"] || postType === OwidGdocType.TopicPage
     const isDeprecated =
         postType === OwidGdocType.Article &&
         Boolean(content["deprecation-notice"])
@@ -127,7 +129,11 @@ export function GdocPost({
                 </details>
             ) : null}
             {content.body ? (
-                <ArticleBlocks toc={content.toc} blocks={content.body} />
+                <ArticleBlocks
+                    toc={content.toc}
+                    blocks={content.body}
+                    automaticSubscribeBar={!shouldHideSubscribeBanner}
+                />
             ) : null}
             {content.refs && !_.isEmpty(content.refs.definitions) ? (
                 <Footnotes definitions={content.refs.definitions} />
