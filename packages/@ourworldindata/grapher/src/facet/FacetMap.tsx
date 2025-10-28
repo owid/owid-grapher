@@ -39,7 +39,7 @@ import {
     HorizontalNumericColorLegend,
 } from "../horizontalColorLegend/HorizontalColorLegends"
 import { CategoricalBin, ColorScaleBin } from "../color/ColorScaleBin"
-import { GRAPHER_DARK_TEXT } from "../color/ColorConstants"
+import { GRAPHER_DARK_TEXT, GRAY_30 } from "../color/ColorConstants"
 import {
     MAP_LEGEND_MAX_WIDTH_RATIO,
     MapChart,
@@ -56,6 +56,7 @@ import {
     MapViewport,
 } from "../mapCharts/MapChartConstants"
 import { ChartState } from "../chart/ChartInterface.js"
+import { MapConfig } from "../mapCharts/MapConfig"
 
 @observer
 export class FacetMap
@@ -151,19 +152,20 @@ export class FacetMap
         return Math.floor(this.fontSize * GRAPHER_FONT_SCALE_18)
     }
 
+    @computed private get mapConfig(): MapConfig {
+        return this.manager.mapConfig ?? new MapConfig()
+    }
+
     @computed private get mapViewport(): MapViewport {
-        const { mapConfig } = this.manager
+        const { region } = this.mapConfig
 
         // Use a custom viewport for the World map that zooms in a little bit to make best use of the space
-        const region: MapRegionName = mapConfig?.region ?? MapRegionName.World
         if (region === MapRegionName.World) return MAP_VIEWPORT_FACETED_WORLD
 
         return MAP_VIEWPORTS[region]
     }
 
     private getGridParams(bounds: Bounds): GridParameters {
-        const { mapConfig } = this.manager
-
         // We determine the preferred layout (horizontal vs vertical)
         // by comparing which orientation produces an aspect ratio closest to
         // the map's natural aspect ratio. The globe uses the horizontal layout.
@@ -171,7 +173,7 @@ export class FacetMap
         const horizontalLayout = { rows: 1, columns: 2, count: 2 }
         const verticalLayout = { rows: 2, columns: 1, count: 2 }
 
-        if (mapConfig?.globe.isActive) return horizontalLayout
+        if (this.mapConfig.globe.isActive) return horizontalLayout
 
         const mapAspectRatio = this.mapViewport.ratio
 
@@ -322,10 +324,20 @@ export class FacetMap
         }) as MapChart
     }
 
+    @computed private get gridParams(): GridParameters {
+        return this.getGridParams(this.facetsContainerBounds)
+    }
+
+    @computed private get facetArrangement(): "side-by-side" | "stacked" {
+        return this.gridParams.rows > this.gridParams.columns
+            ? "stacked"
+            : "side-by-side"
+    }
+
     @computed get placedSeries(): PlacedMapFacetSeries[] {
         const bounds = this.facetsContainerBounds
         const gridBoundsArr = bounds.grid(
-            this.getGridParams(bounds),
+            this.gridParams,
             this.facetGridPadding
         )
         return this.intermediatePlacedSeries.map((series, i) => {
@@ -435,7 +447,7 @@ export class FacetMap
         x: number
         y: number
     } {
-        const { labelPadding } = this
+        const { mapConfig, labelPadding } = this
         const { bounds } = facet
 
         const labelX = bounds.centerX
@@ -443,8 +455,8 @@ export class FacetMap
 
         // For the globe and 2D continent views, simply render the label at the top
         if (
-            this.manager.mapConfig?.globe.isActive ||
-            this.manager.mapConfig?.region !== MapRegionName.World
+            mapConfig.globe.isActive ||
+            mapConfig.region !== MapRegionName.World
         )
             return { x: labelX, y: labelY }
 
@@ -484,11 +496,39 @@ export class FacetMap
         )
     }
 
+    private renderSeparatorLine(): React.ReactElement | null {
+        const {
+            mapConfig,
+            facetArrangement,
+            facetsContainerBounds: bounds,
+        } = this
+
+        // It can be difficult to visually distinguish two continent maps
+        // when plotted side by side, so we draw a gray line between them
+        if (
+            mapConfig.region !== MapRegionName.World &&
+            facetArrangement === "side-by-side"
+        ) {
+            return (
+                <line
+                    x1={bounds.centerX}
+                    y1={bounds.top}
+                    x2={bounds.centerX}
+                    y2={bounds.bottom}
+                    stroke={GRAY_30}
+                />
+            )
+        }
+
+        return null
+    }
+
     override render(): React.ReactElement {
         const { facetFontSize } = this
         return (
-            <React.Fragment>
+            <>
                 {this.renderMapLegend()}
+                {this.renderSeparatorLine()}
                 {this.placedSeries.map((series) => {
                     const { bounds, seriesName } = series
 
@@ -514,7 +554,7 @@ export class FacetMap
                         </React.Fragment>
                     )
                 })}
-            </React.Fragment>
+            </>
         )
     }
 }
