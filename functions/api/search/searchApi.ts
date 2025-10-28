@@ -1,12 +1,6 @@
-import {
-    SearchIndexName,
-    FilterType,
-    Filter,
-    // eslint-disable-next-line import-x/no-relative-packages
-} from "../../../site/search/searchTypes.js"
+import { SearchIndexName, FilterType, Filter } from "./types.js"
 import { getIndexName, AlgoliaConfig } from "./algoliaClient.js"
-// eslint-disable-next-line import-x/no-relative-packages
-import type { SearchChartHit } from "../../../site/search/searchTypes.js"
+import type { SearchChartHit } from "./types.js"
 
 export interface SearchState {
     query: string
