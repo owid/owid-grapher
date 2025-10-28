@@ -1,9 +1,9 @@
 import * as Sentry from "@sentry/cloudflare"
-import { Env } from "../_common/env.js"
+import { Env } from "../../_common/env.js"
 import { getAlgoliaConfig } from "./algoliaClient.js"
 import { searchCharts, SearchState } from "./searchApi.js"
 // eslint-disable-next-line import-x/no-relative-packages
-import { FilterType, Filter } from "../../site/search/searchTypes.js"
+import { FilterType, Filter } from "../../../site/search/searchTypes.js"
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
     const { request, env } = context

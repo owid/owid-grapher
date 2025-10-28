@@ -5,7 +5,8 @@
         "/deleted/*",
         "/donation/*",
         "/explorers/*",
-        "/multi-dim/*"
+        "/multi-dim/*",
+        "/api/search"
     ],
     "exclude": ["/grapher/_grapherRedirects.json"]
 }
